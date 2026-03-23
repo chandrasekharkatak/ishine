@@ -2584,7 +2584,6 @@
                                                 <td class="milestone-table__cell milestone-table__cell--desc">{{ milestone.remarks }}</td>
                                                 <td class="milestone-table__cell milestone-table__cell--actions">
                                                     <button type="button" class="milestone-table__btn milestone-table__btn--edit"
-                                                        [disabled]="milestone.status === 'Completed'"
                                                         [title]="milestone.status === 'Completed' ? 'Cannot edit completed milestone' : 'Edit'"
                                                         (click)="openUpdateProjectMilestoneModal(milestone)">
                                                         <i class="fas fa-edit"></i>
@@ -4463,7 +4462,7 @@
 
       <main class="ep-milestone-modal__main">
         <section class="ep-milestone-form-section">
-          <h3 class="ep-milestone-form-section__title">Date &amp; Status</h3>
+          <h3 class="ep-milestone-form-section__title">Date</h3>
           <div class="ep-milestone-form-row">
             <mat-form-field appearance="outline" class="ep-milestone-field ep-milestone-field--half ep-datepicker-57px">
               <mat-label>Extend end date</mat-label>
@@ -4481,16 +4480,6 @@
                 2. Select a date after the End Date to extend the milestone duration.'"
                 matTooltipClass="milestone-tooltip"
                 matTooltipPosition="above" class="ep-milestone-field__hint">info</mat-icon>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="ep-milestone-field ep-milestone-field--half">
-              <mat-label>Status</mat-label>
-              <mat-select [(ngModel)]="projectMilestone.status" (selectionChange)="onStatusChange($event.value)">
-                <mat-option [value]="projectMilestone.status">{{ projectMilestone.status }}</mat-option>
-                <ng-container *ngFor="let status of statusList">
-                  <mat-option *ngIf="status != projectMilestone.status" [value]="status">{{ status }}</mat-option>
-                </ng-container>
-              </mat-select>
-              <mat-hint *ngIf="projectMilestone.status === 'Completed' || projectMilestone.status === 'On Hold'">Document required</mat-hint>
             </mat-form-field>
           </div>
         </section>
@@ -4558,7 +4547,26 @@
           </div>
         </section>
 
-        <section class="ep-milestone-form-section">
+        <!-- Update Milestone Extension Details -->
+        <div class="d-flex justify-content-end" *ngIf="this.isExtensionEnabled && this.projectMilestone.extendedDate">
+        <button type="button" class="ep-btn ep-btn--primary" (click)="updateMilestoneExtendedDateWithReason()">Update milestone extension details</button>
+      </div>
+
+
+        <section class="mt-5">
+            <mat-form-field appearance="outline" class="ep-milestone-field ep-milestone-field--half">
+              <mat-label>Status</mat-label>
+              <mat-select [(ngModel)]="projectMilestone.status" (selectionChange)="onStatusChange($event.value)">
+                <mat-option [value]="projectMilestone.status">{{ projectMilestone.status }}</mat-option>
+                <ng-container *ngFor="let status of statusList">
+                  <mat-option *ngIf="status != projectMilestone.status" [value]="status">{{ status }}</mat-option>
+                </ng-container>
+              </mat-select>
+              <mat-hint *ngIf="projectMilestone.status === 'Completed' || projectMilestone.status === 'On Hold'">Document required</mat-hint>
+            </mat-form-field>
+        </section>
+
+        <section class="ep-milestone-form-section mt-3">
           <h3 class="ep-milestone-form-section__title">Remarks</h3>
           <mat-form-field appearance="outline" class="ep-milestone-field ep-milestone-field--full">
             <mat-label>Notes (optional)</mat-label>
@@ -4579,7 +4587,7 @@
                 <ng-container *ngIf="!selectedFile">
                   <i class="fa fa-image ep-upload__icon"></i>
                   <span class="ep-upload__text">Drop image or <span class="ep-upload__browse">browse</span></span>
-                  <span class="ep-upload__types">JPG, JPEG, PNG</span>
+                  <span class="ep-upload__types">JPG, JPEG, PNG, PDF</span>
                 </ng-container>
                 <ng-container *ngIf="selectedFile">
                   <i class="fa fa-file-image ep-upload__icon ep-upload__icon--file"></i>
@@ -4605,7 +4613,9 @@
       <span class="ep-milestone-modal__footer-note">RM, HOD and directors will be notified.</span>
       <div class="ep-milestone-modal__footer-actions">
         <button type="button" class="ep-btn ep-btn--secondary" (click)="closeUpdateProjectMilestoneModal()">Cancel</button>
-        <button type="button" class="ep-btn ep-btn--primary" (click)="updateMilestoneChanges()">Update milestone</button>
+        <button type="button" class="ep-btn ep-btn--primary"   
+        [title]="!isStatusChanged ? 'Change milestone status to update' : 'Click to update milestone status'"
+        (click)="openMileStoneStatusModal()">Update milestone status details</button>
       </div>
     </footer>
   </div>
@@ -4858,7 +4868,16 @@
   <div class="modal-backdrop fade show"></div>
 </ng-template>
 
-<ng-container *ngIf="showMilestoneImageModal">
-    <ng-container *ngTemplateOutlet="project_milestone_extended_preview"></ng-container>
-</ng-container>
-
+<ng-template #confirmMilestoneStatusModal let-modal>
+  <div class="modal-body text-center">
+    <p class="mb-3">{{ confirmMilestoneStatus }}</p>
+    <div class="d-flex justify-content-center gap-3">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">
+        No
+      </button>
+      <button type="button" class="btn btn-primary ml-3" (click)="updateMilestoneChanges(); modal.close()">
+        Yes
+      </button>
+    </div>
+  </div>
+</ng-template>

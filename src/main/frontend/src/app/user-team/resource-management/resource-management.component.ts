@@ -178,6 +178,7 @@ toggleExpand(): void {
 
 
   @ViewChild('alertTemplate') alertTemplateForMilestone!: TemplateRef<any>;
+  @ViewChild('confirmMilestoneStatusModal') confirmMilestoneStatusModal!: TemplateRef<any>;
 
   @ViewChild("alert_message")
   alertModal: TemplateRef<any>;
@@ -326,6 +327,7 @@ expiredProjectsWithin1Month:any;
   isPdfFile: boolean = false;
   isStatusChanged: boolean = false;
   originalStatus:any
+  confirmMilestoneStatus:any;
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   employeeNotInSearchColumns: any[] = ['employeementId','employeeName','deptName','jobRole','email','skillNames','certificateNames'];
@@ -6455,13 +6457,6 @@ showProjectMilestones(projectObj: any) {
     }
   }
 
-
-
-
-
-
-
-
   calculatePoStatus() {
     let notStarted = 0, completed = 0, hold = 0, inProgress = 0;
     let lineItemList = this.fcProjectMilestoneList.filter(milestone => milestone.lineItemId == this.projectMilestone.lineItemId);
@@ -6486,13 +6481,13 @@ showProjectMilestones(projectObj: any) {
     this.fcProjectMilestoneList.every(m => m.status === Status.COMPLETED);
 
   if (allCompleted) {
-    this.confirmComplete();
+    // this.confirmComplete();
   } else {
 
     this.updateMilestone();
     this.closeUpdateProjectMilestoneModal();
   }
-
+   return allCompleted
   }
 shouldReload: boolean = false;
 confirmComplete() {
@@ -6634,35 +6629,10 @@ cancelComplete() {
 }
 
 
-  isLoadingMilestone:boolean=false;
-  async updateMilestoneChanges() {
-    // Validate required fields
-
-    let isValid = true;
-    let errors: any;
-    this.projectNameForMilestoneUpdate = this.projectObj.name;
-    this.poNameForMilestoneUpdate = this.projectObj.poNo;
-
-    if((!this.isExtensionEnabled && !this.projectMilestone.extendedDate) && !this.isStatusChanged){
-      this.openAlertMod(this.alertTemplateForMilestone, 'No changes has been done for the selected milestone!!.');
-      return;
-    }
-
-    if (this.isExtensionEnabled && this.projectMilestone.extendedDate){
-      this.projectMilestone.endDate=this.projectMilestone.extendedDate ? this.projectMilestone.extendedDate :this.projectMilestone.endDate
-      const update = await this.updateMilestoneExtendedDateWithReason();
-      if(!update) return;
-    }
-
-    if(!this.isStatusChanged) {
-      this.openAlertMod(this.alertTemplateForMilestone, 'Extend date updated!!');
-      this.showProjectMilestones(this.projectObj);
-      return;}
-
+openMileStoneStatusModal(){
     if (!this.projectMilestone.startDate) {
     this.openAlertMod(this.alertTemplateForMilestone, 'Start date is required for milestone');
-    return;
-  }
+    return;}
 
   if (!this.projectMilestone.endDate) {
     this.openAlertMod(this.alertTemplateForMilestone, 'End date is required for milestone');
@@ -6678,25 +6648,35 @@ cancelComplete() {
     this.openAlertMod(this.alertTemplateForMilestone, 'Status is required for milestone');
     return;
   }
-if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
+  
+  if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
   this.openAlertMod(this.alertTemplateForMilestone, 'Please upload a document when completing/holding a milestone');
   return;
-}
-
+  }
 
   if(this.projectObj.projectStatus==="Completed"){
     this.openAlertMod(this.alertTemplateForMilestone, 'Project is already completed. You cannot update the milestone.');
     return;
   }
+
+    this.modalRef = this.modalService.open(this.confirmMilestoneStatusModal, { modalDialogClass: 'modal-sm' });
+    this.confirmMilestoneStatus = "Are you sure to update the milestone status from "+ this.originalStatus +" to "+this.projectMilestone.status +" ?";
+}
+
+  isLoadingMilestone:boolean=false;
+  async updateMilestoneChanges() {
+    // Validate required fields
+
+    let isValid = true;
+    let errors: any;
+    this.projectNameForMilestoneUpdate = this.projectObj.name;
+    this.poNameForMilestoneUpdate = this.projectObj.poNo;
+
     console.log("before updaed by updated on", this.projectMilestone);
 
     this.projectMilestone.updatedBy = this.currentUser.employeementId;
     this.projectMilestone.updatedOn = new Date();
     this.projectMilestone.updatedByName = this.currentUser.name;
-    
-
-
-
 
     const formData = new FormData();
     formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
@@ -6707,17 +6687,15 @@ if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
     }
     this.isLoadingMilestone=true;
 
-    
-
-
     this.projectService.updateMilestoneById(formData).pipe(first()).subscribe({next: (response: any) => {
     this.isLoadingMilestone = false;
 
     if (response.serviceStatus === "Success") {
         this.selectedFile = null;
+        this.projectMilestone.allCompleted =this.calculatePoStatus();
+        this.isStatusChanged=false;
        const index = this.fcProjectMilestoneList.findIndex(m => m.id === this.projectMilestone.id);
     if (index > -1) {this.fcProjectMilestoneList[index] = { ...this.projectMilestone };}
-      this.calculatePoStatus();
       this.closeUpdateProjectMilestoneModal();
       this.showProjectMilestones(this.projectObj);
     } else {

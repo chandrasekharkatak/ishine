@@ -289,9 +289,9 @@ public class PoPortalAPIService {
 			}
 			
 			if (file != null && !file.isEmpty()) {
-			    List<String> allowedContentTypes = Arrays.asList("image/jpeg", "image/png");
+			    List<String> allowedContentTypes = Arrays.asList("image/jpeg", "image/png","application/pdf");
 			    if (!allowedContentTypes.contains(file.getContentType())) {
-			        String msg = "Invalid file type. Only JPG, JPEG, or PNG files are allowed.";
+			        String msg = "Invalid file type. Only JPG, JPEG, PNG or PDF files are allowed.";
 			        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			        serviceResponse.setServiceResponse(msg);
 			        finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();

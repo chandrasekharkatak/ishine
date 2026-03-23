@@ -53,7 +53,7 @@ public class FCProjectMilestoneDTO {
 	
 	private Date extendedDate;
 	private String updatedByName;
-
+	private String allCompleted;
 	
 	private List<MilestoneAuditDTO> milestoneExtendedEndDateLogs;
 	private List<MilestoneAuditDTO> milestoneExtendedStartDateLogs;
