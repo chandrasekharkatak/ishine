@@ -139,13 +139,27 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
 
         @Query(value = "SELECT ptn.* FROM project_timesheet_status_new ptn\n"
         		+ "JOIN employee_timesheets_new etn \n"
+        		+ "JOIN projects p on p.project_id = ptn.project_id "
         		+ "  ON etn.timesheet_id = ptn.timesheet_id\n"
         		+ "WHERE ptn.project_id = :projectId\n"
         		+ "  AND etn.emp_id = :empId\n"
         		+ "AND ptn.client_location_id IS NOT NULL \n"
+        		+ "AND p.active = 'true'"
         		+ "ORDER BY etn.date DESC\n"
         		+ "LIMIT 1", nativeQuery = true)
         ProjectTimesheetStatusNew  findByProjectIdAndEmpId(
            @Param("projectId") Integer projectId, @Param("empId") Long empId);
+        
+        @Query(value = "select p.project_id,p.client_id,cl.client_location_id from projects p \n"
+        		+ "join client_locations cl on cl.client_id = p.client_id \n"
+        		+ "join project_department_map pdm on pdm.project_id = p.project_id \n"
+        		+ "join job_role jr on jr.dept_id = pdm.dept_id\n"
+        		+ "join employee e on e.job_role_id = jr.job_role_id\n"
+        		+ "where e.emp_id = :empId \n"
+        		+ "and p.project_name LIKE '%bench%'\n"
+        		+ "AND p.internal_project_type = 'Bench'\n"
+        		+ "and p.active = 'true'\n"
+        		+ "AND pdm.active is true order by cl.created_on desc limit 1", nativeQuery = true)
+        List<Object[]> getDeptBaseProjectAndClientDataFromEmpId(@Param("empId") Long empId);
 }
 

@@ -87,7 +87,6 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
     @Query(value = "SELECT DISTINCT p.project_id FROM projects p " +
             "INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id " +
             "WHERE p.project_name LIKE '%bench%' " +
-            "AND p.internal_project_type IS NOT NULL " +
             "AND p.internal_project_type = 'Bench' " +
             "AND pdm.active = 1 " +
             "AND pdm.dept_id = :deptId", nativeQuery = true)

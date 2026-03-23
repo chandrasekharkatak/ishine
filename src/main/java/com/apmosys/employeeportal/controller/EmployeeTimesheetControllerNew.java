@@ -489,6 +489,13 @@ public class EmployeeTimesheetControllerNew {
 			response = timesheetServiceNew.getMyLastFilledLocationIdForProjectAndEmp(projectId,empId);
 			return response;
 		}
+		
+		@GetMapping("/fetchDeptBaseProjectAndClientRelatedDataForEmployee")
+		public ServiceResponse createTimesheetForEmployeeWithoutProject(@RequestParam Long empId) {
+			ServiceResponse response = new ServiceResponse();
+			response = timesheetServiceNew.fetchDeptBaseProjectAndClientRelatedDataForEmployee(empId);
+			return response;
+		}
 }
 
 

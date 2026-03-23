@@ -319,4 +319,15 @@ processBulkTimesheets(payload: any) {
       { params }
     );
   }
+
+  fetchDeptBaseProjectAndClientRelatedDataForEmployee(empId: number): Observable<any> {
+    
+    const params = new HttpParams()
+      .set('empId', empId)
+
+    return this.http.get(
+      `${this.baseUrl}api/v2/timesheet/fetchDeptBaseProjectAndClientRelatedDataForEmployee`,
+      { params }
+    );
+  }
 }

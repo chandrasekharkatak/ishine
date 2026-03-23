@@ -165,6 +165,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   appelectMember: any;
   dayTypeToBeExcluded = ["Leave","Holiday"];
   holidayDescription: any;
+  noProjectEmployee: any = false;
   constructor(private teamViewService: TeamViewService,
     private timesheetService: TimesheetService,
     private timesheetNewService: TimesheetNewService,
@@ -1621,6 +1622,7 @@ this.isNightShift = false;
   closeAlertMessageForHolidayCreate(){
 
     this.alertMessageForHolidayCreateModalRef.close();
+    this.getDeptBaseProjectData();
 
   }
 
@@ -3865,7 +3867,47 @@ this.isNightShift = false;
       })
     );
 }
+ getDeptBaseProjectData(): void {
 
+  const empId = this.timesheetAppliedFor?.toLowerCase() === 'self'
+    ? this.currentUser?.empId
+    : this.timesheetFilledForUser?.empId;
+
+  this.timesheetNewService
+    .fetchDeptBaseProjectAndClientRelatedDataForEmployee(empId)
+    .subscribe({
+      next: (response: any) => {
+
+        if (response?.serviceStatus === "Success" && response?.serviceResponse) {
+
+          const data = response.serviceResponse;
+
+          this.timesheetLocations.forEach(loc => {
+           const project = this.createProject(null, null);
+            project.projectId = data.projectId;
+            project.clientId = data.clientId;
+            project.clientLocationId = data.clientLocationId;
+            project.description = this.holidayDescription;
+            loc.projects.push(project);
+          });
+          this.noProjectEmployee = true;
+          if(this.isUpdation){
+            this.updateTimesheet();
+          }else{
+            this.createTimesheet();
+          }
+          
+        } else {
+          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as we could not find any Bench project for you. Please contact your Reporting Manager immediately.');
+        }
+      },
+
+      error: (error) => {
+        console.error('Error fetching dept base project data:', error);
+        this.openAlertMod(this.alertTemplate, 'An error occurred while fetching project data. Please try again later or contact support if the issue persists.');
+      }
+    });
+}
 async prepareDataForNonWorkingDay(): Promise<void> {
 
   if (this.holidayDescription == '' || this.holidayDescription == null) {
@@ -3941,7 +3983,7 @@ async prepareDataForNonWorkingDay(): Promise<void> {
 }
 
   async createTimesheet() {
-    if(!this.isDayTypeFillable()){
+    if(!this.isDayTypeFillable() && !this.noProjectEmployee){
       await this.prepareDataForNonWorkingDay();
     }
     console.log('✅ Before validation:', JSON.stringify(this.timesheetLocations));
@@ -4724,7 +4766,7 @@ async prepareDataForNonWorkingDay(): Promise<void> {
     // Clear previous highlights
     this.highlightLocationList = [];
 
-    if(!this.isDayTypeFillable()){
+    if(!this.isDayTypeFillable() && !this.noProjectEmployee){
       await this.prepareDataForNonWorkingDay();
     }
     const convertToYYYYMMDD = (dateStr: string): string => {
