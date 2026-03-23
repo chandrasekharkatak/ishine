@@ -4534,7 +4534,7 @@
                       </ng-container>
                     </label>
                     <div class="ep-upload__btns">
-                      <button type="button" class="ep-btn ep-btn--ghost" (click)="previewExtensionFile()" [disabled]="!projectMilestone.extensionFile">
+                      <button type="button" class="ep-btn ep-btn--ghost" (click)="previewMilestoneFile(projectMilestone.extensionFile)" [disabled]="!projectMilestone.extensionFile">
                         <i class="fa fa-eye"></i>
                       </button>
                       <button type="button" class="ep-btn ep-btn--ghost" (click)="clearExtensionFile(extensionFileInput)" [disabled]="!projectMilestone.extensionFile">
@@ -4587,7 +4587,7 @@
                 </ng-container>
               </label>
               <div class="ep-upload__btns">
-                <button type="button" class="ep-btn ep-btn--ghost" (click)="previewStatusFile()" [disabled]="!selectedFile">
+                <button type="button" class="ep-btn ep-btn--ghost" (click)="previewMilestoneFile(selectedFile)" [disabled]="!selectedFile">
                   <i class="fa fa-eye"></i>
                 </button>
                 <button type="button" class="ep-btn ep-btn--ghost" (click)="clearSelectedFile(fileInput)" [disabled]="!selectedFile">

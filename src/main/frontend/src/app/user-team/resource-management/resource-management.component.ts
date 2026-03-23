@@ -8524,33 +8524,11 @@ validateFileName(uniquefile: any,type:any) {
   });
 }
 
-previewExtensionFile() {
+previewMilestoneFile(file1:any) {
+  if (!file1) return;
 
-  if (!this.projectMilestone.extensionFile) return;
-
-  const file = this.projectMilestone.extensionFile;
-  const fileURL = URL.createObjectURL(file);
-
-  this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
-  this.isPdfFile = file.type === 'application/pdf';
-  this.isImageFile = file.type.startsWith('image/');
-
-  this.projectMilestoneDocumentModalRef = this.modalService.open(
-    this.projectMilestoneDocumentTemplateRef,
-    {
-      size: 'modal-xl', 
-      backdrop: 'static',
-      keyboard: false
-    }
-  );
-}
-
-previewStatusFile() {
-
-  if (!this.selectedFile) return;
-
-  const file = this.selectedFile;
-  const fileURL = URL.createObjectURL(this.selectedFile);
+  const file = file1;
+  const fileURL = URL.createObjectURL(file1);
   this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
   this.isPdfFile = file.type === 'application/pdf';
   this.isImageFile = file.type.startsWith('image/');
