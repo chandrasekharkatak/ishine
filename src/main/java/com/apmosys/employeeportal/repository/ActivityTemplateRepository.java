@@ -28,4 +28,7 @@ public interface ActivityTemplateRepository extends JpaRepository<ActivityTempla
 	@Query(value="SELECT at FROM ActivityTemplate at WHERE at.deptId IN :deptIds AND at.employeeRole IN :employeeRoles ")
 	List<ActivityTemplate> getByDeptIdAndEmployeeRoleTypeIn(Set<Long> deptIds, Set<String> employeeRoles);
 
+
+    List<ActivityTemplate> getByDeptIdIn(List<Long> deptIds);
+
 }

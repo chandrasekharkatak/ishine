@@ -132,6 +132,7 @@ export class RmgProjectComponent implements OnInit {
     employeeExistingProjectEmploymentId: any;
     projectConfigStepperErrorMessage: string = '';
     roleFilterActionLabel: 'Show Active PO Roles' | 'Show All PO Roles' = 'Show Active PO Roles';
+    poFilterActionLabel: 'Show Active PO' | 'Show All PO' = 'Show Active PO';
 
     // Objects
     currentTeam: RmgTeam = new RmgTeam();
@@ -159,6 +160,7 @@ export class RmgProjectComponent implements OnInit {
     teamMigrationResourceRequirementList: any[] = [];
     selectedMembersEmpId: any[] = [];
     poDetailsList: PoDetails[] = [];
+    filteredPoDetailsList: PoDetails[] = [];
     currentRmgProjectResourceRequirementList: RmgResourceRequirement[] = [];
     allRmgProjectResourceRequirementList: RmgResourceRequirement[] = [];
     resourceRequirementList: RmgResourceRequirement[] = [];
@@ -184,6 +186,7 @@ export class RmgProjectComponent implements OnInit {
     isProjectManagerValid: boolean = false;
     isProjectOverlapping: boolean = false;
     isOnboardingAsShadow: boolean = false;
+    allResourceRequirement: boolean = true;
 
     // Dates
     membersEndDate: any;
@@ -298,6 +301,18 @@ export class RmgProjectComponent implements OnInit {
     markDefaultProjectCompletionIndividualSearchOnEnter: boolean = true;
     markDefaultProjectCompletionIndividualColumnList: any[] = ['employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
 
+    // Resource Requirement
+    isAllResourceRequirementSearchEnabled: boolean = false;
+    allResourceRequirementPage = 1;
+    allResourceRequirementPageSize = 10;
+    allResourceRequirementSortColumn: string = '';
+    allResourceRequirementSortColumnType: string = '';
+    allResourceRequirementSortDirection: string = 'asc';
+    allResourceRequirementFilters: any = {};
+    allResourceRequirementSearchOnEnter: boolean = true;
+    allResourceRequirementColumnList: any[] = ['blank', 'poNo', 'blank', 'blank', 'role', 'department', 'experience', 'blank', 'blank', 'count', 'assignedApproved', 'assignedPending', 'difference'];
+    allResourceRequirementColumnListForInternal: any[] = ['blank', 'poNo', 'blank', 'blank', 'blank', 'assignedApproved', 'assignedPending', 'difference'];
+
     constructor(
         public validationService: ValidationService,
         private readonly toastService: ToastService,
@@ -320,6 +335,9 @@ export class RmgProjectComponent implements OnInit {
         this.getActiveProjectList();
         this.setProjectType();
         this.initialiseNewTeamObj();
+        if (this.isProjectPreview) {
+            this.getResourceRequirementDetailsByProjectId(false);
+        }
         if (!this.isInternalProject) {
             this.getPoDetailsByProjectId();
         }
@@ -531,7 +549,7 @@ export class RmgProjectComponent implements OnInit {
     }
 
     openExistingEmployeeProjectTimesheetInfoModal() {
-        this.existingEmployeeProjectTimesheetInfoModalRef = this.modalService.open(this.existingEmployeeProjectTimesheetInfoTemplateRef, { modalDialogClass: 'modal-lg', backdrop: 'static', keyboard: false });
+        this.existingEmployeeProjectTimesheetInfoModalRef = this.modalService.open(this.existingEmployeeProjectTimesheetInfoTemplateRef, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
     }
 
     closeExistingEmployeeProjectTimesheetInfoModal() {
@@ -586,7 +604,7 @@ export class RmgProjectComponent implements OnInit {
         }
         if (this.isValidList(this.rmgProjectObj?.teamDetailsList)) {
             for (let t of this.rmgProjectObj.teamDetailsList) {
-                if (this.isValidString(t.teamName) && t?.teamId !== team?.teamId && t.teamName?.trim()?.toLowerCase()?.replace(/\s+/g, '') || '' === teamName) {
+                if (this.isValidString(t.teamName) && t?.teamId !== team?.teamId && t.teamName?.trim()?.toLowerCase()?.replace(/\s+/g, '') === teamName) {
                     this.openAlertMessageModal("Team Name already exists!!");
                     return false;
                 }
@@ -794,9 +812,38 @@ export class RmgProjectComponent implements OnInit {
     createCurrentAndOldResourceList(rmgTeam: RmgTeam) {
         rmgTeam.newRmgTeamMember = new RmgTeamMember();
         rmgTeam.newRmgTeamMember.isNotSaved = true;
-        rmgTeam.rmgCurrentTeamMemberList = rmgTeam?.rmgTeamMemberList?.filter(teamMember => {
-            return teamMember.isMemberActive != 0 || moment(teamMember.startDate).format('YYYY-MM-DD') >= moment(new Date()).format('YYYY-MM-DD')
+        const today = moment(new Date()).format('YYYY-MM-DD');
+        const currentMembers = rmgTeam?.rmgTeamMemberList?.filter(teamMember => {
+            const memberStartDate = teamMember?.startDate ? moment(teamMember.startDate).format('YYYY-MM-DD') : null;
+            return teamMember.isMemberActive != 0 || (memberStartDate && moment(memberStartDate).format('YYYY-MM-DD') >= today);
         }) || [];
+
+        const currentMemberMap = new Map<number, RmgTeamMember>();
+        for (const member of currentMembers) {
+            if (!member?.empId) {
+                continue;
+            }
+
+            const existingMember = currentMemberMap.get(member.empId);
+            if (!existingMember) {
+                currentMemberMap.set(member.empId, member);
+                continue;
+            }
+
+            const existingStartDate = moment(existingMember.startDate).format('YYYY-MM-DD');
+            const currentStartDate = moment(member.startDate).format('YYYY-MM-DD');
+
+            if (existingStartDate < currentStartDate) {
+                currentMemberMap.set(member.empId, existingMember);
+            } else {
+                currentMemberMap.set(member.empId, member);
+            }
+        }
+        rmgTeam.rmgCurrentTeamMemberList = Array.from(currentMemberMap.values());
+
+        // rmgTeam.rmgCurrentTeamMemberList = rmgTeam?.rmgTeamMemberList?.filter(teamMember => {
+        //     return teamMember.isMemberActive != 0 || moment(teamMember.startDate).format('YYYY-MM-DD') >= moment(new Date()).format('YYYY-MM-DD')
+        // }) || [];
 
         if (!this.isValidList(rmgTeam.rmgCurrentTeamMemberList)) {
             this.toggleAddNewMember(rmgTeam);
@@ -1019,6 +1066,15 @@ export class RmgProjectComponent implements OnInit {
         this.selectedMembersEmpId = [];
     }
 
+    filterResourceRequirementDetails() {
+        this.allResourceRequirement = !this.allResourceRequirement;
+        if (this.allResourceRequirement) {
+            this.currentRmgProjectResourceRequirementList = [...this.allRmgProjectResourceRequirementList];
+        } else {
+            this.currentRmgProjectResourceRequirementList = this.allRmgProjectResourceRequirementList.filter(r => !r.isExpired);
+        }
+    }
+
     filterActiveResourceRequirement() {
         if (this.roleFilterActionLabel === 'Show All PO Roles') {
             this.roleFilterActionLabel = "Show Active PO Roles";
@@ -1029,13 +1085,41 @@ export class RmgProjectComponent implements OnInit {
         }
     }
 
-    filterActiveResourceRequirementEmployeeSpecific(member:RmgTeamMember) {
+    filterActiveResourceRequirementEmployeeSpecific(member: RmgTeamMember) {
         if (member.roleFilterActionLabel === 'Show All PO Roles') {
             member.roleFilterActionLabel = "Show Active PO Roles";
             member.filteredActiveResourceRequirement = [...member.resourceRequirementList];
         } else {
             member.roleFilterActionLabel = "Show All PO Roles";
             member.filteredActiveResourceRequirement = member.resourceRequirementList.filter(r => !r.isExpired);
+        }
+    }
+
+    filterActivePoDetails() {
+        if (this.poFilterActionLabel === 'Show All PO') {
+            this.poFilterActionLabel = "Show Active PO";
+            this.filteredPoDetailsList = [...this.poDetailsList];
+        } else {
+            this.poFilterActionLabel = "Show All PO";
+            this.filteredPoDetailsList = this.poDetailsList.filter(p => !p.isExpired);
+        }
+    }
+
+    filterActivePoDetailsEmployeeSpecific(member: RmgTeamMember) {
+        if (member.poFilterActionLabel === 'Show All PO') {
+            member.poFilterActionLabel = "Show Active PO";
+            member.filteredPoDetailsList = [...this.poDetailsList];
+        } else {
+            member.poFilterActionLabel = "Show All PO";
+            member.filteredPoDetailsList = this.poDetailsList.filter(p => !p.isExpired);
+        }
+    }
+
+    navigateToResourceConfig() {
+        this.projectConfigStepperIndex = 1;
+        this.getAllTeamsByProjectId();
+        if (!this.isInternalProject) {
+            this.getResourceRequirementDetailsByProjectId(false);
         }
     }
     // Helpers End
@@ -1342,6 +1426,33 @@ export class RmgProjectComponent implements OnInit {
             this.markDefaultProjectCompletionIndividualSortDirection = sort.direction;
         }
     }
+
+    toggleAllResourceRequirementSearch() {
+        this.allResourceRequirementPage = 0;
+        this.isAllResourceRequirementSearchEnabled = !this.isAllResourceRequirementSearchEnabled;
+        if (!this.isAllResourceRequirementSearchEnabled) {
+            this.allResourceRequirementFilters = {};
+        }
+    }
+
+    searchAllResourceRequirement(searchData: any) {
+        this.allResourceRequirementPage = 0;
+        this.allResourceRequirementFilters = searchData;
+    }
+
+    allResourceRequirementPageChange(event: any) {
+        this.allResourceRequirementPage = event.pageIndex + 1;
+        this.allResourceRequirementPageSize = event.pageSize;
+    }
+
+    sortAllResourceRequirementData(sort: Sort) {
+        if (sort.active) {
+            let sortParams: any[] = sort.active?.split("|");
+            this.allResourceRequirementSortColumn = sortParams[0];
+            this.allResourceRequirementSortColumnType = sortParams[0];
+            this.allResourceRequirementSortDirection = sort.direction;
+        }
+    }
     // Table Pagination & Searching & Sorting Methods End 
 
     // Steppers Method Start
@@ -1387,6 +1498,7 @@ export class RmgProjectComponent implements OnInit {
         team.isAnyNewMemberAdded = false;
         this.currentTeam = team;
         this.employeeListFilteredByDept = [];
+        this.cloneMemberMappingList = [];
         this.projectIdPoListMap = new Map<number, PoDetails[]>();
         this.poIdTeamListMap = new Map<number, RmgTeam[]>();
         this.teamIdResourceReqListMap = new Map<number, RmgResourceRequirement[]>();
@@ -1682,6 +1794,7 @@ export class RmgProjectComponent implements OnInit {
     // PO List Method & APIs Start
     getPoDetailsByProjectId() {
         this.poDetailsList = [];
+        this.filteredPoDetailsList = [];
         this.resourceManagementService.getActivePoDetailsByProjectId(this.rmgProjectObj.projectId).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
                 this.poDetailsList = response.serviceResponse || [];
@@ -1693,7 +1806,12 @@ export class RmgProjectComponent implements OnInit {
                     } else {
                         po.poTitle = po.poNo;
                     }
+                    po.isExpired = (po.poEndDate && moment(po.poEndDate).format('YYYY-MM-DD') < moment(new Date()).format('YYYY-MM-DD'));
                 });
+                this.poDetailsList.sort((a, b) =>
+                    moment(b?.poEndDate || 0).diff(moment(a?.poEndDate || 0))
+                );
+                this.filteredPoDetailsList = [...this.poDetailsList];
             } else {
                 this.openAlertMessageModal(response.serviceResponse || "Something went wrong, unable to fetch PO Details List!!");
             }
@@ -1987,6 +2105,78 @@ export class RmgProjectComponent implements OnInit {
             }
         });
         this.closeRemoveMembersModal();
+    }
+
+    async updateTeamMembersStartDateAndEndDate(employeeObj: EmployeeProjectTimesheetDto) {
+        console.log(employeeObj);
+        if (!employeeObj.employeeTeamStartDate || employeeObj.employeeTeamStartDate == undefined || employeeObj.employeeTeamStartDate == null) {
+            this.openAlertMessageModal(`Kindly provide a valid Start date!!`);
+            return false;
+        }
+        if (!employeeObj.employeeTeamEndDate || employeeObj.employeeTeamEndDate == undefined || employeeObj.employeeTeamEndDate == null) {
+            this.openAlertMessageModal(`Kindly provide a valid End date!!`);
+            return false;
+        }
+
+        const selectedStartDate = this.normalizeDate(employeeObj?.employeeTeamStartDate);
+        const selectedEndDate = this.normalizeDate(employeeObj?.employeeTeamEndDate);
+        const projectStartDate = this.normalizeDate(employeeObj?.projectStartDate);
+
+        if (selectedStartDate < projectStartDate) {
+            this.openAlertMessageModal("Member Start Date must be after Project Start Date!!");
+            return false;
+        }
+
+        if (selectedStartDate > selectedEndDate) {
+            this.openAlertMessageModal("Member End Date must be after Member Start Date!!");
+            return false;
+        }
+
+        for (let i = 0; i < this.existingEmployeeProjectTimesheetEntries?.length; i++) {
+            let tempObj = this.existingEmployeeProjectTimesheetEntries[i];
+            if (employeeObj?.etmId === tempObj?.etmId) {
+                continue;
+            }
+            if (!tempObj.employeeTeamStartDate || tempObj.employeeTeamStartDate == undefined || tempObj.employeeTeamStartDate == null
+                || !tempObj.employeeTeamEndDate || tempObj.employeeTeamEndDate == undefined || tempObj.employeeTeamEndDate == null) {
+                continue;
+            }
+
+            const tempStartDate = this.normalizeDate(tempObj?.employeeTeamStartDate);
+            const tempEndDate = this.normalizeDate(tempObj?.employeeTeamEndDate);
+            const isOverlapping = (selectedStartDate <= tempEndDate) && (selectedEndDate >= tempStartDate);
+
+            if (isOverlapping) {
+                this.openAlertMessageModal(`Date range overlaps with another assignment (${tempObj.projectName})`);
+                return false;
+            }
+        }
+
+        employeeObj.employeeTeamStartDate = this.normalizeDate(employeeObj.employeeTeamStartDate);
+        employeeObj.employeeTeamEndDate = this.normalizeDate(employeeObj.employeeTeamEndDate);
+        employeeObj.updatedBy = this.currentUser?.empId;
+        try {
+            const response: any = await firstValueFrom(this.teamService.updateTeamMembersStartDateAndEndDate(employeeObj));
+            if (response.serviceStatus === "Success") {
+                this.toastService.success(response.serviceResponse);
+            } else {
+                this.toastService.error(response.serviceResponse || "Something went wrong, unable to update the Employee details at the moment!!");
+                return false;
+            }
+            this.closeExistingEmployeeProjectTimesheetInfoModal();
+
+            let member: RmgTeamMember = new RmgTeamMember();
+            member.empId = employeeObj.empId;
+            member.startDate = employeeObj.employeeTeamStartDate;
+
+            // await this.validateEmployeeProjectStartDate(member, this.rmgProjectObj.projectId, this.rmgProjectObj.startDate, this.projectType);
+
+            await this.validateEmployeeProjectStartDate(member, employeeObj.projectId, employeeObj.projectStartDate, employeeObj.projectType);
+
+        } catch (error) {
+            this.openAlertMessageModal("Something went wrong!!");
+            return false;
+        }
     }
 
     extendTeamMembersEndDate(currentTeam: RmgTeam) {
@@ -2314,7 +2504,10 @@ export class RmgProjectComponent implements OnInit {
         newMember.employeeRoles = member.employeeRoles;
         newMember.startDate = member.startDate;
         newMember.endDate = member.endDate;
-        newMember.resourceRequirementList = this.filteredActiveResourceRequirement;
+        member.poFilterActionLabel = "Show Active PO";
+        member.roleFilterActionLabel = "Show Active PO Roles";
+        newMember.filteredPoDetailsList = this.poDetailsList;
+        newMember.filteredActiveResourceRequirement = this.allRmgProjectResourceRequirementList;
         if (!this.isValidList(this.cloneMemberMappingList)) {
             this.cloneMemberMappingList = [];
         }
@@ -2323,6 +2516,10 @@ export class RmgProjectComponent implements OnInit {
 
     removeFromCloneMemberMappingList(member: RmgTeamMember, index: number) {
         this.cloneMemberMappingList.splice(index, 1);
+        if (!this.isValidList(this.cloneMemberMappingList)) {
+            this.currentTeam.newRmgTeamMember = new RmgTeamMember();
+            this.currentTeam.addNewTeamMemberToggle = false;
+        }
     }
 
     async saveClonedMembers() {
@@ -2334,19 +2531,15 @@ export class RmgProjectComponent implements OnInit {
         for (let i = 0; i < this.cloneMemberMappingList?.length; i++) {
             let member = this.cloneMemberMappingList[i];
             if (!member?.empId || member.empId == undefined || member.empId == null) {
-                this.openAlertMessageModal(`Select an Employee for Member # ${i + 1}`);
-                return;
-            }
-            if (!this.isValidString(member?.memberName)) {
-                this.openAlertMessageModal(`Member Name cannot be null for Member # ${i + 1}`);
+                this.openAlertMessageModal(`Select an Employee for Cloned Row # ${i + 1}`);
                 return;
             }
             if (!this.isValidList(member?.employeeRoles)) {
-                this.openAlertMessageModal(`Select atleast one Employee Role for Member # ${i + 1}`);
+                this.openAlertMessageModal(`Select atleast one Employee Role for Cloned Row # ${i + 1}`);
                 return;
             }
             if (!member.startDate || member.startDate == undefined || member.startDate == null) {
-                this.openAlertMessageModal(`Kindly Provide Start Date for Member # ${i + 1}`);
+                this.openAlertMessageModal(`Kindly Provide Start Date for Cloned Row # ${i + 1}`);
                 return;
             }
             if (member.startDate !== undefined && member.startDate !== null
@@ -2365,7 +2558,7 @@ export class RmgProjectComponent implements OnInit {
                 }
             }
             if (member.endDate && member.endDate != undefined && member.endDate != null && member.startDate > member.endDate) {
-                this.openAlertMessageModal(`End Date cannot be less than Start Date for Member # ${i + 1}`);
+                this.openAlertMessageModal(`End Date cannot be less than Start Date for Cloned Row # ${i + 1}`);
                 return;
             }
             member.startDate = member.startDate ? moment(member.startDate).format('YYYY-MM-DDTHH:mm:ss') : null;
@@ -2380,7 +2573,7 @@ export class RmgProjectComponent implements OnInit {
         rmgTeam.clientName = this.rmgProjectObj?.clientName;
         rmgTeam.updatedBy = this.currentUser.empId;
         rmgTeam.rmgTeamMemberList = this.cloneMemberMappingList;
-
+        rmgTeam.isupdate = true;
         this.teamService.addOrUpdateTeamMembers(rmgTeam).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
                 this.getTeamDetailsByTeamId(this.currentTeam);
@@ -2415,7 +2608,7 @@ export class RmgProjectComponent implements OnInit {
         });
     }
 
-    getResourceRequirementByPoIdForEmployee(poId: any, member : RmgTeamMember) {
+    getResourceRequirementByPoIdForEmployee(poId: any, member: RmgTeamMember) {
         member.resourceRequirementList = [];
         member.filteredActiveResourceRequirement = [];
         this.resourceManagementService.getResourceRequirementByPoId(poId).pipe(first()).subscribe((response: any) => {
@@ -2497,34 +2690,20 @@ export class RmgProjectComponent implements OnInit {
     }
 
     getResourceRequirementDetailsByProjectId(currentActivePOs: boolean) {
-        if (currentActivePOs) {
-            this.currentRmgProjectResourceRequirementList = [];
-        } else {
-            this.allRmgProjectResourceRequirementList = [];
-        }
+        this.allRmgProjectResourceRequirementList = [];
+        this.currentRmgProjectResourceRequirementList = [];
         this.resourceManagementService.getResourceRequirementDetailsByProjectId(this.rmgProjectObj?.projectId, this.projectType, currentActivePOs).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus === "Success") {
-                if (currentActivePOs) {
-                    this.currentRmgProjectResourceRequirementList = response.serviceResponse || [];
-                    this.currentRmgProjectResourceRequirementList?.forEach(req => {
-                        req.isExpired =
-                            (req.poEndDate && moment(req.poEndDate).format('YYYY-MM-DD') < moment(new Date()).format('YYYY-MM-DD')) ||
-                            (req.requirementEndDate && moment(req.requirementEndDate).format('YYYY-MM-DD') < moment(new Date()).format('YYYY-MM-DD'));
-                    });
-                    this.currentRmgProjectResourceRequirementList.sort((a, b) =>
-                        moment(b?.requirementEndDate || 0).diff(moment(a?.requirementEndDate || 0))
-                    );
-                } else {
-                    this.allRmgProjectResourceRequirementList = response.serviceResponse || [];
-                    this.allRmgProjectResourceRequirementList?.forEach(req => {
-                        req.isExpired =
-                            (req.poEndDate && moment(req.poEndDate).format('YYYY-MM-DD') < moment(new Date()).format('YYYY-MM-DD')) ||
-                            (req.requirementEndDate && moment(req.requirementEndDate).format('YYYY-MM-DD') < moment(new Date()).format('YYYY-MM-DD'));
-                    });
-                    this.allRmgProjectResourceRequirementList.sort((a, b) =>
-                        moment(b?.requirementEndDate || 0).diff(moment(a?.requirementEndDate || 0))
-                    );
-                }
+                this.allRmgProjectResourceRequirementList = response.serviceResponse || [];
+                this.allRmgProjectResourceRequirementList?.forEach(req => {
+                    req.isExpired =
+                        (req.poEndDate && moment(req.poEndDate).format('YYYY-MM-DD') < moment(new Date()).format('YYYY-MM-DD')) ||
+                        (req.requirementEndDate && moment(req.requirementEndDate).format('YYYY-MM-DD') < moment(new Date()).format('YYYY-MM-DD'));
+                });
+                this.allRmgProjectResourceRequirementList.sort((a, b) =>
+                    moment(b?.requirementEndDate || 0).diff(moment(a?.requirementEndDate || 0))
+                );
+                this.currentRmgProjectResourceRequirementList = [...this.allRmgProjectResourceRequirementList];
             } else {
                 this.toastService.error(response.serviceResponse || "Something went wrong!!");
             }
@@ -2604,6 +2783,34 @@ export class RmgProjectComponent implements OnInit {
         this.currentTeam.newRmgTeamMember.empId = empId;
         this.currentTeam.newRmgTeamMember.employementId = this.employeeExistingProjectEmploymentId;
         this.currentTeam.newRmgTeamMember.dbDefaultProject = !this.currentTeam.newRmgTeamMember.defaultProject && this.rmgProjectObj.projectId === this.employeeListFilteredByDept?.find(emp => emp?.empId === this.currentTeam.newRmgTeamMember?.empId)?.defaultProjectId;
+        this.currentTeam.newRmgTeamMember.empTeamDepartmentId = this.employeeListFilteredByDept?.find(emp => emp?.empId === this.currentTeam.newRmgTeamMember?.empId)?.deptId;
+        try {
+            const response: any = await firstValueFrom(this.projectService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId));
+            if (response?.serviceStatus !== "Success") {
+                this.openAlertMessageModal(response?.serviceResponse || "Something went wrong!!");
+                return false;
+            }
+            const projects = this.isValidList(response.serviceResponse) ? response.serviceResponse || [] : [];
+            this.employeeExistingProjectDetails = this.mapEmployeeProjectDates(projects);
+            if (!this.isValidList(this.employeeExistingProjectDetails)) {
+                return true;
+            }
+            this.openEmployeeExistingProjectDetailsModal();
+            return false;
+        } catch (error) {
+            this.openAlertMessageModal("Something went wrong!");
+            return false;
+        }
+    }
+
+    async getCloneEmployeeExistingProjectDetailsByEmpId(member: any, empId: any, resetObj: boolean, projectId: any): Promise<boolean> {
+        this.employeeExistingProjectDetails = [];
+        this.employeeExistingProjectDetailsPage = 1;
+        this.employeeExistingProjectEmploymentId = this.employeeListFilteredByDept?.find(emp => emp?.empId === this.currentTeam.newRmgTeamMember?.empId)?.employmentId;
+        this.employeeExistingProjectEmpName = this.employeeListFilteredByDept?.find(emp => emp?.empId === this.currentTeam.newRmgTeamMember?.empId)?.name;
+        member.empId = empId;
+        member.employementId = this.employeeExistingProjectEmploymentId;
+        member.dbDefaultProject = !this.currentTeam.newRmgTeamMember.defaultProject && this.rmgProjectObj.projectId === this.employeeListFilteredByDept?.find(emp => emp?.empId === empId)?.defaultProjectId;
 
         try {
             const response: any = await firstValueFrom(this.projectService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId));

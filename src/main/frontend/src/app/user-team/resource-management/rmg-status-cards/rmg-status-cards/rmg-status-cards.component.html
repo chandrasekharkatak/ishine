@@ -21,16 +21,29 @@
                                                     [attr.style]="team1ProjectStatus?.leftstyle"
                                                     [ngClass]="{'project-status-selected-card': selectedProjectStatus === team1ProjectStatus?.key}"
                                                     (click)="onProjectStatusSelect(team1ProjectStatus?.key, TEAM_PROJECT_STATUS_LIST)">
-                                                    <div class="value fw-bold">
-                                                        <ng-container
-                                                            *ngIf="team1ProjectStatus?.count !== null && team1ProjectStatus?.count !== undefined; else loading">
-                                                            {{ team1ProjectStatus?.count }}
-                                                        </ng-container>
+                                                    <div class="row">
+                                                        <div class="col-md-8">
+                                                            <div class="value fw-bold">
+                                                                <ng-container
+                                                                    *ngIf="team1ProjectStatus?.count !== null && team1ProjectStatus?.count !== undefined; else loading">
+                                                                    {{ team1ProjectStatus?.count }}
+                                                                </ng-container>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <i class="fa fa-info-circle info-icon cursor-pointer"
+                                                                [title]="team1ProjectStatus.infoLabel">
+                                                            </i>
+                                                        </div>
                                                     </div>
-                                                    <div class="label text-muted fw-semibold">
-                                                        {{ team1ProjectStatus?.label }}
-                                                        <i [ngClass]="team1ProjectStatus?.i_class"
-                                                            [attr.style]="team1ProjectStatus?.style"></i>
+                                                    <div class="row">
+                                                        <div class="col-md-12">
+                                                            <div class="label text-muted fw-semibold">
+                                                                {{ team1ProjectStatus?.label }}
+                                                                <i [ngClass]="team1ProjectStatus?.i_class" class="ml-1"
+                                                                    [attr.style]="team1ProjectStatus?.style"></i>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </ng-container>
@@ -46,25 +59,39 @@
                         </div>
                         <div class="col-md-6 mb-3 pl-0">
                             <div class="card p-1 m-1 border rounded shadow-sm">
-                                <div class="team-project-status-scroll-container">
+                                <div #totalStatusScrollContainer class="team-project-status-scroll-container">
                                     <div class="row justify-content-start m-1">
                                         <ng-container *ngFor="let projectStatus of TOTAL_PROJECT_STATUS_LIST">
                                             <div class="col-md-1 project-status-card m-2 p-2"
                                                 [attr.style]="projectStatus?.leftstyle"
                                                 [ngClass]="{'project-status-selected-card': selectedProjectStatus === projectStatus?.key}"
                                                 (click)="onProjectStatusSelect(projectStatus?.key, TOTAL_PROJECT_STATUS_LIST)">
-                                                <div class="value">
-                                                    <ng-container
-                                                        *ngIf="projectStatus?.count !== null && projectStatus?.count !== undefined; else loading">
-                                                        <div [attr.style]="projectStatus?.style">
-                                                            {{ projectStatus?.count }}
+                                                <div class="row">
+                                                    <div class="col-md-8">
+                                                        <div class="value fw-bold">
+                                                            <ng-container
+                                                                *ngIf="projectStatus?.count !== null && projectStatus?.count !== undefined; else loading">
+                                                                <div [attr.style]="projectStatus?.style">
+                                                                    {{ projectStatus?.count }}
+                                                                </div>
+                                                            </ng-container>
                                                         </div>
-                                                    </ng-container>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <i class="fa fa-info-circle info-icon cursor-pointer"
+                                                            [title]="projectStatus.infoLabel">
+                                                        </i>
+                                                    </div>
                                                 </div>
-                                                <div class="label text-muted fw-semibold">{{projectStatus?.label}}
-                                                    <i [ngClass]="projectStatus?.i_class"
-                                                        (click)="$event.stopPropagation();openTotalProjectsSummaryModal(projectStatus?.key)"
-                                                        [attr.style]="projectStatus?.style"></i>
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <div class="label text-muted fw-semibold">
+                                                            {{projectStatus?.label}}
+                                                            <i [ngClass]="projectStatus?.i_class"
+                                                                (click)="$event.stopPropagation();openTotalProjectsSummaryModal(projectStatus?.key)"
+                                                                [attr.style]="projectStatus?.style"></i>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </ng-container>
@@ -263,7 +290,7 @@
         <div class="card-body p-1 w-100">
             <div class="row align-items-center mb-1 ml-2"
                 *ngIf="projectDetailsList.length > 0 || isProjectSearchEnabled">
-                <div class="col-md-2 d-flex justify-content-start">
+                <div class="col-md-2 d-flex justify-content-start pl-0">
                     <button class="btn btn-sm btn-outline-primary" (click)="toggleProjectSearch()">
                         <i
                             [ngClass]="{ 'fa fa-search' : !isProjectSearchEnabled, 'fa-solid fa-xmark': isProjectSearchEnabled}"></i>
@@ -280,7 +307,7 @@
                         </button>
                     </mat-menu>
                 </div>
-                <div class="col-md-6 offset-4 d-flex justify-content-end" *ngIf="projectDetailsList.length > 0">
+                <div class="col-md-10 d-flex justify-content-end" *ngIf="projectDetailsList.length > 0">
                     <mat-paginator [length]="totalProjectsCount" [pageIndex]="projectPage" [pageSize]="projectPageSize"
                         [pageSizeOptions]="[5, 10, 20, 50]" (page)="onProjectPageChange($event)">
                     </mat-paginator>
@@ -296,6 +323,8 @@
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="poNo|string">
                                 PO No.
+                                <i class="fa fa-info-circle info-icon cursor-pointer ml-2" title="Shows only active POs. Search includes both active and expired PO numbers.">
+                                </i>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="projectType|string">
                                 Project Type
@@ -357,7 +386,7 @@
                                             <i class="fas fa-eye"></i> Preview
                                         </button>
                                         <button mat-menu-item (click)="onAction('EDIT_NEW', project);">
-                                            <i class="fas fa-pen"></i> Edit New
+                                            <i class="fas fa-pen"></i> Edit
                                         </button>
                                         <button mat-menu-item
                                             *ngIf="(project.draftStatus == 'Approved' || project.isTeamCreated == 'true') && project.projectStatus != 'Completed'"

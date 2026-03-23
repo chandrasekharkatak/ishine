@@ -4704,6 +4704,7 @@ public class ResourceManagementService {
 					response.setServiceResponse("Unable to intimate completion status to Shankh portal!");
 					apiLogInfo.setApiResponse("Reverse synced failed!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					throw new RuntimeException("Reverse synced failed, Unable to sync project completion status to Shankh portal!!");
 				}
 			}
 
@@ -15890,6 +15891,8 @@ public class ResourceManagementService {
 		case "PENDING_FOR_APPROVAL":
 		case "APPROVED":
 		case "REJECTED":
+		case "OFFBOARDED":
+		case "SCHEDULED":
 		case "COMPLETED_IN_ISHINE":
 		case "COMPLETED_IN_SHANKH":
 		case "COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE":
@@ -15991,7 +15994,7 @@ public class ResourceManagementService {
 				&& projectFilter.containsKey("poNo")) {
 			String poNo = projectFilter.get("poNo");
 			if (poNo != null && !poNo.trim().equals("")) {
-				projectNames = projectPoDetailsRepository.getProjectNameByPoNoLike(poNo.toLowerCase(), false);
+				projectNames = projectPoDetailsRepository.getProjectNameByPoNoLike(poNo.toLowerCase());
 			}
 		}
 		return projectNames;
@@ -16179,6 +16182,10 @@ public class ResourceManagementService {
 		case "TOTAL_INTERNAL":
 			return internalProjectType != null;
 		case "ALL":
+		case "OFFBOARDED":
+		case "OVERBOARDED":
+		case "UNDERBOARDED":
+		case "SCHEDULED":
 		case "TOTAL":
 			return true;
 		default:
@@ -16212,43 +16219,23 @@ public class ResourceManagementService {
 	}
 
 	public Long getNotMappedToAnyProjectEmployeeCount(boolean isAllAccessEmployee, List<Long> deptIds) {
-		Long count = 0l;
-//		if (isAllAccessEmployee) {
-//			count = employeeRepository.getAllEmployeesCountNotMappedToAnyProject();
-//		} else {
-		count = employeeRepository.getAllEmployeesNotMappedToAnyProjectCountByDeptIds(deptIds);
-//		}
-		return count;
+		return employeeRepository.getAllEmployeesNotMappedToAnyProjectCountByDeptIds(deptIds);
 	}
 
 	public Long getOnBenchButProjectAssignedEmployeeCount(boolean isAllAccessEmployee, List<Long> deptIds) {
-		Long count = 0l;
-//		if (isAllAccessEmployee) {
-//			count = projectRepository.getAllExceptionEmployeeReportCount();
-//		} else {
-		count = projectRepository.getAllExceptionEmployeeReportCountByDeptIds(deptIds);
-//		}
-		return count;
+		return projectRepository.getAllExceptionEmployeeReportCountByDeptIds(deptIds);
 	}
 
 	public Long getOnBenchForMoreThan30DaysAssignedEmployeeCount(boolean isAllAccessEmployee, List<Long> deptIds) {
-		Long count = 0l;
-//		if (isAllAccessEmployee) {
-//			count = projectRepository.getAllEmployeeCountOnBenchForMoreThan30Days();
-//		} else {
-		count = projectRepository.getAllEmployeeCountOnBenchForMoreThan30DaysByDeptIds(deptIds);
-//		}
-		return count;
+		return projectRepository.getAllEmployeeCountOnBenchForMoreThan30DaysByDeptIds(deptIds);
 	}
 
 	public Long getWithoutAnyBillabilityEmployeeCount(boolean isAllAccessEmployee, List<Long> deptIds) {
-		Long count = 0l;
-//		if (isAllAccessEmployee) {
-//			count = employeeRepository.getAllEmployeesCountWithoutAnyBillable();
-//		} else {
-		count = employeeRepository.getAllEmployeesCountWithoutAnyBillableByDeptIds(deptIds);
-//		}
-		return count;
+		return employeeRepository.getAllEmployeesCountWithoutAnyBillableByDeptIds(deptIds);
+	}
+
+	public Long getFutureStartDateAssignedEmployeeCount(boolean isAllAccessEmployee, List<Long> deptIds) {
+		return employeeRepository.getFutureStartDateAssignedEmployeeCountByDeptIds(deptIds);
 	}
 
 	public Long getMappedEmployeeCount(String projectType, boolean isAllAccessEmployee, Set<Integer> hodProjects,
@@ -16411,6 +16398,9 @@ public class ResourceManagementService {
 		case "WITHOUT_ANY_BILLABILITY":
 			employeeCount = getWithoutAnyBillabilityEmployeeCount(isAllAccessEmployee, deptIds);
 			break;
+		case "FUTURE_START_DATE":
+				employeeCount = getFutureStartDateAssignedEmployeeCount(isAllAccessEmployee, deptIds);
+				break;
 		case "MAPPED_TO_PROJECT":
 		case "MAPPED_TO_SHANKH":
 		case "MAPPED_TO_INTERNAL":
@@ -16447,6 +16437,10 @@ public class ResourceManagementService {
 			break;
 		case "WITHOUT_ANY_BILLABILITY":
 				employeeDetailsList = employeeCustomRepository.getWithoutAnyBillabilityEmployeeDetailsPage(
+						isAllAccessEmployee, pageDTO, deptIds, projectIds);
+			break;
+		case "FUTURE_START_DATE":
+				employeeDetailsList = employeeCustomRepository.getFutureStartDateAssignedEmployeeDetailsPage(
 						isAllAccessEmployee, pageDTO, deptIds, projectIds);
 			break;
 		case "MAPPED_TO_PROJECT":
@@ -16550,6 +16544,8 @@ public class ResourceManagementService {
 		case "PENDING_FOR_APPROVAL":
 		case "APPROVED":
 		case "REJECTED":
+		case "OFFBOARDED":
+		case "SCHEDULED":
 		case "COMPLETED_IN_ISHINE":
 		case "COMPLETED_IN_SHANKH":
 		case "COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE":
@@ -17206,8 +17202,6 @@ public class ResourceManagementService {
 			List<UnmappedEmployeeProjectDto> unmappedEmployeeDetails = listObjArray.stream()
 					.map(UnmappedEmployeeProjectDto::unmappedEmployeeProject).collect(Collectors.toList());
 
-			
-
 			Map<Long, List<UnmappedEmployeeProjectDto>> deptIdAndEmployeeMap = unmappedEmployeeDetails.stream()
 					.collect(Collectors.groupingBy(UnmappedEmployeeProjectDto::getDeptId));
 
@@ -17236,7 +17230,6 @@ public class ResourceManagementService {
 						log.error("Error occured while sending mail to : {} , Error : {} ", emp.getEmail(), e.getMessage());
 					}
 				});
-
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -17287,30 +17280,20 @@ public class ResourceManagementService {
 	    return html.toString();
 	}
 
-
-
-public ServiceResponse getEmployeeTeamDepartment(Long empId, Long teamId , LocalDate date){
-	
-	ServiceResponse response = new ServiceResponse();
-
-    try{
-
-	List<Long> deptId = projectRepository.getEmployeeTeamDepartment(empId,teamId, date);
-	response.setServiceResponse(deptId);
-	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	response.setServiceMessage("employee team department Id fetched successfully");
-
-	} catch(Exception ex){
-
-	log.error("Error fetching employee team department Id",ex);
-	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	response.setServiceResponse("Error: " + ex.getMessage());
-	
+	public ServiceResponse getEmployeeTeamDepartment(Long empId, Long teamId, LocalDate date) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Long> deptId = projectRepository.getEmployeeTeamDepartment(empId, teamId, date);
+			response.setServiceResponse(deptId);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceMessage("employee team department Id fetched successfully");
+		} catch (Exception ex) {
+			log.error("Error fetching employee team department Id", ex);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Error: " + ex.getMessage());
+		}
+		return response;
 	}
-
-	return response;
-
-}
 
 
 }

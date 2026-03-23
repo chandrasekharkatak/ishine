@@ -1305,8 +1305,10 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	        LocalDateTime updatedOn);
 	
 	@Query(value = "select new com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto( "
+			+ " e.empId, etm.employeeTeamMapId, "
 			+ " p.projectId, p.projectName, "
 			+ " CASE WHEN p.poProjectType IS NOT NULL AND TRIM(p.poProjectType) != '' THEN p.poProjectType ELSE p.internalProjectType END, \n"
+			+ " t.teamId, "
 			+ " t.teamName, date(p.startDate), date(etm.startDate), date(etm.endDate)) \n"
 			+ " FROM Employee e  \n"
 			+ " INNER JOIN EmployeeTeamMap etm on e.empId = etm.empId \n"

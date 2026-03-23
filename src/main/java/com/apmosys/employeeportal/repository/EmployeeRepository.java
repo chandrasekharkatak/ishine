@@ -3583,7 +3583,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "INNER JOIN Department d ON jr.deptId = d.deptId \n"
 			+ "LEFT JOIN Employee em ON e.managerId = em.empId \n"
 			+ "WHERE 1=1 \n"
-			+ "AND e.billableType IS NULL \n"
+			+ "AND LOWER(e.billableType) = 'none' \n"
 			+ "AND e.empId NOT BETWEEN 1 AND 6 \n"
 			+ "AND e.employmentstatus != 'InActive' \n"
 			+ "AND d.deptId IN :deptIds")
@@ -3855,16 +3855,24 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				+ " WHERE e.emp_id IN :empIds")
 		public List<Object[]> getEmployeeInformationIn(List<Long> empIds);
 
-		@Query(nativeQuery = true, value = " SELECT DISTINCT e.emp_id, \n"
-				+ " CASE WHEN e.is_consultant = TRUE THEN CONCAT('CS-', e.employeement_id) \n"
-				+ " ELSE CONCAT('A-', e.employeement_id) END AS employmentId, \n"
-				+ " e.name, e.billable_type, jr.name AS jobRole, d.name AS DepartmentName, d.dept_id, eppm.primary_project_id \n"
-				+ " FROM employee e  \n"
-				+ " INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
-				+ " INNER JOIN department d ON d.dept_id = jr.dept_id \n"
-				+ " LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id and eppm.is_mapped = 'Y' \n"
-				+ " WHERE e.emp_id NOT IN (1,2,3,4,5,6) and e.employmentstatus!='InActive' \n"
-				+ " order by e.name ")
+		@Query(nativeQuery = true, value = "WITH EMP_PRIMARY_PROJECT AS ( \n"
+				+ "SELECT DISTINCT eppm.emp_id, eppm.primary_project_id \n"
+				+ "From emp_primary_project_mapping eppm  \n"
+				+ "INNER JOIN employee_team_mapping etm ON eppm.emp_id = etm.emp_id AND etm.active != 0 AND DATE(etm.start_date) <= CURDATE() \n"
+				+ "INNER JOIN teams t on t.team_id = etm.team_id AND t.project_id = eppm.primary_project_id   \n"
+				+ "WHERE 1=1  \n"
+				+ "AND eppm.is_mapped = 'Y'  \n"
+				+ ") \n"
+				+ "SELECT DISTINCT e.emp_id,  \n"
+				+ "CASE WHEN e.is_consultant = TRUE THEN CONCAT('CS-', e.employeement_id)  \n"
+				+ "ELSE CONCAT('A-', e.employeement_id) END AS employmentId,  \n"
+				+ "e.name, e.billable_type, jr.name AS jobRole, d.name AS DepartmentName, d.dept_id, epp.primary_project_id  \n"
+				+ "FROM employee e   \n"
+				+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id  \n"
+				+ "INNER JOIN department d ON d.dept_id = jr.dept_id  \n"
+				+ "LEFT JOIN EMP_PRIMARY_PROJECT epp ON epp.emp_id = e.emp_id \n"
+				+ "WHERE e.emp_id NOT IN (1,2,3,4,5,6) and e.employmentstatus != 'InActive' \n"
+				+ "order by e.name \n")
 		public List<Object[]> getAllActiveEmployeeInformation();
 
 		    
@@ -4382,5 +4390,17 @@ public List<Object[]> fetchInActivePOListOfProject(
 	
 	@Query("SELECT distinct e.empId FROM Employee e WHERE e.employmentstatus != 'InActive'")
     List<Long> findAllActiveEmployees();
+
+	@Query("SELECT COUNT(DISTINCT e.empId)\n"
+			+ "FROM Employee e \n"
+			+ "INNER JOIN EmployeeTeamMap etm ON etm.empId = e.empId AND etm.active IN(2, 0) AND DATE(etm.startDate) > CURDATE() \n"
+			+ "INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId \n"
+			+ "INNER JOIN Department d ON jr.deptId = d.deptId \n"
+			+ "LEFT JOIN Employee em ON e.managerId = em.empId \n"
+			+ "WHERE 1=1 \n"
+			+ "AND e.empId NOT BETWEEN 1 AND 6 \n"
+			+ "AND e.employmentstatus != 'InActive' \n"
+			+ "AND d.deptId IN :deptIds")
+    public Long getFutureStartDateAssignedEmployeeCountByDeptIds(List<Long> deptIds);
 
 }
