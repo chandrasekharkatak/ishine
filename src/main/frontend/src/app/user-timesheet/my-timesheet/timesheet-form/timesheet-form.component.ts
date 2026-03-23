@@ -1133,6 +1133,31 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             this.allDayTypes = this.allDayTypes.filter(f =>{
               return !excludedIds.includes(f.dayType);
             })
+
+            //changing the non-working day type to working on non working.
+
+            this.allDayTypes = this.allDayTypes.map(dayType => {
+            if (dayType.dayType === 'Non-working') {
+              return {
+                ...dayType,
+                dayType: 'Working on non-working day'
+              };
+            }
+            return dayType;
+          });
+
+            const highPriorityList = ["Working" , "Half-day Working", "Working on non-working day"];
+            const highPriorityItems = this.allDayTypes.filter(dt => 
+            highPriorityList.includes(dt.dayType)
+            );
+            const lowPriorityList = this.allDayTypes.filter(dt => 
+            !highPriorityList.includes(dt.dayType)
+            );
+            highPriorityItems.sort((a, b) => 
+              highPriorityList.indexOf(a.dayType) - highPriorityList.indexOf(b.dayType)
+            );
+            this.allDayTypes = [...highPriorityItems , ...lowPriorityList];
+          console.log('final_value' , this.allDayTypes);
           } else {
             // ✅ MODERATE FIX: Use centralized error handling
             this.handleError(
