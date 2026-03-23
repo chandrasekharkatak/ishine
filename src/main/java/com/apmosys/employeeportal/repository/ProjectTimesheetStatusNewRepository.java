@@ -139,12 +139,13 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
 
         @Query(value = "SELECT ptn.* FROM project_timesheet_status_new ptn\n"
         		+ "JOIN employee_timesheets_new etn \n"
-        		+ "JOIN projects p on p.project_id = ptn.project_id "
         		+ "  ON etn.timesheet_id = ptn.timesheet_id\n"
+        		+ "JOIN projects p \n"
+        		+ "on p.project_id = ptn.project_id \n"
         		+ "WHERE ptn.project_id = :projectId\n"
         		+ "  AND etn.emp_id = :empId\n"
         		+ "AND ptn.client_location_id IS NOT NULL \n"
-        		+ "AND p.active = 'true'"
+        		+ "AND p.active = 'true'\n"
         		+ "ORDER BY etn.date DESC\n"
         		+ "LIMIT 1", nativeQuery = true)
         ProjectTimesheetStatusNew  findByProjectIdAndEmpId(
