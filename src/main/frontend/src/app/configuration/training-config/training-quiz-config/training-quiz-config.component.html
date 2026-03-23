@@ -1,0 +1,444 @@
+<!-- ══════════════════════════════════════════════════════
+     LIST VIEW
+     ══════════════════════════════════════════════════════ -->
+<ng-container *ngIf="!showBuilder">
+
+  <!-- Page Sub-header (Simple Back Button style like Quiz Builder) -->
+  <div class="builder-subheader">
+    <div class="subheader-left">
+      <button class="btn-back" (click)="onBack()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Back To Trainings
+      </button>
+      <div class="subheader-divider"></div>
+      <div class="subheader-title-block">
+        <span class="subheader-heading">Quiz Management</span>
+        <span *ngIf="trainingName" class="subheader-mode-tag">{{ trainingName }}</span>
+      </div>
+    </div>
+    <div class="subheader-actions">
+      <button class="btn btn-primary btn-sm" (click)="onCreateNew()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create New Quiz
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Cards -->
+  <div class="filter-cards-row">
+
+    <!-- All -->
+    <div class="filter-card" [class.selected]="activeFilter === 'all'" (click)="setFilter('all')">
+      <div class="fc-color-block fc-all">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+      </div>
+      <div class="fc-body">
+        <div class="fc-count">{{ totalCount }}</div>
+        <div class="fc-label">Total Quizzes</div>
+      </div>
+      <div class="fc-tick" *ngIf="activeFilter === 'all'">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
+
+    <!-- Active -->
+    <div class="filter-card" [class.selected]="activeFilter === 'true'" (click)="setFilter('true')">
+      <div class="fc-color-block fc-active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <div class="fc-body">
+        <div class="fc-count fc-count-active">{{ activeCount }}</div>
+        <div class="fc-label">Active</div>
+      </div>
+      <div class="fc-tick" *ngIf="activeFilter === 'true'">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
+
+    <!-- Completed -->
+    <div class="filter-card" [class.selected]="activeFilter === 'completed'" (click)="setFilter('completed')">
+      <div class="fc-color-block fc-completed">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <div class="fc-body">
+        <div class="fc-count fc-count-completed">{{ completedCount }}</div>
+        <div class="fc-label">Completed</div>
+      </div>
+      <div class="fc-tick" *ngIf="activeFilter === 'completed'">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
+
+    <!-- Inactive -->
+    <div class="filter-card" [class.selected]="activeFilter === 'false'" (click)="setFilter('false')">
+      <div class="fc-color-block fc-inactive">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+        </svg>
+      </div>
+      <div class="fc-body">
+        <div class="fc-count fc-count-inactive">{{ inactiveCount }}</div>
+        <div class="fc-label">Inactive</div>
+      </div>
+      <div class="fc-tick" *ngIf="activeFilter === 'false'">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <span class="table-card-title">
+        {{ activeFilter === 'all' ? 'All Quizzes' : activeFilter === 'true' ? 'Active Quizzes' : activeFilter === 'completed' ? 'Completed Quizzes' : 'Inactive Quizzes' }}
+      </span>
+      <span class="q-count-badge">{{ filteredList.length }} record{{ filteredList.length !== 1 ? 's' : '' }}</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="quiz-table">
+        <thead>
+          <tr>
+            <th class="th-num">#</th>
+            <th>Quiz Name</th>
+            <th>Created By</th>
+            <th>Created At</th>
+            <th class="th-center">Total Qs</th>
+            <th class="th-center">Cutoff Qs</th>
+            <th class="th-center">Status</th>
+            <th class="th-actions">Actions</th>
+            <th class="th-menu"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of filteredList; let i = index; trackBy: trackBySurveyId">
+            <td class="td-num">{{ i + 1 }}</td>
+            <td>
+              <div class="quiz-name-cell">
+                <div class="quiz-name">{{ row.surveyName }}</div>
+                <div class="quiz-id-tag">#{{ row.surveyId }}</div>
+              </div>
+            </td>
+            <td>
+              <div class="author-cell">
+                <span>{{ row.createdByName }}</span>
+              </div>
+            </td>
+            <td class="td-date">{{ formatDate(row.createdOn) }}</td>
+            <td class="td-center"><span class="num-pill">{{ row.totalQuestions }}</span></td>
+            <td class="td-center"><span class="num-pill accent">{{ row.cutOffQuestions }}</span></td>
+            <td class="td-center">
+              <span class="status-badge" [ngClass]="statusClass(row.isActive)">{{ statusLabel(row.isActive) }}</span>
+            </td>
+            <!-- Actions column: Edit / Preview / Responses -->
+            <td class="td-actions">
+              <div class="action-group">
+                <!-- Edit: always visible, disabled if Completed -->
+                <button class="action-btn edit-btn" title="Edit Quiz"
+                        [disabled]="row.isActive === 'completed' || row.isActive === 'Completed'"
+                        (click)="row.isActive !== 'completed' && row.isActive !== 'Completed' && onEdit(row)">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Edit
+                </button>
+                <!-- Preview: always available -->
+                <button class="action-btn preview-btn" title="Preview Quiz" (click)="onPreview(row)">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  Preview
+                </button>
+                <!-- Responses: always available -->
+                <button class="action-btn responses-btn" title="View Responses" (click)="onViewResponses(row)">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  Responses
+                </button>
+              </div>
+            </td>
+
+            <!-- Three-dot dropdown column (no header) -->
+            <td class="td-menu">
+              <div class="dot-menu-wrap" *ngIf="row.isActive !== 'completed' && row.isActive !== 'Completed'">
+                <button class="dot-menu-btn" (click)="openMenu($event, row)" title="More actions">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                  </svg>
+                </button>
+
+                <div class="dot-menu-dropdown"
+                  [style.top]="row['_menuTop']"
+                  [style.left]="row['_menuLeft']"
+                  *ngIf="row['_menuOpen']" (click)="$event.stopPropagation()">
+                  <!-- Active quiz: Deactivate + Complete -->
+                  <ng-container *ngIf="row.isActive === 'true'">
+                    <button class="dot-menu-item dot-item-deactivate" (click)="onDeactivate(row); row['_menuOpen'] = false">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                      Deactivate
+                    </button>
+                    <button class="dot-menu-item dot-item-complete" (click)="onComplete(row); row['_menuOpen'] = false">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                      Mark as Completed
+                    </button>
+                  </ng-container>
+
+                  <!-- Inactive quiz: Activate only -->
+                  <ng-container *ngIf="row.isActive === 'false'">
+                    <button class="dot-menu-item dot-item-activate" (click)="onActivate(row); row['_menuOpen'] = false">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 4 12 14.01 9 11.01"/><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg>
+                      Activate
+                    </button>
+                  </ng-container>
+                </div>
+              </div>
+
+              <!-- Completed: no menu icon at all -->
+              <span *ngIf="row.isActive === 'completed' || row.isActive === 'Completed'" class="dot-locked" title="Completed — no further actions">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </span>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredList.length === 0">
+            <td colspan="8">
+              <div class="table-empty">
+                <div class="empty-title">No quizzes found</div>
+                <div class="empty-sub">
+                  {{ activeFilter === 'all' ? 'Create your first quiz to get started.' : 'No quizzes match this filter.' }}
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</ng-container>
+
+<!-- ══════════════════════════════════════════════════════
+     BUILDER VIEW — rendered inline via *ngIf
+     (replace with <app-quiz-builder> if using separate routing)
+     ══════════════════════════════════════════════════════ -->
+<app-quiz-builder
+  *ngIf="showBuilder"
+  [trainingName]="trainingName"
+  [trainingId]="trainingId"
+  [editingQuizId]="editingQuizId"
+  [editingQuiz]="editingQuiz"
+  (backToList)="onBuilderBack()"
+></app-quiz-builder>
+
+<!-- ── Confirm Modal ─────────────────────────────────── -->
+<ng-template #confirmTemplate let-modal>
+  <div class="modal-body text-center p-4">
+    <div class="mb-3">
+      <div style="width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff7ed; color: #c2410c; margin: 0 auto;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+    </div>
+    <h4 class="mb-2" style="font-weight: 700; color: #111827;">Are you sure?</h4>
+    <p class="mb-4" style="font-weight: 500; font-size: 0.9rem; color: #6b7280; line-height: 1.5;">{{ alertMessage }}</p>
+    <div class="d-flex gap-2">
+      <button (click)="modal.dismiss()" 
+              style="flex: 1; border: 1.5px solid #e2e4e9; border-radius: 8px; background: #fff; color: #374151; padding: 10px; font-weight: 600; cursor: pointer;">
+        Cancel
+      </button>
+      <button (click)="confirmAction(modal)" 
+              style="flex: 1; border: none; border-radius: 8px; background: #2563eb; color: #fff; padding: 10px; font-weight: 700; cursor: pointer;">
+        Confirm
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- ── Alert Modal ───────────────────────────────────── -->
+<ng-template #alertTemplate let-modal>
+  <div class="modal-body text-center p-4">
+    <div class="mb-3">
+      <div *ngIf="alertMessage.toLowerCase().includes('error') || alertMessage.toLowerCase().includes('fail')"
+           style="width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fee2e2; color: #dc2626; margin: 0 auto;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <div *ngIf="!(alertMessage.toLowerCase().includes('error') || alertMessage.toLowerCase().includes('fail'))"
+           style="width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #dcfce7; color: #16a34a; margin: 0 auto;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
+    <h4 class="mb-2" style="font-weight: 700; color: #111827;">
+      {{ (alertMessage.toLowerCase().includes('error') || alertMessage.toLowerCase().includes('fail')) ? 'Attention' : 'Done!' }}
+    </h4>
+    <p class="mb-4" style="font-weight: 500; font-size: 0.9rem; color: #6b7280; line-height: 1.5;">{{ alertMessage }}</p>
+    <button (click)="modal.close()"
+            style="width: 100%; border: none; border-radius: 8px; background: #2563eb; color: #fff; padding: 10px; font-weight: 700; cursor: pointer;">
+      OK
+    </button>
+  </div>
+</ng-template>
+
+<!-- ── Responses Modal ──────────────────────────────── -->
+<ng-template #responsesTemplate let-modal>
+  <div class="modal-header border-0 pb-0 px-4 pt-4 position-relative">
+    <div class="d-flex align-items-center gap-3">
+      <!-- <div class="modal-icon-badge indigo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+      </div> -->
+      <div>
+        <h5 class="modal-title mb-0 fw-bold text-dark" style="font-size:1.15rem; letter-spacing: -0.2px;">Quiz Analytics</h5>
+        <p class="mb-0 text-muted" style="font-size:0.85rem;">{{ selectedQuizName }}</p>
+      </div>
+    </div>
+    <div class="d-flex align-items-center ms-auto" style="gap: 1rem;">
+      <button class="btn btn-outline-success d-flex align-items-center gap-2 ml-5" style="border-radius: 10px; border: 1px solid #16a34a;" (click)="onExportToExcel()" title="Export Responses to Excel">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        <span>Export to Excel</span>
+      </button>
+      <button class="btn-close-modal" (click)="modal.dismiss()" aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <span>Close</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="modal-body p-4 pt-2">
+    <!-- Quick Stats for Responses (Refined with Outline) -->
+    <div class="responses-stats-row mb-4">
+      <div class="r-stat-card">
+        <div class="r-stat-label">Attended</div>
+        <div class="r-stat-value">{{ quizResponses.length }}</div>
+      </div>
+      <div class="r-stat-card success">
+        <div class="r-stat-label">Passed</div>
+        <div class="r-stat-value">{{ getPassCount() }}</div>
+      </div>
+      <div class="r-stat-card danger">
+        <div class="r-stat-label">Failed</div>
+        <div class="r-stat-value">{{ quizResponses.length - getPassCount() }}</div>
+      </div>
+    </div>
+
+    <!-- Responses Table (Readable Size) -->
+    <div class="responses-table-container">
+      <table class="quiz-table luxury m-0">
+        <thead>
+          <tr>
+            <th class="th-num">#</th>
+            <th>Employee</th>
+            <th>Attended On</th>
+            <th class="th-center">Marks</th>
+            <th class="th-center">Result Status</th>
+            <th class="th-actions">Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let resp of quizResponses | paginate: { itemsPerPage: responsePageSize, currentPage: responsePage, id: 'respPagi' }; let ri = index">
+            <td class="td-num">{{ (responsePage - 1) * responsePageSize + ri + 1 }}</td>
+            <td>
+              <div class="author-cell">
+                <div class="fw-bold text-dark mb-0 font-medium">{{ resp.name }}</div>
+                <div class="text-muted small">{{ resp.empId }}</div>
+              </div>
+            </td>
+            <td class="td-date font-medium">{{ formatDate(resp.dateAttended) }}</td>
+            <td class="td-center">
+               <span class="num-pill indigo-border">{{ resp.marksObtained }}</span>
+            </td>
+            <td class="td-center font-medium" [ngClass]="resp.passStatus?.toLowerCase() === 'pass' ? 'td-pass' : 'td-fail'">
+                {{ resp.passStatus | uppercase }}
+            </td>
+            <td class="td-actions">
+              <button class="action-btn preview-btn indigo-soft py-1 px-3" (click)="onShowDetailUser(resp)">
+                View Details
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="d-flex justify-content-between align-items-center mt-3 px-1">
+      <div class="text-muted small">
+        Showing {{ (responsePage-1)*responsePageSize + 1 }} - {{ (responsePage*responsePageSize > quizResponses.length) ? quizResponses.length : responsePage*responsePageSize }} of {{ quizResponses.length }}
+      </div>
+      <div class="custom-ngx-pagination">
+        <pagination-controls (pageChange)="responsePage = $event" id="respPagi" previousLabel="" nextLabel=""></pagination-controls>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer border-0 p-1">
+  </div>
+</ng-template>
+
+<!-- ── User Detailed Responses Modal ────────────────── -->
+<ng-template #userDetailTemplate let-modal>
+  <div class="modal-header border-0 pb-0 px-4 pt-4 position-relative">
+    <div class="d-flex align-items-center gap-3">
+      <!-- <div class="modal-icon-badge emerald">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div> -->
+      <div>
+        <h5 class="modal-title mb-0 fw-bold text-dark" style="font-size:1.05rem;">Individual Answer Key</h5>
+        <div class="d-flex align-items-center gap-2 mt-1">
+          <span class="fw-semibold text-dark small">{{ selectedUserResponse?.name }}</span>
+          <span class="text-muted small">•</span>
+          <span class="text-muted small">{{ selectedUserResponse?.empId }}</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-close-modal" (click)="modal.dismiss()" aria-label="Close">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <span>Close</span>
+    </button>
+  </div>
+
+  <div class="modal-body p-4">
+    <div class="detail-table-container shadow-sm border rounded-4 overflow-hidden">
+      <table class="detail-comparison-table">
+        <thead>
+          <tr>
+            <th style="width: 50%;">Question</th>
+            <th style="width: 25%; text-align:center;">Correct Answer</th>
+            <th style="width: 25%; text-align:center;">User Selection</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let qr of selectedUserResponse?.responses; let qi = index">
+            <td>
+              <div class="d-flex gap-2">
+                <span class="text-muted small fw-bold" style="min-width:18px;">{{ qi + 1 }}.</span>
+                <span class="text-dark fw-medium small">{{ qr.question }}</span>
+              </div>
+            </td>
+            <td class="text-center">
+              <span class="ans-pill success">{{ qr.correctAnswer }}</span>
+            </td>
+            <td class="text-center">
+              <span class="ans-pill" [ngClass]="qr.response === qr.correctAnswer ? 'success' : 'danger'">
+                {{ qr.response || '(No selection)' }}
+                <svg *ngIf="qr.response === qr.correctAnswer" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" style="margin-left:4px;"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg *ngIf="qr.response && qr.response !== qr.correctAnswer" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" style="margin-left:4px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal-footer border-0 p-4 pt-0 justify-content-center">
+  </div>
+</ng-template>

@@ -705,12 +705,12 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				);
 				
 				// Check if skip exists for current cycle
-				Optional<TrainingSkip> skipOpt = trainingSkipRepository.findByEmpIdAndTrainingIdAndCycleNumber(
-					empId,
-					training.getTrainingId(),
-					activeQuizId,
-					currentCycle
-				);
+				// Optional<TrainingSkip> skipOpt = trainingSkipRepository.findByEmpIdAndTrainingIdAndCycleNumber(
+				// 	empId,
+				// 	training.getTrainingId(),
+				// 	activeQuizId,
+				// 	currentCycle
+				// );
 				
 				// Determine status
 				String status;
@@ -730,13 +730,15 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 					// 		userTraining.setLastCompletedOn(lastCompleted);
 					// 	}
 					// }
-				} else if (skipOpt.isPresent()) {
-					status = "SKIPPED";
-					TrainingSkip skip = skipOpt.get();
-					if (skip != null) {
-						userTraining.setSkipCount(skip.getSkipCount());
-					}
-				} else {
+				}
+				// else if (skipOpt.isPresent()) {
+				// 	status = "SKIPPED";
+				// 	TrainingSkip skip = skipOpt.get();
+				// 	if (skip != null) {
+				// 		userTraining.setSkipCount(skip.getSkipCount());
+				// 	}
+				// } 
+				else {
 					status = "PENDING";
 
 					

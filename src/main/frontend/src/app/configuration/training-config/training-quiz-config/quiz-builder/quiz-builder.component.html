@@ -1,0 +1,512 @@
+<!-- ══════════════════════════════════════════════════════
+     QUIZ BUILDER COMPONENT
+     ══════════════════════════════════════════════════════ -->
+
+<!-- Sub-header -->
+<div class="builder-subheader">
+  <div class="subheader-left">
+    <button class="btn-back" (click)="onBack()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Back To Quiz List
+    </button>
+    <div class="subheader-divider"></div>
+    <div class="subheader-title-block">
+      <span class="subheader-heading">{{ pageHeading }}</span>
+      <span class="subheader-mode-tag">{{ editingQuizId ? 'Edit Mode' : 'New Quiz' }}</span>
+    </div>
+  </div>
+  <div class="subheader-actions">
+    <button class="btn btn-ghost" (click)="clearAll()">Reset</button>
+    <button class="btn btn-secondary" (click)="openPreviewModal()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Preview
+    </button>
+    <button class="btn btn-primary" (click)="addQuestion()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Question
+    </button>
+    <button class="btn btn-save" [disabled]="!isDirty" (click)="saveQuiz()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      {{ editingQuizId ? 'Update Quiz' : 'Save Quiz' }}
+    </button>
+  </div>
+</div>
+
+<!-- Validation Error Panel -->
+<div class="validation-panel" *ngIf="showValidationPanel && validationErrors.length > 0">
+  <div class="vp-header">
+    <div class="vp-header-left">
+      <div class="vp-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <span class="vp-title">Please fix {{ validationErrors.length }} issue{{ validationErrors.length > 1 ? 's' : '' }} before saving</span>
+    </div>
+    <button class="vp-close" (click)="dismissValidation()">✕</button>
+  </div>
+  <ul class="vp-list">
+    <li *ngFor="let err of validationErrors; trackBy: trackByField" class="vp-item">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {{ err.message }}
+    </li>
+  </ul>
+</div>
+
+<!-- Body -->
+<div class="builder-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="section-label">Quiz Configuration</div>
+
+    <!-- Quiz Title -->
+    <div class="field-group" [class.field-error]="showValidationPanel && !quizTitle.trim()">
+      <label class="field-label">
+        Quiz Title
+        <span class="required-star">*</span>
+      </label>
+      <input
+        type="text"
+        [(ngModel)]="quizTitle"
+        (ngModelChange)="updateDirty()"
+        placeholder="e.g. General Science — Chapter 3"
+        [class.input-error]="showValidationPanel && !quizTitle.trim()"
+      />
+      <span class="field-err-msg" *ngIf="showValidationPanel && !quizTitle.trim()">Quiz title is required.</span>
+    </div>
+
+    <!-- Description -->
+    <div class="field-group">
+      <label class="field-label">Description</label>
+      <textarea rows="3" [(ngModel)]="quizDesc" (ngModelChange)="updateDirty()" placeholder="Optional description..."></textarea>
+    </div>
+
+    <!-- Cutoff Questions -->
+    <div class="field-group" [class.field-error]="showValidationPanel && cutoffQuestions != null && cutoffQuestions > totalQuestions">
+      <label class="field-label">
+        Cutoff Questions
+        <span class="field-hint">≤ total questions</span>
+      </label>
+      <input
+        type="number"
+        [(ngModel)]="cutoffQuestions"
+        (ngModelChange)="updateDirty()"
+        placeholder="e.g. 6"
+        min="1"
+        [class.input-error]="showValidationPanel && cutoffQuestions != null && cutoffQuestions > totalQuestions"
+      />
+      <span
+        class="field-err-msg"
+        *ngIf="showValidationPanel && cutoffQuestions != null && cutoffQuestions > totalQuestions"
+      >
+        Cannot exceed total questions ({{ totalQuestions }}).
+      </span>
+    </div>
+
+    <!-- Total Questions (readonly) -->
+    <div class="field-group">
+      <label class="field-label">Total Questions</label>
+      <input type="number" [value]="totalQuestions || ''" placeholder="—" readonly />
+    </div>
+
+    <!-- Quiz Status Toggle -->
+    <div class="field-group mt-3">
+      <label class="field-label">Quiz Status</label>
+      <div class="status-row">
+        <span class="status-label">Make this quiz active</span>
+        <div class="status-toggle-box">
+          <span class="status-text" [class.status-active]="isActive" [class.status-inactive]="!isActive">
+            {{ isActive ? 'Active' : 'Inactive' }}
+          </span>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="isActive" (ngModelChange)="updateDirty()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+      <span class="field-hint mt-2">Only active quizzes are visible to trainees.</span>
+    </div>
+
+    <!-- Info note -->
+    <div class="info-note">
+      <strong>Cutoff Questions</strong> is the minimum number of questions a student must answer correctly to qualify.
+    </div>
+
+    <!-- Validation summary in sidebar -->
+    <div class="sidebar-validation-hint" *ngIf="showValidationPanel && validationErrors.length > 0">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {{ validationErrors.length }} issue{{ validationErrors.length > 1 ? 's' : '' }} found. Scroll down to review.
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="builder-content">
+    <div class="content-header">
+      <div class="content-header-left">
+        <h2 class="content-title">Questions</h2>
+        <span class="q-count-badge">{{ totalQuestions }} question{{ totalQuestions !== 1 ? 's' : '' }}</span>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="questions.length === 0">
+      <div class="empty-illustration">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="12" x2="12" y2="16"/>
+          <line x1="10" y1="14" x2="14" y2="14"/>
+        </svg>
+      </div>
+      <div class="empty-title">No questions yet</div>
+      <div class="empty-sub">Click <strong>Add Question</strong> above to get started.</div>
+      <button class="btn btn-primary empty-cta" (click)="addQuestion()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add First Question
+      </button>
+    </div>
+
+    <!-- Question cards -->
+    <div
+      *ngFor="let q of questions; trackBy: trackById"
+      class="question-card"
+      [class.card-invalid]="invalidQuestionIds.has(q.id)"
+      [id]="'q-' + q.id"
+    >
+      <!-- Card header -->
+      <div class="card-header" (click)="toggleCollapse(q)">
+        <div class="q-num-badge" [class.badge-invalid]="invalidQuestionIds.has(q.id)">{{ questionIndex(q) + 1 }}</div>
+        <div class="q-preview-text" [class.empty]="!q.text">
+          {{ q.text ? previewText(q) : 'Untitled question...' }}
+        </div>
+        <div class="card-header-meta">
+          <!-- Invalid indicator -->
+          <span class="invalid-chip" *ngIf="invalidQuestionIds.has(q.id)">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Incomplete
+          </span>
+          <span class="q-type-chip" *ngIf="!invalidQuestionIds.has(q.id)">{{ q.inputType === 'checkbox' ? '☑ Multi' : '◉ Single' }}</span>
+          <span class="correct-dot" [class.has-correct]="hasCorrect(q)"></span>
+        </div>
+        <span class="collapse-arrow" [class.open]="!q.collapsed">▼</span>
+      </div>
+
+      <!-- Card body -->
+      <div class="card-body" [class.collapsed]="q.collapsed">
+
+        <!-- Question text -->
+        <div class="field-group" [class.field-error]="invalidQuestionIds.has(q.id) && !q.text.trim()">
+          <label class="field-label">
+            Question Text
+            <span class="required-star">*</span>
+          </label>
+          <textarea
+            rows="2"
+            placeholder="Enter your question here..."
+            [(ngModel)]="q.text"
+            (ngModelChange)="onQuestionChange(q)"
+            [class.input-error]="invalidQuestionIds.has(q.id) && !q.text.trim()"
+          ></textarea>
+          <span class="field-err-msg" *ngIf="invalidQuestionIds.has(q.id) && !q.text.trim()">Question text is required.</span>
+        </div>
+
+        <!-- Options -->
+        <div>
+          <div class="opts-head">
+            <span class="opts-label">
+              Answer Options
+              <span class="required-star">*</span>
+            </span>
+            <div class="opts-head-right">
+              <div class="type-toggle">
+                <button class="type-toggle-btn" [class.active]="q.inputType === 'radio'" (click)="setInputType(q, 'radio', $event)">
+                  <span>◉</span> Radio
+                </button>
+                <button class="type-toggle-btn" [class.active]="q.inputType === 'checkbox'" (click)="setInputType(q, 'checkbox', $event)">
+                  <span>☑</span> Checkbox
+                </button>
+              </div>
+              <span class="correct-status" [class.set]="hasCorrect(q)" [class.unset]="!hasCorrect(q)">
+                {{ correctStatusText(q) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Options error hints -->
+          <div class="opts-error-row" *ngIf="invalidQuestionIds.has(q.id)">
+            <span class="field-err-msg" *ngIf="filledOptionCount(q) < 2">
+              Fill at least 2 answer options.
+            </span>
+            <span class="field-err-msg" *ngIf="!hasCorrect(q) && filledOptionCount(q) >= 2">
+              Select a correct answer.
+            </span>
+            <span class="field-err-msg" *ngIf="hasEmptyCorrectOption(q)">
+              Correct answer option cannot be empty.
+            </span>
+          </div>
+
+          <div class="opts-list">
+            <div
+              *ngFor="let opt of q.options; let i = index; trackBy: trackByIndex"
+              class="opt-row"
+              [class.correct]="opt.correct"
+              [class.opt-empty-error]="invalidQuestionIds.has(q.id) && opt.correct && !opt.text.trim()"
+            >
+              <div class="opt-letter">{{ OPTION_LETTERS[i] || (i + 1) }}</div>
+              <input
+                class="opt-input"
+                type="text"
+                [placeholder]="'Option ' + (OPTION_LETTERS[i] || (i + 1)) + '...'"
+                [(ngModel)]="opt.text"
+                (ngModelChange)="onQuestionChange(q)"
+              />
+              <button
+                class="mark-btn"
+                [class.checkbox-style]="q.inputType === 'checkbox'"
+                [title]="q.inputType === 'checkbox' ? 'Toggle correct' : 'Set as correct answer'"
+                (click)="setCorrect(q, i)"
+              >✓</button>
+            </div>
+          </div>
+
+          <div class="opts-actions">
+            <button *ngIf="q.options.length < 6" class="btn btn-ghost btn-sm" (click)="addOption(q)">+ Add Option</button>
+            <button *ngIf="q.options.length > 2" class="btn btn-danger-soft btn-sm" (click)="removeOption(q)">− Remove Last</button>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button class="btn btn-ghost btn-sm" (click)="duplicateQuestion(q)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Duplicate
+          </button>
+          <button class="btn btn-danger-soft btn-sm" (click)="deleteQuestion(q.id)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add another -->
+    <div *ngIf="questions.length > 0" style="margin-top: 4px;">
+      <button class="btn btn-ghost add-another-btn" (click)="addQuestion()">
+        + Add Another Question
+      </button>
+    </div>
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="toast" [class.show]="toastVisible" [class.success]="toastType === 'success'" [class.error]="toastType === 'error'">
+  <div class="toast-dot"></div>
+  <span>{{ toastMessage }}</span>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PREVIEW MODAL  (NgbModal template)
+     ══════════════════════════════════════════════════════ -->
+<ng-template #previewModalTpl let-modal>
+
+  <!-- Header -->
+  <div class="pv-modal-header">
+    <div class="pv-header-left">
+      <div>
+        <div class="pv-header-title">Quiz Preview</div>
+        <div class="pv-header-sub" *ngIf="quizTitle">{{ quizTitle }}</div>
+      </div>
+    </div>
+    <div class="pv-header-right">
+      <div class="pv-meta-pill">
+        <span>{{ totalQuestions }} Q{{ totalQuestions !== 1 ? 's' : '' }}</span>
+      </div>
+      <div class="pv-meta-pill" *ngIf="cutoffQuestions != null">
+        <span>Cutoff: {{ cutoffQuestions }}</span>
+      </div>
+      <button class="pv-close-btn btn-danger" (click)="modal.dismiss()" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Close
+      </button>
+    </div>
+  </div>
+
+  <!-- Two-panel body -->
+  <div class="pv-modal-body">
+
+    <!-- No questions state -->
+    <div class="pv-empty" *ngIf="questions.length === 0">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      <p>No questions added yet.</p>
+    </div>
+
+    <ng-container *ngIf="questions.length > 0">
+
+      <!-- LEFT — Question number grid -->
+      <div class="pv-question-list">
+        <div class="pv-list-heading">Questions</div>
+        <div class="pv-num-grid">
+          <button
+            *ngFor="let q of questions; let i = index; trackBy: trackById"
+            class="pv-num-btn"
+            [class.pv-num-btn-active]="previewActiveIndex === i"
+            (click)="previewActiveIndex = i"
+            [title]="q.text || 'Question ' + (i + 1)"
+          >{{ i + 1 }}</button>
+        </div>
+      </div>
+
+      <!-- RIGHT — Active question detail -->
+      <div class="pv-question-detail">
+        <ng-container *ngIf="questions[previewActiveIndex] as aq">
+
+          <!-- Question number + type -->
+          <div class="pv-detail-topbar">
+            <span class="pv-detail-qnum">Question {{ previewActiveIndex + 1 }} of {{ totalQuestions }}</span>
+            <span class="pv-detail-type">{{ aq.inputType === 'checkbox' ? '☑ Multiple correct' : '◉ Single correct' }}</span>
+          </div>
+
+          <!-- Question text -->
+          <div class="pv-detail-question">
+            <span *ngIf="aq.text">{{ aq.text }}</span>
+            <em *ngIf="!aq.text" style="opacity:.4;">No question text entered</em>
+          </div>
+
+          <!-- Options -->
+          <div class="pv-options-list">
+            <div
+              *ngFor="let opt of aq.options; let oi = index; trackBy: trackByIndex"
+              class="pv-option"
+              [class.pv-option-correct]="opt.correct"
+              [class.pv-option-empty]="!opt.text"
+            >
+              <!-- Letter badge -->
+              <div class="pv-opt-letter" [class.pv-opt-letter-correct]="opt.correct">
+                {{ OPTION_LETTERS[oi] || (oi + 1) }}
+              </div>
+
+              <!-- Option text -->
+              <div class="pv-opt-text">
+                <span *ngIf="opt.text">{{ opt.text }}</span>
+                <em *ngIf="!opt.text" style="opacity:.4;">Empty option</em>
+              </div>
+
+              <!-- Correct badge -->
+              <div class="pv-opt-correct-badge" *ngIf="opt.correct">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Correct
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Navigation -->
+          <div class="pv-nav-row">
+
+            <!-- Prev button -->
+            <button
+              class="pv-nav-btn pv-nav-btn-next"
+              [disabled]="previewActiveIndex === 0"
+              (click)="previewActiveIndex = previewActiveIndex - 1"
+            >
+              <i class="fa fa-arrow-left"></i>
+              Previous
+            </button>
+
+            <!-- Centre: progress dots + counter -->
+            <div class="pv-nav-centre">
+              <div class="pv-nav-dots">
+                <span
+                  *ngFor="let q of questions; let di = index; trackBy: trackById"
+                  class="pv-dot"
+                  [class.active]="previewActiveIndex === di"
+                  [title]="'Question ' + (di + 1)"
+                  (click)="previewActiveIndex = di"
+                ></span>
+              </div>
+              <span class="pv-nav-counter">
+                {{ previewActiveIndex + 1 }} / {{ totalQuestions }}
+              </span>
+            </div>
+
+            <!-- Next button -->
+            <button
+              class="pv-nav-btn pv-nav-btn-next"
+              [disabled]="previewActiveIndex === questions.length - 1"
+              (click)="previewActiveIndex = previewActiveIndex + 1"
+            >
+              Next
+              <i class="fa fa-arrow-right"></i>
+            </button>
+
+          </div>
+
+        </ng-container>
+      </div>
+
+    </ng-container>
+  </div>
+
+</ng-template>
+
+<ng-template #askForBackTpl let-modal>
+
+  <!-- Header -->
+  <div class="modal-header border-0 pb-0 justify-content-center">
+    <div class="d-flex align-items-center gap-2">
+      <h5 class="modal-title mb-0 fw-semibold" style="font-size:1rem;">Unsaved Changes</h5>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="modal-body pt-2 pb-1 px-4 text-center">
+    <p class="text-secondary mb-0" style="font-size:0.88rem; line-height:1.6;">
+      You have unsaved changes in this quiz
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div class="modal-footer border-0 pt-2 pb-4 gap-2 justify-content-center">
+    <button type="button" class="btn btn-primary" style="font-size:0.85rem;"
+      (click)="modal.dismiss('cancel')">
+      Cancel
+    </button>
+    <button type="button" class="btn btn-danger" style="font-size:0.85rem;"
+      (click)="modal.close('confirm')">
+      Yes, Discard
+    </button>
+  </div>
+
+</ng-template>
+
+<ng-template #alertTemplate let-modal>
+
+  <!-- Header -->
+  <div class="modal-header border-0 pb-0 justify-content-center">
+    <div class="d-flex align-items-center gap-2">
+      <h5 class="modal-title mb-0 fw-semibold" style="font-size:1.5rem;">Alert</h5>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="modal-body pt-2 pb-1 px-4 text-center">
+    <p class="text-secondary mb-0" style="font-size:0.88rem; line-height:1.6;">
+      {{alertMessage}}
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div class="modal-footer border-0 pt-2 pb-4 gap-2 justify-content-center">
+    <button type="button" class="btn btn-primary" style="font-size:1rem;"
+      (click)="modal.dismiss('cancel')">
+      OK
+    </button>
+  </div>
+
+</ng-template>
+

@@ -3,7 +3,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import * as pdfjsLib from 'pdfjs-dist';
 import { GlobalWorkerOptions } from 'pdfjs-dist';
-import { QuizSubmit } from '../training/quiz-submit/quiz-submit.component';
+import { QuizViewModalComponent, QuizViewConfig } from './quiz-view-modal/quiz-view-modal.component';
 
 GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -14,7 +14,7 @@ GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs
   styleUrls: ['./training-content-view.component.css'],
 })
 export class TrainingContentViewComponent implements OnDestroy {
-  @ViewChild('quizSubmitRef') quizSubmitRef: QuizSubmit;
+  @ViewChild('quizSubmitRef') quizSubmitRef: QuizViewModalComponent;
   @Input() content: any; // Content data
   @Input() contentType: string;
   @Input() contentName: string;
@@ -33,7 +33,8 @@ export class TrainingContentViewComponent implements OnDestroy {
   @Input() trainingId: number;
   @Input() cycleNumber: number;
   @Input() contentId: number;
-
+  @Input() quizId: number;
+  
   @Output() consentSubmitted = new EventEmitter<void>();
   @Output() quizClicked = new EventEmitter<void>();
   @Output() quizCompleted = new EventEmitter<boolean>();
@@ -43,6 +44,11 @@ export class TrainingContentViewComponent implements OnDestroy {
   @ViewChild('content_preview_modal') modalTemplate: TemplateRef<any>;
 
   modalRef: NgbModalRef;
+  
+  // Quiz submission state (local + from parent)
+  get quizFinished(): boolean {
+    return this.quizAttempted || this.isAlreadySubmitted || this.formSubmitted;
+  }
 
   // Preview state
   safePreviewUrl: SafeResourceUrl | null = null;
@@ -137,7 +143,7 @@ export class TrainingContentViewComponent implements OnDestroy {
         this.minTimeReached = true;
         clearInterval(this.timerInterval);
       }
-    }, 1000);
+    }, 10);
   }
 
   // PDF Methods
@@ -447,18 +453,24 @@ export class TrainingContentViewComponent implements OnDestroy {
   }
 
   canSwitchToQuiz(): boolean {
-    // Allow switching to quiz if:
-    // 1. Quiz already attempted (viewing results)
-    // 2. Min time reached (if applicable)
-    if (this.quizAttempted) return true;
-    if (this.minViewTimeMinutes > 0 && !this.minTimeReached) return false;
-    if (this.isExternalLink && !this.hasVisitedLink) return false;
+    // If timer is active and not reached, user cannot switch to quiz (even to view responses)
+    if (this.showTimer && this.minViewTimeMinutes > 0 && !this.minTimeReached && !this.hasSeenContent) {
+      return false;
+    }
+
+    // If external link and not visited
+    if (this.isExternalLink && !this.hasVisitedLink) {
+      return false;
+    }
+
+    // Otherwise, allow if they have seen content OR if they already attended the quiz
     return true;
   }
 
   onQuizSubmitted(passed: boolean) {
     this.quizAttempted = true;
     this.formSubmitted = true;
+    this.quizSubmitRef.close();
   }
 
   onQuizQuestionStateChanged(state: { index: number; answered: boolean[] }) {
@@ -467,9 +479,21 @@ export class TrainingContentViewComponent implements OnDestroy {
     this.quizQuestionCount = state.answered.length;
   }
 
+  get quizConfig(): QuizViewConfig {
+    return {
+      mode: 'attend',
+      trainingId: this.trainingId,
+      quizId: this.quizId,
+      cycleNumber: this.cycleNumber,
+      contentId: this.contentId,
+      isAlreadySubmitted: this.quizFinished,
+      quizTitle: 'Training Quiz'
+    };
+  }
+
   jumpToQuizQuestion(index: number) {
     if (this.quizSubmitRef) {
-      this.quizSubmitRef.jumpToQuestion(index);
+      this.quizSubmitRef.goToQuestion(index);
     }
   }
 

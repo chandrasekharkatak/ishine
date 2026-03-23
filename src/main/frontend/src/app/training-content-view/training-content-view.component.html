@@ -1,12 +1,7 @@
 <ng-template #content_preview_modal let-modal>
   <div class="modal-content" [class.fullscreen]="isFullscreen">
     <!-- Header -->
-    <div class="modal-header" [ngClass]="{
-      'bg-mandatory': !isAdminMode && status === 'PENDING' && mandatoryFlag === 'true',
-      'bg-pending': !isAdminMode && status === 'PENDING' && mandatoryFlag !== 'true',
-      'bg-completed': !isAdminMode && status === 'COMPLETED',
-      'bg-primary': isAdminMode || (!['PENDING', 'COMPLETED'].includes(status))
-    }">
+    <div class="modal-header" style="background-color: #193d8a; color: white;">
       <h5 class="modal-title">
         <i class="fas mr-2" [ngClass]="{
           'fa-graduation-cap': !isAdminMode,
@@ -27,13 +22,13 @@
       <div class="d-flex align-items-center">
         <!-- Fullscreen Toggle Button -->
         <button type="button" 
-                class="btn btn-sm btn-outline-light mr-2" 
+                class="btn btn-sm btn-header-custom btn-header-info mr-2"
                 (click)="toggleFullscreen()" 
                 [title]="isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'">
           <i class="fas" [ngClass]="isFullscreen ? 'fa-compress' : 'fa-expand'"></i>
         </button>
         <!-- Close Button -->
-        <button type="button" class="btn btn-sm btn-outline-primary" (click)="close()">
+        <button type="button" class="btn btn-sm btn-header-custom btn-header-danger" (click)="close()">
           <i class="fas fa-times mr-1"></i> Close
         </button>
       </div>
@@ -358,37 +353,19 @@
         <!-- ==================== QUIZ VIEW ==================== -->
         <div class="quiz-view-panel" *ngIf="activeTab === 'quiz'">
           <!-- Quiz layout: question number sidebar (only during active quiz) + quiz content -->
-          <div class="quiz-layout" [class.quiz-layout-with-sidebar]="!formSubmitted && !quizAttempted && quizQuestionCount > 0">
+          <div class="quiz-layout">
 
-            <!-- Question Number Sidebar (only while actively taking the quiz) -->
-            <div class="question-nav-sidebar"
-                 *ngIf="!formSubmitted && !quizAttempted && quizQuestionCount > 0">
-              <div class="qnav-label">Questions</div>
-              <div class="qnav-bubbles">
-                <div *ngFor="let q of quizAnsweredQuestions; let i = index"
-                     class="qnav-bubble"
-                     [class.qnav-current]="i === quizCurrentIndex"
-                     [class.qnav-answered]="q"
-                     (click)="jumpToQuizQuestion(i)"
-                     [title]="'Question ' + (i + 1) + (q ? ' (answered)' : ' (not answered)')">
-                  <span *ngIf="q"><i class="fas fa-check" style="font-size: 0.6rem;"></i></span>
-                  <span *ngIf="!q">{{ i + 1 }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Quiz Submit Component -->
+            <!-- Quiz Content Area -->
             <div class="quiz-content-area">
-              <app-quiz-submit
+              <app-quiz-view-modal
                 #quizSubmitRef
-                [trainingId]="trainingId"
-                [cycleNumber]="cycleNumber"
-                [contentId]="contentId"
-                [isAlreadySubmitted]="quizAttempted"
+                [config]="quizConfig"
+                [showHeader]="false"
+                [showSidebar]="true"
+                [showCloseButton]="false"
                 (quizSubmitted)="onQuizSubmitted($event)"
-                (closeTrainingView)="close()"
                 (questionStateChanged)="onQuizQuestionStateChanged($event)">
-              </app-quiz-submit>
+              </app-quiz-view-modal>
             </div>
 
           </div>

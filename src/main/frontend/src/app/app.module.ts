@@ -219,6 +219,9 @@ import { NgxEditorModule } from 'ngx-editor';
 import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
 import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
 import { TrainingContentViewComponent } from './training-content-view/training-content-view.component';
+import { TrainingQuizConfigComponent } from './configuration/training-config/training-quiz-config/training-quiz-config.component';
+import { QuizBuilderComponent } from './configuration/training-config/training-quiz-config/quiz-builder/quiz-builder.component';
+import { QuizViewModalComponent } from './training-content-view/quiz-view-modal/quiz-view-modal.component';
 
 registerLocaleData(localeGb);
 
@@ -407,7 +410,10 @@ registerLocaleData(localeGb);
     MyAutocompleteComponent,
     InfoTooltipComponent,
     QuizSubmit,
-    TrainingContentViewComponent
+    TrainingContentViewComponent,
+    TrainingQuizConfigComponent,
+    QuizBuilderComponent,
+    QuizViewModalComponent
   ],
   imports: [
     BrowserModule,

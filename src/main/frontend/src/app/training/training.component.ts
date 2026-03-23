@@ -43,17 +43,17 @@ export class TrainingComponent implements OnInit, OnDestroy {
   allTrainingsFilter: string = '';
   allTrainingsFiltered: any[] = [];
 
-  // Currently viewing training (for modal)
+  // Training viewing (Legacy/Consolidated)
   viewingTraining: any = null;
   isViewingTraining: boolean = false;
-
-  // Training viewing
   elapsedTime: number = 0; // in seconds
   elapsedTimeDisplay: string = '00:00';
   timerInterval: any;
   minTimeReached: boolean = false;
   consentButtonEnabled: boolean = false;
   hasVisitedLink: boolean = false;
+  quizButtonEnabled: boolean = false;
+  showQuizSubmitComponent: boolean = false;
 
   // Content viewing
   contentUrl: string = '';
@@ -77,8 +77,6 @@ export class TrainingComponent implements OnInit, OnDestroy {
   // Accordion states
   mustAttendExpanded: boolean = true; // Expanded by default
   allTrainingsExpanded: boolean = true; // Expanded by default
-  quizButtonEnabled: boolean = false;
-  showQuizSubmitComponent: boolean = false;
 
   selectedFilterStatus: string = 'ALL';
   filteredTrainingsByStatus: any[] = [];
@@ -176,7 +174,7 @@ export class TrainingComponent implements OnInit, OnDestroy {
     //   this.isLocked = this.lockStatus.isLocked === true;
 
       // If locked, load all trainings to show the list
-      this.loadUserTrainings();
+      // this.loadUserTrainings(); // Removed redundant call - already handled in subscribe
       // return;
     // }
 
@@ -256,7 +254,10 @@ export class TrainingComponent implements OnInit, OnDestroy {
 
           if (singlePending && this.deadlineCrossedTrainings.length === 0) {
             this.pendingTraining = singlePending;
-            this.setupTrainingContent();
+            // Auto-open mandatory training for locked users
+            if (this.isLocked) {
+              this.viewTraining(singlePending);
+            }
           }
         } else {
           this.allTrainings = [];
@@ -326,452 +327,91 @@ export class TrainingComponent implements OnInit, OnDestroy {
       this.allTrainingsFiltered.length / this.allTrainingsPageSize,
     );
   }
-  setupTrainingContent() {
-    if (!this.pendingTraining || !this.pendingTraining.content) {
-      return;
-    }
-
-    const content = this.pendingTraining.content;
-    this.contentType = content.contentType;
-
-    if (content.contentType === 'LINK') {
-      this.isExternalLink = true;
-      this.contentUrl = content.externalLinkUrl;
-      this.hasVisitedLink = false;
-    } else {
-      this.isExternalLink = false;
-      // For file content, construct download URL
-      this.contentUrl = `${this.trainingService['baseUrl']}api/training/downloadContent/${content.contentId}`;
-    }
-
-    // Reset timer
-    this.elapsedTime = 0;
-    this.elapsedTimeDisplay = '00:00';
-    this.minTimeReached = false;
-    this.consentButtonEnabled = false;
-
-    // Start timer if min time is configured
-    if (
-      this.pendingTraining.minViewTimeMinutes &&
-      this.pendingTraining.minViewTimeMinutes > 0
-    ) {
-      this.startTimer();
-    } else {
-      // No time requirement, enable consent immediately
-      this.minTimeReached = true;
-      if (this.pendingTraining.consentRequired === 'true') {
-        this.consentButtonEnabled = true;
-      }
-    }
-  }
-
-  startTimer() {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-    }
-
-    const minTimeSeconds = this.pendingTraining.minViewTimeMinutes * 60;
-
-    this.timerInterval = setInterval(() => {
-      this.elapsedTime++;
-
-      const minutes = Math.floor(this.elapsedTime / 60);
-      const seconds = this.elapsedTime % 60;
-      this.elapsedTimeDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-      if (this.elapsedTime >= minTimeSeconds) {
-        this.minTimeReached = true;
-        if (this.pendingTraining.consentRequired === 'true') {
-          // this.consentButtonEnabled = true;
-          if (this.viewingTraining.hasQuiz) {
-            this.quizButtonEnabled = true;
-            this.consentButtonEnabled = true;
-          } else {
-            this.consentButtonEnabled = true;
-          }
-        }
-        clearInterval(this.timerInterval);
-      }
-    }, 1000);
-  }
-
-  onExternalLinkClick() {
-    if (this.isExternalLink && this.contentUrl) {
-      window.open(this.contentUrl, '_blank');
-      this.hasVisitedLink = true;
-
-      // For external links, enable consent after clicking
-      // this.consentButtonEnabled = true;
-      if (this.viewingTraining.hasQuiz) {
-        this.quizButtonEnabled = true;
-        this.consentButtonEnabled = true;
-      } else if (this.pendingTraining.consentRequired === 'true') {
-        this.consentButtonEnabled = true;
-      }
-    }
-  }
-
-  onContentDownload() {
-    if (!this.isExternalLink && this.contentUrl) {
-      window.open(this.contentUrl, '_blank');
-    }
-  }
-
-  onSubmitConsent() {
-    if (!this.pendingTraining || !this.pendingTraining.content) {
-      this.openAlert(
-        'Training information is missing. Please refresh the page.',
-        'error',
-      );
-      return;
-    }
-
-    // Validate minimum time if required
-    if (
-      this.pendingTraining.minViewTimeMinutes &&
-      this.pendingTraining.minViewTimeMinutes > 0
-    ) {
-      if (!this.minTimeReached) {
-        this.openAlert(
-          `Please view the training for at least ${this.pendingTraining.minViewTimeMinutes} minutes before submitting consent.`,
-          'warning',
-        );
-        return;
-      }
-    }
-
-    // Validate external link visit
-    if (this.isExternalLink && !this.hasVisitedLink) {
-      this.openAlert(
-        'Please click on the external link to visit the training content before submitting consent.',
-        'warning',
-      );
-      return;
-    }
-
-    const consentData = {
-      trainingId: this.pendingTraining.trainingId,
-      contentId: this.pendingTraining.content.contentId,
-      empId: this.currentUser.empId,
-      completionCycleNumber: this.pendingTraining.currentCycleNumber,
-    };
-
-    this.trainingService.submitConsent(consentData).subscribe({
-      next: (response: any) => {
-        if (response.serviceStatus === 'Success') {
-          // Stop timer
-          if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-          }
-
-          // Show success message
-          this.openAlert(
-            'Training completed successfully! Your consent has been submitted.',
-            'success',
-          );
-
-          // Clear pending training
-          this.pendingTraining = null;
-          this.resetQuizView();
-
-          // Reload trainings to remove from mandatory list and update lock status
-          setTimeout(() => {
-            this.checkLockStatus();
-            this.loadUserTrainings();
-          }, 1500);
-        }
-        // this.openAlert(response.serviceResponse || 'Failed to submit consent', 'error');
-      },
-      error: (error: any) => {
-        // this.openAlert('Error submitting consent: ' + (error.error?.message || error.message), 'error');
-        this.openAlert(
-          error.serviceStatus || 'Failed to submit consent',
-          'error',
-        );
-      },
-    });
-  }
-
-  onSkipTraining() {
-    if (!this.pendingTraining) {
-      return;
-    }
+  /** Banner Skip Logic (Simplified) */
+  onSkipTraining(training: any) {
+    if (!training) return;
 
     // Check if skip is allowed
-    if (this.pendingTraining.skipAllowed !== 'true') {
-      this.openAlertMod(
-        this.alertTemplate,
-        'Skip is not allowed for this training.',
-      );
+    if (training.skipAllowed !== 'true' || training.isDeadlineCrossed) {
+      this.openAlert('Skip is not allowed for this training', 'warning');
       return;
     }
 
-    // Check if deadline has passed
-    if (this.pendingTraining.isDeadlineCrossed) {
-      this.openAlertMod(
-        this.alertTemplate,
-        'Deadline has passed. Skip is not allowed.',
-      );
-      return;
-    }
-
-    const skipData = {
-      trainingId: this.pendingTraining.trainingId,
+    this.trainingService.skipTraining({
+      trainingId: training.trainingId,
       empId: this.currentUser.empId,
-      cycleNumber: this.pendingTraining.currentCycleNumber,
-      quizId: this.pendingTraining.quizId,
-    };
-
-    this.trainingService.skipTraining(skipData).subscribe({
+      cycleNumber: training.currentCycleNumber,
+      quizId: training.quizId,
+    }).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
-          // Stop timer
-          if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-          }
-
-          // Route to home page after successful skip
-          setTimeout(() => {
-            this.router.navigate(['/home']);
-          }, 500);
-        } else {
-          this.openAlertMod(
-            this.alertTemplate,
-            response.serviceResponse || 'Failed to skip training',
-          );
-        }
-      },
-      error: (error: any) => {
-        // this.openAlertMod(this.alertTemplate, 'Error skipping training: ' + error.message);
-        this.openAlertMod(
-          this.alertTemplate,
-          error.serviceStatus || 'Failed to skip training',
-        );
-      },
-    });
-  }
-
-  openAlertMod(template: TemplateRef<any>, message: string) {
-    this.alertMessage = message;
-    this.modalRef = this.modalService.open(template, {
-      centered: true,
-      size: 'sm',
-    });
-  }
-
-  getProgressPercentage(): number {
-    if (!this.pendingTraining || !this.pendingTraining.minViewTimeMinutes) {
-      return 0;
-    }
-    const minTimeSeconds = this.pendingTraining.minViewTimeMinutes * 60;
-    return Math.min((this.elapsedTime / minTimeSeconds) * 100, 100);
-  }
-
-
-
-  startTimerForViewing(minViewTimeMinutes: number) {
-  if (this.timerInterval) {
-    clearInterval(this.timerInterval);
-  }
-
-  const minTimeSeconds = minViewTimeMinutes * 60;
-
-  this.timerInterval = setInterval(() => {
-    this.elapsedTime++;
-
-    const minutes = Math.floor(this.elapsedTime / 60);
-    const seconds = this.elapsedTime % 60;
-    this.elapsedTimeDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-    if (this.elapsedTime >= minTimeSeconds) {
-      console.log('min time reached');
-
-      this.minTimeReached = true;
-      
-      if (this.viewingTraining) {
-        // Training has a quiz and it's not attempted
-        if (this.viewingTraining.hasQuiz && !this.viewingTraining.quizAttempted) {
-          this.quizButtonEnabled = true;
-          this.consentButtonEnabled = false;
-        } 
-        // Training requires consent but no quiz
-        else if (this.viewingTraining.consentRequired === 'true') {
-          this.consentButtonEnabled = true;
-          this.quizButtonEnabled = false;
-        }
-        // Training has both quiz and consent? (rare case)
-        else if (this.viewingTraining.hasQuiz && this.viewingTraining.consentRequired === 'true') {
-          // You might want both enabled or prioritize one
-          this.quizButtonEnabled = true;
-          this.consentButtonEnabled = true;
-        }
-      }
-      
-      clearInterval(this.timerInterval);
-    }
-  }, 1000); 
-}
-
-
-
-  onExternalLinkClickForModal() {
-    if (this.isExternalLink && this.previewUrl) {
-      window.open(this.previewUrl, '_blank');
-      this.hasVisitedLink = true;
-
-      if (
-        this.viewingTraining &&
-        this.viewingTraining.consentRequired === 'true'
-      ) {
-        this.consentButtonEnabled = true;
-      }
-    }
-  }
-
-  onSubmitConsentForModal() {
-    if (!this.viewingTraining || !this.viewingTraining.content) {
-      return;
-    }
-
-    // Validate minimum time if required (for pending or skipped trainings)
-    if (
-      this.viewingTraining.status === 'PENDING' ||
-      this.viewingTraining.status === 'SKIPPED'
-    ) {
-      if (
-        this.viewingTraining.minViewTimeMinutes &&
-        this.viewingTraining.minViewTimeMinutes > 0
-      ) {
-        if (!this.minTimeReached) {
-          this.openAlert(
-            `Please view the training for at least ${this.viewingTraining.minViewTimeMinutes} minutes before submitting consent.`,
-            'warning',
-          );
-          return;
-        }
-      }
-
-      // Validate external link visit
-      if (this.isExternalLink && !this.hasVisitedLink) {
-        this.openAlert(
-          'Please click on the external link to visit the training content before submitting consent.',
-          'warning',
-        );
-        return;
-      }
-    }
-
-    const consentData = {
-      trainingId: this.viewingTraining.trainingId,
-      contentId: this.viewingTraining.content.contentId,
-      empId: this.currentUser.empId,
-      completionCycleNumber: this.viewingTraining.currentCycleNumber,
-    };
-
-    this.trainingService.submitConsent(consentData).subscribe({
-      next: (response: any) => {
-        if (response.serviceStatus === 'Success') {
-          // Stop timer
-          if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-          }
-          // Close current training view
-          this.closeTrainingView();
-          // Show success message
-          this.openAlert(
-            'Training completed successfully! Your consent has been submitted.',
-            'success',
-          );
-
-          this.currentUser.trainingLockStatus = null;
-          this.authenticationService.setcurrentUserSubject(this.currentUser);
-
-          // Reload trainings to remove from mandatory list and update lock status
+          this.openAlert('Training skipped temporarily. You can complete it later.', 'success');
+          this.pendingTraining = null;
+          this.resetQuizView();
           setTimeout(() => {
             this.checkLockStatus();
             this.loadUserTrainings();
-
-            // Move to next deadline-crossed training if auto-opening
-            if (
-              this.isAutoOpening &&
-              this.deadlineCrossedTrainings.length > 0 &&
-              this.currentDeadlineCrossedIndex <
-                this.deadlineCrossedTrainings.length - 1
-            ) {
-              this.currentDeadlineCrossedIndex++;
-              setTimeout(() => {
-                this.viewTraining(
-                  this.deadlineCrossedTrainings[
-                    this.currentDeadlineCrossedIndex
-                  ],
-                  true,
-                );
-              }, 500);
-            } else {
-              this.isAutoOpening = false;
-            }
-          }, 1500);
+          }, 1000);
+        } else {
+          this.openAlert(response.serviceResponse || 'Failed to skip training', 'error');
         }
       },
       error: (error: any) => {
-        // this.openAlert('Error submitting consent: ' + (error.error?.message || error.message), 'error');
-        this.openAlert(
-          error.serviceStatus || 'Failed to submit consent',
-          'error',
-        );
+        this.openAlert(error.serviceStatus || 'Failed to skip training', 'error');
       },
     });
+  }
+
+  // Delegated events from TrainingContentViewComponent (Modal)
+  onSubmitConsentForModal() {
+    // This is now purely for refreshing list after modal handles submission
+    this.closeTrainingView();
+    setTimeout(() => {
+      this.checkLockStatus();
+      this.loadUserTrainings();
+    }, 1500);
   }
 
   onSkipTrainingForModal() {
-    if (!this.viewingTraining) {
-      return;
-    }
-
-    // Skip not allowed for deadline-crossed trainings
-    if (this.viewingTraining.isDeadlineCrossed) {
-      this.openAlert('Deadline has passed. Skip is not allowed.', 'error');
-      return;
-    }
-
-    // Check if skip is allowed
-    if (this.viewingTraining.skipAllowed !== 'true') {
-      this.openAlert('Skip is not allowed for this training.', 'error');
-      return;
-    }
-
-    const skipData = {
-      trainingId: this.viewingTraining.trainingId,
-      empId: this.currentUser.empId,
-      cycleNumber: this.viewingTraining.currentCycleNumber,
-    };
-
-    this.trainingService.skipTraining(skipData).subscribe({
-      next: (response: any) => {
-        if (response.serviceStatus === 'Success') {
-          // Stop timer
-          if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-          }
-
-          // Close current training view
-          this.closeTrainingView();
-
-          // Route to home page after successful skip
-          setTimeout(() => {
-            this.router.navigate(['/home']);
-          }, 500);
-        }
-      },
-      error: (error: any) => {
-        // this.openAlert('Error skipping training: ' + error.message, 'error');
-        this.openAlert(
-          error.serviceStatus || 'Failed to skip training',
-          'error',
-        );
-      },
-    });
+    this.closeTrainingView();
+    setTimeout(() => {
+      this.router.navigate(['/home']);
+    }, 500);
   }
+
+  onQuizCompleted(passed: boolean) {
+    this.resetQuizView();
+    this.showQuizSubmitComponent = false;
+    this.closeTrainingView();
+    
+    setTimeout(() => {
+      this.checkLockStatus();
+      // this.loadUserTrainings(); // Removed redundant call - checkLockStatus already calls loadUserTrainings
+
+      // Move to next deadline-crossed training if auto-opening
+      if (
+        this.isAutoOpening &&
+        this.deadlineCrossedTrainings.length > 0 &&
+        this.currentDeadlineCrossedIndex <
+          this.deadlineCrossedTrainings.length - 1
+      ) {
+        this.currentDeadlineCrossedIndex++;
+        setTimeout(() => {
+          this.viewTraining(
+            this.deadlineCrossedTrainings[this.currentDeadlineCrossedIndex],
+            true,
+          );
+        }, 500);
+      } else {
+        this.isAutoOpening = false;
+      }
+    }, 1500);
+  }
+
+  goToQuiz() {
+    this.showQuizSubmitComponent = true;
+  }
+
 
   openTrainingViewModal() {
     // Set all the input properties
@@ -792,6 +432,7 @@ export class TrainingComponent implements OnInit, OnDestroy {
     this.contentPreviewModal.trainingId = this.viewingTraining.trainingId;
     this.contentPreviewModal.cycleNumber = this.viewingTraining.currentCycleNumber;
     this.contentPreviewModal.contentId = this.viewingTraining.content.contentId;
+    this.contentPreviewModal.quizId = this.viewingTraining.quizId;
     this.contentPreviewModal.isAlreadySubmitted = this.viewingTraining.isAlreadySubmitted || false;
 
     // Subscribe to events (unsubscribe in ngOnDestroy to prevent memory leaks)
@@ -814,16 +455,8 @@ export class TrainingComponent implements OnInit, OnDestroy {
       return;
     }
     
-    this.showQuizSubmitComponent = false;
     this.viewingTraining = training;
     
-    // Reset state
-    this.elapsedTime = 0;
-    this.elapsedTimeDisplay = '00:00';
-    this.minTimeReached = false;
-    this.consentButtonEnabled = false;
-    this.hasVisitedLink = false;
-
     // Clear previous content
     this.previewUrl = '';
     this.safePreviewUrl = null;
@@ -868,16 +501,6 @@ export class TrainingComponent implements OnInit, OnDestroy {
   }
 
   closeTrainingView() {
-    if (this.modalRef) {
-      this.modalRef.close();
-      this.modalRef = null;
-    }
-
-    // Stop timer
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-    }
-
     // Revoke blob URLs
     if (this.previewUrl && this.previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(this.previewUrl);
@@ -890,12 +513,6 @@ export class TrainingComponent implements OnInit, OnDestroy {
     this.safePreviewUrl = null;
     this.file = null;
     this.fileSize = 0;
-    this.elapsedTime = 0;
-    this.elapsedTimeDisplay = '00:00';
-    this.minTimeReached = false;
-    this.consentButtonEnabled = false;
-    this.quizButtonEnabled = false;
-    this.hasVisitedLink = false;
   }
 
   openAlert(message: string, type: string = 'info') {
@@ -957,37 +574,9 @@ export class TrainingComponent implements OnInit, OnDestroy {
     this.resetQuizView();
   }
 
-  goToQuiz() {
-    this.showQuizSubmitComponent = true;
-  }
+  // ... existing goToQuiz removed as redundant with the one at line 390
 
-  onQuizCompleted(event: boolean) {
-    this.resetQuizView();
-    this.showQuizSubmitComponent = false;
-    // modal is already closed by training-content-view component
-    setTimeout(() => {
-      this.checkLockStatus();
-      this.loadUserTrainings();
-
-      // Move to next deadline-crossed training if auto-opening
-      if (
-        this.isAutoOpening &&
-        this.deadlineCrossedTrainings.length > 0 &&
-        this.currentDeadlineCrossedIndex <
-          this.deadlineCrossedTrainings.length - 1
-      ) {
-        this.currentDeadlineCrossedIndex++;
-        setTimeout(() => {
-          this.viewTraining(
-            this.deadlineCrossedTrainings[this.currentDeadlineCrossedIndex],
-            true,
-          );
-        }, 500);
-      } else {
-        this.isAutoOpening = false;
-      }
-    }, 1500);
-  }
+  // ... existing onQuizCompleted removed as redundant with the one at line 382
 
   resetQuizView() {
     this.viewingTraining = null;
@@ -996,12 +585,6 @@ export class TrainingComponent implements OnInit, OnDestroy {
     this.safePreviewUrl = null;
     this.file = null;
     this.fileSize = 0;
-    this.elapsedTime = 0;
-    this.elapsedTimeDisplay = '00:00';
-    this.minTimeReached = false;
-    this.consentButtonEnabled = false;
-    this.quizButtonEnabled = false;
-    this.hasVisitedLink = false;
   }
 
 
@@ -1029,9 +612,9 @@ export class TrainingComponent implements OnInit, OnDestroy {
       this.allTrainingsFiltered = this.allTrainingsFiltered.filter(
         (t) =>
           (t.trainingName &&
-            t.trainingName.toLowerCase().includes(filterLower)) ||
-          (t.trainingType &&
-            t.trainingType.toLowerCase().includes(filterLower)),
+            t.trainingName.toLowerCase().includes(filterLower)) 
+            // || (t.trainingType &&
+            // t.trainingType.toLowerCase().includes(filterLower)),
       );
     }
 

@@ -603,7 +603,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
 
   onAddQuiz(training: any) {
     // Navigate to survey-config with training context
-    this.router.navigate(['/configuration/survey-config'], {
+    this.router.navigate(['/configuration/training-quiz-config'], {
       queryParams: {
         source: 'training',
         trainingId: training.trainingId,
@@ -1466,12 +1466,11 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   }
 
   onViewTrainingResponse(training: any) {
-    console.log('View training response for:', training);
     this.trainingService.getTrainingResponses(training.trainingId).subscribe({
       next: (response:any) =>{
         this.allTrainingResponse = response.serviceResponse || [];
         this.maxResponseSize = this.allTrainingResponse.length;
-         this.responsePage = 1;
+        this.responsePage = 1;
         this.showTrainingResponseModal();
       }, error: (error) =>{
         this.openAlertMod(this.alertTemplate, 'Error fetching training responses', 'error');

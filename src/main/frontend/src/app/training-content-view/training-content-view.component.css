@@ -17,12 +17,38 @@
 
 .modal-header {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.btn-header-custom {
+  background-color: #193d8a;
+  color: white;
+  border: 1px solid white;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-header-custom:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: #ffffff !important;
+  color: white !important;
+  transform: translateY(-1px);
+}
+
+.btn-header-info:hover {
+  background-color: #0ea5e9 !important; /* Sky Blue */
+  border-color: #0ea5e9 !important;
+}
+
+.btn-header-danger:hover {
+  background-color: #dc2626 !important; /* Little red (Danger) */
+  border-color: #dc2626 !important;
 }
 
 .modal-header.bg-primary {
-  background: #ffffff !important;
-  color: #0f172a !important;
+  background: #193d8a !important;
+  color: #ffffff !important;
 }
 
 .modal-header.bg-completed {
@@ -389,12 +415,12 @@
 
 .slide-nav.left {
   left: 0;
-  cursor: w-resize;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M16 18L8 12L16 6V18Z" fill="black"/></svg>') 12 12, pointer;
 }
 
 .slide-nav.right {
   right: 0;
-  cursor: e-resize;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M8 18L16 12L8 6V18Z" fill="black"/></svg>') 12 12, pointer;
 }
 
 .slide-nav.left:hover {

@@ -40,6 +40,7 @@ import com.apmosys.employeeportal.repository.TrainingSkipRepository;
 import com.apmosys.employeeportal.serviceInterface.SurveyService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import java.util.Arrays;
 
 @Service
 public class SurveyServiceImpl implements SurveyService {
@@ -177,7 +178,15 @@ public class SurveyServiceImpl implements SurveyService {
 							mapping.setSurvey(newSurveyCreated);
 							mapping.setIsMandatory(surveyDTO.getIsMandatory() != null ? surveyDTO.getIsMandatory() : false);
 							mapping.setMustPassToComplete(surveyDTO.getMustPassToComplete() != null ? surveyDTO.getMustPassToComplete() : false);
-							mapping.setActiveStatus("false");
+							// mapping.setActiveStatus(surveyDTO.getIsActive());
+
+							if(surveyDTO.getIsActive().equalsIgnoreCase("true")){
+								mapping.setActiveStatus("true");
+								surveyRepository.updateAllQuizByTrainingId(surveyDTO.getTrainingId(), surveyDTO.getSurveyId(), "true");
+							}else{
+								mapping.setActiveStatus("false");
+							}
+
 							mapping.setCreatedBy(surveyDTO.getCreatedBy());
 							
 							// Set content if provided
@@ -280,6 +289,9 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 						if(object.length > 11) {
 							dto.setCutOffQuestions(object[11] != null ? Integer.parseInt(object[11].toString()) : null);
+						}
+						if(object.length > 12) {
+							dto.setTotalQuestions(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
 						}
 						
 						dtoList.add(dto);
@@ -470,7 +482,9 @@ public class SurveyServiceImpl implements SurveyService {
 
 				for(SurveyQuestion sq: surveyQuestionList) correctQuestionAnswerMap.put(sq.getQuestion(), sq.getCorrectAnswer());
 
-				Integer totalPercentage = getQuestionCount(survey.getCutOffQuestions(),surveyDTO.getSurveyQuestionList(), surveyQuestionList).get("totalPercentage");
+				Map<String, Integer> countResults = getQuestionCount(survey.getCutOffQuestions(), surveyDTO.getSurveyQuestionList(), surveyQuestionList);
+				Integer totalPercentage = countResults.get("totalPercentage");
+				correctAnswersCount = countResults.get("correctAnswer");
 
 				Integer totalQuestions = surveyQuestionList.size();
 				Integer cutOffQuestions = survey.getCutOffQuestions();
@@ -480,8 +494,6 @@ public class SurveyServiceImpl implements SurveyService {
 				if(totalPercentage >= cuttOffPercentage){
 					passStatus = "pass";
 				}
-
-				correctAnswersCount = getQuestionCount(survey.getCutOffQuestions(),surveyDTO.getSurveyQuestionList(), surveyQuestionList).get("correctAnswer");
 				
 				for(SurveyEmployeeResponse sur: responseList){					
 
@@ -890,8 +902,8 @@ public class SurveyServiceImpl implements SurveyService {
 						if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz")){
 							dto.setMarksObtained(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
 							dto.setPassStatus(object[11] != null ? object[11].toString() : null);
-							// dto.setCuttOffQuestions(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
-							// dto.setCorrectAnswer(object[13] != null ? object[13].toString() : null);
+							dto.setCorrectAnswer(object[12] != null ? object[12].toString() : null);
+							dto.setCuttOffQuestions(object[13] != null ? Integer.parseInt(object[13].toString()) : null);
 						}
 						
 						
@@ -1021,6 +1033,9 @@ public class SurveyServiceImpl implements SurveyService {
 
 				if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz")){
 
+					if(surveyDTO.getTrainingId() != null && surveyDTO.getIsActive() != null){
+						surveyRepository.updateAllQuizByTrainingId(surveyDTO.getTrainingId(), surveyDTO.getSurveyId(), surveyDTO.getIsActive());
+					}
 					
 					if (surveyUpdated.getSurveyId() != null) {
 						Long surveyId = surveyUpdated.getSurveyId();
@@ -1193,8 +1208,31 @@ public class SurveyServiceImpl implements SurveyService {
 		for(SurveyQuestionDTO question : surveyQuestionList){
 			for(SurveyQuestion surveyQuestion : surveyQuestionList2){
 				if(question.getSurveyQuestionId().equals(surveyQuestion.getSurveyQuestionId())){
-					if(question.getResponse().equals(surveyQuestion.getCorrectAnswer())){
-						correctAnswer++;
+					String userResponse = question.getResponse();
+					String dbCorrectAnswer = surveyQuestion.getCorrectAnswer();
+					String optionType = surveyQuestion.getOptionType();
+
+					if (userResponse != null && dbCorrectAnswer != null) {
+						if ("checkbox".equalsIgnoreCase(optionType)) {
+							// Handle multiple options for checkbox
+							Set<String> userRespSet = Arrays.stream(userResponse.split(","))
+									.map(String::trim)
+									.filter(s -> !s.isEmpty())
+									.collect(Collectors.toSet());
+							Set<String> correctAnsSet = Arrays.stream(dbCorrectAnswer.split(","))
+									.map(String::trim)
+									.filter(s -> !s.isEmpty())
+									.collect(Collectors.toSet());
+
+							if (userRespSet.equals(correctAnsSet)) {
+								correctAnswer++;
+							}
+						} else {
+							// Default behavior for radio or text (case insensitive trim comparison)
+							if (userResponse.trim().equalsIgnoreCase(dbCorrectAnswer.trim())) {
+								correctAnswer++;
+							}
+						}
 					}
 				}
 			}
