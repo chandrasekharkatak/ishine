@@ -623,7 +623,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ "AND date(etm.startDate) <= :date \n"
 				+ "AND (date(etm.endDate) IS NULL OR date(etm.endDate) >= :date)")
 		public List<GetClientDetailsByProjectIdAndEmpIdDTO> getClientDetailsByProjectIdAndEmpId(@Param("project_id")Integer projectId, 
-				@Param("empId")Long empId, @Param("date") Date date);
+				@Param("empId")Long empId);
 		
 		@Query(value = "SELECT distinct new com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO( c.clientId, "
 				+ "c.clientName, cl.clientLocationId, cl.clientLocation, t.projectId, p.projectName, t.teamName, t.teamId )\n"
