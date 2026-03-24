@@ -1,5 +1,5 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -47,6 +47,10 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
 
   // Data
   trainings: any[] = [];
+  totalTrainings: number = 0;
+  activeCount: number = 0;
+  mandatoryCount: number = 0;
+  inactiveCount: number = 0;
   trainingContents: any[] = [];
   selectedTraining: any = null;
   trainingFormData: any = {
@@ -96,6 +100,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
 
   // Modal
   alertMessage: any;
+  alertTitle: string = '';
   alertType: 'success' | 'error' | 'warning' | 'info' = 'info';
   modalRef: NgbModalRef;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
@@ -111,7 +116,8 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   // Filter
   filters: any = {};
   isSearchEnabled: boolean = false;
-  trainingsColumns: any[] = ['blank', 'trainingName', 'trainingType', 'mandatoryFlag', 'lockEnabled', 'activeStatus', 'createdByName', 'createdOn'];
+  selectedFilterCard: string = 'TOTAL';
+  trainingsColumns: any[] = ['blank', 'trainingName', 'trainingType', 'mandatoryFlag', 'lockEnabled', 'activeStatus', 'createdByName'];
   contentColumns: any[] = ['blank', 'contentName', 'contentType', 'effectiveFrom', 'effectiveTo', 'activeStatus', 'createdByName', 'createdOn'];
 
   // File upload
@@ -149,6 +155,10 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   isLoadingPreview = false;
   totalSlides: number = 0;
   slideBlobs: string[] = []; // Store blob URLs
+  @ViewChild('success_template') successTemplate!: TemplateRef<any>;
+  @ViewChild('deactivate_success_template') deactivateSuccessTemplate!: TemplateRef<any>;
+  successTitle: string = '';
+  successMessage: string = '';
 
   showTypeModal: boolean = false;
   newTrainingType: string = '';
@@ -201,6 +211,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.isContentForm = false;
     this.filters = {};
     this.isSearchEnabled = false;
+    this.selectedFilterCard = 'TOTAL';
     this.getAllTrainings();
   }
 
@@ -296,11 +307,36 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.trainingService.getAllTrainings().subscribe({
       next: (response: any) => {
         this.trainings = response.serviceResponse || [];
+        this.updateSummaryStats();
       },
       error: (error: any) => {
         this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Failed to load trainings', 'error');
       }
     });
+  }
+
+  filterByCard(type: string) {
+    this.selectedFilterCard = type;
+    this.page = 1; // Reset pagination
+  }
+
+  getFilteredTrainings() {
+    let list = this.trainings;
+    if (this.selectedFilterCard === 'ACTIVE') {
+      list = list.filter(t => t.activeStatus === 'true');
+    } else if (this.selectedFilterCard === 'INACTIVE') {
+      list = list.filter(t => t.activeStatus === 'false');
+    } else if (this.selectedFilterCard === 'MANDATORY') {
+      list = list.filter(t => t.mandatoryFlag === 'true');
+    }
+    return list;
+  }
+
+  updateSummaryStats() {
+    this.totalTrainings = this.trainings.length;
+    this.activeCount = this.trainings.filter(t => t.activeStatus === 'true').length;
+    this.mandatoryCount = this.trainings.filter(t => t.mandatoryFlag === 'true').length;
+    this.inactiveCount = this.totalTrainings - this.activeCount;
   }
 
   getTrainingContent(trainingId: number) {
@@ -321,7 +357,15 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
         }
       },
       error: (error: any) => {
-        this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Failed to load training content', 'error');
+        console.log("FULL ERROR:", error);
+        console.log("INNER ERROR:", error.error);
+
+        const msg =
+          error?.error?.serviceStatus ||
+          error?.message ||
+          'Failed to load training content';
+
+        this.openAlertMod(this.alertTemplate, msg, 'error');
       }
     });
   }
@@ -428,6 +472,81 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       });
   }
 
+  // onCreateTraining() {
+  //   if (!this.validateTrainingForm()) {
+  //     return;
+  //   }
+
+  //   this.contentFormData.effectiveFrom = this.trainingFormData.effectiveFrom;
+  //   this.contentFormData.effectiveTo = this.trainingFormData.effectiveTo;
+
+  //   // Validate content is added during creation
+  //   if (!this.validateContentForm()) {
+  //     //this.openAlertMod(this.alertTemplate, 'Content is required to create a training. Please add content first.', 'warning');
+  //     this.isContentAccordionOpen = true; // Open accordion to show content form
+  //     return;
+  //   }
+
+  //   // Build FormData with both training and content as JSON strings
+  //   const formData = new FormData();
+
+  //   // Training DTO as JSON string
+  //   const trainingDTO = {
+  //     trainingName: this.trainingFormData.trainingName,
+  //     trainingType: this.trainingFormData.trainingType,
+  //     mandatoryFlag: this.trainingFormData.mandatoryFlag || 'false',
+  //     effectiveFrom: this.trainingFormData.effectiveFrom ? moment(this.trainingFormData.effectiveFrom).format('YYYY-MM-DD') : null,
+  //     effectiveTo: this.trainingFormData.effectiveTo ? moment(this.trainingFormData.effectiveTo).format('YYYY-MM-DD') : null,
+  //     // frequencyPerYear: this.trainingFormData.frequencyPerYear || 2,
+  //     lockEnabled: this.trainingFormData.lockEnabled || 'false',
+  //     minViewTimeMinutes: this.trainingFormData.minViewTimeMinutes || null,
+  //     consentRequired:  'true',
+  //     skipAllowed: this.trainingFormData.skipAllowed || 'false',
+  //     deadlineEnabled: this.trainingFormData.deadlineEnabled || 'false',
+  //     deadlinePattern: this.trainingFormData.deadlinePattern || null,
+  //     customDeadlineMonths: this.trainingFormData.customDeadlineMonths || null,
+  //     createdBy: this.currentUser.empId
+  //   };
+
+  //   // Content DTO as JSON string
+  //   const contentDTO = {
+  //     contentType: this.contentFormData.contentType,
+  //     contentName: this.contentFormData.contentName,
+  //     effectiveFrom: this.trainingFormData.effectiveFrom ? moment(this.trainingFormData.effectiveFrom).format('YYYY-MM-DD') : null,
+  //     effectiveTo: this.trainingFormData.effectiveTo ? moment(this.trainingFormData.effectiveTo).format('YYYY-MM-DD') : null,
+  //     externalLinkUrl: this.contentFormData.contentType === 'LINK' ? this.contentFormData.externalLinkUrl : null
+  //   };
+  //    formData.append(
+  //      'trainingDTO',
+  //      new Blob([JSON.stringify(trainingDTO)], { type: 'application/json' })
+  //    );
+     
+  //    formData.append(
+  //      'contentDTO',
+  //      new Blob([JSON.stringify(contentDTO)], { type: 'application/json' })
+  //    );
+  //   // File (if applicable)
+  //   if (this.contentFormData.contentType !== 'LINK' && this.file) {
+  //     formData.append('file', this.file);
+  //   }
+
+  //   // Send training and content together
+  //   this.trainingService.createTrainingWithContent(formData).
+  //   subscribe({
+  //   next: (response: any) => {
+  //     console.log("success===> ",response)
+  //     const createdTraining = response.serviceResponse;
+  //     this.openCreateQuizModal(createdTraining);
+  //   },
+  //   error: (error: any) => {
+  //     console.log("HTTP error => ", error);
+  //     this.openAlertMod(this.alertTemplate,
+  //       error?.error?.serviceStatus || 'Something went wrong',
+  //       'error');
+  //   }
+  // });
+  // }
+
   onCreateTraining() {
     if (!this.validateTrainingForm()) {
       return;
@@ -436,27 +555,22 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.contentFormData.effectiveFrom = this.trainingFormData.effectiveFrom;
     this.contentFormData.effectiveTo = this.trainingFormData.effectiveTo;
 
-    // Validate content is added during creation
     if (!this.validateContentForm()) {
-      //this.openAlertMod(this.alertTemplate, 'Content is required to create a training. Please add content first.', 'warning');
-      this.isContentAccordionOpen = true; // Open accordion to show content form
+      this.isContentAccordionOpen = true;
       return;
     }
 
-    // Build FormData with both training and content as JSON strings
     const formData = new FormData();
 
-    // Training DTO as JSON string
     const trainingDTO = {
       trainingName: this.trainingFormData.trainingName,
       trainingType: this.trainingFormData.trainingType,
       mandatoryFlag: this.trainingFormData.mandatoryFlag || 'false',
       effectiveFrom: this.trainingFormData.effectiveFrom ? moment(this.trainingFormData.effectiveFrom).format('YYYY-MM-DD') : null,
       effectiveTo: this.trainingFormData.effectiveTo ? moment(this.trainingFormData.effectiveTo).format('YYYY-MM-DD') : null,
-      // frequencyPerYear: this.trainingFormData.frequencyPerYear || 2,
       lockEnabled: this.trainingFormData.lockEnabled || 'false',
       minViewTimeMinutes: this.trainingFormData.minViewTimeMinutes || null,
-      consentRequired:  'true',
+      consentRequired: 'true',
       skipAllowed: this.trainingFormData.skipAllowed || 'false',
       deadlineEnabled: this.trainingFormData.deadlineEnabled || 'false',
       deadlinePattern: this.trainingFormData.deadlinePattern || null,
@@ -464,7 +578,6 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       createdBy: this.currentUser.empId
     };
 
-    // Content DTO as JSON string
     const contentDTO = {
       contentType: this.contentFormData.contentType,
       contentName: this.contentFormData.contentName,
@@ -472,35 +585,23 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       effectiveTo: this.trainingFormData.effectiveTo ? moment(this.trainingFormData.effectiveTo).format('YYYY-MM-DD') : null,
       externalLinkUrl: this.contentFormData.contentType === 'LINK' ? this.contentFormData.externalLinkUrl : null
     };
-     formData.append(
-       'trainingDTO',
-       new Blob([JSON.stringify(trainingDTO)], { type: 'application/json' })
-     );
-     
-     formData.append(
-       'contentDTO',
-       new Blob([JSON.stringify(contentDTO)], { type: 'application/json' })
-     );
-    // File (if applicable)
+    
+    formData.append('trainingDTO', new Blob([JSON.stringify(trainingDTO)], { type: 'application/json' }));
+    formData.append('contentDTO', new Blob([JSON.stringify(contentDTO)], { type: 'application/json' }));
+    
     if (this.contentFormData.contentType !== 'LINK' && this.file) {
       formData.append('file', this.file);
     }
 
-    // Send training and content together
-    this.trainingService.createTrainingWithContent(formData).
-    subscribe({
-    next: (response: any) => {
-      console.log("success===> ",response)
-      const createdTraining = response.serviceResponse;
-      this.openCreateQuizModal(createdTraining);
-    },
-    error: (error: any) => {
-      console.log("HTTP error => ", error);
-      this.openAlertMod(this.alertTemplate,
-        error?.error?.serviceStatus || 'Something went wrong',
-        'error');
-    }
-  });
+    this.trainingService.createTrainingWithContent(formData).subscribe({
+      next: (response: any) => {
+        const createdTraining = response.serviceResponse;
+        this.openCreateQuizModal(createdTraining);
+      },
+      error: (error: any) => {
+        this.openAlertMod(this.alertTemplate, error?.error?.serviceStatus || 'Something went wrong', 'error');
+      }
+    });
   }
 
   onUpdateTraining() {
@@ -585,8 +686,8 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       // Send training and content together
       this.trainingService.updateTrainingWithContent(formData).subscribe({
         next: (response: any) => {
-          this.openAlertMod(this.alertTemplate, 'Training and content updated successfully', 'success');
-          // Reload content list after update
+          this.showSuccessModal('Update Successful', 'Training and content have been updated successfully.');
+          
           if (this.trainingFormData.trainingId) {
             this.getTrainingContent(this.trainingFormData.trainingId);
           }
@@ -699,7 +800,16 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       if (result === 'confirm') {
         this.trainingService.deactivateTraining(training.trainingId, this.currentUser.empId).subscribe({
           next: (response: any) => {
-            this.openAlertMod(this.alertTemplate, 'Training deactivated successfully', 'success');
+            this.selectedTraining = training;
+            // Show deactivation success modal
+            this.successTitle = 'Training Deactivated';
+            this.successMessage = 'The training has been successfully deactivated.';
+            this.modalRef = this.modalService.open(this.deactivateSuccessTemplate, {
+              centered: false,
+              backdrop: 'static',
+              windowClass: 'success-modal',
+              size: 'sm'
+            });
             this.getAllTrainings();
           },
           error: (error: any) => {
@@ -710,42 +820,78 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     });
   }
 
+  showSuccessModal(title: string, message: string): void {
+    this.openAlertMod(this.alertTemplate, message, 'success', title);
+  }
+
+//   private openCreateQuizModal(createdTraining: any): void {
+
+//   this.modalRef = this.modalService.open(this.createQuizTemplate, {
+//     centered: true
+//   });
+
+//   this.modalRef.result.then((result) => {
+
+//     if (result === 'yes') {
+
+//       // Redirect to quiz page
+//       this.router.navigate(['/configuration/survey-config'], {
+//         queryParams: {
+//           source: 'trainingAccept',
+//           trainingId: createdTraining.trainingId,
+//           trainingName: createdTraining.trainingName,
+
+//         }
+//       });
+
+//     } else {
+
+//       // Stay in training page
+//       this.resetContentForm();
+//       this.resetTrainingForm();
+//       this.showTable();
+//     }
+
+//   }).catch(() => {
+
+//     // If dismissed (X button)
+//     this.resetContentForm();
+//     this.resetTrainingForm();
+//     this.showTable();
+//   });
+// }
+
   private openCreateQuizModal(createdTraining: any): void {
+    // Store the created training info for display
+    this.selectedTraining = createdTraining;
+    this.trainingFormData.trainingName = createdTraining.trainingName;
+    
+    this.modalRef = this.modalService.open(this.createQuizTemplate, {
+      centered: true,
+      backdrop: 'static',
+      windowClass: 'success-modal'
+    });
 
-  this.modalRef = this.modalService.open(this.createQuizTemplate, {
-    centered: true
-  });
-
-  this.modalRef.result.then((result) => {
-
-    if (result === 'yes') {
-
-      // Redirect to quiz page
-      this.router.navigate(['/configuration/survey-config'], {
-        queryParams: {
-          source: 'trainingAccept',
-          trainingId: createdTraining.trainingId,
-          trainingName: createdTraining.trainingName,
-
-        }
-      });
-
-    } else {
-
-      // Stay in training page
+    this.modalRef.result.then((result) => {
+      if (result === 'yes') {
+        this.router.navigate(['/configuration/survey-config'], {
+          queryParams: {
+            source: 'trainingAccept',
+            trainingId: createdTraining.trainingId,
+            trainingName: createdTraining.trainingName,
+          }
+        });
+      } else {
+        this.resetContentForm();
+        this.resetTrainingForm();
+        this.showTable();
+      }
+    }).catch(() => {
       this.resetContentForm();
       this.resetTrainingForm();
       this.showTable();
-    }
-
-  }).catch(() => {
-
-    // If dismissed (X button)
-    this.resetContentForm();
-    this.resetTrainingForm();
-    this.showTable();
-  });
-}
+    });
+  }
 
 
   onFileSelect(event: any) {
@@ -1441,14 +1587,16 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.sortDirection = event.direction;
   }
 
-  openAlertMod(template: TemplateRef<any>, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') {
+  openAlertMod(template: TemplateRef<any>, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info', title?: string, size: 'sm' | 'md' | 'lg' | 'xl' = 'sm') {
     this.alertMessage = message;
     this.alertType = type;
-    this.modalRef = this.modalService.open(template, {
-      backdrop: false,
-      windowClass: 'alert-toast-modal',
-      modalDialogClass: 'alert-toast-dialog',
-      size: 'sm'
+    this.alertTitle = title || '';
+    
+    this.modalRef = this.modalService.open(this.alertTemplate, {
+      centered: false,
+      backdrop: 'static',
+      windowClass: 'alert-modal',
+      size: size
     });
 
     // Auto-close after 3 seconds for success messages
@@ -1481,7 +1629,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
 
   showTrainingResponseModal(){
     this.modalRef = this.modalService.open(this.showTrainingResponse, {
-      backdrop: false,
+      backdrop: true,
       windowClass: 'alert-toast-modal',
       modalDialogClass: 'alert-toast-dialog',
       size: 'lg'
@@ -1514,58 +1662,58 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.newTrainingType = '';
     this.modalRef = this.modalService.open(this.addTrainingTypeContent, { 
       centered: true,
-      backdrop: false, 
+      backdrop: true, 
       keyboard: false     
     });
   }
 
-  getAllTrainingTypes() {
-    this.trainingService.getAllTrainingTypes().subscribe({
-      next: (response: any) => {
-        console.log(response , '=============');
-        if (response.serviceStatus === 'Success') {
-          this.trainingTypes = response.serviceResponse || [];
-          console.log(this.trainingTypes,'=========training types ==========')
-        } else {
-          this.openAlertMod(this.alertTemplate, response.message || 'Failed to load training types', 'error');
-        }
-      },
-      error: (error: any) => {
-        this.openAlertMod(this.alertTemplate, error.error?.message || 'Failed to load training types', 'error');
-      }
-    });
-  }
+  // getAllTrainingTypes() {
+  //   this.trainingService.getAllTrainingTypes().subscribe({
+  //     next: (response: any) => {
+  //       console.log(response , '=============');
+  //       if (response.serviceStatus === 'Success') {
+  //         this.trainingTypes = response.serviceResponse || [];
+  //         console.log(this.trainingTypes,'=========training types ==========')
+  //       } else {
+  //         this.openAlertMod(this.alertTemplate, response.message || 'Failed to load training types', 'error');
+  //       }
+  //     },
+  //     error: (error: any) => {
+  //       this.openAlertMod(this.alertTemplate, error.error?.message || 'Failed to load training types', 'error');
+  //     }
+  //   });
+  // }
 
-  saveNewTrainingType() {
-   const typeName = this.newTrainingType.trim();
+  // saveNewTrainingType() {
+  //  const typeName = this.newTrainingType.trim();
     
-    // Check if input is empty
-    if (!typeName) {
-        this.openAlertMod(this.alertTemplate, 'Please enter a training type name', 'warning');
-        return;
-    }
+  //   // Check if input is empty
+  //   if (!typeName) {
+  //       this.openAlertMod(this.alertTemplate, 'Please enter a training type name', 'warning');
+  //       return;
+  //   }
 
-    console.log('Submitting new training type:', typeName);
+  //   console.log('Submitting new training type:', typeName);
 
-    this.trainingService.addTrainingType(this.newTrainingType.trim(), this.currentUser.empId).subscribe({
-      next: (response: any) => {
-         console.log('Response:', response);
+  //   this.trainingService.addTrainingType(this.newTrainingType.trim(), this.currentUser.empId).subscribe({
+  //     next: (response: any) => {
+  //        console.log('Response:', response);
 
-        if (response.serviceStatus === 'Success') {
-          this.modalRef.close();
-          this.openAlertMod(this.alertTemplate, 'Training type added successfully', 'success');
-          console.log("=======addedddddd");
-          this.getAllTrainingTypes(); // dropdown method
-          this.newTrainingType = '';
-        } else {
-          this.openAlertMod(this.alertTemplate, response.message || 'Failed to add training type', 'error');
-        }
-      },
-      error: (error: any) => {
-        this.openAlertMod(this.alertTemplate, error.error?.message || 'Failed to add training type', 'error');
-      }
-    });
-  }
+  //       if (response.serviceStatus === 'Success') {
+  //         this.modalRef.close();
+  //         this.openAlertMod(this.alertTemplate, 'Training type added successfully', 'success');
+  //         console.log("=======addedddddd");
+  //         this.getAllTrainingTypes(); // dropdown method
+  //         this.newTrainingType = '';
+  //       } else {
+  //         this.openAlertMod(this.alertTemplate, response.message || 'Failed to add training type', 'error');
+  //       }
+  //     },
+  //     error: (error: any) => {
+  //       this.openAlertMod(this.alertTemplate, error.error?.message || 'Failed to add training type', 'error');
+  //     }
+  //   });
+  // }
 
 
 downloadResponsesToExcel(): void {
@@ -1729,5 +1877,124 @@ getPendingCount(): number {
 }
 
 Math = Math;
+
+  openMenu(event: MouseEvent, row: any): void {
+    event.stopPropagation();
+    const currentState = (row as any)['_menuOpen'];
+    this.closeAllMenus();
+    
+    if (!currentState) {
+      const btn = event.currentTarget as HTMLElement;
+      const rect = btn.getBoundingClientRect();
+      const menuWidth = 180;
+      (row as any)['_menuTop']  = `${rect.bottom + 6}px`;
+      (row as any)['_menuLeft'] = `${rect.right - menuWidth}px`;
+      (row as any)['_menuOpen'] = true;
+    }
+  }
+
+  closeAllMenus() {
+    this.trainings?.forEach(t => (t as any)['_menuOpen'] = false);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    this.closeAllMenus();
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll() {
+    this.closeAllMenus();
+  }
+
+  // Handle scroll events from any container in the component
+  @HostListener('document:scroll')
+  onScroll() {
+    this.closeAllMenus();
+  }
+
+  // Add this property near your other properties
+isTrainingTypeDuplicate: boolean = false;
+
+// Add this method to check for duplicate training types in real-time
+checkTrainingTypeDuplicate(): void {
+  const typeName = this.newTrainingType?.trim();
+  
+  if (!typeName) {
+    this.isTrainingTypeDuplicate = false;
+    return;
+  }
+  
+  // Check if the training type already exists in the list
+  const exists = this.trainingTypes.some(
+    (type: any) => type.trainingType?.toLowerCase() === typeName.toLowerCase()
+  );
+  
+  this.isTrainingTypeDuplicate = exists;
+}
+
+// Update your saveNewTrainingType method to use the validation
+saveNewTrainingType() {
+  const typeName = this.newTrainingType?.trim();
+  
+  // Check if input is empty
+  if (!typeName) {
+    this.openAlertMod(this.alertTemplate, 'Please enter a training type name', 'warning');
+    return;
+  }
+  
+  // Check minimum length
+  if (typeName.length < 3) {
+    this.openAlertMod(this.alertTemplate, 'Training type name must be at least 3 characters long', 'warning');
+    return;
+  }
+  
+  // Check for duplicates before API call
+  if (this.isTrainingTypeDuplicate) {
+    this.openAlertMod(this.alertTemplate, 'This training type already exists. Please enter a unique name.', 'warning');
+    return;
+  }
+
+  console.log('Submitting new training type:', typeName);
+
+  this.trainingService.addTrainingType(typeName, this.currentUser.empId).subscribe({
+    next: (response: any) => {
+      console.log('Response:', response);
+
+      if (response.serviceStatus === 'Success') {
+        this.modalRef.close();
+        this.openAlertMod(this.alertTemplate, 'Training type added successfully', 'success');
+        this.getAllTrainingTypes(); // Refresh the dropdown
+        this.newTrainingType = '';
+        this.isTrainingTypeDuplicate = false;
+      } else {
+        this.openAlertMod(this.alertTemplate, response.message || 'Failed to add training type', 'error');
+      }
+    },
+    error: (error: any) => {
+      this.openAlertMod(this.alertTemplate, error.error?.message || 'Failed to add training type', 'error');
+    }
+  });
+}
+
+// Make sure getAllTrainingTypes is called on init (you already have this)
+getAllTrainingTypes() {
+  this.trainingService.getAllTrainingTypes().subscribe({
+    next: (response: any) => {
+      console.log(response, '=============');
+      if (response.serviceStatus === 'Success') {
+        this.trainingTypes = response.serviceResponse || [];
+        console.log(this.trainingTypes, '=========training types ==========');
+        // Reset duplicate flag when training types are loaded
+        this.checkTrainingTypeDuplicate();
+      } else {
+        this.openAlertMod(this.alertTemplate, response.message || 'Failed to load training types', 'error');
+      }
+    },
+    error: (error: any) => {
+      this.openAlertMod(this.alertTemplate, error.error?.message || 'Failed to load training types', 'error');
+    }
+  });
+}
 
 }

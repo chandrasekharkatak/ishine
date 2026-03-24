@@ -29,9 +29,6 @@ public class TrainingCron {
 	@Value("${training.job.role.exclude}")
 	private String trainingJobRoleExclude;
 
-	@Value("${training.dry.run.empids.to.include}")
-	private String trainingDryRunEmpIdsToInclude;
-
 	@Autowired
 	private TrainingConsentRepository trainingConsentRepository;
 
@@ -40,17 +37,10 @@ public class TrainingCron {
 
 	@Scheduled(cron = "${trainingReminder.time}")
 	public void sendTrainingReminders() {
-
-			// Dry run empIds
-			List<Long> empIdsToInclude = Arrays.stream(trainingDryRunEmpIdsToInclude.split(","))
-					.map(String::trim)
-					.map(Long::parseLong)
-					.collect(Collectors.toList());
-
 		
 		try {
 
-			List<Object[]> pendingTrainings = trainingConsentRepository.findEmpForUnattendedQuiz(empIdsToInclude);
+			List<Object[]> pendingTrainings = trainingConsentRepository.findEmpForUnattendedQuiz();
 			System.out.println("Pending Trainings : " + pendingTrainings);
 			
 			if (pendingTrainings == null || pendingTrainings.isEmpty()) {

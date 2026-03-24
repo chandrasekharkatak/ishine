@@ -126,9 +126,6 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	@Value("${training.job.role.exclude}")
 	private String trainingJobRoleExclude;
 
-	@Value("${training.dry.run.empids.to.include}")
-	private String trainingDryRunEmpIdsToInclude;
-
 	@Autowired
 	private TrainingUserServiceImpl trainingUserServiceImpl;
 
@@ -910,15 +907,17 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 			List<TrainingContentDTO> dtoList = new ArrayList<>();
 
-			TrainingContentDTO dto = convertToTrainingContentDTO(content);
+			if (content != null) {
+				TrainingContentDTO dto = convertToTrainingContentDTO(content);
 
-			// Check if currently active
-			boolean isActive = "true".equals(content.getActiveStatus())
-					&& content.getEffectiveFrom().isBefore(today)
-					&& (content.getEffectiveTo() == null || content.getEffectiveTo().isAfter(today));
-			dto.setIsCurrentlyActive(isActive);
+				// Check if currently active
+				boolean isActive = "true".equals(content.getActiveStatus())
+						&& content.getEffectiveFrom().isBefore(today.plusDays(1))
+						&& (content.getEffectiveTo() == null || content.getEffectiveTo().isAfter(today.minusDays(1)));
+				dto.setIsCurrentlyActive(isActive);
 
-			dtoList.add(dto);
+				dtoList.add(dto);
+			}
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(dtoList);
@@ -1540,15 +1539,9 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 						.map(Long::parseLong)
 						.collect(Collectors.toList());
 
-			// Dry run empIds
-			List<Long> empIdsToInclude = Arrays.stream(trainingDryRunEmpIdsToInclude.split(","))
-					.map(String::trim)
-					.map(Long::parseLong)
-					.collect(Collectors.toList());
-
 			LockStatusDTO lockStatus = new LockStatusDTO();
 					
-			if (!jobRoleIds.contains(employee.getJobRoleId()) && empIdsToInclude.contains(empId)) {
+			if (!jobRoleIds.contains(employee.getJobRoleId())) {
 				try {
 
 					ServiceResponse lockResponse = trainingUserService.getLockStatus(empId);

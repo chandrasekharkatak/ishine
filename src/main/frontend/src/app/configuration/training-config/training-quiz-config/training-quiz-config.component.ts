@@ -181,7 +181,7 @@ export class TrainingQuizConfigComponent implements OnInit {
         if (res.serviceStatus === 'Success' && Array.isArray(res.serviceResponse)) {
           this.responsePage = 1;
           this.groupQuizResponses(res.serviceResponse);
-          this.modalService.open(this.responsesTemplate, { size: 'xl', windowClass: 'quiz-responses-modal' });
+          this.modalService.open(this.responsesTemplate, { size: 'lg', windowClass: 'quiz-responses-modal' });
         } else {
           this.alertMessage = 'No responses found for this quiz.';
           this.openAlertMod(this.alertTemplate, this.alertMessage);
