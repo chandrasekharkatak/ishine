@@ -322,7 +322,7 @@ public class ProjectController {
 		return response;
 	}
 
-	@RequestMapping(value = "/completeMilestoneRemainder", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping(value = "/completeMilestoneRemainder")
 	public ResponseEntity<ServiceResponse> completeMilestoneRemainder(
 			@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
 			@RequestPart("projectName") String projectName) {
