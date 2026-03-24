@@ -1108,6 +1108,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   /**
    * Get all day types from master data
    */
+  dayTypesToShow: any[] = [];
   getAllDayTypes(): void {
     this.timesheetNewService.getAllDayTypes()
       .pipe(first(), takeUntil(this.destroy$))
@@ -1133,31 +1134,30 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             this.allDayTypes = this.allDayTypes.filter(f =>{
               return !excludedIds.includes(f.dayType);
             })
-
-            //changing the non-working day type to working on non working.
-
-            this.allDayTypes = this.allDayTypes.map(dayType => {
-            if (dayType.dayType === 'Non-working') {
+            console.log(this.allDayTypes);
+            this.dayTypesToShow = this.allDayTypes.map(dayType => {
               return {
-                ...dayType,
-                dayType: 'Working on non-working day'
+                ...dayType,  
+                dayType: dayType.dayTypeId === 3 
+                  ? 'Working on non-working day' 
+                  : dayType.dayType
               };
-            }
-            return dayType;
-          });
+            });
+                  
+                const highPriorityList = [
+                    "Working", 
+                    "Working on non-working day",
+                    "Half-day Working"
+                  ];
 
-            const highPriorityList = ["Working" , "Half-day Working", "Working on non-working day"];
-            const highPriorityItems = this.allDayTypes.filter(dt => 
-            highPriorityList.includes(dt.dayType)
-            );
-            const lowPriorityList = this.allDayTypes.filter(dt => 
-            !highPriorityList.includes(dt.dayType)
-            );
-            highPriorityItems.sort((a, b) => 
-              highPriorityList.indexOf(a.dayType) - highPriorityList.indexOf(b.dayType)
-            );
-            this.allDayTypes = [...highPriorityItems , ...lowPriorityList];
-          console.log('final_value' , this.allDayTypes);
+                const highPriorityItems = this.dayTypesToShow.filter(dt => 
+                  highPriorityList.includes(dt.dayType)
+                );
+
+                const lowPriorityList = this.dayTypesToShow.filter(dt => 
+                  !highPriorityList.includes(dt.dayType)
+                );
+                this.dayTypesToShow = [...highPriorityItems, ...lowPriorityList];
           } else {
             // ✅ MODERATE FIX: Use centralized error handling
             this.handleError(
@@ -1166,11 +1166,13 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
               false // Don't show to user, just log
             );
             this.allDayTypes = [];
+            this.dayTypesToShow = [];
           }
         },
         error: (error) => {
           this.handleError(error, 'getAllDayTypes', false);
           this.allDayTypes = [];
+          this.dayTypesToShow = [];
         }
       });
   }
@@ -5884,6 +5886,6 @@ this.isNightShift = false;
     const [day, month, year] = dateStr.split('-');
   
     return `${year}-${month}-${day}`;
-  }
+}
 
 }
