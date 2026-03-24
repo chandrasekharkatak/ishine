@@ -225,7 +225,7 @@ export class LeaveComponent implements OnInit {
   showCreateForm() {
     this.isForm = true;
     this.isCreation = true;
-
+    this.isLeaveApprovedByMeTable = false;
     this.isUpdation = false;
     this.isLeaveApplicationsTable = false;
     this.isLeaveHistoryTable = false;
@@ -249,6 +249,7 @@ export class LeaveComponent implements OnInit {
 
   showLeaveHistoryTable() {
     this.sortColumn = [];
+    this.isLeaveApprovedByMeTable = false;
     this.sortColumnType = [];
     this.sortDirection = '';
     this.isLeaveHistoryTable = true;
@@ -303,7 +304,7 @@ export class LeaveComponent implements OnInit {
   showTeamLeaveHistoryTable() {
     this.isLeaveHistoryTable = true;
     this.isTeamLeaveHistory = true;
-
+    
     this.isLeaveBalanceTable = false;
     this.isLeaveApplicationsTable = false;
     this.isLeaveLogTable = false;
@@ -324,6 +325,7 @@ export class LeaveComponent implements OnInit {
 
   showLeaveBalanceTable() {
     this.isLeaveBalanceTable = true;
+    this.isLeaveApprovedByMeTable = false;
     this.sortColumn = [];
     this.sortColumnType = [];
     this.sortDirection = '';
@@ -343,6 +345,7 @@ export class LeaveComponent implements OnInit {
   }
 
   showLeaveLogTable() {
+    this.isLeaveApprovedByMeTable = false;
     this.isLeaveLogTable = true;
     this.sortColumn = [];
     this.sortColumnType = [];
@@ -368,7 +371,7 @@ export class LeaveComponent implements OnInit {
     this.sortDirection = '';
     this.isLeaveRevokeApplicationTable = true;
     this.isSelfLeaveRevokeApplication = true;
-
+    this.isLeaveApprovedByMeTable = false;
     this.isLeaveLogTable = false;
     this.isLeaveApplicationsTable = false;
     this.isLeaveHistoryTable = false;
