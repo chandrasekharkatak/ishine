@@ -161,6 +161,9 @@ public class PoPortalAPIService {
 
 	@Value("${poPortal.api.getAllExpiryMilestone}")
 	private String getAllExpiredMilestonesUrl;
+
+	@Value("${poPortal.api.getRmEmailUrl}")
+	private String getRmEmailUrl;
     
     @Autowired
     private PoRequirementMappingRepository poRequirementMappingRepository;
@@ -1287,7 +1290,7 @@ public class PoPortalAPIService {
 				throw new PoportalApiException("External API failed with status: " + externalResponse.getStatusCode());
 			}
 
-			boolean emailSent = sendMilestoneUpdateMail(dto, log);
+			boolean emailSent = sendMilestoneUpdateMail(dto, log , extensionFile) ;
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceMessage(emailSent
@@ -1333,8 +1336,33 @@ public class PoPortalAPIService {
 	
 	
 
-	private boolean sendMilestoneUpdateMail(MilestoneUpdatedLogDto dto, MilestoneUpdatedLog log) {
+	private boolean sendMilestoneUpdateMail(MilestoneUpdatedLogDto dto, MilestoneUpdatedLog log ,MultipartFile extensionFile) {
 		try {
+			
+			String traceId = UUID.randomUUID().toString();
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("X-Trace-Id", traceId);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+
+			HttpEntity<?> entity = new HttpEntity<>(headers);
+
+			String url = getRmEmailUrl + dto.getProjectId();
+
+			ResponseEntity<List<String>> apiResponse = restTemplate.exchange(
+        		url,
+        		HttpMethod.GET,
+        		entity,
+        		new ParameterizedTypeReference<List<String>>() {}
+			);
+
+			List<String> RmEmailsFormPO = apiResponse.getBody();
+			int finalHttpStatusCode = apiResponse.getStatusCodeValue();
+
+			System.out.println(RmEmailsFormPO);
+			
+			
+			
+			
 			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
 			if (optionalEmails.isEmpty()) {
 				logger.warn("No email addresses found for project: {}", dto.getProjectId());
@@ -1395,8 +1423,8 @@ public class PoPortalAPIService {
 					List<String> ccRecipientsDummy = Arrays.asList(
 							"chandasekhar.moharana@apmosys.com");
 
-			//mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
-			mailService.sendMailToMultipleRecipients(toRecipientsDummy, ccRecipientsDummy, subject, body);
+			//mailService.sendMailToMultipleRecipientsWithFile(toRecipients, ccRecipients, subject, body , extensionFile);
+			mailService.sendMailToMultipleRecipientsWithFile(toRecipientsDummy, ccRecipientsDummy, subject, body , extensionFile);
 			logger.info("Email sent successfully for milestone: {}", dto.getMilestoneName());
 			return true;
 
@@ -2503,6 +2531,33 @@ return empId;
 
 	private boolean sendEmailForMileStoneUpdate(FCProjectMilestoneDTO dto , MultipartFile file , String projectName) {
 		try {
+
+			String traceId = UUID.randomUUID().toString();
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("X-Trace-Id", traceId);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+
+			HttpEntity<?> entity = new HttpEntity<>(headers);
+
+			String url = getRmEmailUrl + dto.getProjectId();
+
+			ResponseEntity<List<String>> apiResponse = restTemplate.exchange(
+        		url,
+        		HttpMethod.GET,
+        		entity,
+        		new ParameterizedTypeReference<List<String>>() {}
+			);
+
+			List<String> RmEmailsFormPO = apiResponse.getBody();
+			int finalHttpStatusCode = apiResponse.getStatusCodeValue();
+
+			System.out.println(RmEmailsFormPO);
+
+
+
+
+
+
 			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
 			if (optionalEmails.isEmpty()) {
 				logger.warn("No email addresses found for project: {}", dto.getProjectId());
@@ -2520,12 +2575,17 @@ return empId;
 			
 			List<String> directorEmails = projectRepository.findDirectorEmails();
 
+
 			List<String> toRecipients = Stream.concat(
-        Stream.concat(rmEmails.stream(), hodEmails.stream()),
-        accountsEmails.stream())
-					.filter(e -> e != null && !e.trim().isEmpty())
-					.distinct()
-					.collect(Collectors.toList());
+			        Stream.concat(
+			            Stream.concat(rmEmails.stream(), hodEmails.stream()),
+			            accountsEmails.stream()
+			        ),
+			        RmEmailsFormPO.stream()
+			)
+			.filter(e -> e != null && !e.trim().isEmpty())
+			.distinct()
+			.collect(Collectors.toList());
 
 			if (toRecipients.isEmpty()) {
 				logger.warn("Skipping milestone email due to empty RM/HOD emails: {}", dto.getName());
@@ -2568,6 +2628,155 @@ return empId;
 			//mailService.sendMailToMultipleRecipientsWithFile(toRecipients, ccRecipients, subject, body ,file);
 
 			mailService.sendMailToMultipleRecipientsWithFile(toRecipientsDummy, ccRecipientsDummy, subject, body , file) ;
+			logger.info("Email sent successfully for milestone: {}", dto.getName());
+			return true;
+
+		} catch (Exception e) {
+			logger.error("Failed to send email for milestone {}: {}", dto.getName(), e.getMessage());
+			return false;
+		}
+	}
+	
+	
+	public ServiceResponse completeMilestoneRemainder(FCProjectMilestoneDTO dto , String ProjectName) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		String exceptionDetailsForLog = null;
+		try {
+			if (dto == null || dto.getId() == null) {
+				String msg = "Milestone DTO and ID cannot be null.";
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				exceptionDetailsForLog = msg;
+				return serviceResponse;
+			}
+
+			if (dto.getStatus() != null && dto.getStatus().equalsIgnoreCase("COMPLETED")) {
+			    	
+				boolean emailSent =  sendEmailForMileStoneComplete(dto , ProjectName);
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceMessage(emailSent
+					? "Email notification sent."
+					: "Email notification could not be sent.");
+				System.out.println("Email Sent :"+ emailSent );
+			}
+				
+		} catch (Exception e) {
+			String errorMsg = "An unexpected error occurred during the milestone update process.";
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse(errorMsg);
+			serviceResponse.setServiceError(e.getMessage());
+			exceptionDetailsForLog = e.toString();
+			e.printStackTrace();
+		} 
+		return serviceResponse;
+	}
+	
+	
+	
+	
+	private boolean sendEmailForMileStoneComplete(FCProjectMilestoneDTO dto , String ProjectName) {
+		try {
+
+			String traceId = UUID.randomUUID().toString();
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("X-Trace-Id", traceId);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+
+			HttpEntity<?> entity = new HttpEntity<>(headers);
+
+			String url = getRmEmailUrl + dto.getProjectId();
+
+			ResponseEntity<List<String>> apiResponse = restTemplate.exchange(
+        		url,
+        		HttpMethod.GET,
+        		entity,
+        		new ParameterizedTypeReference<List<String>>() {}
+			);
+
+			List<String> RmEmailsFormPO = apiResponse.getBody();
+			int finalHttpStatusCode = apiResponse.getStatusCodeValue();
+
+			System.out.println(RmEmailsFormPO);
+
+
+			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
+			if (optionalEmails.isEmpty()) {
+				logger.warn("No email addresses found for project: {}", dto.getProjectId());
+				return false;
+			}
+
+			RmAndHodEmailDto emailDto = optionalEmails.get();
+			List<String> rmEmails = emailDto.getRmEmails() != null ? emailDto.getRmEmails() : Collections.emptyList();
+			List<String> hodEmails = emailDto.getHodEmails() != null ? emailDto.getHodEmails()
+					: Collections.emptyList();
+
+		    List <String> accountsEmails = projectRepository.getAccountsTeamEmails();
+			System.out.println(accountsEmails);
+
+			
+			List<String> directorEmails = projectRepository.findDirectorEmails();
+
+			
+			List<String> toRecipients = Stream.concat(
+			        Stream.concat(
+			            Stream.concat(rmEmails.stream(), hodEmails.stream()),
+			            accountsEmails.stream()
+			        ),
+			        RmEmailsFormPO.stream()
+			)
+			.filter(e -> e != null && !e.trim().isEmpty())
+			.distinct()
+			.collect(Collectors.toList());
+			
+			
+			
+			
+			
+			
+
+			if (toRecipients.isEmpty()) {
+				logger.warn("Skipping milestone email due to empty RM/HOD emails: {}", dto.getName());
+				return false;
+			}
+
+			List<String> ccRecipients = directorEmails.stream()
+					.filter(e -> e != null && !e.trim().isEmpty())
+					.distinct()
+					.collect(Collectors.toList());
+
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+			//String extendedDate = formatter.format(dto.getExtendedDate());
+			String endDate = formatter.format(dto.getEndDate());
+			String startDate = formatter.format(dto.getStartDate());
+
+			String subject = "Project Milestone Update Notification: " + ProjectName;
+			String body = "<html><body>"
+			        + "<p>Dear Team,</p>"
+			        + "<p>The following project milestone has been <b>completed</b>. Kindly review and mark the project as <b>completed</b>.</p>"
+			        + "<br/>"
+			        + "<table border='1' style='border-collapse: collapse;'>"
+			        + "<tr><th>PO Number</th><td>" + dto.getPoId() + "</td></tr>"
+			        + "<tr><th>Project Name</th><td>" + ProjectName + "</td></tr>"
+			        + "<tr><th>Milestone Name</th><td>" + dto.getName() + "</td></tr>"
+			        + "<tr><th>Line Item</th><td>" + dto.getLineItemName() + "</td></tr>"
+			        + "<tr><th>Milestone Start Date</th><td>" + startDate + "</td></tr>"
+			        + "<tr><th>Milestone End Date</th><td>" + endDate + "</td></tr>"
+			        + "<tr><th>Milestone Extended Date</th><td>" + dto.getExtendedDate() + "</td></tr>"
+			        + "<tr><th>Status</th><td><b>" + dto.getStatus() + "</b></td></tr>"
+			        + "</table>"
+			        + "<br/>"
+			        + "<p>Please take the necessary action.</p>"
+			        + "<br/>"
+			        + "<p>Regards,<br>ApMoSys Technologies</p>"
+			        + "</body></html>";
+
+			List<String> toRecipientsDummy = Arrays.asList(
+							// "shikha.suman@apmosys.com",
+							"chandasekhar.moharana@apmosys.com");
+					List<String> ccRecipientsDummy = Arrays.asList(
+							"shikha.suman@apmosys.com");
+
+
+			mailService.sendMailToMultipleRecipients(toRecipientsDummy, ccRecipientsDummy, subject, body) ;
 			logger.info("Email sent successfully for milestone: {}", dto.getName());
 			return true;
 
