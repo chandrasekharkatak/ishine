@@ -1586,7 +1586,7 @@ public class CronJobService {
 	                    ts.setDate(dateToday);
 	                    ts.setEmpId(empId);
 	                    ts.setIsNightShift(false);
-	                    ts.setDayTypeId(2);
+	                    ts.setDayTypeId(6);
 	                    ts.setStatus(2);
 	                    ts.setDescription("Public Holiday : " + holiday.getOccasion());
 
