@@ -325,6 +325,7 @@ selectedDeptId: string | null = null;
 isDeptTableCollapsed = true;
 departmentTableData: any[] = [];
 isDeptTableLoading = false;
+billableTypeDropdown: Boolean = false;
 
 employeeViewBullet : string[] = ["Provides a resource-centric, month-wise overview across projects.",
 "Displays timesheet completion and approval status for each individual resource.",
@@ -1016,6 +1017,7 @@ updateBillableTypes() {
     // this.billableTypes = [...this.projectBillableTypes];
     this.updateBillableTypes()
     this.status = 'All';
+    this.billableTypeDropdown = true ;
     this.currentColumnFilter = { ...this.projectViewFilters };
     this.selectedBillableTypes = ['TNM'];
     this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);

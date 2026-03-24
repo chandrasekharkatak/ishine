@@ -11,10 +11,13 @@ export class AttendanceReconciliationService {
 
   constructor(private http: HttpClient) { }
  
-  getBiomatricData(startDate:string,endDate:string){
+  getBiomatricData(startDate: string, endDate: string, pageNumber: number = 1, pageSize: number = 20) {
     let httpParams = new HttpParams()
-    .append("startDate",startDate).append("endDate",endDate);
-    return this.http.get(`${this.baseUrl}` + `api/getBioData`, {params: httpParams});
+      .append("startDate", startDate)
+      .append("endDate", endDate)
+      .append("pageNumber", pageNumber.toString())
+      .append("pageSize", pageSize.toString());
+    return this.http.get(`${this.baseUrl}` + `api/getBioData`, { params: httpParams });
   }
 
   getviewMoreData(id:any,date:string){

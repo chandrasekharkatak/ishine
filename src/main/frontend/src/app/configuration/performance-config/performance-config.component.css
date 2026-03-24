@@ -88,8 +88,62 @@
     z-index: 100;
     background: var(--ghost-white);
 }
+.column-filter-toggle {
+    display: flex;
+    justify-content: left;
+    max-width: fit-content;
+    cursor: pointer;
+}
+
+.column-filter-toggle-btn {
+    color: #193d8a;
+    background-color: #fff;
+}
+.export-btn {
+    color: #053885;
+    display: flex;
+    justify-content: left;
+    max-width: fit-content;
+}
+
 .export-button {
     position: absolute;
    right: 0%;
    top: -25px;
 }
+.financialyearrow{
+    display: flex;
+    align-items: center;
+    gap:30px;
+    margin-bottom: 20px;
+}
+
+.fy-display {
+  font-size: 18px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-align: center;   
+  margin: 1% 0px 0px -13%;
+
+}
+.row-monthly{
+    display: flex;
+    align-items: center;
+    gap:30px;
+    margin-bottom: 20px;
+}
+
+.custom-paginator {
+    display: flex;
+    justify-content: flex-start;
+    color: #333;
+    font-weight: 500;
+}
+
+.custom-paginator .mat-paginator-range-label,
+.custom-paginator .mat-select-value,
+.custom-paginator .mat-icon-button {
+    color: #333 !important;
+    font-size: 12px !important;
+}
+

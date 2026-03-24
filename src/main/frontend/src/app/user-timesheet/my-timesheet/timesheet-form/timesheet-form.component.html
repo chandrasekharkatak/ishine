@@ -518,9 +518,9 @@
                                                     </app-my-select>
                                                 </div>
                                                 <div class="col-md-4 mb-3"
-                                                    *ngIf="( project.hasClientSideId ?? false) && project.clientId && project.clientLocationId && isDayTypeFillable() && !project.isShadowForSelf">
+                                                    *ngIf="( project.hasClientSideId ?? false) && project.clientId && project.clientLocationId && isDayTypeFillable()">
                                                     <label class="info-label">
-                                                        <span class="text-danger" *ngIf="!project.isShadowTimesheet">*</span> Client DSR Approval Status
+                                                        <span class="text-danger" *ngIf="!project.isShadowTimesheet && !project.isShadowForSelf">*</span> Client DSR Approval Status
                                                     </label>
                                                     <app-my-select class="form-control"
                                                         placeholder="Select Approval Status"
@@ -664,7 +664,6 @@
             <!-- Show document section for projects meeting all conditions: clientSideId exists, !isShadowForSelf, isDayTypeFillable, and has approval status -->
             <div class="card-body-section document-body"
                  *ngIf="project.hasClientSideId &&
-                        !project.isShadowForSelf &&
                         isDayTypeFillable() &&
                         (project.clientApprovalStatus === 2 || project.clientApprovalStatus === 1)">
                 <!-- Project Header -->

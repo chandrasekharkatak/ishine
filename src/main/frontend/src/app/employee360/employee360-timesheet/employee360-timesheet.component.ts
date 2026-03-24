@@ -879,20 +879,22 @@ async get360TimesheetDetails(
   formattedStartDate: string,
   formattedEndDate: string
 ): Promise<void> {
+  let startDate: string = null;
+  let endDate: string = null;
   console.log(this.activeButton);
-  const endDate = this.formatDateForApi(
-    formattedEndDate && formattedEndDate !== 'null'
-      ? formattedEndDate
-      : new Date().toISOString().split('T')[0]
-  );
-
-  const startDate = this.formatDateForApi(
-    formattedStartDate && formattedStartDate !== 'null'
-      ? formattedStartDate
-      : new Date(new Date().setMonth(new Date().getMonth() - 3))
-        .toISOString().split('T')[0]
-  );  // 3 months ago as yyyy-MM-dd
-
+  if (this.selectedOption != 1) {
+    endDate = this.formatDateForApi(
+      formattedEndDate && formattedEndDate !== 'null'
+        ? formattedEndDate
+        : new Date().toISOString().split('T')[0]
+    );
+    startDate = this.formatDateForApi(
+      formattedStartDate && formattedStartDate !== 'null'
+        ? formattedStartDate
+        : new Date(new Date().setMonth(new Date().getMonth() - 3))
+          .toISOString().split('T')[0]
+    );
+  }
   try {
 
 

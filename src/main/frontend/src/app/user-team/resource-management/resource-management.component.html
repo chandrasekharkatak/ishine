@@ -490,9 +490,11 @@
 <ng-template #project_completion_date_picker>
     <div class="modal-body text-center">
         <h5>Please select project completion date</h5>
-        <div style="max-width: 300px; margin: auto;">
-            <input #dateInput type="date" class="form-control" [(ngModel)]="selectedDate" autocomplete="off"
-                style="width: 100%; margin-top: 10px;" />
+        <div class="date-input-wrapper">
+            <input class="form-control date-input" [max]="minDate" readonly [matDatepicker]="completionDatepicker"
+                [(ngModel)]="selectedDate" (click)="completionDatepicker.open()" />
+            <mat-icon class="calendar-icon" (click)="completionDatepicker.open()">calendar_today</mat-icon>
+            <mat-datepicker #completionDatepicker></mat-datepicker>
         </div>
         <br/>
         <button type="button" class="btn btn-primary" (click)="confirmMarkProjectAsComplete()">Submit</button>

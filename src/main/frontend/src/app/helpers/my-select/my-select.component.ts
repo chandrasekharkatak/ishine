@@ -261,6 +261,7 @@ isDisabledOption(option: any): boolean {
 
   triggerFilter(event: Event) {
     event.stopPropagation();
+    event.preventDefault();
     this.filterAction.emit();
   }
 

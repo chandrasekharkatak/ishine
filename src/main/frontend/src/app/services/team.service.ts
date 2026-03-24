@@ -8,6 +8,7 @@ import { MigrateTeams } from '../models/migrateTeam';
 import { PoDetails } from '../models/poDetails';
 import { RmgTeamMember } from '../models/rmgTeamMember';
 import { RmgTeam } from '../models/rmgTeam';
+import { EmployeeProjectTimesheetDto } from '../models/employeeProjectTimesheetDto';
 
 @Injectable({
   providedIn: 'root'
@@ -165,6 +166,10 @@ export class TeamService {
 
   updateMemberShadowMapping(rmgTeamMember: RmgTeamMember) {
     return this.http.post(`${this.baseUrl}` + `api/updateMemberShadowMapping`, rmgTeamMember);
+  }
+
+  updateTeamMembersStartDateAndEndDate(employeeObj: EmployeeProjectTimesheetDto) {
+    return this.http.post(`${this.baseUrl}` + `api/updateTeamMembersStartDateAndEndDate`, employeeObj);
   }
 
 }

@@ -295,6 +295,9 @@ public class EmployeeDTO {
 	private Object notificationConsent;
 	private Notification releaseNoteNotification;
 	private Notification linkedinPageNotification;
+	
+	// Training lock status
+	private LockStatusDTO trainingLockStatus;
 	private String poPortalAllProjectApi;
 
 	private String unlockTimesheetFor;

@@ -34,5 +34,6 @@ export class PoDetails {
     isupdate: boolean = true;
     projectType: any;
     poTitle: any;
+    isExpired: boolean = false;
 
 }

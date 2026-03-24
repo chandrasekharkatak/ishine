@@ -82,9 +82,9 @@ public class ReportController {
 	
 	//biomatric data link
 		@GetMapping(value = "/getBioData")
-		public ServiceResponse getBioData(@RequestParam String startDate,@RequestParam String endDate) throws SQLException {
+		public ServiceResponse getBioData(@RequestParam String startDate,@RequestParam String endDate, @RequestParam(defaultValue = "1") Integer pageNumber, @RequestParam(defaultValue = "10") Integer pageSize) throws SQLException {
 			System.out.println("getBioData api call....................");
-			ServiceResponse response = bioMaxService.getEmpBioData(startDate,endDate);
+			ServiceResponse response = bioMaxService.getEmpBioDataFromIshine(startDate,endDate,pageNumber,pageSize);
 			
 			return response;
 		}

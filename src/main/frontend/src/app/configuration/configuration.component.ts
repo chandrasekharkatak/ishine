@@ -79,4 +79,13 @@ export class ConfigurationComponent implements OnInit, AfterViewInit, OnDestroy{
     //console.log("active tab :", tab);
     tab?.classList.remove('active');
   }
+
+  navigateToSurveyWithoutContext(event: Event){
+    event.preventDefault();
+    // Navigate to survey-config without any query parameters to clear training context
+    this.router.navigate(['/configuration/survey-config'], { 
+      queryParams: {},
+      replaceUrl: true 
+    });
+  }
 }

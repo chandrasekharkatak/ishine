@@ -1,7 +1,6 @@
 package com.apmosys.employeeportal.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,15 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
-import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.MigrateTeam;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectDTO;
-import com.apmosys.employeeportal.dto.RMGDashboardProjectRequest;
-import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
-import com.apmosys.employeeportal.dto.RmgTeamDto;
-import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.service.EmployeeService;
@@ -312,7 +306,7 @@ public class TeamsController {
 	public ServiceResponse getAllTeamsByPoId(@RequestParam Long poId) {
 		return teamsService.getAllTeamsByPoId(poId);
 	}
-	
+
 	// @Encrypted
 	@JobRoleAccess(featureIds = { 7 })
 	@GetMapping("/getTeamDetailsByTeamId")
@@ -327,9 +321,9 @@ public class TeamsController {
 	}
 
 	// @Encrypted
-	@PostMapping("/migrateTeam")
-	public ServiceResponse migrateTeam(@RequestBody MigrateTeam migrateTeam) {
-		return teamsService.migrateTeam(migrateTeam);
+	@GetMapping("/getActiveTeamDetailsByProjectId")
+	public ServiceResponse getActiveTeamDetailsByProjectId(@RequestParam Integer projectId) {
+		return teamsService.getActiveTeamDetailsByProjectId(projectId);
 	}
 
 	// @Encrypted
@@ -339,75 +333,20 @@ public class TeamsController {
 	}
 
 	// @Encrypted
-	@PostMapping("/deleteSelectedTeams")
-	public ServiceResponse deleteSelectedTeams(@RequestBody PoDetailsDto poDetailsDto) {
-		return teamsService.deleteSelectedTeams(poDetailsDto);
-	}
-
-	// @Encrypted
 	@PostMapping("/addOrUpdateTeamDetails")
 	public ServiceResponse addOrUpdateTeamDetails(@RequestBody PoDetailsDto poDetailsDto) {
 		return teamsService.addOrUpdateTeamDetails(poDetailsDto);
 	}
 
 	// @Encrypted
-	@PostMapping("/addOrUpdateTeamMembers")
-	public ServiceResponse addOrUpdateTeamMembers(@RequestBody RmgTeamDto rmgTeamDto) {
-		return teamsService.addOrUpdateTeamMembers(rmgTeamDto);
-	} 
-	
-	// @Encrypted
-	@GetMapping("/getActiveTeamDetailsByProjectId")
-	public ServiceResponse getActiveTeamDetailsByProjectId(@RequestParam Integer projectId) {
-		return teamsService.getActiveTeamDetailsByProjectId(projectId);
+	@PostMapping("/deleteSelectedTeams")
+	public ServiceResponse deleteSelectedTeams(@RequestBody PoDetailsDto poDetailsDto) {
+		return teamsService.deleteSelectedTeams(poDetailsDto);
 	}
 
 	// @Encrypted
-	@PostMapping("/updateDefaultProjectCompletion")
-	public ServiceResponse updateDefaultProjectCompletion(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
-		return teamsService.updateDefaultProjectCompletion(rmgTeamMemberDto);
+	@PostMapping("/migrateTeam")
+	public ServiceResponse migrateTeam(@RequestBody MigrateTeam migrateTeam) {
+		return teamsService.migrateTeam(migrateTeam);
 	}
-
-	// @Encrypted
-	@PostMapping("/removeTeamMembersFromProject")
-	public ServiceResponse removeTeamMembersFromProject(@RequestBody RmgTeamDto rmgTeamDto) {
-		return teamsService.removeTeamMembersFromProject(rmgTeamDto);
-	}
-
-	// @Encrypted
-	@PostMapping("/updateMappingToOtherProjectAsDefault")
-	public ServiceResponse updateMappingToOtherProjectAsDefault(@RequestBody EmployeeOtherActiveProject employeeOtherActiveProject) {
-		return teamsService.updateMappingToOtherProjectAsDefault(employeeOtherActiveProject);
-	}
-
-	// @Encrypted
-	@PostMapping("/migrateTeamMembers")
-	public ServiceResponse migrateTeamMembers(@RequestBody MigrateTeam migrateTeam) {
-		return teamsService.migrateTeamMembers(migrateTeam);
-	}
-	
-	// @Encrypted
-	@PostMapping("/validateEmployeeProjectStartDate")
-	public ServiceResponse validateEmployeeProjectStartDate(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
-		return teamsService.validateEmployeeProjectStartDate(rmgTeamMemberDto);
-	}
-
-	// @Encrypted
-	@PostMapping("/extendTeamMembersEndDate")
-	public ServiceResponse extendTeamMembersEndDate(@RequestBody RmgTeamDto rmgTeamDto) {
-		return teamsService.extendTeamMembersEndDate(rmgTeamDto);
-	}
-	
-	// @Encrypted
-	@PostMapping("/getTeamDetailsByProjectId")
-	public ServiceResponse getTeamDetailsByProjectId(@RequestBody PoDetailsDto poDetailsDto) {
-		return teamsService.getTeamDetailsByProjectId(poDetailsDto);
-	}
-	
-	// @Encrypted
-	@PostMapping("/updateMemberShadowMapping")
-	public ServiceResponse updateMemberShadowMapping(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
-		return teamsService.updateMemberShadowMapping(rmgTeamMemberDto);
-	}
-	
 }

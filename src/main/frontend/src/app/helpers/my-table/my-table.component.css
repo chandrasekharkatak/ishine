@@ -47,19 +47,6 @@ td {
     max-width: fit-content;
 }
 
-.custom-paginator {
-    display: flex;
-    justify-content: flex-start;
-    color: #333;
-    font-weight: 500;
-}
-
-.custom-paginator .mat-paginator-range-label,
-.custom-paginator .mat-select-value,
-.custom-paginator .mat-icon-button {
-    color: #333 !important;
-}
-
 .pointer-cursor {
     cursor: pointer;
 }
@@ -77,4 +64,38 @@ td {
     position: sticky;
     top: 40px;
     z-index: 2;
+}
+
+.compact-paginator ::ng-deep {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 36px !important;
+    background: transparent !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-paginator-container {
+    padding: 0 !important;
+    min-height: 36px !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-paginator-page-size {
+    margin-right: 6px !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-paginator-range-label {
+    margin: 0 6px !important;
+    font-size: 12px !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-icon-button {
+    width: 30px !important;
+    height: 30px !important;
+    padding: 2px !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-select-trigger {
+    height: 28px !important;
+    font-size: 12px !important;
 }

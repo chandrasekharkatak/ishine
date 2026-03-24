@@ -73,7 +73,7 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 			+ ", prm.count, prm.lineItemStartDate, prm.lineItemEndDate) "
 			+ "FROM RoleDetails rd \n"
 			+ "LEFT JOIN PoRequirementMapping prm ON prm.roleId = rd.roleId and prm.poId =:poId and prm.active = true  \n"
-			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId AND ppd.active = true AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) "
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId AND ppd.active = true \n"
 			+ "WHERE prm.active = true and prm.poId =:poId")
 	List<RmgResourceRequirementDto> getPoRequirementDataByPoId(@Param("poId") Long poId);
 	
@@ -84,7 +84,7 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 			+ "LEFT JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
 			+ "LEFT JOIN RoleDetails rd ON etm.roleId = rd.roleId \n"
 			+ "LEFT JOIN PoRequirementMapping prm ON prm.roleId = rd.roleId and prm.poId = etm.poId and prm.active = true  \n"
-			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId AND ppd.active = true \n"
 			+ "WHERE prm.active = true AND t.teamId = :teamId ")
 	List<RmgResourceRequirementDto> getPoRequirementDataByTeamId(@Param("teamId") Long teamId);
 
@@ -115,7 +115,10 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 	List<PoRequirementMapping> findByPoIdAndActiveTrue(Long poId);
 
 	@Query(value = "Select sum(prm.count) from PoRequirementMapping prm \n"
-			+ "INNER JOIN ProjectPoDetails ppd on ppd.poId = prm.poId where DATE(ppd.poStartDate) <= CURRENT_DATE AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) AND ppd.projectId=:projectId and prm.active = true ")
+			+ " INNER JOIN ProjectPoDetails ppd on ppd.poId = prm.poId AND ppd.active = true AND DATE(ppd.poStartDate) <= CURDATE() AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURDATE()) \n"
+			+ " WHERE 1=1 \n"
+			+ " AND ppd.projectId=:projectId and prm.active = true \n"
+			+ " AND DATE(prm.lineItemStartDate) <= CURDATE() AND (prm.lineItemEndDate IS NULL OR DATE(prm.lineItemEndDate) >= CURDATE()) ")
 	public Long getTotalActiveRequiredCountByProjectId(Integer projectId);
 
 	

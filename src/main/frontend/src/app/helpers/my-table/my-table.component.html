@@ -2,23 +2,26 @@
     <div class="col-md-12">
         <div class="row mb-2 mt-2"
             *ngIf="(data && data?.length > 0 && (isSearchAllowed || isExportAllowed)) || isSearchEnabled">
-            <div class="col-md-1 column-filter-toggle" *ngIf="isSearchAllowed">
-                <a (click)="toggleSearch()" class="column-filter-toggle-btn">
+            <div class="col-md-2 d-flex justify-content-start pt-2 pb-2" *ngIf="isSearchAllowed">
+                <button (click)="toggleSearch()" class="btn btn-sm btn-outline-primary">
                     <i [ngClass]="{'fa fa-search': !isSearchEnabled,'fa-solid fa-xmark': isSearchEnabled}">
                     </i>
-                </a>
+                </button>&nbsp;&nbsp;
+                <button class="btn btn-sm btn-outline-primary" matButton [matMenuTriggerFor]="downloadMenu" *ngIf="data && data?.length > 0 && isExportAllowed">
+                    <em class="fa fa-download"></em></button>
+                <mat-menu #downloadMenu="matMenu">
+                    <button mat-menu-item (click)="downloadData(false)">
+                        <i class="fa fa-file-download"></i> Download Page Data
+                    </button>
+                    <button mat-menu-item (click)="downloadData(true)">
+                        <i class="fa fa-cloud-download"></i> Download All Data
+                    </button>
+                </mat-menu>
             </div>
-            <div class="col-md-1 column-filter-toggle" *ngIf="data && data?.length > 0 && isExportAllowed">
-                <button class="btn btn-sm" matButton [matMenuTriggerFor]="downloadMenu">
-                        <em class="fa fa-download"></em></button>
-                    <mat-menu #downloadMenu="matMenu">
-                        <button mat-menu-item (click)="downloadData(false)">
-                            <i class="fa fa-file-download"></i> Download Page Data
-                        </button>
-                        <button mat-menu-item (click)="downloadData(true)">
-                            <i class="fa fa-cloud-download"></i> Download All Data
-                        </button>
-                    </mat-menu>
+            <div class="col-md-10 d-flex justify-content-end" *ngIf="data?.length > 0">
+                <mat-paginator *ngIf="apiUrl != undefined && apiUrl != null " class="compact-paginator" [length]="totalRecords"
+                    [pageIndex]="page" [pageSize]="size" [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)">
+                </mat-paginator>
             </div>
         </div>
         <div class="table-container">
@@ -123,10 +126,6 @@
                     </ng-container>
                 </tbody>
             </table>
-            <mat-paginator *ngIf="apiUrl != undefined && apiUrl != null " class="custom-paginator"
-                [length]="totalRecords" [pageSize]="size" [pageSizeOptions]="[5, 10, 25, 50]"
-                (page)="onPageChange($event)">
-            </mat-paginator>
         </div>
     </div>
 </div>

@@ -26,4 +26,5 @@ public class NotificationDTO {
 	private String consentOn;
 
 	private String isNotificationViewed;
+	private String employeementIdAccToET;
 }

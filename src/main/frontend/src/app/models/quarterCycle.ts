@@ -12,6 +12,7 @@ export class QuarterCycle{
     UpdatedOn:any;
     isActive:any;
     isEnable:any;
+    cycleType:any
 
 
 
