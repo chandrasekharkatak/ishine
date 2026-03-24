@@ -160,7 +160,7 @@ export class MyTableComponent {
     this.data = [];
     this.totalRecords = 0;
     this.hiddenChildCells = new Set();
-    this.pageObj.page = this.page;
+    this.pageObj.page = this.page || 0;
     this.pageObj.size = this.size;
     this.pageObj.sortColumn = this.sortColumn || this.defaultSortColumn;
     this.pageObj.sortDirection = this.sortDirection || 'asc';

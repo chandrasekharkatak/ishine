@@ -41,10 +41,10 @@
         </button>
     
         <!-- Filter Button -->
-        <button *ngIf="!isAttendanceVisible" type="button" id="buttonPosition" class="btn btn-sm btn-outline-primary mx-1"
+        <!-- <button *ngIf="!isAttendanceVisible" type="button" id="buttonPosition" class="btn btn-sm btn-outline-primary mx-1"
           (click)="openFilterModal(filter, timesheetColumns, 'Filter Attendance Reconciliation')">
           <i class="fa-solid fa-filter"></i>
-        </button>
+        </button> -->
       </div>
     </div>
     
@@ -73,17 +73,13 @@
               <tr id="attendanceIDHeadTr">
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeeCode|string">Emp Id</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Full Name</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="inTime|string">IN Time</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="inTime|string">In Time</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="outTime|string">Out Time</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="totalDuration|string">Total Working Hours</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="shiftDuration|string">ShiftDuration</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="shiftName|string">Shift Name</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="beginTime|string">Begin Time</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="endTime|string">End Time</th>
+                <!-- <th scope="col" class="info-label wide-col" mat-sort-header="shiftDuration|string">Shift Duration</th> -->
                 <th scope="col" class="info-label wide-col" mat-sort-header="logDate|string">LogDate</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="earlyBy|string">EarlyBy</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="lateBy|string">LateBy</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="status|string">Status</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="reportingManagerName|string">Reporting Manager</th>
               </tr>
 
               <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="AttendancereConciliation"
@@ -95,21 +91,17 @@
                 <th colspan="16" class="text-center info-label">No details to display...</th>
               </tr>
               <tr 
-                *ngFor="let  attendance of attendanceReconciliationList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                *ngFor="let  attendance of attendanceReconciliationList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: pageSize, currentPage: page, totalItems: totalRecords }, let i = index">
                 <td>{{attendance.employeementId}}</td>
                 <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="attendance.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{attendance.employeeName || 'NA'}}</td>
                 <td *ngIf="!userMapping.reports_employee_360">{{attendance.employeeName || 'NA'}}</td>
                 <td>{{attendance.inTime }}</td>
                 <td>{{attendance.outTime }}</td>
-                <td>{{attendance.totalDuration | minutesToHours}}</td>
-                <td>{{attendance.shiftDuration | minutesToHours}}</td>
-                <td>{{attendance.shiftName }}</td>
-                <td>{{attendance.beginTime }}</td>
-                <td>{{attendance.endTime }}</td>
+                <td>{{attendance.totalDuration || 'NA'}}{{attendance.totalDuration ? ' hrs' : ''}}</td>
+                <!-- <td>{{attendance.shiftDuration || 'NA'}}{{attendance.shiftDuration ? ' hrs' : ''}}</td> -->
                 <td>{{attendance.logDate}}</td>
-                <td>{{attendance.earlyBy | minutesToHours}}</td>
-                <td>{{attendance.lateBy | minutesToHours}}</td>
-                <td>{{attendance.status}}</td>
+                <td>{{attendance.departmentName || 'NA'}}</td>
+                <td>{{attendance.reportingManagerName || 'NA'}}</td>
               </tr>
             </tbody>
             <tbody *ngIf="clickFilter">
@@ -118,20 +110,16 @@
                 <th colspan="16" class="text-center info-label">No details to display...</th>
               </tr>
               <tr 
-                *ngFor="let  attendance of allAttendanceRepostList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                *ngFor="let  attendance of allAttendanceRepostList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: pageSize, currentPage: page, totalItems: totalRecords }, let i = index">
                 <td>{{attendance.employeeCode}}</td>
                 <td>{{attendance.employeeName || 'NA'}}</td>
                 <td>{{attendance.inTime }}</td>
                 <td>{{attendance.outTime }}</td>
-                <td>{{attendance.totalDuration | minutesToHours}}</td>
-                <td>{{attendance.shiftDuration | minutesToHours}}</td>
-                <td>{{attendance.shiftName }}</td>
-                <td>{{attendance.beginTime }}</td>
-                <td>{{attendance.endTime }}</td>
+                <td>{{attendance.totalDuration || 'NA'}}{{attendance.totalDuration ? ' hrs' : ''}}</td>
+                <td>{{attendance.shiftDuration || 'NA'}}{{attendance.shiftDuration ? ' hrs' : ''}}</td>
                 <td>{{attendance.logDate}}</td>
-                <td>{{attendance.earlyBy | minutesToHours}}</td>
-                <td>{{attendance.lateBy | minutesToHours}}</td>
-                <td>{{attendance.status}}</td>
+                <td>{{attendance.departmentName || 'NA'}}</td>
+                <td>{{attendance.reportingManagerName || 'NA'}}</td>
               </tr>
             </tbody>
           </table>

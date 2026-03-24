@@ -478,3 +478,7 @@
 .cursor-pointer {
     cursor: pointer;
 }
+
+.future-row {
+    background-color: #FFF4E5 !important;
+}

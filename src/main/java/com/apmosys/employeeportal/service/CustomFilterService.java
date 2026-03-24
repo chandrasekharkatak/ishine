@@ -4095,7 +4095,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 	        // Call getEmpBioData to fetch biometric data
 	        BioMaxService bioMaxService = new BioMaxService();
-	        ServiceResponse bioDataResponse = bioMaxService.getEmpBioData(sDate, eDate);
+	        ServiceResponse bioDataResponse = bioMaxService.getEmpBioDataFromIshine(sDate, eDate, null, null);
 	        List<BioMaTO> bioDataList = bioDataResponse.getServiceResponse() != null
 	            ? (List<BioMaTO>) bioDataResponse.getServiceResponse()
 	            : new ArrayList<>();

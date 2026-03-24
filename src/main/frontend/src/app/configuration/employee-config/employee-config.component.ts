@@ -31,6 +31,8 @@ import { ValidationService } from 'src/app/services/validation.service';
 
 
 import { Subscription } from 'rxjs';
+import { EmployeeIdService } from 'src/app/services/shared/employee-id.service';
+import { EmployeeIdUtilService } from 'src/app/services/employee-id-util.service';
 class FilterData {
   title: any;
   columns: any;
@@ -241,6 +243,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   isActiveTable: boolean = false;
   isApmosysProductUpdate: boolean = false;
+  isConsultant: boolean = false;
   maxDOB: Date = moment().subtract(18, 'years').toDate();
 
   managerId: any;
@@ -294,6 +297,7 @@ export class EmployeeConfigComponent implements OnInit {
     private domainService: DomainService,
     private destinationService: DestinationService,
     private leaveService: LeaveService,
+    private employeeIdUtilService: EmployeeIdUtilService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -1215,6 +1219,7 @@ storePreviousStatus(){
     this.isDraftTable = false;
     this.isDeletion = false;
     this.isApmosysProductUpdate = false;
+    this.isConsultant = false;
 
     this.applyManagerFilter(employee);
     // this.getManagerList(employee);
@@ -1247,8 +1252,10 @@ storePreviousStatus(){
         //   this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
         // }
         // this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
-        if (this.employeeObj.isConsultant == 'true')
+        if (this.employeeObj.isConsultant == 'true') {
           this.employeeObj.employeeType = 'Consultant';
+          this.isConsultant = true;
+        }
         else if (this.employeeObj.isApprenticeship == 'true')
           this.employeeObj.employeeType = 'Apprentice';
         else if (this.employeeObj.isApmosysProduct == 'true') {
@@ -2126,12 +2133,9 @@ storePreviousStatus(){
     //   employee.employeementId  = this.employeeObj.employeementId
     // }
 
-    if (this.employeeObj.employeementId.startsWith('A-')) {
-      employee.employeementId = this.employeeObj.employeementId.substring(2);
-      console.log("Employee :", this.employeeObj);
-    } else {
-      employee.employeementId = this.employeeObj.employeementId
-    }
+    const numericEmpId = this.employeeIdUtilService.extractNumericId(this.employeeObj.employeementId);
+    employee.employeementId = numericEmpId ? numericEmpId : this.employeeObj.employeementId;
+    console.log('Employee :', this.employeeObj);
 
     employee.onbenchDate = this.billableBenchDate;
 
@@ -2174,46 +2178,33 @@ storePreviousStatus(){
 
     console.log("employeeid with space", this.employeeObj.employeementId);
 
-    if (this.employeeObj.employeementId.startsWith('A-')) {
-      this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
-      if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
-        this.alertMessage = "Please enter Employee ID !!"
-        this.openAlertMod(template, this.alertMessage);
-        // this.employeeObj.employeementId = 'A-'+this.employeeObj.employeementId;
-        return false;
-      }
-      // employee.employeementId  = this.employeeObj.employeementId.substring(2);
-      console.log("Employee :", this.employeeObj);
-    } else if (this.employeeObj.employeementId.startsWith('A-')) {
-      if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
-        this.alertMessage = "Please enter Employee ID !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-      employee.employeementId = this.employeeObj.employeementId.substring(2);
-      console.log("Employee :", this.employeeObj);
-    }
-    else {
-      employee.employeementId = this.employeeObj.employeementId
-      if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
-        this.alertMessage = "Please enter Employment ID !!";
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
+    const numericEmpId = this.employeeIdUtilService.extractNumericId(this.employeeObj.employeementId) ?? this.employeeObj.employeementId;
 
-      if (!this.validationService.validateEmployeementId(employee.employeementId)) {
-        console.log("employeementid please enter valid employmentid", employee.employeementId, this.employeeObj.employeementId);
-        this.alertMessage = "Please enter valid Employment ID !!";
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
+    if (!this.validationService.validateNullUndefinedEmptyString(numericEmpId)) {
+      this.alertMessage = "Please enter Employee ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
+
+    employee.employeementId = numericEmpId;
+
+    if (!this.validationService.validateEmployeementId(employee.employeementId)) {
+      console.log( "Invalid employment id", employee.employeementId, this.employeeObj.employeementId);
+      this.alertMessage = "Please enter valid Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    console.log("Employee :", employee);
+
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         employee.employeementId = '';
       }
-      this.employeeObj.employeementId = 'A-' + this.employeeObj.employeementId;
+      this.employeeObj.employeementId = this.employeeIdUtilService.generateEmploymentId( 
+        this.employeeObj.employeementId, this.employeeObj.isApmosysProduct, this.employeeObj.isConsultant);
+
       console.log("checkEmployeementId response: ", response);
     });
   }
@@ -2472,9 +2463,10 @@ storePreviousStatus(){
     if(this.employeeObj.employmentstatus == "InActive") {
       this.reporteeList = [];
       this.reporteeList2= [];
-      let id1 = this.employeeObj?.employeementId;
-      if (typeof id1 ==="string" && id1.startsWith("A-")) {
-        this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+      
+      const numericEmpId = this.employeeIdUtilService.extractNumericId( this.employeeObj?.employeementId );
+      if (numericEmpId) {
+        this.employeeObj.employeementId = numericEmpId;
       }
 
       const empId = Number(this.employeeObj.empId);
@@ -3241,7 +3233,7 @@ storePreviousStatus(){
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
         for (let x of this.allEmployeeList) {
-          x.employeementId = "A-".concat(x.employeementId)
+          x.employeementId = x.employmentIdAcToET;
           // x.employeementId = (x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId;
           x.dateOfJoining = (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           x.dateOfRelieving = (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
@@ -3789,10 +3781,7 @@ resetDefaultProjectFields() {
     console.log(" empId in manager UI change ", this.employeeObj.name);
     this.reporteeList =[];
     // console.log("Emplloyeement Id is",this.employeeObj.employeementId);
-    let id = this.employeeObj?.employeementId;
-    if (typeof id ==="string" && id.startsWith("A-")) {
-      this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
-    }
+    this.employeeObj.employeementId = this.employeeIdUtilService.extractNumericId( this.employeeObj?.employeementId ) ?? this.employeeObj?.employeementId;
 
     console.log("employment id", this.employeeObj.employeementId);
     this.employeeService.getReporteesListByManagerId(this.employeeObj).pipe(first()).subscribe((response: any) => {
@@ -3849,11 +3838,7 @@ resetDefaultProjectFields() {
     //   employee.employeementId  = employee.employeementId
     // }
 
-    if (employee.employeementId.startsWith('A-')) {
-      employee.employeementId = employee.employeementId.substring(2);
-    } else {
-      employee.employeementId = employee.employeementId
-    }
+    employee.employeementId = this.employeeIdUtilService.extractNumericId( employee.employeementId ) ?? employee.employeementId;
 
     console.log("updateTimesheetLockCheck : ", employee);
     this.employeeService.updateTimesheetLockCheck(employee).pipe(first()).subscribe((response: any) => {
@@ -4246,7 +4231,8 @@ resetDefaultProjectFields() {
             // }else {
             //   employee.employeementId = "A-CS-".concat(employee.employeementId);
             // }
-            employee.employeementId = "A-".concat(employee.employeementId);
+            employee.employeementId = this.employeeIdUtilService.generateEmploymentId(
+              employee.employeementId, employee.isApmosysProduct, employee.isConsultant);
 
             employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
             employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
@@ -4914,10 +4900,7 @@ resetDefaultProjectFields() {
   getReporteesListByReportingManagerId() {
     this.reporteeList2 = [];
     console.log(" empId in manager UI change ", this.employeeObj.name);
-    let id= this.employeeObj?.employeementId;
-    if (typeof id === "string" && id.startsWith("A-")) {
-      this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
-    }
+    this.employeeObj.employeementId = this.employeeIdUtilService.extractNumericId( this.employeeObj?.employeementId) ?? this.employeeObj?.employeementId;
 
     console.log("employment id", this.employeeObj.employeementId);
     this.employeeService.getReporteesListByReportingManagerId(this.employeeObj).pipe(first()).subscribe((response: any) => {
@@ -5166,6 +5149,17 @@ resetDefaultProjectFields() {
       return false; //update
     }
     else if (this.employeeObj.employeeType != 'Apmosys Product' && this.isApmosysProductUpdate === true) {
+      return true; //block
+    }
+    else if (this.employeeObj.employeeType === 'Consultant' && this.isConsultant === true) {
+      return true; //block
+    }
+    else if (this.employeeObj.employeeType != 'Consultant' && this.isConsultant === false) {
+      return true; //block
+    } else if (this.employeeObj.employeeType === 'Consultant' && this.isConsultant === false) {
+      return false; //update
+    }
+    else if (this.employeeObj.employeeType != 'Consultant' && this.isConsultant === true) {
       return true; //block
     }
     else {
