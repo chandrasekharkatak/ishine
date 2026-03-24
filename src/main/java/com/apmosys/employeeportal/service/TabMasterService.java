@@ -1,9 +1,12 @@
 package com.apmosys.employeeportal.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.JobRoleDTO;
@@ -19,7 +22,7 @@ public class TabMasterService {
 	@Autowired
 	RoleFeatureMapRepository roleFeatureMapRepository;
 
-	public ServiceResponse getTabsByRoleId(Long jobRoleId) {
+	public ServiceResponse getTabsByRoleId(Long jobRoleId, Long empId) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<Object[]> tabArrayList = roleFeatureMapRepository.getTabsByRoleId(jobRoleId);
@@ -38,6 +41,7 @@ public class TabMasterService {
 					dto.setTabIcon(tab[5] != null ? tab[5].toString() : null);
 					dto.setTabRouteName(tab[6] != null ? tab[6].toString() : null);					
 					dtoList.add(dto);
+					
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);

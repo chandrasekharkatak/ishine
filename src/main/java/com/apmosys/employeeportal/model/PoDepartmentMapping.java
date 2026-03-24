@@ -7,6 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -25,6 +27,10 @@ import lombok.ToString;
 @Setter
 @Audited
 @ToString
+@Table(indexes = { @Index(name = "idx_podeptm_po_id", columnList = "poId"),
+        @Index(name = "idx_podeptm_dept_id", columnList = "deptId"),
+        @Index(name = "idx_podeptm_project_id", columnList = "projectId")
+})
 public class PoDepartmentMapping {
 	
 	@Id

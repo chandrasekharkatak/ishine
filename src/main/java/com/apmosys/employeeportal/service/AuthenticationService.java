@@ -418,7 +418,7 @@ public class AuthenticationService {
 	            String sessionString = LocalDateTime.now().toString() + employeedto.getEmail();
 	            String encSessionString = EncryptDecrypt.encrypt(sessionString);
 
-	            ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
+	            ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId(), employee.getEmpId());
 	            EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
 	            AppreciationEventDTO currentEventDto = appreciationService.getAppreciationEventInfo();
 

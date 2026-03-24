@@ -136,9 +136,14 @@
                                 <span class="required-mark">*</span> Day Type
                             </label>
                             <div class="field-input-wrapper">
-                                <app-my-select class="form-control custom-select-v2" placeholder="Select Day Type"
-                                    [options]="allDayTypes" displayKey="dayType" valueKey="dayTypeId" [multiple]="false"
-                                    [(ngModel)]="dayType" (selectionChange)="onDayTypeChange($event)">
+                                <app-my-select class="form-control custom-select-v2"
+                                    placeholder="Select Day Type"
+                                    [options]="dayTypesToShow"
+                                    displayKey="dayType"
+                                    valueKey="dayTypeId"
+                                    [multiple]="false"
+                                    [(ngModel)]="dayType"
+                                    (selectionChange)="onDayTypeChange($event)">
                                 </app-my-select>
                             </div>
                         </div>

@@ -1,0 +1,1590 @@
+<!-- Training Page Content -->
+<div class="training-page-container">
+  <div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="page-header mb-4 enterprise-blue-header">
+      <div class="container">
+        <h4 class="my-3 py-3 text-white">
+          <i class="fas fa-graduation-cap mr-2"></i>
+          My Trainings
+        </h4>
+      </div>
+    </div>
+
+    <!-- Single Pending Training View (when locked) -->
+    <div class="container" *ngIf="pendingTraining && !showAllTrainings">
+      <!-- Training Info -->
+      <div class="alert alert-warning mb-4" role="alert">
+        <div class="d-flex align-items-center">
+          <i class="fas fa-exclamation-triangle fa-2x mr-3"></i>
+          <div>
+            <strong>Mandatory Training Required</strong>
+            <p class="mb-0">
+              You must complete the following training before accessing other
+              features of the portal.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Training Details Card -->
+      <div class="card mb-4 border-primary">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-graduation-cap mr-2"></i>
+            {{ pendingTraining.trainingName }}
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <strong>Training Type:</strong> {{ pendingTraining.trainingType }}
+            </div>
+            <div class="col-md-6">
+              <strong>Current Cycle:</strong>
+              {{ pendingTraining.currentCycleNumber }}
+            </div>
+          </div>
+          <div class="row" *ngIf="pendingTraining.minViewTimeMinutes">
+            <div class="col-md-12">
+              <strong>Minimum View Time:</strong>
+              {{ pendingTraining.minViewTimeMinutes }} minutes
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Section -->
+      <div class="card mb-4" *ngIf="pendingTraining.content">
+        <div class="card-header">
+          <h6 class="mb-0">Training Content</h6>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-12">
+              <strong>Content Name:</strong>
+              {{ pendingTraining.content.contentName }}
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-12">
+              <strong>Content Type:</strong>
+              <span class="badge badge-info">{{
+                pendingTraining.content.contentType
+              }}</span>
+            </div>
+          </div>
+
+          <!-- External Link Content -->
+          <div *ngIf="isExternalLink" class="text-center mb-3">
+            <a
+              [href]="contentUrl"
+              target="_blank"
+              class="btn btn-primary btn-lg"
+              (click)="onExternalLinkClick()"
+              style="text-decoration: none"
+            >
+              <i class="fas fa-external-link-alt mr-2"></i>
+              Visit Training Link
+            </a>
+            <div class="mt-2" *ngIf="!hasVisitedLink">
+              <small class="text-warning">
+                <i class="fas fa-info-circle"></i> Please click the link above
+                to visit the training content
+              </small>
+            </div>
+            <div class="mt-2" *ngIf="hasVisitedLink">
+              <small class="text-success">
+                <i class="fas fa-check-circle"></i> Link visited
+              </small>
+            </div>
+          </div>
+
+          <!-- File Content -->
+          <div *ngIf="!isExternalLink" class="text-center mb-3">
+            <button
+              type="button"
+              class="btn btn-primary btn-lg"
+              (click)="onContentDownload()"
+            >
+              <i class="fas fa-download mr-2"></i>
+              Download/View Content
+            </button>
+          </div>
+
+          <!-- Timer Display -->
+          <div
+            class="text-center mb-3"
+            *ngIf="
+              pendingTraining.minViewTimeMinutes &&
+              pendingTraining.minViewTimeMinutes > 0
+            "
+          >
+            <div class="timer-display">
+              <div class="timer-label">Viewing Time</div>
+              <div
+                class="timer-value"
+                [ngClass]="{ 'timer-complete': minTimeReached }"
+              >
+                {{ elapsedTimeDisplay }}
+              </div>
+              <div class="timer-progress">
+                <div class="progress" style="height: 10px">
+                  <div
+                    class="progress-bar"
+                    [ngClass]="{
+                      'bg-success': minTimeReached,
+                      'bg-warning': !minTimeReached,
+                    }"
+                    [style.width.%]="getProgressPercentage()"
+                  ></div>
+                </div>
+              </div>
+              <small class="text-muted" *ngIf="!minTimeReached">
+                Minimum {{ pendingTraining.minViewTimeMinutes }} minutes
+                required
+              </small>
+              <small class="text-success" *ngIf="minTimeReached">
+                <i class="fas fa-check-circle"></i> Minimum time completed
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="text-center">
+        <button
+          type="button"
+          class="btn btn-success btn-lg px-5"
+          [disabled]="!consentButtonEnabled"
+          (click)="onSubmitConsent()"
+        >
+          <i class="fas fa-check-circle mr-2"></i>
+          Submit Consent
+        </button>
+        <button
+          type="button"
+          class="btn btn-warning btn-lg px-5 ml-2"
+          *ngIf="
+            pendingTraining.skipAllowed === 'true' &&
+            !pendingTraining.isDeadlineCrossed
+          "
+          (click)="onSkipTraining()"
+        >
+          <i class="fas fa-forward mr-2"></i>
+          Skip Temporarily
+        </button>
+      </div>
+
+      <!-- Help Text -->
+      <div class="alert alert-info mt-4" role="alert">
+        <small>
+          <i class="fas fa-info-circle mr-2"></i>
+          <strong>Note:</strong>
+          <span
+            *ngIf="
+              pendingTraining.minViewTimeMinutes &&
+              pendingTraining.minViewTimeMinutes > 0
+            "
+          >
+            You must view the training content for at least
+            {{ pendingTraining.minViewTimeMinutes }} minutes before submitting
+            consent.
+          </span>
+          <span *ngIf="pendingTraining.consentRequired === 'true'">
+            Consent submission is required to unlock the portal.
+          </span>
+        </small>
+      </div>
+    </div>
+
+    <!-- All Trainings List View -->
+    <div class="container" *ngIf="showAllTrainings">
+      <!-- Loading State -->
+      <div class="row" *ngIf="loading">
+        <div class="col-md-12 text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+          <p class="mt-3">Loading your trainings...</p>
+        </div>
+      </div>
+
+      <!-- Two Accordions -->
+      <div class="row" *ngIf="!loading">
+        <div class="col-md-12">
+          <!-- Accordion 1: Must Attend Trainings -->
+          <div class="accordion mb-4" id="mustAttendAccordion">
+            <div class="card">
+              <div
+                class="card-header bg-danger text-white"
+                id="mustAttendHeading"
+                style="cursor: pointer"
+                (click)="mustAttendExpanded = !mustAttendExpanded"
+              >
+                <h5 class="mb-0">
+                  <button
+                    class="btn btn-link text-white"
+                    type="button"
+                    [attr.aria-expanded]="mustAttendExpanded"
+                    aria-controls="mustAttendCollapse"
+                    (click)="
+                      mustAttendExpanded = !mustAttendExpanded;
+                      $event.stopPropagation()
+                    "
+                  >
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <strong>Trainings You Must Attend</strong>
+                    <span class="badge badge-light ml-2">{{
+                      mustAttendTrainings.length
+                    }}</span>
+                    <i
+                      class="fas ml-2"
+                      [ngClass]="{
+                        'fa-chevron-down': !mustAttendExpanded,
+                        'fa-chevron-up': mustAttendExpanded,
+                      }"
+                    ></i>
+                  </button>
+                </h5>
+              </div>
+              <div
+                id="mustAttendCollapse"
+                class="collapse"
+                [ngClass]="{ show: mustAttendExpanded }"
+                [attr.aria-expanded]="mustAttendExpanded"
+                aria-labelledby="mustAttendHeading"
+                data-parent="#mustAttendAccordion"
+              >
+                <div class="card-body">
+                  <!-- Info Alert -->
+                  <div
+                    class="alert alert-warning mb-4"
+                    *ngIf="mustAttendTrainings.length > 0"
+                  >
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <strong>Important:</strong> These trainings must be
+                    completed. You are frozen on this screen until you complete
+                    them.
+                    <span *ngIf="deadlineCrossedTrainings.length > 0">
+                      {{ deadlineCrossedTrainings.length }} training(s) have
+                      crossed deadline and will open automatically.
+                    </span>
+                  </div>
+
+                  <!-- Must Attend Training Cards -->
+                  <div class="row" *ngIf="mustAttendTrainings.length > 0">
+                    <div
+                      class="col-12 col-md-6 col-lg-6 mb-4"
+                      *ngFor="let training of mustAttendTrainings"
+                    >
+                      <div
+                        class="card shadow-sm h-100 training-card border-danger"
+                      >
+                        <div class="card-header bg-danger text-white">
+                          <div
+                            class="d-flex justify-content-between align-items-center"
+                          >
+                            <h6 class="mb-0">
+                              <i class="fas fa-lock mr-2"></i>
+                              {{ training.trainingName }}
+                            </h6>
+                            <span
+                              class="badge badge-light"
+                              [ngClass]="getStatusBadgeClass(training.status)"
+                            >
+                              {{ training.status }}
+                            </span>
+                          </div>
+                        </div>
+                        <div class="card-body">
+                          <div class="mb-2">
+                            <strong>Type:</strong>
+                            <span class="badge badge-secondary">{{
+                              training.trainingType
+                            }}</span>
+                            <span class="badge badge-danger ml-1"
+                              >Mandatory</span
+                            >
+                          </div>
+                          <div class="mb-2">
+                            <strong>Current Cycle:</strong>
+                            {{ training.currentCycleNumber }}
+                          </div>
+                          <!-- <div class="mb-2" *ngIf="training.deadline">
+                            <strong>Deadline:</strong>
+                            <span
+                              [ngClass]="{
+                                'text-danger font-weight-bold':
+                                  training.isDeadlineCrossed,
+                              }"
+                            >
+                              {{ training.deadline | date: "dd-MMM-yyyy" }}
+                            </span>
+                            <span
+                              class="badge badge-danger ml-2"
+                              *ngIf="training.isDeadlineCrossed"
+                            >
+                              Deadline Crossed
+                            </span>
+                          </div> -->
+                          <div
+                            class="mb-2"
+                            *ngIf="training.lockEnabled === true"
+                          >
+                            <span class="badge badge-warning"
+                              >Lock Enabled</span
+                            >
+                          </div>
+                          <div class="mb-2" *ngIf="training.content">
+                            <strong>Content:</strong>
+                            {{ training.content.contentName }}
+                          </div>
+                        </div>
+                        <div class="card-footer bg-light">
+                          <button
+                            type="button"
+                            class="btn btn-sm btn-primary btn-block"
+                            [disabled]="!canViewTraining(training)"
+                            (click)="
+                              viewTraining(training, training.isDeadlineCrossed)
+                            "
+                          >
+                            <i class="fas fa-eye mr-1"></i>
+                            View Training
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- No Must Attend Trainings -->
+                  <div
+                    class="alert alert-success text-center"
+                    *ngIf="mustAttendTrainings.length === 0"
+                  >
+                    <i class="fas fa-check-circle fa-2x mb-3"></i>
+                    <h5>Great!</h5>
+                    <p class="mb-0">
+                      You don't have any mandatory trainings that require
+                      immediate attention.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordion 2: All Trainings (with pagination and filter) -->
+          <div class="accordion" id="allTrainingsAccordion">
+            <div class="card">
+              <div
+                class="card-header bg-primary text-white"
+                id="allTrainingsHeading"
+                style="cursor: pointer"
+                (click)="allTrainingsExpanded = !allTrainingsExpanded"
+              >
+                <h5 class="mb-0">
+                  <button
+                    class="btn btn-link text-white"
+                    type="button"
+                    [attr.aria-expanded]="allTrainingsExpanded"
+                    aria-controls="allTrainingsCollapse"
+                    (click)="
+                      allTrainingsExpanded = !allTrainingsExpanded;
+                      $event.stopPropagation()
+                    "
+                  >
+                    <i class="fas fa-list mr-2"></i>
+                    <strong>All Trainings</strong>
+                    <span class="badge badge-light ml-2">{{
+                      allTrainings.length
+                    }}</span>
+                    <i
+                      class="fas ml-2"
+                      [ngClass]="{
+                        'fa-chevron-down': !allTrainingsExpanded,
+                        'fa-chevron-up': allTrainingsExpanded,
+                      }"
+                    ></i>
+                  </button>
+                </h5>
+              </div>
+              <div
+                id="allTrainingsCollapse"
+                class="collapse"
+                [ngClass]="{ show: allTrainingsExpanded }"
+                [attr.aria-expanded]="allTrainingsExpanded"
+                aria-labelledby="allTrainingsHeading"
+                data-parent="#allTrainingsAccordion"
+              >
+                <div class="card-body">
+                  <!-- Filter -->
+                  <div class="row mb-4">
+                    <div class="col-md-6 d-flex align-items-center gap-2">
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text"
+                            ><i class="fas fa-search"></i
+                          ></span>
+                        </div>
+                        <input
+                          type="text"
+                          class="form-control"
+                          placeholder="Search by name, type..."
+                          [(ngModel)]="allTrainingsFilter"
+                          (input)="applyAllTrainingsFilter()"
+                        />
+                      </div>
+                      <div class="filter-select-wrapper">
+                        <select
+                          name="allTrainingsFilter"
+                          id="allTrainingsFilter"
+                          [(ngModel)]="selectedFilterStatus"
+                          (change)="applyFilterByStatus()"
+                        >
+                          <option value="ALL">All Trainings</option>
+                          <option value="PENDING">Pending</option>
+                          <option value="COMPLETED">Completed</option>
+                          <option *ngIf="getCountByStatus('SKIPPED') > 0" value="SKIPPED">Skipped</option>
+                        </select>
+                        <i class="fas fa-chevron-down select-arrow"></i>
+                      </div>
+                    </div>
+                    <div class="col-md-6 text-right">
+                      <div class="filter-info d-flex gap-2">
+                        <span class="badge badge-warning"
+                          >{{ getCountByStatus("PENDING") }} Pending</span
+                        >
+                        <span class="badge badge-success"
+                          >{{ getCountByStatus("COMPLETED") }} Completed</span
+                        >
+                        <span *ngIf="getCountByStatus('SKIPPED') > 0" class="badge badge-info"
+                          >{{ getCountByStatus("SKIPPED") }} Skipped</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- All Training Cards -->
+                  <div
+                    class="row"
+                    *ngIf="getPaginatedAllTrainings().length > 0"
+                  >
+                    <div
+                      class="col-12 col-md-6 col-lg-6 mb-4"
+                      *ngFor="let training of getPaginatedAllTrainings()"
+                      
+                    >
+                      <div
+                        class="card shadow-sm h-100 training-card"
+                        [ngClass]="{
+                          'border-danger':
+                            training.isDeadlineCrossed &&
+                            training.status === 'PENDING',
+                          'border-success': training.status === 'COMPLETED',
+                          'border-info': training.status === 'SKIPPED',
+                          'border-warning pending-mandatory-highlight':
+                            training.status === 'PENDING' &&
+                            training.mandatoryFlag === 'true' &&
+                            !training.isDeadlineCrossed,
+                        }"
+                      >
+                        <div
+                          class="card-header"
+                          [ngClass]="{
+                            'bg-danger text-white':
+                              training.isDeadlineCrossed &&
+                              training.status === 'PENDING',
+                            'bg-success text-white':
+                              training.status === 'COMPLETED',
+                            'bg-info text-white': training.status === 'SKIPPED',
+                            'bg-warning':
+                              training.status === 'PENDING' &&
+                              !training.isDeadlineCrossed,
+                          }"
+                        >
+                          <div
+                            class="d-flex justify-content-between align-items-center"
+                          >
+                            <h6 class="mb-0">
+                              <i class="fas fa-graduation-cap mr-2"></i>
+                              {{ training.trainingName }}
+                            </h6>
+                            <span
+                              class="badge badge-light"
+                              [ngClass]="getStatusBadgeClass(training.status)"
+                            >
+                              {{ training.status }}
+                            </span>
+                          </div>
+                        </div>
+                        <div class="card-body">
+                          <div class="mb-2">
+                            <strong>Type:</strong>
+                            <span class="badge badge-secondary">{{
+                              training.trainingType
+                            }}</span>
+                            <span
+                              class="badge badge-primary ml-1"
+                              *ngIf="training.mandatoryFlag === 'true'"
+                            >
+                              Mandatory
+                            </span>
+                            <span
+                              class="badge badge-secondary ml-1"
+                              *ngIf="training.mandatoryFlag !== 'true'"
+                            >
+                              Optional
+                            </span>
+                          </div>
+                          <div class="mb-2">
+                            <strong>Current Cycle:</strong>
+                            {{ training.currentCycleNumber }}
+                          </div>
+                          <div class="mb-2">
+                            <strong>Progress:</strong>
+                            {{ training.completionCount }}/{{
+                              training.requiredFrequency
+                            }}
+                            completions
+                          </div>
+                          <div class="mb-2" *ngIf="training.lastCompletedOn">
+                            <strong>Last Completed:</strong>
+                            {{ training.lastCompletedOn | date: "dd-MMM-yyyy" }}
+                          </div>
+                          <div class="mb-2" *ngIf="training.content">
+                            <strong>Content:</strong>
+                            {{ training.content.contentName }}
+                            <span class="badge badge-info ml-1">{{
+                              training.content.contentType
+                            }}</span>
+                          </div>
+                          <div class="mb-2" *ngIf="training.minViewTimeMinutes">
+                            <strong>Min View Time:</strong>
+                            {{ training.minViewTimeMinutes }} minutes
+                          </div>
+                        </div>
+                        <div class="card-footer bg-light">
+                          <div class="d-flex justify-content-between">
+                            <button
+                              type="button"
+                              class="btn btn-sm btn-primary"
+                              [disabled]="!canViewTraining(training)"
+                              (click)="
+                                viewTraining(
+                                  training,
+                                  training.isDeadlineCrossed
+                                )
+                              "
+                            >
+                              <i class="fas fa-eye mr-1"></i>
+                              View Training
+                            </button>
+                            <button
+                              type="button"
+                              class="btn btn-sm btn-warning"
+                              *ngIf="canSkipTraining(training)"
+                              (click)="viewTraining(training, false)"
+                            >
+                              <i class="fas fa-forward mr-1"></i>
+                              Skip
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="row mt-4" *ngIf="getTotalAllTrainingsPages() > 1">
+                  <div class="col-md-12">
+                    <nav aria-label="All trainings pagination">
+                      <ul class="pagination justify-content-center">
+                        <li
+                          class="page-item"
+                          [ngClass]="{ disabled: allTrainingsPage === 1 }"
+                        >
+                          <a
+                            class="page-link"
+                            href="javascript:void(0)"
+                            (click)="allTrainingsPage = 1"
+                            *ngIf="allTrainingsPage > 1"
+                            >First</a
+                          >
+                        </li>
+                        <li
+                          class="page-item"
+                          [ngClass]="{ disabled: allTrainingsPage === 1 }"
+                        >
+                          <a
+                            class="page-link"
+                            href="javascript:void(0)"
+                            (click)="allTrainingsPage = allTrainingsPage - 1"
+                            *ngIf="allTrainingsPage > 1"
+                            >Previous</a
+                          >
+                        </li>
+                        <li class="page-item active">
+                          <span class="page-link">
+                            Page {{ allTrainingsPage }} of
+                            {{ getTotalAllTrainingsPages() }}
+                          </span>
+                        </li>
+                        <li
+                          class="page-item"
+                          [ngClass]="{
+                            disabled:
+                              allTrainingsPage === getTotalAllTrainingsPages(),
+                          }"
+                        >
+                          <a
+                            class="page-link"
+                            href="javascript:void(0)"
+                            (click)="allTrainingsPage = allTrainingsPage + 1"
+                            *ngIf="
+                              allTrainingsPage < getTotalAllTrainingsPages()
+                            "
+                            >Next</a
+                          >
+                        </li>
+                        <li
+                          class="page-item"
+                          [ngClass]="{
+                            disabled:
+                              allTrainingsPage === getTotalAllTrainingsPages(),
+                          }"
+                        >
+                          <a
+                            class="page-link"
+                            href="javascript:void(0)"
+                            (click)="
+                              allTrainingsPage = getTotalAllTrainingsPages()
+                            "
+                            *ngIf="
+                              allTrainingsPage < getTotalAllTrainingsPages()
+                            "
+                            >Last</a
+                          >
+                        </li>
+                      </ul>
+                    </nav>
+                  </div>
+                </div>
+
+                <!-- No Trainings Message -->
+                <!-- <div class="alert alert-info text-center" *ngIf="allTrainingsFiltered.length === 0">
+                                        <i class="fas fa-info-circle fa-2x mb-3"></i>
+                                        <h5>No Trainings Found</h5>
+                                        <p class="mb-0" *ngIf="allTrainingsFilter">
+                                            No trainings match your search criteria. Try a different search term.
+                                        </p>
+                                        <p class="mb-0" *ngIf="!allTrainingsFilter">
+                                            You don't have any trainings assigned at the moment.
+                                        </p>
+                                    </div> -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Trainings Message (when no trainings at all) -->
+    <div class="row" *ngIf="!loading && allTrainings.length === 0">
+      <div class="col-md-12">
+        <div class="alert alert-info text-center">
+          <i class="fas fa-info-circle fa-2x mb-3"></i>
+          <h5>No Trainings Available</h5>
+          <p class="mb-0">
+            You don't have any trainings assigned at the moment.
+          </p>
+          <button class="btn btn-primary mt-3" (click)="goToHome()">
+            <i class="fas fa-home mr-2"></i>Go to Home
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State for Single Training -->
+  <div class="container text-center py-5" *ngIf="loading && !showAllTrainings">
+    <div class="spinner-border text-primary" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
+    <p class="mt-3">Loading training information...</p>
+  </div>
+</div>
+
+<!-- Training View Modal -->
+<ng-template #training_view_modal let-modal>
+  <div class="modal-content">
+     <div
+      class="modal-header"
+      [ngClass]="{
+        'bg-danger text-white':
+          viewingTraining?.isDeadlineCrossed &&
+          viewingTraining?.status === 'PENDING',
+        'bg-primary text-white':
+          !viewingTraining?.isDeadlineCrossed ||
+          viewingTraining?.status === 'COMPLETED',
+      }"
+    >
+      <h5 class="modal-title">
+        <i class="fas fa-graduation-cap mr-2"></i>
+        {{ viewingTraining?.trainingName }}
+        <span
+          class="badge badge-light ml-2"
+          [ngClass]="getStatusBadgeClass(viewingTraining?.status)"
+        >
+          {{ viewingTraining?.status }}
+        </span>
+        <!-- <span
+          class="badge badge-danger ml-2"
+          *ngIf="viewingTraining?.isDeadlineCrossed"
+        >
+          Deadline Crossed
+        </span> -->
+      </h5>
+      <div class="d-flex align-items-center">
+        <!-- Fullscreen Toggle Button -->
+        <button 
+          type="button" 
+          class="btn btn-sm btn-outline-light mr-2" 
+          (click)="toggleFullscreen()"
+          [title]="isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'">
+          <i class="fas" [ngClass]="isFullscreen ? 'fa-compress' : 'fa-expand'"></i>
+        </button>
+        <button
+          type="button"
+          class="close text-white"
+          [disabled]="isAutoOpening && viewingTraining?.isDeadlineCrossed"
+          (click)="modal.close()"
+          *ngIf="!isAutoOpening || !viewingTraining?.isDeadlineCrossed"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body p-4" *ngIf="viewingTraining">
+      <!-- Training Info -->
+      <div
+        class="alert alert-warning mb-3"
+        *ngIf="
+          viewingTraining.isDeadlineCrossed &&
+          viewingTraining.status === 'PENDING'
+        "
+      >
+        <i class="fas fa-exclamation-triangle mr-2"></i>
+        <strong>Deadline Crossed:</strong> You must complete this training now
+        to unlock the portal.
+      </div>
+
+      <div
+        class="alert alert-info mb-3"
+        *ngIf="viewingTraining.status === 'COMPLETED'"
+      >
+        <i class="fas fa-check-circle mr-2"></i>
+        <strong>Completed:</strong> You have already completed this training.
+        You can review it again, but no timer or consent is required.
+      </div>
+
+      <div
+        class="alert alert-warning mb-3"
+        *ngIf="viewingTraining.status === 'SKIPPED'"
+      >
+        <i class="fas fa-info-circle mr-2"></i>
+        <strong>Skipped Training:</strong> This training was previously skipped.
+        You can still watch it and submit consent to complete it.
+      </div>
+
+      <!-- Training Details -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Training Type:</strong> {{ viewingTraining.trainingType }}
+        </div>
+        <div class="col-md-6">
+          <strong>Current Cycle:</strong>
+          {{ viewingTraining.currentCycleNumber }}
+        </div>
+      </div>
+      <!-- <div class="row mb-3" *ngIf="viewingTraining.deadline">
+        <div class="col-md-6">
+          <strong>Deadline:</strong>
+          <span
+            [ngClass]="{
+              'text-danger font-weight-bold': viewingTraining.isDeadlineCrossed,
+            }"
+          >
+            {{ viewingTraining.deadline | date: "dd-MMM-yyyy" }}
+          </span>
+        </div>
+      </div> -->
+
+      <div *ngIf="!showQuizSubmitComponent">
+        <!-- Content Section -->
+        <div class="card mb-3" *ngIf="viewingTraining.content">
+          <div class="card-header">
+            <h6 class="mb-0">
+              Training Content: {{ viewingTraining.content.contentName }}
+            </h6>
+          </div>
+          <div class="card-body">
+            <!-- External Link Content -->
+            <div *ngIf="isExternalLink" class="text-center mb-3">
+              <a
+                [href]="previewUrl"
+                target="_blank"
+                class="btn btn-primary btn-lg"
+                (click)="onExternalLinkClickForModal()"
+                style="text-decoration: none"
+              >
+                <i class="fas fa-external-link-alt mr-2"></i>
+                Visit Training Link
+              </a>
+              <div
+                class="mt-2"
+                *ngIf="
+                  !hasVisitedLink &&
+                  (viewingTraining.status === 'PENDING' ||
+                    viewingTraining.status === 'SKIPPED')
+                "
+              >
+                <small class="text-warning">
+                  <i class="fas fa-info-circle"></i> Please click the link above
+                  to visit the training content
+                </small>
+              </div>
+              <div class="mt-2" *ngIf="hasVisitedLink">
+                <small class="text-success">
+                  <i class="fas fa-check-circle"></i> Link visited
+                </small>
+              </div>
+            </div>
+
+            <!-- Video Content -->
+            <div
+              *ngIf="contentType === 'VIDEO' && safePreviewUrl"
+              class="text-center mb-3"
+            >
+              <video
+                [src]="safePreviewUrl"
+                controls
+                style="max-width: 100%; max-height: 500px"
+                class="mb-2"
+              >
+                Your browser does not support video playback.
+              </video>
+            </div>
+
+            <!-- Audio Content -->
+            <div
+              *ngIf="contentType === 'AUDIO' && safePreviewUrl"
+              class="text-center mb-3"
+            >
+              <audio
+                [src]="safePreviewUrl"
+                controls
+                style="width: 100%"
+                class="mb-2"
+              >
+                Your browser does not support audio playback.
+              </audio>
+            </div>
+
+            <!-- PDF Content -->
+            <!-- PDF Content with Slide Navigation -->
+            <div *ngIf="contentType === 'PDF'" class="text-center">
+              <!-- Loading Spinner -->
+              <div
+                *ngIf="isLoadingPreview"
+                class="spinner-border text-primary mb-3"
+                role="status"
+              >
+                <span class="sr-only">Loading slide...</span>
+              </div>
+
+              <!-- Slide Image -->
+              <div *ngIf="!isLoadingPreview && previewImageBlob">
+                <!-- Top Navigation Bar -->
+                <div
+                  class="d-flex justify-content-between align-items-center mb-3"
+                >
+                  <div>
+                    <button
+                      class="btn btn-sm btn-outline-primary mr-2"
+                      (click)="goToSlide(0)"
+                      [disabled]="currentSlideIndex === 0"
+                      title="First Slide"
+                    >
+                      <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-outline-primary"
+                      (click)="previousSlide()"
+                      [disabled]="currentSlideIndex === 0"
+                      title="Previous Slide"
+                    >
+                      <i class="fas fa-chevron-left"></i>
+                    </button>
+                  </div>
+
+                  <div class="d-flex align-items-center">
+                    <span class="badge badge-info badge-pill px-3 py-2 mr-2">
+                      Slide {{ currentSlideIndex + 1 }} of {{ totalSlides }}
+                    </span>
+                    <div class="slide-progress" style="width: 200px">
+                      <div class="progress" style="height: 8px">
+                        <div
+                          class="progress-bar bg-info"
+                          [style.width.%]="
+                            ((currentSlideIndex + 1) / totalSlides) * 100
+                          "
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <button
+                      class="btn btn-sm btn-outline-primary"
+                      (click)="nextSlide()"
+                      [disabled]="currentSlideIndex === totalSlides - 1"
+                      title="Next Slide"
+                    >
+                      <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-outline-primary ml-2"
+                      (click)="goToSlide(totalSlides - 1)"
+                      [disabled]="currentSlideIndex === totalSlides - 1"
+                      title="Last Slide"
+                    >
+                      <i class="fas fa-angle-double-right"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="slide-main-container">
+
+                  <div class="slide-nav left" (click)="previousSlide()"></div>
+                  <div class="slide-nav right" (click)="nextSlide()"></div>
+
+                  <img
+                    [src]="previewImageBlob"
+                    (error)="onPreviewError($event)"
+                    alt="Slide {{ currentSlideIndex + 1 }}"
+                    class="slide-image-full img-fluid"
+                  />
+
+                </div>
+
+              </div>
+
+              <!-- No Slides Available -->
+              <div
+                *ngIf="
+                  !isLoadingPreview && !previewImageBlob && totalSlides === 0
+                "
+                class="alert alert-warning"
+              >
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                No slides available
+              </div>
+            </div>
+
+            <div *ngIf="contentType === 'PPT'">
+              <!-- PPTX Slides Viewer (for .pptx files) -->
+              <div
+                *ngIf="pptxSlides.length > 0"
+                class="pptx-viewer-wrapper"
+                [class.fullscreen]="isFullscreen"
+              >
+                <!-- Top Toolbar -->
+                <div class="pptx-toolbar">
+                  <div class="toolbar-left">
+                    <h5 class="presentation-title mb-0">
+                      <i class="fas fa-file-powerpoint text-primary mr-2"></i>
+                      <span class="title-text">{{ file?.name }}</span>
+                    </h5>
+                  </div>
+                  <div class="toolbar-center">
+                    <div class="slide-counter-badge">
+                      <span class="current-slide">{{
+                        currentSlideIndex + 1
+                      }}</span>
+                      <span class="separator">/</span>
+                      <span class="total-slides">{{ pptxSlides.length }}</span>
+                    </div>
+                  </div>
+                  <div class="toolbar-right">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary toolbar-btn"
+                      (click)="showThumbnails = !showThumbnails"
+                      [title]="
+                        showThumbnails ? 'Hide Thumbnails' : 'Show Thumbnails'
+                      "
+                    >
+                      <i
+                        class="fas"
+                        [ngClass]="showThumbnails ? 'fa-th-large' : 'fa-th'"
+                      ></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary toolbar-btn"
+                      (click)="toggleFullscreen()"
+                      [title]="
+                        isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'
+                      "
+                    >
+                      <i
+                        class="fas"
+                        [ngClass]="isFullscreen ? 'fa-compress' : 'fa-expand'"
+                      ></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-primary toolbar-btn"
+                      (click)="downloadPreviewFile()"
+                      title="Download File"
+                    >
+                      <i class="fas fa-download"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Main Content Area -->
+                <div class="pptx-content-area">
+                  <!-- Thumbnails Sidebar -->
+                  <div
+                    class="thumbnails-sidebar"
+                    *ngIf="showThumbnails"
+                    [class.collapsed]="!showThumbnails"
+                  >
+                    <div class="thumbnails-header">
+                      <span class="thumbnails-title">Slides</span>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-link p-0"
+                        (click)="showThumbnails = false"
+                      >
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                    <div class="thumbnails-list">
+                      <div
+                        *ngFor="let slide of pptxSlides; let i = index"
+                        class="thumbnail-item"
+                        [class.active]="i === currentSlideIndex"
+                        (click)="goToSlide(i)"
+                      >
+                        <div class="thumbnail-number">{{ i + 1 }}</div>
+                        <div class="thumbnail-preview">
+                          <div
+                            *ngIf="slide.images.length > 0"
+                            class="thumbnail-image"
+                          >
+                            <img
+                              [src]="slide.images[0]"
+                              alt="Slide {{ i + 1 }}"
+                            />
+                          </div>
+                          <div
+                            *ngIf="
+                              slide.images.length === 0 &&
+                              slide.texts.length > 0
+                            "
+                            class="thumbnail-text"
+                          >
+                            <i class="fas fa-align-left"></i>
+                            <span
+                              >{{ slide.texts[0].substring(0, 30) }}...</span
+                            >
+                          </div>
+                          <div
+                            *ngIf="!slide.hasContent"
+                            class="thumbnail-empty"
+                          >
+                            <i class="fas fa-file-powerpoint"></i>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Slide Display Area -->
+                  <div
+                    class="slide-display-area"
+                    [class.with-thumbnails]="showThumbnails"
+                  >
+                    <!-- Navigation Controls -->
+                    <button
+                      type="button"
+                      class="nav-btn nav-btn-prev"
+                      (click)="previousSlide()"
+                      [disabled]="currentSlideIndex === 0"
+                      title="Previous Slide (←)"
+                    >
+                      <i class="fas fa-chevron-left"></i>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="nav-btn nav-btn-next"
+                      (click)="nextSlide()"
+                      [disabled]="currentSlideIndex === pptxSlides.length - 1"
+                      title="Next Slide (→)"
+                    >
+                      <i class="fas fa-chevron-right"></i>
+                    </button>
+
+                    <!-- Slide Container -->
+                    <div class="slide-viewport">
+                      <div
+                        class="slide-container"
+                        *ngIf="pptxSlides[currentSlideIndex]"
+                      >
+                        <div class="slide-content">
+                          <!-- Display slide images -->
+                          <div
+                            *ngFor="
+                              let imgUrl of pptxSlides[currentSlideIndex]
+                                .images;
+                              let imgIndex = index
+                            "
+                            class="slide-image-wrapper"
+                            [class.multiple-images]="
+                              pptxSlides[currentSlideIndex].images.length > 1
+                            "
+                          >
+                            <img
+                              [src]="imgUrl"
+                              alt="Slide Image {{ imgIndex + 1 }}"
+                              class="slide-image"
+                              [class.single-image]="
+                                pptxSlides[currentSlideIndex].images.length ===
+                                1
+                              "
+                            />
+                          </div>
+
+                          <!-- Display slide text content -->
+                          <div
+                            *ngIf="
+                              pptxSlides[currentSlideIndex].texts.length > 0 &&
+                              pptxSlides[currentSlideIndex].images.length === 0
+                            "
+                            class="slide-text-content"
+                          >
+                            <div
+                              *ngFor="
+                                let text of pptxSlides[currentSlideIndex].texts;
+                                let textIndex = index
+                              "
+                              class="slide-text"
+                              [class.text-heading]="
+                                textIndex === 0 && text.length < 100
+                              "
+                            >
+                              {{ text }}
+                            </div>
+                          </div>
+
+                          <!-- Mixed content (images + text) -->
+                          <div
+                            *ngIf="
+                              pptxSlides[currentSlideIndex].texts.length > 0 &&
+                              pptxSlides[currentSlideIndex].images.length > 0
+                            "
+                            class="slide-text-overlay"
+                          >
+                            <div
+                              *ngFor="
+                                let text of pptxSlides[currentSlideIndex].texts
+                              "
+                              class="slide-text-overlay-item"
+                            >
+                              {{ text }}
+                            </div>
+                          </div>
+
+                          <!-- Fallback if no images or text -->
+                          <div
+                            *ngIf="!pptxSlides[currentSlideIndex].hasContent"
+                            class="slide-placeholder"
+                          >
+                            <div class="placeholder-icon">
+                              <i class="fas fa-file-powerpoint"></i>
+                            </div>
+                            <p class="placeholder-title">
+                              Slide {{ currentSlideIndex + 1 }}
+                            </p>
+                            <p class="placeholder-subtitle">
+                              No extractable content detected
+                            </p>
+                            <small class="placeholder-note"
+                              >This slide may contain complex formatting or
+                              embedded objects that cannot be previewed.</small
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Bottom Navigation Bar -->
+                    <div class="bottom-nav-bar">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-light"
+                        (click)="goToSlide(0)"
+                        [disabled]="currentSlideIndex === 0"
+                        title="First Slide"
+                      >
+                        <i class="fas fa-angle-double-left"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-light"
+                        (click)="previousSlide()"
+                        [disabled]="currentSlideIndex === 0"
+                        title="Previous Slide"
+                      >
+                        <i class="fas fa-chevron-left"></i> Previous
+                      </button>
+                      <div class="slide-progress">
+                        <div class="progress-bar-bg">
+                          <div
+                            class="progress-bar-fill"
+                            [style.width.%]="
+                              ((currentSlideIndex + 1) / pptxSlides.length) *
+                              100
+                            "
+                          ></div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-light"
+                        (click)="nextSlide()"
+                        [disabled]="currentSlideIndex === pptxSlides.length - 1"
+                        title="Next Slide"
+                      >
+                        Next <i class="fas fa-chevron-right"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-light"
+                        (click)="goToSlide(pptxSlides.length - 1)"
+                        [disabled]="currentSlideIndex === pptxSlides.length - 1"
+                        title="Last Slide"
+                      >
+                        <i class="fas fa-angle-double-right"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Loading State -->
+              <div *ngIf="isLoadingPPTX" class="text-center p-5">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="sr-only">Loading...</span>
+                </div>
+                <p class="mt-3 text-muted">Parsing PowerPoint file...</p>
+              </div>
+
+              <!-- Fallback for non-PPTX files or if parsing fails -->
+              <div *ngIf="!isLoadingPPTX && pptxSlides.length === 0">
+                <div class="mb-3 text-center">
+                  <div class="ppt-preview-icon mb-3">
+                    <i class="fas fa-file-powerpoint fa-5x text-primary"></i>
+                  </div>
+                  <h5 class="mb-2">
+                    <strong>{{ file?.name }}</strong>
+                  </h5>
+                  <p class="text-muted mb-3">
+                    <span class="badge badge-info">{{
+                      contentFormData.contentType
+                    }}</span>
+                    <span class="ml-2">Size: {{ fileSize.toFixed(2) }} MB</span>
+                  </p>
+                  <div
+                    class="alert alert-info"
+                    *ngIf="file?.name?.toLowerCase()?.endsWith('.ppt')"
+                  >
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <strong>Legacy PPT format detected.</strong> For better
+                    preview, please use PPTX format (.pptx).
+                  </div>
+                </div>
+
+                <!-- Preview Options -->
+                <div class="row mb-3">
+                  <div class="col-md-6 mb-2">
+                    <button
+                      type="button"
+                      class="btn btn-primary btn-block btn-lg"
+                      (click)="openPreviewInNewTab()"
+                    >
+                      <i class="fas fa-external-link-alt mr-2"></i>
+                      Open in New Tab
+                    </button>
+                    <small class="text-muted d-block mt-1 text-center">
+                      Opens the file in a new browser tab
+                    </small>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <button
+                      type="button"
+                      class="btn btn-success btn-block btn-lg"
+                      (click)="downloadPreviewFile()"
+                    >
+                      <i class="fas fa-download mr-2"></i>
+                      Download File
+                    </button>
+                    <small class="text-muted d-block mt-1 text-center">
+                      Download to view in Microsoft PowerPoint
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- File Download (fallback) -->
+            <div
+              *ngIf="
+                contentType !== 'LINK' &&
+                contentType !== 'VIDEO' &&
+                contentType !== 'AUDIO' &&
+                contentType !== 'PDF' &&
+                !(contentType === 'PPT' && pptxSlides.length > 0)
+              "
+              class="text-center mb-3"
+            >
+              <button
+                type="button"
+                class="btn btn-primary btn-lg"
+                (click)="downloadFile()"
+              >
+                <i class="fas fa-download mr-2"></i>
+                Download/View Content
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timer Display (for pending or skipped trainings) -->
+        @if (!viewingTraining.hasSeenContent) {
+          <div
+            class="text-center mb-3"
+            *ngIf="
+              (viewingTraining.status === 'PENDING' ||
+                viewingTraining.status === 'SKIPPED') &&
+              viewingTraining.minViewTimeMinutes &&
+              viewingTraining.minViewTimeMinutes > 0
+            "
+          >
+            <div class="timer-display">
+              <div class="timer-label">Viewing Time</div>
+              <div
+                class="timer-value"
+                [ngClass]="{ 'timer-complete': minTimeReached }"
+              >
+                {{ elapsedTimeDisplay }}
+              </div>
+              <div class="timer-progress">
+                <div class="progress" style="height: 10px">
+                  <div
+                    class="progress-bar"
+                    [ngClass]="{
+                      'bg-success': minTimeReached,
+                      'bg-warning': !minTimeReached,
+                    }"
+                    [style.width.%]="getProgressPercentageForModal()"
+                  ></div>
+                </div>
+              </div>
+              <small class="text-muted" *ngIf="!minTimeReached">
+                Minimum {{ viewingTraining.minViewTimeMinutes }} minutes
+                required
+              </small>
+              <small class="text-success" *ngIf="minTimeReached">
+                <i class="fas fa-check-circle"></i> Minimum time completed
+              </small>
+            </div>
+          </div>
+        }
+
+        <!-- Action Buttons -->
+        <!-- *ngIf="(!viewingTraining.hasSeenContent || !viewingTraining.hasQuiz) && (viewingTraining.status === 'PENDING' || viewingTraining.status === 'SKIPPED')" -->
+        <div class="text-center mt-4">
+          <button
+            type="button"
+            class="btn btn-success btn-lg px-5"
+            [disabled]="!consentButtonEnabled"
+            *ngIf="canSubmitConsent()"
+            (click)="onSubmitConsentForModal()"
+          >
+            <i class="fas fa-check-circle mr-2"></i>
+            Submit Consent
+          </button>
+          <button
+            type="button"
+            class="btn btn-warning btn-lg px-5 ml-2"
+            *ngIf="canSkipTraining(viewingTraining)"
+            (click)="onSkipTrainingForModal()"
+          >
+            <i class="fas fa-forward mr-2"></i>
+            Skip Temporarily
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary btn-lg px-5 ml-2"
+            *ngIf="
+              viewingTraining.status === 'COMPLETED' ||
+              viewingTraining.status === 'SKIPPED' ||
+              !isAutoOpening
+            "
+            (click)="closeTrainingView()"
+          >
+            <i class="fas fa-times mr-2"></i>
+            Close
+          </button>
+          <!-- *ngIf="viewingTraining.hasSeenContent && (viewingTraining.hasQuiz && !viewingTraining.quizAttempted) && viewingTraining.lastCompletedOn == null" -->
+          <button
+            type="button"
+            [disabled]="!quizButtonEnabled"
+            class="btn btn-success btn-lg px-5 ml-2"
+            *ngIf="canShowGoToQuiz()"
+            (click)="goToQuiz()"
+          >
+            <i class="fas fa-quiz mr-2"></i>
+            Go To Quiz
+          </button>
+          <button
+            type="button"
+            class="btn btn-success btn-lg px-5 ml-2"
+            *ngIf="
+              viewingTraining.status === 'COMPLETED' &&
+              viewingTraining.hasQuiz &&
+              viewingTraining.quizAttempted
+            "
+            (click)="goToQuiz()"
+          >
+            <i class="fas fa-quiz mr-2"></i>
+            View Quiz Response
+          </button>
+        </div>
+      </div>
+      <div *ngIf="showQuizSubmitComponent">
+        <app-quiz-submit
+          [cycleNumber]="viewingTraining.currentCycleNumber"
+          [contentId]="viewingTraining.content.contentId"
+          [trainingId]="viewingTraining.trainingId"
+          (quizSubmitted)="onQuizCompleted($event)"
+          (closeTrainingView)="closeTrainingView()"
+          [isAlreadySubmitted]="viewingTraining.quizAttempted"
+        ></app-quiz-submit>
+      </div>
+
+      <!-- Help Text -->
+      <div
+        class="alert alert-info mt-4"
+        role="alert"
+        *ngIf="
+          !showQuizSubmitComponent &&
+          (viewingTraining.status === 'PENDING' ||
+          viewingTraining.status === 'SKIPPED')
+        "
+      >
+        <small *ngIf="getTextForNote() != null" >
+          <i class="fas fa-info-circle mr-2"></i>
+          <strong>Note:</strong>
+          <span
+            class="d-block mb-2"
+          >
+            <i class="fas fa-info-circle mr-1"></i> 
+            {{getTextForNote()}}
+          </span>
+          <span
+            *ngIf="
+              viewingTraining.minViewTimeMinutes &&
+              viewingTraining.minViewTimeMinutes > 0
+            "
+          >
+            You must view the training content for at least
+            {{ viewingTraining.minViewTimeMinutes }} minutes before submitting
+            consent.
+          </span>
+          <span *ngIf="viewingTraining.consentRequired === 'true'">
+            Consent submission is required to unlock the portal.
+          </span>
+        </small>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Alert Modal -->
+<ng-template #alert_message let-modal>
+  <div
+    class="modal-header"
+    [ngClass]="{
+      'bg-success': alertType === 'success',
+      'bg-danger': alertType === 'error',
+      'bg-warning': alertType === 'warning',
+      'bg-info': alertType === 'info',
+    }"
+  >
+    <h4 class="modal-title text-white">
+      <i
+        class="fas"
+        [ngClass]="{
+          'fa-check-circle': alertType === 'success',
+          'fa-exclamation-circle': alertType === 'error',
+          'fa-exclamation-triangle': alertType === 'warning',
+          'fa-info-circle': alertType === 'info',
+        }"
+        class="mr-2"
+      ></i>
+      {{
+        alertType === "success"
+          ? "Success"
+          : alertType === "error"
+            ? "Error"
+            : alertType === "warning"
+              ? "Warning"
+              : "Info"
+      }}
+    </h4>
+    <button
+      type="button"
+      class="close text-white"
+      aria-label="Close"
+      (click)="modal.dismiss('cross click')"
+    >
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p [innerHTML]="alertMessage"></p>
+  </div>
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn"
+      [ngClass]="{
+        'btn-success': alertType === 'success',
+        'btn-danger': alertType === 'error',
+        'btn-warning': alertType === 'warning',
+        'btn-primary': alertType === 'info',
+      }"
+      (click)="modal.close('ok')"
+    >
+      OK
+    </button>
+  </div>
+</ng-template>

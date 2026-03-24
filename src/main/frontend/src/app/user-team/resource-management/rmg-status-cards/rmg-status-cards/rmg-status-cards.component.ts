@@ -79,25 +79,27 @@ export class RmgStatusCardsComponent {
   ];
 
   PROJECT_STATUS = {
-    ALL: { key: 'ALL', label: 'All Projects', value: 'all', count: null, style: '', leftstyle: 'border-left:4px solid;color: #1E3A8A', i_class: 'fa-solid fa-plus-circle fa-beat-fade', type: 'All', color: '' },
-    TOTAL: { key: 'TOTAL', label: 'Active Projects', value: 'total_projects', count: null, style: 'color: #03A9F4', leftstyle: 'border-left:4px solid;color: #03A9F4', i_class: 'fa-solid fa-chart-simple fa-beat-fade', type: 'All', color: '' },
-    TOTAL_FC: { key: 'TOTAL_FC', label: 'Fixed Cost Projects', value: 'total_fixed_cost', count: null, style: 'color: #45556C', leftstyle: 'border-left:4px solid;color: #45556C', i_class: 'fa-solid fa-chart-simple fa-beat-fade', type: 'Fixed Cost', color: '' },
-    TOTAL_FILTER_FC: { key: 'TOTAL_FC', label: 'Fixed Cost Projects', value: 'total_fixed_cost', count: null, style: 'color: #0E6DCD', bgstyle: 'background-color: #0E6DCD;color: #fff;', leftstyle: 'border-left:4px solid;color: #0E6DCD', i_class: 'fa-solid fa-chart-simple fa-beat-fade', color: '' },
-    TOTAL_TNM: { key: 'TOTAL_TNM', label: 'TNM Projects', value: 'total_tnm', count: null, style: 'color: #8B5CF6', leftstyle: 'border-left:4px solid;color: #8B5CF6', i_class: 'fa-solid fa-chart-simple fa-beat-fade', type: 'TNM', color: '' },
-    TOTAL_ACTIVE_TNM: { key: 'TOTAL_ACTIVE_TNM', label: 'TNM Active', value: 'active_tnm', count: null, style: 'color: #22C55E', leftstyle: 'border-left:4px solid;color: #22C55E', i_class: 'fa-solid fa-thumbs-up fa-beat-fade', color: '' },
-    TOTAL_EXPIRED_TNM: { key: 'TOTAL_EXPIRED_TNM', label: 'All Expired TNM Projects', value: 'expired_tnm', count: null, style: 'color: #DC2626', bgstyle: 'background-color: #DC2626;color: #fff;', leftstyle: 'color: #DC2626; border-left: 4px solid', i_class: 'fa-solid fa-chart-simple fa-beat-fade', color: '' },
-    TOTAL_MONITORING: { key: 'TOTAL_MONITORING', label: 'Monitoring Projects', value: 'total_monitoring', count: null, style: 'color: #FB923C', leftstyle: 'border-left:4px solid;color: #FB923C', i_class: 'fa-solid fa-chart-simple fa-beat-fade', type: 'Monitoring', color: '' },
-    TOTAL_INTERNAL: { key: 'TOTAL_INTERNAL', label: 'Internal & Bench Projects', value: 'total_internal', count: null, style: 'color: #14B8A6', leftstyle: 'border-left:4px solid;color: #14B8A6', i_class: 'fa-solid fa-plus-circle fa-beat-fade', type: 'Internal', color: '' },
-    PENDING_FOR_APPROVAL: { key: 'PENDING_FOR_APPROVAL', label: 'Approval Pending', value: 'pending_for_approval', count: null, style: 'color: #F59E0B', leftstyle: 'border-left:4px solid;color: #F59E0B', i_class: 'fa-solid fa-clock fa-beat-fade', color: '#F59E0B' },
-    APPROVED: { key: 'APPROVED', label: 'Fully Approved', value: 'approved', count: null, style: 'color: #16A34A', leftstyle: 'border-left:4px solid;color: #16A34A', i_class: 'fa-solid fa-check-circle fa-beat-fade', color: '#16A34A' },
-    REJECTED: { key: 'REJECTED', label: 'Approval Rejected', value: 'rejected', count: null, style: 'color: #EF4444', leftstyle: 'border-left:4px solid;color: #EF4444', i_class: 'fa-solid fa-times-circle fa-beat-fade', color: '#EF4444' },
-    NOT_STARTED: { key: 'NOT_STARTED', label: 'Not Started', value: 'not_started', count: null, style: 'color: #9CA3AF', leftstyle: 'border-left:4px solid;color: #9CA3AF', i_class: 'fa-solid fa-minus-circle fa-beat-fade', color: '#9CA3AF' },
-    COMPLETED_IN_ISHINE: { key: 'COMPLETED_IN_ISHINE', label: 'Completed (iShine)', value: 'completed_in_ishine', count: null, style: 'color: #06B6D4', leftstyle: 'border-left:4px solid;color: #06B6D4', i_class: 'fa-solid fa-file-circle-check fa-beat-fade', color: '#06B6D4' },
-    COMPLETED_IN_SHANKH: { key: 'COMPLETED_IN_SHANKH', label: 'Completed (Shankh)', value: 'completed_in_shankh', count: null, style: 'color: #10B981', leftstyle: 'border-left:4px solid;color: #10B981', i_class: 'fa-solid fa-file-circle-check fa-beat-fade', color: '#10B981' },
-    COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE: { key: 'COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE', label: 'Completed (Shankh) – Teams Active', value: 'completed_in_shankh_but_team_active', count: null, style: 'color: #7C3AED', leftstyle: 'border-left:4px solid;color: #7C3AED', i_class: 'fa-solid fa-flag-checkered fa-beat-fade', color: '#7C3AED' },
-    UNDERBOARDED: { key: 'UNDERBOARDED', label: 'Understaffed (TNM)', value: 'underboarded', count: null, style: 'color: #FACC15', leftstyle: 'border-left:4px solid;color: #FACC15', i_class: 'fa-solid fa-arrow-trend-down fa-beat-fade', color: '#FACC15' },
-    OVERBOARDED: { key: 'OVERBOARDED', label: 'Overstaffed (TNM)', value: 'overboarded', count: null, style: 'color: #DC2626', leftstyle: 'border-left:4px solid;color: #DC2626', i_class: 'fa-solid fa-arrow-trend-up fa-beat-fade', color: '#DC2626' },
-    TIMESHEET_NON_COMPLIANCE: { key: 'TIMESHEET_NON_COMPLIANCE', label: 'Timesheet Non-Compliance Projects', value: 'timesheet_non_compliance', count: null, style: 'color: #EC4899', bgstyle: 'background-color: #EC4899;color: #fff;', leftstyle: 'border-left:4px solid;color: #EC4899', i_class: 'fa-solid fa-calendar-xmark fa-beat-fade', columnConfig: this.unfilledTimesheetProjectColumnConfig, defaultSortColumn: 'projectName', subTableColumnConfig: [], color: '' },
+    ALL: { key: 'ALL', label: 'All Projects', value: 'all', count: null, style: '', leftstyle: 'border-left:4px solid;color: #1E3A8A', i_class: 'fa-solid fa-plus-circle', type: 'All', color: '', infoLabel: 'Displays all projects, regardless of status (active, inactive, completed, or expired).' },
+    TOTAL: { key: 'TOTAL', label: 'Active Projects', value: 'total_projects', count: null, style: 'color: #03A9F4', leftstyle: 'border-left:4px solid;color: #03A9F4', i_class: 'fa-solid fa-chart-simple fa-beat-fade', type: 'All', color: '', infoLabel: 'Total count of projects in the following statuses: Not Started, Approval Pending, Deboarded, and Approved.' },
+    TOTAL_FC: { key: 'TOTAL_FC', label: 'Fixed Cost Projects', value: 'total_fixed_cost', count: null, style: 'color: #45556C', leftstyle: 'border-left:4px solid;color: #45556C', i_class: 'fa-solid fa-chart-simple fa-beat-fade', type: 'Fixed Cost', color: '', infoLabel: 'Count of Fixed Cost projects in the following statuses: Not Started, Approval Pending, and Approved.' },
+    TOTAL_FILTER_FC: { key: 'TOTAL_FC', label: 'Fixed Cost Projects', value: 'total_fixed_cost', count: null, style: 'color: #0E6DCD', bgstyle: 'background-color: #0E6DCD;color: #fff;', leftstyle: 'border-left:4px solid;color: #0E6DCD', i_class: 'fa-solid fa-chart-simple fa-beat-fade', color: '', infoLabel: '' },
+    TOTAL_TNM: { key: 'TOTAL_TNM', label: 'TNM Projects', value: 'total_tnm', count: null, style: 'color: #8B5CF6', leftstyle: 'border-left:4px solid;color: #8B5CF6', i_class: 'fa-solid fa-chart-simple fa-beat-fade', type: 'TNM', color: '', infoLabel: 'Count of TNM projects in the following statuses: Not Started, Approval Pending, and Approved.' },
+    TOTAL_ACTIVE_TNM: { key: 'TOTAL_ACTIVE_TNM', label: 'TNM Active', value: 'active_tnm', count: null, style: 'color: #22C55E', leftstyle: 'border-left:4px solid;color: #22C55E', i_class: 'fa-solid fa-thumbs-up fa-beat-fade', color: '', infoLabel: '' },
+    TOTAL_EXPIRED_TNM: { key: 'TOTAL_EXPIRED_TNM', label: 'All Expired TNM Projects', value: 'expired_tnm', count: null, style: 'color: #DC2626', bgstyle: 'background-color: #DC2626;color: #fff;', leftstyle: 'color: #DC2626; border-left: 4px solid', i_class: 'fa-solid fa-chart-simple fa-beat-fade', color: '', infoLabel: '' },
+    TOTAL_MONITORING: { key: 'TOTAL_MONITORING', label: 'Monitoring Projects', value: 'total_monitoring', count: null, style: 'color: #FB923C', leftstyle: 'border-left:4px solid;color: #FB923C', i_class: 'fa-solid fa-chart-simple fa-beat-fade', type: 'Monitoring', color: '', infoLabel: 'Count of Monitoring projects in the following statuses: Not Started, Approval Pending, and Approved.' },
+    TOTAL_INTERNAL: { key: 'TOTAL_INTERNAL', label: 'Internal & Bench Projects', value: 'total_internal', count: null, style: 'color: #14B8A6', leftstyle: 'border-left:4px solid;color: #14B8A6', i_class: 'fa-solid fa-plus-circle', type: 'Internal', color: '', infoLabel: 'Count of Internal and Bench projects in the following statuses: Not Started, Approval Pending, and Approved.' },
+    PENDING_FOR_APPROVAL: { key: 'PENDING_FOR_APPROVAL', label: 'Approval Pending', value: 'pending_for_approval', count: null, style: 'color: #F59E0B', leftstyle: 'border-left:4px solid;color: #F59E0B', i_class: 'fa-solid fa-clock', color: '#F59E0B', infoLabel: 'Projects where onboarding has started, but at least one resource is pending approval.' },
+    APPROVED: { key: 'APPROVED', label: 'Approved', value: 'approved', count: null, style: 'color: #16A34A', leftstyle: 'border-left:4px solid;color: #16A34A', i_class: 'fa-solid fa-check-circle', color: '#16A34A', infoLabel: 'Projects where all onboarded resources are approved. Resources with future start dates can submit timesheets once their start date becomes active.' },
+    REJECTED: { key: 'REJECTED', label: 'Rejected', value: 'rejected', count: null, style: 'color: #EF4444', leftstyle: 'border-left:4px solid;color: #EF4444', i_class: 'fa-solid fa-times-circle', color: '#EF4444', infoLabel: 'Projects that have been rejected during the resource approval process.' },
+    NOT_STARTED: { key: 'NOT_STARTED', label: 'Not Started', value: 'not_started', count: null, style: 'color: #9CA3AF', leftstyle: 'border-left:4px solid;color: #9CA3AF', i_class: 'fa-solid fa-minus-circle', color: '#9CA3AF', infoLabel: 'Projects where resource onboarding has not yet begun. Teams may be empty or not yet configured.' },
+    COMPLETED_IN_ISHINE: { key: 'COMPLETED_IN_ISHINE', label: 'Completed (iShine)', value: 'completed_in_ishine', count: null, style: 'color: #06B6D4', leftstyle: 'border-left:4px solid;color: #06B6D4', i_class: 'fa-solid fa-file-circle-check', color: '#06B6D4', infoLabel: 'Projects marked as completed in the iShine portal.' },
+    COMPLETED_IN_SHANKH: { key: 'COMPLETED_IN_SHANKH', label: 'Completed (Shankh)', value: 'completed_in_shankh', count: null, style: 'color: #10B981', leftstyle: 'border-left:4px solid;color: #10B981', i_class: 'fa-solid fa-file-circle-check', color: '#10B981', infoLabel: 'Projects previously marked as completed in the Shankh portal.' },
+    COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE: { key: 'COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE', label: 'Completed (Shankh) – Teams Active', value: 'completed_in_shankh_but_team_active', count: null, style: 'color: #7C3AED', leftstyle: 'border-left:4px solid;color: #7C3AED', i_class: 'fa-solid fa-flag-checkered', color: '#7C3AED', infoLabel: 'Projects marked as completed in Shankh portal, but still have active teams in iShine,  indicating ongoing engagement.' },
+    OFFBOARDED: { key: 'OFFBOARDED', label: 'Deboarded', value: 'offboarded', count: null, style: 'color: #6B7280', leftstyle: 'border-left:4px solid;color: #6B7280', i_class: 'fa-solid fa-user-slash', color: '#6B7280', infoLabel: 'Active projects with no assigned team members. Includes cases where teams are empty or all resources have been removed.' },
+    UNDERBOARDED: { key: 'UNDERBOARDED', label: 'Underboarded (TNM)', value: 'underboarded', count: null, style: 'color: #FACC15', leftstyle: 'border-left:4px solid;color: #FACC15', i_class: 'fa-solid fa-arrow-trend-down', color: '#FACC15', infoLabel: 'TNM projects where one or more required roles are not fully staffed.' },
+    OVERBOARDED: { key: 'OVERBOARDED', label: 'Overboarded (TNM)', value: 'overboarded', count: null, style: 'color: #DC2626', leftstyle: 'border-left:4px solid;color: #DC2626', i_class: 'fa-solid fa-arrow-trend-up', color: '#DC2626', infoLabel: 'TNM projects where onboarded resources exceed the defined requirement, potentially leading to billing loss.' },
+    TIMESHEET_NON_COMPLIANCE: { key: 'TIMESHEET_NON_COMPLIANCE', label: 'Timesheet Non-Compliance Projects', value: 'timesheet_non_compliance', count: null, style: 'color: #EC4899', bgstyle: 'background-color: #EC4899;color: #fff;', leftstyle: 'border-left:4px solid;color: #EC4899', i_class: 'fa-solid fa-calendar-xmark fa-beat-fade', columnConfig: this.unfilledTimesheetProjectColumnConfig, defaultSortColumn: 'projectName', subTableColumnConfig: [], color: '', infoLabel: '' },
+    SCHEDULED: { key: 'SCHEDULED', label: 'Scheduled', value: 'scheduled', count: null, style: 'color: #6366F1', leftstyle: 'border-left:4px solid;color: #6366F1', i_class: 'fa-solid fa-calendar-check', color: '#6366F1', infoLabel: 'Active projects with assigned teams, but no resources have started work yet. All resources have future start dates.' },
   };
 
   PROJECT_STATUS_LIST = [
@@ -114,9 +116,11 @@ export class RmgStatusCardsComponent {
     , this.PROJECT_STATUS.APPROVED
     , this.PROJECT_STATUS.REJECTED
     , this.PROJECT_STATUS.NOT_STARTED
+    , this.PROJECT_STATUS.SCHEDULED
     , this.PROJECT_STATUS.COMPLETED_IN_ISHINE
     , this.PROJECT_STATUS.COMPLETED_IN_SHANKH
     , this.PROJECT_STATUS.COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE
+    , this.PROJECT_STATUS.OFFBOARDED
     , this.PROJECT_STATUS.UNDERBOARDED
     , this.PROJECT_STATUS.OVERBOARDED
   ];
@@ -133,8 +137,10 @@ export class RmgStatusCardsComponent {
   TEAM_PROJECT_STATUS_LIST = [
     this.PROJECT_STATUS.NOT_STARTED
     , this.PROJECT_STATUS.PENDING_FOR_APPROVAL
+    , this.PROJECT_STATUS.SCHEDULED
     , this.PROJECT_STATUS.APPROVED
     , this.PROJECT_STATUS.REJECTED
+    , this.PROJECT_STATUS.OFFBOARDED
     , this.PROJECT_STATUS.UNDERBOARDED
     , this.PROJECT_STATUS.OVERBOARDED
     , this.PROJECT_STATUS.COMPLETED_IN_ISHINE
@@ -262,17 +268,36 @@ export class RmgStatusCardsComponent {
     , { field: 'employeeRole', header: 'Employee Role', sortable: false, searchable: false }
   ];
 
+  futureStartDateAssignedEmployeesColumnConfig = [
+    { field: 'employmentIdAcToET', header: 'Employment Id', sortable: true, searchable: true }
+    , { field: 'name', header: 'Employee Name', sortable: true, searchable: true }
+    , { field: 'departmentName', header: 'Department', sortable: true, searchable: true }
+    , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
+    , { field: 'teamName', header: 'Team Name', sortable: true, searchable: true }
+    , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
+    , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
+    , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
+    , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false }
+    , { field: 'poEndDate', header: 'PO End Date', sortable: true, searchable: false }
+    , { field: 'etmStartDate', header: 'Employee Start Date', sortable: true, searchable: false }
+    , { field: 'etmActive', header: 'Approval Status', sortable: false, searchable: false }
+  ];
+
   EMPLOYEE_GROUPS = {
     TOTAL: { key: 'TOTAL', label: 'TOTAL ApMoSys EMPLOYEES', value: 'total', count: null, style: 'color: #45556C;', i_class: 'fa fa-link', columnConfig: [], defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig },
     MAPPED_TO_SHANKH: { key: 'MAPPED_TO_SHANKH', label: 'Mapped to Shankh Projects', value: 'mapped_to_shankh', count: null, style: 'color: #2E7D32;', i_class: 'fa fa-link', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.mappedEmployeeDetailsSubTableColumnConfig },
     MAPPED_TO_INTERNAL: { key: 'MAPPED_TO_INTERNAL', label: 'Mapped to Internal Projects', value: 'mapped_to_internal', count: null, style: 'color: #F9A825;', i_class: 'fa fa-link', columnConfig: this.mappedToInternalEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig },
     MAPPED_TO_INTERNAL_AND_SHANKH: { key: 'MAPPED_TO_INTERNAL_AND_SHANKH', label: 'Mapped to Internal & Shankh Projects', value: 'mapped_to_internal_and_shankh', count: null, style: 'color: #820beb;', i_class: 'fa fa-link', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig },
+    FUTURE_START_DATE: { key: 'FUTURE_START_DATE', label: 'Employees with Future Start Date', value: 'future_start_date', count: null, style: 'color: #1E88E5;', i_class: 'fa fa-calendar', columnConfig: this.futureStartDateAssignedEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig },
     NOT_MAPPED_TO_ANY_PROJECT: { key: 'NOT_MAPPED_TO_ANY_PROJECT', label: 'Employees Not Mapped to Any Project', value: 'not_mapped_to_any', count: null, style: 'color: #dc3545;', i_class: 'fa fa-unlink', columnConfig: this.notMappedEmployeesColumConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig },
     MAPPED_TO_PROJECT: { key: 'MAPPED_TO_PROJECT', label: 'Employees Mapped to Project', value: 'mapped_to_project', count: null, style: 'color: #6F1D1B;', i_class: 'fa fa-link', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig },
     ON_BENCH_BUT_PROJECT_ASSIGNED: { key: 'ON_BENCH_BUT_PROJECT_ASSIGNED', label: 'Employees on Bench but Assigned to Other Projects', value: 'on_bench_but_project_assigned', count: null, style: 'color: #ee0a0a;', i_class: 'fa fa-link', columnConfig: this.onBenchButProjectAssignedEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig },
     ON_BENCH_FOR_MORE_THAN_30_DAYS: { key: 'ON_BENCH_FOR_MORE_THAN_30_DAYS', label: 'Employee On Bench For More Than 30 Days', value: 'on_bench_for_more_than_30_days', count: null, style: 'color: #144552;', i_class: 'fa fa-link', columnConfig: this.onBenchEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig },
     WITHOUT_ANY_BILLABILITY: { key: 'WITHOUT_ANY_BILLABILITY', label: 'Employee Without Any Billability', value: 'without_any_billability', count: null, style: 'color: #a04e1f;', i_class: 'fa fa-link', columnConfig: this.withoutBillabilityEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig },
   }
+
 
   EMPLOYEE_GROUPS_LIST = [
     this.EMPLOYEE_GROUPS.TOTAL,
@@ -281,6 +306,7 @@ export class RmgStatusCardsComponent {
     this.EMPLOYEE_GROUPS.MAPPED_TO_INTERNAL,
     this.EMPLOYEE_GROUPS.MAPPED_TO_SHANKH,
     this.EMPLOYEE_GROUPS.MAPPED_TO_INTERNAL_AND_SHANKH,
+    this.EMPLOYEE_GROUPS.FUTURE_START_DATE,
     this.EMPLOYEE_GROUPS.ON_BENCH_BUT_PROJECT_ASSIGNED,
     this.EMPLOYEE_GROUPS.ON_BENCH_FOR_MORE_THAN_30_DAYS,
     this.EMPLOYEE_GROUPS.WITHOUT_ANY_BILLABILITY
@@ -890,6 +916,7 @@ export class RmgStatusCardsComponent {
 
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
+
   get selectedProjectStatusLabel() : string {
     return this.PROJECT_STATUS_LIST.find(status => status.key === this.selectedProjectStatus)?.label || 'Total Projects';  
   }

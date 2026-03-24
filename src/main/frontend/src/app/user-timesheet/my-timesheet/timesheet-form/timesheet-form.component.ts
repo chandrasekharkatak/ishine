@@ -1113,6 +1113,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   /**
    * Get all day types from master data
    */
+  dayTypesToShow: any[] = [];
   getAllDayTypes(): void {
     this.timesheetNewService.getAllDayTypes()
       .pipe(first(), takeUntil(this.destroy$))
@@ -1138,6 +1139,30 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             this.allDayTypes = this.allDayTypes.filter(f =>{
               return !excludedIds.includes(f.dayType);
             })
+            console.log(this.allDayTypes);
+            this.dayTypesToShow = this.allDayTypes.map(dayType => {
+              return {
+                ...dayType,  
+                dayType: dayType.dayTypeId === 3 
+                  ? 'Working on non-working day' 
+                  : dayType.dayType
+              };
+            });
+                  
+                const highPriorityList = [
+                    "Working", 
+                    "Working on non-working day",
+                    "Half-day Working"
+                  ];
+
+                const highPriorityItems = this.dayTypesToShow.filter(dt => 
+                  highPriorityList.includes(dt.dayType)
+                );
+
+                const lowPriorityList = this.dayTypesToShow.filter(dt => 
+                  !highPriorityList.includes(dt.dayType)
+                );
+                this.dayTypesToShow = [...highPriorityItems, ...lowPriorityList];
           } else {
             // ✅ MODERATE FIX: Use centralized error handling
             this.handleError(
@@ -1146,11 +1171,13 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
               false // Don't show to user, just log
             );
             this.allDayTypes = [];
+            this.dayTypesToShow = [];
           }
         },
         error: (error) => {
           this.handleError(error, 'getAllDayTypes', false);
           this.allDayTypes = [];
+          this.dayTypesToShow = [];
         }
       });
   }
@@ -6054,6 +6081,6 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     const [day, month, year] = dateStr.split('-');
   
     return `${year}-${month}-${day}`;
-  }
+}
 
 }

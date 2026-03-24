@@ -127,6 +127,7 @@ export class ResourceManagementComponent implements OnInit {
   nodes: OrgChartNode[] = [];
 
   // dateType: string = 'po';
+  minDate: Date;
   completedProjectsCount: number | null = null;
   isCountLoading: boolean = false;
   showReportList = false;
@@ -574,8 +575,9 @@ export class ResourceManagementComponent implements OnInit {
     private renderer: Renderer2,
     private appComponent: AppComponent,
     private el: ElementRef,
-    private loaderService: LoaderService
+    private loaderService: LoaderService,
   ) {
+    this.minDate = new Date(); 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
     const reportUrl = `${environment.baseUrl360}#/user-reports/report-list`;
@@ -1712,6 +1714,9 @@ export class ResourceManagementComponent implements OnInit {
         if (response.serviceStatus === "Success") {
           this.closeProjectCompletionDatePickerModal();
           this.openAlertMessageModal(response.serviceResponse);
+          if (this.rmgStatusCardsComponent) {
+            this.rmgStatusCardsComponent.onDepartmentSelectionChange(this.selectedDepartmentIds);
+          }
         } else {
           this.openAlertMessageModal(response.serviceResponse);
         }

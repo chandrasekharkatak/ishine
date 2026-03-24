@@ -762,6 +762,32 @@ public class EmployeeCustomRepository {
         return query.toString();
     }
 
+    // public EmployeeDetailsDTO(Long empId, Long employeementId, String name, String departmentName, String projectName, String teamName, String clientName, String apmosysRM, String clientRM, String poNo,
+    //     String poProjectType, String poStartDate, String poEndDate, Date etmStartDate, Long etmActive
+
+    public String getFutureStartDateAssignedEmployeeDetailsQuery(boolean isAllAccessEmployee, Map<String, String> searchFilter) {
+        StringBuilder query = new StringBuilder();
+        query.append(" ( SELECT DISTINCT \n")
+                .append("e.emp_id,CASE WHEN e.is_apmosys_product = 'true' then CONCAT('AP-', e.employeement_id) else CONCAT('A-', e.employeement_id) end as employeement_id  \n")
+                .append(",e.name emp_name,d.name as department_name, p.project_name, t.team_name, c.client_name, ppd.apmosys_rm, ppd.client_rm, ppd.po_no, p.po_project_type, DATE(ppd.po_start_date), DATE(ppd.po_end_date), etm.start_date as etm_start_date, etm.active as etm_active  \n")
+                .append("FROM employee e  \n")
+                .append("INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id AND etm.active IN(2, 0) AND DATE(etm.start_date) > CURDATE() \n")
+                .append("INNER JOIN teams t ON t.team_id = etm.team_id  \n")
+                .append("INNER JOIN projects p ON p.project_id = t.project_id  \n")
+                .append("LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND etm.po_id = ppd.po_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
+                .append("INNER JOIN clients c ON c.client_id = p.client_id  \n")
+                .append("INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n")
+                .append("INNER JOIN department d ON d.dept_id = jr.dept_id \n")
+                .append("LEFT JOIN employee em ON e.manager_id = em.emp_id  \n")
+                .append("WHERE 1=1 \n")
+                .append("AND e.emp_id NOT BETWEEN 1 AND 6  \n")
+                .append("AND e.employmentstatus != 'InActive' \n");
+        query.append(" AND d.dept_id IN :deptIds \n");
+        query.append(" ) as T1 \n WHERE 1=1 \n");
+        appenCustomSearchToNativeQuery(searchFilter, query, true);
+        return query.toString();
+    }
+
     public String getUnfilledTimesheetProjectDetailsQuery(boolean isAllAccessEmployee) {
         StringBuilder query = new StringBuilder();
         query
@@ -796,10 +822,9 @@ public class EmployeeCustomRepository {
     public String getMappedToShankhEmployeeDetailsListQuery(String baseQuery, String sortBy, String sortDirection,
             Map<String, String> searchFilter, List<Long> empIds) {
         StringBuilder listQuery = new StringBuilder();
-        listQuery.append(
-                " ( SELECT DISTINCT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' then CONCAT('AP-', e.employeement_id) else CONCAT('A-', e.employeement_id) end as employeement_id \n")
+        listQuery.append(" ( SELECT DISTINCT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' then CONCAT('AP-', e.employeement_id) else CONCAT('A-', e.employeement_id) end as employeement_id \n")
                 .append(" ,e.name emp_name,d.name as department_name,e.billable,e.billable_type \n")
-                .append(" ,p.project_name,p.client_name as client_name,p.apmosysrm,p.clientrm,p.po_No,p.po_project_type,p.po_start_date,p.po_end_date  \n")
+                .append(" ,p.project_name,p.client_name as client_name,p.apmosysrm,p.clientrm,p.po_No,p.po_project_type,DATE(p.po_start_date),DATE(p.po_end_date)  \n")
                 .append(" ,GROUP_CONCAT(DISTINCT pm.name ORDER BY pm.name SEPARATOR ', ') as project_manager_name,t.team_name,etm.employee_role \n")
                 .append(baseQuery);
 
@@ -1285,6 +1310,47 @@ public class EmployeeCustomRepository {
                 "expiredProjects9To12Months", List.of(currentDate.minusDays(365), currentDate.minusDays(271)),
                 "expiredProjectsAbove12Months", List.of(currentDate.minusYears(10), currentDate.minusDays(366)));
         return dateRanges.getOrDefault(key, List.of());
+    }
+
+    public Slice<EmployeeDetailsDTO> getFutureStartDateAssignedEmployeeDetailsPage(boolean isAllAccessEmployee,
+            PageDTO pageDTO, List<Long> deptIds, Set<Integer> projectIds) {
+
+        String sortBy = getCustomQuerySortBy(pageDTO.getSortColumn(), true);
+        String sortDirection = pageDTO.getSortDirection();
+        Pageable page = PageRequest.of(pageDTO.getPage(), pageDTO.getSize(),
+                Direction.fromString(sortDirection), sortBy);
+        Map<String, String> searchFilter = pageDTO.getSearchFilter();
+
+        String baseQuery = getFutureStartDateAssignedEmployeeDetailsQuery(isAllAccessEmployee, searchFilter);
+
+        StringBuilder query = new StringBuilder(
+                "SELECT * FROM " + baseQuery + String.format(" ORDER BY %s %s ", sortBy, sortDirection));
+
+        System.out.println("FUTURE_START_DATE_ASSIGNED ================================= query");
+        System.out.println(query.toString());
+
+        Long total = 0l;
+        List<EmployeeDetailsDTO> results = new ArrayList<>();
+        try (Session session = entityManager.unwrap(Session.class)) {
+            NativeQuery<Object[]> projectQuery = session.createNativeQuery(query.toString());
+            projectQuery.setParameterList("deptIds", deptIds);
+            int offset = page.getPageNumber() * page.getPageSize();
+            projectQuery.setFirstResult(offset);
+            projectQuery.setMaxResults(page.getPageSize());
+
+            results = projectQuery.getResultList().stream()
+                    .map(EmployeeDetailsDTO::futureStartDateAssigned)
+                    .collect(Collectors.toList());
+
+            String countQuery = "SELECT COUNT(DISTINCT emp_id) FROM " + baseQuery;
+            NativeQuery<?> countNative = session.createNativeQuery(countQuery);
+            countNative.setParameterList("deptIds", deptIds);
+            total = ((Number) countNative.getSingleResult()).longValue();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+        return new PageImpl<>(results, page, total);
     }
 
 }

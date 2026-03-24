@@ -21,7 +21,7 @@
                                             {{
                                         employeeObj.isApmosysProduct === 'true'
                                         ? ('AP-' + employeeObj.employeementId)
-                                        : 'A-' + employeeObj.employeementId
+                                        : (employeeObj.isConsultant === 'true' ? 'CS-' :'A-' + employeeObj.employeementId)
                                         }}
                                         </p>
                                     </div>
@@ -804,7 +804,7 @@
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Manager Contact
                                                 Number</label>
-                                            <input type="number" class="form-control" autocomplete="none"
+                                            <input type="text" class="form-control" autocomplete="none"
                                                 [(ngModel)]="previousEmployer.managerContactNumber"
                                                 (blur)="validaeManagerContactNumber($event,previousEmployer.managerContactNumber)">
                                             <small class="errorMsg text-danger"></small>
@@ -829,9 +829,9 @@
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>HR Contact
                                                 Number</label>
-                                            <input type="number" class="form-control" autocomplete="none"
+                                            <input type="text" class="form-control" autocomplete="none"
                                                 [(ngModel)]="previousEmployer.hrContactNumber"
-                                                (blur)="validaeHrContactNumber($event,previousEmployer.hrContactNumber)">
+                                                (blur)="validateHrContactNumber($event,previousEmployer.hrContactNumber)">
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>

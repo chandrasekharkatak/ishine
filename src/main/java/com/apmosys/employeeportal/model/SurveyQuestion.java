@@ -38,6 +38,9 @@ public class SurveyQuestion {
 	@Column(columnDefinition = "varchar(10) DEFAULT 'N'")
 	private String required;
 
+	@Column(name = "correct_answer")
+	private String correctAnswer;
+
 	private String description;
 
 }

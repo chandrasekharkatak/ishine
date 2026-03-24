@@ -169,6 +169,8 @@ import { MessageModalComponent } from './user-profile/message-modal/message-moda
 import { ConfirmationModalComponent } from './user-profile/confirmation-modal/confirmation-modal.component';
 import { CertificateModalComponent } from './user-profile/certificate-modal/certificate-modal.component';
 import { SkillCertfificationConfigComponent } from './configuration/skill-certfification-config/skill-certfification-config.component';
+import { TrainingConfigComponent } from './configuration/training-config/training-config.component';
+import { TrainingComponent } from './training/training.component';
 import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { HomeComponent } from './home/home.component';
@@ -226,8 +228,8 @@ import {MatRadioModule} from '@angular/material/radio';
 import { ToastrModule } from 'ngx-toastr';
 import { MyTableComponent } from './helpers/my-table/my-table.component';
 import { RmgStatusCardsComponent } from './user-team/resource-management/rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
-// import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import {MatSidenavModule} from '@angular/material/sidenav';
+import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
 
 registerLocaleData(localeGb);
 
@@ -362,6 +364,8 @@ registerLocaleData(localeGb);
     ConfirmationModalComponent,
     CertificateModalComponent,
     SkillCertfificationConfigComponent,
+    TrainingConfigComponent,
+    TrainingComponent,
     ViewImageComponent,
     SafeHtmlPipe,
     ConnectionLostComponent,
@@ -415,8 +419,8 @@ registerLocaleData(localeGb);
     InfoTooltipComponent,
     RmgProjectComponent,
     MyTableComponent,
-    RmgStatusCardsComponent
- 
+    RmgStatusCardsComponent,
+    QuizSubmit
   ],
   imports: [
     BrowserModule,

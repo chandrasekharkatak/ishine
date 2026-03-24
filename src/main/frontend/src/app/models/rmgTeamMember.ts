@@ -74,10 +74,13 @@ export class RmgTeamMember {
     isNotSaved: boolean = false;
     isMemberSelected: boolean = false;
     projectList: any[] = [];
-    poDetailsList: any[] = [];
     teamList: any[] = [];
+    poDetailsList: any[] = [];
+    filteredPoDetailsList: any[] = [];
     resourceRequirementList: any[] = [];
     filteredActiveResourceRequirement: any[] = [];
     selectedProject?: EmployeeOtherActiveProject;
-    roleFilterActionLabel:any;
+    roleFilterActionLabel: 'Show Active PO Roles' | 'Show All PO Roles' = 'Show Active PO Roles';
+    poFilterActionLabel: 'Show Active PO' | 'Show All PO' = 'Show Active PO';
+
 }

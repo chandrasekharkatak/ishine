@@ -96,6 +96,7 @@ import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.GetTeamAndTimesheetDetailsDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
+import com.apmosys.employeeportal.dto.LockStatusDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PageResponseDTO;
 import com.apmosys.employeeportal.dto.PendingTimesheetDTO;
@@ -198,6 +199,7 @@ import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.request.EmployeeTimesheetProjectRequest;
 import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
 import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
+import com.apmosys.employeeportal.serviceInterface.TrainingUserService;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
@@ -303,7 +305,8 @@ public class EmployeeService {
 	@Value("${rmg.mail}")
 	private String rmgMail;
 	
-	
+	@Value("${training.job.role.exclude}")
+	private String trainingJobRoleExclude;
 	
 	@Value("${bd.mail}")
 	private String businessMail;
@@ -391,6 +394,9 @@ public class EmployeeService {
 	
 	@Autowired
 	UserSessionRepository userSessionRepository;
+	
+	@Autowired
+	TrainingUserService trainingUserService;
 	
 	@Autowired
 	private NewsletterRepository newsletterRepository;
@@ -1353,13 +1359,20 @@ public class EmployeeService {
 
 					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);		
 					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);
-                    String employeeType = (object[76] != null ? object[76].toString() : null);
-                    
-                    if ("true".equalsIgnoreCase(employeeType)) {
-                        empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
-                    } else {
-                        empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
-                    }
+					String employmentId = empDTO.getEmployeementId().toString();
+
+					if (employmentId != null) {
+
+					    String prefix = "A-"; 
+
+					    if ("true".equalsIgnoreCase(empDTO.getIsApmosysProduct())) {
+					        prefix = "AP-";
+					    } else if ("true".equalsIgnoreCase(empDTO.getIsConsultant())) {
+					        prefix = "CS-";
+					    }
+
+					    empDTO.setEmployeementIdAccToET(prefix + employmentId);
+					}
                     empDTO.setOnRollDate(object[77]!=null ? format.format(format.parse(object[77].toString())) : null);
 					if (object[42] != null) {
 
@@ -2688,12 +2701,15 @@ public class EmployeeService {
 							       
 							        String isApprenticeship = (String) reportee[3];
 							        String isConsultant = (String) reportee[4];
+							        String isApmosysProduct = (String) reportee[5];
 
 							        
 							        if ("true".equalsIgnoreCase(isConsultant)) {
-							            employmentId = "A-" + employmentId;
+							            employmentId = "CS-" + employmentId;
 							        } else if ("true".equalsIgnoreCase(isApprenticeship)) {
 							            employmentId = "A-" + employmentId;
+							        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
+							            employmentId = "AP-" + employmentId;
 							        } else {
 							            employmentId = "A-" + employmentId;
 							        }
@@ -3567,7 +3583,9 @@ public class EmployeeService {
 	                        empDTO.setEmploymentIdAcToET(
 	                            "true".equalsIgnoreCase(empProj.getIsApmosysProduct())
 	                                ? "AP-" + empProj.getEmployeementId()
-	                                : "A-" + empProj.getEmployeementId()
+	                                : "true".equalsIgnoreCase(empProj.getIsConsultant())
+	                                    ? "CS-" + empProj.getEmployeementId()
+	                                    : "A-" + empProj.getEmployeementId()
 	                        );
 	                    }
 
@@ -3701,6 +3719,7 @@ public class EmployeeService {
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			if (allEmployeeListForPerformance != null) {
+				int totalEnabledQuarters = quarterCycleRepository.countByIsEnableAndIsActive();
 				allEmployeeListForPerformance.forEach((object) -> {
 					EmployeeDTO empDTO = new EmployeeDTO();
 					
@@ -3745,8 +3764,10 @@ public class EmployeeService {
 
 				    
 				    
-					 int totalEnabledQuarters = quarterCycleRepository.countByIsEnableAndIsActive();
-					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn(empDTO.getEmpId(), quarterCycleRepository.findAllEnabledQuarterIds());
+					 
+//					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn(empDTO.getEmpId(), quarterCycleRepository.findAllEnabledQuarterIds());
+					 
+					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn1(empDTO.getEmpId()); 
 					 
 					 double performanceStatus = (totalEnabledQuarters > 0) 
 							    ? ((double) completedQuarters / totalEnabledQuarters) * 100 
@@ -5130,8 +5151,8 @@ public class EmployeeService {
 			Employee checkEmployeementId;
 			if ("Apmosys Product".equalsIgnoreCase(employeeType)) {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
-//			} else if("Consultant".equalsIgnoreCase(employeeType)) {
-//				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
+			} else if("Consultant".equalsIgnoreCase(employeeType)) {
+				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
 //			}
 //			else if("Apprentice".equalsIgnoreCase(employeeType)) {
 //				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
@@ -5441,7 +5462,8 @@ public class EmployeeService {
 					employee.setWorkLocation(object[25] != null ? object[25].toString() : null);
 					employee.setMaritalStatus(object[26] != null ? object[26].toString() : null);
 					employee.setJobRoleName(object[27] != null ? object[27].toString() : null);
-					employee.setIsApmosysProduct(object[28] != null ? object[28].toString() : null)	;	
+					employee.setIsApmosysProduct(object[28] != null ? object[28].toString() : null)	;
+					employee.setJobRoleId(object[29] != null ? Long.parseLong(object[29].toString()) : null);	
 					});
 				
 				//Check if all Policy read.
@@ -5513,24 +5535,125 @@ public class EmployeeService {
 				//Check if all Newsletter is read
 				List<Newsletter> allNewsletters = newsletterRepository.findAll();
 
-				if (!allNewsletters.isEmpty()) {
-					for (Newsletter object : allNewsletters) {
-						NewsletterReadResponse readResponse = newsletterReadResponseRepository
-									.findByEmpIdAndDocumentId(employee.getEmpId(), object.getDocumentId());
-						
-						if (readResponse == null) {
-							employee.setNewsletterReadCheck(object);
-							break;
+					if (!allNewsletters.isEmpty()) {
+						for (Newsletter object : allNewsletters) {
+							try {
+								NewsletterReadResponse readResponse = newsletterReadResponseRepository
+										.findByEmpIdAndDocumentId(employee.getEmpId(), object.getDocumentId());
+								if (readResponse == null) {
+									employee.setNewsletterReadCheck(object);
+									break;
+								}
+								}catch(Exception e) {
+											List<NewsletterReadResponse> res= newsletterReadResponseRepository.findAllByEmpIdAndDocumentId(employee.getEmpId(), object.getDocumentId());
+											 System.err.println("Error checking newsletter on login: " + e.getMessage());
+											 if (res == null || res.isEmpty()) {
+													employee.setNewsletterReadCheck(object);
+													break;
+												}
+										}
+							
+							
+							}
+							
 						}
+				
+				
+				//Check training lock status and mandatory training requirements
+				// This check is critical for routing decisions on login
+				List<Long> jobRoleIds = Arrays.stream(trainingJobRoleExclude.split(","))
+						.map(String::trim)
+						.map(Long::parseLong)
+						.collect(Collectors.toList());
+						
+				Long employeeJobRoleId = employee.getJobRoleId();
+				if (employee.getEmpId() != null && employeeJobRoleId != null && !jobRoleIds.contains(employeeJobRoleId)) {
+					try {
+
+						ServiceResponse lockResponse = trainingUserService.getLockStatus(employee.getEmpId());
+						System.out.println("lockResponse==>  "+lockResponse);
+						if (lockResponse != null && lockResponse.getServiceStatus() != null && 
+							lockResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS) &&
+							lockResponse.getServiceResponse() != null) {
+							
+							LockStatusDTO lockStatus = (LockStatusDTO) lockResponse.getServiceResponse();
+							
+							
+							if (lockStatus.getIsLocked() == null) {
+								lockStatus.setIsLocked(false);
+							}
+							if (lockStatus.getHasMandatoryTrainingPending() == null) {
+								lockStatus.setHasMandatoryTrainingPending(false);
+							}
+							if (lockStatus.getIsHardLock() == null) {
+								lockStatus.setIsHardLock(false);
+							}
+							if (lockStatus.getDeadlineCrossed() == null) {
+								lockStatus.setDeadlineCrossed(false);
+							}
+							
+							// Set training lock status for routing and navigation decisions
+							// This includes:
+							// - hasMandatoryTrainingPending: true if mandatory training exists (for routing)
+							// - isLocked: true if lock enabled (for blocking navigation)
+							// - isHardLock: true if lock enabled AND deadline crossed (hardest lock)
+							// - deadlineCrossed: true if deadline has passed
+							employee.setTrainingLockStatus(lockStatus);
+							
+							// Log lock status for debugging and monitoring
+							if (lockStatus.getIsHardLock() != null && lockStatus.getIsHardLock()) {
+								System.out.println("Training Lock Status - HARD LOCK: Employee " + employee.getEmpId() + 
+									" has deadline-crossed mandatory training with lock enabled. Training: " + 
+									lockStatus.getLockedTrainingName());
+							} else if (lockStatus.getIsLocked() != null && lockStatus.getIsLocked()) {
+								System.out.println("Training Lock Status - LOCKED: Employee " + employee.getEmpId() + 
+									" has mandatory training with lock enabled. Training: " + 
+									lockStatus.getLockedTrainingName() + 
+									", Deadline Crossed: " + lockStatus.getDeadlineCrossed());
+							} else if (lockStatus.getHasMandatoryTrainingPending() != null && lockStatus.getHasMandatoryTrainingPending()) {
+								System.out.println("Training Lock Status - MANDATORY PENDING: Employee " + employee.getEmpId() + 
+									" has mandatory training pending (no lock). Training: " + 
+									lockStatus.getLockedTrainingName());
+							}
+						} else {
+							// If lock check returns failure or null, initialize empty lock status
+							LockStatusDTO emptyLockStatus = new LockStatusDTO();
+							emptyLockStatus.setIsLocked(false);
+							emptyLockStatus.setHasMandatoryTrainingPending(false);
+							emptyLockStatus.setIsHardLock(false);
+							emptyLockStatus.setDeadlineCrossed(false);
+							employee.setTrainingLockStatus(emptyLockStatus);
+							System.out.println("Training Lock Status - No lock status returned for employee " + employee.getEmpId());
+						}
+					} catch (Exception e) {
+						// If lock check fails, initialize empty lock status to prevent NPE
+						// Log error but don't fail login - training lock check should not block login
+						LockStatusDTO emptyLockStatus = new LockStatusDTO();
+						emptyLockStatus.setIsLocked(false);
+						emptyLockStatus.setHasMandatoryTrainingPending(false);
+						emptyLockStatus.setIsHardLock(false);
+						emptyLockStatus.setDeadlineCrossed(false);
+						employee.setTrainingLockStatus(emptyLockStatus);
+						
+						System.err.println("Error checking training lock on login for employee " + employee.getEmpId() + ": " + e.getMessage());
+						e.printStackTrace();
 					}
+				} else {
+					// If empId is null, initialize empty lock status
+					LockStatusDTO emptyLockStatus = new LockStatusDTO();
+					emptyLockStatus.setIsLocked(false);
+					emptyLockStatus.setHasMandatoryTrainingPending(false);
+					emptyLockStatus.setIsHardLock(false);
+					emptyLockStatus.setDeadlineCrossed(false);
+					employee.setTrainingLockStatus(emptyLockStatus);
+					System.err.println("Warning: Employee ID is null, cannot check training lock status");
 				}
-				
-				
 				
 				response.setServiceResponse("Employee login info found.");
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				apiLogInfo.setApiResponse("Employee login info found.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				System.out.println("Employee => "+employee);
 				return employee;
 			}
 
@@ -7344,41 +7467,41 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	return response;
 }
-	public ServiceResponse getRewardsAndAppreciationCount(AppreciationAndRewardsCountDto employeeDto) {
-	      ServiceResponse response = new ServiceResponse();
-			
-			try {
-				
-				List<Object[]> EmployeeRewardsAndAppreciationCount = employeeRepository.getRewardsAndAppreciationCount(employeeDto.getEmpId());
-				List<AppreciationAndRewardsCountDto> listOfRewardsAndAppreciation = new ArrayList<AppreciationAndRewardsCountDto>();
-
-		        if (EmployeeRewardsAndAppreciationCount != null) {
-		            for (Object[] object : EmployeeRewardsAndAppreciationCount) {
-
-		            	AppreciationAndRewardsCountDto employeeDetail = new AppreciationAndRewardsCountDto();
-		            	    employeeDetail.setEmpId(employeeDto.getEmpId());	                    
-		            	    employeeDetail.setAppreciationCount(object[1] != null ? object[1].toString() : null);
-		                    employeeDetail.setRewardsCount(object[0] != null ? object[0].toString() : null);	          
-		                    listOfRewardsAndAppreciation.add(employeeDetail);
-		                    
-		            }
-		        }
-		        
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(listOfRewardsAndAppreciation);
-					
-		        
-			
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-				
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse(e.getMessage());
-			}
-			
-			return response;
-	}
+//	public ServiceResponse getRewardsAndAppreciationCount(AppreciationAndRewardsCountDto employeeDto) {
+//	      ServiceResponse response = new ServiceResponse();
+//			
+//			try {
+//				
+//				List<Object[]> EmployeeRewardsAndAppreciationCount = employeeRepository.getRewardsAndAppreciationCount(employeeDto.getEmpId());
+//				List<AppreciationAndRewardsCountDto> listOfRewardsAndAppreciation = new ArrayList<AppreciationAndRewardsCountDto>();
+//
+//		        if (EmployeeRewardsAndAppreciationCount != null) {
+//		            for (Object[] object : EmployeeRewardsAndAppreciationCount) {
+//
+//		            	AppreciationAndRewardsCountDto employeeDetail = new AppreciationAndRewardsCountDto();
+//		            	    employeeDetail.setEmpId(employeeDto.getEmpId());	                    
+//		            	    employeeDetail.setAppreciationCount(object[1] != null ? object[1].toString() : null);
+//		                    employeeDetail.setRewardsCount(object[0] != null ? object[0].toString() : null);	          
+//		                    listOfRewardsAndAppreciation.add(employeeDetail);
+//		                    
+//		            }
+//		        }
+//		        
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse(listOfRewardsAndAppreciation);
+//					
+//		        
+//			
+//				
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//				
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse(e.getMessage());
+//			}
+//			
+//			return response;
+//	}
 
 
 	public ServiceResponse getAllEmployeesByProjectId(Integer projectId) {
@@ -7486,6 +7609,47 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
     
     return serviceResponse;
 	}
+
+
+	
+	
+	public ServiceResponse getRewardsAndAppreciationCount(AppreciationAndRewardsCountDto employeeDto) {
+      ServiceResponse response = new ServiceResponse();
+		
+		try {
+			
+			List<Object[]> EmployeeRewardsAndAppreciationCount = employeeRepository.getRewardsAndAppreciationCount(employeeDto.getEmpId());
+			List<AppreciationAndRewardsCountDto> listOfRewardsAndAppreciation = new ArrayList<AppreciationAndRewardsCountDto>();
+
+	        if (EmployeeRewardsAndAppreciationCount != null) {
+	            for (Object[] object : EmployeeRewardsAndAppreciationCount) {
+
+	            	AppreciationAndRewardsCountDto employeeDetail = new AppreciationAndRewardsCountDto();
+	            	    employeeDetail.setEmpId(employeeDto.getEmpId());	                    
+	            	    employeeDetail.setAppreciationCount(object[1] != null ? object[1].toString() : null);
+	                    employeeDetail.setRewardsCount(object[0] != null ? object[0].toString() : null);	  
+	                    employeeDetail.setAverageRating(object[2]!=null ? object[2].toString() : null);
+	                    listOfRewardsAndAppreciation.add(employeeDetail);
+	                    
+	            }
+	        }
+	        
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(listOfRewardsAndAppreciation);
+				
+	        
+		
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(e.getMessage());
+		}
+		
+		return response;
+}
+
 	
 	public ServiceResponse sendExpiredPoEmail(ExpiredPOMailSendDTO employeeDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();

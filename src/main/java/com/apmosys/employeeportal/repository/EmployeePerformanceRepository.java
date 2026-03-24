@@ -53,9 +53,23 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 
 	@Query(nativeQuery = true , value="SELECT * from employee_performance ep where ep.employee_performance_id= :employeePerformanceId ")
 	EmployeePerformance findByPerformanceId(@Param("employeePerformanceId")Long employeePerformanceId);
-	
-	
-	
+
+	/** Find latest employee_performance row for given emp and quarter (for manager/HOD submit). */
+	@Query(nativeQuery = true, value = "SELECT * FROM employee_performance ep WHERE ep.emp_id = :empId AND ep.quarter_id = :quarterId ORDER BY ep.employee_performance_id DESC LIMIT 1")
+	List<EmployeePerformance> findLatestByEmpIdAndQuarterId(@Param("empId") Long empId, @Param("quarterId") Long quarterId);
+
+	/** Approval details for popup: manager/HOD/HR name, employment id, final rating, remarks. Latest performance row per emp and quarter. */
+	@Query(nativeQuery = true, value = "SELECT ep.manager_id, ep.manager_remarks, ep.final_rating, e_m.name AS manager_name, e_m.employeement_id AS manager_employment_id, "
+			+ "ep.hod_id, ep.hod_remarks, e_h.name AS hod_name, e_h.employeement_id AS hod_employment_id, "
+			+ "ep.hr_id, ep.hr_remarks, e_hr.name AS hr_name, e_hr.employeement_id AS hr_employment_id "
+			+ "FROM employee_performance ep "
+			+ "LEFT JOIN employee e_m ON ep.manager_id = e_m.emp_id "
+			+ "LEFT JOIN employee e_h ON ep.hod_id = e_h.emp_id "
+			+ "LEFT JOIN employee e_hr ON ep.hr_id = e_hr.emp_id "
+			+ "WHERE ep.emp_id = :empId AND ep.quarter_id = :quarterId "
+			+ "ORDER BY ep.employee_performance_id DESC LIMIT 1")
+	List<Object[]> findApprovalDetailsByEmpIdAndQuarterId(@Param("empId") Long empId, @Param("quarterId") Long quarterId);
+
 	@Query(nativeQuery = true , value="SELECT  \n"
 			+ "    d.name AS department_name,\n"
 			+ "    COUNT(DISTINCT e.emp_id) AS eligible_employees, \n"
@@ -325,4 +339,29 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 	@Query(value="SELECT completion_status,emp_id FROM employee_performance epm inner join quater_cycle qc on epm.quarter_id = qc.quarter_id where qc.is_enable =1 and qc.is_active=1",nativeQuery = true)
 	List<Object[]>currentStatusForPerformanceTableView();
 
+	/** Final rating per emp_id from employee_performance.final_rating for active quarters only (matches review page). */
+	@Query(nativeQuery = true, value = "SELECT ep.emp_id, ROUND(AVG(CAST(ep.final_rating AS DECIMAL(5,2))), 2) "
+			+ "FROM employee_performance ep "
+			+ "WHERE ep.quarter_id IN (SELECT quarter_id FROM quater_cycle WHERE is_enable = 1 AND is_active = 1) "
+			+ "AND ep.final_rating IS NOT NULL AND ep.final_rating != '' "
+			+ "GROUP BY ep.emp_id")
+	List<Object[]> findFinalRatingByEmpId();
+
+	/** Approval status per emp_id for active quarters: manager/HOD Submitted if date set, HR from hr_review_status. */
+	@Query(nativeQuery = true, value = "SELECT ep.emp_id, "
+			+ "CASE WHEN MAX(CASE WHEN ep.manager_review_date IS NOT NULL THEN 1 ELSE 0 END) = 1 THEN 'Submitted' ELSE 'Pending' END, "
+			+ "CASE WHEN MAX(CASE WHEN ep.hod_approval_date IS NOT NULL THEN 1 ELSE 0 END) = 1 THEN 'Submitted' ELSE 'Pending' END, "
+			+ "COALESCE(MAX(CASE WHEN ep.hr_review_status IN ('Accepted','Rejected') THEN ep.hr_review_status ELSE NULL END), 'Pending') "
+			+ "FROM employee_performance ep "
+			+ "WHERE ep.quarter_id IN (SELECT quarter_id FROM quater_cycle WHERE is_enable = 1 AND is_active = 1) "
+			+ "GROUP BY ep.emp_id")
+	List<Object[]> findApprovalStatusByEmpId();
+
+	@Query(nativeQuery = true , value = "select d.name from employee e "
+			+ "inner join job_role jr on e.job_role_id = jr.job_role_id "
+			+ "inner join department d on d.dept_id = jr.dept_id "
+			+ "where e.emp_id = :empId "	
+			)
+	
+	String getCurrentUserDepartment(@Param("empId") Long empId);
 }

@@ -17,4 +17,5 @@ public class AppreciationAndRewardsCountDto {
     private Long empId;
     private String appreciationCount;
     private String rewardsCount;
+    private String averageRating;
 }
