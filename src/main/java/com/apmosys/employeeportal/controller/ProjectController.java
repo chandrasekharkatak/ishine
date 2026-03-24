@@ -322,6 +322,13 @@ public class ProjectController {
 		return response;
 	}
 
+	@RequestMapping(value = "/completeMilestoneRemainder", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ServiceResponse> completeMilestoneRemainder(
+			@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
+			@RequestPart("projectName") String projectName) {
+		return ResponseEntity.ok(poPortalApiService.completeMilestoneRemainder(fcProjectMilestoneDTO , projectName));
+	}
+
 
 	
 }
