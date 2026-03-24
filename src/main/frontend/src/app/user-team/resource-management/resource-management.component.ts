@@ -6492,7 +6492,8 @@ showProjectMilestones(projectObj: any) {
   }
 
   confirmCompleteMailTrigger(projectDto:any) {
-  this.resourceManagementService.completeProjectReminder(projectDto,this.projectObj.name).pipe(first())
+  console.log(projectDto.projectId);
+  this.resourceManagementService.completeProjectReminder(projectDto.projectId).pipe(first())
     .subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           console.log("Completion mail triggered successfully!!");

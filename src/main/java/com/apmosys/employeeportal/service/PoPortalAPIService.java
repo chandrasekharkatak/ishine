@@ -2553,11 +2553,6 @@ return empId;
 
 			System.out.println(RmEmailsFormPO);
 
-
-
-
-
-
 			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
 			if (optionalEmails.isEmpty()) {
 				logger.warn("No email addresses found for project: {}", dto.getProjectId());
@@ -2638,26 +2633,34 @@ return empId;
 	}
 	
 	
-	public ServiceResponse completeProjectReminder(FCProjectMilestoneDTO dto , String ProjectName) {
+	public ServiceResponse completeProjectReminder(Long poProjectId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		String exceptionDetailsForLog = null;
 		try {
-			if (dto == null || dto.getId() == null) {
-				String msg = "Milestone DTO and ID cannot be null.";
+			if (poProjectId == null) {
+				String msg = "poProjectId DTO cannot be null.";
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				exceptionDetailsForLog = msg;
 				return serviceResponse;
 			}
 
-			if (dto.getStatus() != null && dto.getStatus().equalsIgnoreCase("COMPLETED")) {
-			    	
-				boolean emailSent =  sendEmailForMileStoneComplete(dto , ProjectName);
-				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				serviceResponse.setServiceMessage(emailSent
-					? "Email notification sent."
-					: "Email notification could not be sent.");
-				System.out.println("Email Sent :"+ emailSent );
-			}
+				Project  projDetails  =  projectRepository.findByPoProjectId(poProjectId);
+				Optional<ProjectPoDetails> projPoDetailsOpt = projectPoDetailsRepository.findByPoProjectId(poProjectId);
+
+				if (projPoDetailsOpt.isPresent()) {
+				    boolean emailSent = sendEmailForProjectComplete(projDetails, projPoDetailsOpt.get(), poProjectId);
+					
+				    serviceResponse.setServiceMessage(emailSent? "Email notification sent."
+							: "Email notification could not be sent.");
+					System.out.println("Email Sent :"+ emailSent );
+				   
+				} else {
+					String msg = "ProjectPoDetails not found.";
+					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					exceptionDetailsForLog = msg;
+					return serviceResponse;
+				}				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				
 				
 		} catch (Exception e) {
 			String errorMsg = "An unexpected error occurred during the milestone update process.";
@@ -2673,7 +2676,7 @@ return empId;
 	
 	
 	
-	private boolean sendEmailForMileStoneComplete(FCProjectMilestoneDTO dto , String ProjectName) {
+	private boolean sendEmailForProjectComplete(Project projDetails,ProjectPoDetails projPoDetails,Long poProjectId) {
 		try {
 
 			String traceId = UUID.randomUUID().toString();
@@ -2683,7 +2686,7 @@ return empId;
 
 			HttpEntity<?> entity = new HttpEntity<>(headers);
 
-			String url = getRmEmailUrl + dto.getProjectId();
+			String url = getRmEmailUrl + poProjectId;
 
 			ResponseEntity<List<String>> apiResponse = restTemplate.exchange(
         		url,
@@ -2698,9 +2701,9 @@ return empId;
 			System.out.println(RmEmailsFormPO);
 
 
-			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
+			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(poProjectId);
 			if (optionalEmails.isEmpty()) {
-				logger.warn("No email addresses found for project: {}", dto.getProjectId());
+				logger.warn("No email addresses found for project: {}", poProjectId);
 				return false;
 			}
 
@@ -2726,15 +2729,9 @@ return empId;
 			.filter(e -> e != null && !e.trim().isEmpty())
 			.distinct()
 			.collect(Collectors.toList());
-			
-			
-			
-			
-			
-			
 
 			if (toRecipients.isEmpty()) {
-				logger.warn("Skipping milestone email due to empty RM/HOD emails: {}", dto.getName());
+				logger.warn("Skipping project email due to empty RM/HOD emails: {}", projDetails.getProjectName());
 				return false;
 			}
 
@@ -2745,28 +2742,23 @@ return empId;
 
 			SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
 			//String extendedDate = formatter.format(dto.getExtendedDate());
-			String endDate = formatter.format(dto.getEndDate());
-			String startDate = formatter.format(dto.getStartDate());
+			String endDate = formatter.format(projDetails.getPoEndDate());
+			String startDate = formatter.format(projDetails.getPoStartDate());
 
-			Integer projectId = dto.getProjectId() != null 
-        ? dto.getProjectId().intValue() 
-        : null;
-
-			List<Object[]> projectInfo = projectRepository.getProjectInfo(projectId);
-
-			System.out.println(projectInfo);
-
-			String subject = "Project Milestone Update Notification: " + ProjectName;
+			String subject = "Project Milestone Update Notification: " + projDetails.getProjectName();
 			String body = "<html><body>"
 			        + "<p>Dear Team,</p>"
 			        + "<p>The following project milestone has been <b>completed</b>. Kindly review and mark the project as <b>completed</b>.</p>"
 			        + "<br/>"
 			        + "<table border='1' style='border-collapse: collapse;'>"
-			        + "<tr><th>PO Number</th><td>" + dto.getPoId() + "</td></tr>"
-			        + "<tr><th>Project Name</th><td>" + ProjectName + "</td></tr>"
-			        + "<tr><th>Project Start Date</th><td>" + "" + "</td></tr>"
-			        + "<tr><th>Project End Date</th><td>" + "" + "</td></tr>"
-			        + "<tr><th>Status</th><td><b>" + dto.getStatus() + "</b></td></tr>"
+			        + "<tr><th>PO Number</th><td>" + projPoDetails.getPoNo() + "</td></tr>"
+			        + "<tr><th>Project Name</th><td>" + projDetails.getProjectName() + "</td></tr>"
+			        + "<tr><th>Project Status</th><td>" + projDetails.getStatus() + "</td></tr>"
+			        + "<tr><th>State</th><td>" + projDetails.getState() + "</td></tr>"
+			        + "<tr><th>Project Start Date</th><td>" + startDate + "</td></tr>"
+			        + "<tr><th>Project End Date</th><td>" + endDate + "</td></tr>"
+			        + "<tr><th>Project Type</th><td>" + projDetails.getPoProjectType() + "</td></tr>"
+			        + "<tr><th>ApMoSys RM</th><td>" + projPoDetails.getApmosysRM() + "</td></tr>"
 			        + "</table>"
 			        + "<br/>"
 			        + "<p>Please take the necessary action.</p>"
@@ -2782,11 +2774,11 @@ return empId;
 
 
 			mailService.sendMailToMultipleRecipients(toRecipientsDummy, ccRecipientsDummy, subject, body) ;
-			logger.info("Email sent successfully for milestone: {}", dto.getName());
+			logger.info("Email sent successfully for project: {}", projDetails.getProjectName());
 			return true;
 
 		} catch (Exception e) {
-			logger.error("Failed to send email for milestone {}: {}", dto.getName(), e.getMessage());
+			logger.error("Failed to send email for project {}: {}", projDetails.getProjectName(), e.getMessage());
 			return false;
 		}
 	}

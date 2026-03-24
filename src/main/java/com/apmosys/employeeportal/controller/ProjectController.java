@@ -325,10 +325,8 @@ public class ProjectController {
 	}
 
 	@PostMapping(value = "/completeProjectReminder")
-	public ResponseEntity<ServiceResponse> completeProjectReminder(
-			@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
-			@RequestPart("projectName") String projectName) {
-		return ResponseEntity.ok(poPortalApiService.completeProjectReminder(fcProjectMilestoneDTO , projectName));
+	public ResponseEntity<ServiceResponse> completeProjectReminder(@RequestParam("poProjectId") Long poProjectId) {
+		return ResponseEntity.ok(poPortalApiService.completeProjectReminder(poProjectId));
 	}
 
 

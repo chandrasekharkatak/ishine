@@ -226,11 +226,8 @@ export class ResourceManagementService {
     return this.http.get(`${this.baseUrl}`+`api/getProjectAssignedDataByProjectId`,{params:{id:id,totalRequirements:totalRequirements}})
   }
 
-completeProjectReminder(project: any, projectName: string) {
-  const formData = new FormData();
-  formData.append('dto',new Blob([JSON.stringify(project)], { type: 'application/json' }) );
-  formData.append('projectName',new Blob([projectName], { type: 'text/plain' }));
-  return this.http.post(`${this.baseUrl}api/completeProjectReminder`, formData);
+completeProjectReminder(poProjectId: number) {
+  return this.http.post(`${this.baseUrl}api/completeProjectReminder?poProjectId=${poProjectId}`,{} );
 }
 
 }
