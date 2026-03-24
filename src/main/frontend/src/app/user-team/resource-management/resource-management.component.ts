@@ -6693,6 +6693,7 @@ openMileStoneStatusModal(){
     const formData = new FormData();
     formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
     formData.append('projectName', this.projectNameForMilestoneUpdate);
+    formData.append('previousStatus' , this.originalStatus)
 
     if (this.selectedFile) {
       formData.append('file', this.selectedFile);

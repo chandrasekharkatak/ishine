@@ -183,8 +183,10 @@ public class ProjectController {
 	public ResponseEntity<ServiceResponse> updateMilestoneById(
 			@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
 			@RequestPart(value = "file", required = false) MultipartFile file,
-			@RequestPart("projectName") String projectNameForMilestoneUpdate) {
-		return ResponseEntity.ok(poPortalApiService.updateMilestoneById(fcProjectMilestoneDTO, file , projectNameForMilestoneUpdate));
+			@RequestPart("projectName") String projectNameForMilestoneUpdate,
+			@RequestPart("previousStatus") String previousStatus
+		) {
+		return ResponseEntity.ok(poPortalApiService.updateMilestoneById(fcProjectMilestoneDTO, file , projectNameForMilestoneUpdate , previousStatus));
 	}
 
 	@JobRoleAccess(featureIds = {34})

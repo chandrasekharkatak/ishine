@@ -264,7 +264,7 @@ public class PoPortalAPIService {
 	}
 	
 	
-	public ServiceResponse updateMilestoneById(FCProjectMilestoneDTO dto, MultipartFile file ,  String projectName) {
+	public ServiceResponse updateMilestoneById(FCProjectMilestoneDTO dto, MultipartFile file ,  String projectName , String previousStatus) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		ApiLog initialLog = null;
 		String traceId = UUID.randomUUID().toString();
@@ -368,7 +368,7 @@ public class PoPortalAPIService {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				finalHttpStatusCode = HttpStatus.OK.value();
 
-				boolean emailSent =  sendEmailForMileStoneUpdate(dto , file , projectName);
+				boolean emailSent =  sendEmailForMileStoneUpdate(dto , file , projectName , previousStatus);
 				serviceResponse.setServiceMessage(emailSent
 					? "Milestone updated and email notification sent."
 					: "Milestone updated, but email notification could not be sent.");
@@ -2529,7 +2529,7 @@ return empId;
 		System.out.println("======= Project Expiry Job Completed =======");
 	}
 
-	private boolean sendEmailForMileStoneUpdate(FCProjectMilestoneDTO dto , MultipartFile file , String projectName) {
+	private boolean sendEmailForMileStoneUpdate(FCProjectMilestoneDTO dto , MultipartFile file , String projectName , String previousStatus) {
 		try {
 
 			String traceId = UUID.randomUUID().toString();
@@ -2605,7 +2605,7 @@ return empId;
 			String subject = "Project Milestone Update Notification: " + projectName;
 			String body = "<html><body>"
 					+ "<p>Dear Team,</p>"
-					+ "<p>The following project milestone has been Updated  </p>"
+					+ "<p>The following project milestone status has been Updated From <strong>"+ previousStatus + "</strong> to <strong>"  + dto.getStatus() +"</strong></p>"
 					+ "<table border='1' style='border-collapse: collapse;'>"
 					+ "<tr><th>PO Number</th><td>" + dto.getPoId() + "</td></tr>"
 					+ "<tr><th>Project Name</th><td>" + projectName + "</td></tr>"
@@ -2613,7 +2613,7 @@ return empId;
 					+ "<tr><th>Line Item</th><td>" + dto.getLineItemName() + "</td></tr>"
 					+ "<tr><th>Milestone Start Date</th><td>" + startDate + "</td></tr>"
 					+ "<tr><th>Milestone End Date</th><td>" + endDate + "</td></tr>"
-					+ "<tr><th>Milestone Extended Date</th><td>" + dto.getExtendedDate() + "</td></tr>"
+					+ "<tr><th>Previous Status</th><td>" + previousStatus + "</td></tr>"
 					+ "<tr><th>Status</th><td>" + dto.getStatus() + "</td></tr>"
 					+ "</table>"
 					+ "<p>Regards,<br>ApMoSys Technologies</p>"
@@ -2748,6 +2748,14 @@ return empId;
 			String endDate = formatter.format(dto.getEndDate());
 			String startDate = formatter.format(dto.getStartDate());
 
+			Integer projectId = dto.getProjectId() != null 
+        ? dto.getProjectId().intValue() 
+        : null;
+
+			List<Object[]> projectInfo = projectRepository.getProjectInfo(projectId);
+
+			System.out.println(projectInfo);
+
 			String subject = "Project Milestone Update Notification: " + ProjectName;
 			String body = "<html><body>"
 			        + "<p>Dear Team,</p>"
@@ -2756,11 +2764,8 @@ return empId;
 			        + "<table border='1' style='border-collapse: collapse;'>"
 			        + "<tr><th>PO Number</th><td>" + dto.getPoId() + "</td></tr>"
 			        + "<tr><th>Project Name</th><td>" + ProjectName + "</td></tr>"
-			        + "<tr><th>Milestone Name</th><td>" + dto.getName() + "</td></tr>"
-			        + "<tr><th>Line Item</th><td>" + dto.getLineItemName() + "</td></tr>"
-			        + "<tr><th>Milestone Start Date</th><td>" + startDate + "</td></tr>"
-			        + "<tr><th>Milestone End Date</th><td>" + endDate + "</td></tr>"
-			        + "<tr><th>Milestone Extended Date</th><td>" + dto.getExtendedDate() + "</td></tr>"
+			        + "<tr><th>Project Start Date</th><td>" + "" + "</td></tr>"
+			        + "<tr><th>Project End Date</th><td>" + "" + "</td></tr>"
 			        + "<tr><th>Status</th><td><b>" + dto.getStatus() + "</b></td></tr>"
 			        + "</table>"
 			        + "<br/>"
