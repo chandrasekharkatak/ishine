@@ -2638,7 +2638,7 @@ return empId;
 	}
 	
 	
-	public ServiceResponse completeMilestoneRemainder(FCProjectMilestoneDTO dto , String ProjectName) {
+	public ServiceResponse completeProjectReminder(FCProjectMilestoneDTO dto , String ProjectName) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		String exceptionDetailsForLog = null;
 		try {

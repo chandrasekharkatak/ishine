@@ -322,11 +322,11 @@ public class ProjectController {
 		return response;
 	}
 
-	@PostMapping(value = "/completeMilestoneRemainder")
-	public ResponseEntity<ServiceResponse> completeMilestoneRemainder(
+	@PostMapping(value = "/completeProjectReminder")
+	public ResponseEntity<ServiceResponse> completeProjectReminder(
 			@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
 			@RequestPart("projectName") String projectName) {
-		return ResponseEntity.ok(poPortalApiService.completeMilestoneRemainder(fcProjectMilestoneDTO , projectName));
+		return ResponseEntity.ok(poPortalApiService.completeProjectReminder(fcProjectMilestoneDTO , projectName));
 	}
 
 

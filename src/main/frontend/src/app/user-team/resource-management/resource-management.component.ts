@@ -6457,7 +6457,7 @@ showProjectMilestones(projectObj: any) {
     }
   }
 
-  calculatePoStatus() {
+  calculatePoStatus(projectDto:any) {
     let notStarted = 0, completed = 0, hold = 0, inProgress = 0;
     let lineItemList = this.fcProjectMilestoneList.filter(milestone => milestone.lineItemId == this.projectMilestone.lineItemId);
     for (let m of lineItemList) {
@@ -6482,6 +6482,7 @@ showProjectMilestones(projectObj: any) {
 
   if (allCompleted) {
     // this.confirmComplete();
+    this.confirmCompleteMailTrigger(projectDto)
   } else {
 
     this.updateMilestone();
@@ -6489,6 +6490,19 @@ showProjectMilestones(projectObj: any) {
   }
    return allCompleted
   }
+
+  confirmCompleteMailTrigger(projectDto:any) {
+  this.resourceManagementService.completeProjectReminder(projectDto,this.projectObj.name).pipe(first())
+    .subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          console.log("Completion mail triggered successfully!!");
+        } 
+      }, (error) => {console.log(error);}
+    );
+}
+
+
+
 shouldReload: boolean = false;
 confirmComplete() {
 
@@ -6573,17 +6587,15 @@ cancelComplete() {
 
   onFileSelected(event: any,projectMilestone:any): void {
     const file: File = event.target.files[0];
-
     this.selectedFile = null;
     this.selectedFilePreviewUrl = null;
-
-
+    
     if(!file){return ;}
 
     if (file) {
       const allowedTypes = ['application/pdf','image/jpeg','image/png','image/jpg'];
       if (!allowedTypes.includes(file.type)) {
-        alert('Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.');
+        this.openAlertMod(this.alertTemplateForMilestone, "Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.");
         event.target.value = '';
         this.selectedFile = null;
         return;
@@ -6604,6 +6616,7 @@ cancelComplete() {
       this.selectedFile = new File([file],uniquefile,{ type: file.type });
     }
   }
+
     previewSelectedFile(): void {
     if (!this.selectedFile || !this.selectedFilePreviewUrl) {
       alert('Please select a file to preview.');
@@ -6654,10 +6667,10 @@ openMileStoneStatusModal(){
   return;
   }
 
-  if(this.projectObj.projectStatus==="Completed"){
-    this.openAlertMod(this.alertTemplateForMilestone, 'Project is already completed. You cannot update the milestone.');
-    return;
-  }
+  // if(this.projectObj.projectStatus==="Completed"){
+  //   this.openAlertMod(this.alertTemplateForMilestone, 'Project is already completed. You cannot update the milestone.');
+  //   return;
+  // }
 
     this.modalRef = this.modalService.open(this.confirmMilestoneStatusModal, { modalDialogClass: 'modal-sm' });
     this.confirmMilestoneStatus = "Are you sure to update the milestone status from "+ this.originalStatus +" to "+this.projectMilestone.status +" ?";
@@ -6665,10 +6678,6 @@ openMileStoneStatusModal(){
 
   isLoadingMilestone:boolean=false;
   async updateMilestoneChanges() {
-    // Validate required fields
-
-    let isValid = true;
-    let errors: any;
     this.projectNameForMilestoneUpdate = this.projectObj.name;
     this.poNameForMilestoneUpdate = this.projectObj.poNo;
 
@@ -6677,6 +6686,9 @@ openMileStoneStatusModal(){
     this.projectMilestone.updatedBy = this.currentUser.employeementId;
     this.projectMilestone.updatedOn = new Date();
     this.projectMilestone.updatedByName = this.currentUser.name;
+    this.projectMilestone.projectNameForMilestoneUpdate = this.projectNameForMilestoneUpdate
+    this.projectMilestone.poNameForMilestoneUpdate = this.poNameForMilestoneUpdate
+
 
     const formData = new FormData();
     formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
@@ -6692,10 +6704,10 @@ openMileStoneStatusModal(){
 
     if (response.serviceStatus === "Success") {
         this.selectedFile = null;
-        this.projectMilestone.allCompleted =this.calculatePoStatus();
         this.isStatusChanged=false;
        const index = this.fcProjectMilestoneList.findIndex(m => m.id === this.projectMilestone.id);
     if (index > -1) {this.fcProjectMilestoneList[index] = { ...this.projectMilestone };}
+        this.calculatePoStatus(this.projectMilestone);
       this.closeUpdateProjectMilestoneModal();
       this.showProjectMilestones(this.projectObj);
     } else {
