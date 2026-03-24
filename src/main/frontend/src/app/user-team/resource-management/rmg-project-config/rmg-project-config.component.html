@@ -1936,10 +1936,10 @@
                 <thead>
                     <tr>
                         <th>Sr.No</th>
-                        <th>Project Name</th>
-                        <th>Project Type</th>
-                        <th>Project Start Date</th>
-                        <th>Team Name</th>
+                        <th class="min-width100 max-width150">Project Name</th>
+                        <th class="min-width100 max-width150">Project Type</th>
+                        <th class="min-width100 max-width150">Project Start Date</th>
+                        <th class="min-width100 max-width150">Team Name</th>
                         <th class="min-width180 max-width200">Employee Start Date</th>
                         <th class="min-width180 max-width200">Employee End Date</th>
                         <th *ngIf="!isProjectOverlapping">Filled Timesheet Count</th>
@@ -1949,15 +1949,15 @@
                 <tbody>
                     <tr *ngFor="let entries of existingEmployeeProjectTimesheetEntries; let i=index">
                         <td>{{ i+1 }}</td>
-                        <td class="truncate" [title]="entries.projectName || 'NA'">{{ entries.projectName || 'NA' }}
+                        <td class="min-width100 max-width150 truncate" [title]="entries.projectName || 'NA'">{{ entries.projectName || 'NA' }}
                         </td>
-                        <td class="truncate" [title]="entries.projectType || 'NA'">{{ entries.projectType || 'NA' }}
+                        <td class="min-width100 max-width150 truncate" [title]="entries.projectType || 'NA'">{{ entries.projectType || 'NA' }}
                         </td>
-                        <td class="truncate"
+                        <td class="min-width100 max-width150 truncate"
                             [title]="entries.projectStartDate ? (entries.projectStartDate | date:'dd-MM-yyyy') : 'NA' ">
                             {{ entries.projectStartDate ? (entries.projectStartDate | date:'dd-MM-yyyy') : 'NA' }}
                         </td>
-                        <td class="truncate" [title]="entries.teamName || 'NA'">{{ entries.teamName || 'NA' }}</td>
+                        <td class="min-width100 max-width150 truncate" [title]="entries.teamName || 'NA'">{{ entries.teamName || 'NA' }}</td>
                         <td class="min-width180 max-width200">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" readonly
