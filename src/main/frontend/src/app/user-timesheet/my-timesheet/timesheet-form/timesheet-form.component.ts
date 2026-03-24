@@ -6083,4 +6083,21 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     return `${year}-${month}-${day}`;
 }
 
+preventSpecialCharacters(event: any ,activity : any) {
+   const sanitized = event.target.value.replace(/[^a-zA-Z0-9\s]/g, '');
+  activity.description = sanitized;
+  event.target.value = sanitized;
+}
+
+limitDecimals(event: any ,activity : any) {
+  const value = event.target.value;
+  if (value.includes('.')) {
+    const parts = value.split('.');
+    if (parts[1]?.length > 2) {
+      event.target.value = parseFloat(value).toFixed(2);
+      activity.durationMinutes = parseFloat(event.target.value);
+    }
+  }
+}
+
 }

@@ -615,7 +615,8 @@
                                                             <label class="info-label small">Description</label>
                                                             <textarea class="form-control form-control-sm" rows="1"
                                                                 placeholder="Description"
-                                                                [(ngModel)]="activity.description"></textarea>
+                                                                [(ngModel)]="activity.description"
+                                                                 (input)="preventSpecialCharacters($event , activity)"></textarea>
                                                         </div>
 
                                                         <!-- Hours -->
@@ -625,6 +626,7 @@
                                                                 class="form-control form-control-sm" placeholder="Hrs"
                                                                 [(ngModel)]="activity.durationMinutes"
                                                                 (ngModelChange)="onHoursChange()"
+                                                                (input)="limitDecimals($event , activity)"
                                                                 (keypress)="allowDecimalOnly($event)">
                                                         </div>
 
@@ -697,6 +699,7 @@
                                 <i class="fas fa-file-text document-label-icon"></i>
                                 Filled Attendance Proof
                             </label>
+                            <small class="card-subtitle-v2">✓ PDF, XLS, XLSX, JPG, JPEG, PNG · Max 500 KB</small>
                         </div>
                         <div class="document-upload-controls">
                             <div class="file-input-wrapper">
@@ -752,6 +755,9 @@
                                 <i class="fa-solid fa-file-circle-check document-label-icon"></i>
                                 Approved Attendance Proof
                             </label>
+                            <!-- <small class="card-subtitle-v2">Maximum file size: 500 KB · PDF, JPG, JPEG, PNG, XLS, XLSX</small> -->
+                            <!-- <small class="card-subtitle-v2">Accepted formats: .pdf, .jpg, .jpeg, .png, .xls and .xlsx</small> -->
+                            <small class="card-subtitle-v2">✓ PDF, XLS, XLSX, JPG, JPEG, PNG · Max 500 KB</small>
                         </div>
                         <div class="document-upload-controls">
                             <div class="file-input-wrapper">
