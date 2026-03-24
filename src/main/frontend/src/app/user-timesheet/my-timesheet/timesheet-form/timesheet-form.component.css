@@ -2195,7 +2195,9 @@ flex-wrap: wrap;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
   letter-spacing: 0.3px;
 }
-
+.form-check{
+  min-width: max-content
+}
 .btn-preview-document:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);

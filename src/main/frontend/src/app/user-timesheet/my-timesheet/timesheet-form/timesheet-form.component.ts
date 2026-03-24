@@ -2722,7 +2722,7 @@ this.isNightShift = false;
       OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays;
     }
 
-    if (this.currentUser.isTimesheetLockCheckEnable == 'false') {
+    if (employeeObj.isTimesheetLockCheckEnable == 'false') {
       endDate = currentDate;
       startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + 1) * DAY_IN_MS));
     } else {
@@ -2743,11 +2743,11 @@ this.isNightShift = false;
       if (response.serviceStatus == "Success") {
         this.availableTimesheets = response.serviceResponse;
         // Calculate date picker constraints after loading timesheets
-        this.calculateDatePickerConstraints();
+        this.calculateDatePickerConstraints(employeeObj);
       } else {
         console.error(response.serviceResponse);
         // Still calculate constraints even if no timesheets found
-        this.calculateDatePickerConstraints();
+        this.calculateDatePickerConstraints(employeeObj);
       }
     });
   }
@@ -2756,7 +2756,7 @@ this.isNightShift = false;
    * Calculate date picker constraints (minDate, maxDate, disabledDates)
    * Based on timesheetDateFilter logic from old component
    */
-  calculateDatePickerConstraints(): void {
+  calculateDatePickerConstraints(employeeObj: User): void {
     if (!this.serverDate) {
       // Wait for server date to be loaded
       return;
@@ -2770,13 +2770,13 @@ this.isNightShift = false;
     // Calculate days difference from date of joining
     let currentDate = new Date();
     let daysDifference = 365; // Default to 365 days if dateOfJoining not available
-    console.log("this.currentUser.dateOfJoining ==> ",this.currentUser.dateOfJoining)
-    if (this.currentUser.dateOfJoining) {
-      let dateOfJoining = moment(this.currentUser.dateOfJoining, dateFormat);
+    console.log("this.currentUser.dateOfJoining ==> ",employeeObj.dateOfJoining)
+    if (employeeObj.dateOfJoining) {
+      let dateOfJoining = moment(employeeObj.dateOfJoining, dateFormat);
       daysDifference = moment(currentDate, dateFormat).diff(dateOfJoining, 'days');
     }
 
-    if (this.currentUser.timesheetBackDatedDays > daysDifference) {
+    if (employeeObj.timesheetBackDatedDays > daysDifference) {
       OPEN_BACKDATED_DAYS = daysDifference;
     } else {
       OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays || 30;
@@ -2788,10 +2788,10 @@ this.isNightShift = false;
 
     // Calculate start date based on lock check enable flag
     let startDate: Date;
-    if (this.currentUser.isTimesheetLockCheckEnable == "false") {
+    if (employeeObj.isTimesheetLockCheckEnable == "false") {
       startDate = new Date(serverDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
     } else {
-      const lockDays = this.currentUser.timesheetLockDays || 7; // Default to 30 if not set
+      const lockDays = employeeObj.timesheetLockDays || 7; // Default to 30 if not set
       startDate = new Date(serverDate.getTime() - ((lockDays + CURRENT_DAY) * DAY_IN_MS));
     }
 
@@ -3908,11 +3908,11 @@ this.isNightShift = false;
       }
     });
 }
-async prepareDataForNonWorkingDay(): Promise<void> {
+async prepareDataForNonWorkingDay(): Promise<boolean> {
 
   if (this.holidayDescription == '' || this.holidayDescription == null) {
     this.openAlertMod(this.alertTemplate, 'Description is mandatory for non-working day types.');
-    return;
+    return false;
   }
 
   const uniqueProjects = Array.from(
@@ -3934,7 +3934,7 @@ async prepareDataForNonWorkingDay(): Promise<void> {
       this.alertMessageForHolidayCreateTemplate,
       'No projects available. Your timesheet will be filled for Bench Project of your Department.'
     );
-    return;
+    return false;
   }
 
   const empId = this.timesheetAppliedFor?.toLowerCase() === 'self'
@@ -3976,17 +3976,36 @@ async prepareDataForNonWorkingDay(): Promise<void> {
       // 🔥 HARD BLOCK here (no subscribe anywhere)
       loc.projects = await firstValueFrom(forkJoin(projectObservables));
       loc.projects = loc.projects?.filter(p => (p.clientId !== null && p.clientId !== undefined) && (p.clientLocationId !== null && p.clientLocationId !== undefined));
+      if(this.dayType == 7){
+        loc.projects = loc.projects?.filter(p => p.hasClientSideId == true)
+      }else if (this.dayType == 6){
+        loc.projects = loc.projects?.filter(p => p.hasClientSideId != true)
+      }
     })
   );
-
+  
   console.log('✅ All locations fully populated:', this.timesheetLocations);
+  return true;
 }
 
   async createTimesheet() {
     if(!this.isDayTypeFillable() && !this.noProjectEmployee){
-      await this.prepareDataForNonWorkingDay();
+     const successFlag =  await this.prepareDataForNonWorkingDay();
+     if(successFlag){
+       if(this.timesheetLocations[0].projects.length ==0){
+        if(this.dayType == 7){
+          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid Client projects to assign for this day. Please contact your Reporting Manager immediately.');
+        }else if(this.dayType == 6){
+          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid Internal/Bench projects to assign for this day. Please contact your Reporting Manager immediately.');
+        }else{
+          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid projects to assign for this day. Please contact your Reporting Manager immediately.');
+        }
+        return 
+       }
+      }else{
+        return; 
+      }
     }
-    console.log('✅ Before validation:', JSON.stringify(this.timesheetLocations));
     this.highlightLocationList = [];
     
     // ✅ MODERATE FIX: Use centralized date conversion method
@@ -4764,11 +4783,24 @@ async prepareDataForNonWorkingDay(): Promise<void> {
    */
   async updateTimesheet() {
     // Clear previous highlights
-    this.highlightLocationList = [];
-
     if(!this.isDayTypeFillable() && !this.noProjectEmployee){
-      await this.prepareDataForNonWorkingDay();
+     const successFlag =  await this.prepareDataForNonWorkingDay();
+     if(successFlag){
+       if(this.timesheetLocations[0].projects.length ==0){
+        if(this.dayType == 7){
+          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid Client projects to assign for this day. Please contact your Reporting Manager immediately.');
+        }else if(this.dayType == 6){
+          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid Internal/Bench projects to assign for this day. Please contact your Reporting Manager immediately.');
+        }else{
+          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid projects to assign for this day. Please contact your Reporting Manager immediately.');
+        }
+        return 
+       }
+      }else{
+        return; 
+      }
     }
+    this.highlightLocationList = [];
     const convertToYYYYMMDD = (dateStr: string): string => {
       if (!dateStr) return '';
       const [day, month, year] = dateStr.split('-');
@@ -5908,6 +5940,7 @@ async prepareDataForNonWorkingDay(): Promise<void> {
               const errorMsg = response.serviceResponse || 'Failed to fetch projects';
               console.error('Failed to fetch projects:', errorMsg);
               this.disableAdd = true;
+              if(this.isDayTypeFillable())
               this.openAlertMod(this.alertTemplate, 'Failed to load projects: ' + errorMsg);
               reject(new Error(errorMsg));
             }

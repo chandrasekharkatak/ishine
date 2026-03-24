@@ -323,7 +323,7 @@
 
                                 @if(isDayTypeFillable()){
                                 <!-- Log In Time -->
-                                <div class="col-lg-2 col-md-3 mb-3" *ngIf="location.workLocationTypeId">
+                                <div class="col-lg-3 col-md-4 mb-3" *ngIf="location.workLocationTypeId">
                                     <label class="info-label"><span class="text-danger">*</span> Log In</label>
                                     <app-date-time-picker mode="time" [required]="true"
                                         [(ngModel)]="location.locationInTime" (ngModelChange)="onHoursChange()"
@@ -333,7 +333,7 @@
                                 </div>
 
                                 <!-- Log Out Time -->
-                                <div class="col-lg-2 col-md-3 mb-3" *ngIf="location.workLocationTypeId">
+                                <div class="col-lg-3 col-md-4 mb-3" *ngIf="location.workLocationTypeId">
                                     <label class="info-label"><span class="text-danger">*</span> Log Out</label>
                                     <app-date-time-picker mode="time" [required]="true"
                                         [(ngModel)]="location.locationOutTime" (ngModelChange)="onHoursChange()"
@@ -343,17 +343,36 @@
                                 </div>
 
                                 <!-- Use work Check In / Check Out Time -->
-                                <div class="col-lg-5 col-md-2 mb-3"
+                                <div class="col-lg-3 col-md-3 mb-3"
                                     *ngIf="timesheetLocations?.length === 1 && location.workLocationTypeId">
-                                    <label class="info-label">&nbsp;</label>
-                                    <div class="form-check" style="padding-top: 8px;">
+                                    <label class="info-label d-block">
+                                        <span class="text-danger">*</span> Use Work Check In & Out Time
+                                    </label>
+                                    <div class="radio-group mt-1">
+                                                        <label class="radio-pill">
+                                                            <input type="radio"
+                                                                name="applyApmosysTiming{{lIndex}}" [value]="true"
+                                                                [(ngModel)]="useApmosysTiming"
+                                                                (ngModelChange)="applyApmosysTiming(location.workLocationTypeId)" />
+                                                            <span> Yes</span>
+                                                        </label>
+
+                                                        <label class="radio-pill">
+                                                            <input type="radio"
+                                                                name="applyApmosysTiming{{lIndex}}"
+                                                                [value]="false" [(ngModel)]="useApmosysTiming"
+                                                                (ngModelChange)="applyApmosysTiming(location.workLocationTypeId)" />
+                                                            <span> No</span>
+                                                        </label>
+                                                    </div>
+                                    <!-- <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="useApmosysTiming"
                                             [(ngModel)]="useApmosysTiming"
                                             (change)="applyApmosysTiming(location.workLocationTypeId)" />
                                         <label class="form-check-label" for="useApmosysTiming">
-                                            Use work Check In / Check Out Time
+                                            Use Work In & Out Time
                                         </label>
-                                    </div>
+                                    </div> -->
                                 </div>
                                 }
                             </div>
@@ -425,7 +444,7 @@
                                                 </div>
                                                 <!-- Shadow For (Show when shadow is enabled; in update mode show when project was saved as shadow) -->
                                                 <div class="col-md-3 mb-3"
-                                                    *ngIf="project.isShadowTimesheet && !project.isShadowForSelf && isDayTypeFillable() && project.projectId">
+                                                    *ngIf="project.isShadowTimesheet && !project.isShadowForSelf && isDayTypeFillable() && project.projectId && project.hasClientSideId">
                                                     <label class="info-label">
                                                         <span class="text-danger">*</span> Shadow For
                                                     </label>
@@ -438,7 +457,7 @@
                                                 </div>
                                                 <!-- Shadow Timesheet Toggle (show when no clientSideId, or in update mode when project is shadow so choice is visible) -->
                                                 <div class="col-md-3 mb-3"
-                                                    *ngIf="(!project.isShadowForSelf && isDayTypeFillable() && project.projectId) || (isUpdation && project.isShadowTimesheet && !project.isShadowForSelf)">
+                                                    *ngIf="(!project.isShadowForSelf && isDayTypeFillable() && project.projectId && project.hasClientSideId) || (isUpdation && project.isShadowTimesheet && !project.isShadowForSelf && project.hasClientSideId)">
                                                     <label class="info-label d-block">
                                                         <span class="text-danger">*</span> Shadow Timesheet
                                                     </label>
@@ -466,7 +485,7 @@
 
                                                 <!-- Shadow For Self (show when no clientSideId, or in update mode when project is shadow-for-self so choice is visible) -->
                                                 <div class="col-md-3 mb-3"
-                                                    *ngIf="(!project.isShadowTimesheet && isDayTypeFillable() && project.projectId)  || (isUpdation && project.isShadowForSelf)">
+                                                    *ngIf="(!project.isShadowTimesheet && isDayTypeFillable() && project.projectId && project.hasClientSideId)  || (isUpdation && project.isShadowForSelf && project.hasClientSideId)">
                                                     <label class="info-label d-block"><span
                                                             class="text-danger">*</span>Shadow For Self</label>
 
@@ -863,10 +882,10 @@
 <ng-template #alert_message_for_holiday_create>
     <div class="modal-body text-center">
         <p>{{ alertMessage }}</p>
-        <button type="button" class="btn btn-primary" (click)="closeAlertMessageForHolidayCreate()">
+        <button type="button" class="btn btn-primary ml-2" (click)="closeAlertMessageForHolidayCreate()">
             Cancel
         </button>
-        <button type="button" class="btn btn-primary" (click)="closeAlertMessageForHolidayCreate()">
+        <button type="button" class="btn btn-primary ml-2" (click)="closeAlertMessageForHolidayCreate()">
             Ok
         </button>
     </div>

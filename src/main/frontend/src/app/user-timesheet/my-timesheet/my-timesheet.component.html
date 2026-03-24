@@ -624,12 +624,12 @@
                                 <i class="fas fa-briefcase ts-icon--teal"></i>
                                 <strong>{{ project.projectName }}</strong>
                                 <span *ngIf="project.clientSideId" class="ts-chip ts-chip--grey">
-                                  Client ID: {{ project.clientSideId }}
+                                  Client Side ID: {{ project.clientSideId }}
                                 </span>
                                 <span *ngIf="project.clientLocation" class="ts-chip ts-chip--grey">
-                                  Location: {{ project.clientLocation }}
+                                  Client Location: {{ project.clientLocation }}
                                 </span>
-                                <span *ngIf="project.clientApprovalStatus" class="ts-chip" [class.ts-chip--pending]="project.clientApprovalStatus === 1"
+                                <span *ngIf="project.clientApprovalStatus" class="ts-chip" title="Client Approval StatusLocation" [class.ts-chip--pending]="project.clientApprovalStatus === 1"
                                   [class.ts-chip--approved]="project.clientApprovalStatus === 2"
                                   [class.ts-chip--rejected]="project.clientApprovalStatus === 3">
                                   CA Status:{{ mapClientApprovalStatusToString(project.clientApprovalStatus) }}
