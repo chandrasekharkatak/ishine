@@ -261,6 +261,10 @@ export class PerformanceService {
   updateEmployeePerformanceHr(performance: any) {
     return this.http.post(`${this.baseUrl}` + `api/updateEmployeePerformanceHr`, performance);
   }
+
+  bulkSubmitEmployeePerformanceHR(performance: any) {
+    return this.http.post(`${this.baseUrl}` + `api/bulkSubmitEmployeePerformanceHR`, performance);
+  }
 }
 
 
