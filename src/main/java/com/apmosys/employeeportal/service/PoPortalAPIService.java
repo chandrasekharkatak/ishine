@@ -1023,16 +1023,7 @@ public class PoPortalAPIService {
 		                + "</body></html>";
 
 		            try {
-
-
-					List<String> toRecipientsDummy = Arrays.asList(
-							"chandasekhar.moharana@apmosys.com");
-					List<String> ccRecipientsDummy = Arrays.asList(
-							"chandasekhar.moharana@apmosys.com");
-
-
-		                //mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
-						mailService.sendMailToMultipleRecipients(toRecipientsDummy, ccRecipientsDummy, subject, body);
+		                mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
 		                System.out.println("Mail sent for project: " + projectName);
 
 		            } catch (Exception e) {
@@ -1418,13 +1409,8 @@ public class PoPortalAPIService {
 					+ "<p>Please take the necessary actions.</p>"
 					+ "<p>Regards,<br>ApMoSys Technologies</p>"
 					+ "</body></html>";
-			 List<String> toRecipientsDummy = Arrays.asList(
-			 				"chandasekhar.moharana@apmosys.com");
-			 		List<String> ccRecipientsDummy = Arrays.asList(
-			 				"chandasekhar.moharana@apmosys.com");
 
-			//mailService.sendMailToMultipleRecipientsWithFile(toRecipients, ccRecipients, subject, body , extensionFile);
-			mailService.sendMailToMultipleRecipientsWithFile(toRecipientsDummy, ccRecipientsDummy, subject, body , extensionFile);
+			mailService.sendMailToMultipleRecipientsWithFile(toRecipients, ccRecipients, subject, body , extensionFile);
 			logger.info("Email sent successfully for milestone: {}", dto.getMilestoneName());
 			return true;
 
@@ -2493,13 +2479,7 @@ return empId;
 						+ "</body></html>";
 
 				try {
-					List<String> toRecipientsDummy = Arrays.asList(
-							"shikha.suman@apmosys.com",
-							"chandasekhar.moharana@apmosys.com");
-					List<String> ccRecipientsDummy = Arrays.asList(
-							"shubhank.nagar@apmosys.com");
-					//mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
-					mailService.sendMailToMultipleRecipients(toRecipientsDummy, ccRecipientsDummy, subject, body);
+					mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
 					System.out.println("Mail sent for project: " + projectName);
 
 				} catch (Exception e) {
@@ -2614,15 +2594,7 @@ return empId;
 					+ "<p>Regards,<br>ApMoSys Technologies</p>"
 					+ "</body></html>";
 
-			List<String> toRecipientsDummy = Arrays.asList(
-							// "shikha.suman@apmosys.com",
-							"chandasekhar.moharana@apmosys.com");
-					List<String> ccRecipientsDummy = Arrays.asList(
-							"chandasekhar.moharana@apmosys.com");
-
-			//mailService.sendMailToMultipleRecipientsWithFile(toRecipients, ccRecipients, subject, body ,file);
-
-			mailService.sendMailToMultipleRecipientsWithFile(toRecipientsDummy, ccRecipientsDummy, subject, body , file) ;
+			mailService.sendMailToMultipleRecipientsWithFile(toRecipients, ccRecipients, subject, body ,file);
 			logger.info("Email sent successfully for milestone: {}", dto.getName());
 			return true;
 
@@ -2772,15 +2744,7 @@ return empId;
 			        + "<p>Regards,<br>ApMoSys Technologies</p>"
 			        + "</body></html>";
 
-			List<String> toRecipientsDummy = Arrays.asList(
-							// "shikha.suman@apmosys.com",
-							"chandasekhar.moharana@apmosys.com");
-					List<String> ccRecipientsDummy = Arrays.asList(
-							"chandasekhar.moharana@apmosys.com");
-
-
-			mailService.sendMailToMultipleRecipients(toRecipientsDummy, ccRecipientsDummy, subject, body) ;
-			//mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body) ;
+			mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body) ;
 			logger.info("Email sent successfully for project: {}", projDetails.getProjectName());
 			return true;
 
