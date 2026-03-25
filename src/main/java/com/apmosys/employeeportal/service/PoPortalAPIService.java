@@ -338,21 +338,6 @@ public class PoPortalAPIService {
 			    body.add("file", fileResource);
 			}
 
-			// Only add file if present
-			// if (file != null && !file.isEmpty()) {
-
-			// 	String originalFileName = file.getOriginalFilename();
-			// 	String newFileName = dto.getId() + "_" + originalFileName;
-
-			// 	ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
-			// 		@Override
-			// 		public String getFilename() {
-			// 			return newFileName;
-			// 		}
-			// 	};
-
-			// 	body.add("file", fileResource);
-			// }
 
 			HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
@@ -372,8 +357,6 @@ public class PoPortalAPIService {
 				serviceResponse.setServiceMessage(emailSent
 					? "Milestone updated and email notification sent."
 					: "Milestone updated, but email notification could not be sent.");
-				System.out.println("Email Sent :"+emailSent );
-
 
 			} else {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -922,8 +905,6 @@ public class PoPortalAPIService {
 		@Async
 		@Scheduled(cron = "${milestoneExpiryNotifier.time}")
 		public void milestoneExpiryNotifierMail() {
-		    System.out.println("======= Project Expiry Job Started =======");
-	
 		    String traceId = UUID.randomUUID().toString();
 		    HttpHeaders headers = new HttpHeaders();
 		    headers.setContentType(MediaType.APPLICATION_JSON);
@@ -949,10 +930,7 @@ public class PoPortalAPIService {
 	
 		        List<MilestoneExpireDto> milestones = Arrays.asList(
 		            milestoneArray != null ? milestoneArray : new MilestoneExpireDto[0]
-		        );
-	
-		        System.out.println("Fetched " + milestones.size() + " expiring milestones.");
-		        
+		        );	        
 		        SimpleDateFormat sdf = new SimpleDateFormat("d/MM/yyyy");
 	
 		        for (MilestoneExpireDto milestone : milestones) {
@@ -978,7 +956,6 @@ public class PoPortalAPIService {
 		            Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(projectId);
 
 		            if (!optionalEmails.isPresent()) {
-		                System.out.println("Skipping milestone due to missing RM/HOD data: " + milestoneName);
 		                continue;
 		            }
 
@@ -1001,7 +978,7 @@ public class PoPortalAPIService {
 		                    .collect(Collectors.toList());
 
 		            if (toRecipients.isEmpty()) {
-		                System.out.println("Skipping milestone due to all emails being empty: " + milestoneName);
+						logger.warn("Skipping milestone due to all emails being empty: " + milestoneName);
 		                continue;
 		            }
 
@@ -1024,10 +1001,10 @@ public class PoPortalAPIService {
 
 		            try {
 		                mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
-		                System.out.println("Mail sent for project: " + projectName);
+						logger.info("Mail sent for project: " + projectName);
 
 		            } catch (Exception e) {
-		                System.err.println("Error sending mail for project: " + projectName);
+						logger.warn("Error sending mail for project: " + projectName);
 		                e.printStackTrace();
 		                exceptionDetails = "Mail Error: " + e.getMessage();
 		            }
@@ -1050,21 +1027,8 @@ public class PoPortalAPIService {
 		            );
 		        }
 		    }
-	
-		    System.out.println("======= Project Expiry Job Completed =======");
+			logger.info("======= Project Milestone Expiry Job Completed =======");
 		}
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	public ServiceResponse getAllMilestoneToBeExpired(Long rmId) {
@@ -1078,7 +1042,6 @@ public class PoPortalAPIService {
 
 	    try {
 	       
-	    	System.out.println("rmMail"+" "+rmId);
 	        if (rmId == null || Objects.isNull(rmId)) {
 	            String message = "rmId is null or empty.";
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -1100,7 +1063,6 @@ public class PoPortalAPIService {
 	        
 	        List<Long> projectIds = projectRepository.findPoProjectIdsByProjectManagerIdWithJoin(rmId);
 	        
-	        System.out.println("projectIds="+projectIds);
 	        
 	        if (projectIds == null || projectIds.isEmpty()) {
 	            String message = "No project IDs found for RM: " + rmId;
@@ -1164,14 +1126,6 @@ public class PoPortalAPIService {
 	    return response;
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
 
 	@Transactional(rollbackFor = PoportalApiException.class)
 	public ServiceResponse updateMilestoneExtendedDate(MilestoneUpdatedLogDto dto,MultipartFile extensionFile) {
@@ -1180,7 +1134,6 @@ public class PoPortalAPIService {
 		ApiLog initialLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		String exceptionDetailsForLog = null;
-		System.out.println(dto);
 		try {
 			if (dto == null || dto.getMilestoneId() == null || dto.getExtendedDate() == null) {
 				String message = "Milestone ID or extended date is missing.";
@@ -1245,27 +1198,6 @@ public class PoPortalAPIService {
 
 
 		    }
-
-			// if (extensionFile != null && !extensionFile.isEmpty()) {
-
-			// 	String originalFileName = extensionFile.getOriginalFilename();
-
-			// 	// Extract only file name (in case full path comes)
-			// 	String cleanFileName = originalFileName != null
-			// 			? originalFileName.substring(originalFileName.lastIndexOf("/") + 1)
-			// 					.substring(originalFileName.lastIndexOf("\\") + 1)
-			// 			: "file";
-
-			// 	// Create new filename → milestoneId_filename
-			// 	String newFileName = dto.getMilestoneId() + "_" + cleanFileName;
-
-			// 	updateRequest.setDocumentContent(extensionFile.getBytes());
-			// 	updateRequest.setDocumentName(newFileName);
-			// 	updateRequest.setDocumentType(extensionFile.getContentType());
-			 //	updateRequest.setUpdatedByName(dto.getUpdatedByName());
-			// }
-
-
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			headers.set("X-Trace-Id", traceId);
@@ -1346,17 +1278,13 @@ public class PoPortalAPIService {
         		new ParameterizedTypeReference<List<String>>() {}
 			);
 
-			List<String> RmEmailsFormPO = apiResponse.getBody();
+			List<String> RmEmailsFromPO = apiResponse.getBody();
 			int finalHttpStatusCode = apiResponse.getStatusCodeValue();
-
-			System.out.println(RmEmailsFormPO);
-			
-			
 			
 			
 			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
 			if (optionalEmails.isEmpty()) {
-				logger.warn("No email addresses found for project: {}", dto.getProjectId());
+				logger.error("No email addresses found for project: {}", dto.getProjectId());
 				return false;
 			}
 
@@ -1370,8 +1298,10 @@ public class PoPortalAPIService {
 			List <String> accountsEmails = projectRepository.getAccountsTeamEmails();
 
 			List<String> toRecipients = Stream.concat(
-					Stream.concat(rmEmails.stream(), hodEmails.stream()),
-					accountsEmails.stream())
+					Stream.concat(
+							Stream.concat(rmEmails.stream(), hodEmails.stream()),
+							accountsEmails.stream()),
+					RmEmailsFromPO != null ? RmEmailsFromPO.stream() : Stream.empty())
 					.filter(e -> e != null && !e.trim().isEmpty())
 					.distinct()
 					.collect(Collectors.toList());
@@ -2383,7 +2313,7 @@ return empId;
 	@Async
 	@Scheduled(cron = "${milestoneExpiryNotifierAll.time}")
 	public void milestoneExpiredNotifierMail() {
-		System.out.println("======= Project Expiry Job Started With updated API ======");
+		logger.info("======= Project Milestone Expiry Job Started With updated API ======");
 
 		String traceId = UUID.randomUUID().toString();
 		HttpHeaders headers = new HttpHeaders();
@@ -2454,10 +2384,9 @@ return empId;
 						.filter(e -> e != null && !e.trim().isEmpty())
 						.distinct()
 						.collect(Collectors.toList());
-				System.out.println(ccRecipients);
 
 				if (toRecipients.isEmpty()) {
-					System.out.println("Skipping milestone due to all emails being empty: " + milestoneName);
+					logger.warn("Skipping milestone due to all emails being empty: " + milestoneName);
 					continue;
 				}
 
@@ -2480,10 +2409,10 @@ return empId;
 
 				try {
 					mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
-					System.out.println("Mail sent for project: " + projectName);
+					logger.info("Mail sent for project: " + projectName);
 
 				} catch (Exception e) {
-					System.err.println("Error sending mail for project: " + projectName);
+					logger.error("Error sending mail for project: " + projectName);
 					e.printStackTrace();
 					exceptionDetails = "Mail Error: " + e.getMessage();
 				}
@@ -2505,8 +2434,7 @@ return empId;
 						null);
 			}
 		}
-
-		System.out.println("======= Project Expiry Job Completed =======");
+		logger.info("======= Project Expiry Job Completed =======");
 	}
 
 	private boolean sendEmailForMileStoneUpdate(FCProjectMilestoneDTO dto , MultipartFile file , String projectName , String previousStatus) {
@@ -2531,8 +2459,6 @@ return empId;
 			List<String> RmEmailsFormPO = apiResponse.getBody();
 			int finalHttpStatusCode = apiResponse.getStatusCodeValue();
 
-			System.out.println(RmEmailsFormPO);
-
 			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
 			if (optionalEmails.isEmpty()) {
 				logger.warn("No email addresses found for project: {}", dto.getProjectId());
@@ -2545,8 +2471,6 @@ return empId;
 					: Collections.emptyList();
 
 		    List <String> accountsEmails = projectRepository.getAccountsTeamEmails();
-			System.out.println(accountsEmails);
-
 			
 			List<String> directorEmails = projectRepository.findDirectorEmails();
 
@@ -2624,7 +2548,7 @@ return empId;
 					
 				    serviceResponse.setServiceMessage(emailSent? "Email notification sent."
 							: "Email notification could not be sent.");
-					System.out.println("Email Sent :"+ emailSent );
+					logger.info("Email Sent :"+ emailSent);
 				   
 				} else {
 					String msg = "ProjectPoDetails not found.";
@@ -2670,8 +2594,6 @@ return empId;
 			List<String> RmEmailsFormPO = apiResponse.getBody();
 			int finalHttpStatusCode = apiResponse.getStatusCodeValue();
 
-			System.out.println(RmEmailsFormPO);
-
 
 			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(poProjectId);
 			if (optionalEmails.isEmpty()) {
@@ -2685,8 +2607,6 @@ return empId;
 					: Collections.emptyList();
 
 		    List <String> accountsEmails = projectRepository.getAccountsTeamEmails();
-			System.out.println(accountsEmails);
-
 			
 			List<String> directorEmails = projectRepository.findDirectorEmails();
 
