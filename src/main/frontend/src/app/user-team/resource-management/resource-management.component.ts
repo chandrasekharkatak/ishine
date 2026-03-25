@@ -8598,6 +8598,7 @@ updateMilestoneExtendedDateWithReason():Promise<boolean> {
         if (response?.serviceStatus === 'Success') {
           this.openAlertMod(this.alertTemplateForMilestone,"Date Extended successfully!!");
           this.isExtensionEnabled = false
+          this.showProjectMilestones(this.projectObj);
           return
         } else {
           this.openAlertMod(this.alertTemplateForMilestone,"Something went wrong while updating extended date. Kindly try after sometime!!");
