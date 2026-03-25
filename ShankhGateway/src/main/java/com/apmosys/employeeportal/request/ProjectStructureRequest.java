@@ -1,0 +1,16 @@
+package com.apmosys.employeeportal.request;
+
+import java.util.List;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class ProjectStructureRequest {
+
+	private String[] deptName;
+	private String type;
+	private String[] depts;
+	private List<Long> departmentIds;
+}
