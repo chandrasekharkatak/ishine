@@ -94,31 +94,53 @@ public class BioMaxService {
 	@PersistenceContext
     private EntityManager entityManager;
 
-	public Connection getConnection() {
+// 	public Connection getConnection() {
 		
 		
 
-		String DB_URL = "jdbc:sqlserver://" + DBIp + "/" + DBName;
+// 		String DB_URL = "jdbc:sqlserver://" + DBIp + "/" + DBName;
 
-		try {
+// 		try {
 			
-			 Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+// 			 Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 		
-//			Connection con = DriverManager.getConnection("jdbc:sqlserver://yourserver:1433;databaseName=yourdatabase;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;");
-//			Connection con = DriverManager.getConnection("jdbc:sqlserver://yourserver:1433;databaseName=yourdatabase;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;");
-//			 Connection con = DriverManager.getConnection("jdbc:sqlserver://192.168.0.126:1433;databaseName=SmartOfficedb;user=sa;password=biomax;");
-			  con = DriverManager.getConnection("jdbc:sqlserver://192.168.0.126:1433;databaseName=smartofficedb;encrypt=true;trustServerCertificate=true;user=sa;password=biomax;sslProtocol=TLSv1.2");
+// //			Connection con = DriverManager.getConnection("jdbc:sqlserver://yourserver:1433;databaseName=yourdatabase;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;");
+// //			Connection con = DriverManager.getConnection("jdbc:sqlserver://yourserver:1433;databaseName=yourdatabase;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;");
+// //			 Connection con = DriverManager.getConnection("jdbc:sqlserver://192.168.0.126:1433;databaseName=SmartOfficedb;user=sa;password=biomax;");
+// 			  con = DriverManager.getConnection("jdbc:sqlserver://192.168.0.126:1433;databaseName=SmartOfficedb;encrypt=true;trustServerCertificate=true;user=apmosys;password=apmosys@123;");
 
 			 
-			 if (con !=null) {
-				System.out.println("Connection made");
+// 			 if (con !=null) {
+// 				System.out.println("Connection made");
+// 			}
+// 			return con;
+
+// 		} catch (Exception e) {
+// 			e.printStackTrace();
+// 		}
+
+// 		return null;
+// 	}
+
+	public Connection getConnection() {
+		try {
+			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+			
+			con = DriverManager.getConnection(
+				"jdbc:sqlserver://192.168.0.126:1433;databaseName=SmartOfficedb;encrypt=true;trustServerCertificate=true;",
+				"apmosys",
+				"apmosys@123"
+			);
+			
+			if (con != null) {
+				System.out.println("Connection made successfully!");
 			}
 			return con;
-
+			
 		} catch (Exception e) {
+			System.out.println("Connection failed: " + e.getMessage());
 			e.printStackTrace();
 		}
-
 		return null;
 	}
 
@@ -191,275 +213,109 @@ public class BioMaxService {
 		return timesheetId;
 				
 	}
-	public ServiceResponse getEmpBioData(String startDate, String endDate) throws SQLException {
+
+	public ServiceResponse getEmpBioDataFromIshine(String startDate, String endDate, 
+                                                Integer pageNumber, Integer pageSize) throws SQLException {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
-//			Set<String> bioEmpIdSet = new HashSet<>();
-			Map<String, List<String>> empMapById = new HashMap<>();
-			List<BioMaTO> finalEmpBioData=new ArrayList();
-			List<BioMaTO> tempBioDataList = new ArrayList<>();
-//			String Query = "WITH LatestLogDate AS ("
-//                    + "    SELECT "
-//                    + "        dl.UserId, "
-//                    + "        MAX(dl.LogDate) AS LastLogDate "
-//                    + "    FROM "
-//                    + "        [SmartOfficedb].[dbo].[DeviceLogs_10_2024] dl "
-//                    + "    INNER JOIN "
-//                    + "        [SmartOfficedb].[dbo].[Employees] emp ON dl.UserId = emp.EmployeeCode "
-//                    + "    INNER JOIN "
-//                    + "        [SmartOfficedb].[dbo].[AttendanceLogs] adl ON emp.EmployeeId = adl.EmployeeId "
-//                    + "    WHERE "
-//                    + "        adl.AttendanceDateStr >= ? AND adl.AttendanceDateStr <= ? "
-//                    + "    GROUP BY "
-//                    + "        dl.UserId "
-//                    + ") "
-//                    + "SELECT "
-//                    + "    adl.AttendanceDateStr, "
-//                    + "    dl.LogDate, "
-//                    + "    emp.EmployeeCode, "
-//                    + "    emp.EmployeeName, "
-//                    + "    adl.TotalDuration, "
-//                    + "    s.ShiftName, "
-//                    + "    adl.BeginTime, "
-//                    + "    adl.EndTime, "
-//                    + "    adl.Status, "
-//                    + "    adl.PunchRecords, "
-//                    + "    adl.EarlyBy, "
-//                    + "    adl.LateBy, "
-//                    + "    adl.Duration, "
-//                    + "    adl.InTime, "
-//                    + "    adl.OutTime, "
-//                    + "    adl.ShiftDuration "
-//                    + "FROM "
-//                    + "    LatestLogDate lld "
-//                    + "INNER JOIN "
-//                    + "    [SmartOfficedb].[dbo].[DeviceLogs_10_2024] dl ON lld.UserId = dl.UserId AND lld.LastLogDate = dl.LogDate "
-//                    + "INNER JOIN "
-//                    + "    [SmartOfficedb].[dbo].[Employees] emp ON dl.UserId = emp.EmployeeCode "
-//                    + "INNER JOIN "
-//                    + "    [SmartOfficedb].[dbo].[AttendanceLogs] adl ON emp.EmployeeId = adl.EmployeeId "
-//                    + "INNER JOIN "
-//                    + "    [SmartOfficedb].[dbo].[Shifts] s ON adl.ShiftId = s.ShiftId "
-//                    + "WHERE "
-//                    + "    adl.AttendanceDateStr >= ? AND adl.AttendanceDateStr <= ? ";
-			String Query = "WITH LatestLogDate AS ("
-		            + "    SELECT "
-		            + "        dl.UserId, "
-		            + "        MAX(dl.LogDate) AS LastLogDate "
-		            + "    FROM "
-		            + "        [SmartOfficedb].[dbo].[DeviceLogs_10_2024] dl "
-		            + "    INNER JOIN "
-		            + "        [SmartOfficedb].[dbo].[Employees] emp ON dl.UserId = emp.EmployeeCode "
-		            + "    INNER JOIN "
-		            + "        [SmartOfficedb].[dbo].[AttendanceLogs] adl ON emp.EmployeeId = adl.EmployeeId "
-		            + "    WHERE "
-		            + "        CAST(adl.AttendanceDateStr AS DATE) >= ? AND CAST(adl.AttendanceDateStr AS DATE) <= ? "
-		            + "    GROUP BY "
-		            + "        dl.UserId "
-		            + ") "
-		            + "SELECT "
-		            + "    FORMAT(CAST(adl.AttendanceDateStr AS DATE), 'dd-MMM-yyyy') AS AttendanceDateStr, "
-		            + "    dl.LogDate, "
-		            + "    emp.EmployeeCode, "
-		            + "    emp.EmployeeName, "
-		            + "    adl.TotalDuration, "
-		            + "    s.ShiftName, "
-		            + "    adl.BeginTime, "
-		            + "    adl.EndTime, "
-		            + "    adl.Status, "
-		            + "    adl.PunchRecords, "
-		            + "    adl.EarlyBy, "
-		            + "    adl.LateBy, "
-		            + "    adl.Duration, "
-		            + "    adl.InTime, "
-		            + "    adl.OutTime, "
-		            + "    adl.ShiftDuration "
-		            + "FROM "
-		            + "    LatestLogDate lld "
-		            + "INNER JOIN "
-		            + "    [SmartOfficedb].[dbo].[DeviceLogs_10_2024] dl ON lld.UserId = dl.UserId AND lld.LastLogDate = dl.LogDate "
-		            + "INNER JOIN "
-		            + "    [SmartOfficedb].[dbo].[Employees] emp ON dl.UserId = emp.EmployeeCode "
-		            + "INNER JOIN "
-		            + "    [SmartOfficedb].[dbo].[AttendanceLogs] adl ON emp.EmployeeId = adl.EmployeeId "
-		            + "INNER JOIN "
-		            + "    [SmartOfficedb].[dbo].[Shifts] s ON adl.ShiftId = s.ShiftId "
-		            + "WHERE "
-		            + "    CAST(adl.AttendanceDateStr AS DATE) >= ? AND CAST(adl.AttendanceDateStr AS DATE) <= ?";
-
-//			String Query = "SELECT * " +
-//		               "FROM AttendanceLogs al " +
-//		               "INNER JOIN Employees e ON al.EmployeeId = e.EmployeeId " +
-//		               "WHERE al.AttendanceDateStr >= ? " +
-//		               "AND al.AttendanceDateStr <= ?";
-
-
+			if (pageNumber == null || pageNumber < 1) pageNumber = 1;
+			if (pageSize == null || pageSize < 1) pageSize = 100;
+			
+			int offset = (pageNumber - 1) * pageSize;
+			
+			List<BioMaTO> finalEmpBioData = new ArrayList<>();
+			
 			Connection con = getConnection();
-			PreparedStatement statement = con.prepareStatement(Query);
 			
-			// Set the date parameter
-		    statement.setString(1, startDate); // Set the first placeholder
-		    statement.setString(2, endDate); // Set the second placeholder
-		    statement.setString(3, startDate);
-		    statement.setString(4, endDate);
+			// First, get total count
+			String countQuery = "SELECT COUNT(*) AS TotalRecords FROM " +
+				"( " +
+				"    SELECT Empcode, EmpName, CAST(Logdatetime AS DATE) AS AttendanceDate " +
+				"    FROM IshineRawdata " +
+				"    WHERE Logdatetime >= ? AND Logdatetime <= ? " +
+				"    GROUP BY Empcode, EmpName, CAST(Logdatetime AS DATE) " +
+				") A";
 			
+			PreparedStatement countStmt = con.prepareStatement(countQuery);
+			countStmt.setString(1, startDate + " 00:00:00");
+			countStmt.setString(2, endDate + " 23:59:59");
+			ResultSet countRs = countStmt.executeQuery();
+			
+			int totalRecords = 0;
+			if (countRs.next()) {
+				totalRecords = countRs.getInt("TotalRecords");
+			}
+			countRs.close();
+			countStmt.close();
+			
+			// Get paginated data - WITHOUT Direction filter
+			String query = "SELECT " +
+				"    Empcode, " +
+				"    EmpName, " +
+				"    FORMAT(AttendanceDate,'dd-MM-yyyy') AS AttendanceDate, " +
+				"    FORMAT(InTime,'hh:mm tt') AS InTime, " +
+				"    FORMAT(OutTime,'hh:mm tt') AS OutTime, " +
+				"    FORMAT(DATEADD(MINUTE, DATEDIFF(MINUTE, InTime, OutTime), 0),'HH:mm') AS TotalWorkingHours " +
+				"FROM " +
+				"( " +
+				"    SELECT " +
+				"        Empcode, " +
+				"        EmpName, " +
+				"        CAST(Logdatetime AS DATE) AS AttendanceDate, " +
+				"        MIN(Logdatetime) AS InTime, " +
+				"        MAX(Logdatetime) AS OutTime " +
+				"    FROM IshineRawdata " +
+				"    WHERE Logdatetime >= ? AND Logdatetime <= ? " +
+				"    GROUP BY Empcode, EmpName, CAST(Logdatetime AS DATE) " +
+				") A " +
+				"ORDER BY Empcode, AttendanceDate " +
+				"OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+			PreparedStatement statement = con.prepareStatement(query);
+			statement.setString(1, startDate + " 00:00:00");
+			statement.setString(2, endDate + " 23:59:59");
+			statement.setInt(3, offset);
+			statement.setInt(4, pageSize);
+
 			ResultSet resultSet = statement.executeQuery();
 
-//			String temp1 = "";
-
-//			List<String> l = new ArrayList<>();
-
 			while (resultSet.next()) {
+				BioMaTO bioMaTO = new BioMaTO();
+				bioMaTO.setEmployeeCode(resultSet.getString("Empcode"));
+				bioMaTO.setEmployeeName(resultSet.getString("EmpName"));
+				bioMaTO.setLogDate(resultSet.getString("AttendanceDate"));
+				bioMaTO.setInTime(resultSet.getString("InTime"));
+				bioMaTO.setOutTime(resultSet.getString("OutTime"));
+				bioMaTO.setTotalDuration(resultSet.getString("TotalWorkingHours"));
 				
-				BioMaTO bioMaTO=new BioMaTO();
-				bioMaTO.setLogDate(resultSet.getString("LogDate"));
-				bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
-			    bioMaTO.setEmployeeName(resultSet.getString("EmployeeName"));
-			    bioMaTO.setTotalDuration(resultSet.getString("TotalDuration")); // Assuming TotalDuration is a String
-			    bioMaTO.setShiftName(resultSet.getString("ShiftName")); // Added shift name from your query
-			    bioMaTO.setBeginTime(resultSet.getString("BeginTime"));
-			    bioMaTO.setEndTime(resultSet.getString("EndTime"));
-			    bioMaTO.setStatus(resultSet.getString("Status"));
-			    bioMaTO.setPunchRecords(resultSet.getString("PunchRecords"));
-			    bioMaTO.setEarlyBy(resultSet.getString("EarlyBy"));
-			    bioMaTO.setLateBy(resultSet.getString("LateBy"));
-			    bioMaTO.setDuration(resultSet.getString("Duration")); // Assuming Duration is a String
-			    bioMaTO.setInTime(resultSet.getString("InTime"));
-			    bioMaTO.setOutTime(resultSet.getString("OutTime"));
-			    bioMaTO.setShiftDuration(resultSet.getString("ShiftDuration")); // Assuming ShiftDuration is a String
+				finalEmpBioData.add(bioMaTO);
+			}
 
-			    tempBioDataList.add(bioMaTO);
-			} 	    
-				
-			for (BioMaTO bioMaTO : tempBioDataList) {
-	            finalEmpBioData.add(bioMaTO);
-	        }
+			finalEmpBioData = mapEmployeeDetails(finalEmpBioData);
 
-				
+			resultSet.close();
+			statement.close();
+			con.close();
 
-//				bioEmpIdSet.add(resultSet.getString(1).replace("A", "").trim());
-//
-//				if (temp1.equals("")) {
-//					temp1 = resultSet.getString(1).replace("A", "").trim();
-//					l.add(resultSet.getString(2));
-//				} else if (resultSet.getString(1).replace("A", "").trim().equals(temp1)) {
-//					l.add(resultSet.getString(2));
-//				} else {
-//					empMapById.put(temp1, l);
-//					l = new ArrayList();
-//					temp1 = resultSet.getString(1).replace("A", "").trim();
-//					l.add(resultSet.getString(2));
-//				}
+			Map<String, Object> responseData = new HashMap<>();
+			responseData.put("data", finalEmpBioData);
+			responseData.put("totalRecords", totalRecords);
+			responseData.put("currentPage", pageNumber);
+			responseData.put("pageSize", pageSize);
+			responseData.put("totalPages", (int) Math.ceil((double) totalRecords / pageSize));
 
-//			}
-//			empMapById.put(temp1, l);
-			
-			
-//			List<Object[]> empNameFromIshine = employeeRepository.getDataByEmpId(bioEmpIdSet);
-//			Map<String, String> EmplNameIdMap = new HashMap();
-//
-//			for (Object[] obj : empNameFromIshine) {
-//				EmplNameIdMap.put(obj[0].toString(), obj[1].toString());
-//			}
-			
-			
-//
-//			for (String empId : bioEmpIdSet) {
-//				List<String> empTimeList = empMapById.get(empId);
-//				String time1 = "";
-//				String time2 = "";
-//				String punchIn="";
-//				String punchOut="";
-//				long totalTime=0;
-//				for (String dateTime : empTimeList) {
-//					
-//					if(punchIn.equals(""))
-//					{
-//						punchIn=dateTime;
-//					}
-//					
-//					if (time1.equals("") && time2.equals("")) {
-//						time1 = dateTime;
-//					}
-//					else if (!time1.equals("") && time2.equals("")) {
-//						time2 = dateTime;
-//					}
-//					if (!time1.equals("") && !time2.equals("")) {
-//						//time calculation ...
-//						long cTime=calculateTime(time1,time2);
-//						totalTime += cTime;	
-//						punchOut=time2;
-//						time1="";
-//						time2="";
-//					}
-//				}
-//				Long hours = totalTime / 3600;
-//				Long minutes = (totalTime % 3600) / 60;
-//				Long seconds = totalTime % 60;
-//				String timeString = String.format("%02d:%02d:%02d", hours, minutes, seconds);
-//		
-//				//deviation 
-//				long expectTime=32400;
-//				long deviationTime=expectTime-totalTime;
-//				String finalDevTion="";
-//				if(deviationTime<0)
-//				{
-//					deviationTime = Math.abs((int)deviationTime);
-//					finalDevTion="+";
-//				}
-//				else
-//				{
-//					finalDevTion="-";
-//				}
-//				
-//				hours = deviationTime / 3600;
-//				minutes = (deviationTime % 3600) / 60;
-//				seconds = deviationTime % 60;
-//				finalDevTion += String.format("%02d:%02d:%02d", hours, minutes, seconds);
-//		
-//				
-//				
-				
-				
-				
-				
-//			}
-
-
-			
-//
-//			System.out.println("bioEmpIdList  ::  " + bioEmpIdSet);
-//			System.out.println("bioEmpIdList  ::  " + EmplNameIdMap);
-
-//			for (List list : bioMaxAllList) {
-//				list.add(EmplNameIdMap.get(list.get(0)));
-//
-//				String startDate = list.get(1).toString();
-//				String endDate = list.get(2).toString();
-//				String totalTime = calculateTime(startDate, endDate);
-//				list.add(totalTime);
-//
-//			}
-
-			serviceResponse.setServiceResponse(finalEmpBioData);
+			serviceResponse.setServiceResponse(responseData);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 
 		} catch (Exception e) {
 			e.printStackTrace();
-
 			serviceResponse.setServiceResponse("");
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			serviceResponse.setServiceError(e.getMessage());
 		}
-//		finally {
-//			con.close();
-//		}
 
 		return serviceResponse;
-		
-		
 	}
-	
 
 	 public ServiceResponse getEmpBioData360(String startDate, String endDate, List<String> employeeId) {
 	        ServiceResponse serviceResponse = new ServiceResponse();
@@ -479,8 +335,8 @@ public class BioMaxService {
 	             PreparedStatement statement = con.prepareStatement(query)) {
 
 	            statement.setString(1, emp.toString());
-	            statement.setString(2, startDate);
-	            statement.setString(3, endDate);
+	            statement.setString(2, startDate + " 00:00:00");
+	            statement.setString(3, endDate + " 23:59:59");
 
 	            try (ResultSet resultSet = statement.executeQuery()) {
 	                while (resultSet.next()) {
@@ -586,9 +442,6 @@ public class BioMaxService {
 
 		return serviceResponse;
 	}
-	
-	
-	
 	
 //	public int getNumberOfTheMonth(String month) {
 //	    int num = 0;
@@ -983,4 +836,48 @@ public class BioMaxService {
 			
 		    return newList;
 		}
+
+	private List<BioMaTO> mapEmployeeDetails(List<BioMaTO> bioMaxTOList) {
+		List<String> allEmployeeIds = bioMaxTOList.stream().map(e -> e.getEmployeeCode()).collect(Collectors.toList());
+		List<Object[]> employees = employeeRepository.findByPrefixedEmployeementIdIn(allEmployeeIds);
+		Map<String, Map<String, String>> employeeMap = new HashMap<>();
+		
+		for(Object[] employee : employees) {
+			String employeeId = employee[4] != null ? employee[4].toString() : null;
+
+			if(employeeId == null ){
+				throw new NullPointerException("Employee Id is Null");
+			}
+
+			Map<String, String> employeeDetails = new HashMap<>();
+
+			String employeeName = employee[1] != null ? employee[1].toString() : "N/A";
+			String reportingManager = employee[2] != null ? employee[2].toString() : "N/A";
+			String departmentName = employee[3] != null ? employee[3].toString() : "N/A";
+
+			employeeDetails.put("reportingManager", reportingManager);
+			employeeDetails.put("employeeName", employeeName);
+			employeeDetails.put("departmentName", departmentName);
+
+			employeeMap.put(employeeId, employeeDetails);
+		}
+
+		for(BioMaTO bioMaTO : bioMaxTOList) {
+			String employeeId = bioMaTO.getEmployeeCode();
+			Map<String, String> employeeDetails = employeeMap.get(employeeId);
+			if(employeeDetails!=null) {
+				String reportingManager = employeeDetails.get("reportingManager");
+				bioMaTO.setReportingManagerName(reportingManager);
+				bioMaTO.setEmployeeName(employeeDetails.get("employeeName"));
+				bioMaTO.setDepartmentName(employeeDetails.get("departmentName"));
+			} else {
+				bioMaTO.setReportingManagerName("N/A");
+				bioMaTO.setEmployeeName("N/A");
+				bioMaTO.setDepartmentName("N/A");
+			}
+		}
+
+		return bioMaxTOList;
+	}
+
 } 

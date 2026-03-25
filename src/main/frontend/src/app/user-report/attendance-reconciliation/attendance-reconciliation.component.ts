@@ -59,11 +59,13 @@ export class AttendanceReconciliationComponent implements OnInit {
   endDate: string;
   name: string;
   page = 1;
+  totalRecords: number = 0;
+  pageSize: number = 20;
   formattedDate: string;
   startformattedDate: string;
   endformattedDate: string;
   maxTodayDate: any;
-  AttendancereConciliation: any[] = ['employeeCode', 'employeeName', 'inTime', 'outTime', 'totalDuration', 'shiftDuration', 'shiftName', 'beginTime', 'endTime', 'logDate', 'earlyBy', 'lateBy', 'duration', 'status',];
+  AttendancereConciliation: any[] = ['employeeCode', 'employeeName', 'inTime', 'outTime', 'totalDuration', 'shiftDuration', 'logDate', 'departmentName', 'reportingManagerName'];
   timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
 
   filters: any = {};
@@ -125,6 +127,7 @@ export class AttendanceReconciliationComponent implements OnInit {
   //pagination
   handlePageChange(event) {
     this.page = event;
+    this.getBioMatricData(this.startDate, this.endDate);
   }
 
   sortData(sort: Sort) {
@@ -141,16 +144,17 @@ export class AttendanceReconciliationComponent implements OnInit {
     const startdateformat = this.formatDate(startDate);
     const enddateformat = this.formatDate(endDate);
 
-    this.attendanceReconciliationService.getBiomatricData(startdateformat, enddateformat).subscribe((response: any) => {
-      this.attendanceReconciliationList = response.serviceResponse;
+    this.attendanceReconciliationService.getBiomatricData(startdateformat, enddateformat, this.page, this.pageSize).subscribe((response: any) => {
+      this.attendanceReconciliationList = response.serviceResponse.data;
+      this.totalRecords = response.serviceResponse.totalRecords;
       this.attendanceReconciliationList.forEach(employee => {
 
         employee.emp360 = employee.empId;
 
-        employee.employeementId=String(employee.employeeCode);
-        if(employee.employeementId.startsWith('A'))
+        employee.employeementId = String(employee.employeeCode);
+        if (employee.employeementId.startsWith('A'))
           employee.employeementId = employee.employeementId.substring(1);
-          employee.employeementId = "A-".concat(employee.employeementId);
+        employee.employeementId = "A-".concat(employee.employeementId);
       });
 
       // console.log("this.attendanceReconciliationList" , this.attendanceReconciliationList);
@@ -292,6 +296,7 @@ export class AttendanceReconciliationComponent implements OnInit {
   searchRecords() {
     console.log('Searching records from:', this.startDate, 'to:', this.endDate);
     if (this.startDate && this.endDate) {
+      this.page = 1;
       this.getBioMatricData(this.startDate, this.endDate);
     } else {
       console.error('Start date or end date is missing');
