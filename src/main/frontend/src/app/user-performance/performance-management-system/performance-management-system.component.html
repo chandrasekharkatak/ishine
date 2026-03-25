@@ -165,20 +165,20 @@
                     id="performanceID">
                     <thead class="thead-light thead" id="performanceIDTHead">
                       <tr id="performanceIDHeadTr">
-                        <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|string">Emp Id</th>
+                        <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Emp Id</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Full Name</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="designationName|string">Position</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department
                         </th>
                         <!-- <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">Billable Type
                         </th> -->
-                        <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience|string">Experience
+                        <th scope="col" class="info-label wide-col" mat-sort-header="calculatedExperience|number">Experience
                         </th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Status</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="dateOfJoining|string">DateOfJoining
+                        <th scope="col" class="info-label wide-col" mat-sort-header="dateOfJoining|date">DateOfJoining
                         </th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="completionStatus|string">Review Status</th>
-                        <th scope="col" class="info-label wide-col" mat-sort-header="performanceStatus|string">Performance
+                        <th scope="col" class="info-label wide-col" mat-sort-header="performanceStatusPercentage|number">Performance
                           Status</th>
                         <th scope="col" class="info-label wide-col" mat-sort-header="review|string">Review</th>
                       </tr>
@@ -296,10 +296,11 @@
           <div class="card-body">
             <!-- Final Review -->
             <div class="final-review" *ngIf="filterRatingCriteria.length > 0 || filterCriteria.length > 0">
-              <div *ngIf="((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Not Started' ) 
-              && (userMapping.performance_action_by_approvals_to)) 
-              || ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected') 
-              && userMapping.performance_action_by_hod)|| ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected') 
+              <div *ngIf="((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Not Started' || currentStatus === 'Pending HOD' || currentStatus === 'Pending' || currentStatus === 'Submitted' )
+              && (userMapping.performance_action_by_approvals_to))
+              || ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Pending HOD' || currentStatus === 'Pending' || currentStatus === 'Submitted')
+              && userMapping.performance_action_by_hod)
+              || ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Pending')
               && userMapping.performance_action_by_hr)">
                 <div class="row">
                   <div class="col-lg-12 col-md-8 col-sm-12">
@@ -423,7 +424,7 @@
                     Submit</button>
                 </div>
               </div>
-              <div *ngIf="(currentStatus != 'Ongoing' && currentStatus != 'Completed' && currentStatus != 'Rejected') 
+              <div *ngIf="(currentStatus != 'Ongoing' && currentStatus != 'Completed' && currentStatus != 'Rejected' && currentStatus != 'Pending HOD' && currentStatus != 'Pending' && currentStatus != 'Submitted')
               && (userMapping.performance_action_by_hod || userMapping.performance_action_by_hr)">
                 <p class="text-center">
                   Review has not been given By manager/Reporting Manager

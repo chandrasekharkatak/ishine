@@ -21,6 +21,8 @@ public class PerformanceDTO {
     private String finalRating;
     private String hodApprovalDate;
     private String hodRemarks;
+    /** Reporting manager submit text (employee_performance.manager_remarks); not the same as hod_remarks. */
+    private String managerRemarks;
     private Long hodId;
     private Long quarterId;
     private String quarterCycle;
