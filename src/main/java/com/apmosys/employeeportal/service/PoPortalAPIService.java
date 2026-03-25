@@ -874,7 +874,7 @@ public class PoPortalAPIService {
 	        }
 
 	        initialLog = apiLogUtility.startLog(traceId, "getMilestoneDocument", "Ishine", getCurrentUserId(), httpRequest);
-	
+			
 	        HttpHeaders headers = new HttpHeaders();
 	        headers.set("X-Trace-Id", traceId);
 	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
@@ -1031,7 +1031,7 @@ public class PoPortalAPIService {
 							"chandasekhar.moharana@apmosys.com");
 
 
-		             //   mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
+		                //mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
 						mailService.sendMailToMultipleRecipients(toRecipientsDummy, ccRecipientsDummy, subject, body);
 		                System.out.println("Mail sent for project: " + projectName);
 
@@ -1312,7 +1312,7 @@ public class PoPortalAPIService {
 			exceptionDetailsForLog = e.toString();
 			logger.error("Error in updateMilestoneExtendedDate: {}", exceptionDetailsForLog);
 
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceMessage("Milestone updated, but with warnings: " + e.getMessage());
 		} finally {
 			try {
@@ -1418,10 +1418,10 @@ public class PoPortalAPIService {
 					+ "<p>Please take the necessary actions.</p>"
 					+ "<p>Regards,<br>ApMoSys Technologies</p>"
 					+ "</body></html>";
-			List<String> toRecipientsDummy = Arrays.asList(
-							"chandasekhar.moharana@apmosys.com");
-					List<String> ccRecipientsDummy = Arrays.asList(
-							"chandasekhar.moharana@apmosys.com");
+			 List<String> toRecipientsDummy = Arrays.asList(
+			 				"chandasekhar.moharana@apmosys.com");
+			 		List<String> ccRecipientsDummy = Arrays.asList(
+			 				"chandasekhar.moharana@apmosys.com");
 
 			//mailService.sendMailToMultipleRecipientsWithFile(toRecipients, ccRecipients, subject, body , extensionFile);
 			mailService.sendMailToMultipleRecipientsWithFile(toRecipientsDummy, ccRecipientsDummy, subject, body , extensionFile);
@@ -2618,7 +2618,7 @@ return empId;
 							// "shikha.suman@apmosys.com",
 							"chandasekhar.moharana@apmosys.com");
 					List<String> ccRecipientsDummy = Arrays.asList(
-							"shikha.suman@apmosys.com");
+							"chandasekhar.moharana@apmosys.com");
 
 			//mailService.sendMailToMultipleRecipientsWithFile(toRecipients, ccRecipients, subject, body ,file);
 
@@ -2740,15 +2740,21 @@ return empId;
 					.distinct()
 					.collect(Collectors.toList());
 
-			SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
-			//String extendedDate = formatter.format(dto.getExtendedDate());
-			String endDate = formatter.format(projDetails.getPoEndDate());
-			String startDate = formatter.format(projDetails.getPoStartDate());
+			
+			SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+
+			String endDate = projDetails.getPoEndDate() != null 
+			        ? projDetails.getPoEndDate()
+			        : "";
+
+			String startDate = projDetails.getPoStartDate() != null 
+			        ? projDetails.getPoStartDate()
+			        : "";
 
 			String subject = "Project Milestone Update Notification: " + projDetails.getProjectName();
 			String body = "<html><body>"
 			        + "<p>Dear Team,</p>"
-			        + "<p>The following project milestone has been <b>completed</b>. Kindly review and mark the project as <b>completed</b>.</p>"
+			        + "<p>The following project's all milestone has been <b>completed</b>. Kindly review and mark the project as <b>completed</b>.</p>"
 			        + "<br/>"
 			        + "<table border='1' style='border-collapse: collapse;'>"
 			        + "<tr><th>PO Number</th><td>" + projPoDetails.getPoNo() + "</td></tr>"
@@ -2770,10 +2776,11 @@ return empId;
 							// "shikha.suman@apmosys.com",
 							"chandasekhar.moharana@apmosys.com");
 					List<String> ccRecipientsDummy = Arrays.asList(
-							"shikha.suman@apmosys.com");
+							"chandasekhar.moharana@apmosys.com");
 
 
 			mailService.sendMailToMultipleRecipients(toRecipientsDummy, ccRecipientsDummy, subject, body) ;
+			//mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body) ;
 			logger.info("Email sent successfully for project: {}", projDetails.getProjectName());
 			return true;
 

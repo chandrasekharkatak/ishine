@@ -4546,12 +4546,13 @@
               rows="3"></textarea>
           </div>
         </section>
+        <br>
 
         <!-- Update Milestone Extension Details -->
         <div class="d-flex justify-content-end" *ngIf="this.isExtensionEnabled && this.projectMilestone.extendedDate">
         <button type="button" class="ep-btn ep-btn--primary" [disabled]="projectMilestone.status === 'Completed'" 
         [title]="projectMilestone.status === 'Completed'  ? 'Date cannot be updated after milestone is marked completed': 'Click to update milestone extension details'"
-        (click)="updateMilestoneExtendedDateWithReason()">Update milestone extension details</button>
+        (click)="updateMilestoneExtendedDateWithReason()">Update Extension</button>
       </div>
 
         <section class="mt-5">
@@ -4616,7 +4617,7 @@
         <button type="button" class="ep-btn ep-btn--secondary" (click)="closeUpdateProjectMilestoneModal()">Cancel</button>
         <button type="button" class="ep-btn ep-btn--primary"   
         [title]="!isStatusChanged ? 'Change milestone status to update' : 'Click to update milestone status'"
-        (click)="openMileStoneStatusModal()">Update milestone status details</button>
+        (click)="openMileStoneStatusModal()">Update status</button>
       </div>
     </footer>
   </div>

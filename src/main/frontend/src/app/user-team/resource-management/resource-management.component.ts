@@ -8563,6 +8563,8 @@ updateMilestoneExtendedDateWithReason():Promise<boolean> {
     }  
   
    console.log("this.currentUser===>>",this.currentUser);
+  this.projectNameForMilestoneUpdate = this.projectObj.name;
+  this.poNameForMilestoneUpdate = this.projectObj.poNo;
     
   const payload: MilestoneUpdatedLog = {
     milestoneId: this.projectMilestone.id,
