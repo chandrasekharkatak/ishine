@@ -1369,4 +1369,24 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 				@Param("timesheetId") Long timesheetId,
 				@Param("inputDate") LocalDate inputDate);
 	
+	
+	
+	@Modifying
+	@Query("DELETE FROM EmployeeTeamMap e\n"
+			+ "WHERE e.poId = :poId\n"
+			+ "AND e.active = 0\n"
+			+ "AND e.endDate IS NULL\n"
+			+ "AND FUNCTION('DATE', e.startDate) > CURRENT_DATE ")
+	void deleteScheduledEmployeesByPoId(Long poId);
+	
+	@Modifying
+	@Query("DELETE FROM EmployeeTeamMap e\n"
+			+ "WHERE e.teamId IN :teamIds\n"
+			+ "AND e.active = 0\n"
+			+ "AND e.endDate IS NULL\n"
+			+ "AND FUNCTION('DATE', e.startDate) > CURRENT_DATE ")
+	void deleteScheduledEmployeesByTeamIds(List<Long> teamIds);
+
+
+	
 }

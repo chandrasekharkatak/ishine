@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -278,5 +279,18 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 			+ "WHERE t.projectId =:projectId \n")
 	List<RmgTeamMemberDto> getAllTeamMemberDetailsDtoByProjectId(Long projectId, boolean activeEtmFlag);
 
+	@Query("SELECT t.teamId FROM Team t WHERE t.projectId = :projectId AND t.isActive = 'Y'")
+	List<Long> findActiveTeamIdsByProjectId(Integer projectId);
+	
+	@Modifying
+	@Query("UPDATE Team t\r\n"
+			+ "SET t.isActive = 'N',\r\n"
+			+ "    t.updatedOn = :updatedOn,\r\n"
+			+ "    t.updatedBy = :updatedBy\r\n"
+			+ "WHERE t.projectId = :projectId\r\n"
+			+ "AND t.isActive = 'Y'")
+	void deactivateTeamsByProjectId(Integer projectId,
+	                                LocalDateTime updatedOn,
+	                                Long updatedBy);
 
 }
