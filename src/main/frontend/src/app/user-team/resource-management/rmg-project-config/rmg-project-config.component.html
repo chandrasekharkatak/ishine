@@ -356,11 +356,6 @@
                 (click)="saveClonedMembers()">
                 Save Cloned Member(s)
             </button>
-            <!-- <button type="button" class="btn btn-primary btn-sm mr-1"
-                *ngIf="currentTeam.isAnyMemberSelected && teamMembers?.length > 0"
-                (click)="validateRemoveMembers(teamMembers)">
-                Delete Members
-            </button>&nbsp; -->
             <button type="button" class="btn btn-primary btn-sm mr-1"
                 *ngIf="currentTeam.isAnyMemberSelected && teamMembers?.length > 0"
                 (click)="validateRemoveMembers(teamMembers)">
@@ -394,7 +389,7 @@
                     <th class="min-width100 max-width150" *ngIf="!isInternalProject" mat-sort-header="poNo|string">
                         PO No.
                     </th>
-                    <th class="min-width180 max-width200" *ngIf="!isInternalProject"
+                    <th class="min-width180 max-width200" *ngIf="!isInternalProject && projectType == 'TNM'"
                         mat-sort-header="displayRequirement|string">
                         PO Role
                     </th>
@@ -416,12 +411,22 @@
                 </tr>
                 <ng-container *ngIf="isCurrentTeamMemberSearchEnabled">
                     <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="!isInternalProject && projectType == 'TNM' && (projectConfigStepperIndex != 2 && !isProjectPreview)"
+                        [columnList]="rmgCurrentTeamMemberColumnListForTNM"
+                        (onSearch)="searchCurrentTeamMember($event)">
+                    </tr>
+                    <tr class="custom-filter-row" app-column-filter-bar
                         *ngIf="!isInternalProject && (projectConfigStepperIndex != 2 && !isProjectPreview)"
                         [columnList]="rmgCurrentTeamMemberColumnList" (onSearch)="searchCurrentTeamMember($event)">
                     </tr>
                     <tr class="custom-filter-row" app-column-filter-bar
                         *ngIf="isInternalProject && (projectConfigStepperIndex != 2 && !isProjectPreview)"
                         [columnList]="rmgCurrentTeamMemberColumnListForInternal"
+                        (onSearch)="searchCurrentTeamMember($event)">
+                    </tr>
+                    <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="!isInternalProject && projectType == 'TNM' && (projectConfigStepperIndex == 2 || isProjectPreview)"
+                        [columnList]="rmgCurrentTeamMemberColumnListForTNMPreview"
                         (onSearch)="searchCurrentTeamMember($event)">
                     </tr>
                     <tr class="custom-filter-row" app-column-filter-bar
@@ -468,7 +473,7 @@
                                 [filterActionLabel]="poFilterActionLabel" (filterAction)="filterActivePoDetails()">
                             </app-my-select>
                         </td>
-                        <td class="min-width180 max-width200" *ngIf="!isInternalProject">
+                        <td class="min-width180 max-width200" *ngIf="!isInternalProject && projectType == 'TNM'">
                             <app-my-select #newMemberRequirementSelect class="form-control" placeholder="Select PO Role"
                                 [(ngModel)]="currentTeam.newRmgTeamMember.roleId"
                                 [options]="filteredActiveResourceRequirement" displayKey="displayRequirement"
@@ -541,7 +546,7 @@
                                 (filterAction)="filterActivePoDetailsEmployeeSpecific(member)">
                             </app-my-select>
                         </td>
-                        <td class="min-width180 max-width200" *ngIf="!isInternalProject">
+                        <td class="min-width180 max-width200" *ngIf="!isInternalProject && projectType == 'TNM'">
                             <app-my-select #newMemberRequirementSelect class="form-control" placeholder="Select PO Role"
                                 [(ngModel)]="member.roleId" [options]="member.filteredActiveResourceRequirement"
                                 displayKey="displayRequirement" valueKey="roleId" [multiple]="false"
@@ -589,9 +594,8 @@
                     </tr>
                 </ng-container>
                 <ng-container *ngIf="teamMembers && teamMembers?.length != 0">
-                    <tr *ngFor="let member of teamMembers | multicolFilter: currentTeamMemberFilters : true | sort : [currentTeamMemberSortColumn, currentTeamMemberSortColumnType,currentTeamMemberSortDirection] | paginate: { itemsPerPage: currentTeamMemberPageSize, currentPage: currentTeamMemberPage }; let i= index"
-                        [title]="normalizeDate(member?.dbStartDate) > getTodaysDate() ? 'This resource will be active from ' + (member.dbStartDate | date:'dd-MM-yyyy') : '' "
-                        [ngClass]="{ 'future-row': normalizeDate(member?.dbStartDate) > getTodaysDate()}">
+                    <tr
+                        *ngFor="let member of teamMembers | multicolFilter: currentTeamMemberFilters : true | sort : [currentTeamMemberSortColumn, currentTeamMemberSortColumnType, currentTeamMemberSortDirection] | paginate: { itemsPerPage: currentTeamMemberPageSize, currentPage: currentTeamMemberPage }; let i= index">
                         <td *ngIf="projectConfigStepperIndex === 1">
                             <mat-checkbox class="custom-checkbox" color="primary" [(ngModel)]="member.isMemberSelected"
                                 (change)="onMemberCheckboxChange(team, $event, member.empId)">
@@ -606,16 +610,54 @@
                             </div>
                         </td>
                         <td>
-                            <button class="btn btn-sm">
-                                <span class="emp-name" triggers="mouseenter:mouseleave" placement="right"
-                                    container="body" popoverClass="emp-popover" [ngbPopover]="popoverTpl">
-                                    <ng-template #popoverTpl>
-                                        <ng-container *ngTemplateOutlet="employeeInfo; context: { member: member }">
-                                        </ng-container>
-                                    </ng-template>
-                                    <i class="fa fa-info-circle info-icon"></i>
-                                </span>
-                            </button>
+                            <div class="chip-container">
+                                <div class="info-chip blue-chip">
+                                    <span class="emp-name" triggers="mouseenter:mouseleave" placement="right"
+                                        container="body" popoverClass="emp-popover" [ngbPopover]="popoverTpl">
+                                        <ng-template #popoverTpl>
+                                            <ng-container *ngTemplateOutlet="employeeInfo; context: { member: member }">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa fa-info-circle blue-chip"></i>
+                                    </span>
+                                </div>
+                                <div *ngIf="normalizeDate(member?.poEndDate) < todaysDate || normalizeDate(member?.lineItemEndDate) < todaysDate"
+                                    class="info-chip red-chip">
+                                    <span class="emp-name" triggers="mouseenter:mouseleave" placement="bottom"
+                                        container="body" popoverClass="info-popover"
+                                        [ngbPopover]="popoverAllocationExpiredTpl">
+                                        <ng-template #popoverAllocationExpiredTpl>
+                                            <ng-container
+                                                *ngTemplateOutlet="allocationExpiredInfo; context: { member: member }">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa-solid fa-calendar-xmark"></i>
+                                    </span>
+                                </div>
+                                <div *ngIf="member?.isOverboardedRole" class="info-chip red-chip">
+                                    <span triggers="mouseenter:mouseleave" placement="bottom" container="body"
+                                        popoverClass="info-popover" [ngbPopover]="popoverOverboardedTpl">
+                                        <ng-template #popoverOverboardedTpl>
+                                            <ng-container
+                                                *ngTemplateOutlet="overBoardedInfo; context: { member: member }">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                    </span>
+                                </div>
+                                <div *ngIf="normalizeDate(member?.dbStartDate) > todaysDate"
+                                    class="info-chip yellow-chip">
+                                    <span triggers="mouseenter:mouseleave" placement="bottom" container="body"
+                                        popoverClass="info-popover" [ngbPopover]="popoverFutureStartDateTpl">
+                                        <ng-template #popoverFutureStartDateTpl>
+                                            <ng-container
+                                                *ngTemplateOutlet="futureStartDateInfo; context: { member: member }">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa-solid fa-calendar-check"></i>
+                                    </span>
+                                </div>
+                            </div>
                         </td>
                         <td class="min-width100 max-width150" [title]="member.employementId|| 'NA' ">
                             {{ member.employementId || 'NA' }}
@@ -627,7 +669,8 @@
                             [title]="member.poNo|| 'NA'">
                             {{ member.poNo || 'NA' }}
                         </td>
-                        <td class="min-width100 max-width150 truncate" *ngIf="!isInternalProject"
+                        <td class="min-width100 max-width150 truncate"
+                            *ngIf="!isInternalProject && projectType == 'TNM'"
                             [title]="member.displayRequirement || 'NA'">
                             {{ member.displayRequirement || 'NA' }}
                         </td>
@@ -714,7 +757,7 @@
                     <th class="min-width100 max-width150" *ngIf="!isInternalProject" mat-sort-header="poNo|string">
                         PO No.
                     </th>
-                    <th class="min-width100 max-width150" *ngIf="!isInternalProject"
+                    <th class="min-width100 max-width150" *ngIf="!isInternalProject && projectType == 'TNM'"
                         mat-sort-header="displayRequirement|string">
                         PO Role
                     </th>
@@ -734,6 +777,10 @@
                 <ng-container *ngIf="isOldTeamMemberSearchEnabled">
                     <tr class="custom-filter-row" app-column-filter-bar *ngIf="!isInternalProject"
                         [columnList]="rmgOldTeamMemberColumnList" (onSearch)="searchOldTeamMember($event)">
+                    </tr>
+                    <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="!isInternalProject && projectType == 'TNM'"
+                        [columnList]="rmgOldTeamMemberColumnListForTNM" (onSearch)="searchOldTeamMember($event)">
                     </tr>
                     <tr class="custom-filter-row" app-column-filter-bar *ngIf="isInternalProject"
                         [columnList]="rmgOldTeamMemberColumnListForInternal" (onSearch)="searchOldTeamMember($event)">
@@ -776,7 +823,8 @@
                             [title]="member.poNo|| 'NA' ">
                             {{ member.poNo || 'NA' }}
                         </td>
-                        <td class="min-width100 max-width150 truncate" *ngIf="!isInternalProject"
+                        <td class="min-width100 max-width150 truncate"
+                            *ngIf="!isInternalProject && projectType == 'TNM'"
                             [title]="member.displayRequirement|| 'NA' ">
                             {{ member.displayRequirement || 'NA' }}
                         </td>
@@ -1200,6 +1248,42 @@
         <div class="info-row">
             <span class="label">Total Exp</span>
             <span class="value highlight">{{ member.totalExp }} yrs</span>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #allocationExpiredInfo let-member="member">
+    <div class="popover-info red-border">
+        <div class="popover-row">
+            <span>
+                Allocation expired:
+                <b>
+                    {{ normalizeDate(member?.poEndDate) < todaysDate ? ('PO: ' + (member?.poEndDate | date:'
+                        dd-MM-yyyy')) : ('Requirement: ' + (member?.lineItemEndDate | date:' dd-MM-yyyy')) }} </b>
+            </span>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #overBoardedInfo let-member="member">
+    <div class="popover-info red-border">
+        <div class="popover-row">
+            <span>
+                <b>Overallocation detected — </b><br>
+                Required Resource: <b>{{ member.requiredCount }}</b> <br>
+                Assigned Resource: <b>{{ member.actualAssigned }}</b> <br>
+                <span class="action-text">Please deboard excess resources accordingly.</span>
+            </span>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #futureStartDateInfo let-member="member">
+    <div class="popover-info yellow-border">
+        <div class="popover-row">
+            <span>
+                Starts on <b>{{ member.dbStartDate | date:'dd-MM-yyyy' }}</b>
+            </span>
         </div>
     </div>
 </ng-template>
@@ -1949,15 +2033,18 @@
                 <tbody>
                     <tr *ngFor="let entries of existingEmployeeProjectTimesheetEntries; let i=index">
                         <td>{{ i+1 }}</td>
-                        <td class="min-width100 max-width150 truncate" [title]="entries.projectName || 'NA'">{{ entries.projectName || 'NA' }}
+                        <td class="min-width100 max-width150 truncate" [title]="entries.projectName || 'NA'">{{
+                            entries.projectName || 'NA' }}
                         </td>
-                        <td class="min-width100 max-width150 truncate" [title]="entries.projectType || 'NA'">{{ entries.projectType || 'NA' }}
+                        <td class="min-width100 max-width150 truncate" [title]="entries.projectType || 'NA'">{{
+                            entries.projectType || 'NA' }}
                         </td>
                         <td class="min-width100 max-width150 truncate"
                             [title]="entries.projectStartDate ? (entries.projectStartDate | date:'dd-MM-yyyy') : 'NA' ">
                             {{ entries.projectStartDate ? (entries.projectStartDate | date:'dd-MM-yyyy') : 'NA' }}
                         </td>
-                        <td class="min-width100 max-width150 truncate" [title]="entries.teamName || 'NA'">{{ entries.teamName || 'NA' }}</td>
+                        <td class="min-width100 max-width150 truncate" [title]="entries.teamName || 'NA'">{{
+                            entries.teamName || 'NA' }}</td>
                         <td class="min-width180 max-width200">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" readonly

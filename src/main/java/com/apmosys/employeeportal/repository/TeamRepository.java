@@ -243,7 +243,8 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 			+ "LEFT JOIN Department etmd ON etm.empTeamDepartmentId = etmd.deptId \n"
 			+ "LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId \n"
 			+ "LEFT JOIN PoRequirementMapping prm ON etm.roleId = prm.roleId and etm.poId = prm.poId and prm.active = true \n"
-			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId and ppd.active = true \n"
+			+ "AND DATE(prm.lineItemEndDate) = (SELECT MAX(DATE(prm2.lineItemEndDate)) FROM PoRequirementMapping prm2 WHERE prm2.poId = prm.poId AND prm2.active = true AND prm2.roleId = prm.roleId ) \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = etm.poId and ppd.active = true \n"
 			+ "LEFT JOIN Employee e ON e.empId = etm.empId \n"
 			+ "LEFT JOIN EmpPrimaryProjectMapping eppm ON eppm.empId = e.empId AND eppm.isMapped = 'Y' AND eppm.primaryProjectId=:projectId \n"
 			+ "WHERE t.teamId =:teamId  \n")

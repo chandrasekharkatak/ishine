@@ -934,7 +934,8 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "FROM EmployeeTeamMap etm \n"
 			+ "INNER JOIN RoleDetails rd on rd.roleId = etm.roleId \n"
 			+ "INNER JOIN PoRequirementMapping prm ON etm.poId = prm.poId and etm.roleId = prm.roleId and prm.active = true  \n"
-			+ "INNER JOIN ProjectPoDetails ppd ON prm.poId = ppd.poId and ppd.active = true AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
+			+ "AND DATE(prm.lineItemEndDate) = (SELECT MAX(DATE(prm2.lineItemEndDate)) FROM PoRequirementMapping prm2 WHERE prm2.poId = prm.poId AND prm2.active = true AND prm2.roleId = prm.roleId  ) \n"
+			+ "INNER JOIN ProjectPoDetails ppd ON etm.poId = ppd.poId and ppd.active = true AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
 			+ "where ppd.projectId =:projectId \n"
 			+ "GROUP BY prm.poRequirementMappingId")
 	List<PoDetailsDto> getAssigedAndApprovedEmployeeCountByProjectId(Integer projectId, boolean currentActivePO);

@@ -28,7 +28,9 @@ export class RmgTeamMember {
     poStartDate: any;
     poEndDate: any;
     poRequirementMappingId: any;
-
+    lineItemStartDate: any;
+    lineItemEndDate: any;
+    
     roleId: any;
     role: any;
     experience: any;
@@ -71,6 +73,7 @@ export class RmgTeamMember {
     otherActiveProjectIds: any[] = [];
     otherActiveProjects: EmployeeOtherActiveProject[] = [];
 
+    isOverboardedRole: boolean = false;
     isNotSaved: boolean = false;
     isMemberSelected: boolean = false;
     projectList: any[] = [];
@@ -83,4 +86,6 @@ export class RmgTeamMember {
     roleFilterActionLabel: 'Show Active PO Roles' | 'Show All PO Roles' = 'Show Active PO Roles';
     poFilterActionLabel: 'Show Active PO' | 'Show All PO' = 'Show Active PO';
 
+    requiredCount:any;
+    actualAssigned:any;
 }

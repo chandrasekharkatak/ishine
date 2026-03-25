@@ -4250,7 +4250,7 @@ public class TeamsService {
 			}
 
 			List<RmgTeamDto> teamDtoList = poDetailsDto.getTeamList();
-			Long currentUserEmpId = teamDtoList.stream().map(RmgTeamDto::getTeamId).filter(Objects::nonNull).findFirst().orElse(null);
+			Long currentUserEmpId = teamDtoList.stream().map(RmgTeamDto::getUpdatedBy).filter(Objects::nonNull).findFirst().orElse(null);
 			if (currentUserEmpId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Emp Id cannot be null!!");
@@ -4267,6 +4267,7 @@ public class TeamsService {
 
 			List<String> ableToInactiveTeamNames = new ArrayList<>();
 			List<String> unableToInactiveTeamNames = new ArrayList<>();
+			LocalDate today = LocalDate.now();
 			for (RmgTeamDto teamDto : teamDtoList) {
 				Team team = teamList.stream().filter(t -> Objects.equals(t.getTeamId(), teamDto.getTeamId()))
 						.findFirst().orElse(null);
@@ -4285,6 +4286,8 @@ public class TeamsService {
 						if (teamDto.getEndDate() == null) {
 							empTeamMap.setActive(0L);
 							empTeamMap.setEndDate(LocalDateTime.now());
+						} else if(!teamDto.getEndDate().toLocalDate().isAfter(today)){
+							empTeamMap.setActive(0L);
 						}
 					});
 					employeeTeamMapRepository.saveAll(employeeTeamMappings);
