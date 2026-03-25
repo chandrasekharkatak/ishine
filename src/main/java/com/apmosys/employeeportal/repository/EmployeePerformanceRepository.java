@@ -40,7 +40,8 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 			+ "             erp.performance_rating_id,\n"
 			+ "              ep.hr_remarks,\n"
 			+ "             ep.hr_review_status,\n"
-			+ "             ep.reject_status\n"
+			+ "             ep.reject_status,\n"
+			+ "             ep.manager_remarks\n"
 			+ "			FROM employee_performance ep\n"
 			+ "			INNER JOIN employee_rating_performance erp \n"
 			+ "			    ON ep.quarter_id = erp.quarter_id \n"
@@ -69,6 +70,33 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 			+ "WHERE ep.emp_id = :empId AND ep.quarter_id = :quarterId "
 			+ "ORDER BY ep.employee_performance_id DESC LIMIT 1")
 	List<Object[]> findApprovalDetailsByEmpIdAndQuarterId(@Param("empId") Long empId, @Param("quarterId") Long quarterId);
+
+	/** Approval audit history rows for popup (all records in quarter, latest first). */
+	@Query(nativeQuery = true, value = "SELECT ep.employee_performance_id, ep.final_rating, "
+			+ "ep.manager_id, ep.manager_remarks, ep.manager_review_date, e_m.name AS manager_name, e_m.employeement_id AS manager_employment_id, "
+			+ "ep.hod_id, ep.hod_remarks, ep.hod_approval_date, ep.hod_rejected_date, e_h.name AS hod_name, e_h.employeement_id AS hod_employment_id, "
+			+ "ep.hr_id, ep.hr_remarks, ep.hr_review_date, ep.hr_review_status, e_hr.name AS hr_name, e_hr.employeement_id AS hr_employment_id "
+			+ "FROM employee_performance ep "
+			+ "LEFT JOIN employee e_m ON ep.manager_id = e_m.emp_id "
+			+ "LEFT JOIN employee e_h ON ep.hod_id = e_h.emp_id "
+			+ "LEFT JOIN employee e_hr ON ep.hr_id = e_hr.emp_id "
+			+ "WHERE ep.emp_id = :empId AND ep.quarter_id = :quarterId "
+			+ "ORDER BY ep.employee_performance_id DESC")
+	List<Object[]> findApprovalAuditHistoryByEmpIdAndQuarterId(@Param("empId") Long empId, @Param("quarterId") Long quarterId);
+
+	/** Approval audit history rows across all years (for year-wise summary in popup). */
+	@Query(nativeQuery = true, value = "SELECT ep.employee_performance_id, ep.final_rating, ep.quarter_id, qc.financial_year, qc.quarter_cycle, "
+			+ "ep.manager_id, ep.manager_remarks, ep.manager_review_date, e_m.name AS manager_name, e_m.employeement_id AS manager_employment_id, "
+			+ "ep.hod_id, ep.hod_remarks, ep.hod_approval_date, ep.hod_rejected_date, e_h.name AS hod_name, e_h.employeement_id AS hod_employment_id, "
+			+ "ep.hr_id, ep.hr_remarks, ep.hr_review_date, ep.hr_review_status, e_hr.name AS hr_name, e_hr.employeement_id AS hr_employment_id "
+			+ "FROM employee_performance ep "
+			+ "LEFT JOIN quater_cycle qc ON ep.quarter_id = qc.quarter_id "
+			+ "LEFT JOIN employee e_m ON ep.manager_id = e_m.emp_id "
+			+ "LEFT JOIN employee e_h ON ep.hod_id = e_h.emp_id "
+			+ "LEFT JOIN employee e_hr ON ep.hr_id = e_hr.emp_id "
+			+ "WHERE ep.emp_id = :empId "
+			+ "ORDER BY ep.employee_performance_id DESC")
+	List<Object[]> findApprovalAuditHistoryByEmpId(@Param("empId") Long empId);
 
 	@Query(nativeQuery = true , value="SELECT  \n"
 			+ "    d.name AS department_name,\n"
