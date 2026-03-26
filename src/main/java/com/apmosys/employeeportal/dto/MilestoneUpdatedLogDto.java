@@ -32,9 +32,7 @@ public class MilestoneUpdatedLogDto {
     private Date extendedDate;
     
     private Long updatedBy;
-    
-   
-
+    private String updatedByName;
 
     private Long milestoneExtensionReasonId;
     private String milestoneExtensionReasonText;
