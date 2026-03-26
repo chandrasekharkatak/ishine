@@ -60,12 +60,12 @@ export class AttendanceReconciliationComponent implements OnInit {
   name: string;
   page = 1;
   totalRecords: number = 0;
-  pageSize: number = 20;
+  pageSize: number = 10;
   formattedDate: string;
   startformattedDate: string;
   endformattedDate: string;
   maxTodayDate: any;
-  AttendancereConciliation: any[] = ['employeeCode', 'employeeName', 'inTime', 'outTime', 'totalDuration', 'shiftDuration', 'logDate', 'departmentName', 'reportingManagerName'];
+  AttendancereConciliation: any[] = ['employeeCode', 'employeeName', 'inTime', 'outTime', 'totalDuration', 'logDate', 'departmentName', 'reportingManagerName'];
   timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
 
   filters: any = {};
@@ -120,8 +120,10 @@ export class AttendanceReconciliationComponent implements OnInit {
 
   }
 
-  onSearch(searchData) {
+  onSearch(searchData: any) {
     this.filters = searchData;
+    this.page = 1; // Reset to first page when searching
+    this.getBioMatricData(this.startDate, this.endDate);
   }
 
   //pagination
@@ -140,26 +142,58 @@ export class AttendanceReconciliationComponent implements OnInit {
     }
   }
 
+  // getBioMatricData(startDate: string, endDate: string) {
+  //   const startdateformat = this.formatDate(startDate);
+  //   const enddateformat = this.formatDate(endDate);
+
+  //   this.attendanceReconciliationService.getBiomatricData(startdateformat, enddateformat, this.page, this.pageSize).subscribe((response: any) => {
+  //     this.attendanceReconciliationList = response.serviceResponse.data;
+  //     this.totalRecords = response.serviceResponse.totalRecords;
+  //     this.attendanceReconciliationList.forEach(employee => {
+
+  //       employee.emp360 = employee.empId;
+
+  //       employee.employeementId = String(employee.employeeCode);
+  //       if (employee.employeementId.startsWith('A'))
+  //         employee.employeementId = employee.employeementId.substring(1);
+  //       employee.employeementId = "A-".concat(employee.employeementId);
+  //     });
+
+  //     // console.log("this.attendanceReconciliationList" , this.attendanceReconciliationList);
+  //     this.attendanceReconciliationOriginaldata = [... this.attendanceReconciliationList];
+  //     this.modalRef?.close();
+  //   });
+  // }
+
   getBioMatricData(startDate: string, endDate: string) {
     const startdateformat = this.formatDate(startDate);
     const enddateformat = this.formatDate(endDate);
-
-    this.attendanceReconciliationService.getBiomatricData(startdateformat, enddateformat, this.page, this.pageSize).subscribe((response: any) => {
-      this.attendanceReconciliationList = response.serviceResponse.data;
-      this.totalRecords = response.serviceResponse.totalRecords;
-      this.attendanceReconciliationList.forEach(employee => {
-
-        employee.emp360 = employee.empId;
-
-        employee.employeementId = String(employee.employeeCode);
-        if (employee.employeementId.startsWith('A'))
-          employee.employeementId = employee.employeementId.substring(1);
-        employee.employeementId = "A-".concat(employee.employeementId);
-      });
-
-      // console.log("this.attendanceReconciliationList" , this.attendanceReconciliationList);
-      this.attendanceReconciliationOriginaldata = [... this.attendanceReconciliationList];
-      this.modalRef?.close();
+    
+    // Prepare search parameters
+    let searchParams = {};
+    if (this.isSearchEnabled && this.filters && Object.keys(this.filters).length > 0) {
+        searchParams = this.filters;
+    }
+    
+    this.attendanceReconciliationService.getBiomatricDataWithSearch(
+        startdateformat, 
+        enddateformat, 
+        this.page, 
+        this.pageSize,
+        searchParams
+    ).subscribe((response: any) => {
+        this.attendanceReconciliationList = response.serviceResponse.data;
+        this.totalRecords = response.serviceResponse.totalRecords;
+        this.attendanceReconciliationList.forEach(employee => {
+            employee.emp360 = employee.empId;
+            employee.employeementId = String(employee.employeeCode);
+            if (employee.employeementId.startsWith('A'))
+                employee.employeementId = employee.employeementId.substring(1);
+            employee.employeementId = "A-".concat(employee.employeementId);
+        });
+        
+        this.attendanceReconciliationOriginaldata = [... this.attendanceReconciliationList];
+        this.modalRef?.close();
     });
   }
 
@@ -296,11 +330,11 @@ export class AttendanceReconciliationComponent implements OnInit {
   searchRecords() {
     console.log('Searching records from:', this.startDate, 'to:', this.endDate);
     if (this.startDate && this.endDate) {
-      this.page = 1;
-      this.getBioMatricData(this.startDate, this.endDate);
+        this.page = 1;
+        this.getBioMatricData(this.startDate, this.endDate);
     } else {
-      console.error('Start date or end date is missing');
-      // Optionally, show an alert or error message to the user
+        console.error('Start date or end date is missing');
+        // Optionally, show an alert or error message to the user
     }
   }
 

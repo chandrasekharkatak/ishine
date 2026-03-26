@@ -19,6 +19,9 @@ export class ColumnFilterBarComponent implements OnInit {
   currentBreadcrumbList: any[] = [];
   projectManagement: any;
 
+  @Input()
+  searchOnEnter: boolean = false;
+
   @Output()
   onSearch:EventEmitter<any> = new EventEmitter();
 
