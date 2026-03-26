@@ -29,6 +29,7 @@ export class TrainingContentViewComponent implements OnDestroy {
   @Input() hasQuiz: boolean = false;
   @Input() quizAttempted: boolean = false;
   @Input() isAlreadySubmitted: boolean = false;
+  @Input() lastCompletedOn: any = null;
   @Input() consentRequired: string = 'false';
   @Input() trainingId: number;
   @Input() cycleNumber: number;
@@ -76,6 +77,7 @@ export class TrainingContentViewComponent implements OnDestroy {
   formSubmitted: boolean = false;
   isCompletedAlertClosed: boolean = false;
   isAdminAlertClosed: boolean = false;
+  hasOpenedQuizOnce: boolean = false;
 
   // Quiz question sidebar state
   quizQuestionCount: number = 0;
@@ -91,6 +93,7 @@ export class TrainingContentViewComponent implements OnDestroy {
     this.activeTab = 'content'; // Reset to content view on open
     this.isCompletedAlertClosed = false; // Reset alert visibility
     this.isAdminAlertClosed = false;
+    this.hasOpenedQuizOnce = false; // Reset quiz initialization flag
     this.initializeContent();
     this.modalRef = this.modalService.open(this.modalTemplate, {
       size: 'xl',
@@ -449,6 +452,7 @@ export class TrainingContentViewComponent implements OnDestroy {
   onQuizTabClick() {
     if (this.canSwitchToQuiz()) {
       this.activeTab = 'quiz';
+      this.hasOpenedQuizOnce = true;
     }
   }
 
@@ -470,7 +474,9 @@ export class TrainingContentViewComponent implements OnDestroy {
   onQuizSubmitted(passed: boolean) {
     this.quizAttempted = true;
     this.formSubmitted = true;
+    this.hasSeenContent = true;
     this.quizSubmitRef.close();
+    // this.close();
   }
 
   onQuizQuestionStateChanged(state: { index: number; answered: boolean[] }) {
@@ -523,6 +529,8 @@ export class TrainingContentViewComponent implements OnDestroy {
     }
     
     this.closed.emit();
+    this.formSubmitted = false;
+    this.hasOpenedQuizOnce = false; // Clean up on close
   }
 
   clearAllPreviewData() {
@@ -583,6 +591,34 @@ export class TrainingContentViewComponent implements OnDestroy {
     }
 
     return false;
+  }
+
+  get updateTipMessage(): string | null {
+    if (this.isAdminMode) return null;
+
+    if(!this.lastCompletedOn){
+      return 'A new training has been added.';
+    } else {
+      if(this.hasQuiz){
+        if(!this.quizAttempted){
+          if(this.hasSeenContent){
+            return 'A new quiz has been added.';
+          } else {
+            return 'A new content and quiz has been added.';
+          }
+        } else {
+          if(!this.hasSeenContent){
+            return 'A new content has been added.';
+          }
+        }
+      } else {
+        if(!this.hasSeenContent){
+          return 'A new content has been added.'
+        }
+      }
+    }
+
+    return null;
   }
 
   ngOnDestroy() {

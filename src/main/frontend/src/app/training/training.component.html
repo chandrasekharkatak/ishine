@@ -238,23 +238,30 @@
         </div>
 
         <!-- Pagination -->
-        <div class="tc-pagination mt-4" *ngIf="getTotalAllTrainingsPages() > 1">
+        <!-- Redesigned Modern Pagination -->
+        <div class="tc-pagination-container mt-5 mb-4" *ngIf="getTotalAllTrainingsPages() > 1">
           <nav aria-label="Training pagination">
-            <ul class="pagination justify-content-center">
-              <li class="page-item" [ngClass]="{ disabled: allTrainingsPage === 1 }">
-                <a class="page-link" href="javascript:void(0)" (click)="allTrainingsPage = 1" *ngIf="allTrainingsPage > 1">First</a>
+            <ul class="pagination-modern">
+              <li class="page-item-modern arrow" 
+                  [class.disabled]="allTrainingsPage === 1" 
+                  (click)="allTrainingsPage > 1 && (allTrainingsPage = allTrainingsPage - 1)">
+                <i class="fas fa-chevron-left"></i>
+                <span class="d-none d-sm-inline ml-2">Prev</span>
               </li>
-              <li class="page-item" [ngClass]="{ disabled: allTrainingsPage === 1 }">
-                <a class="page-link" href="javascript:void(0)" (click)="allTrainingsPage = allTrainingsPage - 1" *ngIf="allTrainingsPage > 1">Previous</a>
+              
+              <li *ngFor="let page of getVisiblePageNumbers()" 
+                  class="page-item-modern-number" 
+                  [class.active]="allTrainingsPage === page"
+                  [class.dots]="page === '...'"
+                  (click)="page !== '...' && (allTrainingsPage = page)">
+                {{ page }}
               </li>
-              <li class="page-item active">
-                <span class="page-link">Page {{ allTrainingsPage }} of {{ getTotalAllTrainingsPages() }}</span>
-              </li>
-              <li class="page-item" [ngClass]="{ disabled: allTrainingsPage === getTotalAllTrainingsPages() }">
-                <a class="page-link" href="javascript:void(0)" (click)="allTrainingsPage = allTrainingsPage + 1" *ngIf="allTrainingsPage < getTotalAllTrainingsPages()">Next</a>
-              </li>
-              <li class="page-item" [ngClass]="{ disabled: allTrainingsPage === getTotalAllTrainingsPages() }">
-                <a class="page-link" href="javascript:void(0)" (click)="allTrainingsPage = getTotalAllTrainingsPages()" *ngIf="allTrainingsPage < getTotalAllTrainingsPages()">Last</a>
+
+              <li class="page-item-modern arrow" 
+                  [class.disabled]="allTrainingsPage === getTotalAllTrainingsPages()" 
+                  (click)="allTrainingsPage < getTotalAllTrainingsPages() && (allTrainingsPage = allTrainingsPage + 1)">
+                <span class="d-none d-sm-inline mr-2">Next</span>
+                <i class="fas fa-chevron-right"></i>
               </li>
             </ul>
           </nav>
@@ -290,7 +297,7 @@
 <app-training-content-view></app-training-content-view>
 
 <!-- Alert Modal -->
-<ng-template #alert_message let-modal>
+<!-- <ng-template #alert_message let-modal>
   <div class="modal-header"
     [ngClass]="{
       'bg-success': alertType === 'success',
@@ -325,5 +332,18 @@
         'btn-info': alertType === 'info'
       }"
       (click)="modal.close('close click')">OK</button>
+  </div>
+</ng-template> -->
+
+<ng-template #alert_message let-modal>
+  <div class="alert-modal-container py-4">
+    <div class="alert-modal-content">
+      <p class="alert-modal-message text-center" style="font-size: 1.2rem; font-weight: 500;" *ngIf="alertMessage">{{ alertMessage }}</p>
+      <div class="alert-modal-actions d-flex justify-content-center">
+        <button type="button" class="btn btn-primary" (click)="modal.close()">
+          OK
+        </button>
+      </div>
+    </div>
   </div>
 </ng-template>

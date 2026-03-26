@@ -160,9 +160,14 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   successTitle: string = '';
   successMessage: string = '';
 
+  totalUsers: number = 0;
+  totalUsersAttended: number = 0
+  totalUsersNotAttended: number = 0;
+
   showTypeModal: boolean = false;
   newTrainingType: string = '';
   @ViewChild(TrainingContentViewComponent) contentPreviewModal: TrainingContentViewComponent;
+  currCard: string = 'usersAttended';
   
   constructor(
     private authenticationService: AuthenticationService,
@@ -472,85 +477,11 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       });
   }
 
-  // onCreateTraining() {
-  //   if (!this.validateTrainingForm()) {
-  //     return;
-  //   }
-
-  //   this.contentFormData.effectiveFrom = this.trainingFormData.effectiveFrom;
-  //   this.contentFormData.effectiveTo = this.trainingFormData.effectiveTo;
-
-  //   // Validate content is added during creation
-  //   if (!this.validateContentForm()) {
-  //     //this.openAlertMod(this.alertTemplate, 'Content is required to create a training. Please add content first.', 'warning');
-  //     this.isContentAccordionOpen = true; // Open accordion to show content form
-  //     return;
-  //   }
-
-  //   // Build FormData with both training and content as JSON strings
-  //   const formData = new FormData();
-
-  //   // Training DTO as JSON string
-  //   const trainingDTO = {
-  //     trainingName: this.trainingFormData.trainingName,
-  //     trainingType: this.trainingFormData.trainingType,
-  //     mandatoryFlag: this.trainingFormData.mandatoryFlag || 'false',
-  //     effectiveFrom: this.trainingFormData.effectiveFrom ? moment(this.trainingFormData.effectiveFrom).format('YYYY-MM-DD') : null,
-  //     effectiveTo: this.trainingFormData.effectiveTo ? moment(this.trainingFormData.effectiveTo).format('YYYY-MM-DD') : null,
-  //     // frequencyPerYear: this.trainingFormData.frequencyPerYear || 2,
-  //     lockEnabled: this.trainingFormData.lockEnabled || 'false',
-  //     minViewTimeMinutes: this.trainingFormData.minViewTimeMinutes || null,
-  //     consentRequired:  'true',
-  //     skipAllowed: this.trainingFormData.skipAllowed || 'false',
-  //     deadlineEnabled: this.trainingFormData.deadlineEnabled || 'false',
-  //     deadlinePattern: this.trainingFormData.deadlinePattern || null,
-  //     customDeadlineMonths: this.trainingFormData.customDeadlineMonths || null,
-  //     createdBy: this.currentUser.empId
-  //   };
-
-  //   // Content DTO as JSON string
-  //   const contentDTO = {
-  //     contentType: this.contentFormData.contentType,
-  //     contentName: this.contentFormData.contentName,
-  //     effectiveFrom: this.trainingFormData.effectiveFrom ? moment(this.trainingFormData.effectiveFrom).format('YYYY-MM-DD') : null,
-  //     effectiveTo: this.trainingFormData.effectiveTo ? moment(this.trainingFormData.effectiveTo).format('YYYY-MM-DD') : null,
-  //     externalLinkUrl: this.contentFormData.contentType === 'LINK' ? this.contentFormData.externalLinkUrl : null
-  //   };
-  //    formData.append(
-  //      'trainingDTO',
-  //      new Blob([JSON.stringify(trainingDTO)], { type: 'application/json' })
-  //    );
-     
-  //    formData.append(
-  //      'contentDTO',
-  //      new Blob([JSON.stringify(contentDTO)], { type: 'application/json' })
-  //    );
-  //   // File (if applicable)
-  //   if (this.contentFormData.contentType !== 'LINK' && this.file) {
-  //     formData.append('file', this.file);
-  //   }
-
-  //   // Send training and content together
-  //   this.trainingService.createTrainingWithContent(formData).
-  //   subscribe({
-  //   next: (response: any) => {
-  //     console.log("success===> ",response)
-  //     const createdTraining = response.serviceResponse;
-  //     this.openCreateQuizModal(createdTraining);
-  //   },
-  //   error: (error: any) => {
-  //     console.log("HTTP error => ", error);
-  //     this.openAlertMod(this.alertTemplate,
-  //       error?.error?.serviceStatus || 'Something went wrong',
-  //       'error');
-  //   }
-  // });
-  // }
-
   onCreateTraining() {
     if (!this.validateTrainingForm()) {
       return;
     }
+
 
     this.contentFormData.effectiveFrom = this.trainingFormData.effectiveFrom;
     this.contentFormData.effectiveTo = this.trainingFormData.effectiveTo;
@@ -824,61 +755,25 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.openAlertMod(this.alertTemplate, message, 'success', title);
   }
 
-//   private openCreateQuizModal(createdTraining: any): void {
-
-//   this.modalRef = this.modalService.open(this.createQuizTemplate, {
-//     centered: true
-//   });
-
-//   this.modalRef.result.then((result) => {
-
-//     if (result === 'yes') {
-
-//       // Redirect to quiz page
-//       this.router.navigate(['/configuration/survey-config'], {
-//         queryParams: {
-//           source: 'trainingAccept',
-//           trainingId: createdTraining.trainingId,
-//           trainingName: createdTraining.trainingName,
-
-//         }
-//       });
-
-//     } else {
-
-//       // Stay in training page
-//       this.resetContentForm();
-//       this.resetTrainingForm();
-//       this.showTable();
-//     }
-
-//   }).catch(() => {
-
-//     // If dismissed (X button)
-//     this.resetContentForm();
-//     this.resetTrainingForm();
-//     this.showTable();
-//   });
-// }
-
   private openCreateQuizModal(createdTraining: any): void {
     // Store the created training info for display
     this.selectedTraining = createdTraining;
     this.trainingFormData.trainingName = createdTraining.trainingName;
     
     this.modalRef = this.modalService.open(this.createQuizTemplate, {
-      centered: true,
       backdrop: 'static',
-      windowClass: 'success-modal'
+      windowClass: 'success-modal',
+      size: 'md'
     });
 
     this.modalRef.result.then((result) => {
       if (result === 'yes') {
-        this.router.navigate(['/configuration/survey-config'], {
+        this.router.navigate(['/configuration/training-quiz-config'], {
           queryParams: {
             source: 'trainingAccept',
             trainingId: createdTraining.trainingId,
             trainingName: createdTraining.trainingName,
+            action: 'create'
           }
         });
       } else {
@@ -1173,7 +1068,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       next: (response: any) => {
         const contents = response.serviceResponse || [];
         if (contents.length === 0) {
-          this.openAlertMod(this.alertTemplate, 'No content available for this training', 'info');
+          this.openAlertMod(this.alertTemplate, 'No content available for this training', 'info', null, 'sm');
           return;
         }
 
@@ -1613,8 +1508,10 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.page = event;
   }
 
-  onViewTrainingResponse(training: any) {
-    this.trainingService.getTrainingResponses(training.trainingId).subscribe({
+  onViewTrainingResponse(training: any, type: 'usersAttended' | 'usersNotAttended' = 'usersAttended') {
+    this.selectedTraining = training;
+    this.getCountOfResponses(training.trainingId);
+    this.trainingService.getTrainingResponses(training.trainingId, type).subscribe({
       next: (response:any) =>{
         this.allTrainingResponse = response.serviceResponse || [];
         this.maxResponseSize = this.allTrainingResponse.length;
@@ -1622,6 +1519,19 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
         this.showTrainingResponseModal();
       }, error: (error) =>{
         this.openAlertMod(this.alertTemplate, 'Error fetching training responses', 'error');
+        console.log(error);
+      }
+    })
+  }
+
+  getCountOfResponses(trainingId: number){
+    this.trainingService.getCountOfResponses(trainingId).subscribe({
+      next: (response:any) =>{
+        this.totalUsers = response.serviceResponse.totalCount || 0;
+        this.totalUsersAttended = response.serviceResponse.completedCount || 0;
+        this.totalUsersNotAttended = response.serviceResponse.notCompletedCount || 0;
+      }, error: (error) =>{
+        this.openAlertMod(this.alertTemplate, 'Error fetching count of responses', 'error');
         console.log(error);
       }
     })
@@ -1666,55 +1576,6 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       keyboard: false     
     });
   }
-
-  // getAllTrainingTypes() {
-  //   this.trainingService.getAllTrainingTypes().subscribe({
-  //     next: (response: any) => {
-  //       console.log(response , '=============');
-  //       if (response.serviceStatus === 'Success') {
-  //         this.trainingTypes = response.serviceResponse || [];
-  //         console.log(this.trainingTypes,'=========training types ==========')
-  //       } else {
-  //         this.openAlertMod(this.alertTemplate, response.message || 'Failed to load training types', 'error');
-  //       }
-  //     },
-  //     error: (error: any) => {
-  //       this.openAlertMod(this.alertTemplate, error.error?.message || 'Failed to load training types', 'error');
-  //     }
-  //   });
-  // }
-
-  // saveNewTrainingType() {
-  //  const typeName = this.newTrainingType.trim();
-    
-  //   // Check if input is empty
-  //   if (!typeName) {
-  //       this.openAlertMod(this.alertTemplate, 'Please enter a training type name', 'warning');
-  //       return;
-  //   }
-
-  //   console.log('Submitting new training type:', typeName);
-
-  //   this.trainingService.addTrainingType(this.newTrainingType.trim(), this.currentUser.empId).subscribe({
-  //     next: (response: any) => {
-  //        console.log('Response:', response);
-
-  //       if (response.serviceStatus === 'Success') {
-  //         this.modalRef.close();
-  //         this.openAlertMod(this.alertTemplate, 'Training type added successfully', 'success');
-  //         console.log("=======addedddddd");
-  //         this.getAllTrainingTypes(); // dropdown method
-  //         this.newTrainingType = '';
-  //       } else {
-  //         this.openAlertMod(this.alertTemplate, response.message || 'Failed to add training type', 'error');
-  //       }
-  //     },
-  //     error: (error: any) => {
-  //       this.openAlertMod(this.alertTemplate, error.error?.message || 'Failed to add training type', 'error');
-  //     }
-  //   });
-  // }
-
 
 downloadResponsesToExcel(): void {
   if (!this.allTrainingResponse || this.allTrainingResponse.length === 0) {
@@ -1996,5 +1857,25 @@ getAllTrainingTypes() {
     }
   });
 }
+
+  fetchUsers(type: 'usersAttended' | 'usersNotAttended') {
+    this.currCard = type;
+    this.isResponseSearchEnabled = false;
+    this.responseTableFilters = {};
+    this.responsePage = 1;
+    this.maxResponseSize = 10;
+    this.selectedTraining = this.selectedTraining;
+    this.getCountOfResponses(this.selectedTraining.trainingId);
+    this.trainingService.getTrainingResponses(this.selectedTraining.trainingId, type).subscribe({
+      next: (response:any) =>{
+        this.allTrainingResponse = response.serviceResponse || [];
+        this.maxResponseSize = this.allTrainingResponse.length;
+        this.responsePage = 1;
+      }, error: (error) =>{
+        this.openAlertMod(this.alertTemplate, 'Error fetching training responses', 'error');
+        console.log(error);
+      }
+    })
+  }
 
 }

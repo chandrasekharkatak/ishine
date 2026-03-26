@@ -1475,7 +1475,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	}
 
 	@Override
-	public ServiceResponse getTrainingResponses(Integer trainingId){
+	public ServiceResponse getTrainingResponses(Integer trainingId, String type){
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("Get Training Responses");
@@ -1494,7 +1494,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 				throw new ResourceNotFoundException("Training Not Found for trainingId: " + trainingId);
 			}
 
-			List<TrainingResponseDTO> trainingResponses = trainingConsentRepository.findByTrainingId(trainingId);
+			List<TrainingResponseDTO> trainingResponses = trainingConsentRepository.findByTrainingId(trainingId, type);
 			response.setStatusCode(HttpStatus.OK.value());
 			response.setServiceResponse(trainingResponses);
 			apiLogInfo.setApiResponse(trainingResponses.toString());
@@ -1728,4 +1728,51 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
         
         return response;
     }
+
+	@Override
+	public ServiceResponse getCountOfResponses(Integer trainingId) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Get Count Of Responses");
+		apiLogInfo.setApiUrl("/api/training/getCountOfResponses");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Training ID: ").append(trainingId);
+		try {
+			TrainingMaster existingTraining = trainingMasterRepository.findById(trainingId).orElse(null);
+			if (existingTraining == null) {
+				apiLogInfo.setApiResponse("Training Not Found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				throw new ResourceNotFoundException("Training Not Found for trainingId: " + trainingId);
+			}
+
+			List<Object[]> trainingResponses = trainingConsentRepository.getTrainingCounts(trainingId);
+			Map<String, Long> trainingResponsesMap = new HashMap<>();
+			for (Object[] resp : trainingResponses) {
+				trainingResponsesMap.put("completedCount", resp[0] != null ? (Long) resp[0] : 0L);
+				trainingResponsesMap.put("notCompletedCount", resp[1] != null ? (Long) resp[1] : 0L);
+				trainingResponsesMap.put("totalCount", resp[2] != null ? (Long) resp[2] : 0L);
+			}
+			response.setStatusCode(HttpStatus.OK.value());
+			response.setServiceResponse(trainingResponsesMap);
+			apiLogInfo.setApiResponse(trainingResponsesMap.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			e.printStackTrace();
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
+		}
+
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+
+	}
+
 }

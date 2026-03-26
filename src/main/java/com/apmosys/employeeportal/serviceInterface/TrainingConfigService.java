@@ -110,7 +110,7 @@ public interface TrainingConfigService {
 	 * @param trainingId Training ID
 	 * @return ServiceResponse containing training responses
 	 */
-	ServiceResponse getTrainingResponses(Integer trainingId);
+	ServiceResponse getTrainingResponses(Integer trainingId, String type);
 	
 	
 	ServiceResponse getLockStatus(Long empId);
@@ -127,4 +127,6 @@ public interface TrainingConfigService {
 	 * 
 	 * */
 	ServiceResponse getAllTrainingTypes();
+
+    ServiceResponse getCountOfResponses(Integer trainingId);
 }

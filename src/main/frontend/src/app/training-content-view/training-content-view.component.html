@@ -65,29 +65,41 @@
             </span>
           </div>
 
-          <!-- Timer Display (Compact Sidebar Version) -->
-          <div class="sidebar-timer mt-auto" *ngIf="showTimer && minViewTimeMinutes > 0 && (status === 'PENDING' || status === 'SKIPPED') && !hasSeenContent">
-            <div class="timer-compact">
-              <div class="timer-compact-label">Time Elapsed</div>
-              <div class="timer-compact-value" [ngClass]="{'timer-complete': minTimeReached}">
-                {{ elapsedTimeDisplay }}
+          <!-- Sidebar Footer (Elements grouped at the bottom) -->
+          <div class="sidebar-footer mt-auto">
+            
+            <!-- 1. Update Tip Message -->
+            <div class="sidebar-tip-msg mb-3" *ngIf="updateTipMessage">
+              <div class="tip-card p-2">
+                <i class="fas fa-lightbulb"></i>
+                <span>{{ updateTipMessage }}</span>
               </div>
-              <div class="progress" *ngIf="!minTimeReached">
-                <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" 
-                     role="progressbar" 
-                     [style.width.%]="(elapsedTime / (minViewTimeMinutes * 60)) * 100">
+            </div>
+
+            <!-- 2. Timer Display -->
+            <div class="sidebar-timer mb-3" *ngIf="activeTab === 'content' && showTimer && minViewTimeMinutes > 0 && (status === 'PENDING' || status === 'SKIPPED') && !hasSeenContent">
+              <div class="timer-compact">
+                <div class="timer-compact-label">Time Elapsed</div>
+                <div class="timer-compact-value" [ngClass]="{'timer-complete': minTimeReached}">
+                  {{ elapsedTimeDisplay }}
+                </div>
+                <div class="progress" *ngIf="!minTimeReached">
+                  <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" 
+                       role="progressbar" 
+                       [style.width.%]="(elapsedTime / (minViewTimeMinutes * 60)) * 100">
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Actions -->
-          <div class="sidebar-actions" *ngIf="activeTab === 'content' && canSubmitConsent()">
-            <button class="btn btn-success sidebar-action-btn"
-                    [disabled]="(minViewTimeMinutes > 0 && !minTimeReached) || (isExternalLink && !hasVisitedLink)"
-                    (click)="onSubmitConsent()">
-              <i class="fas fa-check-circle"></i> Submit Consent
-            </button>
+            <!-- 3. Actions -->
+            <div class="sidebar-actions" *ngIf="activeTab === 'content' && canSubmitConsent()">
+              <button class="btn btn-success sidebar-action-btn"
+                      [disabled]="(minViewTimeMinutes > 0 && !minTimeReached) || (isExternalLink && !hasVisitedLink)"
+                      (click)="onSubmitConsent()">
+                <i class="fas fa-check-circle"></i> Submit Consent
+              </button>
+            </div>
           </div>
         </div>
 
@@ -155,9 +167,9 @@
                 <span class="badge badge-info ml-2">{{ contentType }}</span>
               </div>
               <div *ngIf="!['LINK', 'VIDEO', 'AUDIO'].includes(contentType)">
-                <button class="btn btn-sm btn-outline-primary mr-1" (click)="downloadFile()" title="Download">
+                <!-- <button class="btn btn-sm btn-outline-primary mr-1" (click)="downloadFile()" title="Download">
                   <i class="fas fa-download"></i>
-                </button>
+                </button> -->
                 <button class="btn btn-sm btn-outline-secondary" (click)="openInNewTab()" title="Open in New Tab">
                   <i class="fas fa-external-link-alt"></i>
                 </button>
@@ -351,7 +363,7 @@
         </div>
 
         <!-- ==================== QUIZ VIEW ==================== -->
-        <div class="quiz-view-panel" *ngIf="activeTab === 'quiz'">
+        <div class="quiz-view-panel" *ngIf="hasOpenedQuizOnce" [hidden]="activeTab !== 'quiz'">
           <!-- Quiz layout: question number sidebar (only during active quiz) + quiz content -->
           <div class="quiz-layout">
 

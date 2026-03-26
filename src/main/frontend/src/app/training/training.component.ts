@@ -98,6 +98,7 @@ export class TrainingComponent implements OnInit, OnDestroy {
 
   alertMessage: string = '';
   alertType: string = 'info';
+  isSubmittingConsent: boolean = false;
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -327,6 +328,40 @@ export class TrainingComponent implements OnInit, OnDestroy {
       this.allTrainingsFiltered.length / this.allTrainingsPageSize,
     );
   }
+
+  getVisiblePageNumbers(): any[] {
+    const total = this.getTotalAllTrainingsPages();
+    const current = this.allTrainingsPage;
+    const items: (number | string)[] = [];
+    
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) items.push(i);
+    } else {
+      // Always show first page
+      items.push(1);
+      
+      if (current > 4) {
+        items.push('...');
+      }
+      
+      // Middle range
+      const start = Math.max(2, current - 2);
+      const end = Math.min(total - 1, current + 2);
+      
+      for (let i = start; i <= end; i++) {
+        items.push(i);
+      }
+      
+      if (current < total - 3) {
+        items.push('...');
+      }
+      
+      // Always show last page
+      items.push(total);
+    }
+    
+    return items;
+  }
   /** Banner Skip Logic (Simplified) */
   onSkipTraining(training: any) {
     if (!training) return;
@@ -364,12 +399,39 @@ export class TrainingComponent implements OnInit, OnDestroy {
 
   // Delegated events from TrainingContentViewComponent (Modal)
   onSubmitConsentForModal() {
-    // This is now purely for refreshing list after modal handles submission
-    this.closeTrainingView();
-    setTimeout(() => {
-      this.checkLockStatus();
-      this.loadUserTrainings();
-    }, 1500);
+    if (!this.viewingTraining || this.isSubmittingConsent) return;
+
+    this.isSubmittingConsent = true;
+    this.trainingService.submitConsent({
+      trainingId: this.viewingTraining.trainingId,
+      empId: this.currentUser.empId,
+      cycleNumber: this.viewingTraining.currentCycleNumber,
+      quizId: this.viewingTraining.quizId,
+      contentId: this.viewingTraining.content.contentId,
+      consentGiven: 'true'
+    }).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.openAlert('Consent submitted successfully.', 'success');
+          
+          if (this.contentPreviewModal) {
+            this.contentPreviewModal.close(); // Close the modal specifically
+          }
+          this.closeTrainingView();
+          
+          setTimeout(() => {
+            this.isSubmittingConsent = false; // Reset flag after delay
+            this.checkLockStatus();
+          }, 1500); // CheckLockStatus already calls loadUserTrainings
+        } else {
+          this.openAlert(response.serviceResponse || 'Failed to submit consent', 'error');
+        }
+      },
+      error: (error: any) => {
+        this.isSubmittingConsent = false; // Reset flag on error
+        this.openAlert(error.serviceStatus || 'Failed to submit consent', 'error');
+      }
+    });
   }
 
   onSkipTrainingForModal() {
@@ -430,10 +492,18 @@ export class TrainingComponent implements OnInit, OnDestroy {
     this.contentPreviewModal.consentRequired = this.viewingTraining.consentRequired || 'false';
     this.contentPreviewModal.mandatoryFlag = this.viewingTraining.mandatoryFlag || 'false';
     this.contentPreviewModal.trainingId = this.viewingTraining.trainingId;
+    this.contentPreviewModal.lastCompletedOn = this.viewingTraining.lastCompletedOn || null;
     this.contentPreviewModal.cycleNumber = this.viewingTraining.currentCycleNumber;
     this.contentPreviewModal.contentId = this.viewingTraining.content.contentId;
     this.contentPreviewModal.quizId = this.viewingTraining.quizId;
     this.contentPreviewModal.isAlreadySubmitted = this.viewingTraining.isAlreadySubmitted || false;
+
+    // Unsubscribe from previous events if they exist to prevent multiple triggers
+    if (this.consentSub) this.consentSub.unsubscribe();
+    if (this.quizSub) this.quizSub.unsubscribe();
+    if (this.quizCompletedSub) this.quizCompletedSub.unsubscribe();
+    if (this.linkSub) this.linkSub.unsubscribe();
+    if (this.closeSub) this.closeSub.unsubscribe();
 
     // Subscribe to events (unsubscribe in ngOnDestroy to prevent memory leaks)
     this.consentSub = this.contentPreviewModal.consentSubmitted.subscribe(() => this.onSubmitConsentForModal());
@@ -450,6 +520,7 @@ export class TrainingComponent implements OnInit, OnDestroy {
 
   // Update your viewTraining method to prepare the data
   viewTraining(training: any, isDeadlineCrossed: boolean = false) {
+
     if (!training || !training.content) {
       this.openAlert('Training content not available', 'warning');
       return;
@@ -519,7 +590,7 @@ export class TrainingComponent implements OnInit, OnDestroy {
     this.alertMessage = message;
     this.alertType = type;
     this.modalRef = this.modalService.open(this.alertTemplate, {
-      backdrop: false,
+      backdrop: true,
       windowClass: 'alert-toast-modal',
       modalDialogClass: 'alert-toast-dialog',
       size: 'sm',

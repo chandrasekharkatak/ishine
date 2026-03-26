@@ -72,6 +72,10 @@ export class TrainingQuizConfigComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.trainingName = params['trainingName'] || '';
       this.trainingId   = params['trainingId'] ? +params['trainingId'] : null;
+      
+      if (params['action'] === 'create') {
+        this.onCreateNew();
+      }
     });
     this.getAllSurveys();
   }
@@ -83,7 +87,7 @@ export class TrainingQuizConfigComponent implements OnInit {
   getAllSurveys(): void {
     this.surveyService.getAllSurveys(this.trainingId, 'quiz').subscribe({
       next: (res: any) => {
-        this.allSurveyList = res.serviceResponse;
+        this.allSurveyList = Array.isArray(res.serviceResponse) ? res.serviceResponse : [];
       },
       error: (err: any) => {
         console.error(err);
@@ -167,7 +171,9 @@ export class TrainingQuizConfigComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     // Close all menus when clicking elsewhere
-    this.allSurveyList.forEach(s => (s as any)['_menuOpen'] = false);
+    if (Array.isArray(this.allSurveyList)) {
+      this.allSurveyList.forEach(s => (s as any)['_menuOpen'] = false);
+    }
   }
 
   onViewResponses(row: SurveyRow): void {

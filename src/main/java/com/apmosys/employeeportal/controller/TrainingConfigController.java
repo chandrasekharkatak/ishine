@@ -354,7 +354,7 @@ public class TrainingConfigController {
 
 	@JobRoleAccess(featureIds = {66,74})
 	@GetMapping(value = "/getTrainingResponses/{trainingId}")
-	public ServiceResponse getTrainingResponses( @PathVariable Integer trainingId) {
+	public ServiceResponse getTrainingResponses( @PathVariable Integer trainingId, @RequestParam("type") String type) {
 		try {
 			if (trainingId == null) {
 				ServiceResponse response = new ServiceResponse();
@@ -362,7 +362,7 @@ public class TrainingConfigController {
 				response.setServiceResponse("Training ID is required");
 				return response;
 			}
-			return trainingConfigService.getTrainingResponses(trainingId);
+			return trainingConfigService.getTrainingResponses(trainingId, type);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
@@ -379,4 +379,20 @@ public class TrainingConfigController {
     public ServiceResponse getAllTrainingTypes() {
         return trainingConfigService.getAllTrainingTypes();
     }
+
+	@GetMapping("/getCountOfResponses/{trainingId}")
+	public ServiceResponse getCountOfResponses(@PathVariable Integer trainingId) {
+		try {
+			if (trainingId == null) {
+				ServiceResponse response = new ServiceResponse();
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Training ID is required");
+				return response;
+			}
+			return trainingConfigService.getCountOfResponses(trainingId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
 }

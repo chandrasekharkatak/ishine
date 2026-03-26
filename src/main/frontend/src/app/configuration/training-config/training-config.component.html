@@ -12,7 +12,7 @@
       <button class="btn btn-sm btn-outline-primary" style="border-radius: 5px;" *ngIf="userMapping.create_training" (click)="showTrainingForm()">
         <i class="fa-solid fa-plus"></i> Create New Training
       </button>
-      <button class="search-trigger" *ngIf="isTable" [class.active]="isSearchEnabled" (click)="toggleSearch()" title="Toggle Search Filters">
+      <button class="search-trigger search-responses" *ngIf="isTable" [class.active]="isSearchEnabled" (click)="toggleSearch()" title="Toggle Search Filters">
         <i class="fas" [ngClass]="isSearchEnabled ? 'fa-times' : 'fa-search'"></i>
       </button>
     </div>
@@ -485,22 +485,24 @@
   <div class="alert-modal-container">
     
     <div class="alert-modal-content">
-      <h3 class="alert-modal-title">{{ alertTitle || (alertType === 'success' ? 'Success' : alertType === 'error' ? 'Error' : alertType === 'warning' ? 'Warning' : 'Information') }}</h3>
+      <h3 class="alert-modal-title">{{ alertTitle }}</h3>
       <p class="alert-modal-message" *ngIf="alertMessage">{{ alertMessage }}</p>
       
       <div class="alert-modal-actions">
-        <button type="button" class="btn" [ngClass]="{
-          'btn-success': alertType === 'success',
-          'btn-danger': alertType === 'error',
-          'btn-warning': alertType === 'warning',
-          'btn-info': alertType === 'info'
-        }" (click)="modal.close()">
-          <i class="fas fa-check"></i> OK
+        <button type="button" class="btn btn-primary" (click)="modal.close()">
+          OK
         </button>
       </div>
     </div>
   </div>
 </ng-template>
+
+<!-- <ng-template #alert_message let-modal>
+  <div class="modal-body text-center">
+    <p style="font-weight: 500;">{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="modal.close()">OK</button>
+  </div>
+</ng-template> -->
 
 <!-- Delete Confirmation Modal -->
 <ng-template #delete_template let-modal>
@@ -539,8 +541,22 @@
           <div class="stat-card">
             <div class="stat-icon"><i class="fas fa-users"></i></div>
             <div class="stat-details">
-              <span class="stat-label">Total Responses</span>
-              <span class="stat-value">{{ allTrainingResponse?.length || 0 }}</span>
+              <span class="stat-label">Total Users</span>
+              <span class="stat-value">{{ totalUsers || 0 }}</span>
+            </div>
+          </div>
+          <div class="stat-card" style="width: 100%;" (click)="fetchUsers('usersAttended')" style="cursor: pointer;">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-details">
+              <span class="stat-label">Total Users Attended</span>
+              <span class="stat-value">{{ totalUsersAttended || 0 }}</span>
+            </div>
+          </div>
+          <div class="stat-card" style="width: 100%;" (click)="fetchUsers('usersNotAttended')" style="cursor: pointer;">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-details">
+              <span class="stat-label">Total Users Not Attended</span>
+              <span class="stat-value">{{ totalUsersNotAttended || 0 }}</span>
             </div>
           </div>
         </div>
@@ -581,10 +597,10 @@
                   <span class="consent-badge" [class.consent-yes]="training.consentGiven?.toLowerCase() == 'true'"
                         [class.consent-no]="training.consentGiven?.toLowerCase() != 'true'">
                     <i class="fas" [ngClass]="training.consentGiven?.toLowerCase() == 'true' ? 'fa-check-circle' : 'fa-times-circle'"></i>
-                    {{ training.consentGiven?.toLowerCase() == 'true' ? 'Yes' : 'No' }}
+                    {{ currCard == 'usersAttended' ? (training.consentGiven?.toLowerCase() == 'true' ? 'Yes' : 'No') : 'N/A' }}
                   </span>
                 </td>
-                <td class="completion-date"><i class="far fa-clock"></i> {{ training.lastCompletedOn | date : 'dd-MM-yyyy HH:mm:ss' }}</td>
+                <td class="completion-date"><i class="far fa-clock"></i> {{ currCard == 'usersAttended' ? (training.lastCompletedOn | date : 'dd-MM-yyyy HH:mm:ss') : 'Not Completed' }}</td>
               </tr>
             </tbody>
           </table>
@@ -654,6 +670,25 @@
               [disabled]="!newTrainingType?.trim() || isTrainingTypeDuplicate || newTrainingType.trim().length < 3">
         <i class="fas fa-plus-circle"></i>
         Add Training Type
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Create Quiz Success Modal -->
+<ng-template #create_quiz_template let-modal>
+  <div class="modal-body text-center p-4">
+    <h4 class="mb-2" style="font-weight: 600; color: #111827;">Training Created Successfully!</h4>
+    <p class="text-muted mb-4" style="font-size: 0.95rem;">
+      Would you like to add a new quiz to this training now?
+    </p>
+    
+    <div class="d-flex justify-content-center" style="gap: 10px;">
+      <button type="button" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px; font-weight: 500;" (click)="modal.close('no')">
+        Later
+      </button>
+      <button type="button" class="btn btn-primary px-4 py-2" style="border-radius: 8px; font-weight: 500;" (click)="modal.close('yes')">
+        Create Quiz
       </button>
     </div>
   </div>

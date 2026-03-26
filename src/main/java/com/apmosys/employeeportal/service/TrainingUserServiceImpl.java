@@ -614,7 +614,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 
 					
 				}
-				List<TrainingConsent> allConsents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, training.getTrainingId(), activeQuizId);
+				List<TrainingConsent> allConsents = trainingConsentRepository.findByEmpIdAndTrainingId(empId, training.getTrainingId());
 					if (!allConsents.isEmpty()) {
 						// List is already sorted DESC by consentTimestamp, so first element is most recent
 						TrainingConsent mostRecentConsent = allConsents.get(0);
@@ -757,7 +757,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			dto.setNeedsAssignment(completionCount < calculateTotalFrequency(training));
 
 			// Get last completed date
-			List<TrainingConsent> consents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, trainingId, activeQuizId);
+			List<TrainingConsent> consents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, trainingId);
 			if (!consents.isEmpty()) {
 				dto.setLastCompletedOn(consents.get(0).getConsentTimestamp().toLocalDateTime().toString());
 			}

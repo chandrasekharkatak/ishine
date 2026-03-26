@@ -406,12 +406,12 @@
   overflow: hidden;
   animation: modalFadeIn 0.2s ease-out;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
+  /* margin-top: 20px; */
 }
 
 /* Alert Content - Clean Layout */
 .alert-modal-content {
-  padding: 32px 32px 36px 32px;
+  padding: 32px 0px 20px 0px;
   text-align: center;
 }
 
@@ -424,9 +424,10 @@
 }
 
 .alert-modal-message {
-  font-size: 0.9rem;
+  font-size: 1rem;
+  font-weight: 500;
   color: var(--text-secondary);
-  line-height: 1.5;
+  /* line-height: 1.5; */
   margin: 0;
   padding: 0 8px;
 }
@@ -435,10 +436,10 @@
 .alert-modal-actions {
   display: flex;
   justify-content: center;
-  margin-top: 28px;
+  margin-top: 18px;
 }
 
-.alert-modal-actions .btn {
+.alert-modal-actions {
   min-width: 100px;
   padding: 10px 28px;
   border-radius: 40px;
@@ -609,6 +610,15 @@
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.search-trigger .search-responses {
+  border: 1px solid #193d8a;
+  border-radius: var(--radius-sm);
+  padding: 5px 11px;
+  color: #193d8a;
+  font-size: 0.82rem;
+  font-weight: 500;
 }
 
 .search-trigger:hover {
@@ -1544,11 +1554,6 @@
     min-width: 90%;
     max-width: 90%;
     margin: 0 auto;
-  }
-  
-  .alert-modal-container {
-    min-width: 90%;
-    max-width: 90%;
   }
 }
 
