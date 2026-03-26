@@ -83,7 +83,7 @@
               </tr>
 
               <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="AttendancereConciliation"
-                (onSearch)="onSearch($event);page=1"></tr>
+                [searchOnEnter]="true" (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody *ngIf="!clickFilter">
               <tr
@@ -93,15 +93,15 @@
               <tr 
                 *ngFor="let  attendance of attendanceReconciliationList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: pageSize, currentPage: page, totalItems: totalRecords }, let i = index">
                 <td>{{attendance.employeementId}}</td>
-                <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="attendance.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{attendance.employeeName || 'NA'}}</td>
-                <td *ngIf="!userMapping.reports_employee_360">{{attendance.employeeName || 'NA'}}</td>
-                <td>{{attendance.inTime }}</td>
-                <td>{{attendance.outTime }}</td>
-                <td>{{attendance.totalDuration || 'NA'}}{{attendance.totalDuration ? ' hrs' : ''}}</td>
+                <td id="clickablefor360" *ngIf="userMapping.reports_employee_360 && attendance.employeeName && attendance.employeeName !== 'N/A'" [navigateToEmployee360]="attendance.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{attendance.employeeName}}</td>
+                <td *ngIf="!userMapping.reports_employee_360 || !attendance.employeeName || attendance.employeeName === 'N/A'">{{attendance.employeeName || 'N/A'}}</td>
+                <td>{{attendance.inTime || 'N/A'}}</td>
+                <td>{{attendance.outTime || 'N/A'}}</td>
+                <td>{{attendance.totalDuration || 'N/A'}}{{attendance.totalDuration ? ' hrs' : ''}}</td>
                 <!-- <td>{{attendance.shiftDuration || 'NA'}}{{attendance.shiftDuration ? ' hrs' : ''}}</td> -->
                 <td>{{attendance.logDate}}</td>
-                <td>{{attendance.departmentName || 'NA'}}</td>
-                <td>{{attendance.reportingManagerName || 'NA'}}</td>
+                <td>{{attendance.departmentName || 'N/A'}}</td>
+                <td>{{attendance.reportingManagerName || 'N/A'}}</td>
               </tr>
             </tbody>
             <tbody *ngIf="clickFilter">

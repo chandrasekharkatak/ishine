@@ -26,4 +26,15 @@ export class AttendanceReconciliationService {
     append("date",date);
     return this.http.get(`${this.baseUrl}` + `api/getBioDataById`, {params: httpParams});
   }
+
+  getBiomatricDataWithSearch(startDate: string, endDate: string, pageNumber: number, pageSize: number, searchParams: any) {
+    const url = `${this.baseUrl}api/getBioData`;
+    return this.http.post(url, {
+        startDate: startDate,
+        endDate: endDate,
+        pageNumber: pageNumber,
+        pageSize: pageSize,
+        searchParams: searchParams
+    });
+}
 }
