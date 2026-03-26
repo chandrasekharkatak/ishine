@@ -226,5 +226,9 @@ export class ResourceManagementService {
     return this.http.get(`${this.baseUrl}`+`api/getProjectAssignedDataByProjectId`,{params:{id:id,totalRequirements:totalRequirements}})
   }
 
+completeProjectReminder(poProjectId: number) {
+  return this.http.post(`${this.baseUrl}api/completeProjectReminder?poProjectId=${poProjectId}`,{} );
+}
+
 }
 

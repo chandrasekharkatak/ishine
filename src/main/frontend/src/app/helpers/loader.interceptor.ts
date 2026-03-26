@@ -488,7 +488,10 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/deleteSurvey`,
     `${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`,
     `${this.baseUrl}` + `api/changeSurveyStatus`,
-    `${this.baseUrl}` + `api/training/getAllTrainingTypes`
+    `${this.baseUrl}` + `api/training/getAllTrainingTypes`,
+    `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
+    `${this.baseUrl}` + `api/getExtensionDocumentByName`,
+    `${this.baseUrl}` + `api/validateDocName`
     
   ]
 
