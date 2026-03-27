@@ -17,6 +17,7 @@ import * as Highcharts from 'highcharts';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { SortPipe } from 'src/app/sort.pipe';
 import { Feature } from 'src/app/models/feature';
+import { ColumnFilterBarComponent } from 'src/app/helpers/column-filter-bar/column-filter-bar.component';
 
 
 class FilterData {
@@ -60,19 +61,19 @@ export class AttendanceReconciliationComponent implements OnInit {
   name: string;
   page = 1;
   totalRecords: number = 0;
-  pageSize: number = 10;
+  pageSize: number = 20;
   formattedDate: string;
   startformattedDate: string;
   endformattedDate: string;
   maxTodayDate: any;
-  AttendancereConciliation: any[] = ['employeeCode', 'employeeName', 'inTime', 'outTime', 'totalDuration', 'logDate', 'departmentName', 'reportingManagerName'];
+  AttendancereConciliation: any[] = ['employeeCode', 'employeeName', 'logDate', 'inTime', 'outTime', 'totalDuration', 'departmentName', 'reportingManagerName'];
   timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
 
   filters: any = {};
   fromDate: string = '';
   toDate: string = '';
   currentDate: string;
-
+  Math = Math;
 
   feature = 'Reports';
   userMapping: any = {};
@@ -123,7 +124,18 @@ export class AttendanceReconciliationComponent implements OnInit {
   onSearch(searchData: any) {
     this.filters = searchData;
     this.page = 1; // Reset to first page when searching
-    this.getBioMatricData(this.startDate, this.endDate);
+    
+    // Check if any filter has value
+    const hasFilters = searchData && Object.values(searchData).some(value => value && (value as string).trim() !== '');
+    
+    if (hasFilters) {
+      // If there are active filters, search with filters
+      this.getBioMatricData(this.startDate, this.endDate);
+    } else {
+      // If all filters are empty, get all data
+      this.filters = {};
+      this.getBioMatricData(this.startDate, this.endDate);
+    }
   }
 
   //pagination
@@ -169,31 +181,37 @@ export class AttendanceReconciliationComponent implements OnInit {
     const startdateformat = this.formatDate(startDate);
     const enddateformat = this.formatDate(endDate);
     
-    // Prepare search parameters
+    // Prepare search parameters - only send if there are active filters
     let searchParams = {};
     if (this.isSearchEnabled && this.filters && Object.keys(this.filters).length > 0) {
-        searchParams = this.filters;
+      // Only include filters that have non-empty values
+      const activeFilters = {};
+      Object.keys(this.filters).forEach(key => {
+        if (this.filters[key] && this.filters[key].trim() !== '') {
+          activeFilters[key] = this.filters[key];
+        }
+      });
+      if (Object.keys(activeFilters).length > 0) {
+        searchParams = activeFilters;
+      }
     }
     
     this.attendanceReconciliationService.getBiomatricDataWithSearch(
-        startdateformat, 
-        enddateformat, 
-        this.page, 
-        this.pageSize,
-        searchParams
+      startdateformat, 
+      enddateformat, 
+      this.page, 
+      this.pageSize,
+      searchParams
     ).subscribe((response: any) => {
-        this.attendanceReconciliationList = response.serviceResponse.data;
-        this.totalRecords = response.serviceResponse.totalRecords;
-        this.attendanceReconciliationList.forEach(employee => {
-            employee.emp360 = employee.empId;
-            employee.employeementId = String(employee.employeeCode);
-            if (employee.employeementId.startsWith('A'))
-                employee.employeementId = employee.employeementId.substring(1);
-            employee.employeementId = "A-".concat(employee.employeementId);
-        });
-        
-        this.attendanceReconciliationOriginaldata = [... this.attendanceReconciliationList];
-        this.modalRef?.close();
+      this.attendanceReconciliationList = response.serviceResponse.data;
+      this.totalRecords = response.serviceResponse.totalRecords;
+      this.attendanceReconciliationList.forEach(employee => {
+        employee.emp360 = employee.empId;
+        employee.employeementId = String(employee.employeeCode);
+      });
+      
+      this.attendanceReconciliationOriginaldata = [... this.attendanceReconciliationList];
+      this.modalRef?.close();
     });
   }
 
@@ -271,9 +289,24 @@ export class AttendanceReconciliationComponent implements OnInit {
     this.sortColumnType = [];
     this.sortDirection = '';
     this.isSearchEnabled = !this.isSearchEnabled;
+    
     if (!this.isSearchEnabled) {
+      // Clear all filters
+      this.filters = {};
+      // Reset to first page
+      this.page = 1;
+      // Reload data without filters
+      this.getBioMatricData(this.startDate, this.endDate);
+    } else {
+      // When opening search, clear any existing filters and keep current data
       this.filters = {};
     }
+  }
+
+  resetFilters() {
+    this.filters = {};
+    this.page = 1;
+    this.getBioMatricData(this.startDate, this.endDate);
   }
 
   cancelRequest() {
