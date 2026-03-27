@@ -44,6 +44,8 @@ public class PerformanceDTO {
     /** HOD submission status for list (Submitted/Pending). */
     private String hodReviewStatus;
     private Long performanceRatingId;
+    /** Per-criterion comment from employee_rating_performance (Final Review COMMENTS column). */
+    private String criteriaRemark;
     private String isUserHaveTeam;
     private String employeeRole;
     private Long departmentId;
