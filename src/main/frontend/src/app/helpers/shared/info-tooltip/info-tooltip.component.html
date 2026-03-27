@@ -1,5 +1,4 @@
-<div class="info-button-wrapper">
-    <!-- Applied dynamic sizing and conditional shine classes -->
+<!-- <div class="info-button-wrapper">
     <button class="info-btn" [ngClass]="{ 'is-shining': shouldShine }" [ngStyle]="{ 
       'background-color': iconBgColor,
       'width.px': size,
@@ -11,9 +10,6 @@
 
     <div class="tooltip-popup" [ngStyle]="{ 'background-color': bgColor }">
         <div class="tooltip-arrow" [ngStyle]="{ 'border-top-color': bgColor }"></div>
-        <!-- <span class="sparkle sparkle-1">💭</span> 
-        <span class="sparkle sparkle-2">✨</span>
-        <span class="sparkle sparkle-3">🌀</span> -->
          <span class="sparkle sparkle-1">✨</span>
         <span class="sparkle sparkle-2">✨</span>
         <span class="sparkle sparkle-3">✨</span> 
@@ -41,6 +37,57 @@
         </div>
 
     </div>
+</div> -->
+
+<div class="info-button-wrapper">
+
+  <!-- BUTTON -->
+  <button #trigger
+          class="info-btn"
+          (mouseenter)="showTooltip()"
+          (mouseleave)="hideTooltip()"
+          [ngStyle]="{ 
+            'background-color': iconBgColor,
+            'width.px': size,
+            'height.px': size
+          }">
+
+    <span class="info-icon" [ngStyle]="{ 'font-size.px': size * 0.7 }">i</span>
+  </button>
+
 </div>
 
+<!-- TOOLTIP TEMPLATE -->
+<ng-template #tooltipTemplate>
+  <div class="tooltip-popup" [ngStyle]="{ 'background-color': bgColor }">
+
+    <div class="tooltip-arrow"></div>
+
+    <ng-container *ngIf="isList; else paraContent">
+      <ul class="tooltip-list">
+        <li *ngFor="let item of listItems; let i = index"
+            [ngStyle]="{'--bullet-color': getPastelColor(i)}">
+          {{ item }}
+        </li>
+      </ul>
+    </ng-container>
+
+    <ng-template #paraContent>
+      <p class="tooltip-text">{{ content }}</p>
+    </ng-template>
+
+    <div *ngIf="pdfPath" class="divider"></div>
+
+    <div *ngIf="pdfPath"
+         class="pdf-slider"
+         (mouseenter)="isPdfHovered = true"
+         (mouseleave)="isPdfHovered = false"
+         (click)="openPdf()">
+
+      <span class="slider-text">{{ sliderText }}</span>
+      <span class="slider-arrow">➜</span>
+    </div>
+
+  </div>
+</ng-template>
 

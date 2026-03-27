@@ -230,6 +230,8 @@ import { MyTableComponent } from './helpers/my-table/my-table.component';
 import { RmgStatusCardsComponent } from './user-team/resource-management/rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
 import {MatSidenavModule} from '@angular/material/sidenav';
 import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { PortalModule } from '@angular/cdk/portal';
 
 registerLocaleData(localeGb);
 
@@ -463,6 +465,8 @@ registerLocaleData(localeGb);
     NgbPopoverModule,
     MatSlideToggleModule,
     MatRadioModule,
+    OverlayModule,
+    PortalModule,
     CalendarLegendComponent,
     DateTimePickerComponent,
     ToastrModule.forRoot({
