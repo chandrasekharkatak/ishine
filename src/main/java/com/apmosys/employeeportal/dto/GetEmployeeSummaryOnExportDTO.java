@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 import lombok.Getter;
@@ -31,5 +32,5 @@ public class GetEmployeeSummaryOnExportDTO {
 	private Long deptId;
 	private Boolean isEmployeeRepeated;
 	private String multiPOs;
-	
+	// private LocalDate date;
 }

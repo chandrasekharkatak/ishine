@@ -507,6 +507,20 @@ public class EmployeeTimesheetControllerNew {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
     }
+		
+		@GetMapping("/getMyLastFilledLocationIdForProjectAndEmp")
+		public ServiceResponse getMyLastFilledLocationIdForProjectAndEmp(@RequestParam Long empId, @RequestParam Integer projectId) {
+			ServiceResponse response = new ServiceResponse();
+			response = timesheetServiceNew.getMyLastFilledLocationIdForProjectAndEmp(projectId,empId);
+			return response;
+		}
+		
+		@GetMapping("/fetchDeptBaseProjectAndClientRelatedDataForEmployee")
+		public ServiceResponse createTimesheetForEmployeeWithoutProject(@RequestParam Long empId) {
+			ServiceResponse response = new ServiceResponse();
+			response = timesheetServiceNew.fetchDeptBaseProjectAndClientRelatedDataForEmployee(empId);
+			return response;
+		}
 }
 
 

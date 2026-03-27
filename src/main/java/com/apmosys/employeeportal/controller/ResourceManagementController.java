@@ -785,14 +785,6 @@ public class ResourceManagementController {
 	    return "IShine is online...";
 	}
 
-	
-	@Scheduled(cron = "0 0 1 * * *")
-	@GetMapping("/triggerUnmappedEmployeeProjectNotificationJob")
-	public void triggerUnmappedEmployeeProjectNotificationJob() {
-		resourceManagementService.sendDepartmentWiseUnmappedEmployeeProjectMail();
-	}
-
-
 	@PostMapping("/getEmployeeTeamDepartment")
 	public ServiceResponse getEmployeeTeamDepartment(@RequestBody EmployeeTeamDepartmentDTO dto) {
 		Long teamId = dto.getTeamId();

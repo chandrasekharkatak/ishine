@@ -207,7 +207,7 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 				
 
 		@Query( "SELECT new com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO(t.timesheetId, t.empId) from Timesheet t \n"+
-				"where t.hasClientSideId = 1 \n"+
+				"where (t.hasClientSideId = 1 or t.isShadowTimesheet = 1 ) \n"+
 				"and t.projectId = :projectId \n"+
 				"and t.dayType IN ('Working', 'Non-working') \n"+
 				"and (t.status = 'Rejected' \n"+

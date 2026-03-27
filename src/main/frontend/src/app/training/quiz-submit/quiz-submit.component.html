@@ -1,0 +1,141 @@
+<div class="quiz-container">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0 d-flex align-items-center justify-content-between">
+                <span>
+                    <i class="fas fa-question-circle mr-2"></i>
+                    <span *ngIf="!isAlreadySubmitted && !formSubmitted">Quiz</span>
+                    <span *ngIf="isAlreadySubmitted || formSubmitted">Quiz Results</span>
+                </span>
+                
+                <!-- Stats Container - Side by side with Quiz Results -->
+                <div *ngIf="isAlreadySubmitted || formSubmitted" class="stats-container">
+                    <span class="stats-badge">
+                        <span class="stats-label">Score:</span>
+                        <span class="stats-value bg-primary">{{correctAnswersCount}}/{{totalQuestions}}</span>
+                    </span>
+                    <span class="stats-badge">
+                        <span class="stats-label">Status:</span>
+                        <span class="stats-value" [ngClass]="passStatus?.toLowerCase() === 'pass' ? 'bg-success' : 'bg-danger'">
+                            {{passStatus || 'N/A'}}
+                        </span>
+                    </span>
+                    <span class="stats-badge">
+                        <span class="stats-label">Correct:</span>
+                        <span class="stats-value bg-info">{{correctAnswersCount}}</span>
+                    </span>
+                    <span class="stats-badge">
+                        <span class="stats-label">Cut off:</span>
+                        <span class="stats-value bg-warning">{{cuttOffQuestions}}</span>
+                    </span>
+                </div>
+            </h5>
+        </div>
+        
+        <div class="card-body" id="surveyContainer">
+            <!-- Loading State - Centered and Professional -->
+            <div *ngIf="!isQuizLoaded" class="loading-container">
+                <div class="text-center">
+                    <div class="spinner-container mb-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <!-- <span class="visually-hidden">Loading...</span> -->
+                        </div>
+                    </div>
+                    
+                    <h5 class="text-primary mb-2">
+                        <span *ngIf="isAlreadySubmitted">Loading Your Results</span>
+                        <span *ngIf="!isAlreadySubmitted">Preparing Your Quiz</span>
+                    </h5>
+                    
+                    <p class="text-muted mb-4">
+                        <span *ngIf="isAlreadySubmitted">Please wait while we fetch your quiz results...</span>
+                        <span *ngIf="!isAlreadySubmitted">Please wait while we load your quiz questions...</span>
+                    </p>
+                    
+                    <div class="progress-container">
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                                 style="width: 100%"></div>
+                        </div>
+                        <div class="progress-steps mt-3">
+                            <span class="step active">
+                                <i class="fas fa-spinner fa-spin"></i> Loading
+                            </span>
+                            <span class="step">→</span>
+                            <span class="step">Ready</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Content - Will be injected here by the component -->
+            <div *ngIf="isQuizLoaded" class="quiz-content">
+                <!-- Dynamic content goes here -->
+            </div>
+
+            <!-- Action Buttons - Always at the bottom -->
+            <div class="action-buttons" *ngIf="isQuizLoaded">
+                <!-- Submit Button - For new quiz -->
+                <div class="row" *ngIf="!formSubmitted && !isAlreadySubmitted">
+                    <div class="col-12 text-center">
+                        <button type="submit" class="btn btn-primary btn-lg"
+                            (click)="onSubmit(alert_message)">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Submit Quiz
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Close Button - For results or already submitted -->
+                <div class="row" *ngIf="formSubmitted || isAlreadySubmitted">
+                    <div class="col-12 text-center">
+                        <button type="button" 
+                            class="btn btn-secondary btn-lg"
+                            (click)="isAlreadySubmitted ? closeQuizView() : closeQuizSubmitView()">
+                            <i class="fas fa-times mr-2"></i>
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Message Modal -->
+<ng-template #alert_message let-modal>
+    <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            Alert
+        </h5>
+        <button type="button" class="close text-white" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p class="mb-0">{{ alertMessage }}</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-danger" (click)="modal.close()">OK</button>
+    </div>
+</ng-template>
+
+<!-- Success Message Modal -->
+<ng-template #success_message let-modal>
+    <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+            <i class="fas fa-check-circle mr-2"></i>
+            Success
+        </h5>
+        <button type="button" class="close text-white" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p class="mb-0">Response Submitted Successfully</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-success" (click)="closeSuccessMessage()">OK</button>
+    </div>
+</ng-template>

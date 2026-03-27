@@ -4463,7 +4463,8 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
 
     const payload: any = {
       empId: this.timesheetObj.empId,
-      projectId: this.timesheetObj.projectId
+      projectId: this.timesheetObj.projectId,
+      date: this.timesheetObj.date = new Date(this.timesheetObj.date).toLocaleDateString('en-CA') // gives YYYY-MM-DD
     };
 
     // Add date filter to get only teams active on the selected date

@@ -126,7 +126,8 @@
                 }
 
                 <!-- Day Type, Date & Night Shift Row - Redesigned -->
-                <ng-container *ngIf="allDayTypes.length > 0 && ((timesheetAppliedFor == 'self') || (timesheetAppliedFor == 'team' && selectedTeamMember))">
+                <ng-container
+                    *ngIf="allDayTypes.length > 0 && ((timesheetAppliedFor == 'self') || (timesheetAppliedFor == 'team' && selectedTeamMember))">
                     <div class="divider-v2"></div>
                     <div class="form-row-v2">
                         <!-- Day Type -->
@@ -137,7 +138,7 @@
                             <div class="field-input-wrapper">
                                 <app-my-select class="form-control custom-select-v2"
                                     placeholder="Select Day Type"
-                                    [options]="allDayTypes"
+                                    [options]="dayTypesToShow"
                                     displayKey="dayType"
                                     valueKey="dayTypeId"
                                     [multiple]="false"
@@ -146,44 +147,33 @@
                                 </app-my-select>
                             </div>
                         </div>
-
+                
                         <!-- Date / From Date -->
                         <div class="form-field-v2 field-date" *ngIf="dayType">
                             <label class="form-label-v2">
                                 <span class="required-mark">*</span> {{ isNightShift ? 'From Date' : 'Date' }}
                             </label>
                             <div class="field-input-wrapper">
-                                <app-date-time-picker
-                                    mode="date"
-                                    [required]="true"
-                                    [(ngModel)]="fromDate"
-                                    (ngModelChange)="onFromDateChange()"
-                                    [disabled]="!dayType || isUpdation"
-                                    [minDate]="minDateForPicker"
-                                    [maxDate]="maxDateForPicker"
-                                    [disabledDates]="disabledDatesForPicker">
+                                <app-date-time-picker mode="date" [required]="true" [(ngModel)]="fromDate"
+                                    (ngModelChange)="onFromDateChange()" [disabled]="!dayType || isUpdation"
+                                    [minDate]="minDateForPicker" [maxDate]="maxDateForPicker" [disabledDates]="disabledDatesForPicker">
                                 </app-date-time-picker>
                             </div>
                         </div>
-
+                
                         <!-- To Date (Night Shift) -->
                         <div class="form-field-v2 field-date" *ngIf="isNightShift && fromDate">
                             <label class="form-label-v2">
                                 <span class="required-mark">*</span> To Date
                             </label>
                             <div class="field-input-wrapper">
-                                <app-date-time-picker
-                                    mode="date"
-                                    [required]="true"
-                                    [(ngModel)]="toDate"
-                                    (ngModelChange)="onToDateChange()"
-                                    [minDate]="fromDate"
-                                    [maxDate]="maxDateForToDatePicker"
+                                <app-date-time-picker mode="date" [required]="true" [(ngModel)]="toDate"
+                                    (ngModelChange)="onToDateChange()" [minDate]="fromDate" [maxDate]="maxDateForToDatePicker"
                                     [disabledDates]="[]">
                                 </app-date-time-picker>
                             </div>
                         </div>
-
+                
                         <!-- Night Shift Toggle -->
                         <div class="form-field-v2 field-night-shift" *ngIf="isDayTypeFillable() && fromDate">
                             <label class="form-label-v2">
@@ -202,6 +192,23 @@
                             </div>
                         </div>
                     </div>
+                    <div class="activities-section m-2" *ngIf="!isDayTypeFillable() && fromDate && dayType">
+                
+                            <div class="section-header">
+                                <h6 class="section-subtitle">
+                                    <i class="fas fa-comment"></i> Description
+                                </h6>
+                            </div>
+                
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="info-label small"><span class="text-danger">*</span> Description</label>
+                                    <textarea class="form-control" rows="2" placeholder="Enter description"
+                                        [(ngModel)]="holidayDescription"></textarea>
+                                </div>
+                            </div>
+                
+                        </div>
                 </ng-container>
             </div>
         </div>
@@ -266,7 +273,7 @@
         </div>
 
         <!-- Location, Project & Activities Card -->
-        @if (dayType && fromDate && ((isDayTypeFillable() && this.apmosysInTime && this.apmosysOutTime) || !isDayTypeFillable())) {
+        @if (dayType && fromDate && isDayTypeFillable() && this.apmosysInTime && this.apmosysOutTime) {
         <div class="info-card">
 
             <div class="card-header-section">
@@ -321,7 +328,7 @@
 
                                 @if(isDayTypeFillable()){
                                 <!-- Log In Time -->
-                                <div class="col-lg-2 col-md-3 mb-3" *ngIf="location.workLocationTypeId">
+                                <div class="col-lg-3 col-md-4 mb-3" *ngIf="location.workLocationTypeId">
                                     <label class="info-label"><span class="text-danger">*</span> Log In</label>
                                     <app-date-time-picker mode="time" [required]="true"
                                         [(ngModel)]="location.locationInTime" (ngModelChange)="onHoursChange()"
@@ -331,7 +338,7 @@
                                 </div>
 
                                 <!-- Log Out Time -->
-                                <div class="col-lg-2 col-md-3 mb-3" *ngIf="location.workLocationTypeId">
+                                <div class="col-lg-3 col-md-4 mb-3" *ngIf="location.workLocationTypeId">
                                     <label class="info-label"><span class="text-danger">*</span> Log Out</label>
                                     <app-date-time-picker mode="time" [required]="true"
                                         [(ngModel)]="location.locationOutTime" (ngModelChange)="onHoursChange()"
@@ -341,17 +348,36 @@
                                 </div>
 
                                 <!-- Use work Check In / Check Out Time -->
-                                <div class="col-lg-5 col-md-2 mb-3"
+                                <div class="col-lg-3 col-md-3 mb-3"
                                     *ngIf="timesheetLocations?.length === 1 && location.workLocationTypeId">
-                                    <label class="info-label">&nbsp;</label>
-                                    <div class="form-check" style="padding-top: 8px;">
+                                    <label class="info-label d-block">
+                                        <span class="text-danger">*</span> Use Work Check In & Out Time
+                                    </label>
+                                    <div class="radio-group mt-1">
+                                                        <label class="radio-pill">
+                                                            <input type="radio"
+                                                                name="applyApmosysTiming{{lIndex}}" [value]="true"
+                                                                [(ngModel)]="useApmosysTiming"
+                                                                (ngModelChange)="applyApmosysTiming(location.workLocationTypeId)" />
+                                                            <span> Yes</span>
+                                                        </label>
+
+                                                        <label class="radio-pill">
+                                                            <input type="radio"
+                                                                name="applyApmosysTiming{{lIndex}}"
+                                                                [value]="false" [(ngModel)]="useApmosysTiming"
+                                                                (ngModelChange)="applyApmosysTiming(location.workLocationTypeId)" />
+                                                            <span> No</span>
+                                                        </label>
+                                                    </div>
+                                    <!-- <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="useApmosysTiming"
                                             [(ngModel)]="useApmosysTiming"
                                             (change)="applyApmosysTiming(location.workLocationTypeId)" />
                                         <label class="form-check-label" for="useApmosysTiming">
-                                            Use work Check In / Check Out Time
+                                            Use Work In & Out Time
                                         </label>
-                                    </div>
+                                    </div> -->
                                 </div>
                                 }
                             </div>
@@ -423,7 +449,7 @@
                                                 </div>
                                                 <!-- Shadow For (Show when shadow is enabled; in update mode show when project was saved as shadow) -->
                                                 <div class="col-md-3 mb-3"
-                                                    *ngIf="project.isShadowTimesheet && !project.isShadowForSelf && isDayTypeFillable() && project.projectId">
+                                                    *ngIf="project.isShadowTimesheet && !project.isShadowForSelf && isDayTypeFillable() && project.projectId && project.hasClientSideId">
                                                     <label class="info-label">
                                                         <span class="text-danger">*</span> Shadow For
                                                     </label>
@@ -436,7 +462,7 @@
                                                 </div>
                                                 <!-- Shadow Timesheet Toggle (show when no clientSideId, or in update mode when project is shadow so choice is visible) -->
                                                 <div class="col-md-3 mb-3"
-                                                    *ngIf="(!project.isShadowForSelf && isDayTypeFillable() && project.projectId) || (isUpdation && project.isShadowTimesheet && !project.isShadowForSelf)">
+                                                    *ngIf="(!project.isShadowForSelf && isDayTypeFillable() && project.projectId && project.hasClientSideId) || (isUpdation && project.isShadowTimesheet && !project.isShadowForSelf && project.hasClientSideId)">
                                                     <label class="info-label d-block">
                                                         <span class="text-danger">*</span> Shadow Timesheet
                                                     </label>
@@ -464,7 +490,7 @@
 
                                                 <!-- Shadow For Self (show when no clientSideId, or in update mode when project is shadow-for-self so choice is visible) -->
                                                 <div class="col-md-3 mb-3"
-                                                    *ngIf="(!project.isShadowTimesheet && isDayTypeFillable() && project.projectId)  || (isUpdation && project.isShadowForSelf)">
+                                                    *ngIf="(!project.isShadowTimesheet && isDayTypeFillable() && project.projectId && project.hasClientSideId)  || (isUpdation && project.isShadowForSelf && project.hasClientSideId)">
                                                     <label class="info-label d-block"><span
                                                             class="text-danger">*</span>Shadow For Self</label>
 
@@ -589,7 +615,8 @@
                                                             <label class="info-label small">Description</label>
                                                             <textarea class="form-control form-control-sm" rows="1"
                                                                 placeholder="Description"
-                                                                [(ngModel)]="activity.description"></textarea>
+                                                                [(ngModel)]="activity.description"
+                                                                 (input)="preventSpecialCharacters($event , activity)"></textarea>
                                                         </div>
 
                                                         <!-- Hours -->
@@ -599,6 +626,7 @@
                                                                 class="form-control form-control-sm" placeholder="Hrs"
                                                                 [(ngModel)]="activity.durationMinutes"
                                                                 (ngModelChange)="onHoursChange()"
+                                                                (input)="limitDecimals($event , activity)"
                                                                 (keypress)="allowDecimalOnly($event)">
                                                         </div>
 
@@ -614,26 +642,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="activities-section"
-                                                *ngIf="!isDayTypeFillable() && project.projectId">
-
-                                                <div class="section-header">
-                                                    <h6 class="section-subtitle">
-                                                        <i class="fas fa-comment"></i> Description
-                                                    </h6>
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="col-md-12">
-                                                        <label class="info-label small"><span class="text-danger">*</span> Description</label>
-                                                        <textarea class="form-control" rows="2"
-                                                            placeholder="Enter description"
-                                                            [(ngModel)]="project.description"></textarea>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-
                                         </div>
                                     </div>
                                 </div>
@@ -691,6 +699,7 @@
                                 <i class="fas fa-file-text document-label-icon"></i>
                                 Filled Attendance Proof
                             </label>
+                            <small class="card-subtitle-v2">✓ PDF, XLS, XLSX, JPG, JPEG, PNG · Max 500 KB</small>
                         </div>
                         <div class="document-upload-controls">
                             <div class="file-input-wrapper">
@@ -758,6 +767,9 @@
                                 <i class="fa-solid fa-file-circle-check document-label-icon"></i>
                                 Approved Attendance Proof
                             </label>
+                            <!-- <small class="card-subtitle-v2">Maximum file size: 500 KB · PDF, JPG, JPEG, PNG, XLS, XLSX</small> -->
+                            <!-- <small class="card-subtitle-v2">Accepted formats: .pdf, .jpg, .jpeg, .png, .xls and .xlsx</small> -->
+                            <small class="card-subtitle-v2">✓ PDF, XLS, XLSX, JPG, JPEG, PNG · Max 500 KB</small>
                         </div>
                         <div class="document-upload-controls">
                             <div class="file-input-wrapper">
@@ -897,6 +909,18 @@
         <p>{{ alertMessage }}</p>
         <button type="button" class="btn btn-primary" (click)="closeAlertModal()">
             OK
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #alert_message_for_holiday_create>
+    <div class="modal-body text-center">
+        <p>{{ alertMessage }}</p>
+        <button type="button" class="btn btn-primary ml-2" (click)="closeAlertMessageForHolidayCreate()">
+            Cancel
+        </button>
+        <button type="button" class="btn btn-primary ml-2" (click)="closeAlertMessageForHolidayCreate()">
+            Ok
         </button>
     </div>
 </ng-template>

@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.ZoneId;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,8 +28,10 @@ import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
 import com.apmosys.employeeportal.repository.ClientsRepository;
+import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.EmailTrigger;
 import com.apmosys.employeeportal.utility.ExceptionLogContext;
@@ -59,6 +62,12 @@ public class PoSyncOrchestratorService {
 
 	@Autowired
 	ProjectPoDetailsRepository projectPoDetailsRepository;
+	
+	@Autowired
+	EmployeeTeamMapRepository employeeTeamMapRepository;
+	
+	@Autowired
+	TeamRepository teamRepository;
 
 	@Autowired
 	ClientsRepository clientRepository;
@@ -370,6 +379,8 @@ public class PoSyncOrchestratorService {
 	        poDetailsService.validateNoActiveTeamsForPo(
 	                deletedPo.getPoId()
 	        );
+	        
+	       
 
 	       
 	        poDetailsService.softDeletePo(
@@ -378,6 +389,8 @@ public class PoSyncOrchestratorService {
 	                dto.getDeletedByEmpName(),
 	                dto.getDeletedOn()
 	        );
+	        
+	        employeeTeamMapRepository.deleteScheduledEmployeesByPoId(deletedPo.getPoId());
 
 	        poDetailsService.validateAssociatedPosIntegrity(
 	                project.getProjectId(),
@@ -394,6 +407,20 @@ public class PoSyncOrchestratorService {
 	      //when no associated po and the delte po is also delted
 	        if(dto.getAssociatePos() == null || dto.getAssociatePos().isEmpty()) {
 		        projectService.setActiveFlagAsFalse(project,dto);
+		        
+		        List<Long> teamIds = teamRepository.findActiveTeamIdsByProjectId(project.getProjectId());
+		        
+		        if (teamIds != null && !teamIds.isEmpty()) {
+		        	employeeTeamMapRepository.deleteScheduledEmployeesByTeamIds(teamIds);
+		        	
+		        	 teamRepository.deactivateTeamsByProjectId(
+		                     project.getProjectId(),
+		                     dto.getDeletedOn().toInstant()
+		                             .atZone(ZoneId.systemDefault())
+		                             .toLocalDateTime(),
+		                     dto.getDeletedByEmpId()
+		             );
+		        }
 	        }
 	        
 	        projectService.recalculateProjectDates(project.getProjectId(),false);

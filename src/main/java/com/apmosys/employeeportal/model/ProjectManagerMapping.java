@@ -7,6 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.Table;
 
 import org.hibernate.envers.Audited;
 
@@ -21,6 +23,9 @@ import lombok.ToString;
 @Setter
 @ToString
 @Audited
+@Table(indexes = { @Index(name = "idx_propm_proj_id", columnList = "projectId"),
+        @Index(name = "idx_propm_projm_id", columnList = "projectManagerId")
+})
 public class ProjectManagerMapping {
 	
 	@Id

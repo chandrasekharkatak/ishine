@@ -51,23 +51,20 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
-	
 	@ExceptionHandler(HttpMessageNotReadableException.class)
-	public ResponseEntity<ServiceResponse> handleBadRequestException(HttpMessageNotReadableException ex){
+	public ResponseEntity<ServiceResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex){
         ServiceResponse response = new ServiceResponse();
-        System.out.println("=========Test-101==========");
         response.setServiceStatus(ServiceResponse.STATUS_FAIL);
         ExceptionLogContext.add(ex.getLocalizedMessage());
         response.setServiceResponse("Invalid Request Type");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 	}
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ServiceResponse> handleGeneralError(Exception e) {
         ServiceResponse response = new ServiceResponse();
-        System.out.println("=========Test-102=========="+e.getClass());
-
         response.setServiceStatus("Unexpected error: " + e.getMessage());
-        response.setServiceResponse(null);
+        response.setServiceResponse(e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
@@ -77,6 +74,29 @@ public class GlobalException {
         response.setServiceStatus("Unexpected error: " + ex.getMessage());
         response.setServiceResponse(ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+    
+	@ExceptionHandler(BusinessValidationException.class)
+	public ResponseEntity<ServiceResponse> handleBusiness(BusinessValidationException e) {
+		ServiceResponse response = new ServiceResponse();
+		response.setServiceStatus(e.getMessage());
+		response.setServiceResponse(e.getMessage()); // Add this line
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 	}
 
+	// @ExceptionHandler(Exception.class)
+	// public ResponseEntity<ServiceResponse> handleGeneralError(Exception e) {
+	// 	ServiceResponse response = new ServiceResponse();
+	// 	response.setServiceStatus(e.getMessage());
+	// 	response.setServiceResponse(null);
+	// 	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+	// }
+
+	@ExceptionHandler(TrainingException.class)
+	public ResponseEntity<ServiceResponse> handleTrainingException(TrainingException e) {
+		ServiceResponse response = new ServiceResponse();
+		response.setServiceStatus(e.getMessage());
+		response.setServiceResponse(null);
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
 }

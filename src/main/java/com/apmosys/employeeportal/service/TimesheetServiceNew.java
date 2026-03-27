@@ -58,6 +58,7 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeProjectAndClientData;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.FinalDocumentDownloadDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.FinalDocumentDownloadPayloadDTO;
@@ -2774,5 +2775,41 @@ public class TimesheetServiceNew {
 				throw new RuntimeException("Failed to fetch half day leaves", ex);
 			}
 		}
+        public ServiceResponse getMyLastFilledLocationIdForProjectAndEmp(Integer projectId, Long empId) {
+        	ServiceResponse serviceResponse =  new ServiceResponse();
+        	if(projectId == null || empId == null) throw new IllegalArgumentException("Either the Project ID or the Employee Id is null");
+        	ProjectTimesheetStatusNew pts = projectTimesheetStatusNewRepository.findByProjectIdAndEmpId(projectId, empId);
+        	if(pts != null) {
+        		serviceResponse.setServiceResponse(pts.getClientLocationId());
+        		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        	}else {
+        		serviceResponse.setServiceResponse(null);
+        		serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        	}
+        	return serviceResponse;
+        }
+        
+        public ServiceResponse fetchDeptBaseProjectAndClientRelatedDataForEmployee(Long empId) {
+        	ServiceResponse serviceResponse =  new ServiceResponse();
+        	if(empId == null) throw new IllegalArgumentException("Employee ID is not provided.");
+        	List<Object[]> data = projectTimesheetStatusNewRepository.getDeptBaseProjectAndClientDataFromEmpId(empId);
+        	 if (data == null || data.isEmpty()) {
+        	        serviceResponse.setServiceStatus("FAIL");
+        	        serviceResponse.setServiceResponse("No data found for given employee.");
+        	        return serviceResponse;
+        	    }
+        	 Object[] row = data.get(0);
+        	 EmployeeProjectAndClientData projectData = new EmployeeProjectAndClientData(
+        	            row[0] != null ? ((Number) row[0]).intValue() : null,   // project_id
+        	            row[1] != null ? ((Number) row[1]).longValue() : null,  // client_id
+        	            row[2] != null ? ((Number) row[2]).longValue() : null   // client_location_id
+        	    );
+
+        	    serviceResponse.setServiceStatus(serviceResponse.STATUS_SUCCESS);
+        	    serviceResponse.setServiceResponse(projectData);
+
+        	    return serviceResponse;
+        	
+        }
 
 }

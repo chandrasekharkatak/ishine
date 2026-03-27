@@ -3,12 +3,12 @@ import {
   HttpEvent,
   HttpHandler,
   HttpInterceptor,
-  HttpRequest,
+  HttpRequest, 
   HttpResponse
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { catchError, finalize, tap } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { LoaderService } from '../services/loader.service';
 
@@ -232,6 +232,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/get360TimesheetDetails`,
     `${this.baseUrl}` + `api/submitEmployeePerformanceHOD`,
     `${this.baseUrl}` + `api/submitEmployeePerformanceHR`,
+    `${this.baseUrl}` + `api/submitRemarksByHOD`,
     `${this.baseUrl}` + `api/addReviewType`,
     `${this.baseUrl}` + `api/updateReviewType`,
     `${this.baseUrl}` + `getExistingProjectsAndTeamsByEmployee`,
@@ -459,7 +460,34 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getPreviousMinusDays`,
     `${this.baseUrl}` + `api/bulkFinalUploadProjectBased`,
     `${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`,
+    `${this.baseUrl}` + `api/getAllQuarterCycles`,
+    `${this.baseUrl}` + `api/isEnable`,
+
+    `${this.baseUrl}` + `api/training/getAllTrainings`,
+    `${this.baseUrl}` + `api/training/getTrainingContent`,
+    `${this.baseUrl}` + `api/training/getUserTrainings`,
+    `${this.baseUrl}` + `api/training/submitConsent`,
+    `${this.baseUrl}` + `api/training/skipTraining`,
+    `${this.baseUrl}` + `api/training/getLockStatus`,
+    `${this.baseUrl}` + `api/training/downloadContent`,
+    `${this.baseUrl}` + `api/training/checkTrainingFrequency`,
+    `${this.baseUrl}` + `api/training/getEmployeeTrainingHistory`,
+    `${this.baseUrl}` + `api/training/getComplianceReport`,
+    `${this.baseUrl}` + `api/training/updateTrainingWithContent`,
+    `${this.baseUrl}` + `api/training/createTrainingWithContent`,
+    `${this.baseUrl}` + `api/training/getAllQuizResponsesByTrainingId`,
+    `${this.baseUrl}` + `api/training/deactivateTraining`,
+    `${this.baseUrl}` + `api/training/addTrainingContent`,
+    `${this.baseUrl}` + `api/training/updateTrainingContent`,
+    `${this.baseUrl}` + `api/training/changeQuizResponse`,
+    `${this.baseUrl}` + `api/training/getQuizQuestionByTrainingId`,
     `${this.baseUrl}` + `api/isClientIdMandetory`,
+    `${this.baseUrl}` + `api/training/addTrainingType`,
+    `${this.baseUrl}` + `api/updateSurvey`,
+    `${this.baseUrl}` + `api/deleteSurvey`,
+    `${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`,
+    `${this.baseUrl}` + `api/changeSurveyStatus`,
+    `${this.baseUrl}` + `api/training/getAllTrainingTypes`,
     `${this.baseUrl}` + `api/getAllTeamsByPoId`,
     `${this.baseUrl}` + `api/getTeamDetailsByTeamId`,
     `${this.baseUrl}` + `api/migrateTeam`,
@@ -489,7 +517,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllActiveEmployeeInformation`,
     `${this.baseUrl}` + `api/updateMemberShadowMapping`,
     `${this.baseUrl}` + `api/downloadFinalDocuments`,
-
+    `${this.baseUrl}` + `api/updateTeamMembersStartDateAndEndDate`,
 
     /** v2 Timesheet APIs (new hierarchical timesheet) */
     `${this.baseUrl}` + `api/v2/timesheet/addTimesheetWithClientNew`,
@@ -514,8 +542,15 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllDisabledDateListForBulkDocSubmit`,
     `${this.baseUrl}` + `api/updateClientSideIdMapping`,
     `${this.baseUrl}` + `api/v2/timesheet/update`,
-    `${this.baseUrl}` + `api/v2/timesheet/getDocumentDataByDocId`
+    `${this.baseUrl}` + `api/v2/timesheet/getDocumentDataByDocId`,
+    `${this.baseUrl}` + `api/getApprovedLeaveLogsByEmpId`,
+    `${this.baseUrl}` + `api/getTimesheetStatusCountByManager`
+  ];
 
+  DYNAMIC_URL_whiteList = [
+    `${this.baseUrl}` + `api/training/getTrainingContent/`,
+    `${this.baseUrl}` + `api/training/getTrainingResponses/`,
+    `${this.baseUrl}` + `api/training/downloadContent/`
   ]
 
   constructor(private loaderService: LoaderService) { }
@@ -543,6 +578,16 @@ export class LoaderInterceptor implements HttpInterceptor {
       });
     }
 
+    this.DYNAMIC_URL_whiteList.forEach((element) => {
+      if (request.url.startsWith(element)) {
+        request = request.clone({
+          setHeaders: {
+            loader: 'true'
+          }
+        });
+      }
+    })
+
     if (request.headers.get('loader')) {
       this.loaderService.requestStarted();
       return this.handle(next, request);
@@ -561,6 +606,7 @@ export class LoaderInterceptor implements HttpInterceptor {
       }
     }),
     catchError((error: HttpErrorResponse) => {
+      this.loaderService.requestEnded();
       this.loaderService.resetSpinner();
 
       if (error instanceof HttpErrorResponse) {

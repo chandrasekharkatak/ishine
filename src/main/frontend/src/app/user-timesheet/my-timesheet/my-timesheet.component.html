@@ -602,7 +602,7 @@
                             <strong>{{ location.workLocationType }}</strong>
                             <span class="ts-meta">
                               <i class="far fa-clock"></i>
-                              {{ location.locationInTime ? (location.locationInTime | date:'dd-MM-yyyy HH:mm') : 'NA' }} – {{ location.locationOutTime ? (location.locationOutTime | date:'dd-MM-yyyy HH:mm') : 'NA' }}
+                              {{ location.locationInTime ? (location.locationInTime | date:'dd-MM-yyyy HH:mm') : '' }} – {{ location.locationOutTime ? (location.locationOutTime | date:'dd-MM-yyyy HH:mm') : '' }}
                             </span>
                             <span class="ts-meta">
                               <strong>Presence At Location:</strong> {{ getTotalLocationHours(location) }}
@@ -624,12 +624,12 @@
                                 <i class="fas fa-briefcase ts-icon--teal"></i>
                                 <strong>{{ project.projectName }}</strong>
                                 <span *ngIf="project.clientSideId" class="ts-chip ts-chip--grey">
-                                  Client ID: {{ project.clientSideId }}
+                                  Client Side ID: {{ project.clientSideId }}
                                 </span>
                                 <span *ngIf="project.clientLocation" class="ts-chip ts-chip--grey">
-                                  Location: {{ project.clientLocation }}
+                                  Client Location: {{ project.clientLocation }}
                                 </span>
-                                <span *ngIf="project.clientApprovalStatus" class="ts-chip" [class.ts-chip--pending]="project.clientApprovalStatus === 1"
+                                <span *ngIf="project.clientApprovalStatus" class="ts-chip" title="Client Approval StatusLocation" [class.ts-chip--pending]="project.clientApprovalStatus === 1"
                                   [class.ts-chip--approved]="project.clientApprovalStatus === 2"
                                   [class.ts-chip--rejected]="project.clientApprovalStatus === 3">
                                   CA Status:{{ mapClientApprovalStatusToString(project.clientApprovalStatus) }}

@@ -595,10 +595,10 @@
           <span class="selected-text">item{{ selectedRows.length !== 1 ? 's' : '' }} selected</span>
         </div>
         <div class="bulk-buttons-group">
-          <button type="button" class="ts-bulk-btn ts-bulk-approve" (click)="bulkApproveByIds()">
+          <button type="button" *ngIf="selectedStatus == 1"  class="ts-bulk-btn ts-bulk-approve" (click)="bulkApproveByIds()">
             <i class="fas fa-check-circle"></i> Bulk Approve
           </button>
-          <button type="button" class="ts-bulk-btn ts-bulk-reject" (click)="openBulkRejectPopup(bulkRejectModal)">
+          <button type="button" *ngIf="selectedStatus != 3" class="ts-bulk-btn ts-bulk-reject" (click)="openBulkRejectPopup(bulkRejectModal)">
             <i class="fas fa-times-circle"></i> Bulk Reject
           </button>
         </div>
@@ -700,7 +700,7 @@
         <table class="timesheet-table ts-data-table" matSort (matSortChange)="sortData($event)" matSortDisableClear>
           <thead class="ts-thead">
             <tr>
-              <th *ngIf="selectedStatus === 1"> <input type="checkbox" [(ngModel)]="isAllSelected" (change)="toggleAllRows($event)" /> </th>
+              <th *ngIf="selectedStatus != 3"> <input type="checkbox" [(ngModel)]="isAllSelected" (change)="toggleAllRows($event)" /> </th>
               <th>Sr No.</th>
               <th mat-sort-header="employmentId">Employee Id</th>
               <th mat-sort-header="employeeName">Name</th>
@@ -725,7 +725,7 @@
           </thead>
           <tbody> <ng-container *ngFor="let timesheet of allTeamTimesheetRequestsProjectView; let i = index">
               <tr class="main-row" [class.active-row]="expandedTimesheetIndex === i">
-                <td *ngIf="selectedStatus === 1"> <input type="checkbox" [(ngModel)]="timesheet.selected"
+                <td *ngIf="selectedStatus != 3"> <input type="checkbox" [(ngModel)]="timesheet.selected"
                     (change)="onEmployeeToggle(timesheet); updateSelectedRows(timesheet)" /> </td>
                <td>{{ (page1 * items) + i + 1 }}</td>
 

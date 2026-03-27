@@ -1,9 +1,9 @@
-import { LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { DatePipe, LocationStrategy } from '@angular/common';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { Router } from '@angular/router';
-import * as moment from 'moment';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import * as moment from 'moment';
 import { ClipboardService } from 'ngx-clipboard';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
@@ -15,6 +15,7 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { SurveyService } from 'src/app/services/survey.service';
+import { TrainingService } from 'src/app/services/training.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
@@ -27,6 +28,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 export class SurveyConfigComponent implements OnInit {
 
   feature = "Survey Config";
+  feature2 = "Training Config";
   currentUser: User;
   userMapping: any = {};
 
@@ -75,6 +77,14 @@ export class SurveyConfigComponent implements OnInit {
 
   employeesFor360: any[] = [];
 
+  // Training context (if navigated from training-config)
+  isFromTraining: boolean = false;
+  trainingId: number | null = null;
+  trainingName: string = '';
+
+  @ViewChild('ask_to_make_it_active') askToMakeItActiveModal: TemplateRef<any>;
+  newSurveyIdCreated: number | null = 0;
+
   constructor(
     private validationService: ValidationService,
     private modalService: NgbModal,
@@ -84,27 +94,61 @@ export class SurveyConfigComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private clipboardService: ClipboardService,
     private router: Router,
+    private route: ActivatedRoute,
     private utilityService: UtilityService,
+    private trainingService: TrainingService,
+    private datePipe: DatePipe
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   async ngOnInit(): Promise<void> {
 
+    // Check if navigated from training-config
+    this.route.queryParams.subscribe(params => {
+      this.newSurveyIdCreated = null;
+      if (params['source'] === 'training') {
+        this.isFromTraining = true;
+        this.trainingId = params['trainingId'] ? +params['trainingId'] : null;
+        this.trainingName = params['trainingName'] || '';
+        this.sectionViewInit();
+      }else if(params['source'] === 'trainingAccept'){
+        this.isFromTraining = true;
+        this.trainingId = params['trainingId'] ? +params['trainingId'] : null;
+        this.trainingName = params['trainingName'] || '';
+        this.showSurveyForm();
+      } else {
+        // Reset training context if query params are not present (e.g., clicked Survey tab)
+        this.isFromTraining = false;
+        this.trainingId = null;
+        this.trainingName = '';
+        this.sectionViewInit();
+      }
+    });
+
     // Dynamic Subfeature Flags
-    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == (this.isFromTraining ? this.feature2 : this.feature));
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
+    console.log("This feature mapping: ",this.feature, this.userMapping);
 
     // let questionObj = ;
     // questionObj.optionsList.push("");
     // this.allSurveyQuestionList.push(questionObj);
-    this.sectionViewInit();
+    // this.sectionViewInit();
 
     //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
     this.preventBackButton();
+  }
+
+  // Navigate back to training-config
+  backToTraining() {
+    this.router.navigate(['/configuration/training-config'], {
+      queryParams: {
+        trainingId: this.trainingId
+      }
+    });
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -114,7 +158,16 @@ export class SurveyConfigComponent implements OnInit {
   }
 
   sectionViewInit(){
+    // if(this.isFromTraining){
+    //   this.showQuizResponses();
+    // } else {
+
+    if(this.isFromTraining){
+      this.allSurveyQuestionList = [new SurveyQuestion('radio')];
+      this.allSurveyQuestionList[0].optionsList.push(new SurveyOption());
+    }
     this.showSurveys();
+    // }
   }
 
   showSurveyForm(){
@@ -126,7 +179,12 @@ export class SurveyConfigComponent implements OnInit {
     this.isSurveyResponseList = false;
 
     this.surveyObj = new Survey();
-    this.allSurveyQuestionList = [new SurveyQuestion()];
+    if(this.isFromTraining){
+      this.allSurveyQuestionList = [new SurveyQuestion('radio')];
+      this.allSurveyQuestionList[0].optionsList.push(new SurveyOption());
+    } else {
+      this.allSurveyQuestionList = [new SurveyQuestion()];
+    }
   }
 
   showSurveys(){
@@ -164,7 +222,13 @@ export class SurveyConfigComponent implements OnInit {
     this.surveyObj = new Survey();
     this.allSurveyQuestionList = [];
 
-    this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
+    let isEdting = false;
+
+    if(this.isFromTraining){
+      isEdting= true;
+    }
+
+    this.surveyService.getAllQuestionsBySurveyId(surveyObj, isEdting).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allSurveyQuestionList = response.serviceResponse;
         //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
@@ -172,7 +236,8 @@ export class SurveyConfigComponent implements OnInit {
         this.surveyObj = surveyObj;
         this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
           survey.optionsList = JSON.parse(survey.options);
-          survey.required = JSON.parse(survey.required);
+          survey.required = JSON.parse(survey.required)
+          survey.correctAnswer = survey.correctAnswer;
         });
 
         //console.log("For Edit SurveyObj ==> ",this.surveyObj, this.allSurveyQuestionList);
@@ -186,7 +251,13 @@ export class SurveyConfigComponent implements OnInit {
 
   // Manage Questions
   addQuestion(i){
-    this.allSurveyQuestionList.splice(i+1,0,new SurveyQuestion());
+    if(this.isFromTraining){
+      this.allSurveyQuestionList.splice(i+1,0,new SurveyQuestion('radio'));
+      // add default option
+      this.allSurveyQuestionList[i+1].optionsList.push(new SurveyOption());
+    }else{
+      this.allSurveyQuestionList.splice(i+1,0,new SurveyQuestion());
+    }
   }
 
   removeQuestion(i){
@@ -299,6 +370,40 @@ export class SurveyConfigComponent implements OnInit {
 
     const surveyTemplate:string = this.createTemplate();
 
+    if(this.isFromTraining && this.surveyObj.cutOffQuestions > this.allSurveyQuestionList.length){
+      this.alertMessage = "Cut Off Questions should be less than or equal to Total Questions !!";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+
+    if(this.isFromTraining){
+      let flag = true;
+
+      this.allSurveyQuestionList.forEach((question:SurveyQuestion, index) => {
+        if(!question.correctAnswer){
+          flag = false;
+          this.alertMessage = `Please provide correct answer for Question ${index + 1} !!`;
+          this.openAlertMod(template, this.alertMessage);
+          return;
+        }
+        if(question.optionType == "radio"){
+          if (question.optionsList.length < 2) {
+            flag = false;
+            this.alertMessage = `Please provide atleast 2 options for Question ${index + 1} !!`;
+            this.openAlertMod(template, this.alertMessage);
+            return;
+          }
+        } else {
+          flag = false;
+          this.alertMessage = `Please provide radio as option type for Question ${index + 1} !!`;
+          this.openAlertMod(template, this.alertMessage);
+          return;
+        }
+      });
+
+      if(!flag) return;
+    }
+
     let surveyObj = new Survey();
     surveyObj.surveyName = this.surveyObj.surveyName;
     surveyObj.description = this.surveyObj.description;
@@ -306,16 +411,36 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj.surveyTemplate = surveyTemplate;
     surveyObj.createdBy = this.currentUser.empId;
     surveyObj.isActive = false;
+    surveyObj.cutOffQuestions = this.surveyObj.cutOffQuestions;
+    
+    // If creating quiz from training context, set type and training mapping fields
+    if (this.isFromTraining && this.trainingId) {
+      surveyObj.type = 'quiz';
+      (surveyObj as any).trainingId = this.trainingId;
+      (surveyObj as any).isMandatory = true; // Default to mandatory for training quizzes
+      (surveyObj as any).mustPassToComplete = false; // Default to false (can be enhanced later)
+    }
 
     surveyObj.surveyQuestionList.forEach((survey:SurveyQuestion) => {
       survey.options = JSON.stringify(survey.optionsList);
     });
-
     //console.log("survey : ", surveyObj);
     this.surveyService.createSurvey(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showSurveys();
+        if(this.isFromTraining){
+          this.newSurveyIdCreated = response.serviceResponse.quizId;
+          this.openAlertMod(this.askToMakeItActiveModal, response.serviceResponse.message);
+        }else{
+          this.openAlertMod(template, response.serviceResponse);
+        }
+        // If created from training, navigate back to training config
+        if (this.newSurveyIdCreated == null && this.isFromTraining) {
+          setTimeout(() => {
+            this.backToTraining();
+          }, 1500);
+        } else if(!this.isFromTraining) {
+          this.showSurveys();
+        }
       }else{
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -334,11 +459,11 @@ export class SurveyConfigComponent implements OnInit {
     this.sortDirection='';
     this.allSurveyList = [];
 
-    this.surveyService.getAllSurveys().pipe(first()).subscribe((response: any) => {
+    this.surveyService.getAllSurveys(this.trainingId, this.isFromTraining ? 'quiz' : null).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
        this.allSurveyList = response.serviceResponse;
        this.allSurveyList.forEach(survey => {
-         survey.createdOn = (survey.createdOn)? moment(survey.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+
          survey.emp360CreatedBy = survey.createdBy;
          survey.emp360UpdatedBy = survey.updatedBy;
 
@@ -357,7 +482,7 @@ export class SurveyConfigComponent implements OnInit {
     this.surveyObj = new Survey();
     this.allSurveyQuestionList = [];
 
-    this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
+    this.surveyService.getAllQuestionsBySurveyId(surveyObj, false, true).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allSurveyQuestionList = response.serviceResponse;
         //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
@@ -366,6 +491,9 @@ export class SurveyConfigComponent implements OnInit {
         this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
           survey.optionsList = JSON.parse(survey.options);
           survey.required = JSON.parse(survey.required);
+          if(this.isFromTraining){
+            survey.correctAnswer = survey.correctAnswer;
+          }
         });
 
         const surveyTemplate: string = this.createTemplate();
@@ -387,12 +515,20 @@ export class SurveyConfigComponent implements OnInit {
   async getAllSurveyResponsesBySurveyId(surveyObj:Survey){
     this.allSurveyResponseList = []
     this.responseListTableHeaders = ["Employee ID", "Employee Name"];
+    if(this.isFromTraining){
+      this.responseListTableHeaders.push("Marks Obtained", "Pass Status");
+    }
     this.surveyObj = surveyObj;
 
     let questionsList:any[] = [];
     let responseList:any[] = [];
 
-    const questionResponse: any = await this.surveyService.getAllQuestionsBySurveyId(surveyObj).toPromise();
+    let isEditing = false;
+    if(this.isFromTraining){
+      isEditing = true;
+    }
+
+    const questionResponse: any = await this.surveyService.getAllQuestionsBySurveyId(surveyObj, isEditing).toPromise();
     if (questionResponse.serviceStatus == "Success") {
       questionsList = questionResponse.serviceResponse;
       //console.log("questionsList : ", questionsList);
@@ -414,7 +550,13 @@ export class SurveyConfigComponent implements OnInit {
       const key = "employeementId"
       let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
         // return ["A-" + response.employeementId, response.name]
-         return [ response.employmentIdAccToET, response.name]
+        console.log("response : ", response);
+        
+         if(this.isFromTraining){
+            return [ response.employmentIdAccToET, response.name,response.marksObtained+"%", response.passStatus]
+          } else {
+            return [ response.employmentIdAccToET, response.name]
+          }
         // return {
         //   name: response.name,
         //   employeementId : response.employeementId
@@ -433,7 +575,7 @@ export class SurveyConfigComponent implements OnInit {
         });
       });
 
-      //console.log("employees with responses : ", employees);
+      console.log("employees with responses : ", employees);
       this.allSurveyResponseList = employees;
     } else {
       console.error(response.serviceResponse);
@@ -450,8 +592,10 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj = this.surveyObj;
     surveyObj.surveyQuestionList = this.allSurveyQuestionList;
     surveyObj.updatedBy = this.currentUser.empId;
+    surveyObj.cutOffQuestions = this.surveyObj.cutOffQuestions;
 
     surveyObj.surveyQuestionList.forEach((survey:SurveyQuestion) => {
+      survey.surveyQuestionId = survey.surveyQuestionId;
       survey.options = JSON.stringify(survey.optionsList);
     });
 
@@ -470,14 +614,36 @@ export class SurveyConfigComponent implements OnInit {
     this.cancelRequest();
 
     //console.log("Delete Survey : ", this.surveyObj);
-    this.surveyService.deleteSurvey(this.surveyObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showSurveys();
-      }else{
-        this.openAlertMod(template, response.serviceResponse);
+    if(this.isSurveyForm){
+      this.surveyService.deleteSurvey(this.surveyObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template, response.serviceResponse);
+          this.showSurveys();
+        }else{
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    } else {
+      this.cancelRequest();
+
+      let surveyObj = new Survey();
+      surveyObj.surveyId = this.surveyObj.surveyId;
+      surveyObj.updatedBy = this.currentUser.empId;
+      surveyObj.isActive = false;
+
+      if(this.isFromTraining){
+        surveyObj.type = "quiz";
+        surveyObj.trainingId = this.trainingId;
       }
-    });
+      this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template, response.serviceResponse);
+          this.showSurveys();
+        }else{
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    }
   }
 
   onActivate(template: TemplateRef<any>){
@@ -487,6 +653,11 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj.surveyId = this.surveyObj.surveyId;
     surveyObj.updatedBy = this.currentUser.empId;
     surveyObj.isActive = true;
+
+    if(this.isFromTraining){
+      surveyObj.type = "quiz";
+      surveyObj.trainingId = this.trainingId;
+    }
 
     //console.log("Activate Survey : ", surveyObj);
     this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
@@ -506,6 +677,11 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj.surveyId = this.surveyObj.surveyId;
     surveyObj.updatedBy = this.currentUser.empId;
     surveyObj.isActive = "Completed";
+
+    if(this.isFromTraining){
+      surveyObj.type = "quiz";
+      surveyObj.trainingId = this.trainingId;
+    }
 
     //console.log("Complete Survey : ", surveyObj);
     this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
@@ -557,6 +733,9 @@ export class SurveyConfigComponent implements OnInit {
      } else if (question.optionType == "radio") {
 
       let optionTemplate = '';
+      if(!this.isFromTraining){
+        
+      
       question.optionsList.forEach((option:SurveyOption, index) => {
         let radioboxTemplate: any =
         `
@@ -568,6 +747,26 @@ export class SurveyConfigComponent implements OnInit {
 
        optionTemplate = optionTemplate + radioboxTemplate;
       });
+    } else {
+      question.optionsList.forEach((option: SurveyOption, index) => {
+          const isCorrectOption = option.optionValue == question.correctAnswer ? true : null;
+          let optionClass = '';
+          
+          // else if (isUserSelected && !isCorrectOption) optionClass = 'text-danger';
+          if (isCorrectOption) optionClass = 'text-success';
+          
+          optionTemplate += `
+            <div class="form-check">
+              <input class="form-check-input" type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}"
+                    value="${option.optionValue}" name="question-${qIndex + 1}"  disabled>
+              <label class="form-check-label ${optionClass}" for="q-${qIndex + 1}-radio-option-${index + 1}">
+                ${option.optionValue}
+                ${isCorrectOption ? ' ✓ (Correct Answer)' : ''}
+              </label>
+            </div>
+          `;
+        });
+    }
       finalQuestionTemplate = finalQuestionTemplate + optionTemplate;
      }else if(question.optionType == "dropdown"){
              let textTemplate: any =`<textarea class="form-control" rows="1" name="question-${qIndex+1}" disabled ></textarea>`;
@@ -586,11 +785,19 @@ export class SurveyConfigComponent implements OnInit {
   async exportToExcel(): Promise<void> {
 
     let headers:any[] = ["Employee ID", "Employee Name"];
+    if(this.isFromTraining){
+      headers.push("Marks Obtained", "Pass Status");
+    }
     let questionsList:any[] = [];
     let responseList:any[] = [];
     let dataForExcel:any[] = [];
 
-    const questionResponse: any = await this.surveyService.getAllQuestionsBySurveyId(this.surveyObj).toPromise();
+    let isEditing = false;
+    if(this.isFromTraining){
+      isEditing = true;
+    }
+
+    const questionResponse: any = await this.surveyService.getAllQuestionsBySurveyId(this.surveyObj, isEditing).toPromise();
     if (questionResponse.serviceStatus == "Success") {
       questionsList = questionResponse.serviceResponse;
       //console.log("questionsList : ", questionsList);
@@ -611,7 +818,12 @@ export class SurveyConfigComponent implements OnInit {
       //console.log("responseList : ", responseList);
       const key = "employeementId"
       let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
-        return [response.employmentIdAccToET, response.name]
+        // return [response.employmentIdAccToET, response.name]
+        if(this.isFromTraining){
+          return  [response.employmentIdAccToET, response.name,response.marksObtained, response.passStatus]
+        } else {
+          return [response.employmentIdAccToET, response.name];
+        }
         // return {
         //   name: response.name,
         //   employeementId : response.employeementId
@@ -715,9 +927,75 @@ export class SurveyConfigComponent implements OnInit {
       this.sortDirection = sort.direction;
     }
   }
-  onSearch(searchData){
-    this.filters = searchData;
+  onSearch(searchData: any){
+    this.filters = searchData || {};
     //console.log("Updated Filter : ", this.filters);
+  }
+
+  convertWithMoment(dateString: string, format?: string): string | null {
+    if (!dateString) return null;
+    
+    try {
+      const momentDate = moment(dateString);
+      
+      
+      if (!momentDate.isValid()) {
+        console.error('Invalid date string:', dateString);
+        return null;
+      }
+      
+      // Default format if none provided
+      const dateFormat = format || 'MMM DD, YYYY, hh:mm A';
+      
+      
+      const date = momentDate.format(dateFormat);
+      return date;
+      
+    } catch (error) {
+      console.error('Error converting date with moment:', error);
+      return null;
+    }
+  }
+
+  askUserToMakeTheQuizActive(){
+    if(!this.isFromTraining ){
+      return;
+    }
+
+    this.openAlertMod(this.askToMakeItActiveModal, "Please make the quiz active to accept the training.");
+  }
+
+  activateNewTraining(template: TemplateRef<any>){
+    if(!this.newSurveyIdCreated){
+      return;
+    }
+
+    this.cancelRequest();
+
+    let surveyObj = new Survey();
+    surveyObj.surveyId = this.newSurveyIdCreated;
+    surveyObj.updatedBy = this.currentUser.empId;
+    surveyObj.isActive = true;
+
+    if(this.isFromTraining){
+      surveyObj.type = "quiz";
+      surveyObj.trainingId = this.trainingId;
+    }
+
+    this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.backToTraining();
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+    
+  }
+
+  closeAskNewQuizModal(){
+    this.cancelRequest();
+    this.backToTraining();
   }
 
 }
