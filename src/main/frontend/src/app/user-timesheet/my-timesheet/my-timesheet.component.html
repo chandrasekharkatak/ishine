@@ -39,27 +39,33 @@
 
 
 <div class="row text-center mb-3">
-  <div class="card col-md-12 px-0 shadow-sm">
-    <div class="card-header timesheet-header">
-      <span *ngIf="isTimesheetForm && isCreation">
-        <i class="fa fa-edit me-2"></i> Create Timesheet
-      </span>
+    <div class="card col-md-12 px-0 shadow-sm">
+        <div class="card-header timesheet-header">
+            <span *ngIf="isTimesheetForm && isCreation">
+                <i class="fa fa-edit me-2"></i> Create Timesheet
+            </span>
 
-      <span *ngIf="isTimesheetForm && isUpdation">
-        <i class="fa fa-edit me-2"></i> Update Timesheet
-      </span>
+            <span *ngIf="isTimesheetForm && isUpdation">
+                <i class="fa fa-edit me-2"></i> Update Timesheet
+            </span>
 
-      <span *ngIf="isTimesheetBulkForm">
-        <i class="fa fa-file-upload me-2"></i> Final Document Bulk Upload
-        <app-info-tooltip class="ms-2"  iconBgColor="#127475" [size]="20"
-            [content]="withVmsbullet"></app-info-tooltip>
-      </span>
+            <span *ngIf="isTimesheetBulkForm">
+                <i class="fa fa-file-upload me-2"></i> Final Document Bulk Upload
+                <app-info-tooltip class="ms-2" iconBgColor="#127475" [size]="20"
+                    [content]="withVmsbullet"></app-info-tooltip>
+            </span>
 
-      <span *ngIf="isTimesheetTable">
-        <i class="fa fa-list-alt me-2"></i> My Timesheets
-      </span>
+            <span *ngIf="isTimesheetTable">
+                <i class="fa fa-list-alt me-2"></i> My Timesheets
+            </span>
+
+            <button type="button" *ngIf="employeeInTNMProject && (isCreation || isUpdation)"
+                (click)="openPolicySidebar()" class="btn rules-btn" title="View Rules">
+                <i class="fa-solid fa-file-circle-question rules-i"></i>
+                <span>View Rules</span>
+            </button>
+        </div>
     </div>
-  </div>
 </div>
 
 
@@ -104,18 +110,6 @@
     </div>
 </div>
 
-       <div *ngIf="employeeInTNMProject">
-        <div class="tnm-rules-wrapper">
-
-            <button type="button" (click)="openPolicySidebar()" class="tnm-rules" title="View Rules">
-                <div class="tnm-rules-inner">
-                    <img src="assets/Images/transcDragRules.gif" />
-                </div>
-                <span class="rules-label">
-                    <<< Click To View Rules</span>
-            </button>
-        </div>
-    </div>
 
 
     <div class="policy-sidebar" [class.open]="isPolicySidebarOpen">
