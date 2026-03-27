@@ -48,7 +48,6 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetProjectsDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
-import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
@@ -58,6 +57,7 @@ import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetActionAuditNew;
 import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
 	import com.apmosys.employeeportal.model.TimesheetDocumentApproval;
+import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.model.TimesheetRejectionDetailsNew;
 import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
 	import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -67,6 +67,7 @@ import com.apmosys.employeeportal.repository.TimesheetActionAuditNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetApprovalAllocationLogsRepository;
 	import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository;
 	import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
+import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetRejectionDetailsNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepository;
 	import com.apmosys.employeeportal.repository.TimesheetsRepository;
@@ -117,6 +118,9 @@ import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepo
 	    
 	    @Autowired
 	    private TimesheetDocumentDetailsRepository timesheetDocumentDetailsRepository;
+
+	    @Autowired
+	    private TimesheetDocumentDetailsNewRepository timesheetDocumentDetailsNewRepository;
 	    
 	    @Autowired
 	    private MailService mailService;
@@ -1987,31 +1991,39 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 
     ServiceResponse response = new ServiceResponse();
 
-    try {
-        String status = request.getStatus();
-        List<Long> timesheetIdsReq = request.getTimesheetIds();
-        
-        if(timesheetIdsReq.size()==0) {
-        	throw new TimesheetApproveValidationFailedException("No Timesheet selected");
+    validateBulkApproveRejectRequest(request);
+    String status = request.getStatus().trim().toUpperCase();
+    List<Long> timesheetIdsReq = request.getTimesheetIds().stream().distinct().collect(Collectors.toList());
+
+    List<EmployeeTimesheetsNewDTO> timesheets =
+            employeeTimesheetsNewRepository.fetchTimesheetsWithEmploymentId(timesheetIdsReq);
+
+    List<SkippedTimesheetDTO> skippedTimesheets = new ArrayList<>();
+    List<Long> validTimesheetIds = new ArrayList<>();
+    Map<Long, EmployeeTimesheetsNewDTO> timesheetById = timesheets.stream()
+            .collect(Collectors.toMap(EmployeeTimesheetsNewDTO::getTimesheetId, Function.identity(), (a, b) -> a));
+
+    for (Long requestedId : timesheetIdsReq) {
+        if (!timesheetById.containsKey(requestedId)) {
+            skippedTimesheets.add(new SkippedTimesheetDTO(
+                    requestedId,
+                    "UNKNOWN",
+                    null,
+                    "Timesheet not found"
+            ));
         }
+    }
 
-//        if ("REJECTED".equalsIgnoreCase(status) && timesheetIdsReq.size() > 1) {
-//            throw new TimesheetApproveValidationFailedException("Only one timesheet can be rejected at a time.");
-//        }
+    List<Long> fetchedTimesheetIds = timesheets.stream()
+            .map(EmployeeTimesheetsNewDTO::getTimesheetId)
+            .distinct()
+            .collect(Collectors.toList());
 
-        List<EmployeeTimesheetsNewDTO> timesheets =
-                employeeTimesheetsNewRepository.fetchTimesheetsWithEmploymentId(timesheetIdsReq);
-
-        List<SkippedTimesheetDTO> skippedTimesheets = new ArrayList<>();
-        List<Long> validTimesheetIds = new ArrayList<>();
-		 Map<Long, List<TimesheetDocumentDataDTO>> docsByTimesheet =
-                request.getDocumentDetails() == null
-                        ? new HashMap<>()
-                        : request.getDocumentDetails()
-                                .stream()
-                                .collect(Collectors.groupingBy(
-                                        TimesheetDocumentDataDTO::getTimesheetId
-                                ));
+    Map<Long, List<TimesheetDocumentDetailsNew>> docsByTimesheet = "APPROVED".equals(status)
+            ? timesheetDocumentDetailsNewRepository.findActiveByTimesheetIds(fetchedTimesheetIds)
+                    .stream()
+                    .collect(Collectors.groupingBy(TimesheetDocumentDetailsNew::getTimesheetId))
+            : new HashMap<>();
 
         for (EmployeeTimesheetsNewDTO ts : timesheets) {
 
@@ -2040,49 +2052,30 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 				continue; // skip further checks for this timesheet
 			}
 
-			List<TimesheetDocumentDataDTO> docs =
+			List<TimesheetDocumentDetailsNew> docs =
                     docsByTimesheet.get(ts.getTimesheetId());
 
-            if (Boolean.TRUE.equals(ts.getIsWorkingDay()) && docs != null) {
-
-				boolean shouldSkip = docs.stream().anyMatch(d -> {
-
-					Integer statusVal = d.getClientApprovalStatus();
-
-					// Case 1: null -> allow
-					if (statusVal == null) {
-						return false;
-					}
-
-					// Case 2: 1 -> always restrict
-					if (statusVal == 1) {
-						return true;
-					}
-
-					// Case 3: 2 -> require both docId and bulkApprovedDocId
-					if (statusVal == 2) {
-						return d.getDocId() == null || d.getBulkApprovedDocId() == null;
-					}
-
-					return false;
-				});
-
-				if (shouldSkip) {
-
-					skippedTimesheets.add(new SkippedTimesheetDTO(
-							ts.getTimesheetId(),
-							formattedEmpId,
-							ts.getDate(),
-							"Client approval conditions not satisfied"
-					));
-
-					continue;
-				}
+            if ("APPROVED".equals(status) && Boolean.TRUE.equals(ts.getIsWorkingDay())) {
+                if (isClientApprovalBlockedByDbDocuments(docs)) {
+                    skippedTimesheets.add(new SkippedTimesheetDTO(
+                            ts.getTimesheetId(),
+                            formattedEmpId,
+                            ts.getDate(),
+                            "Client approval conditions not satisfied"
+                    ));
+                    continue;
+                }
 			}
 			
             Integer tsStatus = ts.getStatus();
 
 			if (tsStatus == null) {
+				skippedTimesheets.add(new SkippedTimesheetDTO(
+						ts.getTimesheetId(),
+						formattedEmpId,
+						ts.getDate(),
+						"Timesheet status missing"
+				));
 				continue;
 			}
 
@@ -2128,7 +2121,7 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 			return response;
 		}
         boolean isBulkOperation = timesheetIdsReq.size() > 1;
-        if (!"REJECTED".equalsIgnoreCase(status)) {
+        if ("APPROVED".equals(status)) {
 			if (isBulkOperation && !request.isConfirmNightShift()) {
 	
 				List<Long> nightShiftTimesheetIds =
@@ -2171,13 +2164,13 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 
         Long updatedBy = request.getUpdatedBy();
 
-        if ("APPROVED".equalsIgnoreCase(status)) {
+        if ("APPROVED".equals(status)) {
             saveAuditForApproval(validTimesheetIds, timesheetProjectMap, updatedBy, status);
-        } else if ("REJECTED".equalsIgnoreCase(status)) {
+        } else {
             if ("BULK".equalsIgnoreCase(request.getRejectMode())) {
-				saveBulkRejectionDetails(request);
+				saveBulkRejectionDetails(validTimesheetIds, request);
 			} else {
-				saveRejectionDetails(request); // existing logic
+				saveRejectionDetails(validTimesheetIds, request);
 			}
         }
 
@@ -2188,12 +2181,64 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
         response.setServiceResponse(finalResponse);
 
-    } catch (Exception e) {
-        e.printStackTrace();
-        throw e;
-       }
-
     return response;
+}
+
+/**
+ * Client approval gate for working days: uses only DB-loaded document rows (not request.documentDetails).
+ *
+ * @return true if approval must be skipped (blocked)
+ */
+private boolean isClientApprovalBlockedByDbDocuments(List<TimesheetDocumentDetailsNew> docs) {
+    if (docs == null || docs.isEmpty()) {
+        return true;
+    }
+    return docs.stream().anyMatch(d -> {
+        Integer statusVal = d.getClientApprovalStatusId();
+        if (statusVal == null) {
+            return false;
+        }
+        if (statusVal == 1) {
+            return true;
+        }
+        if (statusVal == 2) {
+            return d.getDocId() == null || d.getBulkApprovedDocId() == null;
+        }
+        return true;
+    });
+}
+
+private void validateSingleRejectMappings(List<Long> timesheetIds, List<ProjectRejectionDTO> projectRejections) {
+    Set<String> requiredPairs = new HashSet<>();
+    for (Long tid : timesheetIds) {
+        for (ProjectRejectionDTO pr : projectRejections) {
+            for (Long pid : pr.getProjectIds()) {
+                requiredPairs.add(tid + ":" + pid);
+            }
+        }
+    }
+    if (requiredPairs.isEmpty()) {
+        throw new TimesheetApproveValidationFailedException("No timesheet/project pairs to reject.");
+    }
+    Set<Integer> projectIdSet = projectRejections.stream()
+            .flatMap(pr -> pr.getProjectIds().stream())
+            .map(Long::intValue)
+            .collect(Collectors.toSet());
+    List<Object[]> existing = projectTimesheetStatusNewRepository
+            .findDistinctTimesheetProjectPairs(timesheetIds, projectIdSet);
+    Set<String> existingPairs = new HashSet<>();
+    for (Object[] row : existing) {
+        long tsId = ((Number) row[0]).longValue();
+        long projId = ((Number) row[1]).longValue();
+        existingPairs.add(tsId + ":" + projId);
+    }
+    for (String req : requiredPairs) {
+        if (!existingPairs.contains(req)) {
+            String[] parts = req.split(":", 2);
+            throw new TimesheetApproveValidationFailedException(
+                    "No location mapping found for timesheet " + parts[0] + " and project " + parts[1]);
+        }
+    }
 }
 
 private void saveAuditForApproval(List<Long> timesheetIds, Map<Long, List<Long>> timesheetProjectMap,
@@ -2224,40 +2269,42 @@ private void saveAuditForApproval(List<Long> timesheetIds, Map<Long, List<Long>>
     projectTimesheetStatusNewRepository.processByStatus(timesheetIds, statusValue);
 }
 
-private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
+private void saveRejectionDetails(List<Long> timesheetIds, BulkTimesheetRequestDTO request) {
+
+    List<ProjectRejectionDTO> projectRejections = request.getProjectRejections();
+    validateSingleRejectMappings(timesheetIds, projectRejections);
+
+    Long updatedBy = request.getUpdatedBy();
+    LocalDateTime now = LocalDateTime.now();
+
+    List<TimesheetRejectionDetailsNew> existingAll =
+            timesheetRejectionDetailsNewRepository.findByTimesheetIdInAndIsActive(timesheetIds, true);
+    if (existingAll != null && !existingAll.isEmpty()) {
+        for (TimesheetRejectionDetailsNew rej : existingAll) {
+            rej.setIsActive(false);
+            rej.setUpdatedBy(updatedBy);
+            rej.setUpdatedOn(now);
+        }
+        timesheetRejectionDetailsNewRepository.saveAll(existingAll);
+    }
 
     List<TimesheetRejectionDetailsNew> rejectionList = new ArrayList<>();
     List<TimesheetActionAuditNew> auditList = new ArrayList<>();
-    LocalDateTime now = LocalDateTime.now();
-
-    List<Long> timesheetIds = request.getTimesheetIds();
-    Long updatedBy = request.getUpdatedBy();
-
-    List<ProjectRejectionDTO> projectRejections = request.getProjectRejections();
 
     for (Long timesheetId : timesheetIds) {
-
-		List<TimesheetRejectionDetailsNew> existingRejections = timesheetRejectionDetailsNewRepository.findByTimesheetIdAndIsActive(timesheetId, true);
-		List<TimesheetRejectionDetailsNew> toDeactivate = new ArrayList<>();
-		if (existingRejections != null && !existingRejections.isEmpty()) {
-			for (TimesheetRejectionDetailsNew rej : existingRejections) {
-				rej.setIsActive(false);
-				rej.setUpdatedBy(updatedBy);
-				rej.setUpdatedOn(now);
-				toDeactivate.add(rej);
-			}
-			timesheetRejectionDetailsNewRepository.saveAll(toDeactivate);
-		}
         for (ProjectRejectionDTO pr : projectRejections) {
 
             List<Long> projectIds = pr.getProjectIds();
             List<Long> rejectionIds = pr.getRejectionIds();
             String remark = pr.getRejectRemark();
-
             for (Long projectId : projectIds) {
 
                 List<Long> locationMappingIds = projectTimesheetStatusNewRepository
                         .findLocationMappingId(timesheetId, projectId.intValue());
+                if (locationMappingIds == null || locationMappingIds.isEmpty()) {
+                    throw new TimesheetApproveValidationFailedException(
+                            "No location mapping found for timesheet " + timesheetId + " and project " + projectId);
+                }
 
                 projectTimesheetStatusNewRepository
                         .processByTSandProject(timesheetId, projectId.intValue(), 3);
@@ -2269,31 +2316,34 @@ private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
                 audit.setActionBy(updatedBy);
                 audit.setActionOn(now);
                 auditList.add(audit);
-				for (Long locationMappingId : locationMappingIds) {
-					for (Long rejectionId : rejectionIds) {
-						TimesheetRejectionDetailsNew rejection = new TimesheetRejectionDetailsNew();
-						rejection.setTimesheetId(timesheetId);
-						rejection.setLocationMappingId(locationMappingId);
-						rejection.setProjectId(projectId.intValue());
-						rejection.setRejectionId(rejectionId);
-						rejection.setRemarks(remark);
-						rejection.setRejectedBy(updatedBy);
-						rejection.setRejectedOn(now);
-						rejection.setIsActive(true);
-						rejectionList.add(rejection);
-					}
-				}
+                for (Long locationMappingId : locationMappingIds) {
+                    for (Long rejectionId : rejectionIds) {
+                        TimesheetRejectionDetailsNew rejection = new TimesheetRejectionDetailsNew();
+                        rejection.setTimesheetId(timesheetId);
+                        rejection.setLocationMappingId(locationMappingId);
+                        rejection.setProjectId(projectId.intValue());
+                        rejection.setRejectionId(rejectionId);
+                        rejection.setRemarks(remark);
+                        rejection.setRejectedBy(updatedBy);
+                        rejection.setRejectedOn(now);
+                        rejection.setIsActive(true);
+                        rejectionList.add(rejection);
+                    }
+                }
             }
         }
+    }
+
+    if (auditList.isEmpty() || rejectionList.isEmpty()) {
+        throw new TimesheetApproveValidationFailedException("Unable to build rejection details for the selected timesheet(s).");
     }
 
     timesheetActionAuditNewRepository.saveAll(auditList);
     employeeTimesheetsNewRepository.processByStatus(timesheetIds, 3);
     timesheetRejectionDetailsNewRepository.saveAll(rejectionList);
 }
-private void saveBulkRejectionDetails(BulkTimesheetRequestDTO request) {
+private void saveBulkRejectionDetails(List<Long> timesheetIds, BulkTimesheetRequestDTO request) {
 
-    List<Long> timesheetIds = request.getTimesheetIds();
     Long updatedBy = request.getUpdatedBy();
     List<Long> rejectionReasonId = request.getRejectionReasonId();
     String remark = request.getRejectRemark();
@@ -2302,7 +2352,7 @@ private void saveBulkRejectionDetails(BulkTimesheetRequestDTO request) {
     if (rejectionReasonId == null || rejectionReasonId.isEmpty()) {
         throw new TimesheetApproveValidationFailedException("Rejection reason cannot be null");
     }
-    if (remark == null) {
+    if (remark == null || remark.trim().isEmpty()) {
         throw new TimesheetApproveValidationFailedException("Rejection Remark cannot be null");
     }
 
@@ -2311,6 +2361,20 @@ private void saveBulkRejectionDetails(BulkTimesheetRequestDTO request) {
 
     List<Object[]> result =
         projectTimesheetStatusNewRepository.findProjectsForTimesheetIds(timesheetIds);
+    if (result == null || result.isEmpty()) {
+        throw new TimesheetApproveValidationFailedException("No valid project mapping found for selected timesheet(s).");
+    }
+
+    for (Object[] row : result) {
+        Long timesheetId = ((Number) row[0]).longValue();
+        Long projectId = ((Number) row[1]).longValue();
+        List<Long> locCheck = projectTimesheetStatusNewRepository
+                .findLocationMappingId(timesheetId, projectId.intValue());
+        if (locCheck == null || locCheck.isEmpty()) {
+            throw new TimesheetApproveValidationFailedException(
+                    "No location mapping found for timesheet " + timesheetId + " and project " + projectId);
+        }
+    }
 
     for (Object[] row : result) {
 
@@ -2354,5 +2418,83 @@ private void saveBulkRejectionDetails(BulkTimesheetRequestDTO request) {
     timesheetRejectionDetailsNewRepository.saveAll(rejectionList);
     employeeTimesheetsNewRepository.processByStatus(timesheetIds, 3);
 }
+
+private void validateBulkApproveRejectRequest(BulkTimesheetRequestDTO request) {
+    if (request == null) {
+        throw new TimesheetApproveValidationFailedException("Request cannot be null");
+    }
+
+    if (request.getTimesheetIds() == null || request.getTimesheetIds().isEmpty()) {
+        throw new TimesheetApproveValidationFailedException("No Timesheet selected");
+    }
+    for (Long id : request.getTimesheetIds()) {
+        if (id == null) {
+            throw new TimesheetApproveValidationFailedException("Timesheet IDs cannot contain null");
+        }
+    }
+
+    if (request.getUpdatedBy() == null) {
+        throw new TimesheetApproveValidationFailedException("updatedBy is required");
+    }
+    if (request.getRmId() == null) {
+        throw new TimesheetApproveValidationFailedException("rmId is required");
+    }
+
+    String status = request.getStatus();
+    if (status == null || status.trim().isEmpty()) {
+        throw new TimesheetApproveValidationFailedException("status is required");
+    }
+    String normalizedStatus = status.trim().toUpperCase();
+    if (!"APPROVED".equals(normalizedStatus) && !"REJECTED".equals(normalizedStatus)) {
+        throw new TimesheetApproveValidationFailedException("Invalid status. Allowed values are APPROVED or REJECTED.");
+    }
+
+    if ("REJECTED".equals(normalizedStatus)) {
+        boolean isBulkReject = "BULK".equalsIgnoreCase(request.getRejectMode());
+        if (isBulkReject) {
+            if (request.getRejectionReasonId() == null || request.getRejectionReasonId().isEmpty()) {
+                throw new TimesheetApproveValidationFailedException("Rejection reason cannot be null");
+            }
+            for (Long rid : request.getRejectionReasonId()) {
+                if (rid == null) {
+                    throw new TimesheetApproveValidationFailedException("Rejection reason IDs cannot contain null");
+                }
+            }
+            if (request.getRejectRemark() == null || request.getRejectRemark().trim().isEmpty()) {
+                throw new TimesheetApproveValidationFailedException("Rejection Remark cannot be null");
+            }
+        } else {
+            List<ProjectRejectionDTO> projectRejections = request.getProjectRejections();
+            if (projectRejections == null || projectRejections.isEmpty()) {
+                throw new TimesheetApproveValidationFailedException("Project rejection details are required for single rejection.");
+            }
+            for (ProjectRejectionDTO projectRejection : projectRejections) {
+                if (projectRejection == null) {
+                    throw new TimesheetApproveValidationFailedException("Project rejection entries cannot be null");
+                }
+                if (projectRejection.getProjectIds() == null || projectRejection.getProjectIds().isEmpty()) {
+                    throw new TimesheetApproveValidationFailedException("Project IDs are required for single rejection.");
+                }
+                for (Long pid : projectRejection.getProjectIds()) {
+                    if (pid == null) {
+                        throw new TimesheetApproveValidationFailedException("Project IDs cannot contain null");
+                    }
+                }
+                if (projectRejection.getRejectionIds() == null || projectRejection.getRejectionIds().isEmpty()) {
+                    throw new TimesheetApproveValidationFailedException("Rejection reason is required for single rejection.");
+                }
+                for (Long rejId : projectRejection.getRejectionIds()) {
+                    if (rejId == null) {
+                        throw new TimesheetApproveValidationFailedException("Rejection reason IDs cannot contain null");
+                    }
+                }
+                if (projectRejection.getRejectRemark() == null || projectRejection.getRejectRemark().trim().isEmpty()) {
+                    throw new TimesheetApproveValidationFailedException("Rejection remark is required for single rejection.");
+                }
+            }
+        }
+    }
+}
+
 }
 	
