@@ -1372,9 +1372,9 @@ public class EmployeeLeaveService {
 
         
         LocalDateTime dateTime = date.atStartOfDay();
-        List<ProjectNameAndPrjoectIdDTO> projectDTOList = timesheetsRepository.getProjectListForDateAndEmpId(
+        List<ProjectNameAndPrjoectIdDTO> projectDTOList = employeeTimesheetsNewRepository.getProjectListForDateAndEmpId(
                 leaveDTO.getEmpId(), startOfDay, endOfDay);
-
+        
         if (projectDTOList != null && !projectDTOList.isEmpty()) {
             for (ProjectNameAndPrjoectIdDTO projDto : projectDTOList) {
                 try {
