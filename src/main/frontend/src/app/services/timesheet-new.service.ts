@@ -330,4 +330,7 @@ processBulkTimesheets(payload: any) {
       { params }
     );
   }
+  getProjectListForDateAndEmpId(payload: any): Observable<any> {
+      return this.http.post(`${this.baseUrl}api/v2/timesheet/getProjectListForDateAndEmpId`, payload);
+}
 }

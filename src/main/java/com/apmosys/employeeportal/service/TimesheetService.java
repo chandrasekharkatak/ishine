@@ -2734,56 +2734,6 @@ public class TimesheetService {
 	    return response;
 	}
 
-	public ServiceResponse getProjectListForDateAndEmpId(GetProjectListForDateAndEmpIdPayload payload) {
-	    ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getProjectListForDateAndEmpId");
-	    apiLogInfo.setLogLevel("INFO");
-	    
-	    try {
-	    	Long empId = payload.getEmpId();
-	    	
-	    	LocalDateTime selectedDateTime = payload.getDate();
-
-	    	LocalDate selectedDate = selectedDateTime.toLocalDate();
-
-	    	LocalDateTime startOfDay = selectedDate.atStartOfDay();
-	    	LocalDateTime endOfDay   = selectedDate.atTime(LocalTime.MAX);
-
-	        List<ProjectNameAndPrjoectIdDTO> activeProjectList = timesheetsRepository.getProjectListForDateAndEmpId(empId, startOfDay, endOfDay);
-	        
-	        if (activeProjectList.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("Please contact to the RMG team to provide project mapping!");
-	            response.setServiceMessage("Employee has no project mapping ! For EmpId: " + empId);
-	            
-	            apiLogInfo.setApiResponse("Employee has no project mapping ! For EmpId: " + empId);
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	            logService.logMyInfo(httpRequest, apiLogInfo);
-	            return response;
-	        }
-	        
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(activeProjectList);
-            response.setServiceMessage("Project List fetched successfully!");
-
-            apiLogInfo.setApiResponse("Project list where employee has active = 1 in Employee Team Mapping table fetched successfully!");
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	        
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong.");
-	        response.setServiceError(e.getMessage());
-
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setApiResponse(e.getMessage()); 
-	        apiLogInfo.setLogLevel("ERROR");
-	    }
-
-	    logService.logMyInfo(httpRequest, apiLogInfo);
-	    return response;
-	}
 	
 	public ServiceResponse getClientSideIdByProjectId(Long projectId) {
 	    ServiceResponse response = new ServiceResponse();

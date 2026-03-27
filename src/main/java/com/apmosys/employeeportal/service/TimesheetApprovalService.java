@@ -2042,44 +2042,44 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 
 			List<TimesheetDocumentDataDTO> docs =
                     docsByTimesheet.get(ts.getTimesheetId());
+			if (!"REJECTED".equalsIgnoreCase(status)) {
+				if (Boolean.TRUE.equals(ts.getIsWorkingDay()) && docs != null) {
 
-            if (Boolean.TRUE.equals(ts.getIsWorkingDay()) && docs != null) {
+					boolean shouldSkip = docs.stream().anyMatch(d -> {
 
-				boolean shouldSkip = docs.stream().anyMatch(d -> {
+						Integer statusVal = d.getClientApprovalStatus();
 
-					Integer statusVal = d.getClientApprovalStatus();
+						// Case 1: null -> allow
+						if (statusVal == null) {
+							return false;
+						}
 
-					// Case 1: null -> allow
-					if (statusVal == null) {
+						// Case 2: 1 -> always restrict
+						if (statusVal == 1) {
+							return true;
+						}
+
+						// Case 3: 2 -> require both docId and bulkApprovedDocId
+						if (statusVal == 2) {
+							return d.getDocId() == null || d.getBulkApprovedDocId() == null;
+						}
+
 						return false;
+					});
+
+					if (shouldSkip) {
+
+						skippedTimesheets.add(new SkippedTimesheetDTO(
+								ts.getTimesheetId(),
+								formattedEmpId,
+								ts.getDate(),
+								"Client approval conditions not satisfied"
+						));
+
+						continue;
 					}
-
-					// Case 2: 1 -> always restrict
-					if (statusVal == 1) {
-						return true;
-					}
-
-					// Case 3: 2 -> require both docId and bulkApprovedDocId
-					if (statusVal == 2) {
-						return d.getDocId() == null || d.getBulkApprovedDocId() == null;
-					}
-
-					return false;
-				});
-
-				if (shouldSkip) {
-
-					skippedTimesheets.add(new SkippedTimesheetDTO(
-							ts.getTimesheetId(),
-							formattedEmpId,
-							ts.getDate(),
-							"Client approval conditions not satisfied"
-					));
-
-					continue;
 				}
 			}
-			
             Integer tsStatus = ts.getStatus();
 
 			if (tsStatus == null) {
@@ -2175,9 +2175,9 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
             saveAuditForApproval(validTimesheetIds, timesheetProjectMap, updatedBy, status);
         } else if ("REJECTED".equalsIgnoreCase(status)) {
             if ("BULK".equalsIgnoreCase(request.getRejectMode())) {
-				saveBulkRejectionDetails(request);
+				saveBulkRejectionDetails(request, validTimesheetIds);
 			} else {
-				saveRejectionDetails(request); // existing logic
+				saveRejectionDetails(request,validTimesheetIds); // existing logic
 			}
         }
 
@@ -2224,13 +2224,13 @@ private void saveAuditForApproval(List<Long> timesheetIds, Map<Long, List<Long>>
     projectTimesheetStatusNewRepository.processByStatus(timesheetIds, statusValue);
 }
 
-private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
+private void saveRejectionDetails(BulkTimesheetRequestDTO request,List<Long> validTimesheetIds) {
 
     List<TimesheetRejectionDetailsNew> rejectionList = new ArrayList<>();
     List<TimesheetActionAuditNew> auditList = new ArrayList<>();
     LocalDateTime now = LocalDateTime.now();
 
-    List<Long> timesheetIds = request.getTimesheetIds();
+    List<Long> timesheetIds = validTimesheetIds;
     Long updatedBy = request.getUpdatedBy();
 
     List<ProjectRejectionDTO> projectRejections = request.getProjectRejections();
@@ -2291,9 +2291,9 @@ private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
     employeeTimesheetsNewRepository.processByStatus(timesheetIds, 3);
     timesheetRejectionDetailsNewRepository.saveAll(rejectionList);
 }
-private void saveBulkRejectionDetails(BulkTimesheetRequestDTO request) {
+private void saveBulkRejectionDetails(BulkTimesheetRequestDTO request, List<Long> validTimesheetIds) {
 
-    List<Long> timesheetIds = request.getTimesheetIds();
+    List<Long> timesheetIds = validTimesheetIds;
     Long updatedBy = request.getUpdatedBy();
     List<Long> rejectionReasonId = request.getRejectionReasonId();
     String remark = request.getRejectRemark();

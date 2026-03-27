@@ -46,12 +46,6 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   
   // ✅ MODERATE FIX: Constants for magic numbers
   private static readonly NON_FILLABLE_DAY_TYPES = [4, 6, 7]; // Public Holiday, Client Holiday, Week Off
-  private static readonly ASYNC_DELAYS = {
-    PROJECT_LOAD: 500,
-    LOCATION_POPULATE: 800,
-    TEAM_MEMBER_LOAD: 300
-  } as const;
-
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
   @ViewChild("alert_message_for_holiday_create")
@@ -5976,7 +5970,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     };
 
     return new Promise<void>((resolve, reject) => {
-      this.timesheetService.getProjectListForDateAndEmpId(payload)
+      this.timesheetNewService.getProjectListForDateAndEmpId(payload)
         .pipe(first(), takeUntil(this.destroy$))
         .subscribe({
           next: (response: any) => {

@@ -36,6 +36,7 @@ import com.apmosys.employeeportal.Exception.TimesheetValidationFailedException;
 import com.apmosys.employeeportal.dto.FileNameRequest;
 import com.apmosys.employeeportal.dto.FileNameResponse;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
+import com.apmosys.employeeportal.dto.GetProjectListForDateAndEmpIdPayload;
 import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.FinalDocumentDownloadPayloadDTO;
 import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
@@ -220,14 +221,6 @@ public class EmployeeTimesheetControllerNew {
 	@DeleteMapping(value = "/{timesheetId}")
 	public ServiceResponse deleteTimesheet(@PathVariable Long timesheetId) {
 		ServiceResponse response = timesheetServiceNew.deleteTimesheet(timesheetId);
-		return response;
-	}
-	
-	@JobRoleAccess(featureIds = {7,15,16})
-	@RequestMapping(value = "/getAllProjectsByEmpId", method = RequestMethod.POST)
-	public ServiceResponse getAllProjectsByEmpId(@RequestBody Long empId) {
-
-		ServiceResponse response = timesheetServiceNew.getAllProjectsByEmpId(empId);
 		return response;
 	}
 	
@@ -521,6 +514,14 @@ public class EmployeeTimesheetControllerNew {
 			response = timesheetServiceNew.fetchDeptBaseProjectAndClientRelatedDataForEmployee(empId);
 			return response;
 		}
+		
+		
+		/*Migrated*/
+		// @JobRoleAccess(featureIds = {15})
+		 @PostMapping("/getProjectListForDateAndEmpId")
+		 public ServiceResponse getProjectListForDateAndEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
+		     return timesheetServiceNew.getProjectListForDateAndEmpId(payload);
+		 }
 }
 
 
