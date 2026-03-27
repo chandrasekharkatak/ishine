@@ -49,4 +49,9 @@ public class FinalDocumentNew {
     @UpdateTimestamp
     @Column(name = "updated_on")
     private LocalDateTime updatedOn;
+    
+   
+    @Column(name = "prev_doc_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long prevDocId;
 }

@@ -29,6 +29,8 @@ import { TimesheetValidationService } from 'src/app/services/TimesheetValidation
 import { TimesheetConfigService } from 'src/app/services/TimesheetValidationService/timesheet-config.service';
 import { DatePipe } from '@angular/common';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { ExcelDownloadService } from 'src/app/services/excel-download-service';
+import { map } from 'highcharts';
 
 @Component({
   standalone: false,
@@ -172,7 +174,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
     private datePipe: DatePipe,
-    private employeeService: EmployeeService) { 
+    private employeeService: EmployeeService,
+    private excelDownloadService: ExcelDownloadService
+  ) { 
       // ✅ CRITICAL FIX: Properly unsubscribe on destroy
       this.authenticationService.currentUser
         .pipe(takeUntil(this.destroy$))
@@ -187,6 +191,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     this.getAllDayTypes();
     this.getAllDSRApprovalStatusFromMaster();
     console.log(this.selectedDate,"[ngOnInit] Initial selectedDate:", this.selectedDate);
+    // this.getHalfDayLeaves();
     if(this.selectedDate){
       this.loadServerDateThenInitCreate();
     }
@@ -673,6 +678,15 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       const doc = docsToRemove.find(d => d.uniqueIdentifier === file.name);
       return !doc;
     });
+     this.fileTracker.forEach((value,key)=>{
+      const doc = docsToRemove.find(d => d.uniqueIdentifier === value);
+      if(doc){
+        this.fileTracker.delete(key);
+      }
+    })
+
+    console.log("Selected File",this.selectedFile)
+    console.log("File tracker",this.fileTracker);
   }
 
   /**
@@ -1157,7 +1171,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    */
   onDayTypeChange(event: any): void {
     const newDayTypeId = this.dayType;
-
+    if(this.halfDayValidation()){
+      return;
+    }
     // If current date is a Holiday/Week-off and user tries to switch to Working / Half-day Working,
     // prevent change on UI itself (backend will also enforce).
     const isHolidayOrWeekOffDate =
@@ -1444,6 +1460,7 @@ this.isNightShift = false;
     this.selectedFile = [];
     this.uniqueProjectsList = [];
     this.empHasClientSideId = false;
+    this.fileTracker.clear();
 
     // Clear highlight/validation state
     this.highlightLocationList = [];
@@ -1658,6 +1675,7 @@ this.isNightShift = false;
     // Load available timesheets for date filtering after setting user
     if (userObj.empId && this.serverDate) {
       this.getAllAvailableTimesheetByEmpId(userObj);
+      this.getHalfDayLeaves(userObj.empId);
     }
   }
 
@@ -2906,6 +2924,9 @@ this.isNightShift = false;
       if (!fromDate) return;
       this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
     }
+    if(this.halfDayValidation()){
+      return;
+    };
     this.applyChanges();
   }
 
@@ -3344,16 +3365,21 @@ this.isNightShift = false;
    * Handle file selection for document upload
    * Validates file type and size
    */
-  onFileSelected(
+  fileTracker = new Map<string, string>(); 
+
+  async onFileSelected(
     event: any,
     docType: 'Filled' | 'Approved',
     projectId: number
-  ): void {
+  ): Promise<void> {
 
     const file: File = event.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+    const allowedTypes = ['application/pdf', 
+    'image/jpeg', 'image/png', 'image/jpg',
+    'application/vnd.ms-excel',                                    
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
     const maxSize = 500 * 1024; // 500KB
 
     // ❌ Invalid type
@@ -3361,7 +3387,7 @@ this.isNightShift = false;
       this.handleFileError(
         projectId,
         docType,
-        'Only PDF, JPG, JPEG, PNG files allowed.'
+        'Only PDF, JPG, JPEG, PNG, XLS, XLSX files allowed.'
       );
       event.target.value = '';
       return;
@@ -3378,6 +3404,8 @@ this.isNightShift = false;
       return;
     }
 
+    console.log("Document data",this.documentData);
+
     // ♻️ Cleanup old object URL
     const previous = this.documentData.find(
       f => f.projectId === projectId && f.docType === docType
@@ -3386,10 +3414,14 @@ this.isNightShift = false;
     if (previous?.rawObjectUrl) {
       URL.revokeObjectURL(previous.rawObjectUrl);
     }
-
+    const excelTypes = [
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
     // ✅ Detect file type ONCE
-    const fileType: 'pdf' | 'image' =
-      file.type === 'application/pdf' ? 'pdf' : 'image';
+    const fileType: 'pdf' | 'image' | 'excel' =
+      file.type === 'application/pdf' ? 'pdf' :
+      excelTypes.includes(file.type) ? 'excel' : 'image';
 
     // ✅ Create object URL
     const objectUrl = URL.createObjectURL(file);
@@ -3398,10 +3430,18 @@ this.isNightShift = false;
     const previewUrl =
       fileType === 'pdf'
         ? this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl)
+        : fileType === 'excel'
+        ? null   // No browser preview for Excel
         : this.sanitizer.bypassSecurityTrustUrl(objectUrl);
 
-    const uniqueFile: File = this.renameFile(file, projectId, docType);
+    const uniqueFile: File = await this.renameFile(file, projectId, docType);
+    if(uniqueFile == null ){
+      return;
+    }
     const uniqueIdentifier = uniqueFile.name;
+    
+    
+
 
     // Update entry – preserve docId when replacing so backend updates existing row instead of creating new
     this.updateUploadFile({
@@ -3463,6 +3503,10 @@ this.isNightShift = false;
     data: TimesheetDocumentDataI,
     file?: File
   ): void {
+   
+    let key = this.generateFileKey(data.projectId,this.fromDate,this.dayType,data.docType);
+
+    let oldUniqueIdentifier = this.fileTracker.get(key);
 
     const index = this.documentData.findIndex(
       f => f.projectId === data.projectId && f.docType === data.docType
@@ -3482,18 +3526,28 @@ this.isNightShift = false;
     // ✅ Keep selectedFile array in sync without introducing undefined entries
     // Only update selectedFile when we actually have a File object
     if (file) {
-      const existingIndex = this.selectedFile.findIndex(
-        f => f && getBaseName(f.name) === getBaseName(data.uniqueIdentifier)
-      );
 
-      if (existingIndex !== -1) {
-        // Replace existing file for this document
-        this.selectedFile[existingIndex] = file;
-      } else {
+      if(oldUniqueIdentifier){
+        const existingIndex = this.selectedFile.findIndex(
+          // f => f && getBaseName(f.name) === getBaseName(data.uniqueIdentifier)
+          f => f && getBaseName(f.name) === getBaseName(oldUniqueIdentifier)
+        );
+        if (existingIndex !== -1) {
+          // Replace existing file for this document
+          this.selectedFile[existingIndex] = file;
+          this.fileTracker.set(key,data.uniqueIdentifier);
+        }
+      }
+      else {
         // Add new file entry
         this.selectedFile.push(file);
+        this.fileTracker.set(key,data.uniqueIdentifier);
+
       }
     }
+
+    console.log("File tracker",this.fileTracker);
+    console.log("Selected File",this.selectedFile);
 
   }
 
@@ -3647,17 +3701,31 @@ this.isNightShift = false;
   /**
    * Rename file with project ID and document type prefix
    */
-  renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): File {
-    const ext = file.name.substring(file.name.lastIndexOf('.'));
-    const safeDocType = docType.toLowerCase(); // optional
-    // const newFileName = `${this.currentUser.empId}_${projectId}_${}_${safeDocType}${ext}`;
-    const newFileName = `${projectId}_${this.fromDate}_${this.dayType}_${safeDocType}${ext}`;
+  async renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): Promise<File> {
+  
+    try{
+    const ext = file.name.includes('.') ?file.name.substring(file.name.lastIndexOf('.')): '';
+    // const safeDocType = docType.toLowerCase(); // optional
+    // // const newFileName = `${this.currentUser.empId}_${projectId}_${}_${safeDocType}${ext}`;
+    // const newFileName = `${projectId}_${this.fromDate}_${this.dayType}_${safeDocType}${ext}`;
+    
+
+    const response: any = await firstValueFrom(this.timesheetService.generateFileName({
+      projectId: projectId,
+      extension: ext,
+      docType: docType
+    }));
+    const newFileName = response.fileName;
 
     return new File([file], newFileName, { type: file.type });
   }
-  /**
-   * Check if project has filled document
-   */
+   catch(error){
+    this.handleError(error,"Generating unique file name",true,"Unable to generate unique file name")
+    return null;
+  }
+
+  }
+
   hasFilledDocument(projectId: number): boolean {
     return this.documentData?.some(
       file => file.projectId === projectId && file.docType === 'Filled'
@@ -3719,7 +3787,7 @@ this.isNightShift = false;
     this.selectedFile = [];
     this.uniqueProjectsList = [];
     this.empHasClientSideId = false;
-    
+    this.fileTracker.clear();
     // UI state
     this.highlightLocationList = [];
     this.highlightLocationIdSet = new Set();
@@ -3731,6 +3799,7 @@ this.isNightShift = false;
     
     // Flags
     this.disableAdd = false;
+    this.fileTracker.clear();
   }
 
   resetFormForNightShift(): void {
@@ -3750,7 +3819,7 @@ this.isNightShift = false;
     this.selectedFile = [];
     this.uniqueProjectsList = [];
     this.empHasClientSideId = false;
-    
+    this.fileTracker.clear();
     // UI state
     this.highlightLocationList = [];
     this.highlightLocationIdSet = new Set();
@@ -3784,7 +3853,7 @@ this.isNightShift = false;
     this.selectedFile = [];
     this.uniqueProjectsList = [];
     this.empHasClientSideId = false;
-
+    this.fileTracker.clear();
     // In/out times and presence (clean slate for new date)
     this.apmosysInTime = null;
     this.apmosysOutTime = null;
@@ -4782,9 +4851,16 @@ this.isNightShift = false;
       .subscribe({
         next: (blob: Blob) => {
           const mimeType = blob.type || 'application/octet-stream';
-          const blobUrl = URL.createObjectURL(blob);
-          this.showPreviewFromBlobUrl(blobUrl, mimeType);
-        },
+          if (this.isExcelMimeType(mimeType)) {
+            const fileName = `document.${mimeType.includes('openxml') ? 'xlsx' : 'xls'}`;
+            // this.downloadBlobAsFile(blob, fileName);
+            this.excelDownloadService.openConfirmAndDownload(blob,fileName);
+          }
+          else{
+            const blobUrl = URL.createObjectURL(blob);
+            this.showPreviewFromBlobUrl(blobUrl, mimeType);
+          }
+          },
         error: (error) => {
           this.handleError(
             error,
@@ -5859,6 +5935,85 @@ this.isNightShift = false;
     const [day, month, year] = dateStr.split('-');
   
     return `${year}-${month}-${day}`;
+  }
+
+  downloadFile(file: any): void {
+    if (file.rawObjectUrl) {
+      // Newly selected file — use object URL
+      const a = document.createElement('a');
+      console.log("A",a);
+      console.log("Raw object url",file);
+      a.href = file.rawObjectUrl;
+      a.download = file.docName || 'download';
+      a.click();
+    } 
+  }
+  isExcelMimeType(mimeType: string): boolean {
+    return mimeType === 'application/vnd.ms-excel'
+      || mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  }
+  
+  private downloadBlobAsFile(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  halfDayLeaveList:any[]=[]
+  getHalfDayLeaves(empId: number): void {
+    this.timesheetService.getAllHalfDayLeaves(empId)
+      .pipe(first())
+      .subscribe({
+        next: (dates: string[]) => {
+          this.halfDayLeaveList = dates;
+          console.log(this.halfDayLeaveList);
+        },
+        error: (err) => {
+          console.error('Error fetching half day leaves:', err);
+        }
+      });
+  }
+  halfDayValidation(){
+
+    let date = this.convertDate(this.fromDate);
+    if(date == null){
+      return false
+    }
+    let isHalfday = this.halfDayLeaveList.includes(date);
+    if(this.dayType == 8 && this.fromDate != null){
+      if(!isHalfday){
+        this.handleError(
+          ("Please apply half day leave on the selected day first"),
+          'createTimesheet',
+          true,
+          "Please apply half day leave on the selected day first"
+        );
+        // this.fromDate = null;
+        // this.resetForm();
+        return true;
+      }
+    }
+    return false;
+
+  }
+
+   convertDate(dateStr) {
+    if (!dateStr) return null;
+    const [day, month, year] = dateStr.split("-");
+    const date = new Date(`${year}-${month}-${day}`);
+    return date.toISOString().split("T")[0];
+  }
+
+
+  private generateFileKey(
+    projectId: number,
+    fromDate: string,
+    dayType: number,
+    docType: string
+  ): string {
+    return `${projectId}_${fromDate}_${dayType}_${docType}`.toLowerCase();
   }
 
 }

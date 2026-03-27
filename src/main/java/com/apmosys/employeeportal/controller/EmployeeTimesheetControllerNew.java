@@ -33,6 +33,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.Exception.TimesheetValidationFailedException;
+import com.apmosys.employeeportal.dto.FileNameRequest;
+import com.apmosys.employeeportal.dto.FileNameResponse;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
 import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.FinalDocumentDownloadPayloadDTO;
@@ -43,9 +45,11 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDeleteRequestDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusUpdateRequestDTO;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.service.TimesheetDocumentServiceNew;
 import com.apmosys.employeeportal.service.TimesheetServiceNew;
 import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
+import com.apmosys.employeeportal.utility.FileNameGenerator;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +81,8 @@ public class EmployeeTimesheetControllerNew {
 
 	@Autowired
 	com.apmosys.employeeportal.service.TimesheetService timesheetService;
+
+	
 	
 	@Value("${timesheet.minus.days.for.bulk.upload}")
 	private Integer minusDays;
@@ -482,6 +488,25 @@ public class EmployeeTimesheetControllerNew {
 
 			return ResponseEntity.ok(isAllowed);
 		}
+	@GetMapping("/half-day/{empId}")
+    public ResponseEntity<List<LocalDate>> getAllHalfDayLeave(@PathVariable Long empId) {
+        List<LocalDate> halfDayDates = timesheetServiceNew.getAllHalfDayLeaves(empId);
+        return ResponseEntity.ok(halfDayDates);
+    }
+
+	@PostMapping("/generate-name")
+    public ResponseEntity<FileNameResponse> generateFileName(
+            @RequestBody FileNameRequest request
+    ) {
+		try{
+
+			String fileName = FileNameGenerator.generate(request.getProjectId(), request.getExtension(), request.getDocType());
+			return ResponseEntity.ok(new FileNameResponse(fileName));
+		}catch(Exception e){
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+    }
 }
 
 

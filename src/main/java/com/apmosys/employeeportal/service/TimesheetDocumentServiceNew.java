@@ -88,7 +88,7 @@ public class TimesheetDocumentServiceNew {
     private String storagePath;
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
-            "pdf", "jpg", "jpeg", "png");
+            "pdf", "jpg", "jpeg", "png", "xls", "xlsx");
 
     /**
      * Handles Document uploads for timesheet
@@ -731,6 +731,10 @@ public class TimesheetDocumentServiceNew {
                 return "image/jpeg";
             case "png":
                 return "image/png";
+            case "xls":
+            	return "application/vnd.ms-excel";
+            case "xlsx":
+            	return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             default:
                 return null;
         }

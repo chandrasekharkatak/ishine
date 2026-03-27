@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -85,6 +86,7 @@ import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DocMimeTypeMasterNewRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
@@ -102,6 +104,7 @@ import com.apmosys.employeeportal.service.validator.EmployeeAssignmentValidation
 import com.apmosys.employeeportal.service.validator.TimesheetValidationHelper;
 import com.apmosys.employeeportal.utility.DateConversionUtil;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -187,6 +190,9 @@ public class TimesheetServiceNew {
 
 		@Autowired
 	 TimesheetValidationHelper timesheetValidationHelper;
+
+	@Autowired
+	EmployeeLeaveRepository employeeLeaveRepository;
 	 
 	@Value("${timesheet.minus.days.for.bulk.upload}")
 	private Integer minusDays;
@@ -2745,5 +2751,28 @@ public class TimesheetServiceNew {
    				 return result != null && result == 1;
         }
 		
+		public List<LocalDate> getAllHalfDayLeaves(Long empId) {
+			if (empId == null) {
+				throw new IllegalArgumentException("empId cannot be null");
+			}
+			try {
+			LocalDate endDate = LocalDate.now();
+			LocalDate startDate = endDate.minusMonths(3);
+			List<Date> rawDates = employeeLeaveRepository.getAllHalfDayLeaves(empId, startDate, endDate);
+			if (rawDates == null || rawDates.isEmpty()) {
+				return Collections.emptyList();
+			}
+
+			return rawDates.stream()
+					.map(Date::toLocalDate)     
+					.collect(Collectors.toList());
+			}
+			catch (Exception ex) {
+				
+				// System.err.println("Error fetching half day leaves for empId: " + empId);
+				ex.printStackTrace();
+				throw new RuntimeException("Failed to fetch half day leaves", ex);
+			}
+		}
 
 }

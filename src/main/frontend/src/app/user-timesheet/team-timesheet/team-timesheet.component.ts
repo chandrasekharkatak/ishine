@@ -27,8 +27,9 @@ import { ProjectBasedBulkUploadPayload } from './types';
 import { HttpClient } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
 import {LoaderService} from 'src/app/services/loader.service';import { MatSortModule } from '@angular/material/sort';
-import { Observable, of, Subject } from 'rxjs';
+import { firstValueFrom, Observable, of, Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
+import { ExcelDownloadService } from 'src/app/services/excel-download-service';
 
 
 
@@ -173,7 +174,7 @@ rejectRemarkError = false;
   previewUrl2: SafeResourceUrl | null = null;
   fileName2: any = null;
   fileError2: string = '';
-  fileType2: '' | 'pdf' | 'image' | null = null;
+  fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
   rawObjectUrl2: string | null = null;
   selectedFile2: File | null = null;
   previewUrl1: SafeResourceUrl | null = null;
@@ -237,7 +238,8 @@ rejectionReasons:any;
     private sanitizer: DomSanitizer,
     private route: ActivatedRoute,
     private loaderService: LoaderService,
-
+    private excelDownloadService: ExcelDownloadService
+     
 
 
   ) {
@@ -1329,8 +1331,10 @@ sortData(sort: Sort) {
     console.log('Min Date:', this.minDate, 'Max Date:', this.maxDate);
   }
 
-  onFinalFileSelected(event: any): void {
+  finalFile:File|null = null;
+  async onFinalFileSelected(event: any): Promise<void> {
     const file: File = event.target.files[0];
+    this.finalFile = file;
     this.fileError2 = '';
     this.previewUrl2 = null;
     this.fileType2 = null;
@@ -1343,11 +1347,13 @@ sortData(sort: Sort) {
 
     if (!allowedTypes.includes(file.type)) {
       this.fileError2 = 'Only PDF, JPG, JPEG, PNG, XLSX, and XLS files are allowed.';
+      this.finalFile = null;
       return;
     }
 
     if (file.size > maxSize) {
       this.fileError2 = 'File size must be 500Kb or less.';
+      this.finalFile = null;
       return;
     }
 
@@ -1357,9 +1363,22 @@ sortData(sort: Sort) {
 
     const objectUrl = URL.createObjectURL(file);
     this.rawObjectUrl2 = objectUrl;
-    this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
-    this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
-    this.selectedFile2 = this.renameFile(file, this.timesheetObj.projectId, 'Approved');
+    // this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
+    const excelTypes = [
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    // ✅ Detect file type ONCE
+    this.fileType2 =
+    file.type === 'application/pdf' ? 'pdf' :
+    excelTypes.includes(file.type) ? 'excel' : 'image';
+    if(this.fileType2 == 'image' || this.fileType2 == 'pdf'){
+      this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    }
+    else{
+      this.previewUrl2 = null;
+    }
+    this.selectedFile2 = await this.renameFile(file, this.timesheetObj.projectId, 'Approved');
     console.log("selectedFile2: ",this.selectedFile2);
     this.fileName2 = file.name;
   }
@@ -2190,9 +2209,10 @@ openDocumentPopup(
   toggleMode: boolean = true,
   project?: any
 ): void {
+  console.log("Opening document");
   this.selectedTimesheet = timesheet;
   this.isToggleMode = toggleMode;
-
+  console.log("Project",project);
 
   if (project) {
 
@@ -2471,13 +2491,20 @@ getDocument(type: 'Pending' | 'Approved'): void {
         this.activeRawObjectUrl = URL.createObjectURL(blob);
         const mime = (blob?.type || '').toLowerCase();
         this.currentObjectUrl = URL.createObjectURL(blob);
+        const excelTypes = [
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ];
         if (mime.includes('pdf')) {
           this.activeFileType = 'pdf';
           this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.currentObjectUrl);
         } else if (mime.startsWith('image/')) {
           this.activeFileType = 'image';
           this.activePreviewUrl = this.currentObjectUrl;
-        } else {
+        } else if(excelTypes.includes(mime)) {
+          this.excelDownloadService.openConfirmAndDownload(blob,null);
+        } 
+        else {
           // fallback: try showing as pdf (some backends send application/octet-stream)
           // if it fails in iframe, user can still download
           this.activeFileType = 'pdf';
@@ -3061,13 +3088,13 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
     return d.toISOString().split('T')[0];
   }
 
-  renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): File {
-    const ext = file.name.substring(file.name.lastIndexOf('.'));
-    const safeDocType = docType.toLowerCase(); // optional
-    const newFileName = `${projectId}_${safeDocType}_${file.name}`;
+  // renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): File {
+  //   const ext = file.name.substring(file.name.lastIndexOf('.'));
+  //   const safeDocType = docType.toLowerCase(); // optional
+  //   const newFileName = `${projectId}_${safeDocType}_${file.name}`;
 
-    return new File([file], newFileName, { type: file.type });
-  }
+  //   return new File([file], newFileName, { type: file.type });
+  // }
 
 
   //   if (!this.selectedTimesheet?.timesheetId) {
@@ -3637,6 +3664,51 @@ openPreview() {
   this.translateX = 0;
   this.translateY = 0;
 }
+downloadFile(): void {
+  if (this.rawObjectUrl2) {
+    // Newly selected file — use object URL
+    const a = document.createElement('a');
+    console.log("A",a);
+    // console.log("Raw object url",file);
+    a.href = this.rawObjectUrl2;
+    a.download = this.finalFile.name || 'download';
+    a.click();
+  } 
+}
+
+   async renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): Promise<File> {
+    
+      try{
+      const ext = file.name.includes('.') ?file.name.substring(file.name.lastIndexOf('.')): '';
+      // const safeDocType = docType.toLowerCase(); // optional
+      // // const newFileName = `${this.currentUser.empId}_${projectId}_${}_${safeDocType}${ext}`;
+      // const newFileName = `${projectId}_${this.fromDate}_${this.dayType}_${safeDocType}${ext}`;
+  
+      const response: any = await firstValueFrom(this.timesheetService.generateFileName({
+        projectId: projectId,
+        extension: ext,
+        docType: docType
+      }));
+      const newFileName = response.fileName;
+  
+      return new File([file], newFileName, { type: file.type });
+    }
+     catch(error){
+      this.handleError(error,"Generating unique file name",true,"Unable to generate unique file name")
+      return null;
+    }
+  
+    }
+
+    private handleError(error: any, context: string, showToUser: boolean = false, userMessage?: string): void {
+      const errorMessage = error?.message || error?.toString() || 'An unexpected error occurred';
+      console.error(`[${context}]`, error);
+      
+      if (showToUser) {
+        const message = userMessage || `Error: ${errorMessage}. Please try again.`;
+        this.openAlertMod(this.alertTemplate, message);
+      }
+    }
 }
 
 
