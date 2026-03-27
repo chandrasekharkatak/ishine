@@ -405,6 +405,7 @@
                     <tr *ngFor="let eligiemployee of getTableEmployeeList() | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                       <td class="pms-td" *ngIf="userMapping?.performance_action_by_hr">
                         <input type="checkbox" [disabled]="!canBulkHrAction(eligiemployee)"
+                          [title]="canBulkHrAction(eligiemployee) ? '' : 'Available when HOD has submitted and HR action is still pending (manager status does not block selection).'"
                           [checked]="isBulkSelected(eligiemployee.empId)"
                           (change)="toggleBulkSelection(eligiemployee, $any($event.target).checked)"
                           aria-label="Select employee for bulk HR action" />
@@ -522,51 +523,97 @@
     <i class="fa-solid fa-arrow-left"></i>
   </button>
 
-  <!-- Employee profile card: exact layout as reference (left: avatar + 4 fields, right: 4 fields + stars) -->
-  <div class="employee-profile-card">
-    <div class="employee-profile-card__left">
-      <div class="employee-profile-card__avatar">
-        <img src="assets/Images/default-user-image.jpeg" id="user-avatar" class="employee-profile-card__avatar-img" alt="Avatar" />
-      </div>
-      <div class="employee-profile-card__left-fields">
-        <div class="employee-profile-card__field">
-          <span class="employee-profile-card__label">Employee Code</span>
-          <span class="employee-profile-card__value">{{ selectedEmployee?.employmentIdAcToET || selectedEmployee?.employeementId || '-' }}</span>
+  <!-- Review page: first box = avatar (top-left) + org fields; three more boxes × four fields -->
+  <div class="employee-profile-strip">
+    <div class="employee-profile-strip__grid">
+      <div class="employee-profile-box employee-profile-box--with-avatar">
+        <div class="employee-profile-box__with-avatar-inner">
+          <div class="employee-profile-box__avatar-wrap">
+            <img src="assets/Images/default-user-image.jpeg" id="user-avatar" class="employee-profile-box__avatar" alt="" />
+          </div>
+          <div class="employee-profile-box__fields">
+            <div class="employee-profile-box__field">
+              <span class="employee-profile-box__label">Employee Code</span>
+              <span class="employee-profile-box__value">{{ selectedEmployee?.employmentIdAcToET || selectedEmployee?.employeementId || '-' }}</span>
+            </div>
+            <div class="employee-profile-box__field">
+              <span class="employee-profile-box__label">Department</span>
+              <span class="employee-profile-box__value">{{ selectedEmployee?.departmentName || '-' }}</span>
+            </div>
+            <div class="employee-profile-box__field">
+              <span class="employee-profile-box__label">Employee Since</span>
+              <span class="employee-profile-box__value">{{ selectedEmployee?.dateOfJoining ? (selectedEmployee.dateOfJoining | date : 'yyyy-MM-dd') : '-' }}</span>
+            </div>
+          </div>
         </div>
-        <div class="employee-profile-card__field">
-          <span class="employee-profile-card__label">Department</span>
-          <span class="employee-profile-card__value">{{ selectedEmployee?.departmentName || '-' }}</span>
+      </div>
+      <div class="employee-profile-box">
+        <div class="employee-profile-box__fields">
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Employee Name</span>
+            <span class="employee-profile-box__value employee-profile-box__value--accent">{{ selectedEmployee?.name || '-' }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Job Title</span>
+            <span class="employee-profile-box__value">{{ selectedEmployee?.designationName || '-' }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Reporting Manager</span>
+            <span class="employee-profile-box__value">{{ selectedEmployee?.reportingManagerName || selectedEmployee?.managerName || '-' }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Total Rewards</span>
+            <span class="employee-profile-box__value">{{ rewardsCount ?? 0 }}</span>
+          </div>
         </div>
-        <div class="employee-profile-card__field">
-          <span class="employee-profile-card__label">Employee Since</span>
-          <span class="employee-profile-card__value">{{ selectedEmployee?.dateOfJoining ? (selectedEmployee.dateOfJoining | date : 'yyyy-MM-dd') : '-' }}</span>
+      </div>
+      <div class="employee-profile-box">
+        <div class="employee-profile-box__fields">
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Average Rating</span>
+            <div class="employee-profile-box__rating">
+              <span class="employee-profile-box__stars" aria-hidden="true">
+                <ng-container *ngFor="let s of [1,2,3,4,5]">
+                  <i *ngIf="getAverageStarDisplayForIndex(s) === 'full'" class="fas fa-star"></i>
+                  <i *ngIf="getAverageStarDisplayForIndex(s) === 'half'" class="fas fa-star-half-stroke"></i>
+                  <i *ngIf="getAverageStarDisplayForIndex(s) === 'empty'" class="far fa-star"></i>
+                </ng-container>
+              </span>
+              <span class="employee-profile-box__rating-text">{{ getAverageRatingLabel() }}</span>
+            </div>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Email ID</span>
+            <span class="employee-profile-box__value employee-profile-box__value--wrap">{{ selectedEmployee?.email || '-' }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Mobile Number</span>
+            <span class="employee-profile-box__value">{{ getProfileMobileNo(selectedEmployee) }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Office</span>
+            <span class="employee-profile-box__value">{{ getProfileWorkLocation(selectedEmployee) }}</span>
+          </div>
         </div>
-        <div class="employee-profile-card__field">
-          <span class="employee-profile-card__label">Total Appreciation</span>
-          <span class="employee-profile-card__value">{{ appreciationCount ?? 0 }}</span>
-        </div>
       </div>
-    </div>
-    <div class="employee-profile-card__right">
-      <div class="employee-profile-card__field">
-        <span class="employee-profile-card__label">Employee Name</span>
-        <span class="employee-profile-card__value">{{ selectedEmployee?.name || '-' }}</span>
-      </div>
-      <div class="employee-profile-card__field">
-        <span class="employee-profile-card__label">Reporting Manager</span>
-        <span class="employee-profile-card__value">{{ selectedEmployee?.reportingManagerName || selectedEmployee?.managerName || '-' }}</span>
-      </div>
-      <div class="employee-profile-card__field">
-        <span class="employee-profile-card__label">Total Rewards</span>
-        <span class="employee-profile-card__value">{{ rewardsCount ?? 0 }}</span>
-      </div>
-      <div class="employee-profile-card__field">
-        <span class="employee-profile-card__label">Average Rating</span>
-        <div class="employee-profile-card__rating">
-          <span class="employee-profile-card__stars">
-            <i *ngFor="let s of [1,2,3,4,5]" class="fa-star" [class.fas]="s <= getAverageRatingStars()" [class.far]="s > getAverageRatingStars()"></i>
-          </span>
-          <span class="employee-profile-card__rating-label">{{ getAverageRatingLabel() }}</span>
+      <div class="employee-profile-box">
+        <div class="employee-profile-box__fields">
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Status Confirmed</span>
+            <span class="employee-profile-box__value">{{ selectedEmployee?.employmentstatus === 'Confirmed' ? 'Yes' : 'No' }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Billable Type</span>
+            <span class="employee-profile-box__value">{{ selectedEmployee?.billableType || '-' }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Total Previous Work Experience</span>
+            <span class="employee-profile-box__value">{{ getPreviousYearExperienceNum(selectedEmployee) }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Total Experience</span>
+            <span class="employee-profile-box__value">{{ getCombinedExperienceYears(selectedEmployee) }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -608,7 +655,7 @@
                           <i class="fa" [ngClass]="isEditMode ? 'fa-lock-open' : 'fa-pen'"></i>
                         </span>
                       </th>
-                      <th>COMMENTS</th>
+                      <th>COMMENTS <span class="text-danger" title="Required">*</span></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -628,8 +675,8 @@
                           <span class="final-review-rating-num">{{ myList[j].silde }}</span>
                         </td>
                         <td *ngIf="item.reviewFieldType === 'Slider'">
-                          <textarea class="final-review-comment" placeholder="Enter comments..." [(ngModel)]="myList[j].comment"
-                            [disabled]="!canEditRating()"></textarea>
+                          <textarea class="final-review-comment" placeholder="Enter comments (required)..." [(ngModel)]="myList[j].comment"
+                            [disabled]="!canEditRating()" [attr.aria-required]="true"></textarea>
                         </td>
                       </tr>
                     </ng-container>
@@ -650,8 +697,8 @@
                           </div>
                         </td>
                         <td *ngIf="item.reviewFieldType === 'Rating' && item.quarterId === getSelectedQuarter()?.quarterId">
-                          <textarea class="final-review-comment" placeholder="Enter comments..." [(ngModel)]="myRateList[ri].comment"
-                            [disabled]="!canEditRating()"></textarea>
+                          <textarea class="final-review-comment" placeholder="Enter comments (required)..." [(ngModel)]="myRateList[ri].comment"
+                            [disabled]="!canEditRating()" [attr.aria-required]="true"></textarea>
                         </td>
                       </tr>
                     </ng-container>

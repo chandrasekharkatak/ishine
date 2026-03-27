@@ -632,6 +632,7 @@ public class PerformanceService {
 					ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
 					ratingPerformance.setRatingValue(ratingDTO.getRating());
 					ratingPerformance.setEmpId(employeePerformanceDTO.getEmpId());
+					ratingPerformance.setCriteriaRemark(normalizeCriteriaRemark(ratingDTO.getCriteriaRemark()));
 
 					employeeRatingPerformanceRepository.save(ratingPerformance);
 				}
@@ -688,6 +689,7 @@ public class PerformanceService {
 							ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
 							ratingPerformance.setRatingValue(ratingDTO.getRating());
 							ratingPerformance.setEmpId(employeePerformanceDTO.getEmpId());
+							applyCriteriaRemarkUpdate(ratingDTO, ratingPerformance);
 							employeeRatingPerformanceRepository.save(ratingPerformance);
 						}
 					}
@@ -747,6 +749,7 @@ public class PerformanceService {
 							ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
 							ratingPerformance.setRatingValue(ratingDTO.getRating());
 							ratingPerformance.setEmpId(dto.getEmpId());
+							applyCriteriaRemarkUpdate(ratingDTO, ratingPerformance);
 							employeeRatingPerformanceRepository.save(ratingPerformance);
 						}
 					}
@@ -768,6 +771,7 @@ public class PerformanceService {
 							ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
 							ratingPerformance.setRatingValue(ratingDTO.getRating());
 							ratingPerformance.setEmpId(dto.getEmpId());
+							applyCriteriaRemarkUpdate(ratingDTO, ratingPerformance);
 							employeeRatingPerformanceRepository.save(ratingPerformance);
 						}
 					}
@@ -954,6 +958,7 @@ public class PerformanceService {
 					performanceDetails
 							.setRejectStatus(object[15] != null ? Boolean.parseBoolean(object[15].toString()) : false);
 					performanceDetails.setManagerRemarks(object[16] != null ? object[16].toString() : null);
+					performanceDetails.setCriteriaRemark(object[17] != null ? object[17].toString() : null);
 
 					performance.add(performanceDetails);
 
@@ -1215,6 +1220,7 @@ public class PerformanceService {
 						ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
 						ratingPerformance.setRatingValue(ratingDTO.getRating());
 						ratingPerformance.setEmpId(employeePerformanceDTO.getEmpId());
+						applyCriteriaRemarkUpdate(ratingDTO, ratingPerformance);
 						employeeRatingPerformanceRepository.save(ratingPerformance);
 					}
 
@@ -2031,6 +2037,7 @@ public class PerformanceService {
 						ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
 						ratingPerformance.setRatingValue(ratingDTO.getRating());
 						ratingPerformance.setEmpId(employeePerformanceDTO.getEmpId());
+						applyCriteriaRemarkUpdate(ratingDTO, ratingPerformance);
 						employeeRatingPerformanceRepository.save(ratingPerformance);
 					}
 
@@ -2117,5 +2124,23 @@ public class PerformanceService {
 		return response;
 	}
 
+	/** Trim per-criterion comment; null/blank stored as null. */
+	private static String normalizeCriteriaRemark(String s) {
+		if (s == null) {
+			return null;
+		}
+		String t = s.trim();
+		return t.isEmpty() ? null : t;
+	}
+
+	/** On update: change stored comment only when the client sends criteriaRemark (non-null JSON field). */
+	private static void applyCriteriaRemarkUpdate(PerformanceRatingDTO dto, EmployeeRatingPerformance entity) {
+		if (dto == null || entity == null) {
+			return;
+		}
+		if (dto.getCriteriaRemark() != null) {
+			entity.setCriteriaRemark(normalizeCriteriaRemark(dto.getCriteriaRemark()));
+		}
+	}
 
 }
