@@ -29,6 +29,7 @@ import { TimesheetValidationService } from 'src/app/services/TimesheetValidation
 import { TimesheetConfigService } from 'src/app/services/TimesheetValidationService/timesheet-config.service';
 import { DatePipe } from '@angular/common';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -166,6 +167,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   dayTypeToBeExcluded = ["Leave","Holiday"];
   holidayDescription: any;
   noProjectEmployee: any = false;
+  employeeObjForDateFetching: User = new User();  
   constructor(private teamViewService: TeamViewService,
     private timesheetService: TimesheetService,
     private timesheetNewService: TimesheetNewService,
@@ -177,6 +179,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
     private datePipe: DatePipe,
+    private router: Router,
     private employeeService: EmployeeService) { 
       // ✅ CRITICAL FIX: Properly unsubscribe on destroy
       this.authenticationService.currentUser
@@ -192,9 +195,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     this.getAllDayTypes();
     this.getAllDSRApprovalStatusFromMaster();
     console.log(this.selectedDate,"[ngOnInit] Initial selectedDate:", this.selectedDate);
-    if(this.selectedDate){
-      this.loadServerDateThenInitCreate();
-    }
+    // if(this.selectedDate){
+    //   this.loadServerDateThenInitCreate();
+    // }
     console.log('[ngOnInit] Form initialized with:', {
       isUpdation: this.isUpdation,
       timesheetId: this.timesheetId,
@@ -2726,7 +2729,10 @@ this.isNightShift = false;
         // After server date is loaded, calculate constraints if employee is known
         if (this.timesheetFilledForUser?.empId || this.currentUser?.empId) {
           const empId = this.timesheetFilledForUser?.empId || this.currentUser.empId;
-          this.getAllAvailableTimesheetByEmpId({ empId: empId } as User);
+          let employeeObj = new User();
+          employeeObj = this.teamMemberList?.find(m => m.empId === empId || Number(m.empId) === Number(empId))
+          // this.getTimesheetMetadata();
+          this.getAllAvailableTimesheetByEmpId(employeeObj);
         }
       });
   }
@@ -2748,8 +2754,9 @@ this.isNightShift = false;
     if (this.currentUser.timesheetBackDatedDays) {
       OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays;
     }
-
-    if (employeeObj.isTimesheetLockCheckEnable == 'false') {
+// this.selectedTeamMember
+    if ((this.timesheetAppliedFor == "self" && this.currentUser.isTimesheetLockCheckEnable == 'false') ||
+    (this.timesheetAppliedFor == "team" && this.selectedTeamMember?.isTimesheetLockCheckEnable == 'false')) {
       endDate = currentDate;
       startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + 1) * DAY_IN_MS));
     } else {
@@ -2770,11 +2777,11 @@ this.isNightShift = false;
       if (response.serviceStatus == "Success") {
         this.availableTimesheets = response.serviceResponse;
         // Calculate date picker constraints after loading timesheets
-        this.calculateDatePickerConstraints(employeeObj);
+        this.calculateDatePickerConstraints();
       } else {
         console.error(response.serviceResponse);
         // Still calculate constraints even if no timesheets found
-        this.calculateDatePickerConstraints(employeeObj);
+        this.calculateDatePickerConstraints();
       }
     });
   }
@@ -2783,7 +2790,7 @@ this.isNightShift = false;
    * Calculate date picker constraints (minDate, maxDate, disabledDates)
    * Based on timesheetDateFilter logic from old component
    */
-  calculateDatePickerConstraints(employeeObj: User): void {
+  calculateDatePickerConstraints(): void {
     if (!this.serverDate) {
       // Wait for server date to be loaded
       return;
@@ -2797,13 +2804,14 @@ this.isNightShift = false;
     // Calculate days difference from date of joining
     let currentDate = new Date();
     let daysDifference = 365; // Default to 365 days if dateOfJoining not available
-    console.log("this.currentUser.dateOfJoining ==> ",employeeObj.dateOfJoining)
-    if (employeeObj.dateOfJoining) {
-      let dateOfJoining = moment(employeeObj.dateOfJoining, dateFormat);
+    console.log("this.currentUser.dateOfJoining ==> ",this.currentUser.dateOfJoining)
+    if (this.currentUser.dateOfJoining) {
+      let dateOfJoining = moment(this.timesheetAppliedFor=='self' ? this.currentUser.dateOfJoining : this.selectedTeamMember.dateOfJoining, dateFormat);
+
       daysDifference = moment(currentDate, dateFormat).diff(dateOfJoining, 'days');
     }
 
-    if (employeeObj.timesheetBackDatedDays > daysDifference) {
+    if (this.currentUser.timesheetBackDatedDays > daysDifference){
       OPEN_BACKDATED_DAYS = daysDifference;
     } else {
       OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays || 30;
@@ -2815,10 +2823,11 @@ this.isNightShift = false;
 
     // Calculate start date based on lock check enable flag
     let startDate: Date;
-    if (employeeObj.isTimesheetLockCheckEnable == "false") {
+    if ((this.timesheetAppliedFor == "self" && this.currentUser.isTimesheetLockCheckEnable == 'false') ||
+    (this.timesheetAppliedFor == "team" && this.selectedTeamMember?.isTimesheetLockCheckEnable == 'false')) {
       startDate = new Date(serverDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
     } else {
-      const lockDays = employeeObj.timesheetLockDays || 7; // Default to 30 if not set
+       const lockDays = this.currentUser.timesheetLockDays || 7; // Default to 30 if not set
       startDate = new Date(serverDate.getTime() - ((lockDays + CURRENT_DAY) * DAY_IN_MS));
     }
 
@@ -4147,17 +4156,22 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             
-            this.timesheetCreated.emit();
             // After successful create, refresh disabled dates so just-filled date becomes non-selectable
             if (targetEmpId) {
               this.getAllAvailableTimesheetByEmpId({ empId: targetEmpId } as User);
             }
             this.appelectMember = null;
-            this.resetForm()
+            this.resetForm();
             this.onTimesheetAppliedForChange();
             setTimeout(() => {
               this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
             });
+            console.log('this.isAutofillMode:', this.isAutofillMode);
+            if(this.isAutofillMode){
+              this.router.navigate(['/home']);
+            }else{
+              this.timesheetCreated.emit();
+            }
             // Reset form or navigate as needed
           } else {
             // ✅ MODERATE FIX: Use centralized error handling
@@ -5786,9 +5800,14 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
           this.isAutofillMode = true;
           try {
             this.populateFormFromTimesheetData(cloned);
-          } finally {
+          } catch (error) {
+            console.error('[loadAutofillData] Error populating form from autofill template:', error);
+            // Don't block user from filling manually if autofill population fails
             this.isAutofillMode = false;
           }
+          // finally {
+          //   this.isAutofillMode = false;
+          // }
 
           // After autofill, force create mode for the selected date
           this.timesheetId = null;
