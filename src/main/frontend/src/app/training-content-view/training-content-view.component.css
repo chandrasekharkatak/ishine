@@ -117,6 +117,7 @@
 }
 
 .modal-body-wrapper.fullscreen-mode {
+  height: calc(100vh - 60px) !important;
   max-height: calc(100vh - 60px) !important;
 }
 
@@ -309,6 +310,8 @@
   overflow-y: auto;
   max-height: 75vh;
   background: #f8fafc;
+  display: flex;
+  flex-direction: column;
 }
 
 .right-panel.full-width {
@@ -316,6 +319,7 @@
 }
 
 .modal-body-wrapper.fullscreen-mode .right-panel {
+  height: calc(100vh - 60px);
   max-height: calc(100vh - 60px);
 }
 
@@ -323,6 +327,9 @@
 .content-view-panel,
 .quiz-view-panel {
   animation: fadeIn 0.15s ease-out;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes fadeIn {
@@ -637,6 +644,7 @@
 
 /* Fullscreen Mode Adjustments */
 .modal-content.fullscreen .modal-body-wrapper {
+  height: calc(100vh - 60px);
   max-height: calc(100vh - 60px);
 }
 
@@ -775,6 +783,7 @@
 /* ==================== QUIZ LAYOUT WITH SIDEBAR ==================== */
 .quiz-layout {
   display: flex;
+  flex: 1;
   gap: 0;
   min-height: 300px;
 }
@@ -787,6 +796,8 @@
 .quiz-content-area {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .question-nav-sidebar {

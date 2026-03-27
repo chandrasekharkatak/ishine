@@ -1,5 +1,7 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   /* font-family: "Inter", sans-serif; */
   color: var(--text, #111827);
 
@@ -122,7 +124,8 @@
 .pv-modal-body {
   display: grid;
   grid-template-columns: 240px 1fr;
-  height: 500px;
+  flex: 1;
+  min-height: 500px;
   overflow: hidden;
   background: var(--surface);
 }

@@ -52,6 +52,7 @@ export class QuizBuilderComponent implements OnInit {
   @Output() backToList = new EventEmitter<void>();
 
   @ViewChild('askForBackTpl') askForBackTpl!: TemplateRef<any>;
+  @ViewChild('askForResetTpl') askForResetTpl!: TemplateRef<any>;
   @ViewChild('alertTemplate') alertTemplate!: TemplateRef<any>;
   alertMessage: string = '';
 
@@ -440,11 +441,41 @@ export class QuizBuilderComponent implements OnInit {
   }
 
   clearAll(): void {
-    if (this.questions.length > 0 && !confirm('Reset all questions?')) return;
-    this.invalidQuestionIds.clear();
-    this.validationErrors = [];
-    this.showValidationPanel = false;
-    this.updateDirty();
+    this.modalService
+      .open(this.askForResetTpl, {
+        backdrop: true,
+        keyboard: true,
+        scrollable: false,
+        windowClass: 'quiz-preview-modal-window',
+        modalDialogClass: 'modal-sm',
+      })
+      .result.then((action) => {
+        if (action === 'confirm') {
+          if (this.editingQuizId) {
+            if (this.editingQuiz) {
+              this.quizTitle = this.editingQuiz.surveyName || '';
+              this.quizDesc = this.editingQuiz.description || '';
+              this.cutoffQuestions = this.editingQuiz.cutOffQuestions || null;
+              this.isActive = String(this.editingQuiz.isActive).toLowerCase() === 'true';
+            }
+            this.fetchQuiz(this.editingQuizId);
+          } else {
+            this.quizTitle = '';
+            this.quizDesc = '';
+            this.cutoffQuestions = null;
+            this.isActive = false;
+            this.questions = [];
+            this.initialSnapshot = this.getSnapshot();
+            this.isDirty = false;
+          }
+          this.invalidQuestionIds.clear();
+          this.validationErrors = [];
+          this.showValidationPanel = false;
+        }
+      })
+      .catch(() => {
+        // User cancelled
+      });
   }
 
   onBack(): void {
