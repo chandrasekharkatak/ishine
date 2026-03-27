@@ -34,9 +34,9 @@
 }
 
 .thead-light {
-    position: sticky;
+    /* position: sticky;
     top: -0.7px;
-    z-index: 10;
+    z-index: 10; */
     background: #e9ecef;
   }
 
@@ -1483,6 +1483,7 @@ thead {
 .modal-dialog.fullscreen-modal .modal-body {
   flex: 1;              /* Allow the body to grow and fill available space */
   overflow-y: auto;     /* Add a vertical scrollbar ONLY when content overflows */
+      overflow-x: auto;
 }
 .range-buttons-container {
   display: flex;
@@ -2434,15 +2435,9 @@ input:checked + .slider:hover:before {
 .close {
   font-size: 28px;
   font-weight: 300;
-  color: rgba(255,255,255,0.8);
+  color: rgba(19, 18, 18, 0.8);
   opacity: 0.8;
   transition: all 0.3s ease;
-}
-
-.close:hover {
-  color: white;
-  opacity: 1;
-  transform: scale(1.1);
 }
 
 /* Responsive adjustments */
@@ -3372,8 +3367,6 @@ body, html {
 
   border-radius: 8px;
 
-  overflow: hidden;
-
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
   border: 1px solid #e0e0e0;
@@ -4270,5 +4263,1513 @@ display: inline-block;
     color: white;
 }
 
+.modal-body {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+}
 
+.table-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    display: block; 
+}
+
+#project-milestone1 {
+    min-width: 1200px;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+#project-milestone1 th,
+#project-milestone1 td {
+    white-space: nowrap;
+}
+
+.upload-zone-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;  
+  gap: 10px;
+  width: 100%;
+}
+
+.upload-dropzone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  min-height: 90px;
+  border: 1.5px dashed #c5cfe8;
+  border-radius: 12px;
+  background: #f7f9ff;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+  margin-bottom: 0;        /* remove any bottom margin */
+}
+
+.upload-dropzone:hover {
+  border-color: #5b7cf6;
+  background: #eef1ff;
+  box-shadow: 0 0 0 4px rgba(91, 124, 246, 0.08);
+}
+
+.upload-dropzone.has-file {
+  border-style: solid;
+  border-color: #5b7cf6;
+  background: #eef1ff;
+}
+
+.upload-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* ── Idle State ── */
+.upload-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.upload-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #dde4fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5b7cf6;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.upload-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4a5568;
+  margin: 0;
+  text-align: center;
+}
+
+.upload-browse {
+  color: #5b7cf6;
+  font-weight: 600;
+}
+
+.upload-hint {
+  font-size: 11px;
+  color: #a0aec0;
+  margin: 0;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+/* ── Selected State ── */
+.upload-selected {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  width: 100%;
+  pointer-events: none;
+  user-select: none;
+  overflow: hidden;
+}
+
+.file-icon {
+  font-size: 20px;
+  color: #5b7cf6;
+  flex-shrink: 0;
+}
+
+.file-name {
+  font-size: 12px;
+  color: #4a5568;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.upload-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center; 
+  gap: 8px;
+  flex-shrink: 0;
+  width: 90px;             
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.preview-btn {
+  background: #eef1ff;
+  color: #5b7cf6;
+  border-color: #c5cfe8;
+}
+
+.preview-btn:hover:not(:disabled) {
+  background: #5b7cf6;
+  color: #fff;
+  border-color: #5b7cf6;
+}
+
+.clear-btn:hover:not(:disabled) {
+  background: #e53e3e;
+  color: #fff;
+  border-color: #e53e3e;
+}
+
+  .file-badge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #38a169;
+    background: #f0fff4;
+    border: 1px solid #9ae6b4;
+    border-radius: 20px;
+    padding: 2px 8px;
+    flex-shrink: 0;
+  }
+
+
+  .action-btn:not(:disabled):active {
+    transform: scale(0.97);
+  }
+
+  .clear-btn1{
+    color: rgb(241, 78, 78);
+  }
+  .preview-btn:not(:disabled):hover {
+    background: #5b7cf6;
+    color: white;
+    box-shadow: 0 4px 12px rgba(91,124,246,0.3);
+  }
+
+  .clear-btn1:not(:disabled):hover {
+    background: #e53e3e;
+    color: white;
+    border-color: #e53e3e;
+    box-shadow: 0 4px 12px rgba(229,62,62,0.25);
+  }
+
+   .doc-upload-label {
+    display: block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 10px;
+    letter-spacing: 0.1px;
+  }
+
+  .required-star {
+    color: #e53e3e;
+    margin-left: 2px;
+  }
+
+  /* ── Drop Zone ── */
+  .doc-dropzone {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 420px;
+    min-height: 96px;
+    border: 1.5px dashed #c5cfe8;
+    border-radius: 14px;
+    background: #f7f9ff;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .doc-dropzone:hover {
+    border-color: #5b7cf6;
+    background: #eef1ff;
+    box-shadow: 0 0 0 4px rgba(91,124,246,0.08);
+  }
+
+  .doc-dropzone.has-file {
+    border-style: solid;
+    border-color: #5b7cf6;
+    background: #eef1ff;
+  }
+
+  .doc-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+
+  /* ── Idle State ── */
+  .doc-idle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 20px;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .doc-upload-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #dde4fd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5b7cf6;
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+
+  .doc-upload-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #4a5568;
+    margin: 0;
+  }
+
+  .doc-browse {
+    color: #5b7cf6;
+    font-weight: 600;
+  }
+
+  .doc-upload-hint {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: #a0aec0;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  /* ── Selected State ── */
+  .doc-selected {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    width: 100%;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .doc-file-thumb {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #5b7cf6;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .doc-file-meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .doc-file-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2d3748;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .doc-file-size {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: #718096;
+  }
+
+  .doc-ready-badge {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #38a169;
+    background: #f0fff4;
+    border: 1px solid #9ae6b4;
+    border-radius: 20px;
+    padding: 3px 10px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ── Actions ── */
+  .doc-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .doc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 16px;
+    height: 36px;
+    border-radius: 9px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1.5px solid;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s, transform 0.1s, opacity 0.15s, color 0.15s;
+    white-space: nowrap;
+    background: white;
+  }
+
+  .doc-btn:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .doc-btn:not(:disabled):active {
+    transform: scale(0.97);
+  }
+
+  .doc-btn-preview {
+    color: #5b7cf6;
+    border-color: #5b7cf6;
+  }
+
+  .doc-btn-preview:not(:disabled):hover {
+    background: #5b7cf6;
+    color: white;
+    box-shadow: 0 4px 14px rgba(91,124,246,0.3);
+  }
+
+  .doc-btn-clear {
+    color: #e53e3e;
+    border-color: #feb2b2;
+  }
+
+  .doc-btn-clear:not(:disabled):hover {
+    background: #e53e3e;
+    color: white;
+    border-color: #e53e3e;
+    box-shadow: 0 4px 14px rgba(229,62,62,0.25);
+  }
+
+  /* ========== Update Project Milestone modal – new design ========== */
+  .ep-milestone-modal {
+    --ep-accent: #0ea5e9;
+    --ep-accent-light: #e0f2fe;
+    --ep-aside-bg: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 50%, #f0f9ff 100%);
+    --ep-aside-border: #0ea5e9;
+    --ep-aside-highlight: #0ea5e9;
+    --ep-aside-text: #0c4a6e;
+    --ep-aside-muted: #0369a1;
+    --ep-section-border: #e2e8f0;
+    --ep-extension-bg: #fffbeb;
+    --ep-extension-border: #f59e0b;
+    --ep-upload-bg: #f8fafc;
+    --ep-upload-border: #cbd5e1;
+    --ep-upload-hover: #e2e8f0;
+    --ep-upload-filled: #d1fae5;
+    --ep-upload-filled-border: #10b981;
+    --ep-field-height: 52px;
+    --ep-remarks-height: 72px;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    min-width: 0;
+  }
+
+  .ep-milestone-modal__header {
+    position: relative;
+    background: #fff;
+    padding: 1.25rem 1.5rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
+  }
+
+  .ep-milestone-modal__header-accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--ep-accent);
+    border-radius: 0 0 4px 4px;
+  }
+
+  .ep-milestone-modal__header-inner {
+    position: relative;
+    padding-right: 2.5rem;
+  }
+
+  .ep-milestone-modal__title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.25rem 0;
+    letter-spacing: -0.02em;
+  }
+
+  .ep-milestone-modal__subtitle {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0;
+  }
+
+  .ep-milestone-modal__close {
+    position: absolute;
+    top: -0.25rem;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #64748b;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .ep-milestone-modal__close:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+
+  .ep-milestone-modal__body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .ep-milestone-modal__aside {
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--ep-aside-bg);
+    padding: 1rem 1.25rem;
+    overflow: hidden;
+    border-right: 3px solid var(--ep-aside-border);
+    position: relative;
+  }
+
+  .ep-milestone-modal__aside::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--ep-aside-highlight) 0%, transparent 100%);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .ep-milestone-aside__card {
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    padding: 0.875rem 1rem;
+    border: 1px solid rgba(14, 165, 233, 0.25);
+    box-shadow: 0 1px 2px rgba(14, 165, 233, 0.08);
+  }
+
+  .ep-milestone-aside__badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ep-aside-muted);
+    margin-bottom: 0.6rem;
+    padding: 0.2rem 0.5rem;
+    background: rgba(14, 165, 233, 0.15);
+    border-radius: 4px;
+  }
+
+  .ep-milestone-aside__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .ep-milestone-aside__item {
+    padding: 0.4rem 0.5rem;
+    margin: 0 -0.5rem;
+    border-radius: 6px;
+    border-bottom: none;
+  }
+
+  .ep-milestone-aside__item:nth-child(odd) {
+    background: rgba(14, 165, 233, 0.08);
+  }
+
+  .ep-milestone-aside__item:first-child .ep-milestone-aside__val,
+  .ep-milestone-aside__item:nth-child(2) .ep-milestone-aside__val {
+    color: var(--ep-aside-highlight);
+    font-weight: 600;
+  }
+
+  .ep-milestone-aside__item--full {
+    margin-top: 0.25rem;
+  }
+
+  .ep-milestone-aside__item--full .ep-milestone-aside__val {
+    word-break: break-word;
+    font-size: 0.8rem;
+  }
+
+  .ep-milestone-aside__key {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ep-aside-muted);
+    margin-bottom: 0.15rem;
+  }
+
+  .ep-milestone-aside__val {
+    font-size: 0.825rem;
+    color: var(--ep-aside-text);
+    line-height: 1.35;
+  }
+
+  .ep-milestone-modal__main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 1.5rem;
+    background: #fff;
+  }
+
+  .ep-milestone-form-section {
+    background: transparent;
+    border-radius: 0;
+    padding: 0.75rem 0 1rem 0;
+    margin-bottom: 0;
+    box-shadow: none;
+    border-left: none;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .ep-milestone-form-section:last-of-type {
+    border-bottom: none;
+  }
+
+  .ep-milestone-form-section--extension {
+    border-bottom: 1px solid #fef3c7;
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.06) 0%, transparent 15%);
+    padding-left: 0.75rem;
+    margin-left: -0.75rem;
+    padding-right: 0;
+    margin-right: 0;
+    border-radius: 6px;
+  }
+
+  .ep-milestone-form-section__title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #475569;
+    margin: 0 0 0.6rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .ep-milestone-form-section__title--warning {
+    color: #b45309;
+    font-size: 0.78rem;
+  }
+
+  .ep-milestone-form-section__title--warning i {
+    color: var(--ep-extension-border);
+  }
+
+  .ep-milestone-form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+    align-items: stretch;
+    min-height: var(--ep-field-height);
+  }
+
+  .ep-milestone-field {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ep-milestone-field--half {
+    flex: 1 1 220px;
+    min-width: 0;
+    height: 57px ;
+  }
+
+  .ep-milestone-field--full {
+    width: 100%;
+  }
+
+  .ep-milestone-form-section .ep-milestone-field--half .mat-mdc-form-field,
+  .ep-milestone-form-section .ep-milestone-field--half .ep-upload,
+  .ep-milestone-form-section .ep-milestone-field--full .mat-mdc-form-field {
+    flex: 1;
+    min-height: var(--ep-field-height);
+  }
+
+  .ep-milestone-field__hint {
+    font-size: 18px !important;
+    color: #94a3b8 !important;
+    cursor: help;
+  }
+
+  .ep-required {
+    color: #dc2626;
+  }
+
+  .ep-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+  }
+
+  .ep-milestone-custom-reason {
+    margin-top: 0.75rem;
+  }
+
+  .ep-milestone-modal .ep-textarea {
+    min-height: 72px;
+    box-sizing: border-box;
+  }
+
+  .ep-textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--ep-upload-border);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .ep-textarea:focus {
+    outline: none;
+    border-color: var(--ep-accent);
+    box-shadow: 0 0 0 3px var(--ep-accent-light);
+  }
+
+  .ep-milestone-modal .ep-upload {
+    background: var(--ep-upload-bg);
+    border: 2px dashed var(--ep-upload-border);
+    border-radius: 10px;
+    padding: 0 1rem;
+    min-height: var(--ep-field-height);
+    height: var(--ep-field-height);
+    display: flex;
+    align-items: center;
+    transition: border-color 0.2s, background 0.2s;
+    box-sizing: border-box;
+  }
+
+  .ep-milestone-modal .ep-upload:hover {
+    border-color: #94a3b8;
+    background: var(--ep-upload-hover);
+  }
+
+  .ep-milestone-modal .ep-upload--filled {
+    border-style: solid;
+    border-color: var(--ep-upload-filled-border);
+    background: var(--ep-upload-filled);
+  }
+
+  .ep-milestone-modal .ep-upload__zone {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    cursor: pointer;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .ep-milestone-modal .ep-upload__input {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ep-milestone-modal .ep-upload__icon {
+    font-size: 1.25rem;
+    color: #64748b;
+    flex-shrink: 0;
+  }
+
+  .ep-milestone-modal .ep-upload--filled .ep-upload__icon {
+    color: var(--ep-upload-filled-border);
+  }
+
+  .ep-milestone-modal .ep-upload__icon--file {
+    font-size: 1.1rem;
+  }
+
+  .ep-milestone-modal .ep-upload__text {
+    font-size: 0.85rem;
+    color: #475569;
+  }
+
+  .ep-milestone-modal .ep-upload__browse {
+    color: var(--ep-accent);
+    font-weight: 600;
+    text-decoration: underline;
+  }
+
+  .ep-milestone-modal .ep-upload__types {
+    font-size: 0.7rem;
+    color: #94a3b8;
+  }
+
+  .ep-milestone-modal .ep-upload__placeholder {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #0f172a;
+  }
+
+  .ep-milestone-modal .ep-upload-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .ep-milestone-modal .ep-upload-filename {
+    font-size: 0.8rem;
+    color: #475569;
+    margin: 0;
+    padding: 0.25rem 0 0 0;
+    word-break: break-all;
+    line-height: 1.35;
+    border-bottom: 1px solid transparent;
+  }
+
+  .ep-milestone-modal .ep-upload__btns {
+    display: flex;
+    gap: 0.35rem;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .ep-milestone-modal .ep-upload__btns .ep-btn {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .ep-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.1s;
+  }
+
+  .ep-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .ep-btn--ghost {
+    background: transparent;
+    color: #64748b;
+  }
+
+  .ep-btn--ghost:hover:not(:disabled) {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+
+  .ep-btn--secondary {
+    background: #fff;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+  }
+
+  .ep-btn--secondary:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #94a3b8;
+  }
+
+  .ep-btn--primary {
+    background: var(--ep-accent);
+    color: #fff;
+  }
+
+  .ep-btn--primary:hover:not(:disabled) {
+    background: #0f766e;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35);
+  }
+
+  .ep-milestone-modal__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: #fff;
+    border-top: 1px solid #e2e8f0;
+    flex-shrink: 0;
+  }
+
+  .ep-milestone-modal__footer-note {
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+
+  .ep-milestone-modal__footer-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  /* Material overrides inside modal – uniform field height */
+  .ep-milestone-modal .mat-mdc-form-field {
+    width: 100%;
+    display: block;
+  }
+
+  .ep-milestone-modal .mat-mdc-form-field .mat-mdc-text-field-wrapper {
+    border-radius: 8px !important;
+    max-height: 57px;
+  }
+
+  .ep-milestone-modal .ep-milestone-form-row .mat-mdc-form-field {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .ep-milestone-modal .ep-milestone-form-row .mat-mdc-form-field .mat-mdc-text-field-wrapper {
+    height: var(--ep-field-height) !important;
+    min-height: var(--ep-field-height) !important;
+    max-height: 57px;
+  }
+
+  .ep-milestone-modal .ep-milestone-form-row .mat-mdc-form-field .mat-mdc-form-field-flex {
+    border-radius: 8px !important;
+    align-items: center;
+    min-height: var(--ep-field-height) !important;
+    height: var(--ep-field-height) !important;
+    box-sizing: border-box;
+  }
+
+  .ep-milestone-modal .ep-milestone-form-row .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
+    min-height: 1.25rem;
+    margin-top: 0.1rem;
+  }
+
+  .ep-milestone-modal .mat-mdc-form-field .mat-mdc-form-field-flex {
+    border-radius: 8px !important;
+    align-items: center;
+  }
+
+  .ep-milestone-modal .mat-mdc-form-field .mat-mdc-form-field-infix {
+    padding-top: 0.5em !important;
+    padding-bottom: 0.5em !important;
+    min-height: 0 !important;
+  }
+
+  .ep-milestone-modal .mat-mdc-form-field .mat-mdc-form-field-infix input,
+  .ep-milestone-modal .mat-mdc-form-field .mat-mdc-form-field-infix .mat-mdc-select {
+    padding: 0.25em 0 !important;
+    font-size: 0.9rem !important;
+  }
+
+  .ep-milestone-modal .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
+    margin-top: 0.15em !important;
+  }
+
+  .ep-milestone-modal .mat-mdc-form-field[class*="outline"] .mat-mdc-form-field-infix {
+    padding-top: 0.5em !important;
+    padding-bottom: 0.5em !important;
+  }
+
+  .ep-milestone-modal .mat-mdc-form-field textarea.mat-mdc-input-element {
+    min-height: var(--ep-remarks-height) !important;
+    padding: 0.4em 0 !important;
+    font-size: 0.9rem !important;
+    box-sizing: border-box;
+  }
+
+  .ep-milestone-modal .ep-milestone-form-section .mat-mdc-form-field-hint-wrapper,
+  .ep-milestone-modal .ep-milestone-form-section .mat-mdc-form-field-subscript-wrapper {
+    position: absolute;
+    margin-top: 0;
+  }
+
+  .ep-milestone-modal .ep-milestone-form-section--extension .ep-milestone-form-row {
+    min-height: var(--ep-field-height);
+    align-items: flex-start;
+  }
+
+  .ep-milestone-modal .ep-extension-one-line {
+    align-items: stretch;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .ep-milestone-modal .ep-extension-reason-cell,
+  .ep-milestone-modal .ep-extension-doc-cell {
+    flex: 1 1 220px;
+    min-width: 0;
+  }
+
+  .ep-milestone-modal .ep-extension-reason-level {
+    min-height: var(--ep-field-height);
+    display: flex;
+    align-items: stretch;
+  }
+
+  .ep-milestone-modal .ep-extension-reason-level .mat-mdc-form-field {
+    flex: 1;
+    min-height: var(--ep-field-height);
+  }
+
+  .ep-milestone-modal .ep-extension-reason-level .mat-mdc-form-field .mat-mdc-form-field-flex {
+    min-height: var(--ep-field-height) !important;
+    height: var(--ep-field-height) !important;
+  }
+
+  .ep-milestone-modal .ep-extension-doc-level {
+    min-height: var(--ep-field-height);
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .ep-milestone-modal .ep-extension-doc-level .ep-upload-wrapper {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ep-milestone-modal .ep-extension-doc-level .ep-label--inline {
+    margin-bottom: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #475569;
+    flex-shrink: 0;
+    width: 7rem;
+  }
+
+  .ep-milestone-modal .ep-extension-doc-level .ep-upload {
+    flex: 1;
+    min-height: var(--ep-field-height);
+    height: var(--ep-field-height);
+  }
+
+  .ep-milestone-modal .ep-extension-custom-row {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(245, 158, 11, 0.25);
+  }
+
+  .ep-milestone-modal .ep-milestone-form-section--extension .ep-milestone-field--half .ep-upload {
+    margin-top: 0;
+  }
+
+  .ep-milestone-modal .ep-milestone-form-section .ep-milestone-field--full .mat-mdc-form-field .mat-mdc-form-field-flex {
+    min-height: var(--ep-remarks-height) !important;
+    align-items: flex-start !important;
+  }
+
+  @media (max-width: 768px) {
+    .ep-milestone-modal__body {
+      flex-direction: column;
+    }
+
+    .ep-milestone-modal__aside {
+      width: 100%;
+      max-height: 200px;
+    }
+
+    .ep-milestone-modal__main {
+      padding: 1rem;
+    }
+
+    .ep-milestone-form-section {
+      padding: 1rem;
+    }
+
+    .ep-milestone-modal__footer {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .ep-milestone-modal__footer-note {
+      order: 2;
+      text-align: center;
+    }
+  }
+
+  /* ========== Project Milestone List – table + accordion logs ========== */
+  .milestone-list-pane {
+    padding: 0;
+  }
+
+  .milestone-list-pane__inner {
+    padding: 1rem 1.25rem;
+  }
+
+  .milestone-list-pane__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 1rem 0;
+  }
+
+  .milestone-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .milestone-table-wrap .table-container {
+    min-width: 100%;
+  }
+
+  .milestone-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .milestone-table__head {
+    background: #f1f5f9;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .milestone-table__head tr {
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  .milestone-table__th {
+    padding: 0.65rem 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+  }
+
+  .milestone-table__th--actions {
+    text-align: center;
+    width: 100px;
+  }
+
+  .milestone-table__body .milestone-table__row {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s;
+  }
+
+  .milestone-table__body .milestone-table__row:hover {
+    background: #f8fafc;
+  }
+
+  .milestone-table__cell {
+    padding: 0.6rem 0.75rem;
+    vertical-align: middle;
+    color: #334155;
+  }
+
+  .milestone-table__cell--desc {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .milestone-table__cell--actions {
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .milestone-table__link {
+    color: #0ea5e9;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    transition: color 0.15s;
+  }
+
+  .milestone-table__link:hover {
+    color: #0284c7;
+    text-decoration: underline;
+  }
+
+  .milestone-table__link .fa-chevron-down {
+    font-size: 0.65rem;
+    margin-left: 0.25rem;
+    opacity: 0.8;
+  }
+
+  .milestone-table__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .milestone-table__btn--edit {
+    background: #e0f2fe;
+    color: #0ea5e9;
+  }
+
+  .milestone-table__btn--edit:hover:not(:disabled) {
+    background: #0ea5e9;
+    color: #fff;
+  }
+
+  .milestone-table__btn--edit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .milestone-table__btn--doc {
+    background: #f0f9ff;
+    color: #0369a1;
+    margin-left: 0.35rem;
+  }
+
+  .milestone-table__btn--doc:hover {
+    background: #0ea5e9;
+    color: #fff;
+  }
+
+  .milestone-table__empty td {
+    padding: 2rem;
+    color: #64748b;
+    font-size: 0.9rem;
+  }
+
+  .milestone-table__expand-row {
+    background: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .milestone-table__expand-cell {
+    padding: 0 !important;
+    vertical-align: top !important;
+    border-top: none !important;
+  }
+
+  .milestone-accordion {
+    margin: 0.75rem 1rem 1rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+  }
+
+  .milestone-accordion__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .milestone-accordion__title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #0c4a6e;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .milestone-accordion__title i {
+    color: #0ea5e9;
+  }
+
+  .milestone-accordion__count {
+    font-weight: 500;
+    color: #64748b;
+    font-size: 0.85rem;
+  }
+
+  .milestone-accordion__close {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .milestone-accordion__close:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+
+  .milestone-accordion__body {
+    padding: 0.75rem 1rem 1rem;
+  }
+
+  .milestone-logs-empty {
+    text-align: center;
+    padding: 1.5rem;
+    color: #64748b;
+    font-size: 0.9rem;
+  }
+
+  .milestone-logs {
+    max-height: 320px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .milestone-log-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    transition: background 0.15s;
+  }
+
+  .milestone-log-card:hover {
+    background: #f1f5f9;
+  }
+
+  .milestone-log-card__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+  }
+
+  .milestone-log-card__meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .milestone-log-card__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: #0ea5e9;
+    color: #fff;
+    border-radius: 6px;
+  }
+
+  .milestone-log-card__by {
+    font-weight: 600;
+    color: #334155;
+    font-size: 0.85rem;
+  }
+
+  .milestone-log-card__on {
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+
+  .milestone-log-card__values {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .milestone-log-card__old {
+    font-size: 0.8rem;
+    color: #64748b;
+    text-decoration: line-through;
+  }
+
+  .milestone-log-card__arrow {
+    font-size: 0.65rem;
+    color: #94a3b8;
+  }
+
+  .milestone-log-card__new {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0ea5e9;
+  }
+
+  .milestone-log-card__reasons {
+    flex: 1;
+    min-width: 120px;
+    font-size: 0.8rem;
+    color: #475569;
+  }
+
+  .milestone-log-card__reason--custom {
+    font-style: italic;
+    color: #64748b;
+  }
+
+  .milestone-log-card__na {
+    color: #94a3b8;
+  }
+
+  .milestone-log-card__doc {
+    flex-shrink: 0;
+  }
+
+  .milestone-log-card__doc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #0ea5e9;
+    background: #fff;
+    border: 1px solid #0ea5e9;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .milestone-log-card__doc-btn:hover {
+    background: #0ea5e9;
+    color: #fff;
+  }
+
+  .milestone-log-card__doc-na {
+    color: #94a3b8;
+    font-size: 0.9rem;
+  }
+
+  .milestone-pagination {
+    padding: 0.75rem 0;
+  }
+
+  @media (max-width: 768px) {
+    .milestone-log-card__row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+
+  /* .milestone-preview-backdrop{
+    z-index: 1065 !important;
+}
+
+.milestone-preview-backdrop .modal-dialog{
+    z-index: 1070 !important;
+}
+
+.modal-backdrop.show{
+    z-index: 1060 !important;
+} */
+::ng-deep .ep-datepicker-57px.mat-mdc-form-field {
+  --mat-form-field-container-height: 57px;
+}
+
+::ng-deep .ep-datepicker-57px .mat-mdc-text-field-wrapper {
+  height: 57px !important;
+  display: flex;
+  align-items: center;
+}
+
+::ng-deep .ep-datepicker-57px .mat-mdc-floating-label {
+  top: 28px; 
+}
 

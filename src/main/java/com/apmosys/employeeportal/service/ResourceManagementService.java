@@ -6526,6 +6526,7 @@ public class ResourceManagementService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Invalid Project");
 		        }
+							
 				
 			  	LocalDateTime now = LocalDateTime.now();
 
@@ -8726,6 +8727,11 @@ public class ResourceManagementService {
 						
 						
 						mapList.add(empTeamMap);
+						
+						Project project = projectRepository.findByProjectId(dto.getProjectId());
+						
+						project.setIsDraftProject("true");
+						projectRepository.save(project);
 					
 
 					List<EmployeeTeamMap> teamMapDbResponse = employeeTeamMapRepository.saveAll(mapList);
