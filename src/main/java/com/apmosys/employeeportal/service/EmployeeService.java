@@ -3738,6 +3738,21 @@ public class EmployeeService {
 				    empDTO.setHodName(object[22] != null ? object[22].toString() : null);
 				    empDTO.setHodDepartmentName(object[23] != null ? object[23].toString() : null);
 				    empDTO.setIsApmosysProduct(object[24] != null ? object[24].toString() : null);
+				    if (object.length > 25 && object[25] != null) {
+				    	try {
+				    		if (object[25] instanceof Number) {
+				    			empDTO.setMobileNo(((Number) object[25]).longValue());
+				    		} else {
+				    			String ms = object[25].toString().trim();
+				    			if (!ms.isEmpty()) {
+				    				empDTO.setMobileNo(Long.parseLong(ms.replaceAll("[^0-9]", "")));
+				    			}
+				    		}
+				    	} catch (Exception ignored) { }
+				    }
+				    if (object.length > 26 && object[26] != null) {
+				    	empDTO.setWorkLocation(object[26].toString().trim());
+				    }
 				    
 				    String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
 //				    String isConsultant = timesheetDto.getIsConsultant();

@@ -455,6 +455,13 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     );
 
     merged.employeementId = this.coalesceNonEmpty(merged.employeementId, empFromApi?.employeementId);
+    merged.mobileNo = merged.mobileNo ?? merged.mobile_no ?? empFromApi?.mobileNo ?? empFromApi?.mobile_no;
+    merged.workLocation = this.coalesceNonEmpty(
+      merged.workLocation,
+      merged.work_location,
+      empFromApi?.workLocation,
+      empFromApi?.work_location
+    );
     merged.employmentIdAcToET = this.coalesceNonEmpty(
       merged.employmentIdAcToET,
       perf?.employmentIdAcToET,
@@ -499,6 +506,13 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     out.employeementId = this.coalesceNonEmpty(row.employeementId, detail.employeementId);
     out.isConsultant = this.coalesceNonEmpty(row.isConsultant, detail.isConsultant);
     out.name = this.coalesceNonEmpty(row.name, detail.name);
+    out.mobileNo = row.mobileNo ?? detail.mobileNo ?? row.mobile_no ?? detail.mobile_no;
+    out.workLocation = this.coalesceNonEmpty(
+      row.workLocation,
+      detail.workLocation,
+      row.work_location,
+      detail.work_location
+    );
     out.employmentIdAcToET = this.coalesceNonEmpty(row.employmentIdAcToET, detail.employmentIdAcToET);
     if (!out.employmentIdAcToET && out.employeementId != null && String(out.employeementId).trim() !== '') {
       out.employmentIdAcToET = this.utilityService.appendEmployeementid(out.isConsultant, String(out.employeementId));
@@ -1052,15 +1066,16 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     return list;
   }
 
-  /** Whether an employee row can be part of HR bulk action. */
+  /**
+   * HR bulk accept/reject: selectable when HOD has submitted/approved this cycle (hodReviewStatus Submitted or Accepted)
+   * and HR is still pending. Manager approval is not required for this checkbox.
+   */
   canBulkHrAction(emp: any): boolean {
     if (!this.userMapping?.performance_action_by_hr) return false;
     if (!emp?.empId) return false;
-    const managerStatus = this.getApprovalStatus(emp, 'manager');
-    const hodStatus = this.getApprovalStatus(emp, 'hod');
-    const hrStatus = this.getApprovalStatus(emp, 'hr');
-    // Tick/select only when BOTH Manager and HOD have acted, and HR is still Pending.
-    return managerStatus !== 'Pending' && hodStatus !== 'Pending' && hrStatus === 'Pending';
+    if (this.getApprovalStatus(emp, 'hr') !== 'Pending') return false;
+    const hod = this.getApprovalStatus(emp, 'hod');
+    return hod === 'Submitted' || hod === 'Accepted';
   }
 
   isBulkSelected(empId: any): boolean {
@@ -1077,6 +1092,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   toggleSelectAllBulk(checked: boolean): void {
     const rows = this.getExportList().filter((e: any) => this.canBulkHrAction(e));
     if (checked) {
+      this.selectedBulkEmpIds.clear();
       rows.forEach((e: any) => this.selectedBulkEmpIds.add(Number(e.empId)));
     } else {
       this.selectedBulkEmpIds.clear();
@@ -1852,12 +1868,37 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     if (r == null || r === '' || isNaN(Number(r))) return 0;
     return Math.min(5, Math.max(0, Math.round(Number(r))));
   }
+
+  /** Per-star display for profile card (supports half stars, e.g. 2.5). Index 1–5. */
+  getAverageStarDisplayForIndex(index: number): 'full' | 'half' | 'empty' {
+    const r = this.getAverageRatingNumeric();
+    if (r == null || index < 1 || index > 5) return 'empty';
+    if (r >= index) return 'full';
+    if (r >= index - 0.5) return 'half';
+    return 'empty';
+  }
   /** Returns average rating label for card: "X.X / 5.0" or "N/A". */
   getAverageRatingLabel(): string {
     const r = this.averageRating;
     if (r == null || r === '' || isNaN(Number(r))) return 'N/A';
     const n = Math.min(5, Math.max(0, Number(r)));
     return (Math.round(n * 10) / 10).toFixed(1) + ' / 5.0';
+  }
+
+  /** Profile card: `employee.mobile_no` / mobileNo from DB. */
+  getProfileMobileNo(emp: any): string {
+    if (!emp) return '-';
+    const v = emp.mobileNo ?? emp.mobile_no;
+    if (v === null || v === undefined || v === '') return '-';
+    return String(v);
+  }
+
+  /** Profile card: `employee.work_location` / workLocation from DB. */
+  getProfileWorkLocation(emp: any): string {
+    if (!emp) return '-';
+    const v = emp.workLocation ?? emp.work_location;
+    const s = v != null ? String(v).trim() : '';
+    return s !== '' ? s : '-';
   }
   /** Numeric average rating (same source as card) for Overall Rating Summary. */
   getAverageRatingNumeric(): number | null {
@@ -2314,7 +2355,38 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     }
   }
 
+  /** Maps UI `comment` to API `criteriaRemark` (employee_rating_performance.criteria_remark). */
+  private trimCriteriaComment(value: any): string {
+    if (value == null) return '';
+    return String(value).trim();
+  }
+
+  /** Each criterion row in Final Review must have a non-empty comment before submit/update. */
+  private getFinalReviewCriteriaCommentError(): string | null {
+    for (let i = 0; i < this.filterCriteria.length; i++) {
+      const label = (this.filterCriteria[i]?.reviewLabel || `Criterion ${i + 1}`).toString();
+      const c = (this.myList[i]?.comment ?? '').toString().trim();
+      if (!c) {
+        return `Please enter a comment for "${label}".`;
+      }
+    }
+    for (let i = 0; i < this.filterRatingCriteria.length; i++) {
+      const label = (this.filterRatingCriteria[i]?.reviewLabel || `Criterion ${i + 1}`).toString();
+      const c = (this.myRateList[i]?.comment ?? '').toString().trim();
+      if (!c) {
+        return `Please enter a comment for "${label}".`;
+      }
+    }
+    return null;
+  }
+
   submitReviewEmployee(quarter: any, template: TemplateRef<any>, index: any) {
+    const commentErr = this.getFinalReviewCriteriaCommentError();
+    if (commentErr) {
+      this.alertMessage = commentErr;
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
     this.submitPerformance.empId = this.selectedEmployee.empId;
     this.submitPerformance.currentStatus = this.currentStatus;
     this.submitPerformance.quarterId = quarter.quarterId;
@@ -2331,7 +2403,8 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
         this.submitPerformance.performanceRatings.push({
           reviewTypeId: item.reviewTypeId,
           rating: this.myList[index].silde,
-          performanceRatingId: null
+          performanceRatingId: null,
+          criteriaRemark: this.trimCriteriaComment(this.myList[index].comment)
         });
       }
     });
@@ -2340,7 +2413,8 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
         this.submitPerformance.performanceRatings.push({
           reviewTypeId: item.reviewTypeId,
           rating: this.myRateList[index].rate,
-          performanceRatingId: null
+          performanceRatingId: null,
+          criteriaRemark: this.trimCriteriaComment(this.myRateList[index].comment)
         });
       }
     });
@@ -2541,6 +2615,12 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   acceptReason: any;
   rejectReason: any;
   submitRemarksByHR(quarter: any, template: TemplateRef<any>, index: any) {
+    const commentErr = this.getFinalReviewCriteriaCommentError();
+    if (commentErr) {
+      this.alertMessage = commentErr;
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
     if (this.userMapping.performance_action_by_hod) {
       if ((this.isAcceptSelected || this.isRejectSelected) && !this.validationService.validateNullUndefinedEmptyString(this.hodRemarks)) {
         this.alertMessage = "Please enter HOD Remarks!";
@@ -2570,6 +2650,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           reviewTypeId: item.reviewTypeId,
           rating: this.myList[index].silde,
           performanceRatingId: this.myList[index].performanceRatingId,
+          criteriaRemark: this.trimCriteriaComment(this.myList[index].comment)
         });
       }
     });
@@ -2581,6 +2662,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           reviewTypeId: item.reviewTypeId,
           rating: this.myRateList[index].rate,
           performanceRatingId: this.myRateList[index].performanceRatingId,
+          criteriaRemark: this.trimCriteriaComment(this.myRateList[index].comment)
         });
       }
     });
@@ -2654,6 +2736,12 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   }
 
   updateReviewEmployee(quarter: any, template: TemplateRef<any>, index: any) {
+    const commentErr = this.getFinalReviewCriteriaCommentError();
+    if (commentErr) {
+      this.alertMessage = commentErr;
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
     this.submitPerformance.empId = this.selectedEmployee.empId;
     this.submitPerformance.quarterId = quarter.quarterId;
     this.submitPerformance.hodId = this.currentUser.empId;
@@ -2667,6 +2755,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           reviewTypeId: item.reviewTypeId,
           rating: this.myList[index].silde,
           performanceRatingId: this.myList[index].performanceRatingId,
+          criteriaRemark: this.trimCriteriaComment(this.myList[index].comment)
         });
       }
     });
@@ -2678,6 +2767,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           reviewTypeId: item.reviewTypeId,
           rating: this.myRateList[index].rate,
           performanceRatingId: this.myRateList[index].performanceRatingId,
+          criteriaRemark: this.trimCriteriaComment(this.myRateList[index].comment)
         });
       }
     });
@@ -2814,6 +2904,12 @@ hasDataChanged(): boolean {
 }
   updateReviewByHr(quarter: any, template: TemplateRef<any>, index: any)
   {
+    const commentErr = this.getFinalReviewCriteriaCommentError();
+    if (commentErr) {
+      this.alertMessage = commentErr;
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
     const hrFeedback = (this.hrRemarks != null && this.hrRemarks !== '') ? this.hrRemarks.trim() : '';
     if (!hrFeedback) {
       this.alertMessage = 'Please enter HR remark/feedback.';
@@ -2832,6 +2928,7 @@ hasDataChanged(): boolean {
           reviewTypeId: item.reviewTypeId,
           rating: this.myList[index].silde,
           performanceRatingId: this.myList[index].performanceRatingId,
+          criteriaRemark: this.trimCriteriaComment(this.myList[index].comment)
         });
       }
     });
@@ -2843,6 +2940,7 @@ hasDataChanged(): boolean {
           reviewTypeId: item.reviewTypeId,
           rating: this.myRateList[index].rate,
           performanceRatingId: this.myRateList[index].performanceRatingId,
+          criteriaRemark: this.trimCriteriaComment(this.myRateList[index].comment)
         });
       }
     });
