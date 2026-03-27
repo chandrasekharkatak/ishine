@@ -88,11 +88,6 @@ export class TimesheetService {
 
   }
 
-
-  // getAllProjectsByEmpId(timesheetObj: Timesheet) {
-  //   return this.http.post(`${this.baseUrl}` + `api/getAllProjectsByEmpId`, timesheetObj);
-  // }
-
   getAllActivitiesByProjectIdandEmpId(timesheetObj: any) {
     return this.http.post(`${this.baseUrl}` + `api/getAllActivitiesByProjectIdandEmpId`, timesheetObj);
   }
@@ -192,9 +187,6 @@ export class TimesheetService {
   return this.http.post<any>(`${this.baseUrl}`+`api/getLastFilledTimesheetByEmpId`, payload);
 }
 
-  getProjectListForDateAndEmpId(payload: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}api/getProjectListForDateAndEmpId`, payload);
-  }
 
   getClientSideIdByProjectId(projectId: any): Observable<any> {
     return this.http.post(`${this.baseUrl}api/getClientSideIdByProjectId?projectId=${projectId}`, null);

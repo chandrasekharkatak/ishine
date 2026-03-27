@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.repository;
 import java.math.BigInteger;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
@@ -18127,5 +18129,14 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			//         @Param("timesheetIds") List<Long> timesheetIds,
 			//         @Param("status") int status
 			// );
+					      
+					    @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName, p.clientFlag, p.hasClientSideId,p.poProjectType)\n"
+							+ "FROM EmployeeTeamMap etm\n"
+							+ "inner join Team t on t.teamId = etm.teamId \n"
+							+ "inner join Project p on p.projectId = t.projectId\n"
+							+ "WHERE etm.startDate <= :endOfDay\n"
+							+ "  AND (etm.endDate IS NULL OR etm.endDate >= :startOfDay) and etm.active != 2 and etm.empId = :emp_id")
+						List<ProjectNameAndPrjoectIdDTO> getProjectListForDateAndEmpId( @Param("emp_id") Long empId, @Param("startOfDay") LocalDateTime startOfDay,
+						        @Param("endOfDay") LocalDateTime endOfDay);	
 
 }
