@@ -690,9 +690,9 @@ public class ProjectCustomRepository {
 				.append("WHERE 1=1 AND p.project_id = rc.project_id \n");
 
 		if (projectStatus.equalsIgnoreCase("OVERBOARDED")) {
-			query.append(" AND COALESCE(rc.required_count,0) > COALESCE(ac.allocated_count,0) ) \n");
+			query.append(" AND COALESCE(ac.allocated_count,0) > COALESCE(rc.required_count,0) \n ) \n");
 		} else {
-			query.append(" AND COALESCE(rc.required_count,0) < COALESCE(ac.allocated_count,0) ) \n");
+			query.append(" AND COALESCE(ac.allocated_count,0) < COALESCE(rc.required_count,0) \n ) \n");
 		}
 
 		if (projectNames != null && !projectNames.isEmpty()) {

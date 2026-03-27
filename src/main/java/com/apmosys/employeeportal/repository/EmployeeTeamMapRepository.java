@@ -934,7 +934,8 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "FROM EmployeeTeamMap etm \n"
 			+ "INNER JOIN RoleDetails rd on rd.roleId = etm.roleId \n"
 			+ "INNER JOIN PoRequirementMapping prm ON etm.poId = prm.poId and etm.roleId = prm.roleId and prm.active = true  \n"
-			+ "INNER JOIN ProjectPoDetails ppd ON prm.poId = ppd.poId and ppd.active = true AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
+			+ "AND DATE(prm.lineItemEndDate) = (SELECT MAX(DATE(prm2.lineItemEndDate)) FROM PoRequirementMapping prm2 WHERE prm2.poId = prm.poId AND prm2.active = true AND prm2.roleId = prm.roleId  ) \n"
+			+ "INNER JOIN ProjectPoDetails ppd ON etm.poId = ppd.poId and ppd.active = true AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
 			+ "where ppd.projectId =:projectId \n"
 			+ "GROUP BY prm.poRequirementMappingId")
 	List<PoDetailsDto> getAssigedAndApprovedEmployeeCountByProjectId(Integer projectId, boolean currentActivePO);
@@ -977,9 +978,32 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	List<Long> findDistinctEmpIdsByProjectId(@Param("projectId") Integer projectId);
 
 	
-	@Query(value = "Select etm from EmployeeTeamMap etm where etm.poId =:previousPoId and etm.roleId =:roleId and etm.active !=0")
+	@Query(value = "SELECT etm FROM EmployeeTeamMap etm\n"
+			+ "WHERE etm.poId = :previousPoId\n"
+			+ "AND etm.roleId = :roleId\n"
+			+ "AND (\n"
+			+ "        etm.active != 0\n"
+			+ "     OR (\n"
+			+ "            etm.active = 0\n"
+			+ "        AND etm.endDate IS NULL\n"
+			+ "        AND FUNCTION('DATE', etm.startDate) > CURRENT_DATE\n"
+			+ "     )\n"
+			+ ")")
 	List<EmployeeTeamMap>findActiveEmployeesForRole(Long previousPoId, Long roleId);
 
+	@Query(value ="SELECT etm FROM EmployeeTeamMap etm\n"
+			+ "WHERE etm.poId = :previousPoId\n"
+			+ "AND (\n"
+			+ "        etm.active != 0\n"
+			+ "     OR (\n"
+			+ "            etm.active = 0\n"
+			+ "        AND etm.endDate IS NULL\n"
+			+ "        AND etm.startDate IS NOT NULL\n"
+			+ "        AND FUNCTION('DATE', etm.startDate) > CURRENT_DATE\n"
+			+ "     )\n"
+			+ ")")
+	List<EmployeeTeamMap> findActiveEmployeesByPoId(Long previousPoId);
+	
 		@Query(value = "SELECT \n"
 				+ "COUNT(DISTINCT e.empId)"
 				+ "FROM Employee e \n"
@@ -1368,5 +1392,25 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 		Integer checkMappingExists(
 				@Param("timesheetId") Long timesheetId,
 				@Param("inputDate") LocalDate inputDate);
+	
+	
+	
+	@Modifying
+	@Query("DELETE FROM EmployeeTeamMap e\n"
+			+ "WHERE e.poId = :poId\n"
+			+ "AND e.active = 0\n"
+			+ "AND e.endDate IS NULL\n"
+			+ "AND FUNCTION('DATE', e.startDate) > CURRENT_DATE ")
+	void deleteScheduledEmployeesByPoId(Long poId);
+	
+	@Modifying
+	@Query("DELETE FROM EmployeeTeamMap e\n"
+			+ "WHERE e.teamId IN :teamIds\n"
+			+ "AND e.active = 0\n"
+			+ "AND e.endDate IS NULL\n"
+			+ "AND FUNCTION('DATE', e.startDate) > CURRENT_DATE ")
+	void deleteScheduledEmployeesByTeamIds(List<Long> teamIds);
+
+
 	
 }

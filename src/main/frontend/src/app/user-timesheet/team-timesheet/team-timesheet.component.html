@@ -1817,12 +1817,19 @@
           <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>Bulk Approval Proof</label>
             <div class="d-flex align-items-center">
-              <input type="file" #fileInput class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
+              <input type="file" #fileInput class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
                 (change)="onFinalFileSelected($event)">
-              <button class="btn btn-outline-primary btn-sm ms-2" title="Preview" [disabled]="!previewUrl2"
-                (click)="openPreviewModalForTwo('doc2')">
-                <i class="fa fa-eye fa-lg text-primary"></i>
+                @if(fileType2 =='image' || fileType2 == 'pdf' || fileType2 == null){
+                  <button class="btn btn-outline-primary btn-sm ms-2" title="Preview" [disabled]="!previewUrl2"
+                  (click)="openPreviewModalForTwo('doc2')">
+                  <i class="fa fa-eye fa-lg text-primary"></i>
+                </button>
+              }@else if(fileType2 =='excel'){
+                <button class="btn btn-outline-primary btn-sm ms-2" title="Preview" 
+                (click)="downloadFile()">
+                <i class="fas fa-download fa-lg text-success"></i>
               </button>
+              }
             </div>
             <div class="text" *ngIf="fileName2">
               {{fileName2}}

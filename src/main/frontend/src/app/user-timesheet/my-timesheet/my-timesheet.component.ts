@@ -35,6 +35,8 @@ import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
 import { TimesheetFormComponent } from './timesheet-form/timesheet-form.component';
 import { ProjectBasedBulkUploadPayload } from '../team-timesheet/types';
 import { M } from '@angular/material/ripple.d-BxTUZJt7';
+import { ExcelDownloadService } from 'src/app/services/excel-download-service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   standalone: false,
@@ -336,7 +338,8 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
     private sanitizer: DomSanitizer,
     private route: ActivatedRoute,
     private inputValidationService:InputValidationService,
-    private router: Router
+    private router: Router,
+    private excelDownloadService: ExcelDownloadService
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -3038,6 +3041,7 @@ get tooltipCta(): string {
    * @param docId - Document ID
    * @param approvedDocType - true for Approved (FinalDocumentNew), false for Filled (TimesheetDocumentDetailsNew)
    */
+
   getDoscForPreview(docId: any, approvedDocType: boolean) {
     this.timesheetNewService.getDocumentDataByDocId(Number(docId), approvedDocType)
       .pipe(first())
@@ -3046,7 +3050,9 @@ get tooltipCta(): string {
           const mimeType = blob.type || 'application/octet-stream';
           if (this.isExcelMimeType(mimeType)) {
             const fileName = `document.${mimeType.includes('openxml') ? 'xlsx' : 'xls'}`;
-            this.downloadBlobAsFile(blob, fileName);
+           
+            // this.downloadBlobAsFile(blob, fileName);
+            this.excelDownloadService.openConfirmAndDownload(blob, fileName);
           } else {
             this.showPreviewFromBlob(blob);
           }
@@ -3326,7 +3332,7 @@ get tooltipCta(): string {
   //   this.selectedFile2 = file;
   //   this.fileName2 = file.name;
   // }
-onFinalFileSelected(event: any): void {
+async onFinalFileSelected(event: any): Promise<void> {
   const file: File = event.target.files[0];
   this.fileError2 = '';
   this.previewUrl2 = null;
@@ -3354,7 +3360,11 @@ onFinalFileSelected(event: any): void {
     this.fileError2 = 'File size must be 500Kb or less.';
     return;
   }
-
+  this.selectedFile2 = await this.renameFile(file, this.timesheetObj.projectId, 'Approved');
+  
+  if(this.selectedFile2 == null){
+    return;
+  }
   // Cleanup old URL
   if (this.rawObjectUrl2) {
     URL.revokeObjectURL(this.rawObjectUrl2);
@@ -3378,7 +3388,7 @@ onFinalFileSelected(event: any): void {
     this.fileType2 = 'excel';
   }
 
-  this.selectedFile2 = this.renameFile(file, this.timesheetObj.projectId, 'Approved');
+
   this.fileName2 = this.selectedFile2.name;
 }
 
@@ -4584,13 +4594,13 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
     return totalMinutes / 60; // Convert to hours
   }
 
-  renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): File {
-    const ext = file.name.substring(file.name.lastIndexOf('.'));
-    const safeDocType = docType.toLowerCase(); // optional
-    const newFileName = `${projectId}_${safeDocType}_${file.name}`;
+  // renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): File {
+  //   const ext = file.name.substring(file.name.lastIndexOf('.'));
+  //   const safeDocType = docType.toLowerCase(); // optional
+  //   const newFileName = `${projectId}_${safeDocType}_${file.name}`;
 
-    return new File([file], newFileName, { type: file.type });
-  }
+  //   return new File([file], newFileName, { type: file.type });
+  // }
 
   openRejectReasonsModal(data: any, template: TemplateRef<any>) {
     this.rejectionReasons = data;
@@ -4641,6 +4651,52 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   }).catch(() => {
   });
 }
+
+  downloadFile(): void {
+    if (!this.rawObjectUrl2) return;
+
+  const a = document.createElement('a');
+  a.href = this.rawObjectUrl2;
+  a.download = this.fileName2 || 'download';
+  document.body.appendChild(a); // required in some browsers
+  a.click();
+  document.body.removeChild(a);
+  }
+
+   async renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): Promise<File> {
+    
+      try{
+      const ext = file.name.includes('.') ?file.name.substring(file.name.lastIndexOf('.')): '';
+      // const safeDocType = docType.toLowerCase(); // optional
+      // // const newFileName = `${this.currentUser.empId}_${projectId}_${}_${safeDocType}${ext}`;
+      // const newFileName = `${projectId}_${this.fromDate}_${this.dayType}_${safeDocType}${ext}`;
+  
+      const response: any = await firstValueFrom(this.timesheetService.generateFileName({
+        projectId: projectId,
+        extension: ext,
+        docType: docType
+      }));
+      const newFileName = response.fileName;
+  
+      return new File([file], newFileName, { type: file.type });
+    }
+     catch(error){
+      this.handleError(error,"Generating unique file name",true,"Unable to generate unique file name")
+      return null;
+    }
+  
+    }
+
+    private handleError(error: any, context: string, showToUser: boolean = false, userMessage?: string): void {
+      const errorMessage = error?.message || error?.toString() || 'An unexpected error occurred';
+      console.error(`[${context}]`, error);
+      
+      if (showToUser) {
+        const message = userMessage || `Error: ${errorMessage}. Please try again.`;
+        this.openAlertMod(this.alertTemplate, message);
+      }
+    }
+
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

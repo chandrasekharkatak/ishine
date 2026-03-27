@@ -2483,3 +2483,33 @@ preview-container {
 ::ng-deep .bu-mat-field .mat-mdc-form-field-icon-suffix {
   padding: 0 4px !important;
 }
+
+.btn-download-excel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: #1D9E75;
+  color: #E1F5EE;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-download-excel:hover:not(:disabled) {
+  background: #0F6E56;
+}
+
+.btn-download-excel:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn-download-excel:disabled {
+  background: #e0e0e0;
+  color: #aaa;
+  cursor: not-allowed;
+  opacity: 0.6;
+}

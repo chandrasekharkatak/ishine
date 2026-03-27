@@ -4250,7 +4250,7 @@ public class TeamsService {
 			}
 
 			List<RmgTeamDto> teamDtoList = poDetailsDto.getTeamList();
-			Long currentUserEmpId = teamDtoList.stream().map(RmgTeamDto::getTeamId).filter(Objects::nonNull).findFirst().orElse(null);
+			Long currentUserEmpId = teamDtoList.stream().map(RmgTeamDto::getUpdatedBy).filter(Objects::nonNull).findFirst().orElse(null);
 			if (currentUserEmpId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Emp Id cannot be null!!");
@@ -4267,6 +4267,7 @@ public class TeamsService {
 
 			List<String> ableToInactiveTeamNames = new ArrayList<>();
 			List<String> unableToInactiveTeamNames = new ArrayList<>();
+			LocalDate today = LocalDate.now();
 			for (RmgTeamDto teamDto : teamDtoList) {
 				Team team = teamList.stream().filter(t -> Objects.equals(t.getTeamId(), teamDto.getTeamId()))
 						.findFirst().orElse(null);
@@ -4285,6 +4286,8 @@ public class TeamsService {
 						if (teamDto.getEndDate() == null) {
 							empTeamMap.setActive(0L);
 							empTeamMap.setEndDate(LocalDateTime.now());
+						} else if(!teamDto.getEndDate().toLocalDate().isAfter(today)){
+							empTeamMap.setActive(0L);
 						}
 					});
 					employeeTeamMapRepository.saveAll(employeeTeamMappings);
@@ -4576,7 +4579,17 @@ public class TeamsService {
 		if (previousPo == null) {
 			return;
 		}
+		
+		if (previousPo.getPoEndDate() != null &&
+	            previousPo.getPoEndDate().isAfter(LocalDateTime.now())) {
 
+	        return;
+	    }
+		
+		Optional<Project> project = projectRepository.findById(projectId);
+		String projectType = project.get().getPoProjectType();
+
+		if ("TNM".equalsIgnoreCase(projectType)) {
 		Long previousPoId = previousPo.getPoId();
 		List<Long> oldRoles = poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
 		List<Long> newRoles = poRequirementMappingRepository.findRoleIdsByPoId(renewedPoId);
@@ -4590,7 +4603,6 @@ public class TeamsService {
 					BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
 					newRow.setPoId(renewedPoId);
 					newRow.setEndDate(null);
-//				    newRow.setActive(oldRow.getActive()); 
 					newRow.setCreatedBy(renewedBy);
 					newRow.setUpdatedBy(renewedBy);
 					newRow.setUpdatedOn(LocalDateTime.now());
@@ -4604,6 +4616,29 @@ public class TeamsService {
 					employeeTeamMapRepository.save(oldRow);
 				}
 			}
+		}else if  ("Monitoring".equalsIgnoreCase(projectType)) {
+			List<EmployeeTeamMap> employees =
+	                employeeTeamMapRepository.findActiveEmployeesByPoId(previousPoId);
+			 for (EmployeeTeamMap oldRow : employees) {
+			  EmployeeTeamMap newRow = new EmployeeTeamMap();
+	            BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+
+	            newRow.setPoId(renewedPoId);
+	            newRow.setEndDate(null);
+	            newRow.setCreatedBy(renewedBy);
+	            newRow.setUpdatedBy(renewedBy);
+	            newRow.setUpdatedOn(LocalDateTime.now());
+	            newRow.setStartDate(LocalDateTime.now());
+	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+	            employeeTeamMapRepository.save(newRow);
+	            oldRow.setActive(0L);
+	            oldRow.setEndDate(LocalDateTime.now());
+	            oldRow.setUpdatedBy(renewedBy);
+	            oldRow.setUpdatedOn(LocalDateTime.now());
+
+	            employeeTeamMapRepository.save(oldRow);
+		}
+		}
 		}
 	}
 

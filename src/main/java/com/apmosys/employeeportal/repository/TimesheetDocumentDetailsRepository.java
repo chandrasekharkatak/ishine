@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
+import com.apmosys.employeeportal.dto.TimesheetDocumentMetaDto;
 import com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 
@@ -228,4 +229,40 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 		List<TimesheetDocumentDetails> getDocsByTimesheetIdsAndFinalFlag(
 				@Param("timesheetIds") List<Long> timesheetIds
 			);
+
+			@Query("SELECT t " +
+			"FROM TimesheetDocumentDetails t " +
+			"WHERE t.finalFlag = :finalFlag " +
+			"AND t.docId = ( " +
+			"    SELECT MAX(t2.docId) " +
+			"    FROM TimesheetDocumentDetails t2 " +
+			"    WHERE t2.timesheetId = t.timesheetId " +
+			"    AND t2.finalFlag = :finalFlag " +
+			") " +
+			"ORDER BY t.docId")
+	 List<TimesheetDocumentDetails> findLatestFinalDocuments(@Param("finalFlag") Boolean finalFlag);
+
+
+	 @Query("SELECT new  com.apmosys.employeeportal.dto.TimesheetDocumentMetaDto(" +
+       "t.docId, t.timesheetId, t.docName, t.docMimeType, t.finalFlag, " +
+       "t.active, t.clientApprovalStatus, t.createdBy, t.createdOn, " +
+       "t.updatedBy, t.updatedOn, t.empId) " +
+       "FROM TimesheetDocumentDetails t")
+		List<TimesheetDocumentMetaDto> findAllMetaOnly();
+	 
+	 @Query("SELECT t.docData FROM TimesheetDocumentDetails t WHERE t.docId = :docId")
+	 byte[] findDocDataByDocId(@Param("docId") Long docId);
+	 
+	 @Query("SELECT t.docId, t.docData FROM TimesheetDocumentDetails t WHERE t.docId IN :docIds")
+		List<Object[]> findDocDataByDocIds1(@Param("docIds") List<Long> docIds);
+
+		// @Query("SELECT pts.id.projectId FROM ProjectTimesheetStatusNew pts WHERE pts.id.timesheetId in (:timesheetIds)" )
+		// List<Object[]> findProjectIdsByTimesheetIds(@Param("timesheetIds") List<Long> timesheetIds);
+
+		@Query(value = "select et.timesheet_id,et.project_id from employee_timesheets et where et.timesheet_id in (:timesheetIds)", nativeQuery=true )
+		List<Object[]> findProjectIdsByTimesheetIds(@Param("timesheetIds") List<Long> timesheetIds);
+
+	// 	@Query("SELECT pts.id.projectId FROM ProjectTimesheetStatusNew pts WHERE pts.id.timesheetId = :timesheetId")
+	// Integer findProjectIdByTimesheetId(@Param("timesheetId") Long timesheetId);
+
 }

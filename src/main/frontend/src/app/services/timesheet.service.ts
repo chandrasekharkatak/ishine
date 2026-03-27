@@ -466,5 +466,15 @@ evictTimesheetDashboardCache(): Observable<any> {
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeTeamDepartment`,{teamId,empId,date});
   }
 
+  getAllHalfDayLeaves(empId: number): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}api/v2/timesheet/half-day/${empId}`);
+  }
+
+  generateFileName(request: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}api/v2/timesheet/generate-name`,
+      request
+    );
+  }
  
 }
