@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -399,6 +400,135 @@ public class BioMaxService {
 		}
 
 		return serviceResponse;
+	}
+
+	public ServiceResponse getBioDashboardData(String startDate, String endDate) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		Map<String, Object> responseData = new HashMap<>();
+
+		try (Connection con = getConnection()) {
+			LocalDate startLocalDate = parseDashboardDate(startDate);
+			LocalDate endLocalDate = parseDashboardDate(endDate);
+
+			long totalEmployees = Optional.ofNullable(employeeRepository.getTotalEmployeeCount()).orElse(0L);
+
+			// Present count for selected end date
+			long presentToday = 0L;
+			String presentTodayQuery = "SELECT COUNT(DISTINCT Empcode) AS presentCount "
+					+ "FROM IshineRawdata "
+					+ "WHERE CAST(Logdatetime AS DATE) = ?";
+			try (PreparedStatement presentStmt = con.prepareStatement(presentTodayQuery)) {
+				presentStmt.setDate(1, java.sql.Date.valueOf(endLocalDate));
+				try (ResultSet rs = presentStmt.executeQuery()) {
+					if (rs.next()) {
+						presentToday = rs.getLong("presentCount");
+					}
+				}
+			}
+
+			// Late arrivals on selected day (first punch after 10:00 AM)
+			long lateArrivals = 0L;
+			String lateArrivalsQuery = "SELECT COUNT(*) AS lateCount FROM ( "
+					+ "SELECT Empcode, MIN(Logdatetime) AS InTime "
+					+ "FROM IshineRawdata "
+					+ "WHERE CAST(Logdatetime AS DATE) = ? "
+					+ "GROUP BY Empcode "
+					+ ") A WHERE CAST(A.InTime AS TIME) > '10:00:00'";
+			try (PreparedStatement lateStmt = con.prepareStatement(lateArrivalsQuery)) {
+				lateStmt.setDate(1, java.sql.Date.valueOf(endLocalDate));
+				try (ResultSet rs = lateStmt.executeQuery()) {
+					if (rs.next()) {
+						lateArrivals = rs.getLong("lateCount");
+					}
+				}
+			}
+
+			// Employees with less than 9 hours on selected day
+			long underNineHours = 0L;
+			String underNineQuery = "SELECT COUNT(*) AS underNineCount FROM ( "
+					+ "SELECT Empcode, DATEDIFF(MINUTE, MIN(Logdatetime), MAX(Logdatetime)) AS workedMinutes "
+					+ "FROM IshineRawdata "
+					+ "WHERE CAST(Logdatetime AS DATE) = ? "
+					+ "GROUP BY Empcode "
+					+ ") A WHERE A.workedMinutes > 0 AND A.workedMinutes < 540";
+			try (PreparedStatement underNineStmt = con.prepareStatement(underNineQuery)) {
+				underNineStmt.setDate(1, java.sql.Date.valueOf(endLocalDate));
+				try (ResultSet rs = underNineStmt.executeQuery()) {
+					if (rs.next()) {
+						underNineHours = rs.getLong("underNineCount");
+					}
+				}
+			}
+
+			long absentToday = Math.max(totalEmployees - presentToday, 0L);
+			long onTimeToday = Math.max(presentToday - lateArrivals, 0L);
+
+			Map<String, Object> summary = new HashMap<>();
+			summary.put("totalEmployees", totalEmployees);
+			summary.put("presentToday", presentToday);
+			summary.put("lateArrivals", lateArrivals);
+			summary.put("underNineHours", underNineHours);
+			summary.put("absentToday", absentToday);
+			responseData.put("summary", summary);
+
+			Map<String, Object> statusDistribution = new HashMap<>();
+			statusDistribution.put("onTime", onTimeToday);
+			statusDistribution.put("late", lateArrivals);
+			statusDistribution.put("absent", absentToday);
+			statusDistribution.put("total", totalEmployees);
+			responseData.put("statusDistribution", statusDistribution);
+
+			// Trend across selected range (daily present vs absent)
+			List<Map<String, Object>> weeklyTrend = new ArrayList<>();
+			String trendQuery = "SELECT CAST(Logdatetime AS DATE) AS AttendanceDate, COUNT(DISTINCT Empcode) AS PresentCount "
+					+ "FROM IshineRawdata "
+					+ "WHERE Logdatetime >= ? AND Logdatetime < ? "
+					+ "GROUP BY CAST(Logdatetime AS DATE) "
+					+ "ORDER BY AttendanceDate";
+			try (PreparedStatement trendStmt = con.prepareStatement(trendQuery)) {
+				trendStmt.setTimestamp(1, java.sql.Timestamp.valueOf(startLocalDate.atStartOfDay()));
+				trendStmt.setTimestamp(2, java.sql.Timestamp.valueOf(endLocalDate.plusDays(1).atStartOfDay()));
+				try (ResultSet rs = trendStmt.executeQuery()) {
+					while (rs.next()) {
+						long presentCount = rs.getLong("PresentCount");
+						Map<String, Object> day = new HashMap<>();
+						day.put("date", rs.getString("AttendanceDate"));
+						day.put("presentCount", presentCount);
+						day.put("absentCount", Math.max(totalEmployees - presentCount, 0L));
+						weeklyTrend.add(day);
+					}
+				}
+			}
+			responseData.put("weeklyTrend", weeklyTrend);
+
+			serviceResponse.setServiceResponse(responseData);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceResponse("");
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceError(e.getMessage());
+		}
+
+		return serviceResponse;
+	}
+
+	private LocalDate parseDashboardDate(String date) {
+		if (date == null) {
+			return LocalDate.now();
+		}
+
+		try {
+			return LocalDate.parse(date, DateTimeFormatter.ofPattern("dd-MMM-yyyy"));
+		} catch (DateTimeParseException ignored) {
+		}
+
+		try {
+			return LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		} catch (DateTimeParseException ignored) {
+		}
+
+		return LocalDate.now();
 	}
 
 	 public ServiceResponse getEmpBioData360(String startDate, String endDate, List<String> employeeId) {
