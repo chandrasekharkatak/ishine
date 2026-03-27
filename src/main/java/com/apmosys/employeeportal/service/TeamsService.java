@@ -4579,7 +4579,17 @@ public class TeamsService {
 		if (previousPo == null) {
 			return;
 		}
+		
+		if (previousPo.getPoEndDate() != null &&
+	            previousPo.getPoEndDate().isAfter(LocalDateTime.now())) {
 
+	        return;
+	    }
+		
+		Optional<Project> project = projectRepository.findById(projectId);
+		String projectType = project.get().getPoProjectType();
+
+		if ("TNM".equalsIgnoreCase(projectType)) {
 		Long previousPoId = previousPo.getPoId();
 		List<Long> oldRoles = poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
 		List<Long> newRoles = poRequirementMappingRepository.findRoleIdsByPoId(renewedPoId);
@@ -4593,7 +4603,6 @@ public class TeamsService {
 					BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
 					newRow.setPoId(renewedPoId);
 					newRow.setEndDate(null);
-//				    newRow.setActive(oldRow.getActive()); 
 					newRow.setCreatedBy(renewedBy);
 					newRow.setUpdatedBy(renewedBy);
 					newRow.setUpdatedOn(LocalDateTime.now());
@@ -4607,6 +4616,29 @@ public class TeamsService {
 					employeeTeamMapRepository.save(oldRow);
 				}
 			}
+		}else if  ("Monitoring".equalsIgnoreCase(projectType)) {
+			List<EmployeeTeamMap> employees =
+	                employeeTeamMapRepository.findActiveEmployeesByPoId(previousPoId);
+			 for (EmployeeTeamMap oldRow : employees) {
+			  EmployeeTeamMap newRow = new EmployeeTeamMap();
+	            BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+
+	            newRow.setPoId(renewedPoId);
+	            newRow.setEndDate(null);
+	            newRow.setCreatedBy(renewedBy);
+	            newRow.setUpdatedBy(renewedBy);
+	            newRow.setUpdatedOn(LocalDateTime.now());
+	            newRow.setStartDate(LocalDateTime.now());
+	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+	            employeeTeamMapRepository.save(newRow);
+	            oldRow.setActive(0L);
+	            oldRow.setEndDate(LocalDateTime.now());
+	            oldRow.setUpdatedBy(renewedBy);
+	            oldRow.setUpdatedOn(LocalDateTime.now());
+
+	            employeeTeamMapRepository.save(oldRow);
+		}
+		}
 		}
 	}
 

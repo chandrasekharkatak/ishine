@@ -11,6 +11,6 @@ export interface TimesheetDocumentDataI {
     previewUrl: SafeResourceUrl | null;
     rawObjectUrl: string | null;
     fileError: string | null;
-    fileType: 'pdf' | 'image' | null;
+    fileType: 'pdf' | 'image' | 'excel' | null;
     fileSize: number | null;
 }

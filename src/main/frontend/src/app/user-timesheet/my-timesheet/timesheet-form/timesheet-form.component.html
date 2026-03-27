@@ -706,7 +706,7 @@
                                 <input type="file"
                                     id="filled-{{project.projectId}}"
                                     class="file-input-custom"
-                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
                                     (change)="onFileSelected($event, 'Filled', project.projectId)"
                                     (click)="$any($event.target).value = null" />
                                 <label for="filled-{{project.projectId}}" class="file-input-label">
@@ -715,13 +715,25 @@
                                 </label>
                             </div>
                             @if ((file.uniqueIdentifier && containsFile(file.uniqueIdentifier)) || file.docId) {
-                            <button class="btn-preview-document"
+                                @if (file.fileType === 'excel') {
+                                    <button class="btn-preview-document"
+                                        title="Download Excel"
+                                        (click)="downloadFile(file)"
+                                        >
+                                        <i class="fas fa-download"></i>
+                                        <span>Download</span>
+                                    </button>
+                                }
+                                @else {
+                                <button class="btn-preview-document" 
                                 title="Preview Document"
                                 [disabled]="!file.previewUrl && !file.docId"
                                 (click)="openPreviewModalForTwo(file)">
                                 <i class="fas fa-eye"></i>
                                 <span>Preview</span>
-                            </button>
+                                </button>
+                                }
+                                
                             }
                         </div>
                         <div class="document-status-message">
@@ -764,7 +776,7 @@
                                 <input type="file"
                                     id="approved-{{project.projectId}}"
                                     class="file-input-custom"
-                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
                                     (change)="onFileSelected($event, 'Approved', project.projectId)"
                                     (click)="$any($event.target).value = null" />
                                 <label for="approved-{{project.projectId}}" class="file-input-label">
@@ -773,6 +785,16 @@
                                 </label>
                             </div>
                             @if ((file.uniqueIdentifier && containsFile(file.uniqueIdentifier)) || file.docId) {
+                                @if (file.fileType === 'excel') {
+                                    <button class="btn-preview-document"
+                                        title="Download Excel"
+                                        (click)="downloadFile(file)"
+                                        >
+                                        <i class="fas fa-download"></i>
+                                        <span>Download</span>
+                                    </button>
+                                }
+                            @else {
                             <button class="btn-preview-document"
                                 title="Preview Document"
                                 [disabled]="!file.previewUrl && !file.docId"
@@ -780,6 +802,7 @@
                                 <i class="fas fa-eye"></i>
                                 <span>Preview</span>
                             </button>
+                        }
                             }
                         </div>
                         <div class="document-status-message">

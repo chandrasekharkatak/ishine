@@ -1693,7 +1693,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 				        for (EmployeeTimesheetsNew ts : existingTimeSheets) {
 				     
 				    
-				            if (ts.getDayTypeId() != null && ts.getDayTypeId().equals(5)) {
+				            if (!Boolean.TRUE.equals(ts.getIsSystemGenerated())) {
 				                employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
 				            }
 				        }

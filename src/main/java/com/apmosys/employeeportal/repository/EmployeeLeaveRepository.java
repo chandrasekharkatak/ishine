@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
@@ -315,6 +316,34 @@ public List<Object[]> getAllTeamCompOffHistoryViewHirarchy(List<Long> empIds, Lo
        nativeQuery = true)
 		Integer existsLeaveForDate(@Param("empId") Long empId,
                            @Param("date") LocalDate date);
+
+
+		@Query(value =
+		"SELECT DISTINCT dates FROM ( " +
+		"    SELECT from_date AS dates " +
+		"    FROM employee_leave " +
+		"    WHERE emp_id = :empId " +
+		"      AND (leave_status_id not in (3,5)) " +
+		"      AND from_date_day_type = 0.5 " +
+		"      AND from_date >= :startDate " +
+		"      AND from_date <= :endDate " +
+		"    UNION " +
+		"    SELECT to_date AS dates " +
+		"    FROM employee_leave " +
+		"    WHERE emp_id = :empId " +
+		"      AND (leave_status_id not in (3,5)) " +
+		"      AND to_date_day_type = 0.5 " +
+		"      AND to_date >= :startDate " +
+		"      AND to_date <= :endDate " +
+		") AS half_day_dates " +
+		"ORDER BY dates",
+		nativeQuery = true
+	)
+	List<Date> getAllHalfDayLeaves(
+		@Param("empId") Long empId,
+		@Param("startDate") LocalDate startDate,
+		@Param("endDate") LocalDate endDate
+	);				
 
 }
 
