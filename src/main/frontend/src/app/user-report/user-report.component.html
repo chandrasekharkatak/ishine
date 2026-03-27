@@ -15,7 +15,7 @@
                         aria-controls="report" aria-selected="true" routerLink="report-list">Reports</a>
                 </li>
 
-                <li class="nav-item report__tab-item" (click)="removeActiveTab()">
+                <li class="nav-item report__tab-item" *ngIf="userMapping.attendance_reconciliation" (click)="removeActiveTab()">
                     <a class="nav-link report__tab-item__link" id="report-dashboard-tab" data-toggle="tab" role="tab"
                         aria-controls="report" aria-selected="true" routerLink="attendance-reconciliation">Attendance Reconciliation</a>
                 </li>

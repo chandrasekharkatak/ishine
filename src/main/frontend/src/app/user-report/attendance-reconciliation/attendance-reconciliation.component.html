@@ -94,13 +94,13 @@
                 </tr>
                 <tr *ngFor="let attendance of attendanceReconciliationList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: pageSize, currentPage: page, totalItems: totalRecords }, let i = index">
                   <td class="emp-code-cell">{{attendance.employeementId}}</td>
-                  <td *ngIf="userMapping.reports_employee_360 && attendance.employeeName && attendance.employeeName !== 'N/A'" 
+                  <td *ngIf="userMapping.attendance_reconciliation && attendance.employeeName && attendance.employeeName !== 'N/A'" 
                       [navigateToEmployee360]="attendance.emp360" 
                       class="clickable-name" 
                       title="Click to view Employee 360">
                     {{attendance.employeeName}}
                   </td>
-                  <td *ngIf="!userMapping.reports_employee_360 || !attendance.employeeName || attendance.employeeName === 'N/A'">
+                  <td *ngIf="!userMapping.attendance_reconciliation || !attendance.employeeName || attendance.employeeName === 'N/A'">
                     {{attendance.employeeName || 'N/A'}}
                   </td>
                   <td>{{attendance.logDate}}</td>
