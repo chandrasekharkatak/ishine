@@ -2191,7 +2191,7 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
  */
 private boolean isClientApprovalBlockedByDbDocuments(List<TimesheetDocumentDetailsNew> docs) {
     if (docs == null || docs.isEmpty()) {
-        return true;
+        return false;
     }
     return docs.stream().anyMatch(d -> {
         Integer statusVal = d.getClientApprovalStatusId();
