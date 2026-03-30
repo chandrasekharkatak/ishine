@@ -596,8 +596,8 @@
                 <td>
                   <span class="consent-badge" [class.consent-yes]="training.consentGiven?.toLowerCase() == 'true'"
                         [class.consent-no]="training.consentGiven?.toLowerCase() != 'true'">
-                    <i class="fas" [ngClass]="training.consentGiven?.toLowerCase() == 'true' ? 'fa-check-circle' : 'fa-times-circle'"></i>
-                    {{ currCard == 'usersAttended' ? (training.consentGiven?.toLowerCase() == 'true' ? 'Yes' : 'No') : 'N/A' }}
+                    <i class="fas" [ngClass]="currCard == 'usersAttended' ? (training.consentGiven?.toLowerCase() == 'true' ? 'fa-check-circle' : 'fa-times-circle') : 'fa-times-circle'"></i>
+                    {{ currCard == 'usersAttended' ? (training.consentGiven?.toLowerCase() == 'true' ? 'Yes' : 'No') : 'No' }}
                   </span>
                 </td>
                 <td class="completion-date"><i class="far fa-clock"></i> {{ currCard == 'usersAttended' ? (training.lastCompletedOn | date : 'dd-MM-yyyy HH:mm:ss') : 'Not Completed' }}</td>

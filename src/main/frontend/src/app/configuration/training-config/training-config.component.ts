@@ -1509,6 +1509,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   }
 
   onViewTrainingResponse(training: any, type: 'usersAttended' | 'usersNotAttended' = 'usersAttended') {
+    this.currCard = type;
     this.selectedTraining = training;
     this.getCountOfResponses(training.trainingId);
     this.trainingService.getTrainingResponses(training.trainingId, type).subscribe({
@@ -1632,11 +1633,13 @@ downloadResponsesToExcel(): void {
         empId: response.empId || '',
         empName: response.empName || response.employeeName || '',
         lastCompletedCycleNumber: response.lastCompletedCycleNumber || '',
-        lastCompletedOn: response.lastCompletedOn 
+        lastCompletedOn: this.currCard === 'usersAttended' && response.lastCompletedOn 
           ? this.date.transform(response.lastCompletedOn, 'dd-MMM-yyyy') 
-          : '',
-        consentGiven: response.consentGiven?.toLowerCase() == 'true' ? 'Yes' : 'No',
-        status: 'Completed',
+          : 'N/A',
+        consentGiven: this.currCard === 'usersAttended' 
+          ? (response.consentGiven?.toLowerCase() == 'true' ? 'Yes' : 'No') 
+          : 'No',
+        status: this.currCard === 'usersAttended' ? 'Completed' : 'Not Completed',
       };
 
       const row = worksheet.addRow(rowData);
@@ -1666,7 +1669,7 @@ downloadResponsesToExcel(): void {
           pattern: 'solid',
           fgColor: { argb: 'FFC6EFCE' } // Light green
         };
-      } else if (rowData.status?.toLowerCase() === 'incomplete' || rowData.status?.toLowerCase() === 'pending') {
+      } else if (rowData.status?.toLowerCase() === 'incomplete' || rowData.status?.toLowerCase() === 'not completed' || rowData.status?.toLowerCase() === 'pending') {
         row.getCell('status').fill = {
           type: 'pattern',
           pattern: 'solid',
