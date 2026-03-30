@@ -44,6 +44,7 @@ import com.apmosys.employeeportal.dto.ActivationCandidateDTO;
 import com.apmosys.employeeportal.dto.ActiveProjectDTO;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.ActivityTemplateDTO;
+import com.apmosys.employeeportal.dto.AutoMigrationDTO;
 import com.apmosys.employeeportal.dto.BillableInfo;
 import com.apmosys.employeeportal.dto.DeactivationCandidateDTO;
 import com.apmosys.employeeportal.dto.EmployeeBillableUpdateDTO;
@@ -4588,9 +4589,10 @@ public class TeamsService {
 		
 		Optional<Project> project = projectRepository.findById(projectId);
 		String projectType = project.get().getPoProjectType();
+		Long previousPoId = previousPo.getPoId();
 
 		if ("TNM".equalsIgnoreCase(projectType)) {
-		Long previousPoId = previousPo.getPoId();
+		
 		List<Long> oldRoles = poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
 		List<Long> newRoles = poRequirementMappingRepository.findRoleIdsByPoId(renewedPoId);
 		Set<Long> carryForwardRoles = oldRoles.stream().filter(newRoles::contains).collect(Collectors.toSet());
@@ -4641,6 +4643,108 @@ public class TeamsService {
 		}
 		}
 	}
+	
+	
+	
+	
+	
+//	public List<AutoMigrationDTO> migrateFromPreviousPOOnUpdate(
+//	        Integer projectId,
+//	        Long currentPoId,
+//	        Long updatedBy) {
+//
+//	    List<AutoMigrationDTO> result = new ArrayList<>();
+//
+//	    ProjectPoDetails previousPo = projectPoDetailsRepository
+//	            .findByNextPOAndProjectIdAndActiveTrue(currentPoId, projectId)
+//	            .orElse(null);
+//
+//	    if (previousPo == null) return result;
+//
+//	    // ✅ expiry check
+//	    if (previousPo.getPoEndDate() == null ||
+//	        !previousPo.getPoEndDate().isBefore(LocalDateTime.now())) {
+//	        return result;
+//	    }
+//
+//	    Long previousPoId = previousPo.getPoId();
+//
+//	    List<Long> oldRoles =
+//	            poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
+//
+//	    List<Long> newRoles =
+//	            poRequirementMappingRepository.findRoleIdsByPoId(currentPoId);
+//
+//	    Set<Long> matchingRoles = oldRoles.stream()
+//	            .filter(newRoles::contains)
+//	            .collect(Collectors.toSet());
+//
+//	    for (Long roleId : matchingRoles) {
+//
+//	        List<EmployeeTeamMap> employees =
+//	                employeeTeamMapRepository
+//	                        .findActiveEmployeesForRole(previousPoId, roleId);
+//
+//	        if (employees.isEmpty()) continue;
+//
+//	        RoleDetails roleDetails =
+//	                roleDetailsRepository.findById(roleId).orElse(null);
+//
+//	        AutoMigrationDTO dto = new AutoMigrationDTO();
+//	        dto.setRoleId(roleId);
+//	        dto.setRoleName(roleDetails != null ? roleDetails.getRole() : "Role-" + roleId);
+//
+//	        List<EmployeeImpactDTO> migrated = new ArrayList<>();
+//
+//	        for (EmployeeTeamMap oldRow : employees) {
+//
+//	            boolean exists =
+//	                    employeeTeamMapRepository.existsActiveMapping(
+//	                            oldRow.getEmployeeId(),
+//	                            currentPoId,
+//	                            roleId);
+//
+//	            if (exists) continue;
+//
+//	            // 🔁 clone
+//	            EmployeeTeamMap newRow = new EmployeeTeamMap();
+//	            BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+//
+//	            newRow.setPoId(currentPoId);
+//	            newRow.setStartDate(LocalDateTime.now());
+//	            newRow.setEndDate(null);
+//	            newRow.setCreatedBy(updatedBy);
+//	            newRow.setUpdatedBy(updatedBy);
+//	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+//	            newRow.setUpdatedOn(LocalDateTime.now());
+//
+//	            employeeTeamMapRepository.save(newRow);
+//
+//	            // ❌ deactivate old
+//	            oldRow.setActive(0L);
+//	            oldRow.setEndDate(LocalDateTime.now());
+//	            oldRow.setUpdatedBy(updatedBy);
+//	            oldRow.setUpdatedOn(LocalDateTime.now());
+//
+//	            employeeTeamMapRepository.save(oldRow);
+//
+//	            // 📦 capture for mail
+//	            EmployeeImpactDTO emp = new EmployeeImpactDTO();
+//	            emp.setEmployeeName(oldRow.getEmployeeName());
+//	            emp.setTeamName(oldRow.getTeamName());
+//
+//	            migrated.add(emp);
+//	        }
+//
+//	        if (!migrated.isEmpty()) {
+//	            dto.setEmployees(migrated);
+//	            result.add(dto);
+//	        }
+//	    }
+//
+//	    return result;
+//	}
+
 
 	/*
      * -------------------------------------------------------
