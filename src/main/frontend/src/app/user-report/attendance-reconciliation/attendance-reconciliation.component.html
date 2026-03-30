@@ -7,37 +7,40 @@
       </div>
     </div>
 
-
     <div class="row">
-
       <div class="col-md-3 col-sm-6 custom-control custom-switch">
         <input type="checkbox" class="custom-control-input" id="attendance-switch" (change)="toggleAttendanceDashboard($event)">
         <label class="custom-control-label" for="attendance-switch">View Attendance dashboard</label>
       </div>
 
       <div class="form-group d-flex justify-content-end align-items-center col-md-12">
-
-        <!-- <div class="col-md-3 col-sm-6 custom-control custom-switch">
-          <input type="checkbox" class="custom-control-input" id="hierarchy-switch" (change)="toggleHierarchyView($event)">
-          <label class="custom-control-label" for="hierarchy-switch">View Hierarchy Chart</label>
-        </div> -->
-
-        <!-- Chart container -->
         <div *ngIf="isAttendanceVisible">
           <div id="biomaxfiterContainer"></div>
         </div>
         
-        <!-- Start Date -->
-        <input *ngIf="!isAttendanceVisible" type="date" class="form-control form-control-sm mx-1" id="fromDate"  [(ngModel)]="startDate" [max]="currentDate"
-          placeholder="From Date" style="max-width: 180px;" />
-    
-        <!-- End Date -->
-        <input *ngIf="!isAttendanceVisible" type="date" class="form-control form-control-sm mx-1" id="toDate"  [(ngModel)]="endDate" [max]="currentDate" placeholder="To Date"
-          style="max-width: 180px;" />
+        <!-- Date Range with Better Styling -->
+        <div *ngIf="!isAttendanceVisible" class="date-range-container">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+            </div>
+            <input type="date" class="form-control" id="fromDate" [(ngModel)]="startDate" [max]="currentDate"
+              placeholder="From Date" />
+            <span class="date-separator">to</span>
+            <input type="date" class="form-control" id="toDate" [(ngModel)]="endDate" [max]="currentDate" 
+              placeholder="To Date" />
+          </div>
+        </div>
     
         <!-- Search Button -->
-        <button *ngIf="!isAttendanceVisible" type="button" id="searchButton" class="btn btn-sm btn-outline-success mx-1" (click)="searchRecords()">
-          <i class="fa-solid fa-search"></i>
+        <button *ngIf="!isAttendanceVisible" type="button" class="btn btn-sm btn-outline-success mx-2" (click)="searchRecords()">
+          <i class="fa-solid fa-search me-1"></i> Search
+        </button>
+        <button *ngIf="!isAttendanceVisible && isSearchEnabled" 
+                type="button" 
+                class="btn btn-sm btn-outline-secondary mx-2" 
+                (click)="resetFilters()">
+          <i class="fa-solid fa-undo me-1"></i> Reset
         </button>
     
         <!-- Filter Button -->
@@ -48,170 +51,95 @@
       </div>
     </div>
     
-    
-    
-
     <div class="row" *ngIf="!isAttendanceVisible">
       <div class="col-md-12">
-        <div class="selector-toggle" >
-          <a href="javascript:void(0)" (click)="toggleSearch()">
-            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-          </a>
+        <div class="table-actions">
+          <div class="search-toggle">
+            <a href="javascript:void(0)" (click)="toggleSearch()" class="btn-toggle-search">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+              <span class="ms-1">{{ isSearchEnabled ? 'Close Search' : 'Quick Search' }}</span>
+            </a>
+          </div>
+          <div class="export-button">
+            <button type="button" class="btn btn-sm btn-outline-primary"
+              [hidden]="attendanceReconciliationList.length == 0" (click)="exportToExcel()">
+              <i class="fa fa-file-excel me-1"></i> Export to Excel
+            </button>
+          </div>
         </div>
-        <div class="export-button">
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="attendanceReconciliationList.length == 0" (click)="exportToExcel()"><em
-            class="fa fa-file-arrow-down fa-2x"></em></button>
-        </div>
-        <!-- bassHorizontalScroll [tableId]="'attendanceIDReport'" -->
-          <!-- [tableTHeadId]="'attendanceIDTHead'" [tableTHeadTrId]="'attendanceIDHeadTr'" -->
-        <div class="table-container" >
 
-          <table class="table " matSort (matSortChange)="sortData($event)" id="attendanceIDReport">
-            <thead class="thead-light" id="attendanceIDTHead">
-              <tr id="attendanceIDHeadTr">
-                <th scope="col" class="info-label wide-col" mat-sort-header="employeeCode|string">Emp Id</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Full Name</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="inTime|string">In Time</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="outTime|string">Out Time</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="totalDuration|string">Total Working Hours</th>
-                <!-- <th scope="col" class="info-label wide-col" mat-sort-header="shiftDuration|string">Shift Duration</th> -->
-                <th scope="col" class="info-label wide-col" mat-sort-header="logDate|string">LogDate</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="reportingManagerName|string">Reporting Manager</th>
-              </tr>
-
-              <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="AttendancereConciliation"
-                [searchOnEnter]="true" (onSearch)="onSearch($event);page=1"></tr>
-            </thead>
-            <tbody *ngIf="!clickFilter">
-              <tr
-                *ngIf="attendanceReconciliationList.length == 0 || (attendanceReconciliationList | colFilter:filters:false).length == 0">
-                <th colspan="16" class="text-center info-label">No details to display...</th>
-              </tr>
-              <tr 
-                *ngFor="let  attendance of attendanceReconciliationList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: pageSize, currentPage: page, totalItems: totalRecords }, let i = index">
-                <td>{{attendance.employeementId}}</td>
-                <td id="clickablefor360" *ngIf="userMapping.reports_employee_360 && attendance.employeeName && attendance.employeeName !== 'N/A'" [navigateToEmployee360]="attendance.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{attendance.employeeName}}</td>
-                <td *ngIf="!userMapping.reports_employee_360 || !attendance.employeeName || attendance.employeeName === 'N/A'">{{attendance.employeeName || 'N/A'}}</td>
-                <td>{{attendance.inTime || 'N/A'}}</td>
-                <td>{{attendance.outTime || 'N/A'}}</td>
-                <td>{{attendance.totalDuration || 'N/A'}}{{attendance.totalDuration ? ' hrs' : ''}}</td>
-                <!-- <td>{{attendance.shiftDuration || 'NA'}}{{attendance.shiftDuration ? ' hrs' : ''}}</td> -->
-                <td>{{attendance.logDate}}</td>
-                <td>{{attendance.departmentName || 'N/A'}}</td>
-                <td>{{attendance.reportingManagerName || 'N/A'}}</td>
-              </tr>
-            </tbody>
-            <tbody *ngIf="clickFilter">
-              <tr
-                *ngIf="allAttendanceRepostList.length == 0 || (allAttendanceRepostList | colFilter:filters:false).length == 0">
-                <th colspan="16" class="text-center info-label">No details to display...</th>
-              </tr>
-              <tr 
-                *ngFor="let  attendance of allAttendanceRepostList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: pageSize, currentPage: page, totalItems: totalRecords }, let i = index">
-                <td>{{attendance.employeeCode}}</td>
-                <td>{{attendance.employeeName || 'NA'}}</td>
-                <td>{{attendance.inTime }}</td>
-                <td>{{attendance.outTime }}</td>
-                <td>{{attendance.totalDuration || 'NA'}}{{attendance.totalDuration ? ' hrs' : ''}}</td>
-                <td>{{attendance.shiftDuration || 'NA'}}{{attendance.shiftDuration ? ' hrs' : ''}}</td>
-                <td>{{attendance.logDate}}</td>
-                <td>{{attendance.departmentName || 'NA'}}</td>
-                <td>{{attendance.reportingManagerName || 'NA'}}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <pagination-controls class="my-pagination" [hidden]="attendanceReconciliationList.length == 0"
-          (pageChange)="handlePageChange($event)"></pagination-controls>
-        
-      </div>
-    </div>
-  </div>
-</div>
-<!-- end :: Attendance Report table -->
-
-<!-- <ng-template #filter>
-  <div class="modal-header">
-    <b>{{filterData.title}}</b>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </div>
-  <div class="modal-body">
-    <label>Select Date</label>
-    <input type="date" id="fromDate" [max]="maxTodayDate" class="form-control down" placeholder="yyyy-mm-dd" required
-      [(ngModel)]="date">
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Close</button>
-    <button type="button" class="btn btn-primary" (click)="getBioMatricData(date)">Sumbit</button>
-  </div>
-</ng-template> -->
-
-<ng-template #filter>
-  <div class="modal-header">
-      <b>{{filterData.title}}</b>
-      <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-          <span aria-hidden="true">&times;</span>
-      </button>
-  </div>
-  <div class="modal-body ">
-    <app-custom-filter (filterSubmitted)="onFilterSubmit($event,alert_message)" [data]="filterData"></app-custom-filter>
-  </div>
-</ng-template>
-
-<ng-template #ViewMore>
-  <div class="modal-header">
-    <b>Punch Records</b>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </div>
-  <div class="modal-body">
-    <div class="row">
-      <div class="col-md-12">
-        <div class="row">
-          <!-- bassHorizontalScroll [tableId]="'ViewMoreID'" [tableTHeadId]="'viewmoreIDTHead'" -->
-            <!-- [tableTHeadTrId]="'viewMoreIDHeadTr'"  -->
-          <div class="table-container" style="padding-left: 300px;">
-            <table class="table " matSort (matSortChange)="sortData($event)" id="ViewMoreID">
-              <thead class="thead-light" id="viewmoreIDTHead">
-                <tr id="viewMoreIDHeadTr">
-                  <th scope="col" class="info-label wide-col">Full Name</th>
-                  <th scope="col" class="info-label wide-col">IN</th>
-                  <th scope="col" class="info-label wide-col">Out</th>
+        <!-- Table Container with Dynamic Width -->
+        <div class="table-container-wrapper">
+          <div class="table-container" [style.max-width.%]="100">
+            <table class="table table-hover table-striped" matSort (matSortChange)="sortData($event)" id="attendanceIDReport">
+              <thead class="thead-light" id="attendanceIDTHead">
+                <tr id="attendanceIDHeadTr">
+                  <th scope="col" class="info-label" mat-sort-header="employeeCode|string" style="min-width: 100px;">Emp Id</th>
+                  <th scope="col" class="info-label" mat-sort-header="employeeName|string" style="min-width: 180px;">Full Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="logDate|string" style="min-width: 110px;">Date</th>
+                  <th scope="col" class="info-label" mat-sort-header="inTime|string" style="min-width: 100px;">In Time</th>
+                  <th scope="col" class="info-label" mat-sort-header="outTime|string" style="min-width: 100px;">Out Time</th>
+                  <th scope="col" class="info-label" mat-sort-header="totalDuration|string" style="min-width: 150px;">Total Working Hours</th>
+                  <th scope="col" class="info-label" mat-sort-header="departmentName|string" style="min-width: 150px;">Department</th>
+                  <th scope="col" class="info-label" mat-sort-header="reportingManagerName|string" style="min-width: 150px;">Reporting Manager</th>
                 </tr>
+                <!-- Column Filter Bar -->
+                <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="AttendancereConciliation"
+                  [searchOnEnter]="true" (onSearch)="onSearch($event);page=1"></tr>
               </thead>
-              <tbody>
-                <tr *ngIf="punchData.length == 0 || (punchData | colFilter:filters:false).length == 0">
-                  <th colspan="16" class="text-center info-label">No details to display...</th>
+              <tbody *ngIf="!clickFilter">
+                <tr *ngIf="attendanceReconciliationList.length == 0 || (attendanceReconciliationList | colFilter:filters:false).length == 0">
+                  <td colspan="8" class="text-center no-data">No details to display...</td>
                 </tr>
-                <tr *ngFor="let  record of punchData  let i = index">
-                  <td>{{ name }}</td>
-                  <td>{{ record.in }}</td>
-                  <td>{{ record.out }}</td>
+                <tr *ngFor="let attendance of attendanceReconciliationList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: pageSize, currentPage: page, totalItems: totalRecords }, let i = index">
+                  <td class="emp-code-cell">{{attendance.employeementId}}</td>
+                  <td *ngIf="userMapping.attendance_reconciliation && attendance.employeeName && attendance.employeeName !== 'N/A'" 
+                      [navigateToEmployee360]="attendance.emp360" 
+                      class="clickable-name" 
+                      title="Click to view Employee 360">
+                    {{attendance.employeeName}}
+                  </td>
+                  <td *ngIf="!userMapping.attendance_reconciliation || !attendance.employeeName || attendance.employeeName === 'N/A'">
+                    {{attendance.employeeName || 'N/A'}}
+                  </td>
+                  <td>{{attendance.logDate}}</td>
+                  <td class="time-cell">{{attendance.inTime || 'N/A'}}</td>
+                  <td class="time-cell">{{attendance.outTime || 'N/A'}}</td>
+                  <td class="duration-cell">{{attendance.totalDuration || 'N/A'}}{{attendance.totalDuration ? ' hrs' : ''}}</td>
+                  <td>{{attendance.departmentName || 'N/A'}}</td>
+                  <td>{{attendance.reportingManagerName || 'N/A'}}</td>
+                </tr>
+              </tbody>
+              <tbody *ngIf="clickFilter">
+                <tr *ngIf="allAttendanceRepostList.length == 0 || (allAttendanceRepostList | colFilter:filters:false).length == 0">
+                  <td colspan="8" class="text-center no-data">No details to display...</td>
+                </tr>
+                <tr *ngFor="let attendance of allAttendanceRepostList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: pageSize, currentPage: page, totalItems: totalRecords }, let i = index">
+                  <td>{{attendance.employeeCode}}</td>
+                  <td>{{attendance.employeeName || 'NA'}}</td>
+                  <td>{{attendance.inTime}}</td>
+                  <td>{{attendance.outTime}}</td>
+                  <td>{{attendance.totalDuration || 'NA'}}{{attendance.totalDuration ? ' hrs' : ''}}</td>
+                  <td>{{attendance.shiftDuration || 'NA'}}{{attendance.shiftDuration ? ' hrs' : ''}}</td>
+                  <td>{{attendance.logDate}}</td>
+                  <td>{{attendance.departmentName || 'NA'}}</td>
+                  <td>{{attendance.reportingManagerName || 'NA'}}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="punchData.length == 0" (click)="exportToExcelviewMore()"><em
-            class="fa fa-file-arrow-down fa-2x"></em></button>
+        
+        <div class="pagination-wrapper">
+          <pagination-controls class="my-pagination" [hidden]="attendanceReconciliationList.length == 0"
+            (pageChange)="handlePageChange($event)"></pagination-controls>
+          <div class="record-count" *ngIf="totalRecords > 0">
+            Showing {{ (page-1)*pageSize + 1 }} - {{ Math.min(page*pageSize, totalRecords) }} of {{ totalRecords }} records
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-primary" (click)="cancelRequest()">Close</button>
-  </div>
-</ng-template>
-
-<ng-template #alert_message>
-  <div class="modal-body text-center">
-    <p>{{alertMessage}}</p>
-    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>
-  </div>
-</ng-template>
+</div>
+<!-- end :: Attendance Report table -->

@@ -3638,50 +3638,78 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		        @Param("checkDate") LocalDate checkDate
 		);
 
-		@Query(value = "SELECT e.emp_id, e.name, rm.name AS Reporting_Manager, d.name AS department_name, " +
+		@Query(value = "SELECT e.emp_id, e.name, " +
                "CASE " +
-               "    WHEN e.is_apmosys_product = 'true' " +
-               "    THEN CONCAT('AP', CAST(e.employeement_id AS CHAR)) " +
-               "    ELSE CONCAT('A', CAST(e.employeement_id AS CHAR)) " +
-               "END AS prefixed_id " +
+               "    WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
+               "    ELSE m.name " +
+               "END AS Reporting_Manager, " +
+               "d.name AS department_name, " +
+               "CASE " +
+               "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
+               "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
+               "    ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
+               "END AS prefixed_id, " +
+               "e.employeement_id " +
                "FROM employee e " +
                "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id " +
+               "LEFT JOIN employee m ON e.manager_id = m.emp_id " +
                "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
                "INNER JOIN department d ON jr.dept_id = d.dept_id " +
-               "WHERE (CASE " +
-               "    WHEN e.is_apmosys_product = 'true' " +
-               "    THEN CONCAT('AP', CAST(e.employeement_id AS CHAR)) " +
-               "    ELSE CONCAT('A', CAST(e.employeement_id AS CHAR)) " +
-               "END) IN (:employeementIds)",
+               "WHERE e.employeement_id IN (:employeementIds) " +
+               "AND e.employmentstatus != 'InActive' " +
+               "AND (:employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%'))) " +
+               "AND (:employeeCode IS NULL OR " +
+               "    CASE " +
+               "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
+               "        WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
+               "        ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
+               "    END LIKE CONCAT('%', :employeeCode, '%')) " +
+               "AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+               "AND (:managerName IS NULL OR " +
+               "    LOWER(CASE " +
+               "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
+               "        ELSE m.name " +
+               "    END) LIKE LOWER(CONCAT('%', :managerName, '%')))",
        nativeQuery = true)
-	List<Object[]> findByPrefixedEmployeementIdIn(@Param("employeementIds") List<String> employeementIds);
+		List<Object[]> findByPrefixedEmployeementIdInWithFilters(
+			@Param("employeementIds") List<String> employeementIds,
+			@Param("employeeName") String employeeName,
+			@Param("employeeCode") String employeeCode,
+			@Param("departmentName") String departmentName,
+			@Param("managerName") String managerName
+		);
 
 	@Query(value = "SELECT DISTINCT " +
                "CASE " +
-               "    WHEN e.is_apmosys_product = 'true' " +
-               "    THEN CONCAT('AP', CAST(e.employeement_id AS CHAR)) " +
-               "    ELSE CONCAT('A', CAST(e.employeement_id AS CHAR)) " +
+               "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
+               "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
+               "    ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
                "END AS prefixed_id " +
                "FROM employee e " +
                "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
                "LEFT JOIN department d ON jr.dept_id = d.dept_id " +
-               "LEFT JOIN employee m ON e.reporting_manager_id = m.emp_id " +
+               "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id " +
+               "LEFT JOIN employee m ON e.manager_id = m.emp_id " +
                "WHERE e.employmentstatus != 'InActive' " +
                "AND (:employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%'))) " +
                "AND (:employeeCode IS NULL OR " +
                "    CASE " +
-               "        WHEN e.is_apmosys_product = 'true' " +
-               "        THEN CONCAT('AP', CAST(e.employeement_id AS CHAR)) " +
-               "        ELSE CONCAT('A', CAST(e.employeement_id AS CHAR)) " +
+               "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
+               "        WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
+               "        ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
                "    END LIKE CONCAT('%', :employeeCode, '%')) " +
                "AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
-               "AND (:managerName IS NULL OR LOWER(m.name) LIKE LOWER(CONCAT('%', :managerName, '%')))",
+               "AND (:managerName IS NULL OR " +
+               "    LOWER(CASE " +
+               "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
+               "        ELSE m.name " +
+               "    END) LIKE LOWER(CONCAT('%', :managerName, '%')))",
        nativeQuery = true)
-	List<String> findEmployeeIdsBySearchCriteria(
-		@Param("employeeName") String employeeName,
-		@Param("employeeCode") String employeeCode,
-		@Param("departmentName") String departmentName,
-		@Param("managerName") String managerName
-	);
+		List<String> findEmployeeIdsBySearchCriteria(
+			@Param("employeeName") String employeeName,
+			@Param("employeeCode") String employeeCode,
+			@Param("departmentName") String departmentName,
+			@Param("managerName") String managerName
+		);
 
 }
