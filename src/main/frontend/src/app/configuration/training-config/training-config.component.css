@@ -1439,7 +1439,12 @@
   font-size: 0.75rem;
 }
 
-.search-toggle:hover,
+.search-toggle:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .search-toggle.active {
   background: var(--accent);
   border-color: var(--accent);
@@ -1499,9 +1504,15 @@
   background: var(--success-light);
   color: var(--success);
 }
+.consent-yes i {
+  color: var(--success);
+}
 
 .consent-no {
   background: var(--danger-light);
+  color: var(--danger);
+}
+.consent-no i {
   color: var(--danger);
 }
 

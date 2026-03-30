@@ -594,8 +594,8 @@
                 <td><span class="fw-semibold">{{ training.empName }}</span></td>
                 <td><span class="badge-cycle">{{ training.lastCompletedCycleNumber || 'N/A' }}</span></td>
                 <td>
-                  <span class="consent-badge" [class.consent-yes]="training.consentGiven?.toLowerCase() == 'true'"
-                        [class.consent-no]="training.consentGiven?.toLowerCase() != 'true'">
+                  <span class="consent-badge" [class.consent-yes]="currCard == 'usersAttended' && training.consentGiven?.toLowerCase() == 'true'"
+                        [class.consent-no]="currCard != 'usersAttended' || training.consentGiven?.toLowerCase() != 'true'">
                     <i class="fas" [ngClass]="currCard == 'usersAttended' ? (training.consentGiven?.toLowerCase() == 'true' ? 'fa-check-circle' : 'fa-times-circle') : 'fa-times-circle'"></i>
                     {{ currCard == 'usersAttended' ? (training.consentGiven?.toLowerCase() == 'true' ? 'Yes' : 'No') : 'No' }}
                   </span>
