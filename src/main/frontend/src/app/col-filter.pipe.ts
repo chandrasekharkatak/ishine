@@ -6,7 +6,10 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class ColFilterPipe implements PipeTransform {
   transform(items: any, filter: any, defaultFilter: boolean): any {
-    if (!filter){
+    if (filter == null) {
+      return items;
+    }
+    if (typeof filter === 'object' && Object.keys(filter).length === 0) {
       return items;
     }
 
@@ -20,12 +23,15 @@ export class ColFilterPipe implements PipeTransform {
       if (defaultFilter) {
         return items.filter(item =>
             filterKeys.reduce((x, keyName) =>
-                (x && new RegExp(this.escapeRegExp(filter[keyName]), 'gi').test(item[keyName])) || filter[keyName] == "", true));
+                (x && new RegExp(this.escapeRegExp(String(filter[keyName] ?? '')), 'gi').test(String(item?.[keyName] ?? ''))) || filter[keyName] == "", true));
       }
       else {
         return items.filter(item => {
           return filterKeys.every((keyName) => {
-            return new RegExp(this.escapeRegExp(filter[keyName]), 'gi').test(item[keyName]) || filter[keyName] == "";
+            const needle = filter[keyName];
+            if (needle == null || needle === '') return true;
+            const hay = String(item?.[keyName] ?? '');
+            return new RegExp(this.escapeRegExp(String(needle)), 'gi').test(hay);
           });
         });
       }
