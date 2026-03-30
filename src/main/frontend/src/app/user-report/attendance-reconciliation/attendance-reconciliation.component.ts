@@ -206,7 +206,6 @@ export class AttendanceReconciliationComponent implements OnInit {
     );
   }
 
-  /** ngx-pagination: server totals when no column filters; client length when filters or KPI card mode. */
   get paginateConfig(): { itemsPerPage: number; currentPage: number; totalItems?: number } {
     const base: { itemsPerPage: number; currentPage: number; totalItems?: number } = {
       itemsPerPage: this.pageSize,
@@ -215,9 +214,6 @@ export class AttendanceReconciliationComponent implements OnInit {
     if (this.tableClientPaging) {
       const n = this.cardFilteredRowCount;
       return { ...base, totalItems: n };
-    }
-    if (this.hasActiveColumnFilters()) {
-      return base;
     }
     return { ...base, totalItems: this.displayTotalRecordsForPagination };
   }
@@ -245,7 +241,7 @@ export class AttendanceReconciliationComponent implements OnInit {
 
   handlePageChange(event: number): void {
     this.page = event;
-    if (this.tableClientPaging || this.hasActiveColumnFilters()) {
+    if (this.tableClientPaging) {
       return;
     }
     this.getBioMatricData(this.startDate, this.endDate);
@@ -254,7 +250,7 @@ export class AttendanceReconciliationComponent implements OnInit {
   onPageSizeChange(): void {
     this.pageSize = Number(this.pageSize);
     this.page = 1;
-    if (this.tableClientPaging || this.hasActiveColumnFilters()) {
+    if (this.tableClientPaging) {
       return;
     }
     this.getBioMatricData(this.startDate, this.endDate);
@@ -419,8 +415,7 @@ export class AttendanceReconciliationComponent implements OnInit {
     this.cdr.markForCheck();
     if (
       prev > maxPage &&
-      !this.tableClientPaging &&
-      !this.hasActiveColumnFilters()
+      !this.tableClientPaging
     ) {
       this.getBioMatricData(this.startDate, this.endDate);
     }
@@ -522,7 +517,20 @@ export class AttendanceReconciliationComponent implements OnInit {
 
   resetFilters() {
     this.filters = {};
+    this.isSearchEnabled = false;
+    this.cardFilter = 'all';
+    this.tableClientPaging = false;
+    this.fullTableRowsCache = null;
+    this.actualTotalRecords = null;
     this.page = 1;
+    this.sortColumn = [];
+    this.sortColumnType = [];
+    this.sortDirection = '';
+
+    if (this.isAttendanceVisible) {
+      this.syncSingleDateForDashboard();
+    }
+
     this.getBioMatricData(this.startDate, this.endDate);
   }
 
@@ -888,7 +896,7 @@ export class AttendanceReconciliationComponent implements OnInit {
   // }
 
   biomaxList: Biomax[] = [];
-  isAttendanceVisible = true;
+  isAttendanceVisible = false;
   attendanceSummary: AttendanceSummary = {
     totalEmployees: 0,
     presentToday: 0,
@@ -908,11 +916,25 @@ export class AttendanceReconciliationComponent implements OnInit {
   private dashboardFullDataRequestSeq = 0;
 
   onAttendanceDashboardVisibilityChange(): void {
+    this.filters = {};
+    this.isSearchEnabled = false;
+    this.cardFilter = 'all';
+    this.tableClientPaging = false;
+    this.fullTableRowsCache = null;
+    this.actualTotalRecords = null;
+    this.page = 1;
+    this.sortColumn = [];
+    this.sortColumnType = [];
+    this.sortDirection = '';
+    
+    this.startDate = moment().format("YYYY-MM-DD");
+    this.endDate = moment().format("YYYY-MM-DD");
+
     if (this.isAttendanceVisible) {
       this.syncSingleDateForDashboard();
-      this.page = 1;
-      this.getBioMatricData(this.startDate, this.endDate);
     }
+    
+    this.getBioMatricData(this.startDate, this.endDate);
   }
 
   /** Dashboard mode uses one day: keep To in sync with From. */
