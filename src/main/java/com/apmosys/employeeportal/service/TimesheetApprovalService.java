@@ -53,6 +53,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 	import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
+import com.apmosys.employeeportal.model.SkippedTimesheetLog;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetActionAuditNew;
 import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
@@ -63,6 +64,7 @@ import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
 	import com.apmosys.employeeportal.repository.EmployeeRepository;
 	import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
+import com.apmosys.employeeportal.repository.SkippedTimesheetLogRepository;
 import com.apmosys.employeeportal.repository.TimesheetActionAuditNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetApprovalAllocationLogsRepository;
 	import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository;
@@ -136,6 +138,9 @@ import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepo
 	    
 	    @Autowired
 	    private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
+
+		@Autowired
+		private SkippedTimesheetLogRepository skippedTimesheetLogRepository;
 	
 	    /**
 	     * Gets timesheet rbulkApproveTimesheetsByIdsequests for manager's reportees.
@@ -2117,7 +2122,7 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); // important
 			response.setServiceResponse(finalResponse);
-
+			saveSkippedTimesheets(skippedTimesheets,request.getUpdatedBy());
 			return response;
 		}
         boolean isBulkOperation = timesheetIdsReq.size() > 1;
@@ -2144,7 +2149,7 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 	
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(finalResponse);
-	
+					saveSkippedTimesheets(skippedTimesheets,request.getUpdatedBy());
 					return response;
 				}
 			}
@@ -2180,6 +2185,7 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 
         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
         response.setServiceResponse(finalResponse);
+		saveSkippedTimesheets(skippedTimesheets,request.getUpdatedBy());
 
     return response;
 }
@@ -2496,5 +2502,23 @@ private void validateBulkApproveRejectRequest(BulkTimesheetRequestDTO request) {
     }
 }
 
+private void saveSkippedTimesheets(List<SkippedTimesheetDTO> skippedList,Long createdBy) {
+
+    if (skippedList == null || skippedList.isEmpty()) return;
+
+    List<SkippedTimesheetLog> logs = skippedList.stream().map(s -> {
+        SkippedTimesheetLog log = new SkippedTimesheetLog();
+        log.setTimesheetId(s.getTimesheetId());
+        log.setEmployeementId(s.getEmploymentId());
+        log.setTimesheetDate(s.getDate());
+        log.setReason(s.getReason());
+        log.setCreatedAt(LocalDateTime.now());
+		log.setCreatedBy(createdBy);
+        return log;
+    }).collect(Collectors.toList());
+
+    skippedTimesheetLogRepository.saveAll(logs);
+}
 }
 	
+
