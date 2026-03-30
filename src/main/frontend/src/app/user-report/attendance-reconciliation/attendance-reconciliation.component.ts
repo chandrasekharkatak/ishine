@@ -11,6 +11,7 @@ import { Query } from 'src/app/models/query';
 import { LeaveService } from 'src/app/services/leave.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { AppComponent } from 'src/app/app.component';
+import { Observable } from 'rxjs';
 import { finalize, first } from 'rxjs/operators';
 import { Biomax } from 'src/app/models/biomax';
 import * as Highcharts from 'highcharts';
@@ -97,6 +98,11 @@ export class AttendanceReconciliationComponent implements OnInit {
   /** True when a KPI card filter is applied (full client-side slice of cached rows). Exposed for template. */
   tableClientPaging = false;
   private fullTableRowsCache: any[] | null = null;
+  /**
+   * Full date-range rows from API (one fetch). Used for "All" table view so pagination matches real row count
+   * (~270) instead of inflated totalRecords from count query (~508).
+   */
+  private fullListCache: any[] | null = null;
   formattedDate: string;
   startformattedDate: string;
   endformattedDate: string;
@@ -213,7 +219,32 @@ export class AttendanceReconciliationComponent implements OnInit {
     if (this.hasActiveColumnFilters()) {
       return base;
     }
+    if (this.shouldUseFullListCache()) {
+      return { ...base, totalItems: this.fullListCache!.length };
+    }
     return { ...base, totalItems: this.totalRecords };
+  }
+
+  /** "All" + no column filters: paginate client-side over fullListCache (accurate total vs API count query). */
+  shouldUseFullListCache(): boolean {
+    return (
+      !this.tableClientPaging &&
+      this.cardFilter === 'all' &&
+      !this.hasActiveColumnFilters() &&
+      this.fullListCache != null &&
+      this.fullListCache.length > 0
+    );
+  }
+
+  /** Record count for footer when not in KPI-only footer block. */
+  get tableRecordTotalForFooter(): number {
+    if (this.tableClientPaging) {
+      return this.cardFilteredRowCount;
+    }
+    if (this.shouldUseFullListCache()) {
+      return this.fullListCache!.length;
+    }
+    return this.totalRecords;
   }
 
   /** Rows matching the active KPI card (for pagination totalItems + footer text). */
@@ -226,6 +257,9 @@ export class AttendanceReconciliationComponent implements OnInit {
 
   handlePageChange(event: number): void {
     this.page = event;
+    if (this.shouldUseFullListCache()) {
+      return;
+    }
     if (this.tableClientPaging || this.hasActiveColumnFilters()) {
       return;
     }
@@ -235,6 +269,9 @@ export class AttendanceReconciliationComponent implements OnInit {
   onPageSizeChange(): void {
     this.pageSize = Number(this.pageSize);
     this.page = 1;
+    if (this.shouldUseFullListCache()) {
+      return;
+    }
     if (this.tableClientPaging || this.hasActiveColumnFilters()) {
       return;
     }
@@ -243,13 +280,16 @@ export class AttendanceReconciliationComponent implements OnInit {
 
   /** Rows for the table + paginate pipe (server list or card-filtered full list). */
   get tableRowsSource(): any[] {
-    if (!this.tableClientPaging) {
-      return this.attendanceReconciliationList;
+    if (this.tableClientPaging) {
+      if (!this.fullTableRowsCache?.length) {
+        return [];
+      }
+      return this.fullTableRowsCache.filter((r) => this.rowMatchesCardFilter(r));
     }
-    if (!this.fullTableRowsCache?.length) {
-      return [];
+    if (this.shouldUseFullListCache()) {
+      return this.fullListCache!;
     }
-    return this.fullTableRowsCache.filter((r) => this.rowMatchesCardFilter(r));
+    return this.attendanceReconciliationList;
   }
 
   selectCardFilter(filter: 'all' | 'presentToday' | 'late' | 'underNine' | 'absent'): void {
@@ -338,22 +378,8 @@ export class AttendanceReconciliationComponent implements OnInit {
   getBioMatricData(startDate: string, endDate: string) {
     const startdateformat = this.formatDate(startDate);
     const enddateformat = this.formatDate(endDate);
-    
-    // Prepare search parameters - only send if there are active filters
-    let searchParams = {};
-    if (this.isSearchEnabled && this.filters && Object.keys(this.filters).length > 0) {
-      // Only include filters that have non-empty values
-      const activeFilters = {};
-      Object.keys(this.filters).forEach(key => {
-        if (this.filters[key] && this.filters[key].trim() !== '') {
-          activeFilters[key] = this.filters[key];
-        }
-      });
-      if (Object.keys(activeFilters).length > 0) {
-        searchParams = activeFilters;
-      }
-    }
-    
+    const searchParams = this.getActiveBiometricSearchParams();
+
     this.attendanceReconciliationService.getBiomatricDataWithSearch(
       startdateformat, 
       enddateformat, 
@@ -366,9 +392,11 @@ export class AttendanceReconciliationComponent implements OnInit {
       this.applyEmployeeRowFormatting(this.attendanceReconciliationList);
 
       this.attendanceReconciliationOriginaldata = [...this.attendanceReconciliationList];
+      this.fullListCache = null;
       if (this.isAttendanceVisible) {
         this.loadAttendanceDashboardData();
       }
+      this.loadFullDatasetForCharts();
       this.modalRef?.close();
     });
   }
@@ -490,24 +518,99 @@ export class AttendanceReconciliationComponent implements OnInit {
       return;
     }
 
+    if (this.shouldUseFullListCache() && this.fullListCache?.length) {
+      this.exportExcelService.exportTableDataToExcel(
+        this.mapAttendanceRowsForExport([...this.fullListCache]),
+        this.excelName
+      );
+      return;
+    }
+
     const startFmt = this.formatDate(this.startDate);
     const endFmt = this.formatDate(this.endDate);
-    const fetchSize = this.tableFetchPageSize;
+    const searchParams = this.getActiveBiometricSearchParams();
+    /** Chunked pages so we never rely on one huge LIMIT (some stacks cap rows per response). */
+    const chunkSize = 500;
 
     this.exportInProgress = true;
-    this.attendanceReconciliationService
-      .getBiomatricDataWithSearch(startFmt, endFmt, 1, fetchSize, {})
+    this.fetchAllBioRowsForExport(startFmt, endFmt, searchParams, chunkSize)
       .pipe(finalize(() => (this.exportInProgress = false)))
       .subscribe({
-        next: (response: any) => {
-          const fullRows: any[] = response?.serviceResponse?.data || [];
+        next: (fullRows: any[]) => {
           this.applyEmployeeRowFormatting(fullRows);
           this.exportExcelService.exportTableDataToExcel(
             this.mapAttendanceRowsForExport(fullRows),
             this.excelName
           );
-        }
+        },
+        error: () => {}
       });
+  }
+
+  /** Column filters for biomatric API — must match getBioMatricData. */
+  private getActiveBiometricSearchParams(): Record<string, string> {
+    if (!this.isSearchEnabled || !this.filters || Object.keys(this.filters).length === 0) {
+      return {};
+    }
+    const activeFilters: Record<string, string> = {};
+    Object.keys(this.filters).forEach((key) => {
+      const v = this.filters[key];
+      if (v != null && String(v).trim() !== '') {
+        activeFilters[key] = String(v);
+      }
+    });
+    return Object.keys(activeFilters).length > 0 ? activeFilters : {};
+  }
+
+  /**
+   * Walks all API pages until totalRecords (or dashboard headcount) is reached or a page is empty.
+   * Do not stop on a short page when totalTarget is still higher — avoids 271 vs 508 exports.
+   */
+  private fetchAllBioRowsForExport(
+    startFmt: string,
+    endFmt: string,
+    searchParams: Record<string, string>,
+    chunkSize: number
+  ): Observable<any[]> {
+    return new Observable<any[]>((subscriber) => {
+      const acc: any[] = [];
+      let totalTarget = Math.max(
+        Number(this.totalRecords) || 0,
+        Number(this.attendanceSummary?.totalEmployees) || 0
+      );
+      const maxPages = 400;
+
+      const run = (page: number) => {
+        if (page > maxPages) {
+          subscriber.next(acc);
+          subscriber.complete();
+          return;
+        }
+        this.attendanceReconciliationService
+          .getBiomatricDataWithSearch(startFmt, endFmt, page, chunkSize, searchParams)
+          .subscribe({
+            next: (response: any) => {
+              const data: any[] = response?.serviceResponse?.data || [];
+              const tr = Number(response?.serviceResponse?.totalRecords);
+              if (Number.isFinite(tr) && tr > 0) {
+                totalTarget = Math.max(totalTarget, tr);
+              }
+              acc.push(...data);
+              const empty = data.length === 0;
+              const reachedCount = totalTarget > 0 && acc.length >= totalTarget;
+              const shortPageUnknownTotal = data.length < chunkSize && totalTarget === 0;
+              if (empty || reachedCount || shortPageUnknownTotal) {
+                subscriber.next(acc);
+                subscriber.complete();
+                return;
+              }
+              run(page + 1);
+            },
+            error: (err) => subscriber.error(err)
+          });
+      };
+      run(1);
+    });
   }
 
   private mapAttendanceRowsForExport(rows: any[]): any[] {
@@ -783,6 +886,7 @@ export class AttendanceReconciliationComponent implements OnInit {
   onAttendanceDashboardVisibilityChange(): void {
     if (this.isAttendanceVisible) {
       this.loadAttendanceDashboardData();
+      this.loadFullDatasetForCharts();
     }
   }
 
@@ -797,17 +901,12 @@ export class AttendanceReconciliationComponent implements OnInit {
 
     // Immediate UI population from already-loaded page rows.
     if (this.attendanceReconciliationList.length > 0) {
-      const localHeadcount = this.totalRecords > 0
-        ? this.totalRecords
-        : new Set(this.attendanceReconciliationList.map((r: any) => String(r?.employeeCode || '')).filter(Boolean)).size;
-      const localSummary = this.buildSummaryFromList(this.attendanceReconciliationList, localHeadcount);
+      const localSummary = this.buildSummaryFromList(this.attendanceReconciliationList);
       this.attendanceSummary = localSummary.summary;
       this.statusDistribution = localSummary.distribution;
       this.weeklyTrend = this.buildTrendFromList(this.attendanceReconciliationList);
       this.retryRenderDashboardCharts();
     }
-
-    this.loadFullDatasetForCharts();
   }
 
   /** Fetch all rows in date range (capped) so trend/pie are not limited to current page. */
@@ -827,22 +926,21 @@ export class AttendanceReconciliationComponent implements OnInit {
           return;
         }
         const rows: any[] = response?.serviceResponse?.data || [];
-        const distinctEmp = new Set(rows.map((r: any) => String(r?.employeeCode || '')).filter(Boolean)).size;
-        const headcount =
-          this.attendanceSummary.totalEmployees > 0
-            ? this.attendanceSummary.totalEmployees
-            : distinctEmp;
+        this.applyEmployeeRowFormatting(rows);
+        this.fullListCache = rows;
+        const totalPages = Math.max(1, Math.ceil(rows.length / Math.max(1, this.pageSize)));
+        if (this.page > totalPages) {
+          this.page = 1;
+        }
 
         this.weeklyTrend = this.buildTrendFromList(rows);
 
-        const fromRows = this.buildSummaryFromList(rows, headcount);
-        this.attendanceSummary = {
-          ...fromRows.summary,
-          totalEmployees: headcount || fromRows.summary.totalEmployees
-        };
+        const fromRows = this.buildSummaryFromList(rows);
+        this.attendanceSummary = fromRows.summary;
         this.statusDistribution = fromRows.distribution;
 
         this.dashboardChartsLoading = false;
+        this.cdr.markForCheck();
         this.retryRenderDashboardCharts();
       },
       error: () => {
@@ -851,10 +949,7 @@ export class AttendanceReconciliationComponent implements OnInit {
         }
         // Keep non-zero view from currently loaded table page when full fetch fails.
         if (this.attendanceReconciliationList.length > 0) {
-          const localHeadcount = this.totalRecords > 0
-            ? this.totalRecords
-            : new Set(this.attendanceReconciliationList.map((r: any) => String(r?.employeeCode || '')).filter(Boolean)).size;
-          const localSummary = this.buildSummaryFromList(this.attendanceReconciliationList, localHeadcount);
+          const localSummary = this.buildSummaryFromList(this.attendanceReconciliationList);
           this.attendanceSummary = localSummary.summary;
           this.statusDistribution = localSummary.distribution;
           this.weeklyTrend = this.buildTrendFromList(this.attendanceReconciliationList);
@@ -881,7 +976,11 @@ export class AttendanceReconciliationComponent implements OnInit {
     }
   }
 
-  private buildSummaryFromList(records: any[], headcount: number): { summary: AttendanceSummary; distribution: AttendanceStatusDistribution } {
+  /**
+   * KPI totals use the reference-day slice only. Total employees = rows in that slice (matches list/export),
+   * not API totalRecords (count query can disagree with the data query).
+   */
+  private buildSummaryFromList(records: any[]): { summary: AttendanceSummary; distribution: AttendanceStatusDistribution } {
     const dayRows = this.getReferenceDayRows(records);
     let present = 0;
     let late = 0;
@@ -904,9 +1003,8 @@ export class AttendanceReconciliationComponent implements OnInit {
       }
     });
 
-    const employeeTotal = headcount > 0 ? headcount : new Set(records.map((r: any) => String(r?.employeeCode || '')).filter(Boolean)).size;
+    const employeeTotal = dayRows.length;
     const onTime = Math.max(present - late, 0);
-    // Do not use headcount − present: that treated every employee with no row in the report as "absent".
     const noRecord = Math.max(employeeTotal - onTime - late - explicitAbsent, 0);
 
     return {

@@ -230,8 +230,8 @@
             Showing {{ (page - 1) * pageSize + 1 }} – {{ Math.min(page * pageSize, cardFilteredRowCount) }} of {{ cardFilteredRowCount }} records
           </div>
           <div class="record-count text-muted small"
-            *ngIf="totalRecords > 0 && !tableClientPaging && !hasActiveColumnFilters()">
-            Showing {{ (page - 1) * pageSize + 1 }} – {{ Math.min(page * pageSize, totalRecords) }} of {{ totalRecords }} records
+            *ngIf="tableRecordTotalForFooter > 0 && !tableClientPaging && !hasActiveColumnFilters()">
+            Showing {{ (page - 1) * pageSize + 1 }} – {{ Math.min(page * pageSize, tableRecordTotalForFooter) }} of {{ tableRecordTotalForFooter }} records
           </div>
         </div>
       </div>
