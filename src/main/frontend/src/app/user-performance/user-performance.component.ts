@@ -83,7 +83,7 @@ export class UserPerformanceComponent implements OnInit {
   hodActionQueueFilter = false;
   /** When true, employee table shows direct reports for the breadcrumb anchor (same API as My Team). */
   viewHierarchyEnabled = false;
-  /** After first successful employee fetch, HOD users get hierarchy view on by default (once). */
+  /** After first successful employee fetch, users who can use hierarchy get it on by default (once). */
   private hierarchyDefaultActivated = false;
   hierarchyRows: any[] = [];
   /** Breadcrumb trail for hierarchy drill-down; last item is the anchor for loaded rows. */
@@ -92,6 +92,17 @@ export class UserPerformanceComponent implements OnInit {
   /** From getAllManagers — used to show sitemap / drill-down for employees who have reportees. */
   hierarchyManagersList: any[] = [];
   private hierarchyManagersLoaded = false;
+
+  /** HOD, reporting manager (RM), or manager — all can use the same hierarchy drill-down API. */
+  canUsePerformanceHierarchyView(): boolean {
+    const u = this.userMapping;
+    return !!(
+      u?.performance_action_by_hod ||
+      u?.performance_action_by_approvals_tos ||
+      u?.performance_action_by_approvals_to
+    );
+  }
+
   private static readonly RATING_LABELS = ['NI', 'M-', 'M', 'M+', 'E'] as const;
   /** Performance instructions carousel (non-HR dashboard): 0 = criteria & styles, 1 = flow & note */
   instructionSlideIndex = 0;
@@ -137,7 +148,37 @@ export class UserPerformanceComponent implements OnInit {
     'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status',
     'Bank Name', 'Created By', 'State', 'Created On'];
 
+  /** Legacy column list (e.g. advanced filter modal); main table uses `pmsColumnFilters` + `rebuildTableFilters`. */
   eligibleEmployeesColumns: any[] = ['employmentIdAcToET', 'name', 'designationName', 'departmentName','totalExperience', 'employmentstatus', 'dateOfJoining','completionStatus'];
+
+  /** Per-column filter inputs (merged with global `searchTableText` as `fullSearchText` in `filters`). */
+  pmsColumnFilters: Record<string, string> = {
+    employmentIdAcToET: '',
+    name: '',
+    designationName: '',
+    departmentName: '',
+    experienceTotalCombined: '',
+    employmentstatus: '',
+    dateOfJoining: '',
+    _pmsReviewStatusSearch: '',
+    _pmsRatingSearchBlob: '',
+    _pmsApprovalSearchBlob: '',
+    performanceStatusPercentage: '',
+  };
+
+  private readonly pmsTableFilterFieldKeys: string[] = [
+    'employmentIdAcToET',
+    'name',
+    'designationName',
+    'departmentName',
+    'experienceTotalCombined',
+    'employmentstatus',
+    'dateOfJoining',
+    '_pmsReviewStatusSearch',
+    '_pmsRatingSearchBlob',
+    '_pmsApprovalSearchBlob',
+    'performanceStatusPercentage',
+  ];
   finalRating: number;
   hodRemarks: any;
   hrRemarks: any;
@@ -657,9 +698,9 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     });
   }
 
-  /** Turn on hierarchy mode and load direct reports for the current user (HOD). */
+  /** Turn on hierarchy mode and load direct reports for the current user (HOD or manager/RM). */
   private enableHierarchyViewAndLoad(): void {
-    if (!this.userMapping?.performance_action_by_hod || !this.currentUser?.empId) return;
+    if (!this.canUsePerformanceHierarchyView() || !this.currentUser?.empId) return;
     this.hodActionQueueFilter = false;
     this.viewHierarchyEnabled = true;
     this.hierarchyBreadCrumbs = [{
@@ -671,7 +712,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   }
 
   onViewHierarchyToggle(enabled: boolean): void {
-    if (!this.userMapping?.performance_action_by_hod) {
+    if (!this.canUsePerformanceHierarchyView()) {
       this.clearHierarchyView();
       return;
     }
@@ -781,7 +822,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           this.employeePerformanceListLoaded = true;
           this.mergeStaticDataIntoEmployeeLists();
           this.page = 1;
-          if (this.userMapping?.performance_action_by_hod && !this.hierarchyDefaultActivated) {
+          if (this.canUsePerformanceHierarchyView() && !this.hierarchyDefaultActivated) {
             this.hierarchyDefaultActivated = true;
             this.enableHierarchyViewAndLoad();
           }
@@ -805,6 +846,8 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     this.sortDirection = '';
     this.isSearchEnabled = !this.isSearchEnabled;
     if (!this.isSearchEnabled) {
+      this.searchTableText = '';
+      this.clearPmsColumnFilterModel();
       this.filters = {};
     }
   }
@@ -1015,6 +1058,8 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
 
     this.page = 1;
     this.data = '';
+    this.searchTableText = '';
+    this.clearPmsColumnFilterModel();
     this.filters = {};
 
 
@@ -1238,14 +1283,46 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
 
   searchTableText = '';
 
-  onSearch(searchData) {
-    this.filters = searchData;
+  onSearch(searchData: any) {
+    if (searchData && typeof searchData === 'object') {
+      Object.keys(searchData).forEach((k) => {
+        if (this.pmsColumnFilters[k] !== undefined) {
+          this.pmsColumnFilters[k] = String(searchData[k] ?? '');
+        }
+      });
+    }
+    this.rebuildTableFilters();
+  }
+
+  /** Builds `filters` from global search + per-column inputs (colFilter pipe). */
+  rebuildTableFilters(): void {
+    const f: any = {};
+    const global = (this.searchTableText || '').trim();
+    if (global) {
+      f.fullSearchText = global;
+    }
+    for (const key of this.pmsTableFilterFieldKeys) {
+      const v = (this.pmsColumnFilters[key] || '').trim();
+      if (v) {
+        f[key] = v;
+      }
+    }
+    this.filters = f;
     this.page = 1;
   }
 
   onSearchTable() {
-    this.filters = { fullSearchText: this.searchTableText || '' };
-    this.page = 1;
+    this.rebuildTableFilters();
+  }
+
+  hasActivePmsColumnFilters(): boolean {
+    return this.pmsTableFilterFieldKeys.some((k) => (this.pmsColumnFilters[k] || '').trim() !== '');
+  }
+
+  private clearPmsColumnFilterModel(): void {
+    for (const k of this.pmsTableFilterFieldKeys) {
+      this.pmsColumnFilters[k] = '';
+    }
   }
 
 
@@ -1708,6 +1785,31 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   applyExperienceTotalsToEmployee(emp: any): void {
     if (!emp) return;
     emp.experienceTotalCombined = this.getCombinedExperienceYears(emp);
+    this.refreshPmsDerivedColumnSearchFields(emp);
+  }
+
+  /**
+   * Denormalized strings for column filters on Rating / Approval / Review status (regex match in colFilter).
+   */
+  private refreshPmsDerivedColumnSearchFields(emp: any): void {
+    if (!emp) return;
+    const num = this.getEmployeeFinalRatingValue(emp);
+    const rParts: string[] = [];
+    if (num != null && !isNaN(Number(num))) {
+      const n = Number(num);
+      rParts.push(String(n), (Math.round(n * 10) / 10).toFixed(1), this.getRatingCategory(n).toLowerCase());
+    }
+    if (emp.finalRating != null && String(emp.finalRating).trim() !== '') {
+      rParts.push(String(emp.finalRating).toLowerCase());
+    }
+    emp._pmsRatingSearchBlob = rParts.join(' ').trim();
+    const mgr = (emp.managerReviewStatus || '').toString();
+    const hod = (emp.hodReviewStatus || '').toString();
+    const hr = (emp.hrReviewStatus || '').toString();
+    emp._pmsApprovalSearchBlob = `${mgr} ${hod} ${hr}`.toLowerCase().trim();
+    const vis = (this.getReviewStatusLabel(emp) || '').toLowerCase();
+    const raw = (emp.completionStatus || '').toLowerCase();
+    emp._pmsReviewStatusSearch = `${vis} ${raw}`.trim();
   }
 
   /**
@@ -2180,12 +2282,12 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
 
   /** Whether the table has an active filter (cycle or status) to show the "Showing..." bar. */
   hasTableFilter(): boolean {
-    return (this.userMapping?.performance_action_by_hod && this.viewHierarchyEnabled) || this.summaryStatusFilter != null || this.ratingCategoryFilter != null || this.tableListMode !== 'all' || this.hodActionQueueFilter;
+    return (this.canUsePerformanceHierarchyView() && this.viewHierarchyEnabled) || this.summaryStatusFilter != null || this.ratingCategoryFilter != null || this.tableListMode !== 'all' || this.hodActionQueueFilter;
   }
 
   /** Label for current filter for the "Showing: ..." bar. */
   getTableFilterLabel(): string {
-    if (this.userMapping?.performance_action_by_hod && this.viewHierarchyEnabled) return 'Hierarchy view';
+    if (this.canUsePerformanceHierarchyView() && this.viewHierarchyEnabled) return 'Hierarchy view';
     if (this.ratingCategoryFilter) return `Rating category: ${this.ratingCategoryFilter}`;
     if (this.hodActionQueueFilter) return 'Your HOD queue (manager submitted — pending your approval)';
     if (this.summaryStatusFilter) return this.summaryStatusConfig[this.summaryStatusFilter]?.title || '';
