@@ -302,104 +302,7 @@ public class BioMaxService {
 
 	public ServiceResponse getEmpBioDataFromIshine(String startDate, String endDate, 
                                                 Integer pageNumber, Integer pageSize) throws SQLException {
-		ServiceResponse serviceResponse = new ServiceResponse();
-		try {
-			if (pageNumber == null || pageNumber < 1) pageNumber = 1;
-			if (pageSize == null || pageSize < 1) pageSize = 100;
-			
-			int offset = (pageNumber - 1) * pageSize;
-			
-			List<BioMaTO> finalEmpBioData = new ArrayList<>();
-			
-			Connection con = getConnection();
-			
-			// First, get total count
-			String countQuery = "SELECT COUNT(*) AS TotalRecords FROM " +
-				"( " +
-				"    SELECT Empcode, EmpName, CAST(Logdatetime AS DATE) AS AttendanceDate " +
-				"    FROM IshineRawdata " +
-				"    WHERE Logdatetime >= ? AND Logdatetime <= ? " +
-				"    GROUP BY Empcode, EmpName, CAST(Logdatetime AS DATE) " +
-				") A";
-			
-			PreparedStatement countStmt = con.prepareStatement(countQuery);
-			countStmt.setString(1, startDate + " 00:00:00");
-			countStmt.setString(2, endDate + " 23:59:59");
-			ResultSet countRs = countStmt.executeQuery();
-			
-			int totalRecords = 0;
-			if (countRs.next()) {
-				totalRecords = countRs.getInt("TotalRecords");
-			}
-			countRs.close();
-			countStmt.close();
-			
-			// Get paginated data - WITHOUT Direction filter
-			String query = "SELECT " +
-				"    Empcode, " +
-				"    EmpName, " +
-				"    FORMAT(AttendanceDate,'dd-MM-yyyy') AS AttendanceDate, " +
-				"    FORMAT(InTime,'hh:mm tt') AS InTime, " +
-				"    FORMAT(OutTime,'hh:mm tt') AS OutTime, " +
-				"    FORMAT(DATEADD(MINUTE, DATEDIFF(MINUTE, InTime, OutTime), 0),'HH:mm') AS TotalWorkingHours " +
-				"FROM " +
-				"( " +
-				"    SELECT " +
-				"        Empcode, " +
-				"        EmpName, " +
-				"        CAST(Logdatetime AS DATE) AS AttendanceDate, " +
-				"        MIN(Logdatetime) AS InTime, " +
-				"        MAX(Logdatetime) AS OutTime " +
-				"    FROM IshineRawdata " +
-				"    WHERE Logdatetime >= ? AND Logdatetime <= ? " +
-				"    GROUP BY Empcode, EmpName, CAST(Logdatetime AS DATE) " +
-				") A " +
-				"ORDER BY Empcode, AttendanceDate " +
-				"OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-
-			PreparedStatement statement = con.prepareStatement(query);
-			statement.setString(1, startDate + " 00:00:00");
-			statement.setString(2, endDate + " 23:59:59");
-			statement.setInt(3, offset);
-			statement.setInt(4, pageSize);
-
-			ResultSet resultSet = statement.executeQuery();
-
-			while (resultSet.next()) {
-				BioMaTO bioMaTO = new BioMaTO();
-				bioMaTO.setEmployeeCode(resultSet.getString("Empcode"));
-				bioMaTO.setEmployeeName(resultSet.getString("EmpName"));
-				bioMaTO.setLogDate(resultSet.getString("AttendanceDate"));
-				bioMaTO.setInTime(resultSet.getString("InTime"));
-				bioMaTO.setOutTime(resultSet.getString("OutTime"));
-				bioMaTO.setTotalDuration(resultSet.getString("TotalWorkingHours"));
-				
-				finalEmpBioData.add(bioMaTO);
-			}
-
-			finalEmpBioData = mapEmployeeDetails(finalEmpBioData, null);
-
-			resultSet.close();
-			statement.close();
-
-			Map<String, Object> responseData = new HashMap<>();
-			responseData.put("data", finalEmpBioData);
-			responseData.put("totalRecords", totalRecords);
-			responseData.put("currentPage", pageNumber);
-			responseData.put("pageSize", pageSize);
-			responseData.put("totalPages", (int) Math.ceil((double) totalRecords / pageSize));
-
-			serviceResponse.setServiceResponse(responseData);
-			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			serviceResponse.setServiceResponse("");
-			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			serviceResponse.setServiceError(e.getMessage());
-		}
-
-		return serviceResponse;
+		return getEmpBioDataFromIshine(startDate, endDate, pageNumber, pageSize, new HashMap<>());
 	}
 
 	public ServiceResponse getBioDashboardData(String startDate, String endDate) {
@@ -1185,22 +1088,10 @@ public class BioMaxService {
 			
 			Connection con = getConnection();
 			
-			boolean searchInMySQL = false;
-			boolean searchInMSSQL = false;
-			List<String> employeeCodesFromMySQL = null;
+			boolean searchInMySQL = true;
+			Map<String, String> safeSearchParams = searchParams != null ? searchParams : new HashMap<>();
+			List<String> employeeCodesFromMySQL = searchEmployeesInMySQL(safeSearchParams);
 			
-			if (searchParams != null && !searchParams.isEmpty()) {
-				Set<String> mysqlSearchFields = Set.of("employeeName", "employeeCode", "departmentName", "reportingManagerName");
-				
-				for (String field : searchParams.keySet()) {
-					if (mysqlSearchFields.contains(field) && searchParams.get(field) != null && !searchParams.get(field).trim().isEmpty()) {
-						searchInMySQL = true;
-						break;
-					}
-				}
-				
-				if (searchInMySQL) {
-					employeeCodesFromMySQL = searchEmployeesInMySQL(searchParams);
 					if (employeeCodesFromMySQL.isEmpty()) {
 						Map<String, Object> responseData = new HashMap<>();
 						responseData.put("data", finalEmpBioData);
@@ -1212,10 +1103,6 @@ public class BioMaxService {
 						serviceResponse.setServiceResponse(responseData);
 						serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						return serviceResponse;
-					}
-				}
-				
-				searchInMSSQL = true;
 			}
 			
 			// First, get total count with filters
@@ -1285,35 +1172,34 @@ public class BioMaxService {
 			String employeeName = searchParams.get("employeeName");
 			String departmentName = searchParams.get("departmentName");
 			String reportingManagerName = searchParams.get("reportingManagerName");
-			String employeeCode = searchParams.get("employeeCode");
+			String employeeCodeInput = searchParams.get("employeeCode");
 			
-			// Get employees from existing query (prefixed IDs with proper format)
-			List<String> prefixedIds = employeeRepository.findEmployeeIdsBySearchCriteria(
+			String numericCodeSearch = null;
+			if (employeeCodeInput != null && !employeeCodeInput.trim().isEmpty()) {
+				numericCodeSearch = employeeCodeInput.replaceAll("[a-zA-Z-]", "").trim();
+				if (numericCodeSearch.isEmpty()) numericCodeSearch = null;
+			}
+			
+			// Get raw numeric employee IDs based on search criteria
+			List<String> rawIds = employeeRepository.findRawEmployeementIdsBySearchCriteria(
 				(employeeName != null && !employeeName.trim().isEmpty()) ? employeeName : null,
-				(employeeCode != null && !employeeCode.trim().isEmpty()) ? employeeCode : null,
+				numericCodeSearch,
 				(departmentName != null && !departmentName.trim().isEmpty()) ? departmentName : null,
 				(reportingManagerName != null && !reportingManagerName.trim().isEmpty()) ? reportingManagerName : null
 			);
 			
-			// For each prefixed ID, add ONLY the exact formats
-			for (String prefixedId : prefixedIds) {
-				// Add the exact prefixed ID (CS-25001, AP-25001, A-25001)
-				employeeCodes.add(prefixedId);
-				
-				// Also add without dash (CS25001, AP25001, A25001)
-				String withoutDash = prefixedId.replace("-", "");
-				employeeCodes.add(withoutDash);
+			for (String rawId : rawIds) {
+				employeeCodes.add("A-" + rawId);
+				employeeCodes.add("AP-" + rawId);
+				employeeCodes.add("CS-" + rawId);
+				employeeCodes.add("A" + rawId);
+				employeeCodes.add("AP" + rawId);
+				employeeCodes.add("CS" + rawId);
 			}
 			
-			// Also handle direct employee code search if provided
-			if (employeeCode != null && !employeeCode.trim().isEmpty()) {
-				employeeCodes.add(employeeCode);
-				// Only add pattern if the search term itself contains %
-				if (employeeCode.contains("%")) {
-					employeeCodes.add(employeeCode);
-				} else {
-					// For exact employee code search, only add exact match
-					employeeCodes.add(employeeCode);
+			if (employeeCodeInput != null && !employeeCodeInput.trim().isEmpty()) {
+				if (!employeeCodeInput.contains("%")) {
+					employeeCodes.add(employeeCodeInput);
 				}
 			}
 			
@@ -1321,7 +1207,7 @@ public class BioMaxService {
 			employeeCodes = employeeCodes.stream().distinct().collect(Collectors.toList());
 			
 			// Log for debugging
-			System.out.println("Generated search patterns (exact matches only): " + employeeCodes);
+			System.out.println("Generated search patterns (exact matches only): " + employeeCodes.size() + " items");
 			
 		} catch (Exception e) {
 			e.printStackTrace();
