@@ -19,7 +19,20 @@
       <div class="col-md-12 col-lg-8">
         <div class="d-flex flex-wrap justify-content-lg-end align-items-center gap-3">
           <div class="attendance-date-range-panel">
-            <div class="attendance-date-range-inner d-flex align-items-center" role="group" aria-label="Date range">
+            <!-- Dashboard on: single day (API uses startDate = endDate) -->
+            <div *ngIf="isAttendanceVisible" class="attendance-date-range-inner d-flex align-items-center" role="group" aria-label="Select date">
+              <div class="attendance-date-field d-flex flex-row align-items-center">
+                <label class="attendance-date-label mb-0" for="dashboardDate">Select date</label>
+                <div class="attendance-date-input-shell">
+                  <i class="fa-regular fa-calendar-days attendance-date-icon" aria-hidden="true"></i>
+                  <input type="date" class="form-control attendance-date-input" id="dashboardDate"
+                    [(ngModel)]="startDate" (ngModelChange)="onDashboardSingleDateChange()"
+                    [max]="currentDate" title="Select date" />
+                </div>
+              </div>
+            </div>
+            <!-- Dashboard off: from / to range -->
+            <div *ngIf="!isAttendanceVisible" class="attendance-date-range-inner d-flex align-items-center" role="group" aria-label="Date range">
               <div class="attendance-date-field d-flex flex-row align-items-center">
                 <label class="attendance-date-label mb-0" for="fromDate">From</label>
                 <div class="attendance-date-input-shell">
@@ -230,8 +243,8 @@
             Showing {{ (page - 1) * pageSize + 1 }} – {{ Math.min(page * pageSize, cardFilteredRowCount) }} of {{ cardFilteredRowCount }} records
           </div>
           <div class="record-count text-muted small"
-            *ngIf="tableRecordTotalForFooter > 0 && !tableClientPaging && !hasActiveColumnFilters()">
-            Showing {{ (page - 1) * pageSize + 1 }} – {{ Math.min(page * pageSize, tableRecordTotalForFooter) }} of {{ tableRecordTotalForFooter }} records
+            *ngIf="displayTotalRecordsForPagination > 0 && !tableClientPaging && !hasActiveColumnFilters()">
+            Showing {{ (page - 1) * pageSize + 1 }} – {{ Math.min(page * pageSize, displayTotalRecordsForPagination) }} of {{ displayTotalRecordsForPagination }} records
           </div>
         </div>
       </div>

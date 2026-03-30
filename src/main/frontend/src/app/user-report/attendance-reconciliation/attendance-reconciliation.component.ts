@@ -99,10 +99,10 @@ export class AttendanceReconciliationComponent implements OnInit {
   tableClientPaging = false;
   private fullTableRowsCache: any[] | null = null;
   /**
-   * Full date-range rows from API (one fetch). Used for "All" table view so pagination matches real row count
-   * (~270) instead of inflated totalRecords from count query (~508).
+   * Real row count from a large data fetch (count query totalRecords can be higher, e.g. 508 vs 270).
+   * Used only for pagination footer + ngx totalItems; page requests still use the server.
    */
-  private fullListCache: any[] | null = null;
+  actualTotalRecords: number | null = null;
   formattedDate: string;
   startformattedDate: string;
   endformattedDate: string;
@@ -219,30 +219,18 @@ export class AttendanceReconciliationComponent implements OnInit {
     if (this.hasActiveColumnFilters()) {
       return base;
     }
-    if (this.shouldUseFullListCache()) {
-      return { ...base, totalItems: this.fullListCache!.length };
-    }
-    return { ...base, totalItems: this.totalRecords };
+    return { ...base, totalItems: this.displayTotalRecordsForPagination };
   }
 
-  /** "All" + no column filters: paginate client-side over fullListCache (accurate total vs API count query). */
-  shouldUseFullListCache(): boolean {
-    return (
-      !this.tableClientPaging &&
-      this.cardFilter === 'all' &&
-      !this.hasActiveColumnFilters() &&
-      this.fullListCache != null &&
-      this.fullListCache.length > 0
-    );
-  }
-
-  /** Record count for footer when not in KPI-only footer block. */
-  get tableRecordTotalForFooter(): number {
+  /**
+   * Total shown in footer / paginator for server-paged "All" view (prefers measured row count).
+   */
+  get displayTotalRecordsForPagination(): number {
     if (this.tableClientPaging) {
       return this.cardFilteredRowCount;
     }
-    if (this.shouldUseFullListCache()) {
-      return this.fullListCache!.length;
+    if (this.actualTotalRecords !== null && this.actualTotalRecords >= 0) {
+      return this.actualTotalRecords;
     }
     return this.totalRecords;
   }
@@ -257,9 +245,6 @@ export class AttendanceReconciliationComponent implements OnInit {
 
   handlePageChange(event: number): void {
     this.page = event;
-    if (this.shouldUseFullListCache()) {
-      return;
-    }
     if (this.tableClientPaging || this.hasActiveColumnFilters()) {
       return;
     }
@@ -269,9 +254,6 @@ export class AttendanceReconciliationComponent implements OnInit {
   onPageSizeChange(): void {
     this.pageSize = Number(this.pageSize);
     this.page = 1;
-    if (this.shouldUseFullListCache()) {
-      return;
-    }
     if (this.tableClientPaging || this.hasActiveColumnFilters()) {
       return;
     }
@@ -285,9 +267,6 @@ export class AttendanceReconciliationComponent implements OnInit {
         return [];
       }
       return this.fullTableRowsCache.filter((r) => this.rowMatchesCardFilter(r));
-    }
-    if (this.shouldUseFullListCache()) {
-      return this.fullListCache!;
     }
     return this.attendanceReconciliationList;
   }
@@ -392,13 +371,59 @@ export class AttendanceReconciliationComponent implements OnInit {
       this.applyEmployeeRowFormatting(this.attendanceReconciliationList);
 
       this.attendanceReconciliationOriginaldata = [...this.attendanceReconciliationList];
-      this.fullListCache = null;
       if (this.isAttendanceVisible) {
         this.loadAttendanceDashboardData();
+        this.loadFullDatasetForCharts();
+      } else {
+        this.reconcileActualTotalRecordsForPagination();
       }
-      this.loadFullDatasetForCharts();
       this.modalRef?.close();
     });
+  }
+
+  /**
+   * One large page-1 fetch (same filters as grid) to learn true row count when dashboard is off.
+   */
+  private reconcileActualTotalRecordsForPagination(): void {
+    const startFmt = this.formatDate(this.startDate);
+    const endFmt = this.formatDate(this.endDate);
+    const searchParams = this.getActiveBiometricSearchParams();
+    this.attendanceReconciliationService
+      .getBiomatricDataWithSearch(startFmt, endFmt, 1, this.tableFetchPageSize, searchParams)
+      .subscribe((response: any) => {
+        const rows: any[] = response?.serviceResponse?.data || [];
+        this.setActualTotalFromFullFetchSample(rows);
+      });
+  }
+
+  /**
+   * If the response fits in one max-size page, row count is the true total; otherwise keep API total.
+   */
+  private setActualTotalFromFullFetchSample(rows: any[]): void {
+    if (rows.length >= this.tableFetchPageSize) {
+      this.actualTotalRecords = null;
+      this.cdr.markForCheck();
+      return;
+    }
+    this.applyActualTotalRecordsForPagination(rows.length);
+  }
+
+  /** Store corrected total and clamp current page if it was valid only under inflated API total. */
+  private applyActualTotalRecordsForPagination(rowCount: number): void {
+    this.actualTotalRecords = rowCount;
+    const maxPage = Math.max(1, Math.ceil(rowCount / Math.max(1, this.pageSize)));
+    const prev = this.page;
+    if (this.page > maxPage) {
+      this.page = maxPage;
+    }
+    this.cdr.markForCheck();
+    if (
+      prev > maxPage &&
+      !this.tableClientPaging &&
+      !this.hasActiveColumnFilters()
+    ) {
+      this.getBioMatricData(this.startDate, this.endDate);
+    }
   }
 
   getviewMoreData(template: TemplateRef<any>, punchrecords: any, name: any) {
@@ -518,14 +543,6 @@ export class AttendanceReconciliationComponent implements OnInit {
       return;
     }
 
-    if (this.shouldUseFullListCache() && this.fullListCache?.length) {
-      this.exportExcelService.exportTableDataToExcel(
-        this.mapAttendanceRowsForExport([...this.fullListCache]),
-        this.excelName
-      );
-      return;
-    }
-
     const startFmt = this.formatDate(this.startDate);
     const endFmt = this.formatDate(this.endDate);
     const searchParams = this.getActiveBiometricSearchParams();
@@ -574,10 +591,13 @@ export class AttendanceReconciliationComponent implements OnInit {
   ): Observable<any[]> {
     return new Observable<any[]>((subscriber) => {
       const acc: any[] = [];
-      let totalTarget = Math.max(
-        Number(this.totalRecords) || 0,
-        Number(this.attendanceSummary?.totalEmployees) || 0
-      );
+      let totalTarget =
+        this.actualTotalRecords != null && this.actualTotalRecords >= 0
+          ? this.actualTotalRecords
+          : Math.max(
+              Number(this.totalRecords) || 0,
+              Number(this.attendanceSummary?.totalEmployees) || 0
+            );
       const maxPages = 400;
 
       const run = (page: number) => {
@@ -669,10 +689,14 @@ export class AttendanceReconciliationComponent implements OnInit {
   searchRecords() {
     console.log('Searching records from:', this.startDate, 'to:', this.endDate);
     if (this.startDate && this.endDate) {
+      if (this.isAttendanceVisible) {
+        this.onDashboardSingleDateChange();
+      }
       this.page = 1;
       this.cardFilter = 'all';
       this.tableClientPaging = false;
       this.fullTableRowsCache = null;
+      this.actualTotalRecords = null;
       this.getBioMatricData(this.startDate, this.endDate);
     } else {
       console.error('Start date or end date is missing');
@@ -885,9 +909,24 @@ export class AttendanceReconciliationComponent implements OnInit {
 
   onAttendanceDashboardVisibilityChange(): void {
     if (this.isAttendanceVisible) {
-      this.loadAttendanceDashboardData();
-      this.loadFullDatasetForCharts();
+      this.syncSingleDateForDashboard();
+      this.page = 1;
+      this.getBioMatricData(this.startDate, this.endDate);
     }
+  }
+
+  /** Dashboard mode uses one day: keep To in sync with From. */
+  onDashboardSingleDateChange(): void {
+    if (this.isAttendanceVisible) {
+      this.endDate = this.startDate;
+    }
+  }
+
+  /** When enabling dashboard, pick one calendar day (use "To" if set) for both bounds. */
+  private syncSingleDateForDashboard(): void {
+    const d = this.endDate || this.startDate;
+    this.startDate = d;
+    this.endDate = d;
   }
 
   private loadAttendanceDashboardData(): void {
@@ -927,11 +966,7 @@ export class AttendanceReconciliationComponent implements OnInit {
         }
         const rows: any[] = response?.serviceResponse?.data || [];
         this.applyEmployeeRowFormatting(rows);
-        this.fullListCache = rows;
-        const totalPages = Math.max(1, Math.ceil(rows.length / Math.max(1, this.pageSize)));
-        if (this.page > totalPages) {
-          this.page = 1;
-        }
+        this.setActualTotalFromFullFetchSample(rows);
 
         this.weeklyTrend = this.buildTrendFromList(rows);
 
