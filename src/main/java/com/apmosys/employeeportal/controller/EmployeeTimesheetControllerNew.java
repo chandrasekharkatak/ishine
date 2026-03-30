@@ -155,13 +155,10 @@ public class EmployeeTimesheetControllerNew {
     @JobRoleAccess(featureIds = {15})
     @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ServiceResponse updateTimesheet(
-            @RequestParam Long timesheetId,
             @RequestPart("dto") String encryptedDto,
             @RequestPart(value = "documents", required = false) List<MultipartFile> documents) {
 
-        if (timesheetId == null) {
-            throw new TimesheetValidationFailedException("Timesheet to update is required.");
-        }
+    	Long timesheetId=null;
 
         if (encryptedDto == null || encryptedDto.trim().isEmpty()) {
             throw new TimesheetValidationFailedException("Request data is required.");
@@ -170,11 +167,15 @@ public class EmployeeTimesheetControllerNew {
         EmployeeTimesheetDTO dto;
         try {
             dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
+			 timesheetId=dto.getTimesheetId();
+			if (timesheetId == null) {
+				throw new TimesheetValidationFailedException("Timesheet to update is required.");
+			}
             log.debug("Decrypted DTO for update - timesheetId: {}, empId: {}, date: {}",
                     timesheetId, dto.getEmpId(), dto.getDate());
         } catch (Exception e) {
             log.error("Decryption/parsing failed for update - timesheetId: {}, error: {}",
-                    timesheetId, e.getMessage(), e);
+                     e.getMessage(), e);
             throw new TimesheetValidationFailedException("Invalid or corrupted request data. Please try again.");
         }
 
@@ -447,6 +448,8 @@ public class EmployeeTimesheetControllerNew {
 
 		String contentType = "application/octet-stream";
 		String headerValue = "attachment; filename=\"" + resource.getFilename() + "\"";
+		String fileName = resource.getFilename();
+		 contentType = timesheetServiceNew.detectContentType(fileName);
 
 		return ResponseEntity.ok()
 				.contentType(MediaType.parseMediaType(contentType))

@@ -241,7 +241,7 @@ processBulkTimesheets(payload: any) {
 
     // Use PUT method with timesheetId as query parameter
     return this.http.put(
-      `${this.baseUrl}api/v2/timesheet/update?timesheetId=${timesheetId}`,
+      `${this.baseUrl}api/v2/timesheet/update`,
       formData
     );
   }

@@ -782,7 +782,7 @@ public class ResourceManagementController {
 	@GetMapping("/healthCheck")
 	public String healthCheck(HttpServletRequest httpRequest) {
 	    poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-	    return "IShine is online...";
+	    return "iShine is online...";
 	}
 
 	@PostMapping("/getEmployeeTeamDepartment")
