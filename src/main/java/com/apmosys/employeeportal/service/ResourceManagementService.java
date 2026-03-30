@@ -15742,8 +15742,8 @@ public class ResourceManagementService {
 				resourceRequirementDto.setDifference(total - assigned);
 				resourceRequirementDto.setDisplayRequirement(getDisplayRequirement(resourceRequirementDto));
 			}
-
 			serviceResponse.setServiceResponse(rmgProjectResourceRequirementList);
+			// serviceResponse.setServiceResponse(mergeRequirements(rmgProjectResourceRequirementList));
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -15751,6 +15751,47 @@ public class ResourceManagementService {
 					"Unable to fetch latest requirement details.Something went wrong!!");
 		}
 		return serviceResponse;
+	}
+
+	private List<RmgResourceRequirementDto> mergeRequirements(List<RmgResourceRequirementDto> list) {
+		List<RmgResourceRequirementDto> result = new ArrayList<>();
+
+		Map<String, List<RmgResourceRequirementDto>> grouped = list.stream().collect(Collectors.groupingBy(
+				r -> r.getPoId() + "_" + r.getRoleId()));
+		for (List<RmgResourceRequirementDto> group : grouped.values()) {
+			group.sort(Comparator.comparing(RmgResourceRequirementDto::getRequirementStartDate));
+			RmgResourceRequirementDto prev = null;
+			for (RmgResourceRequirementDto curr : group) {
+				if (prev == null) {
+					prev = curr;
+					continue;
+				}
+
+				boolean isSameStart = prev.getRequirementStartDate()
+						.equals(curr.getRequirementStartDate());
+				boolean isOverlap = curr.getRequirementStartDate()
+						.isBefore(prev.getRequirementEndDate());
+				boolean isContinuous = prev.getRequirementEndDate().plusDays(1)
+						.toLocalDate()
+						.equals(curr.getRequirementStartDate().toLocalDate());
+
+				if (!isSameStart && !isOverlap && isContinuous) {
+					prev.setRequirementEndDate(curr.getRequirementEndDate());
+					prev.setCount(curr.getCount());
+					prev.setAssignedApproved(curr.getAssignedApproved());
+					prev.setAssignedPending(curr.getAssignedPending());
+					prev.setDifference(curr.getDifference());
+					prev.setDisplayRequirement(getDisplayRequirement(prev));
+				} else {
+					result.add(prev);
+					prev = curr;
+				}
+			}
+			if (prev != null) {
+				result.add(prev);
+			}
+		}
+		return result;
 	}
 
 	@Transactional(readOnly = true)

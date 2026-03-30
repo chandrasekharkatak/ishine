@@ -22,6 +22,7 @@ export class RmgTeamMember {
     isCustomDate: any;
     rescEndDate: any;
     rescRemovedBy: any;
+    removePermanently: boolean = false;
 
     poId: any;
     poNo: any;

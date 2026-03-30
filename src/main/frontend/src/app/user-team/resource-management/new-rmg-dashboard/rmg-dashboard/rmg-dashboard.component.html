@@ -1,0 +1,487 @@
+<main class="main-content">
+    <!-- GLANCE SECTION -->
+    <div class="glance-section rounded p-4 mb-4">
+        <p class="glance-section-label text-muted mb-1">Resource Management</p>
+        <h1 class="fw-bold display-6 mb-1">Health at a <span class="text-accent">Glance</span></h1>
+        <p class="text-muted small mb-4">Instant visibility into projects, capacity &amp; utilization — drill down from
+            here.</p>
+        <div class="row g-3">
+            <div class="col-4" *ngFor="let kpi of kpis">
+                <div class="card border rounded">
+                    <div class="card-body d-flex align-items-center p-3">
+                        <div class="kpi-icon-box rounded ml-1 mr-2 mt-2 mb-2">
+                            <i class="bi" [ngClass]="kpi.icon"></i>
+                        </div>
+                        <div>
+                            <h6 class="kpi-label text-muted text-uppercase mb-0">
+                                {{ kpi.label }}
+                            </h6>
+                            <h6 class="fs-4 fw-bold mb-0">
+                                {{ kpi.value || 0}}
+                                <span *ngIf="kpi.suffix" class="fs-6 ms-1">
+                                    {{kpi.suffix }}
+                                </span>
+                            </h6>
+                            <p class="kpi-change text-success small mb-0">
+                                <i
+                                    [ngClass]="{ 'normal fa-solid fa-arrow-trend-up' : kpi.status == 'NORMAL', 'danger fa-solid fa-arrow-trend-down': kpi.status == 'DANGER'}"></i>
+                                {{ kpi.change || 0 }}
+                                <span class="text-muted fw-normal">
+                                    {{ kpi.period }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTER ROW -->
+    <div class="summary-toolbar d-flex align-items-center justify-content-between mb-4">
+        <!-- Left Section -->
+        <div class="d-flex align-items-center gap-3">
+            <!-- Department Dropdown -->
+            <div class="d-flex align-items-center mr-1">
+                <label class="toolbar-label mb-0">Department</label>&nbsp;
+                <app-my-select class="form-select toolbar-select" placeholder="Select Department"
+                    [(ngModel)]="selectedDepartmentIds" (dropdownClosed)="onDepartmentSelectionChange($event)"
+                    [options]="filteredDepartmentList" displayKey="name" valueKey="deptId" [multiple]="true">
+                </app-my-select>
+            </div>
+            <div class="toolbar-divider ml-1 mr-1"></div>
+            <!-- Search -->
+            <div class="d-flex align-items-center ml-1 mr-1">
+                <app-my-select class="form-select toolbar-select" placeholder="Select Employee"
+                    [(ngModel)]="selectedEmpId" [options]="filteredEmployeeList" displayKey="name" valueKey="empId"
+                    [multiple]="false">
+                </app-my-select>
+            </div>
+            <!-- 360 Button -->
+            <button class="btn toolbar-btn ml-1 mr-1">
+                <i class="bi bi-file-earmark-text me-1"></i> 360°
+            </button>
+            <!-- Summary Button -->
+            <button class="btn btn-summary ml-1 mr-1">
+                <i class="bi bi-graph-up-arrow me-1"></i> Summary
+            </button>
+        </div>
+        <!-- Right Section -->
+        <div class="d-flex align-items-center ml-1 mr-1">
+            <label class="toggle-switch">
+                <input type="checkbox" [(ngModel)]="isEmployeeView" />
+                <span class="slider"></span>
+            </label>&nbsp;
+            <span class="toggle-label mb-2">Employee View</span>
+        </div>
+    </div>
+
+    <!-- PROJECT STATUS SUMMARY -->
+    <div class="project-summary-section card border rounded p-2 mb-4">
+        <div class="card-body p-2">
+            <!-- Header -->
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="icon-circle-accent d-flex align-items-center justify-content-center mr-1">
+                    <i class="bi bi-lightning text-accent"></i>
+                </div>
+                <h5 class="fw-bold display-6 mb-0">Project Status Summary</h5>
+            </div>
+
+            <!-- Alert Row -->
+            <div class="alert-banner d-flex align-items-center gap-2 rounded px-3 py-2 mb-4">
+                <i class="bi bi-exclamation-triangle text-warning"></i>&nbsp;
+                <span class="small fw-semibold">{{ attentionRequiredProjectCount || 0 }} Projects Need
+                    Attention:</span>&nbsp;
+                <div class="d-flex align-items-center gap-3 ms-2">
+                    <span class="project-alert-card x-small text-muted mr-1"
+                        *ngFor="let a of attentionRequiredProjectAlerts">
+                        <span class="fw-bold text-dark">{{ a.value || 0 }}</span> {{ a.label }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Status Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-2" *ngFor="let card of statusCards">
+                    <div class="status-card rounded p-1">
+                        <div class="d-flex align-items-center">
+                            <div class="col-3 pl-1">
+                                <div class="icon-circle-accent d-flex align-items-center justify-content-center">
+                                    <i class="bi text-accent" [ngClass]="[card.icon, card.colorClass]"></i>
+                                </div>
+                            </div>
+                            <div class="col-9 pl-2 pr-1">
+                                <div class="d-flex align-items-center flex-column gap-2 mb-1">
+                                    <span class="kpi-label align-self-start text-muted mb-0">{{ card.label }}</span>
+                                    <h6 class="fs-4 align-self-start fw-bold mb-0">{{ card.value || 0 }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Billing Loss Risk Score -->
+            <!-- <div class="status-card rounded p-3 mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="kpi-label fw-semibold text-uppercase">Billing Loss Risk Score</span>
+                    <span class="x-small text-muted">70 risk factors / 77 projects</span>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="flex-grow-1">
+                        <div class="progress risk-progress">
+                            <div class="progress-bar risk-bar" role="progressbar" aria-valuenow="91" aria-valuemin="0"
+                                aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <span class="fs-4 fw-bold">91%</span>
+                </div>
+                <p class="x-small text-muted mt-1 mb-0">Includes Understaffed, Overstaffed, Defaulters, Expired TNM, and No Timesheet projects</p>
+            </div> -->
+
+            <!-- Project Lifecycle -->
+            <div class="mb-4">
+                <p class="kpi-label text-muted text-uppercase mb-3">Project Lifecycle</p>
+                <div class="row g-3">
+                    <ng-container *ngFor="let stage of projectLifeCycleStages; let i = index">
+                        <div class="col">
+                            <div class="status-card rounded p-1 text-center position-relative">
+                                <i [ngClass]="[stage.icon, stage.colorClass]" class="mb-1"></i>
+                                <h6 class="fs-4 fw-bold mb-1" [ngClass]="stage.colorClass">{{ stage.value || 0 }}</h6>
+                                <h6 class="x-small fw-semibold mb-1">{{ stage.label }}</h6>
+                                <h6 class="xx-small text-muted mb-1">{{ stage.desc }}</h6>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center" *ngIf="i < projectLifeCycleStages?.length - 1">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                    </ng-container>
+                </div>
+            </div>
+
+            <!-- Understaffed / Overboarded + Key Insights -->
+            <div class="row">
+                <div class="col-8">
+                    <div class="row">
+                        <!-- Understaffed -->
+                        <div class="col-6 mb-2 pr-1">
+                            <div class="status-card rounded p-3 d-flex justify-content-around align-items-center gap-3">
+                                <div id="understaffedChart" style="height: 120px; width: 150px;">
+                                </div>
+                                <div>
+                                    <h5 class="x-small fw-semibold mb-1">Understaffed</h5>
+                                    <p class="x-small text-muted mb-0">
+                                        {{ resourceCards[0].value || 0 }} of {{ statusCards[2].value || 0 }} TNM</p>
+                                    <p class="x-small text-muted mb-0">33% of TNM</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Overboarded -->
+                        <div class="col-6 mb-2 pl-1">
+                            <div class="status-card rounded p-3 d-flex justify-content-around align-items-center gap-3">
+                                <div id="overboardedChart" style="height: 120px; width: 150px;">
+                                </div>
+                                <div>
+                                    <h5 class="x-small fw-semibold mb-1">Overboarded</h5>
+                                    <p class="x-small text-muted mb-0">
+                                        {{ resourceCards[1].value || 0 }} of {{statusCards[2].value || 0}} TNM</p>
+                                    <p class="x-small text-muted mb-0">22% of TNM</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TNM Expired -->
+                        <div class="col-12">
+                            <div class="status-card rounded p-3">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <p class="kpi-label text-muted text-uppercase mb-0">TNM Expired</p>
+                                </div>
+                                <div id="tnmExpiredChart" style="height: 250px;"></div>
+                                <p class="xx-small text-muted mt-2 mb-0">Darker = older = higher priority</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Insights -->
+                <div class="col-4 mb-2">
+                    <div class="status-card rounded p-3">
+                        <p class="kpi-label fw-semibold text-uppercase mb-3 d-flex align-items-center gap-1">
+                            <span class="insight-icon d-inline-flex align-items-center justify-content-center">i</span>
+                            Key Insights
+                        </p>
+                        <div class="d-flex flex-column gap-3">
+                            <div class="d-flex align-items-start gap-2" *ngFor="let insight of insights">
+                                <span class="insight-dot mt-1" [ngClass]="insight.colorClass"></span>
+                                <div class="flex-grow-1 min-width-0">
+                                    <p class="x-small fw-semibold mb-0 lh-sm">{{ insight.text }}</p>
+                                    <p class="xx-small text-muted mb-0">{{ insight.sub }}</p>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                    <div class="insight-bar-bg">
+                                        <div class="insight-bar-fill" [ngClass]="insight.colorClass"></div>
+                                    </div>
+                                    <span class="xx-small text-muted">{{ insight.stat }}</span>
+                                    <span *ngIf="insight.badge" class="xx-small text-success fw-semibold">↗{{
+                                        insight.badge
+                                        }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- Projects Details Table -->
+    <div class="project-details-section card border rounded p-2 mb-4">
+        <div class="card-body p-2">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h3 class="small fw-bold mb-0">
+                    {{selectedProjectStatusLabel}}
+                    <span class="text-muted fw-normal">
+                    </span>
+                </h3>
+                <div class="d-flex align-items-center">
+                    <button
+                        class="btn btn-link text-accent text-decoration-none x-small fw-medium d-flex align-items-center"
+                        matButton [matMenuTriggerFor]="downloadMenu" *ngIf="projectDetailsList.length > 0">
+                        <i class="bi bi-download mr-1"></i>Export
+                    </button>
+                    <mat-menu #downloadMenu="matMenu">
+                        <button mat-menu-item (click)="exportPageProjectDetailsToExcel(projectDetailsList)"
+                            class="btn btn-sm">
+                            <i class="bi bi-file-download"></i> Download Page Data
+                        </button>
+                        <button mat-menu-item (click)="exportAllFilteredPageProjectDetailsToExcel()" class="btn btn-sm">
+                            <i class="bi bi-cloud-download"></i> Download All Data
+                        </button>
+                    </mat-menu>
+                    <mat-select class="form-select toolbar-select min-width80" [(ngModel)]="projectPageSize"
+                        (dropdownClosed)="onProjectPageSizeChange()">
+                        <mat-option *ngFor="let opt of pageSizeOptions" [value]="opt">
+                            {{ opt }}
+                        </mat-option>
+                    </mat-select>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="custom-table" matSort (matSortChange)="sortProjectData($event)">
+                    <thead>
+                        <tr>
+                            <th>Actions</th>
+                            <th class="max-width200 min-width200" mat-sort-header="name|string">
+                                Project Name
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="poNo|string">
+                                PO No.
+                                <i class="fa fa-info-circle info-icon cursor-pointer ml-2"
+                                    title="Shows only active POs. Search includes both active and expired PO numbers.">
+                                </i>
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="projectType|string">
+                                Project Type
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="projectManagerName|string">
+                                Project Manager
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="clientName|string">
+                                Client
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="apmosysRM|string">
+                                Apmosys RM
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="clientRM|string">
+                                Client RM
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="projectStartDate|string">
+                                Start Date
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="projectEndDate|string">
+                                End Date
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="state|string">
+                                State
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="createdOn|datetime">
+                                Created On
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="status|string">
+                                PO Project Status
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="projectStatus|string">
+                                Ishine Project Status
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="draftStatus|string">
+                                Approval Status
+                            </th>
+                        </tr>
+                        <tr app-column-filter-bar class="custom-filter-row" *ngIf="isProjectSearchEnabled"
+                            [columnList]="projectColumns" [searchOnEnter]="true" (onSearch)="onProjectSearch($event);">
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <ng-container *ngIf="projectDetailsList.length == 0">
+                            <tr>
+                                <th colspan="15" class="info-label">No details to display...</th>
+                            </tr>
+                        </ng-container>
+                        <ng-container *ngFor="let project of projectDetailsList; let i = index">
+                            <tr>
+                                <td class="text-center">
+                                    <!-- Action Button -->
+                                    <button class="btn btn-sm" matButton [matMenuTriggerFor]="actionMenu">
+                                        <em class="fa-solid fa-ellipsis-vertical"></em></button>
+                                    <mat-menu #actionMenu="matMenu">
+                                        <button mat-menu-item
+                                            *ngIf="project.draftStatus != 'Not Started' || project.isTeamCreated == 'true'"
+                                            (click)="onAction('PREVIEW',project)">
+                                            <i class="fas fa-eye"></i> Preview
+                                        </button>
+                                        <button mat-menu-item (click)="onAction('EDIT_NEW', project);">
+                                            <i class="fas fa-pen"></i> Edit
+                                        </button>
+                                        <button mat-menu-item
+                                            *ngIf="(project.draftStatus == 'Approved' || project.isTeamCreated == 'true') && project.projectStatus != 'Completed'"
+                                            (click)="onAction('MARK_AS_COMPLETE', project)">
+                                            <i class="fas fa-check-double"></i> Mark as Complete
+                                        </button>
+                                        <button mat-menu-item
+                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
+                                            (click)="onAction('APPROVE',project);">
+                                            <i class="fas fa-square-check"></i> Approve
+                                        </button>
+                                        <button mat-menu-item
+                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
+                                            (click)="onAction('REJECT', project);">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                        <button mat-menu-item *ngIf="project.poProjectType"
+                                            (click)="onAction('CLIENT_SIDE_ID_STATUS',project);">
+                                            <i class="fas fa-id-badge"></i> ClientID Status
+                                        </button>
+                                        <button mat-menu-item *ngIf="project.active === 'false'"
+                                            (click)="onAction('RESTORE',project);">
+                                            <i class="fas fa-trash-arrow-up"></i> Restore
+                                        </button>
+                                    </mat-menu>
+                                </td>
+                                <td class="max-width200 min-width200 truncate" [title]="project?.name || 'NA'"
+                                    *ngIf="(project?.draftStatus == 'Not Started' || project?.active === 'false')">
+                                    {{ project?.name || 'NA' }}
+                                    <span *ngIf="project?.active === 'false'" class="inactive-label">Inactive</span>
+                                </td>
+                                <td class="max-width200 min-width200" title="Click to view Project Details"
+                                    *ngIf="(project?.draftStatus != 'Not Started' && project?.active !== 'false')">
+                                    <span style="cursor: pointer; color: blue;" id="clickablefor360"
+                                        [navigateToProjectView]="project?.projectViewId">
+                                        {{ project?.name || 'NA' }}
+                                    </span>
+                                </td>
+                                <td class="max-width200 min-width200 truncate" [title]="project?.poNo || 'NA'">
+                                    {{project?.poNo || 'NA' }}
+                                </td>
+                                <td class="max-width200 min-width200" [title]="project?.poProjectType || 'NA'">
+                                    {{project?.poProjectType || 'NA' }}
+                                </td>
+                                <td class="max-width200 min-width200 truncate text-capitalize">
+                                    <ng-container title="Click to view Employee 360"
+                                        *ngIf="userMapping.rmg_employee_360 && project?.projectManagerName && !isAccounts">
+                                        <span class="info-label cursor-pointer" id="clickablefor360"
+                                            *ngFor="let managerData of project?.projectManagers; let last = last"
+                                            [navigateToEmployee360]="managerData.projectManagerId">
+                                            {{managerData.projectManagerName ? managerData.projectManagerName : 'NA' }}
+                                            {{!last ? ',' : ''}}
+                                        </span>
+                                    </ng-container>
+                                    <ng-container *ngIf="!userMapping.rmg_employee_360 || !project?.projectManagerName">
+                                        <span class="info-label cursor-pointer"
+                                            *ngFor="let managerData of project?.projectManagers; let last = last">
+                                            {{managerData.projectManagerName ? managerData.projectManagerName : 'NA'}}
+                                            {{!last ? ',' : ''}}
+                                        </span>
+                                    </ng-container>
+                                    <ng-container
+                                        *ngIf="(!project?.projectManagers || project?.projectManagers.length === 0) && project?.projectManager">
+                                        <span class="info-label">
+                                            {{project?.projectManager}}
+                                        </span>
+                                    </ng-container>
+                                </td>
+                                <td class="max-width200 min-width200 truncate" [title]="project?.clientName ||'NA'">
+                                    {{ project?.clientName ||'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate" [title]="project?.apmosysRM ||'NA'">
+                                    {{ project?.apmosysRM ||'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate" [title]="project?.clientRM ||'NA'">
+                                    {{ project?.clientRM ||'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate"
+                                    [title]="project?.projectStartDate ? (project?.projectStartDate | date : 'dd/MM/yyyy') : 'NA'">
+                                    {{ project?.projectStartDate ? (project?.projectStartDate | date : 'dd/MM/yyyy') :
+                                    'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate"
+                                    [title]="project?.projectEndDate ? ( project?.projectEndDate | date: 'dd/MM/yyyy') : 'NA'">
+                                    {{ project?.projectEndDate ? ( project?.projectEndDate | date: 'dd/MM/yyyy') :
+                                    'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate" [title]="project?.state || 'NA'">
+                                    {{ project?.state || 'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate"
+                                    [title]=" project?.createdOn ? (project?.createdOn | date: 'dd/MM/yyyy') : 'NA'">
+                                    {{ project?.createdOn ? (project?.createdOn | date: 'dd/MM/yyyy') : 'NA' }}
+                                </td>
+                                <td class="max-width200 min-width200 truncate" [title]="project?.status || 'NA'">
+                                    {{ project?.status || 'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate" [title]="project?.projectStatus || 'NA'">
+                                    {{ project?.projectStatus||'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate"
+                                    [ngStyle]="{'color': (project?.draftStatus == 'Pending For Approval') ? 'orange' : (project?.draftStatus == 'Approved') ? 'green' : (project?.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
+                                    <em>{{ project?.draftStatus || 'NA' }}</em>
+                                </td>
+                            </tr>
+                        </ng-container>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination-container d-flex justify-content-between align-items-center">
+                <div class="pagination-info">
+                    {{ startIndex }} – {{ endIndex }} of {{ totalProjectsCount }}
+                </div>
+                <div class="pagination-controls d-flex align-items-center gap-2" [class.animating]="true">
+                    <button class="page-btn icon-btn" (click)="prevProjectPage()" [disabled]="projectPage === 1">
+                        ‹
+                    </button>
+                    <ng-container *ngFor="let item of visiblePages">
+                        <button *ngIf="item !== '...'" class="page-btn" [ngClass]="{ 'active': item === projectPage }"
+                            (click)="goToPage(item)">
+                            {{ item }}
+                        </button>
+                        <span *ngIf="item === '...'" class="dots">...</span>
+                    </ng-container>
+                    <button class="page-btn icon-btn" (click)="nextProjectPage()"
+                        [disabled]="projectPage === totalPages">
+                        ›
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="closeAlertMessageModal()">OK</button>&nbsp;
+    </div>
+</ng-template>

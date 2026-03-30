@@ -11,4 +11,5 @@ export class EmployeeProjectTimesheetDto {
     employeeTeamEndDate: any;
     timesheetFilledCount: any;
     updatedBy: any;
+    removePermanently: boolean = false;
 }

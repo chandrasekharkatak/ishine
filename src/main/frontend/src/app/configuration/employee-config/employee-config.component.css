@@ -713,3 +713,25 @@ margin: 1rem 1rem;
   color: #076e8d;
   border-color: #9de6fc;
 }
+
+
+.date-input-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.date-input {
+    padding-right: 36px;
+    cursor: pointer;
+    background-color: white;
+}
+
+.calendar-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #656565;
+}

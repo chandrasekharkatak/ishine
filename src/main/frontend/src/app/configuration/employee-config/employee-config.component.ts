@@ -33,6 +33,10 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { Subscription } from 'rxjs';
 import { EmployeeIdService } from 'src/app/services/shared/employee-id.service';
 import { EmployeeIdUtilService } from 'src/app/services/employee-id-util.service';
+import { EmployeeProjectService } from 'src/app/services/employee-project.service';
+import { PoDetails } from 'src/app/models/poDetails';
+import { RmgResourceRequirement } from 'src/app/models/rmgResourceRequirement';
+import { RmgTeamMember } from 'src/app/models/rmgTeamMember';
 class FilterData {
   title: any;
   columns: any;
@@ -148,6 +152,7 @@ export class EmployeeConfigComponent implements OnInit {
   allPreviousEmployment: any[] = [];
   updatedCertificationList: any[] = [];
   updatedPreviousEmployment: any[] = [];
+
   allStates: any[] = [
     "Andaman & Nicobar Islands",
     "Andhra Pradesh",
@@ -279,8 +284,19 @@ export class EmployeeConfigComponent implements OnInit {
   pendingTimesheetProjectModal: TemplateRef<any>;
 
 
-  constructor(
+  showPoDropdown: boolean = false;
+  showPoRoleDropdown: boolean = false;
+  defaultProjectUpdationProjectType: string = '';
+  roleFilterActionLabel: 'Show Active PO Roles' | 'Show All PO Roles' = 'Show Active PO Roles';
+  poFilterActionLabel: 'Show Active PO' | 'Show All PO' = 'Show Active PO';
 
+  internalProjectTypes = ['internal', 'internalrndproducts', 'bench']; 
+  poDetailsList: PoDetails[] = [];
+  filteredPoDetailsList: PoDetails[] = [];
+  resourceRequirementList: RmgResourceRequirement[] = [];
+  filteredActiveResourceRequirement: RmgResourceRequirement[] = [];
+
+  constructor(
     private employeeService: EmployeeService,
     public validationService: ValidationService,
     private datePipe: DatePipe,
@@ -297,7 +313,8 @@ export class EmployeeConfigComponent implements OnInit {
     private domainService: DomainService,
     private destinationService: DestinationService,
     private leaveService: LeaveService,
-    private employeeIdUtilService: EmployeeIdUtilService
+    private employeeIdUtilService: EmployeeIdUtilService,
+    private employeeProjectService: EmployeeProjectService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -1121,13 +1138,11 @@ storePreviousStatus(){
   showCreateForm() {
     this.isForm = true;
     this.isCreation = true;
-
     this.isTable = false;
     this.isUpdation = false;
     this.isDraft = false;
     this.isDraftTable = false;
     this.page = 1;
-    this.showResourceRequirementDropdown = false;
     this.deptSelected = false;
     this.showProjectDropdown = false;
     this.showTeamDropdown = false;
@@ -1469,7 +1484,7 @@ storePreviousStatus(){
 
   // }
 
-  validateEmployeeObj(employeeObj: Employee, template: TemplateRef<any>) {
+  async validateEmployeeObj(employeeObj: Employee, template: TemplateRef<any>) {
 
     // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employeementId)) {
     //   this.alertMessage = "Please enter Employment Id !!"
@@ -1799,35 +1814,91 @@ storePreviousStatus(){
     }
 
      const shouldValidateDefaultProject = this.isCreation || (this.isUpdation && employeeObj.isUpdateDefaultProject);
-     if (shouldValidateDefaultProject) {
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultprojectType)) {
-      this.alertMessage = "Please select Default project Type !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    if (shouldValidateDefaultProject) {
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultprojectType)) {
+        this.alertMessage = "Please select Default project Type !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultProjectId)) {
-      this.alertMessage = "Please select Default project  !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultProjectId)) {
+        this.alertMessage = "Please select Default project  !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultTeamId)) {
-      this.alertMessage = "Please select Default Team !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-   
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultTeamId)) {
+        this.alertMessage = "Please select Default Team !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
       if ((employeeObj.defaultTeamEmployeeRole.length === 0 || !employeeObj.defaultTeamEmployeeRole)) {
         this.alertMessage = "Please select Employee Role In Default Project !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-    
-  }
 
+      if (!this.internalProjectTypes.includes(this.defaultProjectUpdationProjectType?.trim()?.toLowerCase())) {
+        if (!employeeObj.poId || !this.isValidNumber(employeeObj.poId)) {
+          this.alertMessage ="Kindly Select a PO!!";
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+        const selectedPo = this.poDetailsList?.find(po => po?.poId === employeeObj?.poId);
+        if (!selectedPo || selectedPo == undefined || selectedPo == null) {
+          this.alertMessage ="Selected PO not found in the List!!";
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+        if (this.defaultProjectUpdationProjectType === 'TNM' && (!employeeObj.poRoleId || !this.isValidNumber(employeeObj.poRoleId))) {
+          this.alertMessage ="Kindly Select a PO Role!!";
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+      }
 
+      if (this.isCreation && (!employeeObj.newEtmStartDate || employeeObj.newEtmStartDate == undefined || employeeObj.newEtmStartDate == null)) {
+        this.alertMessage ="Kindly Provide Project Start Date!!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
 
+      if (this.isUpdation && employeeObj.isUpdateDefaultProject) {
+        if (this.defaultProjectUpdationProjectType === 'TNM' && (!employeeObj.oldEtmEndDate || employeeObj.oldEtmEndDate == undefined || employeeObj.oldEtmEndDate == null)) {
+          this.alertMessage = "Kindly Provide Current Project End Date!!";
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+
+        if (!employeeObj.newEtmStartDate || employeeObj.newEtmStartDate == undefined || employeeObj.newEtmStartDate == null) {
+          this.alertMessage = "Kindly Provide Project Start Date!!";
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+
+        if (this.defaultProjectUpdationProjectType === 'TNM' && (this.normalizeDate(employeeObj.newEtmStartDate) < this.normalizeDate(employeeObj.oldEtmEndDate))) {
+          this.alertMessage = "Employee Current Project End date cannot be greater then New Project Start date!!";
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+
+        if (employeeObj.newEtmStartDate !== undefined && employeeObj.newEtmStartDate !== null) {
+          let member = { empId: employeeObj.empId, startDate: employeeObj.newEtmStartDate };
+          let projectData = {
+            currentProjectId: employeeObj.defaultProjectId,
+            projectIds: [employeeObj.defaultProjectId],
+            projectStartDate: employeeObj.projectStartDate,
+            projectType: this.defaultProjectUpdationProjectType
+          };
+
+          const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
+          if (response?.type !== 'NO_CONFLICT' && response?.type !== 'PROJECT_GAP') {
+            return false;
+          }
+        }
+      }
+    }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.jobRoleId)) {
       this.alertMessage = "Please select Job Role !!"
@@ -2092,7 +2163,7 @@ storePreviousStatus(){
 
   // CRUD
 
-  onCreateEmployee(template: TemplateRef<any>) {
+  async onCreateEmployee(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
     console.log("allCertificationList : ", this.allCertificationList);
     console.log("allPreviousEmployment : ", this.allPreviousEmployment);
@@ -2102,7 +2173,7 @@ storePreviousStatus(){
       return;
     }
 
-    let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
+    let inputValidated: boolean = await this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
 
     this.employeeObj.isDraft = false;
@@ -2450,7 +2521,7 @@ storePreviousStatus(){
   async onUpdateEmployee(template: TemplateRef<any>) {
 
     const dateFormat = 'YYYY-MM-DD';
-    let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
+    let inputValidated: boolean = await this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
     if (!this.employeeObj.employeementId || this.employeeObj.employeementId == null || this.employeeObj.employeementId.toString().trim() == "") {
       this.openAlertMod(template, "Please enter valid employeement Id");
@@ -2516,7 +2587,10 @@ storePreviousStatus(){
     if (this.employeeObj.dateOfResign) this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
     if (this.employeeObj.dateOfRetain) this.employeeObj.dateOfRetain = moment(this.employeeObj.dateOfRetain).format(dateFormat)
     if (this.employeeObj.onRollDate) this.employeeObj.onRollDate = moment(this.employeeObj.onRollDate).format(dateFormat)
-    if (this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation") {
+    if (this.employeeObj.oldEtmEndDate) this.employeeObj.oldEtmEndDate = this.normalizeDate(this.employeeObj.oldEtmEndDate);
+    if (this.employeeObj.newEtmStartDate) this.employeeObj.newEtmStartDate = this.normalizeDate(this.employeeObj.newEtmStartDate);
+
+      if (this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation") {
       this.employeeObj.dateOfResign = null;
       this.employeeObj.dateOfRelieving = null;
     }
@@ -2701,7 +2775,7 @@ storePreviousStatus(){
         this.projectList = response.serviceResponse;
         if (this.projectList.length === 0) {
           this.showProjectDropdown = false;
-          this.openAlertMod(template, 'No project exists for the selected department. Please contact RMG to create one.');
+          this.openAlertMod(template, 'No Project(s) with Active Team(s) found for the Selected department. Please contact RMG Team.');
         } else {
           this.showProjectDropdown = true;
         }
@@ -2712,64 +2786,42 @@ storePreviousStatus(){
     });
   }
 
-  onProjectChange(event: any) {
-      this.resetCascade('PROJECT');
-    const selectedProjectId = +event.target.value;
+  async onProjectChange(selectedProjectId: any) {
+    this.resetCascade('PROJECT');
     const selectedProject = this.projectList.find(p => p.projectId === selectedProjectId);
+
+    this.showTeamDropdown = false;
     this.showEmployeeRoleDropdown = false;
+    this.teamList = [];
 
-     if (selectedProject && selectedProject.poId) {
-      this.employeeObj.poId = selectedProject.poId;
+    if (selectedProject) {
+      console.log(selectedProject)
+      this.defaultProjectUpdationProjectType = selectedProject.projectType;
+      this.employeeObj.projectStartDate = selectedProject.projectStartDate;
+      if (selectedProject?.teamList && selectedProject?.teamList?.length > 0) {
+        this.teamList = selectedProject.teamList;
+        this.showTeamDropdown = true;
+      }
+      if (this.defaultProjectUpdationProjectType && this.defaultProjectUpdationProjectType && !this.internalProjectTypes.includes(this.defaultProjectUpdationProjectType?.trim()?.toLowerCase())) {
+        this.showPoDropdown = true;
+        const response = await this.employeeProjectService.getPoDetailsByProjectId(selectedProject.projectId);
+        this.poDetailsList = response?.data || [];
+        this.filteredPoDetailsList = [...this.poDetailsList];
+      }
     }
-
-    if (selectedProject && selectedProject.teamList) {
-      this.teamList = selectedProject.teamList;
-      this.showTeamDropdown = true;
-    } else {
-      this.teamList = [];
-      this.showTeamDropdown = false;
-    }
-
-    if (selectedProject && selectedProject.resourceRequirement && selectedProject.resourceRequirement.length > 0) {
-      this.resourceRequirements = selectedProject.resourceRequirement;
-      this.showResourceRequirementDropdown = true;
-    } else {
-      this.resourceRequirements = [];
-      this.showResourceRequirementDropdown = false;
-      this.employeeObj.selectedResourceOverviewId = null;
-    }
-     this.poRequirementList = [];
-  this.employeeObj.poRequirementMappingId = null;
   }
 
-
-  showResourceRequirementDropdown: boolean = false;
-  resourceRequirements: any[] = [];
-  onTeamChange(event: any) {
+  onTeamChange(selectedTeamId: any) {
     this.resetCascade('TEAM');
-    const selectedTeamId = +event.target.value;
     const selectedTeam = this.teamList.find(t => t.teamId === selectedTeamId);
- this.employeeObj.defaultTeamId = selectedTeamId;
+    this.employeeObj.defaultTeamId = selectedTeamId;
     if (selectedTeam) {
       this.showEmployeeRoleDropdown = true;
-
       this.employeeObj.defaultTeamEmployeeRole = [];
-    if (selectedTeamId && this.employeeObj.poId) {
-        this.loadPoRequirements(selectedTeamId, this.employeeObj.poId);
-      } else {
-        this.poRequirementList = [];
-        this.employeeObj.poRequirementMappingId = null;
-        console.log('No PO associated with this project');
-      }
     } else {
       this.showEmployeeRoleDropdown = false;
-      this.poRequirementList = [];
     }
   }
-
-
-
-
 
   // getAllEmployeeList() {
   //   this.allEmployeeList = [];
@@ -3309,14 +3361,13 @@ storePreviousStatus(){
     jobRoleId ? this.employeeObj.jobRoleId = jobRoleId : this.employeeObj.jobRoleId = '';
   }
 
-   deptdefaultprojectChange(){
+  deptdefaultprojectChange() {
     this.resetCascade('Department');
-
-  if (this.isUpdation) {
-    this.modalRef = this.modalService.open(this.changeDefaultProjectTemplate,{ modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false } );
-  } else { 
-    this.deptSelected = true;
-  }
+    if (this.isUpdation) {
+      this.modalRef = this.modalService.open(this.changeDefaultProjectTemplate, { modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false });
+    } else {
+      this.deptSelected = true;
+    }
   }
 
     confirmUpdateDefaultProject(choice: boolean) {
@@ -3342,65 +3393,80 @@ resetDefaultProjectFields() {
 
 
 
-   resetCascade(level: 'PROJECT_TYPE' | 'PROJECT' | 'TEAM' | 'Department') {
-  switch (level) {
+  resetCascade(level: 'PROJECT_TYPE' | 'PROJECT' | 'TEAM' | 'Department') {
+    switch (level) {
+      case 'Department':
+        this.employeeObj.defaultprojectType = null
+        this.employeeObj.defaultProjectId = null;
+        this.employeeObj.defaultTeamId = null;
+        this.employeeObj.selectedResourceOverviewId = null;
+        this.employeeObj.isShadowResource = 0;
+        this.employeeObj.defaultTeamEmployeeRole = [];
 
-    case 'Department':
-      this.employeeObj.defaultprojectType = null
-       this.employeeObj.defaultProjectId = null;
-      this.employeeObj.defaultTeamId = null;
-      this.employeeObj.selectedResourceOverviewId = null;
-      this.employeeObj.defaultTeamEmployeeRole = [];
-      this.employeeObj.isShadowResource = 0;
+        this.projectList = [];
+        this.teamList = [];
 
-      this.projectList = [];
-      this.teamList = [];
-      this.resourceRequirements = [];
-
-      this.showProjectDropdown = false;
-      this.showTeamDropdown = false;
-      this.showResourceRequirementDropdown = false;
-      this.showEmployeeRoleDropdown = false;
-      break;
+        this.showProjectDropdown = false;
+        this.showTeamDropdown = false;
+        this.showEmployeeRoleDropdown = false;
+        break;
 
 
-    case 'PROJECT_TYPE':
-      this.employeeObj.defaultProjectId = null;
-      this.employeeObj.defaultTeamId = null;
-      this.employeeObj.selectedResourceOverviewId = null;
-      this.employeeObj.defaultTeamEmployeeRole = [];
-      this.employeeObj.isShadowResource = 0;
+      case 'PROJECT_TYPE':
+        this.employeeObj.defaultProjectId = null;
+        this.employeeObj.defaultTeamId = null;
+        this.employeeObj.selectedResourceOverviewId = null;
+        this.employeeObj.defaultTeamEmployeeRole = [];
+        this.employeeObj.isShadowResource = 0;
+        this.roleFilterActionLabel = 'Show Active PO Roles';
+        this.poFilterActionLabel = 'Show Active PO';
+        this.employeeObj.poId = null;
+        this.employeeObj.poRoleId = null;
+        this.employeeObj.oldEtmEndDate = null;
+        this.employeeObj.newEtmStartDate = null;
 
-      this.projectList = [];
-      this.teamList = [];
-      this.resourceRequirements = [];
+        this.projectList = [];
+        this.teamList = [];
+        this.poDetailsList = [];
+        this.filteredPoDetailsList = [];
+        this.resourceRequirementList = [];
+        this.filteredActiveResourceRequirement = [];
 
-      this.showProjectDropdown = false;
-      this.showTeamDropdown = false;
-      this.showResourceRequirementDropdown = false;
-      this.showEmployeeRoleDropdown = false;
-      break;
+        this.showProjectDropdown = false;
+        this.showTeamDropdown = false;
+        this.showEmployeeRoleDropdown = false;
+        this.showPoDropdown = false;
+        this.showPoRoleDropdown = false;
+        break;
 
-    case 'PROJECT':
-      this.employeeObj.defaultTeamId = null;
-      this.employeeObj.selectedResourceOverviewId = null;
-      this.employeeObj.defaultTeamEmployeeRole = [];
-      this.employeeObj.isShadowResource = 0;
+      case 'PROJECT':
+        this.employeeObj.defaultTeamId = null;
+        this.employeeObj.selectedResourceOverviewId = null;
+        this.employeeObj.defaultTeamEmployeeRole = [];
+        this.employeeObj.isShadowResource = 0;
+        this.employeeObj.poId = null;
+        this.employeeObj.poRoleId = null;
+        this.employeeObj.oldEtmEndDate = null;
+        this.employeeObj.newEtmStartDate = null;
 
-      this.teamList = [];
-      this.resourceRequirements = [];
+        this.teamList = [];
+        this.poDetailsList = [];
+        this.filteredPoDetailsList = [];
+        this.resourceRequirementList = [];
+        this.filteredActiveResourceRequirement = [];
 
-      this.showTeamDropdown = false;
-      this.showResourceRequirementDropdown = false;
-      this.showEmployeeRoleDropdown = false;
-      break;
+        this.showTeamDropdown = false;
+        this.showEmployeeRoleDropdown = false;
+        this.showPoDropdown = false;
+        this.showPoRoleDropdown = false;
+        break;
 
-    case 'TEAM':
-      this.employeeObj.defaultTeamEmployeeRole = [];
-      this.showEmployeeRoleDropdown = false;
-      break;
+      case 'TEAM':
+        this.employeeObj.defaultTeamEmployeeRole = [];
+        this.showEmployeeRoleDropdown = false;
+        break;
+    }
   }
-}
 
 
 
@@ -5224,88 +5290,111 @@ resetDefaultProjectFields() {
     );
   }
 
-pendingCount: number = 0;
-checkDate: string = '';
-pendingProjects: string[] = [];
+  pendingCount: number = 0;
+  checkDate: string = '';
+  pendingProjects: string[] = [];
 
- openPendingTimesheetProjectModal(empId: number, relievingDate: string | null): Promise<boolean> {
-  return new Promise(resolve => {
-    this.employeeService.getPendingTimesheetProjects(empId, relievingDate)
-      .pipe(first())
-      .subscribe((res: any) => {
-        if (res?.serviceStatus === 'Success' && res.serviceResponse) {
-          this.pendingCount = res.serviceResponse.pendingCount || 0;
-          this.checkDate = res.serviceResponse.checkDate;
-          this.pendingProjects = res.serviceResponse.pendingProjects || [];
+  openPendingTimesheetProjectModal(empId: number, relievingDate: string | null): Promise<boolean> {
+    return new Promise(resolve => {
+      this.employeeService.getPendingTimesheetProjects(empId, relievingDate)
+        .pipe(first())
+        .subscribe((res: any) => {
+          if (res?.serviceStatus === 'Success' && res.serviceResponse) {
+            this.pendingCount = res.serviceResponse.pendingCount || 0;
+            this.checkDate = res.serviceResponse.checkDate;
+            this.pendingProjects = res.serviceResponse.pendingProjects || [];
 
-          if (this.pendingCount === 0) {
-            console.log('No pending timesheets - proceeding with update');
+            if (this.pendingCount === 0) {
+              console.log('No pending timesheets - proceeding with update');
+              resolve(false);
+              return;
+            }
+            this.modalRef = this.modalService.open(
+              this.pendingTimesheetProjectModal,
+              { windowClass: 'modal-lg', backdrop: 'static' }
+            );
+
+            this.modalRef.result.finally(() => {
+              resolve(true);
+            });
+          } else {
             resolve(false);
-            return;
           }
-          this.modalRef = this.modalService.open(
-            this.pendingTimesheetProjectModal,
-            { windowClass: 'modal-lg', backdrop: 'static' }
-          );
-
-          this.modalRef.result.finally(() => {
-            resolve(true);
-          });
-        } else {
+        }, error => {
+          console.error('Pending project API error', error);
           resolve(false);
-        }
-      }, error => {
-        console.error('Pending project API error', error);
-        resolve(false);
-      });
-  });
-}
-
-poRequirementList: any[] = [];
- loadPoRequirements(teamId: number, poId: number) {
-    const payload = {
-      teamId: teamId,
-      poId: poId
-    };
-    this.employeeService.getPoRequirementDataByTeamAndPoId(payload)
-      .pipe(first())
-      .subscribe((response: any) => {
-        if (response.serviceStatus === "Success") {
-          this.poRequirementList = response.serviceResponse || [];
-          if (this.poRequirementList.length === 0) {
-            console.log('No PO requirements found for selected team and PO');
-          }
-        } else {
-          this.poRequirementList = [];
-          console.error('Error loading PO requirements:', response.serviceResponse);
-        }
-        this.employeeObj.poRequirementMappingId = null;
-      }, error => {
-        console.error('Error calling PO requirement API:', error);
-        this.poRequirementList = [];
-        this.employeeObj.poRequirementMappingId = null;
-      });
+        });
+    });
   }
 
-  onPoRequirementChange() {
-    console.log('Selected PO Requirement ID:', this.employeeObj.poRequirementMappingId);
-    const selectedPoRequirement = this.poRequirementList.find(
-      po => po.poRequirementMappingId === +this.employeeObj.poRequirementMappingId
-    );
-    if (selectedPoRequirement) {
-      console.log('Selected PO Requirement Details:', selectedPoRequirement);
+  async getResourceRequirementByPoId(poId: any) {
+    if (this.defaultProjectUpdationProjectType != 'TNM') {
+      return;
+    }
+    this.showPoRoleDropdown = true;
+    this.resourceRequirementList = [];
+    this.filteredActiveResourceRequirement = [];
+    const response = await this.employeeProjectService.getResourceRequirementByPoId(poId);
+    this.resourceRequirementList = response.data;
+    this.filteredActiveResourceRequirement = [...this.resourceRequirementList];
+  }
+
+  filterActivePoDetails() {
+    if (this.poFilterActionLabel === 'Show All PO') {
+      this.poFilterActionLabel = "Show Active PO";
+      this.filteredPoDetailsList = [...this.poDetailsList];
+    } else {
+      this.poFilterActionLabel = "Show All PO";
+      this.filteredPoDetailsList = this.poDetailsList.filter(p => !p.isExpired);
     }
   }
 
+  filterActiveResourceRequirement() {
+    if (this.roleFilterActionLabel === 'Show All PO Roles') {
+      this.roleFilterActionLabel = "Show Active PO Roles";
+      this.filteredActiveResourceRequirement = [...this.resourceRequirementList];
+    } else {
+      this.roleFilterActionLabel = "Show All PO Roles";
+      this.filteredActiveResourceRequirement = this.resourceRequirementList.filter(r => !r.isExpired);
+    }
+  }
 
+  async validateEmployeeProjectStartDate(alertMessageTemplate: any): Promise<boolean> {
+    if (this.normalizeDate(this.employeeObj.newEtmStartDate) < this.normalizeDate(this.employeeObj.oldEtmEndDate)) {
+      this.alertMessage = "Employee Current Project End date cannot be greater then New Project Start date!!";
+      this.openAlertMod(alertMessageTemplate, this.alertMessage);
+      return;
+    }
+    let member = { empId: this.employeeObj.empId, startDate: this.employeeObj.newEtmStartDate };
+    let projectData = {
+      currentProjectId: this.employeeObj.defaultProjectId,
+      projectIds: [this.employeeObj.defaultProjectId],
+      projectStartDate: this.employeeObj.projectStartDate,
+      projectType: this.defaultProjectUpdationProjectType
+    };
 
+    const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
+    if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
-}
+  normalizeDate(dateInput: any) {
+    if (!dateInput) {
+      return null;
+    }
+    const date = new Date(dateInput);
+    if (isNaN(date.getTime())) {
+      return null;
+    }
+    return moment(dateInput).startOf('day').format('YYYY-MM-DDTHH:mm:ss');
+    // return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
 
+  isValidNumber(value: any): boolean {
+    return typeof value === 'number' && !Number.isNaN(value);
+  }
 
-
-
-
-function compare(a: number | string, b: number | string, isAsc: boolean) {
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

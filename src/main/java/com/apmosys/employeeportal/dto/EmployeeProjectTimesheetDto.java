@@ -22,6 +22,7 @@ public class EmployeeProjectTimesheetDto {
 	private LocalDate employeeTeamEndDate;
 	private Long timesheetFilledCount;
 	private Long updatedBy;
+	private boolean removePermanently;
 
 	public EmployeeProjectTimesheetDto(Integer projectId, String projectName, String projectType, String teamName,
 			Date projectStartDate, Date employeeTeamStartDate, Date employeeTeamEndDate, Long timesheetFilledCount) {
@@ -37,7 +38,8 @@ public class EmployeeProjectTimesheetDto {
 		this.timesheetFilledCount = timesheetFilledCount;
 	}
 
-	public EmployeeProjectTimesheetDto(Long empId, Long etmId, Integer projectId, String projectName, String projectType, Long teamId, String teamName,
+	public EmployeeProjectTimesheetDto(Long empId, Long etmId, Integer projectId, String projectName,
+			String projectType, Long teamId, String teamName,
 			Date projectStartDate, Date employeeTeamStartDate, Date employeeTeamEndDate) {
 		super();
 		this.empId = empId;
@@ -48,8 +50,20 @@ public class EmployeeProjectTimesheetDto {
 		this.teamId = teamId;
 		this.teamName = teamName;
 		this.projectStartDate = projectStartDate != null ? LocalDate.parse(projectStartDate.toString()) : null;
-		this.employeeTeamStartDate = employeeTeamStartDate != null ? LocalDate.parse(employeeTeamStartDate.toString()) : null;
+		this.employeeTeamStartDate = employeeTeamStartDate != null ? LocalDate.parse(employeeTeamStartDate.toString())
+				: null;
 		this.employeeTeamEndDate = employeeTeamEndDate != null ? LocalDate.parse(employeeTeamEndDate.toString()) : null;
+	}
+
+	public EmployeeProjectTimesheetDto(Integer projectId, String projectName, String projectType, String teamName,
+			Date projectStartDate, Long timesheetFilledCount) {
+		super();
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.projectType = projectType;
+		this.teamName = teamName;
+		this.projectStartDate = projectStartDate != null ? LocalDate.parse(projectStartDate.toString()) : null;
+		this.timesheetFilledCount = timesheetFilledCount;
 	}
 
 }
