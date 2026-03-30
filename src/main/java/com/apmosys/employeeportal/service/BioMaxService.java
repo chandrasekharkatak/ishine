@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -301,96 +302,110 @@ public class BioMaxService {
 
 	public ServiceResponse getEmpBioDataFromIshine(String startDate, String endDate, 
                                                 Integer pageNumber, Integer pageSize) throws SQLException {
+		return getEmpBioDataFromIshine(startDate, endDate, pageNumber, pageSize, new HashMap<>());
+	}
+
+	public ServiceResponse getBioDashboardData(String startDate, String endDate) {
 		ServiceResponse serviceResponse = new ServiceResponse();
-		try {
-			if (pageNumber == null || pageNumber < 1) pageNumber = 1;
-			if (pageSize == null || pageSize < 1) pageSize = 100;
-			
-			int offset = (pageNumber - 1) * pageSize;
-			
-			List<BioMaTO> finalEmpBioData = new ArrayList<>();
-			
-			Connection con = getConnection();
-			
-			// First, get total count
-			String countQuery = "SELECT COUNT(*) AS TotalRecords FROM " +
-				"( " +
-				"    SELECT Empcode, EmpName, CAST(Logdatetime AS DATE) AS AttendanceDate " +
-				"    FROM IshineRawdata " +
-				"    WHERE Logdatetime >= ? AND Logdatetime <= ? " +
-				"    GROUP BY Empcode, EmpName, CAST(Logdatetime AS DATE) " +
-				") A";
-			
-			PreparedStatement countStmt = con.prepareStatement(countQuery);
-			countStmt.setString(1, startDate + " 00:00:00");
-			countStmt.setString(2, endDate + " 23:59:59");
-			ResultSet countRs = countStmt.executeQuery();
-			
-			int totalRecords = 0;
-			if (countRs.next()) {
-				totalRecords = countRs.getInt("TotalRecords");
-			}
-			countRs.close();
-			countStmt.close();
-			
-			// Get paginated data - WITHOUT Direction filter
-			String query = "SELECT " +
-				"    Empcode, " +
-				"    EmpName, " +
-				"    FORMAT(AttendanceDate,'dd-MM-yyyy') AS AttendanceDate, " +
-				"    FORMAT(InTime,'hh:mm tt') AS InTime, " +
-				"    FORMAT(OutTime,'hh:mm tt') AS OutTime, " +
-				"    FORMAT(DATEADD(MINUTE, DATEDIFF(MINUTE, InTime, OutTime), 0),'HH:mm') AS TotalWorkingHours " +
-				"FROM " +
-				"( " +
-				"    SELECT " +
-				"        Empcode, " +
-				"        EmpName, " +
-				"        CAST(Logdatetime AS DATE) AS AttendanceDate, " +
-				"        MIN(Logdatetime) AS InTime, " +
-				"        MAX(Logdatetime) AS OutTime " +
-				"    FROM IshineRawdata " +
-				"    WHERE Logdatetime >= ? AND Logdatetime <= ? " +
-				"    GROUP BY Empcode, EmpName, CAST(Logdatetime AS DATE) " +
-				") A " +
-				"ORDER BY Empcode, AttendanceDate " +
-				"OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+		Map<String, Object> responseData = new HashMap<>();
 
-			PreparedStatement statement = con.prepareStatement(query);
-			statement.setString(1, startDate + " 00:00:00");
-			statement.setString(2, endDate + " 23:59:59");
-			statement.setInt(3, offset);
-			statement.setInt(4, pageSize);
+		try (Connection con = getConnection()) {
+			LocalDate startLocalDate = parseDashboardDate(startDate);
+			LocalDate endLocalDate = parseDashboardDate(endDate);
 
-			ResultSet resultSet = statement.executeQuery();
+			long totalEmployees = Optional.ofNullable(employeeRepository.getTotalEmployeeCount()).orElse(0L);
 
-			while (resultSet.next()) {
-				BioMaTO bioMaTO = new BioMaTO();
-				bioMaTO.setEmployeeCode(resultSet.getString("Empcode"));
-				bioMaTO.setEmployeeName(resultSet.getString("EmpName"));
-				bioMaTO.setLogDate(resultSet.getString("AttendanceDate"));
-				bioMaTO.setInTime(resultSet.getString("InTime"));
-				bioMaTO.setOutTime(resultSet.getString("OutTime"));
-				bioMaTO.setTotalDuration(resultSet.getString("TotalWorkingHours"));
-				
-				finalEmpBioData.add(bioMaTO);
+			// Present count for selected end date
+			long presentToday = 0L;
+			String presentTodayQuery = "SELECT COUNT(DISTINCT Empcode) AS presentCount "
+					+ "FROM IshineRawdata "
+					+ "WHERE CAST(Logdatetime AS DATE) = ?";
+			try (PreparedStatement presentStmt = con.prepareStatement(presentTodayQuery)) {
+				presentStmt.setDate(1, java.sql.Date.valueOf(endLocalDate));
+				try (ResultSet rs = presentStmt.executeQuery()) {
+					if (rs.next()) {
+						presentToday = rs.getLong("presentCount");
+					}
+				}
 			}
 
-			finalEmpBioData = mapEmployeeDetails(finalEmpBioData, null);
+			// Late arrivals on selected day (first punch after 10:00 AM)
+			long lateArrivals = 0L;
+			String lateArrivalsQuery = "SELECT COUNT(*) AS lateCount FROM ( "
+					+ "SELECT Empcode, MIN(Logdatetime) AS InTime "
+					+ "FROM IshineRawdata "
+					+ "WHERE CAST(Logdatetime AS DATE) = ? "
+					+ "GROUP BY Empcode "
+					+ ") A WHERE CAST(A.InTime AS TIME) > '10:00:00'";
+			try (PreparedStatement lateStmt = con.prepareStatement(lateArrivalsQuery)) {
+				lateStmt.setDate(1, java.sql.Date.valueOf(endLocalDate));
+				try (ResultSet rs = lateStmt.executeQuery()) {
+					if (rs.next()) {
+						lateArrivals = rs.getLong("lateCount");
+					}
+				}
+			}
 
-			resultSet.close();
-			statement.close();
+			// Employees with less than 9 hours on selected day
+			long underNineHours = 0L;
+			String underNineQuery = "SELECT COUNT(*) AS underNineCount FROM ( "
+					+ "SELECT Empcode, DATEDIFF(MINUTE, MIN(Logdatetime), MAX(Logdatetime)) AS workedMinutes "
+					+ "FROM IshineRawdata "
+					+ "WHERE CAST(Logdatetime AS DATE) = ? "
+					+ "GROUP BY Empcode "
+					+ ") A WHERE A.workedMinutes > 0 AND A.workedMinutes < 540";
+			try (PreparedStatement underNineStmt = con.prepareStatement(underNineQuery)) {
+				underNineStmt.setDate(1, java.sql.Date.valueOf(endLocalDate));
+				try (ResultSet rs = underNineStmt.executeQuery()) {
+					if (rs.next()) {
+						underNineHours = rs.getLong("underNineCount");
+					}
+				}
+			}
 
-			Map<String, Object> responseData = new HashMap<>();
-			responseData.put("data", finalEmpBioData);
-			responseData.put("totalRecords", totalRecords);
-			responseData.put("currentPage", pageNumber);
-			responseData.put("pageSize", pageSize);
-			responseData.put("totalPages", (int) Math.ceil((double) totalRecords / pageSize));
+			long absentToday = Math.max(totalEmployees - presentToday, 0L);
+			long onTimeToday = Math.max(presentToday - lateArrivals, 0L);
+
+			Map<String, Object> summary = new HashMap<>();
+			summary.put("totalEmployees", totalEmployees);
+			summary.put("presentToday", presentToday);
+			summary.put("lateArrivals", lateArrivals);
+			summary.put("underNineHours", underNineHours);
+			summary.put("absentToday", absentToday);
+			responseData.put("summary", summary);
+
+			Map<String, Object> statusDistribution = new HashMap<>();
+			statusDistribution.put("onTime", onTimeToday);
+			statusDistribution.put("late", lateArrivals);
+			statusDistribution.put("absent", absentToday);
+			statusDistribution.put("total", totalEmployees);
+			responseData.put("statusDistribution", statusDistribution);
+
+			// Trend across selected range (daily present vs absent)
+			List<Map<String, Object>> weeklyTrend = new ArrayList<>();
+			String trendQuery = "SELECT CAST(Logdatetime AS DATE) AS AttendanceDate, COUNT(DISTINCT Empcode) AS PresentCount "
+					+ "FROM IshineRawdata "
+					+ "WHERE Logdatetime >= ? AND Logdatetime < ? "
+					+ "GROUP BY CAST(Logdatetime AS DATE) "
+					+ "ORDER BY AttendanceDate";
+			try (PreparedStatement trendStmt = con.prepareStatement(trendQuery)) {
+				trendStmt.setTimestamp(1, java.sql.Timestamp.valueOf(startLocalDate.atStartOfDay()));
+				trendStmt.setTimestamp(2, java.sql.Timestamp.valueOf(endLocalDate.plusDays(1).atStartOfDay()));
+				try (ResultSet rs = trendStmt.executeQuery()) {
+					while (rs.next()) {
+						long presentCount = rs.getLong("PresentCount");
+						Map<String, Object> day = new HashMap<>();
+						day.put("date", rs.getString("AttendanceDate"));
+						day.put("presentCount", presentCount);
+						day.put("absentCount", Math.max(totalEmployees - presentCount, 0L));
+						weeklyTrend.add(day);
+					}
+				}
+			}
+			responseData.put("weeklyTrend", weeklyTrend);
 
 			serviceResponse.setServiceResponse(responseData);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			serviceResponse.setServiceResponse("");
@@ -399,6 +414,24 @@ public class BioMaxService {
 		}
 
 		return serviceResponse;
+	}
+
+	private LocalDate parseDashboardDate(String date) {
+		if (date == null) {
+			return LocalDate.now();
+		}
+
+		try {
+			return LocalDate.parse(date, DateTimeFormatter.ofPattern("dd-MMM-yyyy"));
+		} catch (DateTimeParseException ignored) {
+		}
+
+		try {
+			return LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		} catch (DateTimeParseException ignored) {
+		}
+
+		return LocalDate.now();
 	}
 
 	 public ServiceResponse getEmpBioData360(String startDate, String endDate, List<String> employeeId) {
@@ -1055,22 +1088,10 @@ public class BioMaxService {
 			
 			Connection con = getConnection();
 			
-			boolean searchInMySQL = false;
-			boolean searchInMSSQL = false;
-			List<String> employeeCodesFromMySQL = null;
+			boolean searchInMySQL = true;
+			Map<String, String> safeSearchParams = searchParams != null ? searchParams : new HashMap<>();
+			List<String> employeeCodesFromMySQL = searchEmployeesInMySQL(safeSearchParams);
 			
-			if (searchParams != null && !searchParams.isEmpty()) {
-				Set<String> mysqlSearchFields = Set.of("employeeName", "employeeCode", "departmentName", "reportingManagerName");
-				
-				for (String field : searchParams.keySet()) {
-					if (mysqlSearchFields.contains(field) && searchParams.get(field) != null && !searchParams.get(field).trim().isEmpty()) {
-						searchInMySQL = true;
-						break;
-					}
-				}
-				
-				if (searchInMySQL) {
-					employeeCodesFromMySQL = searchEmployeesInMySQL(searchParams);
 					if (employeeCodesFromMySQL.isEmpty()) {
 						Map<String, Object> responseData = new HashMap<>();
 						responseData.put("data", finalEmpBioData);
@@ -1082,10 +1103,6 @@ public class BioMaxService {
 						serviceResponse.setServiceResponse(responseData);
 						serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						return serviceResponse;
-					}
-				}
-				
-				searchInMSSQL = true;
 			}
 			
 			// First, get total count with filters
@@ -1155,35 +1172,34 @@ public class BioMaxService {
 			String employeeName = searchParams.get("employeeName");
 			String departmentName = searchParams.get("departmentName");
 			String reportingManagerName = searchParams.get("reportingManagerName");
-			String employeeCode = searchParams.get("employeeCode");
+			String employeeCodeInput = searchParams.get("employeeCode");
 			
-			// Get employees from existing query (prefixed IDs with proper format)
-			List<String> prefixedIds = employeeRepository.findEmployeeIdsBySearchCriteria(
+			String numericCodeSearch = null;
+			if (employeeCodeInput != null && !employeeCodeInput.trim().isEmpty()) {
+				numericCodeSearch = employeeCodeInput.replaceAll("[a-zA-Z-]", "").trim();
+				if (numericCodeSearch.isEmpty()) numericCodeSearch = null;
+			}
+			
+			// Get raw numeric employee IDs based on search criteria
+			List<String> rawIds = employeeRepository.findRawEmployeementIdsBySearchCriteria(
 				(employeeName != null && !employeeName.trim().isEmpty()) ? employeeName : null,
-				(employeeCode != null && !employeeCode.trim().isEmpty()) ? employeeCode : null,
+				numericCodeSearch,
 				(departmentName != null && !departmentName.trim().isEmpty()) ? departmentName : null,
 				(reportingManagerName != null && !reportingManagerName.trim().isEmpty()) ? reportingManagerName : null
 			);
 			
-			// For each prefixed ID, add ONLY the exact formats
-			for (String prefixedId : prefixedIds) {
-				// Add the exact prefixed ID (CS-25001, AP-25001, A-25001)
-				employeeCodes.add(prefixedId);
-				
-				// Also add without dash (CS25001, AP25001, A25001)
-				String withoutDash = prefixedId.replace("-", "");
-				employeeCodes.add(withoutDash);
+			for (String rawId : rawIds) {
+				employeeCodes.add("A-" + rawId);
+				employeeCodes.add("AP-" + rawId);
+				employeeCodes.add("CS-" + rawId);
+				employeeCodes.add("A" + rawId);
+				employeeCodes.add("AP" + rawId);
+				employeeCodes.add("CS" + rawId);
 			}
 			
-			// Also handle direct employee code search if provided
-			if (employeeCode != null && !employeeCode.trim().isEmpty()) {
-				employeeCodes.add(employeeCode);
-				// Only add pattern if the search term itself contains %
-				if (employeeCode.contains("%")) {
-					employeeCodes.add(employeeCode);
-				} else {
-					// For exact employee code search, only add exact match
-					employeeCodes.add(employeeCode);
+			if (employeeCodeInput != null && !employeeCodeInput.trim().isEmpty()) {
+				if (!employeeCodeInput.contains("%")) {
+					employeeCodes.add(employeeCodeInput);
 				}
 			}
 			
@@ -1191,7 +1207,7 @@ public class BioMaxService {
 			employeeCodes = employeeCodes.stream().distinct().collect(Collectors.toList());
 			
 			// Log for debugging
-			System.out.println("Generated search patterns (exact matches only): " + employeeCodes);
+			System.out.println("Generated search patterns (exact matches only): " + employeeCodes.size() + " items");
 			
 		} catch (Exception e) {
 			e.printStackTrace();

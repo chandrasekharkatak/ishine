@@ -3712,4 +3712,28 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			@Param("managerName") String managerName
 		);
 
+	@Query(value = "SELECT DISTINCT CAST(e.employeement_id AS CHAR) " +
+               "FROM employee e " +
+               "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+               "LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+               "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id " +
+               "LEFT JOIN employee m ON e.manager_id = m.emp_id " +
+               "WHERE e.employmentstatus != 'InActive' " +
+               "AND e.emp_id NOT IN (1, 6) " +
+               "AND (:employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%'))) " +
+               "AND (:employeeCode IS NULL OR CAST(e.employeement_id AS CHAR) LIKE CONCAT('%', :employeeCode, '%')) " +
+               "AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+               "AND (:managerName IS NULL OR " +
+               "    LOWER(CASE " +
+               "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
+               "        ELSE m.name " +
+               "    END) LIKE LOWER(CONCAT('%', :managerName, '%')))",
+       nativeQuery = true)
+		List<String> findRawEmployeementIdsBySearchCriteria(
+			@Param("employeeName") String employeeName,
+			@Param("employeeCode") String employeeCode,
+			@Param("departmentName") String departmentName,
+			@Param("managerName") String managerName
+		);
+
 }
