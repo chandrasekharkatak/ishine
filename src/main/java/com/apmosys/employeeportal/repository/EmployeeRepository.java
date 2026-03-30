@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -276,6 +277,23 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getHierarchyByEmpId(Long empId);
+
+	/**
+	 * Counts 1 if {@code candidateEmpId} is {@code rootEmpId} or reachable under the same
+	 * manager/reporting-manager rules as {@link #getHierarchyByEmpId(Long)} (direct + indirect reports).
+	 */
+	@Query(value = "WITH RECURSIVE team_tree AS ( "
+			+ "SELECT e.emp_id FROM employee e WHERE e.emp_id = :rootEmpId AND e.employmentstatus NOT LIKE 'InActive' "
+			+ "UNION ALL "
+			+ "SELECT e2.emp_id FROM employee e2 "
+			+ "INNER JOIN team_tree t ON ( "
+			+ "  (e2.manager_id = t.emp_id AND (e2.approvals_to = 'Manager' OR e2.approvals_to IS NULL)) "
+			+ "  OR (e2.reporting_manager_id = t.emp_id AND e2.approvals_to = 'Reporting Manager') "
+			+ ") "
+			+ "WHERE e2.employmentstatus NOT LIKE 'InActive' "
+			+ ") "
+			+ "SELECT COUNT(*) FROM team_tree WHERE emp_id = :candidateEmpId", nativeQuery = true)
+	BigInteger countEmpInManagerReportingSubtree(@Param("rootEmpId") Long rootEmpId, @Param("candidateEmpId") Long candidateEmpId);
 
 	public Long countByEmpId(Long empId);
 
