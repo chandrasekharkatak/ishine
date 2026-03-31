@@ -6,6 +6,29 @@ import { EmployeeTimesheetDTO } from '../models/EmployeeTimesheetDTO';
 import { Timesheet } from '../models/timesheet';
 import { Observable } from 'rxjs';
 
+/**
+ * Payload for approving via bulkApproveTimesheetRequest1.
+ * Client-approval rules are enforced server-side using DB document rows only; do not send documentDetails.
+ */
+export interface BulkApproveTimesheetRequestPayload {
+  timesheetIds: number[];
+  status: string;
+  updatedBy: number;
+  rmId: number;
+  confirmNightShift?: boolean;
+}
+
+/** Bulk reject path (rejectMode BULK) for the same endpoint; distinct from approve payload. */
+export interface BulkProcessRejectPayload {
+  timesheetIds: number[];
+  status: string;
+  updatedBy: number;
+  rmId: number;
+  rejectMode: string;
+  rejectionReasonId: number[];
+  rejectRemark: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -144,11 +167,7 @@ export class TimesheetNewService {
       payload
     );
   }
-  bulkApproveTimesheetsByIds1(payload: {
-    timesheetIds: number[];
-    updatedBy: number;
-    rejectReason?: string | null;
-  }) {
+  bulkApproveTimesheetsByIds1(payload: BulkApproveTimesheetRequestPayload) {
     return this.http.post<any>(
       `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
       payload
@@ -168,28 +187,29 @@ export class TimesheetNewService {
   //     payload
   //   );
   // }
-bulkRejectTimesheetsByIds1(payload: {
-  timesheetIds: number[];
-  status: string;
-  rmId: number;
-  updatedBy: number;
-  projectRejections: {
-    projectIds: number[];
-    rejectionIds: number[];
-    rejectRemark: string;
-  }[];
-}) {
-  return this.http.post<any>(
-    `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
-    payload
-  );
-}
-processBulkTimesheets(payload: any) {
-  return this.http.post<any>(
-    `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
-    payload
-  );
-}
+  bulkRejectTimesheetsByIds1(payload: {
+    timesheetIds: number[];
+    status: string;
+    rmId: number;
+    updatedBy: number;
+    projectRejections: {
+      projectIds: number[];
+      rejectionIds: number[];
+      rejectRemark: string;
+    }[];
+  }) {
+    return this.http.post<any>(
+      `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
+      payload
+    );
+  }
+
+  processBulkTimesheets(payload: BulkProcessRejectPayload) {
+    return this.http.post<any>(
+      `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
+      payload
+    );
+  }
 
 
   approveRejectProjects(payload: {

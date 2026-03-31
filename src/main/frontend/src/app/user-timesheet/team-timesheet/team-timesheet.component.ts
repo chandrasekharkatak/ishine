@@ -2596,38 +2596,6 @@ projectList: any[] = [];
 
 // }
 
-getBulkDocumentDetails(timesheets: any[]) {
-
-  const docs: any[] = [];
-
-  timesheets.forEach((ts: any) => {
-
-    (ts.documentData || []).forEach((doc: any) => {
-      let clientApprovalStatus = null;
-
-      // find project approval status
-      (ts.locationSessions || []).forEach((loc: any) => {
-        (loc.projects || []).forEach((proj: any) => {
-          if (proj.projectId === doc.docsProjectId) {
-            clientApprovalStatus = proj.clientApprovalStatus;
-          }
-        });
-      });
-
-      docs.push({
-        timesheetId: ts.timesheetId,
-        projectId: doc.docsProjectId,
-        docId: doc.docId,
-        bulkApprovedDocId: doc.bulkApprovedDocId,
-        clientApprovalStatus: clientApprovalStatus
-      });
-
-    });
-
-  });
-
-  return docs;
-}
   // BULK APPROVAL
   bulkApproveByIds(confirmNightShift: boolean = false, ids?: number[]) {
 
@@ -2757,8 +2725,7 @@ approveSingleTimesheet(timesheet: any) {
     timesheetIds: [timesheet.timesheetId],
     status: 'APPROVED',
     updatedBy: this.currentUser.empId,
-    rmId: this.currentUser.empId,
-    documentDetails: this.getBulkDocumentDetails([timesheet])
+    rmId: this.currentUser.empId
   };
 
   this.loaderService.requestStarted();
@@ -2774,13 +2741,14 @@ approveSingleTimesheet(timesheet: any) {
         if (res?.serviceStatus === 'Success') {
 
           const processed = res?.serviceResponse?.processed || [];
-          const skipped = res?.serviceResponse?.skipped || {};
+          const skipped = Array.isArray(res?.serviceResponse?.skipped)
+            ? res.serviceResponse.skipped
+            : [];
 
           if (processed.length) {
             message += `${processed.length} timesheet(s) approved successfully.\n`;
           }
 
-          const skippedKeys = Object.keys(skipped);
           if (skipped.length) {
 
               message += `
@@ -3236,7 +3204,9 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
         let message = '';
       if (res?.serviceStatus === 'Success') {
         const processed = res?.serviceResponse?.processed || [];
-          const skipped = res?.serviceResponse?.skipped || {};
+          const skipped = Array.isArray(res?.serviceResponse?.skipped)
+            ? res.serviceResponse.skipped
+            : [];
 
           if (processed.length) {
             message += `${processed.length} timesheet(s) rejected successfully.\n`;
@@ -3464,8 +3434,7 @@ executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
     status: 'APPROVED',
     updatedBy: this.currentUser.empId,
     rmId : this.currentUser.empId,
-    confirmNightShift,
-    documentDetails: this.getBulkDocumentDetails(selectedTimesheets)
+    confirmNightShift
   };
 
   this.loaderService.requestStarted();
@@ -3498,13 +3467,14 @@ executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
         if (res?.serviceStatus === 'Success') {
 
         const processed = res?.serviceResponse?.processed || [];
-        const skipped = res?.serviceResponse?.skipped || {};
+        const skipped = Array.isArray(res?.serviceResponse?.skipped)
+          ? res.serviceResponse.skipped
+          : [];
 
         if (processed.length) {
             message += `<p><strong>${processed.length} timesheet(s) approved successfully.</strong></p>`;
           }
 
-        const skippedKeys = Object.keys(skipped);
         if (skipped.length) {
 
             message += `
@@ -3603,7 +3573,9 @@ this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this
     if (res?.serviceStatus === 'Success') {
 
       const processed = res?.serviceResponse?.processed || [];
-      const skipped = res?.serviceResponse?.skipped || [];
+      const skipped = Array.isArray(res?.serviceResponse?.skipped)
+        ? res.serviceResponse.skipped
+        : [];
 
       if (processed.length) {
         message += `<p><strong>${processed.length} timesheet(s) rejected successfully.</strong></p>`;

@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
@@ -91,6 +92,18 @@ public class TeamMembersController {
 	@GetMapping("/triggerUnmappedEmployeeProjectNotificationJob")
 	public void triggerUnmappedEmployeeProjectNotificationJob() {
 		teamMembersService.sendDepartmentWiseUnmappedEmployeeProjectMail();
+	}
+
+	// @Encrypted
+	@PostMapping("/updateEmployeeProjectMappingAsInActive")
+	public ServiceResponse updateEmployeeProjectMappingAsInActive(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
+		return teamMembersService.updateEmployeeProjectMappingAsInActive(rmgTeamMemberDto);
+	}
+		
+	// @Encrypted
+	@GetMapping("/getEmployeeExistingProjectDetailsByEmpId")
+	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(@RequestParam Long empId, @RequestParam Integer projectId) {
+		return teamMembersService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId);
 	}
 
 }

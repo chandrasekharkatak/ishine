@@ -400,6 +400,11 @@ public class EmployeeDTO {
 	private List<CertificateDTO> employeeCertificates;
 	private Boolean hideMaternityLeaveEmps;
 
+	private Long poId;
+	private Long poRoleId;
+	private LocalDateTime oldEtmEndDate;
+	private LocalDateTime newEtmStartDate;
+
 	// findAllEmployeesWithoutAnyBillable findAllEmployeesWithoutAnyBillableInDeptId
 	public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
 			Long mobileNo, Long managerId, String managerName, String jobRoleName,
