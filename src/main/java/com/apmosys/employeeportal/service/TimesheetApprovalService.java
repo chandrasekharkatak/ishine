@@ -2018,7 +2018,8 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
                     requestedId,
                     "UNKNOWN",
                     null,
-                    "Timesheet not found"
+                    "Timesheet not found",
+					null
             ));
         }
     }
@@ -2080,7 +2081,8 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
                 ts.getTimesheetId(),
                 formattedEmpId,
                 ts.getDate(),
-                "You do not have approval/rejection rights"
+                "You do not have approval/rejection rights",
+				ts.getEmpId()
 				));
 				continue; // skip further checks for this timesheet
 			}
@@ -2099,7 +2101,8 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
                         ts.getTimesheetId(),
                         formattedEmpId,
                         ts.getDate(),
-                        "Documents not found in Database for client-side project"
+                        "Documents not found in Database for client-side project",
+						ts.getEmpId()
                 ));
                 continue;
             }
@@ -2108,7 +2111,8 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
                             ts.getTimesheetId(),
                             formattedEmpId,
                             ts.getDate(),
-                            "Client approval conditions not satisfied"
+                            "Client approval conditions not satisfied",
+							ts.getEmpId()
                     ));
                     continue;
                 }
@@ -2121,7 +2125,8 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 						ts.getTimesheetId(),
 						formattedEmpId,
 						ts.getDate(),
-						"Timesheet status missing"
+						"Timesheet status missing",
+						ts.getEmpId()
 				));
 				continue;
 			}
@@ -2140,7 +2145,8 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 							ts.getTimesheetId(),
 							formattedEmpId,
 							ts.getDate(),
-							"Already Approved"
+							"Already Approved",
+							ts.getEmpId()
 					));
 				}
 			}
@@ -2151,7 +2157,8 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 						ts.getTimesheetId(),
 						formattedEmpId,
 						ts.getDate(),
-						"Already Rejected"
+						"Already Rejected",
+						ts.getEmpId()
 				));
 			}
         }
@@ -2569,7 +2576,7 @@ private void saveSkippedTimesheets(List<SkippedTimesheetDTO> skippedList,Long cr
     List<SkippedTimesheetLog> logs = skippedList.stream().map(s -> {
         SkippedTimesheetLog log = new SkippedTimesheetLog();
         log.setTimesheetId(s.getTimesheetId());
-        log.setEmployeementId(s.getEmploymentId());
+        log.setEmpId(s.getEmpId());
         log.setTimesheetDate(s.getDate());
         log.setReason(s.getReason());
         log.setCreatedAt(LocalDateTime.now());

@@ -28,8 +28,8 @@ public class SkippedTimesheetLog {
     @Column(name = "timesheet_id")
     private Long timesheetId;
 
-    @Column(name = "employeement_id")
-    private String employeementId;
+    @Column(name = "emp_id")
+    private Long empId;
 
     @Column(name = "timesheet_date")
     private LocalDate timesheetDate;
