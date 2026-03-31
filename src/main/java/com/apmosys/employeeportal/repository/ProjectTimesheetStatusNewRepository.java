@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -125,6 +126,15 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
     	       "WHERE ptsn.id.timesheetId IN :timesheetIds")
     	List<Object[]> findProjectsForTimesheetIds(
     	        @Param("timesheetIds") List<Long> timesheetIds);
+
+    /**
+     * Distinct (timesheet, project) pairs that exist for bulk validation of single/bulk reject flows.
+     */
+    @Query("SELECT DISTINCT p.id.timesheetId, p.id.projectId FROM ProjectTimesheetStatusNew p "
+            + "WHERE p.id.timesheetId IN :timesheetIds AND p.id.projectId IN :projectIds")
+    List<Object[]> findDistinctTimesheetProjectPairs(
+            @Param("timesheetIds") List<Long> timesheetIds,
+            @Param("projectIds") Collection<Integer> projectIds);
 
         @Query(
                 "SELECT p FROM ProjectTimesheetStatusNew p \n" +
