@@ -42,6 +42,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<ProjectIdAndNameDTO> findAllProjectIdAndName();
 	
 	public List<Project> findByEmpId(Long empId);
+	@Query("SELECT p.projectId, p.hasClientSideId FROM Project p WHERE p.projectId IN :projectIds")
+	List<Object[]> findHasClientSideByProjectIds(@Param("projectIds") Set<Integer> projectIds);
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getActivitiesByTeamIdAndEmployeeId(Long teamId, Long empId);

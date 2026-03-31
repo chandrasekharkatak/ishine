@@ -63,6 +63,7 @@ import com.apmosys.employeeportal.model.TimesheetRejectionDetailsNew;
 import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
 	import com.apmosys.employeeportal.repository.EmployeeRepository;
 	import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
 import com.apmosys.employeeportal.repository.SkippedTimesheetLogRepository;
 import com.apmosys.employeeportal.repository.TimesheetActionAuditNewRepository;
@@ -99,6 +100,9 @@ import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepo
 	    
 	    @Autowired
 	    private EmployeeRepository employeeRepository;
+
+		@Autowired
+		private ProjectRepository projectsRepository;
 	    
 	    @Autowired
 	    private TimesheetDocumentApprovalRepository timesheetDocumentApprovalRepository;
@@ -2030,6 +2034,30 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
                     .collect(Collectors.groupingBy(TimesheetDocumentDetailsNew::getTimesheetId))
             : new HashMap<>();
 
+    List<Object[]> result =
+            projectTimesheetStatusNewRepository.findProjectsForTimesheetIds(fetchedTimesheetIds);
+
+    Map<Long, List<Long>> timesheetProjectMap = new HashMap<>();
+    for (Object[] r : result) {
+        Long timesheetId = ((Number) r[0]).longValue();
+        Long projectId = ((Number) r[1]).longValue();
+        timesheetProjectMap.computeIfAbsent(timesheetId, k -> new ArrayList<>()).add(projectId);
+    }
+
+    Set<Integer> allProjectIds = timesheetProjectMap.values().stream()
+        .flatMap(List::stream)
+        .filter(Objects::nonNull)
+        .map(Long::intValue)  
+        .collect(Collectors.toSet());
+
+    Map<Long, Integer> projectClientSideMap =
+            projectsRepository.findHasClientSideByProjectIds(allProjectIds)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            r -> ((Number) r[0]).longValue(),
+                            r -> ((Boolean) r[1]) ? 1 : 0
+                    ));
+
         for (EmployeeTimesheetsNewDTO ts : timesheets) {
 
             String prefix = "true".equalsIgnoreCase(ts.getIsProd()) ? "AP-" : "A-";
@@ -2060,7 +2088,21 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 			List<TimesheetDocumentDetailsNew> docs =
                     docsByTimesheet.get(ts.getTimesheetId());
 
+        List<Long> projectIds =
+                timesheetProjectMap.getOrDefault(ts.getTimesheetId(), Collections.emptyList());
+
             if ("APPROVED".equals(status) && Boolean.TRUE.equals(ts.getIsWorkingDay())) {
+
+            // Check: client-side project but no docs
+            if (isMissingClientSideDocs(projectIds, docs, projectClientSideMap)) {
+                skippedTimesheets.add(new SkippedTimesheetDTO(
+                        ts.getTimesheetId(),
+                        formattedEmpId,
+                        ts.getDate(),
+                        "Documents not found in Database for client-side project"
+                ));
+                continue;
+            }
                 if (isClientApprovalBlockedByDbDocuments(docs)) {
                     skippedTimesheets.add(new SkippedTimesheetDTO(
                             ts.getTimesheetId(),
@@ -2155,18 +2197,6 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 			}
         }
 
-		
-
-        List<Object[]> result =
-                projectTimesheetStatusNewRepository.findProjectsForTimesheetIds(validTimesheetIds);
-
-        Map<Long, List<Long>> timesheetProjectMap = new HashMap<>();
-        for (Object[] r : result) {
-            Long timesheetId = ((Number) r[0]).longValue();
-            Long projectId = ((Number) r[1]).longValue();
-            timesheetProjectMap.computeIfAbsent(timesheetId, k -> new ArrayList<>()).add(projectId);
-        }
-
         Long updatedBy = request.getUpdatedBy();
 
         if ("APPROVED".equals(status)) {
@@ -2213,7 +2243,37 @@ private boolean isClientApprovalBlockedByDbDocuments(List<TimesheetDocumentDetai
         return true;
     });
 }
+private boolean isMissingClientSideDocs(
+        List<Long> projectIds,
+        List<TimesheetDocumentDetailsNew> docs,
+        Map<Long, Integer> projectClientSideMap) {
 
+    if (projectIds == null || projectIds.isEmpty()) {
+        return false;
+    }
+
+    Set<Long> docProjectIds = (docs == null)
+            ? Collections.emptySet()
+            : docs.stream()
+                  .map(TimesheetDocumentDetailsNew::getProjectId)
+                  .filter(Objects::nonNull)
+                  .map(Long::valueOf)
+                  .collect(Collectors.toSet());
+
+    for (Long projectId : projectIds) {
+
+        Integer hasClientSide = projectClientSideMap.get(projectId);
+
+        if (hasClientSide != null && hasClientSide == 1) {
+
+            if (!docProjectIds.contains(projectId)) {
+                return true; //  missing doc
+            }
+        }
+    }
+
+    return false;
+}
 private void validateSingleRejectMappings(List<Long> timesheetIds, List<ProjectRejectionDTO> projectRejections) {
     Set<String> requiredPairs = new HashSet<>();
     for (Long tid : timesheetIds) {
