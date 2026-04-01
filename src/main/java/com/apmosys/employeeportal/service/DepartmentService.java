@@ -392,9 +392,31 @@ public class DepartmentService {
 		apiLogInfo.setApiUrl("/api/updateDepartment");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder
-				.append("deptId : " + departmentDTO.getDeptId() + ", departmentName : " + departmentDTO.getDeptName());
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.OK.value();
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
+
 		try {
+			initialLog = apiLogUtility.startLog(
+					poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					"updateDepartment",
+					PO_PORTAL_LOG_SOURCE,
+					null,
+					httpRequest);
+
+			if (departmentDTO == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request body is missing");
+				apiLogInfo.setApiResponse("departmentDTO is null");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				return response;
+			}
+
+			logBuilder.append("deptId : ").append(departmentDTO.getDeptId()).append(", departmentName : ")
+					.append(departmentDTO.getDeptName());
+
 			Optional<Department> departmentObject = departmentRepository.findById(departmentDTO.getDeptId());
 			if (departmentObject.isPresent()) {
 				Department departmentToBeUpdated = departmentObject.get();
@@ -411,7 +433,7 @@ public class DepartmentService {
 						apiLogInfo.setApiResponse("Department Abbreviation already exists.");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						apiLogInfo.setLogLevel("ERROR");
-						logService.logMyInfo(httpRequest, apiLogInfo);
+						finalHttpStatusCode = HttpStatus.CONFLICT.value();
 						return response;
 					}
 				}
@@ -436,6 +458,7 @@ public class DepartmentService {
 
 					apiLogInfo.setApiResponse("Department Updated.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					finalHttpStatusCode = HttpStatus.OK.value();
 
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -443,6 +466,7 @@ public class DepartmentService {
 
 					apiLogInfo.setApiResponse("Department Updated.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 
 				}
 			} else {
@@ -451,20 +475,28 @@ public class DepartmentService {
 
 				apiLogInfo.setApiResponse("Department Not Found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
 
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("updateDepartment failed", e);
+			exceptionDetailsForLog = e.toString();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
+						httpRequest);
+			}
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -476,8 +508,30 @@ public class DepartmentService {
 		apiLogInfo.setApiUrl("/api/deleteDepartment");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("deptId : " + departmentDTO.getDeptId());
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.OK.value();
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
+
 		try {
+			initialLog = apiLogUtility.startLog(
+					poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					"deleteDepartment",
+					PO_PORTAL_LOG_SOURCE,
+					null,
+					httpRequest);
+
+			if (departmentDTO == null || departmentDTO.getDeptId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid department request.");
+				apiLogInfo.setApiResponse("departmentDTO or deptId is null");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				return response;
+			}
+
+			logBuilder.append("deptId : ").append(departmentDTO.getDeptId());
+
 			boolean isDeptUsedInPoPortal = false;
 			Optional<Department> departmentObject = departmentRepository.findById(departmentDTO.getDeptId());
 			if (departmentObject.isEmpty()) {
@@ -485,6 +539,7 @@ public class DepartmentService {
 				response.setServiceResponse("Department Not Found.");
 				apiLogInfo.setApiResponse("Department Not Found.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
 				return response;
 			}
 			Department departmentToBeDeleted = departmentObject.get();
@@ -512,6 +567,7 @@ public class DepartmentService {
 				response.setServiceResponse("Department deleted.");
 				apiLogInfo.setApiResponse("Department deleted.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				finalHttpStatusCode = HttpStatus.OK.value();
 			} else {
 				DepartmentDTO dtoObject = new DepartmentDTO();
 				dtoObject.setIsDeptUsedInIshine(count != 0 ? "true" : "false");
@@ -520,17 +576,25 @@ public class DepartmentService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				apiLogInfo.setApiResponse(dtoObject + "Department cannot be deleted as it is mapped to job role(s).");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				finalHttpStatusCode = HttpStatus.CONFLICT.value();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("deleteDepartment failed", e);
+			exceptionDetailsForLog = e.toString();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
+						httpRequest);
+			}
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 

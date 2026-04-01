@@ -13006,45 +13006,59 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/sendTimesheetDetailsToShankh");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String sourceSystem = httpRequest.getRequestURI() != null ? httpRequest.getRequestURI() : "";
 
 		try {
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					"sendTimesheetDetailsToShankh", "PoPortal", null, httpRequest);
 
-			List<TimeSheetDetailsDto> timesheetDetails = projectRepository
-					.findByProjectIdAndEmployeeIdAndWorkDateBetween(payloadDTO.getTeamId(), payloadDTO.getEmpId(),
-							payloadDTO.getSt_Date(), payloadDTO.getEnd_Date());
-
-			if (timesheetDetails != null && !timesheetDetails.isEmpty()) {
-//	    		 timesheetDetails.forEach(timesheet ->{
-//	 	    		List<TimesheetDocumentDetailsDTO> docData = timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheet.getTimesheet_id());
-//	 	    		if(docData != null && !docData.isEmpty()) {
-//	 	    			timesheet.setDocData(docData);
-//	 	    		}
-//	 	    	 });
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(timesheetDetails);
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				apiLogInfo.setLogLevel("Info");
-
+			if (payloadDTO == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request payload is missing");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+				exceptionDetailsForLog = "payloadDTO is null";
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 			} else {
+				List<TimeSheetDetailsDto> timesheetDetails = projectRepository
+						.findByProjectIdAndEmployeeIdAndWorkDateBetween(payloadDTO.getTeamId(), payloadDTO.getEmpId(),
+								payloadDTO.getSt_Date(), payloadDTO.getEnd_Date());
 
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("No timesheet details found!");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				apiLogInfo.setLogLevel("Info");
-
+				if (timesheetDetails != null && !timesheetDetails.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(timesheetDetails);
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setLogLevel("Info");
+					finalHttpStatusCode = HttpStatus.OK.value();
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("No timesheet details found!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setLogLevel("Info");
+					finalHttpStatusCode = HttpStatus.OK.value();
+				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("sendTimesheetDetailsToShankh failed", e);
+			exceptionDetailsForLog = String.valueOf(e);
+			ExceptionLogContext.add(e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-			throw e;
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,
+						exceptionDetailsForLog != null ? exceptionDetailsForLog : ExceptionLogContext.get(), httpRequest);
+			}
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
-
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -13107,10 +13121,6 @@ public class ResourceManagementService {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("No project info (poProjectId) received at Ishine");
 				finalHttpStatusCode = HttpStatus.NO_CONTENT.value();
-				if (initialLog != null) {
-					apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
-							httpRequest);
-				}
 				return serviceResponse;
 			}
 			List<ResourceCountDto> data = projectRepository.getResourceCounts(pIds);
@@ -13155,10 +13165,6 @@ public class ResourceManagementService {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("No project info (poIds) received at Ishine");
 				finalHttpStatusCode = HttpStatus.NO_CONTENT.value();
-				if (initialLog != null) {
-					apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
-							httpRequest);
-				}
 				return serviceResponse;
 			}
 			List<RescCountOfPo> data = projectPoDetailsRepository.getResourceCounts(poIds);
@@ -13187,15 +13193,15 @@ public class ResourceManagementService {
 	public ServiceResponse getDocumentDataByDocId(Long docId) throws Exception {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setApiUrl("/api/getResourceCountFromProjectId");
+		apiLogInfo.setApiUrl("/api/getDocumentDataByDocIdForPO");
 		apiLogInfo.setLogLevel("INFO");
 		ApiLog initialLog = null;
 		String exceptionDetailsForLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
-				"getResourceCountFromProjectId", "PoPortal", null, httpRequest);
+				"getDocumentDataByDocId", "PoPortal", null, httpRequest);
 
-		String sourceSystem = httpRequest.getRequestURI().toString();
+		String sourceSystem = httpRequest.getRequestURI() != null ? httpRequest.getRequestURI() : "";
 		try {
 //			TimesheetDocumentDetails docDetails = new TimesheetDocumentDetails();
 			TimesheetDocumentDetailsNew docDetails = new TimesheetDocumentDetailsNew();
@@ -13207,7 +13213,7 @@ public class ResourceManagementService {
 
 				apiLogInfo.setApiResponse("Document not found...!!" + docId);
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				logService.logMyInfo(httpRequest, apiLogInfo);
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
 				return serviceResponse;
 			} else {
 				TimesheetDocumentDetailsDTO timesheetDocumentDetailsDTO = new TimesheetDocumentDetailsDTO();
@@ -13243,19 +13249,20 @@ public class ResourceManagementService {
 			finalHttpStatusCode = HttpStatus.OK.value();
 
 		} catch (Exception e) {
-			e.printStackTrace();
-			exceptionDetailsForLog = e.toString();
-			log.error("error in getDocumentDataByDocId" + e);
+			exceptionDetailsForLog = String.valueOf(e);
+			ExceptionLogContext.add(e);
+			log.error("getDocumentDataByDocId failed docId={}", docId, e);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			serviceResponse.setServiceResponse(e.getMessage());
-			throw e;
-//				serviceResponse.setServiceMessage(e.getMessage());
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 
 		} finally {
 			if (initialLog != null) {
-				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,
+						exceptionDetailsForLog != null ? exceptionDetailsForLog : ExceptionLogContext.get(),
 						httpRequest);
 			}
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
 		return serviceResponse;
 	}

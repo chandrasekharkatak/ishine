@@ -661,7 +661,9 @@ public class PoSyncOrchestratorService {
 	    	TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 	        ExceptionLogContext.add(e);
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse(e.getMessage());
 	        response.setServiceError(e.getMessage());
+	        finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 	        return response;
 	    } finally {
 	        if (initialLog != null) {
