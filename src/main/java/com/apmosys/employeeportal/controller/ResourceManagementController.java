@@ -611,7 +611,7 @@ public class ResourceManagementController {
 	
 	@GetMapping("/getAllApprovedPoWithTimesheet")
 	 public ServiceResponse getAllApprovedPoWithTimesheet(HttpServletRequest httpRequest) {
-//		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	 	return resourceManagementService.getAllApprovedPoWithTimesheet();
 	 }
 	
