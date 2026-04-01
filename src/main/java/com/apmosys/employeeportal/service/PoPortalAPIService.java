@@ -64,6 +64,7 @@ import com.apmosys.employeeportal.dto.PoPortalEmpIdDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
+import com.apmosys.employeeportal.dto.ProjectResourceByPoRowDto;
 import com.apmosys.employeeportal.dto.ProjectWiseMilestoneDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
@@ -1611,62 +1612,68 @@ public class PoPortalAPIService {
 	}
 
 
-	public ServiceResponse getResourceCountListByPoprojectName(List<String> poNos) {
+	/**
+	 * Returns resource rows for the given PO numbers ({@code po_no}). REST path remains
+	 * {@code /getResourceCountListByPoprojectName} for backward compatibility.
+	 */
+	public ServiceResponse getResourceListByPoNumbers(List<String> poNumbers) {
 		ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("Resource List");
-	    apiLogInfo.setApiUrl("/api/getResourceCountListByPoprojectName");
-	    apiLogInfo.setLogLevel("INFO");
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Resource List");
+		apiLogInfo.setApiUrl("/api/getResourceCountListByPoprojectName");
+		apiLogInfo.setLogLevel("INFO");
 
-	    try {
-	        // if (projectNames == null || projectNames.isEmpty()) {
-	        //     throw new IllegalArgumentException("poProjectName list is required");
-	        // }
-			 if (poNos == null || poNos.isEmpty()) {
-	            throw new IllegalArgumentException("Po No list is required");
-	        }
+		try {
+			logger.info("getResourceListByPoNumbers: request poNumberCount={}",
+					poNumbers == null ? 0 : poNumbers.size());
 
+			if (poNumbers == null || poNumbers.isEmpty()) {
+				throw new IllegalArgumentException("Po No list is required");
+			}
 
-	        List<Map<String, Object>> resourceList = new ArrayList<Map<String, Object>>();
-	        List<Object[]> results = projectRepository.getResourceListByProjectType(poNos);
-	        for (Object[] row : results) {
-	            Map<String, Object> map = new HashMap<String, Object>();
-	            map.put("empId", row[0]);
-	            map.put("employementId", row[1]);
-	            map.put("empName", row[2]);
-	            map.put("department", row[3]);
-	            map.put("role", row[4]);
-	            map.put("teamName", row[5]);
-	            map.put("projectManagerName", row[6]);
-	            map.put("projectName", row[7]); 
-	            map.put("poName", row[8]);
-	            resourceList.add(map);
-	        }	       
+			List<Object[]> rawRows = projectRepository.getResourceListByProjectType(poNumbers);
+			if (rawRows == null) {
+				rawRows = Collections.emptyList();
+			}
 
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse(resourceList);
-	        response.setServiceMessage("Resource list fetched successfully");
-	        response.setStatusCode(200);
-	        apiLogInfo.setApiResponse("Success");
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			List<ProjectResourceByPoRowDto> resourceList = new ArrayList<>();
+			for (Object[] row : rawRows) {
+				ProjectResourceByPoRowDto rowDto = ProjectResourceByPoRowDto.fromNativeQueryRow(row);
+				if (rowDto != null) {
+					resourceList.add(rowDto);
+				}
+			}
 
-	    } catch (IllegalArgumentException ex) {
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceResponse(ex.getMessage());
-	        apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(resourceList);
+			response.setServiceMessage("Resource list fetched successfully");
+			response.setStatusCode(200);
+			apiLogInfo.setApiResponse("Success");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			logger.info("getResourceListByPoNumbers: success rowCount={} poNumberCount={}", resourceList.size(),
+					poNumbers.size());
 
-	    } catch (Exception ex) {
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceResponse("Unexpected error: " + ex.getMessage());
-	        apiLogInfo.setApiResponse("Unexpected Error: " + ex.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		} catch (IllegalArgumentException ex) {
+			logger.info("getResourceListByPoNumbers: validation failed poNumberCount={} message={}",
+					poNumbers == null ? 0 : poNumbers.size(), ex.getMessage());
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(ex.getMessage());
+			apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
-	    } finally {
-	        logService.logMyInfo(httpRequest, apiLogInfo);
-	    }
+		} catch (Exception ex) {
+			logger.error("getResourceListByPoNumbers: unexpected error poNumberCount={}",
+					poNumbers == null ? 0 : poNumbers.size(), ex);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Unexpected error: " + ex.getMessage());
+			apiLogInfo.setApiResponse("Unexpected Error: " + ex.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
-	    return response;
+		} finally {
+			logService.logMyInfo(httpRequest, apiLogInfo);
+		}
+
+		return response;
 	}
 
 
