@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -491,8 +490,7 @@ public class ResourceManagementController {
 	 
 	 
 	 @PostMapping("/renewPoInIshineNew")
-	 public ServiceResponse renewPoInIshineNew(HttpServletRequest httpRequest,
-			 @Valid @RequestBody RenewedPoSyncDto dto) {
+	 public ServiceResponse renewPoInIshineNew(HttpServletRequest httpRequest, @RequestBody RenewedPoSyncDto dto) {
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		 return poSyncOrchestratorService.renewPoInIshineNew(dto);
 	 }
