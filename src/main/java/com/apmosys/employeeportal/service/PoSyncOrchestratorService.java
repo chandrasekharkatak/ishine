@@ -60,6 +60,11 @@ public class PoSyncOrchestratorService {
 	private static final String MSG_RM_PO_IDS_NULL_ENTRY = "PO IDs list contains null value";
 	private static final String MSG_RM_NO_ROWS_UPDATED = "No active PO records were updated for the given PO ID(s)";
 
+	private static final String OP_RENEW_PO = "renewPoInIshineNew";
+	private static final String API_LOG_RENEW_OPERATION = "renewPoInIshine";
+	private static final String MSG_RENEW_SUCCESS = "PO renewed successfully";
+	private static final String MSG_RENEW_INVALID_EVENT = "Invalid eventType for renew PO";
+
 	@Autowired
 	ClientService clientService;
 
@@ -262,92 +267,60 @@ public class PoSyncOrchestratorService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse renewPoInIshineNew(RenewedPoSyncDto dto) {
-
+		ServiceResponse response = new ServiceResponse();
 		ApiLog initialLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-		String sourceSystem = httpRequest.getRequestURI().toString();
-
-		ServiceResponse response = new ServiceResponse();
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
 
 		try {
 			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
-					"renewPoInIshine", "PoPortal", null, httpRequest);
+					API_LOG_RENEW_OPERATION, PO_PORTAL_LOG_SOURCE, null, httpRequest);
 
-			validationService.validateRenewPoPayload(dto);
+			log.info("[{}] start path={}", OP_RENEW_PO, sourceSystem);
 
-			if (dto.getEventType() != SyncRequestType.RENEW_PO) {
+			if (dto == null) {
+				log.warn("[{}] request body is null path={}", OP_RENEW_PO, sourceSystem);
+				applyRenewPoFailure(response, MSG_PAYLOAD_MISSING);
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-				throw new RuntimeException("Invalid eventType for renew PO");
-			}
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			} else {
+				validationService.validateRenewPoPayload(dto);
 
-			Project project = projectRepository.findByPoProjectId(dto.getProjectId());
-
-			if (project == null) {
-				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-				ExceptionLogContext.add("Project not found during PO renewal | poProjectId=" + dto.getProjectId());
-				throw new RuntimeException("Project does not exist for renewal");
-			}
-			
-			if(project.getPoProjectType().equalsIgnoreCase("TNM")) {
-				if(dto.getRenewedPo().getResourceRequirementList() == null || dto.getRenewedPo().getResourceRequirementList().isEmpty() )
-				{
+				if (dto.getEventType() != SyncRequestType.RENEW_PO) {
+					log.warn("[{}] invalid eventType={} path={}", OP_RENEW_PO, dto.getEventType(), sourceSystem);
+					applyRenewPoFailure(response, MSG_RENEW_INVALID_EVENT);
 					finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-					ExceptionLogContext.add("Renewed PO is TNM with no rsrc req from po" + dto.getRenewedPo().getPoId());
-					throw new RuntimeException(
-							"Renewed PO is TNM with no rsrc req from po" + dto.getRenewedPo().getPoId());	
+					TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				} else {
+					finalHttpStatusCode = renewPoCore(dto, response, sourceSystem);
 				}
 			}
-
-//			projectService.updateProjectDatesAfterRenewal(project, dto);
-
-			boolean exists = projectPoDetailsRepository.existsByPoIdAndProjectIdAndActiveTrue(dto.getRenewedPo().getPoId(),
-					project.getProjectId());
-
-			if (exists) {
-				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-				ExceptionLogContext.add("Renewed PO already exists in system | poId=" + dto.getRenewedPo().getPoId());
-				throw new RuntimeException(
-						"Renewed PO already exists in system | poId=" + dto.getRenewedPo().getPoId());
-			}
-
-			Client client = clientRepository.findByClientId(project.getClientId());
-			ProjectPoDetails newPo = poDetailsService.createRenewedPo(project, dto, client);
-			
-			
-			departmentService.syncDepartmentsRTS(newPo.getPoId(), dto.getRenewedPo().getDepartmentList(),project.getProjectId(),dto.getRenewedByEmpId());
-
-			if (dto.getRenewedPo().getResourceRequirementList() != null) {
-				
-				requirementService.syncRequirementsRTS(newPo.getPoId(),
-						dto.getRenewedPo().getResourceRequirementList(),dto.getRenewedByEmpId());
-			}
-
-			poDetailsService.validateAssociatedPosIntegrity(project.getProjectId(), dto.getAssociatePosAfterRenewal());
-
-			poDetailsService.updatePoLinksAfterRenewal(project.getProjectId(), dto);
-			
-			teamsService.migrateResourcesAfterRenewal(project.getProjectId(),newPo.getPoId(),dto.getRenewedByEmpId());
-			
-			projectService.recalculateProjectDates(project.getProjectId(),true);
-			
-			//when project state is alredy completed after  renew the project status should change to
-			finalHttpStatusCode = HttpStatus.OK.value();
-
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("PO renewed successfully");
-			return response;
-
-		} catch (Exception e) {
-			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		} catch (IllegalArgumentException e) {
+			log.error("[{}] illegal argument path={}", OP_RENEW_PO, sourceSystem, e);
 			ExceptionLogContext.add(e);
-			e.printStackTrace();
-//			exceptionDetailsForLog.append(e.printStackTrace());
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse(e.getMessage());
-			response.setServiceError(e.getMessage());
-			return response;
-//			throw e;
-
+			applyRenewPoFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		} catch (DataAccessException e) {
+			log.error("[{}] data access error path={} projectId={}", OP_RENEW_PO, sourceSystem,
+					dto != null ? dto.getProjectId() : null, e);
+			ExceptionLogContext.add(e);
+			applyRenewPoFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		} catch (RuntimeException e) {
+			log.error("[{}] business or validation failure path={} projectId={}", OP_RENEW_PO, sourceSystem,
+					dto != null ? dto.getProjectId() : null, e);
+			ExceptionLogContext.add(e);
+			applyRenewPoFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		} catch (Exception e) {
+			log.error("[{}] unexpected error path={}", OP_RENEW_PO, sourceSystem, e);
+			ExceptionLogContext.add(e);
+			applyRenewPoFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 		} finally {
 			if (initialLog != null) {
 				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, ExceptionLogContext.get(),
@@ -355,6 +328,95 @@ public class PoSyncOrchestratorService {
 			}
 		}
 
+		return response;
+	}
+
+	/**
+	 * Assumes {@code dto} is non-null, validated, and {@link SyncRequestType#RENEW_PO}.
+	 *
+	 * @return HTTP status code for logging (OK or BAD_REQUEST on controlled failures)
+	 */
+	private int renewPoCore(RenewedPoSyncDto dto, ServiceResponse response, String sourceSystem) {
+		Project project = projectRepository.findByPoProjectId(dto.getProjectId());
+		if (project == null) {
+			String detail = "Project not found during PO renewal | poProjectId=" + dto.getProjectId();
+			ExceptionLogContext.add(detail);
+			log.warn("[{}] {} path={}", OP_RENEW_PO, detail, sourceSystem);
+			applyRenewPoFailure(response, "Project does not exist for renewal");
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			return HttpStatus.BAD_REQUEST.value();
+		}
+
+		PoDetailsForProjectPoMappingDTO renewedPo = dto.getRenewedPo();
+		if (renewedPo == null) {
+			log.warn("[{}] renewedPo is null after validation path={}", OP_RENEW_PO, sourceSystem);
+			applyRenewPoFailure(response, "Renewed PO cannot be empty from PO");
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			return HttpStatus.BAD_REQUEST.value();
+		}
+
+		if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
+			List<POResourceRequirementDTO> resourceRequirementList = renewedPo.getResourceRequirementList();
+			if (resourceRequirementList == null || resourceRequirementList.isEmpty()) {
+				String msg = "Renewed PO is TNM with no rsrc req from po" + renewedPo.getPoId();
+				ExceptionLogContext.add(msg);
+				log.warn("[{}] {} path={}", OP_RENEW_PO, msg, sourceSystem);
+				applyRenewPoFailure(response, msg);
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				return HttpStatus.BAD_REQUEST.value();
+			}
+		}
+
+		Long renewedPoId = renewedPo.getPoId();
+		boolean exists = projectPoDetailsRepository.existsByPoIdAndProjectIdAndActiveTrue(renewedPoId,
+				project.getProjectId());
+		if (exists) {
+			String detail = "Renewed PO already exists in system | poId=" + renewedPoId;
+			ExceptionLogContext.add(detail);
+			log.warn("[{}] {} path={}", OP_RENEW_PO, detail, sourceSystem);
+			applyRenewPoFailure(response, "Renewed PO already exists in system | poId=" + renewedPoId);
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			return HttpStatus.BAD_REQUEST.value();
+		}
+
+		Client client = clientRepository.findByClientId(project.getClientId());
+		if (client == null) {
+			log.warn("[{}] client not found clientId={} path={}", OP_RENEW_PO, project.getClientId(), sourceSystem);
+			applyRenewPoFailure(response, "Client not found for clientId: " + project.getClientId());
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			return HttpStatus.BAD_REQUEST.value();
+		}
+
+		ProjectPoDetails newPo = poDetailsService.createRenewedPo(project, dto, client);
+
+		departmentService.syncDepartmentsRTS(newPo.getPoId(), renewedPo.getDepartmentList(), project.getProjectId(),
+				dto.getRenewedByEmpId());
+
+		if (renewedPo.getResourceRequirementList() != null) {
+			requirementService.syncRequirementsRTS(newPo.getPoId(), renewedPo.getResourceRequirementList(),
+					dto.getRenewedByEmpId());
+		}
+
+		poDetailsService.validateAssociatedPosIntegrity(project.getProjectId(), dto.getAssociatePosAfterRenewal());
+		poDetailsService.updatePoLinksAfterRenewal(project.getProjectId(), dto);
+		teamsService.migrateResourcesAfterRenewal(project.getProjectId(), newPo.getPoId(), dto.getRenewedByEmpId());
+		projectService.recalculateProjectDates(project.getProjectId(), true);
+
+		applyRenewPoSuccess(response);
+		log.info("[{}] success projectId={} newPoId={} path={}", OP_RENEW_PO, dto.getProjectId(), newPo.getPoId(),
+				sourceSystem);
+		return HttpStatus.OK.value();
+	}
+
+	private static void applyRenewPoSuccess(ServiceResponse response) {
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(MSG_RENEW_SUCCESS);
+	}
+
+	private static void applyRenewPoFailure(ServiceResponse response, String message) {
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse(message);
+		response.setServiceError(message);
 	}
 	
 	@Transactional(rollbackFor = Exception.class)
