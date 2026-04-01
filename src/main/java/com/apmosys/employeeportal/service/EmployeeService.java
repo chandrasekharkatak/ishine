@@ -8563,65 +8563,227 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		return response;
     }
 
+//    public ServiceResponse getProjectDetailsByEmpIdAndDateRange(EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
+//    	ServiceResponse response = new ServiceResponse();
+//    	LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setApiUrl("/api/getProjectDetailsByEmpIdAndDateRange");
+//	    apiLogInfo.setLogLevel("INFO");
+//	    StringBuilder logBuilder = new StringBuilder();
+//		try {
+//			List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = new ArrayList<>();
+//			if(employeeTimesheetRequest.getEmpId() != null) {
+//				logBuilder.append("EmpId:- " + employeeTimesheetRequest.getEmpId() + "\n");
+//				logBuilder.append("StartDate:- " + employeeTimesheetRequest.getStartDate() + "\n");
+//				logBuilder.append("EndDate:- " + employeeTimesheetRequest.getEndDate() + "\n");
+//	            
+//	            if (employeeTimesheetRequest.getStartDate() == null) {
+//	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	                response.setServiceResponse("Null start date received");
+//	                apiLogInfo.setApiResponse("Null start date date received for empId:- " + employeeTimesheetRequest.getEmpId());
+//	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	                apiLogInfo.setApiRequest(logBuilder.toString());
+//	                logService.logMyInfo(httpRequest, apiLogInfo);
+//	                return response;
+//	            }
+//	            
+//				Boolean flag = employeeRepository.isActiveEmployee(employeeTimesheetRequest.getEmpId());
+//				
+//				if(flag) {
+//					teamTimesheetDetailsResponseList = employeeTeamMapRepository.getProjectDetailsByEmpIdAndDateRange(employeeTimesheetRequest.getEmpId(),employeeTimesheetRequest.getStartDate(),employeeTimesheetRequest.getEndDate());
+//					if(teamTimesheetDetailsResponseList == null || teamTimesheetDetailsResponseList.isEmpty()) {
+//						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				        response.setServiceResponse("No timesheet detail fetched for this employee in the given date range!");
+//				        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | No timesheet detail fetched for this employee in the given date range! Start Date:- " + employeeTimesheetRequest.getStartDate() + " End Date:- " + employeeTimesheetRequest.getEndDate());
+//				        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				        return response;
+//					}
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			        response.setServiceResponse(teamTimesheetDetailsResponseList);
+//			        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " Length of teamTimesheet Response list :- " + teamTimesheetDetailsResponseList.size() );
+//			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//				
+//				} else {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			        response.setServiceResponse("Employee has been made inactive in Ishine!");
+//			        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | Employee has been made inactive in Ishine! empId:- " + employeeTimesheetRequest.getEmpId());
+//			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				}
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//			throw e;
+//		}
+//		 apiLogInfo.setApiRequest(logBuilder.toString());
+//	     logService.logMyInfo(httpRequest, apiLogInfo);
+//	     return response;
+//	}
+    
     public ServiceResponse getProjectDetailsByEmpIdAndDateRange(EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
-    	ServiceResponse response = new ServiceResponse();
-    	LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getProjectDetailsByEmpIdAndDateRange");
-	    apiLogInfo.setLogLevel("INFO");
-	    StringBuilder logBuilder = new StringBuilder();
-		try {
-			List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = new ArrayList<>();
-			if(employeeTimesheetRequest.getEmpId() != null) {
-				logBuilder.append("EmpId:- " + employeeTimesheetRequest.getEmpId() + "\n");
-				logBuilder.append("StartDate:- " + employeeTimesheetRequest.getStartDate() + "\n");
-				logBuilder.append("EndDate:- " + employeeTimesheetRequest.getEndDate() + "\n");
-	            
-	            if (employeeTimesheetRequest.getStartDate() == null) {
-	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	                response.setServiceResponse("Null start date received");
-	                apiLogInfo.setApiResponse("Null start date date received for empId:- " + employeeTimesheetRequest.getEmpId());
-	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	                apiLogInfo.setApiRequest(logBuilder.toString());
-	                logService.logMyInfo(httpRequest, apiLogInfo);
-	                return response;
-	            }
-	            
-				Boolean flag = employeeRepository.isActiveEmployee(employeeTimesheetRequest.getEmpId());
-				
-				if(flag) {
-					teamTimesheetDetailsResponseList = employeeTeamMapRepository.getProjectDetailsByEmpIdAndDateRange(employeeTimesheetRequest.getEmpId(),employeeTimesheetRequest.getStartDate(),employeeTimesheetRequest.getEndDate());
-					if(teamTimesheetDetailsResponseList == null || teamTimesheetDetailsResponseList.isEmpty()) {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				        response.setServiceResponse("No timesheet detail fetched for this employee in the given date range!");
-				        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | No timesheet detail fetched for this employee in the given date range! Start Date:- " + employeeTimesheetRequest.getStartDate() + " End Date:- " + employeeTimesheetRequest.getEndDate());
-				        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				        return response;
-					}
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			        response.setServiceResponse(teamTimesheetDetailsResponseList);
-			        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " Length of teamTimesheet Response list :- " + teamTimesheetDetailsResponseList.size() );
-			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			        response.setServiceResponse("Employee has been made inactive in Ishine!");
-			        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | Employee has been made inactive in Ishine! empId:- " + employeeTimesheetRequest.getEmpId());
-			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			throw e;
-		}
-		 apiLogInfo.setApiRequest(logBuilder.toString());
-	     logService.logMyInfo(httpRequest, apiLogInfo);
-	     return response;
-	}
+
+        ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/getProjectDetailsByEmpIdAndDateRange");
+        apiLogInfo.setLogLevel("INFO");
+
+        StringBuilder logBuilder = new StringBuilder();
+
+        try {
+
+            List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = new ArrayList<>();
+
+            if (employeeTimesheetRequest.getEmpId() != null) {
+
+                logBuilder.append("EmpId:- " + employeeTimesheetRequest.getEmpId() + "\n");
+                logBuilder.append("StartDate:- " + employeeTimesheetRequest.getStartDate() + "\n");
+                logBuilder.append("EndDate:- " + employeeTimesheetRequest.getEndDate() + "\n");
+
+                if (employeeTimesheetRequest.getStartDate() == null) {
+                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                    response.setServiceResponse("Null start date received");
+
+                    apiLogInfo.setApiResponse("Null start date received for empId:- " + employeeTimesheetRequest.getEmpId());
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                    apiLogInfo.setApiRequest(logBuilder.toString());
+
+                    logService.logMyInfo(httpRequest, apiLogInfo);
+                    return response;
+                }
+
+                Boolean flag = employeeRepository.isActiveEmployee(employeeTimesheetRequest.getEmpId());
+
+                if (flag) {
+
+                 
+                    List<Object[]> result =
+                            employeeTeamMapRepository.getProjectDetailsByEmpIdAndDateRange(
+                                    employeeTimesheetRequest.getEmpId(),
+                                    employeeTimesheetRequest.getStartDate(),
+                                    employeeTimesheetRequest.getEndDate()
+                            );
+
+                    if (result == null || result.isEmpty()) {
+
+                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                        response.setServiceResponse("No timesheet detail fetched for this employee in the given date range!");
+
+                        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse()
+                                + " | No timesheet detail fetched for this employee in the given date range! "
+                                + "Start Date:- " + employeeTimesheetRequest.getStartDate()
+                                + " End Date:- " + employeeTimesheetRequest.getEndDate());
+
+                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                        return response;
+                    }
+
+                   
+                    for (Object[] obj : result) {
+
+                        TeamTimesheetDetailsResponse dto = new TeamTimesheetDetailsResponse();
+
+                        dto.setEmpId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+                        dto.setEmployementId(obj[1] != null ? Long.parseLong(obj[1].toString()) : null);
+                        dto.setEmpName(obj[2] != null ? obj[2].toString() : null);
+                        dto.setRole(obj[3] != null ? obj[3].toString() : null);
+
+                        dto.setPoId(obj[4] != null ? Long.parseLong(obj[4].toString()) : null);
+                        dto.setBillingRole(obj[5] != null ? obj[5].toString() : null);             
+
+                        dto.setTeamName(obj[6] != null ? obj[6].toString() : null);
+                        dto.setTeamId(obj[7] != null ? Long.parseLong(obj[7].toString()) : null);
+
+                        dto.setTeamLeadName(obj[8] != null ? obj[8].toString() : null);
+                        dto.setManagerName(obj[9] != null ? obj[9].toString() : null);
+
+                        dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
+                        dto.setProjectName(obj[11] != null ? obj[11].toString() : null);
+
+                        dto.setProjectManagerName(obj[12] != null ? obj[12].toString() : null); 
+
+                        dto.setStartDate(
+                                obj[13] != null
+                                        ? convertToLocalDateTime(obj[13])
+                                        : null
+                        );
+
+                        dto.setEndDate(
+                                obj[14] != null
+                                        ? convertToLocalDateTime(obj[14])
+                                        : null
+                        );            
+                       
+                       teamTimesheetDetailsResponseList.add(dto);
+                    }
+
+                    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                    response.setServiceResponse(teamTimesheetDetailsResponseList);
+
+                    apiLogInfo.setApiResponse(apiLogInfo.getApiResponse()
+                            + " Length of teamTimesheet Response list :- "
+                            + teamTimesheetDetailsResponseList.size());
+
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+                } else {
+
+                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                    response.setServiceResponse("Employee has been made inactive in Ishine!");
+
+                    apiLogInfo.setApiResponse(apiLogInfo.getApiResponse()
+                            + " | Employee has been made inactive in Ishine! empId:- "
+                            + employeeTimesheetRequest.getEmpId());
+
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                }
+            }
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Something Went Wrong.");
+            response.setServiceError(e.getMessage());
+
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+
+            throw e;
+        }
+
+        apiLogInfo.setApiRequest(logBuilder.toString());
+        logService.logMyInfo(httpRequest, apiLogInfo);
+
+        return response;
+    }
+    
+    
+    private LocalDateTime convertToLocalDateTime(Object value) {
+
+//        if (value instanceof Timestamp) {
+//            return ((Timestamp) value).toLocalDateTime();
+//        }
+
+        if (value instanceof LocalDateTime) {
+            return (LocalDateTime) value;
+        }
+
+        if (value instanceof Date) {
+            return ((Date) value).toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+        }
+
+        return null;
+    }
+
+
+
+    
     
 //Raj Alpha Swain
     
