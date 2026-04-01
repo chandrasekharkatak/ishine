@@ -223,6 +223,16 @@ public class EmployeeService {
 	
     private static final Logger logger = LoggerFactory.getLogger(EmployeeService.class);
 
+	/** PoPortal integration: GET /api/getAllEmployeeInfo */
+	private static final String API_GET_ALL_EMPLOYEE_INFO = "/api/getAllEmployeeInfo";
+	private static final String SUBFEATURE_GET_ALL_EMPLOYEE_INFO = "get_all_employee_info";
+	private static final String OPERATION_GET_ALL_EMPLOYEE_INFO = "getAllEmployeeInfo";
+	private static final String PO_PORTAL_LOG_SOURCE = "PoPortal";
+	private static final String LOG_LEVEL_INFO = "INFO";
+	private static final String LOG_LEVEL_ERROR = "ERROR";
+	private static final String MSG_EMPLOYEE_INFO_NOT_FOUND = "Employee Info not found.";
+	private static final String MSG_SYSTEM_ERROR = "Something Went Wrong.";
+
 	@Autowired
 	EmployeeRepository employeeRepository;
 	
@@ -6399,51 +6409,94 @@ public class EmployeeService {
 
 	public ServiceResponse getAllEmployeeInfo() {
 		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("get_all_employee_info");
-		apiLogInfo.setApiUrl("/api/getAllEmployeeInfo");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append(employeeRepository.getAllEmployeeInfoForPoPortal());
+		LogDTO apiLogInfo = createGetAllEmployeeInfoLogDto();
 		ApiLog initialLog = null;
 		String exceptionDetailsForLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-		String sourceSystem = httpRequest.getRequestURL().toString();
-		
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
+
 		try {
-			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllEmployeeInfo", "PoPortal", null ,httpRequest);
-			List<PoPortalDTO> poPortalDTOList  = employeeRepository.getAllEmployeeInfoForPoPortal();
-			if(!poPortalDTOList.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(poPortalDTOList);
-				response.setServiceResponse(poPortalDTOList);
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				apiLogInfo.setApiResponse("List fetched of size : "+poPortalDTOList.size());
-				finalHttpStatusCode = HttpStatus.OK.value();
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee Info not found.");
-				apiLogInfo.setApiResponse("Employee Info not found.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			initialLog = apiLogUtility.startLog(
+					poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					OPERATION_GET_ALL_EMPLOYEE_INFO,
+					PO_PORTAL_LOG_SOURCE,
+					null,
+					httpRequest);
+
+			List<PoPortalDTO> poPortalDTOList = Optional
+					.ofNullable(employeeRepository.getAllEmployeeInfoForPoPortal())
+					.orElseGet(Collections::emptyList);
+
+			if (poPortalDTOList.isEmpty()) {
+				applyGetAllEmployeeInfoNotFound(response, apiLogInfo);
 				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
-				throw new DataNotFoundException("Employee Details Not Found in Database.");
+				logger.info("[{}] completed: notFound, employeeCount=0, path={}",
+						OPERATION_GET_ALL_EMPLOYEE_INFO, sourceSystem);
+			} else {
+				applyGetAllEmployeeInfoSuccess(response, apiLogInfo, poPortalDTOList);
+				finalHttpStatusCode = HttpStatus.OK.value();
+				logger.info("[{}] completed: success, employeeCount={}, path={}",
+						OPERATION_GET_ALL_EMPLOYEE_INFO, poPortalDTOList.size(), sourceSystem);
 			}
-		}catch(Exception e){
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			apiLogInfo.setLogLevel("ERROR");
-			response.setServiceError(e.getMessage());
+		} catch (Exception e) {
+			logger.error("[{}] failed: path={}, error={}", OPERATION_GET_ALL_EMPLOYEE_INFO, sourceSystem,
+					e.getMessage(), e);
+			applyGetAllEmployeeInfoSystemError(response, apiLogInfo, e);
 			exceptionDetailsForLog = e.toString();
 		} finally {
-			if(initialLog != null) {
-				apiLogUtility.endLog(initialLog.getId(),sourceSystem,finalHttpStatusCode,exceptionDetailsForLog, httpRequest);
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
+						httpRequest);
 			}
+			apiLogInfo.setApiRequest(buildGetAllEmployeeInfoApiRequestSummary(sourceSystem));
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+
+	private static LogDTO createGetAllEmployeeInfoLogDto() {
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName(SUBFEATURE_GET_ALL_EMPLOYEE_INFO);
+		apiLogInfo.setApiUrl(API_GET_ALL_EMPLOYEE_INFO);
+		apiLogInfo.setLogLevel(LOG_LEVEL_INFO);
+		return apiLogInfo;
+	}
+
+	private static String buildRequestPathForLogging(HttpServletRequest request) {
+		if (request == null) {
+			return "";
+		}
+		String uri = request.getRequestURI();
+		String query = request.getQueryString();
+		return (query != null && !query.isEmpty()) ? uri + "?" + query : uri;
+	}
+
+	private static String buildGetAllEmployeeInfoApiRequestSummary(String path) {
+		return OPERATION_GET_ALL_EMPLOYEE_INFO + "; path=" + path;
+	}
+
+	private static void applyGetAllEmployeeInfoSuccess(ServiceResponse response, LogDTO apiLogInfo,
+			List<PoPortalDTO> poPortalDTOList) {
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(poPortalDTOList);
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		apiLogInfo.setApiResponse("List fetched of size: " + poPortalDTOList.size());
+	}
+
+	private static void applyGetAllEmployeeInfoNotFound(ServiceResponse response, LogDTO apiLogInfo) {
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse(MSG_EMPLOYEE_INFO_NOT_FOUND);
+		apiLogInfo.setApiResponse(MSG_EMPLOYEE_INFO_NOT_FOUND);
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	}
+
+	private static void applyGetAllEmployeeInfoSystemError(ServiceResponse response, LogDTO apiLogInfo, Exception e) {
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse(MSG_SYSTEM_ERROR);
+		apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		apiLogInfo.setLogLevel(LOG_LEVEL_ERROR);
+		apiLogInfo.setApiResponse("Exception in " + OPERATION_GET_ALL_EMPLOYEE_INFO + ": " + e.getMessage());
+		response.setServiceError(e.getMessage());
 	}
 	
 	public ServiceResponse updateLeaveBalanceList(EmployeeDTO employeedto) {	
