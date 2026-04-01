@@ -55,6 +55,11 @@ public class PoSyncOrchestratorService {
 	private static final String MSG_PO_IDS_EMPTY = "PO IDs cannot be null or empty";
 	private static final String MSG_CLIENT_ADDRESS_SUCCESS = "Client address updated successfully";
 
+	private static final String OP_UPDATE_RM_IN_PO = "updateRmDetailsInPo";
+	private static final String API_LOG_RM_UPDATE_OPERATION = "updateRmOfPoInIshine";
+	private static final String MSG_RM_PO_IDS_NULL_ENTRY = "PO IDs list contains null value";
+	private static final String MSG_RM_NO_ROWS_UPDATED = "No active PO records were updated for the given PO ID(s)";
+
 	@Autowired
 	ClientService clientService;
 
@@ -588,68 +593,107 @@ public class PoSyncOrchestratorService {
 	
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse updateRmOdPos(RmUpdateSyncDto dto) {
+		ServiceResponse response = new ServiceResponse();
+		ApiLog initialLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
 
-	    ApiLog initialLog = null;
-	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-	    String sourceSystem = httpRequest.getRequestURI().toString();
-	    ServiceResponse response = new ServiceResponse();
-	    
-	    
+		try {
+			initialLog = apiLogUtility.startLog(
+					poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					API_LOG_RM_UPDATE_OPERATION,
+					PO_PORTAL_LOG_SOURCE,
+					null,
+					httpRequest);
 
-	    try {
-	        initialLog = apiLogUtility.startLog(
-	                poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
-	                "updateRmOfPoInIshine",
-	                "PoPortal",
-	                null,
-	                httpRequest
-	        );
-	        validationService.validateRmUpdateSyncPayload(dto);
-	        poDetailsService.validateAllPosAreActive(dto.getPoIds());
-	        validationService.validateEmployeeExists(
-	                dto.getUpdatedApmosysRmEmpId(),
-	                dto.getUpdatedApmosysRmEmpName()
-	        );
-	        
-	       
-	        int updatedCount = projectPoDetailsRepository.updateRmForActivePos(
-	                dto.getPoIds(),
-	                dto.getUpdatedApmosysRmEmpId(),
-	                dto.getUpdatedApmosysRmEmpName(),
-	                dto.getUpdatedApmosysRmEmail(),
-	                dto.getUpdatedApmosysRmEmpId()
-	                
-	        );
-	        
-	        if (updatedCount < 0 ) {
-	            throw new RuntimeException(" PO records updation failed");
-	        }
+			log.info("[{}] start path={}", OP_UPDATE_RM_IN_PO, sourceSystem);
 
-	        finalHttpStatusCode = HttpStatus.OK.value();
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse(
-	                "RM updated successfully for " + updatedCount + " PO(s)"
-	        );
-	        return response;
-	        
-	       
-	    }catch (Exception e) {
-	    	finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-	        ExceptionLogContext.add(e);
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceError(e.getMessage());
-	        return response;
-	    } finally {
-	        if (initialLog != null) {
-	            apiLogUtility.endLog(
-	                    initialLog.getId(),
-	                    sourceSystem,
-	                    finalHttpStatusCode,
-	                    ExceptionLogContext.get(),
-	                    httpRequest
-	            );
-	        }
-	    }
+			String validationError = validateRmUpdateOrchestratorRequest(dto);
+			if (validationError != null) {
+				log.warn("[{}] validation failed: {}", OP_UPDATE_RM_IN_PO, validationError);
+				applyRmUpdateFailure(response, validationError);
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+			} else {
+				validationService.validateRmUpdateSyncPayload(dto);
+
+				List<Long> poIds = dto.getPoIds();
+				Long rmEmpId = dto.getUpdatedApmosysRmEmpId();
+				String rmEmpName = dto.getUpdatedApmosysRmEmpName();
+				String rmEmail = dto.getUpdatedApmosysRmEmail();
+
+				poDetailsService.validateAllPosAreActive(poIds);
+				validationService.validateEmployeeExists(rmEmpId, rmEmpName);
+
+				int updatedCount = projectPoDetailsRepository.updateRmForActivePos(poIds, rmEmpId, rmEmpName, rmEmail,
+						rmEmpId);
+
+				if (updatedCount <= 0) {
+					log.warn("[{}] no rows updated poIds={} rmEmpId={}", OP_UPDATE_RM_IN_PO, poIds, rmEmpId);
+					applyRmUpdateFailure(response, MSG_RM_NO_ROWS_UPDATED);
+					finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				} else {
+					applyRmUpdateSuccess(response, updatedCount);
+					finalHttpStatusCode = HttpStatus.OK.value();
+					log.info("[{}] success updatedCount={} poIds={} rmEmpId={} path={}", OP_UPDATE_RM_IN_PO,
+							updatedCount, poIds, rmEmpId, sourceSystem);
+				}
+			}
+		} catch (IllegalArgumentException e) {
+			log.error("[{}] illegal argument path={}", OP_UPDATE_RM_IN_PO, sourceSystem, e);
+			ExceptionLogContext.add(e);
+			applyRmUpdateFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+		} catch (DataAccessException e) {
+			log.error("[{}] data access error path={} poIds={}", OP_UPDATE_RM_IN_PO, sourceSystem,
+					dto != null ? dto.getPoIds() : null, e);
+			ExceptionLogContext.add(e);
+			applyRmUpdateFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		} catch (RuntimeException e) {
+			log.error("[{}] business or validation failure path={} poIds={}", OP_UPDATE_RM_IN_PO, sourceSystem,
+					dto != null ? dto.getPoIds() : null, e);
+			ExceptionLogContext.add(e);
+			applyRmUpdateFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+		} catch (Exception e) {
+			log.error("[{}] unexpected error path={}", OP_UPDATE_RM_IN_PO, sourceSystem, e);
+			ExceptionLogContext.add(e);
+			applyRmUpdateFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,
+						ExceptionLogContext.get(), httpRequest);
+			}
+		}
+		return response;
+	}
+
+	/**
+	 * @return error message if invalid, or {@code null} if basic request shape is valid
+	 */
+	private static String validateRmUpdateOrchestratorRequest(RmUpdateSyncDto dto) {
+		if (dto == null) {
+			return MSG_PAYLOAD_MISSING;
+		}
+		if (dto.getPoIds() == null || dto.getPoIds().isEmpty()) {
+			return MSG_PO_IDS_EMPTY;
+		}
+		if (dto.getPoIds().stream().anyMatch(Objects::isNull)) {
+			return MSG_RM_PO_IDS_NULL_ENTRY;
+		}
+		return null;
+	}
+
+	private static void applyRmUpdateSuccess(ServiceResponse response, int updatedCount) {
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse("RM updated successfully for " + updatedCount + " PO(s)");
+	}
+
+	private static void applyRmUpdateFailure(ServiceResponse response, String message) {
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse(message);
+		response.setServiceError(message);
 	}
 	
 	@Transactional(rollbackFor = Exception.class)
