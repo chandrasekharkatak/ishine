@@ -91,6 +91,9 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/employeeportal/api/getAllEmployeeInfo",
 			"/employeeportal/api/getAllDepartmentInfo",
 			"/employeeportal/api/getAllJobRoleInfo",
+			"/api/getAllEmployeeInfo",
+			"/api/getAllDepartmentInfo",
+			"/api/getAllJobRoleInfo",
 			"/employeeportal/api/handleTeamsAsPerLinkedPo",
 			"/employeeportal/api/getProjectStatusByPoProjectId",
 			"/employeeportal/api/getMilestoneById",
@@ -132,12 +135,12 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/employeeportal/api/runTheHolidayCron",
 			"/api/ishineToPoEmpDetails",
 			"/employeeportal/api/ishineToPoEmpDetails",
-			"/api/getAllEmployeeInfo",
 			"/employeeportal/api/oneTimeUpdatePoClientId",
 			"/api/oneTimeUpdatePoClientId",
 			"/api/healthCheck",
 			"/employeeportal/api/healthCheck",
 			"/api/getResourceCountFromPoId",
+			"/api/getAllApprovedPoWithTimesheet",
 			"/employeeportal/api/getResourceCountFromPoId"
 			);
 	
