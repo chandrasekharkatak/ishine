@@ -49,11 +49,13 @@ public class PoSyncOrchestratorService {
 
 	private static final Logger log = LoggerFactory.getLogger(PoSyncOrchestratorService.class);
 
-	private static final String OP_UPDATE_CLIENT_ADDRESS = "updateClientAddressIdOfPos";
-	private static final String API_LOG_OPERATION = "updateClientAddrIdOfPoInIshine";
+	/** Log / trace name aligned with REST path {@code /api/updateAddressInPos}. */
+	private static final String OP_UPDATE_ADDRESS_IN_POS = "updateAddressInPos";
+	private static final String API_LOG_UPDATE_ADDRESS_IN_POS = "updateAddressInPos";
 	private static final String PO_PORTAL_LOG_SOURCE = "PoPortal";
 	private static final String MSG_PAYLOAD_MISSING = "Request payload is missing";
 	private static final String MSG_PO_IDS_EMPTY = "PO IDs cannot be null or empty";
+	private static final String MSG_CLIENT_ADDR_PO_IDS_NULL_ENTRY = "PO IDs cannot contain null entries";
 	private static final String MSG_CLIENT_ADDRESS_SUCCESS = "Client address updated successfully";
 
 	private static final String OP_UPDATE_RM_IN_PO = "updateRmDetailsInPo";
@@ -781,7 +783,7 @@ public class PoSyncOrchestratorService {
 	}
 	
 	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse updateClientAddressIdOfPos(PoClientAddressUpdateDTO dto) {
+	public ServiceResponse updateAddressInPos(PoClientAddressUpdateDTO dto) {
 		ServiceResponse response = new ServiceResponse();
 		ApiLog initialLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
@@ -790,18 +792,19 @@ public class PoSyncOrchestratorService {
 		try {
 			initialLog = apiLogUtility.startLog(
 					poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
-					API_LOG_OPERATION,
+					API_LOG_UPDATE_ADDRESS_IN_POS,
 					PO_PORTAL_LOG_SOURCE,
 					null,
 					httpRequest);
 
-			log.info("[{}] start path={}", OP_UPDATE_CLIENT_ADDRESS, sourceSystem);
+			log.info("[{}] start path={}", OP_UPDATE_ADDRESS_IN_POS, sourceSystem);
 
 			String validationMessage = validateUpdateClientAddressRequest(dto);
 			if (validationMessage != null) {
-				log.warn("[{}] validation failed: {}", OP_UPDATE_CLIENT_ADDRESS, validationMessage);
+				log.warn("[{}] validation failed: {}", OP_UPDATE_ADDRESS_IN_POS, validationMessage);
 				applyClientAddressUpdateFailure(response, validationMessage);
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 			} else {
 				validationService.validatePoClientAddressUpdatePayload(dto);
 
@@ -814,30 +817,42 @@ public class PoSyncOrchestratorService {
 				applyClientAddressUpdateSuccess(response);
 				finalHttpStatusCode = HttpStatus.OK.value();
 				log.info("[{}] success poIds={} clientAddressId={} path={}",
-						OP_UPDATE_CLIENT_ADDRESS, dto.getPoIds(), dto.getClientAddressId(), sourceSystem);
+						OP_UPDATE_ADDRESS_IN_POS, dto.getPoIds(), dto.getClientAddressId(), sourceSystem);
 			}
 		} catch (IllegalArgumentException e) {
-			log.error("[{}] illegal argument path={}", OP_UPDATE_CLIENT_ADDRESS, sourceSystem, e);
+			log.warn("[{}] invalid input path={} reason={}", OP_UPDATE_ADDRESS_IN_POS, sourceSystem,
+					ExceptionUtils.getExceptionMessage(e));
 			ExceptionLogContext.add(e);
 			applyClientAddressUpdateFailure(response, ExceptionUtils.getExceptionMessage(e));
 			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		} catch (IllegalStateException e) {
+			log.error("[{}] inconsistent state path={} poIds={}", OP_UPDATE_ADDRESS_IN_POS, sourceSystem,
+					dto != null ? dto.getPoIds() : null, e);
+			ExceptionLogContext.add(e);
+			applyClientAddressUpdateFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.CONFLICT.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 		} catch (DataAccessException e) {
-			log.error("[{}] data access error path={} poIds={}", OP_UPDATE_CLIENT_ADDRESS, sourceSystem,
+			log.error("[{}] data access error path={} poIds={}", OP_UPDATE_ADDRESS_IN_POS, sourceSystem,
 					dto != null ? dto.getPoIds() : null, e);
 			ExceptionLogContext.add(e);
 			applyClientAddressUpdateFailure(response, ExceptionUtils.getExceptionMessage(e));
 			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 		} catch (RuntimeException e) {
-			log.error("[{}] business rule or validation failure path={} poIds={}", OP_UPDATE_CLIENT_ADDRESS,
-					sourceSystem, dto != null ? dto.getPoIds() : null, e);
+			log.error("[{}] business rule failure path={} poIds={}", OP_UPDATE_ADDRESS_IN_POS, sourceSystem,
+					dto != null ? dto.getPoIds() : null, e);
 			ExceptionLogContext.add(e);
 			applyClientAddressUpdateFailure(response, ExceptionUtils.getExceptionMessage(e));
 			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 		} catch (Exception e) {
-			log.error("[{}] unexpected error path={}", OP_UPDATE_CLIENT_ADDRESS, sourceSystem, e);
+			log.error("[{}] unexpected error path={}", OP_UPDATE_ADDRESS_IN_POS, sourceSystem, e);
 			ExceptionLogContext.add(e);
 			applyClientAddressUpdateFailure(response, ExceptionUtils.getExceptionMessage(e));
 			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 		} finally {
 			if (initialLog != null) {
 				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,
@@ -858,7 +873,7 @@ public class PoSyncOrchestratorService {
 			return MSG_PO_IDS_EMPTY;
 		}
 		if (dto.getPoIds().stream().anyMatch(Objects::isNull)) {
-			return "PO IDs cannot contain null entries";
+			return MSG_CLIENT_ADDR_PO_IDS_NULL_ENTRY;
 		}
 		return null;
 	}

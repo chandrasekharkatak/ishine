@@ -518,9 +518,10 @@ public class ResourceManagementController {
 	 
 	 
 	 @PostMapping("/updateAddressInPos")
-	 public ServiceResponse updateClientAddressIdOfPos(HttpServletRequest httpRequest,@RequestBody  PoClientAddressUpdateDTO dto) {
+	 public ServiceResponse updateAddressInPos(HttpServletRequest httpRequest,
+			 @Valid @RequestBody PoClientAddressUpdateDTO dto) {
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		 return poSyncOrchestratorService.updateClientAddressIdOfPos(dto);
+		 return poSyncOrchestratorService.updateAddressInPos(dto);
 	 }
 	 
 	 

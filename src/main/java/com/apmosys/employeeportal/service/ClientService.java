@@ -239,7 +239,12 @@ public class ClientService {
 		        String state,
 		        Long clientAddressId) {
 
-		 String normalizedLocation = location.trim();
+		if (clientId == null || location == null || state == null || clientAddressId == null) {
+			ExceptionLogContext.add("clientId, location, state, or clientAddressId is null");
+			throw new IllegalArgumentException("Required client location fields are missing");
+		}
+
+		String normalizedLocation = location.trim();
 		    String normalizedLocationLower = normalizedLocation.toLowerCase();
 
 		    String normalizedState = state.trim() ;
@@ -268,12 +273,14 @@ public class ClientService {
 
 		            boolean changed = false;
 
-		            if (!normalizedLocation.equalsIgnoreCase(cl.getClientLocation().trim())) {
+		            String existingLoc = cl.getClientLocation();
+		            if (existingLoc == null || !normalizedLocation.equalsIgnoreCase(existingLoc.trim())) {
 		                cl.setClientLocation(location);
 		                changed = true;
 		            }
 
-		            if (!normalizedState.equalsIgnoreCase(cl.getClientState().trim())) {
+		            String existingState = cl.getClientState();
+		            if (existingState == null || !normalizedState.equalsIgnoreCase(existingState.trim())) {
 		                cl.setClientState(state);
 		                changed = true;
 		            }

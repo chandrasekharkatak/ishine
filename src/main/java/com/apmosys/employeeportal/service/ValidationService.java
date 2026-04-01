@@ -338,25 +338,41 @@ public class ValidationService {
 	
 	public void validatePoClientAddressUpdatePayload(PoClientAddressUpdateDTO dto) {
 
-	    if (dto == null) {
-	        throw new RuntimeException("Request payload is missing");
-	    }
+		if (dto == null) {
+			throw new IllegalArgumentException("Request payload is missing");
+		}
 
-	    if (dto.getPoIds() == null || dto.getPoIds().isEmpty()) {
-	        throw new RuntimeException("PO IDs cannot be null or empty");
-	    }
+		if (dto.getPoIds() == null || dto.getPoIds().isEmpty()) {
+			throw new IllegalArgumentException("PO IDs cannot be null or empty");
+		}
 
-	    if (dto.getClientAddressId() == null) {
-	        throw new RuntimeException("Client address ID is mandatory");
-	    }
+		if (dto.getPoIds().stream().anyMatch(Objects::isNull)) {
+			throw new IllegalArgumentException("PO IDs cannot contain null entries");
+		}
 
-	    if (dto.getClientLocation() == null || dto.getClientLocation().trim().isEmpty()) {
-	        throw new RuntimeException("Client location is mandatory");
-	    }
+		if (dto.getClientAddressId() == null) {
+			throw new IllegalArgumentException("Client address ID is mandatory");
+		}
 
-	    if (dto.getClientState() == null || dto.getClientState().trim().isEmpty()) {
-	        throw new RuntimeException("Client state is mandatory");
-	    }
+		if (dto.getClientLocation() == null || dto.getClientLocation().trim().isEmpty()) {
+			throw new IllegalArgumentException("Client location is mandatory");
+		}
+
+		if (dto.getClientState() == null || dto.getClientState().trim().isEmpty()) {
+			throw new IllegalArgumentException("Client state is mandatory");
+		}
+
+		if (dto.getUpdatedByEmpId() == null) {
+			throw new IllegalArgumentException("updatedByEmpId is mandatory");
+		}
+
+		if (dto.getUpdatedByEmpName() == null || dto.getUpdatedByEmpName().trim().isEmpty()) {
+			throw new IllegalArgumentException("updatedByEmpName is mandatory");
+		}
+
+		if (dto.getUpdatedOn() == null) {
+			throw new IllegalArgumentException("updatedOn is mandatory");
+		}
 	}
 
 
