@@ -249,13 +249,13 @@ public class ClientService {
 		    boolean hasAnyLocation =
 		            clientLocationRepository.existsByClientId(clientId);
 
-		    if (!hasAnyLocation) {
-		        ClientLocation wfh = new ClientLocation();
-		        wfh.setClientId(clientId);
-		        wfh.setClientLocation("WFH");
-		        wfh.setClientState(null);
-		        clientLocationRepository.save(wfh);
-		    }
+//		    if (!hasAnyLocation) {
+//		        ClientLocation wfh = new ClientLocation();
+//		        wfh.setClientId(clientId);
+//		        wfh.setClientLocation("WFH");
+//		        wfh.setClientState(null);
+//		        clientLocationRepository.save(wfh);
+//		    }
 
 		   
 		    List<ClientLocation> addressMatches =
