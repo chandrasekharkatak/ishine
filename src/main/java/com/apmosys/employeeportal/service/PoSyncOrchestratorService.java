@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-
+import com.apmosys.employeeportal.dto.AutoMigrationDTO;
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -197,8 +197,15 @@ public class PoSyncOrchestratorService {
 					
 					requirementService.syncRequirementsRTS(po.getPoId(), poDto.getResourceRequirementList(),poDto.getUpdatedByEmpId());
 					
-					if (!changes.isEmpty()) {
-						requirementService.sendRequirementChangeMail(po.getPoId(), changes);
+					List<AutoMigrationDTO> autoMigrated =
+					        teamsService.migrateFromPreviousPOOnUpdate(
+					                project.getProjectId(),
+					                po.getPoId(),
+					                poDto.getUpdatedByEmpId()
+					        );
+					
+					if (!changes.isEmpty() || !autoMigrated.isEmpty()) {
+						requirementService.sendRequirementChangeMail(po.getPoId(), changes , autoMigrated);
 				    }
 				}
 				

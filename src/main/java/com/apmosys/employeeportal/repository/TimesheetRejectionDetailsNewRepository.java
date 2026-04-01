@@ -25,4 +25,6 @@ public interface TimesheetRejectionDetailsNewRepository extends JpaRepository<Ti
 
 		
 	List<TimesheetRejectionDetailsNew> findByTimesheetIdAndIsActive(Long timesheetId, Boolean isActive);
+
+	List<TimesheetRejectionDetailsNew> findByTimesheetIdInAndIsActive(List<Long> timesheetIds, Boolean isActive);
 }

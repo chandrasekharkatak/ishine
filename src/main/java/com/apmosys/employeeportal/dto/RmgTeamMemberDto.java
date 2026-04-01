@@ -30,6 +30,7 @@ public class RmgTeamMemberDto {
 	private boolean isCustomDate;
 	private LocalDateTime rescEndDate;
 	private Integer mappedDefaultProjectId;
+	private boolean removePermanently;
 
 	private Long poId;
 	private String poNo;

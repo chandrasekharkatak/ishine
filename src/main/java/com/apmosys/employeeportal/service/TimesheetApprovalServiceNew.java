@@ -441,14 +441,16 @@ public class TimesheetApprovalServiceNew {
 	                        ts.getTimesheetId(),
 	                        formattedEmpId,
 	                        ts.getDate(),
-	                        "Already Approved"
+	                        "Already Approved",
+							ts.getEmpId()
 	                ));
 	            } else if (tsStatus != null && tsStatus == 3) {
 	                skippedTimesheets.add(new SkippedTimesheetDTO(
 	                        ts.getTimesheetId(),
 	                        formattedEmpId,
 	                        ts.getDate(),
-	                        "Already Rejected"
+	                        "Already Rejected",
+							ts.getEmpId()
 	                ));
 	            }
 	        }

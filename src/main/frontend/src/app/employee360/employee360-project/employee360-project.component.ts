@@ -25,6 +25,11 @@ import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { ResourceManagementComponent } from 'src/app/user-team/resource-management/resource-management.component';
 import * as XLSX from 'xlsx';
+import { firstValueFrom } from 'rxjs';
+import { RmgTeamMember } from 'src/app/models/rmgTeamMember';
+import { TeamService } from 'src/app/services/team.service';
+import { EmployeeProjectTimesheetDto } from 'src/app/models/employeeProjectTimesheetDto';
+import { RmgProjectConfigComponent } from 'src/app/user-team/resource-management/rmg-project-config/rmg-project-config.component';
 @Component({
   standalone: false,
   selector: 'app-employee360-project',
@@ -33,17 +38,24 @@ import * as XLSX from 'xlsx';
 })
 export class Employee360ProjectComponent implements OnInit {
 
-  @ViewChild("alert_message")
-  alertTemplate: TemplateRef<any>;
+  @ViewChild("alert_message") alertTemplate: TemplateRef<any>;
+  @ViewChild("update_project_start_date_error") updateProjectStartDateErrorTemplateRef: TemplateRef<any>;
+  @ViewChild("update_project_start_date_confirmation") updateProjStartDateModal :TemplateRef<any>;
+  @ViewChild(ResourceManagementComponent) resourceManagementComponent: ResourceManagementComponent;
+  @ViewChild(RmgProjectConfigComponent) rmgProjectConfigComponent: RmgProjectConfigComponent;
 
-  @ViewChild("update_project_start_date_error") 
-  startDateErrorModel :TemplateRef<any>;
 
-  @ViewChild("update_project_start_date_confirmation")
-  updateProjStartDateModal :TemplateRef<any>;
+  modalRef: NgbModalRef;
+  errModalRef: NgbModalRef;
+  alertMessageModalRef: NgbModalRef;
+  updateProjectStartDateErrorModalRef: NgbModalRef;
+  updateProjectStartDateConfirmationModalRef: NgbModalRef;
+  existingEmployeeProjectTimesheetInfoModalRef: NgbModalRef;
+  projectGapMessageModalRef: NgbModalRef;
 
   isEditProject: boolean = false;
   isHideButton: boolean = false;
+
   //added by rahul
   flag: boolean = false;
   isProjectVisible: boolean = true;
@@ -75,13 +87,8 @@ export class Employee360ProjectComponent implements OnInit {
   employeesColumns: any[] = ['blank', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
   teamColumns: any[] = ['blank','employmentIdAcToET','name','teamName','teamLeadName']
   alertMessage: any;
-  modalRef:NgbModalRef;
   newteamMember: TeamMember = new TeamMember();
-  errModalRef:NgbModalRef;
-  updateProjectStartDateConfirmationModalRef:NgbModalRef;
   projectNewStartDate: any
-  alertMessageModalRef: NgbModalRef;
-
   projectObj: Project = new Project();
   projectEditObj: Project = new Project();
   selectedOtherProjectId: any;
@@ -89,7 +96,7 @@ export class Employee360ProjectComponent implements OnInit {
   sortColumn: any;
   sortColumnType: any;
   abbreviationError: string = '';
-  @ViewChild(ResourceManagementComponent) resourceManagementComponent: ResourceManagementComponent;
+
 
 
   constructor(
@@ -104,6 +111,7 @@ export class Employee360ProjectComponent implements OnInit {
     private employeeService: EmployeeService,
     private emp360Service: Employee360Service,
     private encryptionService: EncryptionService,
+    private teamService: TeamService
   ) {
 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -569,10 +577,9 @@ async getExistingProjectsByUser() {
     projectObj.empId = this.projectObj.empId;
     projectObj.startDate = this.startDate;
     
-    if(this.isBefore(this.projectObj.projectStartDate,projectObj.startDate)){
-      this.errModalRef = this.modalService.open(this.startDateErrorModel, 
-                { modalDialogClass: 'modal-md' });
-      return;          
+    if (this.isBefore(this.projectObj.projectStartDate, projectObj.startDate)) {
+      this.errModalRef = this.modalService.open(this.updateProjectStartDateErrorModalRef, { modalDialogClass: 'modal-md' });
+      return;
     }
 
     console.log("team details ", projectObj)

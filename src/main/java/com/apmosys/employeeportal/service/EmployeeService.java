@@ -437,6 +437,8 @@ public class EmployeeService {
     @Autowired
     private EntityManager entityManager;
 	
+	@Autowired
+	private TeamMembersService teamMembersService;
 
 	
 //	@Value("${bd.mail}")
@@ -686,11 +688,10 @@ public class EmployeeService {
 				employeeRole.append(empRole).append(",");
 			}
 			
-			if(employeedto.getDefaultProjectId() != null) {
+			if (employeedto.getDefaultProjectId() != null) {
 				Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
 				String departmentname = dept.getName();
-				
-				
+
 				EmployeeTeamMap employeeTeamMap = new EmployeeTeamMap();
 				employeeTeamMap.setEmpId(newEmployee.getEmpId());
 				employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
@@ -698,32 +699,24 @@ public class EmployeeService {
 				employeeTeamMap.setStartDate(LocalDateTime.now());
 				employeeTeamMap.setEmployeeRole(employeeRole.toString());
 				employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
-			
+				employeeTeamMap.setPoId(employeedto.getPoId());
+				employeeTeamMap.setRoleId(employeedto.getPoRoleId());
 				employeeTeamMap.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
-				employeeTeamMap.setUpdatedOn(LocalDateTime.now());	
-				// Set poRequirementMappingId from front-end 
-			    if(employeedto.getPoRequirementMappingId() != null) {
-			        employeeTeamMap.setPoRequirementMappingId(employeedto.getPoRequirementMappingId());
-			    }
-			   employeeTeamMapRepository.save(employeeTeamMap);
-			   
-			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
-			    if (project != null) {
-			    	project.setIsDraftProject("true");
-			    	project.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
-			    	project.setUpdatedOn(LocalDateTime.now());	
-			        proj = projectRepository.save(project);  
-			    }
-			   
-			   DefaultProjectUpdateDTO dto = new DefaultProjectUpdateDTO();
-			    dto.setUpdatedBy(employeedto.getCreatedBy().longValue()); 
-			    dto.setProjectId(employeedto.getDefaultProjectId());
-			    dto.setEmpIds(Collections.singletonList(newEmployee.getEmpId()));
-			    dto.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
+				employeeTeamMap.setUpdatedOn(LocalDateTime.now());
+				EmployeeTeamMap dbEmployeeTeamMap = employeeTeamMapRepository.save(employeeTeamMap);
 
-			    resourceManagementService.setDefaultProjectUpdateBillable(dto);
-			   
-			   }	
+				Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
+				if (project != null) {
+					project.setIsDraftProject("true");
+					project.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
+					project.setUpdatedOn(LocalDateTime.now());
+					proj = projectRepository.save(project);
+				}
+				
+				teamMembersService.updateEmployeeDefaultProjectIfUpdated(List.of(newEmployee.getEmpId()),
+						List.of(newEmployee.getEmpId()), project, Long.parseLong(newEmployee.getCreatedBy().toString()), List.of(dbEmployeeTeamMap));
+
+			}	
 						
 				if (newEmployee.getEmpId() != null) {
 
@@ -1444,7 +1437,8 @@ public class EmployeeService {
 				EmpPrimaryProjectMapping employeeProject = empPrimaryProjectMappingRepository.findByEmpIdAndIsMapped(employeedto.getEmpId(),"Y");
 				if(employeeProject!=null) {
 					Project project = projectRepository.findByProjectId(employeeProject.getPrimaryProjectId().intValue());
-					empDTO.setDefaultProjectName(project.getProjectName());					
+					empDTO.setDefaultProjectName(project.getProjectName());			
+					empDTO.setProjectId(employeeProject.getPrimaryProjectId().intValue());		
 				}
 						
 						
@@ -2392,9 +2386,10 @@ public class EmployeeService {
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
 			
 			if (employeeObject.isPresent()) {
-				
-				Employee employee = employeeObject.get();
-				if(!employee.getEmployeementId().equals(employeedto.getEmployeementId())) {
+				Long updatedBy = employeedto.getUpdatedBy();
+
+				Employee employee2 = employeeObject.get();
+				if(!employee2.getEmployeementId().equals(employeedto.getEmployeementId())) {
 					ServiceResponse employeementIdExists = checkEmployeementId(employeedto);
 					if (employeementIdExists.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -2414,7 +2409,7 @@ public class EmployeeService {
 				if (employeedto.getEmploymentstatus().equals("InActive")) {
 					
 					// will check for Active, Confirmed, or Probation
-					String currentStatus = employee.getEmploymentstatus();
+					String currentStatus = employee2.getEmploymentstatus();
 					if (currentStatus.equals("Active") || 
 						currentStatus.equals("Confirmed") || 
 						currentStatus.equals("Probation")) {
@@ -2422,8 +2417,8 @@ public class EmployeeService {
 						LocalDate dateOfRelieving = null;
 						if (employeedto.getDateOfRelieving() != null && !employeedto.getDateOfRelieving().isEmpty()) {
 						    dateOfRelieving = LocalDate.parse(employeedto.getDateOfRelieving());
-						} else if (employee.getDateOfRelieving() != null && !employee.getDateOfRelieving().isEmpty()) {
-						    dateOfRelieving = LocalDate.parse(employee.getDateOfRelieving());
+						} else if (employee2.getDateOfRelieving() != null && !employee2.getDateOfRelieving().isEmpty()) {
+						    dateOfRelieving = LocalDate.parse(employee2.getDateOfRelieving());
 						}
 
 						ServiceResponse timesheetValidation = getPendingTimesheetProjects(
@@ -2444,7 +2439,72 @@ public class EmployeeService {
 						}
 					}
 				}
-				
+
+				if (Boolean.TRUE.equals(employeedto.getIsUpdateDefaultProject())) {
+
+					List<EmployeeTeamMap> existingTeamMappings = employeeTeamMapRepository
+							.findByEmpIdAndProjectId(employeedto.getEmpId(), employeedto.getProjectId());
+					if (existingTeamMappings != null) {
+
+						LocalDateTime now = LocalDateTime.now();
+						for (EmployeeTeamMap existingMap : existingTeamMappings) {
+							if (!employeedto.getOldEtmEndDate().toLocalDate().isAfter(now.toLocalDate())) {
+								existingMap.setActive(0L);
+							}
+							existingMap.setEndDate(employeedto.getOldEtmEndDate());
+							existingMap.setUpdatedBy(updatedBy);
+						}
+						employeeTeamMapRepository.saveAll(existingTeamMappings);
+					}
+
+					StringBuilder employeeRole = new StringBuilder("");
+					for (String empRole : employeedto.getDefaultTeamEmployeeRole()) {
+						employeeRole.append(empRole).append(",");
+					}
+
+					if (employeedto.getDefaultProjectId() != null) {
+						List<EmployeeTeamMap> existingTeamMappingForFutureDate = employeeTeamMapRepository.findByEmpIdAndTeamIdAndStartDateGreaterThanCurrentDate(employee2.getEmpId(), employeedto.getDefaultTeamId());	
+						if (existingTeamMappingForFutureDate != null && !existingTeamMappingForFutureDate.isEmpty() && existingTeamMappingForFutureDate.size() > 1) {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				            response.setServiceResponse("Multiple team mappings found for the same employee and team for the future date. Kindly contact admin!!");
+				            apiLogInfo.setApiResponse((String) "Multiple team mappings found for the same employee and team for the future date. Kindly contact admin!!");
+				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				            apiLogInfo.setApiRequest(logBuilder.toString());
+				            logService.logMyInfo(httpRequest, apiLogInfo);
+				            return response;
+						}
+
+						EmployeeTeamMap employeeTeamMap =  new EmployeeTeamMap();
+						if (existingTeamMappingForFutureDate != null && !existingTeamMappingForFutureDate.isEmpty() && existingTeamMappingForFutureDate.size() == 1) {
+							employeeTeamMap = existingTeamMappingForFutureDate.get(0);
+						}
+						employeeTeamMap.setEmpId(employee2.getEmpId());
+						employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
+						employeeTeamMap.setActive(2l);
+						employeeTeamMap.setStartDate(employeedto.getNewEtmStartDate());
+						employeeTeamMap.setEmployeeRole(employeeRole.toString());
+						employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
+						employeeTeamMap.setPoId(employeedto.getPoId());
+						employeeTeamMap.setRoleId(employeedto.getPoRoleId());
+						employeeTeamMap.setCreatedBy(updatedBy);
+						employeeTeamMap.setUpdatedBy(updatedBy);
+						employeeTeamMap.setUpdatedOn(LocalDateTime.now());
+						EmployeeTeamMap dbEmployeeTeamMap = employeeTeamMapRepository.save(employeeTeamMap);
+
+						Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
+						if (project != null) {
+							project.setIsDraftProject("true");
+							project.setUpdatedBy(updatedBy);
+							project.setUpdatedOn(LocalDateTime.now());
+							project = projectRepository.save(project);
+						}
+
+						teamMembersService.updateEmployeeDefaultProjectIfUpdated(List.of(employee2.getEmpId()),
+								List.of(employee2.getEmpId()), project, updatedBy, List.of(dbEmployeeTeamMap));
+					}
+				}
+
+				Employee employee = employeeRepository.findByEmpId(employeedto.getEmpId());
 				
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setEmployeementId(employeedto.getEmployeementId());
@@ -2510,56 +2570,6 @@ public class EmployeeService {
 				employee.setIsConsultant(employeedto.getIsConsultant());
 				employee.setIsApprenticeship(employeedto.getIsApprenticeship());
 				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());
-				
-				
-				if(Boolean.TRUE.equals(employeedto.getIsUpdateDefaultProject())) {
-					Project proj = new Project();
-					StringBuilder employeeRole = new StringBuilder("");
-					for (String empRole : employeedto.getDefaultTeamEmployeeRole()) {
-						employeeRole.append(empRole).append(",");
-					}
-					
-					if(employeedto.getDefaultProjectId() != null) {
-						Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
-						String departmentname = dept.getName();
-						
-						Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
-						resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
-						
-						
-						
-						
-						
-						EmployeeTeamMap employeeTeamMap = new EmployeeTeamMap();
-						employeeTeamMap.setEmpId(employee.getEmpId());
-						employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
-						employeeTeamMap.setActive(2l);
-						employeeTeamMap.setStartDate(LocalDateTime.now());
-						employeeTeamMap.setEmployeeRole(employeeRole.toString());
-						employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
-						employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
-						employeeTeamMap.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
-						employeeTeamMap.setUpdatedOn(LocalDateTime.now());	
-					   employeeTeamMapRepository.save(employeeTeamMap);
-					   
-					   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
-					    if (project != null) {
-					    	project.setIsDraftProject("true");
-					    	project.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
-					    	project.setUpdatedOn(LocalDateTime.now());	
-					        proj = projectRepository.save(project);  
-					    }
-					   
-					   DefaultProjectUpdateDTO dto = new DefaultProjectUpdateDTO();
-					    dto.setUpdatedBy(employeedto.getUpdatedBy().longValue()); 
-					    dto.setProjectId(employeedto.getDefaultProjectId());
-					    dto.setEmpIds(Collections.singletonList(employee.getEmpId()));
-					    dto.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
-					    resourceManagementService.setDefaultProjectUpdateBillable(dto);
-					   
-					   }
-					}
-
 				
 				if ("No".equals(employeedto.getOnbenchDate())) {
 				    // Keep the existing value (no need to set it again)
@@ -7819,72 +7829,68 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	}
 	
 	
-	public ServiceResponse getInternalProjectsAccToDepartmentSelected(DefaultProjectEmployeeConfig defaultProjectEmployeeConfig){
-		   ServiceResponse response = new ServiceResponse();
-		    LogDTO apiLogInfo = new LogDTO();
-		    apiLogInfo.setApiUrl("/api/getInternalProjectsAccToDepartment");
-		    apiLogInfo.setLogLevel("INFO");
-		    try {
-		    	List<Object[]> getBenchOrOtherProjects = new ArrayList<>();
-		    	Long departmentId = defaultProjectEmployeeConfig.getDepartmentId();
-		    	if("Bench".equalsIgnoreCase(defaultProjectEmployeeConfig.getDefaultProjectType())){
-		    	getBenchOrOtherProjects= employeeRepository.getAllInternalBenchprojectsAndTeamDetailsForDepartmenFilter();
-		    	}else {
-		        getBenchOrOtherProjects = employeeRepository.getAllProjectsThatAreNotBench();
-		    	}
-		    	 Map<Integer, ProjectDTO> projectMap = new HashMap<>();
-		    	 
-		    	 for(Object[] row : getBenchOrOtherProjects) {
-		    		 
-		    		 Integer projectId = row[0]!=null ? Integer.parseInt(row[0].toString()) : null;
-		    		 String projectName = row[1]!=null ? row[1].toString():null;
-		    		 Long teamId = row[2]!=null ? Long.parseLong(row[2].toString()):null;
-		    		 String teamName = row[3]!=null ? row[3].toString():null;
-		    		 String deptIds = row[4]!=null ? row[4].toString():null;
-		    		 
-		    		 Long poId = row[10] != null ? Long.parseLong(row[10].toString()) : null;
+	public ServiceResponse getInternalProjectsAccToDepartmentSelected(DefaultProjectEmployeeConfig defaultProjectEmployeeConfig) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getInternalProjectsAccToDepartment");
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			List<Object[]> getBenchOrOtherProjects = new ArrayList<>();
+			Long departmentId = defaultProjectEmployeeConfig.getDepartmentId();
+			if ("Bench".equalsIgnoreCase(defaultProjectEmployeeConfig.getDefaultProjectType())) {
+				getBenchOrOtherProjects = employeeRepository.getAllInternalBenchprojectsAndTeamDetailsForDepartmenFilter();
+			} else {
+				getBenchOrOtherProjects = employeeRepository.getAllProjectsThatAreNotBench();
+			}
+			Map<Integer, ProjectDTO> projectMap = new HashMap<>();
 
-		    		 
-		    		 if (deptIds == null || !Arrays.asList(deptIds.split(",")).contains(departmentId.toString())) {
-		                 continue;
-		             }
-		    		 
-		    		 TeamDTO teamDTO = new TeamDTO();
-		             teamDTO.setTeamId(teamId);
-		             teamDTO.setTeamName(teamName);
-		             teamDTO.setDepartmentList(deptIds.split(","));
-		             
-		             if (projectMap.containsKey(projectId)) {
-		                 projectMap.get(projectId).getTeamList().add(teamDTO);
-		             } else {
-		               
-		                 ProjectDTO projectDTO = new ProjectDTO();
-		                 projectDTO.setProjectId(projectId);
-		                 projectDTO.setProjectName(projectName);
-		                 projectDTO.setPoId(poId); // setting po id 
-		                 projectDTO.setTeamList(new ArrayList<>());
-		                 projectDTO.getTeamList().add(teamDTO);
-		                 projectMap.put(projectId, projectDTO);
-		             }
-		         }
+			for (Object[] row : getBenchOrOtherProjects) {
+				Integer projectId = TypeConversionUtil.safeParseInt(row[0]);
+				String projectName = TypeConversionUtil.getSafeString(row[1]);
+				Long teamId = TypeConversionUtil.safeParseLong(row[2]);
+				String teamName = TypeConversionUtil.getSafeString(row[3]);
+				String deptIds = TypeConversionUtil.getSafeString(row[4]);
+				String projectType = TypeConversionUtil.getSafeString(row[5]);
+				Date projectStartDate = row[6] != null ? (Date) row[6] : null;
 
-		         List<ProjectDTO> filteredProjects = new ArrayList<>(projectMap.values());
-		         response.setServiceResponse(filteredProjects);
-		         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		         apiLogInfo.setApiResponse("List fetched of size: " + filteredProjects.size());
-		    	
-		    }catch (Exception e) {
-		        e.printStackTrace();
-		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-		        response.setServiceResponse("An error occurred while processing the request.");
-		        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-		        apiLogInfo.setLogLevel("ERROR");
-		        response.setServiceError(e.getMessage());
-		    }
+				if (deptIds == null || !Arrays.asList(deptIds.split(",")).contains(departmentId.toString())) {
+					continue;
+				}
 
-		    logService.logMyInfo(httpRequest, apiLogInfo);
-		    return response;
+				TeamDTO teamDTO = new TeamDTO();
+				teamDTO.setTeamId(teamId);
+				teamDTO.setTeamName(teamName);
+				teamDTO.setDepartmentList(deptIds.split(","));
+
+				if (projectMap.containsKey(projectId)) {
+					projectMap.get(projectId).getTeamList().add(teamDTO);
+				} else {
+					ProjectDTO projectDTO = new ProjectDTO();
+					projectDTO.setProjectId(projectId);
+					projectDTO.setProjectName(projectName);
+					projectDTO.setProjectType(projectType);
+					projectDTO.setProjectStartDate(projectStartDate);
+					projectDTO.setTeamList(new ArrayList<>());
+					projectDTO.getTeamList().add(teamDTO);
+					projectMap.put(projectId, projectDTO);
+				}
+			}
+
+			List<ProjectDTO> filteredProjects = new ArrayList<>(projectMap.values());
+			response.setServiceResponse(filteredProjects);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("List fetched of size: " + filteredProjects.size());
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("An error occurred while processing the request.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
+			response.setServiceError(e.getMessage());
 		}
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 	
 	
 	public ServiceResponse getAllEmployeesBasedOnUserLogined(List<DepartmentDTO> deapartment) {

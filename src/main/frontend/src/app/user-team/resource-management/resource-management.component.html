@@ -1,4 +1,13 @@
 <ng-container *ngIf="!showReportList">
+    <!-- <div class="toggle-row">
+        <div class="d-flex justify-content-end align-items-center p-0">
+            <span>New Layout</span>&nbsp;&nbsp;
+            <mat-slide-toggle [(ngModel)]="isNewLayout" color="primary">
+            </mat-slide-toggle>
+        </div>
+    </div> -->
+
+    <ng-container *ngIf="!isNewLayout">
     <!-- Navigation Row Start -->
     <div class="row m-1" *ngIf="!showProjectConfig">
         <div class="col-md-6 d-flex justify-content-start align-items-center p-0">
@@ -79,6 +88,11 @@
         </app-rmg-status-cards>
     </ng-container>
     <!-- Project Count & List & Employee Status Card End -->
+    </ng-container>
+
+    <ng-container *ngIf="isNewLayout">
+        <app-rmg-dashboard></app-rmg-dashboard>
+    </ng-container>
 
     <!-- Project Configuration Start -->
     <ng-container *ngIf="showProjectConfig" class="row mb-4">

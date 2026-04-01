@@ -17,5 +17,7 @@ public class AutoMigrationDTO {
 
 	    private Long roleId;
 	    private String roleName;
+	    private String previousPoNumber;
+	    private String currentPoNumber;
 	    private List<EmployeeImpactDTO> employees;
 }

@@ -55,7 +55,7 @@ import { merge, of, forkJoin } from 'rxjs';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { RmgProject } from 'src/app/models/rmgProject';
 import { RmgStatusCardsComponent } from './rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
-import { RmgProjectComponent } from './rmg-project-config/rmg-project-config.component';
+import { RmgProjectConfigComponent } from './rmg-project-config/rmg-project-config.component';
 
 class FilterData {
   title: any;
@@ -71,9 +71,9 @@ class FilterData {
 })
 
 export class ResourceManagementComponent implements OnInit {
-
+  
   @ViewChild('rmgStatusCards') rmgStatusCardsComponent!: RmgStatusCardsComponent;
-  @ViewChild('rmgProjectConfig') rmgProjectComponent!: RmgProjectComponent;
+  @ViewChild('rmgProjectConfig') rmgProjectComponent!: RmgProjectConfigComponent;
   @ViewChild('chartSection') chartSection!: ElementRef;
   @ViewChild("project_configuration") projectConfigurationTemplateRef: TemplateRef<any>;
   @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
@@ -97,6 +97,7 @@ export class ResourceManagementComponent implements OnInit {
   rejectProjectModalRef: NgbModalRef;
   clientSideIdConfirmationModalRef:NgbModalRef;
 
+  isNewLayout:boolean = false;
   showProjectConfig: boolean = false;
   rmgProjectObj: RmgProject = new RmgProject();
   projectCompletionObj:Project = new Project();

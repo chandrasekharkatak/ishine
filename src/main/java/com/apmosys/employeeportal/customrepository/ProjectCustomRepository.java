@@ -679,6 +679,7 @@ public class ProjectCustomRepository {
 				.append("INNER JOIN project_po_details ppd3 ON ppd3.project_id = p3.project_id AND DATE(ppd3.po_start_date) <= CURDATE() AND (ppd3.po_end_date IS NULL OR DATE(ppd3.po_end_date) >= CURDATE()) AND ppd3.active  = 1 \n")
 				.append("INNER JOIN employee e3 ON etm2.emp_id = e3.emp_id  \n")
 				.append("WHERE 1=1 \n")
+                .append("AND DATE(etm2.start_date) <= CURDATE() \n")
 				.append("AND etm2.active != 0 AND e3.employmentstatus != 'InActive' \n")
 				.append("AND t3.is_active != 'N' AND p3.po_project_type = 'TNM'  \n")
 				.append("AND p3.active != 'false' \n")
@@ -860,9 +861,9 @@ public class ProjectCustomRepository {
 	private String getOffBoardedProjectsCondition() {
 		StringBuilder offBoardedCondition = new StringBuilder();
 		offBoardedCondition.append(" AND p.active= 'true' AND (p.is_draft_project IS NOT NULL OR UPPER(p.is_draft_project) != 'REJECTED') \n")
-		.append(" AND EXISTS (SELECT 1 FROM teams t3 WHERE t3.project_id = p.project_id ) \n")
-		.append(" AND p.project_id IN (SELECT t2.project_id FROM teams t2 INNER JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE (etm2.active = 0 AND DATE(etm2.end_date) < CURDATE()))  \n")
-		.append(" AND p.project_id NOT IN (SELECT t2.project_id FROM teams t2 INNER JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE 1 = 1 AND (etm2.active = 1 OR (etm2.active = 0 AND DATE(etm2.start_date) > CURDATE()))) \n");
+		.append(" AND EXISTS (SELECT 1 FROM teams t3 WHERE t3.project_id = p.project_id AND t3.is_active  = 'Y' ) \n")
+		// .append(" AND p.project_id IN (SELECT t2.project_id FROM teams t2 INNER JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE (etm2.active = 0 AND DATE(etm2.end_date) < CURDATE()))  \n")
+		.append(" AND p.project_id NOT IN (SELECT t2.project_id FROM teams t2 LEFT JOIN employee_team_mapping etm2 ON (t2.team_id = etm2.team_id OR etm2.team_id IS NULL) WHERE 1 = 1 AND (etm2.active != 0 OR (etm2.active = 0 AND DATE(etm2.start_date) > CURDATE()))) \n");
 		return offBoardedCondition.toString();
 	}
 
@@ -933,6 +934,7 @@ public class ProjectCustomRepository {
                 "expiredProjects2To3Months", List.of(currentDate.minusDays(90), currentDate.minusDays(61)),
                 "expiredProjects3To6Months", List.of(currentDate.minusDays(180), currentDate.minusDays(91)),
                 "expiredProjects6To9Months", List.of(currentDate.minusDays(270), currentDate.minusDays(181)),
+                "expiredProjects6To12Months", List.of(currentDate.minusDays(365), currentDate.minusDays(181)),
                 "expiredProjects9To12Months", List.of(currentDate.minusDays(365), currentDate.minusDays(271)),
                 "expiredProjectsAbove12Months", List.of(currentDate.minusYears(10), currentDate.minusDays(366)));
         return dateRanges.getOrDefault(key, List.of());

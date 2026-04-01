@@ -42,6 +42,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<ProjectIdAndNameDTO> findAllProjectIdAndName();
 	
 	public List<Project> findByEmpId(Long empId);
+	@Query("SELECT p.projectId, p.hasClientSideId FROM Project p WHERE p.projectId IN :projectIds")
+	List<Object[]> findHasClientSideByProjectIds(@Param("projectIds") Set<Integer> projectIds);
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getActivitiesByTeamIdAndEmployeeId(Long teamId, Long empId);
@@ -5435,7 +5437,8 @@ boolean existsByProjectName(String projectName);
 			+ "LEFT JOIN Client c ON p.clientId = c.clientId \n"
 			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = etm.poId \n"
 			+ "LEFT JOIN PoRequirementMapping prm ON  etm.roleId = prm.roleId and etm.poId = prm.poId and prm.active = true \n"
-			+ "WHERE 1=1 AND etm.empId= :empId AND etm.active != 0 \n"
+			+ "AND DATE(prm.lineItemEndDate) = (SELECT MAX(DATE(prm2.lineItemEndDate)) FROM PoRequirementMapping prm2 WHERE prm2.poId = prm.poId AND prm2.active = true AND prm2.roleId = prm.roleId  ) \n"
+			+ "WHERE 1=1 AND etm.empId= :empId AND etm.active != 0 AND (etm.endDate IS NULL OR DATE(etm.endDate) >= CURDATE() ) \n"
 			+ "AND t.isActive != 'N' AND p.active != 'false' AND p.projectId !=:projectId \n")
 public List<PoTeamAndMemberDetailsDto> getEmployeeExistingProjectDetailsByEmpId(Long empId, Integer projectId);
 

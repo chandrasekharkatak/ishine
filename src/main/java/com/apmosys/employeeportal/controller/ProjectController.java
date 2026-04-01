@@ -301,18 +301,6 @@ public class ProjectController {
 	}
 	
 	// @Encrypted
-	@GetMapping("/getEmployeeExistingProjectDetailsByEmpId")
-	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(@RequestParam Long empId, @RequestParam Integer projectId) {
-		return projectService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId);
-	}
-	
-	// @Encrypted
-	@PostMapping("/updateEmployeeProjectMappingAsInActive")
-	public ServiceResponse updateEmployeeProjectMappingAsInActive(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
-		return projectService.updateEmployeeProjectMappingAsInActive(rmgTeamMemberDto);
-	}
-
-	// @Encrypted
 	@PostMapping("/saveProjectInformation")
 	public ServiceResponse saveProjectInformation(@RequestBody RmgProjectDto rmgProjectDto) {
 		return projectService.saveProjectInformation(rmgProjectDto);
