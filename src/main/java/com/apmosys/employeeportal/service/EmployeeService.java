@@ -193,7 +193,6 @@ import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.repository.UploadPolicyRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.request.EmployeeTimesheetProjectRequest;
@@ -344,8 +343,8 @@ public class EmployeeService {
 	@Autowired
 	EmployeeSpecializationMapRepository employeeSpecializationMapRepository;
 	
-	@Autowired
-	TimesheetsRepository timesheetsRepository;
+//	@Autowired
+//	TimesheetsRepository timesheetsRepository;
 	
 	@Autowired
 	ResourceRequirementRepository resourceRequirementRepository;
@@ -449,135 +448,6 @@ public class EmployeeService {
 
 
 
-//	@Transactional
-//	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
-//		ServiceResponse response = new ServiceResponse();
-//
-//		try {
-//
-//			Employee employee = new Employee();
-//
-//			employee.setEmployeementId(employeedto.getEmployeementId());
-//			employee.setName(employeedto.getName());
-//			employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth(), "yyyy-MM-dd"));
-//			employee.setDateOfJoining(stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd"));
-//			employee.setManagerId(employeedto.getManagerId());
-//			employee.setEmail(employeedto.getEmail());
-//			employee.setGender(employeedto.getGender());
-//			employee.setBloodGroup(employeedto.getBloodGroup());
-//			employee.setMaritalStatus(employeedto.getMaritalStatus());
-//			employee.setFatherName(employeedto.getFatherName());
-//			employee.setPlaceOfBirth(employeedto.getPlaceOfBirth());
-//			employee.setMotherTongue(employeedto.getMotherTongue());
-//			employee.setPassportNumber(employeedto.getPassportNumber());
-//			employee.setAadhar(employeedto.getAadhar());
-//			employee.setPanNumber(employeedto.getPanNumber());
-//			employee.setMobileNo(employeedto.getMobileNo());
-//			employee.setLandline(employeedto.getLandline());
-//			employee.setAddress(employeedto.getAddress());
-//			employee.setCity(employeedto.getCity());
-//			employee.setState(employeedto.getState());
-//			employee.setCountry(employeedto.getCountry());
-//			employee.setPincode(employeedto.getPincode());
-//			employee.setAlternateMobileNo(employeedto.getAlternateMobileNo());
-//			employee.setPermanentAddress(employeedto.getPermanentAddress());
-//			employee.setEmergencyContactPerson(employeedto.getEmergencyContactPerson());
-//			employee.setRelation(employeedto.getRelation());
-//			employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
-//			employee.setNoticePeriod(employeedto.getNoticePeriod());
-//			employee.setEmploymentstatus(employeedto.getEmploymentstatus());
-//			employee.setBankName(employeedto.getBankName());
-//			employee.setBankAccountNo(employeedto.getBankAccountNo());
-//			employee.setBankIFSCCode(employeedto.getBankIFSCCode());
-//			employee.setPfAccountNumber(employeedto.getPfAccountNumber());
-//			employee.setPreviousPfAccountNumber(employeedto.getPreviousPfAccountNumber());
-//			employee.setUan(employeedto.getUan());
-//			employee.setEsicNumber(employeedto.getEsicNumber());
-//			employee.setGraduationType(employeedto.getGraduationType());
-//			employee.setPursuing(employeedto.getPursuing());
-//			employee.setYearOfPassing(employeedto.getYearOfPassing());
-//			employee.setPassingGrade(employeedto.getPassingGrade());
-//			employee.setAboutMe("Add about yourself.");
-//			employee.setViewsOnOrganisation("Add your views.");
-//			employee.setJobRoleId(employeedto.getJobRoleId());
-//			employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
-//			employee.setCreatedBy(employeedto.getCreatedBy());
-//			employee.setExperience(employeedto.getExperience());
-//			employee.setRole(employeedto.getRole());
-//			employee.setWorkLocation(employeedto.getWorkLocation());
-//			employee.setInvalidAccessAttempt(0);
-//			Employee newEmployee = employeeRepository.save(employee);
-//
-//			Optional.ofNullable(employeedto.getPreviousEmploymentList()).ifPresent((previousEmployerList) -> {
-//
-//				if (!previousEmployerList.isEmpty()) {
-//					previousEmployerList.forEach((previousEmployer) -> {
-//						previousEmployer.setEmpId(newEmployee.getEmpId());
-//
-//					});
-//					addPreviousEmployer(previousEmployerList, employeedto.getIsDraft());
-//				}
-//
-//			});
-//
-//			Optional.ofNullable(employeedto.getCertifications()).ifPresent((certificationList) -> {
-//
-//				if (!certificationList.isEmpty()) {
-//					certificationList.forEach((certification) -> {
-//						certification.setEmpId(newEmployee.getEmpId());
-//
-//					});
-//					addCertifications(certificationList, employeedto.getIsDraft());
-//				}
-//
-//			});
-//
-//			List<LeaveTypeMaster> leaveTypeMasterList = leaveTypeMasterRepository.findAll();
-//
-//			List<EmployeeLeavesMap> mapList = new ArrayList<EmployeeLeavesMap>();
-//
-//			List<LeaveBalanceLog> logList = new ArrayList<LeaveBalanceLog>();
-//
-//			leaveTypeMasterList.forEach((leaveType) -> {
-//
-//				EmployeeLeavesMap map = new EmployeeLeavesMap();
-//				LeaveBalanceLog log = new LeaveBalanceLog();
-//
-//				map.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
-//				map.setEmpId(newEmployee.getEmpId());
-//				map.setBalance((float) 0);
-//				map.setPendingForApproval((float) 0);
-//				mapList.add(map);
-//
-//				log.setBalance(0.0f);
-//				log.setEmpId(newEmployee.getEmpId());
-//				log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
-//				log.setMessage(LeaveLogMessage.addLeave);
-//				log.setUpdateBalanceBy("+0.0");
-//				logList.add(log);
-//
-//			});
-//
-//			List<EmployeeLeavesMap> list = employeeLeavesMapRepository.saveAll(mapList);
-//			List<LeaveBalanceLog> updatedLogList = leaveBalanceLogRepository.saveAll(logList);
-//
-//			if (list != null && updatedLogList != null) {
-//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//				response.setServiceResponse("Employee Profile Created.");
-//
-//			} else {
-//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//				response.setServiceResponse("Employee Profile Creation Failed.");
-//			}
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-//			response.setServiceResponse("Something Went Wrong.");
-//			response.setServiceError(e.getMessage());
-//		}
-//		return response;
-//	}
 
 	@Transactional
 	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
@@ -5755,7 +5625,7 @@ public class EmployeeService {
 				Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
 				
 				// Get Filled EOD Count for Team Members
-				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(firstOfMonth, end, employeedto.getEmpId());
+				List<Object[]> timesheetList = employeeTimesheetsNewRepository.getMyTeamsFilledEodCountByManagerId(firstOfMonth, end, employeedto.getEmpId());
 
 				list.forEach((object) -> {
 					EmployeeDTO dto = new EmployeeDTO();

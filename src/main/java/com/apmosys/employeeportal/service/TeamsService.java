@@ -120,7 +120,6 @@ import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.RoleDetailsRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.EmailTrigger;
 import com.apmosys.employeeportal.utility.EmployeeHirarchyCache;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
@@ -182,8 +181,8 @@ public class TeamsService {
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
 
-	@Autowired
-	TimesheetsRepository timesheetsRepository;
+//	@Autowired
+//	TimesheetsRepository timesheetsRepository;
 
 	@Autowired
 	EmployeeTimesheetsNewRepository timesheetsRepositoryNew;
@@ -1347,7 +1346,7 @@ public class TeamsService {
 				Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
 
 				// Get Filled EOD Count for Team Members
-				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(firstOfMonth, end, employeedto.getEmpId());
+				List<Object[]> timesheetList = timesheetsRepositoryNew.getMyTeamsFilledEodCountByManagerId(firstOfMonth, end, employeedto.getEmpId());
 				System.err.println(timesheetList.size());
 
 				list.forEach((object) -> {
@@ -1464,7 +1463,7 @@ public class TeamsService {
 
 				// Get filled EOD counts for team members
 	            List<Object[]> timesheetList =
-	                timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(
+	                timesheetsRepositoryNew.getMyTeamsFilledEodCountByManagerId(
 	                    firstOfMonth, end, employeedto.getEmpId()
 	                );
 
@@ -1518,10 +1517,9 @@ public class TeamsService {
 
 		// Fetch timesheet status for this manager's direct reportees
 	    List<Object[]> timesheetList =
-	        timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(
+	        timesheetsRepositoryNew.getMyTeamsFilledEodCountByManagerId(
 	            firstOfMonth, end, manager.getEmpId()
-	        );
-	    
+	        );	    
 
 		for (Object[] obj : subList) {
 			EmployeeDTO child = mapObjectToDTO(obj, period, timesheetList);

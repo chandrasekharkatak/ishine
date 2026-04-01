@@ -239,11 +239,11 @@ public class EmployeeTimesheetControllerNew {
 		return timesheetServiceNew.getTimesheetMetadataByEmpId(timesheetDTO);
 	}
 	
-	@JobRoleAccess(featureIds = {15})
-	 @PostMapping("/getActiveProjectsAndClientSideIdByEmpId")
-	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestBody Long empId) {
-	     return timesheetServiceNew.getActiveProjectsAndClientSideIdByEmpId(empId);
-	 }
+//	@JobRoleAccess(featureIds = {15})
+//	 @PostMapping("/getActiveProjectsAndClientSideIdByEmpId")
+//	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestBody Long empId) {
+//	     return timesheetServiceNew.getActiveProjectsAndClientSideIdByEmpId(empId);
+//	 }
 
 	/**
 	 * API 1.11: Get Document Data by Doc ID, this is for viewing the doc

@@ -13,7 +13,6 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -22,8 +21,7 @@ public class TimesheetDashboardServiceNew {
     @Autowired
     private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
-    @Autowired
-    private TimesheetsRepository timesheetsRepository;
+   
 
     @Autowired
     private EmployeeRepository employeeRepository;

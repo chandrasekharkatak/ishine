@@ -48,7 +48,6 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqF
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
-import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetActionAuditNew;
 import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
 import com.apmosys.employeeportal.model.TimesheetDocumentApproval;
@@ -64,7 +63,6 @@ import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.repository.TimesheetRejectionDetailsNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.service.helper.TimesheetAggregationHelper;
 import com.apmosys.employeeportal.service.mapper.TimesheetMapper;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -93,8 +91,6 @@ public class TimesheetApprovalServiceNew {
     public static final String ACTION_TYPE_APPROVAL = "APPROVAL";
     public static final String ACTION_TYPE_REJECTION = "REJECTION";
     
-    @Autowired
-    private TimesheetsRepository timesheetsRepository;
     
     @Autowired
     private EmployeeRepository employeeRepository;

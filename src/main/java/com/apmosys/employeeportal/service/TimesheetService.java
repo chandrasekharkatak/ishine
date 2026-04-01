@@ -109,7 +109,6 @@ import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.FinalDocument;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.Project;
-import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetActivityMap;
 import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
 import com.apmosys.employeeportal.model.TimesheetDataDTO;
@@ -136,7 +135,6 @@ import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.service.validator.TimesheetValidatorService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -146,8 +144,8 @@ import com.apmosys.employeeportal.utility.TypeConversionUtil;
 @Service
 public class TimesheetService {
 
-	@Autowired
-	TimesheetsRepository timesheetsRepository;
+//	@Autowired
+//	TimesheetsRepository timesheetsRepository;
 	
 	
 	
@@ -749,7 +747,7 @@ public class TimesheetService {
 
 	        // Timesheet fill check
 	        Long memberEmpId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
-	        List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMemberOLD(memberEmpId, date);
+	        List<Object[]> timesheetFilledByMember = employeeTimesheetsNewRepository.getTimesheetFilledByMember(memberEmpId, date);
 
 	        boolean isFilled = timesheetFilledByMember.size() >= Long.parseLong(maximumTimesheetCanBeFilledByTeamMember);
 	        dto.setIsTimesheetFilledByMember(isFilled ? "true" : "false");
@@ -760,153 +758,153 @@ public class TimesheetService {
 	    return dtoList;
 	}
 	
-	private void handleDocumentUpload(TimesheetDTO timesheetDTO, Timesheet newTimesheetCreated, MultipartFile file,
-			boolean isFinal) throws IOException {
-		timesheetDocumentService.handleDocumentUpload(timesheetDTO, newTimesheetCreated, file, isFinal);
-	}
+//	private void handleDocumentUpload(TimesheetDTO timesheetDTO, Timesheet newTimesheetCreated, MultipartFile file,
+//			boolean isFinal) throws IOException {
+//		timesheetDocumentService.handleDocumentUpload(timesheetDTO, newTimesheetCreated, file, isFinal);
+//	}
 
 	public ServiceResponse getAllMyTimesheetsByEmpId(TimesheetDTO timesheetDTO) {
 		return timesheetQueryService.getAllMyTimesheetsByEmpId(timesheetDTO);
 	}
 	
 	// Delegate method - implementation moved to TimesheetQueryService
-	private ServiceResponse getAllMyTimesheetsByEmpIdInternal(TimesheetDTO timesheetDTO) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("add_timesheet");
-		apiLogInfo.setApiUrl("/api/getAllMyTimesheetsByEmpId");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("startDate : " +timesheetDTO.getStartDate()+ " ,endDate : " +timesheetDTO.getEndDate() );
-		try {
-
-			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
-
-			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
-
-			List<Object[]> timesheetList = timesheetsRepository
-					.getAllMyTimesheetsOLD(timesheetDTO.getEmpId(), start, end);
-
-			Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
-
-				if (list.isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Timesheet list is empty");
-					
-					apiLogInfo.setApiResponse("Timesheet list is empty");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				} else {
-
-					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
-
-					list.forEach((object) -> {
-
-						TimesheetDTO dto = new TimesheetDTO();
-						Long timesheetId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
-						dto.setTimesheetId(timesheetId);
-						dto.setDate(object[1] != null ? object[1].toString() : null);
-						dto.setDayType(object[2] != null ? object[2].toString() : null);
-						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
-						dto.setDescription(object[4] != null ? object[4].toString() : null);
-						dto.setTotalTime(object[5] != null ? Float.parseFloat(object[5].toString() ) : null);
-						dto.setStatus(object[6] != null ? object[6].toString() : null);
-						dto.setCreatedByName(object[7] != null ? object[7].toString() : null);
-						dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
-						dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-						dto.setRemarks(object[10] != null ? object[10].toString() : null);
-						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
-						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
-						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
-						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
-						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
-						dto.setClientInTime(object[16] != null ? ((Timestamp) object[16]).toLocalDateTime() : null);
-						dto.setClientOutTime(object[17] != null ? ((Timestamp) object[17]).toLocalDateTime() : null);
-						dto.setClientSideId(object[18] != null ? object[18].toString() : null);
-						dto.setTotalClientWorkingHours(object[19] != null ? object[19].toString() : null);
-						dto.setProjectId(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
-						dto.setProjectName(object[21] != null ? object[21].toString() : null);
-						dto.setClientApprovalStatus(object[22] != null ? object[22].toString() : null);
-						dto.setHasClientSideId(object[23] != null ? (Boolean) object[23] : null);
-						dto.setEmploymentId(object[23] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
-						dto.setIsShadowTimesheet(object[24] != null ? (Boolean) object[24] : null);
-						dto.setShadowEmpId(object[25] != null ? Long.parseLong(object[25].toString()) : null);
-						dto.setRejectReason(object[26] != null ? object[26].toString() : null);
-						
-						
-						if(timesheetId != null) {
-							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
-							 if(details.size()>1) {
-								 dto.setBulkApprovedDocId(null);					
-								 for (TimesheetDocumentDetailsDTO doc : details) {
-							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
-							         dto.setApprovedDocument(doc.getDocId());
-							     }
-							     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
-							    	 dto.setFilledDocument(doc.getDocId());  	 
-							     }
-							 } 
-							}else if(details.size()==1) {
-								dto.setBulkApprovedDocId(details.get(0).getBulkApprovedDocId());								
-								if(Boolean.TRUE.equals(details.get(0).getFinalFlag()) && details.get(0).getBulkApprovedDocId()!=null) {
-									dto.setFilledDocument(details.get(0).getDocId());
-							        dto.setApprovedDocument(details.get(0).getBulkApprovedDocId());
-							        }
-							else {
-								dto.setFilledDocument(details.get(0).getDocId());
-								
-							}
-							}
-						};
-						// Get InActive Activities In Timesheet
-						if(dto.getStatus() != null && dto.getStatus().equals("Pending")) {
-							List<Object[]> inactiveActivityList = timesheetsRepository
-									.getInactiveActivitiesByTimesheetIdOLD(dto.getTimesheetId());
-							
-							List<ActivityDTO> inactiveDtoList = new ArrayList<ActivityDTO>();
-							
-							if(!inactiveActivityList.isEmpty()) {
-								inactiveActivityList.forEach((actObject) -> {
-									ActivityDTO actDto = new ActivityDTO();
-									actDto.setTimesheetActivityMapId(actObject[0]!= null ? Long.parseLong(actObject[0].toString()) : null);
-									
-									inactiveDtoList.add(actDto);
-								});
-							
-								dto.setInactiveTimesheetActivities(inactiveDtoList);						}							
-						}
-						
-						dtoList.add(dto);
-					});
-
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
-					
-					apiLogInfo.setApiResponse("dtoList : " +dtoList);			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-				}
-			}, () -> {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Timesheet list is null");
-				
-				apiLogInfo.setApiResponse("Timesheet list is null");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			});
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
+//	private ServiceResponse getAllMyTimesheetsByEmpIdInternal(TimesheetDTO timesheetDTO) {
+//		ServiceResponse response = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("add_timesheet");
+//		apiLogInfo.setApiUrl("/api/getAllMyTimesheetsByEmpId");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("startDate : " +timesheetDTO.getStartDate()+ " ,endDate : " +timesheetDTO.getEndDate() );
+//		try {
+//
+//			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
+//
+//			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+//
+//			List<Object[]> timesheetList = timesheetsRepository
+//					.getAllMyTimesheetsOLD(timesheetDTO.getEmpId(), start, end);
+//
+//			Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
+//
+//				if (list.isEmpty()) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Timesheet list is empty");
+//					
+//					apiLogInfo.setApiResponse("Timesheet list is empty");			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				} else {
+//
+//					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+//
+//					list.forEach((object) -> {
+//
+//						TimesheetDTO dto = new TimesheetDTO();
+//						Long timesheetId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+//						dto.setTimesheetId(timesheetId);
+//						dto.setDate(object[1] != null ? object[1].toString() : null);
+//						dto.setDayType(object[2] != null ? object[2].toString() : null);
+//						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
+//						dto.setDescription(object[4] != null ? object[4].toString() : null);
+//						dto.setTotalTime(object[5] != null ? Float.parseFloat(object[5].toString() ) : null);
+//						dto.setStatus(object[6] != null ? object[6].toString() : null);
+//						dto.setCreatedByName(object[7] != null ? object[7].toString() : null);
+//						dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
+//						dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+//						dto.setRemarks(object[10] != null ? object[10].toString() : null);
+//						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
+//						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
+//						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
+//						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
+//						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
+//						dto.setClientInTime(object[16] != null ? ((Timestamp) object[16]).toLocalDateTime() : null);
+//						dto.setClientOutTime(object[17] != null ? ((Timestamp) object[17]).toLocalDateTime() : null);
+//						dto.setClientSideId(object[18] != null ? object[18].toString() : null);
+//						dto.setTotalClientWorkingHours(object[19] != null ? object[19].toString() : null);
+//						dto.setProjectId(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
+//						dto.setProjectName(object[21] != null ? object[21].toString() : null);
+//						dto.setClientApprovalStatus(object[22] != null ? object[22].toString() : null);
+//						dto.setHasClientSideId(object[23] != null ? (Boolean) object[23] : null);
+//						dto.setEmploymentId(object[23] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
+//						dto.setIsShadowTimesheet(object[24] != null ? (Boolean) object[24] : null);
+//						dto.setShadowEmpId(object[25] != null ? Long.parseLong(object[25].toString()) : null);
+//						dto.setRejectReason(object[26] != null ? object[26].toString() : null);
+//						
+//						
+//						if(timesheetId != null) {
+//							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+//							 if(details.size()>1) {
+//								 dto.setBulkApprovedDocId(null);					
+//								 for (TimesheetDocumentDetailsDTO doc : details) {
+//							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+//							         dto.setApprovedDocument(doc.getDocId());
+//							     }
+//							     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
+//							    	 dto.setFilledDocument(doc.getDocId());  	 
+//							     }
+//							 } 
+//							}else if(details.size()==1) {
+//								dto.setBulkApprovedDocId(details.get(0).getBulkApprovedDocId());								
+//								if(Boolean.TRUE.equals(details.get(0).getFinalFlag()) && details.get(0).getBulkApprovedDocId()!=null) {
+//									dto.setFilledDocument(details.get(0).getDocId());
+//							        dto.setApprovedDocument(details.get(0).getBulkApprovedDocId());
+//							        }
+//							else {
+//								dto.setFilledDocument(details.get(0).getDocId());
+//								
+//							}
+//							}
+//						};
+//						// Get InActive Activities In Timesheet
+//						if(dto.getStatus() != null && dto.getStatus().equals("Pending")) {
+//							List<Object[]> inactiveActivityList = timesheetsRepository
+//									.getInactiveActivitiesByTimesheetIdOLD(dto.getTimesheetId());
+//							
+//							List<ActivityDTO> inactiveDtoList = new ArrayList<ActivityDTO>();
+//							
+//							if(!inactiveActivityList.isEmpty()) {
+//								inactiveActivityList.forEach((actObject) -> {
+//									ActivityDTO actDto = new ActivityDTO();
+//									actDto.setTimesheetActivityMapId(actObject[0]!= null ? Long.parseLong(actObject[0].toString()) : null);
+//									
+//									inactiveDtoList.add(actDto);
+//								});
+//							
+//								dto.setInactiveTimesheetActivities(inactiveDtoList);						}							
+//						}
+//						
+//						dtoList.add(dto);
+//					});
+//
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse(dtoList);
+//					
+//					apiLogInfo.setApiResponse("dtoList : " +dtoList);			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//
+//				}
+//			}, () -> {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Timesheet list is null");
+//				
+//				apiLogInfo.setApiResponse("Timesheet list is null");			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			});
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//		}
+//		
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
 	
 	
 	public ServiceResponse getAllMyTeamTimesheets(TimesheetDTO timesheetDTO) {
@@ -914,132 +912,132 @@ public class TimesheetService {
 	}
 	
 	// Delegate method - implementation moved to TimesheetQueryService
-	private ServiceResponse getAllMyTeamTimesheetsInternal(TimesheetDTO timesheetDTO) {
-		ServiceResponse response = new ServiceResponse();
-		
-		LogDTO apiLogInfo = new LogDTO();
-		//apiLogInfo.setSubFeatureName("Appreciation Configuration");
-		apiLogInfo.setApiUrl("/api/getAllMyTeamTimesheets");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("startDate : " +timesheetDTO.getStartDate()+ " ,endDate : " +timesheetDTO.getEndDate() );
-		try {
-
-			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
-
-			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
-
-			List<Object[]> timesheetList = timesheetsRepository
-					.getAllMyTeamTimesheetsOLD(timesheetDTO.getCreatedBy(), start, end);
-
-			Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
-
-				if (list.isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Timesheet list is empty");
-					
-					apiLogInfo.setApiResponse("Timesheet list is empty");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				} else {
-					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
-
-					list.forEach((object) -> {
-
-						TimesheetDTO dto = new TimesheetDTO();
-						Long timesheetId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
-						dto.setTimesheetId(timesheetId);
-						dto.setDate(object[1] != null ? object[1].toString() : null);
-						dto.setDayType(object[2] != null ? object[2].toString() : null);
-						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
-						dto.setDescription(object[4] != null ? object[4].toString() : null);
-						dto.setTotalTime(object[5] != null ? Float.parseFloat(object[5].toString() ) : null);
-						dto.setStatus(object[6] != null ? object[6].toString() : null);
-						dto.setCreatedByName(object[7] != null ? object[7].toString() : null);
-						dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
-						dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-						dto.setRemarks(object[10] != null ? object[10].toString() : null);
-						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
-						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
-						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
-						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
-						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
-						dto.setClientInTime(object[16] != null ? ((Timestamp) object[16]).toLocalDateTime() : null);
-						dto.setClientOutTime(object[17] != null ? ((Timestamp) object[17]).toLocalDateTime() : null);
-						dto.setClientSideId(object[18] != null ? object[18].toString() : null);
-						dto.setTotalClientWorkingHours(object[19] != null ? object[19].toString() : null);
-						dto.setProjectId(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
-						dto.setClientApprovalStatus(object[21] != null ? object[21].toString() : null);
-						dto.setHasClientSideId(object[22] != null ? (Boolean) object[22] : null);
-						dto.setEmploymentId(object[22] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
-						dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
-						dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
-						dto.setRejectReason(object[25] != null ? object[25].toString() : null);				
-						
-						
-						 if(timesheetId != null) {
-							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
-							 for (TimesheetDocumentDetailsDTO doc : details) {
-							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
-							         dto.setApprovedDocument(doc.getDocId());
-							     }
-							     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
-							    	 dto.setFilledDocument(doc.getDocId());  	 
-							     }
-							 }
-
-							 
-						}
-						// Get InActive Activities In Timesheet
-						if(dto.getDayType().equals("Working") && (dto.getStatus().equals("Pending") || dto.getStatus().equals("Rejected"))) {
-							List<Object[]> inactiveActivityList = timesheetsRepository
-									.getInactiveActivitiesByTimesheetIdOLD(dto.getTimesheetId());
-							
-							List<ActivityDTO> inactiveDtoList = new ArrayList<ActivityDTO>();
-							
-							if(!inactiveActivityList.isEmpty()) {
-								inactiveActivityList.forEach((actObject) -> {
-									ActivityDTO actDto = new ActivityDTO();
-									actDto.setTimesheetActivityMapId(actObject[0] != null ? Long.parseLong(actObject[0].toString()) : null);
-									
-									inactiveDtoList.add(actDto);
-								});
-							
-								dto.setInactiveTimesheetActivities(inactiveDtoList);						}							
-						}	
-						
-						dtoList.add(dto);
-					});
-
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
-					
-					apiLogInfo.setApiResponse("dtoList size: " +dtoList.size());			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-					
-
-				}
-			}, () -> {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Timesheet list is null");
-				
-				apiLogInfo.setApiResponse("Timesheet list is null");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			});
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
+//	private ServiceResponse getAllMyTeamTimesheetsInternal(TimesheetDTO timesheetDTO) {
+//		ServiceResponse response = new ServiceResponse();
+//		
+//		LogDTO apiLogInfo = new LogDTO();
+//		//apiLogInfo.setSubFeatureName("Appreciation Configuration");
+//		apiLogInfo.setApiUrl("/api/getAllMyTeamTimesheets");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("startDate : " +timesheetDTO.getStartDate()+ " ,endDate : " +timesheetDTO.getEndDate() );
+//		try {
+//
+//			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
+//
+//			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+//
+//			List<Object[]> timesheetList = timesheetsRepository
+//					.getAllMyTeamTimesheetsOLD(timesheetDTO.getCreatedBy(), start, end);
+//
+//			Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
+//
+//				if (list.isEmpty()) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Timesheet list is empty");
+//					
+//					apiLogInfo.setApiResponse("Timesheet list is empty");			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				} else {
+//					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+//
+//					list.forEach((object) -> {
+//
+//						TimesheetDTO dto = new TimesheetDTO();
+//						Long timesheetId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+//						dto.setTimesheetId(timesheetId);
+//						dto.setDate(object[1] != null ? object[1].toString() : null);
+//						dto.setDayType(object[2] != null ? object[2].toString() : null);
+//						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
+//						dto.setDescription(object[4] != null ? object[4].toString() : null);
+//						dto.setTotalTime(object[5] != null ? Float.parseFloat(object[5].toString() ) : null);
+//						dto.setStatus(object[6] != null ? object[6].toString() : null);
+//						dto.setCreatedByName(object[7] != null ? object[7].toString() : null);
+//						dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
+//						dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+//						dto.setRemarks(object[10] != null ? object[10].toString() : null);
+//						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
+//						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
+//						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
+//						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
+//						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
+//						dto.setClientInTime(object[16] != null ? ((Timestamp) object[16]).toLocalDateTime() : null);
+//						dto.setClientOutTime(object[17] != null ? ((Timestamp) object[17]).toLocalDateTime() : null);
+//						dto.setClientSideId(object[18] != null ? object[18].toString() : null);
+//						dto.setTotalClientWorkingHours(object[19] != null ? object[19].toString() : null);
+//						dto.setProjectId(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
+//						dto.setClientApprovalStatus(object[21] != null ? object[21].toString() : null);
+//						dto.setHasClientSideId(object[22] != null ? (Boolean) object[22] : null);
+//						dto.setEmploymentId(object[22] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
+//						dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
+//						dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
+//						dto.setRejectReason(object[25] != null ? object[25].toString() : null);				
+//						
+//						
+//						 if(timesheetId != null) {
+//							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+//							 for (TimesheetDocumentDetailsDTO doc : details) {
+//							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+//							         dto.setApprovedDocument(doc.getDocId());
+//							     }
+//							     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
+//							    	 dto.setFilledDocument(doc.getDocId());  	 
+//							     }
+//							 }
+//
+//							 
+//						}
+//						// Get InActive Activities In Timesheet
+//						if(dto.getDayType().equals("Working") && (dto.getStatus().equals("Pending") || dto.getStatus().equals("Rejected"))) {
+//							List<Object[]> inactiveActivityList = timesheetsRepository
+//									.getInactiveActivitiesByTimesheetIdOLD(dto.getTimesheetId());
+//							
+//							List<ActivityDTO> inactiveDtoList = new ArrayList<ActivityDTO>();
+//							
+//							if(!inactiveActivityList.isEmpty()) {
+//								inactiveActivityList.forEach((actObject) -> {
+//									ActivityDTO actDto = new ActivityDTO();
+//									actDto.setTimesheetActivityMapId(actObject[0] != null ? Long.parseLong(actObject[0].toString()) : null);
+//									
+//									inactiveDtoList.add(actDto);
+//								});
+//							
+//								dto.setInactiveTimesheetActivities(inactiveDtoList);						}							
+//						}	
+//						
+//						dtoList.add(dto);
+//					});
+//
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse(dtoList);
+//					
+//					apiLogInfo.setApiResponse("dtoList size: " +dtoList.size());			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//					
+//
+//				}
+//			}, () -> {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Timesheet list is null");
+//				
+//				apiLogInfo.setApiResponse("Timesheet list is null");			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			});
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//		}
+//		
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
 
 	public ServiceResponse getAllMyActivitiesByTimesheetId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -1248,320 +1246,320 @@ public class TimesheetService {
 //		return response;
 //	}
 
-	public ServiceResponse countMyReporteesTimesheetRequests(TimesheetDTO timesheetDTO) {
-		return timesheetApprovalService.countMyReporteesTimesheetRequests(timesheetDTO);
-	}
+//	public ServiceResponse countMyReporteesTimesheetRequests(TimesheetDTO timesheetDTO) {
+//		return timesheetApprovalService.countMyReporteesTimesheetRequests(timesheetDTO);
+//	}
 	
-	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse updateTimesheetRequestById(TimesheetDTO timesheetDTO) {
-		return timesheetApprovalService.updateTimesheetRequestById(timesheetDTO);
-	}
+//	@Transactional(rollbackFor = Exception.class)
+//	public ServiceResponse updateTimesheetRequestById(TimesheetDTO timesheetDTO) {
+//		return timesheetApprovalService.updateTimesheetRequestById(timesheetDTO);
+//	}
 	
 	// Delegate method - implementation moved to TimesheetApprovalService
-	private ServiceResponse updateTimesheetRequestByIdInternal(TimesheetDTO timesheetDTO) {
-		ServiceResponse response = new ServiceResponse();
-		
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("update_request_status");
-		apiLogInfo.setApiUrl("/api/updateTimesheetRequestById");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("timeSheetId : " +timesheetDTO.getTimesheetId());
-		try { 
+//	private ServiceResponse updateTimesheetRequestByIdInternal(TimesheetDTO timesheetDTO) {
+//		ServiceResponse response = new ServiceResponse();
+//		
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("update_request_status");
+//		apiLogInfo.setApiUrl("/api/updateTimesheetRequestById");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("timeSheetId : " +timesheetDTO.getTimesheetId());
+//		try { 
+//
+//			Optional<Timesheet> timesheetobject = timesheetsRepository.findById(timesheetDTO.getTimesheetId());
+//			if (timesheetobject.isPresent()) {
+//			    Timesheet timesheet = timesheetobject.get();
+//
+//			    Timestamp createdOnTimestamp = timesheet.getCommonProperty().getCreatedOn();
+//
+//			    if (createdOnTimestamp != null) {
+//			      
+//			        LocalDateTime createdOnLDT = createdOnTimestamp.toLocalDateTime();
+//
+//			        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+//			        String formattedCreatedOn = createdOnLDT.format(formatter);
+//
+//			        timesheetDTO.setCreatedOn(formattedCreatedOn);
+//			    } else {
+//			        timesheetDTO.setCreatedOn(null);
+//			    }
+//			}
+//
+//		    
+//            if(timesheetDTO.getClientSideId() !=null) {
+//	
+////            	ServiceResponse response1 = timesheetDocumentApproval(timesheetDTO);
+//            	ServiceResponse response1 = bulkTimesheetDocumentApproval(
+//            		    Collections.singletonList(timesheetDTO)
+//            		);
+//            	 if (ServiceResponse.STATUS_FAIL.equals(response1.getServiceStatus())
+//                         || ServiceResponse.SOMETHING_WENT_WRONG.equals(response1.getServiceStatus())) {
+//                     throw new RuntimeException("Timesheet Document Failed To Approve");
+//                 } 
+//
+//            }
+//			timesheetobject.ifPresentOrElse((timesheet) -> {
+//
+//				timesheet.setStatus(timesheetDTO.getStatus());
+//				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
+//				timesheet.setRemarks(timesheetDTO.getRejectReason());
+//				timesheet.setRejectionId(timesheetDTO.getRejectionId() != null 
+//                	    ? timesheetDTO.getRejectionId().longValue() 
+//                	    : null);
+//				Timesheet updatedTimesheet = timesheetsRepository.save(timesheet);
+//
+////            	 ServiceResponse response2 = timesheetDocumentApprovalLogs(timesheetDTO);
+//				ServiceResponse response2 = bulkTimesheetDocumentApprovalLogs(
+//					    Collections.singletonList(timesheetDTO)
+//					);
+//            	 if (ServiceResponse.STATUS_FAIL.equals(response2.getServiceStatus())
+//                         || ServiceResponse.SOMETHING_WENT_WRONG.equals(response2.getServiceStatus())) {
+//                     throw new RuntimeException("Timesheet Document Failed To Approve");
+//                 }
+//				if (updatedTimesheet.getEmpId() != null) {
+//					System.out.println("updatedTimesheet.getStatus ()  : "+ updatedTimesheet.getStatus());
+//					
+//					if (updatedTimesheet.getStatus().equals("Approved")) {
+//						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//						response.setServiceResponse("Timesheet status Approved.");
+//						System.out.println("updatedTimesheet.getStatus ()  : "+ updatedTimesheet.getStatus());
+//						
+//						apiLogInfo.setApiResponse("Timesheet status Approved.");			
+//						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//					} else {
+//						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//						response.setServiceResponse("Timesheet status Rejected.");
+//						
+//						apiLogInfo.setApiResponse("Timesheet status Rejected.");			
+//						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//
+//						try {
+////							mailService.sendMail(timesheetDTO.getEmail(),
+////									"Regarding Timesheet Rejection ", "Employee Id"+" A-"+timesheetDTO.getEmployeementId()+
+////									" "+ " <br> "+" Employee Name -"+" "+timesheetDTO.getEmployeeName()+
+////									" <br> "+"Your Timesheet has been rejected "+timesheetDTO.getRejectReason());
+//							
+//							mailService.sendMailWithCC(timesheetDTO.getEmail(), timesheetDTO.getManagerEmail(), "Regarding Timesheet Request Rejection", 
+//									"Dear "+ timesheetDTO.getEmployeeName()+","+
+//							"<br> "
+//							+" &nbsp;"+" &nbsp;"+" "+"Your timesheet application has been rejected by "+ timesheetDTO.getManagerName() +"."+
+//							"<br>"+"<br>"+"<b>"+"Timesheet Details :"+"<b>"+
+//							"<br>"+
+//							"EmpID :"+" "+ timesheetDTO.getEmployeementId()+
+//							"<br>"+
+//							"Name :"+" "+ timesheetDTO.getEmployeeName()+
+//							"<br>"+
+//							" Date :"+" "+ timesheetDTO.getDate() +
+//							"<br>"+
+//							" Day Type : "+" "+ timesheetDTO.getDayType() 
+//							+"<br>"+
+//							"Total Working Hours :"+" "+timesheetDTO.getTotalWorkingOfficeHours()+" "+"(hrs)"+
+//							"<br>"+
+//							"Rejection reason :"+" "+timesheetDTO.getRejectReason());
+//							
+//						} catch (Exception e) {
+//							e.printStackTrace();
+//							response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//							response.setServiceResponse("Something Went Wrong.");
+//							response.setServiceError(e.getMessage());
+//							
+//							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//							apiLogInfo.setLogLevel("ERROR");
+//						}
+//					}
+//
+//				} else {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Timesheet status updation failed.");
+//					
+//					apiLogInfo.setApiResponse("Timesheet status updation failed.");			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				}
+//
+//			}, () -> {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Timesheet not found");
+//				
+//				apiLogInfo.setApiResponse("Timesheet not found");			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			});
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
 
-			Optional<Timesheet> timesheetobject = timesheetsRepository.findById(timesheetDTO.getTimesheetId());
-			if (timesheetobject.isPresent()) {
-			    Timesheet timesheet = timesheetobject.get();
-
-			    Timestamp createdOnTimestamp = timesheet.getCommonProperty().getCreatedOn();
-
-			    if (createdOnTimestamp != null) {
-			      
-			        LocalDateTime createdOnLDT = createdOnTimestamp.toLocalDateTime();
-
-			        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-			        String formattedCreatedOn = createdOnLDT.format(formatter);
-
-			        timesheetDTO.setCreatedOn(formattedCreatedOn);
-			    } else {
-			        timesheetDTO.setCreatedOn(null);
-			    }
-			}
-
-		    
-            if(timesheetDTO.getClientSideId() !=null) {
 	
-//            	ServiceResponse response1 = timesheetDocumentApproval(timesheetDTO);
-            	ServiceResponse response1 = bulkTimesheetDocumentApproval(
-            		    Collections.singletonList(timesheetDTO)
-            		);
-            	 if (ServiceResponse.STATUS_FAIL.equals(response1.getServiceStatus())
-                         || ServiceResponse.SOMETHING_WENT_WRONG.equals(response1.getServiceStatus())) {
-                     throw new RuntimeException("Timesheet Document Failed To Approve");
-                 } 
-
-            }
-			timesheetobject.ifPresentOrElse((timesheet) -> {
-
-				timesheet.setStatus(timesheetDTO.getStatus());
-				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
-				timesheet.setRemarks(timesheetDTO.getRejectReason());
-				timesheet.setRejectionId(timesheetDTO.getRejectionId() != null 
-                	    ? timesheetDTO.getRejectionId().longValue() 
-                	    : null);
-				Timesheet updatedTimesheet = timesheetsRepository.save(timesheet);
-
-//            	 ServiceResponse response2 = timesheetDocumentApprovalLogs(timesheetDTO);
-				ServiceResponse response2 = bulkTimesheetDocumentApprovalLogs(
-					    Collections.singletonList(timesheetDTO)
-					);
-            	 if (ServiceResponse.STATUS_FAIL.equals(response2.getServiceStatus())
-                         || ServiceResponse.SOMETHING_WENT_WRONG.equals(response2.getServiceStatus())) {
-                     throw new RuntimeException("Timesheet Document Failed To Approve");
-                 }
-				if (updatedTimesheet.getEmpId() != null) {
-					System.out.println("updatedTimesheet.getStatus ()  : "+ updatedTimesheet.getStatus());
-					
-					if (updatedTimesheet.getStatus().equals("Approved")) {
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Timesheet status Approved.");
-						System.out.println("updatedTimesheet.getStatus ()  : "+ updatedTimesheet.getStatus());
-						
-						apiLogInfo.setApiResponse("Timesheet status Approved.");			
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-					} else {
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Timesheet status Rejected.");
-						
-						apiLogInfo.setApiResponse("Timesheet status Rejected.");			
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-						try {
-//							mailService.sendMail(timesheetDTO.getEmail(),
-//									"Regarding Timesheet Rejection ", "Employee Id"+" A-"+timesheetDTO.getEmployeementId()+
-//									" "+ " <br> "+" Employee Name -"+" "+timesheetDTO.getEmployeeName()+
-//									" <br> "+"Your Timesheet has been rejected "+timesheetDTO.getRejectReason());
-							
-							mailService.sendMailWithCC(timesheetDTO.getEmail(), timesheetDTO.getManagerEmail(), "Regarding Timesheet Request Rejection", 
-									"Dear "+ timesheetDTO.getEmployeeName()+","+
-							"<br> "
-							+" &nbsp;"+" &nbsp;"+" "+"Your timesheet application has been rejected by "+ timesheetDTO.getManagerName() +"."+
-							"<br>"+"<br>"+"<b>"+"Timesheet Details :"+"<b>"+
-							"<br>"+
-							"EmpID :"+" "+ timesheetDTO.getEmployeementId()+
-							"<br>"+
-							"Name :"+" "+ timesheetDTO.getEmployeeName()+
-							"<br>"+
-							" Date :"+" "+ timesheetDTO.getDate() +
-							"<br>"+
-							" Day Type : "+" "+ timesheetDTO.getDayType() 
-							+"<br>"+
-							"Total Working Hours :"+" "+timesheetDTO.getTotalWorkingOfficeHours()+" "+"(hrs)"+
-							"<br>"+
-							"Rejection reason :"+" "+timesheetDTO.getRejectReason());
-							
-						} catch (Exception e) {
-							e.printStackTrace();
-							response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-							response.setServiceResponse("Something Went Wrong.");
-							response.setServiceError(e.getMessage());
-							
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-							apiLogInfo.setLogLevel("ERROR");
-						}
-					}
-
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Timesheet status updation failed.");
-					
-					apiLogInfo.setApiResponse("Timesheet status updation failed.");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-
-			}, () -> {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Timesheet not found");
-				
-				apiLogInfo.setApiResponse("Timesheet not found");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			});
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
-
-	
-	public ServiceResponse getMyReportees(TimesheetDTO timesheetDTO) {
-		return timesheetQueryService.getMyReportees(timesheetDTO);
-	}
-	
-	// Delegate method - implementation moved to TimesheetQueryService
-	private ServiceResponse getMyReporteesInternal(TimesheetDTO timesheetDTO) {
-		ServiceResponse response = new ServiceResponse();
-		
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("view_my_teams_timesheets");
-		apiLogInfo.setApiUrl("/api/getMyReportees");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("managerId : " +timesheetDTO.getManagerId()+ " ,startDate : " +timesheetDTO.getStartDate()+ " ,endDate : " +timesheetDTO.getEndDate());
-		try {
-
-			List<TimesheetDTO> objectList = timesheetsRepository.getMyReportees(
-					timesheetDTO.getManagerId());
-
-			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
-
-				if (list.isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("No reportees found. List is empty.");
-					
-					apiLogInfo.setApiResponse("Appreciation not Enabled");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				} else {
-					
-
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(objectList);
-					
-					apiLogInfo.setApiResponse("dtoList : " +objectList);			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				}
-
-			}, () -> {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("No  reportees found. List is null.");
-				
-				apiLogInfo.setApiResponse("No  reportees found. List is null.");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			});
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
-	
-	public ServiceResponse getMyReporteesApprovedTimesheets(TimesheetDTO timesheetDTO) {
-		return timesheetQueryService.getMyReporteesApprovedTimesheets(timesheetDTO);
-	}
+//	public ServiceResponse getMyReportees(TimesheetDTO timesheetDTO) {
+//		return timesheetQueryService.getMyReportees(timesheetDTO);
+//	}
 	
 	// Delegate method - implementation moved to TimesheetQueryService
-	private ServiceResponse getMyReporteesApprovedTimesheetsInternal(TimesheetDTO timesheetDTO) {
-		ServiceResponse response = new ServiceResponse();
-		
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("view_my_teams_timesheets");
-		apiLogInfo.setApiUrl("/api/getMyReporteesApprovedTimesheets");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("managerId : " +timesheetDTO.getManagerId()+ " ,startDate : " +timesheetDTO.getStartDate()+ " ,endDate : " +timesheetDTO.getEndDate());
-		try {
-			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
-
-			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
-
-			List<Object[]> objectList = timesheetsRepository.getMyReporteesApprovedTimesheetsOLD(
-					timesheetDTO.getManagerId(), start, end);
-
-			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
-
-				if (list.isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("No timesheets found. List is empty.");
-					
-					apiLogInfo.setApiResponse("Appreciation not Enabled");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				} else {
-					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
-
-					list.forEach((object) -> {
-
-						TimesheetDTO dto = new TimesheetDTO();
-
-						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-						dto.setDate(object[1] != null ? object[1].toString() : null);
-						dto.setDayType(object[2] != null ? object[2].toString() : null);
-						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
-						dto.setDescription(object[4] != null ? object[4].toString() : null);
-						dto.setStatus(object[5] != null ? object[5].toString() : null);
-						dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
-						dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
-						dto.setTotalTime(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
-						dto.setRemarks(object[9] != null ? object[9].toString() : null);
-						dto.setEmployeementId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
-						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
-						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
-						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
-						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
-						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
-						dto.setEmpId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
-						dto.setIsApmosysProduct(object[17] != null ? object[17].toString() : null);
-						
-						String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
-//					    String isConsultant = timesheetDto.getIsConsultant();
-					    String isApmosysProduct = dto.getIsApmosysProduct();
-
-					    if (employmentId != null) {
-					        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-					        	dto.setEmploymentIdAcToET("AP-" + employmentId);
-					        }else {
-					        	dto.setEmploymentIdAcToET("A-" + employmentId);
-					        }
-					    }
-
-						dtoList.add(dto);
-					});
-
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
-					
-					apiLogInfo.setApiResponse("dtoList : " +dtoList);			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				}
-
-			}, () -> {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("No  timesheets found. List is null.");
-				
-				apiLogInfo.setApiResponse("No  timesheets found. List is null.");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			});
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
+//	private ServiceResponse getMyReporteesInternal(TimesheetDTO timesheetDTO) {
+//		ServiceResponse response = new ServiceResponse();
+//		
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("view_my_teams_timesheets");
+//		apiLogInfo.setApiUrl("/api/getMyReportees");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("managerId : " +timesheetDTO.getManagerId()+ " ,startDate : " +timesheetDTO.getStartDate()+ " ,endDate : " +timesheetDTO.getEndDate());
+//		try {
+//
+//			List<TimesheetDTO> objectList = timesheetsRepository.getMyReportees(
+//					timesheetDTO.getManagerId());
+//
+//			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+//
+//				if (list.isEmpty()) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("No reportees found. List is empty.");
+//					
+//					apiLogInfo.setApiResponse("Appreciation not Enabled");			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				} else {
+//					
+//
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse(objectList);
+//					
+//					apiLogInfo.setApiResponse("dtoList : " +objectList);			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//				}
+//
+//			}, () -> {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("No  reportees found. List is null.");
+//				
+//				apiLogInfo.setApiResponse("No  reportees found. List is null.");			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			});
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//			
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
+	
+//	public ServiceResponse getMyReporteesApprovedTimesheets(TimesheetDTO timesheetDTO) {
+//		return timesheetQueryService.getMyReporteesApprovedTimesheets(timesheetDTO);
+//	}
+	
+	// Delegate method - implementation moved to TimesheetQueryService
+//	private ServiceResponse getMyReporteesApprovedTimesheetsInternal(TimesheetDTO timesheetDTO) {
+//		ServiceResponse response = new ServiceResponse();
+//		
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("view_my_teams_timesheets");
+//		apiLogInfo.setApiUrl("/api/getMyReporteesApprovedTimesheets");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("managerId : " +timesheetDTO.getManagerId()+ " ,startDate : " +timesheetDTO.getStartDate()+ " ,endDate : " +timesheetDTO.getEndDate());
+//		try {
+//			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
+//
+//			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+//
+//			List<Object[]> objectList = timesheetsRepository.getMyReporteesApprovedTimesheetsOLD(
+//					timesheetDTO.getManagerId(), start, end);
+//
+//			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+//
+//				if (list.isEmpty()) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("No timesheets found. List is empty.");
+//					
+//					apiLogInfo.setApiResponse("Appreciation not Enabled");			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				} else {
+//					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+//
+//					list.forEach((object) -> {
+//
+//						TimesheetDTO dto = new TimesheetDTO();
+//
+//						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+//						dto.setDate(object[1] != null ? object[1].toString() : null);
+//						dto.setDayType(object[2] != null ? object[2].toString() : null);
+//						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
+//						dto.setDescription(object[4] != null ? object[4].toString() : null);
+//						dto.setStatus(object[5] != null ? object[5].toString() : null);
+//						dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
+//						dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
+//						dto.setTotalTime(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
+//						dto.setRemarks(object[9] != null ? object[9].toString() : null);
+//						dto.setEmployeementId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+//						dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
+//						dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
+//						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
+//						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
+//						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
+//						dto.setEmpId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
+//						dto.setIsApmosysProduct(object[17] != null ? object[17].toString() : null);
+//						
+//						String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+////					    String isConsultant = timesheetDto.getIsConsultant();
+//					    String isApmosysProduct = dto.getIsApmosysProduct();
+//
+//					    if (employmentId != null) {
+//					        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+//					        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+//					        }else {
+//					        	dto.setEmploymentIdAcToET("A-" + employmentId);
+//					        }
+//					    }
+//
+//						dtoList.add(dto);
+//					});
+//
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse(dtoList);
+//					
+//					apiLogInfo.setApiResponse("dtoList : " +dtoList);			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//				}
+//
+//			}, () -> {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("No  timesheets found. List is null.");
+//				
+//				apiLogInfo.setApiResponse("No  timesheets found. List is null.");			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			});
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//			
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
 	
 	public ServiceResponse getMyReporteesApprovedTimesheets2(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -1580,8 +1578,8 @@ public class TimesheetService {
 			
 			List<Long> empIds = timesheetDTO.getEmpIds();  
              Employee employeeData = employeeRepository.findByEmpId(timesheetDTO.getManagerId());
-             List<Object[]> objectList = timesheetsRepository
-					.getMyReporteesApprovedTimesheetRequests2OLD(timesheetDTO.getManagerId(),timesheetDTO.getStatus(), start, end,empIds);
+             List<Object[]> objectList = employeeTimesheetsNewRepository
+					.getMyReporteesApprovedTimesheetRequests2(timesheetDTO.getManagerId(),timesheetDTO.getStatus(), start, end,empIds);
 			
 
 			
@@ -1693,71 +1691,71 @@ public class TimesheetService {
 	}
 	
 
-	public ServiceResponse getLast7DaysTimesheetsByEmpId(TimesheetDTO timesheetDTO) {
-		ServiceResponse response = new ServiceResponse();
-		
-		LogDTO apiLogInfo = new LogDTO();
-		//apiLogInfo.setSubFeatureName("Appreciation Configuration");
-		apiLogInfo.setApiUrl("/api/getLast7DaysTimesheetsByEmpId");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("empId : " +timesheetDTO.getEmpId());
-		try {
-
-			List<Object[]> objectList = timesheetsRepository.getLast7DaysTimesheetsByEmpIdOLD(timesheetDTO.getEmpId(),
-					LocalDate.now().minusDays(timesheetLockDays));
-
-			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
-
-				if (list.isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("No timesheets found. List is empty.");
-					
-					apiLogInfo.setApiResponse("No timesheets found. List is empty.");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					
-				} else {
-					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
-
-					list.forEach((object) -> {
-
-						TimesheetDTO dto = new TimesheetDTO();
-
-						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-						dto.setDate(object[1] != null ? object[1].toString() : null);
-						dtoList.add(dto);
-					});
-
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
-					
-					apiLogInfo.setApiResponse("dtoList size : " +dtoList.size());			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				}
-
-			}, () -> {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("No timesheets found. List is null.");
-				
-				apiLogInfo.setApiResponse("No timesheets found. List is null.");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			});
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		
-		return response;
-	}
+//	public ServiceResponse getLast7DaysTimesheetsByEmpId(TimesheetDTO timesheetDTO) {
+//		ServiceResponse response = new ServiceResponse();
+//		
+//		LogDTO apiLogInfo = new LogDTO();
+//		//apiLogInfo.setSubFeatureName("Appreciation Configuration");
+//		apiLogInfo.setApiUrl("/api/getLast7DaysTimesheetsByEmpId");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("empId : " +timesheetDTO.getEmpId());
+//		try {
+//
+//			List<Object[]> objectList = timesheetsRepository.getLast7DaysTimesheetsByEmpIdOLD(timesheetDTO.getEmpId(),
+//					LocalDate.now().minusDays(timesheetLockDays));
+//
+//			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
+//
+//				if (list.isEmpty()) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("No timesheets found. List is empty.");
+//					
+//					apiLogInfo.setApiResponse("No timesheets found. List is empty.");			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//					
+//				} else {
+//					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+//
+//					list.forEach((object) -> {
+//
+//						TimesheetDTO dto = new TimesheetDTO();
+//
+//						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+//						dto.setDate(object[1] != null ? object[1].toString() : null);
+//						dtoList.add(dto);
+//					});
+//
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse(dtoList);
+//					
+//					apiLogInfo.setApiResponse("dtoList size : " +dtoList.size());			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//				}
+//
+//			}, () -> {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("No timesheets found. List is null.");
+//				
+//				apiLogInfo.setApiResponse("No timesheets found. List is null.");			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			});
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//			
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		
+//		return response;
+//	}
 
 	public ServiceResponse addClientAndProjectByList(ProjectDTO projectDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -1999,9 +1997,9 @@ public class TimesheetService {
 		return response;
 	}
 
-	public ServiceResponse revokeApprovedTimesheet(TimesheetDTO timesheetDTO) {
-		return timesheetApprovalService.revokeApprovedTimesheet(timesheetDTO);
-	}
+//	public ServiceResponse revokeApprovedTimesheet(TimesheetDTO timesheetDTO) {
+//		return timesheetApprovalService.revokeApprovedTimesheet(timesheetDTO);
+//	}
 	
 	
 	public ServiceResponse bulkApproveTimesheetRequest(TimesheetApprovalNewDTO timesheetIdList) {
@@ -2009,57 +2007,57 @@ public class TimesheetService {
 	}
 	
 	// Delegate method - implementation moved to TimesheetApprovalService
-	private ServiceResponse bulkApproveTimesheetRequestInternal(TimesheetDTO timesheetDTO) {
-	    ServiceResponse response = new ServiceResponse();
-	    List<TimesheetDTO> timesheetList = timesheetDTO.getBulkApprovedList();
-
-	    try {
-	        Map<Long, TimesheetDTO> dtoMap = timesheetList.stream()
-	                .collect(Collectors.toMap(TimesheetDTO::getTimesheetId, Function.identity()));
-
-	        List<Long> timesheetIds = new ArrayList<>(dtoMap.keySet());
-	        List<Timesheet> timesheets = timesheetsRepository.findAllById(timesheetIds);
-
-	        // Update in batch
-	        for (Timesheet timesheet : timesheets) {
-	            if (timesheet != null) {
-	                timesheet.setStatus(timesheetDTO.getStatus());
-	                timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getUpdatedBy());
-	                timesheet.setRemarks(timesheetDTO.getRejectReason());
-	            }
-	        }
-
-	        timesheetsRepository.saveAll(timesheets);
-
-	        List<TimesheetDTO> withClientSideId = timesheetList == null
-	                ? Collections.emptyList()
-	                : timesheetList.stream()
-	                      .filter(t -> t.getClientSideId() != null)
-	                      .collect(Collectors.toList());
-	        if (!withClientSideId.isEmpty()) {
-	            ServiceResponse approvalResp = bulkTimesheetDocumentApproval(withClientSideId);
-	            if (!ServiceResponse.STATUS_SUCCESS.equals(approvalResp.getServiceStatus())) {
-	                throw new RuntimeException("Bulk Timesheet Document Approval Failed");
-	            }
-	        }
-
-	        ServiceResponse logsResp = bulkTimesheetDocumentApprovalLogs(timesheetList);
-	        if (!ServiceResponse.STATUS_SUCCESS.equals(logsResp.getServiceStatus())) {
-	            throw new RuntimeException("Bulk Timesheet Document Approval Logs Failed");
-	        }
-
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse("Bulk Timesheet Approved Successfully!");
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong in bulk approval.");
-	        response.setServiceError(e.getMessage());
-	    }
-
-	    return response;
-	}
+//	private ServiceResponse bulkApproveTimesheetRequestInternal(TimesheetDTO timesheetDTO) {
+//	    ServiceResponse response = new ServiceResponse();
+//	    List<TimesheetDTO> timesheetList = timesheetDTO.getBulkApprovedList();
+//
+//	    try {
+//	        Map<Long, TimesheetDTO> dtoMap = timesheetList.stream()
+//	                .collect(Collectors.toMap(TimesheetDTO::getTimesheetId, Function.identity()));
+//
+//	        List<Long> timesheetIds = new ArrayList<>(dtoMap.keySet());
+//	        List<Timesheet> timesheets = timesheetsRepository.findAllById(timesheetIds);
+//
+//	        // Update in batch
+//	        for (Timesheet timesheet : timesheets) {
+//	            if (timesheet != null) {
+//	                timesheet.setStatus(timesheetDTO.getStatus());
+//	                timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getUpdatedBy());
+//	                timesheet.setRemarks(timesheetDTO.getRejectReason());
+//	            }
+//	        }
+//
+//	        timesheetsRepository.saveAll(timesheets);
+//
+//	        List<TimesheetDTO> withClientSideId = timesheetList == null
+//	                ? Collections.emptyList()
+//	                : timesheetList.stream()
+//	                      .filter(t -> t.getClientSideId() != null)
+//	                      .collect(Collectors.toList());
+//	        if (!withClientSideId.isEmpty()) {
+//	            ServiceResponse approvalResp = bulkTimesheetDocumentApproval(withClientSideId);
+//	            if (!ServiceResponse.STATUS_SUCCESS.equals(approvalResp.getServiceStatus())) {
+//	                throw new RuntimeException("Bulk Timesheet Document Approval Failed");
+//	            }
+//	        }
+//
+//	        ServiceResponse logsResp = bulkTimesheetDocumentApprovalLogs(timesheetList);
+//	        if (!ServiceResponse.STATUS_SUCCESS.equals(logsResp.getServiceStatus())) {
+//	            throw new RuntimeException("Bulk Timesheet Document Approval Logs Failed");
+//	        }
+//
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceResponse("Bulk Timesheet Approved Successfully!");
+//
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something went wrong in bulk approval.");
+//	        response.setServiceError(e.getMessage());
+//	    }
+//
+//	    return response;
+//	}
 
 	
 //	public ServiceResponse bulkApproveTimesheetRequest(TimesheetDTO timesheetDTO) {
@@ -2131,92 +2129,92 @@ public class TimesheetService {
 //
 //	}
 	
-	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse bulkRejectTimesheetRequest(TimesheetDTO timesheetDTO) {
-		return timesheetApprovalService.bulkRejectTimesheetRequest(timesheetDTO);
-	}
+//	@Transactional(rollbackFor = Exception.class)
+//	public ServiceResponse bulkRejectTimesheetRequest(TimesheetDTO timesheetDTO) {
+//		return timesheetApprovalService.bulkRejectTimesheetRequest(timesheetDTO);
+//	}
 	
 	// Delegate method - implementation moved to TimesheetApprovalService
-	private ServiceResponse bulkRejectTimesheetRequestInternal(TimesheetDTO timesheetDTO) {
-
-	    ServiceResponse response = new ServiceResponse();
-	    List<TimesheetDTO> rejectList = timesheetDTO.getBulkRejectList();
-
-	    try {
-	        Map<Long, TimesheetDTO> dtoMap = rejectList.stream()
-	                .collect(Collectors.toMap(TimesheetDTO::getTimesheetId, Function.identity()));
-
-	        List<Long> timesheetIds = new ArrayList<>(dtoMap.keySet());
-
-	        List<Timesheet> timesheets = timesheetsRepository.findAllById(timesheetIds);
-
-	        for (Timesheet t : timesheets) {
-	            TimesheetDTO dto = dtoMap.get(t.getTimesheetId());
-	            if (dto != null) {
-	                t.setStatus(timesheetDTO.getStatus());  // REJECTED
-	                t.setTimesheetStatusUpdatedBy(timesheetDTO.getUpdatedBy());
-	                t.setRemarks(timesheetDTO.getRejectReason());
-	                t.setRejectionId(timesheetDTO.getRejectionId() != null 
-	                	    ? timesheetDTO.getRejectionId().longValue() 
-	                	    : null);
-	            }
-	        }
-
-	        timesheetsRepository.saveAll(timesheets);
-
-	        // BULK document approval only for records having clientSideId
-	        List<TimesheetDTO> withClientSideId =
-	                rejectList == null ? Collections.emptyList()
-	                : rejectList.stream()
-	                      .filter(t -> t.getClientSideId() != null)
-	                      .collect(Collectors.toList());
-	        
-	        if (!withClientSideId.isEmpty()) {
-	            ServiceResponse approvalResp = bulkTimesheetDocumentApproval(withClientSideId);
-
-	            if (!ServiceResponse.STATUS_SUCCESS.equals(approvalResp.getServiceStatus())) {
-	                throw new RuntimeException("Bulk Timesheet Document Approval Failed");
-	            }
-	        }
-
-	        ServiceResponse logsResp = bulkTimesheetDocumentApprovalLogs(rejectList);
-	        if (!ServiceResponse.STATUS_SUCCESS.equals(logsResp.getServiceStatus())) {
-	            throw new RuntimeException("Bulk Timesheet Document Approval Logs Failed");
-	        }
-
-	        for (TimesheetDTO dto : rejectList) {
-	            try {
-	                mailService.sendMailWithCC(
-	                        dto.getEmail(),
-	                        dto.getManagerEmail(),
-	                        "Regarding Timesheet Request Rejection",
-	                        "Dear " + dto.getEmployeeName() + "," +
-	                                "<br><br>Your timesheet application has been rejected by " + dto.getManagerName() + "." +
-	                                "<br><br><b>Timesheet Details:</b>" +
-	                                "<br>EmpID: " + dto.getEmployeementId() +
-	                                "<br>Name: " + dto.getEmployeeName() +
-	                                "<br>Date: " + dto.getDate() +
-	                                "<br>Day Type: " + dto.getDayType() +
-	                                "<br>Total Working Hours: " + dto.getTotalWorkingOfficeHours() + " (hrs)" +
-	                                "<br><br><b>Rejection Reason:</b> " + dto.getRejectReason()
-	                );
-	            } catch (Exception ex) {
-	                ex.printStackTrace();
-	            }
-	        }
-
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse("Bulk Timesheets Rejected Successfully!");
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong in bulk rejection.");
-	        response.setServiceError(e.getMessage());
-	    }
-
-	    return response;
-	}
+//	private ServiceResponse bulkRejectTimesheetRequestInternal(TimesheetDTO timesheetDTO) {
+//
+//	    ServiceResponse response = new ServiceResponse();
+//	    List<TimesheetDTO> rejectList = timesheetDTO.getBulkRejectList();
+//
+//	    try {
+//	        Map<Long, TimesheetDTO> dtoMap = rejectList.stream()
+//	                .collect(Collectors.toMap(TimesheetDTO::getTimesheetId, Function.identity()));
+//
+//	        List<Long> timesheetIds = new ArrayList<>(dtoMap.keySet());
+//
+//	        List<Timesheet> timesheets = timesheetsRepository.findAllById(timesheetIds);
+//
+//	        for (Timesheet t : timesheets) {
+//	            TimesheetDTO dto = dtoMap.get(t.getTimesheetId());
+//	            if (dto != null) {
+//	                t.setStatus(timesheetDTO.getStatus());  // REJECTED
+//	                t.setTimesheetStatusUpdatedBy(timesheetDTO.getUpdatedBy());
+//	                t.setRemarks(timesheetDTO.getRejectReason());
+//	                t.setRejectionId(timesheetDTO.getRejectionId() != null 
+//	                	    ? timesheetDTO.getRejectionId().longValue() 
+//	                	    : null);
+//	            }
+//	        }
+//
+//	        timesheetsRepository.saveAll(timesheets);
+//
+//	        // BULK document approval only for records having clientSideId
+//	        List<TimesheetDTO> withClientSideId =
+//	                rejectList == null ? Collections.emptyList()
+//	                : rejectList.stream()
+//	                      .filter(t -> t.getClientSideId() != null)
+//	                      .collect(Collectors.toList());
+//	        
+//	        if (!withClientSideId.isEmpty()) {
+//	            ServiceResponse approvalResp = bulkTimesheetDocumentApproval(withClientSideId);
+//
+//	            if (!ServiceResponse.STATUS_SUCCESS.equals(approvalResp.getServiceStatus())) {
+//	                throw new RuntimeException("Bulk Timesheet Document Approval Failed");
+//	            }
+//	        }
+//
+//	        ServiceResponse logsResp = bulkTimesheetDocumentApprovalLogs(rejectList);
+//	        if (!ServiceResponse.STATUS_SUCCESS.equals(logsResp.getServiceStatus())) {
+//	            throw new RuntimeException("Bulk Timesheet Document Approval Logs Failed");
+//	        }
+//
+//	        for (TimesheetDTO dto : rejectList) {
+//	            try {
+//	                mailService.sendMailWithCC(
+//	                        dto.getEmail(),
+//	                        dto.getManagerEmail(),
+//	                        "Regarding Timesheet Request Rejection",
+//	                        "Dear " + dto.getEmployeeName() + "," +
+//	                                "<br><br>Your timesheet application has been rejected by " + dto.getManagerName() + "." +
+//	                                "<br><br><b>Timesheet Details:</b>" +
+//	                                "<br>EmpID: " + dto.getEmployeementId() +
+//	                                "<br>Name: " + dto.getEmployeeName() +
+//	                                "<br>Date: " + dto.getDate() +
+//	                                "<br>Day Type: " + dto.getDayType() +
+//	                                "<br>Total Working Hours: " + dto.getTotalWorkingOfficeHours() + " (hrs)" +
+//	                                "<br><br><b>Rejection Reason:</b> " + dto.getRejectReason()
+//	                );
+//	            } catch (Exception ex) {
+//	                ex.printStackTrace();
+//	            }
+//	        }
+//
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceResponse("Bulk Timesheets Rejected Successfully!");
+//
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something went wrong in bulk rejection.");
+//	        response.setServiceError(e.getMessage());
+//	    }
+//
+//	    return response;
+//	}
 
 
 	public ServiceResponse getAllLeaveTimesheetsWithoutLeaveApplication(TimesheetDTO timesheetDTO) {
@@ -2471,65 +2469,65 @@ public class TimesheetService {
 //	    System.err.println("--------cron ended---");
 //	}
 
-	public ServiceResponse getAllOrDeptWiseEmployeeTimesheetReport(FilteredTimesheetDTO filteredTimesheetDTO) {
-		return timesheetQueryService.getAllOrDeptWiseEmployeeTimesheetReport(filteredTimesheetDTO);
-	}
+//	public ServiceResponse getAllOrDeptWiseEmployeeTimesheetReport(FilteredTimesheetDTO filteredTimesheetDTO) {
+//		return timesheetQueryService.getAllOrDeptWiseEmployeeTimesheetReport(filteredTimesheetDTO);
+//	}
 	
 	// Delegate method - implementation moved to TimesheetQueryService
-	private ServiceResponse getAllOrDeptWiseEmployeeTimesheetReportInternal(FilteredTimesheetDTO filteredTimesheetDTO) {
-        ServiceResponse response = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
-        
-        
-        apiLogInfo.setSubFeatureName("fetch_timesheets");
-        apiLogInfo.setApiUrl("/api/getAllOrDeptWiseEmployeeTimesheetReport");
-        apiLogInfo.setLogLevel("INFO");
-        
-        String deptId = filteredTimesheetDTO.getDeptId();
-        String startDate = filteredTimesheetDTO.getStartDate();
-        String endDate = filteredTimesheetDTO.getEndDate();
-        
-        StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("Requested Department ID: ").append(deptId);
-
-        try {
-            List<Object[]> timesheetList;
-            if ("all".equalsIgnoreCase(deptId)) {
-                timesheetList = timesheetsRepository.getAllEmployeeTimesheetsBetweenDates(startDate, endDate);
-            } else {
-                timesheetList = timesheetsRepository.getTimesheetsByDepartmentAndDateRange(
-                    Long.parseLong(deptId), startDate, endDate);
-            }
-
-            if (timesheetList == null || timesheetList.isEmpty()) {
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("No timesheets found.");
-                apiLogInfo.setApiResponse("No timesheets found.");
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-            } else {
-                List<TimesheetDTO> dtoList = timesheetList.stream()
-                        .map(this::mapToTimesheetDTO)
-                        .collect(Collectors.toList());
-
-                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-                response.setServiceResponse(dtoList);
-                apiLogInfo.setApiResponse("Timesheet data retrieved.");
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-            response.setServiceResponse("Something went wrong.");
-            response.setServiceError(e.getMessage());
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-            apiLogInfo.setLogLevel("ERROR");
-        }
-
-        apiLogInfo.setApiRequest(logBuilder.toString());
-        logService.logMyInfo(httpRequest, apiLogInfo);
-        return response;
-    }
+//	private ServiceResponse getAllOrDeptWiseEmployeeTimesheetReportInternal(FilteredTimesheetDTO filteredTimesheetDTO) {
+//        ServiceResponse response = new ServiceResponse();
+//        LogDTO apiLogInfo = new LogDTO();
+//        
+//        
+//        apiLogInfo.setSubFeatureName("fetch_timesheets");
+//        apiLogInfo.setApiUrl("/api/getAllOrDeptWiseEmployeeTimesheetReport");
+//        apiLogInfo.setLogLevel("INFO");
+//        
+//        String deptId = filteredTimesheetDTO.getDeptId();
+//        String startDate = filteredTimesheetDTO.getStartDate();
+//        String endDate = filteredTimesheetDTO.getEndDate();
+//        
+//        StringBuilder logBuilder = new StringBuilder();
+//        logBuilder.append("Requested Department ID: ").append(deptId);
+//
+//        try {
+//            List<Object[]> timesheetList;
+//            if ("all".equalsIgnoreCase(deptId)) {
+//                timesheetList = timesheetsRepository.getAllEmployeeTimesheetsBetweenDates(startDate, endDate);
+//            } else {
+//                timesheetList = timesheetsRepository.getTimesheetsByDepartmentAndDateRange(
+//                    Long.parseLong(deptId), startDate, endDate);
+//            }
+//
+//            if (timesheetList == null || timesheetList.isEmpty()) {
+//                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//                response.setServiceResponse("No timesheets found.");
+//                apiLogInfo.setApiResponse("No timesheets found.");
+//                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//            } else {
+//                List<TimesheetDTO> dtoList = timesheetList.stream()
+//                        .map(this::mapToTimesheetDTO)
+//                        .collect(Collectors.toList());
+//
+//                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//                response.setServiceResponse(dtoList);
+//                apiLogInfo.setApiResponse("Timesheet data retrieved.");
+//                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//            }
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//            response.setServiceResponse("Something went wrong.");
+//            response.setServiceError(e.getMessage());
+//            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//            apiLogInfo.setLogLevel("ERROR");
+//        }
+//
+//        apiLogInfo.setApiRequest(logBuilder.toString());
+//        logService.logMyInfo(httpRequest, apiLogInfo);
+//        return response;
+//    }
 	
 	private TimesheetDTO mapToTimesheetDTO(Object[] object) {
         TimesheetDTO dto = new TimesheetDTO();
@@ -2640,7 +2638,7 @@ public class TimesheetService {
 	    apiLogInfo.setLogLevel("INFO");
 
 	    try {
-	        List<Object[]> activeCheckList = timesheetsRepository.checkEmployeeActiveOrNot(empId);
+	        List<Object[]> activeCheckList = employeeTimesheetsNewRepository.checkEmployeeActiveOrNot(empId);
 
 	        // Case 1: No records found in the timesheet - employee never filled any timesheet
 	        if (activeCheckList.isEmpty()) {
@@ -2672,7 +2670,7 @@ public class TimesheetService {
 	        }
 
 	        // Case 3 or 4: Employee is active, check for last filled timesheet
-	        List<Object[]> resultList = timesheetsRepository.getLastFilledTimesheet(empId);
+	        List<Object[]> resultList = employeeTimesheetsNewRepository.getLastFilledTimesheet(empId);
 	        if (!resultList.isEmpty()) {
 	            Object[] object = resultList.get(0);
 
@@ -3039,7 +3037,7 @@ public class TimesheetService {
 	    	LocalDateTime startOfDay = selectedDate.atStartOfDay();
 	    	LocalDateTime startOfNextDay = selectedDate.plusDays(1).atStartOfDay();
 
-	    	List<ProjectClientSideIdDTO> activeProjectList = timesheetsRepository.getActiveProjectsAndClientSideIdByEmpId(
+	    	List<ProjectClientSideIdDTO> activeProjectList = employeeTimesheetsNewRepository.getActiveProjectsAndClientSideIdByEmpId(
 	    	                empId, startOfDay, startOfNextDay, projectId);
 	    	
 	        if (activeProjectList.isEmpty()) {
@@ -4081,228 +4079,228 @@ public class TimesheetService {
 	
 	
 	
-	public ServiceResponse totalVmsFilledCount(TimesheetDTO timesheetDTO) {
-		return timesheetDashboardService.totalVmsFilledCount(timesheetDTO);
-	}
+//	public ServiceResponse totalVmsFilledCount(TimesheetDTO timesheetDTO) {
+//		return timesheetDashboardService.totalVmsFilledCount(timesheetDTO);
+//	}
 	
 	// Delegate method - implementation moved to TimesheetDashboardService
-	private ServiceResponse totalVmsFilledCountInternal(TimesheetDTO timesheetDTO) {
-	    ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
-	    apiLogInfo.setLogLevel("INFO");
-	    
-	    try {
-	    	
-	    	Long empId = Long.valueOf(timesheetDTO.getEmpId());
-	    	List<Object[]> timesheetList = timesheetsRepository.getTotalVmsFilledCount(empId);
-
-	        
-	    	if (timesheetList == null || timesheetList.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("No VMS Filled!");
-	            response.setServiceMessage("No VMS Filled!"); 
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	            logService.logMyInfo(httpRequest, apiLogInfo);
-	            return response;
-	        }
-	        
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(timesheetList);
-            response.setServiceMessage("TimesheetList List fetched successfully!");
-
-            apiLogInfo.setApiResponse("Timesheet List fetched successfully!");
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	        
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong.");
-	        response.setServiceError(e.getMessage());
-
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setApiResponse(e.getMessage()); 
-	        apiLogInfo.setLogLevel("ERROR");
-	    }
-
-	    logService.logMyInfo(httpRequest, apiLogInfo);
-	    return response;
-	}
+//	private ServiceResponse totalVmsFilledCountInternal(TimesheetDTO timesheetDTO) {
+//	    ServiceResponse response = new ServiceResponse();
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
+//	    apiLogInfo.setLogLevel("INFO");
+//	    
+//	    try {
+//	    	
+//	    	Long empId = Long.valueOf(timesheetDTO.getEmpId());
+//	    	List<Object[]> timesheetList = timesheetsRepository.getTotalVmsFilledCount(empId);
+//
+//	        
+//	    	if (timesheetList == null || timesheetList.isEmpty()) {
+//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            response.setServiceResponse("No VMS Filled!");
+//	            response.setServiceMessage("No VMS Filled!"); 
+//	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	            logService.logMyInfo(httpRequest, apiLogInfo);
+//	            return response;
+//	        }
+//	        
+//            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//            response.setServiceResponse(timesheetList);
+//            response.setServiceMessage("TimesheetList List fetched successfully!");
+//
+//            apiLogInfo.setApiResponse("Timesheet List fetched successfully!");
+//            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//	        
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something went wrong.");
+//	        response.setServiceError(e.getMessage());
+//
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setApiResponse(e.getMessage()); 
+//	        apiLogInfo.setLogLevel("ERROR");
+//	    }
+//
+//	    logService.logMyInfo(httpRequest, apiLogInfo);
+//	    return response;
+//	}
 	
 	
 	
-	public ServiceResponse totalIshineFilledCount(String status) {
-		return timesheetDashboardService.totalIshineFilledCount(status);
-	}
+//	public ServiceResponse totalIshineFilledCount(String status) {
+//		return timesheetDashboardService.totalIshineFilledCount(status);
+//	}
+//	
+	// Delegate method - implementation moved to TimesheetDashboardService
+//	private ServiceResponse totalIshineFilledCountInternal(String status) {
+//	    ServiceResponse response = new ServiceResponse();
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
+//	    apiLogInfo.setLogLevel("INFO");
+//	    
+//	    try {
+//	    	List<Object[]> ishineTimesheetList = timesheetsRepository.totalIshineFilledCount();
+//	        
+//	    	if (ishineTimesheetList == null || ishineTimesheetList.isEmpty()) {
+//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            response.setServiceResponse("No Timesheet Filled!");
+//	            response.setServiceMessage("No Timesheet Filled!"); 
+//	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	            logService.logMyInfo(httpRequest, apiLogInfo);
+//	            return response;
+//	        }
+//	        
+//            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//            response.setServiceResponse(ishineTimesheetList);
+//            response.setServiceMessage("TimesheetList List fetched successfully!");
+//
+//            apiLogInfo.setApiResponse("Timesheet List fetched successfully!");
+//            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//	        
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something went wrong.");
+//	        response.setServiceError(e.getMessage());
+//
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setApiResponse(e.getMessage()); 
+//	        apiLogInfo.setLogLevel("ERROR");
+//	    }
+//
+//	    logService.logMyInfo(httpRequest, apiLogInfo);
+//	    return response;
+//	}
+
+	
+//	public ServiceResponse totalvmsNotFilled(TimesheetDTO timesheetDTO) {
+//		return timesheetDashboardService.totalvmsNotFilled(timesheetDTO);
+//	}
 	
 	// Delegate method - implementation moved to TimesheetDashboardService
-	private ServiceResponse totalIshineFilledCountInternal(String status) {
-	    ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
-	    apiLogInfo.setLogLevel("INFO");
-	    
-	    try {
-	    	List<Object[]> ishineTimesheetList = timesheetsRepository.totalIshineFilledCount();
-	        
-	    	if (ishineTimesheetList == null || ishineTimesheetList.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("No Timesheet Filled!");
-	            response.setServiceMessage("No Timesheet Filled!"); 
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	            logService.logMyInfo(httpRequest, apiLogInfo);
-	            return response;
-	        }
-	        
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(ishineTimesheetList);
-            response.setServiceMessage("TimesheetList List fetched successfully!");
-
-            apiLogInfo.setApiResponse("Timesheet List fetched successfully!");
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	        
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong.");
-	        response.setServiceError(e.getMessage());
-
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setApiResponse(e.getMessage()); 
-	        apiLogInfo.setLogLevel("ERROR");
-	    }
-
-	    logService.logMyInfo(httpRequest, apiLogInfo);
-	    return response;
-	}
-
+//	private ServiceResponse totalvmsNotFilledInternal(TimesheetDTO timesheetDTO) {
+//	    ServiceResponse response = new ServiceResponse();
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
+//	    apiLogInfo.setLogLevel("INFO");
+//	    
+//	    try {
+//	    	List<Object[]> timesheetList = timesheetsRepository.totalvmsNotFilled(timesheetDTO.getEmpId());
+//	        
+//	    	if (timesheetList == null || timesheetList.isEmpty()) {
+//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            response.setServiceResponse("No VMS Filled!");
+//	            response.setServiceMessage("No VMS Filled!"); 
+//	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	            logService.logMyInfo(httpRequest, apiLogInfo);
+//	            return response;
+//	        }
+//	        
+//            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//            response.setServiceResponse(timesheetList);
+//            response.setServiceMessage("TimesheetList List fetched successfully!");
+//
+//            apiLogInfo.setApiResponse("Timesheet List fetched successfully!");
+//            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//	        
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something went wrong.");
+//	        response.setServiceError(e.getMessage());
+//
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setApiResponse(e.getMessage()); 
+//	        apiLogInfo.setLogLevel("ERROR");
+//	    }
+//
+//	    logService.logMyInfo(httpRequest, apiLogInfo);
+//	    return response;
+//	}
 	
-	public ServiceResponse totalvmsNotFilled(TimesheetDTO timesheetDTO) {
-		return timesheetDashboardService.totalvmsNotFilled(timesheetDTO);
-	}
-	
-	// Delegate method - implementation moved to TimesheetDashboardService
-	private ServiceResponse totalvmsNotFilledInternal(TimesheetDTO timesheetDTO) {
-	    ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
-	    apiLogInfo.setLogLevel("INFO");
-	    
-	    try {
-	    	List<Object[]> timesheetList = timesheetsRepository.totalvmsNotFilled(timesheetDTO.getEmpId());
-	        
-	    	if (timesheetList == null || timesheetList.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("No VMS Filled!");
-	            response.setServiceMessage("No VMS Filled!"); 
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	            logService.logMyInfo(httpRequest, apiLogInfo);
-	            return response;
-	        }
-	        
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(timesheetList);
-            response.setServiceMessage("TimesheetList List fetched successfully!");
-
-            apiLogInfo.setApiResponse("Timesheet List fetched successfully!");
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	        
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong.");
-	        response.setServiceError(e.getMessage());
-
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setApiResponse(e.getMessage()); 
-	        apiLogInfo.setLogLevel("ERROR");
-	    }
-
-	    logService.logMyInfo(httpRequest, apiLogInfo);
-	    return response;
-	}
-	
-	public ServiceResponse getMyReporteesAndClientSideProjectsInMonthYear(TimesheetDTO timesheetDTO) {
-
-	    ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getMyReporteesAndClientSideProjectsInMonthYear");
-	    apiLogInfo.setLogLevel("INFO");
-
-	    try {
-
-	    
-	        String monthYear = timesheetDTO.getMonthYear(); 
-	        Integer year = null;
-	        Integer month = null;
-
-	        if (monthYear != null && monthYear.contains("-")) {
-	            String[] parts = monthYear.split("-");
-	            year = Integer.parseInt(parts[0]);
-	            month = Integer.parseInt(parts[1]);
-	        }
-
-	       
-	        List<Object[]> resultList = timesheetsRepository.getMyReporteesAndClientSideProjectsInMonthYear(year,month,timesheetDTO.getManagerId());
-	                       
-
-	        if (resultList == null || resultList.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("No reportees found!");
-	            response.setServiceMessage("No reportees found for given month & manager.");
-
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	            logService.logMyInfo(httpRequest, apiLogInfo);
-	            return response;
-	        }
-
-	      
-	        Map<Long, EmployeeDTO> employeeMap = new LinkedHashMap<>();
-
-	        for (Object[] row : resultList) {
-
-	            Long empId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
-
-	            EmployeeDTO employeeDTO = employeeMap.get(empId);
-
-	            if (employeeDTO == null) {
-	                employeeDTO = new EmployeeDTO();
-	                employeeDTO.setEmpId(empId);
-	                employeeDTO.setName(row[1] != null ? row[1].toString() : null);
-	                employeeDTO.setProjectList(new ArrayList<>());
-
-	                employeeMap.put(empId, employeeDTO);
-	            }
-
-	           
-	            ProjectDTO projectDTO = new ProjectDTO();
-	            projectDTO.setProjectId(row[2] != null ? Integer.parseInt(row[2].toString()) : null);
-	            projectDTO.setProjectName(row[3] != null ? row[3].toString() : null);
-	            employeeDTO.getProjectList().add(projectDTO);
-	        }
-
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse(new ArrayList<>(employeeMap.values()));
-	        response.setServiceMessage("Reportees & project details fetched successfully!");
-
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	        apiLogInfo.setApiResponse("Data fetched successfully");
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong.");
-	        response.setServiceError(e.getMessage());
-
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setApiResponse(e.getMessage());
-	        apiLogInfo.setLogLevel("ERROR");
-	    }
-
-	    logService.logMyInfo(httpRequest, apiLogInfo);
-	    return response;
-	}
+//	public ServiceResponse getMyReporteesAndClientSideProjectsInMonthYear(TimesheetDTO timesheetDTO) {
+//
+//	    ServiceResponse response = new ServiceResponse();
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setApiUrl("/api/getMyReporteesAndClientSideProjectsInMonthYear");
+//	    apiLogInfo.setLogLevel("INFO");
+//
+//	    try {
+//
+//	    
+//	        String monthYear = timesheetDTO.getMonthYear(); 
+//	        Integer year = null;
+//	        Integer month = null;
+//
+//	        if (monthYear != null && monthYear.contains("-")) {
+//	            String[] parts = monthYear.split("-");
+//	            year = Integer.parseInt(parts[0]);
+//	            month = Integer.parseInt(parts[1]);
+//	        }
+//
+//	       
+//	        List<Object[]> resultList = timesheetsRepository.getMyReporteesAndClientSideProjectsInMonthYear(year,month,timesheetDTO.getManagerId());
+//	                       
+//
+//	        if (resultList == null || resultList.isEmpty()) {
+//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            response.setServiceResponse("No reportees found!");
+//	            response.setServiceMessage("No reportees found for given month & manager.");
+//
+//	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	            logService.logMyInfo(httpRequest, apiLogInfo);
+//	            return response;
+//	        }
+//
+//	      
+//	        Map<Long, EmployeeDTO> employeeMap = new LinkedHashMap<>();
+//
+//	        for (Object[] row : resultList) {
+//
+//	            Long empId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
+//
+//	            EmployeeDTO employeeDTO = employeeMap.get(empId);
+//
+//	            if (employeeDTO == null) {
+//	                employeeDTO = new EmployeeDTO();
+//	                employeeDTO.setEmpId(empId);
+//	                employeeDTO.setName(row[1] != null ? row[1].toString() : null);
+//	                employeeDTO.setProjectList(new ArrayList<>());
+//
+//	                employeeMap.put(empId, employeeDTO);
+//	            }
+//
+//	           
+//	            ProjectDTO projectDTO = new ProjectDTO();
+//	            projectDTO.setProjectId(row[2] != null ? Integer.parseInt(row[2].toString()) : null);
+//	            projectDTO.setProjectName(row[3] != null ? row[3].toString() : null);
+//	            employeeDTO.getProjectList().add(projectDTO);
+//	        }
+//
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceResponse(new ArrayList<>(employeeMap.values()));
+//	        response.setServiceMessage("Reportees & project details fetched successfully!");
+//
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//	        apiLogInfo.setApiResponse("Data fetched successfully");
+//
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something went wrong.");
+//	        response.setServiceError(e.getMessage());
+//
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setApiResponse(e.getMessage());
+//	        apiLogInfo.setLogLevel("ERROR");
+//	    }
+//
+//	    logService.logMyInfo(httpRequest, apiLogInfo);
+//	    return response;
+//	}
 	
 	public ServiceResponse getMyProjectsInMonthYear(TimesheetDTO timesheetDTO) {
 
@@ -4324,7 +4322,7 @@ public class TimesheetService {
 	        }
 
 	        
-	        List<Object[]> resultList = timesheetsRepository.getMyProjectsInMonthYear(month,year, timesheetDTO.getEmpId());
+	        List<Object[]> resultList = employeeTimesheetsNewRepository.getMyProjectsInMonthYear(month,year, timesheetDTO.getEmpId());
 
 	        if (resultList == null || resultList.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -4378,102 +4376,102 @@ public class TimesheetService {
 	
 	
 	
-	public ServiceResponse totalIshineNotFilledCount(TimesheetDTO timesheetDTO) {
-		return timesheetDashboardService.totalIshineNotFilledCount(timesheetDTO);
-	}
+//	public ServiceResponse totalIshineNotFilledCount(TimesheetDTO timesheetDTO) {
+//		return timesheetDashboardService.totalIshineNotFilledCount(timesheetDTO);
+//	}
 	
 	// Delegate method - implementation moved to TimesheetDashboardService
-	private ServiceResponse totalIshineNotFilledCountInternal(TimesheetDTO timesheetDTO) {
-	    ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
-	    apiLogInfo.setLogLevel("INFO");
-	    
-	    try {
-//	    	List<Object[]> ishineTimesheetList = timesheetsRepository.totalIshineNotFilledCount(timesheetDTO.getEmpId());
-	    	List<Object[]> ishineTimesheetList;
-	    	if(timesheetDTO.getIsClientDashboard()){
-	    		ishineTimesheetList = timesheetsRepository.totalIshineNotFilledCount(timesheetDTO.getEmpId());
-	    	}else {
-	    		ishineTimesheetList = timesheetsRepository.totalIshineNotFilledCountForAllEmpDash(timesheetDTO.getEmpId());
-	    	}
-	        
-	    	if (ishineTimesheetList == null || ishineTimesheetList.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("No Timesheet Filled!");
-	            response.setServiceMessage("No Timesheet Filled!"); 
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	            logService.logMyInfo(httpRequest, apiLogInfo);
-	            return response;
-	        }
-	        
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(ishineTimesheetList);
-            response.setServiceMessage("TimesheetList List fetched successfully!");
-
-            apiLogInfo.setApiResponse("Timesheet List fetched successfully!");
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	        
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong.");
-	        response.setServiceError(e.getMessage());
-
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setApiResponse(e.getMessage()); 
-	        apiLogInfo.setLogLevel("ERROR");
-	    }
-
-	    logService.logMyInfo(httpRequest, apiLogInfo);
-	    return response;
-	}
+//	private ServiceResponse totalIshineNotFilledCountInternal(TimesheetDTO timesheetDTO) {
+//	    ServiceResponse response = new ServiceResponse();
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
+//	    apiLogInfo.setLogLevel("INFO");
+//	    
+//	    try {
+////	    	List<Object[]> ishineTimesheetList = timesheetsRepository.totalIshineNotFilledCount(timesheetDTO.getEmpId());
+//	    	List<Object[]> ishineTimesheetList;
+//	    	if(timesheetDTO.getIsClientDashboard()){
+//	    		ishineTimesheetList = timesheetsRepository.totalIshineNotFilledCount(timesheetDTO.getEmpId());
+//	    	}else {
+//	    		ishineTimesheetList = timesheetsRepository.totalIshineNotFilledCountForAllEmpDash(timesheetDTO.getEmpId());
+//	    	}
+//	        
+//	    	if (ishineTimesheetList == null || ishineTimesheetList.isEmpty()) {
+//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            response.setServiceResponse("No Timesheet Filled!");
+//	            response.setServiceMessage("No Timesheet Filled!"); 
+//	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	            logService.logMyInfo(httpRequest, apiLogInfo);
+//	            return response;
+//	        }
+//	        
+//            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//            response.setServiceResponse(ishineTimesheetList);
+//            response.setServiceMessage("TimesheetList List fetched successfully!");
+//
+//            apiLogInfo.setApiResponse("Timesheet List fetched successfully!");
+//            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//	        
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something went wrong.");
+//	        response.setServiceError(e.getMessage());
+//
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setApiResponse(e.getMessage()); 
+//	        apiLogInfo.setLogLevel("ERROR");
+//	    }
+//
+//	    logService.logMyInfo(httpRequest, apiLogInfo);
+//	    return response;
+//	}
 
 	public ServiceResponse getVmsDocumentApprovalStatusWiseCount() {
 		return timesheetDashboardService.getVmsDocumentApprovalStatusWiseCount();
 	}
 	
 	// Delegate method - implementation moved to TimesheetDashboardService
-	private ServiceResponse getVmsDocumentApprovalStatusWiseCountInternal() {
-		ServiceResponse response = new ServiceResponse();
-		
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("getVmsDocumentApprovalStatusWiseCount");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getVmsDocumentApprovalStatusWiseCount");
-		try {
-			List<TimesheetDocumentApprovalDTO> details = timesheetDocumentApprovalRepository.getRejectionCountsByLevel();
-			 if(details == null) {
-				 
-				    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		            response.setServiceResponse("VMS Rejection Count Not Present");
-		            response.setServiceMessage("VMS Rejection Count Not Present");
-		            
-		            apiLogInfo.setApiResponse("VMS Rejection Count Not Present");
-		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		            logService.logMyInfo(httpRequest, apiLogInfo);
-		            return response;
-			 }else {
-				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		            response.setServiceResponse(details);
-		            response.setServiceMessage("VMS Rejection Count Fetched");
-		            apiLogInfo.setApiResponse("VMS Rejection Count Fetched");
-		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			 }
-			
-		}catch(Exception e) {
-			    e.printStackTrace();
-		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-		        response.setServiceResponse("Something went wrong.");
-		        response.setServiceError(e.getMessage());
-		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		        apiLogInfo.setApiResponse(e.getMessage()); 
-		        apiLogInfo.setLogLevel("ERROR");
-		}
-		
-		return response;
-	}
+//	private ServiceResponse getVmsDocumentApprovalStatusWiseCountInternal() {
+//		ServiceResponse response = new ServiceResponse();
+//		
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("getVmsDocumentApprovalStatusWiseCount");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("getVmsDocumentApprovalStatusWiseCount");
+//		try {
+//			List<TimesheetDocumentApprovalDTO> details = timesheetDocumentApprovalRepository.getRejectionCountsByLevel();
+//			 if(details == null) {
+//				 
+//				    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//		            response.setServiceResponse("VMS Rejection Count Not Present");
+//		            response.setServiceMessage("VMS Rejection Count Not Present");
+//		            
+//		            apiLogInfo.setApiResponse("VMS Rejection Count Not Present");
+//		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//		            logService.logMyInfo(httpRequest, apiLogInfo);
+//		            return response;
+//			 }else {
+//				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//		            response.setServiceResponse(details);
+//		            response.setServiceMessage("VMS Rejection Count Fetched");
+//		            apiLogInfo.setApiResponse("VMS Rejection Count Fetched");
+//		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//			 }
+//			
+//		}catch(Exception e) {
+//			    e.printStackTrace();
+//		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//		        response.setServiceResponse("Something went wrong.");
+//		        response.setServiceError(e.getMessage());
+//		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//		        apiLogInfo.setApiResponse(e.getMessage()); 
+//		        apiLogInfo.setLogLevel("ERROR");
+//		}
+//		
+//		return response;
+//	}
 	
 //	@Transactional(rollbackFor = Exception.class)
 //	public ServiceResponse replaceAllTemporaryFileWithFinalFile(MultipartFile file, LocalDate fromDate, LocalDate toDate, Long empId) {
@@ -4613,395 +4611,395 @@ public class TimesheetService {
 //	    return response;
 //	}
 	
-	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse replaceAllTemporaryFileWithFinalFile(
-	        MultipartFile file, LocalDate fromDate, LocalDate toDate, Long empId,Long createdBy) {
-
-	    ServiceResponse response = new ServiceResponse();
-
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("replaceAllTemporaryFileWithFinalFile");
-	    apiLogInfo.setLogLevel("INFO");
-
-	    try {
-	        if (empId == null || fromDate == null || toDate == null || file == null || file.isEmpty()) {
-	            throw new IllegalArgumentException("Required input(s) are missing or file is empty.");
-	        }
-			List<TimesheetDocumentDetails> docDatas = timesheetDocumentDetailsRepository.getDocsByEmpAndDateRange(empId,
-					fromDate, toDate);
-
-	        Set<Long> timesheetIds = docDatas.stream()
-	                .map(TimesheetDocumentDetails::getTimesheetId)
-	                .filter(Objects::nonNull)
-	                .collect(Collectors.toSet());
-
-	        Map<Long, Timesheet> timesheetMap = timesheetIds.stream()
-	                .map(id -> timesheetsRepository.findById(id).orElse(null))
-	                .filter(Objects::nonNull)
-	                .collect(Collectors.toMap(Timesheet::getTimesheetId, t -> t));
-
-
-	        /* ================================
-	           GROUP VALID DOCUMENTS BY TIMESHEET
-	           ================================ */
-
-	        Map<Long, List<TimesheetDocumentDetails>> groupedByTimesheetId =
-	                docDatas.stream()
-	                        .filter(Objects::nonNull)
-	                        .filter(doc -> doc.getTimesheetId() != null)
-	                        .filter(doc -> {
-	                            Timesheet t = timesheetMap.get(doc.getTimesheetId());
-	                            if (t == null || t.getDayType() == null) return false;
-	                            return "Working".equalsIgnoreCase(t.getDayType())
-	                                    || "Non-Working".equalsIgnoreCase(t.getDayType());
-	                        })
-	                        .collect(Collectors.groupingBy(TimesheetDocumentDetails::getTimesheetId));
-
-	        /* ================================
-	        REJECTED TIMESHEETS WITH NO DOCUMENT
-	        ================================ */
-	    
-	        List<Timesheet> rejectedTimesheetList = timesheetsRepository.getRejectedTimesheetIdByEmpAndDateRange(empId,fromDate, toDate);
-	     List<Timesheet> rejectedTimesheetsWithNoDocs =
-	    		 rejectedTimesheetList.stream()
-
-	                     // Has NO document
-	                     .filter(t -> !groupedByTimesheetId.containsKey(t.getTimesheetId()))
-
-	                     // Timesheet status is Rejected
-	                     .filter(t -> "Rejected".equalsIgnoreCase(t.getStatus()))
-
-	                     // Valid day type
-	                     .filter(t ->
-	                             t.getDayType() != null &&
-	                             ("Working".equalsIgnoreCase(t.getDayType()) ||
-	                              "Non-Working".equalsIgnoreCase(t.getDayType()))
-	                     )
-
-	                     .collect(Collectors.toList());
-
-	        /* ================================
-	           PREPARE SPECIAL LISTS
-	           ================================ */
-
-	        List<TimesheetDocumentDetails> onlyOneDocWithFinalFlagFalseList = new ArrayList<>();
-
-	        List<TimesheetDocumentDetails> filteredList =
-	                groupedByTimesheetId.entrySet().stream()
-	                        .filter(entry -> {
-	                            List<TimesheetDocumentDetails> group = entry.getValue();
-
-	                            // Case: only one & finalFlag is false
-	                            if (group.size() == 1 && Boolean.FALSE.equals(group.get(0).getFinalFlag())) {
-	                                onlyOneDocWithFinalFlagFalseList.add(group.get(0));
-	                            }
-
-	                            boolean shouldRemove =
-	                                    group.size() <= 2 &&
-	                                            group.stream().anyMatch(dto ->
-	                                                    Boolean.TRUE.equals(dto.getFinalFlag()) &&
-	                                                            !"Rejected".equalsIgnoreCase(dto.getRmApprovalStatus()) &&
-	                                                            !"Rejected".equalsIgnoreCase(dto.getHrApprovalStatus())
-	                                            );
-
-	                            return !shouldRemove;
-	                        })
-	                        .flatMap(entry -> entry.getValue().stream())
-	                        .collect(Collectors.toList());
-
-	        /* ================================
-	           FILE META
-	           ================================ */
-
-	        byte[] fileBytes = file.getBytes();
-	        String fileName = file.getOriginalFilename();
-	        String contentType = file.getContentType();
-
-	        
-	        /* ================================
-	        UPDATE REJECTED TIMESHEETS & ADD FINAL DOC
-	        ================================ */
-
-	     for (Timesheet rejectedTimesheet : rejectedTimesheetsWithNoDocs) {
-
-	         // 1. Update Timesheet status
-	         rejectedTimesheet.setStatus("Pending");   // Use correct column name if different
-	         rejectedTimesheet.setClientApprovalStatus("Approved");
-			 timesheetsRepository.save(rejectedTimesheet);
-
-	         // 2. Create new FINAL document
-	         TimesheetDocumentDetails finalDoc = new TimesheetDocumentDetails();
-	         
-	         finalDoc.setActive(true);
-	         finalDoc.setDocName(fileName);
-	         finalDoc.setDocData(fileBytes);
-	         finalDoc.setDocMimeType(contentType);
-	         finalDoc.setClientApprovalStatus("Approved");
-	         finalDoc.setRmApprovalStatus("Pending");
-	         finalDoc.setHrApprovalStatus("Pending");
-	         finalDoc.setCreatedBy(createdBy);
-	         finalDoc.setTimesheetId(rejectedTimesheet.getTimesheetId());
-	         finalDoc.setEmpId(empId);
-	         finalDoc.setCreatedOn(LocalDateTime.now());
-	         finalDoc.setFinalFlag(true);
-
-	         // 3. Add to save list
-	         filteredList.add(finalDoc);
-	     }
-
-	        /* ================================
-	           ADD FINAL DOCUMENT FOR SINGLE TEMP DOC
-	           ================================ */
-	        
-	        
-	        for (TimesheetDocumentDetails oldDoc : onlyOneDocWithFinalFlagFalseList) {
-
-	            Timesheet timeSheet = timesheetMap.get(oldDoc.getTimesheetId());
-	            if (timeSheet != null) {
-	            	timeSheet.setStatus("Pending");
-	                timeSheet.setClientApprovalStatus("Approved");
-	                timesheetsRepository.save(timeSheet);
-	            }
-
-	            TimesheetDocumentDetails newDoc = new TimesheetDocumentDetails();
-	            newDoc.setActive(true);
-	            newDoc.setDocName(fileName);
-	            newDoc.setDocData(fileBytes);
-	            newDoc.setDocMimeType(contentType);
-	            newDoc.setClientApprovalStatus("Approved");
-	            newDoc.setRmApprovalStatus("Pending");
-	            newDoc.setHrApprovalStatus("Pending");
-	            newDoc.setCreatedBy(createdBy);
-	            newDoc.setTimesheetId(oldDoc.getTimesheetId());
-	            newDoc.setEmpId(empId);
-	            newDoc.setCreatedOn(LocalDateTime.now());
-	            newDoc.setFinalFlag(true);
-
-	            filteredList.add(newDoc);
-	        }
-
-	        /* ================================
-	           SAVE CHANGES
-	           ================================ */
-
-	        timesheetDocumentDetailsRepository.saveAll(filteredList);
-
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse("All temporary files replaced with final document successfully.");
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-	    } catch (IllegalArgumentException | IllegalStateException e) {
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceResponse(e.getMessage());
-	        response.setServiceError(e.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setApiResponse(e.getMessage());
-	        apiLogInfo.setLogLevel("ERROR");
-	        throw e;
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong.");
-	        response.setServiceError(e.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setApiResponse(e.getMessage());
-	        apiLogInfo.setLogLevel("ERROR");
-	        throw new RuntimeException("Failed to replace documents", e);
-	    }
-
-	    return response;
-	}
-
-	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse bulkFinalUploadProjectBased(FinalBulkUploadDTO finalBulkUploadDTO, MultipartFile file) {
-	    ServiceResponse response = new ServiceResponse();
-
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("bulkFinalUploadProjectBased");
-	    apiLogInfo.setLogLevel("INFO");
-
-		try {
-
-			List<Long> empIds = finalBulkUploadDTO.getEmpIds();
-
-			if(empIds == null || empIds.isEmpty()) {
-				throw new IllegalArgumentException("Employee ids are required.");
-			}
-
-			Integer projectId = finalBulkUploadDTO.getProjectId();
-
-			LocalDate fromDate = finalBulkUploadDTO.getFromDate();
-			LocalDate toDate = finalBulkUploadDTO.getToDate();
-
-			if(projectId == null || projectId <= 0) {
-				throw new IllegalArgumentException("Project id is required.");
-			}
-
-			if(fromDate == null || toDate == null) {
-				throw new IllegalArgumentException("From date and to date are required.");
-			}
-
-			if(file == null || file.isEmpty()) {
-				throw new IllegalArgumentException("File is required.");
-			}
-
-			if(file.getSize() > maxFileSize.toBytes()) {
-				throw new IllegalArgumentException("File size is too large. Maximum file size is " + maxFileSize.toMegabytes() + "MB");
-			}
-
-			LocalDate today = LocalDate.now();
-			int minusDays = (this.minusDays == null || this.minusDays <= 0)
-					? 45
-					: this.minusDays;
-
-			LocalDate expectedDate = today.minusDays(minusDays);
-
-			YearMonth expectedYearMonth = YearMonth.from(expectedDate);
-			YearMonth currentYearMonth = YearMonth.from(today);
-			YearMonth fromYearMonth = YearMonth.from(fromDate);
-
-			// if (fromYearMonth.equals(currentYearMonth)) {
-			// 	throw new IllegalArgumentException(
-			// 			"From date cannot be in the current month"
-			// 	);
-			// }
-
-			if(fromDate.isAfter(toDate)) {
-				throw new IllegalArgumentException("Invalid date range. From date cannot be greater than to date.");
-			}
-			if(toDate.isBefore(fromDate)){
-				throw new IllegalArgumentException("Invalid date range. To date cannot be less than from date.");
-			}
-
-			List<String> allowedFileExtensions = List.of("png", "jpg", "jpeg", "pdf","xlsx","xls","ods");
-			String fileExtension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
-
-			if(!allowedFileExtensions.contains(fileExtension.toLowerCase())) {
-				throw new IllegalArgumentException(
-						"Invalid file extension. Allowed file extensions are: " + String.join(", ", allowedFileExtensions)
-				);
-			}
-
-			if (checkMinusDaysForBulkUpload) {
-
-				LocalDate expectedToDate = fromYearMonth.atEndOfMonth();
-				if (toDate.isAfter(expectedToDate)) {
-					throw new IllegalArgumentException(
-							"Invalid date range. To date cannot be greater than expected to date."
-					);
-				}
-
-				LocalDate allowedStartDate;
-
-				if (expectedYearMonth.equals(currentYearMonth.minusMonths(1))) {
-					allowedStartDate = expectedYearMonth.atDay(1);
-				} else {
-					allowedStartDate = expectedYearMonth.atDay(15);
-				}
-
-				if (fromDate.isBefore(allowedStartDate)) {
-					throw new IllegalArgumentException(
-							String.format(
-									"Invalid date range. From date cannot be before %s",
-									allowedStartDate
-							)
-					);
-				}
-			}
-
-			Long createdBy = finalBulkUploadDTO.getCreatedBy();
-
-			List<TimesheetIdAndEmpIdDTO> notFilledTimesheetDocumentDetails = new ArrayList<>();
-
-			notFilledTimesheetDocumentDetails = timesheetDocumentDetailsRepository.getDocsByEmpIdsAndDate(empIds, fromDate, toDate, projectId);
-
-			if(notFilledTimesheetDocumentDetails == null || notFilledTimesheetDocumentDetails.isEmpty()) {
-				throw new IllegalArgumentException("No Eligible timesheet(s) found for the given employee(s) and date range.");
-			}
-
-			Set<Long> timesheetIds = notFilledTimesheetDocumentDetails.stream().map(TimesheetIdAndEmpIdDTO::getTimesheetId).collect(Collectors.toSet());
-
-			List<Timesheet> timesheets = timesheetsRepository.findAllById(timesheetIds);
-
-			List<TimesheetDocumentDetails> timesheetDocumentDetailsListToSave = new ArrayList<>();
-			List<Timesheet> timesheetsToSave = new ArrayList<>();
-
-			// Rejected timesheet document details
-			List<TimesheetDocumentDetails> rejectedTimesheetDocsWithFinalFlag = timesheetDocumentDetailsRepository.getDocsByTimesheetIdsAndFinalFlag(new ArrayList<>(timesheetIds));
-
-			byte[] fileBytes = file.getBytes();
-	        String contentType = file.getContentType();
-			String fileName = file.getOriginalFilename();
-
-			for(Timesheet timesheet : timesheets){
-				timesheet.setStatus("Pending");
-				timesheet.setClientApprovalStatus("Approved");
-				timesheetsToSave.add(timesheet);
-
-				TimesheetDocumentDetails timesheetDocumentDetails = new TimesheetDocumentDetails();
-
-				for(TimesheetDocumentDetails tdd : rejectedTimesheetDocsWithFinalFlag){
-					if(tdd.getTimesheetId().equals(timesheet.getTimesheetId()) && tdd.getEmpId().equals(timesheet.getEmpId())){
-						timesheetDocumentDetails.setDocId(tdd.getDocId());
-						timesheetDocumentDetails.setUpdatedBy(createdBy);
-						timesheetDocumentDetails.setUpdatedOn(LocalDateTime.now());
-						timesheetDocumentDetails.setCreatedOn(tdd.getCreatedOn());
-						timesheetDocumentDetails.setCreatedBy(tdd.getCreatedBy());
-						break;
-					}
-				}
-
-				timesheetDocumentDetails.setActive(true);
-				timesheetDocumentDetails.setDocName(fileName);
-				timesheetDocumentDetails.setDocData(fileBytes);
-				timesheetDocumentDetails.setDocMimeType(contentType);
-				timesheetDocumentDetails.setClientApprovalStatus("Approved");
-				timesheetDocumentDetails.setRmApprovalStatus("Pending");
-				timesheetDocumentDetails.setHrApprovalStatus("Pending");
-
-				if(timesheetDocumentDetails.getDocId() == null){
-					timesheetDocumentDetails.setCreatedBy(createdBy);
-					timesheetDocumentDetails.setCreatedOn(LocalDateTime.now());
-				}
-
-				timesheetDocumentDetails.setTimesheetId(timesheet.getTimesheetId());
-				timesheetDocumentDetails.setEmpId(timesheet.getEmpId());
-				timesheetDocumentDetails.setFinalFlag(true);
-				timesheetDocumentDetailsListToSave.add(timesheetDocumentDetails);
-			}			
-			
-			timesheetsRepository.saveAll(timesheets);
-			timesheetDocumentDetailsRepository.saveAll(timesheetDocumentDetailsListToSave);
-			
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Documents uploaded successfully.");
-			response.setServiceError(null);
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			apiLogInfo.setApiResponse("Documents uploaded successfully.");
-			apiLogInfo.setLogLevel("INFO");
-
-		} catch (IllegalArgumentException | IllegalStateException e) {
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceResponse(e.getMessage());
-	        response.setServiceError(e.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setApiResponse(e.getMessage());
-	        apiLogInfo.setLogLevel("ERROR");
-	        return response;
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong.");
-	        response.setServiceError(e.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setApiResponse(e.getMessage());
-	        apiLogInfo.setLogLevel("ERROR");
-	    }
-
-		return response;
-	}
+//	@Transactional(rollbackFor = Exception.class)
+//	public ServiceResponse replaceAllTemporaryFileWithFinalFile(
+//	        MultipartFile file, LocalDate fromDate, LocalDate toDate, Long empId,Long createdBy) {
+//
+//	    ServiceResponse response = new ServiceResponse();
+//
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setSubFeatureName("replaceAllTemporaryFileWithFinalFile");
+//	    apiLogInfo.setLogLevel("INFO");
+//
+//	    try {
+//	        if (empId == null || fromDate == null || toDate == null || file == null || file.isEmpty()) {
+//	            throw new IllegalArgumentException("Required input(s) are missing or file is empty.");
+//	        }
+//			List<TimesheetDocumentDetails> docDatas = timesheetDocumentDetailsRepository.getDocsByEmpAndDateRange(empId,
+//					fromDate, toDate);
+//
+//	        Set<Long> timesheetIds = docDatas.stream()
+//	                .map(TimesheetDocumentDetails::getTimesheetId)
+//	                .filter(Objects::nonNull)
+//	                .collect(Collectors.toSet());
+//
+//	        Map<Long, Timesheet> timesheetMap = timesheetIds.stream()
+//	                .map(id -> timesheetsRepository.findById(id).orElse(null))
+//	                .filter(Objects::nonNull)
+//	                .collect(Collectors.toMap(Timesheet::getTimesheetId, t -> t));
+//
+//
+//	        /* ================================
+//	           GROUP VALID DOCUMENTS BY TIMESHEET
+//	           ================================ */
+//
+//	        Map<Long, List<TimesheetDocumentDetails>> groupedByTimesheetId =
+//	                docDatas.stream()
+//	                        .filter(Objects::nonNull)
+//	                        .filter(doc -> doc.getTimesheetId() != null)
+//	                        .filter(doc -> {
+//	                            Timesheet t = timesheetMap.get(doc.getTimesheetId());
+//	                            if (t == null || t.getDayType() == null) return false;
+//	                            return "Working".equalsIgnoreCase(t.getDayType())
+//	                                    || "Non-Working".equalsIgnoreCase(t.getDayType());
+//	                        })
+//	                        .collect(Collectors.groupingBy(TimesheetDocumentDetails::getTimesheetId));
+//
+//	        /* ================================
+//	        REJECTED TIMESHEETS WITH NO DOCUMENT
+//	        ================================ */
+//	    
+//	        List<Timesheet> rejectedTimesheetList = timesheetsRepository.getRejectedTimesheetIdByEmpAndDateRange(empId,fromDate, toDate);
+//	     List<Timesheet> rejectedTimesheetsWithNoDocs =
+//	    		 rejectedTimesheetList.stream()
+//
+//	                     // Has NO document
+//	                     .filter(t -> !groupedByTimesheetId.containsKey(t.getTimesheetId()))
+//
+//	                     // Timesheet status is Rejected
+//	                     .filter(t -> "Rejected".equalsIgnoreCase(t.getStatus()))
+//
+//	                     // Valid day type
+//	                     .filter(t ->
+//	                             t.getDayType() != null &&
+//	                             ("Working".equalsIgnoreCase(t.getDayType()) ||
+//	                              "Non-Working".equalsIgnoreCase(t.getDayType()))
+//	                     )
+//
+//	                     .collect(Collectors.toList());
+//
+//	        /* ================================
+//	           PREPARE SPECIAL LISTS
+//	           ================================ */
+//
+//	        List<TimesheetDocumentDetails> onlyOneDocWithFinalFlagFalseList = new ArrayList<>();
+//
+//	        List<TimesheetDocumentDetails> filteredList =
+//	                groupedByTimesheetId.entrySet().stream()
+//	                        .filter(entry -> {
+//	                            List<TimesheetDocumentDetails> group = entry.getValue();
+//
+//	                            // Case: only one & finalFlag is false
+//	                            if (group.size() == 1 && Boolean.FALSE.equals(group.get(0).getFinalFlag())) {
+//	                                onlyOneDocWithFinalFlagFalseList.add(group.get(0));
+//	                            }
+//
+//	                            boolean shouldRemove =
+//	                                    group.size() <= 2 &&
+//	                                            group.stream().anyMatch(dto ->
+//	                                                    Boolean.TRUE.equals(dto.getFinalFlag()) &&
+//	                                                            !"Rejected".equalsIgnoreCase(dto.getRmApprovalStatus()) &&
+//	                                                            !"Rejected".equalsIgnoreCase(dto.getHrApprovalStatus())
+//	                                            );
+//
+//	                            return !shouldRemove;
+//	                        })
+//	                        .flatMap(entry -> entry.getValue().stream())
+//	                        .collect(Collectors.toList());
+//
+//	        /* ================================
+//	           FILE META
+//	           ================================ */
+//
+//	        byte[] fileBytes = file.getBytes();
+//	        String fileName = file.getOriginalFilename();
+//	        String contentType = file.getContentType();
+//
+//	        
+//	        /* ================================
+//	        UPDATE REJECTED TIMESHEETS & ADD FINAL DOC
+//	        ================================ */
+//
+//	     for (Timesheet rejectedTimesheet : rejectedTimesheetsWithNoDocs) {
+//
+//	         // 1. Update Timesheet status
+//	         rejectedTimesheet.setStatus("Pending");   // Use correct column name if different
+//	         rejectedTimesheet.setClientApprovalStatus("Approved");
+//			 timesheetsRepository.save(rejectedTimesheet);
+//
+//	         // 2. Create new FINAL document
+//	         TimesheetDocumentDetails finalDoc = new TimesheetDocumentDetails();
+//	         
+//	         finalDoc.setActive(true);
+//	         finalDoc.setDocName(fileName);
+//	         finalDoc.setDocData(fileBytes);
+//	         finalDoc.setDocMimeType(contentType);
+//	         finalDoc.setClientApprovalStatus("Approved");
+//	         finalDoc.setRmApprovalStatus("Pending");
+//	         finalDoc.setHrApprovalStatus("Pending");
+//	         finalDoc.setCreatedBy(createdBy);
+//	         finalDoc.setTimesheetId(rejectedTimesheet.getTimesheetId());
+//	         finalDoc.setEmpId(empId);
+//	         finalDoc.setCreatedOn(LocalDateTime.now());
+//	         finalDoc.setFinalFlag(true);
+//
+//	         // 3. Add to save list
+//	         filteredList.add(finalDoc);
+//	     }
+//
+//	        /* ================================
+//	           ADD FINAL DOCUMENT FOR SINGLE TEMP DOC
+//	           ================================ */
+//	        
+//	        
+//	        for (TimesheetDocumentDetails oldDoc : onlyOneDocWithFinalFlagFalseList) {
+//
+//	            Timesheet timeSheet = timesheetMap.get(oldDoc.getTimesheetId());
+//	            if (timeSheet != null) {
+//	            	timeSheet.setStatus("Pending");
+//	                timeSheet.setClientApprovalStatus("Approved");
+//	                timesheetsRepository.save(timeSheet);
+//	            }
+//
+//	            TimesheetDocumentDetails newDoc = new TimesheetDocumentDetails();
+//	            newDoc.setActive(true);
+//	            newDoc.setDocName(fileName);
+//	            newDoc.setDocData(fileBytes);
+//	            newDoc.setDocMimeType(contentType);
+//	            newDoc.setClientApprovalStatus("Approved");
+//	            newDoc.setRmApprovalStatus("Pending");
+//	            newDoc.setHrApprovalStatus("Pending");
+//	            newDoc.setCreatedBy(createdBy);
+//	            newDoc.setTimesheetId(oldDoc.getTimesheetId());
+//	            newDoc.setEmpId(empId);
+//	            newDoc.setCreatedOn(LocalDateTime.now());
+//	            newDoc.setFinalFlag(true);
+//
+//	            filteredList.add(newDoc);
+//	        }
+//
+//	        /* ================================
+//	           SAVE CHANGES
+//	           ================================ */
+//
+//	        timesheetDocumentDetailsRepository.saveAll(filteredList);
+//
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceResponse("All temporary files replaced with final document successfully.");
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//
+//	    } catch (IllegalArgumentException | IllegalStateException e) {
+//	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	        response.setServiceResponse(e.getMessage());
+//	        response.setServiceError(e.getMessage());
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setApiResponse(e.getMessage());
+//	        apiLogInfo.setLogLevel("ERROR");
+//	        throw e;
+//
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something went wrong.");
+//	        response.setServiceError(e.getMessage());
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setApiResponse(e.getMessage());
+//	        apiLogInfo.setLogLevel("ERROR");
+//	        throw new RuntimeException("Failed to replace documents", e);
+//	    }
+//
+//	    return response;
+//	}
+
+//	@Transactional(rollbackFor = Exception.class)
+//	public ServiceResponse bulkFinalUploadProjectBased(FinalBulkUploadDTO finalBulkUploadDTO, MultipartFile file) {
+//	    ServiceResponse response = new ServiceResponse();
+//
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setSubFeatureName("bulkFinalUploadProjectBased");
+//	    apiLogInfo.setLogLevel("INFO");
+//
+//		try {
+//
+//			List<Long> empIds = finalBulkUploadDTO.getEmpIds();
+//
+//			if(empIds == null || empIds.isEmpty()) {
+//				throw new IllegalArgumentException("Employee ids are required.");
+//			}
+//
+//			Integer projectId = finalBulkUploadDTO.getProjectId();
+//
+//			LocalDate fromDate = finalBulkUploadDTO.getFromDate();
+//			LocalDate toDate = finalBulkUploadDTO.getToDate();
+//
+//			if(projectId == null || projectId <= 0) {
+//				throw new IllegalArgumentException("Project id is required.");
+//			}
+//
+//			if(fromDate == null || toDate == null) {
+//				throw new IllegalArgumentException("From date and to date are required.");
+//			}
+//
+//			if(file == null || file.isEmpty()) {
+//				throw new IllegalArgumentException("File is required.");
+//			}
+//
+//			if(file.getSize() > maxFileSize.toBytes()) {
+//				throw new IllegalArgumentException("File size is too large. Maximum file size is " + maxFileSize.toMegabytes() + "MB");
+//			}
+//
+//			LocalDate today = LocalDate.now();
+//			int minusDays = (this.minusDays == null || this.minusDays <= 0)
+//					? 45
+//					: this.minusDays;
+//
+//			LocalDate expectedDate = today.minusDays(minusDays);
+//
+//			YearMonth expectedYearMonth = YearMonth.from(expectedDate);
+//			YearMonth currentYearMonth = YearMonth.from(today);
+//			YearMonth fromYearMonth = YearMonth.from(fromDate);
+//
+//			// if (fromYearMonth.equals(currentYearMonth)) {
+//			// 	throw new IllegalArgumentException(
+//			// 			"From date cannot be in the current month"
+//			// 	);
+//			// }
+//
+//			if(fromDate.isAfter(toDate)) {
+//				throw new IllegalArgumentException("Invalid date range. From date cannot be greater than to date.");
+//			}
+//			if(toDate.isBefore(fromDate)){
+//				throw new IllegalArgumentException("Invalid date range. To date cannot be less than from date.");
+//			}
+//
+//			List<String> allowedFileExtensions = List.of("png", "jpg", "jpeg", "pdf","xlsx","xls","ods");
+//			String fileExtension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
+//
+//			if(!allowedFileExtensions.contains(fileExtension.toLowerCase())) {
+//				throw new IllegalArgumentException(
+//						"Invalid file extension. Allowed file extensions are: " + String.join(", ", allowedFileExtensions)
+//				);
+//			}
+//
+//			if (checkMinusDaysForBulkUpload) {
+//
+//				LocalDate expectedToDate = fromYearMonth.atEndOfMonth();
+//				if (toDate.isAfter(expectedToDate)) {
+//					throw new IllegalArgumentException(
+//							"Invalid date range. To date cannot be greater than expected to date."
+//					);
+//				}
+//
+//				LocalDate allowedStartDate;
+//
+//				if (expectedYearMonth.equals(currentYearMonth.minusMonths(1))) {
+//					allowedStartDate = expectedYearMonth.atDay(1);
+//				} else {
+//					allowedStartDate = expectedYearMonth.atDay(15);
+//				}
+//
+//				if (fromDate.isBefore(allowedStartDate)) {
+//					throw new IllegalArgumentException(
+//							String.format(
+//									"Invalid date range. From date cannot be before %s",
+//									allowedStartDate
+//							)
+//					);
+//				}
+//			}
+//
+//			Long createdBy = finalBulkUploadDTO.getCreatedBy();
+//
+//			List<TimesheetIdAndEmpIdDTO> notFilledTimesheetDocumentDetails = new ArrayList<>();
+//
+//			notFilledTimesheetDocumentDetails = timesheetDocumentDetailsRepository.getDocsByEmpIdsAndDate(empIds, fromDate, toDate, projectId);
+//
+//			if(notFilledTimesheetDocumentDetails == null || notFilledTimesheetDocumentDetails.isEmpty()) {
+//				throw new IllegalArgumentException("No Eligible timesheet(s) found for the given employee(s) and date range.");
+//			}
+//
+//			Set<Long> timesheetIds = notFilledTimesheetDocumentDetails.stream().map(TimesheetIdAndEmpIdDTO::getTimesheetId).collect(Collectors.toSet());
+//
+//			List<Timesheet> timesheets = timesheetsRepository.findAllById(timesheetIds);
+//
+//			List<TimesheetDocumentDetails> timesheetDocumentDetailsListToSave = new ArrayList<>();
+//			List<Timesheet> timesheetsToSave = new ArrayList<>();
+//
+//			// Rejected timesheet document details
+//			List<TimesheetDocumentDetails> rejectedTimesheetDocsWithFinalFlag = timesheetDocumentDetailsRepository.getDocsByTimesheetIdsAndFinalFlag(new ArrayList<>(timesheetIds));
+//
+//			byte[] fileBytes = file.getBytes();
+//	        String contentType = file.getContentType();
+//			String fileName = file.getOriginalFilename();
+//
+//			for(Timesheet timesheet : timesheets){
+//				timesheet.setStatus("Pending");
+//				timesheet.setClientApprovalStatus("Approved");
+//				timesheetsToSave.add(timesheet);
+//
+//				TimesheetDocumentDetails timesheetDocumentDetails = new TimesheetDocumentDetails();
+//
+//				for(TimesheetDocumentDetails tdd : rejectedTimesheetDocsWithFinalFlag){
+//					if(tdd.getTimesheetId().equals(timesheet.getTimesheetId()) && tdd.getEmpId().equals(timesheet.getEmpId())){
+//						timesheetDocumentDetails.setDocId(tdd.getDocId());
+//						timesheetDocumentDetails.setUpdatedBy(createdBy);
+//						timesheetDocumentDetails.setUpdatedOn(LocalDateTime.now());
+//						timesheetDocumentDetails.setCreatedOn(tdd.getCreatedOn());
+//						timesheetDocumentDetails.setCreatedBy(tdd.getCreatedBy());
+//						break;
+//					}
+//				}
+//
+//				timesheetDocumentDetails.setActive(true);
+//				timesheetDocumentDetails.setDocName(fileName);
+//				timesheetDocumentDetails.setDocData(fileBytes);
+//				timesheetDocumentDetails.setDocMimeType(contentType);
+//				timesheetDocumentDetails.setClientApprovalStatus("Approved");
+//				timesheetDocumentDetails.setRmApprovalStatus("Pending");
+//				timesheetDocumentDetails.setHrApprovalStatus("Pending");
+//
+//				if(timesheetDocumentDetails.getDocId() == null){
+//					timesheetDocumentDetails.setCreatedBy(createdBy);
+//					timesheetDocumentDetails.setCreatedOn(LocalDateTime.now());
+//				}
+//
+//				timesheetDocumentDetails.setTimesheetId(timesheet.getTimesheetId());
+//				timesheetDocumentDetails.setEmpId(timesheet.getEmpId());
+//				timesheetDocumentDetails.setFinalFlag(true);
+//				timesheetDocumentDetailsListToSave.add(timesheetDocumentDetails);
+//			}			
+//			
+//			timesheetsRepository.saveAll(timesheets);
+//			timesheetDocumentDetailsRepository.saveAll(timesheetDocumentDetailsListToSave);
+//			
+//			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			response.setServiceResponse("Documents uploaded successfully.");
+//			response.setServiceError(null);
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//			apiLogInfo.setApiResponse("Documents uploaded successfully.");
+//			apiLogInfo.setLogLevel("INFO");
+//
+//		} catch (IllegalArgumentException | IllegalStateException e) {
+//	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	        response.setServiceResponse(e.getMessage());
+//	        response.setServiceError(e.getMessage());
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setApiResponse(e.getMessage());
+//	        apiLogInfo.setLogLevel("ERROR");
+//	        return response;
+//
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something went wrong.");
+//	        response.setServiceError(e.getMessage());
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setApiResponse(e.getMessage());
+//	        apiLogInfo.setLogLevel("ERROR");
+//	    }
+//
+//		return response;
+//	}
 	
 	public ServiceResponse getAllDisabledDateListForBulkDocSubmit(Integer projectId, Long empId) {
 		return timesheetDocumentService.getAllDisabledDateListForBulkDocSubmit(projectId, empId);
@@ -5631,126 +5629,126 @@ public class TimesheetService {
 	}
 	
 	// Delegate method - implementation moved to TimesheetDashboardService
-	private ServiceResponse getEmployeeTimesheetAsCalenderInternal(GetEmployeeSummaryOnExportDTO object) {
-		
-		ServiceResponse response = new ServiceResponse();
-		System.out.println(object);
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("getEmployeeTimesheetAsCalender");
-	    apiLogInfo.setLogLevel("INFO");
-	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append("getEmployeeTimesheetAsCalender");
-	    try {
-	    	List<Object[]> empTimesheet;
-	    	Long empId = Long.parseLong(object.getEmpId().toString());
-	    	Integer month = Integer.parseInt(object.getMonth().toString());
-	    	Integer year = Integer.parseInt(object.getYear().toString());
-	    	Integer projectId = Integer.parseInt(object.getProjectId().toString());
-	    	Boolean flag = timesheetsRepository.checkProjectIsClientApplicable(projectId);
-	    	if(flag == null || flag == false) {
-	    		empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderForAllEmp(empId,month,year,projectId);
-	    	}else{
-	    		empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalender(empId,month,year,projectId);
-	    	}
-	    	
-	    	List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
- 
-	    	for (Object[] obj : empTimesheet) {
-	    	    GetEmployeeTimesheetAsCalenderDTO dto = new GetEmployeeTimesheetAsCalenderDTO();
-
-	    	    dto.setEmpId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
-	    	    dto.setClientSideId(obj[1] != null ? obj[1].toString() : null);
-	    	    dto.setStartDate(obj[2] != null ? obj[2].toString() : null);
-	    	    dto.setTeamName(obj[3] != null ? obj[3].toString() : null);
-	    	    dto.setTeamId(obj[4] != null ? Long.parseLong(obj[4].toString()) : null);
-	    	    dto.setEmployeeName(obj[5] != null ? obj[5].toString() : null);
-	    	    dto.setSpoc(obj[6] != null ? obj[6].toString() : null);
-	    	    dto.setBillableType(obj[7] != null ? obj[7].toString() : null);
-	    	    dto.setEmployeeRole(obj[8] != null ? obj[8].toString() : null);
-	    	    dto.setDepartment(obj[9] != null ? obj[9].toString() : null);
-	    	    dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
-	    	    dto.setProjectName(obj[11] != null ? obj[11].toString() : null);
-	    	    dto.setProjectManagerName(obj[12] != null ? obj[12].toString() : null);
-	    	    dto.setPoNo(obj[13] != null ? obj[13].toString() : null);
-	    	    dto.setClientName(obj[14] != null ? obj[14].toString() : null);
-	    	    dto.setReportingManagerId(obj[15] != null ? Long.parseLong(obj[15].toString()) : null);
-	    	    dto.setMonthName(obj[16] != null ? obj[16].toString() : null);
-	    	    dto.setExpectedTimesheetFillCount(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
-	    	    dto.setClientSideNotFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
-	    	    dto.setClientSidePendingCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
-	    	    dto.setClientSideApprovedCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
-	    	    
-	    	    Map<String, TimesheetDataDTO> timesheetData = new HashMap<>();
-	    	    DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
-	    	    DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("hh:mm a");
-
-	    	    for (int i = 0; i < 31; i++) {
-	    	        int baseIndex = 21 + (i * 3);
-	    	        String status = obj.length > baseIndex && obj[baseIndex] != null ? obj[baseIndex].toString() : null;
-	    	        
-	    	        String inTimeRaw = obj.length > (baseIndex + 1) && obj[baseIndex + 1] != null ? obj[baseIndex + 1].toString() : null;
-	    	        String outTimeRaw = obj.length > (baseIndex + 2) && obj[baseIndex + 2] != null ? obj[baseIndex + 2].toString() : null;
-
-	    	        String inTime = null;
-	    	        String outTime = null;
-
-	    	        try {
-	    	        	   if (inTimeRaw != null && !inTimeRaw.isEmpty() && !"NA".equalsIgnoreCase(inTimeRaw)) {
-	    	        	        LocalDateTime inDateTime = LocalDateTime.parse(inTimeRaw, inputFormatter);
-	    	        	        inTime = inDateTime.format(outputFormatter);
-	    	        	    }
-	    	        	    if (outTimeRaw != null && !outTimeRaw.isEmpty() && !"NA".equalsIgnoreCase(outTimeRaw)) {
-	    	        	        LocalDateTime outDateTime = LocalDateTime.parse(outTimeRaw, inputFormatter);
-	    	        	        outTime = outDateTime.format(outputFormatter);
-	    	        	    }
-	    	        } catch (Exception e) {
-	    	            // Handle invalid format if needed
-	    	            e.printStackTrace();
-	    	        }
-
-	    	        TimesheetDataDTO dayData = new TimesheetDataDTO();
-	    	        dayData.setStatus(status);
-	    	        dayData.setInTime(inTime);
-	    	        dayData.setOutTime(outTime);
-
-	    	        timesheetData.put("d" + (i + 1), dayData);
-	    	    }
-
-	    	    dto.setTimesheetData(timesheetData);
-	    	    dto.setEmploymentId(obj[114] != null ? obj[114].toString() : null);
-
-	    	    dtoList.add(dto);
-	    	}
-
-	    	if(dtoList.isEmpty()){
-	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Unable to fetch the timesheet Data for Employee !!!");
-                apiLogInfo.setApiResponse("Failed to set the data in dto \n");
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-                
-            } else {
-            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-                response.setServiceResponse(dtoList);
-                apiLogInfo.setApiResponse("Timesheet Data fetched successfully ");
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-            }
-            
-            apiLogInfo.setApiRequest(logBuilder.toString());
-    		logService.logMyInfo(httpRequest, apiLogInfo);
-    		return response;
-    		
-	    } catch(Exception e) {
-		    	    e.printStackTrace();
-			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			        response.setServiceResponse("Something went wrong.");
-			        response.setServiceError(e.getMessage());
-			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			        apiLogInfo.setApiResponse(e.getMessage()); 
-			        apiLogInfo.setLogLevel("ERROR");
-		    }
-		    
-	    return response;
-	}
+//	private ServiceResponse getEmployeeTimesheetAsCalenderInternal(GetEmployeeSummaryOnExportDTO object) {
+//		
+//		ServiceResponse response = new ServiceResponse();
+//		System.out.println(object);
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setSubFeatureName("getEmployeeTimesheetAsCalender");
+//	    apiLogInfo.setLogLevel("INFO");
+//	    StringBuilder logBuilder = new StringBuilder();
+//	    logBuilder.append("getEmployeeTimesheetAsCalender");
+//	    try {
+//	    	List<Object[]> empTimesheet;
+//	    	Long empId = Long.parseLong(object.getEmpId().toString());
+//	    	Integer month = Integer.parseInt(object.getMonth().toString());
+//	    	Integer year = Integer.parseInt(object.getYear().toString());
+//	    	Integer projectId = Integer.parseInt(object.getProjectId().toString());
+//	    	Boolean flag = timesheetsRepository.checkProjectIsClientApplicable(projectId);
+//	    	if(flag == null || flag == false) {
+//	    		empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderForAllEmp(empId,month,year,projectId);
+//	    	}else{
+//	    		empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalender(empId,month,year,projectId);
+//	    	}
+//	    	
+//	    	List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
+// 
+//	    	for (Object[] obj : empTimesheet) {
+//	    	    GetEmployeeTimesheetAsCalenderDTO dto = new GetEmployeeTimesheetAsCalenderDTO();
+//
+//	    	    dto.setEmpId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+//	    	    dto.setClientSideId(obj[1] != null ? obj[1].toString() : null);
+//	    	    dto.setStartDate(obj[2] != null ? obj[2].toString() : null);
+//	    	    dto.setTeamName(obj[3] != null ? obj[3].toString() : null);
+//	    	    dto.setTeamId(obj[4] != null ? Long.parseLong(obj[4].toString()) : null);
+//	    	    dto.setEmployeeName(obj[5] != null ? obj[5].toString() : null);
+//	    	    dto.setSpoc(obj[6] != null ? obj[6].toString() : null);
+//	    	    dto.setBillableType(obj[7] != null ? obj[7].toString() : null);
+//	    	    dto.setEmployeeRole(obj[8] != null ? obj[8].toString() : null);
+//	    	    dto.setDepartment(obj[9] != null ? obj[9].toString() : null);
+//	    	    dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
+//	    	    dto.setProjectName(obj[11] != null ? obj[11].toString() : null);
+//	    	    dto.setProjectManagerName(obj[12] != null ? obj[12].toString() : null);
+//	    	    dto.setPoNo(obj[13] != null ? obj[13].toString() : null);
+//	    	    dto.setClientName(obj[14] != null ? obj[14].toString() : null);
+//	    	    dto.setReportingManagerId(obj[15] != null ? Long.parseLong(obj[15].toString()) : null);
+//	    	    dto.setMonthName(obj[16] != null ? obj[16].toString() : null);
+//	    	    dto.setExpectedTimesheetFillCount(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
+//	    	    dto.setClientSideNotFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
+//	    	    dto.setClientSidePendingCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
+//	    	    dto.setClientSideApprovedCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
+//	    	    
+//	    	    Map<String, TimesheetDataDTO> timesheetData = new HashMap<>();
+//	    	    DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
+//	    	    DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("hh:mm a");
+//
+//	    	    for (int i = 0; i < 31; i++) {
+//	    	        int baseIndex = 21 + (i * 3);
+//	    	        String status = obj.length > baseIndex && obj[baseIndex] != null ? obj[baseIndex].toString() : null;
+//	    	        
+//	    	        String inTimeRaw = obj.length > (baseIndex + 1) && obj[baseIndex + 1] != null ? obj[baseIndex + 1].toString() : null;
+//	    	        String outTimeRaw = obj.length > (baseIndex + 2) && obj[baseIndex + 2] != null ? obj[baseIndex + 2].toString() : null;
+//
+//	    	        String inTime = null;
+//	    	        String outTime = null;
+//
+//	    	        try {
+//	    	        	   if (inTimeRaw != null && !inTimeRaw.isEmpty() && !"NA".equalsIgnoreCase(inTimeRaw)) {
+//	    	        	        LocalDateTime inDateTime = LocalDateTime.parse(inTimeRaw, inputFormatter);
+//	    	        	        inTime = inDateTime.format(outputFormatter);
+//	    	        	    }
+//	    	        	    if (outTimeRaw != null && !outTimeRaw.isEmpty() && !"NA".equalsIgnoreCase(outTimeRaw)) {
+//	    	        	        LocalDateTime outDateTime = LocalDateTime.parse(outTimeRaw, inputFormatter);
+//	    	        	        outTime = outDateTime.format(outputFormatter);
+//	    	        	    }
+//	    	        } catch (Exception e) {
+//	    	            // Handle invalid format if needed
+//	    	            e.printStackTrace();
+//	    	        }
+//
+//	    	        TimesheetDataDTO dayData = new TimesheetDataDTO();
+//	    	        dayData.setStatus(status);
+//	    	        dayData.setInTime(inTime);
+//	    	        dayData.setOutTime(outTime);
+//
+//	    	        timesheetData.put("d" + (i + 1), dayData);
+//	    	    }
+//
+//	    	    dto.setTimesheetData(timesheetData);
+//	    	    dto.setEmploymentId(obj[114] != null ? obj[114].toString() : null);
+//
+//	    	    dtoList.add(dto);
+//	    	}
+//
+//	    	if(dtoList.isEmpty()){
+//	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//                response.setServiceResponse("Unable to fetch the timesheet Data for Employee !!!");
+//                apiLogInfo.setApiResponse("Failed to set the data in dto \n");
+//                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//                
+//            } else {
+//            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//                response.setServiceResponse(dtoList);
+//                apiLogInfo.setApiResponse("Timesheet Data fetched successfully ");
+//                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//            }
+//            
+//            apiLogInfo.setApiRequest(logBuilder.toString());
+//    		logService.logMyInfo(httpRequest, apiLogInfo);
+//    		return response;
+//    		
+//	    } catch(Exception e) {
+//		    	    e.printStackTrace();
+//			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			        response.setServiceResponse("Something went wrong.");
+//			        response.setServiceError(e.getMessage());
+//			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			        apiLogInfo.setApiResponse(e.getMessage()); 
+//			        apiLogInfo.setLogLevel("ERROR");
+//		    }
+//		    
+//	    return response;
+//	}
 	
 
 	public ServiceResponse getAllEmployeeDSROfRM(TimesheetDTO timesheetDTO) {
@@ -5837,140 +5835,140 @@ public class TimesheetService {
 		 return response;
 	}
 
-	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse approveTimesheetRequest(TimesheetDTO timesheetDTO) {
-		return timesheetApprovalService.approveTimesheetRequest(timesheetDTO);
-	}
-	
+//	@Transactional(rollbackFor = Exception.class)
+//	public ServiceResponse approveTimesheetRequest(TimesheetDTO timesheetDTO) {
+//		return timesheetApprovalService.approveTimesheetRequest(timesheetDTO);
+//	}
+//	
 	// Delegate method - implementation moved to TimesheetApprovalService
-	private ServiceResponse approveTimesheetRequestInternal(TimesheetDTO timesheetDTO) {
-	    ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("approveTimesheetRequest");
-	    apiLogInfo.setApiUrl("/api/approveTimesheetRequest");
-	    apiLogInfo.setLogLevel("INFO");
-
-	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append("Approving timesheets for ")
-	              .append(timesheetDTO.getPendingApprovalList().size())
-	              .append(" employee/team pairs.\n");
-
-	    List<TimesheetDTO> approvedList = new ArrayList<>();
-
-	    try {
-	        for (TimesheetDTO entry : timesheetDTO.getPendingApprovalList()) {
-	            Long empId = entry.getEmpId();
-	            Long teamId = entry.getTeamId();
-
-	            logBuilder.append("Processing empId: ").append(empId)
-	                      .append(", teamId: ").append(teamId).append("\n");
-
-	            List<Object[]> pendingTimesheets = timesheetsRepository.getPendingTimesheetsByEmpAndTeam(empId, teamId);
-
-	            if (pendingTimesheets != null && !pendingTimesheets.isEmpty()) {
-	                for (Object[] object : pendingTimesheets) {
-	                    TimesheetDTO dto = new TimesheetDTO();
-
-	                    Long timesheetId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
-	                    dto.setTimesheetId(timesheetId);
-	                    dto.setDate(object[1] != null ? object[1].toString() : null);
-	                    dto.setDayType(object[2] != null ? object[2].toString() : null);
-	                    dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
-	                    dto.setDescription(object[4] != null ? object[4].toString() : null);
-	                    dto.setStatus(entry.getStatus());
-	                    dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
-	                    dto.setCreatedBy(object[7] != null ? Long.parseLong(object[7].toString()) : null);
-	                    if (object[8] != null) {
-	                        String rawDate = object[8].toString(); // "2025-08-05 12:38:43.0"
-
-	                        // Correct format that allows optional milliseconds
-	                        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.S]");
-	                        LocalDateTime createdOn = LocalDateTime.parse(rawDate, inputFormatter);
-
-	                        // Optional: reformat into your desired output format
-	                        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-	                        String formattedCreatedOn = createdOn.format(outputFormatter);
-
-	                        dto.setCreatedOn(formattedCreatedOn);
-	                    } else {
-	                        dto.setCreatedOn(null);
-	                    }
-
-
-	                    dto.setEmployeementId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-	                    dto.setTotalTime(object[10] != null ? Float.parseFloat(object[10].toString()) : null);
-	                    dto.setEmail(object[11] != null ? object[11].toString() : null);
-	                    dto.setOfficeInTime(object[12] != null ? object[12].toString() : null);
-	                    dto.setOfficeOutTime(object[13] != null ? object[13].toString() : null);
-	                    dto.setTotalWorkingOfficeHours(object[14] != null ? object[14].toString() : null);
-	                    dto.setIsNightShift(object[15] != null ? object[15].toString() : null);
-	                    dto.setIsConsultant(object[17] != null ? object[17].toString() : null);
-	                    dto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);
-	                    dto.setEmpId(object[19] != null ? Long.parseLong(object[19].toString()) : null);
-	                    dto.setClientInTime(object[20] != null ? ((Timestamp) object[20]).toLocalDateTime() : null);
-	                    dto.setClientOutTime(object[21] != null ? ((Timestamp) object[21]).toLocalDateTime() : null);
-	                    dto.setClientSideId(object[22] != null ? object[22].toString() : null);
-	                    dto.setTotalClientWorkingHours(object[23] != null ? object[23].toString() : null);
-	                    dto.setProjectId(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
-	                    dto.setClientApprovalStatus(object[25] != null ? object[25].toString() : null);
-	                    dto.setHasClientSideId(object[26] != null ? (Boolean) object[26] : null);
-	                    dto.setEmploymentId(dto.getEmpId() != null ? employeeRepository.fetchEmploymentIdByEmpId(dto.getEmpId()) : null);
-	                    dto.setIsShadowTimesheet(object[27] != null ? (Boolean) object[27] : null);
-	                    dto.setShadowEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
-	                    if(timesheetId != null) {
-							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
-							 for (TimesheetDocumentDetailsDTO doc : details) {
-							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
-							         dto.setApprovedDocument(doc.getDocId());
-							     }
-							     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
-							    	 dto.setFilledDocument(doc.getDocId());  	 
-							     }
-							 }
-	 
-						}
-						
-	                    if(timesheetDTO.getRejectionId()!= null) {
-	                    	dto.setRejectionId(entry.getRejectionId());
-	                    }
-
-	                    // Set status updated by
-	                    dto.setTimesheetStatusUpdatedBy(entry.getTimesheetStatusUpdatedBy());
-
-	                    // Call sub-method to approve this timesheet
-	                    try {
-	                        updateTimesheetRequestById(dto);
-	                        approvedList.add(dto);
-	                    } catch (Exception e) {
-	                        logBuilder.append("Failed to approve timesheetId ").append(timesheetId)
-	                                  .append(": ").append(e.getMessage()).append("\n");
-	                        e.printStackTrace();
-	                    }
-	                }
-	            } else {
-	                logBuilder.append("No pending timesheets found for empId: ").append(empId)
-	                          .append(", teamId: ").append(teamId).append("\n");
-	            }
-	        }
-
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse("Approved timesheets: " + approvedList.size());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	        apiLogInfo.setApiResponse("Approved timesheet count: " + approvedList.size());
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Error while approving timesheets.");
-	        response.setServiceError(e.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setLogLevel("ERROR");
-	    }
-
-	    apiLogInfo.setApiRequest(logBuilder.toString());
-	    logService.logMyInfo(httpRequest, apiLogInfo);
-	    return response;
-	}
+//	private ServiceResponse approveTimesheetRequestInternal(TimesheetDTO timesheetDTO) {
+//	    ServiceResponse response = new ServiceResponse();
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setSubFeatureName("approveTimesheetRequest");
+//	    apiLogInfo.setApiUrl("/api/approveTimesheetRequest");
+//	    apiLogInfo.setLogLevel("INFO");
+//
+//	    StringBuilder logBuilder = new StringBuilder();
+//	    logBuilder.append("Approving timesheets for ")
+//	              .append(timesheetDTO.getPendingApprovalList().size())
+//	              .append(" employee/team pairs.\n");
+//
+//	    List<TimesheetDTO> approvedList = new ArrayList<>();
+//
+//	    try {
+//	        for (TimesheetDTO entry : timesheetDTO.getPendingApprovalList()) {
+//	            Long empId = entry.getEmpId();
+//	            Long teamId = entry.getTeamId();
+//
+//	            logBuilder.append("Processing empId: ").append(empId)
+//	                      .append(", teamId: ").append(teamId).append("\n");
+//
+//	            List<Object[]> pendingTimesheets = timesheetsRepository.getPendingTimesheetsByEmpAndTeam(empId, teamId);
+//
+//	            if (pendingTimesheets != null && !pendingTimesheets.isEmpty()) {
+//	                for (Object[] object : pendingTimesheets) {
+//	                    TimesheetDTO dto = new TimesheetDTO();
+//
+//	                    Long timesheetId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+//	                    dto.setTimesheetId(timesheetId);
+//	                    dto.setDate(object[1] != null ? object[1].toString() : null);
+//	                    dto.setDayType(object[2] != null ? object[2].toString() : null);
+//	                    dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
+//	                    dto.setDescription(object[4] != null ? object[4].toString() : null);
+//	                    dto.setStatus(entry.getStatus());
+//	                    dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
+//	                    dto.setCreatedBy(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+//	                    if (object[8] != null) {
+//	                        String rawDate = object[8].toString(); // "2025-08-05 12:38:43.0"
+//
+//	                        // Correct format that allows optional milliseconds
+//	                        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.S]");
+//	                        LocalDateTime createdOn = LocalDateTime.parse(rawDate, inputFormatter);
+//
+//	                        // Optional: reformat into your desired output format
+//	                        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+//	                        String formattedCreatedOn = createdOn.format(outputFormatter);
+//
+//	                        dto.setCreatedOn(formattedCreatedOn);
+//	                    } else {
+//	                        dto.setCreatedOn(null);
+//	                    }
+//
+//
+//	                    dto.setEmployeementId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+//	                    dto.setTotalTime(object[10] != null ? Float.parseFloat(object[10].toString()) : null);
+//	                    dto.setEmail(object[11] != null ? object[11].toString() : null);
+//	                    dto.setOfficeInTime(object[12] != null ? object[12].toString() : null);
+//	                    dto.setOfficeOutTime(object[13] != null ? object[13].toString() : null);
+//	                    dto.setTotalWorkingOfficeHours(object[14] != null ? object[14].toString() : null);
+//	                    dto.setIsNightShift(object[15] != null ? object[15].toString() : null);
+//	                    dto.setIsConsultant(object[17] != null ? object[17].toString() : null);
+//	                    dto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);
+//	                    dto.setEmpId(object[19] != null ? Long.parseLong(object[19].toString()) : null);
+//	                    dto.setClientInTime(object[20] != null ? ((Timestamp) object[20]).toLocalDateTime() : null);
+//	                    dto.setClientOutTime(object[21] != null ? ((Timestamp) object[21]).toLocalDateTime() : null);
+//	                    dto.setClientSideId(object[22] != null ? object[22].toString() : null);
+//	                    dto.setTotalClientWorkingHours(object[23] != null ? object[23].toString() : null);
+//	                    dto.setProjectId(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
+//	                    dto.setClientApprovalStatus(object[25] != null ? object[25].toString() : null);
+//	                    dto.setHasClientSideId(object[26] != null ? (Boolean) object[26] : null);
+//	                    dto.setEmploymentId(dto.getEmpId() != null ? employeeRepository.fetchEmploymentIdByEmpId(dto.getEmpId()) : null);
+//	                    dto.setIsShadowTimesheet(object[27] != null ? (Boolean) object[27] : null);
+//	                    dto.setShadowEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
+//	                    if(timesheetId != null) {
+//							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+//							 for (TimesheetDocumentDetailsDTO doc : details) {
+//							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+//							         dto.setApprovedDocument(doc.getDocId());
+//							     }
+//							     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
+//							    	 dto.setFilledDocument(doc.getDocId());  	 
+//							     }
+//							 }
+//	 
+//						}
+//						
+//	                    if(timesheetDTO.getRejectionId()!= null) {
+//	                    	dto.setRejectionId(entry.getRejectionId());
+//	                    }
+//
+//	                    // Set status updated by
+//	                    dto.setTimesheetStatusUpdatedBy(entry.getTimesheetStatusUpdatedBy());
+//
+//	                    // Call sub-method to approve this timesheet
+//	                    try {
+//	                        updateTimesheetRequestById(dto);
+//	                        approvedList.add(dto);
+//	                    } catch (Exception e) {
+//	                        logBuilder.append("Failed to approve timesheetId ").append(timesheetId)
+//	                                  .append(": ").append(e.getMessage()).append("\n");
+//	                        e.printStackTrace();
+//	                    }
+//	                }
+//	            } else {
+//	                logBuilder.append("No pending timesheets found for empId: ").append(empId)
+//	                          .append(", teamId: ").append(teamId).append("\n");
+//	            }
+//	        }
+//
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceResponse("Approved timesheets: " + approvedList.size());
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//	        apiLogInfo.setApiResponse("Approved timesheet count: " + approvedList.size());
+//
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Error while approving timesheets.");
+//	        response.setServiceError(e.getMessage());
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setLogLevel("ERROR");
+//	    }
+//
+//	    apiLogInfo.setApiRequest(logBuilder.toString());
+//	    logService.logMyInfo(httpRequest, apiLogInfo);
+//	    return response;
+//	}
 
 //	public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(GetEmployeeTimesheetAsCalenderByProjectIdDTO object) {
 //		
@@ -6126,80 +6124,80 @@ public class TimesheetService {
 	}
 	
 	// Delegate method - implementation moved to TimesheetDashboardService
-	public ServiceResponse getTimesheetDashboardCountForEmployeeNew(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter, String multiPOs) {
-		
-		ServiceResponse response = new ServiceResponse();
-
-	    try {
-	        /* ================= SUMMARY ================= */
-	        List<Object[]> summaryRows =
-	                isClientDashboard
-	                        ? timesheetsRepository.getTimesheetDashboardCountForEmployee( month, year, empId, clientSideFilter,employeeActive, billableTypes,multiPOs)
-	                        : timesheetsRepository.getTimesheetDashboardCountForAllEmployee( month, year, empId, billableTypes, employeeActive);
-
-	        if (summaryRows.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("No dashboard data found");
-	            return response;
-	        }
-
-	        Object[] row = summaryRows.get(0);
-
-	        TimesheetDashboardCountDTO summary = new TimesheetDashboardCountDTO();
-	        summary.setTotalApplicableCount(getInt(row[0]));
-	        summary.setApprovedCount(getInt(row[1]));
-	        summary.setClientSidePendingCount(getInt(row[2]));
-	        summary.setDefaulterCount(getInt(row[3]));
-	        summary.setTotaldefaulterCount(getInt(row[4]));
-
-	        /* ================= DEPARTMENT LIST ================= */
-	        List<Object[]> deptList = timesheetsRepository.getDepartmentList( month, year, empId, "All", clientSideFilter);
-
-	        Map<String, DepartmentWiseStatusDTO> departmentWise =
-	                initDepartmentBuckets();
-
-	        /* ================= DEPT WISE COUNTS ================= */
-	        for (Object[] deptRow : deptList) {
-
-	            Long deptId = ((Number) deptRow[1]).longValue();
-	            String deptName = (String) deptRow[0];
-	            String deptCode = (String) deptRow[2];
-
-	            List<Object[]> counts = timesheetsRepository.getDepartmentWiseTimesheetDashboard( month, year, empId, deptId, clientSideFilter);
-
-	            Object[] c = counts.get(0);
-
-	            int total = getInt(c[0]);
-	            int approved = getInt(c[1]);
-	            int pending = getInt(c[2]);
-	            int defaulter = getInt(c[3]);
-
-	            addDept(departmentWise.get("All"), deptId, deptCode, deptName, total);
-
-	            if (approved > 0) {
-	                addDept(departmentWise.get("Approved"), deptId, deptCode, deptName, approved);
-	            }
-
-	            if (pending > 0) {
-	                addDept(departmentWise.get("ClientSidePending"), deptId, deptCode, deptName, pending);
-	            }
-
-	            if (defaulter > 0) {
-	                addDept(departmentWise.get("Defaulter"), deptId, deptCode, deptName, defaulter);
-	            }
-	        }
-
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse(new TimesheetDashboardResponseDTO(summary, departmentWise));
-	        return response;
-
-	    } catch (Exception e) {
-	    	 e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceError(e.getMessage());
-	        return response;
-	    }
-	}
+//	public ServiceResponse getTimesheetDashboardCountForEmployeeNew(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter, String multiPOs) {
+//		
+//		ServiceResponse response = new ServiceResponse();
+//
+//	    try {
+//	        /* ================= SUMMARY ================= */
+//	        List<Object[]> summaryRows =
+//	                isClientDashboard
+//	                        ? timesheetsRepository.getTimesheetDashboardCountForEmployee( month, year, empId, clientSideFilter,employeeActive, billableTypes,multiPOs)
+//	                        : timesheetsRepository.getTimesheetDashboardCountForAllEmployee( month, year, empId, billableTypes, employeeActive);
+//
+//	        if (summaryRows.isEmpty()) {
+//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            response.setServiceResponse("No dashboard data found");
+//	            return response;
+//	        }
+//
+//	        Object[] row = summaryRows.get(0);
+//
+//	        TimesheetDashboardCountDTO summary = new TimesheetDashboardCountDTO();
+//	        summary.setTotalApplicableCount(getInt(row[0]));
+//	        summary.setApprovedCount(getInt(row[1]));
+//	        summary.setClientSidePendingCount(getInt(row[2]));
+//	        summary.setDefaulterCount(getInt(row[3]));
+//	        summary.setTotaldefaulterCount(getInt(row[4]));
+//
+//	        /* ================= DEPARTMENT LIST ================= */
+//	        List<Object[]> deptList = timesheetsRepository.getDepartmentList( month, year, empId, "All", clientSideFilter);
+//
+//	        Map<String, DepartmentWiseStatusDTO> departmentWise =
+//	                initDepartmentBuckets();
+//
+//	        /* ================= DEPT WISE COUNTS ================= */
+//	        for (Object[] deptRow : deptList) {
+//
+//	            Long deptId = ((Number) deptRow[1]).longValue();
+//	            String deptName = (String) deptRow[0];
+//	            String deptCode = (String) deptRow[2];
+//
+//	            List<Object[]> counts = timesheetsRepository.getDepartmentWiseTimesheetDashboard( month, year, empId, deptId, clientSideFilter);
+//
+//	            Object[] c = counts.get(0);
+//
+//	            int total = getInt(c[0]);
+//	            int approved = getInt(c[1]);
+//	            int pending = getInt(c[2]);
+//	            int defaulter = getInt(c[3]);
+//
+//	            addDept(departmentWise.get("All"), deptId, deptCode, deptName, total);
+//
+//	            if (approved > 0) {
+//	                addDept(departmentWise.get("Approved"), deptId, deptCode, deptName, approved);
+//	            }
+//
+//	            if (pending > 0) {
+//	                addDept(departmentWise.get("ClientSidePending"), deptId, deptCode, deptName, pending);
+//	            }
+//
+//	            if (defaulter > 0) {
+//	                addDept(departmentWise.get("Defaulter"), deptId, deptCode, deptName, defaulter);
+//	            }
+//	        }
+//
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceResponse(new TimesheetDashboardResponseDTO(summary, departmentWise));
+//	        return response;
+//
+//	    } catch (Exception e) {
+//	    	 e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceError(e.getMessage());
+//	        return response;
+//	    }
+//	}
 
 	private Map<String, DepartmentWiseStatusDTO> initDepartmentBuckets() {
 	    Map<String, DepartmentWiseStatusDTO> map = new LinkedHashMap<>();
@@ -6210,17 +6208,17 @@ public class TimesheetService {
 	    return map;
 	}
 
-	private void addDept(DepartmentWiseStatusDTO bucket, Long deptId, String deptCode, String deptName, int count) 
-	{
-	    bucket.getDepartments().add(
-	        new DepartmentCountDTO(deptId, deptCode, deptName, count)
-	    );
-	    bucket.setTotal(bucket.getTotal() + count);
-	}
-
-	private int getInt(Object o) {
-	    return o == null ? 0 : ((Number) o).intValue();
-	}
+//	private void addDept(DepartmentWiseStatusDTO bucket, Long deptId, String deptCode, String deptName, int count) 
+//	{
+//	    bucket.getDepartments().add(
+//	        new DepartmentCountDTO(deptId, deptCode, deptName, count)
+//	    );
+//	    bucket.setTotal(bucket.getTotal() + count);
+//	}
+//
+//	private int getInt(Object o) {
+//	    return o == null ? 0 : ((Number) o).intValue();
+//	}
 	
 public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year,Long empId,Boolean isClientDashboard ,List<String> billableType,String projectActive) {
 	return timesheetDashboardService.getTimesheetDashboardCountForProject(
@@ -6228,182 +6226,182 @@ public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integ
 }
 
 // Delegate method - implementation moved to TimesheetDashboardService
-private ServiceResponse getTimesheetDashboardCountForProjectInternal(Integer month, Integer year,Long empId,Boolean isClientDashboard ,List<String> billableType,String projectActive) {
-		
-		ServiceResponse response = new ServiceResponse();
-
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("getTimesheetDashboardCountForProject");
-	    apiLogInfo.setLogLevel("INFO");
-	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append("getTimesheetDashboardCountForProject");
-	    try {
-	    	System.err.println("test empId"+empId);
-//	    	List<Object[]> countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year,empId);
-	    	
-	    	List<Object[]> countForProject;
-	    	if(isClientDashboard) {
-	    	countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year,empId);
-	    	}else {
-		    countForProject = timesheetsRepository.getAllEmpTimesheetDashboardCountForProject(month,year,empId,billableType,projectActive);
-	    	}
-
-	    	if(countForProject.isEmpty()){
-	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Unable to fetch the dashboard count for project!");
-                apiLogInfo.setApiResponse("Failed to fetch the dashboard count for project \n");
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-                
-            } else {
-            	Object[] row = countForProject.get(0);
-                TimesheetDashboardCountDTO dto = new TimesheetDashboardCountDTO();
-                dto.setTotalApplicableCount(row[0] != null ? ((Number) row[0]).intValue() : 0);
-                dto.setApprovedCount(row[1] != null ? ((Number) row[1]).intValue() : 0);
-                dto.setDefaulterCount(row[3] != null ? ((Number) row[3]).intValue() : 0);
-                dto.setClientSidePendingCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
-                    		
-            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-                response.setServiceResponse(dto);
-                apiLogInfo.setApiResponse("Dashboard count fetched successfully ");
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-            }
-            
-            apiLogInfo.setApiRequest(logBuilder.toString());
-    		logService.logMyInfo(httpRequest, apiLogInfo);
-    		return response;
-    		
-	    } catch(Exception e) {
-		    	    e.printStackTrace();
-			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			        response.setServiceResponse("Something went wrong.");
-			        response.setServiceError(e.getMessage());
-			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			        apiLogInfo.setApiResponse(e.getMessage()); 
-			        apiLogInfo.setLogLevel("ERROR");
-		    }
-		    
-	    return response;
-	}
-
-
+//private ServiceResponse getTimesheetDashboardCountForProjectInternal(Integer month, Integer year,Long empId,Boolean isClientDashboard ,List<String> billableType,String projectActive) {
+//		
+//		ServiceResponse response = new ServiceResponse();
+//
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setSubFeatureName("getTimesheetDashboardCountForProject");
+//	    apiLogInfo.setLogLevel("INFO");
+//	    StringBuilder logBuilder = new StringBuilder();
+//	    logBuilder.append("getTimesheetDashboardCountForProject");
+//	    try {
+//	    	System.err.println("test empId"+empId);
+////	    	List<Object[]> countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year,empId);
+//	    	
+//	    	List<Object[]> countForProject;
+//	    	if(isClientDashboard) {
+//	    	countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year,empId);
+//	    	}else {
+//		    countForProject = timesheetsRepository.getAllEmpTimesheetDashboardCountForProject(month,year,empId,billableType,projectActive);
+//	    	}
+//
+//	    	if(countForProject.isEmpty()){
+//	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//                response.setServiceResponse("Unable to fetch the dashboard count for project!");
+//                apiLogInfo.setApiResponse("Failed to fetch the dashboard count for project \n");
+//                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//                
+//            } else {
+//            	Object[] row = countForProject.get(0);
+//                TimesheetDashboardCountDTO dto = new TimesheetDashboardCountDTO();
+//                dto.setTotalApplicableCount(row[0] != null ? ((Number) row[0]).intValue() : 0);
+//                dto.setApprovedCount(row[1] != null ? ((Number) row[1]).intValue() : 0);
+//                dto.setDefaulterCount(row[3] != null ? ((Number) row[3]).intValue() : 0);
+//                dto.setClientSidePendingCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
+//                    		
+//            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//                response.setServiceResponse(dto);
+//                apiLogInfo.setApiResponse("Dashboard count fetched successfully ");
+//                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//            }
+//            
+//            apiLogInfo.setApiRequest(logBuilder.toString());
+//    		logService.logMyInfo(httpRequest, apiLogInfo);
+//    		return response;
+//    		
+//	    } catch(Exception e) {
+//		    	    e.printStackTrace();
+//			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			        response.setServiceResponse("Something went wrong.");
+//			        response.setServiceError(e.getMessage());
+//			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			        apiLogInfo.setApiResponse(e.getMessage()); 
+//			        apiLogInfo.setLogLevel("ERROR");
+//		    }
+//		    
+//	    return response;
+//	}
 
 
-public ServiceResponse getLastFilledTimesheetByEmp(Long empId) {
-	return timesheetDashboardService.getLastFilledTimesheetByEmp(empId);
-}
+
+
+//public ServiceResponse getLastFilledTimesheetByEmp(Long empId) {
+//	return timesheetDashboardService.getLastFilledTimesheetByEmp(empId);
+//}
 
 // Delegate method - implementation moved to TimesheetDashboardService
-private ServiceResponse getLastFilledTimesheetByEmpInternal(Long empId) {
-	   ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getLastFilledTimesheetByEmp");
-	    apiLogInfo.setLogLevel("INFO");
-	    
-	    
-	    try {
-	    	 List<Object[]> activeCheckList = timesheetsRepository.checkEmployeeActiveOrNot(empId);
-
-		        // Case 1: No records found in the timesheet - employee never filled any timesheet
-		        if (activeCheckList.isEmpty()) {
-		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		            response.setServiceResponse(Collections.emptyList());
-		            response.setServiceMessage("Employee has never filled any timesheet.");
-		            response.setServiceResponse1("No Timesheet");
-
-		            apiLogInfo.setApiResponse("No timesheet record found for employee.");
-		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-		            logService.logMyInfo(httpRequest, apiLogInfo);
-		            return response;
-		        }
-		        
-		        // Determine active status from the activeCheckList result
-		        boolean isActive = Integer.parseInt(String.valueOf(activeCheckList.get(0)[1])) == 1;
-		        response.setServiceResponse1(isActive ? "Active" : "Not Active");
-
-		        if (!isActive) {
-		            // Case 2: Employee was in a project but is not currently active
-		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		            response.setServiceResponse(Collections.emptyList());
-		            response.setServiceMessage("Employee is not active on previous project.");
-
-		            apiLogInfo.setApiResponse("Employee is Not Active");
-		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-		            logService.logMyInfo(httpRequest, apiLogInfo);
-		            return response;
-		        }
-		        
-		        
-		        List<Object[]> resultList = timesheetsRepository.getLastTimesheetFiledByEmpId(empId);
-		        
-		        if(!resultList.isEmpty()) {
-		        	List<LastTimesheetFieldDto> dtoList = Optional.ofNullable(resultList)
-		        		    .orElse(Collections.emptyList())
-		        		    .stream()
-		        		    .map(row -> {
-		        		        LastTimesheetFieldDto dto = new LastTimesheetFieldDto();
-
-		        		        dto.setEmployementId(row.length > 0 && row[0] != null ? row[0].toString() : null);
-		        		        dto.setOfficeInTime(row.length > 1 && row[1] != null ? ((java.sql.Timestamp) row[1]).toLocalDateTime() : null);
-		        		        dto.setOfficeOutTime(row.length > 2 && row[2] != null ? ((java.sql.Timestamp) row[2]).toLocalDateTime() : null);
-		        		        dto.setProjectId(row.length > 3 && row[3] != null ? Long.parseLong(row[3].toString()) : null);
-		        		        dto.setClientId(row.length > 4 && row[4] != null ? Long.parseLong(row[4].toString()) : null);
-		        		        dto.setClientLocationID(row.length > 5 && row[5] != null ? Long.parseLong(row[5].toString()) : null);
-		        		        dto.setTeamName(row.length > 6 && row[6] != null ? row[6].toString() : null);
-		        		        dto.setActivity(row.length > 7 && row[7] != null ? row[7].toString() : null);
-		        		        dto.setActivityID(row.length > 8 && row[8] != null ? Long.parseLong(row[8].toString()) : null);
-		        		        dto.setDescription(row.length > 9 && row[9] != null ? row[9].toString() : null);
-		        		        dto.setTeamId(row.length > 10 && row[10] != null ? Long.parseLong(row[10].toString()) : null);
-		        		        dto.setClientApprovalStatus(
-		        		        	    (row.length > 11) 
-		        		        	        ? (row[11] != null ? row[11].toString() : null) 
-		        		        	        : null
-		        		        	);
-
-
-		        		        dto.setCompletionTime(row.length > 12 && row[12] != null ? Float.parseFloat(row[12].toString()) : null);
-		        		        dto.setTimesheetLockUpdatedOn(
-		        		        	    row.length > 13 && row[13] != null 
-		        		        	        ? ((java.sql.Date) row[13]).toLocalDate() 
-		        		        	        : null
-		        		        	);
-		        		        dto.setIstimesheetLockCheckEnable(row.length > 14 && row[14] != null ? row[14].toString() : null);
-
-		        		        return dto;
-		        		    })
-		        		    .collect(Collectors.toList());
-
-		        	
-		       		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            response.setServiceResponse(dtoList);
-	            response.setServiceMessage("Last timesheet found for employee.");
-
-	            apiLogInfo.setApiResponse("Last timesheet found for active employee");
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-		        }else {
-		            // Case 4: Active employee but no timesheet found
-		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		            response.setServiceResponse(Collections.emptyList());
-		            response.setServiceMessage("No timesheet found for employee.");
-
-		            apiLogInfo.setApiResponse("No timesheet found");
-		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-		        }
-
-	    }catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong.");
-	        response.setServiceError(e.getMessage());
-
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setLogLevel("ERROR");
-	    }
-
-	    logService.logMyInfo(httpRequest, apiLogInfo);
-	    return response;
-	
-}
+//private ServiceResponse getLastFilledTimesheetByEmpInternal(Long empId) {
+//	   ServiceResponse response = new ServiceResponse();
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setApiUrl("/api/getLastFilledTimesheetByEmp");
+//	    apiLogInfo.setLogLevel("INFO");
+//	    
+//	    
+//	    try {
+//	    	 List<Object[]> activeCheckList = timesheetsRepository.checkEmployeeActiveOrNot(empId);
+//
+//		        // Case 1: No records found in the timesheet - employee never filled any timesheet
+//		        if (activeCheckList.isEmpty()) {
+//		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//		            response.setServiceResponse(Collections.emptyList());
+//		            response.setServiceMessage("Employee has never filled any timesheet.");
+//		            response.setServiceResponse1("No Timesheet");
+//
+//		            apiLogInfo.setApiResponse("No timesheet record found for employee.");
+//		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//		            logService.logMyInfo(httpRequest, apiLogInfo);
+//		            return response;
+//		        }
+//		        
+//		        // Determine active status from the activeCheckList result
+//		        boolean isActive = Integer.parseInt(String.valueOf(activeCheckList.get(0)[1])) == 1;
+//		        response.setServiceResponse1(isActive ? "Active" : "Not Active");
+//
+//		        if (!isActive) {
+//		            // Case 2: Employee was in a project but is not currently active
+//		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//		            response.setServiceResponse(Collections.emptyList());
+//		            response.setServiceMessage("Employee is not active on previous project.");
+//
+//		            apiLogInfo.setApiResponse("Employee is Not Active");
+//		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//		            logService.logMyInfo(httpRequest, apiLogInfo);
+//		            return response;
+//		        }
+//		        
+//		        
+//		        List<Object[]> resultList = timesheetsRepository.getLastTimesheetFiledByEmpId(empId);
+//		        
+//		        if(!resultList.isEmpty()) {
+//		        	List<LastTimesheetFieldDto> dtoList = Optional.ofNullable(resultList)
+//		        		    .orElse(Collections.emptyList())
+//		        		    .stream()
+//		        		    .map(row -> {
+//		        		        LastTimesheetFieldDto dto = new LastTimesheetFieldDto();
+//
+//		        		        dto.setEmployementId(row.length > 0 && row[0] != null ? row[0].toString() : null);
+//		        		        dto.setOfficeInTime(row.length > 1 && row[1] != null ? ((java.sql.Timestamp) row[1]).toLocalDateTime() : null);
+//		        		        dto.setOfficeOutTime(row.length > 2 && row[2] != null ? ((java.sql.Timestamp) row[2]).toLocalDateTime() : null);
+//		        		        dto.setProjectId(row.length > 3 && row[3] != null ? Long.parseLong(row[3].toString()) : null);
+//		        		        dto.setClientId(row.length > 4 && row[4] != null ? Long.parseLong(row[4].toString()) : null);
+//		        		        dto.setClientLocationID(row.length > 5 && row[5] != null ? Long.parseLong(row[5].toString()) : null);
+//		        		        dto.setTeamName(row.length > 6 && row[6] != null ? row[6].toString() : null);
+//		        		        dto.setActivity(row.length > 7 && row[7] != null ? row[7].toString() : null);
+//		        		        dto.setActivityID(row.length > 8 && row[8] != null ? Long.parseLong(row[8].toString()) : null);
+//		        		        dto.setDescription(row.length > 9 && row[9] != null ? row[9].toString() : null);
+//		        		        dto.setTeamId(row.length > 10 && row[10] != null ? Long.parseLong(row[10].toString()) : null);
+//		        		        dto.setClientApprovalStatus(
+//		        		        	    (row.length > 11) 
+//		        		        	        ? (row[11] != null ? row[11].toString() : null) 
+//		        		        	        : null
+//		        		        	);
+//
+//
+//		        		        dto.setCompletionTime(row.length > 12 && row[12] != null ? Float.parseFloat(row[12].toString()) : null);
+//		        		        dto.setTimesheetLockUpdatedOn(
+//		        		        	    row.length > 13 && row[13] != null 
+//		        		        	        ? ((java.sql.Date) row[13]).toLocalDate() 
+//		        		        	        : null
+//		        		        	);
+//		        		        dto.setIstimesheetLockCheckEnable(row.length > 14 && row[14] != null ? row[14].toString() : null);
+//
+//		        		        return dto;
+//		        		    })
+//		        		    .collect(Collectors.toList());
+//
+//		        	
+//		       		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	            response.setServiceResponse(dtoList);
+//	            response.setServiceMessage("Last timesheet found for employee.");
+//
+//	            apiLogInfo.setApiResponse("Last timesheet found for active employee");
+//	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//
+//		        }else {
+//		            // Case 4: Active employee but no timesheet found
+//		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//		            response.setServiceResponse(Collections.emptyList());
+//		            response.setServiceMessage("No timesheet found for employee.");
+//
+//		            apiLogInfo.setApiResponse("No timesheet found");
+//		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//		        }
+//
+//	    }catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something went wrong.");
+//	        response.setServiceError(e.getMessage());
+//
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setLogLevel("ERROR");
+//	    }
+//
+//	    logService.logMyInfo(httpRequest, apiLogInfo);
+//	    return response;
+//	
+//}
 
 public ServiceResponse getEmployeeByNameAndEmpidForTimesheet(TimesheetDTO timesheetDTO) {
 	return timesheetDashboardService.getEmployeeByNameAndEmpidForTimesheet(timesheetDTO);
@@ -6551,130 +6549,130 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	}
 	
 	// Delegate method - implementation moved to TimesheetDashboardService
-	private ServiceResponse getEmployeeSummaryOnExportInternal(GetEmployeeSummaryOnExportDTO object) {
-	
-	   ServiceResponse response = new ServiceResponse();
-
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("getEmployeeSummaryOnExport");
-	    apiLogInfo.setLogLevel("INFO");
-	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append("getEmployeeTimesheetAsCalenderByProjectId");
-	    try {
-	    	List<Object[]> empTimesheet;
-	    	if(object.getAllEmp()) {
-	    		empTimesheet= timesheetsRepository.getEmployeeSummaryReportAll(object.getMonth(),
-	    				object.getYear(),object.getEmpId(),object.getBillableType());
-	    	} else {
-	    		empTimesheet= timesheetsRepository.getEmployeeSummaryReportClientSideApplicable(object.getMonth(),
-	    				object.getYear(),object.getEmpId());
-	    	}
-	    			List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
-
-	    	for (Object[] obj : empTimesheet) {
-	    	    GetEmployeeTimesheetAsCalenderDTO dto = new GetEmployeeTimesheetAsCalenderDTO();
-
-	    	    dto.setEmpId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
-	    	    dto.setClientSideId(obj[1] != null ? obj[1].toString() : null);
-	    	    dto.setStartDate(obj[2] != null ? obj[2].toString() : null);
-	    	    dto.setTeamName(obj[3] != null ? obj[3].toString() : null);
-	    	    dto.setTeamId(obj[4] != null ? Long.parseLong(obj[4].toString()) : null);
-	    	    dto.setEmployeeName(obj[5] != null ? obj[5].toString() : null);
-	    	    dto.setSpoc(obj[6] != null ? obj[6].toString() : null);
-	    	    dto.setBillableType(obj[7] != null ? obj[7].toString() : null);
-	    	    dto.setEmployeeRole(obj[8] != null ? obj[8].toString() : null);
-	    	    dto.setDepartment(obj[9] != null ? obj[9].toString() : null);
-	    	    dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
-	    	    dto.setProjectName(obj[11] != null ? obj[11].toString() : null);
-	    	    dto.setProjectManagerName(obj[12] != null ? obj[12].toString() : null);
-	    	    dto.setPoNo(obj[13] != null ? obj[13].toString() : null);
-	    	    dto.setClientName(obj[14] != null ? obj[14].toString() : null);
-	    	    dto.setReportingManagerId(obj[15] != null ? Long.parseLong(obj[15].toString()) : null);
-	    	    dto.setMonthName(obj[16] != null ? obj[16].toString() : null);
-	    	    dto.setExpectedTimesheetFillCount(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
-	    	    dto.setApmosysTimesheetFilledCount(obj[123] != null ? Integer.parseInt(obj[123].toString()) : null);
-	    	    dto.setClientSideNotFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
-	    	    dto.setClientSidePendingCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
-	    	    dto.setClientSideApprovedCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
-	    	    
-	    	    Map<String, TimesheetDataDTO> timesheetData = new HashMap<>();
-	    	    DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
-	    	    DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("hh:mm a");
-
-	    	    for (int i = 0; i < 31; i++) {
-	    	        int baseIndex = 21 + (i * 3);
-	    	        String status = obj.length > baseIndex && obj[baseIndex] != null ? obj[baseIndex].toString() : null;
-	    	        
-	    	        String inTimeRaw = obj.length > (baseIndex + 1) && obj[baseIndex + 1] != null ? obj[baseIndex + 1].toString() : null;
-	    	        String outTimeRaw = obj.length > (baseIndex + 2) && obj[baseIndex + 2] != null ? obj[baseIndex + 2].toString() : null;
-
-	    	        String inTime = null;
-	    	        String outTime = null;
-
-	    	        try {
-	    	            if (inTimeRaw != null && !inTimeRaw.isEmpty()) {
-	    	                LocalDateTime inDateTime = LocalDateTime.parse(inTimeRaw, inputFormatter);
-	    	                inTime = inDateTime.format(outputFormatter);
-	    	            }
-	    	            if (outTimeRaw != null && !outTimeRaw.isEmpty()) {
-	    	                LocalDateTime outDateTime = LocalDateTime.parse(outTimeRaw, inputFormatter);
-	    	                outTime = outDateTime.format(outputFormatter);
-	    	            }
-	    	        } catch (Exception e) {
-	    	            e.printStackTrace();
-	    	        }
-
-	    	        TimesheetDataDTO dayData = new TimesheetDataDTO();
-	    	        dayData.setStatus(status);
-	    	        dayData.setInTime(inTime);
-	    	        dayData.setOutTime(outTime);
-
-	    	        timesheetData.put("d" + (i + 1), dayData);
-	    	    }
-
-	    	    dto.setTimesheetData(timesheetData);
-	    	    dto.setEmploymentId(obj[114] != null ? obj[114].toString() : null);
-	    	    dto.setPresent(obj[115] != null ? obj[115].toString() : null);
-	    	    dto.setWeekOff(obj[116] != null ? obj[116].toString() : null);
-	    	    dto.setHoliday(obj[117] != null ? obj[117].toString() : null);
-	    	    dto.setLeave(obj[118] != null ? obj[118].toString() : null);
-	    	    dto.setCompOff(obj[119] != null ? obj[119].toString() : null);
-	    	    dto.setNa(obj[120] != null ? obj[120].toString() : null);
-	    	    dto.setHalfDay(obj[121] != null ? obj[121].toString() : null);
-	    	    dto.setTotalNoOfDays(obj[122] != null ? obj[122].toString() : null);
-
-	    	    dtoList.add(dto);
-	    	}
-
-	    	if(dtoList.isEmpty()){
-	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-             response.setServiceResponse("Unable to fetch the timesheet Data !!!");
-             apiLogInfo.setApiResponse("Failed to set the data in dto \n");
-             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-             
-         } else {
-         	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-             response.setServiceResponse(dtoList);
-             apiLogInfo.setApiResponse("Timesheet Data fetched successfully ");
-             apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-         }
-         
-         apiLogInfo.setApiRequest(logBuilder.toString());
- 		logService.logMyInfo(httpRequest, apiLogInfo);
- 		return response;
- 		
-	    } catch(Exception e) {
-		    	    e.printStackTrace();
-			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			        response.setServiceResponse("Something went wrong.");
-			        response.setServiceError(e.getMessage());
-			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			        apiLogInfo.setApiResponse(e.getMessage()); 
-			        apiLogInfo.setLogLevel("ERROR");
-		    }
-		    
-	    return response;
-	}
+//	private ServiceResponse getEmployeeSummaryOnExportInternal(GetEmployeeSummaryOnExportDTO object) {
+//	
+//	   ServiceResponse response = new ServiceResponse();
+//
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setSubFeatureName("getEmployeeSummaryOnExport");
+//	    apiLogInfo.setLogLevel("INFO");
+//	    StringBuilder logBuilder = new StringBuilder();
+//	    logBuilder.append("getEmployeeTimesheetAsCalenderByProjectId");
+//	    try {
+//	    	List<Object[]> empTimesheet;
+//	    	if(object.getAllEmp()) {
+//	    		empTimesheet= timesheetsRepository.getEmployeeSummaryReportAll(object.getMonth(),
+//	    				object.getYear(),object.getEmpId(),object.getBillableType());
+//	    	} else {
+//	    		empTimesheet= timesheetsRepository.getEmployeeSummaryReportClientSideApplicable(object.getMonth(),
+//	    				object.getYear(),object.getEmpId());
+//	    	}
+//	    			List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
+//
+//	    	for (Object[] obj : empTimesheet) {
+//	    	    GetEmployeeTimesheetAsCalenderDTO dto = new GetEmployeeTimesheetAsCalenderDTO();
+//
+//	    	    dto.setEmpId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+//	    	    dto.setClientSideId(obj[1] != null ? obj[1].toString() : null);
+//	    	    dto.setStartDate(obj[2] != null ? obj[2].toString() : null);
+//	    	    dto.setTeamName(obj[3] != null ? obj[3].toString() : null);
+//	    	    dto.setTeamId(obj[4] != null ? Long.parseLong(obj[4].toString()) : null);
+//	    	    dto.setEmployeeName(obj[5] != null ? obj[5].toString() : null);
+//	    	    dto.setSpoc(obj[6] != null ? obj[6].toString() : null);
+//	    	    dto.setBillableType(obj[7] != null ? obj[7].toString() : null);
+//	    	    dto.setEmployeeRole(obj[8] != null ? obj[8].toString() : null);
+//	    	    dto.setDepartment(obj[9] != null ? obj[9].toString() : null);
+//	    	    dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
+//	    	    dto.setProjectName(obj[11] != null ? obj[11].toString() : null);
+//	    	    dto.setProjectManagerName(obj[12] != null ? obj[12].toString() : null);
+//	    	    dto.setPoNo(obj[13] != null ? obj[13].toString() : null);
+//	    	    dto.setClientName(obj[14] != null ? obj[14].toString() : null);
+//	    	    dto.setReportingManagerId(obj[15] != null ? Long.parseLong(obj[15].toString()) : null);
+//	    	    dto.setMonthName(obj[16] != null ? obj[16].toString() : null);
+//	    	    dto.setExpectedTimesheetFillCount(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
+//	    	    dto.setApmosysTimesheetFilledCount(obj[123] != null ? Integer.parseInt(obj[123].toString()) : null);
+//	    	    dto.setClientSideNotFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
+//	    	    dto.setClientSidePendingCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
+//	    	    dto.setClientSideApprovedCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
+//	    	    
+//	    	    Map<String, TimesheetDataDTO> timesheetData = new HashMap<>();
+//	    	    DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
+//	    	    DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("hh:mm a");
+//
+//	    	    for (int i = 0; i < 31; i++) {
+//	    	        int baseIndex = 21 + (i * 3);
+//	    	        String status = obj.length > baseIndex && obj[baseIndex] != null ? obj[baseIndex].toString() : null;
+//	    	        
+//	    	        String inTimeRaw = obj.length > (baseIndex + 1) && obj[baseIndex + 1] != null ? obj[baseIndex + 1].toString() : null;
+//	    	        String outTimeRaw = obj.length > (baseIndex + 2) && obj[baseIndex + 2] != null ? obj[baseIndex + 2].toString() : null;
+//
+//	    	        String inTime = null;
+//	    	        String outTime = null;
+//
+//	    	        try {
+//	    	            if (inTimeRaw != null && !inTimeRaw.isEmpty()) {
+//	    	                LocalDateTime inDateTime = LocalDateTime.parse(inTimeRaw, inputFormatter);
+//	    	                inTime = inDateTime.format(outputFormatter);
+//	    	            }
+//	    	            if (outTimeRaw != null && !outTimeRaw.isEmpty()) {
+//	    	                LocalDateTime outDateTime = LocalDateTime.parse(outTimeRaw, inputFormatter);
+//	    	                outTime = outDateTime.format(outputFormatter);
+//	    	            }
+//	    	        } catch (Exception e) {
+//	    	            e.printStackTrace();
+//	    	        }
+//
+//	    	        TimesheetDataDTO dayData = new TimesheetDataDTO();
+//	    	        dayData.setStatus(status);
+//	    	        dayData.setInTime(inTime);
+//	    	        dayData.setOutTime(outTime);
+//
+//	    	        timesheetData.put("d" + (i + 1), dayData);
+//	    	    }
+//
+//	    	    dto.setTimesheetData(timesheetData);
+//	    	    dto.setEmploymentId(obj[114] != null ? obj[114].toString() : null);
+//	    	    dto.setPresent(obj[115] != null ? obj[115].toString() : null);
+//	    	    dto.setWeekOff(obj[116] != null ? obj[116].toString() : null);
+//	    	    dto.setHoliday(obj[117] != null ? obj[117].toString() : null);
+//	    	    dto.setLeave(obj[118] != null ? obj[118].toString() : null);
+//	    	    dto.setCompOff(obj[119] != null ? obj[119].toString() : null);
+//	    	    dto.setNa(obj[120] != null ? obj[120].toString() : null);
+//	    	    dto.setHalfDay(obj[121] != null ? obj[121].toString() : null);
+//	    	    dto.setTotalNoOfDays(obj[122] != null ? obj[122].toString() : null);
+//
+//	    	    dtoList.add(dto);
+//	    	}
+//
+//	    	if(dtoList.isEmpty()){
+//	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//             response.setServiceResponse("Unable to fetch the timesheet Data !!!");
+//             apiLogInfo.setApiResponse("Failed to set the data in dto \n");
+//             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//             
+//         } else {
+//         	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//             response.setServiceResponse(dtoList);
+//             apiLogInfo.setApiResponse("Timesheet Data fetched successfully ");
+//             apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//         }
+//         
+//         apiLogInfo.setApiRequest(logBuilder.toString());
+// 		logService.logMyInfo(httpRequest, apiLogInfo);
+// 		return response;
+// 		
+//	    } catch(Exception e) {
+//		    	    e.printStackTrace();
+//			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			        response.setServiceResponse("Something went wrong.");
+//			        response.setServiceError(e.getMessage());
+//			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			        apiLogInfo.setApiResponse(e.getMessage()); 
+//			        apiLogInfo.setLogLevel("ERROR");
+//		    }
+//		    
+//	    return response;
+//	}
 	
 //	public ServiceResponse getEmployeeViewForClientAttendanceStatus(GetEmployeeSummaryOnExportDTO object) {
 //		
@@ -7208,7 +7206,7 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	    apiLogInfo.setLogLevel("INFO");
 
 	    try {
-	        Boolean isInTNM = timesheetsRepository.isInTNMProject(empId);
+	        Boolean isInTNM = employeeTimesheetsNewRepository.isInTNMProject(empId);
 
 	        if (Boolean.TRUE.equals(isInTNM)) {
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -7291,7 +7289,7 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 		    apiLogInfo.setLogLevel("INFO");
 
 		    try {
-		        Integer dbResult = timesheetsRepository.wasEmployeeInClientProjCurrAndPrevMon(empId);
+		        Integer dbResult = employeeTimesheetsNewRepository.wasEmployeeInClientProjCurrAndPrevMon(empId);
 		        Boolean bulkUploadApplicable = (dbResult != null && dbResult == 1);
 
 		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -7790,78 +7788,78 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	}
 	
 	// Delegate method - implementation moved to TimesheetDashboardService
-	private ServiceResponse getProjectByMonthRangeAndEmpIdInternal(GetEmployeeSummaryOnExportDTO object) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Timesheet/Calander View/Project Drop-Down");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("Timesheet/Calander View/Project Drop-Down/getProjectByMonthRangeAndEmpId");
-		try {
-	        if (object == null) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("Invalid request: request body is missing.");
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	            return response;
-	        }
-
-	        if (object.getMonth() == null || object.getYear() == null || object.getEmpId() == null) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("Month, Year and Employee ID are mandatory.");
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	            return response;
-	        }
-
-	        if (object.getMonth() < 1 || object.getMonth() > 12) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("Invalid month value. It must be between 1 and 12.");
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	            return response;
-	        }
-	        
-			List<Object[]> projList = timesheetsRepository.getProjectByMonthRangeAndEmpId(
-					object.getMonth(), object.getYear(), object.getEmpId());
-			
-			if (projList == null || projList.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("No projects found for the selected month.");
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	            return response;
-	        }
-			
-			List<GetProjectByMonthRangeAndEmpIdDTO> projectList = new ArrayList<>();
-
-			for (Object[] row : projList) {
-
-			    GetProjectByMonthRangeAndEmpIdDTO dto = new GetProjectByMonthRangeAndEmpIdDTO();
-
-			    dto.setEmpId(row[0] != null ? ((Number) row[0]).longValue() : null);
-			    dto.setName(row[1] != null ? row[1].toString() : null);
-			    dto.setProjectId(row[2] != null ? ((Number) row[2]).intValue() : null);
-			    dto.setProjectName(row[3] != null ? row[3].toString() : null);
-			    dto.setPoNo(row[4] != null ? row[4].toString() : null);
-			    dto.setEmployementId(row[5] != null ? row[5].toString() : null);
-
-			    projectList.add(dto); 
-			}
-
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse(projectList);
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			
-		}
-		catch(Exception e) {
-			 e.printStackTrace();
-			 response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			 response.setServiceResponse("Something went wrong.");
-			 response.setServiceError(e.getMessage());
-			 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			 apiLogInfo.setApiResponse(e.getMessage()); 
-			 apiLogInfo.setLogLevel("ERROR");
-	 }
-		return response;
-		
-	}
+//	private ServiceResponse getProjectByMonthRangeAndEmpIdInternal(GetEmployeeSummaryOnExportDTO object) {
+//		ServiceResponse response = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("Timesheet/Calander View/Project Drop-Down");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("Timesheet/Calander View/Project Drop-Down/getProjectByMonthRangeAndEmpId");
+//		try {
+//	        if (object == null) {
+//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            response.setServiceResponse("Invalid request: request body is missing.");
+//	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	            return response;
+//	        }
+//
+//	        if (object.getMonth() == null || object.getYear() == null || object.getEmpId() == null) {
+//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            response.setServiceResponse("Month, Year and Employee ID are mandatory.");
+//	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	            return response;
+//	        }
+//
+//	        if (object.getMonth() < 1 || object.getMonth() > 12) {
+//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            response.setServiceResponse("Invalid month value. It must be between 1 and 12.");
+//	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	            return response;
+//	        }
+//	        
+//			List<Object[]> projList = timesheetsRepository.getProjectByMonthRangeAndEmpId(
+//					object.getMonth(), object.getYear(), object.getEmpId());
+//			
+//			if (projList == null || projList.isEmpty()) {
+//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            response.setServiceResponse("No projects found for the selected month.");
+//	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	            return response;
+//	        }
+//			
+//			List<GetProjectByMonthRangeAndEmpIdDTO> projectList = new ArrayList<>();
+//
+//			for (Object[] row : projList) {
+//
+//			    GetProjectByMonthRangeAndEmpIdDTO dto = new GetProjectByMonthRangeAndEmpIdDTO();
+//
+//			    dto.setEmpId(row[0] != null ? ((Number) row[0]).longValue() : null);
+//			    dto.setName(row[1] != null ? row[1].toString() : null);
+//			    dto.setProjectId(row[2] != null ? ((Number) row[2]).intValue() : null);
+//			    dto.setProjectName(row[3] != null ? row[3].toString() : null);
+//			    dto.setPoNo(row[4] != null ? row[4].toString() : null);
+//			    dto.setEmployementId(row[5] != null ? row[5].toString() : null);
+//
+//			    projectList.add(dto); 
+//			}
+//
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceResponse(projectList);
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//			
+//		}
+//		catch(Exception e) {
+//			 e.printStackTrace();
+//			 response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			 response.setServiceResponse("Something went wrong.");
+//			 response.setServiceError(e.getMessage());
+//			 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			 apiLogInfo.setApiResponse(e.getMessage()); 
+//			 apiLogInfo.setLogLevel("ERROR");
+//	 }
+//		return response;
+//		
+//	}
 		
 	public ServiceResponse getClientDetailsByProjectIdAndEmpId(GetEmployeeSummaryOnExportDTO timesheetDTO) {
 	    ServiceResponse response = new ServiceResponse();
@@ -7995,7 +7993,7 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	    	LocalDateTime date = payload.getDate();
 	    	Integer projectId = Integer.parseInt(payload.getProjectId().toString());	    	
 	    	
-	    	List<EmpIdAndNameDTO> empList = timesheetsRepository.getOtherTeamMembersByDateAndProjectId(empId,date,projectId);
+	    	List<EmpIdAndNameDTO> empList = employeeTimesheetsNewRepository.getOtherTeamMembersByDateAndProjectId(empId,date,projectId);
 	        
 	        if (empList.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -8061,67 +8059,67 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	}
 	
 	
-	private void savePendingDocument(
-	        TimesheetDocumentDetails existing,
-	        TimesheetDocumentDetailsDTO document,
-	        MultipartFile doc1,
-	        TimesheetDTO timesheetDTO,
-	        Timesheet updatedTimesheet,
-	        ServiceResponse response,
-	        LogDTO apiLogInfo
-	) {
-
-	    try {
-	        TimesheetDocumentDetails docData =
-	                addTimesheetDocument(document, "Update", doc1);
-
-	        docData.setTimesheetId(updatedTimesheet.getTimesheetId());
-	        docData.setEmpId(timesheetDTO.getEmpId());
-	        docData.setCreatedBy(timesheetDTO.getEmpId());
-
-	        TimesheetDocumentDetails saved =
-	                timesheetDocumentDetailsRepository.save(docData);
-
-	        handleSaveResponse(saved, response, apiLogInfo);
-
-	    } catch (Exception e) {
-	        handleException(e, response, apiLogInfo);
-	    }
-	}
-	
-	private void rollbackApprovedToPending(
-	        TimesheetDocumentDetails existing,
-	        TimesheetDocumentDetailsDTO document,
-	        TimesheetDTO timesheetDTO,
-	        ServiceResponse response,
-	        LogDTO apiLogInfo,
-	        MultipartFile doc1
-	) {
-
-	    try {
-	        Long bulkApprovedDocId = existing.getBulkApprovedDocId();
-
-	        existing.setBulkApprovedDocId(null);
-	        existing.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus().toLowerCase());
-	        existing.setFinalFlag(false);
-	        existing.setUpdatedBy(timesheetDTO.getEmpId());
-	        existing.setDocName(doc1.getOriginalFilename());
-	        existing.setDocData(doc1.getBytes());
-	        existing.setDocMimeType(doc1.getContentType());
-	        existing.setUpdatedOn(LocalDateTime.now());
-
-	        TimesheetDocumentDetails saved =
-	                timesheetDocumentDetailsRepository.save(existing);
-
-	        finalDocumentRepository.deleteById(bulkApprovedDocId);
-
-	        handleSaveResponse(saved, response, apiLogInfo);
-
-	    } catch (Exception e) {
+//	private void savePendingDocument(
+//	        TimesheetDocumentDetails existing,
+//	        TimesheetDocumentDetailsDTO document,
+//	        MultipartFile doc1,
+//	        TimesheetDTO timesheetDTO,
+//	        Timesheet updatedTimesheet,
+//	        ServiceResponse response,
+//	        LogDTO apiLogInfo
+//	) {
+//
+//	    try {
+//	        TimesheetDocumentDetails docData =
+//	                addTimesheetDocument(document, "Update", doc1);
+//
+//	        docData.setTimesheetId(updatedTimesheet.getTimesheetId());
+//	        docData.setEmpId(timesheetDTO.getEmpId());
+//	        docData.setCreatedBy(timesheetDTO.getEmpId());
+//
+//	        TimesheetDocumentDetails saved =
+//	                timesheetDocumentDetailsRepository.save(docData);
+//
+//	        handleSaveResponse(saved, response, apiLogInfo);
+//
+//	    } catch (Exception e) {
 //	        handleException(e, response, apiLogInfo);
-	        throw new IllegalStateException("Unxpected error occured" + e.getMessage());
-	    }
-	}
+//	    }
+//	}
+	
+//	private void rollbackApprovedToPending(
+//	        TimesheetDocumentDetails existing,
+//	        TimesheetDocumentDetailsDTO document,
+//	        TimesheetDTO timesheetDTO,
+//	        ServiceResponse response,
+//	        LogDTO apiLogInfo,
+//	        MultipartFile doc1
+//	) {
+//
+//	    try {
+//	        Long bulkApprovedDocId = existing.getBulkApprovedDocId();
+//
+//	        existing.setBulkApprovedDocId(null);
+//	        existing.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus().toLowerCase());
+//	        existing.setFinalFlag(false);
+//	        existing.setUpdatedBy(timesheetDTO.getEmpId());
+//	        existing.setDocName(doc1.getOriginalFilename());
+//	        existing.setDocData(doc1.getBytes());
+//	        existing.setDocMimeType(doc1.getContentType());
+//	        existing.setUpdatedOn(LocalDateTime.now());
+//
+//	        TimesheetDocumentDetails saved =
+//	                timesheetDocumentDetailsRepository.save(existing);
+//
+//	        finalDocumentRepository.deleteById(bulkApprovedDocId);
+//
+//	        handleSaveResponse(saved, response, apiLogInfo);
+//
+//	    } catch (Exception e) {
+////	        handleException(e, response, apiLogInfo);
+//	        throw new IllegalStateException("Unxpected error occured" + e.getMessage());
+//	    }
+//	}
 
 	
 	private void handleSaveResponse(
@@ -8174,111 +8172,111 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	}
 
 	
-	public byte[] downloadFinalDocumentsZip(
-	        Integer projectId,
-	        Integer month,
-	        Integer year,
-	        Long empId) {
-
-	    System.out.println(">> downloadFinalDocumentsZip() START");
-	    System.out.println("ProjectId=" + projectId +
-	                       ", Month=" + month +
-	                       ", Year=" + year +
-	                       ", EmpId=" + empId);
-
-	    List<Object[]> rows =
-	            timesheetsRepository.getFinalDocumentsForMonthEnd(
-	                    projectId, month, year, empId);
-
-	    System.out.println("Rows fetched: " + (rows == null ? "null" : rows.size()));
-
-	    if (rows == null || rows.isEmpty()) {
-	        throw new IllegalArgumentException(
-	                "No final documents found for selected project and month");
-	    }
-
-	    String monthEndDate =
-	            YearMonth.of(year, month).atEndOfMonth().toString();
-
-	    System.out.println("Month end date: " + monthEndDate);
-
-	    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	         ZipOutputStream zos = new ZipOutputStream(baos)) {
-
-	        int addedFiles = 0;
-
-	        for (Object[] row : rows) {
-
-	            String employeeName = (String) row[0];
-	            String projectName  = (String) row[2];
-	            Long docId          = row[5] != null ? ((Number) row[5]).longValue() : null;
-	            String docName      = (String) row[7];
-
-	            System.out.println("Processing row → emp=" + employeeName +
-	                               ", project=" + projectName +
-	                               ", docId=" + docId +
-	                               ", docName=" + docName);
-
-	            if (docId == null) {
-	                continue;
-	            }
-
-	            TimesheetDocumentDetails document =
-	                    timesheetDocumentDetailsRepository.findById(docId)
-	                            .orElse(null);
-
-	            if (document == null) {
-	                continue;
-	            }
-
-	            if (document.getDocData() == null) {
-	                continue;
-	            }
-
-	            byte[] fileBytes = document.getDocData();
-
-	            String safeEmployee =
-	                    employeeName.replaceAll("[^a-zA-Z0-9 ]", "")
-	                            .replace(" ", "_");
-
-	            String safeProject =
-	                    projectName.replaceAll("[^a-zA-Z0-9 ]", "")
-	                            .replace(" ", "_");
-
-	            String safeFile =
-	                    docName.replaceAll("[\\\\/:*?\"<>|]", "_");
-
-	            String zipEntryName =
-	                    safeEmployee + "_" +
-	                    safeProject + "_" +
-	                    monthEndDate + "_" +
-	                    docId + "_" +
-	                    safeFile;
-
-
-	            zos.putNextEntry(new ZipEntry(zipEntryName));
-	            zos.write(fileBytes);
-	            zos.closeEntry();
-
-	            addedFiles++;
-	        }
-
-	        zos.finish();
-
-//	        System.out.println("ZIP creation complete");
-//	        System.out.println("Total files added: " + addedFiles);
-//	        System.out.println("ZIP size (bytes): " + baos.size());
-//	        System.out.println(">> downloadFinalDocumentsZip() END");
-
-	        return baos.toByteArray();
-
-	    } catch (Exception e) {
-	        System.out.println("Exception while generating ZIP");
-	        e.printStackTrace();
-	        throw new RuntimeException(
-	                "Failed to generate final documents ZIP", e);
-	    }
-	}
+//	public byte[] downloadFinalDocumentsZip(
+//	        Integer projectId,
+//	        Integer month,
+//	        Integer year,
+//	        Long empId) {
+//
+//	    System.out.println(">> downloadFinalDocumentsZip() START");
+//	    System.out.println("ProjectId=" + projectId +
+//	                       ", Month=" + month +
+//	                       ", Year=" + year +
+//	                       ", EmpId=" + empId);
+//
+//	    List<Object[]> rows =
+//	            timesheetsRepository.getFinalDocumentsForMonthEnd(
+//	                    projectId, month, year, empId);
+//
+//	    System.out.println("Rows fetched: " + (rows == null ? "null" : rows.size()));
+//
+//	    if (rows == null || rows.isEmpty()) {
+//	        throw new IllegalArgumentException(
+//	                "No final documents found for selected project and month");
+//	    }
+//
+//	    String monthEndDate =
+//	            YearMonth.of(year, month).atEndOfMonth().toString();
+//
+//	    System.out.println("Month end date: " + monthEndDate);
+//
+//	    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//	         ZipOutputStream zos = new ZipOutputStream(baos)) {
+//
+//	        int addedFiles = 0;
+//
+//	        for (Object[] row : rows) {
+//
+//	            String employeeName = (String) row[0];
+//	            String projectName  = (String) row[2];
+//	            Long docId          = row[5] != null ? ((Number) row[5]).longValue() : null;
+//	            String docName      = (String) row[7];
+//
+//	            System.out.println("Processing row → emp=" + employeeName +
+//	                               ", project=" + projectName +
+//	                               ", docId=" + docId +
+//	                               ", docName=" + docName);
+//
+//	            if (docId == null) {
+//	                continue;
+//	            }
+//
+//	            TimesheetDocumentDetails document =
+//	                    timesheetDocumentDetailsRepository.findById(docId)
+//	                            .orElse(null);
+//
+//	            if (document == null) {
+//	                continue;
+//	            }
+//
+//	            if (document.getDocData() == null) {
+//	                continue;
+//	            }
+//
+//	            byte[] fileBytes = document.getDocData();
+//
+//	            String safeEmployee =
+//	                    employeeName.replaceAll("[^a-zA-Z0-9 ]", "")
+//	                            .replace(" ", "_");
+//
+//	            String safeProject =
+//	                    projectName.replaceAll("[^a-zA-Z0-9 ]", "")
+//	                            .replace(" ", "_");
+//
+//	            String safeFile =
+//	                    docName.replaceAll("[\\\\/:*?\"<>|]", "_");
+//
+//	            String zipEntryName =
+//	                    safeEmployee + "_" +
+//	                    safeProject + "_" +
+//	                    monthEndDate + "_" +
+//	                    docId + "_" +
+//	                    safeFile;
+//
+//
+//	            zos.putNextEntry(new ZipEntry(zipEntryName));
+//	            zos.write(fileBytes);
+//	            zos.closeEntry();
+//
+//	            addedFiles++;
+//	        }
+//
+//	        zos.finish();
+//
+////	        System.out.println("ZIP creation complete");
+////	        System.out.println("Total files added: " + addedFiles);
+////	        System.out.println("ZIP size (bytes): " + baos.size());
+////	        System.out.println(">> downloadFinalDocumentsZip() END");
+//
+//	        return baos.toByteArray();
+//
+//	    } catch (Exception e) {
+//	        System.out.println("Exception while generating ZIP");
+//	        e.printStackTrace();
+//	        throw new RuntimeException(
+//	                "Failed to generate final documents ZIP", e);
+//	    }
+//	}
 
 	
 	
@@ -8446,36 +8444,36 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 
 
 
-	       private void replaceApprovedDocumentNewCode(
-	        MultipartFile doc2,
-	        TimesheetDocumentDetailsDTO document,
-	        TimesheetDocumentDetails existing,
-	        TimesheetDTO timesheetDTO,
-	        ServiceResponse response,
-	        LogDTO apiLogInfo
-	) {
-
-	    try {
-	        finalDocumentRepository.deleteById(existing.getBulkApprovedDocId());
-
-				FinalDocument finalDocument =
-	                finalDocumentRepository.save(
-	                        buildFinalDocument(doc2, document.getEmpId(),true)
-	                );
-
-	        existing.setBulkApprovedDocId(finalDocument.getDocId());
-	        existing.setUpdatedBy(timesheetDTO.getEmpId());
-	        existing.setUpdatedOn(LocalDateTime.now());
-
-	        TimesheetDocumentDetails saved =
-	                timesheetDocumentDetailsRepository.save(existing);
-
-	        handleSaveResponse(saved, response, apiLogInfo);
-
-	    } catch (Exception e) {
-	        handleException(e, response, apiLogInfo);
-	    }
-	}
+//	       private void replaceApprovedDocumentNewCode(
+//	        MultipartFile doc2,
+//	        TimesheetDocumentDetailsDTO document,
+//	        TimesheetDocumentDetails existing,
+//	        TimesheetDTO timesheetDTO,
+//	        ServiceResponse response,
+//	        LogDTO apiLogInfo
+//	) {
+//
+//	    try {
+//	        finalDocumentRepository.deleteById(existing.getBulkApprovedDocId());
+//
+//				FinalDocument finalDocument =
+//	                finalDocumentRepository.save(
+//	                        buildFinalDocument(doc2, document.getEmpId(),true)
+//	                );
+//
+//	        existing.setBulkApprovedDocId(finalDocument.getDocId());
+//	        existing.setUpdatedBy(timesheetDTO.getEmpId());
+//	        existing.setUpdatedOn(LocalDateTime.now());
+//
+//	        TimesheetDocumentDetails saved =
+//	                timesheetDocumentDetailsRepository.save(existing);
+//
+//	        handleSaveResponse(saved, response, apiLogInfo);
+//
+//	    } catch (Exception e) {
+//	        handleException(e, response, apiLogInfo);
+//	    }
+//	}
 	
 	private FinalDocument buildFinalDocument(MultipartFile file, Long empId,Boolean isUpdate) throws IOException {
 
@@ -8492,32 +8490,32 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	    return doc;
 	}
 
-	private void saveApprovedDocumentOldCode(
-	        MultipartFile doc2,
-	        TimesheetDocumentDetailsDTO document,
-	        TimesheetDTO timesheetDTO,
-	        Timesheet updatedTimesheet,
-	        ServiceResponse response,
-	        LogDTO apiLogInfo
-	) {
-
-	    try {
-	        TimesheetDocumentDetails docData =
-	                addTimesheetDocument(document, "Update", doc2);
-
-	        docData.setTimesheetId(updatedTimesheet.getTimesheetId());
-	        docData.setEmpId(timesheetDTO.getEmpId());
-	        docData.setCreatedBy(timesheetDTO.getEmpId());
-
-	        TimesheetDocumentDetails saved =
-	                timesheetDocumentDetailsRepository.save(docData);
-
-	        handleSaveResponse(saved, response, apiLogInfo);
-
-	    } catch (Exception e) {
-	        handleException(e, response, apiLogInfo);
-	    }
-	}
+//	private void saveApprovedDocumentOldCode(
+//	        MultipartFile doc2,
+//	        TimesheetDocumentDetailsDTO document,
+//	        TimesheetDTO timesheetDTO,
+//	        Timesheet updatedTimesheet,
+//	        ServiceResponse response,
+//	        LogDTO apiLogInfo
+//	) {
+//
+//	    try {
+//	        TimesheetDocumentDetails docData =
+//	                addTimesheetDocument(document, "Update", doc2);
+//
+//	        docData.setTimesheetId(updatedTimesheet.getTimesheetId());
+//	        docData.setEmpId(timesheetDTO.getEmpId());
+//	        docData.setCreatedBy(timesheetDTO.getEmpId());
+//
+//	        TimesheetDocumentDetails saved =
+//	                timesheetDocumentDetailsRepository.save(docData);
+//
+//	        handleSaveResponse(saved, response, apiLogInfo);
+//
+//	    } catch (Exception e) {
+//	        handleException(e, response, apiLogInfo);
+//	    }
+//	}
 
 	private void handleFirstTimeApprovedDocument(
 	        MultipartFile doc2,

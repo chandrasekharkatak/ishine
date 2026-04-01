@@ -84,7 +84,6 @@ import com.apmosys.employeeportal.model.FinalDocumentNew;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
 import com.apmosys.employeeportal.model.TimesheetDataDTO;
-import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
@@ -1599,11 +1598,11 @@ public class TimesheetServiceNew {
 		return timesheetQueryService.getTimesheetMetadataByEmpId(timesheetDTO);
 	}
 
-	public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(Long empId) {
-
-		return timesheetQueryService.getActiveProjectsAndClientSideIdByEmpId(empId);
-
-	}
+//	public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(Long empId) {
+//
+//		return timesheetQueryService.getActiveProjectsAndClientSideIdByEmpId(empId);
+//
+//	}
 
 	public ServiceResponse getAlreadyFilledTimesheetDatesByEmpId(Long empId, String dayType) {
 		return timesheetQueryService.getAlreadyFilledTimesheetDatesByEmpId(empId, dayType);
