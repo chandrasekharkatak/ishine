@@ -203,7 +203,7 @@ import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepo
 //	
 //	        return response;
 //	    }
-	
+
 //	    public ServiceResponse getMyReporteesTimesheetRequestsOld(TimesheetDTO timesheetDTO) {
 //	        ServiceResponse response = new ServiceResponse();
 //	        
@@ -285,7 +285,7 @@ import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepo
 //	        logService.logMyInfo(httpRequest, apiLogInfo);
 //	        return response;
 //	    }
-	
+
 	    /**
 	     * Counts timesheet requests for manager's reportees.
 	     * 
@@ -532,7 +532,7 @@ import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepo
 //	        logService.logMyInfo(httpRequest, apiLogInfo);
 //	        return response;
 //	    }
-	
+
 	    /**
 	     	 * Bulk approves timesheet requests.
 	         * 

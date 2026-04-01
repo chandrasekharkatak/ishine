@@ -30,16 +30,16 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 	@Query("SELECT t.docId FROM TimesheetDocumentDetails t WHERE t.timesheetId = :timesheetId and t.active = true")
 	List<Long> findDocIdsByTimesheetId(@Param("timesheetId") Long timesheetId);
 	
-	@Query("SELECT tdd FROM TimesheetDocumentDetails tdd \n" +
-		       "INNER JOIN Timesheet et on et.timesheetId = tdd.timesheetId \n" +
-		       "WHERE et.empId = :empId \n" +
-		       " AND et.dayType in ('Working','Non-working')\n" +
-		       "AND et.date BETWEEN :fromDate AND :toDate and tdd.active = true")
-		List<TimesheetDocumentDetails> getDocsByEmpAndDateRange(
-		    @Param("empId") Long empId,
-		    @Param("fromDate") LocalDate fromDate,
-		    @Param("toDate") LocalDate toDate
-		);
+//	@Query("SELECT tdd FROM TimesheetDocumentDetails tdd \n" +
+//		       "INNER JOIN Timesheet et on et.timesheetId = tdd.timesheetId \n" +
+//		       "WHERE et.empId = :empId \n" +
+//		       " AND et.dayType in ('Working','Non-working')\n" +
+//		       "AND et.date BETWEEN :fromDate AND :toDate and tdd.active = true")
+//		List<TimesheetDocumentDetails> getDocsByEmpAndDateRange(
+//		    @Param("empId") Long empId,
+//		    @Param("fromDate") LocalDate fromDate,
+//		    @Param("toDate") LocalDate toDate
+//		);
 
 	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO(" +
             "t.docId, t.docName, t.timesheetId, t.empId, t.active, " +
@@ -49,12 +49,12 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 	List<TimesheetDocumentDetailsDTO> findAllDocIdByTimesheetId(@Param("timesheetId") Long timesheetId);
 	
 	
-	  @Query("SELECT d FROM TimesheetDocumentDetails d " +
-			"JOIN Timesheet t ON d.timesheetId = t.timesheetId " +
-			"WHERE t.empId = :empId AND t.date = :date")
-	List<TimesheetDocumentDetails> findDocumentsByEmpIdAndDate(
-			@Param("empId") Long empId,
-			@Param("date") LocalDate date);
+//	  @Query("SELECT d FROM TimesheetDocumentDetails d " +
+//			"JOIN Timesheet t ON d.timesheetId = t.timesheetId " +
+//			"WHERE t.empId = :empId AND t.date = :date")
+//	List<TimesheetDocumentDetails> findDocumentsByEmpIdAndDate(
+//			@Param("empId") Long empId,
+//			@Param("date") LocalDate date);
 	  
 	  List<TimesheetDocumentDetails> findByDocId(Long docId);
 
@@ -205,25 +205,25 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 				    @Param("selectedEmpId") Long selectedEmpId
 				);
 				
-
-		@Query( "SELECT new com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO(t.timesheetId, t.empId) from Timesheet t \n"+
-				"where (t.hasClientSideId = 1 or t.isShadowTimesheet = 1 ) \n"+
-				"and t.projectId = :projectId \n"+
-				"and t.dayType IN ('Working', 'Non-working') \n"+
-				"and (t.status = 'Rejected' \n"+
-				"or not exists (\n" + 
-					"select 1 from TimesheetDocumentDetails tdd1 where \n" + 
-					"tdd1.timesheetId = t.timesheetId and tdd1.finalFlag = 1 and tdd1.clientApprovalStatus = 'Approved'\n" +
-					") \n" +
-				") \n" +
-				"and t.date between :fromDate and :toDate \n"+
-				"and t.empId IN :empIds")
-		List<TimesheetIdAndEmpIdDTO> getDocsByEmpIdsAndDate(
-				@Param("empIds") List<Long> empIds,
-				@Param("fromDate") LocalDate fromDate,
-				@Param("toDate") LocalDate toDate,
-				@Param("projectId") Integer projectId
-			);
+//
+//		@Query( "SELECT new com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO(t.timesheetId, t.empId) from Timesheet t \n"+
+//				"where (t.hasClientSideId = 1 or t.isShadowTimesheet = 1 ) \n"+
+//				"and t.projectId = :projectId \n"+
+//				"and t.dayType IN ('Working', 'Non-working') \n"+
+//				"and (t.status = 'Rejected' \n"+
+//				"or not exists (\n" + 
+//					"select 1 from TimesheetDocumentDetails tdd1 where \n" + 
+//					"tdd1.timesheetId = t.timesheetId and tdd1.finalFlag = 1 and tdd1.clientApprovalStatus = 'Approved'\n" +
+//					") \n" +
+//				") \n" +
+//				"and t.date between :fromDate and :toDate \n"+
+//				"and t.empId IN :empIds")
+//		List<TimesheetIdAndEmpIdDTO> getDocsByEmpIdsAndDate(
+//				@Param("empIds") List<Long> empIds,
+//				@Param("fromDate") LocalDate fromDate,
+//				@Param("toDate") LocalDate toDate,
+//				@Param("projectId") Integer projectId
+//			);
 
 		@Query("SELECT tdd from TimesheetDocumentDetails tdd where tdd.timesheetId IN :timesheetIds and tdd.finalFlag = 1 and tdd.clientApprovalStatus = 'Approved'")
 		List<TimesheetDocumentDetails> getDocsByTimesheetIdsAndFinalFlag(

@@ -199,8 +199,11 @@ public class CronJobService {
 	@Autowired
 	TimesheetService timesheetService;
 
+//	@Autowired
+//	TimesheetActivityMapRepository timesheetActivityMapRepository;
+	
 	@Autowired
-	TimesheetActivityMapRepository timesheetActivityMapRepository;
+	TimesheetActivityMapNewRepository timesheetActivityMapRepository;
 
 	@Autowired
 	BirthdayMailRepository birthdayMailRepository;

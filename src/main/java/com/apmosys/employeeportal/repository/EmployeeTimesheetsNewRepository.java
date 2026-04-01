@@ -851,6 +851,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	// void updateCurrentManagerId(Long timesheetId, Long managerId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
+
 //	@Query(value = "SELECT \n"
 //			+ "    et.timesheet_id,\n"
 //			+ "    et.date,\n"
@@ -902,6 +903,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 //			+ "ORDER BY et.created_on DESC", nativeQuery = true)
 //	List<Object[]> getAllEmployeeTimesheetsBetweenDatesOLD(@Param("startDate") String startDate,
 //			@Param("endDate") String endDate);
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "SELECT \n"
@@ -958,6 +960,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			@Param("endDate") String endDate);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
+
 //	@Query(value = "SELECT \n"
 //			+ "    et.timesheet_id,\n"
 //			+ "    et.date,\n"
@@ -1010,6 +1013,8 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 //	List<Object[]> getTimesheetsByDepartmentAndDateRangeOLD(@Param("deptId") Long deptId,
 //			@Param("startDate") String startDate,
 //			@Param("endDate") String endDate);
+
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "SELECT \n"
@@ -1067,6 +1072,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			@Param("endDate") String endDate);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
+
 //	@Query(value = "SELECT " +
 //			"ets.timesheet_id, " +
 //			"ets.date AS timesheet_date, " +
@@ -1104,6 +1110,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 //			"LEFT JOIN client_locations cl ON cl.client_id = p.client_id " +
 //			"LEFT JOIN clients c ON p.client_id = c.client_id", nativeQuery = true)
 //	List<Object[]> getLastFilledTimesheetOLD(@Param("empId") Long empId);
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "SELECT " +
@@ -1148,6 +1155,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	List<Object[]> getLastFilledTimesheet(@Param("empId") Long empId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
+
 //	@Query(value = "SELECT DISTINCT et.emp_id, etm.active, etm.team_id, et.date " +
 //			"FROM ( " +
 //			"    SELECT emp_id, MAX(date) AS max_date " +
@@ -1172,6 +1180,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 //			"    ON etm.team_id = a.team_id AND etm.emp_id = et.emp_id " +
 //			"WHERE et.emp_id = :empId", nativeQuery = true)
 //	List<Object[]> checkEmployeeActiveOrNotOLD(@Param("empId") Long empId);
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "SELECT DISTINCT et.emp_id, etm.active, etm.team_id, et.date " +
@@ -1228,6 +1237,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 //	public List<ProjectClientSideIdDTO> getActiveProjectsAndClientSideIdByEmpId(Long empId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
+
 //	@Query(value = "SELECT SQL_CALC_FOUND_ROWS DISTINCT e.name, p.project_name, t.team_name,   \n"
 //			+ "CASE WHEN po_project_type IS NOT NULL THEN po_project_type   \n"
 //			+ "ELSE internal_project_type END AS project_type,   \n"
@@ -1263,6 +1273,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 //			@Param("toDate") String toDate,
 //			@Param("offset") int offset,
 //			@Param("pageSize") int pageSize);
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "SELECT SQL_CALC_FOUND_ROWS DISTINCT "
@@ -2703,22 +2714,24 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	// @Param("year") Integer year);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-//	@Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.date,et.day_type,e.name employeeName,et.description ,et.status, \n"
-//			+ "em.name created_by,em.emp_id as createdById,et.created_on,e.employeement_id,et.total_time , e.email,et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, et.current_manager_id,e.is_consultant,e.is_apprenticeship,e.emp_id, \n"
-//			+ "et.client_in_time, et.client_out_time, et.client_side_id, et.total_client_working_hours,\n"
-//			+ "et.project_id, et.client_approval_status, et.has_client_side_id, et.is_shadow_timesheet , et.shadow_emp_id\n"
-//			+ "        FROM employee_timesheets et\n"
-//			+ "        INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
-//			+ "        INNER JOIN teams t ON t.team_id = etm.team_id\n"
-//			+ "        INNER JOIN projects p ON p.project_id = t.project_id\n"
-//			+ "        INNER join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
-//			+ "        INNER join activities a on etam.activity_id = a.activity_id and a.team_id = t.team_id\n"
-//			+ "        INNER JOIN employee e ON e.emp_id = et.emp_id\n"
-//			+ "        INNER JOIN employee em ON  et.created_by = em.emp_id\n"
-//			+ "        WHERE day_type LIKE '%Working%'\n"
-//			+ "        and et.status = 'Pending'\n"
-//			+ "         and et.emp_id = :empId and t.team_id = :teamId")
-//	public List<Object[]> getPendingTimesheetsByEmpAndTeamOLD(Long empId, Long teamId);
+
+	// @Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.date,et.day_type,e.name employeeName,et.description ,et.status, \n"
+	// 		+ "em.name created_by,em.emp_id as createdById,et.created_on,e.employeement_id,et.total_time , e.email,et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, et.current_manager_id,e.is_consultant,e.is_apprenticeship,e.emp_id, \n"
+	// 		+ "et.client_in_time, et.client_out_time, et.client_side_id, et.total_client_working_hours,\n"
+	// 		+ "et.project_id, et.client_approval_status, et.has_client_side_id, et.is_shadow_timesheet , et.shadow_emp_id\n"
+	// 		+ "        FROM employee_timesheets et\n"
+	// 		+ "        INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
+	// 		+ "        INNER JOIN teams t ON t.team_id = etm.team_id\n"
+	// 		+ "        INNER JOIN projects p ON p.project_id = t.project_id\n"
+	// 		+ "        INNER join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
+	// 		+ "        INNER join activities a on etam.activity_id = a.activity_id and a.team_id = t.team_id\n"
+	// 		+ "        INNER JOIN employee e ON e.emp_id = et.emp_id\n"
+	// 		+ "        INNER JOIN employee em ON  et.created_by = em.emp_id\n"
+	// 		+ "        WHERE day_type LIKE '%Working%'\n"
+	// 		+ "        and et.status = 'Pending'\n"
+	// 		+ "         and et.emp_id = :empId and t.team_id = :teamId")
+	// public List<Object[]> getPendingTimesheetsByEmpAndTeamOLD(Long empId, Long teamId);
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.date,dtm.day_type,e.name employeeName,etam.description ,sm.status, \n"
@@ -2744,6 +2757,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	public List<Object[]> getPendingTimesheetsByEmpAndTeam(Long empId, Long teamId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
+
 //	@Query(nativeQuery = true, value = "SELECT DISTINCT et.timesheet_id,et.date,et.day_type,e.name employeeName,et.description ,et.status,\n"
 //			+ "				 				em.name created_by,em.emp_id as createdById,et.created_on,e.employeement_id,et.total_time , e.email,et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, et.current_manager_id,e.is_consultant,e.is_apprenticeship,e.emp_id,\n"
 //			+ "				 			et.client_in_time, et.client_out_time, et.client_side_id, et.total_client_working_hours, \n"
@@ -2770,6 +2784,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 //			+ "                                        Order by et.date desc")
 //	public List<Object[]> getMyTimesheetRequestsOLD(Long empId, Long teamId, String fromDate, String toDate,
 //			Boolean clientFlag);
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(nativeQuery = true, value = "SELECT DISTINCT et.timesheet_id,et.date,dtm.day_type,e.name employeeName,etam.description ,sm.status,\n"
@@ -4469,6 +4484,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	// Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
+
 //	@Query(value = "WITH RankedTimeSheets AS ( " +
 //			"SELECT et.emp_id, et.office_in_time, et.office_out_time, p.project_id, c.client_id, cl.client_location_id, "
 //			+
@@ -4498,6 +4514,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 //			"FROM RankedTimeSheets " +
 //			"WHERE rnk = 1 AND emp_id = :emp_id", nativeQuery = true)
 //	List<Object[]> getLastTimesheetFiledByEmpIdOLD(@Param("emp_id") Long emp_id);
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "WITH RankedTimeSheets AS ( " +

@@ -103,13 +103,13 @@ public class TimesheetController {
 		ServiceResponse response = timesheetService.getAllMyTimesheetsByEmpId(timesheetDTO);
 		return response;
 	}
-	@JobRoleAccess(featureIds = {15,16,24})
-	@RequestMapping(value = "/getAllMyActivitiesByTimesheetId", method = RequestMethod.POST)
-	public ServiceResponse getAllMyActivitiesByTimesheetId(@RequestBody TimesheetDTO timesheetDTO) {
-
-		ServiceResponse response = timesheetService.getAllMyActivitiesByTimesheetId(timesheetDTO);
-		return response;
-	}
+//	@JobRoleAccess(featureIds = {15,16,24})
+//	@RequestMapping(value = "/getAllMyActivitiesByTimesheetId", method = RequestMethod.POST)
+//	public ServiceResponse getAllMyActivitiesByTimesheetId(@RequestBody TimesheetDTO timesheetDTO) {
+//
+////		ServiceResponse response = timesheetService.getAllMyActivitiesByTimesheetId(timesheetDTO);
+//		return response;
+//	}
 	@JobRoleAccess(featureIds = {15,16,24})
 	@RequestMapping(value = "/getMyReporteesTimesheetRequests", method = RequestMethod.POST)
 	public ServiceResponse getMyReporteesTimesheetRequests(@RequestBody TimesheetDTO timesheetDTO) {
@@ -218,16 +218,20 @@ public class TimesheetController {
 //		    return response;
 //	}
 	
+
 //	@JobRoleAccess(featureIds = {26})
 //	 @RequestMapping(value = "/getAllOrDeptWiseEmployeeTimesheetReport",method = RequestMethod.POST)
 //	    public ServiceResponse getAllOrDeptWiseEmployeeTimesheetReport(@RequestBody FilteredTimesheetDTO filteredTimesheetDTO) {
 //	        return timesheetService.getAllOrDeptWiseEmployeeTimesheetReport(filteredTimesheetDTO);
 //	    }
-	@JobRoleAccess(featureIds = {24})
-	 @PostMapping("/getLastFilledTimesheetByEmpId")
-	 public ServiceResponse getLastFilledTimesheetByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
-	     return timesheetService.getLastFilledTimesheetByEmpId(timesheetDTO.getEmpId());
-	 }
+
+
+//	@JobRoleAccess(featureIds = {24})
+//	 @PostMapping("/getLastFilledTimesheetByEmpId")
+//	 public ServiceResponse getLastFilledTimesheetByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
+//	     return timesheetService.getLastFilledTimesheetByEmpId(timesheetDTO.getEmpId());
+//	 }
+
 
 	
 	
@@ -474,11 +478,11 @@ public class TimesheetController {
 		    return response;
 		}
 	 
-		@PostMapping("/getDocumentsByEmpAndDate")
-		public ServiceResponse getDocumentsByEmpAndDate(@RequestBody TimesheetDTO timesheetDTO) {
-			ServiceResponse response = timesheetService.getDocumentsByEmpAndDate(timesheetDTO);
-			return response;
-		}
+//		@PostMapping("/getDocumentsByEmpAndDate")
+//		public ServiceResponse getDocumentsByEmpAndDate(@RequestBody TimesheetDTO timesheetDTO) {
+//			ServiceResponse response = timesheetService.getDocumentsByEmpAndDate(timesheetDTO);
+//			return response;
+//		}
 		
 	@PostMapping(value = "/getEmployeeSummaryOnExport")
 		public ServiceResponse getEmployeeSummaryOnExport(@RequestBody GetEmployeeSummaryOnExportDTO object) {  

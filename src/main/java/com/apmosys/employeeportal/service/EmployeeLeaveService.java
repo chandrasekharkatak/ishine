@@ -80,7 +80,7 @@ public class EmployeeLeaveService {
     EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
     @Autowired
-    EmployeeTimesheetActivitiesMappingNewRepository employeeTimesheetActivitiesMappingNewRepository;
+    TimesheetActivityMapNewRepository employeeTimesheetActivitiesMappingNewRepository;
 
     @Autowired
     EmployeeTimesheetLocationMappingRepository employeeTimesheetLocationMappingRepository;
@@ -119,8 +119,8 @@ public class EmployeeLeaveService {
 	private HttpServletRequest httpRequest;
 	
 	
-	@Autowired
-	TimesheetActivityMapRepository timesheetActivityRepository;
+//	@Autowired
+//	TimesheetActivityMapRepository timesheetActivityRepository;
 	
 	@Autowired
 	HolidayRepository holidayRepository;

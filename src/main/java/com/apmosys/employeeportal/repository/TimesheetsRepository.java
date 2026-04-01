@@ -1,4 +1,5 @@
 //package com.apmosys.employeeportal.repository;
+
 //
 //import java.time.LocalDate;
 //import java.time.LocalDateTime;
@@ -32,6 +33,7 @@
 //	@Query(nativeQuery = true)
 //	public List<Object[]> getMyReporteesApprovedTimesheetRequests2OLD(Long managerId,String status,LocalDate start, LocalDate end,List<Long> empIds);
 //	
+
 ////	@Query(nativeQuery = true)
 ////	public Long countMyReporteesTimesheetRequests(Long managerId);
 //
@@ -11460,3 +11462,6 @@
 //
 //
 //}						  
+
+					  
+

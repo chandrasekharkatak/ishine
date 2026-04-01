@@ -55,14 +55,14 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 	List<Long> findDocIdsByTimesheetId(@Param("timesheetId") Long timesheetId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query("SELECT tdd FROM TimesheetDocumentDetails tdd \n" +
-			"INNER JOIN Timesheet et on et.timesheetId = tdd.timesheetId \n" +
-			"WHERE et.empId = :empId \n" +
-			"AND et.date BETWEEN :fromDate AND :toDate and tdd.active = true")
-	List<TimesheetDocumentDetailsNew> getDocsByEmpAndDateRange_old(
-			@Param("empId") Long empId,
-			@Param("fromDate") LocalDate fromDate,
-			@Param("toDate") LocalDate toDate);
+//	@Query("SELECT tdd FROM TimesheetDocumentDetails tdd \n" +
+//			"INNER JOIN Timesheet et on et.timesheetId = tdd.timesheetId \n" +
+//			"WHERE et.empId = :empId \n" +
+//			"AND et.date BETWEEN :fromDate AND :toDate and tdd.active = true")
+//	List<TimesheetDocumentDetailsNew> getDocsByEmpAndDateRange_old(
+//			@Param("empId") Long empId,
+//			@Param("fromDate") LocalDate fromDate,
+//			@Param("toDate") LocalDate toDate);
 
 	// ========== UPDATED: New query using _new entities ==========
 	@Query("SELECT tdd FROM TimesheetDocumentDetailsNew tdd \n" +

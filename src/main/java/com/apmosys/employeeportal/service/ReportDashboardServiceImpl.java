@@ -55,9 +55,15 @@ import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.ReportDashboardRepository;
+import com.apmosys.employeeportal.repository.TimesheetActivityMapNewRepository;
 import com.apmosys.employeeportal.repository.ReportDashboardRepository;
 import com.apmosys.employeeportal.repository.ReportDashboardRepository;
-import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
+
+//import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
+
+//import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
+//import com.apmosys.employeeportal.repository.TimesheetsRepository;
+
 import com.apmosys.employeeportal.serviceInterface.ReportDashboardService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -85,7 +91,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	StringToDateTimeParser stringToDateTimeParser;
 	
 	@Autowired
-	TimesheetActivityMapRepository timesheetActivityMapRepository;
+	TimesheetActivityMapNewRepository timesheetActivityMapRepository;
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
