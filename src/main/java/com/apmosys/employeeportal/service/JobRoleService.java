@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -24,7 +26,6 @@ import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.SubFeatureMasterDTO;
-import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeRole;
@@ -44,6 +45,8 @@ import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class JobRoleService {
+
+	private static final Logger log = LoggerFactory.getLogger(JobRoleService.class);
 
 	@Autowired
 	JobRoleRepository jobRoleRepository;
@@ -1310,43 +1313,77 @@ public class JobRoleService {
 		ApiLog initialLog = null;
 		String exceptionDetailsForLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-		String sourceSystem = httpRequest.getRequestURL().toString();
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
 
 		try {
-			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllJobRoleInfo", "PoPortal", null, httpRequest);
-			List<JobRole> jobRoleObj = jobRoleRepository.findAll();
-			List<PoPortalDTO> dtoList = new ArrayList<>();
+			initialLog = apiLogUtility.startLog(
+					poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					"getAllJobRoleInfo",
+					"PoPortal",
+					null,
+					httpRequest);
 
-			if (!jobRoleObj.isEmpty()) {
-				jobRoleObj.forEach((object) -> {
-					PoPortalDTO dto = new PoPortalDTO();
-					dto.setRoleId(object.getJobRoleId());
-					dto.setDeptId(object.getDeptId());
-					dto.setRoleName(object.getName());
-					dtoList.add(dto);
-				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				finalHttpStatusCode = HttpStatus.OK.value();
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("JobRole Info not found.");
+			List<JobRole> roles = jobRoleRepository.findAll();
+			if (roles.isEmpty()) {
+				applyJobRoleInfoNotFoundResponse(response);
 				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
-				throw new DataNotFoundException("JobRole Details Not Found in Database.");
+			} else {
+				List<PoPortalDTO> dtoList = mapJobRolesToPoPortalDtos(roles);
+				applyJobRoleInfoSuccessResponse(response, dtoList);
+				finalHttpStatusCode = HttpStatus.OK.value();
+				log.debug("getAllJobRoleInfo returned {} roles", dtoList.size());
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
+			log.error("getAllJobRoleInfo failed: {}", e.getMessage(), e);
+			applyJobRoleInfoSystemErrorResponse(response, e);
 			exceptionDetailsForLog = e.toString();
-
 		} finally {
 			if (initialLog != null) {
-				apiLogUtility.endLog(initialLog.getId(), sourceSystem,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
+						httpRequest);
 			}
 		}
 		return response;
 	}
-	
+
+	private static String buildRequestPathForLogging(HttpServletRequest request) {
+		if (request == null) {
+			return "";
+		}
+		String uri = request.getRequestURI();
+		String query = request.getQueryString();
+		return (query != null && !query.isEmpty()) ? uri + "?" + query : uri;
+	}
+
+	private List<PoPortalDTO> mapJobRolesToPoPortalDtos(List<JobRole> roles) {
+		return roles.stream()
+				.filter(Objects::nonNull)
+				.map(this::toPoPortalJobRoleDto)
+				.collect(Collectors.toList());
+	}
+
+	private PoPortalDTO toPoPortalJobRoleDto(JobRole role) {
+		PoPortalDTO dto = new PoPortalDTO();
+		dto.setRoleId(role.getJobRoleId());
+		dto.setDeptId(role.getDeptId());
+		dto.setRoleName(role.getName());
+		return dto;
+	}
+
+	private static void applyJobRoleInfoSuccessResponse(ServiceResponse response, List<PoPortalDTO> dtoList) {
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(dtoList);
+	}
+
+	private static void applyJobRoleInfoNotFoundResponse(ServiceResponse response) {
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse("JobRole Info not found.");
+	}
+
+	private static void applyJobRoleInfoSystemErrorResponse(ServiceResponse response, Exception e) {
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		response.setServiceError(e.getMessage());
+	}
+
 }
