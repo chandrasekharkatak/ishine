@@ -6,6 +6,7 @@ import java.time.chrono.ChronoLocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,6 +18,8 @@ import javax.mail.event.StoreListener;
 import javax.servlet.http.HttpServletRequest;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.datetime.joda.LocalDateTimeParser;
@@ -35,7 +38,6 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PoPortalEmpIdDTO;
-import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.Department;
@@ -60,6 +62,18 @@ import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class DepartmentService {
+
+	private static final Logger log = LoggerFactory.getLogger(DepartmentService.class);
+
+	/** PoPortal integration: GET /api/getAllDepartmentInfo */
+	private static final String API_GET_ALL_DEPARTMENT_INFO = "/api/getAllDepartmentInfo";
+	private static final String OPERATION_GET_ALL_DEPARTMENT_INFO = "getAllDepartmentInfo";
+	private static final String PO_PORTAL_LOG_SOURCE = "PoPortal";
+	private static final String LOG_LEVEL_INFO = "INFO";
+	private static final String LOG_LEVEL_ERROR = "ERROR";
+	private static final String MSG_DEPARTMENT_INFO_NOT_FOUND = "Department Info not found.";
+	private static final String MSG_SYSTEM_ERROR = "Something Went Wrong.";
+
 	private final Map<String, List<DepartmentDTO>> DepartmentDTOCache = new ConcurrentHashMap<>();
 
 	@Autowired
@@ -679,50 +693,92 @@ public class DepartmentService {
 
 	public ServiceResponse getAllDepartmentInfo() {
 		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setApiUrl("/api/getAllDepartmentInfo");
-		apiLogInfo.setLogLevel("INFO");
+		LogDTO apiLogInfo = createGetAllDepartmentInfoLogDto();
 		StringBuilder logBuilder = new StringBuilder();
 		ApiLog initialLog = null;
 		String exceptionDetailsForLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-		String sourceSystem = httpRequest.getRequestURL().toString();
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
+
 		try {
-			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
-					"getAllDepartmentInfo", "PoPortal", null, httpRequest);
-			List<PoPortalEmpIdDTO> poPortalDTOList = departmentRepository.getDepartmentInfo();
-			if (!poPortalDTOList.isEmpty()) {
-				logBuilder.append("getAllDepartmentInfo size : " + poPortalDTOList.size());
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(poPortalDTOList);
-				apiLogInfo.setApiResponse("dtoList size : " + poPortalDTOList.size());
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				finalHttpStatusCode = HttpStatus.OK.value();
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Department Info not found.");
-				apiLogInfo.setApiResponse("Department Info not found.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			initialLog = apiLogUtility.startLog(
+					poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					OPERATION_GET_ALL_DEPARTMENT_INFO,
+					PO_PORTAL_LOG_SOURCE,
+					null,
+					httpRequest);
+
+			List<PoPortalEmpIdDTO> poPortalDTOList = Optional
+					.ofNullable(departmentRepository.getDepartmentInfo())
+					.orElseGet(Collections::emptyList);
+
+			if (poPortalDTOList.isEmpty()) {
+				applyGetAllDepartmentInfoNotFound(response, apiLogInfo, logBuilder);
 				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
-				throw new DataNotFoundException("Department Details Not Found in Database.");
+				log.info("[{}] completed: notFound, path={}", OPERATION_GET_ALL_DEPARTMENT_INFO, sourceSystem);
+			} else {
+				applyGetAllDepartmentInfoSuccess(response, apiLogInfo, logBuilder, poPortalDTOList);
+				finalHttpStatusCode = HttpStatus.OK.value();
+				log.info("[{}] completed: success, departmentCount={}, path={}",
+						OPERATION_GET_ALL_DEPARTMENT_INFO, poPortalDTOList.size(), sourceSystem);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			response.setServiceError(e.getMessage());
+			log.error("[{}] failed: path={}, error={}", OPERATION_GET_ALL_DEPARTMENT_INFO, sourceSystem, e.getMessage(),
+					e);
+			applyGetAllDepartmentInfoSystemError(response, apiLogInfo, e);
 			exceptionDetailsForLog = e.toString();
 		} finally {
 			if (initialLog != null) {
 				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
 						httpRequest);
 			}
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+
+	private static LogDTO createGetAllDepartmentInfoLogDto() {
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl(API_GET_ALL_DEPARTMENT_INFO);
+		apiLogInfo.setLogLevel(LOG_LEVEL_INFO);
+		return apiLogInfo;
+	}
+
+	private static String buildRequestPathForLogging(HttpServletRequest request) {
+		if (request == null) {
+			return "";
+		}
+		String uri = request.getRequestURI();
+		String query = request.getQueryString();
+		return (query != null && !query.isEmpty()) ? uri + "?" + query : uri;
+	}
+
+	private static void applyGetAllDepartmentInfoSuccess(ServiceResponse response, LogDTO apiLogInfo,
+			StringBuilder logBuilder, List<PoPortalEmpIdDTO> poPortalDTOList) {
+		logBuilder.append(OPERATION_GET_ALL_DEPARTMENT_INFO).append(" size: ").append(poPortalDTOList.size());
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(poPortalDTOList);
+		apiLogInfo.setApiResponse("dtoList size: " + poPortalDTOList.size());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	}
+
+	private static void applyGetAllDepartmentInfoNotFound(ServiceResponse response, LogDTO apiLogInfo,
+			StringBuilder logBuilder) {
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse(MSG_DEPARTMENT_INFO_NOT_FOUND);
+		apiLogInfo.setApiResponse(MSG_DEPARTMENT_INFO_NOT_FOUND);
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		logBuilder.append(OPERATION_GET_ALL_DEPARTMENT_INFO).append(": no departments found");
+	}
+
+	private static void applyGetAllDepartmentInfoSystemError(ServiceResponse response, LogDTO apiLogInfo, Exception e) {
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse(MSG_SYSTEM_ERROR);
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setLogLevel(LOG_LEVEL_ERROR);
+		apiLogInfo.setApiResponse("Exception in " + OPERATION_GET_ALL_DEPARTMENT_INFO + ": " + e.getMessage());
+		response.setServiceError(e.getMessage());
 	}
 
 	public List<String> getAllDeptNameByDeptId(List<Long> deptIds) {
