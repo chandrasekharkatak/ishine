@@ -1127,7 +1127,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 				"INNER JOIN Client c ON c.clientId = p.clientId " +
 				"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
 				"INNER JOIN Department d ON d.deptId = jr.deptId " +
-				"LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId " +
+				"LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId AND pmm.active = 1  " +
 				"LEFT JOIN Employee pm ON pm.empId = pmm.projectManagerId " +
 				"WHERE e.empId IN ( " +
 				"SELECT e1.empId " +
@@ -1145,7 +1145,6 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 				"AND etm.active != 0 " +
 				"AND t.isActive = 'Y' " +
 				"AND e.employmentstatus != 'InActive' " +
-				"AND pmm.active = 1 " +
 				"AND e.empId NOT BETWEEN 1 AND 6")
 		Long getInternalAndShankhEmployeeCountByProjectIds(@Param("projectIds") Set<Integer> projectIds);
 		

@@ -10,7 +10,7 @@
                 <div class="card border rounded">
                     <div class="card-body d-flex align-items-center p-3">
                         <div class="kpi-icon-box rounded ml-1 mr-2 mt-2 mb-2">
-                            <i class="bi" [ngClass]="kpi.icon"></i>
+                            <i class="text-accent bi" [ngClass]="kpi.icon"></i>
                         </div>
                         <div>
                             <h6 class="kpi-label text-muted text-uppercase mb-0">
@@ -44,7 +44,7 @@
             <!-- Department Dropdown -->
             <div class="d-flex align-items-center mr-1">
                 <label class="toolbar-label mb-0">Department</label>&nbsp;
-                <app-my-select class="form-select toolbar-select" placeholder="Select Department"
+                <app-my-select class="form-select toolbar-select max-width200" placeholder="Select Department"
                     [(ngModel)]="selectedDepartmentIds" (dropdownClosed)="onDepartmentSelectionChange($event)"
                     [options]="filteredDepartmentList" displayKey="name" valueKey="deptId" [multiple]="true">
                 </app-my-select>
@@ -52,24 +52,27 @@
             <div class="toolbar-divider ml-1 mr-1"></div>
             <!-- Search -->
             <div class="d-flex align-items-center ml-1 mr-1">
-                <app-my-select class="form-select toolbar-select" placeholder="Select Employee"
+                <app-my-select class="form-select toolbar-select max-width200" placeholder="Select Employee"
                     [(ngModel)]="selectedEmpId" [options]="filteredEmployeeList" displayKey="name" valueKey="empId"
                     [multiple]="false">
                 </app-my-select>
             </div>
             <!-- 360 Button -->
-            <button class="btn toolbar-btn ml-1 mr-1">
+            <button class="btn toolbar-btn ml-1 mr-1"
+                [title]="!isValidEmployee ? 'Select a valid employee to Open Employee 360 View' : ''"
+                [disabled]="!isValidEmployee" [navigateToEmployee360]="isValidEmployee ? selectedEmpId : null">
                 <i class="bi bi-file-earmark-text me-1"></i> 360°
             </button>
             <!-- Summary Button -->
-            <button class="btn btn-summary ml-1 mr-1">
+            <button class="btn btn-summary ml-1 mr-1" [disabled]="!selectedEmpId"
+                (click)="openProjectTimesheetSummaryModal(selectedEmpId)">
                 <i class="bi bi-graph-up-arrow me-1"></i> Summary
             </button>
         </div>
         <!-- Right Section -->
-        <div class="d-flex align-items-center ml-1 mr-1">
+        <div class="d-flex align-items-center ml-1 mr-1" *ngIf="isReportTabVisible">
             <label class="toggle-switch">
-                <input type="checkbox" [(ngModel)]="isEmployeeView" />
+                <input type="checkbox" [(ngModel)]="isEmployeeView" (change)="goToReportTab()" />
                 <span class="slider"></span>
             </label>&nbsp;
             <span class="toggle-label mb-2">Employee View</span>
@@ -88,64 +91,73 @@
             </div>
 
             <!-- Alert Row -->
-            <div class="alert-banner d-flex align-items-center gap-2 rounded px-3 py-2 mb-4">
+            <div class="d-flex align-items-center gap-2 rounded px-3 py-2 mb-4">
                 <i class="bi bi-exclamation-triangle text-warning"></i>&nbsp;
-                <span class="small fw-semibold">{{ attentionRequiredProjectCount || 0 }} Projects Need
-                    Attention:</span>&nbsp;
+                <span class="small fw-semibold">
+                    <!-- {{ attentionRequiredProjectCount || 0 }} -->
+                    Projects Need Attention:</span>&nbsp;
                 <div class="d-flex align-items-center gap-3 ms-2">
-                    <span class="project-alert-card x-small text-muted mr-1"
-                        *ngFor="let a of attentionRequiredProjectAlerts">
-                        <span class="fw-bold text-dark">{{ a.value || 0 }}</span> {{ a.label }}
+                    <span class="project-alert-card x-small text-muted mr-1 cursor-pointer"
+                        *ngFor="let a of attentionRequiredProjectAlerts"
+                        (click)="onProjectStatusSelect(a.subKey, [], true)">
+                        <span class="fw-bold text-blue">{{ a.value || 0 }}</span> {{ a.label }}
                     </span>
                 </div>
             </div>
 
             <!-- Status Cards -->
             <div class="row g-3 mb-4">
-                <div class="col-2" *ngFor="let card of statusCards">
-                    <div class="status-card rounded p-1">
-                        <div class="d-flex align-items-center">
-                            <div class="col-3 pl-1">
-                                <div class="icon-circle-accent d-flex align-items-center justify-content-center">
-                                    <i class="bi text-accent" [ngClass]="[card.icon, card.colorClass]"></i>
+                <ng-container *ngFor="let card of statusCards">
+                    <div class="col-2" *ngIf="card.display">
+                        <div class="status-card border rounded pr-1 p-1"
+                            (click)="onProjectStatusSelect(card.key, statusCards)">
+                            <div class="d-flex align-items-center">
+                                <div class="col-3 pl-1">
+                                    <div class="icon-circle-accent circle d-flex align-items-center justify-content-center"
+                                        [ngStyle]="{'background-color': card.color}">
+                                        <i class="white bi " [ngClass]="[card.icon]"></i>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-9 pl-2 pr-1">
-                                <div class="d-flex align-items-center flex-column gap-2 mb-1">
-                                    <span class="kpi-label align-self-start text-muted mb-0">{{ card.label }}</span>
-                                    <h6 class="fs-4 align-self-start fw-bold mb-0">{{ card.value || 0 }}</h6>
+                                <div class="col-9 pl-2 pr-1">
+                                    <div class="d-flex align-items-center flex-column gap-2 mb-1">
+                                        <span class="kpi-label align-self-start text-muted mb-0">{{ card.label }}</span>
+                                        <h6 class="fs-4 align-self-start fw-bold mb-0">{{ card.value || 0 }}</h6>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </ng-container>
             </div>
 
             <!-- Billing Loss Risk Score -->
-            <!-- <div class="status-card rounded p-3 mb-4">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="kpi-label fw-semibold text-uppercase">Billing Loss Risk Score</span>
-                    <span class="x-small text-muted">70 risk factors / 77 projects</span>
+            <div class="status-card border rounded p-3 mb-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="kpi-label text-uppercase">Billing Loss Risk Score</span>
+                    <span class="x-small text-muted">{{attentionRequiredProjectCount}} risk factors / {{
+                        statusCards[0]?.value}}
+                        projects</span>
                 </div>
-                <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3" (click)="intializeBillingLossProgressBar()">
                     <div class="flex-grow-1">
-                        <div class="progress risk-progress">
-                            <div class="progress-bar risk-bar" role="progressbar" aria-valuenow="91" aria-valuemin="0"
-                                aria-valuemax="100"></div>
+                        <div class="risk-bar-bg">
+                            <div class="risk-bar-fill animate" [style.width.%]="attentionRequiredProjectCountPercent">
+                            </div>
                         </div>
                     </div>
-                    <span class="fs-4 fw-bold">91%</span>
+                    <span class="fs-4 fw-bold">{{ attentionRequiredProjectCountPercent + '%' }} </span>
                 </div>
-                <p class="x-small text-muted mt-1 mb-0">Includes Understaffed, Overstaffed, Defaulters, Expired TNM, and No Timesheet projects</p>
-            </div> -->
+                <p class="x-small text-muted mt-1 mb-0">Includes Underboarded, Overboarded, Defaulters, Expired TNM, and
+                    No Timesheet projects</p>
+            </div>
 
             <!-- Project Lifecycle -->
             <div class="mb-4">
                 <p class="kpi-label text-muted text-uppercase mb-3">Project Lifecycle</p>
                 <div class="row g-3">
                     <ng-container *ngFor="let stage of projectLifeCycleStages; let i = index">
-                        <div class="col">
-                            <div class="status-card rounded p-1 text-center position-relative">
+                        <div class="col" (click)="onProjectStatusSelect(stage.key, projectLifeCycleStages)">
+                            <div class="status-card border rounded p-1 text-center position-relative">
                                 <i [ngClass]="[stage.icon, stage.colorClass]" class="mb-1"></i>
                                 <h6 class="fs-4 fw-bold mb-1" [ngClass]="stage.colorClass">{{ stage.value || 0 }}</h6>
                                 <h6 class="x-small fw-semibold mb-1">{{ stage.label }}</h6>
@@ -159,73 +171,177 @@
                 </div>
             </div>
 
-            <!-- Understaffed / Overboarded + Key Insights -->
-            <div class="row">
-                <div class="col-8">
+            <!-- Underboarded / Overboarded + Key Insights -->
+            <div class="row mb-4">
+                <div class="col-8 pr-2">
                     <div class="row">
-                        <!-- Understaffed -->
-                        <div class="col-6 mb-2 pr-1">
-                            <div class="status-card rounded p-3 d-flex justify-content-around align-items-center gap-3">
-                                <div id="understaffedChart" style="height: 120px; width: 150px;">
+                        <!-- Deboarded -->
+                        <div class="col-4 mb-3 pr-1"
+                            (click)="onProjectStatusSelect(resourceCards[2].key, resourceCards)">
+                            <div
+                                class="status-card border rounded p-3 d-flex justify-content-around align-items-center gap-3">
+                                <div id="OFFBOARDED_Chart" style="height: 120px; width: 150px;">
                                 </div>
                                 <div>
-                                    <h5 class="x-small fw-semibold mb-1">Understaffed</h5>
+                                    <h5 class="x-small fw-semibold mb-1">Deboarded</h5>
+                                    <p class="x-small text-muted mb-0">
+                                        {{ resourceCards[2].value || 0 }} of {{statusCards[2].value || 0}} TNM</p>
+                                    <p class="x-small text-muted mb-0">{{getPercentage(resourceCards[2].value,
+                                        statusCards[2].value || 0) + ' % of TNM'}} </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Underboarded -->
+                        <div class="col-4 mb-3 pl-1 pr-1"
+                            (click)="onProjectStatusSelect(resourceCards[0].key, resourceCards)">
+                            <div
+                                class="status-card border rounded p-3 d-flex justify-content-around align-items-center gap-3">
+                                <div id="UNDERBOARDED_Chart" style="height: 120px; width: 150px;">
+                                </div>
+                                <div>
+                                    <h5 class="x-small fw-semibold mb-1">Underboarded</h5>
                                     <p class="x-small text-muted mb-0">
                                         {{ resourceCards[0].value || 0 }} of {{ statusCards[2].value || 0 }} TNM</p>
-                                    <p class="x-small text-muted mb-0">33% of TNM</p>
+                                    <p class="x-small text-muted mb-0">{{getPercentage(resourceCards[0].value,
+                                        statusCards[2].value || 0) + ' % of TNM'}}</p>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Overboarded -->
-                        <div class="col-6 mb-2 pl-1">
-                            <div class="status-card rounded p-3 d-flex justify-content-around align-items-center gap-3">
-                                <div id="overboardedChart" style="height: 120px; width: 150px;">
+                        <div class="col-4 mb-3 pl-1"
+                            (click)="onProjectStatusSelect(resourceCards[1].key, resourceCards)">
+                            <div
+                                class="status-card border rounded p-3 d-flex justify-content-around align-items-center gap-3">
+                                <div id="OVERBOARDED_Chart" style="height: 120px; width: 150px;">
                                 </div>
                                 <div>
                                     <h5 class="x-small fw-semibold mb-1">Overboarded</h5>
                                     <p class="x-small text-muted mb-0">
                                         {{ resourceCards[1].value || 0 }} of {{statusCards[2].value || 0}} TNM</p>
-                                    <p class="x-small text-muted mb-0">22% of TNM</p>
+                                    <p class="x-small text-muted mb-0">{{getPercentage(resourceCards[1].value,
+                                        statusCards[2].value || 0) + ' % of TNM'}} </p>
                                 </div>
                             </div>
                         </div>
 
                         <!-- TNM Expired -->
                         <div class="col-12">
-                            <div class="status-card rounded p-3">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="status-card border rounded p-3">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
                                     <p class="kpi-label text-muted text-uppercase mb-0">TNM Expired</p>
                                 </div>
-                                <div id="tnmExpiredChart" style="height: 250px;"></div>
-                                <p class="xx-small text-muted mt-2 mb-0">Darker = older = higher priority</p>
+                                <div id="TOTAL_EXPIRED_TNM_Chart" style="height: 180px;"></div>
+                                <p class="xx-small text-muted mt-1 mb-0">Darker = older = higher priority</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Key Insights -->
-                <div class="col-4 mb-2">
-                    <div class="status-card rounded p-3">
-                        <p class="kpi-label fw-semibold text-uppercase mb-3 d-flex align-items-center gap-1">
-                            <span class="insight-icon d-inline-flex align-items-center justify-content-center">i</span>
+                <div class="col-4 mb-2 pl-2">
+                    <div class="status-card border rounded p-3">
+                        <p class="kpi-label text-muted text-uppercase mb-0">
+                            <i class="bi bi-exclamation-circle"></i>&nbsp;
                             Key Insights
                         </p>
-                        <div class="d-flex flex-column gap-3">
-                            <div class="d-flex align-items-start gap-2" *ngFor="let insight of insights">
-                                <span class="insight-dot mt-1" [ngClass]="insight.colorClass"></span>
-                                <div class="flex-grow-1 min-width-0">
-                                    <p class="x-small fw-semibold mb-0 lh-sm">{{ insight.text }}</p>
-                                    <p class="xx-small text-muted mb-0">{{ insight.sub }}</p>
-                                </div>
-                                <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                                    <div class="insight-bar-bg">
-                                        <div class="insight-bar-fill" [ngClass]="insight.colorClass"></div>
+                        <ng-container *ngFor="let insight of insights">
+                            <div class="mt-1" *ngIf="insight.value && insight.value != 0"
+                                (click)="handleInsightClick(insight)">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <div class="d-flex justify-content-start align-items-center">
+                                            <span class="insight-dot"
+                                                [ngClass]="{'dot-critical': insight.status === 'critical','dot-warning': insight.status === 'warning','dot-ok': insight.status === 'ok'}">
+                                            </span>&nbsp;
+                                            <p class="x-small fw-semibold mb-0">
+                                                <span *ngIf="!['HIGHEST_EXPIRED_TNM_BUCKET'].includes(insight.key)"> {{
+                                                    insight.value }}</span>
+                                                <span>{{ insight.text }}</span>
+                                            </p>
+                                        </div>
                                     </div>
-                                    <span class="xx-small text-muted">{{ insight.stat }}</span>
-                                    <span *ngIf="insight.badge" class="xx-small text-success fw-semibold">↗{{
-                                        insight.badge
-                                        }}</span>
+                                    <div class="col-4">
+                                        <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                            <div class="insight-bar-bg">
+                                                <div class="insight-bar-fill" [style.width.%]="insight.percentage"
+                                                    [ngClass]="{'bg-critical': insight.status === 'critical','bg-warning': insight.status === 'warning','bg-ok': insight.status === 'ok'}">
+                                                </div>
+                                            </div>
+                                            <span class="xx-small text-muted">
+                                                {{ insight.stat }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-8">
+                                        <div class="flex justify-content-center align-items-center">
+                                            <p class="xx-small text-muted mb-0 ml-2"
+                                                *ngIf="insight?.subText && insight?.subText != undefined && insight?.subText != null && insight?.subText?.trim() != ''">
+                                                {{ insight.subText }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fixed Cost / No Timesheet / Completed -->
+            <div class="row">
+                <!-- Fixed Cost -->
+                <div class="col-4 mb-2 pr-1">
+                    <div class="status-card border rounded p-3">
+                        <div class="card-body p-2">
+                            <p class="kpi-label text-muted text-uppercase mb-1">Fixed Cost</p>
+                            <div id="TOTAL_FC_Chart" style="height: 130px"></div>
+                            <p class="xx-small text-muted mt-1 mb-0">On Time + Defaulter = Active</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No Timesheet -->
+                <div class="col-4 mb-2 pr-1 pl-1">
+                    <div class="status-card border rounded p-3">
+                        <div class="card-body p-2">
+                            <p class="kpi-label text-muted text-uppercase mb-1">No Timesheet</p>
+                            <div id="TIMESHEET_NON_COMPLIANCE_Chart" style="height: 130px"></div>
+                            <p class="xx-small text-muted mt-1 mb-0">Projects with zero timesheet entries</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Completed Projects -->
+                <div class="col-4 mb-2 pl-1">
+                    <div class="status-card border rounded pr-3 pl-3 pt-3">
+                        <div class="card-body p-1">
+                            <p class="kpi-label text-muted text-uppercase mb-1">Completed Projects</p>
+                            <div class="row">
+                                <div class="col-6 mb-1 p-1" *ngFor="let item of completedItems">
+                                    <div class="status-card border rounded pr-1 p-1"
+                                        (click)="onProjectStatusSelect(item.key, statusCards)">
+                                        <div class="row align-items-center justify-content-start pr-1 pl-1 pt-1">
+                                            <div class="col-3">
+                                                <div
+                                                    class="icon-circle-accent circle d-flex align-items-center justify-content-center">
+                                                    <i class="text-accent bi " [ngClass]="[item.icon]"></i>
+                                                </div>
+                                            </div>
+                                            <div class="col-9">
+                                                <h6 class="fs-4 align-self-start fw-bold mb-0">{{ item.value ||
+                                                    0 }}
+                                                </h6>
+                                            </div>
+                                        </div>
+                                        <div class="m-1">
+                                            <span class="kpi-label align-self-start text-muted mb-0">
+                                                {{ item.label }}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -236,33 +352,222 @@
         </div>
     </div>
 
+    <!-- EMPLOYEE STATUS SUMMARY -->
+    <div class="project-summary-section card border rounded p-2 mb-4">
+        <div class="card-body p-2">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="icon-circle-accent d-flex align-items-center justify-content-center mr-1">
+                        <i class="bi bi-people text-accent"></i>
+                    </div>
+                    <h5 class="fw-bold display-6 mb-0">Employee Status Summary</h5>
+                </div>
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <button class="btn toolbar-btn text-accent ml-1">
+                        <span class="toggle-option" [class.active]="selectedView === 'cards'"
+                            (click)="toggleView('cards')">
+                            <i class="bi bi-boxes me-1"></i>
+                            Cards
+                        </span> &nbsp;
+                        <span class="toggle-option" [class.active]="selectedView === 'distribution'"
+                            (click)="toggleView('distribution')"><i class="bi bi-link-45deg me-1"></i>
+                            Distribution
+                        </span>
+                    </button>&nbsp;
+                    <span class="x-small text-muted text-accent text-uppercase">VIEW</span>
+                </div>
+            </div>
+
+            <ng-container *ngIf="selectedView === 'cards'">
+                <!-- Workforce Overview -->
+                <p class="kpi-label text-muted text-uppercase mb-1">
+                    <i class="bi bi-dot fw-bold" style="color: #1B294B;"></i>
+                    Workforce Overview
+                </p>
+                <div class="row g-3 mb-4">
+                    <div class="col-4" *ngFor="let item of workforceOverview">
+                        <div class="status-card border rounded pb-1 pt-2 pl-3 pr-3 "
+                            (click)="openEmployeeDetailsModal(item)">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <div class="icon-circle-accent circle d-flex align-items-center justify-content-center mr-2"
+                                    [ngStyle]="{'background-color': item.bgColor}">
+                                    <i class="white bi " [ngClass]="[item.icon]"></i>
+                                </div>
+                                <div class="d-flex flex-column gap-2 mb-1">
+                                    <span class="x-small fw-semibold text-muted">{{ item.label }}</span>
+                                    <h6 class="fw-bold mb-1">{{ item.value || 0 }}</h6>
+                                    <h6 class="xx-small text-muted mb-1">
+                                        {{ getPercentage(item.value, workforceOverview[0].value) || 0 }} % of total — {{
+                                        item.desc }}
+                                    </h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Distribution -->
+                <p class="kpi-label text-muted text-uppercase mb-1">
+                    <i class="bi bi-dot fw-bold" style="color: #799DD1;"></i>
+                    Project Distribution (Internal vs Client)
+                </p>
+                <div class="row g-3 mb-4">
+                    <div class="col-4" *ngFor="let item of projectDistribution; let i = index">
+                        <div class="status-card border rounded pb-1 pt-2 pl-3 pr-3"
+                            (click)="openEmployeeDetailsModal(item)">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <div class="icon-circle-accent circle d-flex align-items-center justify-content-center mr-2"
+                                    [ngStyle]="{'background-color': item.bgColor}">
+                                    <i class="white bi " [ngClass]="[item.icon]"></i>
+                                </div>
+                                <div class="d-flex flex-column gap-2 mb-1">
+                                    <span class="x-small fw-semibold text-muted">{{ item.label }}</span>
+                                    <h6 class="fw-bold mb-1">{{ item.value || 0 }}</h6>
+                                    <h6 class="xx-small text-muted mb-1">
+                                        {{ getPercentage(item.value, workforceOverview[0].value) || 0 }} % of total — {{
+                                        item.desc }}
+                                    </h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk & Attention -->
+                <p class="kpi-label text-muted text-uppercase mb-1">
+                    <i class="bi bi-dot fw-bold" style="color: #E3AEAE;"></i>
+                    Risk &amp; Attention
+                </p>
+                <div class="row g-3 mb-4">
+                    <div class="col-4" *ngFor="let item of riskItems; let i = index">
+                        <div class="status-card border rounded pb-1 pt-2 pl-3 pr-3 "
+                            (click)="openEmployeeDetailsModal(item)">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <div class="icon-circle-accent circle d-flex align-items-center justify-content-center mr-2"
+                                    [ngStyle]="{'background-color': item.bgColor}">
+                                    <i class="white bi " [ngClass]="[item.icon]"></i>
+                                </div>
+                                <div class="d-flex flex-column gap-2 mb-1">
+                                    <span class="x-small fw-semibold text-muted">{{ item.label }}</span>
+                                    <h6 class="fw-bold mb-1">{{ item.value || 0 }}</h6>
+                                    <h6 class="xx-small text-muted mb-1">
+                                        {{ getPercentage(item.value, workforceOverview[0].value) || 0 }} % of total — {{
+                                        item.desc }}
+                                    </h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+            <ng-container *ngIf="selectedView === 'distribution'">
+                <div class="d-flex">
+                    <div class="col-6 p-2 m-1">
+                        <div class="status-card border rounded p-3 d-flex align-items-center gap-3">
+                            <div id="distributionChart" style="width:100%; height:300px;"></div>
+                        </div>
+                    </div>
+                    <div class="col-6 p-2 m-1">
+                        <p class="kpi-label text-muted text-uppercase mb-1">
+                            Quick Stats
+                        </p>
+                        <div class="row ml-1" *ngFor="let item of workforceOverview">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="d-flex align-items-center flex-grow-1">
+                                    <span class="insight-dot me-2 mr-1" [ngStyle]="{'background-color': item.bgColor}">
+                                    </span>
+                                    <p class="x-small fw-semibold mb-0">
+                                        {{ item.label }}
+                                    </p>
+                                </div>
+                                <div class="text-end me-3" style="min-width: 60px;">
+                                    <p class="mb-0">
+                                        {{ item.value }}
+                                    </p>
+                                </div>
+                                <div class="text-end" style="min-width: 70px;">
+                                    <p class="xx-small text-muted mb-0">
+                                        {{ getPercentage(item.value, workforceOverview[0].value) || 0 }} %
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ml-1" *ngFor="let item of projectDistribution">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="d-flex align-items-center flex-grow-1">
+                                    <span class="insight-dot me-2 mr-1" [ngStyle]="{'background-color': item.bgColor}">
+                                    </span>
+                                    <p class="x-small fw-semibold mb-0">
+                                        {{ item.label }}
+                                    </p>
+                                </div>
+                                <div class="text-end me-3" style="min-width: 60px;">
+                                    <p class="mb-0">
+                                        {{ item.value }}
+                                    </p>
+                                </div>
+                                <div class="text-end" style="min-width: 70px;">
+                                    <p class="xx-small text-muted mb-0">
+                                        {{ getPercentage(item.value, workforceOverview[0].value) || 0 }} %
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <p class="kpi-label text-muted text-uppercase mb-1">
+                            Risk Items
+                        </p>
+                        <div class="row ml-1" *ngFor="let item of riskItems">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="d-flex align-items-center flex-grow-1">
+                                    <span class="insight-dot me-2 mr-1" [ngStyle]="{'background-color': item.bgColor}">
+                                    </span>
+                                    <p class="x-small fw-semibold mb-0">
+                                        {{ item.label }}
+                                    </p>
+                                </div>
+                                <div class="text-end me-3" style="min-width: 60px;">
+                                    <p class="mb-0">
+                                        {{ item.value }}
+                                    </p>
+                                </div>
+                                <div class="text-end" style="min-width: 70px;">
+                                    <p class="xx-small text-muted mb-0">
+                                        {{ getPercentage(item.value, workforceOverview[0].value) || 0 }} %
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
 
     <!-- Projects Details Table -->
-    <div class="project-details-section card border rounded p-2 mb-4">
+    <div class="project-details-section card border rounded p-2 mb-1" id="projectTable">
         <div class="card-body p-2">
             <div class="d-flex align-items-center justify-content-between mb-3">
-                <h3 class="small fw-bold mb-0">
-                    {{selectedProjectStatusLabel}}
-                    <span class="text-muted fw-normal">
-                    </span>
-                </h3>
-                <div class="d-flex align-items-center">
-                    <button
-                        class="btn btn-link text-accent text-decoration-none x-small fw-medium d-flex align-items-center"
-                        matButton [matMenuTriggerFor]="downloadMenu" *ngIf="projectDetailsList.length > 0">
+                <h5 class="fw-bold text-uppercase display-6 mb-0"> {{ selectedProjectStatusLabel }}</h5>
+                <div class="d-flex align-items-center" *ngIf="projectDetailsList.length > 0 || isProjectSearchEnabled">
+                    <button class="btn text-accent small d-flex align-items-center" (click)="toggleProjectSearch()">
+                        <i class="mr-1 "
+                            [ngClass]="{ 'bi bi-search' : !isProjectSearchEnabled, 'bi bi-x': isProjectSearchEnabled}"></i>
+                    </button>
+                    <button class="btn text-accent small d-flex align-items-center" matButton
+                        [matMenuTriggerFor]="downloadMenu">
                         <i class="bi bi-download mr-1"></i>Export
                     </button>
                     <mat-menu #downloadMenu="matMenu">
-                        <button mat-menu-item (click)="exportPageProjectDetailsToExcel(projectDetailsList)"
-                            class="btn btn-sm">
-                            <i class="bi bi-file-download"></i> Download Page Data
+                        <button mat-menu-item (click)="exportPageProjectDetailsToExcel(projectDetailsList)">
+                            <i class="bi bi-file-arrow-down-fill text-accent "></i> Download Page Data
                         </button>
-                        <button mat-menu-item (click)="exportAllFilteredPageProjectDetailsToExcel()" class="btn btn-sm">
-                            <i class="bi bi-cloud-download"></i> Download All Data
+                        <button mat-menu-item (click)="exportAllFilteredPageProjectDetailsToExcel()">
+                            <i class="bi bi-cloud-arrow-down"></i> Download All Data
                         </button>
                     </mat-menu>
                     <mat-select class="form-select toolbar-select min-width80" [(ngModel)]="projectPageSize"
-                        (dropdownClosed)="onProjectPageSizeChange()">
+                        (ngModelChange)="onProjectPageSizeChange()">
                         <mat-option *ngFor="let opt of pageSizeOptions" [value]="opt">
                             {{ opt }}
                         </mat-option>
@@ -422,21 +727,21 @@
                                     {{ project?.clientRM ||'NA'}}
                                 </td>
                                 <td class="max-width200 min-width200 truncate"
-                                    [title]="project?.projectStartDate ? (project?.projectStartDate | date : 'dd/MM/yyyy') : 'NA'">
-                                    {{ project?.projectStartDate ? (project?.projectStartDate | date : 'dd/MM/yyyy') :
+                                    [title]="project?.projectStartDate ? (project?.projectStartDate | date : 'dd-MM-yyyy') : 'NA'">
+                                    {{ project?.projectStartDate ? (project?.projectStartDate | date : 'dd-MM-yyyy') :
                                     'NA'}}
                                 </td>
                                 <td class="max-width200 min-width200 truncate"
-                                    [title]="project?.projectEndDate ? ( project?.projectEndDate | date: 'dd/MM/yyyy') : 'NA'">
-                                    {{ project?.projectEndDate ? ( project?.projectEndDate | date: 'dd/MM/yyyy') :
+                                    [title]="project?.projectEndDate ? ( project?.projectEndDate | date: 'dd-MM-yyyy') : 'NA'">
+                                    {{ project?.projectEndDate ? ( project?.projectEndDate | date: 'dd-MM-yyyy') :
                                     'NA'}}
                                 </td>
                                 <td class="max-width200 min-width200 truncate" [title]="project?.state || 'NA'">
                                     {{ project?.state || 'NA'}}
                                 </td>
                                 <td class="max-width200 min-width200 truncate"
-                                    [title]=" project?.createdOn ? (project?.createdOn | date: 'dd/MM/yyyy') : 'NA'">
-                                    {{ project?.createdOn ? (project?.createdOn | date: 'dd/MM/yyyy') : 'NA' }}
+                                    [title]=" project?.createdOn ? (project?.createdOn | date: 'dd-MM-yyyy') : 'NA'">
+                                    {{ project?.createdOn ? (project?.createdOn | date: 'dd-MM-yyyy') : 'NA' }}
                                 </td>
                                 <td class="max-width200 min-width200 truncate" [title]="project?.status || 'NA'">
                                     {{ project?.status || 'NA'}}
@@ -453,7 +758,8 @@
                     </tbody>
                 </table>
             </div>
-            <div class="pagination-container d-flex justify-content-between align-items-center">
+            <div class="pagination-container d-flex justify-content-between align-items-center"
+                *ngIf="totalProjectsCount > 0">
                 <div class="pagination-info">
                     {{ startIndex }} – {{ endIndex }} of {{ totalProjectsCount }}
                 </div>
@@ -478,6 +784,34 @@
     </div>
 
 </main>
+
+<ng-template #employee_details>
+    <div class="modal-header">
+        <h5 class="text-uppercase">{{selectedEmployeeStatusLabel}}</h5>
+        <button class="btn btn-sm btn-outline-primary" (click)="closeEmployeeDetailsModal()"><i
+                class="fa fa-xmark m-0"></i></button>
+    </div>
+    <div class="modal-body mb-3">
+        <app-my-table [apiUrl]="getEmployeeListByEmployeeGroupUrl" [columns]="employeeDetailsColumnConfig"
+            [defaultSortColumn]="employeeDetailsDefaultSortColumn" [isRowExpandable]="true"
+            [extraParams]="employeeDetailsExtraParams" [isExportAllowed]="true" [isSearchAllowed]="true"
+            [subTableColumnConfig]="employeeDetailsSubTableColumnConfig" [subTableData]="[]" [mergeRowData]="true"
+            [defaultCellMergeColumn]="'employmentIdAcToET'" [defaultSubTableCellMergeColumn]="">
+        </app-my-table>
+    </div>
+</ng-template>
+
+<ng-template #project_timesheet_summary>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Project Timesheet Summary</h4>
+        <button type="button" class="close pull-right" aria-label="Close" (click)="closeProjectTimesheetSummaryModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div id="projectTimesheetSummaryChart" style="width:100%; height: 500px;"></div>
+    </div>
+</ng-template>
 
 <ng-template #alert_message>
     <div class="modal-body text-center">

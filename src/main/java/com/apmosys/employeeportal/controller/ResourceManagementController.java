@@ -796,6 +796,11 @@ public class ResourceManagementController {
 			return null;
 		}
 		return resourceManagementService.getEmployeeTeamDepartment(teamId , empId , date);
+	}
 
+	// @Encrypted
+	@PostMapping("/getBillingLossRiskScore")
+	public ServiceResponse getBillingLossRiskScore(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getBillingLossRiskScore(rmgDashboardProjectRequest);
 	}
 }

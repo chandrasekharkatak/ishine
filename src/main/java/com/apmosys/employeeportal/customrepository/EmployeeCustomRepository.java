@@ -362,7 +362,7 @@ public class EmployeeCustomRepository {
                 sortBy);
 
         Map<String, String> searchFilter = pageDTO.getSearchFilter();
-        String baseQuery = getUnfilledTimesheetProjectDetailsQuery(isAllAccessEmployee);
+        String baseQuery = getUnfilledTimesheetProjectDetailsQuery(isAllAccessEmployee, fromDate, toDate);
 
         List<Long> projectIdsTemp = getProjectIdsByBaseQuery(baseQuery, pageDTO.getSortColumn(), sortDirection,
                 pageable, projectIds,
@@ -788,7 +788,7 @@ public class EmployeeCustomRepository {
         return query.toString();
     }
 
-    public String getUnfilledTimesheetProjectDetailsQuery(boolean isAllAccessEmployee) {
+    public String getUnfilledTimesheetProjectDetailsQuery(boolean isAllAccessEmployee, LocalDate fromDate, LocalDate toDate) {
         StringBuilder query = new StringBuilder();
         query
                 .append(" FROM projects p  \n")
@@ -815,7 +815,11 @@ public class EmployeeCustomRepository {
                 .append(" INNER JOIN activities a ON a.activity_id = etam.activity_id  \n")
                 .append(" RIGHT JOIN teams t2 ON t2.team_id = a.team_id  \n")
                 .append(" INNER JOIN projects p2 ON p2.project_id = t2.project_id  \n")
-                .append(" WHERE et.date >= :fromDate AND et.date <= :toDate ) \n");
+                .append(" WHERE 1=1 \n");
+                if (fromDate != null && toDate != null) {
+                    query.append(" AND et.date >= :fromDate AND et.date <= :toDate \n");
+                }
+                query.append(" ) \n");
         return query.toString();
     }
 
@@ -1278,7 +1282,7 @@ public class EmployeeCustomRepository {
 
     public Long getUnfilledTimesheetProjectDetailsCount(boolean isAllAccessEmployee, List<Long> deptIds,
             Set<Integer> projectIds, LocalDate fromDate, LocalDate toDate) {
-        String baseQuery = getUnfilledTimesheetProjectDetailsQuery(isAllAccessEmployee);
+        String baseQuery = getUnfilledTimesheetProjectDetailsQuery(isAllAccessEmployee, fromDate, toDate);
         Long total = 0l;
         try (Session session = entityManager.unwrap(Session.class)) {
             StringBuilder countQuery = new StringBuilder("SELECT COUNT(DISTINCT p.project_id) ").append(baseQuery);

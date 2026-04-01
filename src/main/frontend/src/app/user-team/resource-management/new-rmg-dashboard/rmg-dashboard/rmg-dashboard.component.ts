@@ -27,7 +27,9 @@ import * as Highcharts from 'highcharts';
 import HC_more from 'highcharts/highcharts-more';
 import HC_solidGauge from 'highcharts/modules/solid-gauge';
 import HC_xrange from 'highcharts/modules/xrange';
+import VennModule from 'highcharts/modules/venn';
 
+VennModule(Highcharts);
 HC_more(Highcharts);
 HC_solidGauge(Highcharts);
 HC_xrange(Highcharts);
@@ -78,29 +80,23 @@ export class RmgDashboardComponent implements OnInit {
   totalProjectsSummaryModalRef: NgbModalRef;
   timesheetNonComplianceProjectDetailsModalRef: NgbModalRef;
   teamProjectStatusSummaryModalRef: NgbModalRef;
+  projectTimesheetSummaryModalRef: NgbModalRef;
 
   // HTML Configs 
   kpis = [
-    { label: 'TOTAL PROJECTS', value: null, change: null, period: 'vs last week', status: null, icon: 'bi-building' },
+    { label: 'TOTAL PROJECTS', value: null, change: null, period: 'vs last week', status: null, icon: 'bi-lightning' },
     { label: 'EMPLOYEES ONBOARDED', value: null, change: null, period: 'vs last week', status: null, icon: 'bi-people' },
     { label: '% OF EMPLOYEES ON CLIENT PROJECTS', value: null, suffix: '%', change: null, period: 'vs last month', status: null, icon: 'bi-graph-up' },
   ];
 
-  attentionRequiredProjectAlerts = [
-    { value: null, label: 'Understaffed TNM' },
-    { value: null, label: 'Overstaffed TNM' },
-    { value: null, label: 'Defaulter FC' },
-    { value: null, label: 'Expired TNM' },
-    { value: null, label: 'No Timesheet' },
-  ];
-
   statusCards = [
-    { label: 'TOTAL PROJECTS', value: null, icon: 'bi-globe', colorClass: 'text-info', key: 'ALL' },
-    { label: 'ACTIVE PROJECTS', value: null, icon: 'bi-lightning', colorClass: 'text-warning', key: 'TOTAL' },
-    { label: 'TNM PROJECTS', value: null, icon: 'bi-activity', colorClass: 'text-success', key: 'TOTAL_TNM' },
-    { label: 'FIXED COST', value: null, icon: 'bi-currency-dollar', colorClass: 'text-info', key: 'TOTAL_FC' },
-    { label: 'MONITORING', value: null, icon: 'bi-bar-chart', colorClass: 'text-navy', key: 'TOTAL_MONITORING' },
-    { label: 'INTERNAL & BENCH', value: null, icon: 'bi-people', colorClass: 'text-success', key: 'TOTAL_INTERNAL' },
+    { label: 'TOTAL PROJECTS', value: null, icon: 'bi-globe', colorClass: 'text-info', key: 'ALL', color: '#7b8fc7', display: true },
+    { label: 'ACTIVE PROJECTS', value: null, icon: 'bi-lightning', colorClass: 'text-warning', key: 'TOTAL', color: '#6f85c0', display: true },
+    { label: 'TNM PROJECTS', value: null, icon: 'bi-currency-rupee', colorClass: 'text-success', key: 'TOTAL_TNM', color: '#627bb8', display: true },
+    { label: 'FIXED COST', value: null, icon: 'bi-suitcase-lg', colorClass: 'text-info', key: 'TOTAL_FC', color: '#4f68a9', display: true },
+    { label: 'MONITORING', value: null, icon: 'bi-bar-chart', colorClass: 'text-navy', key: 'TOTAL_MONITORING', color: '#3f5796', display: true },
+    { label: 'INTERNAL & BENCH', value: null, icon: 'bi-people', colorClass: 'text-success', key: 'TOTAL_INTERNAL', color: '#2f467f', display: true },
+    { label: 'ALL TNM PROJECTS', value: null, icon: 'bi-currency-rupee', colorClass: 'text-success', key: 'ALL_TNM', color: '#627bb8', display: false },
   ];
 
   projectLifeCycleStages = [
@@ -112,60 +108,216 @@ export class RmgDashboardComponent implements OnInit {
   ];
 
   resourceCards = [
-    { label: 'Understaffed', value: null, icon: 'bi-arrow-trend-down', colorClass: 'text-info', key: 'UNDERBOARDED' },
-    { label: 'Overboarded', value: null, icon: 'bi-arrow-trend-up', colorClass: 'text-warning', key: 'OVERBOARDED' }
+    { label: 'Underboarded', value: null, icon: 'bi-arrow-trend-down', colorClass: 'text-info', key: 'UNDERBOARDED', color: '#E69D23', subKey: 'UNDERBOARDED' },
+    { label: 'Overboarded', value: null, icon: 'bi-arrow-trend-up', colorClass: 'text-warning', key: 'OVERBOARDED', color: '#DB3838', subKey: 'OVERBOARDED' },
+    { label: 'Deboarded', value: null, icon: 'bi-person-dash', colorClass: 'text-muted', key: 'OFFBOARDED', color: '#6B7280' },
   ];
 
   tnmExpiredBars = [
-    { label: '12M+', value: null, width: 8, color: '#2f467f', key: 'expiredProjectsAbove12Months' },
-    { label: '6-12M', value: null, width: 14, color: '#3f5796', key: 'expiredProjects6To12Months' },
-    { label: '3-6M', value: null, width: 25, color: '#4f68a9', key: 'expiredProjects3To6Months' },
-    { label: '2-3M', value: null, width: 14, color: '#627bb8', key: 'expiredProjects2To3Months' },
-    { label: '1-2M', value: null, width: 17, color: '#6f85c0', key: 'expiredProjects1To2Months' },
-    { label: '0-1M', value: null, width: 22, color: '#7b8fc7', key: 'expiredProjectsWithin1Month' },
-  ];
-
-  insights = [
-    { text: '70 projects need attention', sub: '12 Understaffed · 8 Overstaffed · 5 Defaulter FC · 36 Expired · 9 No Timesheet', stat: '70/77', colorClass: 'bg-danger' },
-    { text: '1 project stuck in Pending Approval', sub: 'Approval bottleneck detected', stat: '1/52', colorClass: 'bg-warning' },
-    { text: '12 TNM projects understaffed', sub: '+2 since last week', stat: '12/36', colorClass: 'bg-danger', badge: '+2' },
-    { text: '8 TNM projects overboarded', sub: 'Wrong roles or excess staff', stat: '8/36', colorClass: 'bg-danger' },
-    { text: '8 TNM projects expired since 6+ months', sub: '3 expired >12 months — highest priority', stat: '8/36', colorClass: 'bg-warning' },
-    { text: '5 fixed cost defaulters', sub: '5 on time out of 10 active', stat: '5/10', colorClass: 'bg-warning' },
+    { label: 'Expired TNM', value: null, color: '#2f467f', key: 'allExpiredTNMProjectsCount', display: false, subKey: 'TOTAL_EXPIRED_TNM' },
+    { label: 'All', value: null, color: '#2f467f', key: 'allExpiredTNMProjectsCount', display: true },
+    { label: '0-1M', value: null, color: '#7b8fc7', key: 'expiredProjectsWithin1Month', display: true },
+    { label: '1-2M', value: null, color: '#6f85c0', key: 'expiredProjects1To2Months', display: true },
+    { label: '2-3M', value: null, color: '#627bb8', key: 'expiredProjects2To3Months', display: true },
+    { label: '3-6M', value: null, color: '#4f68a9', key: 'expiredProjects3To6Months', display: true },
+    { label: '6-12M', value: null, color: '#3f5796', key: 'expiredProjects6To12Months', display: true },
+    { label: '12M+', value: null, color: '#2f467f', key: 'expiredProjectsAbove12Months', display: true },
   ];
 
   fixedCostItems = [
-    { label: '3 Months', value: null },
-    { label: '6 Months', value: null },
-    { label: '1 Year', value: null },
+    { key: "all", label: 'Active', value: null, color: '#1B294B' },
+    { key: "defaulter", label: 'Defaulter', value: null, color: '#A2AFCD', subKey: 'TOTAL_FC' },
+    { key: "ontime", label: 'On Time', value: null, color: '#4468BB' },
+  ];
+
+  zeroTimesheetBars = [
+    { label: 'No Timesheet', value: null, color: '#2f467f', key: 'All', display: false, subKey: 'TIMESHEET_NON_COMPLIANCE' },
+    { label: '3 Months', value: null, color: '#5677C2', key: '3M', display: true },
+    { label: '6 Months', value: null, color: '#CC9433', key: '6M', display: true },
+    { label: '1 Year', value: null, color: '#C65353', key: '1Y', display: true },
   ];
 
   completedItems = [
-    { label: 'iShine Closed', value: null },
-    { label: 'Shankh Closed', value: null },
-    { label: 'Shankh + Active', value: null },
+    { key: 'COMPLETED_IN_ISHINE', label: 'iShine Closed', value: null, icon: 'bi-check-circle' },
+    { key: 'COMPLETED_IN_SHANKH', label: 'Shankh Closed', value: null, icon: 'bi-check-circle' },
+    { key: 'COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE', label: 'Shankh + Active', value: null, icon: 'bi-flag' },
+  ];
+
+  attentionRequiredProjectAlerts = [
+    this.resourceCards[0], // Underboarded
+    this.resourceCards[1], // Overboarded
+    this.fixedCostItems[1], // Defaulter FC
+    this.tnmExpiredBars[0], // All Expired Tnm
+    this.zeroTimesheetBars[0]
+  ];
+
+  insights = [
+    { key: 'PENDING_FOR_APPROVAL', value: null, text: ' project(s) stuck in Pending Approval', subValue: null, subText: 'Approval bottleneck detected', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.projectLifeCycleStages },
+    { key: 'UNDERBOARDED', value: null, text: ' TNM project(s) Underboarded', subValue: null, subText: null, stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 9, criticalThreshold: 30, valueList: this.resourceCards },
+    { key: 'OVERBOARDED', value: null, text: ' TNM project(s) Overboarded', subValue: null, subText: 'Wrong roles or excess member', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.resourceCards },
+    { key: 'allExpiredTNMProjectsCount', value: null, text: ' TNM project(s) Expired since 6+ months', subValue: null, subText: '{projectCount} project(s) expired {bucketName} — highest priority', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.tnmExpiredBars },
+    { key: 'HIGHEST_EXPIRED_TNM_BUCKET', value: null, text: ' Highest TNM expiry: {projectCount} projects in {bucketName} bucket', subValue: null, subText: 'Largest concentration of expiring projects', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 0, valueList: this.tnmExpiredBars },
+    { key: 'defaulter', value: null, text: ' fixed cost defaulters', subValue: null, subText: '{projectCount} on time out of {totalProjectCount} active', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 30, criticalThreshold: 50, valueList: this.fixedCostItems },
+    { key: 'TIMESHEET_NON_COMPLIANCE', value: null, text: ' project(s) with no timesheet filled', subValue: null, subText: '', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 30, criticalThreshold: 50, valueList: this.zeroTimesheetBars },
+    { key: 'COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE', value: null, text: ' completed project(s) have active teams', subValue: null, subText: 'Resources not yet released', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 30, criticalThreshold: 50, valueList: this.completedItems },
+  ];
+
+  // EMPLOYEE MODAL DETAILS
+  getEmployeeListByEmployeeGroupUrl: string = 'api/getEmployeeDetailsListByEmployeeGroup';
+  employeeDetailsExtraParams: any = {};
+  employeeDetailsDefaultSortColumn: string = '';
+  employeeDetailsColumnConfig = [] = [];
+  employeeDetailsSubTableColumnConfig = [] = [];
+
+  getUnfilledTimesheetProjectDetailsListUrl: string = 'api/getUnfilledTimesheetProjectDetailsList';
+  projectDetailsExtraParams: any = {};
+  projectDetailsDefaultSortColumn: string = '';
+  projectDetailsColumnConfig = [] = [];
+  projectDetailsSubTableColumnConfig = [] = [];
+
+  notMappedEmployeesColumConfig = [
+    { field: 'employmentIdAcToET', header: 'Employment Id', sortable: true, searchable: true }
+    , { field: 'name', header: 'Employee Name', sortable: true, searchable: true }
+    , { field: 'departmentName', header: 'Department', sortable: true, searchable: true }
+    , { field: 'billableType', header: 'User Billable Type', sortable: true, searchable: true }
+    , { field: 'managerName', header: 'Manager Name', sortable: true, searchable: true }
+    , { field: 'jobRoleName', header: 'Job Role', sortable: true, searchable: true }
+  ];
+
+  onBenchButProjectAssignedEmployeesColumnConfig = [
+    { field: 'employmentIdAcToET', header: 'Employment Id', sortable: true, searchable: true }
+    , { field: 'name', header: 'Employee Name', sortable: true, searchable: true }
+    , { field: 'departmentName', header: 'Department', sortable: true, searchable: true }
+    , { field: 'billableType', header: 'User Billable Type', sortable: true, searchable: true }
+    , { field: 'billable', header: 'Is Billable', sortable: true, searchable: true }
+    , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
+    , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
+    , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
+    , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
+    , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false }
+    , { field: 'poEndDate', header: 'PO End Date', sortable: true, searchable: false }
+  ];
+
+  onBenchEmployeesColumnConfig = [
+    { field: 'employmentIdAcToET', header: 'Employment Id', sortable: true, searchable: true }
+    , { field: 'name', header: 'Employee Name', sortable: true, searchable: true }
+    , { field: 'departmentName', header: 'Department', sortable: true, searchable: true }
+    , { field: 'billable', header: 'Is Billable', sortable: true, searchable: true }
+    , { field: 'billableType', header: 'User Billable Type', sortable: true, searchable: true }
+    , { field: 'onbenchDate', header: 'On Bench Date', sortable: true, searchable: false }
+    , { field: 'dayOnbench', header: 'No Of Days On Bench', sortable: true, searchable: false }
+    , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
+    , { field: 'projectManagerName', header: 'Project Manager Name', sortable: true, searchable: true }
+    , { field: 'teamName', header: 'Team Name', sortable: true, searchable: true }
+    , { field: 'employeeRole', header: 'Employee Role', sortable: true, searchable: true }
+  ];
+
+  withoutBillabilityEmployeesColumnConfig = [
+    { field: 'employmentIdAcToET', header: 'Employment Id', sortable: true, searchable: true }
+    , { field: 'name', header: 'Employee Name', sortable: true, searchable: true }
+    , { field: 'departmentName', header: 'Department', sortable: true, searchable: true }
+    , { field: 'managerName', header: 'Manager Name', sortable: true, searchable: true }
+    , { field: 'jobRoleName', header: 'Job Role', sortable: true, searchable: true }
+  ];
+
+  mappedToInternalEmployeesColumnConfig = [
+    { field: 'employmentIdAcToET', header: 'Employment Id', sortable: true, searchable: true }
+    , { field: 'name', header: 'Employee Name', sortable: true, searchable: true }
+    , { field: 'departmentName', header: 'Department', sortable: true, searchable: true }
+    , { field: 'billable', header: 'Is Billable', sortable: true, searchable: true }
+    , { field: 'billableType', header: 'User Billable Type', sortable: true, searchable: true }
+    , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
+    , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
+    , { field: 'projectManagerName', header: 'Project Manager Name', sortable: true, searchable: true }
+    , { field: 'teamName', header: 'Team Name', sortable: true, searchable: true }
+    , { field: 'employeeRole', header: 'Employee Role', sortable: true, searchable: true }
+  ];
+
+  otherEmployeesColumnConfig = [
+    { field: 'employmentIdAcToET', header: 'Employment Id', sortable: true, searchable: true }
+    , { field: 'name', header: 'Employee Name', sortable: true, searchable: true }
+    , { field: 'departmentName', header: 'Department', sortable: true, searchable: true }
+    , { field: 'billable', header: 'Is Billable', sortable: true, searchable: true }
+    , { field: 'billableType', header: 'User Billable Type', sortable: true, searchable: true }
+    , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
+    , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
+    , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
+    , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
+    , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false }
+    , { field: 'poEndDate', header: 'PO End Date', sortable: true, searchable: false }
+    , { field: 'projectManagerName', header: 'Project Manager Name', sortable: true, searchable: true }
+    , { field: 'teamName', header: 'Team Name', sortable: true, searchable: true }
+    , { field: 'employeeRole', header: 'Employee Role', sortable: true, searchable: true }
+  ];
+
+  onBenchEmployeeDetailsSubTableColumnConfig = [
+    { field: 'projectName', header: 'Project Name', sortable: false, searchable: false }
+    , { field: 'clientName', header: 'Client Name', sortable: false, searchable: false }
+    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: false, searchable: false }
+    , { field: 'clientRM', header: 'Client RM', sortable: false, searchable: false }
+    , { field: 'poNo', header: 'PO No.', sortable: false, searchable: false }
+    , { field: 'poProjectType', header: 'PO Project Type', sortable: false, searchable: false }
+    , { field: 'poStartDate', header: 'PO Start Date', sortable: false, searchable: false }
+    , { field: 'poEndDate', header: 'PO End Date', sortable: false, searchable: false }
+  ];
+
+  mappedEmployeeDetailsSubTableColumnConfig = [
+    { field: 'projectName', header: 'Project Name', sortable: false, searchable: false }
+    , { field: 'clientName', header: 'Client Name', sortable: false, searchable: false }
+    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: false, searchable: false }
+    , { field: 'clientRM', header: 'Client RM', sortable: false, searchable: false }
+    , { field: 'poNo', header: 'PO No.', sortable: false, searchable: false }
+    , { field: 'poProjectType', header: 'PO Project Type', sortable: false, searchable: false }
+    , { field: 'poStartDate', header: 'PO Start Date', sortable: false, searchable: false }
+    , { field: 'poEndDate', header: 'PO End Date', sortable: false, searchable: false }
+    , { field: 'projectManagerName', header: 'Project Manager Name', sortable: false, searchable: false }
+    , { field: 'teamName', header: 'Team Name', sortable: false, searchable: false }
+    , { field: 'employeeRole', header: 'Employee Role', sortable: false, searchable: false }
+  ];
+
+  futureStartDateAssignedEmployeesColumnConfig = [
+    { field: 'employmentIdAcToET', header: 'Employment Id', sortable: true, searchable: true }
+    , { field: 'name', header: 'Employee Name', sortable: true, searchable: true }
+    , { field: 'departmentName', header: 'Department', sortable: true, searchable: true }
+    , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
+    , { field: 'teamName', header: 'Team Name', sortable: true, searchable: true }
+    , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
+    , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
+    , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
+    , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false }
+    , { field: 'poEndDate', header: 'PO End Date', sortable: true, searchable: false }
+    , { field: 'etmStartDate', header: 'Employee Start Date', sortable: true, searchable: false }
+    , { field: 'etmActive', header: 'Approval Status', sortable: false, searchable: false }
   ];
 
   workforceOverview = [
-    { icon: 'bi-people', label: 'Active Employees In Apmosys', value: '1,302', pct: '100%', desc: 'Full organization headcount', colorClass: 'text-info' },
-    { icon: 'bi-person-check', label: 'Assigned to Projects', value: '429', pct: '32.9%', desc: 'Mapped to ≥1 project', colorClass: 'text-success' },
-    { icon: 'bi-person-x', label: 'Unassigned Employees', value: '873', pct: '67.1%', desc: 'No active project mapping', colorClass: 'text-warning' },
+    { key: 'TOTAL', icon: 'bi-people', label: 'Active Employees In Apmosys', value: null, desc: 'Full organization headcount', colorClass: 'text-info', columnConfig: [], defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#1B294B' },
+    { key: 'MAPPED_TO_PROJECT', icon: 'bi-person-check', label: 'Assigned to Projects', value: null, desc: 'Mapped to ≥ 1 project', colorClass: 'text-success', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#64B497' },
+    { key: 'NOT_MAPPED_TO_ANY_PROJECT', icon: 'bi-person-x', label: 'Unassigned Employees', value: null, desc: 'No active project mapping', colorClass: 'text-warning', columnConfig: this.notMappedEmployeesColumConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#D68585' },
   ];
 
   projectDistribution = [
-    { icon: 'bi-building', label: 'Internal & Bench project Allocation', value: '187', pct: '14.4%', desc: 'Internal projects only', colorClass: 'text-info' },
-    { icon: 'bi-arrow-left-right', label: 'Dual Allocation (Internal & Client)', value: '42', pct: '3.2%', desc: 'Both Internal & Client', colorClass: 'text-accent', tag: 'OVERLAP' },
-    { icon: 'bi-briefcase', label: 'Client project Allocations', value: '284', pct: '21.8%', desc: 'Client projects only', colorClass: 'text-success' },
+    { key: 'MAPPED_TO_SHANKH', icon: 'bi-briefcase', label: 'Client project Allocations', value: null, desc: 'Client projects only', colorClass: 'text-success', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.mappedEmployeeDetailsSubTableColumnConfig, bgColor: '#E7AA74' },
+    { key: 'MAPPED_TO_INTERNAL_AND_SHANKH', icon: 'bi-arrow-left-right', label: 'Dual Allocation (Internal & Client)', value: null, desc: 'Both Internal & Client', colorClass: 'text-accent', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#799ED2' },
+    { key: 'MAPPED_TO_INTERNAL', icon: 'bi-building', label: 'Internal & Bench project Allocation', value: null, desc: 'Internal projects only', colorClass: 'text-info', columnConfig: this.mappedToInternalEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#64B4AF' },
   ];
 
   riskItems = [
-    { icon: 'bi-exclamation-triangle', label: 'Bench with Allocation', value: '131', pct: '10.1%', desc: 'On bench but assigned elsewhere', colorClass: 'text-warning' },
-    { icon: 'bi-clock', label: 'Extended Bench', value: '6', pct: '0.5%', desc: 'Bench for 30+ days', colorClass: 'text-danger' },
-    { icon: 'bi-person-x', label: 'No Billable Assignment', value: '10', pct: '0.8%', desc: 'No default billable type', colorClass: 'text-danger' },
+    { key: 'ON_BENCH_BUT_PROJECT_ASSIGNED', icon: 'bi-exclamation-triangle', label: 'Bench with Allocation', value: null, desc: 'On bench but assigned elsewhere', colorClass: 'text-warning', columnConfig: this.onBenchButProjectAssignedEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#DEB67C' },
+    { key: 'ON_BENCH_FOR_MORE_THAN_30_DAYS', icon: 'bi-clock', label: 'Extended Bench', value: null, desc: 'Bench for 30+ days', colorClass: 'text-danger', columnConfig: this.onBenchEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#D68585' },
+    { key: 'WITHOUT_ANY_BILLABILITY', icon: 'bi-person-x', label: 'No Billable Assignment', value: null, desc: 'No default billable type', colorClass: 'text-danger', columnConfig: this.withoutBillabilityEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#DEB67C' },
   ];
 
   // Flags
   isEmployeeView: boolean = false;
+  isReportTabVisible: boolean = false;
+  selectedView: 'cards' | 'distribution' = 'cards';
 
   // Arrays
   selectedDepartmentIds: any[] = [];
@@ -175,31 +327,34 @@ export class RmgDashboardComponent implements OnInit {
   departmentList: any[] = [];
   filteredDepartmentList: any[] = [];
   projectDetailsList: any[] = [];
+  projectSummaryData: any[] = [];
 
   // Variables
   selectedEmpId: any = 0;
   attentionRequiredProjectCount: any = 0;
-  selectedProjectStatusLabel: string = '';
+  selectedEmployeeStatusLabel: string = '';
   alertMessage: string = '';
   projectStatus: string = '';
   expiredTNMProjectFilter: string = '';
   fixedCostProjectFilter: string = '';
+  activeEmployeesCount: number = 0;
+  unassignedEmployeesCount: number = 0;
+  assignedEmployeesCount: number = 0;
 
   // Objects 
 
   // Project Details Table
   searchOnEnter: boolean = true;
   isProjectSearchEnabled: boolean = false;
-  totalProjectsCount: number;
-  projectPage: number = 0;
+  totalProjectsCount: number = 0;
+  projectPage: number = 1;
   projectPageSize: number = 10;
-  pageSizeOptions: any[] = ['5', '10', '20', '50'];
+  pageSizeOptions: any[] = [5, 10, 20, 50];
   projectSortDirection: string = 'asc';
   projectSortColumn: string;
   projectSortColumnType: string;
   projectFilters: any = {};
   projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "blank", "blank", "state", "blank", "status", "projectStatus", "draftStatus"];
-
 
   constructor(
     private route: ActivatedRoute,
@@ -231,6 +386,7 @@ export class RmgDashboardComponent implements OnInit {
     this.fixedCostProjectFilter = 'all';
     this.projectPageSize = this.filterStateService?.projectPageSize ? this.filterStateService.projectPageSize : 10;
 
+    this.setReportTabVisible();
     this.getDepartmentsList();
     this.getEmployeeNameAndEmpld();
     this.mapSubFeatureFlag();
@@ -243,9 +399,7 @@ export class RmgDashboardComponent implements OnInit {
       return;
     }
     this.oldSelectedDepartmentIds = [...this.selectedDepartmentIds];
-    // if (this.rmgStatusCardsComponent) {
-    //   this.rmgStatusCardsComponent.onDepartmentSelectionChange(event);
-    // }
+    this.loadRMGDashboard();
   }
 
   getDepartmentsList() {
@@ -335,13 +489,146 @@ export class RmgDashboardComponent implements OnInit {
   }
 
   loadRMGDashboard() {
-    // this.getAllEmployeeGroupCount();
+    this.getAllEmployeeGroupCount();
     this.getAllProjectStatusCount();
-    this.getProjectDetailsList();
+    this.getProjectDetailsList(false, true);
+    this.intializeBillingLossProgressBar();
   }
 
-  // ------------------ Reusable Gauge Config ------------------
-  renderGaugeChart(chartName: any, chartId: any, value: number, maxValue: number = 36, openMod?: any) {
+  getPercentage(value: any = 0, total: any = 0): number {
+    return total ? Math.round((value / total) * 10000) / 100 : 0;
+  }
+
+  get selectedProjectStatusLabel(): string {
+    return [
+      ...this.statusCards,
+      ...this.projectLifeCycleStages,
+      ...this.resourceCards,
+      ...this.completedItems,
+    ].find(item => item.key === this.projectStatus)?.label || 'Project Details';
+  }
+
+  get isValidEmployee(): boolean {
+    if (!this.selectedEmpId || !this.isValidNumber(this.selectedEmpId) || !this.filteredEmployeeList?.length) {
+      return false;
+    }
+
+    return this.filteredEmployeeList.some(
+      emp => emp.empId === this.selectedEmpId
+    );
+  }
+
+  setReportTabVisible() {
+    this.isReportTabVisible = this.currentUser?.userMapping?.some(m => m.featureName === 'Reports') ?? false;
+  }
+
+  goToReportTab() {
+    this.router.navigate(['/user-reports/report-list'], {
+      state: { returnUrl: this.router.url }
+    });
+  }
+
+  onAction(action: string, project: any) {
+    this.actionTriggered.emit({ action, project });
+  }
+
+  isValidNumber(value: any): boolean {
+    return typeof value === 'number' && !Number.isNaN(value);
+  }
+
+  scrollToTable() {
+    document.getElementById('projectTable')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
+
+  onPieClick(point: any, chartId: any) {
+    console.log(point);
+    if (chartId) {
+      this.projectStatus = chartId.split('_Chart')[0];
+      this.projectPage = 1;
+      this.filterStateService.selectedProjectStatus = this.projectStatus;
+      if (this.projectStatus == 'TOTAL_FC') {
+        this.fixedCostProjectFilter = this.fixedCostItems.find(t => t.label === point?.name).key;
+      }
+      this.getProjectDetailsList(true);
+    }
+  }
+
+  onBarClick(point: any, chartId: any) {
+    console.log(point);
+    if (chartId && point) {
+      this.projectStatus = chartId.split('_Chart')[0];
+      this.projectPage = 1;
+      this.filterStateService.selectedProjectStatus = this.projectStatus;
+      if (this.projectStatus == 'TIMESHEET_NON_COMPLIANCE') {
+
+      } else if (this.projectStatus == 'TOTAL_EXPIRED_TNM') {
+        this.expiredTNMProjectFilter = this.tnmExpiredBars.find(t => t.label === point?.category).key;
+      }
+      this.getProjectDetailsList(true);
+    }
+  }
+
+  getInsightValues(key: string, data: any): number {
+    return data?.find(s => s.key === key)?.value || 0;
+  }
+
+  handleInsightClick(insight: any) {
+    console.log(insight);
+    if (insight.key == 'TIMESHEET_NON_COMPLIANCE') {
+      return;
+    }
+
+    this.projectPage = 1;
+    this.projectStatus = insight.key;
+    this.filterStateService.selectedProjectStatus = insight.key;
+    if (insight.key == 'allExpiredTNMProjectsCount') {
+      this.projectStatus = 'TOTAL_EXPIRED_TNM'
+      this.expiredTNMProjectFilter = 'allExpiredTNMProjectsCount';
+    }
+    else if (insight.key == 'HIGHEST_EXPIRED_TNM_BUCKET') {
+      const filteredList = insight.valueList
+        ?.filter(t => !['allExpiredTNMProjectsCount', 'TOTAL_EXPIRED_TNM'].includes(t.key));
+
+      const maxItem = filteredList?.length
+        ? filteredList.reduce((prev, curr) =>
+          (curr.value > prev.value ? curr : prev)
+        ) : null;
+
+      this.projectStatus = 'TOTAL_EXPIRED_TNM'
+      this.expiredTNMProjectFilter = maxItem?.key || 'allExpiredTNMProjectsCount';
+    }
+    else if (insight.key == 'defaulter') {
+      this.projectStatus = 'TOTAL_FC'
+      this.fixedCostProjectFilter = 'defaulter';
+    }
+    this.getProjectDetailsList(true, false);
+  }
+
+  get attentionRequiredProjectCountPercent() {
+    return this.getPercentage(this.attentionRequiredProjectCount, this.statusCards[0]?.value) || 0;
+  }
+
+  toggleView(view: 'cards' | 'distribution') {
+    this.selectedView = view;
+    if (view === 'cards') {
+      this.loadCards();
+    } else {
+      setTimeout(() => {
+        this.renderVennChart(this.projectDistribution);
+      }, 0);
+    }
+  }
+
+  loadCards() {
+    // console.log('Cards clicked');
+  }
+  // Helpers End
+
+  // Charts Start
+  renderGaugeChart(chartName: any, chartId: any, value: number, arcColor: any, openMod?: any) {
     Highcharts.chart(chartId, {
       credits: { enabled: false },
 
@@ -377,7 +664,7 @@ export class RmgDashboardComponent implements OnInit {
         min: 0,
         max: this.statusCards[2].value || 0,
         stops: [
-          [1, '#4CAF50']
+          [1, arcColor]
         ],
 
         lineWidth: 0,
@@ -433,19 +720,18 @@ export class RmgDashboardComponent implements OnInit {
     });
   }
 
-  renderTnmExpiredChart(chartId: string, data: any[]) {
+  renderBarChart(chartId: string, data: any[], chartHeight: any = 180) {
 
-    const categories = data.map(d => d.label);
-    const maxValue = Math.max(...data.map(d => d.value || 0), 1);
+    const categories = data?.filter(d => d.display)?.map(d => d.label);
+    const maxValue = Math.max(...data?.filter(d => d.display)?.map(d => d.value || 0), 1);
 
     Highcharts.chart(chartId, {
       chart: {
         type: 'bar',
         backgroundColor: 'transparent',
-        height: 260,
-        spacing: [10, 10, 10, 10]
+        height: chartHeight,
+        spacing: [10, 50, 10, 10]
       },
-
       title: { text: null },
       credits: { enabled: false },
       legend: { enabled: false },
@@ -463,47 +749,54 @@ export class RmgDashboardComponent implements OnInit {
           }
         }
       },
-
       yAxis: {
         max: maxValue,
         visible: false
       },
-
       plotOptions: {
         series: {
-          stacking: 'normal',
-          pointWidth: 15,
-          borderRadius: 4,
-          groupPadding: 0.2,
-          dataLabels: {
-            animation: true,
-            enabled: true,
-            align: 'right',
-            inside: false,
-            style: {
-              color: '#000000',
-              fontWeight: 'bold',
-            },
-            formatter: function () {
-              return this.y ?? '';   // ✅ no external reference
+          grouping: false,
+          pointWidth: 14,
+          borderRadius: 6,
+          point: {
+            cursor: 'pointer',
+            events: {
+              click: (event) => {
+                const point = event.point;
+                this.onBarClick(point, chartId);
+              }
             }
           }
         }
       },
-
       series: [
         {
           type: 'bar',
-          data: categories.map(() => maxValue),
+          data: data?.filter(d => d.display)?.map(d => ({
+            y: maxValue,
+            actualValue: d.value || 0
+          })),
           color: '#e5e7eb',
           enableMouseTracking: false,
           dataLabels: {
-            enabled: false
+            enabled: true,
+            useHTML: true,
+            align: 'right',
+            alignTo: 'plotEdges',
+            crop: false,
+            overflow: 'allow',
+            x: 30,
+            formatter: function () {
+              const point = this.point as any;
+              return `<div style="width: 40px;text-align: right;font-weight: 600;color: #111827;">
+                        ${point.actualValue}
+                      </div>`;
+            }
           }
         } as Highcharts.SeriesBarOptions,
         {
           type: 'bar',
-          data: data.map((d, i) => ({
+          data: data?.filter(d => d.display)?.map(d => ({
             y: d.value || 0,
             color: d.color || '#4f68a9'
           }))
@@ -512,11 +805,210 @@ export class RmgDashboardComponent implements OnInit {
     } as Highcharts.Options);
   }
 
-
-  onAction(action: string, project: any) {
-    this.actionTriggered.emit({ action, project });
+  renderColumnChart(chartName: any, chartId: any, chartData: any, categories: any, yAxisTitle: string) {
+    Highcharts.chart(chartId, {
+      chart: {
+        type: 'column',
+      },
+      title: {
+        text: chartName,
+        style: {
+          fontWeight: 'bold',
+          color: '#000000'
+        }
+      },
+      xAxis: {
+        categories: categories,
+        title: {
+          text: 'Projects'
+        },
+        labels: {
+          rotation: -45, // Rotate labels to prevent overlap
+          style: {
+            fontSize: '11px',
+            fontFamily: 'Verdana, sans-serif'
+          }
+        }
+      },
+      yAxis: {
+        min: 0,
+        title: {
+          text: yAxisTitle,
+          align: 'high'
+        },
+        labels: {
+          overflow: 'justify'
+        }
+      },
+      tooltip: {
+        valueSuffix: ' timesheets'
+      },
+      plotOptions: {
+        column: {
+          dataLabels: {
+            enabled: true,
+            format: '{y}',
+            style: {
+              fontSize: '10px',
+            }
+          }
+        }
+      },
+      credits: {
+        enabled: false,
+      },
+      legend: {
+        enabled: false
+      },
+      series: chartData
+    });
   }
-  // Helpers End
+
+  renderPieChart(chartId: string, data: any[], chartHeight: any = 200) {
+    Highcharts.chart(chartId, {
+      chart: {
+        type: 'pie',
+        backgroundColor: 'transparent',
+        height: chartHeight,
+        spacing: [10, 10, 10, 10]
+      },
+
+      title: { text: null },
+      credits: { enabled: false },
+      exporting: { enabled: false },
+      tooltip: { enabled: false },
+
+      legend: {
+        enabled: true,
+        align: 'right',
+        verticalAlign: 'middle',
+        layout: 'vertical',
+        useHTML: true,
+        itemMarginTop: 6,
+        itemMarginBottom: 6,
+        labelFormatter: function () {
+          const point = this as Highcharts.Point;
+          return `<div style="display:flex; justify-content:space-between; width:120px;">
+                    <span>${point.name}</span>
+                    <span><b>${point.y}</b></span>
+                  </div>`;
+        }
+      },
+
+      plotOptions: {
+        pie: {
+          borderWidth: 0,
+          showInLegend: true,
+          dataLabels: {
+            enabled: false
+          }
+        },
+        series: {
+          cursor: 'pointer',
+          point: {
+            events: {
+              click: (event) => {
+                const point = event.point;
+                this.onPieClick(point, chartId);
+              }
+            }
+          }
+        }
+      },
+
+      series: [
+        {
+          type: 'pie',
+          data: data.map(d => ({
+            name: d.label,
+            y: d.value || 0,
+            color: d.color || '#4f68a9'
+          }))
+        }
+      ]
+    } as Highcharts.Options);
+  }
+
+  renderVennChart(data: any[], chartHeight: number = 300) {
+
+    const internalTotal = data.find(d => d.key === 'MAPPED_TO_INTERNAL')?.value || 0;
+    const shankhTotal = data.find(d => d.key === 'MAPPED_TO_SHANKH')?.value || 0;
+    const overlap = data.find(d => d.key === 'MAPPED_TO_INTERNAL_AND_SHANKH')?.value || 0;
+
+    const scale = (val: number) => Math.log(val + 1);
+    Highcharts.chart({
+      chart: {
+        renderTo: 'distributionChart',
+        type: 'venn',
+        height: chartHeight,
+        backgroundColor: 'transparent'
+      },
+
+      title: {
+        text: 'DISTRIBUTION OVERVIEW',
+        style: {
+          fontSize: '14px',
+          fontWeight: '400',
+          letterSpacing: '1px',
+          color: '#6b7280'
+        }
+      },
+
+      credits: { enabled: false },
+      exporting: { enabled: false },
+      tooltip: { enabled: false },
+
+      series: [{
+        type: 'venn',
+        name: 'Distribution',
+        data: [
+          {
+            sets: ['Internal'],
+            value: scale(internalTotal),
+            name: 'Internal(A)',
+            color: '#D8DBE0',
+            borderColor: '#1B294B',
+            custom: { actual: internalTotal }
+          },
+          {
+            sets: ['Shankh'],
+            value: scale(shankhTotal),
+            name: 'Shankh(B)',
+            color: '#F7EEE6',
+            borderColor: '#E7AA74',
+            custom: { actual: shankhTotal }
+          },
+          {
+            sets: ['Internal', 'Shankh'],
+            value: scale(overlap),
+            name: 'A ∩ B',
+            color: '#DDDEE1',
+            borderColor: '#799ED2',
+            custom: { actual: overlap }
+          }
+        ],
+        borderWidth: 1.5,
+        dataLabels: {
+          enabled: true,
+          useHTML: true,
+          formatter: function () {
+            const point: any = this.point;
+            return `
+            <div style="text-align:center;">
+              <div style="font-size:18px;font-weight:400;color:#374151;">
+                ${point.options.custom.actual}
+              </div>
+              <div style="font-size:11px;color:#6B7280;">
+                ${point.name}
+              </div>
+            </div>
+          `;
+          }
+        }
+      }]
+    });
+  }
+  // Charts End
 
   // Modals Start
   openAlertMessageModal(modalMessage: any) {
@@ -532,11 +1024,108 @@ export class RmgDashboardComponent implements OnInit {
       this.alertMessageModalRef?.close();
     }
   }
+
+  openEmployeeDetailsModal(employeeGroup: any) {
+    if (employeeGroup.key == this.workforceOverview[0]?.key) {
+      return;
+    }
+    this.selectedEmployeeStatusLabel = employeeGroup.label || 'Employee Information';
+    this.employeeDetailsExtraParams = { "employeeGroupKey": employeeGroup?.key, "selectedDeptIds": this.selectedDepartmentIds, "projectStatus": this.projectStatus || 'ALL', "expiredProjectFilter": this.expiredTNMProjectFilter, "fixedCostFilter": this.fixedCostProjectFilter };
+    this.employeeDetailsColumnConfig = employeeGroup?.columnConfig;
+    this.employeeDetailsDefaultSortColumn = employeeGroup?.defaultSortColumn;
+    this.employeeDetailsSubTableColumnConfig = employeeGroup?.columnConfig
+    this.employeeDetailsModalRef = this.modalService.open(this.employeeDetailsTemplateRef, { modalDialogClass: 'modal-xl' });
+  }
+
+  closeEmployeeDetailsModal() {
+    if (this.employeeDetailsModalRef) {
+      this.employeeDetailsModalRef?.close();
+    }
+  }
   // Modals End
+
+  // Project Timesheet Summary Modal Start
+  openProjectTimesheetSummaryModal(selectedEmpId: any) {
+    if (!selectedEmpId || selectedEmpId == undefined || selectedEmpId == null || !this.isValidNumber(selectedEmpId)) {
+      this.openAlertMessageModal("Kindly Select a Valid Employee!!");
+      return;
+    }
+    if (!this.filteredEmployeeList.some(emp => emp.empId === selectedEmpId)) {
+      this.openAlertMessageModal("Kindly Select a Valid Employee!!");
+      return;
+    }
+    this.selectedEmpId = selectedEmpId;
+    this.getProjectTimesheetSummaryData();
+    this.projectTimesheetSummaryModalRef = this.modalService.open(this.projectTimesheetSummaryTemplateRef, { modalDialogClass: 'modal-lg' });
+  }
+
+  closeProjectTimesheetSummaryModal() {
+    if (this.projectTimesheetSummaryModalRef) {
+      this.projectTimesheetSummaryModalRef?.close();
+    }
+  }
+
+  getProjectTimesheetSummaryData() {
+    if (!this.selectedEmpId) {
+      this.openAlertMessageModal("Cannot fetch summary. User information is missing.");
+      if (this.projectTimesheetSummaryModalRef) {
+        document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Could not load data: User not identified.</p>';
+      }
+      return;
+    }
+    const resourceManagementDTO = { empId: this.selectedEmpId };
+    this.resourceManagementService.getProjectTimesheetSummary(resourceManagementDTO).pipe(first()).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.projectSummaryData = response.serviceResponse;
+          if (this.projectSummaryData && this.projectSummaryData.length > 0) {
+            this.processProjectSummaryData(this.projectSummaryData);
+          } else {
+            document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center">No timesheet summary data found for your projects.</p>';
+          }
+        } else {
+          // this.openAlertMod(this.alertTemplate, "Failed to load project summary data.");
+          console.error(response.serviceResponse);
+          document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Error:No timesheets filled till date</p>';
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.openAlertMessageModal("An error occurred while fetching summary data.");
+        document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">A server error occurred. Please try again later.</p>';
+      }
+    });
+  }
+
+  processProjectSummaryData(summaryData: any[]) {
+    const categories = [];
+    const seriesData = [];
+    const sortedData = summaryData
+      .sort((a, b) => b.totalTimesheetsFilled - a.totalTimesheetsFilled).slice(0, 20);
+
+    sortedData.forEach(item => {
+      categories.push(item.projectName);
+      seriesData.push(item.totalTimesheetsFilled);
+    });
+
+    const chartData = [{
+      name: 'Timesheets Filled',
+      data: seriesData,
+      color: '#0275d8' // A bootstrap primary-like color
+    }];
+
+    this.renderColumnChart(
+      'Top 20 Projects by Timesheets Filled',
+      'projectTimesheetSummaryChart',
+      chartData,
+      categories
+      , 'Number of Timesheets Filled'
+    );
+  }
+  // Project Timesheet Summary Modal End
 
   // Count & List APIs & Methods Start
   private getAllProjectStatusCount() {
-
     this.statusCards.forEach(status => {
       this.getCount(status.key, this.statusCards);
     });
@@ -545,21 +1134,21 @@ export class RmgDashboardComponent implements OnInit {
       this.getCount(status.key, this.projectLifeCycleStages);
     });
 
+    this.completedItems.forEach(status => {
+      this.getCount(status.key, this.completedItems);
+    });
+
     this.loadResourceCardData();
     this.loadExpiredTnmData();
-
+    this.loadFixedCostData();
+    this.loadZeroTimesheetData();
   }
 
   async loadResourceCardData() {
-    this.resourceCards.forEach(async status => {
+    for (let status of this.resourceCards) {
       await this.getCount(status.key, this.resourceCards);
-      if (status.key === 'UNDERBOARDED') {
-        this.renderGaugeChart('Understaffed', 'understaffedChart', status.value);
-      }
-      if (status.key === 'OVERBOARDED') {
-        this.renderGaugeChart('Overboarded', 'overboardedChart', status.value);
-      }
-    });
+      this.renderGaugeChart(status.label, status.key + '_Chart', status.value, status.color);
+    };
   }
 
   async loadExpiredTnmData() {
@@ -568,7 +1157,25 @@ export class RmgDashboardComponent implements OnInit {
     );
 
     await Promise.all(promises);
-    this.renderTnmExpiredChart('tnmExpiredChart', this.tnmExpiredBars);
+    this.renderBarChart('TOTAL_EXPIRED_TNM_Chart', this.tnmExpiredBars);
+  }
+
+  async loadZeroTimesheetData() {
+    const promises = this.zeroTimesheetBars.map(filter =>
+      this.getUnFilledTimesheetProjectStatusCount(filter.key)
+    );
+
+    await Promise.all(promises);
+    this.renderBarChart('TIMESHEET_NON_COMPLIANCE_Chart', this.zeroTimesheetBars, 120);
+  }
+
+  async loadFixedCostData() {
+    const promises = this.fixedCostItems.map(filter =>
+      this.getFCFilterWiseProjectStatusCount('TOTAL_FC', filter.key)
+    );
+
+    await Promise.all(promises);
+    this.renderPieChart('TOTAL_FC_Chart', this.fixedCostItems, 120);
   }
 
   async getCount(status: any, statusList: any[]) {
@@ -612,6 +1219,235 @@ export class RmgDashboardComponent implements OnInit {
       this.openAlertMessageModal("Something went wrong!");
     }
   }
+
+  private getAllEmployeeGroupCount() {
+    this.workforceOverview.forEach(group => {
+      this.getEmployeeCountByEmployeeGroup(group.key, this.workforceOverview);
+    });
+
+    this.projectDistribution.forEach(group => {
+      this.getEmployeeCountByEmployeeGroup(group.key, this.projectDistribution);
+    });
+
+    this.riskItems.forEach(group => {
+      this.getEmployeeCountByEmployeeGroup(group.key, this.riskItems);
+    });
+  }
+
+  async getEmployeeCountByEmployeeGroup(key: any, statusList: any[]) {
+    let newRmgDashboardProjectRequest = this.getRMGRequestObject();
+    newRmgDashboardProjectRequest.employeeGroupKey = key;
+
+    try {
+      const response: any = await firstValueFrom(this.resourceManagementService.getEmployeeCountByEmployeeGroup(newRmgDashboardProjectRequest));
+      if (response?.serviceStatus == "Success" && response?.serviceResponse != null) {
+        const counts = response.serviceResponse;
+        for (const group of statusList) {
+          if (key === group.key) {
+            group.value = counts[group.key];
+          }
+        }
+      } else {
+        this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
+      }
+    } catch (error) {
+      this.openAlertMessageModal("Something went wrong!");
+    }
+  }
+
+  onProjectStatusSelect(status: string, projectStatusList: any, skipCountUpdate: boolean = false) {
+    this.projectPage = 1;
+    this.projectStatus = status;
+    this.filterStateService.selectedProjectStatus = status;
+    if (this.projectStatus === 'TOTAL_EXPIRED_TNM') {
+      if (!this.expiredTNMProjectFilter) {
+        this.expiredTNMProjectFilter = 'allExpiredTNMProjectsCount';
+      }
+    }
+    else if (this.projectStatus == 'TOTAL_FC') {
+      this.fixedCostProjectFilter = 'all';
+    }
+
+    if (skipCountUpdate) {
+      this.fixedCostProjectFilter = 'defaulter';
+    } else {
+      this.getProjectStatusCount(this.projectStatus, projectStatusList);
+    }
+    this.getAllEmployeeGroupCount();
+    this.getProjectDetailsList(true);
+  }
+
+  getProjectStatusCount(projectStatus: any, projectStatusList: any[]) {
+    let newRmgDashboardProjectRequest = this.getRMGRequestObject();
+    this.resourceManagementService.getProjectStatusCount(newRmgDashboardProjectRequest).pipe(first()).subscribe((response: any) => {
+      if (response?.serviceStatus == "Success" && response?.serviceResponse != null) {
+        const counts = response.serviceResponse;
+        for (const project of projectStatusList) {
+          if (projectStatus === project.key) {
+            project.count = counts[project.key];
+          }
+        }
+      } else {
+        this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
+      }
+    },
+      (error) => {
+        this.openAlertMessageModal('Something went wrong!!');
+      });
+  }
+
+  async getUnFilledTimesheetProjectStatusCount(unFilledProjectTimesheetFilter?: any) {
+    let newRmgDashboardProjectRequest = this.getRMGRequestObject();
+    newRmgDashboardProjectRequest.projectStatus = 'TIMESHEET_NON_COMPLIANCE';
+    const today = moment();
+    let fromDate = moment();
+    const value = parseInt(unFilledProjectTimesheetFilter, 10);
+
+    if (unFilledProjectTimesheetFilter.includes('Y')) {
+      fromDate = today.clone().subtract(value, 'years');
+    } else if (unFilledProjectTimesheetFilter.includes('M')) {
+      fromDate = today.clone().subtract(value, 'months');
+    } else {
+      fromDate = today.clone().subtract(3, 'months');
+    }
+
+    newRmgDashboardProjectRequest.fromDate = unFilledProjectTimesheetFilter == 'All' ? null : fromDate.format('YYYY-MM-DD');
+    newRmgDashboardProjectRequest.toDate = unFilledProjectTimesheetFilter == 'All' ? null : today.format('YYYY-MM-DD');
+    newRmgDashboardProjectRequest.unfilledTimesheetFilter = unFilledProjectTimesheetFilter;
+
+    try {
+      const response: any = await firstValueFrom(this.resourceManagementService.getUnfilledTimesheetProjectDetailsCount(newRmgDashboardProjectRequest));
+      if (response?.serviceStatus == "Success" && response?.serviceResponse != null) {
+        const counts = response.serviceResponse;
+        for (const filter of this.zeroTimesheetBars) {
+          if (unFilledProjectTimesheetFilter === filter.key) {
+            filter.value = counts['TIMESHEET_NON_COMPLIANCE'];
+            continue;
+          }
+        }
+      } else {
+        this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
+      }
+    } catch (error) {
+      this.openAlertMessageModal("Something went wrong!");
+    }
+  }
+
+  async getFCFilterWiseProjectStatusCount(projectStatus: any, fcProjectFilter: any) {
+    let newRmgDashboardProjectRequest = this.getRMGRequestObject();
+    newRmgDashboardProjectRequest.projectStatus = projectStatus;
+    newRmgDashboardProjectRequest.fixedCostFilter = fcProjectFilter;
+
+    try {
+      const response: any = await firstValueFrom(this.resourceManagementService.getProjectStatusCount(newRmgDashboardProjectRequest));
+      if (response?.serviceStatus == "Success" && response?.serviceResponse != null) {
+        const counts = response.serviceResponse;
+        for (const filter of this.fixedCostItems) {
+          if (fcProjectFilter === filter.key) {
+            filter.value = counts[projectStatus];
+            continue;
+          }
+        }
+      } else {
+        this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
+      }
+    } catch (error) {
+      this.openAlertMessageModal("Something went wrong!");
+    }
+  }
+
+  processInsights(insights: any) {
+    let status: 'ok' | 'warning' | 'critical' = 'ok';
+
+    return insights.map(insight => {
+
+      let value = 0;
+      let total = 0;
+      let bucketName = '';
+      let text = insight.text || '';
+      let subText = insight.subText || '';
+
+      if (insight.valueList?.length) {
+        if (insight.key === 'allExpiredTNMProjectsCount') {
+          value = this.getInsightValues('allExpiredTNMProjectsCount', insight.valueList);
+          total = this.getInsightValues('ALL_TNM', this.statusCards);
+
+          let subItemValue = this.getInsightValues('expiredProjectsAbove12Months', insight.valueList);
+          subText = subText
+            ?.replace('{projectCount}', subItemValue?.toString())
+            ?.replace('{bucketName}', '12M+');
+        }
+        else if (insight.key === 'HIGHEST_EXPIRED_TNM_BUCKET') {
+          const filteredList = insight.valueList
+            ?.filter(t => !['allExpiredTNMProjectsCount', 'TOTAL_EXPIRED_TNM'].includes(t.key));
+
+          const maxItem = filteredList?.length
+            ? filteredList.reduce((prev, curr) =>
+              (curr.value > prev.value ? curr : prev)
+            ) : null;
+
+          value = maxItem?.value || 0;
+          total = this.getInsightValues('ALL_TNM', this.statusCards);
+          bucketName = maxItem?.label || '';
+
+          text = text
+            ?.replace('{projectCount}', value?.toString())
+            ?.replace('{bucketName}', bucketName);
+        }
+        else if (insight.key === 'defaulter') {
+          value = this.getInsightValues('defaulter', insight.valueList);
+          total = this.getInsightValues('TOTAL_FC', this.statusCards);
+        }
+        else if (insight.key === 'TIMESHEET_NON_COMPLIANCE') {
+          value = this.getInsightValues('TIMESHEET_NON_COMPLIANCE', insight.valueList);
+          total = this.getInsightValues('TOTAL', this.statusCards);
+        }
+        else {
+          const item = insight.valueList.find(i => i.key === insight.key);
+          value = item?.value || 0;
+          total = this.getInsightValues('TOTAL_TNM', this.statusCards);
+        }
+      }
+      const percentage = this.getPercentage(value, total);
+
+      if (percentage >= insight.criticalThreshold) {
+        status = 'critical';
+      } else if (percentage >= insight.warningThreshold) {
+        status = 'warning';
+      }
+
+      const stat = total ? `${value}/${total}` : `${value}`;
+
+      subText = subText
+        ?.replace('{projectCount}', value?.toString())
+        ?.replace('{totalProjectCount}', total?.toString())
+        ?.replace('{bucketName}', bucketName);
+
+      return { ...insight, value, maxValue: total, percentage, status, stat, subText, text };
+    });
+  }
+
+  async intializeBillingLossProgressBar() {
+    let newRmgDashboardProjectRequest = this.getRMGRequestObject();
+    let subKeyKeyMap = new Map<string, string>();
+
+    this.attentionRequiredProjectAlerts.forEach(item => {
+      const subKey = item?.subKey || item.key;
+      subKeyKeyMap.set(subKey, item?.key);
+    });
+    newRmgDashboardProjectRequest.subKeyKeyMap = Object.fromEntries(subKeyKeyMap);
+
+    try {
+      const response: any = await firstValueFrom(this.resourceManagementService.getBillingLossRiskScore(newRmgDashboardProjectRequest));
+      if (response?.serviceStatus == "Success" && response?.serviceResponse != null) {
+        this.attentionRequiredProjectCount = response?.serviceResponse?.length || 0;
+      } else {
+        this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
+      }
+    } catch (error) {
+      this.openAlertMessageModal("Something went wrong!");
+    }
+  }
   // Count & List APIs & Methods End
 
   // Projects Table APIs & Methods Start
@@ -619,12 +1455,12 @@ export class RmgDashboardComponent implements OnInit {
     this.projectPage = 0;
     this.projectFilters = searchData;
     this.filterStateService.projectReportFilters = this.projectFilters;
-    this.getProjectDetailsList();
+    this.getProjectDetailsList(false);
   }
 
   onProjectPageSizeChange() {
     this.filterStateService.projectPageSize = this.projectPageSize;
-    this.getProjectDetailsList();
+    this.getProjectDetailsList(false);
   }
 
   sortProjectData(sort: Sort) {
@@ -633,7 +1469,7 @@ export class RmgDashboardComponent implements OnInit {
       this.projectSortColumn = sortParams[0];
       this.projectSortColumnType = sortParams[1];
       this.projectSortDirection = sort.direction;
-      this.getProjectDetailsList();
+      this.getProjectDetailsList(false);
     }
   }
 
@@ -642,7 +1478,7 @@ export class RmgDashboardComponent implements OnInit {
     if (!this.isProjectSearchEnabled) {
       this.projectFilters = {};
       this.filterStateService.clearProjectReportFilters();
-      this.getProjectDetailsList();
+      this.getProjectDetailsList(false);
     }
   }
 
@@ -655,10 +1491,12 @@ export class RmgDashboardComponent implements OnInit {
   }
 
   get startIndex(): number {
+    if (!this.totalProjectsCount || !this.projectPageSize) return 0;
     return (this.projectPage - 1) * this.projectPageSize + 1;
   }
 
   get endIndex(): number {
+    if (!this.totalProjectsCount || !this.projectPageSize) return 0;
     return Math.min(this.projectPage * this.projectPageSize, this.totalProjectsCount);
   }
 
@@ -691,7 +1529,7 @@ export class RmgDashboardComponent implements OnInit {
     if (page !== '...' && typeof page === 'number') {
       this.projectPage = page;
       this.filterStateService.projectPageSize = this.projectPageSize;
-      this.getProjectDetailsList();
+      this.getProjectDetailsList(false);
     }
   }
 
@@ -699,7 +1537,7 @@ export class RmgDashboardComponent implements OnInit {
     if (this.projectPage < this.totalPages) {
       this.projectPage++;
       this.filterStateService.projectPageSize = this.projectPageSize;
-      this.getProjectDetailsList();
+      this.getProjectDetailsList(false);
     }
   }
 
@@ -707,7 +1545,7 @@ export class RmgDashboardComponent implements OnInit {
     if (this.projectPage > 1) {
       this.projectPage--;
       this.filterStateService.projectPageSize = this.projectPageSize;
-      this.getProjectDetailsList();
+      this.getProjectDetailsList(false);
     }
   }
 
@@ -748,10 +1586,11 @@ export class RmgDashboardComponent implements OnInit {
       });
   }
 
-  getProjectDetailsList() {
+  getProjectDetailsList(scrollToBottom: any, loadKeyInsights: boolean = false) {
     this.totalProjectsCount = 0;
     this.projectDetailsList = [];
     let rmgProjectRequest = this.getRMGRequestObject();
+    rmgProjectRequest.page = rmgProjectRequest.page ? (rmgProjectRequest.page - 1) || 0 : 0
     this.resourceManagementService.fetchProjectDetailsList(rmgProjectRequest).pipe(first()).subscribe((response: any) => {
       if (response?.serviceStatus == "Success" && response?.serviceResponse != null && this.validationService.validateNullUndefinedEmptyList(response?.serviceResponse?.projectList?.content)) {
         const apiResponse = response?.serviceResponse?.projectList;
@@ -759,6 +1598,14 @@ export class RmgDashboardComponent implements OnInit {
         this.projectDetailsList = [...apiResponse?.content];
       } else {
         this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
+      }
+
+      if (scrollToBottom) {
+        setTimeout(() => this.scrollToTable());
+      }
+
+      if (loadKeyInsights) {
+        this.insights = this.processInsights(this.insights);
       }
     },
       (error) => {

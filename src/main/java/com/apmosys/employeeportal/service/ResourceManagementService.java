@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -15974,6 +15975,7 @@ public class ResourceManagementService {
 						deptIds, projectStatus, projectNames, sortBy, sortDirection, page);
 			break;
 		case "TOTAL_TNM":
+		case "ALL_TNM":
 		case "TOTAL_ACTIVE_TNM":
 		case "TOTAL_MONITORING":
 		case "TOTAL_INTERNAL":
@@ -16275,6 +16277,7 @@ public class ResourceManagementService {
 		case "TOTAL_MONITORING":
 			return "Monitoring".equalsIgnoreCase(projectType);
 		case "TOTAL_TNM":
+		case "ALL_TNM":
 		case "TOTAL_ACTIVE_TNM":
 		case "TOTAL_EXPIRED_TNM":
 			return "TNM".equalsIgnoreCase(projectType);
@@ -16627,6 +16630,7 @@ public class ResourceManagementService {
 		case "TOTAL_EXPIRED_TNM":
 				return projectCustomRepository.handleExpiredTNMProjectsCount(rmgDashboardProjectRequest,
 						deptIds, projectStatus, projectNames, sortBy, sortDirection);
+		case "ALL_TNM":
 		case "TOTAL_TNM":
 		case "TOTAL_ACTIVE_TNM":
 		case "TOTAL_MONITORING":
@@ -17394,5 +17398,117 @@ public class ResourceManagementService {
 		return response;
 	}
 
+	@Transactional(readOnly = true)
+	public ServiceResponse getBillingLossRiskScore(RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			if (rmgDashboardProjectRequest == null) {
+				return failResponse(serviceResponse, apiLogInfo, "Invalid input: Request is null.");
+			}
+			if (rmgDashboardProjectRequest.getCurrentUserEmpId() == null) {
+				return failResponse(serviceResponse, apiLogInfo, "Invalid input: Employee Id cannot be null.");
+			}
+			if (rmgDashboardProjectRequest.getCurrentUserType() == null) {
+				return failResponse(serviceResponse, apiLogInfo, "Invalid input: User Type cannot be null.");
+			}
+
+			if (rmgDashboardProjectRequest.getSubKeyKeyMap() == null || rmgDashboardProjectRequest.getSubKeyKeyMap().isEmpty()) {
+				return failResponse(serviceResponse, apiLogInfo, "Invalid input: Unable to fetch Billing Loss Risk Score.");
+			}
+
+			String userType = rmgDashboardProjectRequest.getCurrentUserType();
+			Set<String> allowedUserTypes = Set.of("HOD", "ADMIN", "USER");
+			if (!allowedUserTypes.contains(userType)) {
+				return failResponse(serviceResponse, apiLogInfo, "Invalid input: All role flags are false.");
+			}
+
+			Long empId = rmgDashboardProjectRequest.getCurrentUserEmpId();
+			List<Object[]> objList = employeeRepository.getJrAndJrNameAndDeptNameByEmpId(empId);
+			if (objList == null || objList.isEmpty()) {
+				return failResponse(serviceResponse, apiLogInfo, "Employee not found.");
+			}
+
+			List<Long> deptIds = Optional.ofNullable(resolveDepartments(rmgDashboardProjectRequest))
+					.orElse(Collections.emptyList());
+			Set<Integer> projectIds = getProjectIdsByDeptIds(deptIds);
+
+			if (userType.equals("HOD") || userType.equals("USER")) {
+				projectIds.addAll(buildProjectIdSetForHodOrUser(rmgDashboardProjectRequest.getCurrentUserEmpId()));
+				List<Long> selectedDeptList = rmgDashboardProjectRequest.getDepartmentIds();
+				if (selectedDeptList != null && !selectedDeptList.isEmpty()) {
+					Set<Integer> matchingDeptProjects = getProjectIdsByDeptIds(selectedDeptList);
+					projectIds.retainAll(matchingDeptProjects);
+				}
+			}
+
+			Map<String, Long> allProjectStatusCount = new LinkedHashMap<>();
+			List<Integer> projectIdsList = new ArrayList<>();
+
+			for(Map.Entry<String, String> entry : rmgDashboardProjectRequest.getSubKeyKeyMap().entrySet()){
+				String subKey = entry.getKey();
+				if(subKey.equals("TOTAL_FC")){
+					rmgDashboardProjectRequest.setFixedCostFilter("defaulter");
+					rmgDashboardProjectRequest.setProjectStatus("TOTAL_FC");
+				}
+				if(subKey.equals("TOTAL_EXPIRED_TNM")){
+					rmgDashboardProjectRequest.setProjectStatus("TOTAL_EXPIRED_TNM");
+					rmgDashboardProjectRequest.setExpiredProjectFilter("allExpiredTNMProjectsCount");
+				}
+				if(subKey.equals("TIMESHEET_NON_COMPLIANCE")){
+					boolean deptFlag = false;
+					boolean isAllAccessEmployee = determineIfAllAccessEmployee(objList, empId);
+
+					Set<Integer> hodProjects = new HashSet<>();
+					if (deptIds != null && !deptIds.isEmpty()) {
+						deptFlag = true;
+						hodProjects = getHodProjectIds(empId);
+					} else {
+						deptIds.add(employeeRepository.getJobRoleIdByEmpId(empId).orElse(0l));
+					}
+
+					Set<Integer> newProjectIds = getProjectIdsByType("TIMESHEET_NON_COMPLIANCE", isAllAccessEmployee,
+							hodProjects,
+							deptFlag, empId);
+					Set<Integer> filteredProjectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(newProjectIds, "ALL", deptIds);
+					projectIdsList.addAll(getBillingLossRiskScoreProjectIds(subKey, deptIds, filteredProjectIds));
+					continue;
+				}
+				projectIdsList.addAll(getBillingLossRiskScoreProjectIds(subKey, deptIds, projectIds));
+			}
+			serviceResponse.setServiceResponse(new HashSet<>(projectIdsList));
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			log.error("Error in getProjectStatusCount", e);
+			serviceResponse.setServiceError(e.getMessage());
+			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
+		}
+		return serviceResponse;
+	}
+
+	private List<Integer> getBillingLossRiskScoreProjectIds(String subKey, List<Long> deptIds,
+			Set<Integer> projectIds) {
+		List<Integer> projectIdsList = new ArrayList<>();
+
+		switch (subKey) {
+			case "TIMESHEET_NON_COMPLIANCE":
+				projectIdsList = projectRepository.getTimesheetNonComplianceProjectIds(deptIds, projectIds);
+				break;
+			case "TOTAL_EXPIRED_TNM":
+				projectIdsList = projectRepository.getExpiredTnmProjectIds(deptIds);
+				break;
+			case "TOTAL_FC":
+				projectIdsList = projectRepository.getFCDefaulterProjectIds(deptIds);
+				break;
+			case "UNDERBOARDED":
+				projectIdsList = projectRepository.getUnderboardedProjectIds(deptIds);
+				break;
+			case "OVERBOARDED":
+				projectIdsList = projectRepository.getOverboardedProjectIds(deptIds);
+				break;
+		}
+		return projectIdsList;
+	}
 
 }
