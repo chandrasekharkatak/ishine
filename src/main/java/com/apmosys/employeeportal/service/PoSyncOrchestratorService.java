@@ -2,10 +2,14 @@ package com.apmosys.employeeportal.service;
 
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +45,15 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
 public class PoSyncOrchestratorService {
+
+	private static final Logger log = LoggerFactory.getLogger(PoSyncOrchestratorService.class);
+
+	private static final String OP_UPDATE_CLIENT_ADDRESS = "updateClientAddressIdOfPos";
+	private static final String API_LOG_OPERATION = "updateClientAddrIdOfPoInIshine";
+	private static final String PO_PORTAL_LOG_SOURCE = "PoPortal";
+	private static final String MSG_PAYLOAD_MISSING = "Request payload is missing";
+	private static final String MSG_PO_IDS_EMPTY = "PO IDs cannot be null or empty";
+	private static final String MSG_CLIENT_ADDRESS_SUCCESS = "Client address updated successfully";
 
 	@Autowired
 	ClientService clientService;
@@ -641,60 +654,105 @@ public class PoSyncOrchestratorService {
 	
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse updateClientAddressIdOfPos(PoClientAddressUpdateDTO dto) {
+		ServiceResponse response = new ServiceResponse();
 		ApiLog initialLog = null;
-	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-	    String sourceSystem = httpRequest.getRequestURI().toString();
-	    ServiceResponse response = new ServiceResponse();
-	    try {
-	    	
-	    	 initialLog = apiLogUtility.startLog(
-		                poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
-		                "updateClientAddrIdOfPoInIshine",
-		                "PoPortal",
-		                null,
-		                httpRequest
-		        );
-	    	 
-	    	 
-	    	 validationService.validatePoClientAddressUpdatePayload(dto);
-	    	 
-	    	 validationService.validateEmployeeExists(
-	                 dto.getUpdatedByEmpId(),
-	                 dto.getUpdatedByEmpName()
-	         );
-	    	 
-	    	 poDetailsService.validateAllPosAreActive(dto.getPoIds());
-	    	 
-	    	 
-	    	 poDetailsService.updateClientAddressForPos(dto);
-	    	
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
 
-	         finalHttpStatusCode = HttpStatus.OK.value();
-	         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	         response.setServiceResponse("Client address updated successfully");
+		try {
+			initialLog = apiLogUtility.startLog(
+					poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					API_LOG_OPERATION,
+					PO_PORTAL_LOG_SOURCE,
+					null,
+					httpRequest);
 
-	         return response;
-	    	
-	    }catch (Exception e) {
-	    	finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-	        ExceptionLogContext.add(e);
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceError(e.getMessage());
-	        return response;
-	    } finally {
-	        if (initialLog != null) {
-	            apiLogUtility.endLog(
-	                    initialLog.getId(),
-	                    sourceSystem,
-	                    finalHttpStatusCode,
-	                    ExceptionLogContext.get(),
-	                    httpRequest
-	            );
-	        }
-	    }
+			log.info("[{}] start path={}", OP_UPDATE_CLIENT_ADDRESS, sourceSystem);
+
+			String validationMessage = validateUpdateClientAddressRequest(dto);
+			if (validationMessage != null) {
+				log.warn("[{}] validation failed: {}", OP_UPDATE_CLIENT_ADDRESS, validationMessage);
+				applyClientAddressUpdateFailure(response, validationMessage);
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+			} else {
+				validationService.validatePoClientAddressUpdatePayload(dto);
+
+				validationService.validateEmployeeExists(dto.getUpdatedByEmpId(), dto.getUpdatedByEmpName());
+
+				poDetailsService.validateAllPosAreActive(dto.getPoIds());
+
+				poDetailsService.updateClientAddressForPos(dto);
+
+				applyClientAddressUpdateSuccess(response);
+				finalHttpStatusCode = HttpStatus.OK.value();
+				log.info("[{}] success poIds={} clientAddressId={} path={}",
+						OP_UPDATE_CLIENT_ADDRESS, dto.getPoIds(), dto.getClientAddressId(), sourceSystem);
+			}
+		} catch (IllegalArgumentException e) {
+			log.error("[{}] illegal argument path={}", OP_UPDATE_CLIENT_ADDRESS, sourceSystem, e);
+			ExceptionLogContext.add(e);
+			applyClientAddressUpdateFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+		} catch (DataAccessException e) {
+			log.error("[{}] data access error path={} poIds={}", OP_UPDATE_CLIENT_ADDRESS, sourceSystem,
+					dto != null ? dto.getPoIds() : null, e);
+			ExceptionLogContext.add(e);
+			applyClientAddressUpdateFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		} catch (RuntimeException e) {
+			log.error("[{}] business rule or validation failure path={} poIds={}", OP_UPDATE_CLIENT_ADDRESS,
+					sourceSystem, dto != null ? dto.getPoIds() : null, e);
+			ExceptionLogContext.add(e);
+			applyClientAddressUpdateFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+		} catch (Exception e) {
+			log.error("[{}] unexpected error path={}", OP_UPDATE_CLIENT_ADDRESS, sourceSystem, e);
+			ExceptionLogContext.add(e);
+			applyClientAddressUpdateFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,
+						ExceptionLogContext.get(), httpRequest);
+			}
+		}
+		return response;
 	}
 
+	/**
+	 * @return error message if invalid, or {@code null} if basic request shape is valid
+	 */
+	private static String validateUpdateClientAddressRequest(PoClientAddressUpdateDTO dto) {
+		if (dto == null) {
+			return MSG_PAYLOAD_MISSING;
+		}
+		if (dto.getPoIds() == null || dto.getPoIds().isEmpty()) {
+			return MSG_PO_IDS_EMPTY;
+		}
+		if (dto.getPoIds().stream().anyMatch(Objects::isNull)) {
+			return "PO IDs cannot contain null entries";
+		}
+		return null;
+	}
 
+	private static void applyClientAddressUpdateSuccess(ServiceResponse response) {
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(MSG_CLIENT_ADDRESS_SUCCESS);
+	}
 
+	private static void applyClientAddressUpdateFailure(ServiceResponse response, String message) {
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse(message);
+		response.setServiceError(message);
+	}
+
+	private static String buildRequestPathForLogging(HttpServletRequest request) {
+		if (request == null) {
+			return "";
+		}
+		String uri = request.getRequestURI();
+		String query = request.getQueryString();
+		return (query != null && !query.isEmpty()) ? uri + "?" + query : uri;
+	}
 
 }
