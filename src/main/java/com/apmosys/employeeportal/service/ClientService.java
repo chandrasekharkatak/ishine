@@ -251,8 +251,8 @@ public class ClientService {
 		    String normalizedStateLower = normalizedState.toLowerCase();
 
 		    // Ensure at least one location exists
-		    boolean hasAnyLocation =
-		            clientLocationRepository.existsByClientId(clientId);
+//		    boolean hasAnyLocation =
+//		            clientLocationRepository.existsByClientId(clientId);
 
 //		    if (!hasAnyLocation) {
 //		        ClientLocation wfh = new ClientLocation();
@@ -303,26 +303,28 @@ public class ClientService {
 		        // 3 If not mapped for this client → fall back to old logic
 		        // (maybe exact match exists without addressId)
 
-		        Optional<ClientLocation> exact =
-		                clientLocationRepository
-		                        .findByClientIdAndNLClientLocationAndClientState(
-		                                clientId, normalizedLocationLower, normalizedStateLower);
-
-		        if (exact.isPresent()) {
-		            ClientLocation cl = exact.get();
-		            cl.setClientAddressId(clientAddressId);
-		            return clientLocationRepository.save(cl);
-		        }
+//		        Optional<ClientLocation> exact =
+//		                clientLocationRepository
+//		                        .findByClientIdAndNLClientLocationAndClientState(
+//		                                clientId, normalizedLocationLower, normalizedStateLower);
+//
+//		        if (exact.isPresent()) {
+//		            ClientLocation cl = exact.get();
+//		            cl.setClientAddressId(clientAddressId);
+//		            cl.set
+//		            return clientLocationRepository.save(cl);
+//		        }
 
 		        Optional<ClientLocation> legacy =
 		                clientLocationRepository
-		                        .findByClientIdAndNLClientLocationAndClientStateNull(
+		                        .findByClientIdAndNLClientLocationAndClientStateNullAndClientAddIdNull(
 		                                clientId, normalizedLocationLower);
 
 		        if (legacy.isPresent()) {
 		            ClientLocation cl = legacy.get();
 		            cl.setClientState(state);
 		            cl.setClientAddressId(clientAddressId);
+		            cl.setActiveInPo(true);		           
 		            return clientLocationRepository.save(cl);
 		        }
 
@@ -332,6 +334,7 @@ public class ClientService {
 		        newLoc.setClientLocation(location);
 		        newLoc.setClientState(state);
 		        newLoc.setClientAddressId(clientAddressId);
+		        newLoc.setActiveInPo(true);	
 
 		        return clientLocationRepository.save(newLoc);
 		    }
@@ -340,26 +343,27 @@ public class ClientService {
 		    // STEP 2: If addressId not found anywhere → full fallback
 		    // =========================
 
-		    Optional<ClientLocation> exact =
-		            clientLocationRepository
-		                    .findByClientIdAndNLClientLocationAndClientState(
-		                            clientId, normalizedLocationLower, normalizedStateLower);
-
-		    if (exact.isPresent()) {
-		        ClientLocation cl = exact.get();
-		        cl.setClientAddressId(clientAddressId);
-		        return clientLocationRepository.save(cl);
-		    }
+//		    Optional<ClientLocation> exact =
+//		            clientLocationRepository
+//		                    .findByClientIdAndNLClientLocationAndClientState(
+//		                            clientId, normalizedLocationLower, normalizedStateLower);
+//
+//		    if (exact.isPresent()) {
+//		        ClientLocation cl = exact.get();
+//		        cl.setClientAddressId(clientAddressId);
+//		        return clientLocationRepository.save(cl);
+//		    }
 
 		    Optional<ClientLocation> legacy =
 		            clientLocationRepository
-		                    .findByClientIdAndNLClientLocationAndClientStateNull(
+		                    .findByClientIdAndNLClientLocationAndClientStateNullAndClientAddIdNull(
 		                            clientId, normalizedLocationLower);
 
 		    if (legacy.isPresent()) {
 		        ClientLocation cl = legacy.get();
 		        cl.setClientState(state);
 		        cl.setClientAddressId(clientAddressId);
+		        cl.setActiveInPo(true);	
 		        return clientLocationRepository.save(cl);
 		    }
 
@@ -368,7 +372,7 @@ public class ClientService {
 		    cl.setClientLocation(location);
 		    cl.setClientState(state);
 		    cl.setClientAddressId(clientAddressId);
-
+		    cl.setActiveInPo(true);	
 		    return clientLocationRepository.save(cl);
 		}
 
