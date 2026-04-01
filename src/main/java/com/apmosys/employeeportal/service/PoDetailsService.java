@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
+import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
@@ -475,7 +476,7 @@ public class PoDetailsService {
 	                        + " | projectId=" + projectId
 	                        + " | poId=" + poId
 	                );
-	                return new RuntimeException("Deleted PO does not exist or inactive");
+	                return new DataNotFoundException("Deleted PO does not exist or inactive");
 	            });
 	}
 	
@@ -488,7 +489,7 @@ public class PoDetailsService {
 	        ExceptionLogContext.add(
 	                "PO cannot be deleted due to active teams | poId=" + poId
 	        );
-	        throw new RuntimeException(
+	        throw new IllegalStateException(
 	                "PO cannot be deleted as active teams exist"
 	        );
 	    }

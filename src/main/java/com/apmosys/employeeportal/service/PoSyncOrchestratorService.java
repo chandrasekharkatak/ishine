@@ -27,6 +27,7 @@ import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.RequirementChangeDTO;
 import com.apmosys.employeeportal.dto.RmUpdateSyncDto;
 import com.apmosys.employeeportal.enums.SyncRequestType;
+import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.Project;
@@ -64,6 +65,11 @@ public class PoSyncOrchestratorService {
 	private static final String API_LOG_RENEW_OPERATION = "renewPoInIshine";
 	private static final String MSG_RENEW_SUCCESS = "PO renewed successfully";
 	private static final String MSG_RENEW_INVALID_EVENT = "Invalid eventType for renew PO";
+
+	private static final String OP_DELETE_PO = "deletePoInIshineNew";
+	private static final String API_LOG_DELETE_OPERATION = "deletePoInIshine";
+	private static final String MSG_DELETE_SUCCESS = "PO deleted successfully";
+	private static final String MSG_DELETE_INVALID_EVENT = "Invalid eventType for delete PO";
 
 	@Autowired
 	ClientService clientService;
@@ -421,130 +427,146 @@ public class PoSyncOrchestratorService {
 	
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse deletePoInIshineNew(DeletedPoSyncDTO dto) {
+		ServiceResponse response = new ServiceResponse();
+		ApiLog initialLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
 
-	    ApiLog initialLog = null;
-	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-	    String sourceSystem = httpRequest.getRequestURI().toString();
-	    ServiceResponse response = new ServiceResponse();
+		try {
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					API_LOG_DELETE_OPERATION, PO_PORTAL_LOG_SOURCE, null, httpRequest);
 
-	    try {
-	        initialLog = apiLogUtility.startLog(
-	                poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
-	                "deletePoInIshine",
-	                "PoPortal",
-	                null,
-	                httpRequest
-	        );
+			log.info("[{}] start path={}", OP_DELETE_PO, sourceSystem);
 
-//	        validateDeletePoPayload(dto);
+			if (dto == null) {
+				log.warn("[{}] request body is null path={}", OP_DELETE_PO, sourceSystem);
+				applyDeletePoFailure(response, MSG_PAYLOAD_MISSING);
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			} else {
+				validationService.validateDeletePoPayload(dto);
 
-	        if (dto.getEventType() != SyncRequestType.DELETE_PO) {
-	            ExceptionLogContext.add("Invalid eventType for delete PO");
-	            throw new RuntimeException("Invalid eventType for delete PO");
-	        }
+				if (!SyncRequestType.DELETE_PO.equals(dto.getEventType())) {
+					ExceptionLogContext.add("Invalid eventType for delete PO");
+					log.warn("[{}] invalid eventType={} path={}", OP_DELETE_PO, dto.getEventType(), sourceSystem);
+					applyDeletePoFailure(response, MSG_DELETE_INVALID_EVENT);
+					finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+					TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				} else {
+					finalHttpStatusCode = deletePoCore(dto, response, sourceSystem);
+				}
+			}
+		} catch (IllegalArgumentException e) {
+			log.error("[{}] validation failed path={}", OP_DELETE_PO, sourceSystem, e);
+			ExceptionLogContext.add(e);
+			applyDeletePoFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		} catch (DataNotFoundException e) {
+			log.error("[{}] resource not found path={} projectId={}", OP_DELETE_PO, sourceSystem,
+					dto != null ? dto.getProjectId() : null, e);
+			ExceptionLogContext.add(e);
+			applyDeletePoFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		} catch (IllegalStateException e) {
+			log.error("[{}] conflict or invalid state path={} projectId={}", OP_DELETE_PO, sourceSystem,
+					dto != null ? dto.getProjectId() : null, e);
+			ExceptionLogContext.add(e);
+			applyDeletePoFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.CONFLICT.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		} catch (DataAccessException e) {
+			log.error("[{}] data access error path={} projectId={}", OP_DELETE_PO, sourceSystem,
+					dto != null ? dto.getProjectId() : null, e);
+			ExceptionLogContext.add(e);
+			applyDeletePoFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		} catch (RuntimeException e) {
+			log.error("[{}] business rule failure path={} projectId={}", OP_DELETE_PO, sourceSystem,
+					dto != null ? dto.getProjectId() : null, e);
+			ExceptionLogContext.add(e);
+			applyDeletePoFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		} catch (Exception e) {
+			log.error("[{}] unexpected error path={}", OP_DELETE_PO, sourceSystem, e);
+			ExceptionLogContext.add(e);
+			applyDeletePoFailure(response, ExceptionUtils.getExceptionMessage(e));
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, ExceptionLogContext.get(),
+						httpRequest);
+			}
+		}
 
-	        Project project =
-	                projectRepository.findByPoProjectId(dto.getProjectId());
+		return response;
+	}
 
-	        if (project == null) {
-	            ExceptionLogContext.add(
-	                    "Project not found during PO deletion | poProjectId=" + dto.getProjectId()
-	            );
-	            throw new RuntimeException("Project does not exist for PO deletion");
-	        }
+	/**
+	 * Assumes {@code dto} is non-null, validated, and {@link SyncRequestType#DELETE_PO}.
+	 */
+	private int deletePoCore(DeletedPoSyncDTO dto, ServiceResponse response, String sourceSystem) {
+		Project project = projectRepository.findByPoProjectId(dto.getProjectId());
+		if (project == null) {
+			String detail = "Project not found during PO deletion | poProjectId=" + dto.getProjectId();
+			ExceptionLogContext.add(detail);
+			log.warn("[{}] {} path={}", OP_DELETE_PO, detail, sourceSystem);
+			throw new DataNotFoundException("Project does not exist for PO deletion");
+		}
 
-	      
+		PoDetailsForProjectPoMappingDTO deletedPoDto = dto.getDeletedPo();
+		Long deletedPoId = deletedPoDto.getPoId();
 
-	        
-	        ProjectPoDetails deletedPo =
-	                poDetailsService.validateDeletedPoExists(
-	                        project.getProjectId(),
-	                        dto.getDeletedPo().getPoId()
-	                );
+		ProjectPoDetails deletedPo = poDetailsService.validateDeletedPoExists(project.getProjectId(), deletedPoId);
 
-	       
-	        poDetailsService.validateNoActiveTeamsForPo(
-	                deletedPo.getPoId()
-	        );
-	        
-	       
+		poDetailsService.validateNoActiveTeamsForPo(deletedPo.getPoId());
 
-	       
-	        poDetailsService.softDeletePo(
-	                deletedPo,
-	                dto.getDeletedByEmpId(),
-	                dto.getDeletedByEmpName(),
-	                dto.getDeletedOn()
-	        );
-	        
-	        employeeTeamMapRepository.deleteScheduledEmployeesByPoId(deletedPo.getPoId());
+		poDetailsService.softDeletePo(deletedPo, dto.getDeletedByEmpId(), dto.getDeletedByEmpName(),
+				dto.getDeletedOn());
 
-	        poDetailsService.validateAssociatedPosIntegrity(
-	                project.getProjectId(),
-	                dto.getAssociatePos()
-	        );
-	        
-	        if (dto.getAssociatePos() != null && !dto.getAssociatePos().isEmpty()) {
-	            poDetailsService.updatePoLinksAfterDeletion(
-	                    project.getProjectId(),
-	                    dto
-	            );
-	        }
+		employeeTeamMapRepository.deleteScheduledEmployeesByPoId(deletedPo.getPoId());
 
-	      //when no associated po and the delte po is also delted
-	        if(dto.getAssociatePos() == null || dto.getAssociatePos().isEmpty()) {
-		        projectService.setActiveFlagAsFalse(project,dto);
-		        
-		        List<Long> teamIds = teamRepository.findActiveTeamIdsByProjectId(project.getProjectId());
-		        
-		        if (teamIds != null && !teamIds.isEmpty()) {
-		        	employeeTeamMapRepository.deleteScheduledEmployeesByTeamIds(teamIds);
-		        	
-		        	 teamRepository.deactivateTeamsByProjectId(
-		                     project.getProjectId(),
-		                     dto.getDeletedOn().toInstant()
-		                             .atZone(ZoneId.systemDefault())
-		                             .toLocalDateTime(),
-		                     dto.getDeletedByEmpId()
-		             );
-		        }
-	        }
-	        
-	        projectService.recalculateProjectDates(project.getProjectId(),false);
-	       
+		poDetailsService.validateAssociatedPosIntegrity(project.getProjectId(), dto.getAssociatePos());
 
-	       
-//	        projectService.updateProjectDatesAfterDeletion(
-//	                project,
-//	                dto
-//	        );
+		if (dto.getAssociatePos() != null && !dto.getAssociatePos().isEmpty()) {
+			poDetailsService.updatePoLinksAfterDeletion(project.getProjectId(), dto);
+		}
 
-	        finalHttpStatusCode = HttpStatus.OK.value();
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse("PO deleted successfully");
-	        return response;
+		if (dto.getAssociatePos() == null || dto.getAssociatePos().isEmpty()) {
+			projectService.setActiveFlagAsFalse(project, dto);
 
-	    } catch (Exception e) {
-	    	TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-	    	ExceptionLogContext.add(e);
-			e.printStackTrace();
-//			exceptionDetailsForLog.append(e.printStackTrace());
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse(e.getMessage());
-			response.setServiceError(e.getMessage());
-			return response;
-//			throw e;
-	    } finally {
-	        if (initialLog != null) {
-	            apiLogUtility.endLog(
-	                    initialLog.getId(),
-	                    sourceSystem,
-	                    finalHttpStatusCode,
-	                    ExceptionLogContext.get(),
-	                    httpRequest
-	            );
-	        }
-	    }
+			List<Long> teamIds = teamRepository.findActiveTeamIdsByProjectId(project.getProjectId());
+
+			if (teamIds != null && !teamIds.isEmpty()) {
+				employeeTeamMapRepository.deleteScheduledEmployeesByTeamIds(teamIds);
+
+				teamRepository.deactivateTeamsByProjectId(project.getProjectId(),
+						dto.getDeletedOn().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+						dto.getDeletedByEmpId());
+			}
+		}
+
+		projectService.recalculateProjectDates(project.getProjectId(), false);
+
+		applyDeletePoSuccess(response);
+		log.info("[{}] success projectId={} deletedPoId={} path={}", OP_DELETE_PO, dto.getProjectId(), deletedPoId,
+				sourceSystem);
+		return HttpStatus.OK.value();
+	}
+
+	private static void applyDeletePoSuccess(ServiceResponse response) {
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(MSG_DELETE_SUCCESS);
+	}
+
+	private static void applyDeletePoFailure(ServiceResponse response, String message) {
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse(message);
+		response.setServiceError(message);
 	}
 	
 	@Transactional(rollbackFor = Exception.class)
