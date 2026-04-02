@@ -18,6 +18,8 @@ import java.util.TreeSet;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Value;
 
+import com.apmosys.employeeportal.dto.GrievanceEmployee360CountDTO;
 import com.apmosys.employeeportal.dto.GrievanceAuditDiffResponseDTO;
 import com.apmosys.employeeportal.dto.GrievanceProofDocumentDTO;
 import com.apmosys.employeeportal.dto.GrievanceProofDownloadDTO;
@@ -387,6 +390,110 @@ public class GrievanceService {
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		response.setServiceResponse(dto);
 		return response;
+	}
+
+	/**
+	 * Employee 360: tickets raised by {@code targetEmpId}. Viewer must be the same employee, have
+	 * view-all grievance access, or HR/Development queue access.
+	 */
+	public ServiceResponse getEmployee360TicketsRaised(Long viewerEmpId, Long targetEmpId, int pageOneBased, int size,
+			String sortBy, String sortDir, String fromDate, String toDate) {
+		ServiceResponse response = new ServiceResponse();
+		if (!canViewEmployee360Grievance(viewerEmpId, targetEmpId)) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Access denied.");
+			return response;
+		}
+		Timestamp fromTs = parseStartOfDayOptional(fromDate);
+		Timestamp toTs = parseEndOfDayOptional(toDate);
+		int pageIndex = Math.max(0, pageOneBased - 1);
+		int pageSize = clampPageSize(size);
+		Pageable pageable = buildPageable(pageIndex, pageSize, sortBy, sortDir);
+		Page<GrievanceTicket> pageResult = grievanceTicketRepository.findRaisedForEmployee360(targetEmpId, 1, fromTs, toTs,
+				pageable);
+		ensureTicketNumbers(pageResult.getContent());
+		GrievanceTicketListPageDTO dto = toPageDto(pageResult, pageOneBased, sortBy, sortDir);
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(dto);
+		return response;
+	}
+
+	/**
+	 * Employee 360: tickets assigned to {@code targetEmpId}.
+	 */
+	public ServiceResponse getEmployee360TicketsAssigned(Long viewerEmpId, Long targetEmpId, int pageOneBased, int size,
+			String sortBy, String sortDir, String fromDate, String toDate) {
+		ServiceResponse response = new ServiceResponse();
+		if (!canViewEmployee360Grievance(viewerEmpId, targetEmpId)) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Access denied.");
+			return response;
+		}
+		Timestamp fromTs = parseStartOfDayOptional(fromDate);
+		Timestamp toTs = parseEndOfDayOptional(toDate);
+		int pageIndex = Math.max(0, pageOneBased - 1);
+		int pageSize = clampPageSize(size);
+		Pageable pageable = buildPageable(pageIndex, pageSize, sortBy, sortDir);
+		Page<GrievanceTicket> pageResult = grievanceTicketRepository.findAssignedForEmployee360(targetEmpId, 1, fromTs, toTs,
+				pageable);
+		ensureTicketNumbers(pageResult.getContent());
+		GrievanceTicketListPageDTO dto = toPageDto(pageResult, pageOneBased, sortBy, sortDir);
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(dto);
+		return response;
+	}
+
+	/** Total counts for Employee 360 (no date filter); used for UI visibility. */
+	public ServiceResponse getEmployee360TicketCounts(Long viewerEmpId, Long targetEmpId) {
+		ServiceResponse response = new ServiceResponse();
+		if (!canViewEmployee360Grievance(viewerEmpId, targetEmpId)) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Access denied.");
+			return response;
+		}
+		GrievanceEmployee360CountDTO counts = new GrievanceEmployee360CountDTO();
+		counts.setRaisedCount(grievanceTicketRepository.countByCreatedByEmpIdAndIsActive(targetEmpId, 1));
+		counts.setAssignedCount(grievanceTicketRepository.countByAssignedToEmpIdAndIsActive(targetEmpId, 1));
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(counts);
+		return response;
+	}
+
+	private boolean canViewEmployee360Grievance(Long viewerEmpId, Long targetEmpId) {
+		if (viewerEmpId == null || targetEmpId == null) {
+			return false;
+		}
+		if (viewerEmpId.equals(targetEmpId)) {
+			return true;
+		}
+		if (canViewAllTickets(viewerEmpId)) {
+			return true;
+		}
+		return canViewAssignedTicketsQueue(viewerEmpId);
+	}
+
+	private static Timestamp parseStartOfDayOptional(String yyyyMmDd) {
+		if (yyyyMmDd == null || yyyyMmDd.isBlank()) {
+			return null;
+		}
+		try {
+			LocalDate d = LocalDate.parse(yyyyMmDd.trim());
+			return Timestamp.valueOf(d.atStartOfDay());
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	private static Timestamp parseEndOfDayOptional(String yyyyMmDd) {
+		if (yyyyMmDd == null || yyyyMmDd.isBlank()) {
+			return null;
+		}
+		try {
+			LocalDate d = LocalDate.parse(yyyyMmDd.trim());
+			return Timestamp.valueOf(d.atTime(LocalTime.of(23, 59, 59, 999_000_000)));
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	public ServiceResponse exportAssignedToMeTickets(Long empId) {

@@ -41,6 +41,56 @@ export class GrievanceService {
     return this.http.get(`${this.baseUrl}api/grievance/assignedTickets`, { params });
   }
 
+  getEmployee360TicketCounts(targetEmpId: number) {
+    return this.http.get(`${this.baseUrl}api/grievance/employee360/${targetEmpId}/counts`);
+  }
+
+  getEmployee360TicketsRaised(
+    targetEmpId: number,
+    page: number,
+    size: number,
+    sortBy: string,
+    sortDir: 'asc' | 'desc',
+    fromDate?: string | null,
+    toDate?: string | null
+  ) {
+    let params = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size))
+      .set('sortBy', sortBy)
+      .set('sortDir', sortDir);
+    if (fromDate) {
+      params = params.set('fromDate', fromDate);
+    }
+    if (toDate) {
+      params = params.set('toDate', toDate);
+    }
+    return this.http.get(`${this.baseUrl}api/grievance/employee360/${targetEmpId}/raised`, { params });
+  }
+
+  getEmployee360TicketsAssigned(
+    targetEmpId: number,
+    page: number,
+    size: number,
+    sortBy: string,
+    sortDir: 'asc' | 'desc',
+    fromDate?: string | null,
+    toDate?: string | null
+  ) {
+    let params = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size))
+      .set('sortBy', sortBy)
+      .set('sortDir', sortDir);
+    if (fromDate) {
+      params = params.set('fromDate', fromDate);
+    }
+    if (toDate) {
+      params = params.set('toDate', toDate);
+    }
+    return this.http.get(`${this.baseUrl}api/grievance/employee360/${targetEmpId}/assigned`, { params });
+  }
+
   exportMyTickets() {
     return this.http.get(`${this.baseUrl}api/grievance/myTickets/export`);
   }

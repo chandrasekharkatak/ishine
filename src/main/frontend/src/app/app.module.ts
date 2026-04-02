@@ -75,6 +75,7 @@ import { RecruitmentComponent } from './recruitment/recruitment.component';
 import { RewardFilterPipe } from './reward-filter.pipe';
 
 import { Employee360AppreciationComponent } from './employee360/employee360-appreciation/employee360-appreciation.component';
+import { Employee360GrievanceComponent } from './employee360/employee360-grievance/employee360-grievance.component';
 import { Employee360BiomaxComponent } from './employee360/employee360-biomax/employee360-biomax.component';
 import { Employee360LeaveComponent } from './employee360/employee360-leave/employee360-leave.component';
 import { Employee360ProfileComponent } from './employee360/employee360-profile/employee360-profile.component';
@@ -315,6 +316,7 @@ registerLocaleData(localeGb);
     Employee360BiomaxComponent,
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
+    Employee360GrievanceComponent,
     DomainComponent,
     AllProjectInsightDomainsComponent,
     SafeHtmlPipe,

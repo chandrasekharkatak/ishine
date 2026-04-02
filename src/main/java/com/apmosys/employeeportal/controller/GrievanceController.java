@@ -140,6 +140,49 @@ public class GrievanceController {
 		return grievanceService.exportAssignedToMeTickets(empId);
 	}
 
+	@GetMapping("/employee360/{targetEmpId}/raised")
+	public ServiceResponse getEmployee360TicketsRaised(
+			@PathVariable("targetEmpId") Long targetEmpId,
+			@RequestParam(defaultValue = "1") int page,
+			@RequestParam(defaultValue = "10") int size,
+			@RequestParam(defaultValue = "createdOn") String sortBy,
+			@RequestParam(defaultValue = "desc") String sortDir,
+			@RequestParam(value = "fromDate", required = false) String fromDate,
+			@RequestParam(value = "toDate", required = false) String toDate) {
+		Long viewerEmpId = getCurrentEmpId();
+		if (viewerEmpId == null) {
+			return unauthorizedResponse();
+		}
+		return grievanceService.getEmployee360TicketsRaised(viewerEmpId, targetEmpId, page, size, sortBy, sortDir, fromDate,
+				toDate);
+	}
+
+	@GetMapping("/employee360/{targetEmpId}/assigned")
+	public ServiceResponse getEmployee360TicketsAssigned(
+			@PathVariable("targetEmpId") Long targetEmpId,
+			@RequestParam(defaultValue = "1") int page,
+			@RequestParam(defaultValue = "10") int size,
+			@RequestParam(defaultValue = "createdOn") String sortBy,
+			@RequestParam(defaultValue = "desc") String sortDir,
+			@RequestParam(value = "fromDate", required = false) String fromDate,
+			@RequestParam(value = "toDate", required = false) String toDate) {
+		Long viewerEmpId = getCurrentEmpId();
+		if (viewerEmpId == null) {
+			return unauthorizedResponse();
+		}
+		return grievanceService.getEmployee360TicketsAssigned(viewerEmpId, targetEmpId, page, size, sortBy, sortDir,
+				fromDate, toDate);
+	}
+
+	@GetMapping("/employee360/{targetEmpId}/counts")
+	public ServiceResponse getEmployee360TicketCounts(@PathVariable("targetEmpId") Long targetEmpId) {
+		Long viewerEmpId = getCurrentEmpId();
+		if (viewerEmpId == null) {
+			return unauthorizedResponse();
+		}
+		return grievanceService.getEmployee360TicketCounts(viewerEmpId, targetEmpId);
+	}
+
 	@GetMapping("/developmentUsers")
 	public ServiceResponse getDevelopmentUsers() {
 		Long empId = getCurrentEmpId();
