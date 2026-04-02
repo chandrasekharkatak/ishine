@@ -33,7 +33,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.Exception.TimesheetValidationFailedException;
+import com.apmosys.employeeportal.dto.FileNameRequest;
+import com.apmosys.employeeportal.dto.FileNameResponse;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
+import com.apmosys.employeeportal.dto.GetProjectListForDateAndEmpIdPayload;
 import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.FinalDocumentDownloadPayloadDTO;
 import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
@@ -43,9 +46,11 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDeleteRequestDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusUpdateRequestDTO;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.service.TimesheetDocumentServiceNew;
 import com.apmosys.employeeportal.service.TimesheetServiceNew;
 import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
+import com.apmosys.employeeportal.utility.FileNameGenerator;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +82,8 @@ public class EmployeeTimesheetControllerNew {
 
 	@Autowired
 	com.apmosys.employeeportal.service.TimesheetService timesheetService;
+
+	
 	
 	@Value("${timesheet.minus.days.for.bulk.upload}")
 	private Integer minusDays;
@@ -148,13 +155,10 @@ public class EmployeeTimesheetControllerNew {
     @JobRoleAccess(featureIds = {15})
     @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ServiceResponse updateTimesheet(
-            @RequestParam Long timesheetId,
             @RequestPart("dto") String encryptedDto,
             @RequestPart(value = "documents", required = false) List<MultipartFile> documents) {
 
-        if (timesheetId == null) {
-            throw new TimesheetValidationFailedException("Timesheet to update is required.");
-        }
+    	Long timesheetId=null;
 
         if (encryptedDto == null || encryptedDto.trim().isEmpty()) {
             throw new TimesheetValidationFailedException("Request data is required.");
@@ -163,11 +167,15 @@ public class EmployeeTimesheetControllerNew {
         EmployeeTimesheetDTO dto;
         try {
             dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
+			 timesheetId=dto.getTimesheetId();
+			if (timesheetId == null) {
+				throw new TimesheetValidationFailedException("Timesheet to update is required.");
+			}
             log.debug("Decrypted DTO for update - timesheetId: {}, empId: {}, date: {}",
                     timesheetId, dto.getEmpId(), dto.getDate());
         } catch (Exception e) {
             log.error("Decryption/parsing failed for update - timesheetId: {}, error: {}",
-                    timesheetId, e.getMessage(), e);
+                     e.getMessage(), e);
             throw new TimesheetValidationFailedException("Invalid or corrupted request data. Please try again.");
         }
 
@@ -214,14 +222,6 @@ public class EmployeeTimesheetControllerNew {
 	@DeleteMapping(value = "/{timesheetId}")
 	public ServiceResponse deleteTimesheet(@PathVariable Long timesheetId) {
 		ServiceResponse response = timesheetServiceNew.deleteTimesheet(timesheetId);
-		return response;
-	}
-	
-	@JobRoleAccess(featureIds = {7,15,16})
-	@RequestMapping(value = "/getAllProjectsByEmpId", method = RequestMethod.POST)
-	public ServiceResponse getAllProjectsByEmpId(@RequestBody Long empId) {
-
-		ServiceResponse response = timesheetServiceNew.getAllProjectsByEmpId(empId);
 		return response;
 	}
 	
@@ -448,6 +448,8 @@ public class EmployeeTimesheetControllerNew {
 
 		String contentType = "application/octet-stream";
 		String headerValue = "attachment; filename=\"" + resource.getFilename() + "\"";
+		String fileName = resource.getFilename();
+		 contentType = timesheetServiceNew.detectContentType(fileName);
 
 		return ResponseEntity.ok()
 				.contentType(MediaType.parseMediaType(contentType))
@@ -482,6 +484,25 @@ public class EmployeeTimesheetControllerNew {
 
 			return ResponseEntity.ok(isAllowed);
 		}
+	@GetMapping("/half-day/{empId}")
+    public ResponseEntity<List<LocalDate>> getAllHalfDayLeave(@PathVariable Long empId) {
+        List<LocalDate> halfDayDates = timesheetServiceNew.getAllHalfDayLeaves(empId);
+        return ResponseEntity.ok(halfDayDates);
+    }
+
+	@PostMapping("/generate-name")
+    public ResponseEntity<FileNameResponse> generateFileName(
+            @RequestBody FileNameRequest request
+    ) {
+		try{
+
+			String fileName = FileNameGenerator.generate(request.getProjectId(), request.getExtension(), request.getDocType());
+			return ResponseEntity.ok(new FileNameResponse(fileName));
+		}catch(Exception e){
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+    }
 		
 		@GetMapping("/getMyLastFilledLocationIdForProjectAndEmp")
 		public ServiceResponse getMyLastFilledLocationIdForProjectAndEmp(@RequestParam Long empId, @RequestParam Integer projectId) {
@@ -496,6 +517,14 @@ public class EmployeeTimesheetControllerNew {
 			response = timesheetServiceNew.fetchDeptBaseProjectAndClientRelatedDataForEmployee(empId);
 			return response;
 		}
+		
+		
+		/*Migrated*/
+		// @JobRoleAccess(featureIds = {15})
+		 @PostMapping("/getProjectListForDateAndEmpId")
+		 public ServiceResponse getProjectListForDateAndEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
+		     return timesheetServiceNew.getProjectListForDateAndEmpId(payload);
+		 }
 }
 
 

@@ -43,3 +43,7 @@
   text-overflow: ellipsis !important;
   display: block !important;
 }
+
+ ::ng-deep .no-checkbox-option .mat-pseudo-checkbox {
+   display: none !important;
+ }

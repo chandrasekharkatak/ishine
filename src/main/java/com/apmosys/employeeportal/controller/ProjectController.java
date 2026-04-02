@@ -284,13 +284,11 @@ public class ProjectController {
 	}
 	
 	@RequestMapping(value = "/getResourceCountListByPoprojectName", method = RequestMethod.POST)
-	public ServiceResponse getResourceCountListByPoprojectName(HttpServletRequest httpRequest,
-			@RequestBody List<String> projectNames) {
+	public ServiceResponse getResourceListByPoNumbers(HttpServletRequest httpRequest,
+			@RequestBody List<String> poNumbers) {
 
-//	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-
-		ServiceResponse response = poPortalApiService.getResourceCountListByPoprojectName(projectNames);
-		return response;
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return poPortalApiService.getResourceListByPoNumbers(poNumbers);
 	}
 	
 
@@ -300,18 +298,6 @@ public class ProjectController {
 		return response;
 	}
 	
-	// @Encrypted
-	@GetMapping("/getEmployeeExistingProjectDetailsByEmpId")
-	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(@RequestParam Long empId, @RequestParam Integer projectId) {
-		return projectService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId);
-	}
-	
-	// @Encrypted
-	@PostMapping("/updateEmployeeProjectMappingAsInActive")
-	public ServiceResponse updateEmployeeProjectMappingAsInActive(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
-		return projectService.updateEmployeeProjectMappingAsInActive(rmgTeamMemberDto);
-	}
-
 	// @Encrypted
 	@PostMapping("/saveProjectInformation")
 	public ServiceResponse saveProjectInformation(@RequestBody RmgProjectDto rmgProjectDto) {

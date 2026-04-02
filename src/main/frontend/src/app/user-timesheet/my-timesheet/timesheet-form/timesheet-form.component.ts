@@ -29,6 +29,9 @@ import { TimesheetValidationService } from 'src/app/services/TimesheetValidation
 import { TimesheetConfigService } from 'src/app/services/TimesheetValidationService/timesheet-config.service';
 import { DatePipe } from '@angular/common';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { Router } from '@angular/router';
+import { ExcelDownloadService } from 'src/app/services/excel-download-service';
+// import { map } from 'highcharts';
 
 @Component({
   standalone: false,
@@ -43,12 +46,6 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   
   // ✅ MODERATE FIX: Constants for magic numbers
   private static readonly NON_FILLABLE_DAY_TYPES = [4, 6, 7]; // Public Holiday, Client Holiday, Week Off
-  private static readonly ASYNC_DELAYS = {
-    PROJECT_LOAD: 500,
-    LOCATION_POPULATE: 800,
-    TEAM_MEMBER_LOAD: 300
-  } as const;
-
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
   @ViewChild("alert_message_for_holiday_create")
@@ -166,6 +163,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   dayTypeToBeExcluded = ["Leave","Holiday"];
   holidayDescription: any;
   noProjectEmployee: any = false;
+  employeeObjForDateFetching: User = new User();  
   constructor(private teamViewService: TeamViewService,
     private timesheetService: TimesheetService,
     private timesheetNewService: TimesheetNewService,
@@ -177,7 +175,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
     private datePipe: DatePipe,
-    private employeeService: EmployeeService) { 
+    private router: Router,
+    private employeeService: EmployeeService,
+    private excelDownloadService: ExcelDownloadService) { 
       // ✅ CRITICAL FIX: Properly unsubscribe on destroy
       this.authenticationService.currentUser
         .pipe(takeUntil(this.destroy$))
@@ -192,9 +192,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     this.getAllDayTypes();
     this.getAllDSRApprovalStatusFromMaster();
     console.log(this.selectedDate,"[ngOnInit] Initial selectedDate:", this.selectedDate);
-    if(this.selectedDate){
-      this.loadServerDateThenInitCreate();
-    }
+    // if(this.selectedDate){
+    //   this.loadServerDateThenInitCreate();
+    // }
     console.log('[ngOnInit] Form initialized with:', {
       isUpdation: this.isUpdation,
       timesheetId: this.timesheetId,
@@ -678,6 +678,15 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       const doc = docsToRemove.find(d => d.uniqueIdentifier === file.name);
       return !doc;
     });
+     this.fileTracker.forEach((value,key)=>{
+      const doc = docsToRemove.find(d => d.uniqueIdentifier === value);
+      if(doc){
+        this.fileTracker.delete(key);
+      }
+    })
+
+    console.log("Selected File",this.selectedFile)
+    console.log("File tracker",this.fileTracker);
   }
 
   /**
@@ -1189,7 +1198,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    */
   onDayTypeChange(event: any): void {
     const newDayTypeId = this.dayType;
-
+    if(this.halfDayValidation()){
+      return;
+    }
     // If current date is a Holiday/Week-off and user tries to switch to Working / Half-day Working,
     // prevent change on UI itself (backend will also enforce).
     const isHolidayOrWeekOffDate =
@@ -1476,6 +1487,7 @@ this.isNightShift = false;
     this.selectedFile = [];
     this.uniqueProjectsList = [];
     this.empHasClientSideId = false;
+    this.fileTracker.clear();
 
     // Clear highlight/validation state
     this.highlightLocationList = [];
@@ -1709,6 +1721,7 @@ this.isNightShift = false;
     // Load available timesheets for date filtering after setting user
     if (userObj.empId && this.serverDate) {
       this.getAllAvailableTimesheetByEmpId(userObj);
+      this.getHalfDayLeaves(userObj.empId);
     }
   }
 
@@ -2726,7 +2739,10 @@ this.isNightShift = false;
         // After server date is loaded, calculate constraints if employee is known
         if (this.timesheetFilledForUser?.empId || this.currentUser?.empId) {
           const empId = this.timesheetFilledForUser?.empId || this.currentUser.empId;
-          this.getAllAvailableTimesheetByEmpId({ empId: empId } as User);
+          let employeeObj = new User();
+          employeeObj = this.teamMemberList?.find(m => m.empId === empId || Number(m.empId) === Number(empId))
+          // this.getTimesheetMetadata();
+          this.getAllAvailableTimesheetByEmpId(employeeObj);
         }
       });
   }
@@ -2748,8 +2764,9 @@ this.isNightShift = false;
     if (this.currentUser.timesheetBackDatedDays) {
       OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays;
     }
-
-    if (employeeObj.isTimesheetLockCheckEnable == 'false') {
+// this.selectedTeamMember
+    if ((this.timesheetAppliedFor == "self" && this.currentUser.isTimesheetLockCheckEnable == 'false') ||
+    (this.timesheetAppliedFor == "team" && this.selectedTeamMember?.isTimesheetLockCheckEnable == 'false')) {
       endDate = currentDate;
       startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + 1) * DAY_IN_MS));
     } else {
@@ -2770,11 +2787,11 @@ this.isNightShift = false;
       if (response.serviceStatus == "Success") {
         this.availableTimesheets = response.serviceResponse;
         // Calculate date picker constraints after loading timesheets
-        this.calculateDatePickerConstraints(employeeObj);
+        this.calculateDatePickerConstraints();
       } else {
         console.error(response.serviceResponse);
         // Still calculate constraints even if no timesheets found
-        this.calculateDatePickerConstraints(employeeObj);
+        this.calculateDatePickerConstraints();
       }
     });
   }
@@ -2783,7 +2800,7 @@ this.isNightShift = false;
    * Calculate date picker constraints (minDate, maxDate, disabledDates)
    * Based on timesheetDateFilter logic from old component
    */
-  calculateDatePickerConstraints(employeeObj: User): void {
+  calculateDatePickerConstraints(): void {
     if (!this.serverDate) {
       // Wait for server date to be loaded
       return;
@@ -2797,13 +2814,14 @@ this.isNightShift = false;
     // Calculate days difference from date of joining
     let currentDate = new Date();
     let daysDifference = 365; // Default to 365 days if dateOfJoining not available
-    console.log("this.currentUser.dateOfJoining ==> ",employeeObj.dateOfJoining)
-    if (employeeObj.dateOfJoining) {
-      let dateOfJoining = moment(employeeObj.dateOfJoining, dateFormat);
+    console.log("this.currentUser.dateOfJoining ==> ",this.currentUser.dateOfJoining)
+    if (this.currentUser.dateOfJoining) {
+      let dateOfJoining = moment(this.timesheetAppliedFor=='self' ? this.currentUser.dateOfJoining : this.selectedTeamMember.dateOfJoining, dateFormat);
+
       daysDifference = moment(currentDate, dateFormat).diff(dateOfJoining, 'days');
     }
 
-    if (employeeObj.timesheetBackDatedDays > daysDifference) {
+    if (this.currentUser.timesheetBackDatedDays > daysDifference){
       OPEN_BACKDATED_DAYS = daysDifference;
     } else {
       OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays || 30;
@@ -2815,10 +2833,11 @@ this.isNightShift = false;
 
     // Calculate start date based on lock check enable flag
     let startDate: Date;
-    if (employeeObj.isTimesheetLockCheckEnable == "false") {
+    if ((this.timesheetAppliedFor == "self" && this.currentUser.isTimesheetLockCheckEnable == 'false') ||
+    (this.timesheetAppliedFor == "team" && this.selectedTeamMember?.isTimesheetLockCheckEnable == 'false')) {
       startDate = new Date(serverDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
     } else {
-      const lockDays = employeeObj.timesheetLockDays || 7; // Default to 30 if not set
+       const lockDays = this.currentUser.timesheetLockDays || 7; // Default to 30 if not set
       startDate = new Date(serverDate.getTime() - ((lockDays + CURRENT_DAY) * DAY_IN_MS));
     }
 
@@ -2957,6 +2976,9 @@ this.isNightShift = false;
       if (!fromDate) return;
       this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
     }
+    if(this.halfDayValidation()){
+      return;
+    };
     this.applyChanges();
   }
 
@@ -3395,16 +3417,21 @@ this.isNightShift = false;
    * Handle file selection for document upload
    * Validates file type and size
    */
-  onFileSelected(
+  fileTracker = new Map<string, string>(); 
+
+  async onFileSelected(
     event: any,
     docType: 'Filled' | 'Approved',
     projectId: number
-  ): void {
+  ): Promise<void> {
 
     const file: File = event.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+    const allowedTypes = ['application/pdf', 
+    'image/jpeg', 'image/png', 'image/jpg',
+    'application/vnd.ms-excel',                                    
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
     const maxSize = 500 * 1024; // 500KB
 
     // ❌ Invalid type
@@ -3412,7 +3439,7 @@ this.isNightShift = false;
       this.handleFileError(
         projectId,
         docType,
-        'Only PDF, JPG, JPEG, PNG files allowed.'
+        'Only PDF, JPG, JPEG, PNG, XLS, XLSX files allowed.'
       );
       event.target.value = '';
       return;
@@ -3429,6 +3456,8 @@ this.isNightShift = false;
       return;
     }
 
+    console.log("Document data",this.documentData);
+
     // ♻️ Cleanup old object URL
     const previous = this.documentData.find(
       f => f.projectId === projectId && f.docType === docType
@@ -3437,10 +3466,14 @@ this.isNightShift = false;
     if (previous?.rawObjectUrl) {
       URL.revokeObjectURL(previous.rawObjectUrl);
     }
-
+    const excelTypes = [
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
     // ✅ Detect file type ONCE
-    const fileType: 'pdf' | 'image' =
-      file.type === 'application/pdf' ? 'pdf' : 'image';
+    const fileType: 'pdf' | 'image' | 'excel' =
+      file.type === 'application/pdf' ? 'pdf' :
+      excelTypes.includes(file.type) ? 'excel' : 'image';
 
     // ✅ Create object URL
     const objectUrl = URL.createObjectURL(file);
@@ -3449,10 +3482,18 @@ this.isNightShift = false;
     const previewUrl =
       fileType === 'pdf'
         ? this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl)
+        : fileType === 'excel'
+        ? null   // No browser preview for Excel
         : this.sanitizer.bypassSecurityTrustUrl(objectUrl);
 
-    const uniqueFile: File = this.renameFile(file, projectId, docType);
+    const uniqueFile: File = await this.renameFile(file, projectId, docType);
+    if(uniqueFile == null ){
+      return;
+    }
     const uniqueIdentifier = uniqueFile.name;
+    
+    
+
 
     // Update entry – preserve docId when replacing so backend updates existing row instead of creating new
     this.updateUploadFile({
@@ -3514,6 +3555,10 @@ this.isNightShift = false;
     data: TimesheetDocumentDataI,
     file?: File
   ): void {
+   
+    let key = this.generateFileKey(data.projectId,this.fromDate,this.dayType,data.docType);
+
+    let oldUniqueIdentifier = this.fileTracker.get(key);
 
     const index = this.documentData.findIndex(
       f => f.projectId === data.projectId && f.docType === data.docType
@@ -3533,18 +3578,28 @@ this.isNightShift = false;
     // ✅ Keep selectedFile array in sync without introducing undefined entries
     // Only update selectedFile when we actually have a File object
     if (file) {
-      const existingIndex = this.selectedFile.findIndex(
-        f => f && getBaseName(f.name) === getBaseName(data.uniqueIdentifier)
-      );
 
-      if (existingIndex !== -1) {
-        // Replace existing file for this document
-        this.selectedFile[existingIndex] = file;
-      } else {
+      if(oldUniqueIdentifier){
+        const existingIndex = this.selectedFile.findIndex(
+          // f => f && getBaseName(f.name) === getBaseName(data.uniqueIdentifier)
+          f => f && getBaseName(f.name) === getBaseName(oldUniqueIdentifier)
+        );
+        if (existingIndex !== -1) {
+          // Replace existing file for this document
+          this.selectedFile[existingIndex] = file;
+          this.fileTracker.set(key,data.uniqueIdentifier);
+        }
+      }
+      else {
         // Add new file entry
         this.selectedFile.push(file);
+        this.fileTracker.set(key,data.uniqueIdentifier);
+
       }
     }
+
+    console.log("File tracker",this.fileTracker);
+    console.log("Selected File",this.selectedFile);
 
   }
 
@@ -3698,17 +3753,31 @@ this.isNightShift = false;
   /**
    * Rename file with project ID and document type prefix
    */
-  renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): File {
-    const ext = file.name.substring(file.name.lastIndexOf('.'));
-    const safeDocType = docType.toLowerCase(); // optional
-    // const newFileName = `${this.currentUser.empId}_${projectId}_${}_${safeDocType}${ext}`;
-    const newFileName = `${projectId}_${this.fromDate}_${this.dayType}_${safeDocType}${ext}`;
+  async renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): Promise<File> {
+  
+    try{
+    const ext = file.name.includes('.') ?file.name.substring(file.name.lastIndexOf('.')): '';
+    // const safeDocType = docType.toLowerCase(); // optional
+    // // const newFileName = `${this.currentUser.empId}_${projectId}_${}_${safeDocType}${ext}`;
+    // const newFileName = `${projectId}_${this.fromDate}_${this.dayType}_${safeDocType}${ext}`;
+    
+
+    const response: any = await firstValueFrom(this.timesheetService.generateFileName({
+      projectId: projectId,
+      extension: ext,
+      docType: docType
+    }));
+    const newFileName = response.fileName;
 
     return new File([file], newFileName, { type: file.type });
   }
-  /**
-   * Check if project has filled document
-   */
+   catch(error){
+    this.handleError(error,"Generating unique file name",true,"Unable to generate unique file name")
+    return null;
+  }
+
+  }
+
   hasFilledDocument(projectId: number): boolean {
     return this.documentData?.some(
       file => file.projectId === projectId && file.docType === 'Filled'
@@ -3770,7 +3839,7 @@ this.isNightShift = false;
     this.selectedFile = [];
     this.uniqueProjectsList = [];
     this.empHasClientSideId = false;
-    
+    this.fileTracker.clear();
     // UI state
     this.highlightLocationList = [];
     this.highlightLocationIdSet = new Set();
@@ -3782,6 +3851,7 @@ this.isNightShift = false;
     
     // Flags
     this.disableAdd = false;
+    this.fileTracker.clear();
   }
 
   resetFormForNightShift(): void {
@@ -3801,7 +3871,7 @@ this.isNightShift = false;
     this.selectedFile = [];
     this.uniqueProjectsList = [];
     this.empHasClientSideId = false;
-    
+    this.fileTracker.clear();
     // UI state
     this.highlightLocationList = [];
     this.highlightLocationIdSet = new Set();
@@ -3835,7 +3905,7 @@ this.isNightShift = false;
     this.selectedFile = [];
     this.uniqueProjectsList = [];
     this.empHasClientSideId = false;
-
+    this.fileTracker.clear();
     // In/out times and presence (clean slate for new date)
     this.apmosysInTime = null;
     this.apmosysOutTime = null;
@@ -4147,17 +4217,22 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             
-            this.timesheetCreated.emit();
             // After successful create, refresh disabled dates so just-filled date becomes non-selectable
             if (targetEmpId) {
               this.getAllAvailableTimesheetByEmpId({ empId: targetEmpId } as User);
             }
             this.appelectMember = null;
-            this.resetForm()
+            this.resetForm();
             this.onTimesheetAppliedForChange();
             setTimeout(() => {
               this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
             });
+            console.log('this.isAutofillMode:', this.isAutofillMode);
+            if(this.isAutofillMode){
+              this.router.navigate(['/home']);
+            }else{
+              this.timesheetCreated.emit();
+            }
             // Reset form or navigate as needed
           } else {
             // ✅ MODERATE FIX: Use centralized error handling
@@ -5003,9 +5078,16 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       .subscribe({
         next: (blob: Blob) => {
           const mimeType = blob.type || 'application/octet-stream';
-          const blobUrl = URL.createObjectURL(blob);
-          this.showPreviewFromBlobUrl(blobUrl, mimeType);
-        },
+          if (this.isExcelMimeType(mimeType)) {
+            const fileName = `document.${mimeType.includes('openxml') ? 'xlsx' : 'xls'}`;
+            // this.downloadBlobAsFile(blob, fileName);
+            this.excelDownloadService.openConfirmAndDownload(blob,fileName);
+          }
+          else{
+            const blobUrl = URL.createObjectURL(blob);
+            this.showPreviewFromBlobUrl(blobUrl, mimeType);
+          }
+          },
         error: (error) => {
           this.handleError(
             error,
@@ -5786,9 +5868,14 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
           this.isAutofillMode = true;
           try {
             this.populateFormFromTimesheetData(cloned);
-          } finally {
+          } catch (error) {
+            console.error('[loadAutofillData] Error populating form from autofill template:', error);
+            // Don't block user from filling manually if autofill population fails
             this.isAutofillMode = false;
           }
+          // finally {
+          //   this.isAutofillMode = false;
+          // }
 
           // After autofill, force create mode for the selected date
           this.timesheetId = null;
@@ -5883,7 +5970,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     };
 
     return new Promise<void>((resolve, reject) => {
-      this.timesheetService.getProjectListForDateAndEmpId(payload)
+      this.timesheetNewService.getProjectListForDateAndEmpId(payload)
         .pipe(first(), takeUntil(this.destroy$))
         .subscribe({
           next: (response: any) => {
@@ -6099,5 +6186,84 @@ limitDecimals(event: any ,activity : any) {
     }
   }
 }
+
+  downloadFile(file: any): void {
+    if (file.rawObjectUrl) {
+      // Newly selected file — use object URL
+      const a = document.createElement('a');
+      console.log("A",a);
+      console.log("Raw object url",file);
+      a.href = file.rawObjectUrl;
+      a.download = file.docName || 'download';
+      a.click();
+    } 
+  }
+  isExcelMimeType(mimeType: string): boolean {
+    return mimeType === 'application/vnd.ms-excel'
+      || mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  }
+  
+  private downloadBlobAsFile(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  halfDayLeaveList:any[]=[]
+  getHalfDayLeaves(empId: number): void {
+    this.timesheetService.getAllHalfDayLeaves(empId)
+      .pipe(first())
+      .subscribe({
+        next: (dates: string[]) => {
+          this.halfDayLeaveList = dates;
+          console.log(this.halfDayLeaveList);
+        },
+        error: (err) => {
+          console.error('Error fetching half day leaves:', err);
+        }
+      });
+  }
+  halfDayValidation(){
+
+    let date = this.convertDate(this.fromDate);
+    if(date == null){
+      return false
+    }
+    let isHalfday = this.halfDayLeaveList.includes(date);
+    if(this.dayType == 8 && this.fromDate != null){
+      if(!isHalfday){
+        this.handleError(
+          ("Please apply half day leave on the selected day first"),
+          'createTimesheet',
+          true,
+          "Please apply half day leave on the selected day first"
+        );
+        // this.fromDate = null;
+        // this.resetForm();
+        return true;
+      }
+    }
+    return false;
+
+  }
+
+   convertDate(dateStr) {
+    if (!dateStr) return null;
+    const [day, month, year] = dateStr.split("-");
+    const date = new Date(`${year}-${month}-${day}`);
+    return date.toISOString().split("T")[0];
+  }
+
+
+  private generateFileKey(
+    projectId: number,
+    fromDate: string,
+    dayType: number,
+    docType: string
+  ): string {
+    return `${projectId}_${fromDate}_${dayType}_${docType}`.toLowerCase();
+  }
 
 }

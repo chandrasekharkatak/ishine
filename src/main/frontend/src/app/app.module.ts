@@ -221,7 +221,7 @@ import { TimesheetFormComponent } from './user-timesheet/my-timesheet/timesheet-
 import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatTabsModule } from '@angular/material/tabs';
-import { RmgProjectComponent } from './user-team/resource-management/rmg-project-config/rmg-project-config.component';
+import { RmgProjectConfigComponent } from './user-team/resource-management/rmg-project-config/rmg-project-config.component';
 import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatRadioModule} from '@angular/material/radio';
@@ -230,6 +230,11 @@ import { MyTableComponent } from './helpers/my-table/my-table.component';
 import { RmgStatusCardsComponent } from './user-team/resource-management/rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
 import {MatSidenavModule} from '@angular/material/sidenav';
 import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { PortalModule } from '@angular/cdk/portal';
+import { RmgModalHostComponent } from './user-team/resource-management/rmg-modal-host/rmg-modal-host.component';
+import { RmgDashboardComponent } from './user-team/resource-management/new-rmg-dashboard/rmg-dashboard/rmg-dashboard.component';
+
 
 registerLocaleData(localeGb);
 
@@ -417,10 +422,12 @@ registerLocaleData(localeGb);
     TeamAllTimesheetsTableComponent,
     TimesheetFormComponent,
     InfoTooltipComponent,
-    RmgProjectComponent,
+    RmgProjectConfigComponent,
     MyTableComponent,
+    RmgModalHostComponent,
     RmgStatusCardsComponent,
-    QuizSubmit
+    RmgDashboardComponent,
+    QuizSubmit,
   ],
   imports: [
     BrowserModule,
@@ -463,6 +470,8 @@ registerLocaleData(localeGb);
     NgbPopoverModule,
     MatSlideToggleModule,
     MatRadioModule,
+    OverlayModule,
+    PortalModule,
     CalendarLegendComponent,
     DateTimePickerComponent,
     ToastrModule.forRoot({
@@ -472,7 +481,8 @@ registerLocaleData(localeGb);
       preventDuplicates: true,
       newestOnTop: true
     }),
-    MatSidenavModule
+    MatSidenavModule,
+    
     // MatMomentDateModule
   ],
   providers: [

@@ -7,17 +7,17 @@
     </ngx-mat-select-search>
   </mat-option>
 
+  <mat-option *ngIf="showFilterAction && filteredOptions.length > 0" class="mat-option no-checkbox-option"
+    [title]="filterActionLabel" (click)="triggerFilter($event)">
+    <i class="fa fa-filter" aria-hidden="true"></i>
+    {{ filterActionLabel }}
+  </mat-option>
+
   <mat-option class="mat-option" *ngIf="multiple && filteredOptions.length > 0" (click)="toggleSelectAll($event)"
     [disabled]="disable || readonly">
     <strong>
       {{ isAllSelected() ? 'Deselect All' : 'Select All' }}
     </strong>
-  </mat-option>
-
-  <mat-option *ngIf="showFilterAction && filteredOptions.length > 0" class="mat-option" [title]="filterActionLabel"
-    (click)="triggerFilter($event)">
-    <i class="fa fa-filter" aria-hidden="true"></i>
-    {{ filterActionLabel }}
   </mat-option>
 
   <mat-option *ngFor="let opt of filteredOptions" [value]="valueKey?opt[valueKey]:opt"

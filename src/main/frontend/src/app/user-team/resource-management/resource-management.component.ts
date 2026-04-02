@@ -55,7 +55,9 @@ import { merge, of, forkJoin } from 'rxjs';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { RmgProject } from 'src/app/models/rmgProject';
 import { RmgStatusCardsComponent } from './rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
-import { RmgProjectComponent } from './rmg-project-config/rmg-project-config.component';
+import { RmgProjectConfigComponent } from './rmg-project-config/rmg-project-config.component';
+import { SubfeatureService } from 'src/app/services/subfeature.service';
+import { FeatureUsageLog } from 'src/app/models/featureUsageLog';
 
 class FilterData {
   title: any;
@@ -71,9 +73,9 @@ class FilterData {
 })
 
 export class ResourceManagementComponent implements OnInit {
-
+  
   @ViewChild('rmgStatusCards') rmgStatusCardsComponent!: RmgStatusCardsComponent;
-  @ViewChild('rmgProjectConfig') rmgProjectComponent!: RmgProjectComponent;
+  @ViewChild('rmgProjectConfig') rmgProjectComponent!: RmgProjectConfigComponent;
   @ViewChild('chartSection') chartSection!: ElementRef;
   @ViewChild("project_configuration") projectConfigurationTemplateRef: TemplateRef<any>;
   @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
@@ -97,6 +99,7 @@ export class ResourceManagementComponent implements OnInit {
   rejectProjectModalRef: NgbModalRef;
   clientSideIdConfirmationModalRef:NgbModalRef;
 
+  isNewRmgDashboard:boolean = true;
   showProjectConfig: boolean = false;
   rmgProjectObj: RmgProject = new RmgProject();
   projectCompletionObj:Project = new Project();
@@ -576,6 +579,7 @@ export class ResourceManagementComponent implements OnInit {
     private appComponent: AppComponent,
     private el: ElementRef,
     private loaderService: LoaderService,
+    private subFeatureService : SubfeatureService
   ) {
     this.minDate = new Date(); 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -585,6 +589,13 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    this.isNewRmgDashboard = this.filterStateService.isNewRmgDashboard;
+    if (this.isNewRmgDashboard) {
+      this.mapSubFeatureFlag();
+      this.showViewProjects();
+      return;
+    }
+
     this.myDept = true;
     const deptName = String(this.currentUser.departmentName).trim();
     const empRole = String(this.currentUser.employeeRole).trim();
@@ -690,6 +701,7 @@ export class ResourceManagementComponent implements OnInit {
     this.isSearchEnabled = false;
     this.allProjectList = [];
     this.teamCreatedProjectList = [];
+    this.isNewRmgDashboard = this.filterStateService.isNewRmgDashboard;
     if (this.rmgStatusCardsComponent) {
       this.rmgStatusCardsComponent.onDepartmentSelectionChange(this.selectedDepartmentIds);
     }
@@ -1485,6 +1497,20 @@ export class ResourceManagementComponent implements OnInit {
     }
     return true;
   }
+
+  setNewRmgDashboardFlag() {
+    this.filterStateService.isNewRmgDashboard = this.isNewRmgDashboard;
+    this.ngOnInit();
+    let featureUsageLog = new FeatureUsageLog();
+    featureUsageLog.empId = this.currentUser.empId;
+    featureUsageLog.featureName = 'NEW RMG DASHBOARD';
+    featureUsageLog.logMessage = this.isNewRmgDashboard ? 'SWITCHED FROM OLD RMG DASHBOARD TO NEW RMG DASHBOARD' : 'SWITCHED FROM NEW RMG DASHBOARD TO OLD RMG DASHBOARD';
+    this.subFeatureService.saveFeatureUsageLog(featureUsageLog).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+        this.openAlertMessageModal(response.serviceResponse);
+      }
+    });
+  }
   // Helpers End
 
   // Project Timesheet Summary Modal Start
@@ -1951,6 +1977,8 @@ export class ResourceManagementComponent implements OnInit {
     this.allProjectTable = false;
     this.isCreateForm = false;
     this.isCreation = false;
+    this.filterStateService.isNewRmgDashboard = this.isNewRmgDashboard;
+    this.isNewRmgDashboard = false;
   }
 
   closeProjectConfiguration() {
@@ -2093,5 +2121,4 @@ export class ResourceManagementComponent implements OnInit {
         break;
     }
   }
-
 }

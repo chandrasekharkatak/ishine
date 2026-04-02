@@ -356,11 +356,6 @@
                 (click)="saveClonedMembers()">
                 Save Cloned Member(s)
             </button>
-            <!-- <button type="button" class="btn btn-primary btn-sm mr-1"
-                *ngIf="currentTeam.isAnyMemberSelected && teamMembers?.length > 0"
-                (click)="validateRemoveMembers(teamMembers)">
-                Delete Members
-            </button>&nbsp; -->
             <button type="button" class="btn btn-primary btn-sm mr-1"
                 *ngIf="currentTeam.isAnyMemberSelected && teamMembers?.length > 0"
                 (click)="validateRemoveMembers(teamMembers)">
@@ -394,7 +389,7 @@
                     <th class="min-width100 max-width150" *ngIf="!isInternalProject" mat-sort-header="poNo|string">
                         PO No.
                     </th>
-                    <th class="min-width180 max-width200" *ngIf="!isInternalProject"
+                    <th class="min-width180 max-width200" *ngIf="!isInternalProject && projectType == 'TNM'"
                         mat-sort-header="displayRequirement|string">
                         PO Role
                     </th>
@@ -416,7 +411,12 @@
                 </tr>
                 <ng-container *ngIf="isCurrentTeamMemberSearchEnabled">
                     <tr class="custom-filter-row" app-column-filter-bar
-                        *ngIf="!isInternalProject && (projectConfigStepperIndex != 2 && !isProjectPreview)"
+                        *ngIf="!isInternalProject && projectType == 'TNM' && (projectConfigStepperIndex != 2 && !isProjectPreview)"
+                        [columnList]="rmgCurrentTeamMemberColumnListForTNM"
+                        (onSearch)="searchCurrentTeamMember($event)">
+                    </tr>
+                    <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="!isInternalProject && projectType !== 'TNM'  && (projectConfigStepperIndex != 2 && !isProjectPreview)"
                         [columnList]="rmgCurrentTeamMemberColumnList" (onSearch)="searchCurrentTeamMember($event)">
                     </tr>
                     <tr class="custom-filter-row" app-column-filter-bar
@@ -425,7 +425,12 @@
                         (onSearch)="searchCurrentTeamMember($event)">
                     </tr>
                     <tr class="custom-filter-row" app-column-filter-bar
-                        *ngIf="!isInternalProject && (projectConfigStepperIndex == 2 || isProjectPreview)"
+                        *ngIf="!isInternalProject && projectType == 'TNM' && (projectConfigStepperIndex == 2 || isProjectPreview)"
+                        [columnList]="rmgCurrentTeamMemberColumnListForTNMPreview"
+                        (onSearch)="searchCurrentTeamMember($event)">
+                    </tr>
+                    <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="!isInternalProject  && projectType !== 'TNM'  && (projectConfigStepperIndex == 2 || isProjectPreview)"
                         [columnList]="rmgCurrentTeamMemberColumnListPreview"
                         (onSearch)="searchCurrentTeamMember($event)">
                     </tr>
@@ -468,7 +473,7 @@
                                 [filterActionLabel]="poFilterActionLabel" (filterAction)="filterActivePoDetails()">
                             </app-my-select>
                         </td>
-                        <td class="min-width180 max-width200" *ngIf="!isInternalProject">
+                        <td class="min-width180 max-width200" *ngIf="!isInternalProject && projectType == 'TNM'">
                             <app-my-select #newMemberRequirementSelect class="form-control" placeholder="Select PO Role"
                                 [(ngModel)]="currentTeam.newRmgTeamMember.roleId"
                                 [options]="filteredActiveResourceRequirement" displayKey="displayRequirement"
@@ -529,7 +534,7 @@
                                 [(ngModel)]="member.empId" [options]="employeeListFilteredByDept"
                                 [displayKey]="employeeDisplayArr" valueKey="empId" [multiple]="false"
                                 displaySeparator=" | "
-                                (change)="getCloneEmployeeExistingProjectDetailsByEmpId(member, member.empId, true, rmgProjectObj.projectId)">
+                                (change)="getCloneEmployeeExistingProjectDetailsByEmpId(member, member.empId, rmgProjectObj.projectId)">
                             </app-my-select>
                         </td>
                         <td class="min-width180 max-width200" *ngIf="!isInternalProject">
@@ -541,7 +546,7 @@
                                 (filterAction)="filterActivePoDetailsEmployeeSpecific(member)">
                             </app-my-select>
                         </td>
-                        <td class="min-width180 max-width200" *ngIf="!isInternalProject">
+                        <td class="min-width180 max-width200" *ngIf="!isInternalProject && projectType == 'TNM'">
                             <app-my-select #newMemberRequirementSelect class="form-control" placeholder="Select PO Role"
                                 [(ngModel)]="member.roleId" [options]="member.filteredActiveResourceRequirement"
                                 displayKey="displayRequirement" valueKey="roleId" [multiple]="false"
@@ -589,9 +594,8 @@
                     </tr>
                 </ng-container>
                 <ng-container *ngIf="teamMembers && teamMembers?.length != 0">
-                    <tr *ngFor="let member of teamMembers | multicolFilter: currentTeamMemberFilters : true | sort : [currentTeamMemberSortColumn, currentTeamMemberSortColumnType,currentTeamMemberSortDirection] | paginate: { itemsPerPage: currentTeamMemberPageSize, currentPage: currentTeamMemberPage }; let i= index"
-                        [title]="normalizeDate(member?.dbStartDate) > getTodaysDate() ? 'This resource will be active from ' + (member.dbStartDate | date:'dd-MM-yyyy') : '' "
-                        [ngClass]="{ 'future-row': normalizeDate(member?.dbStartDate) > getTodaysDate()}">
+                    <tr
+                        *ngFor="let member of teamMembers | multicolFilter: currentTeamMemberFilters : true | sort : [currentTeamMemberSortColumn, currentTeamMemberSortColumnType, currentTeamMemberSortDirection] | paginate: { itemsPerPage: currentTeamMemberPageSize, currentPage: currentTeamMemberPage }; let i= index">
                         <td *ngIf="projectConfigStepperIndex === 1">
                             <mat-checkbox class="custom-checkbox" color="primary" [(ngModel)]="member.isMemberSelected"
                                 (change)="onMemberCheckboxChange(team, $event, member.empId)">
@@ -606,16 +610,53 @@
                             </div>
                         </td>
                         <td>
-                            <button class="btn btn-sm">
-                                <span class="emp-name" triggers="mouseenter:mouseleave" placement="right"
-                                    container="body" popoverClass="emp-popover" [ngbPopover]="popoverTpl">
-                                    <ng-template #popoverTpl>
-                                        <ng-container *ngTemplateOutlet="employeeInfo; context: { member: member }">
-                                        </ng-container>
-                                    </ng-template>
-                                    <i class="fa fa-info-circle info-icon"></i>
-                                </span>
-                            </button>
+                            <div class="chip-container">
+                                <div class="info-chip blue-chip">
+                                    <span class="emp-name" triggers="mouseenter:mouseleave" placement="right"
+                                        container="body" popoverClass="emp-popover" [ngbPopover]="popoverTpl">
+                                        <ng-template #popoverTpl>
+                                            <ng-container *ngTemplateOutlet="employeeInfo; context: { member: member }">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa fa-info-circle blue-chip"></i>
+                                    </span>
+                                </div>
+                                <div *ngIf="normalizeDate(member?.poEndDate) < todaysDate || normalizeDate(member?.lineItemEndDate) < todaysDate"
+                                    class="info-chip red-chip">
+                                    <span triggers="mouseenter:mouseleave" placement="bottom" container="body"
+                                        popoverClass="info-popover" [ngbPopover]="popoverAllocationExpiredTpl">
+                                        <ng-template #popoverAllocationExpiredTpl>
+                                            <ng-container
+                                                *ngTemplateOutlet="allocationExpiredInfo; context: { member: member }">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa-solid fa-calendar-xmark"></i>
+                                    </span>
+                                </div>
+                                <div *ngIf="member?.isOverboardedRole" class="info-chip red-chip">
+                                    <span triggers="mouseenter:mouseleave" placement="bottom" container="body"
+                                        popoverClass="info-popover" [ngbPopover]="popoverOverboardedTpl">
+                                        <ng-template #popoverOverboardedTpl>
+                                            <ng-container
+                                                *ngTemplateOutlet="overBoardedInfo; context: { member: member }">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                    </span>
+                                </div>
+                                <div *ngIf="normalizeDate(member?.dbStartDate) > todaysDate"
+                                    class="info-chip yellow-chip">
+                                    <span triggers="mouseenter:mouseleave" placement="bottom" container="body"
+                                        popoverClass="info-popover" [ngbPopover]="popoverFutureStartDateTpl">
+                                        <ng-template #popoverFutureStartDateTpl>
+                                            <ng-container
+                                                *ngTemplateOutlet="futureStartDateInfo; context: { member: member }">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa-solid fa-calendar-check"></i>
+                                    </span>
+                                </div>
+                            </div>
                         </td>
                         <td class="min-width100 max-width150" [title]="member.employementId|| 'NA' ">
                             {{ member.employementId || 'NA' }}
@@ -627,7 +668,8 @@
                             [title]="member.poNo|| 'NA'">
                             {{ member.poNo || 'NA' }}
                         </td>
-                        <td class="min-width100 max-width150 truncate" *ngIf="!isInternalProject"
+                        <td class="min-width100 max-width150 truncate"
+                            *ngIf="!isInternalProject && projectType == 'TNM'"
                             [title]="member.displayRequirement || 'NA'">
                             {{ member.displayRequirement || 'NA' }}
                         </td>
@@ -714,7 +756,7 @@
                     <th class="min-width100 max-width150" *ngIf="!isInternalProject" mat-sort-header="poNo|string">
                         PO No.
                     </th>
-                    <th class="min-width100 max-width150" *ngIf="!isInternalProject"
+                    <th class="min-width100 max-width150" *ngIf="!isInternalProject && projectType == 'TNM'"
                         mat-sort-header="displayRequirement|string">
                         PO Role
                     </th>
@@ -732,8 +774,13 @@
                     </th>
                 </tr>
                 <ng-container *ngIf="isOldTeamMemberSearchEnabled">
-                    <tr class="custom-filter-row" app-column-filter-bar *ngIf="!isInternalProject"
-                        [columnList]="rmgOldTeamMemberColumnList" (onSearch)="searchOldTeamMember($event)">
+                    <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="!isInternalProject && projectType !== 'TNM'" [columnList]="rmgOldTeamMemberColumnList"
+                        (onSearch)="searchOldTeamMember($event)">
+                    </tr>
+                    <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="!isInternalProject && projectType == 'TNM'"
+                        [columnList]="rmgOldTeamMemberColumnListForTNM" (onSearch)="searchOldTeamMember($event)">
                     </tr>
                     <tr class="custom-filter-row" app-column-filter-bar *ngIf="isInternalProject"
                         [columnList]="rmgOldTeamMemberColumnListForInternal" (onSearch)="searchOldTeamMember($event)">
@@ -776,7 +823,8 @@
                             [title]="member.poNo|| 'NA' ">
                             {{ member.poNo || 'NA' }}
                         </td>
-                        <td class="min-width100 max-width150 truncate" *ngIf="!isInternalProject"
+                        <td class="min-width100 max-width150 truncate"
+                            *ngIf="!isInternalProject && projectType == 'TNM'"
                             [title]="member.displayRequirement|| 'NA' ">
                             {{ member.displayRequirement || 'NA' }}
                         </td>
@@ -1204,14 +1252,51 @@
     </div>
 </ng-template>
 
+<ng-template #allocationExpiredInfo let-member="member">
+    <div class="popover-info red-border">
+        <div class="popover-row">
+            <span>
+                Allocation expired:
+                <b>
+                    {{ normalizeDate(member?.poEndDate) < todaysDate ? ('PO: ' + (member?.poEndDate | date:'
+                        dd-MM-yyyy')) : ('Requirement: ' + (member?.lineItemEndDate | date:' dd-MM-yyyy')) }} </b>
+            </span>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #overBoardedInfo let-member="member">
+    <div class="popover-info red-border">
+        <div class="popover-row">
+            <span>
+                <b>Overallocation detected — </b><br>
+                Required Resource: <b>{{ member.requiredCount }}</b> <br>
+                Assigned Resource: <b>{{ member.actualAssigned }}</b> <br>
+                <span class="action-text">Please deboard excess resources accordingly.</span>
+            </span>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #futureStartDateInfo let-member="member">
+    <div class="popover-info yellow-border">
+        <div class="popover-row">
+            <span>
+                Starts on <b>{{ member.dbStartDate | date:'dd-MM-yyyy' }}</b>
+            </span>
+        </div>
+    </div>
+</ng-template>
+
 <ng-template #mapping_other_project_as_default>
     <div class="card-header project-card-header" style="margin:0px !important">
         <div class="row align-items-center">
             <div class="col-md-11">
-                <h6 class="card-title text-left">Eligible for Default Project Assignment</h6>&nbsp;
-                <i class="fa fa-beat fa-info-circle info-icon cursor-pointer"
-                    title="Employees with Other Project Mappings Eligible for Default Project Assignment">
-                </i>
+                <h6 class="card-title text-left">Eligible for Default Project Assignment&nbsp;
+                    <i class="fa fa-beat fa-info-circle info-icon cursor-pointer"
+                        title="Employees with Other Project Mappings Eligible for Default Project Assignment">
+                    </i>
+                </h6>
             </div>
             <div class="col-md-1 d-flex justify-content-end">
                 <button class="btn btn-sm" (click)="closeMappingToOtherProjectAsDefaultModal()">
@@ -1695,158 +1780,6 @@
     </div>
 </ng-template>
 
-<ng-template #employee_existing_project_details>
-    <div class="card-header project-card-header" style="background-color: #fff2f0; margin:0px !important">
-        <div class="row align-items-center">
-            <div class="col-md-11">
-                <h6 class="card-title text-left"><i class="fa fa-exclamation-triangle danger"></i>&nbsp;&nbsp; Employee
-                    Conflict Detected</h6>
-            </div>
-            <div class="col-md-1 d-flex justify-content-end">
-                <button class="btn btn-sm" (click)="closeEmployeeExistingProjectDetailsModal()">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-    <div class="p-3">
-        <div class="row align-items-center mb-1" *ngIf="employeeExistingProjectDetails.length > 0">
-            <div class="col-md-12 d-flex justify-content-start"
-                *ngIf="employeeExistingProjectDetails[0]?.billableType === 'TNM'">
-                <div class="warning-message">
-                    <span class="warning-icon">⛔</span>
-                    <div class="warning-text">
-                        <strong>Employee is already mapped to TNM project</strong>
-                        <p class="mb-2">{{employeeExistingProjectEmpName}}
-                            {{employeeExistingProjectEmploymentId ? '(' + employeeExistingProjectEmploymentId + ')' :
-                            ''}}
-                            cannot be added to another Project or Team!!
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <h6 class="existing-project-details-header">Existing Project Details</h6>
-        <div class="new-table-container custom-rounded-border">
-            <table class="new-custom-table custom-table-border" matSort
-                (matSortChange)="sortEmployeeExistingProjectDetailsData($event)">
-                <thead>
-                    <tr>
-                        <th>Action</th>
-                        <th class="min-width100 max-width150" mat-sort-header="projectName|string">
-                            Project Name
-                        </th>
-                        <th class="min-width100 max-width150" mat-sort-header="teamName|string">
-                            Team Name
-                        </th>
-                        <th class="min-width100 max-width150" mat-sort-header="clientName|string">
-                            Client Name
-                        </th>
-                        <th class="min-width100 max-width150" mat-sort-header="projectType|string">
-                            Project Type
-                        </th>
-                        <th class="min-width100 max-width150" mat-sort-header="startDate|date">
-                            Start Date
-                        </th>
-                        <th class="min-width100 max-width150" mat-sort-header="endDate|date">
-                            End Date
-                        </th>
-                    </tr>
-                    <ng-container *ngIf="isEmployeeExistingProjectDetailsSearchEnabled">
-                        <tr class="custom-filter-row" app-column-filter-bar
-                            [columnList]="employeeExistingProjectDetailsColumnList"
-                            (onSearch)="searchEmployeeExistingProjectDetails($event)">
-                        </tr>
-                    </ng-container>
-                </thead>
-                <tbody>
-                    <ng-container *ngIf="employeeExistingProjectDetails.length === 0">
-                        <tr>
-                            <th colspan="6" class="text-center info-label">No details to display...</th>
-                        </tr>
-                    </ng-container>
-                    <ng-container
-                        *ngFor="let employee of employeeExistingProjectDetails | multicolFilter: employeeExistingProjectDetailsFilters : true | sort : [employeeExistingProjectDetailsSortColumn, employeeExistingProjectDetailsSortColumnType,employeeExistingProjectDetailsSortDirection] | paginate: { itemsPerPage: employeeExistingProjectDetailsPageSize, currentPage: employeeExistingProjectDetailsPage }; let i= index">
-
-                        <tr>
-                            <td>
-                                <button class="btn btn-danger btn-sm"
-                                    (click)="openDeleteEmployeeFromExistingProjectModal(employee)"
-                                    title="Delete Employee Project Mapping">
-                                    <em class="fa fa-trash"></em>
-                                </button>
-                            </td>
-                            <td class="min-width100 max-width150 truncate" [title]="employee.projectName || 'NA'">
-                                {{ employee.projectName || 'NA' }}
-                            </td>
-                            <td class="min-width100 max-width150 truncate" [title]="employee.teamName || 'NA'">
-                                {{ employee.teamName || 'NA'}}
-                            </td>
-                            <td class="min-width100 max-width150 truncate" [title]="employee.clientName || 'NA'">
-                                {{ employee.clientName || 'NA' }}
-                            </td>
-                            <td class="min-width100 max-width150 truncate" [title]="employee.projectType || 'NA'">
-                                {{ employee.projectType || 'NA' }}
-                            </td>
-                            <td class="min-width100 max-width150 truncate"
-                                [title]="(employee.startDate | date: 'dd-MM-yyyy') || 'NA'">
-                                {{ employee.startDate ? (employee.startDate | date: 'dd-MM-yyyy') : 'NA'}}
-                            </td>
-                            <td class="min-width100 max-width150 truncate"
-                                [title]="(employee.endDate | date: 'dd-MM-yyyy') || 'NA'">
-                                {{ employee.endDate ? (employee.endDate | date: 'dd-MM-yyyy') : '-'}}
-                            </td>
-                        </tr>
-                    </ng-container>
-                </tbody>
-            </table>
-        </div>
-        <div class="row mt-2">
-            <div class="col-md-12 d-flex justify-content-end">
-                <mat-paginator class="compact-paginator " [length]="employeeExistingProjectDetails.length"
-                    [pageIndex]="employeeExistingProjectDetailsPage-1"
-                    [pageSize]="employeeExistingProjectDetailsPageSize" [pageSizeOptions]="[5, 10, 20, 50]"
-                    (page)="employeeExistingProjectDetailsPageChange($event)">
-                </mat-paginator>
-            </div>
-        </div>
-    </div>
-</ng-template>
-
-<ng-template #delete_employee_from_existing_project>
-    <div class="modal-body">
-        <p class="text-center">This action will permanently mark the selected members as inactive from the Project.
-            <br> Do you want to proceed?
-        </p>
-        <div class="row justify-content-center align-items-center">
-            <label class="info-label">Select End Date</label>
-        </div>
-        <div class="row justify-content-center align-items-center"
-            *ngIf="!deleteEmployeeExistingProjectMappingObj.isInternalProject">
-            <mat-radio-group color="primary" [(ngModel)]="employeeProjectEndDateType"
-                (change)="onMemberRemoveEndDateTypeChange($event)">
-                <mat-radio-button value="PO">PO End Date</mat-radio-button>
-                <mat-radio-button value="Custom">Custom End Date</mat-radio-button>
-            </mat-radio-group>
-        </div>
-        <div class="row justify-content-center align-items-center m-2">
-            <div class="date-input-wrapper">
-                <input class="form-control date-input" readonly [matDatepicker]="employeeProjectEndDatePicker"
-                    [(ngModel)]="employeeProjectEndDate" (click)="employeeProjectEndDatePicker.open()" />
-                <mat-icon class="calendar-icon" (click)="employeeProjectEndDatePicker.open()">calendar_today</mat-icon>
-                <mat-datepicker #employeeProjectEndDatePicker></mat-datepicker>
-            </div>
-            <!-- <input type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeProjectEndDate"> -->
-        </div>
-        <div class="row justify-content-center align-items-center">
-            <button type="button" class="btn btn-success" (click)="deleteEmployeeProjectResourceMapping();">Yes,
-                proceed</button>&nbsp;
-            <button type="button" class="btn btn-danger" (click)="closeDeleteEmployeeFromExistingProjectModal()">No,
-                Cancel</button>&nbsp;
-        </div>
-    </div>
-</ng-template>
-
 <ng-template #delete_team_confirmation>
     <div class="modal-body">
         <p class="text-center">Are you sure you want to delete the Selected Team(s) from the Project ?</p>
@@ -1868,147 +1801,6 @@
             <button type="button" class="btn btn-danger" (click)="closeDeleteTeamConfirmationModal()">No,
                 Cancel</button>&nbsp;
         </div>
-    </div>
-</ng-template>
-
-<ng-template #update_project_start_date_error>
-    <div class="modal-body">
-        <p class="text-center">The member’s start date is earlier than the project start date. To proceed, the project
-            start date must be updated accordingly.
-            <br>
-            Do you want to continue?
-        </p>
-        <div class="row justify-content-center align-items-center">
-            <button type="button" class="btn btn-success"
-                (click)="openUpdateProjectStartDateConfirmationModal();closeUpdateProjectStartDateErrorModal()">Yes,
-                proceed</button>&nbsp;
-            <button type="button" class="btn btn-danger" (click)="closeUpdateProjectStartDateErrorModal()">No,
-                Cancel</button>&nbsp;
-        </div>
-    </div>
-</ng-template>
-
-<ng-template #update_project_start_date_confirmation>
-    <div class="modal-body">
-        <div class="row justify-content-center align-items-center">
-            <label class="info-label">Select New Project Start Date</label>
-        </div>
-        <div class="row justify-content-center align-items-center m-2">
-            <div class="date-input-wrapper">
-                <input class="form-control date-input" readonly [matDatepicker]="projectNewStartDatePicker"
-                    [(ngModel)]="projectNewStartDate" (click)="projectNewStartDatePicker.open()" />
-                <mat-icon class="calendar-icon" (click)="projectNewStartDatePicker.open()">calendar_today</mat-icon>
-                <mat-datepicker #projectNewStartDatePicker></mat-datepicker>
-            </div>
-            <!-- <input type="date" class="form-control" autocomplete="none" [(ngModel)]="projectNewStartDate"> -->
-        </div>
-        <div class="row justify-content-center align-items-center">
-            <button type="button" class="btn btn-success" (click)="updateProjectStartDate();">Yes,
-                proceed</button>&nbsp;
-            <button type="button" class="btn btn-danger" (click)="closeUpdateProjectStartDateConfirmationModal()">No,
-                Cancel</button>&nbsp;
-        </div>
-    </div>
-</ng-template>
-
-<ng-template #existing_employee_project_timesheet_info>
-    <div class="card-header project-card-header">
-        <div class="row align-items-center">
-            <div class="col-md-11">
-                <h6 class="card-title text-left">
-                    {{ isProjectOverlapping
-                    ? 'Employee\'s Start Date Overlapping with Other Projects'
-                    : 'Employee\'s Existing Project Timesheet Entries'
-                    }}
-                </h6>
-            </div>
-            <div class="col-md-1 d-flex justify-content-end">
-                <button class="btn btn-sm btn-outline-primary" title="Close"
-                    (click)="closeExistingEmployeeProjectTimesheetInfoModal()">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="table-container mt-2">
-            <table class="custom-table">
-                <thead>
-                    <tr>
-                        <th>Sr.No</th>
-                        <th class="min-width100 max-width150">Project Name</th>
-                        <th class="min-width100 max-width150">Project Type</th>
-                        <th class="min-width100 max-width150">Project Start Date</th>
-                        <th class="min-width100 max-width150">Team Name</th>
-                        <th class="min-width180 max-width200">Employee Start Date</th>
-                        <th class="min-width180 max-width200">Employee End Date</th>
-                        <th *ngIf="!isProjectOverlapping">Filled Timesheet Count</th>
-                        <th *ngIf="isProjectOverlapping">Update</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let entries of existingEmployeeProjectTimesheetEntries; let i=index">
-                        <td>{{ i+1 }}</td>
-                        <td class="min-width100 max-width150 truncate" [title]="entries.projectName || 'NA'">{{ entries.projectName || 'NA' }}
-                        </td>
-                        <td class="min-width100 max-width150 truncate" [title]="entries.projectType || 'NA'">{{ entries.projectType || 'NA' }}
-                        </td>
-                        <td class="min-width100 max-width150 truncate"
-                            [title]="entries.projectStartDate ? (entries.projectStartDate | date:'dd-MM-yyyy') : 'NA' ">
-                            {{ entries.projectStartDate ? (entries.projectStartDate | date:'dd-MM-yyyy') : 'NA' }}
-                        </td>
-                        <td class="min-width100 max-width150 truncate" [title]="entries.teamName || 'NA'">{{ entries.teamName || 'NA' }}</td>
-                        <td class="min-width180 max-width200">
-                            <div class="date-input-wrapper">
-                                <input class="form-control date-input" readonly
-                                    [matDatepicker]="overlappingEntriesStartDatepicker"
-                                    [(ngModel)]="entries.employeeTeamStartDate"
-                                    (click)="overlappingEntriesStartDatepicker.open()" />
-                                <mat-icon class="calendar-icon" (click)="overlappingEntriesStartDatepicker.open()">
-                                    calendar_today
-                                </mat-icon>
-                                <mat-datepicker #overlappingEntriesStartDatepicker></mat-datepicker>
-                            </div>
-                        </td>
-                        <td class="min-width180 max-width200">
-                            <div class="date-input-wrapper">
-                                <input class="form-control date-input" readonly
-                                    [matDatepicker]="overlappingEntriesEndDatepicker"
-                                    [(ngModel)]="entries.employeeTeamEndDate"
-                                    (click)="overlappingEntriesEndDatepicker.open()" />
-                                <mat-icon class="calendar-icon" (click)="overlappingEntriesEndDatepicker.open()">
-                                    calendar_today
-                                </mat-icon>
-                                <mat-datepicker #overlappingEntriesEndDatepicker></mat-datepicker>
-                            </div>
-                        </td>
-                        <td *ngIf="!isProjectOverlapping" [title]="entries.timesheetFilledCount || 'NA'">{{
-                            entries.timesheetFilledCount || 'NA' }}</td>
-                        <td *ngIf="isProjectOverlapping">
-                            <button type="button" class="btn btn-sm btn-primary"
-                                (click)="updateTeamMembersStartDateAndEndDate(entries)">Update</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</ng-template>
-
-<ng-template #project_gap_message>
-    <div class="modal-body text-center">
-        <p class="mb-0">
-            Employee is not mapped to any project
-            <br>
-            from <strong>{{ gapStartDate | date:'dd-MM-yyyy' }}</strong>
-            <span *ngIf="gapEndDate">
-                to <strong>{{ gapEndDate | date:'dd-MM-yyyy' }}</strong>
-            </span>.
-        </p>
-        <p class="mb-0">Please update the project dates to avoid the gap.</p>
-        <button type="button" class="btn btn-primary" (click)="closeProjectGapMessageModal()">
-            OK
-        </button>
     </div>
 </ng-template>
 

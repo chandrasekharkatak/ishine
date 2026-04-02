@@ -1372,9 +1372,9 @@ public class EmployeeLeaveService {
 
         
         LocalDateTime dateTime = date.atStartOfDay();
-        List<ProjectNameAndPrjoectIdDTO> projectDTOList = timesheetsRepository.getProjectListForDateAndEmpId(
+        List<ProjectNameAndPrjoectIdDTO> projectDTOList = employeeTimesheetsNewRepository.getProjectListForDateAndEmpId(
                 leaveDTO.getEmpId(), startOfDay, endOfDay);
-
+        
         if (projectDTOList != null && !projectDTOList.isEmpty()) {
             for (ProjectNameAndPrjoectIdDTO projDto : projectDTOList) {
                 try {
@@ -1693,7 +1693,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 				        for (EmployeeTimesheetsNew ts : existingTimeSheets) {
 				     
 				    
-				            if (ts.getDayTypeId() != null && ts.getDayTypeId().equals(5)) {
+				            if (!Boolean.TRUE.equals(ts.getIsSystemGenerated())) {
 				                employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
 				            }
 				        }

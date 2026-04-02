@@ -34,6 +34,7 @@ public class TeamTimesheetDetailsResponse {
 	private LocalDateTime endDate;
 	private Long isEmployeeActive;
 	private Long poId;
+	private String billingRole;
 
 	public TeamTimesheetDetailsResponse(Long empId, Long employementId, String empName, String department, String role,
 			String teamName, Long teamId, String teamLeadName, String managerName, Integer projectId,
@@ -76,5 +77,28 @@ public class TeamTimesheetDetailsResponse {
 
 		this.endDate = endDate;
 	}
+	
+	public TeamTimesheetDetailsResponse(Long empId, Long employementId, String empName, String role,Long poId,String billingRole,
+			String teamName, Long teamId, String teamLeadName, String managerName, Integer projectId,
+			String projectName, String projectManagerName, LocalDateTime startDate, LocalDateTime endDate) {
+		this.empId = empId;
+		this.employementId = employementId;
+		this.empName = empName;
+		role = role != null ? role.replaceAll(",+$", "") : null;
+		this.role = role;
+		this.poId = poId;
+		this.billingRole = billingRole;
+		this.teamName = teamName;
+		this.teamId = teamId;
+		this.teamLeadName = teamLeadName;
+		this.managerName = managerName;
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.projectManagerName = projectManagerName;
+		this.startDate = startDate;
+		this.endDate = endDate;
+	}
+	
+	
 
 }

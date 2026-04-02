@@ -487,15 +487,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 
 //	            added by sakti for duplicate timesheet check
 //	    		Optional<Timesheet> findByEmpIdAndDate(Long empId, Date date);
-	      
-    @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName, p.clientFlag, p.hasClientSideId,p.poProjectType)\n"
-		+ "FROM EmployeeTeamMap etm\n"
-		+ "inner join Team t on t.teamId = etm.teamId \n"
-		+ "inner join Project p on p.projectId = t.projectId\n"
-		+ "WHERE etm.startDate <= :endOfDay\n"
-		+ "  AND (etm.endDate IS NULL OR etm.endDate >= :startOfDay) and etm.active != 2 and etm.empId = :emp_id")
-	List<ProjectNameAndPrjoectIdDTO> getProjectListForDateAndEmpId( @Param("emp_id") Long empId, @Param("startOfDay") LocalDateTime startOfDay,
-	        @Param("endOfDay") LocalDateTime endOfDay);			    
+		    
 
 		@Query(value = "SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END \n"
 				+ "FROM Project p \n"
@@ -11452,7 +11444,7 @@ List<Object[]> getLastFilledTimesheetByEmp(@Param("empId") Long empId);
 			@Query(value = "select new com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto( "
 					+ " p.projectId, p.projectName, "
 					+ " CASE WHEN p.poProjectType IS NOT NULL AND TRIM(p.poProjectType) != '' THEN p.poProjectType ELSE p.internalProjectType END, \n"
-					+ " t.teamName, date(p.startDate), date(etm.startDate), date(etm.endDate), count(distinct et.timesheetId)) \n"
+					+ " t.teamName, date(p.startDate), count(distinct et.timesheetId)) \n"
 					+ "FROM Employee e  \n"
 					+ "INNER JOIN EmployeeTeamMap etm on e.empId = etm.empId \n"
 					+ "INNER JOIN Team t on etm.teamId = t.teamId \n"
@@ -11461,9 +11453,9 @@ List<Object[]> getLastFilledTimesheetByEmp(@Param("empId") Long empId);
 					+ "LEFT JOIN DayTypeMasterNew dt on et.dayTypeId = dt.dayTypeId \n"
 					+ "INNER JOIN EmployeeTimesheetActivitiesMappingNew etam on et.timesheetId = etam.timesheetId \n"
 					+ "INNER JOIN Activity a on etam.activityId = a.activityId and a.teamId = t.teamId \n"
-					+ "where e.empId = :empId and et.date between DATE(:startDate) and CURDATE() \n"
+					+ "where e.empId = :empId and DATE(et.date) between DATE(:startDate) and CURDATE() \n"
 					+ "and lower(dt.dayType) like '%working%' and p.projectId  NOT IN :projectIds  \n"
-					+ "group by p.projectId, p.projectName, p.startDate, etm.startDate \n")
+					+ "group by p.projectId, p.projectName, p.startDate \n")
 			public List<EmployeeProjectTimesheetDto> findByEmpIdAndDate(Long empId, LocalDateTime startDate, List<Integer> projectIds);
 
 

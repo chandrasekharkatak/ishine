@@ -1,90 +1,141 @@
 <ng-container *ngIf="!showReportList">
-    <!-- Navigation Row Start -->
-    <div class="row m-1" *ngIf="!showProjectConfig">
-        <div class="col-md-6 d-flex justify-content-start align-items-center p-0">
-            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isProjectTable}"
-                *ngIf="userMapping.view_all_rmg_projects" (click)="showViewProjects()">
-                View All Projects
-            </button>
-            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isCreation}"
-                (click)="showCreateInternalProjectForm()">
-                Create Internal Project
-            </button>
-            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isSkillMatrix}"
-                (click)="openShowSkillMatrix()">
-                Search Employee(Skill Matrix)
-            </button>
-        </div>
-        <div class="col-md-6 d-flex justify-content-end align-items-center p-0" *ngIf="isReportTabToggleViewVisible">
-            <label> {{ 'Toggle to Employee View' }}</label>&nbsp;&nbsp;
-            <mat-slide-toggle color="primary" color="primary" [checked]="false" (change)="goToReportList()">
-            </mat-slide-toggle>
-        </div>
-    </div>
-    <!-- Navigation Row End -->
 
-    <!-- Filter & Global Search Row Start -->
-    <ng-container *ngIf="allProjectTable">
-        <div class="row m-1 align-items-center ">
-            <!-- Department Filter -->
-            <div class="col-md-7 d-flex justify-content-start flex-column">
-                <div class="d-flex justify-content-start align-items-center mb-2">
-                    <mat-slide-toggle color="primary" *ngIf="currentUser.employeeRole != 'SuperAdmin'" [(ngModel)]="myDept"
-                        (change)="toggleDepartment()">
-                    </mat-slide-toggle>
-                    <label *ngIf="currentUser.employeeRole !== 'SuperAdmin'">
-                        {{ myDept ? 'My Departments' : 'Departments' }}
-                    </label>
-                    <label *ngIf="currentUser.employeeRole === 'SuperAdmin'">
-                        {{ 'Departments' }}
-                    </label>
-                </div>
-            
-                <app-my-select class="form-control department-select app-my-select-dropdown" placeholder="Select Department"
-                    [(ngModel)]="selectedDepartmentIds" (dropdownClosed)="onDepartmentSelectionChange($event)"
-                    [options]="filteredDepartments" displayKey="name" valueKey="deptId" [multiple]="true">
-                </app-my-select>
-            </div>
-    
-            <!-- Global Employee Search - Keep original functionality with added margin -->
-            <div class="col-md-3 d-flex flex-column justify-content-end">
-                <label class="employee-search-label mb-1">Global Employee Search:</label>
-                <app-my-autocomplete [(ngModel)]="selectedEmpId" [options]="filteredEmployees" displayKey="name" valueKey="empId"
-                    placeholder="Search employee">
-                </app-my-autocomplete>
-            </div>
-    
-            <!-- Employee Action Buttons -->
-            <div class="col-md-2">
-                <div class="d-flex flex-column">
-                    <button class="rounded-button details-button employee-summary-btn m-1"
-                        [title]="!isValidEmployee ? 'Select a valid employee to Open Employee 360 View' : ''"
-                        [disabled]="!isValidEmployee"
-                        [navigateToEmployee360]="isValidEmployee ? selectedEmpId : null">
-                        Employee 360
-                    </button>
-                    <button class="rounded-button summary-button employee-summary-btn m-1" [disabled]="!selectedEmpId"
-                        (click)="openProjectTimesheetSummaryModal(selectedEmpId)">
-                        Employee Summary
-                    </button>
+    <ng-container *ngIf="isNewRmgDashboard">
+        <div class="row m-1 mb-2" *ngIf="!showProjectConfig">
+            <div class="col-md- d-flex justify-content-start align-items-center p-0">
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
+                    [ngClass]="{'active': isProjectTable}" *ngIf="userMapping.view_all_rmg_projects"
+                    (click)="showViewProjects()">
+                    <i class="bi bi-eye"></i>
+                    View All Projects
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
+                    [ngClass]="{'active': isCreation}" (click)="showCreateInternalProjectForm()">
+                    <i class="bi bi-plus"></i>
+                    Create Internal Project
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
+                    [ngClass]="{'active': isSkillMatrix}" (click)="openShowSkillMatrix()">
+                    <i class="bi bi-person-vcard"></i>
+                    Skill Matrix
+                </button>
+                <div class="d-flex align-items-center ml-1 mr-1">
+                    <label class="new-rmg-toggle-switch">
+                        <input type="checkbox" [(ngModel)]="isNewRmgDashboard" (click)="setNewRmgDashboardFlag()"/>
+                        <span class="new-rmg-slider"></span>
+                    </label>&nbsp;
+                    <span class="new-rmg-toggle-label mb-1">NEW RMG DASHBOARD</span>
                 </div>
             </div>
         </div>
     </ng-container>
-    <!-- Filter & Global Search Row End -->
-
-    <!-- Project Count & List & Employee Status Card Start -->
-    <ng-container *ngIf="allProjectTable">
-        <app-rmg-status-cards #rmgStatusCards class="mb-4" (actionTriggered)="handleProjectAction($event)" [selectedDepartmentIds]="selectedDepartmentIds">
-        </app-rmg-status-cards>
+    
+    <ng-container *ngIf="!isNewRmgDashboard">
+        <!-- Navigation Row Start -->
+        <div class="row m-1 mb-2" *ngIf="!showProjectConfig">
+            <div class="col-md-8 d-flex justify-content-start align-items-center p-0">
+                <button type="button" class="btn custom-btn-outline-primary btn-sm mx-1"
+                    [ngClass]="{'active': isProjectTable}" *ngIf="userMapping.view_all_rmg_projects"
+                    (click)="showViewProjects()">
+                    View All Projects
+                </button>
+                <button type="button" class="btn custom-btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isCreation}"
+                    (click)="showCreateInternalProjectForm()">
+                    Create Internal Project
+                </button>
+                <button type="button" class="btn custom-btn-outline-primary btn-sm mx-1"
+                    [ngClass]="{'active': isSkillMatrix}" (click)="openShowSkillMatrix()">
+                    Search Employee(Skill Matrix)
+                </button>
+                <div class="d-flex align-items-center ml-1 mr-1">
+                    <label class="new-rmg-toggle-switch">
+                        <input type="checkbox" [(ngModel)]="isNewRmgDashboard" (click)="setNewRmgDashboardFlag()" />
+                        <span class="new-rmg-slider"></span>
+                    </label>&nbsp;
+                    <span class="new-rmg-toggle-label mb-1">NEW RMG DASHBOARD</span>
+                </div>
+            </div>
+            <div class="col-md-4 d-flex justify-content-end align-items-center p-0" *ngIf="isReportTabToggleViewVisible">
+                <div class="d-flex align-items-center ml-1 mr-1">
+                    <label class="new-rmg-toggle-switch">
+                        <input type="checkbox" [checked]="false" (change)="goToReportList()"/>
+                        <span class="new-rmg-slider"></span>
+                    </label>&nbsp;
+                    <span class="new-rmg-toggle-label mb-1">EMPLOYEE VIEW</span>
+                </div>
+            </div>
+        </div>
+        <!-- Navigation Row End -->
+    
+        <!-- Filter & Global Search Row Start -->
+        <ng-container *ngIf="allProjectTable">
+            <div class="row m-1 align-items-center ">
+                <!-- Department Filter -->
+                <div class="col-md-7 d-flex justify-content-start flex-column">
+                    <div class="d-flex justify-content-start align-items-center mb-2">
+                        <mat-slide-toggle color="primary" *ngIf="currentUser.employeeRole != 'SuperAdmin'"
+                            [(ngModel)]="myDept" (change)="toggleDepartment()">
+                        </mat-slide-toggle>
+                        <label *ngIf="currentUser.employeeRole !== 'SuperAdmin'">
+                            {{ myDept ? 'My Departments' : 'Departments' }}
+                        </label>
+                        <label *ngIf="currentUser.employeeRole === 'SuperAdmin'">
+                            {{ 'Departments' }}
+                        </label>
+                    </div>
+    
+                    <app-my-select class="form-control department-select app-my-select-dropdown"
+                        placeholder="Select Department" [(ngModel)]="selectedDepartmentIds"
+                        (dropdownClosed)="onDepartmentSelectionChange($event)" [options]="filteredDepartments"
+                        displayKey="name" valueKey="deptId" [multiple]="true">
+                    </app-my-select>
+                </div>
+    
+                <!-- Global Employee Search - Keep original functionality with added margin -->
+                <div class="col-md-3 d-flex flex-column justify-content-end">
+                    <label class="employee-search-label mb-1">Global Employee Search:</label>
+                    <app-my-autocomplete [(ngModel)]="selectedEmpId" [options]="filteredEmployees" displayKey="name"
+                        valueKey="empId" placeholder="Search employee">
+                    </app-my-autocomplete>
+                </div>
+    
+                <!-- Employee Action Buttons -->
+                <div class="col-md-2">
+                    <div class="d-flex flex-column">
+                        <button class="rounded-button details-button employee-summary-btn m-1"
+                            [title]="!isValidEmployee ? 'Select a valid employee to Open Employee 360 View' : ''"
+                            [disabled]="!isValidEmployee" [navigateToEmployee360]="isValidEmployee ? selectedEmpId : null">
+                            Employee 360
+                        </button>
+                        <button class="rounded-button summary-button employee-summary-btn m-1" [disabled]="!selectedEmpId"
+                            (click)="openProjectTimesheetSummaryModal(selectedEmpId)">
+                            Employee Summary
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+        <!-- Filter & Global Search Row End -->
+    
+        <!-- Project Count & List & Employee Status Card Start -->
+        <ng-container *ngIf="allProjectTable">
+            <app-rmg-status-cards #rmgStatusCards class="mb-4" (actionTriggered)="handleProjectAction($event)"
+                [selectedDepartmentIds]="selectedDepartmentIds">
+            </app-rmg-status-cards>
+        </ng-container>
+        <!-- Project Count & List & Employee Status Card End -->
     </ng-container>
-    <!-- Project Count & List & Employee Status Card End -->
-
+    
+    <ng-container *ngIf="isNewRmgDashboard">
+        <app-rmg-dashboard (actionTriggered)="handleProjectAction($event)"></app-rmg-dashboard>
+    </ng-container>
+    
     <!-- Project Configuration Start -->
     <ng-container *ngIf="showProjectConfig" class="row mb-4">
         <div class="col-md-12">
-            <app-rmg-project-config #rmgProjectConfig [rmgProjectObj]="rmgProjectObj" [managerList]="managerList" [overheadList]="overheadList" [isProjectPreview]="false"
-                [departmentsList]="allDeptList" [spocList]="employeeList" [isAllProjects]="isAllProjects"
+            <app-rmg-project-config #rmgProjectConfig [rmgProjectObj]="rmgProjectObj" [managerList]="managerList"
+                [overheadList]="overheadList" [isProjectPreview]="false" [departmentsList]="allDeptList"
+                [spocList]="employeeList" [isAllProjects]="isAllProjects"
                 (closeProjectConfiguration)="closeProjectConfiguration()">
             </app-rmg-project-config>
         </div>

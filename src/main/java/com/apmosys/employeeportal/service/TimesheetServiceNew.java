@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -48,9 +50,11 @@ import org.springframework.web.server.ResponseStatusException;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeInfoDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
+import com.apmosys.employeeportal.dto.GetProjectListForDateAndEmpIdPayload;
 import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.ProjectTimesheetInfoDTO;
 import com.apmosys.employeeportal.dto.ProjectWithClientAndLocationDTO;
 import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
@@ -86,6 +90,7 @@ import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DocMimeTypeMasterNewRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
@@ -103,6 +108,7 @@ import com.apmosys.employeeportal.service.validator.EmployeeAssignmentValidation
 import com.apmosys.employeeportal.service.validator.TimesheetValidationHelper;
 import com.apmosys.employeeportal.utility.DateConversionUtil;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,6 +194,9 @@ public class TimesheetServiceNew {
 
 		@Autowired
 	 TimesheetValidationHelper timesheetValidationHelper;
+
+	@Autowired
+	EmployeeLeaveRepository employeeLeaveRepository;
 	 
 	@Value("${timesheet.minus.days.for.bulk.upload}")
 	private Integer minusDays;
@@ -1580,89 +1589,7 @@ public class TimesheetServiceNew {
 		}
 	}
 
-	public ServiceResponse getAllProjectsByEmpId(Long empId) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("add_timesheet");
-		apiLogInfo.setApiUrl("/api/getAllProjectsByEmpId");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("empId : " + empId);
-
-		try {
-
-			List<Object[]> projectList = employeeTeamMapRepository.findProjectsByTeamId(empId);
-//	        List<TimesheetDTO> listDto = new ArrayList<TimesheetDTO>();
-			List<ProjectWithClientAndLocationDTO> listDto = new ArrayList<>();
-
-			if (!projectList.isEmpty()) {
-
-				for (Object[] object : projectList) {
-
-					String projectType = object[8] != null ? object[8].toString() : "";
-					String poEndDateStr = object[9] != null ? object[9].toString() : null;
-
-					if ("TNM".equalsIgnoreCase(projectType) || "Fixed Cost".equalsIgnoreCase(projectType)) {
-						if (poEndDateStr != null) {
-							String onlyDateStr = poEndDateStr.contains("T") ? poEndDateStr.split("T")[0] : poEndDateStr;
-							LocalDate poEndDate = LocalDate.parse(onlyDateStr);
-							LocalDate currentDate = LocalDate.now();
-//	                        if (poEndDate.isBefore(currentDate)) {
-//	                            continue; // skip if poEndDate is in the past
-//	                        }
-						}
-					}
-
-					ProjectWithClientAndLocationDTO projectClientDTO = new ProjectWithClientAndLocationDTO();
-					projectClientDTO.setClientId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
-					projectClientDTO.setClientName(object[1] != null ? object[1].toString() : null);
-					projectClientDTO
-							.setClientLocationId(object[2] != null ? Integer.parseInt(object[2].toString()) : null);
-					projectClientDTO.setClientLocation(object[3] != null ? object[3].toString() : null);
-					projectClientDTO.setProjectId(object[4] != null ? Integer.parseInt(object[4].toString()) : null);
-					projectClientDTO.setProjectName(object[5] != null ? object[5].toString() : null);
-					projectClientDTO.setTeamName(object[6] != null ? object[6].toString() : null);
-					projectClientDTO.setTeamId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
-					projectClientDTO.setHasClientSideId(Boolean.TRUE.equals(object[10]));
-					projectClientDTO.setHasClientFlag(Boolean.TRUE.equals(object[11]));
-					listDto.add(projectClientDTO);
-				}
-
-				if (!listDto.isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(listDto);
-					apiLogInfo.setApiResponse("listDto : " + listDto);
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-					System.out.println("Project List: " + listDto);
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("No valid projects found.");
-					apiLogInfo.setApiResponse("No valid projects found.");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Project List is empty !!");
-				apiLogInfo.setApiResponse("Project List is empty !!");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-
-		apiLogInfo.setApiRequest(logBuilder.toString());
-//	    logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
-
+	
 	public ServiceResponse getAllMyTimesheetsByEmpId(TimesheetDTO timesheetDTO) {
 		return timesheetQueryService.getAllMyTimesheetsByEmpId(timesheetDTO);
 
@@ -2746,6 +2673,29 @@ public class TimesheetServiceNew {
    				 return result != null && result == 1;
         }
 		
+		public List<LocalDate> getAllHalfDayLeaves(Long empId) {
+			if (empId == null) {
+				throw new IllegalArgumentException("empId cannot be null");
+			}
+			try {
+			LocalDate endDate = LocalDate.now();
+			LocalDate startDate = endDate.minusMonths(3);
+			List<Date> rawDates = employeeLeaveRepository.getAllHalfDayLeaves(empId, startDate, endDate);
+			if (rawDates == null || rawDates.isEmpty()) {
+				return Collections.emptyList();
+			}
+
+			return rawDates.stream()
+					.map(Date::toLocalDate)     
+					.collect(Collectors.toList());
+			}
+			catch (Exception ex) {
+				
+				// System.err.println("Error fetching half day leaves for empId: " + empId);
+				ex.printStackTrace();
+				throw new RuntimeException("Failed to fetch half day leaves", ex);
+			}
+		}
         public ServiceResponse getMyLastFilledLocationIdForProjectAndEmp(Integer projectId, Long empId) {
         	ServiceResponse serviceResponse =  new ServiceResponse();
         	if(projectId == null || empId == null) throw new IllegalArgumentException("Either the Project ID or the Employee Id is null");
@@ -2782,5 +2732,77 @@ public class TimesheetServiceNew {
         	    return serviceResponse;
         	
         }
+        public ServiceResponse getProjectListForDateAndEmpId(GetProjectListForDateAndEmpIdPayload payload) {
+    	    ServiceResponse response = new ServiceResponse();
+    	    LogDTO apiLogInfo = new LogDTO();
+    	    apiLogInfo.setApiUrl("/api/getProjectListForDateAndEmpId");
+    	    apiLogInfo.setLogLevel("INFO");
+    	    
+    	    try {
+    	    	Long empId = payload.getEmpId();
+    	    	
+    	    	LocalDateTime selectedDateTime = payload.getDate();
+
+    	    	LocalDate selectedDate = selectedDateTime.toLocalDate();
+
+    	    	LocalDateTime startOfDay = selectedDate.atStartOfDay();
+    	    	LocalDateTime endOfDay   = selectedDate.atTime(LocalTime.MAX);
+
+    	        List<ProjectNameAndPrjoectIdDTO> activeProjectList = employeeTimesheetsNewRepository.getProjectListForDateAndEmpId(empId, startOfDay, endOfDay);
+    	        
+    	        if (activeProjectList.isEmpty()) {
+    	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    	            response.setServiceResponse("Please contact to the RMG team to provide project mapping!");
+    	            response.setServiceMessage("Employee has no project mapping ! For EmpId: " + empId);
+    	            
+    	            apiLogInfo.setApiResponse("Employee has no project mapping ! For EmpId: " + empId);
+    	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+    	            logService.logMyInfo(httpRequest, apiLogInfo);
+    	            return response;
+    	        }
+    	        
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(activeProjectList);
+                response.setServiceMessage("Project List fetched successfully!");
+
+                apiLogInfo.setApiResponse("Project list where employee has active = 1 in Employee Team Mapping table fetched successfully!");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+    	        
+    	    } catch (Exception e) {
+    	        e.printStackTrace();
+    	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+    	        response.setServiceResponse("Something went wrong.");
+    	        response.setServiceError(e.getMessage());
+
+    	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+    	        apiLogInfo.setApiResponse(e.getMessage()); 
+    	        apiLogInfo.setLogLevel("ERROR");
+    	    }
+
+    	    logService.logMyInfo(httpRequest, apiLogInfo);
+    	    return response;
+    	}
+    	
+
+		public String detectContentType(String filename) {
+			if (filename == null || filename.isBlank()) {
+				return "application/octet-stream";
+			}
+		
+			String lower = filename.toLowerCase();
+			
+			if (lower.endsWith(".pdf"))  return "application/pdf";
+			if (lower.endsWith(".png"))  return "image/png";
+			if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+			if (lower.endsWith(".gif"))  return "image/gif";
+			if (lower.endsWith(".webp")) return "image/webp";
+			if (lower.endsWith(".xlsx")) return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+			if (lower.endsWith(".xls"))  return "application/vnd.ms-excel";
+			if (lower.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+			if (lower.endsWith(".doc"))  return "application/msword";
+			if (lower.endsWith(".txt"))  return "text/plain";
+			
+			return "application/octet-stream"; // fallback
+		}
 
 }

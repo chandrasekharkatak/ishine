@@ -657,7 +657,7 @@ public class HolidayService {
                 .build();
         locMapping = employeeTimesheetLocationMappingRepository.save(locMapping);
 
-        List<ProjectNameAndPrjoectIdDTO> projectDTOList = timesheetsRepository
+        List<ProjectNameAndPrjoectIdDTO> projectDTOList = employeeTimesheetsNewRepository
                 .getProjectListForDateAndEmpId(emp.getEmpId(), startOfDay, endOfDay);
         if (projectDTOList != null && !projectDTOList.isEmpty()) {
             for (ProjectNameAndPrjoectIdDTO projDto : projectDTOList) {
@@ -841,7 +841,7 @@ public class HolidayService {
         Long newTsId = ts.getTimesheetId();
 
         List<ProjectNameAndPrjoectIdDTO> projectDTOList =
-                timesheetsRepository.getProjectListForDateAndEmpId(
+        		employeeTimesheetsNewRepository.getProjectListForDateAndEmpId(
                         emp.getEmpId(), startOfDay, endOfDay);
 
         if (projectDTOList != null && !projectDTOList.isEmpty()) {

@@ -326,7 +326,6 @@ export class RmgStatusCardsComponent {
   FC_PROJECT_FILTERS_LIST = [
     { key: "all", label: 'Active', title: 'Active', count: null, color: '#5cb85c' },
     { key: "defaulter", label: 'Defaulter', title: 'Defaulter', count: null, color: '#d9534f' },
-    // { key: "delays", label: 'Delayed', title: 'Delayed', count: null, color: '#5bc0de' },
     { key: "ontime", label: 'On Time', title: 'On Time', count: null, color: '#f0ad4e' },
   ];
 

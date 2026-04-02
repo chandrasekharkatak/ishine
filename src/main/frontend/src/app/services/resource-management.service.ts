@@ -286,5 +286,9 @@ export class ResourceManagementService {
     return this.http.get(`${this.baseUrl}` + `api/triggerUnmappedEmployeeProjectNotificationJob`);
   }
 
+  getBillingLossRiskScore(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getBillingLossRiskScore`, rmgProjectRequest);
+  }
+
 }
 

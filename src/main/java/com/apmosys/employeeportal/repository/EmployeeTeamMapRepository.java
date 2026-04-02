@@ -499,22 +499,85 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		// 		"WHERE ppd.poId =:id ")
 		// List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails(Long id);
 
-		@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
-				"ete.name, te.deptIds, tm.employeeRole, te.teamName, te.teamId, " +
-				"etl.name, etm.name, " +
-				"p.projectId, p.projectName, etpm.name, "
-				+ "tm.startDate,tm.endDate) " +
-				"FROM EmployeeTeamMap tm " +
-				"LEFT JOIN Team te ON tm.teamId = te.teamId " +
-				"LEFT JOIN Employee etl ON te.teamLeadId = etl.empId " +
-				"LEFT JOIN Employee ete ON tm.empId = ete.empId " +
-				"LEFT JOIN Employee etm ON ete.managerId = etm.empId " +
-				"LEFT JOIN Project p ON te.projectId = p.projectId " +
-				"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId and pmm.active = 1 " +
-				"LEFT JOIN Employee etpm ON etpm.empId = pmm.projectManagerId " +
-				"WHERE ete.employeementId =:empId and (tm.startDate <=:endDate AND (tm.endDate is null or tm.endDate >=:startDate)) "+
-				" and te.isActive ='Y'  ")
-		List<TeamTimesheetDetailsResponse> getProjectDetailsByEmpIdAndDateRange(Long empId, LocalDateTime startDate,
+//		@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
+//				"ete.name, te.deptIds, tm.employeeRole, te.teamName, te.teamId, " +
+//				"etl.name, etm.name, " +
+//				"p.projectId, p.projectName, etpm.name, "
+//				+ "tm.startDate,tm.endDate) " +
+//				"FROM EmployeeTeamMap tm " +
+//				"LEFT JOIN Team te ON tm.teamId = te.teamId " +
+//				"LEFT JOIN Employee etl ON te.teamLeadId = etl.empId " +
+//				"LEFT JOIN Employee ete ON tm.empId = ete.empId " +
+//				"LEFT JOIN Employee etm ON ete.managerId = etm.empId " +
+//				"LEFT JOIN Project p ON te.projectId = p.projectId " +
+//				"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId and pmm.active = 1 " +
+//				"LEFT JOIN Employee etpm ON etpm.empId = pmm.projectManagerId " +
+//				"WHERE ete.empId =:empId and (tm.startDate <=:endDate AND (tm.endDate is null or tm.endDate >=:startDate)) "+
+//				" and te.isActive ='Y'  ")
+//		List<TeamTimesheetDetailsResponse> getProjectDetailsByEmpIdAndDateRange(Long empId, LocalDateTime startDate,
+//				LocalDateTime endDate);
+		
+		@Query(nativeQuery = true,value = "SELECT \n"
+				+ "    ete.emp_id            AS empId,\n"
+				+ "    ete.employeement_id   AS employeementId,\n"
+				+ "    ete.name              AS employeeName,\n"
+				+ "    tm.employee_role      AS employeeRole,\n"
+				+ "    tm.po_id              AS poId, \n"
+				+ "    rd.role               AS roleName,\n"
+				+ "    te.team_name          AS teamName,\n"
+				+ "    te.team_id            AS teamId,\n"
+				+ "    etl.name              AS teamLeadName,\n"
+				+ "    etm.name              AS managerName,\n"
+				+ "    p.project_id          AS projectId,\n"
+				+ "    p.project_name        AS projectName,\n"
+				+ "    etpm.projectManagerName,  \n"
+				+ "    tm.start_date         AS startDate,\n"
+				+ "    tm.end_date           AS endDate\n"
+				+ "\n"
+				+ "FROM employee_team_mapping tm\n"
+				+ "\n"
+				+ "LEFT JOIN teams te \n"
+				+ "    ON tm.team_id = te.team_id\n"
+				+ "\n"
+				+ "LEFT JOIN employee etl \n"
+				+ "    ON te.team_lead_id = etl.emp_id\n"
+				+ "\n"
+				+ "LEFT JOIN employee ete \n"
+				+ "    ON tm.emp_id = ete.emp_id\n"
+				+ "\n"
+				+ "LEFT JOIN employee etm \n"
+				+ "    ON ete.manager_id = etm.emp_id\n"
+				+ "\n"
+				+ "LEFT JOIN projects p \n"
+				+ "    ON te.project_id = p.project_id\n"
+				+ "\n"
+				+ "\n"
+				+ "LEFT JOIN (\n"
+				+ "    SELECT \n"
+				+ "        pmm.project_id,\n"
+				+ "        GROUP_CONCAT(e.name) AS projectManagerName\n"
+				+ "    FROM project_manager_mapping pmm\n"
+				+ "    LEFT JOIN employee e \n"
+				+ "        ON e.emp_id = pmm.project_manager_id\n"
+				+ "    WHERE pmm.active = 1\n"
+				+ "    GROUP BY pmm.project_id\n"
+				+ ") etpm ON etpm.project_id = p.project_id\n"
+				+ "\n"
+				+ "LEFT JOIN role_details rd \n"
+				+ "    ON tm.role_id = rd.role_id    \n"
+				+ "\n"
+				+ "WHERE \n"
+				+ "    ete.emp_id = :empId\n"
+				+ "    AND (\n"
+				+ "        tm.start_date <= :endDate\n"
+				+ "        AND (\n"
+				+ "            tm.end_date IS NULL \n"
+				+ "            OR tm.end_date >= :startDate\n"
+				+ "        )\n"
+				+ "    )\n"
+				+ "    AND te.is_active = 'Y'\n"
+				+ "")
+		List<Object[]> getProjectDetailsByEmpIdAndDateRange(Long empId, LocalDateTime startDate,
 				LocalDateTime endDate);
 
 
@@ -934,7 +997,8 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "FROM EmployeeTeamMap etm \n"
 			+ "INNER JOIN RoleDetails rd on rd.roleId = etm.roleId \n"
 			+ "INNER JOIN PoRequirementMapping prm ON etm.poId = prm.poId and etm.roleId = prm.roleId and prm.active = true  \n"
-			+ "INNER JOIN ProjectPoDetails ppd ON prm.poId = ppd.poId and ppd.active = true AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
+			+ "AND DATE(prm.lineItemEndDate) = (SELECT MAX(DATE(prm2.lineItemEndDate)) FROM PoRequirementMapping prm2 WHERE prm2.poId = prm.poId AND prm2.active = true AND prm2.roleId = prm.roleId  ) \n"
+			+ "INNER JOIN ProjectPoDetails ppd ON etm.poId = ppd.poId and ppd.active = true AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
 			+ "where ppd.projectId =:projectId \n"
 			+ "GROUP BY prm.poRequirementMappingId")
 	List<PoDetailsDto> getAssigedAndApprovedEmployeeCountByProjectId(Integer projectId, boolean currentActivePO);
@@ -977,9 +1041,32 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	List<Long> findDistinctEmpIdsByProjectId(@Param("projectId") Integer projectId);
 
 	
-	@Query(value = "Select etm from EmployeeTeamMap etm where etm.poId =:previousPoId and etm.roleId =:roleId and etm.active !=0")
+	@Query(value = "SELECT etm FROM EmployeeTeamMap etm\n"
+			+ "WHERE etm.poId = :previousPoId\n"
+			+ "AND etm.roleId = :roleId\n"
+			+ "AND (\n"
+			+ "        etm.active != 0\n"
+			+ "     OR (\n"
+			+ "            etm.active = 0\n"
+			+ "        AND etm.endDate IS NULL\n"
+			+ "        AND FUNCTION('DATE', etm.startDate) > CURRENT_DATE\n"
+			+ "     )\n"
+			+ ")")
 	List<EmployeeTeamMap>findActiveEmployeesForRole(Long previousPoId, Long roleId);
 
+	@Query(value ="SELECT etm FROM EmployeeTeamMap etm\n"
+			+ "WHERE etm.poId = :previousPoId\n"
+			+ "AND (\n"
+			+ "        etm.active != 0\n"
+			+ "     OR (\n"
+			+ "            etm.active = 0\n"
+			+ "        AND etm.endDate IS NULL\n"
+			+ "        AND etm.startDate IS NOT NULL\n"
+			+ "        AND FUNCTION('DATE', etm.startDate) > CURRENT_DATE\n"
+			+ "     )\n"
+			+ ")")
+	List<EmployeeTeamMap> findActiveEmployeesByPoId(Long previousPoId);
+	
 		@Query(value = "SELECT \n"
 				+ "COUNT(DISTINCT e.empId)"
 				+ "FROM Employee e \n"
@@ -1040,7 +1127,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 				"INNER JOIN Client c ON c.clientId = p.clientId " +
 				"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
 				"INNER JOIN Department d ON d.deptId = jr.deptId " +
-				"LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId " +
+				"LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId AND pmm.active = 1  " +
 				"LEFT JOIN Employee pm ON pm.empId = pmm.projectManagerId " +
 				"WHERE e.empId IN ( " +
 				"SELECT e1.empId " +
@@ -1058,7 +1145,6 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 				"AND etm.active != 0 " +
 				"AND t.isActive = 'Y' " +
 				"AND e.employmentstatus != 'InActive' " +
-				"AND pmm.active = 1 " +
 				"AND e.empId NOT BETWEEN 1 AND 6")
 		Long getInternalAndShankhEmployeeCountByProjectIds(@Param("projectIds") Set<Integer> projectIds);
 		
@@ -1369,4 +1455,29 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 				@Param("timesheetId") Long timesheetId,
 				@Param("inputDate") LocalDate inputDate);
 	
+	
+	
+	@Modifying
+	@Query("DELETE FROM EmployeeTeamMap e\n"
+			+ "WHERE e.poId = :poId\n"
+			+ "AND e.active = 0\n"
+			+ "AND e.endDate IS NULL\n"
+			+ "AND FUNCTION('DATE', e.startDate) > CURRENT_DATE ")
+	void deleteScheduledEmployeesByPoId(Long poId);
+	
+	@Modifying
+	@Query("DELETE FROM EmployeeTeamMap e\n"
+			+ "WHERE e.teamId IN :teamIds\n"
+			+ "AND e.active = 0\n"
+			+ "AND e.endDate IS NULL\n"
+			+ "AND FUNCTION('DATE', e.startDate) > CURRENT_DATE ")
+	void deleteScheduledEmployeesByTeamIds(List<Long> teamIds);
+
+
+	@Query(value = "select etm from EmployeeTeamMap etm inner join Team t on t.teamId = etm.teamId inner join Project p on p.projectId = t.projectId where etm.active != 0 and t.isActive = 'Y' and p.projectId =:projectId and etm.empId = :empId ")
+	List<EmployeeTeamMap> findByEmpIdAndProjectId(Long empId, Integer projectId);
+	
+	@Query("SELECT etm FROM EmployeeTeamMap etm inner join Team t on t.teamId = etm.teamId WHERE etm.empId = :empId AND etm.teamId =:teamId AND etm.active != 0 AND t.isActive = 'Y' AND DATE(etm.startDate) >= CURDATE() ")
+	List<EmployeeTeamMap> findByEmpIdAndTeamIdAndStartDateGreaterThanCurrentDate(@Param("empId") Long empId, @Param("teamId") Long teamId);
+
 }

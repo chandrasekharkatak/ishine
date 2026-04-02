@@ -235,4 +235,9 @@ export class Employee{
 	poRequirementMappingId : any;
 	poId : any;
 	isUpdateDefaultProject:boolean = false;
+
+	poRoleId: any;
+	oldEtmEndDate: any;
+	newEtmStartDate: any;
+	projectStartDate:any;
 }

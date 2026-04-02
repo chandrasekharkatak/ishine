@@ -80,15 +80,6 @@ public class TimesheetController {
 	@Value("${check.minus.days.for.bulk.upload}")
 	private Boolean checkMinusDaysForBulkUpload;
 	
-
-	
-	@JobRoleAccess(featureIds = {7,15,16})
-	@RequestMapping(value = "/getAllProjectsByEmpId", method = RequestMethod.POST)
-	public ServiceResponse getAllProjectsByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
-
-		ServiceResponse response = timesheetService.getAllProjectsByEmpId(timesheetDTO);
-		return response;
-	}
 	@JobRoleAccess(featureIds = {15,16})
 	@RequestMapping(value = "/getAllActivitiesByProjectIdandEmpId", method = RequestMethod.POST)
 	public ServiceResponse getAllActivitiesByProjectIdandEmpId(@RequestBody TimesheetDTO timesheetDTO) {
@@ -238,11 +229,7 @@ public class TimesheetController {
 	     return timesheetService.getLastFilledTimesheetByEmpId(timesheetDTO.getEmpId());
 	 }
 
-		// @JobRoleAccess(featureIds = {15})
-		 @PostMapping("/getProjectListForDateAndEmpId")
-		 public ServiceResponse getProjectListForDateAndEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
-		     return timesheetService.getProjectListForDateAndEmpId(payload);
-		 }
+	
 	
 		@JobRoleAccess(featureIds = {15,16})
 		 @PostMapping("/getClientSideIdByProjectId")

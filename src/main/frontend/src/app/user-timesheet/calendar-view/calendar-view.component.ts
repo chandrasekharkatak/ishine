@@ -697,6 +697,10 @@ resetPreviewState() {
         return 'jpeg';
       case 'image/webp':
         return 'jpeg';
+      case 'application/vnd.ms-excel':
+        return 'xls';
+      case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+        return 'xlsx';
       default:
         return 'file';
     }

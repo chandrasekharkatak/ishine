@@ -1,3 +1,5 @@
+import { PoDetails } from "./poDetails";
+
 export class SetDefaultProjectObj {
 
 	empId: any;
@@ -14,7 +16,7 @@ export class SetDefaultProjectObj {
 	projectStartDate:any;
 	calculatedProjectType:any;
 
-	poDetailsList: any[] = [];
+	poDetailsList: PoDetails[] = [];
 	teamList: any[] = [];
 	resourceRequirementList: any[] = [];
 	employeeRoles: any[] = [];

@@ -12,4 +12,5 @@ public class SkippedTimesheetDTO {
     private String employmentId;
     private LocalDate date;
     private String reason;
+    private Long empId;
 }

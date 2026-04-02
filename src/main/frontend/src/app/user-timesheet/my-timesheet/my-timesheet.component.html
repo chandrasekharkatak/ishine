@@ -39,27 +39,33 @@
 
 
 <div class="row text-center mb-3">
-  <div class="card col-md-12 px-0 shadow-sm">
-    <div class="card-header timesheet-header">
-      <span *ngIf="isTimesheetForm && isCreation">
-        <i class="fa fa-edit me-2"></i> Create Timesheet
-      </span>
+    <div class="card col-md-12 px-0 shadow-sm">
+        <div class="card-header timesheet-header">
+            <span *ngIf="isTimesheetForm && isCreation">
+                <i class="fa fa-edit me-2"></i> Create Timesheet
+            </span>
 
-      <span *ngIf="isTimesheetForm && isUpdation">
-        <i class="fa fa-edit me-2"></i> Update Timesheet
-      </span>
+            <span *ngIf="isTimesheetForm && isUpdation">
+                <i class="fa fa-edit me-2"></i> Update Timesheet
+            </span>
 
-      <span *ngIf="isTimesheetBulkForm">
-        <i class="fa fa-file-upload me-2"></i> Final Document Bulk Upload
-        <app-info-tooltip class="ms-2"  iconBgColor="#127475" [size]="20"
-            [content]="withVmsbullet"></app-info-tooltip>
-      </span>
+            <span *ngIf="isTimesheetBulkForm">
+                <i class="fa fa-file-upload me-2"></i> Final Document Bulk Upload
+                <app-info-tooltip class="ms-2" iconBgColor="#127475" [size]="20"
+                    [content]="withVmsbullet"></app-info-tooltip>
+            </span>
 
-      <span *ngIf="isTimesheetTable">
-        <i class="fa fa-list-alt me-2"></i> My Timesheets
-      </span>
+            <span *ngIf="isTimesheetTable">
+                <i class="fa fa-list-alt me-2"></i> My Timesheets
+            </span>
+
+            <button type="button" *ngIf="employeeInTNMProject && (isCreation || isUpdation)"
+                (click)="openPolicySidebar()" class="btn rules-btn" title="View Rules">
+                <i class="fa-solid fa-file-circle-question rules-i"></i>
+                <span>View Rules</span>
+            </button>
+        </div>
     </div>
-  </div>
 </div>
 
 
@@ -104,18 +110,6 @@
     </div>
 </div>
 
-       <div *ngIf="employeeInTNMProject">
-        <div class="tnm-rules-wrapper">
-
-            <button type="button" (click)="openPolicySidebar()" class="tnm-rules" title="View Rules">
-                <div class="tnm-rules-inner">
-                    <img src="assets/Images/transcDragRules.gif" />
-                </div>
-                <span class="rules-label">
-                    <<< Click To View Rules</span>
-            </button>
-        </div>
-    </div>
 
 
     <div class="policy-sidebar" [class.open]="isPolicySidebarOpen">
@@ -800,12 +794,25 @@
         <div class="bu-file-row">
           <input type="file" #fileInput id="bulkFileInput"
             class="bu-file-hidden"
-            accept=".pdf,.jpg,.jpeg,.png"
+            accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
             (change)="onFinalFileSelected($event)" />
           <label for="bulkFileInput" class="bu-file-btn">
             <i class="fas fa-cloud-upload-alt"></i>
             <span>Choose File</span>
           </label>
+          @if (fileType2 === 'excel') {
+            <button
+            class="btn-download-excel"
+            title="Download Excel"
+            [disabled]="!rawObjectUrl2"
+            (click)="downloadFile()">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 2v8m0 0L5 7m3 3l3-3M3 13h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Download</span>
+          </button>
+        }
+        @else {
           <button class="bu-preview-btn"
             [disabled]="!previewUrl2"
             (click)="openPreviewModalForTwo('doc2')"
@@ -813,6 +820,7 @@
             <i class="fas fa-eye"></i>
             <span>Preview</span>
           </button>
+        }
         </div>
         <div class="bu-file-status" *ngIf="fileName2 && !fileError2">
           <i class="fas fa-check-circle"></i>
@@ -1357,4 +1365,9 @@
     </div>
 
   </div>
+
+
+
 </ng-template>
+
+

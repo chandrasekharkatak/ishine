@@ -115,6 +115,10 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO(tdd) FROM TimesheetDocumentDetailsNew tdd WHERE tdd.timesheetId = :timesheetId and tdd.projectId in :projectIds and tdd.active = true")
 	List<TimesheetDocumentDataDTO> getTimesheetDocumentDataByTimesheetIdAndProjectIds(@Param("timesheetId") Long timesheetId, @Param("projectIds") List<Long> projectIds);
 
+	@Query("SELECT tdd FROM TimesheetDocumentDetailsNew tdd " +
+			"WHERE tdd.timesheetId IN :timesheetIds and tdd.active = true")
+	List<TimesheetDocumentDetailsNew> findActiveByTimesheetIds(@Param("timesheetIds") List<Long> timesheetIds);
+
 	@Query("SELECT t FROM TimesheetDocumentDetailsNew t WHERE t.timesheetId = :timesheetId")
 	List<TimesheetDocumentDetailsNew> findAllByTimesheetId(Long timesheetId);
 

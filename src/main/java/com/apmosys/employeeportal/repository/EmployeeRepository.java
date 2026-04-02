@@ -1160,29 +1160,21 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "and e.employmentstatus != 'InActive' and d.deptId = :deptId ")
     List<EmployeeDTO> findAllEmployeesWithoutProjectInDeptId(@Param("deptId") Long deptId);
     
-    
-    
-    @Query(nativeQuery = true ,value ="select p.project_id,p.project_name,t.team_id,t.team_name,t.dept_ids,rr.resource_overview_id, rr.department,rr.count,rr.experience, rr.role , po.po_id from projects p \n"
-    		+ "    		inner join teams t on t.project_id = p.project_id  \n"
-    		+ "    		left join resource_requirement rr on rr.project_id = p.project_id\n"
-    		+ "         left join po_details po on p.project_id = po.project_id \n"
-    		+ "         left join po_requirement_mapping prm on prm.po_id = po.po_id \n"
-    		+ "    		where p.po_project_id  IS NULL \n"
-    		+ "    		and p.internal_project_type = 'Bench' \n"
-    		+ "    		and p.active = 'true' and t.is_active = 'Y' ")
+    @Query(nativeQuery = true ,value ="select p.project_id,p.project_name,t.team_id,t.team_name,t.dept_ids, \n"
+			+ " CASE WHEN p.po_project_type IS NOT null AND TRIM(p.po_project_type) != '' THEN p.po_project_type ELSE p.internal_project_type END AS project_type, DATE(p.start_date) \n"		
+			+ " from projects p \n"
+    		+ " inner join teams t on t.project_id = p.project_id  \n"
+    		+ " where p.po_project_id IS NULL \n"
+    		+ " and (p.po_project_type is null or TRIM(p.po_project_type) = '') and p.internal_project_type = 'Bench' \n"
+    		+ " and p.active = 'true' and t.is_active = 'Y' ")
     List<Object[]> getAllInternalBenchprojectsAndTeamDetailsForDepartmenFilter();
     
-    
-    @Query(nativeQuery = true,value ="select p.project_id,p.project_name,t.team_id,t.team_name,t.dept_ids, \n"
-    		+ "rr.resource_overview_id, rr.department,rr.count,rr.experience, rr.role , po.po_id\n"
-    		+ "from projects p \n"
-    		+ "inner join teams t on t.project_id = p.project_id  \n"
-    		+ "left join resource_requirement rr on rr.project_id = p.project_id\n"
-    		+ "left join po_details po on p.project_id = po.project_id \n"
-    		+ "left join po_requirement_mapping prm on prm.po_id = po.po_id \n"
-    		+ "where p.internal_project_type = 'InternalRNDProducts' or p.internal_project_type IS NULL ")
-    List<Object[]> getAllProjectsThatAreNotBench();
-    
+    @Query(nativeQuery = true, value = "select p.project_id,p.project_name,t.team_id,t.team_name,t.dept_ids, \n"
+			+ " CASE WHEN p.po_project_type IS NOT NULL AND TRIM(p.po_project_type) != '' THEN p.po_project_type ELSE p.internal_project_type END AS project_type, DATE(p.start_date) \n"
+			+ " from projects p \n"
+			+ " inner join teams t on t.project_id = p.project_id  \n"
+			+ " where p.po_project_type is not null and TRIM(p.po_project_type) != '' and (p.internal_project_type = 'InternalRNDProducts' or p.internal_project_type IS NULL) and p.active = 'true' and t.is_active = 'Y' ")
+	List<Object[]> getAllProjectsThatAreNotBench();
     
 //    @Modifying
 //    @Transactional
@@ -3166,7 +3158,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		        List<Object[]> getEmployeeByNameAndEmpidForTimesheetClientDashboard( Long empId);	
 
 	@Query("SELECT CASE WHEN e.employmentstatus != 'InActive' THEN true ELSE false END " +
-		       "FROM Employee e WHERE e.employeementId = :empId")
+		       "FROM Employee e WHERE e.empId = :empId")
 	public Boolean isActiveEmployee(@Param("empId") Long empId);
 	
 	

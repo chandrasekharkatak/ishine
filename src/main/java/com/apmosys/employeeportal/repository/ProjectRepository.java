@@ -42,6 +42,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<ProjectIdAndNameDTO> findAllProjectIdAndName();
 	
 	public List<Project> findByEmpId(Long empId);
+	@Query("SELECT p.projectId, p.hasClientSideId FROM Project p WHERE p.projectId IN :projectIds")
+	List<Object[]> findHasClientSideByProjectIds(@Param("projectIds") Set<Integer> projectIds);
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getActivitiesByTeamIdAndEmployeeId(Long teamId, Long empId);
@@ -5435,7 +5437,8 @@ boolean existsByProjectName(String projectName);
 			+ "LEFT JOIN Client c ON p.clientId = c.clientId \n"
 			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = etm.poId \n"
 			+ "LEFT JOIN PoRequirementMapping prm ON  etm.roleId = prm.roleId and etm.poId = prm.poId and prm.active = true \n"
-			+ "WHERE 1=1 AND etm.empId= :empId AND etm.active != 0 \n"
+			+ "AND DATE(prm.lineItemEndDate) = (SELECT MAX(DATE(prm2.lineItemEndDate)) FROM PoRequirementMapping prm2 WHERE prm2.poId = prm.poId AND prm2.active = true AND prm2.roleId = prm.roleId  ) \n"
+			+ "WHERE 1=1 AND etm.empId= :empId AND etm.active != 0 AND (etm.endDate IS NULL OR DATE(etm.endDate) >= CURDATE() ) \n"
 			+ "AND t.isActive != 'N' AND p.active != 'false' AND p.projectId !=:projectId \n")
 public List<PoTeamAndMemberDetailsDto> getEmployeeExistingProjectDetailsByEmpId(Long empId, Integer projectId);
 
@@ -8888,14 +8891,133 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 	@Query("SELECT p.projectId, p.hasClientSideId,p.clientFlag FROM Project p WHERE p.projectId IN :projectIds")
 	List<Object[]> findClientSiteMandatoryByProjectIds(@Param("projectIds") List<Integer> projectIds);
 
-		@Query(value = "select etm.emp_team_department_id from employee_team_mapping etm where etm.emp_id = :empId and etm.team_id = :teamId and \n"
-		+" ( etm.end_date is null or  :date <= Date(etm.end_date) ) and :date >= Date(etm.start_date) ",nativeQuery = true)
-		public List<Long> getEmployeeTeamDepartment(Long teamId , Long empId , LocalDate date);
+	@Query(value = "select etm.emp_team_department_id from employee_team_mapping etm where etm.emp_id = :empId and etm.team_id = :teamId and \n"
+			+ " ( etm.end_date is null or  :date <= Date(etm.end_date) ) and :date >= Date(etm.start_date) ", nativeQuery = true)
+	public List<Long> getEmployeeTeamDepartment(Long teamId, Long empId, LocalDate date);
 
-		// @Query(value = "SELECT po_project_type FROM projects WHERE project_id = :projectId", nativeQuery = true)
-	    // String findPoProjectTypeByProjectId(@Param("projectId") Integer projectId);
+	// @Query(value = "SELECT po_project_type FROM projects WHERE project_id = :projectId", nativeQuery = true)
+	// String findPoProjectTypeByProjectId(@Param("projectId") Integer projectId);
 
-		@Query("SELECT p.projectId, p.hasClientSideId FROM Project p WHERE p.projectId IN (:projectIds)")
-		List<Object[]> findClientSideFlagByProjectIds(@Param("projectIds") List<Integer> projectIds);
+	@Query("SELECT p.projectId, p.hasClientSideId FROM Project p WHERE p.projectId IN (:projectIds)")
+	List<Object[]> findClientSideFlagByProjectIds(@Param("projectIds") List<Integer> projectIds);
+
+	@Query(value = "WITH rc AS (  \n"
+			+ "SELECT p2.project_id, prm2.po_id, prm2.role_id, prm2.count required_count  \n"
+			+ "FROM po_requirement_mapping prm2  \n"
+			+ "INNER JOIN project_po_details ppd2 ON ppd2.po_id = prm2.po_id AND DATE(ppd2.po_start_date) <= CURDATE() AND (ppd2.po_end_date IS NULL OR DATE(ppd2.po_end_date) >= CURDATE()) AND ppd2.active  = 1  \n"
+			+ "INNER JOIN projects p2 ON p2.project_id = ppd2.project_id  \n"
+			+ "WHERE 1=1   \n"
+			+ "AND p2.po_project_type = 'TNM' AND p2.active != 'false'  \n"
+			+ "), \n"
+			+ "ac AS (  \n"
+			+ "SELECT p3.project_id, etm2.po_id, etm2.role_id, COUNT(DISTINCT etm2.emp_id) allocated_count  \n"
+			+ "from employee_team_mapping etm2  \n"
+			+ "INNER JOIN teams t3 ON t3.team_id = etm2.team_id  \n"
+			+ "INNER JOIN projects p3 ON p3.project_id = t3.project_id   \n"
+			+ "INNER JOIN project_po_details ppd3 ON ppd3.project_id = p3.project_id AND DATE(ppd3.po_start_date) <= CURDATE() AND (ppd3.po_end_date IS NULL OR DATE(ppd3.po_end_date) >= CURDATE()) AND ppd3.active  = 1  \n"
+			+ "INNER JOIN employee e3 ON etm2.emp_id = e3.emp_id   \n"
+			+ "WHERE 1=1  \n"
+			+ "AND DATE(etm2.start_date) <= CURDATE()  \n"
+			+ "AND etm2.active != 0 AND e3.employmentstatus != 'InActive'  \n"
+			+ "AND t3.is_active != 'N' AND p3.po_project_type = 'TNM'   \n"
+			+ "AND p3.active != 'false'  \n"
+			+ "GROUP BY p3.project_id, etm2.po_id, etm2.role_id  \n"
+			+ ")  \n"
+			+ "SELECT DISTINCT p.project_id \n"
+			+ "FROM projects p  \n"
+			+ "LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1  \n"
+			+ "INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id))  -- AND pdm.dept_id IN :deptIds  \n"
+			+ "INNER JOIN teams t ON p.project_id = t.project_id  AND t.is_active != 'N'  \n"
+			+ "INNER JOIN rc ON rc.project_id = p.project_id \n"
+			+ "LEFT JOIN ac ON ac.po_id = rc.po_id AND ac.role_id = rc.role_id  \n"
+			+ "WHERE p.po_project_type = 'TNM' \n"
+			+ "AND p.active != 'false' \n"
+			+ "AND COALESCE(ac.allocated_count,0) < rc.required_count \n", nativeQuery = true)
+	List<Integer> getUnderboardedProjectIds(List<Long> deptIds);
+
+	@Query(value = "WITH rc AS (  \n"
+			+ "SELECT p2.project_id, prm2.po_id, prm2.role_id, prm2.count required_count  \n"
+			+ "FROM po_requirement_mapping prm2  \n"
+			+ "INNER JOIN project_po_details ppd2 ON ppd2.po_id = prm2.po_id AND DATE(ppd2.po_start_date) <= CURDATE() AND (ppd2.po_end_date IS NULL OR DATE(ppd2.po_end_date) >= CURDATE()) AND ppd2.active  = 1  \n"
+			+ "INNER JOIN projects p2 ON p2.project_id = ppd2.project_id  \n"
+			+ "WHERE 1=1   \n"
+			+ "AND p2.po_project_type = 'TNM' AND p2.active != 'false'  \n"
+			+ "), \n"
+			+ "ac AS (  \n"
+			+ "SELECT p3.project_id, etm2.po_id, etm2.role_id, COUNT(DISTINCT etm2.emp_id) allocated_count  \n"
+			+ "from employee_team_mapping etm2  \n"
+			+ "INNER JOIN teams t3 ON t3.team_id = etm2.team_id  \n"
+			+ "INNER JOIN projects p3 ON p3.project_id = t3.project_id   \n"
+			+ "INNER JOIN project_po_details ppd3 ON ppd3.project_id = p3.project_id AND DATE(ppd3.po_start_date) <= CURDATE() AND (ppd3.po_end_date IS NULL OR DATE(ppd3.po_end_date) >= CURDATE()) AND ppd3.active  = 1  \n"
+			+ "INNER JOIN employee e3 ON etm2.emp_id = e3.emp_id   \n"
+			+ "WHERE 1=1  \n"
+			+ "AND DATE(etm2.start_date) <= CURDATE()  \n"
+			+ "AND etm2.active != 0 AND e3.employmentstatus != 'InActive'  \n"
+			+ "AND t3.is_active != 'N' AND p3.po_project_type = 'TNM'   \n"
+			+ "AND p3.active != 'false'  \n"
+			+ "GROUP BY p3.project_id, etm2.po_id, etm2.role_id  \n"
+			+ ")  \n"
+			+ "SELECT DISTINCT p.project_id \n"
+			+ "FROM projects p  \n"
+			+ "LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1  \n"
+			+ "INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id))  -- AND pdm.dept_id IN :deptIds  \n"
+			+ "INNER JOIN teams t ON p.project_id = t.project_id  AND t.is_active != 'N'  \n"
+			+ "INNER JOIN rc ON rc.project_id = p.project_id \n"
+			+ "LEFT JOIN ac ON ac.po_id = rc.po_id AND ac.role_id = rc.role_id  \n"
+			+ "WHERE p.po_project_type = 'TNM' \n"
+			+ "AND p.active != 'false' \n"
+			+ "AND COALESCE(ac.allocated_count,0) > rc.required_count \n", nativeQuery = true)
+	List<Integer> getOverboardedProjectIds(List<Long> deptIds);
+	
+	@Query(value = "SELECT DISTINCT p.project_id  \n"
+			+ "FROM projects p   \n"
+			+ "INNER JOIN teams t ON p.project_id = t.project_id   \n"
+			+ "INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id   \n"
+			+ "LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1   \n"
+			+ "INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds   \n"
+			+ "LEFT JOIN department d ON pdm.dept_id = d.dept_id   \n"
+			+ "WHERE 1=1   \n"
+			+ "AND po_project_type = 'Fixed Cost'   \n"
+			+ "AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'   \n"
+			+ "AND EXISTS (SELECT 1 FROM employee_team_mapping etm2 INNER JOIN teams t2 ON t2.team_id = etm2.team_id WHERE ppd.po_id = etm2.po_id AND etm2.active != 0 AND ((etm2.end_date IS NULL AND DATE(ppd.po_end_date) < CURDATE()) OR DATE(ppd.po_end_date) < DATE(etm2.end_date)) AND t2.is_active = 'Y' )   \n", nativeQuery = true)
+	public List<Integer> getFCDefaulterProjectIds(List<Long> deptIds);
+
+	@Query(value = "SELECT DISTINCT p.project_id  \n"
+			+ "FROM projects p  \n"
+			+ "INNER JOIN teams t ON p.project_id = t.project_id  \n"
+			+ "INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id  \n"
+			+ "LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1  \n"
+			+ "INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds  \n"
+			+ "LEFT JOIN department d ON pdm.dept_id = d.dept_id  \n"
+			+ "WHERE 1=1  \n"
+			+ "AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'  \n"
+			+ "AND po_project_type = 'TNM'  \n"
+			+ "AND DATE(p.end_date) < CURDATE()  \n", nativeQuery = true)
+	public List<Integer> getExpiredTnmProjectIds(List<Long> deptIds);
+
+	@Query(value = " SELECT DISTINCT \n"
+			+ " p.project_id  \n"
+			+ " FROM projects p   \n"
+			+ " INNER JOIN teams t ON t.project_id = p.project_id   \n"
+			+ " INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id   \n"
+			+ " LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND etm.po_id = ppd.po_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1  \n"
+			+ " LEFT JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id))  \n"
+			+ " LEFT JOIN project_manager_mapping pmm ON p.project_id = pmm.project_id  AND pmm.active = 1   \n"
+			+ " LEFT JOIN employee pm ON pm.emp_id = pmm.project_manager_id  \n"
+			+ " INNER JOIN employee e ON e.emp_id = etm.emp_id   \n"
+			+ " INNER JOIN clients c ON c.client_id = p.client_id   \n"
+			+ " INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id   \n"
+			+ " INNER JOIN department d ON jr.dept_id = d.dept_id   \n"
+			+ " WHERE 1=1  \n"
+			+ " AND p.active = 'true' AND t.is_active = 'Y'   \n"
+			+ " AND etm.active != 0 AND e.employmentstatus != 'InActive'  \n"
+			+ " AND p.project_id IN :projectIds AND d.dept_id IN :deptIds  \n"
+			+ " AND p.project_id NOT IN (SELECT p2.project_id FROM employee_timesheets_new et  \n"
+			+ " INNER JOIN employee_timesheet_activities_mapping_new etam ON et.timesheet_id = etam.timesheet_id  \n"
+			+ " INNER JOIN activities a ON a.activity_id = etam.activity_id   \n"
+			+ " RIGHT JOIN teams t2 ON t2.team_id = a.team_id   \n"
+			+ " INNER JOIN projects p2 ON p2.project_id = t2.project_id   \n"
+			+ " WHERE 1=1) \n", nativeQuery = true)
+	public List<Integer> getTimesheetNonComplianceProjectIds(List<Long> deptIds, Set<Integer> projectIds);
 
 }

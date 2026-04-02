@@ -42,6 +42,8 @@ public class ClientLocation {
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
 	
+	private boolean activeInPo;
+	
 	
 //	private Long poId;
 	
