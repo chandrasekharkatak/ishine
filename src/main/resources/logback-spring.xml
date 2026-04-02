@@ -29,6 +29,25 @@
         </filter>
     </appender>
 
+    <!-- Dedicated rolling file for /api/v2/timesheet audit lines (LogService + TimesheetApi logger) -->
+    <appender name="TIMESHEET_API_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}/${log.timesheet.file.name:-timesheet-api.log}</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/timesheet-api-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>5MB</maxFileSize>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger - %msg%n</pattern>
+        </encoder>
+
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
     <!-- CONSOLE APPENDER: ERROR ONLY -->
     <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
         <target>SYSTEM_ERR</target>
@@ -44,6 +63,11 @@
             <onMismatch>DENY</onMismatch>
         </filter>
     </appender>
+
+    <!-- Timesheet v2 API audit only; additivity=false so these lines do not duplicate into root FILE -->
+    <logger name="com.apmosys.employeeportal.logging.TimesheetApi" level="INFO" additivity="false">
+        <appender-ref ref="TIMESHEET_API_FILE"/>
+    </logger>
 
     <!-- ROOT LOGGER -->
     <root level="INFO">

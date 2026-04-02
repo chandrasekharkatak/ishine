@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.DocumentResponseDTONew;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
@@ -328,6 +329,14 @@ public class TimesheetDocumentServiceNew {
             MultipartFile file, LocalDate fromDate, LocalDate toDate, Long empId) throws Exception {
 
         ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("bulkFinalDocumentUpload");
+        apiLogInfo.setApiUrl("/api/v2/timesheet/bulkFinalDocumentUpload");
+        apiLogInfo.setLogLevel("INFO");
+        apiLogInfo.setEmpId(empId);
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("empId: ").append(empId).append(", fromDate: ").append(fromDate).append(", toDate: ")
+                .append(toDate).append(", fileName: ").append(file != null ? file.getOriginalFilename() : null);
 
         try {
             /*
@@ -419,12 +428,22 @@ public class TimesheetDocumentServiceNew {
 
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse("Final document uploaded and mapped successfully.");
+            apiLogInfo.setApiRequest(logBuilder.toString());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            apiLogInfo.setApiResponse("Final document uploaded and mapped successfully.");
+            logService.logMyInfo(httpRequest, apiLogInfo);
 
         } catch (Exception e) {
             e.printStackTrace();
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
             response.setServiceResponse(e.getMessage());
             response.setServiceError(e.getMessage());
+            apiLogInfo.setApiRequest(logBuilder.toString());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setApiResponse(e.getMessage());
+            apiLogInfo.setApiError(e.getMessage());
+            apiLogInfo.setLogLevel("ERROR");
+            logService.logMyInfo(httpRequest, apiLogInfo);
             throw e;
         }
 
@@ -434,6 +453,12 @@ public class TimesheetDocumentServiceNew {
     @Transactional
     public ServiceResponse deleteBulkApprovedDocuments(Long bulkApproverDocId) {
         ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("deleteBulkFinalDocument");
+        apiLogInfo.setApiUrl("/api/v2/timesheet/deleteBulkFinalDocument/{bulkApproverDocId}");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("bulkApproverDocId: ").append(bulkApproverDocId);
         try {
             if (bulkApproverDocId == null) {
                 throw new IllegalArgumentException("Bulk approver ID is required.");
@@ -464,12 +489,22 @@ public class TimesheetDocumentServiceNew {
 
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse("Documents deleted successfully.");
+            apiLogInfo.setApiRequest(logBuilder.toString());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            apiLogInfo.setApiResponse("Documents deleted successfully.");
+            logService.logMyInfo(httpRequest, apiLogInfo);
 
         } catch (Exception e) {
             e.printStackTrace();
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
             response.setServiceResponse(e.getMessage());
             response.setServiceError(e.getMessage());
+            apiLogInfo.setApiRequest(logBuilder.toString());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setApiResponse(e.getMessage());
+            apiLogInfo.setApiError(e.getMessage());
+            apiLogInfo.setLogLevel("ERROR");
+            logService.logMyInfo(httpRequest, apiLogInfo);
             throw e;
         }
 
