@@ -1198,9 +1198,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    */
   onDayTypeChange(event: any): void {
     const newDayTypeId = this.dayType;
-    if(this.halfDayValidation()){
-      return;
-    }
+  
     // If current date is a Holiday/Week-off and user tries to switch to Working / Half-day Working,
     // prevent change on UI itself (backend will also enforce).
     const isHolidayOrWeekOffDate =
@@ -1217,19 +1215,22 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
       if (isWorkingLike) {
         // Revert change
-        if (this.lastDayTypeId != null) {
-          this.dayType = this.lastDayTypeId;
-        }
-        this.openAlertMod(
-          this.alertTemplate,
-          'Date is configured as Holiday/Week Off. Only Non-working timesheet is allowed on this date.'
-        );
+        // if (this.lastDayTypeId != null) {
+        //   this.dayType = this.lastDayTypeId;
+        // }
+        // this.openAlertMod(
+        //   this.alertTemplate,
+        //   'Date is configured as Holiday/Week Off. Only Non-working timesheet is allowed on this date.'
+        // );
         // Do not proceed with rest of change handling
         // return;
         // this.fromDate = null;
-        this.resetForm();
+        this.resetForm('dayType');
         return;
       }
+    } 
+      if(this.halfDayValidation()){
+      return;
     }
 this.isNightShift = false;
         this.toDate = null;
@@ -1247,7 +1248,7 @@ this.isNightShift = false;
     //   this.resetForm();
     // }
 
-    this.getListToRenderUpload();
+    this.getListToRenderUpload();  
 
     // Update lastDayTypeId after successful change
     this.lastDayTypeId = this.dayType;
@@ -3817,12 +3818,16 @@ this.isNightShift = false;
    * Reset form to initial state
    * Cleans up all form data, document references, and UI state
    */
-  resetForm(): void {
+  resetForm(label ?: any): void {
     // Basic fields
+    if(label != 'dayType'){
+      this.dayType = null;
+    }
+    if(!this.isUpdation){
+      this.fromDate = null;
+      this.toDate = null;
+    }
     this.appelectMember = null;
-    this.dayType = null;
-    this.fromDate = null;
-    this.toDate = null;
     this.isNightShift = false;
     this.apmosysInTime = null;
     this.apmosysOutTime = null;

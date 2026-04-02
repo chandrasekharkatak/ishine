@@ -3332,12 +3332,16 @@ get tooltipCta(): string {
   //   this.selectedFile2 = file;
   //   this.fileName2 = file.name;
   // }
+
+  fileNameToShow : string = '';
 async onFinalFileSelected(event: any): Promise<void> {
+  this.fileNameToShow = '';
   const file: File = event.target.files[0];
   this.fileError2 = '';
   this.previewUrl2 = null;
   this.fileType2 = null;
-
+  this.fileNameToShow = file.name.toLowerCase() || 'document';
+  console.log(this.fileNameToShow);
   if (!file) return;
 
   const allowedTypes = [

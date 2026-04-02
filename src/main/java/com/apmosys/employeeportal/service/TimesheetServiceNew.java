@@ -359,6 +359,8 @@ public class TimesheetServiceNew {
 
 			// Normalize new contract
 			normalizeEmployeeTimesheetFromNewContract(empDTO, empDTO.getDate());
+			
+			Boolean hasClient = anyProjectWithClientSideId(empDTO);
 
 			timesheetValidationHelper.validateHalfDayLeaveIfRequired(empDTO);
 
@@ -387,7 +389,8 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateDayTypeAgainstLeave(empDTO.getEmpId(), empDTO.getDate(),
 						empDTO.getDayTypeId());
 				// Prevent Working / Half-day Working on dates configured as Holiday / Week Off
-				timesheetValidationHelper.validateDayTypeAgainstHoliday(empDTO.getDate(), empDTO.getDayTypeId());
+				
+				timesheetValidationHelper.validateDayTypeAgainstHoliday(empDTO.getDate(), empDTO.getDayTypeId() , hasClient);
 			}
 
 			EmployeeTimesheetsNew existing = timesheetValidationHelper.validateTimesheetAlreadyExists(empDTO,
@@ -939,6 +942,8 @@ public class TimesheetServiceNew {
 		try {
 			normalizeEmployeeTimesheetFromNewContract(newEmpDTO, newEmpDTO.getDate());
 
+			Boolean hasClient = anyProjectWithClientSideId(newEmpDTO);
+			
 			timesheetValidationHelper.validateHalfDayLeaveIfRequired(newEmpDTO);
 
 			timesheetValidationHelper.validateEmployeeAuthorization(newEmpDTO);
@@ -963,7 +968,7 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateDayTypeAgainstLeave(newEmpDTO.getEmpId(), newEmpDTO.getDate(),
 						newEmpDTO.getDayTypeId());
 				// Prevent Working / Half-day Working on dates configured as Holiday / Week Off
-				timesheetValidationHelper.validateDayTypeAgainstHoliday(newEmpDTO.getDate(), newEmpDTO.getDayTypeId());
+				timesheetValidationHelper.validateDayTypeAgainstHoliday(newEmpDTO.getDate(), newEmpDTO.getDayTypeId() , hasClient);
 			}
 
 			// Based on day type transition we have to take validation action
@@ -2803,5 +2808,52 @@ public class TimesheetServiceNew {
 			
 			return "application/octet-stream"; // fallback
 		}
+		
+		public Boolean anyProjectWithClientSideId(EmployeeTimesheetDTO timesheetDTO)
+		{
+			Integer dayTypeId = timesheetDTO.getDayTypeId();
+	        if (dayTypeId == null) return false;
+	        
+	        if (timesheetDTO.getLocationSessions() == null || timesheetDTO.getLocationSessions().isEmpty()) {
+	            return false;
+	        }
+	        
+	        List<Integer> projectIds = timesheetDTO.getLocationSessions()
+	                .stream()
+	                .flatMap(loc -> loc.getProjects().stream())
+	                .map(ProjectTimesheetDTO::getProjectId)
+	                .filter(Objects::nonNull)
+	                .distinct()
+	                .collect(Collectors.toList());
+	        
+	        if (projectIds == null || projectIds.isEmpty() ) return false;
+	        
+	        Map<Integer, Boolean> clientSideMap = createProjectAndClientMap(projectIds);
+	        System.out.println(clientSideMap);
+	        Boolean hasClientSideId = clientSideMap.containsValue(true);
+	        System.out.println(hasClientSideId);
+			return hasClientSideId;
+		}
+		
+		private Map<Integer, Boolean> createProjectAndClientMap(List<Integer> projectIds) {
+
+	        List<Object[]> result = projectRepository.findClientSideFlagByProjectIds(projectIds);
+	        
+	        Map<Integer, Boolean> clientSideMap = new HashMap<>();
+	        
+	        if (result == null || result.isEmpty()) {
+	            return clientSideMap; 
+	        }
+	        
+	        for (Object[] row : result) {
+	            Integer projectId = (Integer) row[0];
+	            Boolean hasClientSideId = (row[1] == null) ? Boolean.FALSE : (Boolean) row[1];
+	            System.out.println(projectId+ " = = = " + hasClientSideId);
+	            if(projectId != null)
+	            clientSideMap.put(projectId, hasClientSideId);
+	        }
+	        System.out.println(clientSideMap);
+	        return clientSideMap;
+	    }
 
 }
