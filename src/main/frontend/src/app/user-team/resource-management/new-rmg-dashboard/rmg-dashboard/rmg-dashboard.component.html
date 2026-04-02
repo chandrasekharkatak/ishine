@@ -801,6 +801,25 @@
     </div>
 </ng-template>
 
+<ng-template #timesheet_non_compliance_project_details>
+    <div class="modal-header">
+        <h5>Project Information</h5>
+        <button class="btn btn-sm btn-outline-primary" (click)="closeUnfilledProjectTimesheetDetailsModal()"><i
+                class="fa fa-xmark m-0"></i></button>
+    </div>
+    <div class="modal-body mb-3">
+        <app-my-table [apiUrl]="getUnfilledTimesheetProjectDetailsListUrl" [columns]="projectDetailsColumnConfig"
+            [defaultSortColumn]="projectDetailsDefaultSortColumn" [isRowExpandable]="true"
+            [extraParams]="projectDetailsExtraParams" [isExportAllowed]="true" [isSearchAllowed]="true"
+            [subTableColumnConfig]="projectDetailsSubTableColumnConfig" [subTableData]="[]" [mergeRowData]="true"
+            [defaultCellMergeColumn]="'projectName'" [defaultSubTableCellMergeColumn]="">
+        </app-my-table>
+        <!-- <div class="modal-actions">
+            <button class="btn btn-outline-primary btn-sm ml-2" (click)="closeProjectDetailsModal()">Cancel</button>
+        </div> -->
+    </div>
+</ng-template>
+
 <ng-template #project_timesheet_summary>
     <div class="modal-header">
         <h4 class="modal-title pull-left">Project Timesheet Summary</h4>

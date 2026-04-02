@@ -125,9 +125,9 @@ export class RmgDashboardComponent implements OnInit {
   ];
 
   fixedCostItems = [
-    { key: "all", label: 'Active', value: null, color: '#1B294B' },
-    { key: "defaulter", label: 'Defaulter', value: null, color: '#A2AFCD', subKey: 'TOTAL_FC' },
-    { key: "ontime", label: 'On Time', value: null, color: '#4468BB' },
+    { key: "all", label: 'Active', value: null, color: '#1B294B', display: true },
+    { key: "defaulter", label: 'Defaulter', value: null, color: '#A2AFCD', subKey: 'TOTAL_FC', display: true },
+    { key: "ontime", label: 'On Time', value: null, color: '#4468BB', display: true },
   ];
 
   zeroTimesheetBars = [
@@ -166,14 +166,14 @@ export class RmgDashboardComponent implements OnInit {
   getEmployeeListByEmployeeGroupUrl: string = 'api/getEmployeeDetailsListByEmployeeGroup';
   employeeDetailsExtraParams: any = {};
   employeeDetailsDefaultSortColumn: string = '';
-  employeeDetailsColumnConfig = [] = [];
-  employeeDetailsSubTableColumnConfig = [] = [];
+  employeeDetailsColumnConfig: any[] = [];
+  employeeDetailsSubTableColumnConfig: any[] = [];
 
   getUnfilledTimesheetProjectDetailsListUrl: string = 'api/getUnfilledTimesheetProjectDetailsList';
   projectDetailsExtraParams: any = {};
   projectDetailsDefaultSortColumn: string = '';
-  projectDetailsColumnConfig = [] = [];
-  projectDetailsSubTableColumnConfig = [] = [];
+  projectDetailsColumnConfig: any[] = [];
+  projectDetailsSubTableColumnConfig: any[] = [];
 
   notMappedEmployeesColumConfig = [
     { field: 'employmentIdAcToET', header: 'Employment Id', sortable: true, searchable: true }
@@ -295,6 +295,28 @@ export class RmgDashboardComponent implements OnInit {
     , { field: 'etmStartDate', header: 'Employee Start Date', sortable: true, searchable: false }
     , { field: 'etmActive', header: 'Approval Status', sortable: false, searchable: false }
   ];
+
+  unfilledTimesheetProjectColumnConfig = [
+    { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
+    , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
+    , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
+    , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false }
+    , { field: 'poEndDate', header: 'PO End Date', sortable: true, searchable: false }
+    , { field: 'projectManagerName', header: 'Project Manager Name', sortable: true, searchable: true }
+    , { field: 'teamName', header: 'Team Name', sortable: true, searchable: true }
+    , { field: 'name', header: 'Employee Name', sortable: true, searchable: true }
+    , { field: 'jobRoleName', header: 'Job Role Name', sortable: true, searchable: true }
+    , { field: 'departmentName', header: 'Department', sortable: true, searchable: true }
+    , { field: 'mobileNo', header: 'Mobile No.', sortable: true, searchable: true }
+    , { field: 'email', header: 'Email', sortable: true, searchable: true }
+    , { field: 'billable', header: 'Is Billable', sortable: true, searchable: true }
+    , { field: 'billableType', header: 'User Billable Type', sortable: true, searchable: true }
+    , { field: 'effectiveStartDate', header: 'Effective Start Date', sortable: true, searchable: false }
+  ];
+
+  timesheetNonCompliance = { key: 'TIMESHEET_NON_COMPLIANCE', label: 'Timesheet Non-Compliance Projects', value: 'timesheet_non_compliance', count: null, style: 'color: #EC4899', bgstyle: 'background-color: #EC4899;color: #fff;', leftstyle: 'border-left:4px solid;color: #EC4899', i_class: 'fa-solid fa-calendar-xmark fa-beat-fade', columnConfig: this.unfilledTimesheetProjectColumnConfig, defaultSortColumn: 'projectName', subTableColumnConfig: [], color: '', infoLabel: '' };
 
   workforceOverview = [
     { key: 'TOTAL', icon: 'bi-people', label: 'Active Employees In Apmosys', value: null, desc: 'Full organization headcount', colorClass: 'text-info', columnConfig: [], defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#1B294B' },
@@ -559,12 +581,15 @@ export class RmgDashboardComponent implements OnInit {
   onBarClick(point: any, chartId: any) {
     console.log(point);
     if (chartId && point) {
-      this.projectStatus = chartId.split('_Chart')[0];
-      this.projectPage = 1;
-      this.filterStateService.selectedProjectStatus = this.projectStatus;
-      if (this.projectStatus == 'TIMESHEET_NON_COMPLIANCE') {
-
-      } else if (this.projectStatus == 'TOTAL_EXPIRED_TNM') {
+      let projectStatus = chartId.split('_Chart')[0];
+      if (projectStatus == 'TIMESHEET_NON_COMPLIANCE') {
+        let key = this.zeroTimesheetBars.find(t => t.label === point?.category).key || 'All';
+        this.openUnfilledProjectTimesheetDetailsModal(key);
+        return;
+      } else if (projectStatus == 'TOTAL_EXPIRED_TNM') {
+        this.projectStatus = projectStatus;
+        this.projectPage = 1;
+        this.filterStateService.selectedProjectStatus = this.projectStatus;
         this.expiredTNMProjectFilter = this.tnmExpiredBars.find(t => t.label === point?.category).key;
       }
       this.getProjectDetailsList(true);
@@ -864,7 +889,8 @@ export class RmgDashboardComponent implements OnInit {
     });
   }
 
-  renderPieChart(chartId: string, data: any[], chartHeight: any = 200) {
+  renderPieChart(chartId: string, tempData: any[], chartHeight: any = 200) {
+    const data = tempData?.filter(d => d.display);
     Highcharts.chart(chartId, {
       chart: {
         type: 'pie',
@@ -1040,6 +1066,35 @@ export class RmgDashboardComponent implements OnInit {
   closeEmployeeDetailsModal() {
     if (this.employeeDetailsModalRef) {
       this.employeeDetailsModalRef?.close();
+    }
+  }
+
+  openUnfilledProjectTimesheetDetailsModal(filter: any) {
+    const today = moment();
+    let fromDate: any;
+    const value = parseInt(filter, 10);
+
+    if (filter.includes('Y')) {
+      fromDate = today.clone().subtract(value, 'years');
+    } else if (filter.includes('M')) {
+      fromDate = today.clone().subtract(value, 'months');
+    } else {
+      fromDate = today.clone().subtract(3, 'months');
+    }
+
+    fromDate = filter == 'All' ? null : fromDate.format('YYYY-MM-DD');
+    let toDate = filter == 'All' ? null : today.format('YYYY-MM-DD');
+
+    this.projectDetailsExtraParams = { "selectedDeptIds": this.selectedDepartmentIds, "projectStatus": this.timesheetNonCompliance.key, "fromDate": fromDate, "toDate": toDate };
+    this.projectDetailsColumnConfig = this.timesheetNonCompliance?.columnConfig;
+    this.projectDetailsDefaultSortColumn = this.timesheetNonCompliance?.defaultSortColumn;
+    this.projectDetailsSubTableColumnConfig = this.timesheetNonCompliance?.columnConfig
+    this.timesheetNonComplianceProjectDetailsModalRef = this.modalService.open(this.timesheetNonComplianceProjectDetailsTemplateRef, { modalDialogClass: 'modal-xl' });
+  }
+
+  closeUnfilledProjectTimesheetDetailsModal() {
+    if (this.timesheetNonComplianceProjectDetailsModalRef) {
+      this.timesheetNonComplianceProjectDetailsModalRef?.close();
     }
   }
   // Modals End
