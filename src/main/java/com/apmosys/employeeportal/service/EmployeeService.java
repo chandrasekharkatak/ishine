@@ -1433,9 +1433,13 @@ public class EmployeeService {
 				}
 				
 				EmpPrimaryProjectMapping employeeProject = empPrimaryProjectMappingRepository.findByEmpIdAndIsMapped(employeedto.getEmpId(),"Y");
-				if(employeeProject!=null) {
+				if (employeeProject != null) {
 					Project project = projectRepository.findByProjectId(employeeProject.getPrimaryProjectId().intValue());
-					empDTO.setDefaultProjectName(project.getProjectName());					
+					if (project != null) {
+						empDTO.setDefaultProjectId(project.getProjectId());
+						empDTO.setDefaultProjectName(project.getProjectName());
+						empDTO.setClientName(project.getClientName());
+					}
 				}
 						
 						
