@@ -340,6 +340,8 @@ export class RmgDashboardComponent implements OnInit {
   isEmployeeView: boolean = false;
   isReportTabVisible: boolean = false;
   selectedView: 'cards' | 'distribution' = 'cards';
+  myDept: boolean = false;
+  departmentFilterActionLabel: string = '';
 
   // Arrays
   selectedDepartmentIds: any[] = [];
@@ -402,14 +404,23 @@ export class RmgDashboardComponent implements OnInit {
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.updateDepartmentLabel();
     this.projectStatus = 'TOTAL';
     this.expiredTNMProjectFilter = 'allExpiredTNMProjectsCount';
     this.fixedCostProjectFilter = 'all';
     this.projectPageSize = this.filterStateService?.projectPageSize ? this.filterStateService.projectPageSize : 10;
 
+    const deptName = String(this.currentUser.departmentName).trim();
+    const empRole = String(this.currentUser.employeeRole).trim();
+
+    if (this.shouldFetchUserSpecificDepartments(deptName, empRole)) {
+      await this.getDeptsByUser();
+    } else {
+      await this.getAllDepartmentsByCurrentUserIdAndRole();
+    }
+
     this.setReportTabVisible();
-    this.getDepartmentsList();
     this.getEmployeeNameAndEmpld();
     this.mapSubFeatureFlag();
     this.loadRMGDashboard();
@@ -446,6 +457,42 @@ export class RmgDashboardComponent implements OnInit {
         this.openAlertMessageModal(response.serviceResponse);
       }
     });
+  }
+
+  async getAllDepartmentsByCurrentUserIdAndRole(): Promise<any> {
+    this.selectedDepartmentIds = [];
+    this.oldSelectedDepartmentIds = [];
+    this.filteredDepartmentList = [];
+    try {
+      const response: any = await this.departmentService.getDeptsByRole(this.currentUser.empId).pipe(first()).toPromise();
+      if (response?.serviceStatus !== "Success") {
+        throw new Error("Failed to fetch departments");
+      }
+      const serviceResponse = response.serviceResponse;
+      this.filteredDepartmentList = serviceResponse?.departments || [];
+      return;
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+      throw error;
+    }
+  }
+
+  async getDeptsByUser(): Promise<any> {
+    this.selectedDepartmentIds = [];
+    this.oldSelectedDepartmentIds = [];
+    this.filteredDepartmentList = [];
+    try {
+      const response: any = await this.departmentService.getDeptsByUser(this.currentUser.empId).pipe(first()).toPromise();
+      if (response?.serviceStatus !== "Success") {
+        throw new Error("Failed to fetch user departments");
+      }
+      const serviceResponse = response.serviceResponse;
+      this.filteredDepartmentList = serviceResponse?.departments || [];
+      return;
+    } catch (error) {
+      console.error("Error fetching user departments:", error);
+      throw error;
+    }
   }
   // Department Table APIs & Methods End
 
@@ -649,6 +696,31 @@ export class RmgDashboardComponent implements OnInit {
 
   loadCards() {
     // console.log('Cards clicked');
+  }
+
+
+  async filterDepartment() {
+    this.myDept = !this.myDept;
+    this.filterStateService.myDept = this.myDept;
+    this.updateDepartmentLabel();
+    if (this.myDept) {
+      await this.getDeptsByUser();
+    } else {
+      await this.getAllDepartmentsByCurrentUserIdAndRole();
+    }
+  }
+
+  updateDepartmentLabel() {
+    this.departmentFilterActionLabel = this.myDept
+      ? 'Display All Department'
+      : 'Display My Department';
+  }
+
+  private shouldFetchUserSpecificDepartments(deptName: string, empRole: string): boolean {
+    const depts = ["Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR"];
+    const roles = ["SuperAdmin", "Accounts"];
+    return (!depts.some(dept => deptName.includes(dept)) &&
+      !roles.some(role => empRole.includes(role)));
   }
   // Helpers End
 

@@ -611,7 +611,7 @@ export class RmgProjectConfigComponent implements OnInit {
     }
 
     validateRemoveMembers(rmgCurrentTeamMemberList: RmgTeamMember[]) {
-        let selectedMembers = rmgCurrentTeamMemberList.filter(member => member.isMemberSelected);
+        let selectedMembers = structuredClone(rmgCurrentTeamMemberList.filter(member => member.isMemberSelected));
         if (!this.isValidList(selectedMembers)) {
             this.openAlertMessageModal("Please select atleast one Team Member to remove!!");
         }
@@ -2649,7 +2649,7 @@ export class RmgProjectConfigComponent implements OnInit {
             this.openAlertMessageModal("Please Select Default Project");
             return;
         }
-        const flag: boolean = await this.validateEmployeeProjectStartDate(employee, employee.projectId, employee.selectedProject.projectStartDate, this.projectType);
+        const flag: boolean = await this.validateEmployeeProjectStartDate(employee, employee?.selectedProject?.projectId, employee.selectedProject.projectStartDate, this.projectType);
         if (!flag) {
             return;
         }

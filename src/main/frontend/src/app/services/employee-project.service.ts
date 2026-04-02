@@ -77,7 +77,7 @@ export class EmployeeProjectService {
     rmgMember.projectStartDate = projectStart;
     rmgMember.projectType = projectData.projectType;
     rmgMember.startDate = selectedDate;
-    rmgMember.projectIds = [projectData.currentProjectId, projectData.projectId];
+    rmgMember.projectIds = projectData.projectIds;
 
     try {
       const response: any = await firstValueFrom(this.teamService.validateEmployeeProjectStartDate(rmgMember));

@@ -203,6 +203,9 @@ export class RmgModalHostComponent {
     this.appModalService.triggerAction({ actionType, data });
   }
 
+  get isEmployeeMappedToAnyTNMProject() {
+    return this.employeeExistingProjectDetails?.some(p => p.projectType === 'TNM');
+  }
 
   normalizeDate(dateInput: any) {
     if (!dateInput) {
@@ -245,7 +248,6 @@ export class RmgModalHostComponent {
   handleEmployeeProjectDetailsPageChange(event: any) {
     this.employeeExistingProjectDetailsPage = event;
   }
-
 
   onMemberRemoveEndDateTypeChange(event: any) {
     const selectedValue = event.value;

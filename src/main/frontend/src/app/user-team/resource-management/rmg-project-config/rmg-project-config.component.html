@@ -623,9 +623,8 @@
                                 </div>
                                 <div *ngIf="normalizeDate(member?.poEndDate) < todaysDate || normalizeDate(member?.lineItemEndDate) < todaysDate"
                                     class="info-chip red-chip">
-                                    <span triggers="mouseenter:mouseleave" placement="bottom"
-                                        container="body" popoverClass="info-popover"
-                                        [ngbPopover]="popoverAllocationExpiredTpl">
+                                    <span triggers="mouseenter:mouseleave" placement="bottom" container="body"
+                                        popoverClass="info-popover" [ngbPopover]="popoverAllocationExpiredTpl">
                                         <ng-template #popoverAllocationExpiredTpl>
                                             <ng-container
                                                 *ngTemplateOutlet="allocationExpiredInfo; context: { member: member }">
@@ -1293,10 +1292,11 @@
     <div class="card-header project-card-header" style="margin:0px !important">
         <div class="row align-items-center">
             <div class="col-md-11">
-                <h6 class="card-title text-left">Eligible for Default Project Assignment</h6>&nbsp;
-                <i class="fa fa-beat fa-info-circle info-icon cursor-pointer"
-                    title="Employees with Other Project Mappings Eligible for Default Project Assignment">
-                </i>
+                <h6 class="card-title text-left">Eligible for Default Project Assignment&nbsp;
+                    <i class="fa fa-beat fa-info-circle info-icon cursor-pointer"
+                        title="Employees with Other Project Mappings Eligible for Default Project Assignment">
+                    </i>
+                </h6>
             </div>
             <div class="col-md-1 d-flex justify-content-end">
                 <button class="btn btn-sm" (click)="closeMappingToOtherProjectAsDefaultModal()">

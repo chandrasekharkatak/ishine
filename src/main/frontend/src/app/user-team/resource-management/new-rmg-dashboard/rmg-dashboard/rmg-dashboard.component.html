@@ -44,9 +44,13 @@
             <!-- Department Dropdown -->
             <div class="d-flex align-items-center mr-1">
                 <label class="toolbar-label mb-0">Department</label>&nbsp;
+
                 <app-my-select class="form-select toolbar-select max-width200" placeholder="Select Department"
                     [(ngModel)]="selectedDepartmentIds" (dropdownClosed)="onDepartmentSelectionChange($event)"
                     [options]="filteredDepartmentList" displayKey="name" valueKey="deptId" [multiple]="true">
+                    [showFilterAction]="currentUser.employeeRole != 'SuperAdmin'"
+                    [filterActionLabel]="departmentFilterActionLabel"
+                    (filterAction)="filterDepartment()">
                 </app-my-select>
             </div>
             <div class="toolbar-divider ml-1 mr-1"></div>
