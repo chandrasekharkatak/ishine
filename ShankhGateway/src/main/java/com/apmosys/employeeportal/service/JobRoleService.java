@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -24,7 +26,6 @@ import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.SubFeatureMasterDTO;
-import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeRole;
@@ -44,6 +45,10 @@ import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class JobRoleService {
+
+	private static final Logger log = LoggerFactory.getLogger(JobRoleService.class);
+
+	private static final String PO_PORTAL_LOG_SOURCE = "PoPortal";
 
 	@Autowired
 	JobRoleRepository jobRoleRepository;
@@ -496,24 +501,35 @@ public class JobRoleService {
 	    apiLogInfo.setLogLevel("INFO");
 
 	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append("jobRoleId : ").append(jobRoleDTO.getJobRoleId())
-	              .append(", updatedBy : ").append(jobRoleDTO.getUpdatedBy())
-	              .append(", name : ").append(jobRoleDTO.getName())
-	              .append(", employeeRole : ").append(jobRoleDTO.getEmployeeRole())
-	              .append(", departmentId : ").append(jobRoleDTO.getDepartmentId());
+	    ApiLog initialLog = null;
+	    String exceptionDetailsForLog = null;
+	    int finalHttpStatusCode = HttpStatus.OK.value();
+	    String sourceSystem = buildRequestPathForLogging(httpRequest);
 
 	    try {
+	        initialLog = apiLogUtility.startLog(
+	                poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+	                "updateJobRole",
+	                PO_PORTAL_LOG_SOURCE,
+	                null,
+	                httpRequest);
+
 	        // --- Null or Invalid Input Checks ---
 	        if (jobRoleDTO == null || jobRoleDTO.getJobRoleId() == null) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("Invalid JobRole data provided.");
-	            
+
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	            apiLogInfo.setApiResponse("Invalid JobRoleDTO input.");
-	            apiLogInfo.setApiRequest(logBuilder.toString());
-	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 	            return response;
 	        }
+
+	        logBuilder.append("jobRoleId : ").append(jobRoleDTO.getJobRoleId())
+	              .append(", updatedBy : ").append(jobRoleDTO.getUpdatedBy())
+	              .append(", name : ").append(jobRoleDTO.getName())
+	              .append(", employeeRole : ").append(jobRoleDTO.getEmployeeRole())
+	              .append(", departmentId : ").append(jobRoleDTO.getDepartmentId());
 
 	        Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getJobRoleId());
 	        if (jobRoleObject.isPresent()) {
@@ -546,14 +562,14 @@ public class JobRoleService {
 	                    } else {
 	                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	                        response.setServiceResponse("SubFeature list was empty. No RoleFeature mappings created.");
-	                        
+
 	                        apiLogInfo.setApiResponse("SubFeature list was empty. No RoleFeature mappings created.");
 	                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	                    }
 	                } else {
 	                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	                    response.setServiceResponse("No default subfeatures found for selected EmployeeRole.");
-	                    
+
 	                    apiLogInfo.setApiResponse("No default subfeatures found for selected EmployeeRole.");
 	                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	                }
@@ -574,12 +590,14 @@ public class JobRoleService {
 
 	                apiLogInfo.setApiResponse("Job Role Updated");
 	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	                finalHttpStatusCode = HttpStatus.OK.value();
 	            } else {
 	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	                response.setServiceResponse("Job Role Updation Failed.");
 
 	                apiLogInfo.setApiResponse("Job Role Updation Failed");
 	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 	            }
 
 	        } else {
@@ -588,10 +606,12 @@ public class JobRoleService {
 
 	            apiLogInfo.setApiResponse("Job Role Not Found");
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
 	        }
 
 	    } catch (DataIntegrityViolationException e) {
-	        e.printStackTrace();
+	        log.error("updateJobRole DataIntegrityViolation", e);
+	        exceptionDetailsForLog = e.toString();
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceResponse("Duplicate or invalid data found during update.");
 	        response.setServiceError(e.getMessage());
@@ -599,9 +619,11 @@ public class JobRoleService {
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	        apiLogInfo.setLogLevel("ERROR");
 	        apiLogInfo.setApiResponse("DataIntegrityViolationException: " + e.getMessage());
+	        finalHttpStatusCode = HttpStatus.CONFLICT.value();
 
 	    } catch (Exception e) {
-	        e.printStackTrace();
+	        log.error("updateJobRole failed", e);
+	        exceptionDetailsForLog = e.toString();
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 	        response.setServiceResponse("Something Went Wrong.");
 	        response.setServiceError(e.getMessage());
@@ -609,10 +631,15 @@ public class JobRoleService {
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	        apiLogInfo.setLogLevel("ERROR");
 	        apiLogInfo.setApiResponse("Exception: " + e.getMessage());
+	        finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+	    } finally {
+	        if (initialLog != null) {
+	            apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
+	                    httpRequest);
+	        }
+	        apiLogInfo.setApiRequest(logBuilder.toString());
+	        logService.logMyInfo(httpRequest, apiLogInfo);
 	    }
-
-	    apiLogInfo.setApiRequest(logBuilder.toString());
-	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
 
@@ -624,8 +651,30 @@ public class JobRoleService {
 		apiLogInfo.setApiUrl("/api/deleteJobRole");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("jobRoleId : " + jobRoleDTO.getJobRoleId());
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.OK.value();
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
+
 		try {
+			initialLog = apiLogUtility.startLog(
+					poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					"deleteJobRole",
+					PO_PORTAL_LOG_SOURCE,
+					null,
+					httpRequest);
+
+			if (jobRoleDTO == null || jobRoleDTO.getJobRoleId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid JobRole request.");
+				apiLogInfo.setApiResponse("jobRoleDTO or jobRoleId is null");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				return response;
+			}
+
+			logBuilder.append("jobRoleId : ").append(jobRoleDTO.getJobRoleId());
+
 			boolean isJobRoleUsedInPoPortal = false;
 			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getJobRoleId());
 			if (jobRoleObject.isEmpty()) {
@@ -633,6 +682,7 @@ public class JobRoleService {
 				response.setServiceResponse("Job Role Not Found.");
 				apiLogInfo.setApiResponse("Job Role Not Found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
 				return response;
 			}
 			JobRole jobRoleToBeDeleted = jobRoleObject.get();
@@ -658,6 +708,7 @@ public class JobRoleService {
 				response.setServiceResponse("Job role deleted.");
 				apiLogInfo.setApiResponse("Job role deleted.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				finalHttpStatusCode = HttpStatus.OK.value();
 			} else {
 				JobRoleDTO dtoObject = new JobRoleDTO();
 				dtoObject.setIsJobRoleUsedInIshine(count != 0 ? "true" : "false");
@@ -666,17 +717,25 @@ public class JobRoleService {
 				response.setServiceResponse(dtoObject);
 				apiLogInfo.setApiResponse(dtoObject + "Job role cannot be deleted as it is mapped to employee.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				finalHttpStatusCode = HttpStatus.CONFLICT.value();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("deleteJobRole failed", e);
+			exceptionDetailsForLog = e.toString();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
+						httpRequest);
+			}
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -1310,43 +1369,77 @@ public class JobRoleService {
 		ApiLog initialLog = null;
 		String exceptionDetailsForLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-		String sourceSystem = httpRequest.getRequestURL().toString();
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
 
 		try {
-			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllJobRoleInfo", "PoPortal", null, httpRequest);
-			List<JobRole> jobRoleObj = jobRoleRepository.findAll();
-			List<PoPortalDTO> dtoList = new ArrayList<>();
+			initialLog = apiLogUtility.startLog(
+					poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					"getAllJobRoleInfo",
+					PO_PORTAL_LOG_SOURCE,
+					null,
+					httpRequest);
 
-			if (!jobRoleObj.isEmpty()) {
-				jobRoleObj.forEach((object) -> {
-					PoPortalDTO dto = new PoPortalDTO();
-					dto.setRoleId(object.getJobRoleId());
-					dto.setDeptId(object.getDeptId());
-					dto.setRoleName(object.getName());
-					dtoList.add(dto);
-				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				finalHttpStatusCode = HttpStatus.OK.value();
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("JobRole Info not found.");
+			List<JobRole> roles = jobRoleRepository.findAll();
+			if (roles.isEmpty()) {
+				applyJobRoleInfoNotFoundResponse(response);
 				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
-				throw new DataNotFoundException("JobRole Details Not Found in Database.");
+			} else {
+				List<PoPortalDTO> dtoList = mapJobRolesToPoPortalDtos(roles);
+				applyJobRoleInfoSuccessResponse(response, dtoList);
+				finalHttpStatusCode = HttpStatus.OK.value();
+				log.debug("getAllJobRoleInfo returned {} roles", dtoList.size());
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
+			log.error("getAllJobRoleInfo failed: {}", e.getMessage(), e);
+			applyJobRoleInfoSystemErrorResponse(response, e);
 			exceptionDetailsForLog = e.toString();
-
 		} finally {
 			if (initialLog != null) {
-				apiLogUtility.endLog(initialLog.getId(), sourceSystem,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
+						httpRequest);
 			}
 		}
 		return response;
 	}
-	
+
+	private static String buildRequestPathForLogging(HttpServletRequest request) {
+		if (request == null) {
+			return "";
+		}
+		String uri = request.getRequestURI();
+		String query = request.getQueryString();
+		return (query != null && !query.isEmpty()) ? uri + "?" + query : uri;
+	}
+
+	private List<PoPortalDTO> mapJobRolesToPoPortalDtos(List<JobRole> roles) {
+		return roles.stream()
+				.filter(Objects::nonNull)
+				.map(this::toPoPortalJobRoleDto)
+				.collect(Collectors.toList());
+	}
+
+	private PoPortalDTO toPoPortalJobRoleDto(JobRole role) {
+		PoPortalDTO dto = new PoPortalDTO();
+		dto.setRoleId(role.getJobRoleId());
+		dto.setDeptId(role.getDeptId());
+		dto.setRoleName(role.getName());
+		return dto;
+	}
+
+	private static void applyJobRoleInfoSuccessResponse(ServiceResponse response, List<PoPortalDTO> dtoList) {
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(dtoList);
+	}
+
+	private static void applyJobRoleInfoNotFoundResponse(ServiceResponse response) {
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse("JobRole Info not found.");
+	}
+
+	private static void applyJobRoleInfoSystemErrorResponse(ServiceResponse response, Exception e) {
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		response.setServiceError(e.getMessage());
+	}
+
 }

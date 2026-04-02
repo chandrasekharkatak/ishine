@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
@@ -78,6 +79,33 @@ public class ValidationService {
 		
 		return (departmentRepository.existsByHodId(empId)) ? true : false;
 		
+	}
+
+	/**
+	 * Validates delete-PO sync payload from Po Portal. Throws {@link IllegalArgumentException} for invalid input.
+	 */
+	public void validateDeletePoPayload(DeletedPoSyncDTO dto) {
+		if (dto == null) {
+			throw new IllegalArgumentException("Delete PO request payload is missing");
+		}
+		requireDeleteFieldPresent(dto.getEventType(), "eventType");
+		requireDeleteFieldPresent(dto.getProjectId(), "projectId");
+		if (dto.getProjectName() == null || dto.getProjectName().isBlank()) {
+			throw new IllegalArgumentException("projectName cannot be null or blank from PO portal");
+		}
+		requireDeleteFieldPresent(dto.getDeletedByEmpId(), "deletedByEmpId");
+		if (dto.getDeletedByEmpName() == null || dto.getDeletedByEmpName().isBlank()) {
+			throw new IllegalArgumentException("deletedByEmpName cannot be null or blank from PO portal");
+		}
+		requireDeleteFieldPresent(dto.getDeletedOn(), "deletedOn");
+		requireDeleteFieldPresent(dto.getDeletedPo(), "deletedPo");
+		requireDeleteFieldPresent(dto.getDeletedPo().getPoId(), "deletedPo.poId");
+	}
+
+	private static void requireDeleteFieldPresent(Object value, String fieldName) {
+		if (value == null) {
+			throw new IllegalArgumentException(fieldName + " cannot be null from PO portal");
+		}
 	}
 	
 	public void validateRenewPoPayload(RenewedPoSyncDto dto) {

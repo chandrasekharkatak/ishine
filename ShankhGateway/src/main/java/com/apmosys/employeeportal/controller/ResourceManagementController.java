@@ -68,10 +68,10 @@ public class ResourceManagementController {
 	}
 
 	@PostMapping("/updateAddressInPos")
-	public ServiceResponse updateClientAddressIdOfPos(HttpServletRequest httpRequest,
+	public ServiceResponse updateAddressInPos(HttpServletRequest httpRequest,
 			@RequestBody PoClientAddressUpdateDTO dto) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		return poSyncOrchestratorService.updateClientAddressIdOfPos(dto);
+		return poSyncOrchestratorService.updateAddressInPos(dto);
 	}
 
 	@PostMapping(value = "/sendTimesheetDetailsToShankh")
@@ -104,6 +104,7 @@ public class ResourceManagementController {
 
 	@GetMapping("/getAllApprovedPoWithTimesheet")
 	public ServiceResponse getAllApprovedPoWithTimesheet(HttpServletRequest httpRequest) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return resourceManagementService.getAllApprovedPoWithTimesheet();
 	}
 

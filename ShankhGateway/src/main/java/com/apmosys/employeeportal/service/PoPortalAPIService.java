@@ -64,6 +64,7 @@ import com.apmosys.employeeportal.dto.PoPortalEmpIdDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
+import com.apmosys.employeeportal.dto.ProjectResourceByPoRowDto;
 import com.apmosys.employeeportal.dto.ProjectWiseMilestoneDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
@@ -95,6 +96,7 @@ import com.apmosys.employeeportal.repository.RoleDetailsRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.response.ResourceRequirementResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
+import com.apmosys.employeeportal.utility.ExceptionLogContext;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.PoportalApiException;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -232,39 +234,50 @@ public class PoPortalAPIService {
 		String traceId = UUID.randomUUID().toString();
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		String exceptionDetailsForLog = null;
-		initialLog = apiLogUtility.startLog(traceId, "getFcLineItemDetails", "Ishine", getCurrentUserId(),httpRequest);
-
-		if (initialLog == null || initialLog.getId() == null) {
-			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
-			return serviceResponse;
-		}
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.set("X-Trace-Id", traceId);
-		headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
-		HttpEntity<?> entity = new HttpEntity<>(headers);
 		String url = getFCLineItemDetailsURL + poProjectId;
-		ResponseEntity<List<FCLineItemDTO>> apiResponse = null;
+
+		initialLog = apiLogUtility.startLog(traceId, "getFcLineItemDetails", "Ishine", getCurrentUserId(),
+				httpRequest);
+
 		try {
- 	        apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity,new ParameterizedTypeReference<List<FCLineItemDTO>>() {});
+			if (initialLog == null || initialLog.getId() == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
+				exceptionDetailsForLog = "api log start failed";
+				finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+				return serviceResponse;
+			}
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("X-Trace-Id", traceId);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+			HttpEntity<?> entity = new HttpEntity<>(headers);
+			ResponseEntity<List<FCLineItemDTO>> apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity,
+					new ParameterizedTypeReference<List<FCLineItemDTO>>() {
+					});
 			if (apiResponse.getStatusCode() == HttpStatus.OK) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			
+
 				serviceResponse.setServiceResponse(apiResponse.getBody());
 				finalHttpStatusCode = HttpStatus.OK.value();
 			} else {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("Error fetching Milestones for Project.");
+				finalHttpStatusCode = apiResponse.getStatusCodeValue();
 			}
 		} catch (Exception e) {
+			logger.error("getFcLineItemDetails failed poProjectId={}", poProjectId, e);
+			ExceptionLogContext.add(e);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			serviceResponse.setServiceResponse("Error fetching Milestones for Project.");
-			exceptionDetailsForLog = e.toString();
-			return serviceResponse;
+			exceptionDetailsForLog = String.valueOf(e);
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		} finally {
-			String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-			apiLogUtility.endLog(initialLog.getId(),url ,finalHttpStatusCode, finalLogDetails, httpRequest);
+			if (initialLog != null && initialLog.getId() != null) {
+				String finalLogDetails = exceptionDetailsForLog != null ? exceptionDetailsForLog
+						: ExceptionLogContext.get();
+				apiLogUtility.endLog(initialLog.getId(), url, finalHttpStatusCode, finalLogDetails, httpRequest);
+			}
 		}
 		return serviceResponse;
 	}
@@ -277,6 +290,17 @@ public class PoPortalAPIService {
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		String exceptionDetailsForLog = null;
 		try {
+			initialLog = apiLogUtility.startLog(traceId, "updateMilestoneById", "Ishine", getCurrentUserId(),
+					httpRequest);
+			if (initialLog == null || initialLog.getId() == null) {
+				String msg = "Critical Error: Could not initialize logging for the update process.";
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse(msg);
+				finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+				exceptionDetailsForLog = msg;
+				return serviceResponse;
+			}
+
 			if (dto == null || dto.getId() == null) {
 				String msg = "Milestone DTO and ID cannot be null.";
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -287,34 +311,26 @@ public class PoPortalAPIService {
 			}
 
 			if (dto.getStatus() != null && dto.getStatus().equalsIgnoreCase("COMPLETED")) {
-			    if (file == null || file.isEmpty()) {
-			        String msg = "Milestone document file is required when marking milestone as COMPLETED.";
-			        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			        serviceResponse.setServiceResponse(msg);
-			        finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-			        exceptionDetailsForLog = msg;
-			        return serviceResponse;
-			    }
-			}
-			
-			if (file != null && !file.isEmpty()) {
-			    List<String> allowedContentTypes = Arrays.asList("image/jpeg", "image/png");
-			    if (!allowedContentTypes.contains(file.getContentType())) {
-			        String msg = "Invalid file type. Only JPG, JPEG, or PNG files are allowed.";
-			        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			        serviceResponse.setServiceResponse(msg);
-			        finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-			        exceptionDetailsForLog = msg;
-			        return serviceResponse;
-			    }
+				if (file == null || file.isEmpty()) {
+					String msg = "Milestone document file is required when marking milestone as COMPLETED.";
+					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					serviceResponse.setServiceResponse(msg);
+					finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+					exceptionDetailsForLog = msg;
+					return serviceResponse;
+				}
 			}
 
-			
-			initialLog = apiLogUtility.startLog(traceId, "updateMilestoneById", "Ishine", getCurrentUserId(),httpRequest);
-			if (initialLog == null || initialLog.getId() == null) {
-				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the update process.");
-				return serviceResponse;
+			if (file != null && !file.isEmpty()) {
+				List<String> allowedContentTypes = Arrays.asList("image/jpeg", "image/png");
+				if (!allowedContentTypes.contains(file.getContentType())) {
+					String msg = "Invalid file type. Only JPG, JPEG, or PNG files are allowed.";
+					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					serviceResponse.setServiceResponse(msg);
+					finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+					exceptionDetailsForLog = msg;
+					return serviceResponse;
+				}
 			}
 //			HttpHeaders headers = new HttpHeaders();
 //			headers.set("X-Trace-Id", traceId);
@@ -377,15 +393,18 @@ public class PoPortalAPIService {
 			}
 		} catch (Exception e) {
 			String errorMsg = "An unexpected error occurred during the milestone update process.";
+			logger.error("updateMilestoneById failed", e);
+			ExceptionLogContext.add(e);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			serviceResponse.setServiceResponse(errorMsg);
 			serviceResponse.setServiceError(e.getMessage());
-			exceptionDetailsForLog = e.toString();
-			e.printStackTrace();
+			exceptionDetailsForLog = String.valueOf(e);
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		} finally {
 			if (initialLog != null && initialLog.getId() != null) {
-				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-				apiLogUtility.endLog(initialLog.getId(),sendFileUrl ,finalHttpStatusCode, finalLogDetails, httpRequest);
+				String finalLogDetails = exceptionDetailsForLog != null ? exceptionDetailsForLog
+						: ExceptionLogContext.get();
+				apiLogUtility.endLog(initialLog.getId(), sendFileUrl, finalHttpStatusCode, finalLogDetails, httpRequest);
 			}
 		}
 		return serviceResponse;
@@ -1085,21 +1104,8 @@ public class PoPortalAPIService {
 	    ApiLog initialLog = null;
 	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 	    String exceptionDetailsForLog = null;
-	    boolean isLogEnded = false;
 
 	    try {
-	       
-	    	System.out.println("rmMail"+" "+rmId);
-	        if (rmId == null || Objects.isNull(rmId)) {
-	            String message = "rmId is null or empty.";
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse(message);
-	            response.setServiceError(message);
-	            response.setServiceMessage(message);
-	            return response;
-	        }
-
-	      
 	        initialLog = apiLogUtility.startLog(
 	            traceId,
 	            "getAllMilestoneToBeExpired",
@@ -1108,10 +1114,18 @@ public class PoPortalAPIService {
 	            httpRequest
 	        );
 
-	        
+	        if (rmId == null || Objects.isNull(rmId)) {
+	            String message = "rmId is null or empty.";
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse(message);
+	            response.setServiceError(message);
+	            response.setServiceMessage(message);
+	            exceptionDetailsForLog = message;
+	            finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+	            return response;
+	        }
+
 	        List<Long> projectIds = projectRepository.findPoProjectIdsByProjectManagerIdWithJoin(rmId);
-	        
-	        System.out.println("projectIds="+projectIds);
 	        
 	        if (projectIds == null || projectIds.isEmpty()) {
 	            String message = "No project IDs found for RM: " + rmId;
@@ -1153,22 +1167,24 @@ public class PoPortalAPIService {
 	        }
 
 	    } catch (Exception e) {
-	        e.printStackTrace();
-	        exceptionDetailsForLog = e.toString();
+	        logger.error("getAllMilestoneToBeExpired failed rmId={}", rmId, e);
+	        ExceptionLogContext.add(e);
+	        exceptionDetailsForLog = String.valueOf(e);
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceResponse("Unexpected error occurred.");
 	        response.setServiceError(e.getMessage());
 	        response.setServiceMessage(e.getMessage());
+	        finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 	    } finally {
 	        try {
-	            if (initialLog != null && initialLog.getId() != null && !isLogEnded) {
-	                String logMsg = (exceptionDetailsForLog != null)
-	                        ? exceptionDetailsForLog
+	            if (initialLog != null && initialLog.getId() != null) {
+	                String logMsg = exceptionDetailsForLog != null ? exceptionDetailsForLog
 	                        : "Fetched " + milestones.size() + " milestones.";
-	                apiLogUtility.endLog(initialLog.getId(), getExpiryMilestoneUrl, finalHttpStatusCode, logMsg, httpRequest);
+	                apiLogUtility.endLog(initialLog.getId(), getExpiryMilestoneUrl, finalHttpStatusCode, logMsg,
+	                        httpRequest);
 	            }
 	        } catch (Exception logEx) {
-	            logEx.printStackTrace();
+	            logger.error("getAllMilestoneToBeExpired: endLog failed", logEx);
 	        }
 	    }
 
@@ -1193,17 +1209,19 @@ public class PoPortalAPIService {
 		String exceptionDetailsForLog = null;
 
 		try {
+			initialLog = apiLogUtility.startLog(traceId, "updateMilestoneExtendedDate", "poPortal", getCurrentUserId(),
+					httpRequest);
+
 			if (dto == null || dto.getMilestoneId() == null || dto.getExtendedDate() == null) {
 				String message = "Milestone ID or extended date is missing.";
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse(message);
 				response.setServiceError(message);
 				response.setServiceMessage(message);
+				exceptionDetailsForLog = message;
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 				return response;
 			}
-
-			initialLog = apiLogUtility.startLog(traceId, "updateMilestoneExtendedDate", "poPortal", getCurrentUserId(),
-					httpRequest);
 
 			MilestoneUpdatedLog log = MilestoneUpdatedLog.builder()
 					.milestoneId(dto.getMilestoneId())
@@ -1266,35 +1284,41 @@ public class PoPortalAPIService {
 			response.setServiceMessage(emailSent
 					? "Milestone updated and email notification sent."
 					: "Milestone updated, but email notification could not be sent.");
+			finalHttpStatusCode = HttpStatus.OK.value();
 
 		} catch (PoportalApiException apiEx) {
-			exceptionDetailsForLog = apiEx.toString();
+			exceptionDetailsForLog = String.valueOf(apiEx);
+			ExceptionLogContext.add(apiEx);
 			logger.error("External API failed: {}", exceptionDetailsForLog);
 
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Failed to update milestone due to external API error.");
 			response.setServiceError(apiEx.getMessage());
 			response.setServiceMessage(apiEx.getMessage());
+			finalHttpStatusCode = HttpStatus.BAD_GATEWAY.value();
 
 			throw apiEx;
 
 		} catch (Exception e) {
-			exceptionDetailsForLog = e.toString();
-			logger.error("Error in updateMilestoneExtendedDate: {}", exceptionDetailsForLog);
+			exceptionDetailsForLog = String.valueOf(e);
+			ExceptionLogContext.add(e);
+			logger.error("Error in updateMilestoneExtendedDate", e);
 
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceMessage("Milestone updated, but with warnings: " + e.getMessage());
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Failed to extend milestone date: " + e.getMessage());
+			response.setServiceError(e.getMessage());
+			response.setServiceMessage(e.getMessage());
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		} finally {
 			try {
-				if (initialLog != null) {
-					String logMsg = (exceptionDetailsForLog != null)
-							? exceptionDetailsForLog
+				if (initialLog != null && initialLog.getId() != null) {
+					String logMsg = exceptionDetailsForLog != null ? exceptionDetailsForLog
 							: "Milestone extended successfully.";
 					apiLogUtility.endLog(initialLog.getId(), updateMilestoneEndDateExternalUrl,
 							finalHttpStatusCode, logMsg, httpRequest);
 				}
 			} catch (Exception logEx) {
-				logger.error("Failed to end log: {}", logEx.getMessage());
+				logger.error("updateMilestoneExtendedDate: endLog failed", logEx);
 			}
 		}
 
@@ -1611,62 +1635,87 @@ public class PoPortalAPIService {
 	}
 
 
-	public ServiceResponse getResourceCountListByPoprojectName(List<String> poNos) {
+	/**
+	 * Returns resource rows for the given PO numbers ({@code po_no}). REST path remains
+	 * {@code /getResourceCountListByPoprojectName} for backward compatibility.
+	 */
+	public ServiceResponse getResourceListByPoNumbers(List<String> poNumbers) {
 		ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("Resource List");
-	    apiLogInfo.setApiUrl("/api/getResourceCountListByPoprojectName");
-	    apiLogInfo.setLogLevel("INFO");
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Resource List");
+		apiLogInfo.setApiUrl("/api/getResourceCountListByPoprojectName");
+		apiLogInfo.setLogLevel("INFO");
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String sourceSystem = httpRequest.getRequestURI() != null ? httpRequest.getRequestURI() : "";
 
-	    try {
-	        // if (projectNames == null || projectNames.isEmpty()) {
-	        //     throw new IllegalArgumentException("poProjectName list is required");
-	        // }
-			 if (poNos == null || poNos.isEmpty()) {
-	            throw new IllegalArgumentException("Po No list is required");
-	        }
+		try {
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					"getResourceListByPoNumbers", "PoPortal", null, httpRequest);
 
+			logger.info("getResourceListByPoNumbers: request poNumberCount={}",
+					poNumbers == null ? 0 : poNumbers.size());
 
-	        List<Map<String, Object>> resourceList = new ArrayList<Map<String, Object>>();
-	        List<Object[]> results = projectRepository.getResourceListByProjectType(poNos);
-	        for (Object[] row : results) {
-	            Map<String, Object> map = new HashMap<String, Object>();
-	            map.put("empId", row[0]);
-	            map.put("employementId", row[1]);
-	            map.put("empName", row[2]);
-	            map.put("department", row[3]);
-	            map.put("role", row[4]);
-	            map.put("teamName", row[5]);
-	            map.put("projectManagerName", row[6]);
-	            map.put("projectName", row[7]); 
-	            map.put("poName", row[8]);
-	            resourceList.add(map);
-	        }	       
+			if (poNumbers == null || poNumbers.isEmpty()) {
+				throw new IllegalArgumentException("Po No list is required");
+			}
 
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse(resourceList);
-	        response.setServiceMessage("Resource list fetched successfully");
-	        response.setStatusCode(200);
-	        apiLogInfo.setApiResponse("Success");
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			List<Object[]> rawRows = projectRepository.getResourceListByProjectType(poNumbers);
+			if (rawRows == null) {
+				rawRows = Collections.emptyList();
+			}
 
-	    } catch (IllegalArgumentException ex) {
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceResponse(ex.getMessage());
-	        apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			List<ProjectResourceByPoRowDto> resourceList = new ArrayList<>();
+			for (Object[] row : rawRows) {
+				ProjectResourceByPoRowDto rowDto = ProjectResourceByPoRowDto.fromNativeQueryRow(row);
+				if (rowDto != null) {
+					resourceList.add(rowDto);
+				}
+			}
 
-	    } catch (Exception ex) {
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceResponse("Unexpected error: " + ex.getMessage());
-	        apiLogInfo.setApiResponse("Unexpected Error: " + ex.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(resourceList);
+			response.setServiceMessage("Resource list fetched successfully");
+			response.setStatusCode(200);
+			apiLogInfo.setApiResponse("Success");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			finalHttpStatusCode = HttpStatus.OK.value();
+			logger.info("getResourceListByPoNumbers: success rowCount={} poNumberCount={}", resourceList.size(),
+					poNumbers.size());
 
-	    } finally {
-	        logService.logMyInfo(httpRequest, apiLogInfo);
-	    }
+		} catch (IllegalArgumentException ex) {
+			logger.info("getResourceListByPoNumbers: validation failed poNumberCount={} message={}",
+					poNumbers == null ? 0 : poNumbers.size(), ex.getMessage());
+			exceptionDetailsForLog = ex.getMessage();
+			ExceptionLogContext.add(ex);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(ex.getMessage());
+			apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 
-	    return response;
+		} catch (Exception ex) {
+			logger.error("getResourceListByPoNumbers: unexpected error poNumberCount={}",
+					poNumbers == null ? 0 : poNumbers.size(), ex);
+			exceptionDetailsForLog = String.valueOf(ex);
+			ExceptionLogContext.add(ex);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Unexpected error: " + ex.getMessage());
+			apiLogInfo.setApiResponse("Unexpected Error: " + ex.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,
+						exceptionDetailsForLog != null ? exceptionDetailsForLog : ExceptionLogContext.get(),
+						httpRequest);
+			}
+			logService.logMyInfo(httpRequest, apiLogInfo);
+		}
+
+		return response;
 	}
 
 
@@ -1678,23 +1727,15 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
         String traceId = UUID.randomUUID().toString();
         int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
         String exceptionDetailsForLog = null;
-        ResponseEntity<List<String>> apiResponse = null;
+        String url = getAllMailsByProjectId + projectId;
         try {
-        	
-        	String url;
-//        	initialLog = apiLogUtility.startLog(traceId, "getAllMailsByProjectId", "Ishine", getCurrentUserId(), httpRequest);
-//	        if (initialLog == null || initialLog.getId() == null) {
-//	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//	            serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the API call.");
-//	            return serviceResponse;
-//	        }
+	        initialLog = apiLogUtility.startLog(traceId, "getAllMailsByProjectId", "Ishine", getCurrentUserId(), httpRequest);
 
 	        HttpHeaders headers = new HttpHeaders();
 	        headers.set("X-Trace-Id", traceId);
 	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
 	        HttpEntity<?> entity = new HttpEntity<>(headers);
-	        url = getAllMailsByProjectId + projectId;
-			apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<List<String>>() {});
+			ResponseEntity<List<String>> apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<List<String>>() {});
             finalHttpStatusCode = apiResponse.getStatusCodeValue();
             
             if (apiResponse.getStatusCode() == HttpStatus.OK) {
@@ -1705,14 +1746,16 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
                 serviceResponse.setServiceResponse("Error fetching project details from PO Portal. Status: " + apiResponse.getStatusCode());
             }
         } catch (Exception e) {
+            logger.error("getAllMailsByProjectId failed projectId={}", projectId, e);
+            ExceptionLogContext.add(e);
             serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
             serviceResponse.setServiceResponse("Failed to communicate with PO Portal to fetch project details.");
-            exceptionDetailsForLog = e.toString();
-            e.printStackTrace();
+            exceptionDetailsForLog = String.valueOf(e);
+            finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
         } finally {
-        	if (initialLog != null) {
-				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-				apiLogUtility.endLog(initialLog.getId(),poPortalProjectByIdURL,finalHttpStatusCode, finalLogDetails, httpRequest);
+        	if (initialLog != null && initialLog.getId() != null) {
+				String finalLogDetails = exceptionDetailsForLog != null ? exceptionDetailsForLog : ExceptionLogContext.get();
+				apiLogUtility.endLog(initialLog.getId(), url, finalHttpStatusCode, finalLogDetails, httpRequest);
 			}
         }
         return serviceResponse;
