@@ -12,9 +12,9 @@
                 <strong>category</strong>, <strong>sub-category</strong>, and <strong>feature</strong> as Raise Grievance. Leave sub-category / feature empty to cover the whole tab.
               </p>
             </div>
-            <div class="d-flex flex-wrap grievance-list-top-actions align-items-center">
+            <div class="d-flex flex-wrap grievance-list-top-actions grievance-scenario-toolbar-actions align-items-center">
               <button type="button" class="btn btn-outline-primary btn-sm" (click)="goBack()">
-                <i class="fa fa-arrow-left me-1" aria-hidden="true"></i>Back
+                <i class="fa fa-arrow-left" aria-hidden="true"></i>Back
               </button>
             </div>
           </div>
@@ -106,12 +106,12 @@
                 {{ totalElements }} total · {{ itemsPerPage }} per page · server-side sort
               </p>
             </div>
-            <div class="d-flex grievance-list-top-actions flex-wrap">
+            <div class="d-flex grievance-list-top-actions grievance-scenario-toolbar-actions flex-wrap">
               <button type="button" class="btn btn-outline-primary btn-sm" (click)="goBack()">
-                <i class="fa fa-arrow-left me-1" aria-hidden="true"></i>Back
+                <i class="fa fa-arrow-left" aria-hidden="true"></i>Back
               </button>
               <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="listLoading" (click)="loadList()">
-                <i class="fa fa-refresh me-1" aria-hidden="true"></i>Refresh
+                <i class="fa fa-refresh" aria-hidden="true"></i>Refresh
               </button>
               <button
                 type="button"
@@ -120,7 +120,7 @@
                 (click)="exportAllScenarios()"
                 title="Download all scenarios (Excel)"
               >
-                <i class="fa fa-download me-1" aria-hidden="true"></i>{{ exportLoading ? 'Exporting…' : 'Export' }}
+                <i class="fa fa-download" aria-hidden="true"></i>{{ exportLoading ? 'Exporting…' : 'Export' }}
               </button>
             </div>
           </div>

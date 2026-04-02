@@ -429,7 +429,6 @@ export class GrievanceIssueScenarioAdminComponent implements OnInit {
       'Sub-category': row.subFeatureName || '',
       Feature: row.featureName || '',
       Label: row.scenarioLabel || '',
-      'Sort order': row.sortOrder ?? '',
       Active: row.isActive === 1 ? 'Yes' : 'No',
       'Tab key (storage)': row.tabKey || '',
     }));

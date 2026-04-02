@@ -7,6 +7,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -117,11 +120,24 @@ public class GrievanceService {
 	@Autowired
 	private GrievanceAuditService grievanceAuditService;
 
+	@Autowired
+	private MailService mailService;
+
 	@Value("${file.location.documents.grievance}")
 	private String grievanceDocumentLocation;
 
 	@Value("${grievance.default.assignee.email:pratikshya.routray@apmosys.com}")
 	private String grievanceDefaultAssigneeEmail;
+
+	@Value("${app.mail.default-cc:}")
+	private String grievanceDefaultCc;
+
+	private enum GrievanceEmailEventType {
+		CREATE,
+		ASSIGNMENT_CHANGE,
+		STATUS_CHANGE,
+		RESOLVED_CLOSED
+	}
 
 	@Transactional
 	public ServiceResponse createTicket(Long empId, GrievanceTicketRequestDTO requestDTO, List<MultipartFile> proofFiles) {
@@ -224,6 +240,7 @@ public class GrievanceService {
 			}
 
 			grievanceAuditService.recordTicketCreated(ticket, empId, employee.getName(), proofList.size());
+			triggerGrievanceEmail(GrievanceEmailEventType.CREATE, ticket, null, null);
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(ticket);
@@ -956,6 +973,8 @@ public class GrievanceService {
 		}
 		GrievanceTicket ticket = ticketOpt.get();
 		GrievanceTicket auditBefore = grievanceAuditService.copyTicketScalars(ticket);
+		Long previousAssignedEmpId = ticket.getAssignedToEmpId();
+		String previousStatus = normalizeStatus(ticket.getStatus());
 		boolean isPrivileged = canViewAllTickets(empId);
 		boolean isAssignedUser = empId.equals(ticket.getAssignedToEmpId());
 		if (!isPrivileged && !isAssignedUser) {
@@ -1047,9 +1066,220 @@ public class GrievanceService {
 		boolean resolutionDocAdded = resolutionDocument != null && !resolutionDocument.isEmpty();
 		grievanceAuditService.recordTicketUpdated(auditBefore, ticket, empId, actorName, resolutionDocAdded, null);
 		grievanceTicketRepository.save(ticket);
+		triggerUpdateNotifications(ticket, previousAssignedEmpId, previousStatus);
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		response.setServiceResponse(ticket);
 		return response;
+	}
+
+	private void triggerUpdateNotifications(GrievanceTicket ticket, Long previousAssignedEmpId, String previousStatus) {
+		Long currentAssignedEmpId = ticket.getAssignedToEmpId();
+		String currentStatus = normalizeStatus(ticket.getStatus());
+
+		boolean assignmentChanged = !java.util.Objects.equals(previousAssignedEmpId, currentAssignedEmpId);
+		boolean statusChanged = !java.util.Objects.equals(previousStatus, currentStatus);
+		boolean resolvedOrClosed = "RESOLVED".equals(currentStatus) || "CLOSED".equals(currentStatus);
+
+		if (assignmentChanged) {
+			triggerGrievanceEmail(GrievanceEmailEventType.ASSIGNMENT_CHANGE, ticket, previousAssignedEmpId, previousStatus);
+		}
+		if (statusChanged) {
+			triggerGrievanceEmail(GrievanceEmailEventType.STATUS_CHANGE, ticket, previousAssignedEmpId, previousStatus);
+		}
+		if (statusChanged && resolvedOrClosed) {
+			triggerGrievanceEmail(GrievanceEmailEventType.RESOLVED_CLOSED, ticket, previousAssignedEmpId, previousStatus);
+		}
+	}
+
+	private void triggerGrievanceEmail(GrievanceEmailEventType eventType,
+			GrievanceTicket ticket,
+			Long previousAssignedEmpId,
+			String previousStatus) {
+		try {
+			String to = resolveEventToRecipient(eventType, ticket);
+			if (isBlank(to)) {
+				log.warn("Skipping grievance email {} for ticket {} because TO recipient is blank.",
+						eventType, ticket != null ? ticket.getTicketNumber() : null);
+				return;
+			}
+
+			List<String> eventCc = resolveEventCcRecipients(eventType, ticket);
+			List<String> cc = mergeCcRecipients(eventCc, parseConfiguredCcRecipients());
+			cc.removeIf(addr -> addr.equalsIgnoreCase(to));
+
+			String subject = buildEmailSubject(eventType, ticket);
+			String body = buildEmailBody(eventType, ticket, previousAssignedEmpId, previousStatus);
+			sendEmail(to, cc, subject, body);
+
+			log.info("Grievance mail triggered event={} ticketId={} ticketNumber={} to={} cc={} triggeredAt={}",
+					eventType,
+					ticket != null ? ticket.getTicketId() : null,
+					ticket != null ? ticket.getTicketNumber() : null,
+					to,
+					cc,
+					new Timestamp(System.currentTimeMillis()));
+		} catch (Exception ex) {
+			log.error("Failed to trigger grievance email {} for ticketId={} ticketNumber={}",
+					eventType,
+					ticket != null ? ticket.getTicketId() : null,
+					ticket != null ? ticket.getTicketNumber() : null,
+					ex);
+		}
+	}
+
+	private String resolveEventToRecipient(GrievanceEmailEventType eventType, GrievanceTicket ticket) {
+		if (ticket == null) {
+			return null;
+		}
+		if (eventType == GrievanceEmailEventType.CREATE || eventType == GrievanceEmailEventType.ASSIGNMENT_CHANGE) {
+			return resolveEmployeeEmail(ticket.getAssignedToEmpId());
+		}
+		return resolveEmployeeEmail(ticket.getCreatedByEmpId());
+	}
+
+	private List<String> resolveEventCcRecipients(GrievanceEmailEventType eventType, GrievanceTicket ticket) {
+		if (ticket == null) {
+			return Collections.emptyList();
+		}
+		List<String> recipients = new ArrayList<>();
+		if (eventType == GrievanceEmailEventType.CREATE || eventType == GrievanceEmailEventType.ASSIGNMENT_CHANGE) {
+			String creatorEmail = resolveEmployeeEmail(ticket.getCreatedByEmpId());
+			if (!isBlank(creatorEmail)) {
+				recipients.add(creatorEmail);
+			}
+		} else {
+			String assigneeEmail = resolveEmployeeEmail(ticket.getAssignedToEmpId());
+			if (!isBlank(assigneeEmail)) {
+				recipients.add(assigneeEmail);
+			}
+		}
+		return recipients;
+	}
+
+	private List<String> parseConfiguredCcRecipients() {
+		if (isBlank(grievanceDefaultCc)) {
+			return Collections.emptyList();
+		}
+		return Arrays.stream(grievanceDefaultCc.split(","))
+				.map(value -> value == null ? "" : value.trim())
+				.filter(value -> !value.isEmpty())
+				.collect(Collectors.toList());
+	}
+
+	private List<String> mergeCcRecipients(List<String> eventCc, List<String> defaultCc) {
+		LinkedHashSet<String> unique = new LinkedHashSet<>();
+		if (eventCc != null) {
+			eventCc.stream()
+					.filter(value -> !isBlank(value))
+					.map(String::trim)
+					.forEach(unique::add);
+		}
+		if (defaultCc != null) {
+			defaultCc.stream()
+					.filter(value -> !isBlank(value))
+					.map(String::trim)
+					.forEach(unique::add);
+		}
+		return new ArrayList<>(unique);
+	}
+
+	private String resolveEmployeeEmail(Long empId) {
+		if (empId == null) {
+			return null;
+		}
+		return employeeRepository.findById(empId)
+				.map(Employee::getEmail)
+				.map(String::trim)
+				.filter(email -> !email.isEmpty())
+				.orElse(null);
+	}
+
+	private String resolveEmployeeName(Long empId) {
+		if (empId == null) {
+			return "N/A";
+		}
+		return employeeRepository.findById(empId)
+				.map(Employee::getName)
+				.map(String::trim)
+				.filter(name -> !name.isEmpty())
+				.orElse("EmpId " + empId);
+	}
+
+	private String buildEmailSubject(GrievanceEmailEventType eventType, GrievanceTicket ticket) {
+		String ticketNo = ticket != null ? ticket.getTicketNumber() : "";
+		switch (eventType) {
+			case CREATE:
+				return "[Grievance] Ticket Created - " + ticketNo;
+			case ASSIGNMENT_CHANGE:
+				return "[Grievance] Ticket Reassigned - " + ticketNo;
+			case STATUS_CHANGE:
+				return "[Grievance] Ticket Status Changed - " + ticketNo;
+			case RESOLVED_CLOSED:
+				return "[Grievance] Ticket " + normalizeStatus(ticket != null ? ticket.getStatus() : "") + " - " + ticketNo;
+			default:
+				return "[Grievance] Ticket Update - " + ticketNo;
+		}
+	}
+
+	private String buildEmailBody(GrievanceEmailEventType eventType,
+			GrievanceTicket ticket,
+			Long previousAssignedEmpId,
+			String previousStatus) {
+		StringBuilder body = new StringBuilder();
+		body.append("<html><body>");
+		body.append("<p>Hello,</p>");
+		body.append("<p>Grievance ticket notification event: <b>").append(eventType).append("</b></p>");
+		if (eventType == GrievanceEmailEventType.ASSIGNMENT_CHANGE) {
+			body.append("<p><b>Assignment changed from:</b> ")
+					.append(resolveEmployeeName(previousAssignedEmpId))
+					.append(" <b>to:</b> ")
+					.append(resolveEmployeeName(ticket.getAssignedToEmpId()))
+					.append("</p>");
+		}
+		if (eventType == GrievanceEmailEventType.STATUS_CHANGE || eventType == GrievanceEmailEventType.RESOLVED_CLOSED) {
+			body.append("<p><b>Status changed from:</b> ")
+					.append(isBlank(previousStatus) ? "N/A" : previousStatus)
+					.append(" <b>to:</b> ")
+					.append(normalizeStatus(ticket.getStatus()))
+					.append("</p>");
+		}
+		body.append("<h4>Ticket Details</h4>");
+		body.append("<table border='1' cellspacing='0' cellpadding='6' style='border-collapse:collapse;'>");
+		appendBodyRow(body, "Ticket ID", safeString(ticket.getTicketNumber()));
+		appendBodyRow(body, "Title", safeString(ticket.getSubject()));
+		appendBodyRow(body, "Description", safeString(ticket.getDescription()));
+		appendBodyRow(body, "Status", safeString(ticket.getStatus()));
+		appendBodyRow(body, "Assigned User", safeString(ticket.getAssignedToName()) + " (" + safeString(ticket.getAssignedToEmpId()) + ")");
+		appendBodyRow(body, "Created Timestamp", safeString(ticket.getCreatedOn()));
+		appendBodyRow(body, "Last Updated Timestamp", safeString(ticket.getUpdatedOn()));
+		body.append("</table>");
+		body.append("<p>Regards,<br/>iShine Portal</p>");
+		body.append("</body></html>");
+		return body.toString();
+	}
+
+	private void appendBodyRow(StringBuilder body, String label, String value) {
+		body.append("<tr><td><b>")
+				.append(label)
+				.append("</b></td><td>")
+				.append(value)
+				.append("</td></tr>");
+	}
+
+	private String safeString(Object value) {
+		return value == null ? "N/A" : String.valueOf(value);
+	}
+
+	private void sendEmail(String to, List<String> cc, String subject, String body) {
+		try {
+			mailService.sendMailToMultipleRecipients(
+					Collections.singletonList(to),
+					cc == null ? Collections.emptyList() : cc,
+					subject,
+					body);
+		} catch (Exception ex) {
+			log.error("Failed to send grievance email to={} cc={} subject={}", to, cc, subject, ex);
+		}
 	}
 
 	@Transactional

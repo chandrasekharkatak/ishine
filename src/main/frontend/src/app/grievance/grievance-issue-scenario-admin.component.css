@@ -6,6 +6,11 @@
   margin-right: auto;
 }
 
+/* Back / Refresh / Export: clear gap between icon and label */
+.grievance-scenario-admin-root .grievance-scenario-toolbar-actions .btn > i.fa:first-of-type {
+  margin-right: 0.55rem;
+}
+
 .grievance-scenario-admin-body {
   padding-top: 1.35rem;
 }
