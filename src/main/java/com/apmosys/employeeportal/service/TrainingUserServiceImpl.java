@@ -1001,7 +1001,6 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			Long activeQuizId = trainingQuizMappingRepository.findActiveSurveyIdByTraining(training.getTrainingId());
 
 			Optional<LockStatusDTO> evaluated = evaluateTrainingForLock(empId, training, activeQuizId);
-              System.out.println(" evaluated : "+evaluated.isPresent());
 			// Best case → immediately freeze
 			if (evaluated.isPresent() && evaluated.get().getIsLocked()) {
 				return evaluated.get();

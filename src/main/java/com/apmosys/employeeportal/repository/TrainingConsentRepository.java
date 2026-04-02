@@ -93,7 +93,7 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 	List<TrainingConsent> findByEmpIdAndTrainingIdsIn(@Param("empId") Long empId, @Param("trainingIds") List<Integer> trainingId);
 
 	@Query("select new com.apmosys.employeeportal.dto.TrainingResponseDTO(" +
-    "CONCAT((case when e.isApmosysProduct = 'true' then 'AP-' else 'A-' end), e.employeementId), " +
+    "CONCAT((case when e.isApmosysProduct = 'true' then 'AP-' when e.isConsultant = 'true' then 'CS-' else 'A-' end), e.employeementId), " +
 	"tm.trainingId, " +
 	"tm.trainingName, " +
     "MAX(tc.completionCycleNumber), " +
@@ -106,7 +106,7 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
     "AND e.empId NOT IN (1,2,3,4,5,6) AND UPPER(e.employmentstatus) != 'INACTIVE' " +
     "AND ((:type = 'usersAttended' AND tc.empId IS NOT NULL) " +
     "OR (:type = 'usersNotAttended' AND tc.empId IS NULL)) " +
-    "GROUP BY e.empId, e.isApmosysProduct, e.employeementId, tm.trainingId, tm.trainingName, tm.consentRequired, e.name")
+    "GROUP BY e.empId, e.isApmosysProduct, e.isConsultant, e.employeementId, tm.trainingId, tm.trainingName, tm.consentRequired, e.name")
 List<TrainingResponseDTO> findByTrainingId(@Param("trainingId") Integer trainingId, 
                                            @Param("type") String type);
 	
