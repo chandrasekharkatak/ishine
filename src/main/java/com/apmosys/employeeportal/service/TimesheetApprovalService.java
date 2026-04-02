@@ -2107,7 +2107,7 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
                             ts.getTimesheetId(),
                             formattedEmpId,
                             ts.getDate(),
-                            "Client approval conditions not satisfied",
+                            "Client Approval Conditions Not Satisfied/Client Approval Document Not Found",
 							ts.getEmpId()
                     ));
                     continue;
