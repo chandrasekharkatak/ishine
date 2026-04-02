@@ -56,6 +56,10 @@ import { SurveyConfigComponent } from './configuration/survey-config/survey-conf
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 
 import { HelpdeskComponent } from './helpdesk/helpdesk.component';
+import { GrievanceComponent } from './grievance/grievance.component';
+import { GrievanceAuditTimelineComponent } from './grievance/grievance-audit-timeline.component';
+import { GrievanceEditComponent } from './grievance/grievance-edit.component';
+import { GrievanceIssueScenarioAdminComponent } from './grievance/grievance-issue-scenario-admin.component';
 import { CalendarComponent } from './helpers/calendar/calendar.component';
 
 import { CustomFilterComponent } from './helpers/custom-filter/custom-filter.component';
@@ -236,6 +240,10 @@ registerLocaleData(localeGb);
     UserPerformanceComponent,
     HrPoliciesComponent,
     HelpdeskComponent,
+    GrievanceComponent,
+    GrievanceEditComponent,
+    GrievanceAuditTimelineComponent,
+    GrievanceIssueScenarioAdminComponent,
     ConfigurationComponent,
     RoleConfigComponent,
     DeptConfigComponent,

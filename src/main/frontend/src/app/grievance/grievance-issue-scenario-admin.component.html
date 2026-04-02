@@ -1,0 +1,206 @@
+<div class="grievance-page-container">
+  <div class="container-fluid px-3 pb-4 grievance-scenario-admin-root">
+    <div class="card grievance-shell-card border-0 shadow-sm">
+      <div class="grievance-shell-body" *ngIf="!loading">
+        <!-- Match raise form intro + back -->
+        <div class="grievance-shell-title-block">
+          <div class="grievance-shell-title-row d-flex flex-wrap justify-content-between align-items-start gap-2 mb-0">
+            <div>
+              <h1 class="grievance-shell-title mb-1">Grievance issue scenarios</h1>
+              <p class="grievance-raise-subtitle mb-0">
+                Map <strong>“What went wrong?”</strong> options for Timesheet and Leave (and other tabs that support scenarios). Use the same
+                <strong>category</strong>, <strong>sub-category</strong>, and <strong>feature</strong> as Raise Grievance. Leave sub-category / feature empty to cover the whole tab.
+              </p>
+            </div>
+            <div class="d-flex flex-wrap grievance-list-top-actions align-items-center">
+              <button type="button" class="btn btn-outline-primary btn-sm" (click)="goBack()">
+                <i class="fa fa-arrow-left me-1" aria-hidden="true"></i>Back
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="alertMessage" class="alert mb-3" [ngClass]="'alert-' + alertType" role="alert">
+          {{ alertMessage }}
+        </div>
+
+        <!-- Create / edit — field row pattern like Raise Grievance -->
+        <div class="grievance-raise-section-label grievance-raise-section-label--spaced">Add or edit scenario</div>
+        <div class="grievance-admin-form">
+          <div class="row grievance-field-row g-3 g-lg-4 mb-3">
+            <div class="col-12 col-lg-4">
+              <label class="grievance-field-label" for="admCategory">Category (portal tab) <span class="text-danger">*</span></label>
+              <select
+                id="admCategory"
+                class="form-control grievance-select grievance-input"
+                [(ngModel)]="form.category"
+                (ngModelChange)="onCategoryChange()"
+              >
+                <option value="">Select category</option>
+                <option *ngFor="let c of allCategories" [value]="c">{{ c }}</option>
+              </select>
+            </div>
+            <div class="col-12 col-lg-4">
+              <label class="grievance-field-label" for="admSub">Sub-category <span class="text-muted small">(optional)</span></label>
+              <select
+                id="admSub"
+                class="form-control grievance-select grievance-input"
+                [(ngModel)]="form.subCategory"
+                (ngModelChange)="onSubCategoryChange()"
+                [disabled]="!form.category || loadingSubCategories"
+              >
+                <option value="">{{ loadingSubCategories ? 'Loading…' : 'Any sub-feature' }}</option>
+                <option *ngFor="let s of subCategories" [value]="s">{{ s }}</option>
+              </select>
+            </div>
+            <div class="col-12 col-lg-4">
+              <label class="grievance-field-label" for="admFeat">Feature <span class="text-muted small">(optional)</span></label>
+              <select
+                id="admFeat"
+                class="form-control grievance-select grievance-input"
+                [(ngModel)]="form.ticketFeature"
+                [disabled]="!form.category || loadingTicketFeatures"
+              >
+                <option value="">{{ loadingTicketFeatures ? 'Loading…' : 'Any feature' }}</option>
+                <option *ngFor="let f of ticketFeatureOptions" [value]="f">{{ f }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grievance-field-group mb-3">
+            <label class="grievance-field-label" for="admLabel">Scenario label <span class="text-danger">*</span></label>
+            <input
+              id="admLabel"
+              type="text"
+              class="form-control grievance-input"
+              [(ngModel)]="form.scenarioLabel"
+              maxlength="500"
+              placeholder="Text shown in the raise ticket dropdown"
+            />
+            <div class="grievance-char-hint">Max 500 characters</div>
+          </div>
+
+          <div class="grievance-field-group mb-3">
+            <div class="form-check">
+              <input id="admActive" type="checkbox" class="form-check-input" [(ngModel)]="form.isActive" />
+              <label class="form-check-label grievance-field-label mb-0" for="admActive">Active (shown in dropdown)</label>
+            </div>
+          </div>
+
+          <div class="grievance-submit-actions mb-0">
+            <button type="button" class="btn btn-primary grievance-submit-btn" [disabled]="saving" (click)="save()">
+              {{ saving ? 'Saving…' : form.scenarioId != null ? 'Update' : 'Create' }}
+            </button>
+            <button type="button" class="btn btn-outline-secondary" [disabled]="saving" (click)="resetForm()">Clear</button>
+          </div>
+        </div>
+
+        <hr class="grievance-raise-divider" />
+
+        <!-- List: same table + toolbar pattern as grievance ticket list -->
+        <div class="grievance-scenario-list-section pt-2 mt-2">
+          <div class="grievance-shell-title-row d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+            <div>
+              <h1 class="grievance-shell-title mb-0">Existing scenarios</h1>
+              <p class="text-muted small mb-0 mt-1" *ngIf="!listLoading && totalElements > 0">
+                {{ totalElements }} total · {{ itemsPerPage }} per page · server-side sort
+              </p>
+            </div>
+            <div class="d-flex grievance-list-top-actions">
+              <button type="button" class="btn btn-outline-primary btn-sm" (click)="goBack()">
+                <i class="fa fa-arrow-left me-1" aria-hidden="true"></i>Back
+              </button>
+              <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="listLoading" (click)="loadList()">
+                <i class="fa fa-refresh me-1" aria-hidden="true"></i>Refresh
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="listLoading" class="text-muted py-4 text-center">
+            <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>Loading scenarios…
+          </div>
+
+          <div class="overflow-auto grievance-list-scroll" *ngIf="!listLoading">
+            <table class="table grievance-portal-table mb-0" id="grievanceScenarioAdminList">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label">Sr No.</th>
+                  <th scope="col" class="info-label sortable-th" (click)="sortBy('tabKey')">
+                    Category <i [class]="getSortIcon('tabKey')" aria-hidden="true"></i>
+                  </th>
+                  <th scope="col" class="info-label sortable-th" (click)="sortBy('subFeatureName')">
+                    Sub-category <i [class]="getSortIcon('subFeatureName')" aria-hidden="true"></i>
+                  </th>
+                  <th scope="col" class="info-label sortable-th" (click)="sortBy('featureName')">
+                    Feature <i [class]="getSortIcon('featureName')" aria-hidden="true"></i>
+                  </th>
+                  <th scope="col" class="info-label sortable-th" (click)="sortBy('scenarioLabel')">
+                    Label <i [class]="getSortIcon('scenarioLabel')" aria-hidden="true"></i>
+                  </th>
+                  <th scope="col" class="info-label sortable-th" (click)="sortBy('sortOrder')">
+                    Sort <i [class]="getSortIcon('sortOrder')" aria-hidden="true"></i>
+                  </th>
+                  <th scope="col" class="info-label sortable-th" (click)="sortBy('isActive')">
+                    Active <i [class]="getSortIcon('isActive')" aria-hidden="true"></i>
+                  </th>
+                  <th scope="col" class="info-label">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="totalElements === 0">
+                  <th colspan="8" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr
+                  *ngFor="
+                    let row of scenarios
+                      | paginate
+                        : { id: 'scenarioAdmin', itemsPerPage: itemsPerPage, currentPage: page, totalItems: totalElements };
+                    let i = index
+                  "
+                >
+                  <td>{{ (page - 1) * itemsPerPage + i + 1 }}</td>
+                  <td>{{ displayModuleName(row) }}</td>
+                  <td>{{ row.subFeatureName || '—' }}</td>
+                  <td>{{ row.featureName || '—' }}</td>
+                  <td class="text-break">{{ row.scenarioLabel }}</td>
+                  <td class="text-nowrap">{{ row.sortOrder }}</td>
+                  <td>{{ row.isActive === 1 ? 'Yes' : 'No' }}</td>
+                  <td class="grievance-action-cell">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-primary mb-1 grievance-action-icon-btn"
+                      (click)="startEdit(row)"
+                      title="Edit"
+                    >
+                      <i class="fa fa-pencil" aria-hidden="true"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-danger mb-1 grievance-action-icon-btn"
+                      *ngIf="row.isActive === 1"
+                      (click)="confirmDeactivate(row)"
+                      title="Deactivate"
+                    >
+                      <i class="fa fa-ban" aria-hidden="true"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <pagination-controls
+            *ngIf="!listLoading && totalElements > 0"
+            class="my-pagination"
+            id="scenarioAdmin"
+            (pageChange)="handlePageChange($event)"
+          ></pagination-controls>
+        </div>
+      </div>
+
+      <div class="grievance-shell-body text-center py-5 text-muted" *ngIf="loading">
+        <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>Checking access…
+      </div>
+    </div>
+  </div>
+</div>

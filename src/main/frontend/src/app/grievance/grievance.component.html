@@ -1,0 +1,590 @@
+<div class="grievance-page-container">
+  <div class="container-fluid px-3 pb-4">
+    <div class="card grievance-shell-card border-0 shadow-sm">
+      <div class="grievance-shell-header">
+        <div class="grievance-toolbar grievance-shell-tabs">
+          <button
+            *ngIf="canRaiseTicket()"
+            type="button"
+            class="btn module-action-btn"
+            [ngClass]="activeSection === 'raise' ? 'module-action-btn--active' : ''"
+            (click)="showRaiseSection()"
+          >
+            Raise Ticket
+          </button>
+          <button
+            type="button"
+            class="btn module-action-btn"
+            [ngClass]="activeSection === 'list' && listMode !== 'assigned' ? 'module-action-btn--active' : ''"
+            (click)="showPrimaryListSection()"
+          >
+            {{ canViewAllTickets() ? 'All Grievance Tickets' : 'My Grievance Tickets' }}
+          </button>
+          <button
+            *ngIf="canViewAssignedTickets()"
+            type="button"
+            class="btn module-action-btn"
+            [ngClass]="activeSection === 'list' && listMode === 'assigned' ? 'module-action-btn--active' : ''"
+            (click)="showAssignedTicketsSection()"
+          >
+            Assigned Tickets
+          </button>
+          <a
+            *ngIf="userMapping.grievance_issue_scenarios"
+            routerLink="/grievance/issue-scenarios"
+            class="btn module-action-btn text-decoration-none"
+            role="button"
+          >
+            Grievance Issue Scenario
+          </a>
+        </div>
+      </div>
+
+      <!-- Raise grievance: single card body -->
+      <div class="grievance-shell-body" *ngIf="activeSection === 'raise' && canRaiseTicket()">
+        <div class="grievance-shell-title-block">
+          <h1 class="grievance-shell-title mb-0">Raise Grievance</h1>
+          <p class="grievance-raise-subtitle mb-0">
+            Submit a ticket for the development team. Fields marked with <span class="text-danger">*</span> are required.
+          </p>
+        </div>
+
+        <div class="grievance-raise-section-label grievance-raise-section-label--before-capture">
+          Your details <span class="grievance-raise-badge">Auto-captured</span>
+        </div>
+        <div class="grievance-raise-capture" aria-label="Your profile details captured for this ticket">
+          <div class="grievance-raise-capture-row grievance-raise-capture-row--identity">
+            <div class="grievance-capture-item">
+              <div class="grievance-capture-label">Employee ID</div>
+              <div class="grievance-capture-value">{{ getRaisedByEmployeeIdDisplay() }}</div>
+            </div>
+            <div class="grievance-capture-item">
+              <div class="grievance-capture-label">Employee name</div>
+              <div class="grievance-capture-value">{{ getRaisedByNameDisplay() }}</div>
+            </div>
+            <div class="grievance-capture-item">
+              <div class="grievance-capture-label">Department</div>
+              <div class="grievance-capture-value">{{ getRaisedByDepartmentDisplay() }}</div>
+            </div>
+          </div>
+          <div class="grievance-raise-capture-divider" role="presentation"></div>
+          <div class="grievance-raise-capture-row grievance-raise-capture-row--context">
+            <div class="grievance-capture-item">
+              <div class="grievance-capture-label">Phone number</div>
+              <div class="grievance-capture-value">{{ getRaisedByPhoneDisplay() }}</div>
+            </div>
+            <div class="grievance-capture-item">
+              <div class="grievance-capture-label">Current project</div>
+              <div class="grievance-capture-value grievance-capture-value--multiline">{{ getRaisedByProjectDisplay() }}</div>
+            </div>
+            <div class="grievance-capture-item">
+              <div class="grievance-capture-label">Client name</div>
+              <div class="grievance-capture-value">{{ getRaisedByClientDisplay() }}</div>
+            </div>
+            <div class="grievance-capture-item">
+              <div class="grievance-capture-label">Reporting manager</div>
+              <div class="grievance-capture-value">{{ getRaisedByReportingManagerDisplay() }}</div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="grievance-raise-divider" />
+
+        <div class="grievance-raise-section-label grievance-raise-section-label--spaced">Grievance details</div>
+
+        <div class="grievance-field-group">
+          <label class="grievance-field-label" for="grievanceSubject">Subject <span class="text-danger">*</span></label>
+          <input
+            id="grievanceSubject"
+            type="text"
+            class="form-control grievance-input"
+            [(ngModel)]="grievanceForm.subject"
+            maxlength="300"
+            placeholder="Brief summary of the issue"
+          />
+        </div>
+
+        <div class="row grievance-field-row g-3 g-lg-4">
+          <div class="col-12 col-lg-6 col-xl-3">
+            <label class="grievance-field-label" for="grievanceCategory">Category <span class="text-danger">*</span></label>
+            <select
+              id="grievanceCategory"
+              class="form-control grievance-select grievance-input"
+              [(ngModel)]="grievanceForm.category"
+              (ngModelChange)="onGrievanceCategoryChange()"
+            >
+              <option value="">Select module</option>
+              <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+            </select>
+          </div>
+          <div class="col-12 col-lg-6 col-xl-3">
+            <label class="grievance-field-label" for="grievanceSubCategory">Sub-category <span class="text-danger">*</span></label>
+            <select
+              id="grievanceSubCategory"
+              class="form-control grievance-select grievance-input"
+              [(ngModel)]="grievanceForm.subCategory"
+              (ngModelChange)="onGrievanceSubCategoryChange()"
+              [disabled]="!grievanceForm.category || loadingSubCategories"
+            >
+              <option value="">{{ loadingSubCategories ? 'Loading…' : subCategories.length ? 'Select sub-feature' : 'Select category first' }}</option>
+              <option *ngFor="let sub of subCategories" [value]="sub">{{ sub }}</option>
+            </select>
+            <small class="text-danger d-block mt-1" *ngIf="grievanceForm.category && !loadingSubCategories && subCategories.length === 0">
+              Sub-category is required. No sub-features are configured for this module—choose another category or contact your administrator.
+            </small>
+          </div>
+          <div class="col-12 col-lg-6 col-xl-3">
+            <label class="grievance-field-label" for="grievanceTicketFeature">Feature <span class="text-danger">*</span></label>
+            <select
+              id="grievanceTicketFeature"
+              class="form-control grievance-select grievance-input"
+              [(ngModel)]="grievanceForm.ticketFeature"
+              (ngModelChange)="onGrievanceTicketFeatureChange()"
+              [disabled]="!grievanceForm.subCategory || loadingTicketFeatures"
+            >
+              <option value="">{{
+                loadingTicketFeatures ? 'Loading…' : ticketFeatureOptions.length ? 'Select feature' : 'Select sub-category first'
+              }}</option>
+              <option *ngFor="let f of ticketFeatureOptions" [value]="f">{{ f }}</option>
+            </select>
+            <small class="text-danger d-block mt-1" *ngIf="grievanceForm.subCategory && !loadingTicketFeatures && ticketFeatureOptions.length === 0">
+              No matching feature found for this sub-category—try another sub-category or contact your administrator.
+            </small>
+          </div>
+          <div class="col-12 col-lg-6 col-xl-3">
+            <label class="grievance-field-label" for="grievancePriority">Priority</label>
+            <div class="priority-select-wrap">
+              <span
+                class="priority-dot"
+                [ngClass]="{
+                  'priority-dot--low': grievanceForm.priority === 'LOW',
+                  'priority-dot--med': grievanceForm.priority === 'MEDIUM',
+                  'priority-dot--high': grievanceForm.priority === 'HIGH'
+                }"
+              ></span>
+              <select id="grievancePriority" class="form-control grievance-select priority-select grievance-input" [(ngModel)]="grievanceForm.priority">
+                <option value="LOW">Low — Minor issue</option>
+                <option value="MEDIUM">Medium — Normal issue</option>
+                <option value="HIGH">High — Urgent issue</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="grievance-field-group" *ngIf="loadingIssueScenarios || issueScenarioOptions.length > 0">
+          <label class="grievance-field-label" for="grievanceIssueScenario">What went wrong? (optional)</label>
+          <select
+            id="grievanceIssueScenario"
+            class="form-control grievance-select grievance-input"
+            [(ngModel)]="grievanceForm.issueScenario"
+            [disabled]="loadingIssueScenarios || issueScenarioOptions.length === 0"
+          >
+            <option value="">{{ loadingIssueScenarios ? 'Loading scenarios…' : 'Select scenario' }}</option>
+            <option *ngFor="let s of issueScenarioOptions" [value]="s">{{ s }}</option>
+          </select>
+          <small class="text-muted d-block mt-1" *ngIf="issueScenarioOptions.length > 0">
+            If you pick one, we can route Timesheet and Leave tickets faster.
+          </small>
+        </div>
+
+        <div class="grievance-field-group">
+          <label class="grievance-field-label" for="grievanceDescription">Description <span class="text-danger">*</span></label>
+          <textarea
+            id="grievanceDescription"
+            class="form-control grievance-input grievance-textarea"
+            rows="5"
+            [(ngModel)]="grievanceForm.description"
+            maxlength="4000"
+            placeholder="Describe the issue clearly so the team can help you quickly."
+          ></textarea>
+          <div class="grievance-char-hint">Max 4,000 characters</div>
+        </div>
+
+        <div class="grievance-proof-block">
+            <label class="grievance-field-label" for="grievanceProof">
+              Proof attachment <span class="text-danger">*</span>
+            </label>
+            <input
+              id="grievanceProof"
+              type="file"
+              class="form-control grievance-input grievance-file-input"
+              accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+              multiple
+              (change)="onProofSelected($event)"
+            />
+            <small class="text-danger d-block mt-2" *ngIf="proofFileError">{{ proofFileError }}</small>
+            <small class="grievance-help-text grievance-help-text--below-file"
+              >Allowed types: PDF, PNG, JPG, JPEG, DOC, DOCX · Up to 5 files · Each file max 5 MB · Use Browse again to add more (until 5).</small
+            >
+            <div class="grievance-proof-chip-row mt-2" *ngIf="grievanceForm.proofFiles?.length">
+              <button type="button" class="grievance-proof-clear" (click)="clearProofFiles()">Clear all</button>
+              <span class="grievance-proof-chip" *ngFor="let f of grievanceForm.proofFiles; let i = index" [title]="f.name">
+                <i class="fa fa-paperclip grievance-proof-chip-icon" aria-hidden="true"></i>
+                <span class="grievance-proof-chip-name">{{ f.name }}</span>
+                <button
+                  type="button"
+                  class="grievance-proof-chip-remove"
+                  (click)="removeProofFile(i)"
+                  [attr.aria-label]="'Remove ' + f.name"
+                >
+                  <i class="fa fa-times" aria-hidden="true"></i>
+                </button>
+              </span>
+            </div>
+        </div>
+
+        <div class="grievance-submit-actions">
+          <button type="button" class="btn btn-primary grievance-submit-btn" [disabled]="isSubmitting" (click)="submitTicket()">
+            <i class="fa fa-check me-2" aria-hidden="true" *ngIf="!isSubmitting"></i>
+            {{ isSubmitting ? 'Submitting…' : 'Submit ticket' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- List view: same card -->
+      <div class="grievance-shell-body grievance-shell-body--list" *ngIf="activeSection === 'list'">
+        <div class="grievance-shell-title-row d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+          <div>
+            <h1 class="grievance-shell-title mb-0">{{ getListTitle() }}</h1>
+          </div>
+          <div class="d-flex grievance-list-top-actions">
+            <button type="button" class="btn btn-outline-primary btn-sm grievance-search-toggle-btn" (click)="toggleSearchFilters()">
+              <i class="fa" [ngClass]="isSearchEnabled ? 'fa-times' : 'fa-search'" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="totalElements === 0 || exportLoading" (click)="exportTickets()">
+              <i class="fa fa-file-excel-o me-1" aria-hidden="true"></i>{{ exportLoading ? 'Exporting...' : 'Export' }}
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-sm" (click)="loadTickets()">
+              <i class="fa fa-refresh me-1" aria-hidden="true"></i>Refresh
+            </button>
+          </div>
+        </div>
+        <div *ngIf="alertMessage" class="alert mb-3" [ngClass]="'alert-' + alertType" role="alert">
+          {{ alertMessage }}
+        </div>
+        <div *ngIf="loading" class="text-muted py-4 text-center">
+          <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>Loading tickets...
+        </div>
+        <div class="overflow-auto grievance-list-scroll" *ngIf="!loading">
+          <table class="table grievance-portal-table mb-0" id="grievanceTicketList">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label sortable-th" (click)="sortBy('displayTicketId')">Ticket ID <i [class]="getSortIcon('displayTicketId')" aria-hidden="true"></i></th>
+                <th scope="col" class="info-label sortable-th" (click)="sortBy('subject')">Subject <i [class]="getSortIcon('subject')" aria-hidden="true"></i></th>
+                <th scope="col" class="info-label sortable-th" (click)="sortBy('category')">Category <i [class]="getSortIcon('category')" aria-hidden="true"></i></th>
+                <th scope="col" class="info-label sortable-th" (click)="sortBy('priority')">Priority <i [class]="getSortIcon('priority')" aria-hidden="true"></i></th>
+                <th scope="col" class="info-label sortable-th" (click)="sortBy('status')">Status <i [class]="getSortIcon('status')" aria-hidden="true"></i></th>
+                <th scope="col" class="info-label sortable-th" *ngIf="showRaisedByColumn()" (click)="sortBy('createdByName')">Raised By <i [class]="getSortIcon('createdByName')" aria-hidden="true"></i></th>
+                <th scope="col" class="info-label sortable-th" (click)="sortBy('assignedToName')">Assigned To <i [class]="getSortIcon('assignedToName')" aria-hidden="true"></i></th>
+                <th scope="col" class="info-label sortable-th" (click)="sortBy('createdOn')">Created On <i [class]="getSortIcon('createdOn')" aria-hidden="true"></i></th>
+                <th scope="col" class="info-label">Action</th>
+              </tr>
+              <tr
+                app-column-filter-bar
+                *ngIf="isSearchEnabled && !loading"
+                [columnList]="getTicketSearchColumns()"
+                (onSearch)="onSearch($event); page=1"
+              ></tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="totalElements === 0 && !loading">
+                <th [attr.colspan]="getListColspan()" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr *ngIf="totalElements > 0 && (tickets | colFilter:filters:false).length === 0">
+                <th [attr.colspan]="getListColspan()" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr *ngFor="let ticket of tickets | colFilter:filters:false | paginate: { itemsPerPage: itemsPerPage, currentPage: page, totalItems: (tickets | colFilter:filters:false).length }; let i = index">
+                <td>{{ ((page - 1) * itemsPerPage) + i + 1 }}</td>
+                <td class="text-nowrap">{{ ticket.displayTicketId }}</td>
+                <td>{{ ticket.subject }}</td>
+                <td>{{ ticket.category || '—' }}</td>
+                <td>{{ ticket.priority }}</td>
+                <td>{{ getDisplayStatus(ticket.status) }}</td>
+                <td *ngIf="showRaisedByColumn()">{{ ticket.createdByName }}</td>
+                <td>{{ ticket.assignedToName || '—' }}</td>
+                <td class="text-nowrap">{{ ticket.createdOn | date : 'dd-MMM-yyyy hh:mm a' }}</td>
+                <td class="grievance-action-cell">
+                  <button
+                    *ngIf="canViewTicketSummary(ticket)"
+                    type="button"
+                    class="btn btn-sm btn-outline-primary mb-1 grievance-action-icon-btn"
+                    (click)="openTicketView(ticket)"
+                    title="View status and resolution details"
+                  >
+                    <i class="fa fa-eye" aria-hidden="true"></i>
+                  </button>
+                  <button
+                    *ngIf="canReopenTicket(ticket)"
+                    type="button"
+                    class="btn btn-sm btn-outline-primary mb-1 grievance-action-icon-btn"
+                    (click)="reopenTicket(ticket)"
+                    title="Reopen ticket"
+                  >
+                    <i class="fa fa-undo" aria-hidden="true"></i>
+                  </button>
+                  <button
+                    *ngIf="canSubmitTicketFeedback(ticket)"
+                    type="button"
+                    class="btn btn-sm btn-outline-primary mb-1 grievance-action-icon-btn grievance-action-rate-btn"
+                    (click)="openClosureFeedbackModal(ticket)"
+                    title="Submit feedback (1–5 stars)"
+                  >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                  </button>
+                  <button *ngIf="canEditTicket(ticket)" type="button" class="btn btn-sm btn-outline-primary mb-1 grievance-action-icon-btn" (click)="openEditPage(ticket)" title="Edit ticket">
+                    <i class="fa fa-pencil" aria-hidden="true"></i>
+                  </button>
+                  <button *ngIf="canWithdrawTicket(ticket)" type="button" class="btn btn-sm btn-outline-danger mb-1 grievance-action-icon-btn" (click)="withdrawTicket(ticket)" title="Withdraw ticket">
+                    <i class="fa fa-trash" aria-hidden="true"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <pagination-controls class="my-pagination" [hidden]="totalElements === 0 || (tickets | colFilter:filters:false).length === 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #ticketViewModal>
+  <div class="grievance-ticket-modal-root">
+    <div class="modal-header grievance-ticket-modal-header align-items-start">
+      <div class="pe-3">
+        <div class="grievance-modal-kicker">Grievance</div>
+        <h5 class="modal-title grievance-modal-title mb-0">Ticket details</h5>
+      </div>
+      <button type="button" class="grievance-modal-close-btn" (click)="closeTicketViewModal()" aria-label="Close">
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="modal-body grievance-ticket-modal-body">
+      <div *ngIf="viewDetailLoading" class="text-center text-muted py-5">
+        <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>Loading…
+      </div>
+      <div *ngIf="!viewDetailLoading && viewTicketDetail" class="grievance-view-detail">
+        <div class="grievance-view-hero">
+          <span class="grievance-view-ticket-chip">{{ viewTicketDetail.ticketNumber }}</span>
+          <span class="grievance-view-status-chip">{{ getDisplayStatus(viewTicketDetail.status) }}</span>
+        </div>
+
+        <div class="grievance-view-section">
+          <div class="grievance-view-section-head">
+            <i class="fa fa-user me-2" aria-hidden="true"></i>Raised by (at submission)
+          </div>
+          <div class="row g-2">
+            <div class="col-md-4">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Employee</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.createdByName || '—' }}</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Employee ID</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.createdByEmployeeId ?? '—' }}</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Department</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.createdByDepartment || '—' }}</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Phone</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.createdByPhone || '—' }}</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Project</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.createdByProjectName || '—' }}</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Client</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.createdByClientName || '—' }}</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Reporting manager</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.createdByReportingManager || '—' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grievance-view-section">
+          <div class="grievance-view-section-head">
+            <i class="fa fa-info-circle me-2" aria-hidden="true"></i>Summary
+          </div>
+          <div class="row g-2">
+            <div class="col-md-4">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Priority</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.priority || '—' }}</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Category</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.category || '—' }}</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Sub-category</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.subCategory || '—' }}</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Feature</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.ticketFeature || '—' }}</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Issue scenario</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.issueScenario || '—' }}</span>
+              </div>
+            </div>
+            <div class="col-md-4" *ngIf="viewTicketDetail.assignedToName">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Assigned to</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.assignedToName }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grievance-view-section">
+          <div class="grievance-view-section-head">
+            <i class="fa fa-align-left me-2" aria-hidden="true"></i>Request
+          </div>
+          <div class="grievance-view-field grievance-view-field--block">
+            <span class="grievance-view-label">Subject</span>
+            <span class="grievance-view-value grievance-view-value--emph">{{ viewTicketDetail.subject }}</span>
+          </div>
+          <div class="grievance-view-field grievance-view-field--block mt-2">
+            <span class="grievance-view-label">Description</span>
+            <div class="grievance-view-prose text-break">{{ viewTicketDetail.description }}</div>
+          </div>
+        </div>
+
+        <div class="grievance-view-section grievance-view-section--resolution">
+          <div class="grievance-view-section-head">
+            <i class="fa fa-check-circle me-2" aria-hidden="true"></i>Resolution
+          </div>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Resolution category</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.resolutionCategory || '—' }}</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Resolution date</span>
+                <span class="grievance-view-value">{{ (viewTicketDetail.resolutionDate | date : 'dd-MMM-yyyy hh:mm a') || '—' }}</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="grievance-view-field">
+                <span class="grievance-view-label">Resolved by</span>
+                <span class="grievance-view-value">{{ viewTicketDetail.resolvedBy || '—' }}</span>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="grievance-view-field grievance-view-field--block">
+                <span class="grievance-view-label">Action taken</span>
+                <div class="grievance-view-prose text-break">{{ viewTicketDetail.actionTaken || '—' }}</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="grievance-view-field grievance-view-field--block">
+                <span class="grievance-view-label">Resolution remarks</span>
+                <div class="grievance-view-prose text-break">{{ viewTicketDetail.resolutionRemarks || '—' }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grievance-view-section grievance-view-section--feedback" *ngIf="viewTicketDetail.feedbackOn">
+          <div class="grievance-view-section-head">
+            <i class="fa fa-star me-2" aria-hidden="true"></i>Your feedback
+          </div>
+          <div class="grievance-view-field grievance-view-field--block">
+            <span class="grievance-view-label">Rating</span>
+            <span class="grievance-view-value">{{ viewTicketDetail.feedbackRating }}/5</span>
+          </div>
+          <div class="grievance-view-field grievance-view-field--block mt-2" *ngIf="viewTicketDetail.feedbackComments">
+            <span class="grievance-view-label">Comments</span>
+            <div class="grievance-view-prose text-break">{{ viewTicketDetail.feedbackComments }}</div>
+          </div>
+          <div class="grievance-view-feedback-meta mt-2">Submitted {{ viewTicketDetail.feedbackOn | date : 'dd-MMM-yyyy hh:mm a' }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer grievance-ticket-modal-footer">
+      <button type="button" class="btn btn-primary px-4" (click)="closeTicketViewModal()">Close</button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #closureFeedbackModal>
+  <div class="grievance-ticket-modal-root grievance-feedback-modal-root">
+    <div class="modal-header grievance-ticket-modal-header align-items-start">
+      <div class="pe-3">
+        <div class="grievance-modal-kicker">{{ closureFeedbackIsResolved ? 'Feedback' : 'Closure feedback' }}</div>
+        <h5 class="modal-title grievance-modal-title mb-0">{{ closureFeedbackIsResolved ? 'Rate your experience' : 'Rate your experience' }}</h5>
+        <p class="grievance-feedback-lead mb-0 mt-2" *ngIf="feedbackTicketForRating && closureFeedbackIsResolved">
+          Ticket <strong>{{ feedbackTicketForRating.displayTicketId || feedbackTicketForRating.ticketNumber }}</strong> is resolved. Provide a 1–5 star rating and optional comments. This does not close the ticket.
+        </p>
+        <p class="grievance-feedback-lead mb-0 mt-2" *ngIf="feedbackTicketForRating && !closureFeedbackIsResolved">
+          Ticket <strong>{{ feedbackTicketForRating.displayTicketId || feedbackTicketForRating.ticketNumber }}</strong> is closed. Please provide a rating (required). Optional comments help us improve.
+        </p>
+      </div>
+      <button type="button" class="grievance-modal-close-btn" (click)="closeClosureFeedbackModal()" aria-label="Close">
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="modal-body grievance-ticket-modal-body">
+      <div class="grievance-feedback-stars-wrap mb-3">
+        <span class="grievance-view-label d-block mb-2">Your rating (max 5 stars)</span>
+        <div class="d-flex align-items-center flex-wrap gap-1">
+          <button
+            type="button"
+            class="btn btn-link p-1 grievance-feedback-star-btn"
+            *ngFor="let star of [1, 2, 3, 4, 5]"
+            (click)="setClosureRating(star)"
+            [attr.aria-label]="'Rate ' + star + ' out of 5'"
+          >
+            <i
+              class="fa-2x"
+              [ngClass]="(closureFeedbackRating || 0) >= star ? 'fas fa-star text-warning' : 'far fa-star grievance-feedback-star-empty'"
+              aria-hidden="true"
+            ></i>
+          </button>
+          <span class="ms-2 text-muted small" *ngIf="closureFeedbackRating">{{ closureFeedbackRating }} / 5</span>
+        </div>
+      </div>
+      <div class="grievance-view-field grievance-view-field--block">
+        <span class="grievance-view-label">Comments (optional)</span>
+        <textarea class="form-control mt-1" rows="3" maxlength="2000" [(ngModel)]="closureFeedbackComments" placeholder="Share any additional feedback"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer grievance-ticket-modal-footer">
+      <button type="button" class="btn btn-outline-primary" (click)="closeClosureFeedbackModal()" [disabled]="closureFeedbackSubmitting">Cancel</button>
+      <button type="button" class="btn btn-primary px-4" (click)="submitClosureFeedback()" [disabled]="closureFeedbackSubmitting || !closureFeedbackRating">
+        {{ closureFeedbackSubmitting ? 'Submitting…' : 'Submit feedback' }}
+      </button>
+    </div>
+  </div>
+</ng-template>
