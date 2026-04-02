@@ -21,11 +21,32 @@
 }
 
 .normal {
-    color: #16A34A
+    color: #16A34A !important;
 }
 
 .danger {
-    color: #DC2626
+    color: #DC2626 !important;
+}
+
+.white {
+    color: #ffffff !important;
+}
+
+.text-blue {
+    color: #424E6A !important;
+}
+
+.text-warning {
+    color: #CC8C33 !important;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+
+.circle {
+    border-radius: 50% !important
 }
 
 .rounded {
@@ -56,7 +77,8 @@
     justify-content: center;
     align-items: center;
     color: var(--navy);
-    background-color: rgba(26, 39, 68, 0.08);
+    background-color: #d9e0f1;
+
 }
 
 .kpi-label {
@@ -196,16 +218,29 @@
 .status-card {
     cursor: pointer;
     background-color: #00000008;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
+.status-card:hover {
+    transform: translateY(-6px) scale(1.01);
+    border: 1px solid rgba(0, 123, 255, 0.2);
+}
 
+.status-card .icon {
+    transition: transform 0.3s ease;
+}
+
+.status-card:hover .icon {
+    transform: scale(1.1);
+}
 
 /* ===== PROJECT DETAILS TABLE ==== */
 
 .table-container {
     max-height: 400px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    /* border: 1px solid #ccc; */
+    /* border-radius: 5px; */
     overflow: auto;
 }
 
@@ -216,9 +251,9 @@
 
 .custom-table th,
 .custom-table td {
-    border: 1px solid #ddd;
+    /* border: 1px solid #ddd; */
     padding: 8px;
-    text-align: center;
+    /* text-align: center; */
 }
 
 .custom-table thead th {
@@ -385,4 +420,121 @@
 /* smooth shift effect */
 .pagination-controls.animating {
     transition: transform 0.25s ease;
+}
+
+.insight-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.dot-critical {
+    background: #dc3545;
+}
+
+.dot-warning {
+    background: #f0ad4e;
+}
+
+.dot-ok {
+    background: #28a745;
+}
+
+.insight-bar-bg {
+    width: 80px;
+    height: 6px;
+    background: #eee;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.insight-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.4s ease;
+}
+
+.bg-critical {
+    background: #dc3545;
+}
+
+.bg-warning {
+    background: #f0ad4e;
+}
+
+.bg-ok {
+    background: #28a745;
+}
+
+/* ===== Track ===== */
+.risk-bar-bg {
+    width: 100%;
+    height: 12px;
+    background: #e6e9ef;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* inner shadow */
+.risk-bar-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== Fill Wrapper (controls width) ===== */
+.risk-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+    transition: width 0.6s ease-in-out;
+}
+
+/* ===== ACTUAL GRADIENT (FULL WIDTH ALWAYS) ===== */
+.risk-bar-fill::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+            #4c63b6 0%,
+            #b87a2a 50%,
+            #d9534f 100%);
+    width: 100vw;
+    /* key trick */
+}
+
+/* hover */
+.risk-bar-bg:hover .risk-bar-fill {
+    filter: brightness(1.08);
+}
+
+/* animation */
+.risk-bar-fill.animate {
+    animation: progressGrow 0.8s ease-out;
+}
+
+@keyframes progressGrow {
+    from {
+        width: 0;
+    }
+}
+
+.toggle-option {
+    cursor: pointer;
+    border-radius: 15px;
+    transition: all 0.2s ease;
+}
+
+.toggle-option.active {
+    background-color: #e0e7ff;
+    color: #2f5bff;
+    font-weight: 500;
+}
+
+.toggle-option:hover {
+    background-color: #f1f3f5;
 }

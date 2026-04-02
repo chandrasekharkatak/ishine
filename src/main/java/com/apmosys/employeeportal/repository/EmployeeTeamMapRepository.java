@@ -499,22 +499,85 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		// 		"WHERE ppd.poId =:id ")
 		// List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails(Long id);
 
-		@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
-				"ete.name, te.deptIds, tm.employeeRole, te.teamName, te.teamId, " +
-				"etl.name, etm.name, " +
-				"p.projectId, p.projectName, etpm.name, "
-				+ "tm.startDate,tm.endDate) " +
-				"FROM EmployeeTeamMap tm " +
-				"LEFT JOIN Team te ON tm.teamId = te.teamId " +
-				"LEFT JOIN Employee etl ON te.teamLeadId = etl.empId " +
-				"LEFT JOIN Employee ete ON tm.empId = ete.empId " +
-				"LEFT JOIN Employee etm ON ete.managerId = etm.empId " +
-				"LEFT JOIN Project p ON te.projectId = p.projectId " +
-				"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId and pmm.active = 1 " +
-				"LEFT JOIN Employee etpm ON etpm.empId = pmm.projectManagerId " +
-				"WHERE ete.employeementId =:empId and (tm.startDate <=:endDate AND (tm.endDate is null or tm.endDate >=:startDate)) "+
-				" and te.isActive ='Y'  ")
-		List<TeamTimesheetDetailsResponse> getProjectDetailsByEmpIdAndDateRange(Long empId, LocalDateTime startDate,
+//		@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
+//				"ete.name, te.deptIds, tm.employeeRole, te.teamName, te.teamId, " +
+//				"etl.name, etm.name, " +
+//				"p.projectId, p.projectName, etpm.name, "
+//				+ "tm.startDate,tm.endDate) " +
+//				"FROM EmployeeTeamMap tm " +
+//				"LEFT JOIN Team te ON tm.teamId = te.teamId " +
+//				"LEFT JOIN Employee etl ON te.teamLeadId = etl.empId " +
+//				"LEFT JOIN Employee ete ON tm.empId = ete.empId " +
+//				"LEFT JOIN Employee etm ON ete.managerId = etm.empId " +
+//				"LEFT JOIN Project p ON te.projectId = p.projectId " +
+//				"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId and pmm.active = 1 " +
+//				"LEFT JOIN Employee etpm ON etpm.empId = pmm.projectManagerId " +
+//				"WHERE ete.empId =:empId and (tm.startDate <=:endDate AND (tm.endDate is null or tm.endDate >=:startDate)) "+
+//				" and te.isActive ='Y'  ")
+//		List<TeamTimesheetDetailsResponse> getProjectDetailsByEmpIdAndDateRange(Long empId, LocalDateTime startDate,
+//				LocalDateTime endDate);
+		
+		@Query(nativeQuery = true,value = "SELECT \n"
+				+ "    ete.emp_id            AS empId,\n"
+				+ "    ete.employeement_id   AS employeementId,\n"
+				+ "    ete.name              AS employeeName,\n"
+				+ "    tm.employee_role      AS employeeRole,\n"
+				+ "    tm.po_id              AS poId, \n"
+				+ "    rd.role               AS roleName,\n"
+				+ "    te.team_name          AS teamName,\n"
+				+ "    te.team_id            AS teamId,\n"
+				+ "    etl.name              AS teamLeadName,\n"
+				+ "    etm.name              AS managerName,\n"
+				+ "    p.project_id          AS projectId,\n"
+				+ "    p.project_name        AS projectName,\n"
+				+ "    etpm.projectManagerName,  \n"
+				+ "    tm.start_date         AS startDate,\n"
+				+ "    tm.end_date           AS endDate\n"
+				+ "\n"
+				+ "FROM employee_team_mapping tm\n"
+				+ "\n"
+				+ "LEFT JOIN teams te \n"
+				+ "    ON tm.team_id = te.team_id\n"
+				+ "\n"
+				+ "LEFT JOIN employee etl \n"
+				+ "    ON te.team_lead_id = etl.emp_id\n"
+				+ "\n"
+				+ "LEFT JOIN employee ete \n"
+				+ "    ON tm.emp_id = ete.emp_id\n"
+				+ "\n"
+				+ "LEFT JOIN employee etm \n"
+				+ "    ON ete.manager_id = etm.emp_id\n"
+				+ "\n"
+				+ "LEFT JOIN projects p \n"
+				+ "    ON te.project_id = p.project_id\n"
+				+ "\n"
+				+ "\n"
+				+ "LEFT JOIN (\n"
+				+ "    SELECT \n"
+				+ "        pmm.project_id,\n"
+				+ "        GROUP_CONCAT(e.name) AS projectManagerName\n"
+				+ "    FROM project_manager_mapping pmm\n"
+				+ "    LEFT JOIN employee e \n"
+				+ "        ON e.emp_id = pmm.project_manager_id\n"
+				+ "    WHERE pmm.active = 1\n"
+				+ "    GROUP BY pmm.project_id\n"
+				+ ") etpm ON etpm.project_id = p.project_id\n"
+				+ "\n"
+				+ "LEFT JOIN role_details rd \n"
+				+ "    ON tm.role_id = rd.role_id    \n"
+				+ "\n"
+				+ "WHERE \n"
+				+ "    ete.emp_id = :empId\n"
+				+ "    AND (\n"
+				+ "        tm.start_date <= :endDate\n"
+				+ "        AND (\n"
+				+ "            tm.end_date IS NULL \n"
+				+ "            OR tm.end_date >= :startDate\n"
+				+ "        )\n"
+				+ "    )\n"
+				+ "    AND te.is_active = 'Y'\n"
+				+ "")
+		List<Object[]> getProjectDetailsByEmpIdAndDateRange(Long empId, LocalDateTime startDate,
 				LocalDateTime endDate);
 
 
@@ -1064,7 +1127,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 				"INNER JOIN Client c ON c.clientId = p.clientId " +
 				"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
 				"INNER JOIN Department d ON d.deptId = jr.deptId " +
-				"LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId " +
+				"LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId AND pmm.active = 1  " +
 				"LEFT JOIN Employee pm ON pm.empId = pmm.projectManagerId " +
 				"WHERE e.empId IN ( " +
 				"SELECT e1.empId " +
@@ -1082,7 +1145,6 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 				"AND etm.active != 0 " +
 				"AND t.isActive = 'Y' " +
 				"AND e.employmentstatus != 'InActive' " +
-				"AND pmm.active = 1 " +
 				"AND e.empId NOT BETWEEN 1 AND 6")
 		Long getInternalAndShankhEmployeeCountByProjectIds(@Param("projectIds") Set<Integer> projectIds);
 		

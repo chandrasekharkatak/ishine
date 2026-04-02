@@ -2411,7 +2411,7 @@ input:checked + .slider:hover:before {
 }
 
 /* Button styling */
-.btn-outline-primary {
+.custom-btn-outline-primary {
   border: 2px solid #667eea;
   color: #667eea;
   font-size: 12px;
@@ -2422,7 +2422,7 @@ input:checked + .slider:hover:before {
   background: linear-gradient(135deg, transparent 0%, rgba(102, 126, 234, 0.1) 100%);
 }
 
-.btn-outline-primary:hover {
+.custom-btn-outline-primary:hover {
   background: 667eea;
   border-color: #667eea;
   color: white;
@@ -4234,4 +4234,64 @@ display: inline-block;
     transform: translateY(-50%);
     cursor: pointer;
     color: #656565;
+}
+
+.rounded-20 {
+  border-radius: 20px;
+}
+
+
+/* Toggle Container */
+.new-rmg-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+}
+
+/* Hide default checkbox */
+.new-rmg-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* new-rmg-slider background */
+.new-rmg-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #d0d5dd;
+    border-radius: 50px;
+    transition: 0.3s;
+}
+
+/* Circle */
+.new-rmg-slider::before {
+    content: "";
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Checked state */
+.new-rmg-toggle-switch input:checked+.new-rmg-slider {
+    background-color: #193d8aff;
+}
+
+/* Move circle */
+.new-rmg-toggle-switch input:checked+.new-rmg-slider::before {
+    transform: translateX(22px);
+}
+
+/* Optional label */
+.new-rmg-toggle-label {
+    font-size: 14px;
+    color: #344054;
 }

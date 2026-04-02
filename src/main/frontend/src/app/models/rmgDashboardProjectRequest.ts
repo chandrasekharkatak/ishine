@@ -18,5 +18,7 @@ export class RMGDashboardProjectRequest {
     sortColumn: any;
     sortColumnType: any;
     projectFilter: Map<string, string>;
+    subKeyKeyMap:any;
+
 
 }

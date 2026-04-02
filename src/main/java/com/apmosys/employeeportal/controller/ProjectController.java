@@ -284,13 +284,11 @@ public class ProjectController {
 	}
 	
 	@RequestMapping(value = "/getResourceCountListByPoprojectName", method = RequestMethod.POST)
-	public ServiceResponse getResourceCountListByPoprojectName(HttpServletRequest httpRequest,
-			@RequestBody List<String> projectNames) {
+	public ServiceResponse getResourceListByPoNumbers(HttpServletRequest httpRequest,
+			@RequestBody List<String> poNumbers) {
 
-//	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-
-		ServiceResponse response = poPortalApiService.getResourceCountListByPoprojectName(projectNames);
-		return response;
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return poPortalApiService.getResourceListByPoNumbers(poNumbers);
 	}
 	
 

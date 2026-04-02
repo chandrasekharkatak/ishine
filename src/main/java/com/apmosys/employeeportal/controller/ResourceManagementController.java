@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -490,14 +491,14 @@ public class ResourceManagementController {
 	 
 	 
 	 @PostMapping("/renewPoInIshineNew")
-	 public ServiceResponse renewPoInIshineNew(HttpServletRequest httpRequest,@RequestBody  RenewedPoSyncDto dto) {
+	 public ServiceResponse renewPoInIshineNew(HttpServletRequest httpRequest, @Valid @RequestBody RenewedPoSyncDto dto) {
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		 return poSyncOrchestratorService.renewPoInIshineNew(dto);
 	 }
 	 
 	 
 	 @PostMapping("/deletePoInIshineNew")
-	 public ServiceResponse deletePoInIshineNew(HttpServletRequest httpRequest,@RequestBody  DeletedPoSyncDTO dto) {
+	 public ServiceResponse deletePoInIshineNew(HttpServletRequest httpRequest,@Valid @RequestBody  DeletedPoSyncDTO dto) {
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		 return poSyncOrchestratorService.deletePoInIshineNew(dto);
 	 }
@@ -517,9 +518,10 @@ public class ResourceManagementController {
 	 
 	 
 	 @PostMapping("/updateAddressInPos")
-	 public ServiceResponse updateClientAddressIdOfPos(HttpServletRequest httpRequest,@RequestBody  PoClientAddressUpdateDTO dto) {
+	 public ServiceResponse updateAddressInPos(HttpServletRequest httpRequest,
+			 @Valid @RequestBody PoClientAddressUpdateDTO dto) {
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		 return poSyncOrchestratorService.updateClientAddressIdOfPos(dto);
+		 return poSyncOrchestratorService.updateAddressInPos(dto);
 	 }
 	 
 	 
@@ -611,7 +613,7 @@ public class ResourceManagementController {
 	
 	@GetMapping("/getAllApprovedPoWithTimesheet")
 	 public ServiceResponse getAllApprovedPoWithTimesheet(HttpServletRequest httpRequest) {
-//		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	 	return resourceManagementService.getAllApprovedPoWithTimesheet();
 	 }
 	
@@ -794,6 +796,11 @@ public class ResourceManagementController {
 			return null;
 		}
 		return resourceManagementService.getEmployeeTeamDepartment(teamId , empId , date);
+	}
 
+	// @Encrypted
+	@PostMapping("/getBillingLossRiskScore")
+	public ServiceResponse getBillingLossRiskScore(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getBillingLossRiskScore(rmgDashboardProjectRequest);
 	}
 }

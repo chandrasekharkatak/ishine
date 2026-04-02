@@ -12,6 +12,7 @@ export class FilterStateService {
   public selectedProjectStatus: any = null;
   public projectPageSize:any = 10;
   public myDept: boolean = false;
+  public isNewRmgDashboard:boolean = true;
 
   constructor() { }
 

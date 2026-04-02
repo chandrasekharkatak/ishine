@@ -531,11 +531,13 @@ public class ProjectCustomRepository {
                 .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
                 .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1  \n")
                 .append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n")
-                .append(" WHERE 1=1 \n")
-                .append(" AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' \n");
-
+                .append(" WHERE 1=1 \n");
+        
+        if(!projectStatus.equals("ALL_TNM") ){
+            query.append("  AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' \n");
+        }
         if (projectStatus.equals("TOTAL_ACTIVE_TNM") || projectStatus.equals("TOTAL_EXPIRED_TNM")
-                || projectStatus.equals("TOTAL_TNM")) {
+                || projectStatus.equals("TOTAL_TNM") || projectStatus.equals("ALL_TNM")) {
             query.append(" AND po_project_type = 'TNM' \n");
         }
         
@@ -796,18 +798,23 @@ public class ProjectCustomRepository {
             String sortDirection, String fixedCostFilter, List<String> projectNames) {
         StringBuilder query = new StringBuilder(projectDetailsStartQuery);
         StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" ) as T1");
-		query.append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
-				.append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n")
-				.append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
-				.append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds \n")
+        
+        // if (fixedCostFilter != null && fixedCostFilter.equals("defaulter")) {
+        //     query.append(" INNER JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND ppd.po_end_date IS NOT NULL AND DATE(ppd.po_end_date) > CURRENT_DATE AND ppd.active  = 1 \n");
+        // } else {
+        //     query.append(" INNER JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n");
+        // }
+        query.append(" INNER JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n");
+        query.append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds \n")
+		        .append(" LEFT JOIN teams t ON p.project_id = t.project_id AND t.is_active != 'N'\n")
+				.append(" LEFT JOIN employee_team_mapping etm ON t.team_id = etm.team_id AND etm.active != 0 \n")
 				.append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1 \n")
 				.append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n")
 				.append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id \n")
 				.append(" LEFT JOIN clients c ON p.client_id = c.client_id \n")
 				.append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n") 
 				.append(" WHERE 1=1 \n")
-                .append(" AND po_project_type = 'Fixed Cost' \n")
-                .append(" AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' \n");
+                .append(" AND po_project_type = 'Fixed Cost' AND p.active = 'true' \n");
 
         if (fixedCostFilter != null) {
 			if (fixedCostFilter.equals("defaulter")) {
@@ -817,6 +824,11 @@ public class ProjectCustomRepository {
 				query.append(" AND EXISTS (SELECT 1 FROM employee_team_mapping etm2 INNER JOIN teams t2 ON t2.team_id = etm2.team_id WHERE ppd.po_id = etm2.po_id AND ((etm2.end_date IS NULL AND DATE(ppd.po_end_date) >= CURDATE()) OR DATE(etm2.end_date) BETWEEN DATE(ppd.po_start_date) AND DATE(ppd.po_end_date)) AND t2.is_active = 'Y' ) \n");
 			}
         }
+        // if (fixedCostFilter != null && fixedCostFilter.equals("defaulter")) {
+		// 		query.append(" AND EXISTS (SELECT 1 FROM employee_team_mapping etm2 INNER JOIN teams t2 ON t2.team_id = etm2.team_id WHERE ppd.po_id = etm2.po_id AND etm2.active != 0 AND ((etm2.end_date IS NULL AND DATE(ppd.po_end_date) < CURDATE()) OR DATE(ppd.po_end_date) < DATE(etm2.end_date)) AND t2.is_active = 'Y' ) \n");
+        // } else {
+        //     query.append(" AND EXISTS (SELECT 1 FROM employee_team_mapping etm2 INNER JOIN teams t2 ON t2.team_id = etm2.team_id WHERE ppd.po_id = etm2.po_id AND ((etm2.end_date IS NULL AND DATE(ppd.po_end_date) >= CURDATE()) OR DATE(etm2.end_date) BETWEEN DATE(ppd.po_start_date) AND DATE(ppd.po_end_date)) AND t2.is_active = 'Y' ) \n");
+        // }
 
         if (projectNames != null && !projectNames.isEmpty()) {
             query.append(" AND p.project_name IN (:projectNames)\n");

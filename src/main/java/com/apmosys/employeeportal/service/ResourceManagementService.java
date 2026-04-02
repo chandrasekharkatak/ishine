@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -418,6 +419,17 @@ public class ResourceManagementService {
 	private EmployeeCustomRepository employeeCustomRepository;
 
 	private static final Logger log = LoggerFactory.getLogger(ResourceManagementService.class);
+
+	/** PoPortal integration: GET /api/getAllApprovedPoWithTimesheet */
+	private static final String API_GET_ALL_APPROVED_PO_WITH_TIMESHEET = "/api/getAllApprovedPoWithTimesheet";
+	private static final String OP_GET_ALL_APPROVED_PO_WITH_TIMESHEET = "getAllApprovedPoWithTimesheet";
+	private static final String PO_PORTAL_LOG_SOURCE_INTEGRATION = "PoPortal";
+	private static final String LOG_LEVEL_INFO = "INFO";
+	private static final String LOG_LEVEL_ERROR = "ERROR";
+	private static final String MSG_NO_APPROVED_PO_TIMESHEET = "No Approved Projects found with Timesheet data.";
+	private static final String MSG_NO_RECORDS_APPROVED_PO = "No records available for Approved POs.";
+	private static final String MSG_APPROVED_PO_TIMESHEET_SUCCESS = "Approved Projects with Timesheet data fetched successfully.";
+	private static final String MSG_APPROVED_PO_TIMESHEET_ERROR = "Error while fetching Approved Projects with Timesheet data.";
 
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse projectIsPresent(Project projectObj, ResourceManagementDTO resourceManagementDTO,
@@ -12995,45 +13007,59 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/sendTimesheetDetailsToShankh");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String sourceSystem = httpRequest.getRequestURI() != null ? httpRequest.getRequestURI() : "";
 
 		try {
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					"sendTimesheetDetailsToShankh", "PoPortal", null, httpRequest);
 
-			List<TimeSheetDetailsDto> timesheetDetails = projectRepository
-					.findByProjectIdAndEmployeeIdAndWorkDateBetween(payloadDTO.getTeamId(), payloadDTO.getEmpId(),
-							payloadDTO.getSt_Date(), payloadDTO.getEnd_Date());
-
-			if (timesheetDetails != null && !timesheetDetails.isEmpty()) {
-//	    		 timesheetDetails.forEach(timesheet ->{
-//	 	    		List<TimesheetDocumentDetailsDTO> docData = timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheet.getTimesheet_id());
-//	 	    		if(docData != null && !docData.isEmpty()) {
-//	 	    			timesheet.setDocData(docData);
-//	 	    		}
-//	 	    	 });
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(timesheetDetails);
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				apiLogInfo.setLogLevel("Info");
-
+			if (payloadDTO == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request payload is missing");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+				exceptionDetailsForLog = "payloadDTO is null";
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 			} else {
+				List<TimeSheetDetailsDto> timesheetDetails = projectRepository
+						.findByProjectIdAndEmployeeIdAndWorkDateBetween(payloadDTO.getTeamId(), payloadDTO.getEmpId(),
+								payloadDTO.getSt_Date(), payloadDTO.getEnd_Date());
 
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("No timesheet details found!");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				apiLogInfo.setLogLevel("Info");
-
+				if (timesheetDetails != null && !timesheetDetails.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(timesheetDetails);
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setLogLevel("Info");
+					finalHttpStatusCode = HttpStatus.OK.value();
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("No timesheet details found!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setLogLevel("Info");
+					finalHttpStatusCode = HttpStatus.OK.value();
+				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("sendTimesheetDetailsToShankh failed", e);
+			exceptionDetailsForLog = String.valueOf(e);
+			ExceptionLogContext.add(e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-			throw e;
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,
+						exceptionDetailsForLog != null ? exceptionDetailsForLog : ExceptionLogContext.get(), httpRequest);
+			}
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
-
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -13096,10 +13122,6 @@ public class ResourceManagementService {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("No project info (poProjectId) received at Ishine");
 				finalHttpStatusCode = HttpStatus.NO_CONTENT.value();
-				if (initialLog != null) {
-					apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
-							httpRequest);
-				}
 				return serviceResponse;
 			}
 			List<ResourceCountDto> data = projectRepository.getResourceCounts(pIds);
@@ -13144,10 +13166,6 @@ public class ResourceManagementService {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("No project info (poIds) received at Ishine");
 				finalHttpStatusCode = HttpStatus.NO_CONTENT.value();
-				if (initialLog != null) {
-					apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
-							httpRequest);
-				}
 				return serviceResponse;
 			}
 			List<RescCountOfPo> data = projectPoDetailsRepository.getResourceCounts(poIds);
@@ -13176,15 +13194,15 @@ public class ResourceManagementService {
 	public ServiceResponse getDocumentDataByDocId(Long docId) throws Exception {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setApiUrl("/api/getResourceCountFromProjectId");
+		apiLogInfo.setApiUrl("/api/getDocumentDataByDocIdForPO");
 		apiLogInfo.setLogLevel("INFO");
 		ApiLog initialLog = null;
 		String exceptionDetailsForLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
-				"getResourceCountFromProjectId", "PoPortal", null, httpRequest);
+				"getDocumentDataByDocId", "PoPortal", null, httpRequest);
 
-		String sourceSystem = httpRequest.getRequestURI().toString();
+		String sourceSystem = httpRequest.getRequestURI() != null ? httpRequest.getRequestURI() : "";
 		try {
 //			TimesheetDocumentDetails docDetails = new TimesheetDocumentDetails();
 			TimesheetDocumentDetailsNew docDetails = new TimesheetDocumentDetailsNew();
@@ -13196,7 +13214,7 @@ public class ResourceManagementService {
 
 				apiLogInfo.setApiResponse("Document not found...!!" + docId);
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				logService.logMyInfo(httpRequest, apiLogInfo);
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
 				return serviceResponse;
 			} else {
 				TimesheetDocumentDetailsDTO timesheetDocumentDetailsDTO = new TimesheetDocumentDetailsDTO();
@@ -13232,84 +13250,122 @@ public class ResourceManagementService {
 			finalHttpStatusCode = HttpStatus.OK.value();
 
 		} catch (Exception e) {
-			e.printStackTrace();
-			exceptionDetailsForLog = e.toString();
-			log.error("error in getDocumentDataByDocId" + e);
+			exceptionDetailsForLog = String.valueOf(e);
+			ExceptionLogContext.add(e);
+			log.error("getDocumentDataByDocId failed docId={}", docId, e);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			serviceResponse.setServiceResponse(e.getMessage());
-			throw e;
-//				serviceResponse.setServiceMessage(e.getMessage());
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 
 		} finally {
 			if (initialLog != null) {
-				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,
+						exceptionDetailsForLog != null ? exceptionDetailsForLog : ExceptionLogContext.get(),
 						httpRequest);
 			}
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
 		return serviceResponse;
 	}
 
 	public ServiceResponse getAllApprovedPoWithTimesheet() {
 		ServiceResponse serviceResponse = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setApiUrl("/api/getAllApprovedPoWithTimesheet");
-		apiLogInfo.setLogLevel("INFO");
+		LogDTO apiLogInfo = createGetAllApprovedPoWithTimesheetLogDto();
 		ApiLog initialLog = null;
 		String exceptionDetailsForLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-
-		// Start log
-		initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
-				"getAllApprovedPoWithTimesheet", "PoPortal", null, httpRequest);
-
-		String sourceSystem = httpRequest.getRequestURI().toString();
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
 
 		try {
-			// Fetch data from repository
-			List<Object> resultList = employeeTeamMapRepository.getAllApprovedPoWithTimesheet();
+			initialLog = apiLogUtility.startLog(
+					poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					OP_GET_ALL_APPROVED_PO_WITH_TIMESHEET,
+					PO_PORTAL_LOG_SOURCE_INTEGRATION,
+					null,
+					httpRequest);
 
-			// Validate result
-			if (resultList == null || resultList.isEmpty()) {
-				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				serviceResponse.setServiceResponse("No Approved PO Projects found with Timesheet data.");
-				serviceResponse.setServiceMessage("No records available for Approved POs.");
+			log.info("[{}] start path={}", OP_GET_ALL_APPROVED_PO_WITH_TIMESHEET, sourceSystem);
 
-				apiLogInfo.setApiResponse("No Approved PO Projects found with Timesheet data.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				logService.logMyInfo(httpRequest, apiLogInfo);
+			List<Object> resultList = fetchAllApprovedPoWithTimesheet();
 
-				return serviceResponse;
+			if (resultList.isEmpty()) {
+				applyGetAllApprovedPoWithTimesheetNotFound(serviceResponse, apiLogInfo);
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
+				log.info("[{}] completed: no records path={}", OP_GET_ALL_APPROVED_PO_WITH_TIMESHEET, sourceSystem);
 			} else {
-				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				serviceResponse.setServiceResponse(resultList);
-				serviceResponse.setServiceMessage("Approved PO Projects with Timesheet data fetched successfully.");
-
-				apiLogInfo.setApiResponse("Approved PO Projects with Timesheet data fetched successfully.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				applyGetAllApprovedPoWithTimesheetSuccess(serviceResponse, apiLogInfo, resultList);
+				finalHttpStatusCode = HttpStatus.OK.value();
+				log.info("[{}] completed: recordCount={} path={}",
+						OP_GET_ALL_APPROVED_PO_WITH_TIMESHEET, resultList.size(), sourceSystem);
 			}
-
-			finalHttpStatusCode = HttpStatus.OK.value();
-
 		} catch (Exception e) {
-			e.printStackTrace();
-			exceptionDetailsForLog = e.toString();
-			log.error("error in getAllApprovedPoWithTimesheet" + e);
-			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			serviceResponse.setServiceResponse(ExceptionUtils.getExceptionMessage(e));
-			serviceResponse.setServiceMessage("Error while fetching Approved PO Projects with Timesheet data.");
-
-			// rethrow if you want global handler to catch it(if in future roolback logic is
-			// needed)//reff-by Dibya
-			throw e;
-
+			log.error("[{}] failed path={}", OP_GET_ALL_APPROVED_PO_WITH_TIMESHEET, sourceSystem, e);
+			applyGetAllApprovedPoWithTimesheetError(serviceResponse, apiLogInfo, e);
+			exceptionDetailsForLog = String.valueOf(e);
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		} finally {
 			if (initialLog != null) {
 				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
 						httpRequest);
 			}
+			apiLogInfo.setApiRequest(buildGetAllApprovedPoWithTimesheetApiRequestSummary(sourceSystem));
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
 
 		return serviceResponse;
+	}
+
+	private List<Object> fetchAllApprovedPoWithTimesheet() {
+		return Optional.ofNullable(employeeTeamMapRepository.getAllApprovedPoWithTimesheet())
+				.orElseGet(Collections::emptyList);
+	}
+
+	private static LogDTO createGetAllApprovedPoWithTimesheetLogDto() {
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl(API_GET_ALL_APPROVED_PO_WITH_TIMESHEET);
+		apiLogInfo.setLogLevel(LOG_LEVEL_INFO);
+		return apiLogInfo;
+	}
+
+	private static String buildRequestPathForLogging(HttpServletRequest request) {
+		if (request == null) {
+			return "";
+		}
+		String uri = request.getRequestURI();
+		String query = request.getQueryString();
+		return (query != null && !query.isEmpty()) ? uri + "?" + query : uri;
+	}
+
+	private static String buildGetAllApprovedPoWithTimesheetApiRequestSummary(String path) {
+		return OP_GET_ALL_APPROVED_PO_WITH_TIMESHEET + "; path=" + path;
+	}
+
+	private static void applyGetAllApprovedPoWithTimesheetSuccess(ServiceResponse serviceResponse, LogDTO apiLogInfo,
+			List<Object> resultList) {
+		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		serviceResponse.setServiceResponse(resultList);
+		serviceResponse.setServiceMessage(MSG_APPROVED_PO_TIMESHEET_SUCCESS);
+		apiLogInfo.setApiResponse(MSG_APPROVED_PO_TIMESHEET_SUCCESS);
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	}
+
+	private static void applyGetAllApprovedPoWithTimesheetNotFound(ServiceResponse serviceResponse, LogDTO apiLogInfo) {
+		serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		serviceResponse.setServiceResponse(MSG_NO_APPROVED_PO_TIMESHEET);
+		serviceResponse.setServiceMessage(MSG_NO_RECORDS_APPROVED_PO);
+		apiLogInfo.setApiResponse(MSG_NO_APPROVED_PO_TIMESHEET);
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	}
+
+	private static void applyGetAllApprovedPoWithTimesheetError(ServiceResponse serviceResponse, LogDTO apiLogInfo,
+			Exception e) {
+		serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		serviceResponse.setServiceResponse(ExceptionUtils.getExceptionMessage(e));
+		serviceResponse.setServiceMessage(MSG_APPROVED_PO_TIMESHEET_ERROR);
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setLogLevel(LOG_LEVEL_ERROR);
+		apiLogInfo.setApiResponse(MSG_APPROVED_PO_TIMESHEET_ERROR + ": " + e.getMessage());
+		serviceResponse.setServiceError(e.getMessage());
 	}
 
 	public ServiceResponse getActiveTeamAndTimeSheetWithForRm(List<Long> projectIds) {
@@ -15919,6 +15975,7 @@ public class ResourceManagementService {
 						deptIds, projectStatus, projectNames, sortBy, sortDirection, page);
 			break;
 		case "TOTAL_TNM":
+		case "ALL_TNM":
 		case "TOTAL_ACTIVE_TNM":
 		case "TOTAL_MONITORING":
 		case "TOTAL_INTERNAL":
@@ -16220,6 +16277,7 @@ public class ResourceManagementService {
 		case "TOTAL_MONITORING":
 			return "Monitoring".equalsIgnoreCase(projectType);
 		case "TOTAL_TNM":
+		case "ALL_TNM":
 		case "TOTAL_ACTIVE_TNM":
 		case "TOTAL_EXPIRED_TNM":
 			return "TNM".equalsIgnoreCase(projectType);
@@ -16572,6 +16630,7 @@ public class ResourceManagementService {
 		case "TOTAL_EXPIRED_TNM":
 				return projectCustomRepository.handleExpiredTNMProjectsCount(rmgDashboardProjectRequest,
 						deptIds, projectStatus, projectNames, sortBy, sortDirection);
+		case "ALL_TNM":
 		case "TOTAL_TNM":
 		case "TOTAL_ACTIVE_TNM":
 		case "TOTAL_MONITORING":
@@ -17339,5 +17398,117 @@ public class ResourceManagementService {
 		return response;
 	}
 
+	@Transactional(readOnly = true)
+	public ServiceResponse getBillingLossRiskScore(RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			if (rmgDashboardProjectRequest == null) {
+				return failResponse(serviceResponse, apiLogInfo, "Invalid input: Request is null.");
+			}
+			if (rmgDashboardProjectRequest.getCurrentUserEmpId() == null) {
+				return failResponse(serviceResponse, apiLogInfo, "Invalid input: Employee Id cannot be null.");
+			}
+			if (rmgDashboardProjectRequest.getCurrentUserType() == null) {
+				return failResponse(serviceResponse, apiLogInfo, "Invalid input: User Type cannot be null.");
+			}
+
+			if (rmgDashboardProjectRequest.getSubKeyKeyMap() == null || rmgDashboardProjectRequest.getSubKeyKeyMap().isEmpty()) {
+				return failResponse(serviceResponse, apiLogInfo, "Invalid input: Unable to fetch Billing Loss Risk Score.");
+			}
+
+			String userType = rmgDashboardProjectRequest.getCurrentUserType();
+			Set<String> allowedUserTypes = Set.of("HOD", "ADMIN", "USER");
+			if (!allowedUserTypes.contains(userType)) {
+				return failResponse(serviceResponse, apiLogInfo, "Invalid input: All role flags are false.");
+			}
+
+			Long empId = rmgDashboardProjectRequest.getCurrentUserEmpId();
+			List<Object[]> objList = employeeRepository.getJrAndJrNameAndDeptNameByEmpId(empId);
+			if (objList == null || objList.isEmpty()) {
+				return failResponse(serviceResponse, apiLogInfo, "Employee not found.");
+			}
+
+			List<Long> deptIds = Optional.ofNullable(resolveDepartments(rmgDashboardProjectRequest))
+					.orElse(Collections.emptyList());
+			Set<Integer> projectIds = getProjectIdsByDeptIds(deptIds);
+
+			if (userType.equals("HOD") || userType.equals("USER")) {
+				projectIds.addAll(buildProjectIdSetForHodOrUser(rmgDashboardProjectRequest.getCurrentUserEmpId()));
+				List<Long> selectedDeptList = rmgDashboardProjectRequest.getDepartmentIds();
+				if (selectedDeptList != null && !selectedDeptList.isEmpty()) {
+					Set<Integer> matchingDeptProjects = getProjectIdsByDeptIds(selectedDeptList);
+					projectIds.retainAll(matchingDeptProjects);
+				}
+			}
+
+			Map<String, Long> allProjectStatusCount = new LinkedHashMap<>();
+			List<Integer> projectIdsList = new ArrayList<>();
+
+			for(Map.Entry<String, String> entry : rmgDashboardProjectRequest.getSubKeyKeyMap().entrySet()){
+				String subKey = entry.getKey();
+				if(subKey.equals("TOTAL_FC")){
+					rmgDashboardProjectRequest.setFixedCostFilter("defaulter");
+					rmgDashboardProjectRequest.setProjectStatus("TOTAL_FC");
+				}
+				if(subKey.equals("TOTAL_EXPIRED_TNM")){
+					rmgDashboardProjectRequest.setProjectStatus("TOTAL_EXPIRED_TNM");
+					rmgDashboardProjectRequest.setExpiredProjectFilter("allExpiredTNMProjectsCount");
+				}
+				if(subKey.equals("TIMESHEET_NON_COMPLIANCE")){
+					boolean deptFlag = false;
+					boolean isAllAccessEmployee = determineIfAllAccessEmployee(objList, empId);
+
+					Set<Integer> hodProjects = new HashSet<>();
+					if (deptIds != null && !deptIds.isEmpty()) {
+						deptFlag = true;
+						hodProjects = getHodProjectIds(empId);
+					} else {
+						deptIds.add(employeeRepository.getJobRoleIdByEmpId(empId).orElse(0l));
+					}
+
+					Set<Integer> newProjectIds = getProjectIdsByType("TIMESHEET_NON_COMPLIANCE", isAllAccessEmployee,
+							hodProjects,
+							deptFlag, empId);
+					Set<Integer> filteredProjectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(newProjectIds, "ALL", deptIds);
+					projectIdsList.addAll(getBillingLossRiskScoreProjectIds(subKey, deptIds, filteredProjectIds));
+					continue;
+				}
+				projectIdsList.addAll(getBillingLossRiskScoreProjectIds(subKey, deptIds, projectIds));
+			}
+			serviceResponse.setServiceResponse(new HashSet<>(projectIdsList));
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			log.error("Error in getProjectStatusCount", e);
+			serviceResponse.setServiceError(e.getMessage());
+			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
+		}
+		return serviceResponse;
+	}
+
+	private List<Integer> getBillingLossRiskScoreProjectIds(String subKey, List<Long> deptIds,
+			Set<Integer> projectIds) {
+		List<Integer> projectIdsList = new ArrayList<>();
+
+		switch (subKey) {
+			case "TIMESHEET_NON_COMPLIANCE":
+				projectIdsList = projectRepository.getTimesheetNonComplianceProjectIds(deptIds, projectIds);
+				break;
+			case "TOTAL_EXPIRED_TNM":
+				projectIdsList = projectRepository.getExpiredTnmProjectIds(deptIds);
+				break;
+			case "TOTAL_FC":
+				projectIdsList = projectRepository.getFCDefaulterProjectIds(deptIds);
+				break;
+			case "UNDERBOARDED":
+				projectIdsList = projectRepository.getUnderboardedProjectIds(deptIds);
+				break;
+			case "OVERBOARDED":
+				projectIdsList = projectRepository.getOverboardedProjectIds(deptIds);
+				break;
+		}
+		return projectIdsList;
+	}
 
 }

@@ -28,5 +28,7 @@ public class RMGDashboardProjectRequest {
     private String sortColumn;
     private String sortColumnType;
     private Map<String, String> projectFilter;
+    private Map<String, String> subKeyKeyMap;
+
 }
 
