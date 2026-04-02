@@ -1995,7 +1995,6 @@ private ServiceResponse buildErrorResponse(String message, String errorDetails) 
 public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO request) {
 
     ServiceResponse response = new ServiceResponse();
-
     validateBulkApproveRejectRequest(request);
     String status = request.getStatus().trim().toUpperCase();
     List<Long> timesheetIdsReq = request.getTimesheetIds().stream().distinct().collect(Collectors.toList());
@@ -2048,12 +2047,14 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
         .collect(Collectors.toSet());
 
     Map<Long, Integer> projectClientSideMap =
-            projectsRepository.findHasClientSideByProjectIds(allProjectIds)
-                    .stream()
-                    .collect(Collectors.toMap(
-                            r -> ((Number) r[0]).longValue(),
-                            r -> ((Boolean) r[1]) ? 1 : 0
-                    ));
+    	    projectsRepository.findHasClientSideByProjectIds(allProjectIds)
+    	        .stream()
+    	        .filter(r -> r != null && r.length >= 2 && r[0] instanceof Number)
+    	        .collect(Collectors.toMap(
+    	            r -> ((Number) r[0]).longValue(),
+    	            r -> (r[1] instanceof Boolean && (Boolean) r[1]) ? 1 : 0,
+    	            (existing, replacement) -> existing
+    	        ));
 
         for (EmployeeTimesheetsNewDTO ts : timesheets) {
 
@@ -2221,6 +2222,7 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 		saveSkippedTimesheets(skippedTimesheets,request.getUpdatedBy());
 
     return response;
+
 }
 
 /**
