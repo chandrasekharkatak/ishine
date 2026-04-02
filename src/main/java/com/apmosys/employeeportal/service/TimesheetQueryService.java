@@ -94,6 +94,16 @@ public class TimesheetQueryService {
     @Autowired
     private TimesheetDocumentServiceNew timesheetDocumentServiceNew;
 
+    private String resolveTimesheetApiUrl(String legacyFallback) {
+        if (httpRequest != null) {
+            String path = httpRequest.getServletPath();
+            if (path != null && !path.isEmpty()) {
+                return path;
+            }
+        }
+        return legacyFallback;
+    }
+
     /**
      * Gets all timesheets by employee ID.
      * 
@@ -104,8 +114,11 @@ public class TimesheetQueryService {
         ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
         apiLogInfo.setSubFeatureName("add_timesheet");
-        apiLogInfo.setApiUrl("/api/getAllMyTimesheetsByEmpId");
+        apiLogInfo.setApiUrl(resolveTimesheetApiUrl("/api/getAllMyTimesheetsByEmpId"));
         apiLogInfo.setLogLevel("INFO");
+        if (timesheetDTO != null && timesheetDTO.getEmpId() != null) {
+            apiLogInfo.setEmpId(timesheetDTO.getEmpId());
+        }
         StringBuilder logBuilder = new StringBuilder();
         logBuilder.append("startDate : ").append(timesheetDTO.getStartDate())
                   .append(" ,endDate : ").append(timesheetDTO.getEndDate());
@@ -174,8 +187,11 @@ public class TimesheetQueryService {
         ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
         apiLogInfo.setSubFeatureName("add_timesheet");
-        apiLogInfo.setApiUrl("/api/v2/timesheet/getTimesheetMetadataByEmpId");
+        apiLogInfo.setApiUrl(resolveTimesheetApiUrl("/api/v2/timesheet/getTimesheetMetadataByEmpId"));
         apiLogInfo.setLogLevel("INFO");
+        if (timesheetDTO != null && timesheetDTO.getEmpId() != null) {
+            apiLogInfo.setEmpId(timesheetDTO.getEmpId());
+        }
 
         StringBuilder logBuilder = new StringBuilder();
         logBuilder.append("empId : ").append(timesheetDTO.getEmpId())

@@ -1942,6 +1942,10 @@ public class TimesheetService {
 		apiLogInfo.setSubFeatureName("view_my_timesheets");
 		apiLogInfo.setApiUrl("/api/v2/timesheet/summary");
 		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setEmpId(timesheetDTO != null ? timesheetDTO.getEmpId() : null);
+		apiLogInfo.setApiRequest("empId: " + (timesheetDTO != null ? timesheetDTO.getEmpId() : null) + ", startDate: "
+				+ (timesheetDTO != null ? timesheetDTO.getStartDate() : null) + ", endDate: "
+				+ (timesheetDTO != null ? timesheetDTO.getEndDate() : null));
 
 		try {
 			if (timesheetDTO.getEmpId() == null || timesheetDTO.getStartDate() == null || timesheetDTO.getEndDate() == null) {

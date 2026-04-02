@@ -86,6 +86,16 @@ public class TimesheetDashboardService {
 	@PersistenceContext
     private EntityManager entityManager;
 
+    private String resolveTimesheetApiUrl(String legacyFallback) {
+        if (httpRequest != null) {
+            String path = httpRequest.getServletPath();
+            if (path != null && !path.isEmpty()) {
+                return path;
+            }
+        }
+        return legacyFallback;
+    }
+
     /**
      * Gets timesheet dashboard count for employee.
      * 
@@ -336,7 +346,9 @@ public class TimesheetDashboardService {
         ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
         apiLogInfo.setSubFeatureName("getTimesheetDashboardCountForProject");
+        apiLogInfo.setApiUrl(resolveTimesheetApiUrl("/api/getTimesheetDashboardCountForProject"));
         apiLogInfo.setLogLevel("INFO");
+        apiLogInfo.setEmpId(empId);
         StringBuilder logBuilder = new StringBuilder();
         logBuilder.append("getTimesheetDashboardCountForProject");
         
@@ -380,6 +392,8 @@ public class TimesheetDashboardService {
             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
             apiLogInfo.setApiResponse(e.getMessage());
             apiLogInfo.setLogLevel("ERROR");
+            apiLogInfo.setApiRequest(logBuilder.toString());
+            logService.logMyInfo(httpRequest, apiLogInfo);
         }
         
         return response;
@@ -1129,7 +1143,8 @@ public class TimesheetDashboardService {
     public ServiceResponse getProjectViewForClientAttendanceStatus(@RequestBody TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getProjectViewForClientAttendanceStatus");
+	    apiLogInfo.setApiUrl(resolveTimesheetApiUrl("/api/getProjectViewForClientAttendanceStatus"));
+	    apiLogInfo.setSubFeatureName("getProjectViewForClientAttendanceStatus");
 	    apiLogInfo.setLogLevel("INFO");
 	    
 	    String projectName = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getProjectName());
@@ -1301,6 +1316,7 @@ public class TimesheetDashboardService {
  
 		 LogDTO apiLogInfo = new LogDTO();
 		 apiLogInfo.setSubFeatureName("getEmployeeSummaryOnExport");
+		 apiLogInfo.setApiUrl(resolveTimesheetApiUrl("/api/getEmployeeSummaryOnExport"));
 		 apiLogInfo.setLogLevel("INFO");
 		 StringBuilder logBuilder = new StringBuilder();
 		 logBuilder.append("getEmployeeTimesheetAsCalenderByProjectId");
@@ -1513,6 +1529,8 @@ public class TimesheetDashboardService {
 					 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					 apiLogInfo.setApiResponse(e.getMessage()); 
 					 apiLogInfo.setLogLevel("ERROR");
+					 apiLogInfo.setApiRequest(logBuilder.toString());
+					 logService.logMyInfo(httpRequest, apiLogInfo);
 			 }
 			 
 		 return response;
