@@ -106,12 +106,21 @@
                 {{ totalElements }} total · {{ itemsPerPage }} per page · server-side sort
               </p>
             </div>
-            <div class="d-flex grievance-list-top-actions">
+            <div class="d-flex grievance-list-top-actions flex-wrap">
               <button type="button" class="btn btn-outline-primary btn-sm" (click)="goBack()">
                 <i class="fa fa-arrow-left me-1" aria-hidden="true"></i>Back
               </button>
               <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="listLoading" (click)="loadList()">
                 <i class="fa fa-refresh me-1" aria-hidden="true"></i>Refresh
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-sm"
+                [disabled]="listLoading || exportLoading || totalElements === 0"
+                (click)="exportAllScenarios()"
+                title="Download all scenarios (Excel)"
+              >
+                <i class="fa fa-download me-1" aria-hidden="true"></i>{{ exportLoading ? 'Exporting…' : 'Export' }}
               </button>
             </div>
           </div>
@@ -137,9 +146,6 @@
                   <th scope="col" class="info-label sortable-th" (click)="sortBy('scenarioLabel')">
                     Label <i [class]="getSortIcon('scenarioLabel')" aria-hidden="true"></i>
                   </th>
-                  <th scope="col" class="info-label sortable-th" (click)="sortBy('sortOrder')">
-                    Sort <i [class]="getSortIcon('sortOrder')" aria-hidden="true"></i>
-                  </th>
                   <th scope="col" class="info-label sortable-th" (click)="sortBy('isActive')">
                     Active <i [class]="getSortIcon('isActive')" aria-hidden="true"></i>
                   </th>
@@ -148,7 +154,7 @@
               </thead>
               <tbody>
                 <tr *ngIf="totalElements === 0">
-                  <th colspan="8" class="text-center info-label">No details to display...</th>
+                  <th colspan="7" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr
                   *ngFor="
@@ -159,11 +165,23 @@
                   "
                 >
                   <td>{{ (page - 1) * itemsPerPage + i + 1 }}</td>
-                  <td>{{ displayModuleName(row) }}</td>
-                  <td>{{ row.subFeatureName || '—' }}</td>
-                  <td>{{ row.featureName || '—' }}</td>
+                  <td>
+                    <span class="grievance-scenario-list-tag">{{ displayModuleName(row) }}</span>
+                  </td>
+                  <td>
+                    <span
+                      class="grievance-scenario-list-tag"
+                      [class.grievance-scenario-list-tag--empty]="!row.subFeatureName"
+                    >
+                      {{ row.subFeatureName || '—' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="grievance-scenario-list-tag" [class.grievance-scenario-list-tag--empty]="!row.featureName">
+                      {{ row.featureName || '—' }}
+                    </span>
+                  </td>
                   <td class="text-break">{{ row.scenarioLabel }}</td>
-                  <td class="text-nowrap">{{ row.sortOrder }}</td>
                   <td>{{ row.isActive === 1 ? 'Yes' : 'No' }}</td>
                   <td class="grievance-action-cell">
                     <button

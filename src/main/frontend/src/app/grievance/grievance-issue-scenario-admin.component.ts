@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { first } from 'rxjs/operators';
 import Swal from 'sweetalert2';
+import { ExportExcelService } from '../services/export-excel.service';
 import { GrievanceService } from '../services/grievance.service';
 
 @Component({
@@ -14,11 +16,13 @@ export class GrievanceIssueScenarioAdminComponent implements OnInit {
   loading = true;
   saving = false;
   listLoading = false;
+  exportLoading = false;
+  /** Server caps page size at 100; used when exporting all rows. */
+  private readonly exportFetchSize = 100;
   scenarios: any[] = [];
   totalElements = 0;
   page = 1;
-  /** Aligned with grievance ticket list default page size. */
-  readonly itemsPerPage = 20;
+  readonly itemsPerPage = 10;
   sortColumn = 'tabKey';
   sortDirection: 'asc' | 'desc' = 'asc';
   alertMessage = '';
@@ -52,7 +56,8 @@ export class GrievanceIssueScenarioAdminComponent implements OnInit {
 
   constructor(
     private grievanceService: GrievanceService,
-    private router: Router
+    private router: Router,
+    private exportExcelService: ExportExcelService
   ) {}
 
   ngOnInit(): void {
@@ -359,6 +364,77 @@ export class GrievanceIssueScenarioAdminComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/grievance']);
+  }
+
+  /** Fetches every scenario (paginated API, up to 100 per request) and downloads Excel. */
+  exportAllScenarios(): void {
+    if (this.exportLoading || this.totalElements === 0) {
+      return;
+    }
+    this.exportLoading = true;
+    const sortCol = this.sortColumn;
+    const sortDir = this.sortDirection;
+    const size = this.exportFetchSize;
+    this.grievanceService
+      .listAdminIssueScenarios(1, size, sortCol, sortDir)
+      .pipe(first())
+      .subscribe({
+        next: (res: any) => {
+          if (res?.serviceStatus !== 'Success') {
+            this.exportLoading = false;
+            this.showAlert(res?.serviceResponse || 'Unable to export scenarios.', 'danger');
+            return;
+          }
+          const dto = res.serviceResponse;
+          const total = dto?.totalElements ?? 0;
+          let rows: any[] = [...(dto?.content || [])];
+          const totalPages = Math.max(1, Math.ceil(total / size));
+          if (totalPages <= 1) {
+            this.exportLoading = false;
+            this.writeScenarioExportWorkbook(rows);
+            return;
+          }
+          const rest$ = [];
+          for (let p = 2; p <= totalPages; p++) {
+            rest$.push(this.grievanceService.listAdminIssueScenarios(p, size, sortCol, sortDir).pipe(first()));
+          }
+          forkJoin(rest$).subscribe({
+            next: (results: any[]) => {
+              results.forEach((r) => {
+                if (r?.serviceStatus === 'Success' && Array.isArray(r?.serviceResponse?.content)) {
+                  rows = rows.concat(r.serviceResponse.content);
+                }
+              });
+              this.exportLoading = false;
+              this.writeScenarioExportWorkbook(rows);
+            },
+            error: () => {
+              this.exportLoading = false;
+              this.showAlert('Export failed.', 'danger');
+            },
+          });
+        },
+        error: () => {
+          this.exportLoading = false;
+          this.showAlert('Export failed.', 'danger');
+        },
+      });
+  }
+
+  private writeScenarioExportWorkbook(raw: any[]): void {
+    const data = raw.map((row, idx) => ({
+      'Sr No.': idx + 1,
+      'Scenario ID': row.scenarioId,
+      Category: this.displayModuleName(row),
+      'Sub-category': row.subFeatureName || '',
+      Feature: row.featureName || '',
+      Label: row.scenarioLabel || '',
+      'Sort order': row.sortOrder ?? '',
+      Active: row.isActive === 1 ? 'Yes' : 'No',
+      'Tab key (storage)': row.tabKey || '',
+    }));
+    const stamp = new Date().toISOString().slice(0, 10);
+    this.exportExcelService.exportTableDataToExcel(data, `grievance-issue-scenarios-${stamp}.xlsx`);
   }
 
   private showAlert(message: string, type: 'success' | 'danger' | 'warning'): void {

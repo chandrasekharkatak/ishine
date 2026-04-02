@@ -138,16 +138,19 @@
           </div>
 
           <div class="col-12">
-            <div class="row g-3 g-lg-4 grievance-edit-field-row">
-              <div [ngClass]="canViewAllTickets() ? 'col-12 col-md-6' : 'col-12'">
+            <div
+              class="grievance-edit-status-assign-row"
+              [class.grievance-edit-status-assign-row--split]="canViewAllTickets()"
+            >
+              <div class="grievance-edit-status-assign-cell">
                 <label class="form-label fw-semibold text-secondary small" for="editStatus">Status</label>
-                <select id="editStatus" class="form-control grievance-select" [(ngModel)]="ticketForm.status">
+                <select id="editStatus" class="form-control grievance-select grievance-edit-status-select" [(ngModel)]="ticketForm.status">
                   <option *ngFor="let status of statusOptions" [value]="status">{{ getStatusLabel(status) }}</option>
                 </select>
               </div>
-              <div class="col-12 col-md-6" *ngIf="canViewAllTickets()">
+              <div class="grievance-edit-status-assign-cell" *ngIf="canViewAllTickets()">
                 <label class="form-label fw-semibold text-secondary small d-block" for="editAssignee">Assign To (Development / HR)</label>
-                <mat-form-field appearance="outline" class="w-100 grievance-assignee-field" subscriptSizing="dynamic">
+                <mat-form-field appearance="outline" class="grievance-assignee-field grievance-edit-assignee-mat-field" subscriptSizing="dynamic">
                   <mat-select
                     id="editAssignee"
                     [(ngModel)]="ticketForm.assignedToEmpId"
