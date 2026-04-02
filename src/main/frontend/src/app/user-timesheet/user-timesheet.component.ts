@@ -1,8 +1,10 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Feature } from '../models/feature';
+import { Log } from '../models/log';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
+import { LogService } from '../services/log.service';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -16,16 +18,32 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
   tabName:any = 'Timesheets';
   currentUser:User;
   userMapping:any = {};
+  log: Log;
 
   constructor(
     private authenticationService: AuthenticationService,
     private router: Router,
     private route: ActivatedRoute,
+    private logService: LogService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.logService.log.subscribe(x => {
+      this.log = x;
+      if (this.log) {
+        this.log.tabName = this.tabName;
+        this.log.featureName = this.tabName;
+      }
+    });
    }
 
   ngOnInit(): void {
+    if (!this.log) {
+      this.log = new Log();
+    }
+    if (this.currentUser?.empId != null) {
+      this.log.empId = this.currentUser.empId;
+    }
+    this.logService.updateLogInfo(this.log);
     //console.log("this.currentUser : ", this.currentUser);
     //console.log("Mapped Features : ", this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName));
 

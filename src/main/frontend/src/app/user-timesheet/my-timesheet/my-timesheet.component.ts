@@ -916,6 +916,7 @@ get tooltipCta(): string {
    */
   applyDateRangeTypeAndLoad() {
     const today = new Date();
+    this.page = 1;
     if (this.dateRangeType === 'currentMonth') {
       const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
       this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
@@ -941,6 +942,7 @@ get tooltipCta(): string {
     this.dateRangeType = 'custom';
     this.startDate = null;
     this.endDate = null;
+    this.page = 1;
   }
 
   showBulkButton(){
