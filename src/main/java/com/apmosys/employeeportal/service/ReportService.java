@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -24,6 +25,8 @@ import com.apmosys.employeeportal.dto.FeatureMasterDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.ProjectEmployeeTeamReportDTO;
+import com.apmosys.employeeportal.dto.ProjectNamesRequestDTO;
 import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
@@ -1010,8 +1013,39 @@ public class ReportService {
 	    return response;
 	}
 
-	
-	
+	public ServiceResponse getEmployeesWorkingInProjects(ProjectNamesRequestDTO request) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (request == null || request.getProjectNames() == null || request.getProjectNames().isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceError("projectNames is required and must not be empty");
+				return response;
+			}
+			if (request.getStartDate() == null || request.getEndDate() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceError("startDate and endDate are required (yyyy-MM-dd)");
+				return response;
+			}
+			if (request.getStartDate().isAfter(request.getEndDate())) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceError("startDate must not be after endDate");
+				return response;
+			}
+			LocalDateTime rangeStart = request.getStartDate().atStartOfDay();
+			LocalDateTime rangeEnd = request.getEndDate().atTime(LocalTime.MAX);
+			List<ProjectEmployeeTeamReportDTO> rows = employeeTeamMapRepository
+					.findEmployeesInProjectsByProjectNames(request.getProjectNames(), rangeStart, rangeEnd);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(rows);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
 	}
+
+}
 
 
