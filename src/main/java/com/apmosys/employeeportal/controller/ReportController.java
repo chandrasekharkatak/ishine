@@ -17,6 +17,7 @@ import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.BulkBillableUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
+import com.apmosys.employeeportal.dto.ProjectNamesRequestDTO;
 import com.apmosys.employeeportal.service.BioMaxService;
 import com.apmosys.employeeportal.service.ReportService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -143,9 +144,12 @@ public class ReportController {
 			ServiceResponse response = reportService.updateBulkBillableEmployeeReport(bulkBillableUpdateDTO);
 			return response;
 		}
-		
-		
-		
+
+		@RequestMapping(value = "/getEmployeesWorkingInProjects", method = RequestMethod.POST)
+		public ServiceResponse getEmployeesWorkingInProjects(@RequestBody ProjectNamesRequestDTO request) {
+			return reportService.getEmployeesWorkingInProjects(request);
+		}
+
 		@Scheduled(cron = "0 59 23 * * ?")
 		public ServiceResponse runDefaultProjectMappingCron() {
 		    return reportService.updateDefaultProjectMappings();
