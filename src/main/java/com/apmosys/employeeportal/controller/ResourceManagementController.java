@@ -810,6 +810,7 @@ public class ResourceManagementController {
 	public ServiceResponse getEmployeeMappedToClientPercent() {
 		return resourceManagementService.getEmployeeMappedToClientPercent();
 	}
+
 	
 
 //	@Scheduled(cron = "${clientSyncFromPoCron.time}")

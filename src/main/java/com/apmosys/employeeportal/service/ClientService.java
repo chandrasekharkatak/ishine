@@ -56,17 +56,12 @@ public class ClientService {
 
 		 
 		 
-		    List<Client> byPoClient = clientRepository.findByPoClientId(poClientId);
+		   Optional<Client> byPoClient = clientRepository.findByPoClientId(poClientId);
 
-		    if (byPoClient.size() > 1) {
-		        throw new IllegalStateException(
-		                "DUPLICATE CLIENT found for poClientId=" + poClientId +
-		                " (" + byPoClient.size() + " records in DB)"
-		        );
-		    }
+		
 
-		    if (byPoClient.size() == 1) {
-		        Client existing = byPoClient.get(0);
+		    if (byPoClient.isPresent()) {
+		        Client existing = byPoClient.get();
 
 	            String existingNormalized =
 	                    existing.getClientName() != null
