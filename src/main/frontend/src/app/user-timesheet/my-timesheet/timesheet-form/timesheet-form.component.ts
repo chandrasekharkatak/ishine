@@ -4450,7 +4450,6 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
             projectId: projectData.projectId != null ? Number(projectData.projectId) : null,
             projectName: projectData.projectName,
             clientSideId: projectData.clientSideId,
-            hasClientSideId: projectData.hasClientSideId || !!projectData.clientSideId,
             hasClientFlag: projectData.hasClientFlag || !!projectData.clientId,
             shadowEmpId: projectData.shadowEmpId,
             isShadowTimesheet: projectData.isShadowTimesheet || false,
@@ -4533,9 +4532,15 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
             if (proj.projectId && proj.projectList && proj.projectList.length > 0) {
               // Ensure projectId is in the list and matches type
               const matchedProject = proj.projectList.find(p => Number(p.projectId) === Number(proj.projectId));
+              if (matchedProject){
+                proj.hasClientSideId=matchedProject.hasClientSideId;
+
+              }
+
               if (matchedProject && !proj.projectName) {
                 proj.projectName = matchedProject.projectName;
               }
+              console.log("project at last => ",proj)
             }
           });
         });
@@ -6030,6 +6035,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
                         if (matchedProject) {
                           // Ensure ID is set as number for Angular binding
                           proj.projectId = projectIdNum;
+                          proj.hasClientSideId=matchedProject.hasClientSideId;
                           if (!proj.projectName && matchedProject.projectName) {
                             proj.projectName = matchedProject.projectName;
                             console.log(`[getProjectListForDateAndEmpId] Updated projectName for projectId ${proj.projectId}: ${proj.projectName}`);
