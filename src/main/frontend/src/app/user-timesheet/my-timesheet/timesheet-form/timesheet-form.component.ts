@@ -3245,6 +3245,8 @@ this.isNightShift = false;
 
       // Round to 2 decimal places
       this.totalPresence = Math.round(finalHours * 100) / 100;
+      console.log('total presence',this.totalPresence);
+      this.onHoursChange();
     } catch (error) {
       this.totalPresence = 0;
     }
@@ -5393,7 +5395,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       // ---------- CALCULATION ----------
       const diffMs = outDateTime.getTime() - inDateTime.getTime();
       const totalHours = diffMs / (1000 * 60 * 60);
-
+      console.log('totalHoursForLocation', totalHours);
       return Math.round(totalHours * 100) / 100;
 
     } catch (error) {
@@ -5427,7 +5429,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
           this.fromDate!,
           this.toDate
         ) || 0;
-
+        
       // ---------- Calculate project hours for THIS location ----------
       let projectHoursForLocation = 0;
 
