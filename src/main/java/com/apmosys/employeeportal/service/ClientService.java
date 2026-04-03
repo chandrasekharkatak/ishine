@@ -284,6 +284,15 @@ public class ClientService {
 		                cl.setClientState(state);
 		                changed = true;
 		            }
+		            if (cl.getClientId().equals(clientId) && !cl.isActiveInPo()) {
+
+		                cl.setActiveInPo(true);
+
+		                changed = true;
+
+		            }
+
+
 
 		            if (changed) {
 		                clientLocationRepository.save(cl);
@@ -297,7 +306,17 @@ public class ClientService {
 		                        .findFirst();
 
 		        if (clientSpecific.isPresent()) {
-		            return clientSpecific.get();
+		        	   ClientLocation row = clientSpecific.get();
+
+			            if (!row.isActiveInPo()) {
+
+			                row.setActiveInPo(true);
+
+			                return clientLocationRepository.save(row);
+
+			            }
+
+			            return row;
 		        }
 
 		        // 3 If not mapped for this client → fall back to old logic
@@ -375,6 +394,8 @@ public class ClientService {
 		    cl.setActiveInPo(true);	
 		    return clientLocationRepository.save(cl);
 		}
+
+
 
 	 @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
 	 public int[] processSingleClientByName(ClientDetailsSyncDto poDto,Client iShineClient,
