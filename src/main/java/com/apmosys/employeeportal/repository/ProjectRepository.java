@@ -4630,14 +4630,16 @@ boolean existsByProjectName(String projectName);
 			+ "WHERE p.projectId=:projectId")
 	public List<ProjectDTO> getClientByProjectId(Integer projectId);
 	
-	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectDTO(p.projectId,p.projectName,p.projectManagerId,e.name,p.apmosysRM,p.clientRM,c.clientId, c.clientName ) \n"
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectDTO(p.projectId,p.projectName,p.projectManagerId,e.name,ppd.apmosysRM,ppd.clientRm,c.clientId, c.clientName ) \n"
 			+ "FROM Project p \n"
+			+ "left join ProjectPoDetails ppd on ppd.projectId = p.projectId and ppd.active = true \n"
 			+ "LEFT JOIN Client c ON c.clientId = p.clientId \n"
 			+ "LEFT JOIN Employee e ON e.empId = p.projectManagerId")
 	public List<ProjectDTO> getAllProjectNameAndProjectManagerId();
 
-	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectDTO(p.projectId,p.projectName,p.projectManagerId,e.name,p.apmosysRM,p.clientRM,c.clientId, c.clientName ) \n"
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectDTO(p.projectId,p.projectName,p.projectManagerId,e.name,ppd.apmosysRM,ppd.clientRm,c.clientId, c.clientName ) \n"
 			+ "FROM Project p \n"
+			+ "left join ProjectPoDetails ppd on ppd.projectId = p.projectId and ppd.active = true \n"
 			+ "LEFT JOIN Client c ON c.clientId = p.clientId \n"
 			+ "LEFT JOIN Employee e ON e.empId = p.projectManagerId where p.projectId=:projectId")
 	public ProjectDTO getAllProjectNameAndProjectManagerIdByProjectId(Integer projectId);
@@ -8845,8 +8847,8 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 
 	@Query(value="SELECT \n" +
        "    p.projectId as projectId,\n" +
-       "    p.clientName as clientName,\n" +
-       "    p.clientLocation as clientLocation,\n" +
+       "    c.clientName as clientName,\n" +
+       "    cl.clientLocation as clientLocation,\n" +
        "    p.state as state,\n" +
        "    p.projectName as projectName,\n" +
        "    p.description as description,\n" +
@@ -8885,6 +8887,8 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 	   "  FROM Project p \n"
        + " inner join Team t on p.projectId = t.projectId \n"
 	   + " inner join ProjectPoDetails ppd on ppd.projectId = p.projectId and ppd.active = true \n"
+	   + " inner join Client c on p.clientId = c.clientId \n"
+	   + " inner join ClientLocation cl on c.clientId = cl.clientId \n"
 	   + " WHERE ppd.poEndDate < CURRENT_TIMESTAMP \n")
 	public List<ExpiredProjectDTOForNotification> getExpiredPolist();
 	
