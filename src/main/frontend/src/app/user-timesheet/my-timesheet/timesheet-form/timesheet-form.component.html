@@ -916,7 +916,7 @@
 <ng-template #alert_message_for_holiday_create>
     <div class="modal-body text-center">
         <p>{{ alertMessage }}</p>
-        <button type="button" class="btn btn-primary ml-2" (click)="closeAlertMessageForHolidayCreate()">
+        <button type="button" class="btn btn-primary ml-2" (click)="alertMessageForHolidayCreateModalRef.close()">
             Cancel
         </button>
         <button type="button" class="btn btn-primary ml-2" (click)="closeAlertMessageForHolidayCreate()">

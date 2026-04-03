@@ -4002,7 +4002,7 @@ this.isNightShift = false;
           }
           
         } else {
-          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as we could not find any Bench project for you. Please contact your Reporting Manager immediately.');
+          this.openAlertMod(this.alertTemplate, 'We could not find any Project for you. Please contact RMG team.');
         }
       },
 
@@ -4102,7 +4102,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
         }else if(this.dayType == 6){
           this.openAlertMod(this.alertTemplate, 'You are not allowed to fill ApMoSys Holiday');
         }else{
-          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid projects to assign for this day. Please contact your Reporting Manager immediately.');
+          this.openAlertMod(this.alertTemplate, 'No Project found for you. Please contact RMG team.');
         }
         return 
        }
