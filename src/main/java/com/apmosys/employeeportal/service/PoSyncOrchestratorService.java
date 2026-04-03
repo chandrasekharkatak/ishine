@@ -1,21 +1,36 @@
 package com.apmosys.employeeportal.service;
 
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.AutoMigrationDTO;
+import com.apmosys.employeeportal.dto.ClientDetailsSyncDto;
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -37,6 +52,7 @@ import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
+import com.apmosys.employeeportal.service.ClientPoPortalSyncTransactionalService.OneClientSyncOutcome;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.EmailTrigger;
 import com.apmosys.employeeportal.utility.ExceptionLogContext;
@@ -72,6 +88,9 @@ public class PoSyncOrchestratorService {
 	private static final String API_LOG_DELETE_OPERATION = "deletePoInIshine";
 	private static final String MSG_DELETE_SUCCESS = "PO deleted successfully";
 	private static final String MSG_DELETE_INVALID_EVENT = "Invalid eventType for delete PO";
+	
+	private static final String SYNC_CLIENT_FROM_PO_CRON_ENDPOINT = "syncClientFromPoCron";
+
 
 	@Autowired
 	ClientService clientService;
@@ -102,6 +121,9 @@ public class PoSyncOrchestratorService {
 
 	@Autowired
 	ClientsRepository clientRepository;
+	
+	@Autowired
+	MailService mailService;
 
 	@Autowired
 	private ApiLogUtility apiLogUtility;
@@ -120,6 +142,19 @@ public class PoSyncOrchestratorService {
 	
 	@Autowired
 	private ResourceManagementService resourceManagementService;
+	
+	@Value("${po.portal.client.sync.cron.enabled:true}")
+	private boolean poPortalClientSyncCronEnabled;
+
+	@Value("${poPortal.api.syncCLientDetails}")
+	private String poPortalSyncClientDetailsUrl;
+
+	@Autowired
+	private RestTemplate restTemplate;
+	
+	@Autowired
+	private ClientPoPortalSyncTransactionalService clientPoPortalSyncTransactionalService;
+
 
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse poCrudOperationsInIshineNew(ProjectPoMappingWithResourceDTO dto) {
@@ -898,6 +933,218 @@ public class PoSyncOrchestratorService {
 		String uri = request.getRequestURI();
 		String query = request.getQueryString();
 		return (query != null && !query.isEmpty()) ? uri + "?" + query : uri;
+	}
+	
+	
+	public void syncClientsFromPoPortalCron() {
+		if (!poPortalClientSyncCronEnabled) {
+			log.debug("syncClientsFromPoPortalCron skipped: po.portal.client.sync.cron.enabled=false");
+			return;
+		}
+		
+
+		String traceId = UUID.randomUUID().toString();
+		ExceptionLogContext.clear();
+
+		HttpServletRequest cronHttpRequest = null;
+		String sourceSystem = "/internal/cron/syncClientFromPo";
+
+		ApiLog initialLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		StringBuilder failureDigest = new StringBuilder();
+
+		int clientsEligible = 0;
+		int clientsProcessed = 0;
+		int clientsFailed = 0;
+		int totalSyncedAddresses = 0;
+		int totalSkippedAddresses = 0;
+		int totalDeactivated = 0;
+
+		try {
+			initialLog = apiLogUtility.startLog(
+				    traceId,
+				    SYNC_CLIENT_FROM_PO_CRON_ENDPOINT,
+				    PO_PORTAL_LOG_SOURCE,
+				    null,
+				    httpRequest
+				);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.set("X-Trace-Id", traceId);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+			HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+
+			log.info("[syncClientsFromPoPortalCron] traceId={} calling PO client sync API", traceId);
+			ResponseEntity<ClientDetailsSyncDto[]> responseEntity = restTemplate.exchange(poPortalSyncClientDetailsUrl,
+					HttpMethod.GET, requestEntity, ClientDetailsSyncDto[].class);
+
+			finalHttpStatusCode = responseEntity.getStatusCodeValue();
+			ClientDetailsSyncDto[] body = responseEntity.getBody();
+			List<ClientDetailsSyncDto> poClients = body == null ? new ArrayList<>() : Arrays.asList(body);
+
+			Map<Long, ClientDetailsSyncDto> clientsToSync = buildClientsToSyncForPoPortalCron(poClients, traceId,
+					failureDigest);
+			clientsEligible = clientsToSync.size();
+
+			if (clientsToSync.isEmpty()) {
+				log.warn("[syncClientsFromPoPortalCron] traceId={} no eligible clients after duplicate filter (raw={})",
+						traceId, poClients.size());
+				finalHttpStatusCode = HttpStatus.OK.value();
+				return;
+			}
+
+			for (ClientDetailsSyncDto poDto : clientsToSync.values()) {
+				try {
+					OneClientSyncOutcome outcome = clientPoPortalSyncTransactionalService.syncOneClientFromPo(poDto);
+					clientsProcessed++;
+					totalSyncedAddresses += outcome.syncedAddresses;
+					totalSkippedAddresses += outcome.skippedAddresses;
+					totalDeactivated += outcome.deactivatedLocations;
+					if (log.isDebugEnabled()) {
+						log.debug(
+								"[syncClientsFromPoPortalCron] traceId={} poClientId={} syncedAddr={} skippedAddr={} deactivated={}",
+								traceId, poDto.getClientid(), outcome.syncedAddresses, outcome.skippedAddresses,
+								outcome.deactivatedLocations);
+					}
+				} catch (Exception ex) {
+					clientsFailed++;
+					String label = poDto.getClientid() + ":" + poDto.getClientName();
+
+			        String cleanError = buildClearErrorMessage(ex, poDto);
+
+			        failureDigest.append(label)
+			                .append(" → ")
+			                .append(cleanError)
+			                .append(" || ");
+					ExceptionLogContext.add(ex);
+					
+					log.error("[syncClientsFromPoPortalCron] traceId={} failed poClientId={} name={}", traceId,
+							poDto.getClientid(), poDto.getClientName(), ex);
+				}
+			}
+
+			finalHttpStatusCode = HttpStatus.OK.value();
+			log.info(
+					"[syncClientsFromPoPortalCron] traceId={} done eligible={} processed={} failed={} syncedAddresses={} skippedAddresses={} deactivatedInPo={}",
+					traceId, clientsEligible, clientsProcessed, clientsFailed, totalSyncedAddresses,
+					totalSkippedAddresses, totalDeactivated);
+
+		} catch (RestClientException ex) {
+			ExceptionLogContext.add(ex);
+			finalHttpStatusCode = HttpStatus.BAD_GATEWAY.value();
+			log.error("[syncClientsFromPoPortalCron] traceId={} REST error calling PO", traceId, ex);
+		} catch (Exception ex) {
+			ExceptionLogContext.add(ex);
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+			log.error("[syncClientsFromPoPortalCron] traceId={} unexpected error", traceId, ex);
+		} finally {
+			String exceptionDetailsForLog = buildEndLogDetailsForClientSyncCron(failureDigest);
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
+						httpRequest);
+			}
+			try {
+		        if (exceptionDetailsForLog != null && !exceptionDetailsForLog.isEmpty()) {
+
+		            String mailBody =
+		                    "<b>Trace ID:</b> " + traceId + "<br/><br/>"
+		                  + "<b>API:</b> syncClientsFromPoPortalCron<br/><br/>"
+		                  + "<b>Exception Details:</b><br/>"
+		                  + "<pre>" + exceptionDetailsForLog + "</pre>";
+
+		            mailService.sendMailWithCC(
+		                    "prarthana.lenka@apmosys.com",
+		                    "sumit.modi@apmosys.com",
+		                    "Client PO Sync Issues | TraceId : " + traceId,
+		                    mailBody
+		            );
+		        }
+		    } catch (Exception mailEx) {
+		        log.error("Failed to send exception mail for traceId={}", traceId, mailEx);
+		    }
+			ExceptionLogContext.clear();
+			
+		}
+	}
+	
+	private String buildClearErrorMessage(Exception ex, ClientDetailsSyncDto poDto) {
+
+	    Throwable root = ex;
+
+	    while (root.getCause() != null) {
+	        root = root.getCause();
+	    }
+
+	    String message = root.getMessage();
+
+	   
+	    if (root instanceof javax.persistence.NonUniqueResultException) {
+	        return "DUPLICATE DATA in DB → Expected single record but found multiple. "
+	                + "Check client OR location uniqueness for poClientId=" + poDto.getClientid();
+	    }
+
+	    
+	    if (root instanceof IllegalStateException &&
+	            message != null && message.contains("Duplicate clientAddressId")) {
+	        return "DUPLICATE ADDRESS in PO PAYLOAD → " + message;
+	    }
+
+	 
+	    if (root instanceof IllegalArgumentException) {
+	        return "INVALID DATA → " + message;
+	    }
+
+	 
+	    return message != null ? message : "UNKNOWN ERROR";
+	}
+
+
+
+	private Map<Long, ClientDetailsSyncDto> buildClientsToSyncForPoPortalCron(List<ClientDetailsSyncDto> poClients,
+			String traceId, StringBuilder failureDigest) {
+		Map<Long, Integer> idCounts = new HashMap<>();
+		for (ClientDetailsSyncDto dto : poClients) {
+			if (dto != null && dto.getClientid() != null) {
+				idCounts.merge(dto.getClientid(), 1, Integer::sum);
+			}
+		}
+		for (Map.Entry<Long, Integer> e : idCounts.entrySet()) {
+			if (e.getValue() > 1) {
+				String msg = "duplicate poClientId=" + e.getKey() + " in PO payload (" + e.getValue()
+						+ " rows); sync skipped for this client";
+				failureDigest.append(msg).append(" || ");
+				ExceptionLogContext.add(msg);
+				log.warn("[syncClientsFromPoPortalCron] traceId={} {}", traceId, msg);
+			}
+		}
+
+		Map<Long, ClientDetailsSyncDto> toSync = new LinkedHashMap<>();
+		for (ClientDetailsSyncDto dto : poClients) {
+			if (dto == null || dto.getClientid() == null) {
+				continue;
+			}
+			if (idCounts.get(dto.getClientid()) > 1) {
+				continue;
+			}
+			toSync.putIfAbsent(dto.getClientid(), dto);
+		}
+		return toSync;
+	}
+
+	private String buildEndLogDetailsForClientSyncCron(StringBuilder failureDigest) {
+		String ctx = ExceptionLogContext.get();
+		StringBuilder sb = new StringBuilder();
+		if (failureDigest.length() > 0) {
+			sb.append("clientFailures: ").append(failureDigest);
+		}
+		if (ctx != null && !ctx.isEmpty()) {
+			if (sb.length() > 0) {
+				sb.append(" | ");
+			}
+			sb.append(ctx);
+		}
+		return sb.length() == 0 ? null : sb.toString();
 	}
 
 }

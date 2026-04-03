@@ -3,10 +3,8 @@ package com.apmosys.employeeportal.controller;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
@@ -55,16 +52,18 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 @RestController
 @RequestMapping("/api")
 public class ResourceManagementController {
-	
-	
+
 	@Autowired
 	ResourceManagementService resourceManagementService;
-	
+
 	@Autowired
 	PoSyncOrchestratorService poSyncOrchestratorService;
-	
+
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
+
+
+	
 
 	@Encrypted
 	@JobRoleAccess(featureIds = {34})
@@ -728,21 +727,6 @@ public class ResourceManagementController {
 	public ServiceResponse oneTimeUpdatePoClientId() {
 		return resourceManagementService.oneTimeUpdatePoClientId("once");
 	}
-	
-	@Scheduled(cron = "0 0 0 * * ?")
-//	@GetMapping("/clientcron")
-	public void cronToUpdateClient() {
-		 resourceManagementService.oneTimeUpdatePoClientId("");
-	}
-
-	
-////	@Scheduled(cron = "0 0 0 * * ?")
-//	@GetMapping("/oneTimeUpdatePoClientId")
-//	public ServiceResponse oneTimeUpdatePoClientId(@RequestParam(value = "mode", required = false) String mode) {
-//		return resourceManagementService.oneTimeUpdatePoClientId(mode);
-//
-//	}
-
 
 	// @Encrypted
 	@PostMapping("/fetchProjectDetailsList")
@@ -825,6 +809,15 @@ public class ResourceManagementController {
 	@GetMapping("/getEmployeeMappedToClientPercent")
 	public ServiceResponse getEmployeeMappedToClientPercent() {
 		return resourceManagementService.getEmployeeMappedToClientPercent();
+
+	
+
+//	@Scheduled(cron = "${clientSyncFromPoCron.time}")
+	@GetMapping("/cronClient")
+	public void syncClientsFromPoPortalCron() {
+		System.out.println("cron started");
+		poSyncOrchestratorService.syncClientsFromPoPortalCron();
+		System.out.println("cron ended");
 	}
 	
 }
