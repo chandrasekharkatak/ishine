@@ -133,6 +133,7 @@ public class ProjectTimesheetService {
         entity.setTotalClientWorkingMinutes(dto.getTotalClientWorkingMinutes());
         entity.setClientLocationId(dto.getClientLocationId().intValue());
 		String description = "";
+		entity.setClientSideId(dto.getClientSideId());
         // Non-fillable: use DTO description when activities are empty
         if (dto.getActivities() == null || dto.getActivities().isEmpty()) {
 			description = (dto.getDescription() != null && !dto.getDescription().trim().isEmpty())
