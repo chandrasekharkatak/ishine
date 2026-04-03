@@ -809,7 +809,7 @@ public class ResourceManagementController {
 	@GetMapping("/getEmployeeMappedToClientPercent")
 	public ServiceResponse getEmployeeMappedToClientPercent() {
 		return resourceManagementService.getEmployeeMappedToClientPercent();
-
+	}
 	
 
 //	@Scheduled(cron = "${clientSyncFromPoCron.time}")

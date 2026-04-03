@@ -74,3 +74,24 @@
     outline: none;
     min-height: 45px;
   }
+
+.date-input-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.date-input {
+  padding-right: 36px;
+  cursor: pointer;
+  background-color: white;
+}
+
+.calendar-icon {
+  position: absolute;
+  right: 10px;
+  top: 32%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #656565;
+}

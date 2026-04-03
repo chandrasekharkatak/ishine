@@ -566,7 +566,7 @@ public class EmployeeCustomRepository {
                 .append("WHERE NOT EXISTS (SELECT 1 FROM EmployeeTeamMap etm \n")
                 .append("                  JOIN Team t ON t.teamId = etm.teamId \n")
                 .append("                  JOIN Project p ON p.projectId = t.projectId \n")
-                .append("                  WHERE etm.empId = e.empId AND etm.active != 0 AND t.isActive = 'Y' AND p.active = 'true') \n")
+                .append("                  WHERE etm.empId = e.empId AND (etm.active = 1 OR (etm.active = 2 AND DATE(etm.startDate) <= CURDATE())) AND t.isActive = 'Y' AND p.active = 'true') \n")
                 .append(" and e.employmentstatus != 'InActive' and e.empId NOT BETWEEN 1 AND 6 \n");
 
 //        if (!isAllAccessEmployee) {
@@ -651,11 +651,12 @@ public class EmployeeCustomRepository {
                 .append("AND e.employmentstatus != 'InActive'  \n")
                 .append("AND e.emp_id NOT BETWEEN 1 AND  6 \n");
 //        if (!isAllAccessEmployee) {
-            query.append(" AND d.dept_Id IN :deptIds ");
+            query.append(" AND d.dept_Id IN :deptIds \n");
 //        }
         if (!projectStatus.equals("COMPLETED_IN_SHANKH")) {
-            query.append("AND etm.active != 0 AND t.is_active = 'Y' \n");
+            query.append(" AND (etm.active = 1 OR (etm.active = 2 AND DATE(etm.start_date) <= CURDATE())) AND t.is_active = 'Y' \n");
         }
+
         if ("COMPLETED_IN_SHANKH".equals(projectStatus)
                 || projectStatus.equals("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
             query.append("AND p.status = 'Completed' \n");

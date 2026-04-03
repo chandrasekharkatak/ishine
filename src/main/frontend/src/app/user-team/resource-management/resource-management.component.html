@@ -1,34 +1,4 @@
 <ng-container *ngIf="!showReportList">
-
-    <ng-container *ngIf="isNewRmgDashboard">
-        <div class="row m-1 mb-2" *ngIf="!showProjectConfig">
-            <div class="col-md- d-flex justify-content-start align-items-center p-0">
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
-                    [ngClass]="{'active': isProjectTable}" *ngIf="userMapping.view_all_rmg_projects"
-                    (click)="showViewProjects()">
-                    <i class="bi bi-eye"></i>
-                    View All Projects
-                </button>
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
-                    [ngClass]="{'active': isCreation}" (click)="showCreateInternalProjectForm()">
-                    <i class="bi bi-plus"></i>
-                    Create Internal Project
-                </button>
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
-                    [ngClass]="{'active': isSkillMatrix}" (click)="openShowSkillMatrix()">
-                    <i class="bi bi-person-vcard"></i>
-                    Skill Matrix
-                </button>
-                <div class="d-flex align-items-center ml-1 mr-1">
-                    <label class="new-rmg-toggle-switch">
-                        <input type="checkbox" [(ngModel)]="isNewRmgDashboard" (ngModelChange)="setNewRmgDashboardFlag()"/>
-                        <span class="new-rmg-slider"></span>
-                    </label>&nbsp;
-                    <span class="new-rmg-toggle-label mb-1">NEW RMG DASHBOARD</span>
-                </div>
-            </div>
-        </div>
-    </ng-container>
     
     <ng-container *ngIf="!isNewRmgDashboard">
         <!-- Navigation Row Start -->
@@ -58,7 +28,7 @@
             <div class="col-md-4 d-flex justify-content-end align-items-center p-0" *ngIf="isReportTabToggleViewVisible">
                 <div class="d-flex align-items-center ml-1 mr-1">
                     <label class="new-rmg-toggle-switch">
-                        <input type="checkbox" [checked]="false" (change)="goToReportList()"/>
+                        <input type="checkbox" [checked]="false" (change)="goToReportList()" />
                         <span class="new-rmg-slider"></span>
                     </label>&nbsp;
                     <span class="new-rmg-toggle-label mb-1">EMPLOYEE VIEW</span>
@@ -127,7 +97,36 @@
     </ng-container>
     
     <ng-container *ngIf="isNewRmgDashboard">
-        <app-rmg-dashboard (actionTriggered)="handleProjectAction($event)"></app-rmg-dashboard>
+        <div class="row m-1 mb-2" *ngIf="!showProjectConfig">
+            <div class="col-md- d-flex justify-content-start align-items-center p-0">
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
+                    [ngClass]="{'active': isProjectTable}" *ngIf="userMapping.view_all_rmg_projects"
+                    (click)="showViewProjects()">
+                    <i class="bi bi-eye"></i>
+                    View All Projects
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
+                    [ngClass]="{'active': isCreation}" (click)="showCreateInternalProjectForm()">
+                    <i class="bi bi-plus"></i>
+                    Create Internal Project
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
+                    [ngClass]="{'active': isSkillMatrix}" (click)="openShowSkillMatrix()">
+                    <i class="bi bi-person-vcard"></i>
+                    Skill Matrix
+                </button>
+                <div class="d-flex align-items-center ml-1 mr-1">
+                    <label class="new-rmg-toggle-switch">
+                        <input type="checkbox" [(ngModel)]="isNewRmgDashboard" (ngModelChange)="setNewRmgDashboardFlag()" />
+                        <span class="new-rmg-slider"></span>
+                    </label>&nbsp;
+                    <span class="new-rmg-toggle-label mb-1">NEW RMG DASHBOARD</span>
+                </div>
+            </div>
+        </div>
+        <ng-container *ngIf="allProjectTable">
+            <app-rmg-dashboard (actionTriggered)="handleProjectAction($event)"></app-rmg-dashboard>
+        </ng-container>
     </ng-container>
     
     <!-- Project Configuration Start -->

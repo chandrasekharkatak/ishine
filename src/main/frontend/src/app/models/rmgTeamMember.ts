@@ -92,4 +92,5 @@ export class RmgTeamMember {
 
     requiredCount: any;
     actualAssigned: any;
+    projectNewStartDate: any;
 }

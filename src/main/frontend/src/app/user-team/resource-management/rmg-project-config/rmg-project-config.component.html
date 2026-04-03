@@ -378,7 +378,7 @@
                             (change)="onAllTeamTeamMemberCheckboxChange(team,$event, teamMembers)">
                         </mat-checkbox>
                     </th>
-                    <th></th>
+                    <th *ngIf="projectConfigStepperIndex === 1 && teamMembers?.length !== 0"></th>
                     <th>Info</th>
                     <th class="min-width100 max-width150" mat-sort-header="employementId|string">
                         Employment Id
