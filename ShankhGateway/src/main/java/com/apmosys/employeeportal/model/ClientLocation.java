@@ -43,6 +43,9 @@ public class ClientLocation {
 	private Timestamp createdOn;
 	
 	
+	private boolean activeInPo;
+	
+	
 //	private Long poId;
 	
 	
