@@ -378,7 +378,7 @@
                             (change)="onAllTeamTeamMemberCheckboxChange(team,$event, teamMembers)">
                         </mat-checkbox>
                     </th>
-                    <th *ngIf="projectConfigStepperIndex === 1 && teamMembers?.length !== 0"></th>
+                    <th *ngIf="projectConfigStepperIndex === 1"></th>
                     <th>Info</th>
                     <th class="min-width100 max-width150" mat-sort-header="employementId|string">
                         Employment Id
@@ -681,7 +681,9 @@
                             {{ member.employementId || 'NA' }}
                         </td>
                         <td class="min-width100 max-width150 truncate" [title]="member.memberName || 'NA' ">
-                            {{member.memberName || 'NA' }}
+                            <span *ngIf="member.empId" class="cursor-pointer emp_360-span text-underline"
+                                [navigateToEmployee360]="member.empId">{{member.memberName || 'NA' }}</span>
+                            <span *ngIf="!member.empId">{{member.memberName || 'NA' }}</span>
                         </td>
                         <td class="min-width100 max-width150 truncate" *ngIf="!isInternalProject"
                             [title]="member.poNo|| 'NA'">
@@ -833,7 +835,9 @@
                             {{ member.employementId || 'NA' }}
                         </td>
                         <td class="min-width100 max-width150 truncate" [title]="member.memberName|| 'NA' ">
-                            {{ member.memberName || 'NA' }}
+                            <span *ngIf="member.empId" class="cursor-pointer emp_360-span text-underline"
+                                [navigateToEmployee360]="member.empId">{{member.memberName || 'NA' }}</span>
+                            <span *ngIf="!member.empId">{{member.memberName || 'NA' }}</span>
                         </td>
                         <td class="min-width100 max-width150 truncate" [title]="member.memberDepartment|| 'NA' ">
                             {{ member.memberDepartment || 'NA' }}

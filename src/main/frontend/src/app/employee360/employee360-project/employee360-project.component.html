@@ -191,27 +191,20 @@
                         <td>{{ project.combinedProjectType }}</td>
                         <!-- <td>{{ project.startDate }}</td>
                         <td>{{ project.endDate }}</td> -->
-                        <td style="white-space: nowrap;"> 
+                        <td style="white-space: nowrap;">
                             {{ project.startDate | date: 'yyyy-MM-dd'}}
-                            <a *ngIf="project.startDate" href="javascript:void(0)" (click)="editStartdateModal(edit_startdate_template,project)" title="Edit Start Date">
-                              <i class="fa fa-pen ml-2 text-primary"></i>
+                            <a *ngIf="project.startDate" href="javascript:void(0)" (click)="editStartdateModal(edit_startdate_template,project)"
+                                title="Edit Start Date">
+                                <i class="fa fa-pen ml-2 text-primary"></i>
                             </a>
-                          </td>
-                          <!-- <td>
-                            {{ project.endDate | date: 'yyyy-MM-dd HH:mm:ss'}}
-                            <a *ngIf="project.endDate" href="javascript:void(0)" (click)="editEnddateModal(edit_enddate_template,project)" title="Edit End Date">
-                              <i class="fa fa-pen ml-2 text-primary"></i>
-                            </a>
-                          </td> -->
-                          <td style="white-space: nowrap;"> 
+                        </td>
+                        <td style="white-space: nowrap;">
                             {{ project.endDate | date: 'yyyy-MM-dd'}}
-                            <a *ngIf="project.endDate && (isFutureDate(project.endDate) || currentUser.empId == 3 || currentUser.empId == 2)" 
-                               href="javascript:void(0)" 
-                               (click)="editEnddateModal(edit_enddate_template,project)" 
-                               title="Edit End Date">
-                              <i class="fa fa-pen ml-2 text-primary"></i>
+                            <a *ngIf="(project.endDate && (isFutureDate(project.endDate) || currentUser.empId == 3 || currentUser.empId == 2))|| projectObj.isEndDateVisible"
+                                href="javascript:void(0)" (click)="editEnddateModal(edit_enddate_template,project)" title="Edit End Date">
+                                <i class="fa fa-pen ml-2 text-primary"></i>
                             </a>
-                          </td>
+                        </td>
                            <td class="info-label" *ngIf="project.rescRemovedByName" id="clickablefor360" [navigateToEmployee360]="project.rescRemovedBy" style="cursor: pointer;" title="Click to view Employee 360">{{project.rescRemovedByName}}</td>
                             <td class="info-label" *ngIf="!project.rescRemovedByName">{{project.rescRemovedByName}}</td>
 
@@ -270,16 +263,19 @@
     <div class="modal-body text-center">
         <p>Are you sure you want to edit the Start Date</p>
         <div class="col-md-12">
-            <div class="info-wrapper">
-                <div class="form-group" style="display: flex;">
-                    <label class="info-label ml-1">Select Start Date</label>
-                    <input id="occasionDate" OnClick="this.showPicker()" type="date" class="form-control"
-                        autocomplete="none" [(ngModel)]="startDate">
+                <div class="form-group d-flex mb-1">
+                    <label class="info-label">Select Start Date</label>
+                    <div class="date-input-wrapper">
+                        <input id="occasionDate" class="form-control date-input" readonly [matDatepicker]="startDatepicker"
+                            (dateChange)="validateEmployeeProjectStartDate(this.projectObj.empId, this.projectObj.projectId, '')"
+                            [(ngModel)]="startDate" (click)="startDatepicker.open()" />
+                        <mat-icon class="calendar-icon" (click)="startDatepicker.open()">calendar_today</mat-icon>
+                        <mat-datepicker #startDatepicker></mat-datepicker>
+                    </div>
                 </div>
-            </div>
         </div>
         <button type="button" class="btn btn-success"
-            (click)="editStartdate(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
+            (click)="editStartdate(alert_message, edit_enddate_template);cancelRequest()">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
@@ -322,13 +318,17 @@
     <div class="modal-body text-center">
         <p>Are you sure you want to edit the End Date</p>
         <div class="col-md-12">
-            <div class="info-wrapper">
-                <div class="form-group" style="display: flex;">
-                    <label class="info-label ml-1">Select End Date</label>
-                    <input id="occasionDate" OnClick="this.showPicker()" type="date" class="form-control"
-                        autocomplete="none" [(ngModel)]="endDate">
+                <div class="form-group d-flex mb-1" >
+                    <label class="info-label">Select End Date</label>
+                    <div class="date-input-wrapper">
+                        <input *ngIf="!projectObj.isEndDateVisible" id="occasionDate" class="form-control date-input" readonly [matDatepicker]="endDatepicker"
+                            [(ngModel)]="endDate" (click)="endDatepicker.open()" />
+                        <input *ngIf="projectObj.isEndDateVisible" id="occasionDate" class="form-control date-input" readonly [matDatepicker]="endDatepicker" [max]="projectObj.memberMaxEndDate"
+                            [(ngModel)]="endDate" (click)="endDatepicker.open()" />
+                        <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
+                        <mat-datepicker #endDatepicker></mat-datepicker>
+                    </div>
                 </div>
-            </div>
         </div>
         <button type="button" class="btn btn-success"
             (click)="editEnddate(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;

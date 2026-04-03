@@ -125,7 +125,7 @@
             </div>
         </div>
         <ng-container *ngIf="allProjectTable">
-            <app-rmg-dashboard (actionTriggered)="handleProjectAction($event)"></app-rmg-dashboard>
+            <app-rmg-dashboard #rmgDashboardComponent (actionTriggered)="handleProjectAction($event)"></app-rmg-dashboard>
         </ng-container>
     </ng-container>
     

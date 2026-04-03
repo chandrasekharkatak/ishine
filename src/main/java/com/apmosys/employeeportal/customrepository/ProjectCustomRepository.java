@@ -522,8 +522,8 @@ public class ProjectCustomRepository {
         StringBuilder query = new StringBuilder(projectDetailsStartQuery);
         StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" ) as T1");
 
-        query.append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
-                .append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n")
+        query.append(" INNER JOIN teams t ON p.project_id = t.project_id AND t.is_active != 'N' \n")
+                .append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id AND etm.active != 0 \n")
                 .append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
                 .append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds \n")
                 .append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id \n")
@@ -534,7 +534,7 @@ public class ProjectCustomRepository {
                 .append(" WHERE 1=1 \n");
         
         if(!projectStatus.equals("ALL_TNM") ){
-            query.append("  AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' \n");
+            query.append("  AND p.active != 'false' \n");
         }
         if (projectStatus.equals("TOTAL_ACTIVE_TNM") || projectStatus.equals("TOTAL_EXPIRED_TNM")
                 || projectStatus.equals("TOTAL_TNM") || projectStatus.equals("ALL_TNM")) {
@@ -871,7 +871,7 @@ public class ProjectCustomRepository {
 		StringBuilder offBoardedCondition = new StringBuilder();
 		offBoardedCondition.append(" AND p.active= 'true' AND t.is_active = 'Y' AND p.is_draft_project = 'false' \n")
 		.append("AND etm.active = 0 AND DATE(etm.start_date) > CURDATE() \n ")
-		.append(" AND NOT EXISTS ( SELECT 1 FROM teams t2 JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE t2.project_id = p.project_id AND etm2.active != 0) \n");
+		.append(" AND NOT EXISTS ( SELECT 1 FROM teams t2 JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE t2.project_id = p.project_id AND (etm2.active != 0 OR (etm2.active = 0 AND DATE(etm.start_date) > CURDATE())) ) \n");
 		return offBoardedCondition.toString();
 	}
 	

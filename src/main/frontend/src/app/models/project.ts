@@ -88,4 +88,6 @@ export class Project {
 	poDetailsList: any[] = [];
 	deptName:any;
 	projectStartDate:any
+	isEndDateVisible: boolean = false;
+    memberMaxEndDate: any;
 }

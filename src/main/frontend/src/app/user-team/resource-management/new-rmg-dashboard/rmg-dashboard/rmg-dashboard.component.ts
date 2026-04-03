@@ -425,15 +425,34 @@ export class RmgDashboardComponent implements OnInit {
     this.setReportTabVisible();
     this.getEmployeeNameAndEmpld();
     this.mapSubFeatureFlag();
+
+
+    if (this.filterStateService.projectReportFilters) {
+      this.isProjectSearchEnabled = true;
+      this.projectFilters = this.filterStateService.projectReportFilters;
+    }
+    if ((this.filterStateService.deptIdList && this.filterStateService.deptIdList.length > 0) || (this.filterStateService.deptIdListByUser && this.filterStateService.deptIdListByUser.length > 0)) {
+      this.myDept = this.filterStateService.myDept;
+      this.selectedDepartmentIds = this.filterStateService.deptIdList;
+    }
+
+    // if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
+    //   this.projectStatus = 'ALL';
+    //   this.toggleProjectSearch(true);
+    // } else {
+    //   this.getProjectDetailsList(false);
+    // }
+
     this.loadRMGDashboard();
   }
 
   // Department Table APIs & Methods Starts
-  onDepartmentSelectionChange(event: any) {
+  onDepartmentSelectionChange() {
     if (this.validationService.areArraysEqual(this.oldSelectedDepartmentIds, this.selectedDepartmentIds)) {
       return;
     }
     this.oldSelectedDepartmentIds = [...this.selectedDepartmentIds];
+    this.getProjectDetailsList(true);
     this.loadRMGDashboard();
   }
 
@@ -1616,12 +1635,12 @@ export class RmgDashboardComponent implements OnInit {
     }
   }
 
-  toggleProjectSearch(): void {
+  toggleProjectSearch(scrollToBottom:any = false): void {
     this.isProjectSearchEnabled = !this.isProjectSearchEnabled;
     if (!this.isProjectSearchEnabled) {
       this.projectFilters = {};
       this.filterStateService.clearProjectReportFilters();
-      this.getProjectDetailsList(false);
+      this.getProjectDetailsList(scrollToBottom);
     }
   }
 

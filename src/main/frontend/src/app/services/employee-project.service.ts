@@ -139,6 +139,7 @@ export class EmployeeProjectService {
       const response: any = await firstValueFrom(this.projectService.updateProjectStartDate(projectObj));
       if (response.serviceStatus == "Success") {
         this.appModalService.close('PROJECT_START_DATE_UPDATE_CONFIRMATION');
+        this.appModalService.triggerAction({ actionType: 'PROJECT_START_DATE_UPDATED'});
         result = this.alertResult(response.serviceResponse);
       } else {
         result = this.alertResult(response.serviceResponse || "Something went wrong!");

@@ -682,6 +682,7 @@ public class TeamMembersService {
 				response.setServiceResponse("Employee Team Mapping not found!!");
 				return response;
 			}
+			Long oldActiveValue = existingMap.getActive();
 
 			LocalDateTime now = LocalDateTime.now();
 			if (!teamMember.getEndDate().toLocalDate().isAfter(now.toLocalDate())) {
@@ -697,7 +698,7 @@ public class TeamMembersService {
 			empTeamMap.setTeamId(teamId);
 			empTeamMap
 					.setStartDate(teamMember.getStartDate() != null ? teamMember.getStartDate() : LocalDateTime.now());
-			empTeamMap.setActive(2L);
+			empTeamMap.setActive(oldActiveValue);
 			empTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
 			empTeamMap.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 			empTeamMap.setCreatedBy(currentUserEmpId);
