@@ -1888,14 +1888,21 @@ storePreviousStatus(){
           let projectData = {
             currentProjectId: employeeObj.defaultProjectId,
             projectIds: [employeeObj.defaultProjectId],
-            projectStartDate: employeeObj.projectStartDate,
             projectType: this.defaultProjectUpdationProjectType
           };
 
+          employeeObj.isEndDateVisible = false;
+          employeeObj.memberMaxEndDate = null;
           const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
           if (response?.type !== 'NO_CONFLICT' && response?.type !== 'PROJECT_GAP') {
             return false;
-          }
+          } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT') {
+            employeeObj.isEndDateVisible = true;
+            employeeObj.memberMaxEndDate = response?.data.memberMaxEndDate;
+            this.alertMessage = 'Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!';
+            this.openAlertMod(template, this.alertMessage);
+            return false;
+          } 
         }
       }
     }
@@ -5369,13 +5376,20 @@ resetDefaultProjectFields() {
     let projectData = {
       currentProjectId: this.employeeObj.defaultProjectId,
       projectIds: [this.employeeObj.defaultProjectId],
-      projectStartDate: this.employeeObj.projectStartDate,
       projectType: this.defaultProjectUpdationProjectType
     };
 
+    this.employeeObj.isEndDateVisible = false;
+    this.employeeObj.memberMaxEndDate = null;
     const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
     if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {
       return true;
+    } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT') {
+      this.employeeObj.isEndDateVisible = true;
+      this.employeeObj.memberMaxEndDate = response?.data.memberMaxEndDate;
+      this.alertMessage = 'Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!';
+      this.openAlertMod(alertMessageTemplate, this.alertMessage);
+      return false;
     } else {
       return false;
     }

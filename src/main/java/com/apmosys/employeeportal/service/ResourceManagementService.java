@@ -17511,4 +17511,197 @@ public class ResourceManagementService {
 		return projectIdsList;
 	}
 
+	@Transactional(readOnly = true)
+	public ServiceResponse getExpiredTNMFilterWiseProjectStatusCount(RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			serviceResponse = validateFilter(rmgDashboardProjectRequest, apiLogInfo, serviceResponse);
+			if (serviceResponse != null && serviceResponse.getServiceStatus() != null
+					&& serviceResponse.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
+				return serviceResponse;
+			}
+			serviceResponse = new ServiceResponse();
+			List<Long> deptIds = Optional.ofNullable(resolveDepartments(rmgDashboardProjectRequest))
+					.orElse(Collections.emptyList());
+
+			String projectStatus = rmgDashboardProjectRequest.getProjectStatus() != null
+					? rmgDashboardProjectRequest.getProjectStatus()
+					: "";
+			
+			List<String> projectNames = getAllProjectNamesByPoNo(rmgDashboardProjectRequest.getProjectFilter());
+
+			String userType = rmgDashboardProjectRequest.getCurrentUserType();
+			Set<Integer> projectIds = getProjectIdsByDeptIds(deptIds);
+			if (userType.equals("HOD") || userType.equals("USER")) {
+				projectIds.addAll(buildProjectIdSetForHodOrUser(rmgDashboardProjectRequest.getCurrentUserEmpId()));
+				List<Long> selectedDeptList = rmgDashboardProjectRequest.getDepartmentIds();
+				if (selectedDeptList != null && !selectedDeptList.isEmpty()) {
+					Set<Integer> matchingDeptProjects = getProjectIdsByDeptIds(selectedDeptList);
+					projectIds.retainAll(matchingDeptProjects);
+				}
+			}
+
+			Set<String> tnmFilterKeySet = Set.of("allExpiredTNMProjectsCount", "expiredProjectsWithin1Month", "expiredProjects1To2Months", "expiredProjects2To3Months", "expiredProjects3To6Months", "expiredProjectsAbove12Months", "expiredProjects6To12Months");
+			Map<String, Long> allProjectStatusCount = new LinkedHashMap<>();
+			for(String tnmFilter : tnmFilterKeySet) {
+				rmgDashboardProjectRequest.setExpiredProjectFilter(tnmFilter);	
+				allProjectStatusCount.put(tnmFilter, getProjectDetailsCount(rmgDashboardProjectRequest, projectStatus, deptIds, projectNames, projectIds));
+			}
+
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(allProjectStatusCount);
+		} catch (Exception e) {
+			log.error("Error in getProjectStatusCount", e);
+			serviceResponse.setServiceError(e.getMessage());
+			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
+		}
+		return serviceResponse;
+	}
+		
+	@Transactional(readOnly = true)
+	public ServiceResponse getAllUnfilledTimesheetProjectDetailsCount(
+			RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			serviceResponse = validateFilter(rmgDashboardProjectRequest, apiLogInfo, serviceResponse);
+			if (serviceResponse != null && serviceResponse.getServiceStatus() != null
+					&& serviceResponse.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
+				return serviceResponse;
+			}
+			serviceResponse = new ServiceResponse();
+			List<Long> deptIds = Optional.ofNullable(resolveDepartments(rmgDashboardProjectRequest))
+					.orElse(Collections.emptyList());
+
+			Long empId = rmgDashboardProjectRequest.getCurrentUserEmpId();
+			List<Object[]> objList = employeeRepository.getJrAndJrNameAndDeptNameByEmpId(empId);
+			if (objList == null || objList.isEmpty()) {
+				return failResponse(serviceResponse, apiLogInfo, "Employee not found.");
+			}
+			serviceResponse = new ServiceResponse();
+
+			boolean deptFlag = false;
+			boolean isAllAccessEmployee = determineIfAllAccessEmployee(objList, empId);
+
+			Set<Integer> hodProjects = new HashSet<>();
+			if (deptIds != null && !deptIds.isEmpty()) {
+				deptFlag = true;
+				hodProjects = getHodProjectIds(empId);
+			} else {
+				deptIds.add(employeeRepository.getJobRoleIdByEmpId(empId).orElse(0l));
+			}
+
+			Set<Integer> projectIds = getProjectIdsByType("TIMESHEET_NON_COMPLIANCE", isAllAccessEmployee, hodProjects, deptFlag, empId);
+			Set<Integer> filteredProjectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, "ALL", deptIds);
+			Set<String> timesheetRangeSet = Set.of("All", "3M", "6M", "1Y");
+			Map<String, Long> allProjectStatusCount = new LinkedHashMap<>();
+
+			for (String timesheetRange : timesheetRangeSet) {
+				if (timesheetRange.equals("All")) {
+					allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
+					continue;
+				}
+				List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
+				LocalDate fromDate = dateRange.get(0);
+				LocalDate toDate = dateRange.get(1);
+				allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate));
+			}
+
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(allProjectStatusCount);
+		} catch (Exception e) {
+			log.error("Error in getUnfilledTimesheetProjectDetailsCount", e);
+			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
+		}
+		return serviceResponse;
+	}
+
+	private List<LocalDate> getTimesheetDateRange(String key) {
+		LocalDate today = LocalDate.now();
+
+		switch (key) {
+		case "3M":
+			return List.of(today.minusMonths(3), today);
+
+		case "6M":
+			return List.of(today.minusMonths(6), today);
+
+		case "1Y":
+			return List.of(today.minusYears(1), today);
+
+		case "All":
+		default:
+			return List.of(null, null); // no filter
+		}
+	}
+	
+	@Transactional(readOnly = true)
+	public ServiceResponse getFCFilterWiseProjectStatusCount(RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			serviceResponse = validateFilter(rmgDashboardProjectRequest, apiLogInfo, serviceResponse);
+			if (serviceResponse != null && serviceResponse.getServiceStatus() != null
+					&& serviceResponse.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
+				return serviceResponse;
+			}
+			serviceResponse = new ServiceResponse();
+			List<Long> deptIds = Optional.ofNullable(resolveDepartments(rmgDashboardProjectRequest))
+					.orElse(Collections.emptyList());
+
+			String projectStatus = rmgDashboardProjectRequest.getProjectStatus() != null
+					? rmgDashboardProjectRequest.getProjectStatus()
+					: "";
+			List<String> projectNames = getAllProjectNamesByPoNo(rmgDashboardProjectRequest.getProjectFilter());
+
+			String userType = rmgDashboardProjectRequest.getCurrentUserType();
+			Set<Integer> projectIds = getProjectIdsByDeptIds(deptIds);
+			if (userType.equals("HOD") || userType.equals("USER")) {
+				projectIds.addAll(buildProjectIdSetForHodOrUser(rmgDashboardProjectRequest.getCurrentUserEmpId()));
+				List<Long> selectedDeptList = rmgDashboardProjectRequest.getDepartmentIds();
+				if (selectedDeptList != null && !selectedDeptList.isEmpty()) {
+					Set<Integer> matchingDeptProjects = getProjectIdsByDeptIds(selectedDeptList);
+					projectIds.retainAll(matchingDeptProjects);
+				}
+			}
+
+			Set<String> fcFilterKeySet = Set.of("all", "defaulter", "ontime");
+			Map<String, Long> allProjectStatusCount = new LinkedHashMap<>();
+
+			for (String fcFilter : fcFilterKeySet) {
+				rmgDashboardProjectRequest.setFixedCostFilter(fcFilter);
+				allProjectStatusCount.put(fcFilter, getProjectDetailsCount(rmgDashboardProjectRequest, projectStatus, deptIds, projectNames, projectIds));
+			}
+
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(allProjectStatusCount);
+		} catch (Exception e) {
+			log.error("Error in getProjectStatusCount", e);
+			serviceResponse.setServiceError(e.getMessage());
+			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
+		}
+		return serviceResponse;
+	}
+
+	public ServiceResponse getEmployeeMappedToClientPercent() {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			String mappedToClientPercent = employeeRepository.getEmployeeMappedToClientPercent();
+			
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(mappedToClientPercent);
+		} catch (Exception e) {
+			log.error("Error in getMappedToClientPercent", e);
+			serviceResponse.setServiceError(e.getMessage());
+			return failResponse(serviceResponse, apiLogInfo, "Something went wrong, unable to fetch % OF EMPLOYEES ON CLIENT PROJECTS!!");
+		}
+		return serviceResponse;
+	}
+	
 }

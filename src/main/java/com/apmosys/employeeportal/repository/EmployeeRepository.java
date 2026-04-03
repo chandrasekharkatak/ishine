@@ -4697,4 +4697,19 @@ public List<Object[]> fetchInActivePOListOfProject(
 		nativeQuery = true)
 	List<Object[]> findByPrefixedEmployeementIdIn(@Param("employeementIds") List<String> employeementIds);
 
+	@Query(value = " WITH total_emp AS ( \n"
+			+ "  SELECT COUNT(*) AS total \n"
+			+ "  FROM employee \n"
+			+ "  WHERE employmentstatus != 'InActive'AND emp_id NOT BETWEEN 1 AND 6 \n"
+			+ " ) \n"
+			+ " SELECT CONCAT(ROUND(COUNT(DISTINCT etm.emp_id) * 100.0 / NULLIF(te.total, 0), 2),'') AS emp_per \n"
+			+ " FROM projects p \n"
+			+ " INNER JOIN teams t ON p.project_id = t.project_id \n"
+			+ " INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+			+ " CROSS JOIN total_emp te \n"
+			+ " WHERE p.po_project_type IS NOT NULL AND p.active = 'true' \n"
+			+ " AND t.is_active = 'Y' AND etm.active = 1  \n"
+			+ " AND etm.end_date is null \n", nativeQuery = true)
+	public String getEmployeeMappedToClientPercent();
+
 }

@@ -240,4 +240,6 @@ export class Employee{
 	oldEtmEndDate: any;
 	newEtmStartDate: any;
 	projectStartDate:any;
+	isEndDateVisible:boolean = false;
+	memberMaxEndDate:any;
 }

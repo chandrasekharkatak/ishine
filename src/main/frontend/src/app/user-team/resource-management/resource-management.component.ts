@@ -1499,7 +1499,7 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   setNewRmgDashboardFlag() {
-    this.filterStateService.isNewRmgDashboard = this.isNewRmgDashboard;
+    this.filterStateService.isNewRmgDashboard =  this.isNewRmgDashboard;
     this.ngOnInit();
     let featureUsageLog = new FeatureUsageLog();
     featureUsageLog.empId = this.currentUser.empId;

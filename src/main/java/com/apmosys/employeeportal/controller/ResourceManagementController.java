@@ -803,4 +803,28 @@ public class ResourceManagementController {
 	public ServiceResponse getBillingLossRiskScore(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
 		return resourceManagementService.getBillingLossRiskScore(rmgDashboardProjectRequest);
 	}
+	
+	// @Encrypted
+	@PostMapping("/getExpiredTNMFilterWiseProjectStatusCount")
+	public ServiceResponse getExpiredTNMFilterWiseProjectStatusCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getExpiredTNMFilterWiseProjectStatusCount(rmgDashboardProjectRequest);
+	}
+	
+	// @Encrypted
+		@PostMapping("/getFCFilterWiseProjectStatusCount")
+		public ServiceResponse getFCFilterWiseProjectStatusCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+			return resourceManagementService.getFCFilterWiseProjectStatusCount(rmgDashboardProjectRequest);
+		}
+	
+	// @Encrypted
+	@PostMapping("/getAllUnfilledTimesheetProjectDetailsCount")
+	public ServiceResponse getAllUnfilledTimesheetProjectDetailsCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getAllUnfilledTimesheetProjectDetailsCount(rmgDashboardProjectRequest);
+	}
+	
+	@GetMapping("/getEmployeeMappedToClientPercent")
+	public ServiceResponse getEmployeeMappedToClientPercent() {
+		return resourceManagementService.getEmployeeMappedToClientPercent();
+	}
+	
 }

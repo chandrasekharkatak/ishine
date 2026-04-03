@@ -25,6 +25,7 @@ export enum ResultType {
   NO_CONFLICT = 'NO_CONFLICT',
   EMPLOYEE_EXISTING_PROJECT_DETAILS = 'EMPLOYEE_EXISTING_PROJECT_DETAILS',
   DELETE_EMPLOYEE_FROM_EXISTING_PROJECT = 'DELETE_EMPLOYEE_FROM_EXISTING_PROJECT',
+  EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT = 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT',
   SUCCESS = 'SUCCESS',
   ERROR = 'ERROR',
 }
@@ -63,18 +64,11 @@ export class EmployeeProjectService {
   async validateEmployeeProjectStartDateChange(member: any, projectData: any): Promise<any> {
     let result: AppResult;
     const selectedDate = this.normalizeDate(member.startDate);
-    const projectStart = this.normalizeDate(projectData.projectStartDate);
     this.startDateUpdateProjectId = projectData.currentProjectId;
-    if (selectedDate < projectStart) {
-      result = this.failureResult(ResultType.PROJECT_START_DATE_ERROR, '');
-      this.handleResult(result);
-      return result;
-    }
 
     let rmgMember: RmgTeamMember = new RmgTeamMember();
     rmgMember.empId = member.empId;
     rmgMember.projectId = projectData.currentProjectId;
-    rmgMember.projectStartDate = projectStart;
     rmgMember.projectType = projectData.projectType;
     rmgMember.startDate = selectedDate;
     rmgMember.projectIds = projectData.projectIds;
@@ -82,24 +76,30 @@ export class EmployeeProjectService {
     try {
       const response: any = await firstValueFrom(this.teamService.validateEmployeeProjectStartDate(rmgMember));
       if (response.serviceStatus === 'Success') {
-        if (['CONFLICTING_TIMESHEET_RECORDS_FOUND', 'OTHER_TNM_PROJECT_OVERLAPPING', 'CURRENT_TNM_PROJECT_OVERLAPPING'].includes(response.serviceResponse)) {
-
+        if (response.serviceResponse == 'PROJECT_START_DATE_LESS_THAN_MEMBER_START_DATE') {
+          result = this.failureResult(ResultType.PROJECT_START_DATE_ERROR, '');
+          this.handleResult(result);
+          return result;
+        }
+        else if (['CONFLICTING_TIMESHEET_RECORDS_FOUND', 'OTHER_TNM_PROJECT_OVERLAPPING', 'CURRENT_TNM_PROJECT_OVERLAPPING'].includes(response.serviceResponse)) {
           const entries = response.serviceResponse2 || [];
           let newStartDateEarlierThanAnyExistingProject: boolean = false;
 
           for (let entry of entries) {
-            if (!entry.employeeTeamStartDate) {
+            if (!this.validationService.validateNullUndefinedEmptyStringTrim(entry.employeeTeamStartDate)
+              || !this.validationService.validateNullUndefinedEmptyStringTrim(entry.employeeTeamEndDate)) {
               continue;
             }
 
-            if (selectedDate < this.normalizeDate(entry.employeeTeamStartDate)) {
+            if (this.normalizeDate(entry.employeeTeamStartDate) >= selectedDate && this.normalizeDate(entry.employeeTeamEndDate) >= selectedDate) {
+              member.memberMaxEndDate = moment(entry.employeeTeamStartDate).subtract(1, 'day').format('YYYY-MM-DD');
               newStartDateEarlierThanAnyExistingProject = true;
               break;
             }
           }
 
           if (newStartDateEarlierThanAnyExistingProject) {
-            result = this.failureResult(ResultType.EMPLOYEE_PROJECT_TIMESHEET_CONFLICT, '', { entries: entries, isOverlap: response.serviceResponse !== 'CONFLICTING_TIMESHEET_RECORDS_FOUND', rmgMember: rmgMember });
+            result = this.failureResult(ResultType.EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT, '', member);
           } else {
             result = this.failureResult(ResultType.EMPLOYEE_PROJECT_TIMESHEET_CONFLICT, '', { entries: entries, isOverlap: response.serviceResponse !== 'CONFLICTING_TIMESHEET_RECORDS_FOUND', rmgMember: rmgMember });
           }
@@ -215,7 +215,6 @@ export class EmployeeProjectService {
       let projectData = {
         currentProjectId: rmgTeamMember?.projectId,
         projectIds: rmgTeamMember.projectIds,
-        projectStartDate: rmgTeamMember.projectStartDate,
         projectType: rmgTeamMember.projectType
       };
 

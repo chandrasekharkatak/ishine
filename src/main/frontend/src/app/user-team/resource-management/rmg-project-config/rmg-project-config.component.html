@@ -492,7 +492,7 @@
                         <td class="min-width180 max-width200">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" readonly [matDatepicker]="startDatepicker"
-                                    (dateChange)="validateEmployeeProjectStartDate(currentTeam.newRmgTeamMember, rmgProjectObj.projectId, rmgProjectObj.startDate, projectType)"
+                                    (dateChange)="validateEmployeeProjectStartDate(currentTeam.newRmgTeamMember, rmgProjectObj.projectId, projectType)"
                                     [(ngModel)]="currentTeam.newRmgTeamMember.startDate"
                                     [disabled]="!currentTeam.newRmgTeamMember.empId" (click)="startDatepicker.open()" />
                                 <mat-icon class="calendar-icon"
@@ -500,7 +500,17 @@
                                 <mat-datepicker #startDatepicker></mat-datepicker>
                             </div>
                         </td>
-                        <td class="min-width100 max-width150">
+                        <td class="min-width180 max-width200" *ngIf="currentTeam.newRmgTeamMember.isEndDateVisible">
+                            <div class="date-input-wrapper">
+                                <input class="form-control date-input" readonly [matDatepicker]="endDatepicker"
+                                    [(ngModel)]="currentTeam.newRmgTeamMember.endDate"
+                                    [max]="currentTeam.newRmgTeamMember.memberMaxEndDate"
+                                    [disabled]="!currentTeam.newRmgTeamMember.empId" (click)="endDatepicker.open()" />
+                                <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
+                                <mat-datepicker #endDatepicker></mat-datepicker>
+                            </div>
+                        </td>
+                        <td class="min-width100 max-width150" *ngIf="!currentTeam.newRmgTeamMember.isEndDateVisible">
                             {{'--'}}
                         </td>
                         <td>
@@ -563,7 +573,7 @@
                         <td class="min-width180 max-width200">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" readonly [matDatepicker]="startDatepicker"
-                                    (dateChange)="validateEmployeeProjectStartDate(member, rmgProjectObj.projectId, rmgProjectObj.startDate, projectType)"
+                                    (dateChange)="validateEmployeeProjectStartDate(member, rmgProjectObj.projectId, projectType)"
                                     [(ngModel)]="member.startDate" [disabled]="!member.empId"
                                     (click)="startDatepicker.open()" />
                                 <mat-icon class="calendar-icon"
@@ -571,7 +581,16 @@
                                 <mat-datepicker #startDatepicker></mat-datepicker>
                             </div>
                         </td>
-                        <td class="min-width100 max-width150">
+                        <td class="min-width180 max-width200" *ngIf="member.isEndDateVisible">
+                            <div class="date-input-wrapper">
+                                <input class="form-control date-input" readonly [matDatepicker]="endDatepicker"
+                                    [(ngModel)]="member.endDate" [max]="member.memberMaxEndDate"
+                                    [disabled]="!member.empId" (click)="endDatepicker.open()" />
+                                <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
+                                <mat-datepicker #endDatepicker></mat-datepicker>
+                            </div>
+                        </td>
+                        <td class="min-width100 max-width150" *ngIf="!member.isEndDateVisible">
                             {{'--'}}
                         </td>
                         <td>
@@ -683,7 +702,7 @@
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" readonly [matDatepicker]="startDatepicker"
                                     [disabled]="projectConfigStepperIndex !== 1"
-                                    (dateChange)="validateEmployeeProjectStartDate(member, rmgProjectObj.projectId, rmgProjectObj.startDate, projectType)"
+                                    (dateChange)="validateEmployeeProjectStartDate(member, rmgProjectObj.projectId, projectType)"
                                     [(ngModel)]="member.startDate" readonly (click)="startDatepicker.open()" />
                                 <mat-icon class="calendar-icon"
                                     (click)="startDatepicker.open()">calendar_today</mat-icon>
@@ -1381,7 +1400,7 @@
                                 <div class="date-input-wrapper">
                                     <input class="form-control date-input" readonly
                                         [matDatepicker]="defaultProjectEmployeeStartDatepicker"
-                                        (dateChange)="validateEmployeeProjectStartDate(employee, employee.selectedProject.projectId, employee.selectedProject.projectStartDate, projectType)"
+                                        (dateChange)="validateEmployeeProjectStartDate(employee, employee.selectedProject.projectId, projectType)"
                                         [(ngModel)]="employee.selectedProject.startDate"
                                         [disabled]="!employee.selectedProject.projectId"
                                         (click)="defaultProjectEmployeeStartDatepicker.open()" />
@@ -1722,7 +1741,7 @@
                                         <div class="date-input-wrapper">
                                             <input class="form-control date-input" readonly
                                                 [matDatepicker]="defaultProjectMappingStartDatepicker"
-                                                (dateChange)="validateEmployeeProjectStartDate(employee, employee.projectId, employee.projectStartDate , projectType)"
+                                                (dateChange)="validateEmployeeProjectStartDate(employee, employee.projectId , projectType)"
                                                 [(ngModel)]="employee.startDate" [disabled]="!employee.projectId"
                                                 (click)="defaultProjectMappingStartDatepicker.open()" />
                                             <mat-icon class="calendar-icon"

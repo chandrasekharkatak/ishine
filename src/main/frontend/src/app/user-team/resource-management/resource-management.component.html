@@ -21,7 +21,7 @@
                 </button>
                 <div class="d-flex align-items-center ml-1 mr-1">
                     <label class="new-rmg-toggle-switch">
-                        <input type="checkbox" [(ngModel)]="isNewRmgDashboard" (click)="setNewRmgDashboardFlag()"/>
+                        <input type="checkbox" [(ngModel)]="isNewRmgDashboard" (ngModelChange)="setNewRmgDashboardFlag()"/>
                         <span class="new-rmg-slider"></span>
                     </label>&nbsp;
                     <span class="new-rmg-toggle-label mb-1">NEW RMG DASHBOARD</span>
@@ -49,7 +49,7 @@
                 </button>
                 <div class="d-flex align-items-center ml-1 mr-1">
                     <label class="new-rmg-toggle-switch">
-                        <input type="checkbox" [(ngModel)]="isNewRmgDashboard" (click)="setNewRmgDashboardFlag()" />
+                        <input type="checkbox" [(ngModel)]="isNewRmgDashboard" (ngModelChange)="setNewRmgDashboardFlag()" />
                         <span class="new-rmg-slider"></span>
                     </label>&nbsp;
                     <span class="new-rmg-toggle-label mb-1">NEW RMG DASHBOARD</span>

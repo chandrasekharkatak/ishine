@@ -1576,6 +1576,19 @@ public class TeamMembersService {
 				response.setServiceResponse("Project not found!!");
 				return response;
 			}
+			if (currentProject.getStartDate() == null || currentProject.getStartDate().trim().isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Start Date is null, Please contact Admin!!");
+				return response;
+			}
+
+			LocalDate date = LocalDate.parse(currentProject.getStartDate().toString());
+			if (rmgTeamMemberDto.getStartDate().toLocalDate().isBefore(date)) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("PROJECT_START_DATE_LESS_THAN_MEMBER_START_DATE");
+				return response;
+			}
+
 			if (rmgTeamMemberDto.getProjectIds() == null || rmgTeamMemberDto.getProjectIds().isEmpty()) {
 				List<Integer> temp = new ArrayList<>();
 				temp.add(currentProject.getProjectId());

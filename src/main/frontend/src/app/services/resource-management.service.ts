@@ -290,5 +290,20 @@ export class ResourceManagementService {
     return this.http.post(`${this.baseUrl}` + `api/getBillingLossRiskScore`, rmgProjectRequest);
   }
 
+  getExpiredTNMFilterWiseProjectStatusCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getExpiredTNMFilterWiseProjectStatusCount`, rmgProjectRequest);
+  }
+
+  getAllUnfilledTimesheetProjectDetailsCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllUnfilledTimesheetProjectDetailsCount`, rmgProjectRequest);
+  }
+
+  getFCFilterWiseProjectStatusCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getFCFilterWiseProjectStatusCount`, rmgProjectRequest);
+  }
+
+  getEmployeeMappedToClientPercent() {
+    return this.http.get(`${this.baseUrl}` + `api/getEmployeeMappedToClientPercent`);
+  }
 }
 
