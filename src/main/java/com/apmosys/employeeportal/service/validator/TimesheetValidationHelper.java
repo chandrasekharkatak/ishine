@@ -1893,7 +1893,7 @@ public class TimesheetValidationHelper {
 	 * 2. Non-Working: ONLY allowed on dates that are announced as Holiday / Week Off.
 	 *    Non-working day type can only be selected for dates that exist in the holiday table.
 	 */
-	public void validateDayTypeAgainstHoliday(LocalDate timesheetDate, Integer dayTypeId) {
+	public void validateDayTypeAgainstHoliday(LocalDate timesheetDate, Integer dayTypeId , Boolean hasClient) {
 		
 		if (timesheetDate == null || dayTypeId == null) {
 			return;
@@ -1913,7 +1913,7 @@ public class TimesheetValidationHelper {
 		}
 		
 		// Rule 1: Working / Half-day Working NOT allowed on holiday dates
-		if (incomingDayType == DayTypeCode.WORKING || incomingDayType == DayTypeCode.HALF_DAY_WORKING) {
+		if ((incomingDayType == DayTypeCode.WORKING || incomingDayType == DayTypeCode.HALF_DAY_WORKING ) && !hasClient) {
 			if (isHolidayDate) {
 				throw new TimesheetValidationFailedException(
 						"Date is configured as Holiday/Week Off. Only Non-working timesheet is allowed on this date.");

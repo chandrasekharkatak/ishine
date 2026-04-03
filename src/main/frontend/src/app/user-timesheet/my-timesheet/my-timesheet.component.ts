@@ -916,6 +916,7 @@ get tooltipCta(): string {
    */
   applyDateRangeTypeAndLoad() {
     const today = new Date();
+    this.page = 1;
     if (this.dateRangeType === 'currentMonth') {
       const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
       this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
@@ -941,6 +942,7 @@ get tooltipCta(): string {
     this.dateRangeType = 'custom';
     this.startDate = null;
     this.endDate = null;
+    this.page = 1;
   }
 
   showBulkButton(){
@@ -3332,12 +3334,16 @@ get tooltipCta(): string {
   //   this.selectedFile2 = file;
   //   this.fileName2 = file.name;
   // }
+
+  fileNameToShow : string = '';
 async onFinalFileSelected(event: any): Promise<void> {
+  this.fileNameToShow = '';
   const file: File = event.target.files[0];
   this.fileError2 = '';
   this.previewUrl2 = null;
   this.fileType2 = null;
-
+  this.fileNameToShow = file.name.toLowerCase() || 'document';
+  console.log(this.fileNameToShow);
   if (!file) return;
 
   const allowedTypes = [
