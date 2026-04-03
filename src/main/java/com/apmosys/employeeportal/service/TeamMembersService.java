@@ -1109,7 +1109,12 @@ public class TeamMembersService {
 					empTeamMapping.setEndDate(LocalDateTime.now());
 				}
 
-				employeeTeamMapRepository.save(empTeamMapping);
+				EmployeeTeamMap newEmployeeTeamMap = employeeTeamMapRepository.save(empTeamMapping);
+				if (newEmployeeTeamMap != null && rmgTeamMember.isRemovePermanently()) {
+					employeeTeamMapRepository.deleteById(newEmployeeTeamMap.getEmployeeTeamMapId());
+					continue;
+				}
+
 				sendResourceRemovalMailToRmg(emp.getName(), project.getProjectName(), team.getTeamName());
 			} catch (Exception e) {
 				log.error("Error in handleRemoveTeamMembers : ", e);

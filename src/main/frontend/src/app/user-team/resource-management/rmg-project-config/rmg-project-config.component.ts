@@ -162,6 +162,7 @@ export class RmgProjectConfigComponent implements OnInit {
     mappingToOtherProjectAsDefaultList: RmgTeamMember[] = [];
     markDefaultProjectCompletionList: RmgTeamMember[] = [];
     teamMigrationTeamMembersList: RmgTeamMember[] = [];
+    deletingTeamMembersList: RmgTeamMember[] = [];
     cloneMemberMappingList: RmgTeamMember[] = [];
     existingEmployeeProjectTimesheetEntries: EmployeeProjectTimesheetDto[] = [];
 
@@ -182,6 +183,7 @@ export class RmgProjectConfigComponent implements OnInit {
     isProjectOverlapping: boolean = false;
     isOnboardingAsShadow: boolean = false;
     allResourceRequirement: boolean = true;
+    removePermanently: boolean = false;
 
     // Dates
     todaysDate: any
@@ -376,6 +378,7 @@ export class RmgProjectConfigComponent implements OnInit {
 
     openRemoveMembersModal() {
         this.membersEndDate = null;
+        this.removePermanently = false;
         this.removeMembersConfirmationModalRef = this.modalService?.open(this.removeMembersConfirmationTemplateRef, { modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false });
     }
 
@@ -557,6 +560,7 @@ export class RmgProjectConfigComponent implements OnInit {
     validateDeleteTeams() {
         this.markDefaultProjectCompletionList = [];
         this.mappingToOtherProjectAsDefaultList = [];
+        this.deletingTeamMembersList = [];
 
         let poObj = new PoDetails();
         poObj.projectId = this.rmgProjectObj.projectId;
@@ -568,6 +572,7 @@ export class RmgProjectConfigComponent implements OnInit {
         this.teamService.getTeamDetailsByTeamIdsAndProjectId(poObj).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus === "Success") {
                 let teamMembers: RmgTeamMember[] = response.serviceResponse || [];
+                this.deletingTeamMembersList = teamMembers;
 
                 // having no other active projects and this is default project
                 let noOtherActiveAndCurrentIsDefaultProjectEmpIds: number[] = teamMembers
@@ -2034,6 +2039,7 @@ export class RmgProjectConfigComponent implements OnInit {
                 this.openAlertMessageModal(`Member End date cannot be less then Member Start date for ${member.employementId}!!`);
                 return;
             }
+            member.removePermanently = this.removePermanently;
         }
 
         let rmgTeam = new RmgTeam();
