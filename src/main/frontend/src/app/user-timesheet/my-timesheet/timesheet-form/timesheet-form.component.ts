@@ -4098,9 +4098,9 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
      if(successFlag){
        if(this.timesheetLocations[0].projects.length ==0){
         if(this.dayType == 7){
-          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid Client projects to assign for this day. Please contact your Reporting Manager immediately.');
+          this.openAlertMod(this.alertTemplate, 'You are not allowed to fill Client Holiday.');
         }else if(this.dayType == 6){
-          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid Internal/Bench projects to assign for this day. Please contact your Reporting Manager immediately.');
+          this.openAlertMod(this.alertTemplate, 'You are not allowed to fill ApMoSys Holiday');
         }else{
           this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid projects to assign for this day. Please contact your Reporting Manager immediately.');
         }
