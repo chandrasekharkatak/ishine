@@ -4517,9 +4517,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     });
     console.log(this.timesheetLocations,"timesheetLocations");
     // 6. Populate Documents (if any)
-    if (timesheetData.documentData) {
-      this.populateDocuments(timesheetData.documentData);
-    }
+    
 
     // 7. Expand first location/project for better UX
     if (this.timesheetLocations.length > 0) {
@@ -4533,27 +4531,15 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     // This must happen before getTimesheetMetadata/loadTeamMemberForUpdate so projectList is ready
     if (this.fromDate && timesheetEmpId) {
       this.getProjectListForDateAndEmpId(timesheetEmpId).then(() => {
-        // After project list loads, ensure projectId matches in dropdown
-        this.timesheetLocations.forEach(loc => {
-          loc.projects.forEach(proj => {
-            if (proj.projectId && proj.projectList && proj.projectList.length > 0) {
-              // Ensure projectId is in the list and matches type
-              const matchedProject = proj.projectList.find(p => Number(p.projectId) === Number(proj.projectId));
-              if (matchedProject){
-                proj.hasClientSideId=matchedProject.hasClientSideId;
-
-              }
-
-              if (matchedProject && !proj.projectName) {
-                proj.projectName = matchedProject.projectName;
-              }
-              console.log("project at last => ",proj)
-            }
+            // . Build document upload list so upload option is visible when project has clientSideId + clientApprovalStatus
+            // (autofill does not include document data, but upload UI should show for qualifying projects)
+            this.getListToRenderUpload();
+          }).catch(error => {
+            console.error('Error loading project list for update:', error);
           });
-        });
-      }).catch(error => {
-        console.error('Error loading project list for update:', error);
-      });
+    }
+    if (timesheetData.documentData) {
+      this.populateDocuments(timesheetData.documentData);
     }
 
     // 9. Load metadata / team members (does not affect already-populated locations)
@@ -4566,9 +4552,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     // 10. Recalculate location/project totals so "Total Hours" reflects populated activities
     this.onHoursChange();
 
-    // 11. Build document upload list so upload option is visible when project has clientSideId + clientApprovalStatus
-    // (autofill does not include document data, but upload UI should show for qualifying projects)
-    this.getListToRenderUpload();
+
 
     // 12. In update mode, load shadowForList for projects that have isShadowTimesheet so Shadow For dropdown shows options and selected value
     if (this.isUpdation && this.fromDate && timesheetEmpId != null) {
