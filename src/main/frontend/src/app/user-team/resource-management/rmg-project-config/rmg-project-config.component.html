@@ -1768,12 +1768,10 @@
 
 <ng-template #remove_members_confirmation>
     <div class="modal-body">
-        <p class="text-center">This action will permanently mark the selected members as inactive for the Team.
+        <p class="text-center mb-1">This action will permanently mark the selected members as inactive for the Team.
             <br> Do you want to proceed?
-            <i class="fa fa-beat fa-info-circle info-icon cursor-pointer"
-                title="Members with Future Start Date will be deleted permanently!!">
-            </i>
         </p>
+        <p *ngIf="removePermanently" class="text-danger mb-1">Note: This action cannot be undone.</p>
         <div class="row justify-content-center align-items-center">
             <div class="col-md-8">
                 <div class="info-wrapper">
@@ -1789,6 +1787,13 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="row justify-content-center align-items-center">
+            <mat-checkbox class="remove-permanently" color="primary" [(ngModel)]="removePermanently"></mat-checkbox>
+            <small>Remove Permanently</small>&nbsp;
+            <i class="fa fa-beat fa-info-circle info-icon-danger cursor-pointer"
+                title="This will permanently delete the entry from the table. This action cannot be undone.">
+            </i>
         </div>
         <div class="row justify-content-center align-items-center">
             <button type="button" class="btn btn-success btn-sm" (click)="removeTeamMembersFromProject();">Yes,
