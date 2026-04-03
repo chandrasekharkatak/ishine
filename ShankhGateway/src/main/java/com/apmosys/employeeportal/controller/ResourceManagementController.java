@@ -113,4 +113,9 @@ public class ResourceManagementController {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return "IShine is online...";
 	}
+	
+	@GetMapping("/test")
+	public String test(HttpServletRequest httpRequest) {
+		return "IShine is online...";
+	}
 }

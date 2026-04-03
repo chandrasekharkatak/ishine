@@ -80,13 +80,17 @@ public class EmployeePortalInterceptor implements HandlerInterceptor {
 				"/api/getDocumentDataByDocIdForPO",
 				"/api/getResourceCountListByPoprojectName",
 				"/api/healthCheck",
+				"/api/test"
 		};
 		whitelistedApis = new ArrayList<>();
 		for (String suffix : apiSuffixes) {
-			whitelistedApis.add(suffix);
-			if (!cp.isEmpty()) {
-				whitelistedApis.add(cp + suffix);
-			}
+			 whitelistedApis.add(cp + suffix);
+
+			    if (cp == null || cp.isEmpty()) {
+			        whitelistedApis.add("/shankhgateway" + suffix);
+			    } else {
+			        whitelistedApis.add("/shankhgateway" + cp + suffix);
+			    }
 		}
 	}
 
