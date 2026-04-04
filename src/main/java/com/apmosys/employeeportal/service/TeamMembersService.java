@@ -35,6 +35,7 @@ import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
 import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto;
 import com.apmosys.employeeportal.dto.MigrateTeam;
+import com.apmosys.employeeportal.dto.PoDepartmentMappingDto;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
 import com.apmosys.employeeportal.dto.RmgMemberEndDateDto;
@@ -1404,8 +1405,8 @@ public class TeamMembersService {
 		for (Activity sourceActivity : sourceTeamActivities) {
 			Team newTeam = oldToNewTeamMap.getOrDefault(sourceActivity.getTeamId(), null);
 			if (newTeam != null) {
-				Set<String> existingActivitiesEmployeeRole = teamIdAndEmployeeRoleMap.getOrDefault(newTeam.getTeamId(),
-						Set.of());
+				Set<String> existingActivitiesEmployeeRole = new HashSet<>(teamIdAndEmployeeRoleMap.getOrDefault(newTeam.getTeamId(),
+						Set.of()));
 				if (existingActivitiesEmployeeRole.contains(sourceActivity.getEmployeeRole())) {
 					continue;
 				}
@@ -1897,11 +1898,11 @@ public class TeamMembersService {
 		Integer tgtProjectId = migrateTeam.getTargetProjectId();
 		List<PoDepartmentMapping> migratedPoDepartmentMapping = new ArrayList<>();
 
-		List<PoDepartmentMapping> sourceDeptMappings = poDepartmentMappingRepository
+		List<PoDepartmentMappingDto> sourceDeptMappings = poDepartmentMappingRepository
 				.findByProjectIdAndActive(srcProjectId);
 		List<Long> targetDeptIds = poDepartmentMappingRepository.findPoDeptIdsByProjectId(tgtProjectId, false);
 
-		for (PoDepartmentMapping s : sourceDeptMappings) {
+		for (PoDepartmentMappingDto s : sourceDeptMappings) {
 			if (!targetDeptIds.contains(s.getDeptId())) {
 				PoDepartmentMapping nm = new PoDepartmentMapping();
 				nm.setPoId(migrateTeam.getTargetPoId());

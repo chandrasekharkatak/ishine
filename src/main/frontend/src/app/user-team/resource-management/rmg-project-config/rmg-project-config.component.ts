@@ -2156,6 +2156,7 @@ export class RmgProjectConfigComponent implements OnInit {
             if (response.serviceStatus == "Success") {
                 this.toastService.success(response.serviceResponse);
                 this.getResourceRequirementDetailsByProjectIdForTeamMemberMigration(this.teamMembersMigrationObj.targetProjectId);
+                this.getActivePoDetailsByProjectIdForTeamMigration();
             } else {
                 this.toastService.error(response.serviceResponse || 'Something went wrong!!');
             }
@@ -2188,6 +2189,7 @@ export class RmgProjectConfigComponent implements OnInit {
             if (response.serviceStatus == "Success") {
                 this.toastService.success(response.serviceResponse);
                 this.getResourceRequirementDetailsByProjectIdForTeamMemberMigration(this.teamMembersMigrationObj.targetProjectId);
+                this.getActivePoDetailsByProjectIdForTeamMigration();
             } else {
                 this.toastService.error(response.serviceResponse || 'Something went wrong!!');
             }
