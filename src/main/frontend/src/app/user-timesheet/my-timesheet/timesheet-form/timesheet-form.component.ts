@@ -2,8 +2,8 @@ import { Component, Input, OnInit, OnChanges, OnDestroy, Output, EventEmitter, T
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as moment from 'moment';
-import { Subject, first, firstValueFrom, forkJoin, of, takeUntil } from 'rxjs';
-import { catchError, finalize, map } from 'rxjs/operators';
+import { Subject, first, firstValueFrom, forkJoin, from, of, takeUntil } from 'rxjs';
+import { catchError, finalize, map, switchMap } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
 import { Timesheet } from 'src/app/models/timesheet';
@@ -2090,7 +2090,7 @@ this.isNightShift = false;
    * @param empIdOverride - When provided (e.g. from edit populate), use this empId instead of deriving
    * @param isPopulateMode - When true, show at most one error popup (avoids duplicate popups for multiple projects)
    */
-  getClientDetailsByProjectIdAndEmpId(project: ProjectEntry, empIdOverride?: number, isPopulateMode?: boolean): void {
+  async getClientDetailsByProjectIdAndEmpId(project: ProjectEntry, empIdOverride?: number, isPopulateMode?: boolean): Promise<void> {
     if (!project.projectId) {
       console.error('Project ID is required to fetch client details');
       return;
@@ -2134,10 +2134,14 @@ this.isNightShift = false;
       );
     };
 
-    this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload)
-      .pipe(first(), takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
+    // this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload)
+    //   .pipe(first(), takeUntil(this.destroy$))
+    //   .subscribe({
+        // next: (response: any) => {
+
+        const response: any = await firstValueFrom(
+          this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload)
+        );
           if (response.serviceStatus === "Success") {
             if (!response.serviceResponse || !response.serviceResponse.clientId) {
               showClientDetailsError('Failed to load client information for this project. Invalid response format.');
@@ -2168,11 +2172,11 @@ this.isNightShift = false;
             const msg = response.serviceResponse || 'No valid client details found.123';
             showClientDetailsError('Failed to load client details: ' + msg);
           }
-        },
-        error: (error) => {
-          showClientDetailsError('Error loading client details. Please try again.');
-        }
-      });
+        // },
+      //   error: (error) => {
+      //     showClientDetailsError('Error loading client details. Please try again.');
+      //   }
+      // });
   }
 
  /**
@@ -4055,26 +4059,30 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
         project.hasClientSideId = p.hasClientSideId;
         project.hasClientFlag = p.hasClientFlag;
 
-        this.populateProjectDropdowns(project);
+        return from(this.populateProjectDropdowns(project)).pipe(
+          switchMap(() => {
+            project.clientId = project.clientDetails?.clientId ?? null;
 
-        // ✅ correct mapping
-        project.clientId = project.clientDetails?.clientId ?? null;
-
-        return this.getLastFilledLocationIdForProjectAndEmp(project.projectId, empId).pipe(
-          map(locationId => {
-            project.clientLocationId =
-              locationId ?? project.clientDetails.clientLocations?.[0]?.clientLocationId;
-
-            project.description = this.holidayDescription;
-
-            return project;
-          }),
-          catchError(() => {
-            project.clientLocationId = project.clientLocationList?.[0]?.clientLocationId;
-            project.description = this.holidayDescription;
-            return of(project);
+            return this.getLastFilledLocationIdForProjectAndEmp(project.projectId, empId).pipe(
+              map(locationId => {
+                project.clientLocationId =
+                  locationId ?? project.clientDetails.clientLocations?.[0]?.clientLocationId;
+    
+                project.description = this.holidayDescription;
+    
+                return project;
+              }),
+              catchError(() => {
+                project.clientLocationId = project.clientLocationList?.[0]?.clientLocationId;
+                project.description = this.holidayDescription;
+                return of(project);
+              })
+    
+    
+            );
           })
         );
+
       });
 
       // 🔥 HARD BLOCK here (no subscribe anywhere)
@@ -4098,9 +4106,9 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
      if(successFlag){
        if(this.timesheetLocations[0].projects.length ==0){
         if(this.dayType == 7){
-          this.openAlertMod(this.alertTemplate, 'You are not allowed to fill Client Holiday.');
+          this.openAlertMod(this.alertTemplate, 'You are not allowed to fill Client Holiday (only Internal Project are assigned to you).');
         }else if(this.dayType == 6){
-          this.openAlertMod(this.alertTemplate, 'You are not allowed to fill ApMoSys Holiday');
+          this.openAlertMod(this.alertTemplate, 'You are not allowed to fill ApMoSys Holiday (only client projects are assigned to you)');
         }else{
           this.openAlertMod(this.alertTemplate, 'No Project found for you. Please contact RMG team.');
         }
@@ -4808,9 +4816,9 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
    * @param project - Project entry to populate
    * @param timesheetEmpIdOverride - When provided (e.g. from edit load), use this empId for client-details API
    */
-  populateProjectDropdowns(project: ProjectEntry, timesheetEmpIdOverride?: number): void {
+ async populateProjectDropdowns(project: ProjectEntry, timesheetEmpIdOverride?: number): Promise<void> {
     if (!project.clientDetails && project.projectId) {
-      this.getClientDetailsByProjectIdAndEmpId(project, timesheetEmpIdOverride, !!timesheetEmpIdOverride);
+      await this.getClientDetailsByProjectIdAndEmpId(project, timesheetEmpIdOverride, !!timesheetEmpIdOverride);
     } else if (project.clientDetails) {
       // ✅ Use clientDetails if already loaded
       if (project.clientDetails.clientId) {
@@ -4836,6 +4844,8 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
         }
       }
     }
+    let x = "Reached here";
+    console.log(x);
   }
 
   /**
