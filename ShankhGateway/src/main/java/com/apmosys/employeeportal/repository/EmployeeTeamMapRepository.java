@@ -1022,9 +1022,31 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	List<Long> findDistinctEmpIdsByProjectId(@Param("projectId") Integer projectId);
 
 	
-	@Query(value = "Select etm from EmployeeTeamMap etm where etm.poId =:previousPoId and etm.roleId =:roleId and etm.active !=0")
+	@Query(value = "SELECT etm FROM EmployeeTeamMap etm\n"
+			+ "WHERE etm.poId = :previousPoId\n"
+			+ "AND etm.roleId = :roleId\n"
+			+ "AND (\n"
+			+ "        etm.active != 0\n"
+			+ "     OR (\n"
+			+ "            etm.active = 0\n"
+			+ "        AND etm.endDate IS NULL\n"
+			+ "        AND FUNCTION('DATE', etm.startDate) > CURRENT_DATE\n"
+			+ "     )\n"
+			+ ")")
 	List<EmployeeTeamMap>findActiveEmployeesForRole(Long previousPoId, Long roleId);
 
+	@Query(value ="SELECT etm FROM EmployeeTeamMap etm\n"
+			+ "WHERE etm.poId = :previousPoId\n"
+			+ "AND (\n"
+			+ "        etm.active != 0\n"
+			+ "     OR (\n"
+			+ "            etm.active = 0\n"
+			+ "        AND etm.endDate IS NULL\n"
+			+ "        AND etm.startDate IS NOT NULL\n"
+			+ "        AND FUNCTION('DATE', etm.startDate) > CURRENT_DATE\n"
+			+ "     )\n"
+			+ ")")
+	List<EmployeeTeamMap> findActiveEmployeesByPoId(Long previousPoId);
 		@Query(value = "SELECT \n"
 				+ "COUNT(DISTINCT e.empId)"
 				+ "FROM Employee e \n"
