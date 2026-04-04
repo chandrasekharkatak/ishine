@@ -80,6 +80,7 @@ export class RmgTeamMember {
     isEndDateVisible: boolean = false;
     memberMinStartDate: any;
     memberMaxEndDate: any;
+    memberList:any[] = [];
     projectList: any[] = [];
     teamList: any[] = [];
     poDetailsList: any[] = [];

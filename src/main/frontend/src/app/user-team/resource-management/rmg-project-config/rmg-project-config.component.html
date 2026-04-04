@@ -541,10 +541,10 @@
                         </td>
                         <td class="min-width180 max-width200">
                             <app-my-select #newMemberSelect class="form-control" placeholder="Select Employee"
-                                [(ngModel)]="member.empId" [options]="employeeListFilteredByDept"
+                                [(ngModel)]="member.empId" [options]="member.memberList"
                                 [displayKey]="employeeDisplayArr" valueKey="empId" [multiple]="false"
                                 displaySeparator=" | "
-                                (change)="getCloneEmployeeExistingProjectDetailsByEmpId(member, member.empId, rmgProjectObj.projectId)">
+                                (change)="getCloneEmployeeExistingProjectDetailsByEmpId(member, member.empId, rmgProjectObj.projectId); updateEmployeeList()">
                             </app-my-select>
                         </td>
                         <td class="min-width180 max-width200" *ngIf="!isInternalProject">

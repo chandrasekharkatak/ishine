@@ -44,11 +44,11 @@ export class RmgModalHostComponent {
   @ViewChild("delete_employee_from_existing_project") deleteEmployeeFromExistingProjectTemplateRef: TemplateRef<any>;
 
   private modalConfigMap = new Map<ResultType, NgbModalOptions>([
-    [ResultType.ALERT, { size: 'sm', backdrop: 'static', keyboard: false }],
+    [ResultType.ALERT, { size: 'sm'  }],
     [ResultType.PROJECT_START_DATE_ERROR, { size: 'md', backdrop: 'static', keyboard: false }],
     [ResultType.PROJECT_START_DATE_UPDATE_CONFIRMATION, { size: 'sm', backdrop: 'static', keyboard: false }],
     [ResultType.EMPLOYEE_PROJECT_TIMESHEET_CONFLICT, { size: 'xl', backdrop: 'static', keyboard: false }],
-    [ResultType.PROJECT_GAP, { size: 'md', backdrop: 'static', keyboard: false }],
+    [ResultType.PROJECT_GAP, { size: 'md'}],
     [ResultType.EMPLOYEE_EXISTING_PROJECT_DETAILS, { size: 'sm', backdrop: 'static', keyboard: false }],
     [ResultType.DELETE_EMPLOYEE_FROM_EXISTING_PROJECT, { size: 'sm', backdrop: 'static', keyboard: false }],
   ]);
