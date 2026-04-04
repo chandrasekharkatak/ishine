@@ -47,7 +47,7 @@
 
                 <app-my-select class="form-select toolbar-select max-width200" placeholder="Select Department"
                     [(ngModel)]="selectedDepartmentIds" (dropdownClosed)="onDepartmentSelectionChange()"
-                    [options]="filteredDepartmentList" displayKey="name" valueKey="deptId" [multiple]="true">
+                    [options]="filteredDepartmentList" displayKey="name" valueKey="deptId" [multiple]="true"
                     [showFilterAction]="currentUser.employeeRole != 'SuperAdmin'"
                     [filterActionLabel]="departmentFilterActionLabel"
                     (filterAction)="filterDepartment()">
