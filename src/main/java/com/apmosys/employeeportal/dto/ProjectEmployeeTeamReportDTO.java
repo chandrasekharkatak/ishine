@@ -29,4 +29,5 @@ public class ProjectEmployeeTeamReportDTO {
 	private LocalDateTime endDate;
 
 	private Long resourceOverviewId;
+	private Integer isShadow;
 }
