@@ -610,7 +610,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		List<EmployeeTeamMap> findByEmpIdAndActiveStatus(Long empId);
 
 	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectEmployeeTeamReportDTO("
-			+ "p.projectId, p.projectName, d.deptId, d.name, e.employeementId, e.name, etm.startDate, etm.endDate, etm.resourceOverviewId) "
+			+ "p.projectId, p.projectName, d.deptId, d.name, e.employeementId, e.name, etm.startDate, etm.endDate, etm.resourceOverviewId, etm.isShadow) "
 			+ "FROM EmployeeTeamMap etm "
 			+ "INNER JOIN Team t ON t.teamId = etm.teamId "
 			+ "INNER JOIN Project p ON p.projectId = t.projectId "
