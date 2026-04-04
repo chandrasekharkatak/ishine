@@ -1132,6 +1132,31 @@ export class RmgProjectConfigComponent implements OnInit {
             this.getResourceRequirementDetailsByProjectId(false);
         }
     }
+
+    updateEmployeeList() {
+        const deptIds = this.currentTeam?.deptIds ?? [];
+        const currentTeamEmpIds = new Set(
+            this.currentTeam?.rmgCurrentTeamMemberList?.map(emp => emp.empId) ?? []
+        );
+        const spocList = this.spocList ?? [];
+
+        this.cloneMemberMappingList.forEach(mem => {
+
+            // Get selected empIds from OTHER dropdowns
+            const otherSelectedEmpIds = new Set(
+                this.cloneMemberMappingList
+                    .filter(m => m !== mem && m?.empId != null)
+                    .map(m => m.empId)
+            );
+
+            mem.memberList = spocList.filter(emp => {
+                if (!deptIds.includes(emp.deptId)) return false;
+                if (currentTeamEmpIds.has(emp.empId)) return false;
+                return !otherSelectedEmpIds.has(emp.empId) || emp.empId === mem.empId;
+            });
+        });
+    }
+
     // Helpers End
 
     // Checkbox Helper Methods Start
@@ -2344,6 +2369,7 @@ export class RmgProjectConfigComponent implements OnInit {
             this.cloneMemberMappingList = [];
         }
         this.cloneMemberMappingList.push(newMember);
+        this.updateEmployeeList();
     }
 
     removeFromCloneMemberMappingList(member: RmgTeamMember, index: number) {
@@ -2352,6 +2378,7 @@ export class RmgProjectConfigComponent implements OnInit {
             this.currentTeam.newRmgTeamMember = new RmgTeamMember();
             this.currentTeam.addNewTeamMemberToggle = false;
         }
+        this.updateEmployeeList();
     }
 
     async saveClonedMembers() {
