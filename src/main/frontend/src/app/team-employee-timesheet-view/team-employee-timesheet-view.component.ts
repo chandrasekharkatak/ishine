@@ -590,7 +590,7 @@ monthSelected(event: Date, datepicker: any) {
     centered: true
   });
 }
-
+previewName  : string = '';
 viewEmployeeTimesheet(empId: any, projectId: any): void {
   this.selectedEmpId = empId;
 
@@ -602,6 +602,7 @@ viewEmployeeTimesheet(empId: any, projectId: any): void {
     selectedEmpId: this.selectedEmpId
   };
 
+  
   this.timesheetService.getDocumentsBySelectedEmpId(payload).subscribe({
     next: (res: any) => {
       if (res.serviceStatus === 'Success' && res.serviceResponse) {
@@ -613,11 +614,11 @@ console.log('type:', typeof res.serviceResponse);
 console.log('isArray:', Array.isArray(res.serviceResponse));
 
         const doc = {
-          docMimeType: docArray[6],
-          fileName: docArray[7],
-          docData: docArray[9]
+          docMimeType: docArray.docMimeType,
+          fileName: docArray.fileName,
+          docData: docArray.docData
         };
-
+        this.previewName = doc.fileName;
         if (doc.docData && doc.docMimeType) {
           this.showPreview(doc.docData, doc.docMimeType, doc.fileName);
         } else {
@@ -637,8 +638,9 @@ console.log('isArray:', Array.isArray(res.serviceResponse));
   });
 }
 
+previewFileName : string = '';
 
- showPreview(base64Data: string, mimeType: string, fileName?: string): void {
+  showPreview(base64Data: string, mimeType: string, fileName?: string): void {
     const dataUrl = `data:${mimeType};base64,${base64Data}`;
     this.resetPreviewState();
     this.previewBase64 = base64Data;
@@ -658,7 +660,7 @@ console.log('isArray:', Array.isArray(res.serviceResponse));
       this.fileType = 'other';
     }
 
-    // this.previewFileName = fileName || 'Document Preview';
+    this.previewFileName = this.previewName || 'Document Preview';
     // this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xxl modal-dialog-centered',scrollable: true });
     
     this.modalRef = this.modalService.open(this.previewModal, {
@@ -719,10 +721,11 @@ endDrag() {
 
     const link = document.createElement('a');
     link.href = blobUrl;
-    // link.download = this.buildFileName();
+    link.download = this.buildFileName();
     link.click();
 
-    URL.revokeObjectURL(blobUrl);
+    // URL.revokeObjectURL(blobUrl);
+    // setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);  // ✅ revoke after download starts
   }
 
   //   private buildFileName(): string {
@@ -735,6 +738,32 @@ endDrag() {
 
   //   return `${userName} | ${day} ${month} | ${projectName}.${extension}`;
   // }
+
+  buildFileName(): string {
+  const name = this.previewFileName?.trim() || 'document';
+
+  // Remove extension from filename
+  const nameWithoutExt = name.includes('.')
+    ? name.substring(0, name.lastIndexOf('.'))
+    : name;
+
+  const ext = name.includes('.')
+    ? name.substring(name.lastIndexOf('.') + 1)
+    : (this.previewMimeType?.split('/')[1] || 'bin');
+
+  // Generate current timestamp → 20250401_143022
+  const now = new Date();
+  const timestamp =
+    now.getFullYear().toString() +
+    String(now.getMonth() + 1).padStart(2, '0') +
+    String(now.getDate()).padStart(2, '0') + '_' +
+    String(now.getHours()).padStart(2, '0') +
+    String(now.getMinutes()).padStart(2, '0') +
+    String(now.getSeconds()).padStart(2, '0');
+
+  return `${nameWithoutExt}_${timestamp}.${ext}`;
+  // e.g. → march_timesheet_20250401_143022.pdf
+}
 
    private getExtensionFromMime(mimeType: string): string {
     switch (mimeType) {

@@ -43,6 +43,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.core.io.Resource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -53,6 +54,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
@@ -153,7 +155,8 @@ public class TimesheetService {
 //	@Autowired
 //	TimesheetsRepository timesheetsRepository;
 	
-	
+	@Autowired
+	TimesheetDocumentServiceNew timesheetDocServiceNew;
 	
 	@Autowired
 	TimesheetDocumentDetailsNewRepository timesheetDocumentDetailsNewRepository;
@@ -8328,11 +8331,64 @@ private ServiceResponse getEmployeeByNameAndEmpidForTimesheetInternal(TimesheetD
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				apiLogInfo.setApiResponse("No documents found.");
 			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(docs);
-				response.setServiceMessage("Documents fetched successfully.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				apiLogInfo.setApiResponse("Fetched " + docs.size() + " document(s).");
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse(docs);
+//				response.setServiceMessage("Documents fetched successfully.");
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//				apiLogInfo.setApiResponse("Fetched " + docs.size() + " document(s).");
+				
+				List<Map<String, Object>> result = new ArrayList<>();
+
+	            for (Object[] row : docs) {
+	                Map<String, Object> map = new LinkedHashMap<>();
+
+	                // row[0] - row[4]: employee/project metadata
+	                map.put("name",          row[0]);
+	                map.put("projectId",     row[1]);
+	                map.put("projectName",   row[2]);
+	                map.put("teamId",        row[3]);
+	                map.put("employementId", row[4]);
+
+	                // row[5] - row[8]: document metadata
+	                map.put("docId",       row[5]);
+	                map.put("docMimeType", row[6]);
+	                map.put("docName",     row[7]);
+	                map.put("finalFlag",   row[8]);
+
+	                // row[9]: file_url — load file from server and convert to base64
+	                String fileUrl = row[9] != null ? row[9].toString() : null;
+
+	                if (fileUrl != null && !fileUrl.isBlank()) {
+	                    try {
+	                        // Use existing viewFile() to load the file as a Resource
+	                        Resource resource = timesheetDocServiceNew.viewFile(fileUrl);
+
+	                        // Read the Resource into a byte array
+	                        byte[] fileBytes = FileCopyUtils.copyToByteArray(resource.getInputStream());
+
+	                        // Encode to base64 so frontend can render it directly
+	                        String base64Data = Base64.getEncoder().encodeToString(fileBytes);
+	                        map.put("docData", base64Data);
+
+	                    } catch (Exception e) {
+	                        // File exists in DB but couldn't be loaded from disk
+//	                        log.warn("Could not load file for url '{}': {}", fileUrl, e.getMessage());
+	                        map.put("docData", null);
+	                    }
+	                } else {
+	                    // No file_url in DB — document not yet uploaded
+	                    map.put("docData", null);
+	                }
+
+	                result.add(map);
+	            }
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(result);
+	            response.setServiceMessage("Documents fetched successfully.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            apiLogInfo.setApiResponse("Fetched " + docs.size() + " document(s).");
+				
 			}
 
 		} catch (IllegalArgumentException ex) {

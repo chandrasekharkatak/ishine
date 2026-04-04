@@ -4098,9 +4098,9 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
      if(successFlag){
        if(this.timesheetLocations[0].projects.length ==0){
         if(this.dayType == 7){
-          this.openAlertMod(this.alertTemplate, 'You are not allowed to fill Client Holiday.');
+          this.openAlertMod(this.alertTemplate, 'You are not allowed to fill Client Holiday (only Internal Project are assigned to you).');
         }else if(this.dayType == 6){
-          this.openAlertMod(this.alertTemplate, 'You are not allowed to fill ApMoSys Holiday');
+          this.openAlertMod(this.alertTemplate, 'You are not allowed to fill ApMoSys Holiday (only client projects are assigned to you)');
         }else{
           this.openAlertMod(this.alertTemplate, 'No Project found for you. Please contact RMG team.');
         }
