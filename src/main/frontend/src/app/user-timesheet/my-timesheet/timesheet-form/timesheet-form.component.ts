@@ -4520,8 +4520,13 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
         // Ensure at least one project row per location
         location.projects = [this.createProject(location, null)];
       }
-
+      
       this.timesheetLocations.push(location);
+      if(!this.isDayTypeFillable()){
+        this.holidayDescription = this.timesheetLocations[0].projects[0].description;
+      }else{
+        this.holidayDescription = null;
+      }
     });
     console.log(this.timesheetLocations,"timesheetLocations");
     // 6. Populate Documents (if any)
