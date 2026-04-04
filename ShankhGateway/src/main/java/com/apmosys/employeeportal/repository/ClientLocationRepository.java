@@ -50,5 +50,11 @@ public interface ClientLocationRepository extends JpaRepository<ClientLocation, 
 			+ " AND cl.clientState IS NULL ")
 	public Optional<ClientLocation> findByClientIdAndNLClientLocationAndClientStateNull(Integer clientId,String nLClientLocation);
 	
-
+	@Query(value ="SELECT cl\n"
+			+ " FROM ClientLocation cl \n"
+			+ " WHERE cl.clientId = :clientId \n"
+			+ " AND LOWER(TRIM(cl.clientLocation)) = :nLClientLocation \n"
+			+ " AND cl.clientState IS NULL AND cl.clientAddressId IS NULL ")
+	public Optional<ClientLocation> findByClientIdAndNLClientLocationAndClientStateNullAndClientAddIdNull(Integer clientId,String nLClientLocation);
+	
 }

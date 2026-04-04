@@ -31,12 +31,13 @@ public class EmployeeController {
 		return employeeService.getAllEmployeeInfo();
 	}
 
-	@PostMapping("/getEmployeeAndTimesheetDetails")
-	public ServiceResponse getEmployeeAndTimesheetDetails(HttpServletRequest request,
-			@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
+	 @PostMapping("/getEmployeeAndTimesheetDetails")
+	 public ServiceResponse getEmployeeAndTimesheetDetails(HttpServletRequest request,@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
-		return employeeService.getEmployeeAndTimesheetDetails(employeeTimesheetRequest);
-	}
+		ServiceResponse response = new ServiceResponse();
+		response = employeeService.getEmployeeAndTimesheetDetails(employeeTimesheetRequest);
+		return response;
+	 }
 
 	@PostMapping("/getTeamAndTimeSheetDetails")
 	public ServiceResponse getTeamAndTimeSheetDetails(HttpServletRequest request,

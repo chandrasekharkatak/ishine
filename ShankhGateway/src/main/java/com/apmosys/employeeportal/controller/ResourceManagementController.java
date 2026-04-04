@@ -44,16 +44,16 @@ public class ResourceManagementController {
 	}
 
 	@PostMapping("/renewPoInIshineNew")
-	public ServiceResponse renewPoInIshineNew(HttpServletRequest httpRequest, @RequestBody RenewedPoSyncDto dto) {
-		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		return poSyncOrchestratorService.renewPoInIshineNew(dto);
-	}
+	 public ServiceResponse renewPoInIshineNew(HttpServletRequest httpRequest, @Valid @RequestBody RenewedPoSyncDto dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.renewPoInIshineNew(dto);
+	 }
 
 	@PostMapping("/deletePoInIshineNew")
-	public ServiceResponse deletePoInIshineNew(HttpServletRequest httpRequest, @RequestBody DeletedPoSyncDTO dto) {
-		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		return poSyncOrchestratorService.deletePoInIshineNew(dto);
-	}
+	 public ServiceResponse deletePoInIshineNew(HttpServletRequest httpRequest,@Valid @RequestBody  DeletedPoSyncDTO dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.deletePoInIshineNew(dto);
+	 }
 
 	@PostMapping("/linkPoInIshineNew")
 	public ServiceResponse linkPoInIshineNew(HttpServletRequest httpRequest, @RequestBody IshineLinkProjectDto dto) {
@@ -68,11 +68,11 @@ public class ResourceManagementController {
 	}
 
 	@PostMapping("/updateAddressInPos")
-	public ServiceResponse updateAddressInPos(HttpServletRequest httpRequest,
-			@RequestBody PoClientAddressUpdateDTO dto) {
-		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		return poSyncOrchestratorService.updateAddressInPos(dto);
-	}
+	 public ServiceResponse updateAddressInPos(HttpServletRequest httpRequest,
+			 @Valid @RequestBody PoClientAddressUpdateDTO dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.updateAddressInPos(dto);
+	 }
 
 	@PostMapping(value = "/sendTimesheetDetailsToShankh")
 	public ServiceResponse sendTimesheetDetailsToShankh(HttpServletRequest httpRequest,

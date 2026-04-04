@@ -475,7 +475,7 @@ public class PoDetailsService {
 	                        + " | projectId=" + projectId
 	                        + " | poId=" + poId
 	                );
-	                return new RuntimeException("Deleted PO does not exist or inactive");
+	                return new DataNotFoundException("Deleted PO does not exist or inactive");
 	            });
 	}
 	
@@ -488,7 +488,7 @@ public class PoDetailsService {
 	        ExceptionLogContext.add(
 	                "PO cannot be deleted due to active teams | poId=" + poId
 	        );
-	        throw new RuntimeException(
+	        throw new IllegalStateException(
 	                "PO cannot be deleted as active teams exist"
 	        );
 	    }
@@ -1116,50 +1116,44 @@ public class PoDetailsService {
 	
 	public void updateClientAddressForPos(PoClientAddressUpdateDTO dto) {
 
-	    List<ProjectPoDetails> pos =
-	            projectPoDetailsRepository.findByPoIdInAndActive(dto.getPoIds());
+		List<ProjectPoDetails> pos = projectPoDetailsRepository.findByPoIdInAndActive(dto.getPoIds());
 
-	    if (pos.size() != dto.getPoIds().size()) {
-	        throw new RuntimeException("Some PO IDs not found");
-	    }
+		if (pos == null || pos.size() != dto.getPoIds().size()) {
+			throw new IllegalArgumentException("Some PO IDs not found or inactive");
+		}
 
-	    // Group by clientId
-	    Map<Integer, List<ProjectPoDetails>> posByClient =
-	            pos.stream().collect(Collectors.groupingBy(po -> {
+		Map<Integer, List<ProjectPoDetails>> posByClient = pos.stream().collect(Collectors.groupingBy(po -> {
 
-	                Project project = projectRepository
-	                        .findByProjectId(po.getProjectId());
+			Project project = projectRepository.findByProjectId(po.getProjectId());
 
-	                if (project == null || !"true".equalsIgnoreCase(project.getActive())) {
-	                    throw new RuntimeException("Inactive or missing project for PO: " + po.getPoId());
-	                }
+			if (project == null || !"true".equalsIgnoreCase(project.getActive())) {
+				throw new IllegalArgumentException("Inactive or missing project for PO: " + po.getPoId());
+			}
 
-	                return project.getClientId();
-	            }));
+			return project.getClientId();
+		}));
 
-	    for (Map.Entry<Integer, List<ProjectPoDetails>> entry : posByClient.entrySet()) {
+		for (Map.Entry<Integer, List<ProjectPoDetails>> entry : posByClient.entrySet()) {
 
-	        Integer clientId = entry.getKey();
+			Integer clientId = entry.getKey();
 
-	        ClientLocation clientLocation =
-	                clientService.resolveClientLocation(
-	                        clientId,
-	                        dto.getClientLocation(),
-	                        dto.getClientState(),
-	                        dto.getClientAddressId()
-	                );
+			ClientLocation clientLocation = clientService.resolveClientLocation(clientId, dto.getClientLocation(),
+					dto.getClientState(), dto.getClientAddressId());
 
-	        for (ProjectPoDetails po : entry.getValue()) {
+			if (clientLocation == null || clientLocation.getClientLocationId() == null) {
+				throw new IllegalStateException("Resolved client location record is missing for clientId=" + clientId);
+			}
 
-	            po.setClientAddressId(dto.getClientAddressId());
-	            po.setClientLocationId(
-	                    Long.valueOf(clientLocation.getClientLocationId()));
-	            po.setUpdatedBy(dto.getUpdatedByEmpId());
-	          
-	        }
-	    }
+			for (ProjectPoDetails po : entry.getValue()) {
 
-	    projectPoDetailsRepository.saveAll(pos);
+				po.setClientAddressId(dto.getClientAddressId());
+				po.setClientLocationId(Long.valueOf(clientLocation.getClientLocationId()));
+				po.setUpdatedBy(dto.getUpdatedByEmpId());
+
+			}
+		}
+
+		projectPoDetailsRepository.saveAll(pos);
 	}
 
 	public void sendPoLinkSuccessMail(Project primaryProject, IshineLinkProjectDto dto) {
@@ -1222,7 +1216,7 @@ public class PoDetailsService {
 	        );
 
 	    } catch (Exception e) {
-	        e.printStackTrace(); 
+	        log.error("sendPoLinkSuccessMail: failed primaryProjectId={}", primaryProject.getProjectId(), e);
 	    }
 	}
 

@@ -3166,7 +3166,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		        List<Object[]> getEmployeeByNameAndEmpidForTimesheetClientDashboard( Long empId);	
 
 	@Query("SELECT CASE WHEN e.employmentstatus != 'InActive' THEN true ELSE false END " +
-		       "FROM Employee e WHERE e.employeementId = :empId")
+		       "FROM Employee e WHERE e.empId = :empId")
 	public Boolean isActiveEmployee(@Param("empId") Long empId);
 	
 	

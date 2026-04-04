@@ -4578,8 +4578,19 @@ public class TeamsService {
 		if (previousPo == null) {
 			return;
 		}
+		
+		if (previousPo.getPoEndDate() != null &&
+	            previousPo.getPoEndDate().isAfter(LocalDateTime.now())) {
 
+	        return;
+	    }
+		
+		Optional<Project> project = projectRepository.findById(projectId);
+		String projectType = project.get().getPoProjectType();
 		Long previousPoId = previousPo.getPoId();
+
+		if ("TNM".equalsIgnoreCase(projectType)) {
+		
 		List<Long> oldRoles = poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
 		List<Long> newRoles = poRequirementMappingRepository.findRoleIdsByPoId(renewedPoId);
 		Set<Long> carryForwardRoles = oldRoles.stream().filter(newRoles::contains).collect(Collectors.toSet());
@@ -4592,9 +4603,8 @@ public class TeamsService {
 					BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
 					newRow.setPoId(renewedPoId);
 					newRow.setEndDate(null);
-//				    newRow.setActive(oldRow.getActive()); 
 					newRow.setCreatedBy(renewedBy);
-					newRow.setUpdatedBy(renewedBy);
+//					newRow.setUpdatedBy(renewedBy);
 					newRow.setUpdatedOn(LocalDateTime.now());
 					newRow.setStartDate(LocalDateTime.now());
 					newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
@@ -4606,9 +4616,32 @@ public class TeamsService {
 					employeeTeamMapRepository.save(oldRow);
 				}
 			}
+		}else if  ("Monitoring".equalsIgnoreCase(projectType)) {
+			List<EmployeeTeamMap> employees =
+	                employeeTeamMapRepository.findActiveEmployeesByPoId(previousPoId);
+			 for (EmployeeTeamMap oldRow : employees) {
+			  EmployeeTeamMap newRow = new EmployeeTeamMap();
+	            BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+
+	            newRow.setPoId(renewedPoId);
+	            newRow.setEndDate(null);
+	            newRow.setCreatedBy(renewedBy);
+//	            newRow.setUpdatedBy(renewedBy);
+	            newRow.setUpdatedOn(LocalDateTime.now());
+	            newRow.setStartDate(LocalDateTime.now());
+	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+	            employeeTeamMapRepository.save(newRow);
+	            oldRow.setActive(0L);
+	            oldRow.setEndDate(LocalDateTime.now());
+	            oldRow.setUpdatedBy(renewedBy);
+	            oldRow.setUpdatedOn(LocalDateTime.now());
+
+	            employeeTeamMapRepository.save(oldRow);
+		}
+		}
 		}
 	}
-
+	
 	public List<AutoMigrationDTO> migrateFromPreviousPOOnUpdate(
 	        Integer projectId,
 	        Long currentPoId,
@@ -4666,6 +4699,13 @@ public class TeamsService {
 
 	        for (EmployeeTeamMap oldRow : employees) {
 
+//	            boolean exists =
+//	                    employeeTeamMapRepository.existsActiveEmployeeInPo(
+//	                            oldRow.getEmpId(),
+//	                            currentPoId);
+//
+//	            if (exists) continue;
+
 	       
 	            EmployeeTeamMap newRow = new EmployeeTeamMap();
 	            BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
@@ -4674,6 +4714,7 @@ public class TeamsService {
 	            newRow.setStartDate(LocalDateTime.now());
 	            newRow.setEndDate(null);
 	            newRow.setCreatedBy(updatedBy);
+//	            newRow.setUpdatedBy(updatedBy);
 	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 	            newRow.setUpdatedOn(LocalDateTime.now());
 
