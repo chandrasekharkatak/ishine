@@ -716,7 +716,7 @@
             </tr>
            <tr app-column-filter-bar
     *ngIf="isSearchEnabled"
-    [columnList]="selectedStatus === 1
+    [columnList]="selectedStatus != 3
         ? allTimesheetColumnsVMS
         : allTimesheetColumnsVMSStatusChange"
     (onSearch)="onSearch($event);" >
