@@ -215,9 +215,9 @@ export class RmgProjectConfigComponent implements OnInit {
     oldTeamMemberSortDirection: string = 'asc';
     oldTeamMemberFilters: any = {};
     oldTeamMemberSearchOnEnter: boolean = true;
-    rmgOldTeamMemberColumnList: any[] = ['blank', 'employementId', 'memberName', 'memberDepartment', 'poNo', 'employeeRole', 'empTeamDepartmentName', 'blank', 'blank', 'blank'];
-    rmgOldTeamMemberColumnListForTNM: any[] = ['blank', 'employementId', 'memberName', 'memberDepartment', 'poNo', 'displayRequirement', 'employeeRole', 'empTeamDepartmentName', 'blank', 'blank', 'blank'];
-    rmgOldTeamMemberColumnListForInternal = ['blank', 'employementId', 'memberName', 'memberDepartment', 'employeeRole', 'empTeamDepartmentName', 'blank', 'blank', 'blank'];
+    rmgOldTeamMemberColumnList: any[] = ['blank', 'employementId', 'memberName', 'memberDepartment', 'poNo', 'employeeRole', 'blank', 'blank', 'blank', 'blank'];
+    rmgOldTeamMemberColumnListForTNM: any[] = ['blank', 'employementId', 'memberName', 'memberDepartment', 'poNo', 'displayRequirement', 'employeeRole', 'blank', 'blank', 'blank', 'blank'];
+    rmgOldTeamMemberColumnListForInternal = ['blank', 'employementId', 'memberName', 'memberDepartment', 'employeeRole', 'blank', 'blank', 'blank', 'blank'];
 
     // Current Team Member
     isCurrentTeamMemberSearchEnabled: boolean = false;
@@ -228,12 +228,12 @@ export class RmgProjectConfigComponent implements OnInit {
     currentTeamMemberSortDirection: string = 'asc';
     currentTeamMemberFilters: any = {};
     currentTeamMemberSearchOnEnter: boolean = true;
-    rmgCurrentTeamMemberColumnListForTNM: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnList: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'poNo', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnListForInternal: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnListForTNMPreview: any[] = ['blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnListPreview: any[] = ['blank', 'employementId', 'memberName', 'poNo', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnListForInternalPreview: any[] = ['blank', 'employementId', 'memberName', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListForTNM: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnList: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'poNo', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListForInternal: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListForTNMPreview: any[] = ['blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListPreview: any[] = ['blank', 'employementId', 'memberName', 'poNo', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListForInternalPreview: any[] = ['blank', 'employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
 
 
     // Migrate Team Member
@@ -245,7 +245,7 @@ export class RmgProjectConfigComponent implements OnInit {
     migrateTeamMemberSortDirection: string = 'asc';
     migrateTeamMemberFilters: any = {};
     migrateTeamMemberSearchOnEnter: boolean = true;
-    migrateTeamMemberColumnListBulk: any[] = ['blank', 'employementId', 'memberName', 'teamName', 'employeeRole', 'empTeamDepartmentName', 'poNo', 'displayRequirement'];
+    migrateTeamMemberColumnListBulk: any[] = ['blank', 'employementId', 'memberName', 'teamName', 'employeeRole', 'blank', 'poNo', 'displayRequirement'];
 
     // Migrate Individual Team Member
     isMigrateIndividualTeamMemberSearchEnabled: boolean = false;
