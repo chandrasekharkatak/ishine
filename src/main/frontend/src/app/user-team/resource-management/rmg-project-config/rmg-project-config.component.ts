@@ -1814,7 +1814,8 @@ export class RmgProjectConfigComponent implements OnInit {
             this.defaultProjectObj.poDetailsList = this.projectIdPoListMap.get(this.defaultProjectObj.projectId);
             return;
         }
-        const poDetailsList = await this.employeeProjectService.getPoDetailsByProjectId(this.defaultProjectObj.projectId);
+        const response = await this.employeeProjectService.getPoDetailsByProjectId(this.defaultProjectObj.projectId);
+        const poDetailsList = response?.data || [];
         this.defaultProjectObj.poDetailsList = poDetailsList;
         this.projectIdPoListMap.set(this.defaultProjectObj.projectId, poDetailsList);
     }
@@ -1825,7 +1826,8 @@ export class RmgProjectConfigComponent implements OnInit {
             member.poDetailsList = this.projectIdPoListMap.get(member.projectId);
             return;
         }
-        const poDetailsList = await this.employeeProjectService.getPoDetailsByProjectId(member.projectId);
+        const response = await this.employeeProjectService.getPoDetailsByProjectId(member.projectId);
+        const poDetailsList = response?.data || [];
         member.poDetailsList = poDetailsList;
         this.projectIdPoListMap.set(member.projectId, poDetailsList);
     }
@@ -1847,11 +1849,10 @@ export class RmgProjectConfigComponent implements OnInit {
         if (this.teamMembersMigrationObj.isInternalProject) {
             return;
         }
-
-        this.teamMigrationPoDetailsList = await this.employeeProjectService.getPoDetailsByProjectId(this.teamMembersMigrationObj.targetProjectId);
-        this.teamMigrationTeamMembersList?.forEach(emp => {
-            emp.poDetailsList = this.teamMigrationPoDetailsList;
-        });
+        const response = await this.employeeProjectService.getPoDetailsByProjectId(this.teamMembersMigrationObj.targetProjectId);
+        const poDetailsList = response?.data || [];
+        this.teamMigrationPoDetailsList = poDetailsList;
+        this.teamMigrationTeamMembersList?.forEach(emp => { emp.poDetailsList = this.teamMigrationPoDetailsList; });
     }
     // PO List Method & APIs End
 

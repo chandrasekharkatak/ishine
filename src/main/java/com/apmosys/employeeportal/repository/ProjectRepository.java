@@ -9024,4 +9024,16 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 			+ " WHERE 1=1) \n", nativeQuery = true)
 	public List<Integer> getTimesheetNonComplianceProjectIds(List<Long> deptIds, Set<Integer> projectIds);
 
+	@Query(value = " SELECT CASE WHEN EXISTS ( \n"
+			+ "     SELECT 1 FROM teams t \n"
+			+ "     INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+			+ "     WHERE t.project_id = p.project_id \n"
+			+ " )  \n"
+			+ " THEN 'Yes' \n"
+			+ " ELSE 'No' \n"
+			+ " END AS resource_present \n"
+			+ " FROM projects p \n"
+			+ "WHERE p.project_id = :projectId \n", nativeQuery = true)
+	public String employeeExistsInEtmByProjectId(Integer projectId);
+
 }

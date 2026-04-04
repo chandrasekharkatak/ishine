@@ -1551,6 +1551,10 @@ export class RmgDashboardComponent implements OnInit {
           value = this.getInsightValues('TIMESHEET_NON_COMPLIANCE', insight.valueList);
           total = this.getInsightValues('TOTAL', this.statusCards);
         }
+        else if (insight.key === 'PENDING_FOR_APPROVAL') {
+          value = this.getInsightValues('PENDING_FOR_APPROVAL', insight.valueList);
+          total = this.getInsightValues('TOTAL', this.statusCards);
+        }
         else {
           const item = insight.valueList.find(i => i.key === insight.key);
           value = item?.value || 0;
