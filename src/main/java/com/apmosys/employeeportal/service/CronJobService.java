@@ -127,7 +127,6 @@ import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ProjectPo;
 import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.Team;
-import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -182,8 +181,8 @@ public class CronJobService {
 	@Autowired
 	TimesheetActivityMapNewRepository timesheetActivityMapNewRepository;
 	
-	@Autowired
-	TimesheetsRepository timesheetsRepository;
+//	@Autowired
+//	TimesheetsRepository timesheetsRepository;
 
 	@Autowired
 	HolidayRepository holidayRepository;
@@ -200,8 +199,11 @@ public class CronJobService {
 	@Autowired
 	TimesheetService timesheetService;
 
+//	@Autowired
+//	TimesheetActivityMapRepository timesheetActivityMapRepository;
+	
 	@Autowired
-	TimesheetActivityMapRepository timesheetActivityMapRepository;
+	TimesheetActivityMapNewRepository timesheetActivityMapRepository;
 
 	@Autowired
 	BirthdayMailRepository birthdayMailRepository;

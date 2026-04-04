@@ -97,14 +97,14 @@ public class HolidayController {
 		return response;
 	}
 	
-	@PostMapping("/runTheHolidayCron")
-	public ServiceResponse runTheHolidayCron(@RequestBody String date) {
-
-		date = date.replace("\"", "");
-	    LocalDate localDate = LocalDate.parse(date);
-	    
-		ServiceResponse response = holidayService.runTheHolidayCron(localDate);
-		return response;
-	}
+//	@PostMapping("/runTheHolidayCron")
+//	public ServiceResponse runTheHolidayCron(@RequestBody String date) {
+//
+//		date = date.replace("\"", "");
+//	    LocalDate localDate = LocalDate.parse(date);
+//	    
+//		ServiceResponse response = holidayService.runTheHolidayCron(localDate);
+//		return response;
+//	}
 	
 }

@@ -84,7 +84,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
             + "        	    LEFT JOIN EmployeeClientSideIdMapping ecsm ON ecsm.empId = etm.empId "
             + "				LEFT JOIN Project p on p.projectId=ppo.projectId "
             + "              LEFT JOIN ProjectPoDetails ppd on ppd.poId=ppo.poId "
-            + "        	    LEFT JOIN Timesheet ts ON ts.empId = e.empId "
+            + "        	    LEFT JOIN EmployeeTimesheetsNew ts ON ts.empId = e.empId "
             + "        	        AND ts.date BETWEEN :startDate AND :endDate "
             + "        	    WHERE ppo.poId = :poId "
             + "        	      AND ppo.projectId = :projectId "

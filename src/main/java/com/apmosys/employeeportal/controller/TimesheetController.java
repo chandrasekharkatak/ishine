@@ -103,13 +103,13 @@ public class TimesheetController {
 		ServiceResponse response = timesheetService.getAllMyTimesheetsByEmpId(timesheetDTO);
 		return response;
 	}
-	@JobRoleAccess(featureIds = {15,16,24})
-	@RequestMapping(value = "/getAllMyActivitiesByTimesheetId", method = RequestMethod.POST)
-	public ServiceResponse getAllMyActivitiesByTimesheetId(@RequestBody TimesheetDTO timesheetDTO) {
-
-		ServiceResponse response = timesheetService.getAllMyActivitiesByTimesheetId(timesheetDTO);
-		return response;
-	}
+//	@JobRoleAccess(featureIds = {15,16,24})
+//	@RequestMapping(value = "/getAllMyActivitiesByTimesheetId", method = RequestMethod.POST)
+//	public ServiceResponse getAllMyActivitiesByTimesheetId(@RequestBody TimesheetDTO timesheetDTO) {
+//
+////		ServiceResponse response = timesheetService.getAllMyActivitiesByTimesheetId(timesheetDTO);
+//		return response;
+//	}
 	@JobRoleAccess(featureIds = {15,16,24})
 	@RequestMapping(value = "/getMyReporteesTimesheetRequests", method = RequestMethod.POST)
 	public ServiceResponse getMyReporteesTimesheetRequests(@RequestBody TimesheetDTO timesheetDTO) {
@@ -117,28 +117,28 @@ public class TimesheetController {
 		ServiceResponse response = timesheetService.getMyReporteesApprovedTimesheets2(timesheetDTO);
 		return response;
 	}	
-	@JobRoleAccess(featureIds = {15,16,24})
-	@RequestMapping(value = "/countMyReporteesTimesheetRequests", method = RequestMethod.POST)
-	public ServiceResponse countMyReporteesTimesheetRequests(@RequestBody TimesheetDTO timesheetDTO) {
+//	@JobRoleAccess(featureIds = {15,16,24})
+//	@RequestMapping(value = "/countMyReporteesTimesheetRequests", method = RequestMethod.POST)
+//	public ServiceResponse countMyReporteesTimesheetRequests(@RequestBody TimesheetDTO timesheetDTO) {
+//
+//		ServiceResponse response = timesheetService.countMyReporteesTimesheetRequests(timesheetDTO);
+//		return response;
+//	}
+//	@JobRoleAccess(featureIds = {15,16,24})
+//	@RequestMapping(value = "/updateTimesheetRequestById", method = RequestMethod.POST)
+//	public ServiceResponse updateTimesheetRequestById(@RequestBody TimesheetDTO timesheetDTO) {
+//
+//		ServiceResponse response = timesheetService.updateTimesheetRequestById(timesheetDTO);
+//		return response;
+//	}
 
-		ServiceResponse response = timesheetService.countMyReporteesTimesheetRequests(timesheetDTO);
-		return response;
-	}
-	@JobRoleAccess(featureIds = {15,16,24})
-	@RequestMapping(value = "/updateTimesheetRequestById", method = RequestMethod.POST)
-	public ServiceResponse updateTimesheetRequestById(@RequestBody TimesheetDTO timesheetDTO) {
-
-		ServiceResponse response = timesheetService.updateTimesheetRequestById(timesheetDTO);
-		return response;
-	}
-
-	@JobRoleAccess(featureIds = {16})
-	@RequestMapping(value = "/getMyReporteesApprovedTimesheets", method = RequestMethod.POST)
-	public ServiceResponse getMyReporteesApprovedTimesheets(@RequestBody TimesheetDTO timesheetDTO) {
-
-		ServiceResponse response = timesheetService.getMyReporteesApprovedTimesheets(timesheetDTO);
-		return response;
-	}
+//	@JobRoleAccess(featureIds = {16})
+//	@RequestMapping(value = "/getMyReporteesApprovedTimesheets", method = RequestMethod.POST)
+//	public ServiceResponse getMyReporteesApprovedTimesheets(@RequestBody TimesheetDTO timesheetDTO) {
+//
+//		ServiceResponse response = timesheetService.getMyReporteesApprovedTimesheets(timesheetDTO);
+//		return response;
+//	}
 	
 	@RequestMapping(value = "/getMyReporteesApprovedTimesheets2", method = RequestMethod.POST)
 	public ServiceResponse getMyReporteesApprovedTimesheets2(@RequestBody TimesheetDTO timesheetDTO) {
@@ -150,21 +150,21 @@ public class TimesheetController {
 	
 	
 	
-	@PostMapping(value ="/getMyReportees")
-	public ServiceResponse getMyReportees(@RequestBody TimesheetDTO timesheetDTO) {
+//	@PostMapping(value ="/getMyReportees")
+//	public ServiceResponse getMyReportees(@RequestBody TimesheetDTO timesheetDTO) {
+//
+//		ServiceResponse response = timesheetService.getMyReportees(timesheetDTO);
+//		return response;
+//	}
+	
+	
+	
+	// @RequestMapping(value = "/getLast7DaysTimesheetsByEmpId", method = RequestMethod.POST)
+	// public ServiceResponse getLast7DaysTimesheetsByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
 
-		ServiceResponse response = timesheetService.getMyReportees(timesheetDTO);
-		return response;
-	}
-	
-	
-	
-	@RequestMapping(value = "/getLast7DaysTimesheetsByEmpId", method = RequestMethod.POST)
-	public ServiceResponse getLast7DaysTimesheetsByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
-
-		ServiceResponse response = timesheetService.getLast7DaysTimesheetsByEmpId(timesheetDTO);
-		return response;
-	}
+	// 	ServiceResponse response = timesheetService.getLast7DaysTimesheetsByEmpId(timesheetDTO);
+	// 	return response;
+	// }
 
 	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value = "/getAllLeaveTimesheetsWithoutLeaveApplication", method = RequestMethod.POST)
@@ -196,13 +196,13 @@ public class TimesheetController {
 		ServiceResponse response = timesheetService.getTimesheetsForHomePageByEmpId(timesheetDTO);
 		return response;
 	}
-	@JobRoleAccess(featureIds = {16})
-	@RequestMapping(value = "/revokeApprovedTimesheet", method = RequestMethod.POST)
-	public ServiceResponse revokeApprovedTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
-		
-		ServiceResponse response = timesheetService.revokeApprovedTimesheet(timesheetDTO);
-		return response;
-	}
+//	@JobRoleAccess(featureIds = {16})
+//	@RequestMapping(value = "/revokeApprovedTimesheet", method = RequestMethod.POST)
+//	public ServiceResponse revokeApprovedTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
+//		
+//		ServiceResponse response = timesheetService.revokeApprovedTimesheet(timesheetDTO);
+//		return response;
+//	}
 	@JobRoleAccess(featureIds = {16,24})
 	@RequestMapping(value = "/bulkApproveTimesheetRequest", method = RequestMethod.POST)
 	public ServiceResponse bulkApproveTimesheetRequest(@RequestBody TimesheetApprovalNewDTO timesheetDTO) {
@@ -210,24 +210,28 @@ public class TimesheetController {
 		ServiceResponse response = timesheetService.bulkApproveTimesheetRequest(timesheetDTO);
 		    return response;
 	}
-	@JobRoleAccess(featureIds = {16,24})
-	@RequestMapping(value = "/bulkRejectTimesheetRequest", method = RequestMethod.POST)
-	public ServiceResponse bulkRejectTimesheetRequest(@RequestBody TimesheetDTO timesheetDTO) {
-		
-		ServiceResponse response = timesheetService.bulkRejectTimesheetRequest(timesheetDTO);
-		    return response;
-	}
+//	@JobRoleAccess(featureIds = {16,24})
+//	@RequestMapping(value = "/bulkRejectTimesheetRequest", method = RequestMethod.POST)
+//	public ServiceResponse bulkRejectTimesheetRequest(@RequestBody TimesheetDTO timesheetDTO) {
+//		
+//		ServiceResponse response = timesheetService.bulkRejectTimesheetRequest(timesheetDTO);
+//		    return response;
+//	}
 	
-	@JobRoleAccess(featureIds = {26})
-	 @RequestMapping(value = "/getAllOrDeptWiseEmployeeTimesheetReport",method = RequestMethod.POST)
-	    public ServiceResponse getAllOrDeptWiseEmployeeTimesheetReport(@RequestBody FilteredTimesheetDTO filteredTimesheetDTO) {
-	        return timesheetService.getAllOrDeptWiseEmployeeTimesheetReport(filteredTimesheetDTO);
-	    }
-	@JobRoleAccess(featureIds = {24})
-	 @PostMapping("/getLastFilledTimesheetByEmpId")
-	 public ServiceResponse getLastFilledTimesheetByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
-	     return timesheetService.getLastFilledTimesheetByEmpId(timesheetDTO.getEmpId());
-	 }
+
+//	@JobRoleAccess(featureIds = {26})
+//	 @RequestMapping(value = "/getAllOrDeptWiseEmployeeTimesheetReport",method = RequestMethod.POST)
+//	    public ServiceResponse getAllOrDeptWiseEmployeeTimesheetReport(@RequestBody FilteredTimesheetDTO filteredTimesheetDTO) {
+//	        return timesheetService.getAllOrDeptWiseEmployeeTimesheetReport(filteredTimesheetDTO);
+//	    }
+
+
+//	@JobRoleAccess(featureIds = {24})
+//	 @PostMapping("/getLastFilledTimesheetByEmpId")
+//	 public ServiceResponse getLastFilledTimesheetByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
+//	     return timesheetService.getLastFilledTimesheetByEmpId(timesheetDTO.getEmpId());
+//	 }
+
 
 	
 	
@@ -296,29 +300,29 @@ public class TimesheetController {
 	 public ServiceResponse checkIfProjectRequiresClientId(@RequestParam Integer projectId) {
 		 return timesheetService.checkIfProjectRequiresClientId(projectId);
 	 }
-	 @PostMapping("/totalVmsFilledCount")
-	    public ServiceResponse totalVmsFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
-	        ServiceResponse response = timesheetService.totalVmsFilledCount(timesheetDTO);
-	        return response;
-	    }
-	 @JobRoleAccess(featureIds = {16})
-	 @PostMapping("/totalIshineFilledCount")
-	    public ServiceResponse totalIshineFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
-		 ServiceResponse response = timesheetService.totalIshineFilledCount(timesheetDTO.getStatus());
-	        return response;
-	    }
+//	 @PostMapping("/totalVmsFilledCount")
+//	    public ServiceResponse totalVmsFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
+//	        ServiceResponse response = timesheetService.totalVmsFilledCount(timesheetDTO);
+//	        return response;
+//	    }
+//	 @JobRoleAccess(featureIds = {16})
+//	 @PostMapping("/totalIshineFilledCount")
+//	    public ServiceResponse totalIshineFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
+//		 ServiceResponse response = timesheetService.totalIshineFilledCount(timesheetDTO.getStatus());
+//	        return response;
+//	    }
+//	 
+//	 @PostMapping("/totalvmsNotFilled")
+//	    public ServiceResponse totalvmsNotFilled(@RequestBody TimesheetDTO timesheetDTO) {
+//	        ServiceResponse response = timesheetService.totalvmsNotFilled(timesheetDTO);
+//	        return response;
+//	    }
 	 
-	 @PostMapping("/totalvmsNotFilled")
-	    public ServiceResponse totalvmsNotFilled(@RequestBody TimesheetDTO timesheetDTO) {
-	        ServiceResponse response = timesheetService.totalvmsNotFilled(timesheetDTO);
-	        return response;
-	    }
-	 
-	 @PostMapping("/totalIshineNotFilledCount")
-	    public ServiceResponse totalIshineNotFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
-		 ServiceResponse response = timesheetService.totalIshineNotFilledCount(timesheetDTO);
-	        return response;
-	    }
+//	 @PostMapping("/totalIshineNotFilledCount")
+//	    public ServiceResponse totalIshineNotFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
+//		 ServiceResponse response = timesheetService.totalIshineNotFilledCount(timesheetDTO);
+//	        return response;
+//	    }
 	 
 	 @RequestMapping(value="/getVmsDocumentApprovalStatusWiseCount",method=RequestMethod.GET)
 	 public ServiceResponse getVmsDocumentApprovalStatusWiseCount() {
@@ -326,21 +330,21 @@ public class TimesheetController {
 		 return reponse;
 	 }
 	 
-	 @JobRoleAccess(featureIds = {15})
-	 @PostMapping(value = "/bulkFinalDocumentUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	 public ServiceResponse bulkFinalDocumentUpload(
-	         @RequestPart("finalFile") MultipartFile file,
-	         @RequestParam("fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
-	         @RequestParam("toDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
-		         @RequestParam("empId") Long empId,@RequestParam("createdBy") Long createdBy) throws Exception {
-	     
-	     System.out.println("Received file: " + file.getOriginalFilename());
-	     System.out.println("From Date: " + fromDate);
-	     System.out.println("To Date: " + toDate);
-	     
-	     ServiceResponse reponse= timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId,createdBy);	     
-	     return reponse;
-	 }
+//	 @JobRoleAccess(featureIds = {15})
+//	 @PostMapping(value = "/bulkFinalDocumentUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//	 public ServiceResponse bulkFinalDocumentUpload(
+//	         @RequestPart("finalFile") MultipartFile file,
+//	         @RequestParam("fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
+//	         @RequestParam("toDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
+//		         @RequestParam("empId") Long empId,@RequestParam("createdBy") Long createdBy) throws Exception {
+//	     
+//	     System.out.println("Received file: " + file.getOriginalFilename());
+//	     System.out.println("From Date: " + fromDate);
+//	     System.out.println("To Date: " + toDate);
+//	     
+//	     ServiceResponse reponse= timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId,createdBy);	     
+//	     return reponse;
+//	 }
 	 
 	 @JobRoleAccess(featureIds = {15})
 	 @GetMapping("/getAllDisabledDateListForBulkDocSubmit")
@@ -355,7 +359,6 @@ public class TimesheetController {
 	 @PostMapping(value = "/getEmployeeViewForClientAttendanceStatus")
 		public ServiceResponse getEmployeeViewForClientAttendanceStatus(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
 			 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus(object);
-			 System.out.println("Response from service: " + reponse);
 			 return reponse;
 		}
 	 
@@ -427,13 +430,13 @@ public class TimesheetController {
 		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalender(object);
 		  return reponse;
 	 }
-	 @JobRoleAccess(featureIds = {15,16,24})
-	 @RequestMapping(value= "/approveTimesheetRequest",method=RequestMethod.POST)
-	 public ServiceResponse approveTimesheetRequest(@RequestBody TimesheetDTO timesheetDTO) {
-		 ServiceResponse reponse= timesheetService.approveTimesheetRequest(timesheetDTO);
-	     return reponse;
-	     
-	 }
+//	 @JobRoleAccess(featureIds = {15,16,24})
+//	 @RequestMapping(value= "/approveTimesheetRequest",method=RequestMethod.POST)
+//	 public ServiceResponse approveTimesheetRequest(@RequestBody TimesheetDTO timesheetDTO) {
+//		 ServiceResponse reponse= timesheetService.approveTimesheetRequest(timesheetDTO);
+//	     return reponse;
+//	     
+//	 }
 	 @JobRoleAccess(featureIds = {15,16})
 	 @PostMapping(value = "/getEmployeeTimesheetAsCalenderByProjectId")
 	 public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(@RequestBody GetEmployeeTimesheetAsCalenderByProjectIdDTO object) {  
@@ -460,13 +463,13 @@ public class TimesheetController {
 		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year,empId,isClientDashboard,billableType,projectActive);
 		  return reponse;
 	 }
-	 @JobRoleAccess(featureIds = {15,24})
-	 @PostMapping(value = "/getLastFilledTimesheetByEmp")
-	 public ServiceResponse getLastFilledTimesheetByEmp(@RequestBody TimesheetDTO timesheetDTO) { 
-	     Long empId = timesheetDTO.getEmpId();
-	     ServiceResponse response = timesheetService.getLastFilledTimesheetByEmp(empId);
-	     return response;
-	 }
+//	 @JobRoleAccess(featureIds = {15,24})
+//	 @PostMapping(value = "/getLastFilledTimesheetByEmp")
+//	 public ServiceResponse getLastFilledTimesheetByEmp(@RequestBody TimesheetDTO timesheetDTO) { 
+//	     Long empId = timesheetDTO.getEmpId();
+//	     ServiceResponse response = timesheetService.getLastFilledTimesheetByEmp(empId);
+//	     return response;
+//	 }
 
 	 @PostMapping("/getEmployeeByNameAndEmpidForTimesheet")
 		public ServiceResponse getEmployeeByNameAndEmpidForTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
@@ -474,11 +477,11 @@ public class TimesheetController {
 		    return response;
 		}
 	 
-		@PostMapping("/getDocumentsByEmpAndDate")
-		public ServiceResponse getDocumentsByEmpAndDate(@RequestBody TimesheetDTO timesheetDTO) {
-			ServiceResponse response = timesheetService.getDocumentsByEmpAndDate(timesheetDTO);
-			return response;
-		}
+//		@PostMapping("/getDocumentsByEmpAndDate")
+//		public ServiceResponse getDocumentsByEmpAndDate(@RequestBody TimesheetDTO timesheetDTO) {
+//			ServiceResponse response = timesheetService.getDocumentsByEmpAndDate(timesheetDTO);
+//			return response;
+//		}
 		
 	@PostMapping(value = "/getEmployeeSummaryOnExport")
 		public ServiceResponse getEmployeeSummaryOnExport(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
@@ -528,11 +531,11 @@ public class TimesheetController {
 	     return timesheetService.getOtherTeamMembersByDateAndProjectId(payload);
 	 }
 	
-	@PostMapping(value = "/getMyReporteesAndClientSideProjectsInMonthYear")
-	public ServiceResponse getMyReporteesAndClientSideProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
-		 ServiceResponse reponse= timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(timesheetDTO);
-		 return reponse;
-	}
+//	@PostMapping(value = "/getMyReporteesAndClientSideProjectsInMonthYear")
+//	public ServiceResponse getMyReporteesAndClientSideProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
+//		 ServiceResponse reponse= timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(timesheetDTO);
+//		 return reponse;
+//	}
 	
 	
 	@PostMapping(value = "/getMyProjectsInMonthYear")
@@ -542,40 +545,40 @@ public class TimesheetController {
 	}
 	
 	
-	@PostMapping("/downloadFinalDocuments")
-	public ResponseEntity<byte[]> downloadFinalDocuments(
-	        @RequestBody FinalDocumentDownloadDTO dto) {
-
-	    try {
-	        byte[] zipBytes = timesheetService
-	                .downloadFinalDocumentsZip(
-	                        dto.getProjectId(),
-	                        dto.getMonth(),
-	                        dto.getYear(),
-	                        dto.getEmpId()
-	                );
-
-	        String zipName =
-	                dto.getProjectName() + "_" +
-	                dto.getMonth() + "_" +
-	                dto.getYear() + ".zip";
-	        
-	        return ResponseEntity.ok()
-	                .header(
-	                    HttpHeaders.CONTENT_DISPOSITION,
-	                    "attachment; filename=\"" + zipName + "\""
-	                )
-	                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-	                .body(zipBytes);
-
-	    } catch (Exception e) {
-	        e.printStackTrace(); 
-
-	        return ResponseEntity
-	                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-	                .body(null);
-	    }
-	}
+//	@PostMapping("/downloadFinalDocuments")
+//	public ResponseEntity<byte[]> downloadFinalDocuments(
+//	        @RequestBody FinalDocumentDownloadDTO dto) {
+//
+//	    try {
+//	        byte[] zipBytes = timesheetService
+//	                .downloadFinalDocumentsZip(
+//	                        dto.getProjectId(),
+//	                        dto.getMonth(),
+//	                        dto.getYear(),
+//	                        dto.getEmpId()
+//	                );
+//
+//	        String zipName =
+//	                dto.getProjectName() + "_" +
+//	                dto.getMonth() + "_" +
+//	                dto.getYear() + ".zip";
+//	        
+//	        return ResponseEntity.ok()
+//	                .header(
+//	                    HttpHeaders.CONTENT_DISPOSITION,
+//	                    "attachment; filename=\"" + zipName + "\""
+//	                )
+//	                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+//	                .body(zipBytes);
+//
+//	    } catch (Exception e) {
+//	        e.printStackTrace(); 
+//
+//	        return ResponseEntity
+//	                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+//	                .body(null);
+//	    }
+//	}
 
 	
 	@PostMapping("/getDocumentsBySelectedEmpId")
@@ -622,14 +625,14 @@ public class TimesheetController {
 	    }
 	}
 
-	@JobRoleAccess(featureIds = {15,16})
-	@PostMapping(value = "/bulkFinalUploadProjectBased", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ServiceResponse bulkFinalUploadProjectBased(
-			@RequestPart("finalFile") MultipartFile file, @RequestPart("finalBulkUploadDTO") FinalBulkUploadDTO finalBulkUploadDTO ) {
-
-		ServiceResponse reponse= timesheetService.bulkFinalUploadProjectBased(finalBulkUploadDTO, file);
-		return reponse;
-	}
+//	@JobRoleAccess(featureIds = {15,16})
+//	@PostMapping(value = "/bulkFinalUploadProjectBased", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//	public ServiceResponse bulkFinalUploadProjectBased(
+//			@RequestPart("finalFile") MultipartFile file, @RequestPart("finalBulkUploadDTO") FinalBulkUploadDTO finalBulkUploadDTO ) {
+//
+//		ServiceResponse reponse= timesheetService.bulkFinalUploadProjectBased(finalBulkUploadDTO, file);
+//		return reponse;
+//	}
 
 	@JobRoleAccess(featureIds = {15,16})
 	@GetMapping("/getPreviousMinusDays")

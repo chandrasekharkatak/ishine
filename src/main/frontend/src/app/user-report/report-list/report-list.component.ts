@@ -1760,32 +1760,32 @@ onSearchClientProject(searchData: any) {
     }
   }
 
-  getAllTimesheetApplicationsList() {
-    this.allTimesheetApplicationsList = [];
-    console.log(this.allTimesheetApplicationsList , "*********************");
+  // getAllTimesheetApplicationsList() {
+  //   this.allTimesheetApplicationsList = [];
+  //   console.log(this.allTimesheetApplicationsList , "*********************");
 
-    this.timesheetService.timesheetReport().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allTimesheetApplicationsList = response.serviceResponse;
-        this.allTimesheetApplicationsList.forEach(timesheet => {
-          timesheet.employmentIdAcToET =(timesheet.employmentIdAcToET);
-          timesheet.employeeType = ((timesheet.isApprenticeship === 'true') ? 'Apprentice' : ((timesheet.isConsultant === 'true') ? 'Consultant' : 'Regular')),
-            timesheet.description = timesheet.description?.replaceAll('<br>', '')
-          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-          timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.updatedOn = (timesheet.updatedOn) ? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.emp360 = timesheet.empId;
-          timesheet.emp360UpdatedBy = timesheet.timesheetStatusUpdatedBy;
+  //   this.timesheetService.timesheetReport().pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.allTimesheetApplicationsList = response.serviceResponse;
+  //       this.allTimesheetApplicationsList.forEach(timesheet => {
+  //         timesheet.employmentIdAcToET =(timesheet.employmentIdAcToET);
+  //         timesheet.employeeType = ((timesheet.isApprenticeship === 'true') ? 'Apprentice' : ((timesheet.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+  //           timesheet.description = timesheet.description?.replaceAll('<br>', '')
+  //         timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+  //         timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+  //         timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+  //         timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //         timesheet.updatedOn = (timesheet.updatedOn) ? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //         timesheet.emp360 = timesheet.empId;
+  //         timesheet.emp360UpdatedBy = timesheet.timesheetStatusUpdatedBy;
 
-        });
+  //       });
 
-      } else {
-        alert(response.serviceResponse)
-      }
-    });
-  }
+  //     } else {
+  //       alert(response.serviceResponse)
+  //     }
+  //   });
+  // }
 
 
   getCustomTimesheetApplicationsList(queryObjList: any, template: TemplateRef<any>,exportAll?) {

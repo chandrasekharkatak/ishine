@@ -3242,7 +3242,7 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
 
           this.modalRef?.close();
           this.page1 = 0;
-          this.onStatusChange(3);
+          // this.onStatusChange(3);
           // this.getMyReporteesTimesheetRequests();
           // this.getTimesheetStatusCountsByEmpId();
           this.modalMessage = message;

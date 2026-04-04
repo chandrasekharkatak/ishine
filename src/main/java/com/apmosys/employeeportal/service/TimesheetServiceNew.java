@@ -84,7 +84,6 @@ import com.apmosys.employeeportal.model.FinalDocumentNew;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
 import com.apmosys.employeeportal.model.TimesheetDataDTO;
-import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
@@ -356,10 +355,28 @@ public class TimesheetServiceNew {
 		ServiceResponse response = new ServiceResponse();
 		EmployeeTimesheetsNew newTimesheet = null;
 
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("createTimesheet");
+		apiLogInfo.setApiUrl("/api/v2/timesheet/create");
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setEmpId(empDTO.getEmpId());
+		StringBuilder logBuilder = new StringBuilder();
+
 		try {
 
 			// Normalize new contract
 			normalizeEmployeeTimesheetFromNewContract(empDTO, empDTO.getDate());
+			
+			Boolean hasClient = anyProjectWithClientSideId(empDTO);
+
+			int documentPartCount = documents == null ? 0 : documents.size();
+			long nonEmptyDocumentParts = documents == null ? 0
+					: documents.stream().filter(f -> f != null && !f.isEmpty()).count();
+			logBuilder.append("empId: ").append(empDTO.getEmpId()).append(", date: ").append(empDTO.getDate())
+					.append(", createdBy: ").append(empDTO.getCreatedBy()).append(", dayTypeId: ")
+					.append(empDTO.getDayTypeId()).append(", workingDay: ")
+					.append(timesheetValidationHelper.isWorkingDay(empDTO)).append(", documentParts: ")
+					.append(documentPartCount).append(", nonEmptyDocumentParts: ").append(nonEmptyDocumentParts);
 
 			timesheetValidationHelper.validateHalfDayLeaveIfRequired(empDTO);
 
@@ -388,7 +405,8 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateDayTypeAgainstLeave(empDTO.getEmpId(), empDTO.getDate(),
 						empDTO.getDayTypeId());
 				// Prevent Working / Half-day Working on dates configured as Holiday / Week Off
-				timesheetValidationHelper.validateDayTypeAgainstHoliday(empDTO.getDate(), empDTO.getDayTypeId());
+				
+				timesheetValidationHelper.validateDayTypeAgainstHoliday(empDTO.getDate(), empDTO.getDayTypeId() , hasClient);
 			}
 
 			EmployeeTimesheetsNew existing = timesheetValidationHelper.validateTimesheetAlreadyExists(empDTO,
@@ -452,9 +470,22 @@ public class TimesheetServiceNew {
 				// handle non working days.
 				response = createTimesheetForNonWorkingDays(empTS, empDTO);
 			}
+
+			logBuilder.append(", timesheetId: ").append(empDTO.getTimesheetId());
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(response.getServiceStatus());
+			String successMsg = response.getServiceMessage();
+			apiLogInfo.setApiResponse(successMsg != null ? successMsg : "Timesheet create completed");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 
 		} catch (Exception e) {
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setApiError(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			// Clean up any partially uploaded documents on failure
 			cleanupDocumentsOnFailure(documents);
 			throw e;
@@ -603,32 +634,55 @@ public class TimesheetServiceNew {
 	 */
 	public ServiceResponse getTimesheetById(Long timesheetId) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = buildTimesheetApiLog("getTimesheetById", "/api/v2/timesheet/{timesheetId}", null);
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("timesheetId: ").append(timesheetId);
 
 		try {
 			if (timesheetId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Timesheet ID is required");
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("Timesheet ID is required");
+				logService.logMyInfo(httpRequest, apiLogInfo);
 				return response;
 			}
 
 			EmployeeTimesheetDTO timesheetDTO = getTimesheetByIdInternalNew(timesheetId);
+			if (timesheetDTO != null && timesheetDTO.getEmpId() != null) {
+				apiLogInfo.setEmpId(timesheetDTO.getEmpId());
+			}
 
 			if (timesheetDTO == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Timesheet not found");
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("Timesheet not found");
+				logService.logMyInfo(httpRequest, apiLogInfo);
 				return response;
 			}
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(timesheetDTO);
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Timesheet fetched successfully");
 
 		} catch (Exception e) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceError(e.getMessage());
 			e.printStackTrace();
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setApiError(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
 		}
 
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -637,18 +691,23 @@ public class TimesheetServiceNew {
 	 */
 	public ServiceResponse getTimesheetByDate(EmployeeTimesheetDTO requestDTO) {
 		ServiceResponse response = new ServiceResponse();
+		Long empId = requestDTO != null ? requestDTO.getEmpId() : null;
+		LocalDate date = requestDTO != null ? requestDTO.getDate() : null;
+		LogDTO apiLogInfo = buildTimesheetApiLog("getTimesheetByDate", "/api/v2/timesheet/by-date", empId);
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId: ").append(empId).append(", date: ").append(date);
 
 		try {
-
-			LocalDate date = requestDTO.getDate();
-			Long empId = requestDTO.getEmpId();
-
 			// Find employee timesheet using repository
 			EmployeeTimesheetDTO empDTO = findByEmpIdAndDate(empId, date);
 
 			if (empDTO == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Timesheet not found for the given date");
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("Timesheet not found for the given date");
+				logService.logMyInfo(httpRequest, apiLogInfo);
 				return response;
 			}
 
@@ -657,14 +716,23 @@ public class TimesheetServiceNew {
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(completeDTO);
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Timesheet fetched successfully by date");
 
 		} catch (Exception e) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceError(e.getMessage());
 			e.printStackTrace();
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setApiError(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
 		}
 
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -676,17 +744,29 @@ public class TimesheetServiceNew {
 	 */
 	public ServiceResponse getTimesheetsByEmployee(Long empId, LocalDate startDate, LocalDate endDate) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = buildTimesheetApiLog("getTimesheetsByEmployee", "/api/v2/timesheet/getByEmployee", empId);
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId: ").append(empId).append(", startDate: ").append(startDate).append(", endDate: ")
+				.append(endDate);
 
 		try {
 			if (empId == null || startDate == null || endDate == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee ID, Start Date, and End Date are required");
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("Employee ID, Start Date, and End Date are required");
+				logService.logMyInfo(httpRequest, apiLogInfo);
 				return response;
 			}
 
 			if (startDate.isAfter(endDate)) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Start Date must be before or equal to End Date");
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("Start Date must be before or equal to End Date");
+				logService.logMyInfo(httpRequest, apiLogInfo);
 				return response;
 			}
 
@@ -703,14 +783,23 @@ public class TimesheetServiceNew {
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(timesheetDTOs);
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Timesheets fetched successfully");
 
 		} catch (Exception e) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceError(e.getMessage());
 			e.printStackTrace();
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setApiError(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
 		}
 
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -777,12 +866,23 @@ public class TimesheetServiceNew {
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse deleteTimesheet(Long timesheetId) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = buildTimesheetApiLog("deleteTimesheet", "/api/v2/timesheet/{timesheetId}", null);
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("timesheetId: ").append(timesheetId);
 
 		try {
 			if (timesheetId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Timesheet ID is required");
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("Timesheet ID is required");
+				logService.logMyInfo(httpRequest, apiLogInfo);
 				return response;
+			}
+			EmployeeTimesheetDTO existingTimesheet = getTimesheetByIdInternalNew(timesheetId);
+			if (existingTimesheet != null && existingTimesheet.getEmpId() != null) {
+				apiLogInfo.setEmpId(existingTimesheet.getEmpId());
 			}
 
 			// Delete activities first
@@ -798,14 +898,23 @@ public class TimesheetServiceNew {
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Timesheet deleted successfully");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Timesheet deleted successfully");
 
 		} catch (Exception e) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceError(e.getMessage());
 			e.printStackTrace();
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setApiError(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
 		}
 
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -936,10 +1045,18 @@ public class TimesheetServiceNew {
 	public ServiceResponse updateTimesheet(Long timesheetId, EmployeeTimesheetDTO newEmpDTO,
 			List<MultipartFile> documents) {
 		ServiceResponse response = new ServiceResponse();
+		Long empId = newEmpDTO != null ? newEmpDTO.getEmpId() : null;
+		LogDTO apiLogInfo = buildTimesheetApiLog("updateTimesheet", "/api/v2/timesheet/update", empId);
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("timesheetId: ").append(timesheetId).append(", empId: ").append(empId)
+				.append(", date: ").append(newEmpDTO != null ? newEmpDTO.getDate() : null).append(", documents: ")
+				.append(documents == null ? 0 : documents.size());
 
 		try {
 			normalizeEmployeeTimesheetFromNewContract(newEmpDTO, newEmpDTO.getDate());
 
+			Boolean hasClient = anyProjectWithClientSideId(newEmpDTO);
+			
 			timesheetValidationHelper.validateHalfDayLeaveIfRequired(newEmpDTO);
 
 			timesheetValidationHelper.validateEmployeeAuthorization(newEmpDTO);
@@ -964,7 +1081,7 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateDayTypeAgainstLeave(newEmpDTO.getEmpId(), newEmpDTO.getDate(),
 						newEmpDTO.getDayTypeId());
 				// Prevent Working / Half-day Working on dates configured as Holiday / Week Off
-				timesheetValidationHelper.validateDayTypeAgainstHoliday(newEmpDTO.getDate(), newEmpDTO.getDayTypeId());
+				timesheetValidationHelper.validateDayTypeAgainstHoliday(newEmpDTO.getDate(), newEmpDTO.getDayTypeId() , hasClient);
 			}
 
 			// Based on day type transition we have to take validation action
@@ -1066,9 +1183,19 @@ public class TimesheetServiceNew {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(responseDTO);
 			response.setServiceMessage("Timesheet updated successfully");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Timesheet updated successfully");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 
 		} catch (Exception e) {
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setApiError(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			e.printStackTrace();
 			cleanupDocumentsOnFailure(documents);
 			throw e;
@@ -1474,11 +1601,19 @@ public class TimesheetServiceNew {
 	 */
 	public ServiceResponse getAutofillTimesheetTemplate(Long empId, LocalDate targetDate) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = buildTimesheetApiLog("getAutofillTimesheetTemplate", "/api/v2/timesheet/autofill", empId);
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId: ").append(empId).append(", targetDate: ").append(targetDate);
 
 		if (empId == null || targetDate == null) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Employee and date are required for autofill.");
 			response.setServiceError("Missing empId or targetDate in autofill request");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse("Employee and date are required for autofill.");
+			apiLogInfo.setApiError("Missing empId or targetDate in autofill request");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 		}
 
@@ -1489,6 +1624,10 @@ public class TimesheetServiceNew {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(null);
 			response.setServiceMessage("No previous working timesheet found for autofill.");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("No previous working timesheet found for autofill.");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 		}
 
@@ -1502,6 +1641,10 @@ public class TimesheetServiceNew {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(null);
 			response.setServiceMessage("No previous timesheet history found for autofill.");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("No previous timesheet history found for autofill.");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 		}
 
@@ -1512,6 +1655,10 @@ public class TimesheetServiceNew {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(null);
 			response.setServiceMessage("No previous working timesheet found for autofill.");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("No previous working timesheet found for autofill.");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 		}
 
@@ -1520,6 +1667,10 @@ public class TimesheetServiceNew {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(null);
 			response.setServiceMessage("No valid previous working timesheet found for autofill.");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("No valid previous working timesheet found for autofill.");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 		}
 
@@ -1541,6 +1692,10 @@ public class TimesheetServiceNew {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(null);
 					response.setServiceMessage("Previous timesheet projects are not active for the selected date.");
+					apiLogInfo.setApiRequest(logBuilder.toString());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setApiResponse("Previous timesheet projects are not active for the selected date.");
+					logService.logMyInfo(httpRequest, apiLogInfo);
 					return response;
 				}
 				try {
@@ -1551,6 +1706,10 @@ public class TimesheetServiceNew {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(null);
 					response.setServiceMessage("Previous timesheet projects are no longer active for autofill.");
+					apiLogInfo.setApiRequest(logBuilder.toString());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setApiResponse("Previous timesheet projects are no longer active for autofill.");
+					logService.logMyInfo(httpRequest, apiLogInfo);
 					return response;
 				}
 			}
@@ -1562,6 +1721,10 @@ public class TimesheetServiceNew {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(null);
 			response.setServiceMessage("Unable to load previous timesheet for autofill.");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Unable to load previous timesheet for autofill.");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 		}
 
@@ -1571,6 +1734,10 @@ public class TimesheetServiceNew {
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		response.setServiceResponse(template);
 		response.setServiceMessage("Autofill template fetched successfully.");
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		apiLogInfo.setApiResponse("Autofill template fetched successfully.");
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -1599,11 +1766,11 @@ public class TimesheetServiceNew {
 		return timesheetQueryService.getTimesheetMetadataByEmpId(timesheetDTO);
 	}
 
-	public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(Long empId) {
-
-		return timesheetQueryService.getActiveProjectsAndClientSideIdByEmpId(empId);
-
-	}
+//	public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(Long empId) {
+//
+//		return timesheetQueryService.getActiveProjectsAndClientSideIdByEmpId(empId);
+//
+//	}
 
 	public ServiceResponse getAlreadyFilledTimesheetDatesByEmpId(Long empId, String dayType) {
 		return timesheetQueryService.getAlreadyFilledTimesheetDatesByEmpId(empId, dayType);
@@ -1613,27 +1780,54 @@ public class TimesheetServiceNew {
 	
 
 	public Resource getDocumentDataByDocId(Long docId, Boolean approvedDocType) {
+		LogDTO apiLogInfo = buildTimesheetApiLog("getDocumentDataByDocId", "/api/v2/timesheet/getDocumentDataByDocId", null);
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("docId: ").append(docId).append(", approvedDocType: ").append(approvedDocType);
 		try {
 			if (Boolean.TRUE.equals(approvedDocType)) {
 				FinalDocumentNew finalDocument = finalDocumentNewRepository.findById(docId).orElse(null);
 				if (finalDocument != null && finalDocument.getFileUrl() != null) {
+					apiLogInfo.setApiRequest(logBuilder.toString());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setApiResponse("Approved document fetched successfully");
+					logService.logMyInfo(httpRequest, apiLogInfo);
 					return timesheetDocumentService.viewFile(finalDocument.getFileUrl());
 				}
 			} else {
 				TimesheetDocumentDetailsNew docDetails = timesheetDocumentDetailsNewRepository.findByDocIdAndActive(docId, true);
 				if (docDetails != null && docDetails.getFileUrl() != null) {
+					apiLogInfo.setApiRequest(logBuilder.toString());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setApiResponse("Filled document fetched successfully");
+					logService.logMyInfo(httpRequest, apiLogInfo);
 					return timesheetDocumentService.viewFile(docDetails.getFileUrl());
 				}
 				if (approvedDocType == null) {
 					FinalDocumentNew finalDocument = finalDocumentNewRepository.findById(docId).orElse(null);
 					if (finalDocument != null && finalDocument.getFileUrl() != null) {
+						apiLogInfo.setApiRequest(logBuilder.toString());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						apiLogInfo.setApiResponse("Document fetched successfully");
+						logService.logMyInfo(httpRequest, apiLogInfo);
 						return timesheetDocumentService.viewFile(finalDocument.getFileUrl());
 					}
 				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setApiError(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setApiResponse("Document file not found");
+		apiLogInfo.setApiError("Document file not found");
+		apiLogInfo.setLogLevel("ERROR");
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		 throw new TimesheetValidationFailedException( "Document file not found");
 	}
 
@@ -1651,11 +1845,47 @@ public class TimesheetServiceNew {
 	}
 	
 	public ServiceResponse bulkApproveOrRejectTimesheet(TimesheetApprovalNewDTO aprOrRejData) {
-		ServiceResponse serviceResponse =  new ServiceResponse();
-		if(aprOrRejData.getStatusId() == 2)
+		ServiceResponse serviceResponse = new ServiceResponse();
+		Long requesterEmpId = aprOrRejData != null ? aprOrRejData.getRmId() : null;
+		LogDTO apiLogInfo = buildTimesheetApiLog("bulkApproveOrRejectTimesheet",
+				"/api/v2/timesheet/bulkApproveOrRejectTimesheet", requesterEmpId);
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("timesheetIdsCount: ")
+				.append(aprOrRejData != null && aprOrRejData.getTimesheetIds() != null ? aprOrRejData.getTimesheetIds().size() : 0)
+				.append(", statusId: ").append(aprOrRejData != null ? aprOrRejData.getStatusId() : null)
+				.append(", rejectionReasonId: ").append(aprOrRejData != null ? aprOrRejData.getRejectionReasonId() : null);
+		if (aprOrRejData == null || aprOrRejData.getStatusId() == null) {
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Approval payload is invalid.");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse("Approval payload is invalid.");
+			apiLogInfo.setLogLevel("ERROR");
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			return serviceResponse;
+		}
+		if (aprOrRejData.getStatusId() == 2) {
 			serviceResponse = timesheetApprovalServiceNew.bulkApproveTimesheets(aprOrRejData);
-		else if(aprOrRejData.getStatusId() == 3)
-			serviceResponse =  timesheetApprovalServiceNew.bulkRejectTimesheets(aprOrRejData);
+		} else if (aprOrRejData.getStatusId() == 3) {
+			serviceResponse = timesheetApprovalServiceNew.bulkRejectTimesheets(aprOrRejData);
+		} else {
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Unsupported approval status.");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse("Unsupported approval status.");
+			apiLogInfo.setLogLevel("ERROR");
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			return serviceResponse;
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		apiLogInfo.setApiStatus(serviceResponse.getServiceStatus());
+		apiLogInfo.setApiResponse(serviceResponse.getServiceResponse() != null ? serviceResponse.getServiceResponse().toString()
+				: "bulk approve/reject executed");
+		if (!ServiceResponse.STATUS_SUCCESS.equalsIgnoreCase(serviceResponse.getServiceStatus())) {
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return serviceResponse;
 	}
 		public ServiceResponse getTimesheetStatusCountsByManager(Long managerId,  Boolean clientFilter, String startDate, String endDate) {
@@ -1696,6 +1926,7 @@ public class TimesheetServiceNew {
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("bulkFinalUploadProjectBased");
 	    apiLogInfo.setLogLevel("INFO");
+	    apiLogInfo.setEmpId(finalBulkUploadDTO.getCreatedBy());
 
 		try {
 
@@ -2256,6 +2487,7 @@ public class TimesheetServiceNew {
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getMyReporteesAndClientSideProjectsInMonthYear");
 	    apiLogInfo.setLogLevel("INFO");
+	    apiLogInfo.setEmpId(timesheetDTO.getManagerId());
 
 	    try {
 
@@ -2350,7 +2582,10 @@ public class TimesheetServiceNew {
 	 public Resource getDocumentsByEmpAndDate(Long empId, LocalDate date,Integer projectId) {
 		LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/v2/timesheet/getDocumentsByEmpAndDate");
+	    apiLogInfo.setSubFeatureName("getDocumentsByEmpAndDate");
 	    apiLogInfo.setLogLevel("INFO");
+	    apiLogInfo.setEmpId(empId);
+	    apiLogInfo.setApiRequest("empId: " + empId + ", date: " + date + ", projectId: " + projectId);
 		try {
 			String fileUrl = timesheetDocumentDetailsNewRepository.findFileUrlByEmpIdAndDate(empId, date,projectId);
 			if(fileUrl.equalsIgnoreCase("null") || fileUrl == null || fileUrl.isBlank()) {
@@ -2359,6 +2594,9 @@ public class TimesheetServiceNew {
 				logService.logMyInfo(httpRequest, apiLogInfo);
 				return null;
 			}
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Document fetched successfully");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return timesheetDocumentService.viewFile(fileUrl);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2422,12 +2660,21 @@ public class TimesheetServiceNew {
 	public void streamFinalDocumentsZip(List<FinalDocumentDownloadPayloadDTO> payloadList, HttpServletResponse response) throws IOException {
 		log.info("streamFinalDocumentsZip() started");
 		log.info("Payload size: {}", payloadList.size());
+		Long empIdForLog = (payloadList != null && !payloadList.isEmpty()) ? payloadList.get(0).getEmpId() : null;
+		LogDTO apiLogInfo = buildTimesheetApiLog("downloadFinalDocuments", "/api/v2/timesheet/downloadFinalDocuments",
+				empIdForLog);
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("payloadCount: ").append(payloadList == null ? 0 : payloadList.size());
 		
 
 		if (payloadList == null || payloadList.isEmpty()) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.setContentType("text/plain");
 			response.getWriter().write("No data provided");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse("No data provided");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return;
 		}
 
@@ -2443,10 +2690,15 @@ public class TimesheetServiceNew {
 
 		Integer month = payloadList.get(0).getMonth();
 		Integer year = payloadList.get(0).getYear();
+		logBuilder.append(", month: ").append(month).append(", year: ").append(year);
 		if (month == null || year == null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.setContentType("text/plain");
 			response.getWriter().write("Invalid month or year");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse("Invalid month or year");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return;
 		}
 		// Fetch file URLs from database
@@ -2459,6 +2711,10 @@ public class TimesheetServiceNew {
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			response.setContentType("text/plain");
 			response.getWriter().write("No final documents found for selected project and month");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse("No final documents found for selected project and month");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return;
 		}
 
@@ -2476,17 +2732,26 @@ public class TimesheetServiceNew {
 				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 				response.setContentType("text/plain");
 				response.getWriter().write("No valid document files found");
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("No valid document files found");
+				logService.logMyInfo(httpRequest, apiLogInfo);
 				return;
 			}
 		
 		// Call the reusable streaming method with all file URLs
 		streamZipFromFileUrls(fileUrls, zipName, response);
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		apiLogInfo.setApiResponse("Final documents zip streamed successfully");
+		logService.logMyInfo(httpRequest, apiLogInfo);
 	}
 		 public ServiceResponse getAllLeaveTimesheetsWithoutLeaveApplication(TimesheetDTO timesheetDTO) {
 			ServiceResponse response = new ServiceResponse();
 			LogDTO apiLogInfo = new LogDTO();
 			apiLogInfo.setApiUrl("/api/getAllLeaveTimesheetsWithoutLeaveApplication");
 			apiLogInfo.setLogLevel("INFO");
+			apiLogInfo.setEmpId(timesheetDTO.getCurrentUser());
 
 			StringBuilder logBuilder = new StringBuilder();
 			logBuilder.append("startDate: ").append(timesheetDTO.getStartDate())
@@ -2638,6 +2903,17 @@ public class TimesheetServiceNew {
 			return response;
 		}
 
+		private LogDTO buildTimesheetApiLog(String subFeatureName, String apiUrl, Long empId) {
+			LogDTO apiLogInfo = new LogDTO();
+			apiLogInfo.setSubFeatureName(subFeatureName);
+			apiLogInfo.setApiUrl(apiUrl);
+			apiLogInfo.setLogLevel("INFO");
+			if (empId != null) {
+				apiLogInfo.setEmpId(empId);
+			}
+			return apiLogInfo;
+		}
+
 		/* helper for date parse */
 		private java.sql.Date safeParseSqlDate(String dateStr) {
 			LocalDate localDate = parseFlexibleLocalDate(dateStr);
@@ -2666,15 +2942,31 @@ public class TimesheetServiceNew {
 		}
 
         public boolean isEditAllowed(Long timesheetId,LocalDate date) {
+		LogDTO apiLogInfo = buildTimesheetApiLog("isEditAllowed", "/api/v2/timesheet/checkEditAllowed", null);
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("timesheetId: ").append(timesheetId).append(", date: ").append(date);
 
          Integer result =
             employeeTeamMapRepository.checkMappingExists(timesheetId,date);
-
-   				 return result != null && result == 1;
+         boolean isAllowed = result != null && result == 1;
+         apiLogInfo.setApiRequest(logBuilder.toString());
+         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+         apiLogInfo.setApiResponse("isEditAllowed: " + isAllowed);
+         logService.logMyInfo(httpRequest, apiLogInfo);
+   				 return isAllowed;
         }
 		
 		public List<LocalDate> getAllHalfDayLeaves(Long empId) {
+			LogDTO apiLogInfo = buildTimesheetApiLog("getAllHalfDayLeaves", "/api/v2/timesheet/half-day/{empId}", empId);
+			StringBuilder logBuilder = new StringBuilder();
+			logBuilder.append("empId: ").append(empId);
 			if (empId == null) {
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("empId cannot be null");
+				apiLogInfo.setApiError("empId cannot be null");
+				apiLogInfo.setLogLevel("ERROR");
+				logService.logMyInfo(httpRequest, apiLogInfo);
 				throw new IllegalArgumentException("empId cannot be null");
 			}
 			try {
@@ -2682,22 +2974,41 @@ public class TimesheetServiceNew {
 			LocalDate startDate = endDate.minusMonths(3);
 			List<Date> rawDates = employeeLeaveRepository.getAllHalfDayLeaves(empId, startDate, endDate);
 			if (rawDates == null || rawDates.isEmpty()) {
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("No half-day leaves found");
+				logService.logMyInfo(httpRequest, apiLogInfo);
 				return Collections.emptyList();
 			}
 
-			return rawDates.stream()
+			List<LocalDate> halfDayLeaves = rawDates.stream()
 					.map(Date::toLocalDate)     
 					.collect(Collectors.toList());
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Half-day leaves fetched: " + halfDayLeaves.size());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			return halfDayLeaves;
 			}
 			catch (Exception ex) {
 				
 				// System.err.println("Error fetching half day leaves for empId: " + empId);
 				ex.printStackTrace();
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse(ex.getMessage());
+				apiLogInfo.setApiError(ex.getMessage());
+				apiLogInfo.setLogLevel("ERROR");
+				logService.logMyInfo(httpRequest, apiLogInfo);
 				throw new RuntimeException("Failed to fetch half day leaves", ex);
 			}
 		}
         public ServiceResponse getMyLastFilledLocationIdForProjectAndEmp(Integer projectId, Long empId) {
         	ServiceResponse serviceResponse =  new ServiceResponse();
+		LogDTO apiLogInfo = buildTimesheetApiLog("getMyLastFilledLocationIdForProjectAndEmp",
+				"/api/v2/timesheet/getMyLastFilledLocationIdForProjectAndEmp", empId);
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("projectId: ").append(projectId).append(", empId: ").append(empId);
         	if(projectId == null || empId == null) throw new IllegalArgumentException("Either the Project ID or the Employee Id is null");
         	ProjectTimesheetStatusNew pts = projectTimesheetStatusNewRepository.findByProjectIdAndEmpId(projectId, empId);
         	if(pts != null) {
@@ -2707,16 +3018,29 @@ public class TimesheetServiceNew {
         		serviceResponse.setServiceResponse(null);
         		serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
         	}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		apiLogInfo.setApiStatus(serviceResponse.getServiceStatus());
+		apiLogInfo.setApiResponse(serviceResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)
+				? "Last filled location fetched" : "No last filled location found");
+		logService.logMyInfo(httpRequest, apiLogInfo);
         	return serviceResponse;
         }
         
         public ServiceResponse fetchDeptBaseProjectAndClientRelatedDataForEmployee(Long empId) {
         	ServiceResponse serviceResponse =  new ServiceResponse();
+		LogDTO apiLogInfo = buildTimesheetApiLog("fetchDeptBaseProjectAndClientRelatedDataForEmployee",
+				"/api/v2/timesheet/fetchDeptBaseProjectAndClientRelatedDataForEmployee", empId);
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId: ").append(empId);
         	if(empId == null) throw new IllegalArgumentException("Employee ID is not provided.");
         	List<Object[]> data = projectTimesheetStatusNewRepository.getDeptBaseProjectAndClientDataFromEmpId(empId);
         	 if (data == null || data.isEmpty()) {
         	        serviceResponse.setServiceStatus("FAIL");
         	        serviceResponse.setServiceResponse("No data found for given employee.");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse("No data found for given employee.");
+			logService.logMyInfo(httpRequest, apiLogInfo);
         	        return serviceResponse;
         	    }
         	 Object[] row = data.get(0);
@@ -2728,6 +3052,10 @@ public class TimesheetServiceNew {
 
         	    serviceResponse.setServiceStatus(serviceResponse.STATUS_SUCCESS);
         	    serviceResponse.setServiceResponse(projectData);
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		apiLogInfo.setApiResponse("Department based project/client data fetched successfully");
+		logService.logMyInfo(httpRequest, apiLogInfo);
 
         	    return serviceResponse;
         	
@@ -2735,11 +3063,13 @@ public class TimesheetServiceNew {
         public ServiceResponse getProjectListForDateAndEmpId(GetProjectListForDateAndEmpIdPayload payload) {
     	    ServiceResponse response = new ServiceResponse();
     	    LogDTO apiLogInfo = new LogDTO();
-    	    apiLogInfo.setApiUrl("/api/getProjectListForDateAndEmpId");
+    	    apiLogInfo.setSubFeatureName("getProjectListForDateAndEmpId");
+    	    apiLogInfo.setApiUrl("/api/v2/timesheet/getProjectListForDateAndEmpId");
     	    apiLogInfo.setLogLevel("INFO");
     	    
     	    try {
     	    	Long empId = payload.getEmpId();
+    	    	apiLogInfo.setEmpId(empId);
     	    	
     	    	LocalDateTime selectedDateTime = payload.getDate();
 
@@ -2804,5 +3134,52 @@ public class TimesheetServiceNew {
 			
 			return "application/octet-stream"; // fallback
 		}
+		
+		public Boolean anyProjectWithClientSideId(EmployeeTimesheetDTO timesheetDTO)
+		{
+			Integer dayTypeId = timesheetDTO.getDayTypeId();
+	        if (dayTypeId == null) return false;
+	        
+	        if (timesheetDTO.getLocationSessions() == null || timesheetDTO.getLocationSessions().isEmpty()) {
+	            return false;
+	        }
+	        
+	        List<Integer> projectIds = timesheetDTO.getLocationSessions()
+	                .stream()
+	                .flatMap(loc -> loc.getProjects().stream())
+	                .map(ProjectTimesheetDTO::getProjectId)
+	                .filter(Objects::nonNull)
+	                .distinct()
+	                .collect(Collectors.toList());
+	        
+	        if (projectIds == null || projectIds.isEmpty() ) return false;
+	        
+	        Map<Integer, Boolean> clientSideMap = createProjectAndClientMap(projectIds);
+	        System.out.println(clientSideMap);
+	        Boolean hasClientSideId = clientSideMap.containsValue(true);
+	        System.out.println(hasClientSideId);
+			return hasClientSideId;
+		}
+		
+		private Map<Integer, Boolean> createProjectAndClientMap(List<Integer> projectIds) {
+
+	        List<Object[]> result = projectRepository.findClientSideFlagByProjectIds(projectIds);
+	        
+	        Map<Integer, Boolean> clientSideMap = new HashMap<>();
+	        
+	        if (result == null || result.isEmpty()) {
+	            return clientSideMap; 
+	        }
+	        
+	        for (Object[] row : result) {
+	            Integer projectId = (Integer) row[0];
+	            Boolean hasClientSideId = (row[1] == null) ? Boolean.FALSE : (Boolean) row[1];
+	            System.out.println(projectId+ " = = = " + hasClientSideId);
+	            if(projectId != null)
+	            clientSideMap.put(projectId, hasClientSideId);
+	        }
+	        System.out.println(clientSideMap);
+	        return clientSideMap;
+	    }
 
 }

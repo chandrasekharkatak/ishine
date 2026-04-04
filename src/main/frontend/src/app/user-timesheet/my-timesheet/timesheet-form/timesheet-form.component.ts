@@ -2,8 +2,8 @@ import { Component, Input, OnInit, OnChanges, OnDestroy, Output, EventEmitter, T
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as moment from 'moment';
-import { Subject, first, firstValueFrom, forkJoin, of, takeUntil } from 'rxjs';
-import { catchError, finalize, map } from 'rxjs/operators';
+import { Subject, first, firstValueFrom, forkJoin, from, of, takeUntil } from 'rxjs';
+import { catchError, finalize, map, switchMap } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
 import { Timesheet } from 'src/app/models/timesheet';
@@ -1198,9 +1198,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    */
   onDayTypeChange(event: any): void {
     const newDayTypeId = this.dayType;
-    if(this.halfDayValidation()){
-      return;
-    }
+  
     // If current date is a Holiday/Week-off and user tries to switch to Working / Half-day Working,
     // prevent change on UI itself (backend will also enforce).
     const isHolidayOrWeekOffDate =
@@ -1217,19 +1215,22 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
       if (isWorkingLike) {
         // Revert change
-        if (this.lastDayTypeId != null) {
-          this.dayType = this.lastDayTypeId;
-        }
-        this.openAlertMod(
-          this.alertTemplate,
-          'Date is configured as Holiday/Week Off. Only Non-working timesheet is allowed on this date.'
-        );
+        // if (this.lastDayTypeId != null) {
+        //   this.dayType = this.lastDayTypeId;
+        // }
+        // this.openAlertMod(
+        //   this.alertTemplate,
+        //   'Date is configured as Holiday/Week Off. Only Non-working timesheet is allowed on this date.'
+        // );
         // Do not proceed with rest of change handling
         // return;
         // this.fromDate = null;
-        this.resetForm();
+        this.resetForm('dayType');
         return;
       }
+    } 
+      if(this.halfDayValidation()){
+      return;
     }
 this.isNightShift = false;
         this.toDate = null;
@@ -1247,7 +1248,7 @@ this.isNightShift = false;
     //   this.resetForm();
     // }
 
-    this.getListToRenderUpload();
+    this.getListToRenderUpload();  
 
     // Update lastDayTypeId after successful change
     this.lastDayTypeId = this.dayType;
@@ -2089,7 +2090,7 @@ this.isNightShift = false;
    * @param empIdOverride - When provided (e.g. from edit populate), use this empId instead of deriving
    * @param isPopulateMode - When true, show at most one error popup (avoids duplicate popups for multiple projects)
    */
-  getClientDetailsByProjectIdAndEmpId(project: ProjectEntry, empIdOverride?: number, isPopulateMode?: boolean): void {
+  async getClientDetailsByProjectIdAndEmpId(project: ProjectEntry, empIdOverride?: number, isPopulateMode?: boolean): Promise<void> {
     if (!project.projectId) {
       console.error('Project ID is required to fetch client details');
       return;
@@ -2133,10 +2134,14 @@ this.isNightShift = false;
       );
     };
 
-    this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload)
-      .pipe(first(), takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
+    // this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload)
+    //   .pipe(first(), takeUntil(this.destroy$))
+    //   .subscribe({
+        // next: (response: any) => {
+
+        const response: any = await firstValueFrom(
+          this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload)
+        );
           if (response.serviceStatus === "Success") {
             if (!response.serviceResponse || !response.serviceResponse.clientId) {
               showClientDetailsError('Failed to load client information for this project. Invalid response format.');
@@ -2167,11 +2172,11 @@ this.isNightShift = false;
             const msg = response.serviceResponse || 'No valid client details found.123';
             showClientDetailsError('Failed to load client details: ' + msg);
           }
-        },
-        error: (error) => {
-          showClientDetailsError('Error loading client details. Please try again.');
-        }
-      });
+        // },
+      //   error: (error) => {
+      //     showClientDetailsError('Error loading client details. Please try again.');
+      //   }
+      // });
   }
 
  /**
@@ -3244,6 +3249,8 @@ this.isNightShift = false;
 
       // Round to 2 decimal places
       this.totalPresence = Math.round(finalHours * 100) / 100;
+      console.log('total presence',this.totalPresence);
+      this.onHoursChange();
     } catch (error) {
       this.totalPresence = 0;
     }
@@ -3817,12 +3824,16 @@ this.isNightShift = false;
    * Reset form to initial state
    * Cleans up all form data, document references, and UI state
    */
-  resetForm(): void {
+  resetForm(label ?: any): void {
     // Basic fields
+    if(label != 'dayType'){
+      this.dayType = null;
+    }
+    if(!this.isUpdation){
+      this.fromDate = null;
+      this.toDate = null;
+    }
     this.appelectMember = null;
-    this.dayType = null;
-    this.fromDate = null;
-    this.toDate = null;
     this.isNightShift = false;
     this.apmosysInTime = null;
     this.apmosysOutTime = null;
@@ -3995,7 +4006,7 @@ this.isNightShift = false;
           }
           
         } else {
-          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as we could not find any Bench project for you. Please contact your Reporting Manager immediately.');
+          this.openAlertMod(this.alertTemplate, 'We could not find any Project for you. Please contact RMG team.');
         }
       },
 
@@ -4048,26 +4059,30 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
         project.hasClientSideId = p.hasClientSideId;
         project.hasClientFlag = p.hasClientFlag;
 
-        this.populateProjectDropdowns(project);
+        return from(this.populateProjectDropdowns(project)).pipe(
+          switchMap(() => {
+            project.clientId = project.clientDetails?.clientId ?? null;
 
-        // ✅ correct mapping
-        project.clientId = project.clientDetails?.clientId ?? null;
-
-        return this.getLastFilledLocationIdForProjectAndEmp(project.projectId, empId).pipe(
-          map(locationId => {
-            project.clientLocationId =
-              locationId ?? project.clientDetails.clientLocations?.[0]?.clientLocationId;
-
-            project.description = this.holidayDescription;
-
-            return project;
-          }),
-          catchError(() => {
-            project.clientLocationId = project.clientLocationList?.[0]?.clientLocationId;
-            project.description = this.holidayDescription;
-            return of(project);
+            return this.getLastFilledLocationIdForProjectAndEmp(project.projectId, empId).pipe(
+              map(locationId => {
+                project.clientLocationId =
+                  locationId ?? project.clientDetails.clientLocations?.[0]?.clientLocationId;
+    
+                project.description = this.holidayDescription;
+    
+                return project;
+              }),
+              catchError(() => {
+                project.clientLocationId = project.clientLocationList?.[0]?.clientLocationId;
+                project.description = this.holidayDescription;
+                return of(project);
+              })
+    
+    
+            );
           })
         );
+
       });
 
       // 🔥 HARD BLOCK here (no subscribe anywhere)
@@ -4091,11 +4106,11 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
      if(successFlag){
        if(this.timesheetLocations[0].projects.length ==0){
         if(this.dayType == 7){
-          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid Client projects to assign for this day. Please contact your Reporting Manager immediately.');
+          this.openAlertMod(this.alertTemplate, 'You are not allowed to fill Client Holiday (only Internal Project are assigned to you).');
         }else if(this.dayType == 6){
-          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid Internal/Bench projects to assign for this day. Please contact your Reporting Manager immediately.');
+          this.openAlertMod(this.alertTemplate, 'You are not allowed to fill ApMoSys Holiday (only client projects are assigned to you)');
         }else{
-          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid projects to assign for this day. Please contact your Reporting Manager immediately.');
+          this.openAlertMod(this.alertTemplate, 'No Project found for you. Please contact RMG team.');
         }
         return 
        }
@@ -4450,7 +4465,6 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
             projectId: projectData.projectId != null ? Number(projectData.projectId) : null,
             projectName: projectData.projectName,
             clientSideId: projectData.clientSideId,
-            hasClientSideId: projectData.hasClientSideId || !!projectData.clientSideId,
             hasClientFlag: projectData.hasClientFlag || !!projectData.clientId,
             shadowEmpId: projectData.shadowEmpId,
             isShadowTimesheet: projectData.isShadowTimesheet || false,
@@ -4511,9 +4525,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     });
     console.log(this.timesheetLocations,"timesheetLocations");
     // 6. Populate Documents (if any)
-    if (timesheetData.documentData) {
-      this.populateDocuments(timesheetData.documentData);
-    }
+    
 
     // 7. Expand first location/project for better UX
     if (this.timesheetLocations.length > 0) {
@@ -4527,21 +4539,15 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     // This must happen before getTimesheetMetadata/loadTeamMemberForUpdate so projectList is ready
     if (this.fromDate && timesheetEmpId) {
       this.getProjectListForDateAndEmpId(timesheetEmpId).then(() => {
-        // After project list loads, ensure projectId matches in dropdown
-        this.timesheetLocations.forEach(loc => {
-          loc.projects.forEach(proj => {
-            if (proj.projectId && proj.projectList && proj.projectList.length > 0) {
-              // Ensure projectId is in the list and matches type
-              const matchedProject = proj.projectList.find(p => Number(p.projectId) === Number(proj.projectId));
-              if (matchedProject && !proj.projectName) {
-                proj.projectName = matchedProject.projectName;
-              }
-            }
+            // . Build document upload list so upload option is visible when project has clientSideId + clientApprovalStatus
+            // (autofill does not include document data, but upload UI should show for qualifying projects)
+            this.getListToRenderUpload();
+          }).catch(error => {
+            console.error('Error loading project list for update:', error);
           });
-        });
-      }).catch(error => {
-        console.error('Error loading project list for update:', error);
-      });
+    }
+    if (timesheetData.documentData) {
+      this.populateDocuments(timesheetData.documentData);
     }
 
     // 9. Load metadata / team members (does not affect already-populated locations)
@@ -4554,9 +4560,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     // 10. Recalculate location/project totals so "Total Hours" reflects populated activities
     this.onHoursChange();
 
-    // 11. Build document upload list so upload option is visible when project has clientSideId + clientApprovalStatus
-    // (autofill does not include document data, but upload UI should show for qualifying projects)
-    this.getListToRenderUpload();
+
 
     // 12. In update mode, load shadowForList for projects that have isShadowTimesheet so Shadow For dropdown shows options and selected value
     if (this.isUpdation && this.fromDate && timesheetEmpId != null) {
@@ -4812,9 +4816,9 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
    * @param project - Project entry to populate
    * @param timesheetEmpIdOverride - When provided (e.g. from edit load), use this empId for client-details API
    */
-  populateProjectDropdowns(project: ProjectEntry, timesheetEmpIdOverride?: number): void {
+ async populateProjectDropdowns(project: ProjectEntry, timesheetEmpIdOverride?: number): Promise<void> {
     if (!project.clientDetails && project.projectId) {
-      this.getClientDetailsByProjectIdAndEmpId(project, timesheetEmpIdOverride, !!timesheetEmpIdOverride);
+      await this.getClientDetailsByProjectIdAndEmpId(project, timesheetEmpIdOverride, !!timesheetEmpIdOverride);
     } else if (project.clientDetails) {
       // ✅ Use clientDetails if already loaded
       if (project.clientDetails.clientId) {
@@ -4840,6 +4844,8 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
         }
       }
     }
+    let x = "Reached here";
+    console.log(x);
   }
 
   /**
@@ -4889,12 +4895,12 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
      const successFlag =  await this.prepareDataForNonWorkingDay();
      if(successFlag){
        if(this.timesheetLocations[0].projects.length ==0){
-        if(this.dayType == 7){
-          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid Client projects to assign for this day. Please contact your Reporting Manager immediately.');
+         if(this.dayType == 7){
+          this.openAlertMod(this.alertTemplate, 'You are not allowed to fill Client Holiday.');
         }else if(this.dayType == 6){
-          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid Internal/Bench projects to assign for this day. Please contact your Reporting Manager immediately.');
+          this.openAlertMod(this.alertTemplate, 'You are not allowed to fill ApMoSys Holiday');
         }else{
-          this.openAlertMod(this.alertTemplate, 'Cannot create timesheet as there are no valid projects to assign for this day. Please contact your Reporting Manager immediately.');
+          this.openAlertMod(this.alertTemplate, 'No Project found for you. Please contact RMG team.');
         }
         return 
        }
@@ -5388,7 +5394,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       // ---------- CALCULATION ----------
       const diffMs = outDateTime.getTime() - inDateTime.getTime();
       const totalHours = diffMs / (1000 * 60 * 60);
-
+      console.log('totalHoursForLocation', totalHours);
       return Math.round(totalHours * 100) / 100;
 
     } catch (error) {
@@ -5422,7 +5428,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
           this.fromDate!,
           this.toDate
         ) || 0;
-
+        
       // ---------- Calculate project hours for THIS location ----------
       let projectHoursForLocation = 0;
 
@@ -6030,6 +6036,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
                         if (matchedProject) {
                           // Ensure ID is set as number for Angular binding
                           proj.projectId = projectIdNum;
+                          proj.hasClientSideId=matchedProject.hasClientSideId;
                           if (!proj.projectName && matchedProject.projectName) {
                             proj.projectName = matchedProject.projectName;
                             console.log(`[getProjectListForDateAndEmpId] Updated projectName for projectId ${proj.projectId}: ${proj.projectName}`);

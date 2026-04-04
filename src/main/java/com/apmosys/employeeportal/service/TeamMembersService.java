@@ -22,6 +22,7 @@ import javax.mail.internet.AddressException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,13 +61,13 @@ import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.PoDepartmentMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.RoleDetailsRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.TypeConversionUtil;
 
@@ -104,7 +105,9 @@ public class TeamMembersService {
 	private final PoDepartmentMappingRepository poDepartmentMappingRepository;
 	private final RoleDetailsRepository roleDetailsRepository;
 	private final TeamRepository teamRepository;
-	private final TimesheetsRepository timesheetsRepository;
+//	private final TimesheetsRepository timesheetsRepository;
+	@Autowired
+	private EmployeeTimesheetsNewRepository employeeTimesheetRepoNew;
 
 	private final MailService mailService;
 
@@ -1675,7 +1678,7 @@ public class TeamMembersService {
 		ServiceResponse response = new ServiceResponse();
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 
-		List<EmployeeProjectTimesheetDto> employeeProjectTimesheetDtoList = timesheetsRepository
+		List<EmployeeProjectTimesheetDto> employeeProjectTimesheetDtoList = employeeTimesheetRepoNew
 				.findByEmpIdAndDate(empId, startDate, projectIds);
 		if (employeeProjectTimesheetDtoList == null || employeeProjectTimesheetDtoList.isEmpty()) {
 			response.setServiceResponse("NO_TIMESHEET_RECORDS_FOUND");
