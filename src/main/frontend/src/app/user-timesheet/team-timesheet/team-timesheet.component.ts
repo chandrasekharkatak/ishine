@@ -1782,11 +1782,14 @@ sortData(sort: Sort) {
   updateSelectedRows(row: any) {
     this.selectedRows = this.filteredData().filter(r => r.selected);
     console.log("test", this.selectedRows);
+    if(this.selectedRows.length != this.filteredData().length){
+      this.isAllSelected = false;
+    }
   }
 
   toggleAllRows(event: any) {
     const checked = event.target.checked;
-
+    console.log(checked);
     this.filteredData().forEach((timesheet: any) => {
       timesheet.selected = checked;
       this.onEmployeeToggle(timesheet); // 🔥 hierarchy call
@@ -2531,6 +2534,8 @@ getDocument(type: 'Pending' | 'Approved'): void {
     this.expandedTimesheetIndex = null;
     this.expandedProjectKey = null;
     this.filters = {};
+    this.isAllSelected = false;
+    this.toggleAllRows({ target: { checked: false } });
     this.getMyReporteesTimesheetRequests();
     this.getTimesheetStatusCountsByEmpId();
   }
