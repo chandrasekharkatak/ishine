@@ -359,7 +359,6 @@ public class TimesheetController {
 	 @PostMapping(value = "/getEmployeeViewForClientAttendanceStatus")
 		public ServiceResponse getEmployeeViewForClientAttendanceStatus(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
 			 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus(object);
-			 System.out.println("Response from service: " + reponse);
 			 return reponse;
 		}
 	 
