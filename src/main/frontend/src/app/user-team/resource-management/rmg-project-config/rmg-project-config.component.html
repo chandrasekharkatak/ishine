@@ -208,11 +208,11 @@
                         (click)="addOrUpdateTeamDetails(true)">
                         Update Team(s)
                     </button>
-                    <button *ngIf="rmgProjectObj.isAnyTeamSelected && rmgProjectObj?.teamDetailsList?.length > 0"
+                    <button [disabled]="!(rmgProjectObj.isAnyTeamSelected && rmgProjectObj?.teamDetailsList?.length > 0)"
                         class="btn btn-primary btn-sm mr-1" title="Update Team(s)" (click)="validateDeleteTeams()">
                         Delete Team(s)
                     </button>
-                    <button *ngIf="rmgProjectObj.isAnyTeamSelected && rmgProjectObj?.teamDetailsList?.length > 0"
+                    <button [disabled]="!(rmgProjectObj.isAnyTeamSelected && rmgProjectObj?.teamDetailsList?.length > 0)"
                         class="btn btn-primary btn-sm mr-1" title="Migrate Team(s)" (click)="openMigrateTeamModal()">
                         Migrate Team(s)
                     </button>
@@ -820,21 +820,24 @@
                     <tr
                         *ngFor="let member of teamMembers | multicolFilter: oldTeamMemberFilters : true | sort : [oldTeamMemberSortColumn, oldTeamMemberSortColumnType,oldTeamMemberSortDirection] | paginate: { itemsPerPage: oldTeamMemberPageSize, currentPage: oldTeamMemberPage }; let i= index">
                         <td>
-                            <button class="btn btn-sm">
-                                <span class="emp-name" triggers="mouseenter:mouseleave" placement="right"
-                                    container="body" popoverClass="emp-popover" [ngbPopover]="popoverTpl">
-                                    <ng-template #popoverTpl>
-                                        <ng-container *ngTemplateOutlet="employeeInfo; context: { member: member }">
-                                        </ng-container>
-                                    </ng-template>
-                                    <i class="fa fa-info-circle info-icon"></i>
-                                </span>
-                            </button>
+                            <div class="chip-container">
+                                <div class="info-chip blue-chip">
+                                    <span class="emp-name" triggers="mouseenter:mouseleave" placement="right" container="body"
+                                        popoverClass="emp-popover" [ngbPopover]="popoverTpl">
+                                        <ng-template #popoverTpl>
+                                            <ng-container *ngTemplateOutlet="employeeInfo; context: { member: member }">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa fa-info-circle blue-chip"></i>
+                                    </span>
+                                </div>
+                            </div>
                         </td>
                         <td class="min-width100 max-width150" [title]="member.employementId|| 'NA' ">
                             {{ member.employementId || 'NA' }}
                         </td>
-                        <td class="min-width100 max-width150 truncate" [title]="member.memberName|| 'NA' ">
+                        <td class="min-width100 max-width150 truncate" [ti
+                        tle]="member.memberName|| 'NA' ">
                             <span *ngIf="member.empId" class="cursor-pointer emp_360-span text-underline"
                                 [navigateToEmployee360]="member.empId">{{member.memberName || 'NA' }}</span>
                             <span *ngIf="!member.empId">{{member.memberName || 'NA' }}</span>

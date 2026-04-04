@@ -1782,11 +1782,14 @@ sortData(sort: Sort) {
   updateSelectedRows(row: any) {
     this.selectedRows = this.filteredData().filter(r => r.selected);
     console.log("test", this.selectedRows);
+    if(this.selectedRows.length != this.filteredData().length){
+      this.isAllSelected = false;
+    }
   }
 
   toggleAllRows(event: any) {
     const checked = event.target.checked;
-
+    console.log(checked);
     this.filteredData().forEach((timesheet: any) => {
       timesheet.selected = checked;
       this.onEmployeeToggle(timesheet); // 🔥 hierarchy call
@@ -2226,7 +2229,7 @@ openDocumentPopup(
     }
   }
 
-  this.activeDocType =  docType;
+  this.activeDocType =  docType ? docType : 'Pending';
 
 
 if (toggleMode) {
@@ -2273,8 +2276,9 @@ getProjectById(projectId: number, timesheet: any) {
    }
 
    /* LEFT PROJECT CLICK */
-   selectProjectForDoc(project: any): void {
+   selectProjectForDoc(project: any, type: 'Pending' | 'Approved'): void {
      this.activeDocProject = project;
+     this.switchDocType(type);
     //  this.setDefaultDocForProject();
    }
 
@@ -2530,6 +2534,8 @@ getDocument(type: 'Pending' | 'Approved'): void {
     this.expandedTimesheetIndex = null;
     this.expandedProjectKey = null;
     this.filters = {};
+    this.isAllSelected = false;
+    this.toggleAllRows({ target: { checked: false } });
     this.getMyReporteesTimesheetRequests();
     this.getTimesheetStatusCountsByEmpId();
   }
@@ -3348,13 +3354,11 @@ clearPreview(): void {
 }
 zoomIn(): void {
   console.log("Zoomed in");
-  this.zoomScale = Math.min(this.zoomScale + 0.2, 3);
-  this.zoomLevel = Math.round(this.zoomScale * 100);
+  this.scale = Math.min(this.scale + 0.2, 3);
 }
 
 zoomOut(): void {
-  this.zoomScale = Math.max(this.zoomScale - 0.2, 0.5);
-  this.zoomLevel = Math.round(this.zoomScale * 100);
+  this.scale = Math.max(this.scale - 0.2, 0.5);
 }
 
 rotate(): void {

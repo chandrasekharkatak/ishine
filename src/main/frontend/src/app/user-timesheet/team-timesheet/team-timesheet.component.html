@@ -897,7 +897,7 @@
   <div class="doc-project-card"
        *ngFor="let p of getUniqueProjectsFromTimesheet(selectedTimesheet); let i = index"
        [class.active]="p === activeDocProject"
-       (click)="selectProjectForDoc(p)">
+       (click)="selectProjectForDoc(p, 'Pending')">
 
     <!-- Card Header -->
     <div class="doc-card-header">
@@ -920,7 +920,7 @@
 
       <button class="doc-btn filled"
               [class.active]="activeDocType === 'Pending' && p === activeDocProject"
-              (click)="selectProjectForDoc(p);switchDocType('Pending');$event.stopPropagation()"
+              (click)="selectProjectForDoc(p,'Pending');$event.stopPropagation()"
               [disabled]="!hasPendingDoc(p.projectId)">
 
         <i class="fa-solid fa-file-pen"></i>
@@ -929,7 +929,7 @@
 
       <button class="doc-btn approved"
               [class.active]="activeDocType === 'Approved' && p === activeDocProject"
-              (click)="selectProjectForDoc(p);switchDocType('Approved');$event.stopPropagation()"
+              (click)="selectProjectForDoc(p,'Approved');$event.stopPropagation()"
               [disabled]="!hasApprovedDoc(p.projectId)">
 
         <i class="fa-solid fa-circle-check"></i>
