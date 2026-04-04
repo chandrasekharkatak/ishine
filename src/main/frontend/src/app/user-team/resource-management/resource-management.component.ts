@@ -58,6 +58,7 @@ import { RmgStatusCardsComponent } from './rmg-status-cards/rmg-status-cards/rmg
 import { RmgProjectConfigComponent } from './rmg-project-config/rmg-project-config.component';
 import { SubfeatureService } from 'src/app/services/subfeature.service';
 import { FeatureUsageLog } from 'src/app/models/featureUsageLog';
+import { RmgDashboardComponent } from './new-rmg-dashboard/rmg-dashboard/rmg-dashboard.component';
 
 class FilterData {
   title: any;
@@ -74,6 +75,7 @@ class FilterData {
 
 export class ResourceManagementComponent implements OnInit {
   
+  @ViewChild('rmgDashboardComponent') rmgDashboardComponent!: RmgDashboardComponent;
   @ViewChild('rmgStatusCards') rmgStatusCardsComponent!: RmgStatusCardsComponent;
   @ViewChild('rmgProjectConfig') rmgProjectComponent!: RmgProjectConfigComponent;
   @ViewChild('chartSection') chartSection!: ElementRef;
@@ -705,6 +707,12 @@ export class ResourceManagementComponent implements OnInit {
     if (this.rmgStatusCardsComponent) {
       this.rmgStatusCardsComponent.onDepartmentSelectionChange(this.selectedDepartmentIds);
     }
+
+    setTimeout(() => {
+      if (this.rmgDashboardComponent) {
+        this.rmgDashboardComponent?.ngOnInit();
+      }
+    }, 1);
   }
 
   showEditProjectForm(project: any) {
@@ -1499,7 +1507,7 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   setNewRmgDashboardFlag() {
-    this.filterStateService.isNewRmgDashboard = this.isNewRmgDashboard;
+    this.filterStateService.isNewRmgDashboard =  this.isNewRmgDashboard;
     this.ngOnInit();
     let featureUsageLog = new FeatureUsageLog();
     featureUsageLog.empId = this.currentUser.empId;

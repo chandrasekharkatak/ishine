@@ -4478,8 +4478,13 @@ public class TeamsService {
 
 		Map<Long, Set<Long>> existingDeptIdsByTeam = allExistingActivities.stream()
 				.filter(activity -> activity.getDeptIds() != null && !activity.getDeptIds().trim().isEmpty())
-				.collect(Collectors.groupingBy(Activity::getTeamId,
-						Collectors.mapping(activity -> Long.parseLong(activity.getDeptIds().trim()), Collectors.toSet())));
+				.collect(Collectors.groupingBy(
+						Activity::getTeamId,
+						Collectors.flatMapping(activity -> Arrays.stream(activity.getDeptIds().split(","))
+								.map(String::trim)
+								.filter(s -> !s.isEmpty())
+								.map(Long::parseLong),
+								Collectors.toSet())));
 
 		Map<Long, Set<Long>> missingDeptIdsByTeam = new HashMap<>();
 		Set<Long> allMissingDeptIds = new HashSet<>();

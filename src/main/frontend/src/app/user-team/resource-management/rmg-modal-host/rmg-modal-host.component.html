@@ -310,13 +310,18 @@
 
 <ng-template #project_gap_message>
     <div class="modal-body text-center">
-        <p class="mb-0">
+        <p class="mb-0" *ngIf="normalizeDate(gapStartDate) !== normalizeDate(gapEndDate)">
             Employee is not mapped to any project
             <br>
             from <strong>{{ gapStartDate | date:'dd-MM-yyyy' }}</strong>
             <span *ngIf="gapEndDate">
                 to <strong>{{ gapEndDate | date:'dd-MM-yyyy' }}</strong>
             </span>.
+        </p>
+         <p class="mb-0" *ngIf="normalizeDate(gapStartDate) == normalizeDate(gapEndDate)">
+            Employee is not mapped to any project
+            <br>
+            for the Date <strong>{{ gapStartDate | date:'dd-MM-yyyy' }}</strong>.
         </p>
         <p class="mb-0">Please update the project dates to avoid the gap.</p>
         <button type="button" class="btn btn-primary" (click)="closeModal('PROJECT_GAP')">

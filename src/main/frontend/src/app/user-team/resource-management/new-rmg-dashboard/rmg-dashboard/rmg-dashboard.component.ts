@@ -83,12 +83,6 @@ export class RmgDashboardComponent implements OnInit {
   projectTimesheetSummaryModalRef: NgbModalRef;
 
   // HTML Configs 
-  kpis = [
-    { label: 'TOTAL PROJECTS', value: null, change: null, period: 'vs last week', status: null, icon: 'bi-lightning' },
-    { label: 'EMPLOYEES ONBOARDED', value: null, change: null, period: 'vs last week', status: null, icon: 'bi-people' },
-    { label: '% OF EMPLOYEES ON CLIENT PROJECTS', value: null, suffix: '%', change: null, period: 'vs last month', status: null, icon: 'bi-graph-up' },
-  ];
-
   statusCards = [
     { label: 'TOTAL PROJECTS', value: null, icon: 'bi-globe', colorClass: 'text-info', key: 'ALL', color: '#7b8fc7', display: true },
     { label: 'ACTIVE PROJECTS', value: null, icon: 'bi-lightning', colorClass: 'text-warning', key: 'TOTAL', color: '#6f85c0', display: true },
@@ -125,7 +119,7 @@ export class RmgDashboardComponent implements OnInit {
   ];
 
   fixedCostItems = [
-    { key: "all", label: 'Active', value: null, color: '#1B294B', display: true },
+    { key: "all", label: 'Active', value: null, color: '#1B294B', display: false },
     { key: "defaulter", label: 'Defaulter', value: null, color: '#A2AFCD', subKey: 'TOTAL_FC', display: true },
     { key: "ontime", label: 'On Time', value: null, color: '#4468BB', display: true },
   ];
@@ -336,6 +330,14 @@ export class RmgDashboardComponent implements OnInit {
     { key: 'WITHOUT_ANY_BILLABILITY', icon: 'bi-person-x', label: 'No Billable Assignment', value: null, desc: 'No default billable type', colorClass: 'text-danger', columnConfig: this.withoutBillabilityEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#DEB67C' },
   ];
 
+  mappedToClientPercentage = { key: 'MAPPED_TO_SHANKH_PERCENTAGE', icon: 'bi-building', label: 'Internal & Bench project Allocation', value: null, desc: 'Internal projects only', colorClass: 'text-info', columnConfig: this.mappedToInternalEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#64B4AF' };
+
+  kpis = [
+    { label: 'TOTAL PROJECTS', value: this.statusCards[0]?.value, change: null, period: 'vs last week', status: null, icon: 'bi-lightning', key: 'ALL' },
+    { label: 'EMPLOYEES ONBOARDED', value: this.workforceOverview[0]?.value, change: null, period: 'vs last week', status: null, icon: 'bi-people', key: 'TOTAL' },
+    { label: '% OF EMPLOYEES ON CLIENT PROJECTS', value: null, suffix: '%', change: null, period: 'vs last month', status: null, icon: 'bi-graph-up', key: 'MAPPED_TO_SHANKH' },
+  ];
+
   // Flags
   isEmployeeView: boolean = false;
   isReportTabVisible: boolean = false;
@@ -423,15 +425,34 @@ export class RmgDashboardComponent implements OnInit {
     this.setReportTabVisible();
     this.getEmployeeNameAndEmpld();
     this.mapSubFeatureFlag();
+
+
+    if (this.filterStateService.projectReportFilters) {
+      this.isProjectSearchEnabled = true;
+      this.projectFilters = this.filterStateService.projectReportFilters;
+    }
+    if ((this.filterStateService.deptIdList && this.filterStateService.deptIdList.length > 0) || (this.filterStateService.deptIdListByUser && this.filterStateService.deptIdListByUser.length > 0)) {
+      this.myDept = this.filterStateService.myDept;
+      this.selectedDepartmentIds = this.filterStateService.deptIdList;
+    }
+
+    // if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
+    //   this.projectStatus = 'ALL';
+    //   this.toggleProjectSearch(true);
+    // } else {
+    //   this.getProjectDetailsList(false);
+    // }
+
     this.loadRMGDashboard();
   }
 
   // Department Table APIs & Methods Starts
-  onDepartmentSelectionChange(event: any) {
+  onDepartmentSelectionChange() {
     if (this.validationService.areArraysEqual(this.oldSelectedDepartmentIds, this.selectedDepartmentIds)) {
       return;
     }
     this.oldSelectedDepartmentIds = [...this.selectedDepartmentIds];
+    this.getProjectDetailsList(true);
     this.loadRMGDashboard();
   }
 
@@ -557,10 +578,16 @@ export class RmgDashboardComponent implements OnInit {
     return rmgProjectRequest;
   }
 
-  loadRMGDashboard() {
-    this.getAllEmployeeGroupCount();
-    this.getAllProjectStatusCount();
-    this.getProjectDetailsList(false, true);
+  async loadRMGDashboard() {
+    const promises = [];
+    this.getProjectDetailsList(false);
+    promises.push(this.getEmployeeMappedToClientPercent());
+    promises.push(this.getAllEmployeeGroupCount());
+    promises.push(this.getAllProjectStatusCount());
+
+    await Promise.all(promises);
+    this.updateKpis();
+
     this.intializeBillingLossProgressBar();
   }
 
@@ -676,7 +703,7 @@ export class RmgDashboardComponent implements OnInit {
       this.projectStatus = 'TOTAL_FC'
       this.fixedCostProjectFilter = 'defaulter';
     }
-    this.getProjectDetailsList(true, false);
+    this.getProjectDetailsList(true);
   }
 
   get attentionRequiredProjectCountPercent() {
@@ -721,6 +748,27 @@ export class RmgDashboardComponent implements OnInit {
     const roles = ["SuperAdmin", "Accounts"];
     return (!depts.some(dept => deptName.includes(dept)) &&
       !roles.some(role => empRole.includes(role)));
+  }
+
+  updateKpis() {
+    const statusMap = Object.fromEntries(this.statusCards.map(s => [s.key, s.value]));
+    const workforceMap = Object.fromEntries(this.workforceOverview.map(w => [w.key, w.value]));
+
+    this.kpis = this.kpis.map(kpi => {
+      switch (kpi.key) {
+        case 'ALL':
+          return { ...kpi, value: statusMap['ALL'] };
+
+        case 'TOTAL':
+          return { ...kpi, value: workforceMap['TOTAL'] };
+
+        case 'MAPPED_TO_SHANKH':
+          return { ...kpi, value: this.mappedToClientPercentage ? this.mappedToClientPercentage : 0.00 };
+
+        default:
+          return kpi;
+      }
+    });
   }
   // Helpers End
 
@@ -1252,56 +1300,50 @@ export class RmgDashboardComponent implements OnInit {
   // Project Timesheet Summary Modal End
 
   // Count & List APIs & Methods Start
-  private getAllProjectStatusCount() {
+  async getAllProjectStatusCount() {
+    const promises = [];
     this.statusCards.forEach(status => {
-      this.getCount(status.key, this.statusCards);
+      promises.push(this.getCount(status.key, this.statusCards));
     });
 
     this.projectLifeCycleStages.forEach(status => {
-      this.getCount(status.key, this.projectLifeCycleStages);
+      promises.push(this.getCount(status.key, this.projectLifeCycleStages));
     });
 
     this.completedItems.forEach(status => {
-      this.getCount(status.key, this.completedItems);
+      promises.push(this.getCount(status.key, this.completedItems));
     });
 
-    this.loadResourceCardData();
-    this.loadExpiredTnmData();
-    this.loadFixedCostData();
-    this.loadZeroTimesheetData();
+    promises.push(this.loadResourceCardData());
+    promises.push(this.loadExpiredTnmData());
+    promises.push(this.loadFixedCostData());
+    promises.push(this.loadZeroTimesheetData());
+
+    await Promise.all(promises);
+    this.insights = this.processInsights(this.insights);
   }
 
   async loadResourceCardData() {
-    for (let status of this.resourceCards) {
+    const promises = this.resourceCards.map(async (status) => {
       await this.getCount(status.key, this.resourceCards);
       this.renderGaugeChart(status.label, status.key + '_Chart', status.value, status.color);
-    };
+    });
+
+    await Promise.all(promises);
   }
 
   async loadExpiredTnmData() {
-    const promises = this.tnmExpiredBars.map(filter =>
-      this.getExpiredTNMFilterWiseProjectStatusCount('TOTAL_EXPIRED_TNM', filter.key)
-    );
-
-    await Promise.all(promises);
+    await this.getExpiredTNMFilterWiseProjectStatusCount();
     this.renderBarChart('TOTAL_EXPIRED_TNM_Chart', this.tnmExpiredBars);
   }
 
   async loadZeroTimesheetData() {
-    const promises = this.zeroTimesheetBars.map(filter =>
-      this.getUnFilledTimesheetProjectStatusCount(filter.key)
-    );
-
-    await Promise.all(promises);
+    await this.getUnFilledTimesheetProjectStatusCount();
     this.renderBarChart('TIMESHEET_NON_COMPLIANCE_Chart', this.zeroTimesheetBars, 120);
   }
 
   async loadFixedCostData() {
-    const promises = this.fixedCostItems.map(filter =>
-      this.getFCFilterWiseProjectStatusCount('TOTAL_FC', filter.key)
-    );
-
-    await Promise.all(promises);
+    await this.getFCFilterWiseProjectStatusCount();
     this.renderPieChart('TOTAL_FC_Chart', this.fixedCostItems, 120);
   }
 
@@ -1325,19 +1367,16 @@ export class RmgDashboardComponent implements OnInit {
     }
   }
 
-  async getExpiredTNMFilterWiseProjectStatusCount(projectStatus: any, expiredTNMProjectFilter: any) {
+  async getExpiredTNMFilterWiseProjectStatusCount() {
     let newRmgDashboardProjectRequest = this.getRMGRequestObject();
-    newRmgDashboardProjectRequest.projectStatus = projectStatus;
-    newRmgDashboardProjectRequest.expiredProjectFilter = expiredTNMProjectFilter;
+    newRmgDashboardProjectRequest.projectStatus = 'TOTAL_EXPIRED_TNM';
 
     try {
-      const response: any = await firstValueFrom(this.resourceManagementService.getProjectStatusCount(newRmgDashboardProjectRequest));
+      const response: any = await firstValueFrom(this.resourceManagementService.getExpiredTNMFilterWiseProjectStatusCount(newRmgDashboardProjectRequest));
       if (response?.serviceStatus == "Success" && response?.serviceResponse != null) {
         const counts = response.serviceResponse;
         for (const filter of this.tnmExpiredBars) {
-          if (expiredTNMProjectFilter === filter.key) {
-            filter.value = counts[projectStatus];
-          }
+          filter.value = counts[filter.key];
         }
       } else {
         this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
@@ -1426,31 +1465,13 @@ export class RmgDashboardComponent implements OnInit {
   async getUnFilledTimesheetProjectStatusCount(unFilledProjectTimesheetFilter?: any) {
     let newRmgDashboardProjectRequest = this.getRMGRequestObject();
     newRmgDashboardProjectRequest.projectStatus = 'TIMESHEET_NON_COMPLIANCE';
-    const today = moment();
-    let fromDate = moment();
-    const value = parseInt(unFilledProjectTimesheetFilter, 10);
-
-    if (unFilledProjectTimesheetFilter.includes('Y')) {
-      fromDate = today.clone().subtract(value, 'years');
-    } else if (unFilledProjectTimesheetFilter.includes('M')) {
-      fromDate = today.clone().subtract(value, 'months');
-    } else {
-      fromDate = today.clone().subtract(3, 'months');
-    }
-
-    newRmgDashboardProjectRequest.fromDate = unFilledProjectTimesheetFilter == 'All' ? null : fromDate.format('YYYY-MM-DD');
-    newRmgDashboardProjectRequest.toDate = unFilledProjectTimesheetFilter == 'All' ? null : today.format('YYYY-MM-DD');
-    newRmgDashboardProjectRequest.unfilledTimesheetFilter = unFilledProjectTimesheetFilter;
 
     try {
-      const response: any = await firstValueFrom(this.resourceManagementService.getUnfilledTimesheetProjectDetailsCount(newRmgDashboardProjectRequest));
+      const response: any = await firstValueFrom(this.resourceManagementService.getAllUnfilledTimesheetProjectDetailsCount(newRmgDashboardProjectRequest));
       if (response?.serviceStatus == "Success" && response?.serviceResponse != null) {
         const counts = response.serviceResponse;
         for (const filter of this.zeroTimesheetBars) {
-          if (unFilledProjectTimesheetFilter === filter.key) {
-            filter.value = counts['TIMESHEET_NON_COMPLIANCE'];
-            continue;
-          }
+          filter.value = counts[filter.key];
         }
       } else {
         this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
@@ -1460,20 +1481,16 @@ export class RmgDashboardComponent implements OnInit {
     }
   }
 
-  async getFCFilterWiseProjectStatusCount(projectStatus: any, fcProjectFilter: any) {
+  async getFCFilterWiseProjectStatusCount() {
     let newRmgDashboardProjectRequest = this.getRMGRequestObject();
-    newRmgDashboardProjectRequest.projectStatus = projectStatus;
-    newRmgDashboardProjectRequest.fixedCostFilter = fcProjectFilter;
-
+    newRmgDashboardProjectRequest.projectStatus = 'TOTAL_FC';
     try {
-      const response: any = await firstValueFrom(this.resourceManagementService.getProjectStatusCount(newRmgDashboardProjectRequest));
+      const response: any = await firstValueFrom(this.resourceManagementService.getFCFilterWiseProjectStatusCount(newRmgDashboardProjectRequest));
       if (response?.serviceStatus == "Success" && response?.serviceResponse != null) {
         const counts = response.serviceResponse;
         for (const filter of this.fixedCostItems) {
-          if (fcProjectFilter === filter.key) {
-            filter.value = counts[projectStatus];
-            continue;
-          }
+          filter.value = counts[filter.key];
+          continue;
         }
       } else {
         this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
@@ -1524,6 +1541,11 @@ export class RmgDashboardComponent implements OnInit {
         else if (insight.key === 'defaulter') {
           value = this.getInsightValues('defaulter', insight.valueList);
           total = this.getInsightValues('TOTAL_FC', this.statusCards);
+          let tempValue = this.getInsightValues('ontime', insight.valueList);
+
+          subText = subText
+            ?.replace('{projectCount}', tempValue)
+            ?.replace('{totalProjectCount}', total?.toString());;
         }
         else if (insight.key === 'TIMESHEET_NON_COMPLIANCE') {
           value = this.getInsightValues('TIMESHEET_NON_COMPLIANCE', insight.valueList);
@@ -1575,6 +1597,19 @@ export class RmgDashboardComponent implements OnInit {
       this.openAlertMessageModal("Something went wrong!");
     }
   }
+
+  async getEmployeeMappedToClientPercent() {
+    try {
+      const response: any = await firstValueFrom(this.resourceManagementService.getEmployeeMappedToClientPercent());
+      if (response?.serviceStatus == "Success" && response?.serviceResponse != null) {
+        this.mappedToClientPercentage = response.serviceResponse || 0.00;
+      } else {
+        this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
+      }
+    } catch (error) {
+      this.openAlertMessageModal("Something went wrong!");
+    }
+  }
   // Count & List APIs & Methods End
 
   // Projects Table APIs & Methods Start
@@ -1600,12 +1635,12 @@ export class RmgDashboardComponent implements OnInit {
     }
   }
 
-  toggleProjectSearch(): void {
+  toggleProjectSearch(scrollToBottom:any = false): void {
     this.isProjectSearchEnabled = !this.isProjectSearchEnabled;
     if (!this.isProjectSearchEnabled) {
       this.projectFilters = {};
       this.filterStateService.clearProjectReportFilters();
-      this.getProjectDetailsList(false);
+      this.getProjectDetailsList(scrollToBottom);
     }
   }
 
@@ -1713,7 +1748,7 @@ export class RmgDashboardComponent implements OnInit {
       });
   }
 
-  getProjectDetailsList(scrollToBottom: any, loadKeyInsights: boolean = false) {
+  getProjectDetailsList(scrollToBottom: any) {
     this.totalProjectsCount = 0;
     this.projectDetailsList = [];
     let rmgProjectRequest = this.getRMGRequestObject();
@@ -1729,10 +1764,6 @@ export class RmgDashboardComponent implements OnInit {
 
       if (scrollToBottom) {
         setTimeout(() => this.scrollToTable());
-      }
-
-      if (loadKeyInsights) {
-        this.insights = this.processInsights(this.insights);
       }
     },
       (error) => {

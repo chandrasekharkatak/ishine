@@ -1372,7 +1372,7 @@
                                                     <input class="form-control date-input" readonly [matDatepicker]="projectMappingStartDatepicker"
                                                         (dateChange)="validateEmployeeProjectStartDate(alert_message)"
                                                         [(ngModel)]="employeeObj.newEtmStartDate"
-                                                        [disabled]="!employeeObj.empId" (click)="projectMappingStartDatepicker.open()" />
+                                                        [disabled]="this.employeeObj.isUpdateDefaultProject && !employeeObj.empId" (click)="projectMappingStartDatepicker.open()" />
                                                     <mat-icon class="calendar-icon" (click)="projectMappingStartDatepicker.open()">calendar_today</mat-icon>
                                                     <mat-datepicker #projectMappingStartDatepicker></mat-datepicker>
                                                 </div>

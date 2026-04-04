@@ -162,6 +162,7 @@ export class RmgProjectConfigComponent implements OnInit {
     mappingToOtherProjectAsDefaultList: RmgTeamMember[] = [];
     markDefaultProjectCompletionList: RmgTeamMember[] = [];
     teamMigrationTeamMembersList: RmgTeamMember[] = [];
+    deletingTeamMembersList: RmgTeamMember[] = [];
     cloneMemberMappingList: RmgTeamMember[] = [];
     existingEmployeeProjectTimesheetEntries: EmployeeProjectTimesheetDto[] = [];
 
@@ -182,6 +183,7 @@ export class RmgProjectConfigComponent implements OnInit {
     isProjectOverlapping: boolean = false;
     isOnboardingAsShadow: boolean = false;
     allResourceRequirement: boolean = true;
+    removePermanently: boolean = false;
 
     // Dates
     todaysDate: any
@@ -213,9 +215,9 @@ export class RmgProjectConfigComponent implements OnInit {
     oldTeamMemberSortDirection: string = 'asc';
     oldTeamMemberFilters: any = {};
     oldTeamMemberSearchOnEnter: boolean = true;
-    rmgOldTeamMemberColumnList: any[] = ['blank', 'employementId', 'memberName', 'memberDepartment', 'poNo', 'employeeRole', 'empTeamDepartmentName', 'blank', 'blank', 'blank'];
-    rmgOldTeamMemberColumnListForTNM: any[] = ['blank', 'employementId', 'memberName', 'memberDepartment', 'poNo', 'displayRequirement', 'employeeRole', 'empTeamDepartmentName', 'blank', 'blank', 'blank'];
-    rmgOldTeamMemberColumnListForInternal = ['blank', 'employementId', 'memberName', 'memberDepartment', 'employeeRole', 'empTeamDepartmentName', 'blank', 'blank', 'blank'];
+    rmgOldTeamMemberColumnList: any[] = ['blank', 'employementId', 'memberName', 'memberDepartment', 'poNo', 'employeeRole', 'blank', 'blank', 'blank', 'blank'];
+    rmgOldTeamMemberColumnListForTNM: any[] = ['blank', 'employementId', 'memberName', 'memberDepartment', 'poNo', 'displayRequirement', 'employeeRole', 'blank', 'blank', 'blank', 'blank'];
+    rmgOldTeamMemberColumnListForInternal = ['blank', 'employementId', 'memberName', 'memberDepartment', 'employeeRole', 'blank', 'blank', 'blank', 'blank'];
 
     // Current Team Member
     isCurrentTeamMemberSearchEnabled: boolean = false;
@@ -226,12 +228,12 @@ export class RmgProjectConfigComponent implements OnInit {
     currentTeamMemberSortDirection: string = 'asc';
     currentTeamMemberFilters: any = {};
     currentTeamMemberSearchOnEnter: boolean = true;
-    rmgCurrentTeamMemberColumnListForTNM: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnList: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'poNo', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnListForInternal: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnListForTNMPreview: any[] = ['blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnListPreview: any[] = ['blank', 'employementId', 'memberName', 'poNo', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnListForInternalPreview: any[] = ['blank', 'employementId', 'memberName', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListForTNM: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnList: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'poNo', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListForInternal: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListForTNMPreview: any[] = ['blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListPreview: any[] = ['blank', 'employementId', 'memberName', 'poNo', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListForInternalPreview: any[] = ['blank', 'employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
 
 
     // Migrate Team Member
@@ -243,7 +245,7 @@ export class RmgProjectConfigComponent implements OnInit {
     migrateTeamMemberSortDirection: string = 'asc';
     migrateTeamMemberFilters: any = {};
     migrateTeamMemberSearchOnEnter: boolean = true;
-    migrateTeamMemberColumnListBulk: any[] = ['blank', 'employementId', 'memberName', 'teamName', 'employeeRole', 'empTeamDepartmentName', 'poNo', 'displayRequirement'];
+    migrateTeamMemberColumnListBulk: any[] = ['blank', 'employementId', 'memberName', 'teamName', 'employeeRole', 'blank', 'poNo', 'displayRequirement'];
 
     // Migrate Individual Team Member
     isMigrateIndividualTeamMemberSearchEnabled: boolean = false;
@@ -376,6 +378,7 @@ export class RmgProjectConfigComponent implements OnInit {
 
     openRemoveMembersModal() {
         this.membersEndDate = null;
+        this.removePermanently = false;
         this.removeMembersConfirmationModalRef = this.modalService?.open(this.removeMembersConfirmationTemplateRef, { modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false });
     }
 
@@ -557,6 +560,7 @@ export class RmgProjectConfigComponent implements OnInit {
     validateDeleteTeams() {
         this.markDefaultProjectCompletionList = [];
         this.mappingToOtherProjectAsDefaultList = [];
+        this.deletingTeamMembersList = [];
 
         let poObj = new PoDetails();
         poObj.projectId = this.rmgProjectObj.projectId;
@@ -568,6 +572,7 @@ export class RmgProjectConfigComponent implements OnInit {
         this.teamService.getTeamDetailsByTeamIdsAndProjectId(poObj).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus === "Success") {
                 let teamMembers: RmgTeamMember[] = response.serviceResponse || [];
+                this.deletingTeamMembersList = teamMembers;
 
                 // having no other active projects and this is default project
                 let noOtherActiveAndCurrentIsDefaultProjectEmpIds: number[] = teamMembers
@@ -1877,6 +1882,10 @@ export class RmgProjectConfigComponent implements OnInit {
             return;
         }
 
+        if (newTeamMember.endDate && newTeamMember.endDate != undefined && newTeamMember.endDate != null && this.normalizeDate(newTeamMember.startDate) > this.normalizeDate(newTeamMember.endDate)) {
+            this.openAlertMessageModal(`End Date cannot be less than Start Date!!`);
+            return;
+        }
         // if (this.projectType === 'TNM' || this.employeeExistingProjectDetails[0]?.billableType === 'TNM') {
         //     const startDate = this.normalizeDate(newTeamMember.startDate);
         //     const existingProjectFlag = await this.getEmployeeExistingProjectDetailsByEmpId(this.currentTeam.newRmgTeamMember.empId, false, this.rmgProjectObj.projectId);
@@ -1886,7 +1895,7 @@ export class RmgProjectConfigComponent implements OnInit {
         // }
 
         if (newTeamMember.startDate !== undefined && newTeamMember.startDate !== null) {
-            const flag: boolean = await this.validateEmployeeProjectStartDate(newTeamMember, this.rmgProjectObj.projectId, this.rmgProjectObj.startDate, this.projectType);
+            const flag: boolean = await this.validateEmployeeProjectStartDate(newTeamMember, this.rmgProjectObj.projectId, this.projectType);
             if (!flag) {
                 return;
             }
@@ -1953,7 +1962,7 @@ export class RmgProjectConfigComponent implements OnInit {
             }
             if (member.startDate !== undefined && member.startDate !== null
                 && (!member.dbStartDate || member.dbStartDate == undefined || member.dbStartDate == null)) {
-                const flag: boolean = await this.validateEmployeeProjectStartDate(member, this.rmgProjectObj.projectId, this.rmgProjectObj.startDate, this.projectType);
+                const flag: boolean = await this.validateEmployeeProjectStartDate(member, this.rmgProjectObj.projectId, this.projectType);
                 if (!flag) {
                     return;
                 }
@@ -1961,7 +1970,7 @@ export class RmgProjectConfigComponent implements OnInit {
             if (member.startDate !== undefined && member.startDate !== null
                 && member.dbStartDate !== undefined && member.dbStartDate !== null
                 && this.normalizeDate(member.dbStartDate) !== this.normalizeDate(member.startDate)) {
-                const flag: boolean = await this.validateEmployeeProjectStartDate(member, this.rmgProjectObj.projectId, this.rmgProjectObj.startDate, this.projectType);
+                const flag: boolean = await this.validateEmployeeProjectStartDate(member, this.rmgProjectObj.projectId, this.projectType);
                 if (!flag) {
                     return;
                 }
@@ -2030,6 +2039,7 @@ export class RmgProjectConfigComponent implements OnInit {
                 this.openAlertMessageModal(`Member End date cannot be less then Member Start date for ${member.employementId}!!`);
                 return;
             }
+            member.removePermanently = this.removePermanently;
         }
 
         let rmgTeam = new RmgTeam();
@@ -2188,16 +2198,22 @@ export class RmgProjectConfigComponent implements OnInit {
         team.isAnyNewMemberAdded = team.rmgCurrentTeamMemberList.some(member => member.isNotSaved);
     }
 
-    async validateEmployeeProjectStartDate(member: RmgTeamMember, projectId: any, projectStartDate: any, projectType: any): Promise<boolean> {
+    async validateEmployeeProjectStartDate(member: RmgTeamMember, projectId: any, projectType: any): Promise<boolean> {
+        member.isEndDateVisible = false;
+        member.memberMaxEndDate = null;
         let projectData = {
             currentProjectId: this.rmgProjectObj?.projectId,
             projectIds: [this.rmgProjectObj?.projectId, projectId],
-            projectStartDate: projectStartDate,
             projectType: projectType
         };
         const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
         if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {
             return true;
+        } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT') {
+            member.isEndDateVisible = true;
+            member.memberMaxEndDate = response?.data.memberMaxEndDate;
+            this.openAlertMessageModal('Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!');
+            return false;
         } else {
             return false;
         }
@@ -2248,39 +2264,6 @@ export class RmgProjectConfigComponent implements OnInit {
         }
     }
 
-    validateEmployeeProjectStartDateIndividual(event: MatDatepickerInputEvent<Date>, member: RmgTeamMember) {
-
-    }
-
-    onMemberRemoveEndDateTypeChange(event: any) {
-        const selectedValue = event.value;
-
-        if (selectedValue === 'PO') {
-            this.employeeProjectEndDate =
-                this.deleteEmployeeExistingProjectMappingObj?.poEndDate
-                    ? moment(this.deleteEmployeeExistingProjectMappingObj.poEndDate)
-                        .format('YYYY-MM-DD')
-                    : null;
-        }
-        else if (selectedValue === 'Custom') {
-            this.employeeProjectEndDate = null;
-        }
-    }
-
-    onMembersEndDateTypeChange(event: any) {
-        const selectedValue = event.value;
-        if (selectedValue === 'PO') {
-            this.membersEndDate =
-                this.deleteEmployeeExistingProjectMappingObj?.poEndDate
-                    ? moment(this.deleteEmployeeExistingProjectMappingObj.poEndDate)
-                        .format('YYYY-MM-DD')
-                    : null;
-        }
-        else if (selectedValue === 'Custom') {
-            this.membersEndDate = null;
-        }
-    }
-
     onMemberEndDateChange(event: MatDatepickerInputEvent<Date>, member: RmgTeamMember) {
         const selectedDate = this.normalizeDate(event.value);
         const memberStartDate = this.normalizeDate(member.startDate);
@@ -2315,6 +2298,11 @@ export class RmgProjectConfigComponent implements OnInit {
             this.shadowResourceMappingMemberStartDate = null;
             this.openAlertMessageModal("Member Current End Date cannot be less than Member New Start Date!!");
             return false;
+        }
+
+        const flag: boolean = await this.validateEmployeeProjectStartDate(this.shadowResourceMappingMember, this.rmgProjectObj.projectId, this.projectType);
+        if (!flag) {
+            return;
         }
 
         let rmgMember = new RmgTeamMember();
@@ -2402,9 +2390,13 @@ export class RmgProjectConfigComponent implements OnInit {
                 this.openAlertMessageModal(`Kindly Provide Start Date for Cloned Row # ${i + 1}`);
                 return;
             }
+            if (member.endDate && member.endDate != undefined && member.endDate != null && this.normalizeDate(member.startDate) > this.normalizeDate(member.endDate)) {
+                this.openAlertMessageModal(`End Date cannot be less than Start Date for Cloned Row # ${i + 1}`);
+                return;
+            }
             if (member.startDate !== undefined && member.startDate !== null
                 && (!member.dbStartDate || member.dbStartDate == undefined || member.dbStartDate == null)) {
-                const flag: boolean = await this.validateEmployeeProjectStartDate(member, this.rmgProjectObj.projectId, this.rmgProjectObj.startDate, this.projectType);
+                const flag: boolean = await this.validateEmployeeProjectStartDate(member, this.rmgProjectObj.projectId, this.projectType);
                 if (!flag) {
                     return;
                 }
@@ -2412,14 +2404,10 @@ export class RmgProjectConfigComponent implements OnInit {
             if (member.startDate !== undefined && member.startDate !== null
                 && member.dbStartDate !== undefined && member.dbStartDate !== null
                 && this.normalizeDate(member.dbStartDate) !== this.normalizeDate(member.startDate)) {
-                const flag: boolean = await this.validateEmployeeProjectStartDate(member, this.rmgProjectObj.projectId, this.rmgProjectObj.startDate, this.projectType);
+                const flag: boolean = await this.validateEmployeeProjectStartDate(member, this.rmgProjectObj.projectId, this.projectType);
                 if (!flag) {
                     return;
                 }
-            }
-            if (member.endDate && member.endDate != undefined && member.endDate != null && member.startDate > member.endDate) {
-                this.openAlertMessageModal(`End Date cannot be less than Start Date for Cloned Row # ${i + 1}`);
-                return;
             }
             member.startDate = member.startDate ? moment(member.startDate).format('YYYY-MM-DDTHH:mm:ss') : null;
             member.endDate = member.endDate ? moment(member.endDate).format('YYYY-MM-DDTHH:mm:ss') : null;
@@ -2649,7 +2637,7 @@ export class RmgProjectConfigComponent implements OnInit {
             this.openAlertMessageModal("Please Select Default Project");
             return;
         }
-        const flag: boolean = await this.validateEmployeeProjectStartDate(employee, employee?.selectedProject?.projectId, employee.selectedProject.projectStartDate, this.projectType);
+        const flag: boolean = await this.validateEmployeeProjectStartDate(employee, employee?.selectedProject?.projectId, this.projectType);
         if (!flag) {
             return;
         }

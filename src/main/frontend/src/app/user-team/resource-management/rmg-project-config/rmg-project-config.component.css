@@ -573,3 +573,18 @@
 ::ng-deep .info-popover .popover-body {
     padding: 0;
 }
+
+.remove-permanently ::ng-deep .mat-checkbox {
+    transform: scale(0.8);
+}
+
+.info-icon-danger {
+    color: #b13f32;
+    border-color: #b13f32;
+    background-color: #fff;
+}
+
+.emp_360-span {
+    color: #193d8aff;
+    text-decoration: underline;
+}

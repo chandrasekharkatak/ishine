@@ -22,14 +22,14 @@
                                     {{kpi.suffix }}
                                 </span>
                             </h6>
-                            <p class="kpi-change text-success small mb-0">
+                            <!-- <p class="kpi-change text-success small mb-0">
                                 <i
                                     [ngClass]="{ 'normal fa-solid fa-arrow-trend-up' : kpi.status == 'NORMAL', 'danger fa-solid fa-arrow-trend-down': kpi.status == 'DANGER'}"></i>
                                 {{ kpi.change || 0 }}
                                 <span class="text-muted fw-normal">
                                     {{ kpi.period }}
                                 </span>
-                            </p>
+                            </p> -->
                         </div>
                     </div>
                 </div>
@@ -46,7 +46,7 @@
                 <label class="toolbar-label mb-0">Department</label>&nbsp;
 
                 <app-my-select class="form-select toolbar-select max-width200" placeholder="Select Department"
-                    [(ngModel)]="selectedDepartmentIds" (dropdownClosed)="onDepartmentSelectionChange($event)"
+                    [(ngModel)]="selectedDepartmentIds" (dropdownClosed)="onDepartmentSelectionChange()"
                     [options]="filteredDepartmentList" displayKey="name" valueKey="deptId" [multiple]="true">
                     [showFilterAction]="currentUser.employeeRole != 'SuperAdmin'"
                     [filterActionLabel]="departmentFilterActionLabel"

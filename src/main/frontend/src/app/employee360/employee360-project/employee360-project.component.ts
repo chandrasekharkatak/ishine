@@ -30,6 +30,8 @@ import { RmgTeamMember } from 'src/app/models/rmgTeamMember';
 import { TeamService } from 'src/app/services/team.service';
 import { EmployeeProjectTimesheetDto } from 'src/app/models/employeeProjectTimesheetDto';
 import { RmgProjectConfigComponent } from 'src/app/user-team/resource-management/rmg-project-config/rmg-project-config.component';
+import { EmployeeProjectService } from 'src/app/services/employee-project.service';
+import { AppModalService } from 'src/app/user-team/resource-management/app-modal.service';
 @Component({
   standalone: false,
   selector: 'app-employee360-project',
@@ -111,7 +113,9 @@ export class Employee360ProjectComponent implements OnInit {
     private employeeService: EmployeeService,
     private emp360Service: Employee360Service,
     private encryptionService: EncryptionService,
-    private teamService: TeamService
+    private teamService: TeamService,
+    private employeeProjectService : EmployeeProjectService,
+    private appModalService : AppModalService
   ) {
 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -148,6 +152,13 @@ export class Employee360ProjectComponent implements OnInit {
     } else {
       this.employeeData = history.state.data;
     }
+
+    this.appModalService.rmgAction$.subscribe(action => {
+      if (action.actionType === 'PROJECT_START_DATE_UPDATED') {
+        this.cancelRequest();
+        this.getExistingProjectsByUser();
+      }
+    });
 
     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Project");
     if (findbreadcrumbObject >= 0) {
@@ -343,35 +354,16 @@ async getExistingProjectsByUser() {
   let projectObj = new Project();
   projectObj.empId = this.employeeData.empId;
   projectObj.isAllProj = true;
-
+  this.allProjectList = [];
   // getExistingProjectsAndTeamsByEmployee service impl
   this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
       this.allProjectList = response.serviceResponse;
-
       // Add combined project type to each project in the list
       this.allProjectList = this.allProjectList.map((project: any) => {
         project.combinedProjectType = this.getProjectType(project);
         return project;
       });
-
-
-      // if (this.allProjectList.length > 0) {
-      //   if (this.allProjectList[0].billableType == "TNM") {
-      //     this.openAlertMod(this.alertTemplate, "This Employee is already mapped to TNM project. Can't add to another project or Team !!");
-      //     this.getBillableType = this.allProjectList.find(employee => this.newteamMember.billableType = employee.billableType);
-      //   } else {
-      //     this.newMemberInProject = "NewMember";
-      //     this.newteamMember.billableType = this.newMemberInProject;
-      //   }
-      // } else {
-      //   this.newMemberInProject = "NewMember";
-      //   this.newteamMember.billableType = this.newMemberInProject;
-      // }
-
-      console.log("this.allProjectList ", this.allProjectList);
-      console.log("this.getBillableType ", this.getBillableType);
-      console.log(" newTeamMember   details   ", this.newteamMember)
     }
   });
 }
@@ -551,6 +543,7 @@ async getExistingProjectsByUser() {
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yyyy = today.getFullYear();
+    this.startDate = null;
     this.lastDate = `${yyyy}-${mm}-${dd}`;
     // let projectObj = Object.assign({},this.projectObj); for copy object
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
@@ -562,6 +555,7 @@ async getExistingProjectsByUser() {
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yyyy = today.getFullYear();
+    this.endDate = null;
     this.lastDate = `${yyyy}-${mm}-${dd}`;
     // let projectObj = Object.assign({},this.projectObj); for copy object
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
@@ -569,7 +563,7 @@ async getExistingProjectsByUser() {
   }
 
 
-  editStartdate(template: TemplateRef<any>) {
+  async editStartdate(template: TemplateRef<any>, edit_enddate_template: TemplateRef<any> ) {
     this.cancelRequest();
 
     let projectObj = new Project();
@@ -581,8 +575,12 @@ async getExistingProjectsByUser() {
       this.errModalRef = this.modalService.open(this.updateProjectStartDateErrorModalRef, { modalDialogClass: 'modal-md' });
       return;
     }
+    
+    const flag: boolean = await this.validateEmployeeProjectStartDate(this.projectObj.empId, this.projectObj.projectId, '', edit_enddate_template);
+    if (!flag) {
+      return;
+    }
 
-    console.log("team details ", projectObj)
     projectObj.updatedBy = this.currentUser.empId;
     this.projectService.updateProjectStartAndEndDate(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1060,5 +1058,29 @@ console.log("mapping ID",this.employeeTeamMapId);
 		this.alertMessageModalRef = this.modalService?.open(this.alertTemplate, { modalDialogClass: 'modal-sm' });
 	}
 
+  async validateEmployeeProjectStartDate(empId: any, projectId: any, projectType: any, edit_enddate_template?: any): Promise<boolean> {
+    this.projectObj.isEndDateVisible = false;
+    this.projectObj.memberMaxEndDate = null;
+    let rmgMember: RmgTeamMember = new RmgTeamMember();
+    rmgMember.empId = empId;
+    rmgMember.startDate = this.startDate;
+    let projectData = {
+      currentProjectId: projectId,
+      projectIds: [projectId],
+      projectType: projectType
+    };
+    const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(rmgMember, projectData);
+    if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {
+      return true;
+    } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT') {
+      this.projectObj.isEndDateVisible = true;
+      this.projectObj.memberMaxEndDate = response?.data.memberMaxEndDate;
+      this.editEnddateModal(edit_enddate_template, this.projectObj);
+      this.openAlertMessageModal('Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!');
+      return false;
+    } else {
+      return false;
+    }
+  }
   
 }

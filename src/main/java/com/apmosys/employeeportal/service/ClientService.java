@@ -56,12 +56,12 @@ public class ClientService {
 
 		 
 		 
-		 Optional<Client> byPoClient =
-	                clientRepository.findByPoClientId(poClientId);
-		 
-		 if (byPoClient.isPresent()) {
+		   Optional<Client> byPoClient = clientRepository.findByPoClientId(poClientId);
 
-	            Client existing = byPoClient.get();
+		
+
+		    if (byPoClient.isPresent()) {
+		        Client existing = byPoClient.get();
 
 	            String existingNormalized =
 	                    existing.getClientName() != null

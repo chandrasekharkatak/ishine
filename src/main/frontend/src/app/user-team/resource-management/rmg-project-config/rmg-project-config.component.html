@@ -378,7 +378,7 @@
                             (change)="onAllTeamTeamMemberCheckboxChange(team,$event, teamMembers)">
                         </mat-checkbox>
                     </th>
-                    <th></th>
+                    <th *ngIf="projectConfigStepperIndex === 1"></th>
                     <th>Info</th>
                     <th class="min-width100 max-width150" mat-sort-header="employementId|string">
                         Employment Id
@@ -492,7 +492,7 @@
                         <td class="min-width180 max-width200">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" readonly [matDatepicker]="startDatepicker"
-                                    (dateChange)="validateEmployeeProjectStartDate(currentTeam.newRmgTeamMember, rmgProjectObj.projectId, rmgProjectObj.startDate, projectType)"
+                                    (dateChange)="validateEmployeeProjectStartDate(currentTeam.newRmgTeamMember, rmgProjectObj.projectId, projectType)"
                                     [(ngModel)]="currentTeam.newRmgTeamMember.startDate"
                                     [disabled]="!currentTeam.newRmgTeamMember.empId" (click)="startDatepicker.open()" />
                                 <mat-icon class="calendar-icon"
@@ -500,7 +500,17 @@
                                 <mat-datepicker #startDatepicker></mat-datepicker>
                             </div>
                         </td>
-                        <td class="min-width100 max-width150">
+                        <td class="min-width180 max-width200" *ngIf="currentTeam.newRmgTeamMember.isEndDateVisible">
+                            <div class="date-input-wrapper">
+                                <input class="form-control date-input" readonly [matDatepicker]="endDatepicker"
+                                    [(ngModel)]="currentTeam.newRmgTeamMember.endDate"
+                                    [max]="currentTeam.newRmgTeamMember.memberMaxEndDate"
+                                    [disabled]="!currentTeam.newRmgTeamMember.empId" (click)="endDatepicker.open()" />
+                                <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
+                                <mat-datepicker #endDatepicker></mat-datepicker>
+                            </div>
+                        </td>
+                        <td class="min-width100 max-width150" *ngIf="!currentTeam.newRmgTeamMember.isEndDateVisible">
                             {{'--'}}
                         </td>
                         <td>
@@ -563,7 +573,7 @@
                         <td class="min-width180 max-width200">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" readonly [matDatepicker]="startDatepicker"
-                                    (dateChange)="validateEmployeeProjectStartDate(member, rmgProjectObj.projectId, rmgProjectObj.startDate, projectType)"
+                                    (dateChange)="validateEmployeeProjectStartDate(member, rmgProjectObj.projectId, projectType)"
                                     [(ngModel)]="member.startDate" [disabled]="!member.empId"
                                     (click)="startDatepicker.open()" />
                                 <mat-icon class="calendar-icon"
@@ -571,7 +581,16 @@
                                 <mat-datepicker #startDatepicker></mat-datepicker>
                             </div>
                         </td>
-                        <td class="min-width100 max-width150">
+                        <td class="min-width180 max-width200" *ngIf="member.isEndDateVisible">
+                            <div class="date-input-wrapper">
+                                <input class="form-control date-input" readonly [matDatepicker]="endDatepicker"
+                                    [(ngModel)]="member.endDate" [max]="member.memberMaxEndDate"
+                                    [disabled]="!member.empId" (click)="endDatepicker.open()" />
+                                <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
+                                <mat-datepicker #endDatepicker></mat-datepicker>
+                            </div>
+                        </td>
+                        <td class="min-width100 max-width150" *ngIf="!member.isEndDateVisible">
                             {{'--'}}
                         </td>
                         <td>
@@ -662,7 +681,9 @@
                             {{ member.employementId || 'NA' }}
                         </td>
                         <td class="min-width100 max-width150 truncate" [title]="member.memberName || 'NA' ">
-                            {{member.memberName || 'NA' }}
+                            <span *ngIf="member.empId" class="cursor-pointer emp_360-span text-underline"
+                                [navigateToEmployee360]="member.empId">{{member.memberName || 'NA' }}</span>
+                            <span *ngIf="!member.empId">{{member.memberName || 'NA' }}</span>
                         </td>
                         <td class="min-width100 max-width150 truncate" *ngIf="!isInternalProject"
                             [title]="member.poNo|| 'NA'">
@@ -683,7 +704,7 @@
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" readonly [matDatepicker]="startDatepicker"
                                     [disabled]="projectConfigStepperIndex !== 1"
-                                    (dateChange)="validateEmployeeProjectStartDate(member, rmgProjectObj.projectId, rmgProjectObj.startDate, projectType)"
+                                    (dateChange)="validateEmployeeProjectStartDate(member, rmgProjectObj.projectId, projectType)"
                                     [(ngModel)]="member.startDate" readonly (click)="startDatepicker.open()" />
                                 <mat-icon class="calendar-icon"
                                     (click)="startDatepicker.open()">calendar_today</mat-icon>
@@ -814,7 +835,9 @@
                             {{ member.employementId || 'NA' }}
                         </td>
                         <td class="min-width100 max-width150 truncate" [title]="member.memberName|| 'NA' ">
-                            {{ member.memberName || 'NA' }}
+                            <span *ngIf="member.empId" class="cursor-pointer emp_360-span text-underline"
+                                [navigateToEmployee360]="member.empId">{{member.memberName || 'NA' }}</span>
+                            <span *ngIf="!member.empId">{{member.memberName || 'NA' }}</span>
                         </td>
                         <td class="min-width100 max-width150 truncate" [title]="member.memberDepartment|| 'NA' ">
                             {{ member.memberDepartment || 'NA' }}
@@ -1381,7 +1404,7 @@
                                 <div class="date-input-wrapper">
                                     <input class="form-control date-input" readonly
                                         [matDatepicker]="defaultProjectEmployeeStartDatepicker"
-                                        (dateChange)="validateEmployeeProjectStartDate(employee, employee.selectedProject.projectId, employee.selectedProject.projectStartDate, projectType)"
+                                        (dateChange)="validateEmployeeProjectStartDate(employee, employee.selectedProject.projectId, projectType)"
                                         [(ngModel)]="employee.selectedProject.startDate"
                                         [disabled]="!employee.selectedProject.projectId"
                                         (click)="defaultProjectEmployeeStartDatepicker.open()" />
@@ -1722,7 +1745,7 @@
                                         <div class="date-input-wrapper">
                                             <input class="form-control date-input" readonly
                                                 [matDatepicker]="defaultProjectMappingStartDatepicker"
-                                                (dateChange)="validateEmployeeProjectStartDate(employee, employee.projectId, employee.projectStartDate , projectType)"
+                                                (dateChange)="validateEmployeeProjectStartDate(employee, employee.projectId , projectType)"
                                                 [(ngModel)]="employee.startDate" [disabled]="!employee.projectId"
                                                 (click)="defaultProjectMappingStartDatepicker.open()" />
                                             <mat-icon class="calendar-icon"
@@ -1749,12 +1772,10 @@
 
 <ng-template #remove_members_confirmation>
     <div class="modal-body">
-        <p class="text-center">This action will permanently mark the selected members as inactive for the Team.
+        <p class="text-center mb-1">This action will permanently mark the selected members as inactive for the Team.
             <br> Do you want to proceed?
-            <i class="fa fa-beat fa-info-circle info-icon cursor-pointer"
-                title="Members with Future Start Date will be deleted permanently!!">
-            </i>
         </p>
+        <p *ngIf="removePermanently" class="text-danger mb-1">Note: This action cannot be undone.</p>
         <div class="row justify-content-center align-items-center">
             <div class="col-md-8">
                 <div class="info-wrapper">
@@ -1770,6 +1791,13 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="row justify-content-center align-items-center">
+            <mat-checkbox class="remove-permanently" color="primary" [(ngModel)]="removePermanently"></mat-checkbox>
+            <small>Remove Permanently</small>&nbsp;
+            <i class="fa fa-beat fa-info-circle info-icon-danger cursor-pointer"
+                title="This will permanently delete the entry from the table. This action cannot be undone.">
+            </i>
         </div>
         <div class="row justify-content-center align-items-center">
             <button type="button" class="btn btn-success btn-sm" (click)="removeTeamMembersFromProject();">Yes,

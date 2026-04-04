@@ -3598,7 +3598,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "WHERE NOT EXISTS (SELECT 1 FROM EmployeeTeamMap etm \n"
 			+ "                  JOIN Team t ON t.teamId = etm.teamId \n"
 			+ "                  JOIN Project p ON p.projectId = t.projectId \n"
-			+ "                  WHERE etm.empId = e.empId AND etm.active != 0 AND t.isActive = 'Y' AND p.active = 'true') \n"
+			+ "                  WHERE etm.empId = e.empId AND (etm.active = 1 OR (etm.active = 2 AND DATE(etm.startDate) <= CURDATE())) AND t.isActive = 'Y' AND p.active = 'true') \n"
 			+ "and e.employmentstatus != 'InActive' and d.deptId IN :deptIds and e.empId NOT BETWEEN 1 AND 6 ")
 	Long getAllEmployeesNotMappedToAnyProjectCountByDeptIds(@Param("deptIds") List<Long> deptIds);
 
@@ -4696,5 +4696,19 @@ public List<Object[]> fetchInActivePOListOfProject(
 			"END) IN (:employeementIds)",
 		nativeQuery = true)
 	List<Object[]> findByPrefixedEmployeementIdIn(@Param("employeementIds") List<String> employeementIds);
+
+	@Query(value = " WITH total_emp AS ( \n"
+			+ "  SELECT COUNT(*) AS total \n"
+			+ "  FROM employee \n"
+			+ "  WHERE employmentstatus != 'InActive'AND emp_id NOT BETWEEN 1 AND 6 \n"
+			+ " ) \n"
+			+ " SELECT CONCAT(ROUND(COUNT(DISTINCT etm.emp_id) * 100.0 / NULLIF(te.total, 0), 2),'') AS emp_per \n"
+			+ " FROM projects p \n"
+			+ " INNER JOIN teams t ON p.project_id = t.project_id \n"
+			+ " INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+			+ " CROSS JOIN total_emp te \n"
+			+ " WHERE p.po_project_type IS NOT NULL AND p.active = 'true' \n"
+			+ " AND t.is_active = 'Y'  AND (etm.active = 1 OR (etm.active = 2 AND DATE(etm.start_date) <= CURDATE()) )  \n", nativeQuery = true)
+	public String getEmployeeMappedToClientPercent();
 
 }
