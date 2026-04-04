@@ -60,6 +60,7 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MigrateTeam;
 import com.apmosys.employeeportal.dto.MultiProjectEmployeeDTO;
+import com.apmosys.employeeportal.dto.PoDepartmentMappingDto;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectEmpInfoDTO;
@@ -3747,12 +3748,12 @@ public class TeamsService {
 		Integer tgtProjectId = migrateTeam.getTargetProjectId();
 		List<PoDepartmentMapping> migratedPoDepartmentMapping = new ArrayList<>();
 
-		List<PoDepartmentMapping> sourceDeptMappings = poDepartmentMappingRepository
+		List<PoDepartmentMappingDto> sourceDeptMappings = poDepartmentMappingRepository
 				.findByProjectIdAndActive(srcProjectId);
 		List<Long> targetDeptIds = poDepartmentMappingRepository
 				.findPoDeptIdsByProjectId(tgtProjectId, false);
 
-		for (PoDepartmentMapping s : sourceDeptMappings) {
+		for (PoDepartmentMappingDto s : sourceDeptMappings) {
 			if (!targetDeptIds.contains(s.getDeptId())) {
 				PoDepartmentMapping nm = new PoDepartmentMapping();
 				nm.setPoId(migrateTeam.getTargetPoId());

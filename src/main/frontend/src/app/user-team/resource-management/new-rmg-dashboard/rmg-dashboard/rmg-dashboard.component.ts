@@ -625,6 +625,11 @@ export class RmgDashboardComponent implements OnInit {
   }
 
   onAction(action: string, project: any) {
+    // this.filterStateService.projectPageSize = this.projectPageSize;
+    // this.filterStateService.selectedProjectStatus = this.projectStatus;
+    // this.filterStateService.projectReportFilters = this.projectFilters;
+    // this.filterStateService.deptIdList = this.selectedDepartmentIds;
+    // this.filterStateService.myDept = this.myDept; 
     this.actionTriggered.emit({ action, project });
   }
 
@@ -1549,6 +1554,10 @@ export class RmgDashboardComponent implements OnInit {
         }
         else if (insight.key === 'TIMESHEET_NON_COMPLIANCE') {
           value = this.getInsightValues('TIMESHEET_NON_COMPLIANCE', insight.valueList);
+          total = this.getInsightValues('TOTAL', this.statusCards);
+        }
+        else if (insight.key === 'PENDING_FOR_APPROVAL') {
+          value = this.getInsightValues('PENDING_FOR_APPROVAL', insight.valueList);
           total = this.getInsightValues('TOTAL', this.statusCards);
         }
         else {

@@ -1163,6 +1163,8 @@ public class TimesheetServiceNew {
 			} else {
 				empTS.setWorkCheckIn(null);
 				empTS.setWorkCheckOut(null);
+				empTS.setTotalWorkingMinutes(0);
+				empTS.setDescription(newEmpDTO.getDescription());
 			}
 			
 			empTS = employeeTimesheetsNewRepository.save(empTS);

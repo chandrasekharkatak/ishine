@@ -6,20 +6,29 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.ehcache.Cache;
+import org.ehcache.CacheManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 
 import com.apmosys.employeeportal.dto.ColumnFilterDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
+
+
+
 /**
  * Cache key generator for getEmployeeViewForClientAttendanceStatus.
  * Key includes all request fields and filter fields so same request always produces the same key.
  * List fields (e.g. billableType) are normalized (sorted) for order-independent key.
  */
+
+
 @Component("employeeViewClientAttendanceCacheKeyGenerator")
 public class EmployeeViewClientAttendanceCacheKeyGenerator implements KeyGenerator {
-
+	
+	
 	private static final String SEP = "|";
 	private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
 
@@ -71,6 +80,8 @@ public class EmployeeViewClientAttendanceCacheKeyGenerator implements KeyGenerat
 	        sb.append(normalize(filters.getProjectStatus())).append(SEP);
 	    }
 
+	    
+	   
 	    // RAW KEY
 	    String rawKey = sb.toString();
 

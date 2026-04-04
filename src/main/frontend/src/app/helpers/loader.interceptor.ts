@@ -546,7 +546,10 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getApprovedLeaveLogsByEmpId`,
     `${this.baseUrl}` + `api/getTimesheetStatusCountByManager`,
     `${this.baseUrl}` + `api/getExistingProjectsAndTeamsByEmployee`,
-    `${this.baseUrl}` + `api/v2/timesheet/getMyLastFilledLocationIdForProjectAndEmp`
+    `${this.baseUrl}` + `api/v2/timesheet/getMyLastFilledLocationIdForProjectAndEmp`,
+    `${this.baseUrl}` + `api/migrateTeamMembers`,
+    `${this.baseUrl}` + `api/getExistingProjectsAndTeamsByEmployee`
+
   ];
 
   DYNAMIC_URL_whiteList = [
