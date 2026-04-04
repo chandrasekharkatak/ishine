@@ -2329,10 +2329,16 @@ public class EmployeeService {
 
 						LocalDateTime now = LocalDateTime.now();
 						for (EmployeeTeamMap existingMap : existingTeamMappings) {
-							if (!employeedto.getOldEtmEndDate().toLocalDate().isAfter(now.toLocalDate())) {
+							if (employeedto.getOldEtmEndDate() == null){
 								existingMap.setActive(0L);
+								existingMap.setEndDate(now);
+							} else {
+								if (!employeedto.getOldEtmEndDate().toLocalDate().isAfter(now.toLocalDate())) {
+									existingMap.setActive(0L);
+								}
+								existingMap.setEndDate(employeedto.getOldEtmEndDate());
 							}
-							existingMap.setEndDate(employeedto.getOldEtmEndDate());
+							
 							existingMap.setUpdatedBy(updatedBy);
 						}
 						employeeTeamMapRepository.saveAll(existingTeamMappings);
