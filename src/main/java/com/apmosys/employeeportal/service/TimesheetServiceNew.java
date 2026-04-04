@@ -3004,11 +3004,20 @@ public class TimesheetServiceNew {
 			}
 		}
         public ServiceResponse getMyLastFilledLocationIdForProjectAndEmp(Integer projectId, Long empId) {
+        	
+        	
+        		
         	ServiceResponse serviceResponse =  new ServiceResponse();
 		LogDTO apiLogInfo = buildTimesheetApiLog("getMyLastFilledLocationIdForProjectAndEmp",
 				"/api/v2/timesheet/getMyLastFilledLocationIdForProjectAndEmp", empId);
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("projectId: ").append(projectId).append(", empId: ").append(empId);
+		
+		try {
+			
+//		if(true) {
+//			throw new IllegalAccessError("Error");
+//		}
         	if(projectId == null || empId == null) throw new IllegalArgumentException("Either the Project ID or the Employee Id is null");
         	ProjectTimesheetStatusNew pts = projectTimesheetStatusNewRepository.findByProjectIdAndEmpId(projectId, empId);
         	if(pts != null) {
@@ -3023,7 +3032,16 @@ public class TimesheetServiceNew {
 		apiLogInfo.setApiResponse(serviceResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)
 				? "Last filled location fetched" : "No last filled location found");
 		logService.logMyInfo(httpRequest, apiLogInfo);
-        	return serviceResponse;
+        return serviceResponse;
+        	}
+		
+        	catch(Exception ex) {
+        		apiLogInfo.setApiRequest(logBuilder.toString());
+        		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+        		apiLogInfo.setApiResponse(ex.getMessage());
+        		throw new TimesheetValidationFailedException(ex.getMessage());
+        		
+        	}
         }
         
         public ServiceResponse fetchDeptBaseProjectAndClientRelatedDataForEmployee(Long empId) {

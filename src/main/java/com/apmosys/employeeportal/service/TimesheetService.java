@@ -7890,7 +7890,6 @@ private ServiceResponse getEmployeeByNameAndEmpidForTimesheetInternal(TimesheetD
 	    apiLogInfo.setApiUrl("/api/getClientDetailsByProjectIdAndEmpId");
 	    apiLogInfo.setLogLevel("INFO");
 	    StringBuilder logBuilder = new StringBuilder();
-
 	    try {
 	    	
 	    	if(timesheetDTO == null) {

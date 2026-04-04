@@ -3964,14 +3964,17 @@ this.isNightShift = false;
     .getLastFilledLocationIdForProjectAndEmp(projectId, empId)
     .pipe(
       map((response: any) => {
-        if (response && response.serviceResponse) {
-          return response.serviceResponse as number;
+        if (response && response.serviceResponse != undefined) {
+          // return response.serviceResponse as number;
+          return { apiError: false, locationId: response.serviceResponse as number | null };
         }
-        return null;
+        // return null;
+        return { apiError: false, locationId: null };
       }),
       catchError((error) => {
         console.error('Error fetching last filled location ID:', error);
-        return of(null);
+        // return of(null);
+        return of({ apiError: true, locationId: null });
       })
     );
 }
@@ -4044,6 +4047,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     );
     return false;
   }
+  let apiErrorOccurred = false;
 
   const empId = this.timesheetAppliedFor?.toLowerCase() === 'self'
     ? this.currentUser?.empId
@@ -4064,18 +4068,22 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
             project.clientId = project.clientDetails?.clientId ?? null;
 
             return this.getLastFilledLocationIdForProjectAndEmp(project.projectId, empId).pipe(
-              map(locationId => {
+              map(({ apiError, locationId }) => {
+                if (apiError) {
+                 
+                  return { project, apiError: true };
+                }
                 project.clientLocationId =
                   locationId ?? project.clientDetails.clientLocations?.[0]?.clientLocationId;
     
                 project.description = this.holidayDescription;
     
-                return project;
+                return { project, apiError: false };
               }),
               catchError(() => {
                 project.clientLocationId = project.clientLocationList?.[0]?.clientLocationId;
                 project.description = this.holidayDescription;
-                return of(project);
+                return of({project, apiError: true});
               })
     
     
@@ -4086,7 +4094,16 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       });
 
       // 🔥 HARD BLOCK here (no subscribe anywhere)
-      loc.projects = await firstValueFrom(forkJoin(projectObservables));
+      const results = await firstValueFrom(forkJoin(projectObservables));
+      console.log("The results are ", results);
+      const hasApiError = results.some((p: any) => p?.apiError === true);
+      if (hasApiError) {
+      // this.openAlertMod(this.alertTemplate, 'Something went wrong while loading your projects. Please try again.');
+      // this.handleError('An error occurred while loading your projects. Please try again.', 'prepareDataForNonWorkingDay', true);
+      apiErrorOccurred = true;
+      return;
+    }
+      loc.projects = results.map((r:any)=> r.project);
       loc.projects = loc.projects?.filter(p => (p.clientId !== null && p.clientId !== undefined) && (p.clientLocationId !== null && p.clientLocationId !== undefined));
       if(this.dayType == 7){
         loc.projects = loc.projects?.filter(p => p.hasClientSideId == true)
@@ -4095,6 +4112,10 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       }
     })
   );
+  if(apiErrorOccurred){
+    this.handleError('An error occurred while loading your projects. Please try again.', 'prepareDataForNonWorkingDay', true,"An error occurred while loading your projects. Please try again.");
+    return false;
+  }
   
   console.log('✅ All locations fully populated:', this.timesheetLocations);
   return true;

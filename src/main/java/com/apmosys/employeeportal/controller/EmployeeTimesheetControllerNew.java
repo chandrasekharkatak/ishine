@@ -41,6 +41,7 @@ import com.apmosys.employeeportal.dto.GetProjectListForDateAndEmpIdPayload;
 import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.FinalDocumentDownloadPayloadDTO;
 import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
+import com.apmosys.employeeportal.dto.LastFilledLocationRequestDTO;
 import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
@@ -559,10 +560,10 @@ public class EmployeeTimesheetControllerNew {
 		}
     }
 		
-		@GetMapping("/getMyLastFilledLocationIdForProjectAndEmp")
-		public ServiceResponse getMyLastFilledLocationIdForProjectAndEmp(@RequestParam Long empId, @RequestParam Integer projectId) {
+		@PostMapping("/getMyLastFilledLocationIdForProjectAndEmp")
+		public ServiceResponse getMyLastFilledLocationIdForProjectAndEmp(@RequestBody LastFilledLocationRequestDTO dto ) {
 			ServiceResponse response = new ServiceResponse();
-			response = timesheetServiceNew.getMyLastFilledLocationIdForProjectAndEmp(projectId,empId);
+			response = timesheetServiceNew.getMyLastFilledLocationIdForProjectAndEmp(dto.getProjectId(),dto.getEmpId());
 			return response;
 		}
 		
