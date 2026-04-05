@@ -742,7 +742,9 @@
         <label class="bu-label"><span class="bu-required">*</span> Month-Year</label>
         <input type="month" class="bu-input"
           [(ngModel)]="timesheetObj.monthYear"
-          (change)="onMonthYearChange()" />
+          (change)="onMonthYearChange()" 
+          [max]="maxMonth"
+          />
       </div>
 
       <div class="bu-field">

@@ -30,6 +30,8 @@ import {LoaderService} from 'src/app/services/loader.service';import { MatSortMo
 import { firstValueFrom, Observable, of, Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { ExcelDownloadService } from 'src/app/services/excel-download-service';
+import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
+import { APP_DATE_FORMATS, AppDateAdapter } from 'src/app/helpers/date-time-picker/date-time-picker.component';
 
 
 
@@ -38,7 +40,17 @@ import { ExcelDownloadService } from 'src/app/services/excel-download-service';
   standalone: false,
   selector: 'app-team-timesheet',
   templateUrl: './team-timesheet.component.html',
-  styleUrls: ['./team-timesheet.component.css']
+  styleUrls: ['./team-timesheet.component.css'],
+   providers: [         
+      {
+        provide: DateAdapter,
+        useClass: AppDateAdapter
+      },
+      {
+        provide: MAT_DATE_FORMATS,
+        useValue: APP_DATE_FORMATS
+      }
+    ]
 })
 export class TeamTimesheetComponent implements OnInit {
 
