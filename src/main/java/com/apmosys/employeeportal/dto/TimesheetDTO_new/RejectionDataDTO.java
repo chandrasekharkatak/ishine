@@ -17,4 +17,5 @@ public class RejectionDataDTO {
 	private String rejectionReason;
 	private String remark;
 	private String rejectedOn;
+	private Long rejectionReasonId;
 }
