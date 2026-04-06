@@ -712,6 +712,7 @@
               <th mat-sort-header="projectCount">Total Projects</th>
               <th mat-sort-header="appliedBy">Applied By</th>
               <th mat-sort-header="appliedOn">Applied On</th>
+              <th>Night Shift</th>
               <th>Actions</th>
             </tr>
            <tr app-column-filter-bar
@@ -728,7 +729,6 @@
                 <td *ngIf="selectedStatus != 3"> <input type="checkbox" [(ngModel)]="timesheet.selected"
                     (change)="onEmployeeToggle(timesheet); updateSelectedRows(timesheet)" /> </td>
                <td>{{ (page1 * items) + i + 1 }}</td>
-
                 <td class="emp-id emp-femp-id" (click)="toggleAccordion(i,timesheet)" title="Click to view location → project → activity details">{{ timesheet.employmentId }}</td>
                 <td>{{ timesheet.employeeName }}</td>
                 <td>{{ timesheet.date }}</td>
@@ -739,6 +739,13 @@
                 <td>{{ timesheet.projectCount}}</td>
                 <td>{{ timesheet.appliedBy }}</td>
                 <td>{{ timesheet.appliedOn }}</td>
+                <td>
+                    @if (timesheet.isNightShift) {
+                      Yes
+                    }@else{
+                      No
+                    }
+                  </td>
                 <td class="ts-actions-cell">
                   <button type="button" class="ts-action-btn ts-doc-btn" *ngIf="timesheet.documentData.length > 0" (click)="openDocumentPopup(timesheet, null, false)" title="View all documents">
                     <i class="fa fa-eye"></i>
@@ -768,9 +775,6 @@
                             <span class="ml-3 text-muted">
                               <i class="far fa-clock mr-1"></i>
                               {{ location.locationInTime || 'NA' }} - {{ location.locationOutTime || 'NA' }}
-                            </span>
-                            <span class="ml-3 text-primary" *ngIf="timesheet.isNightShift">
-                              Night Shift
                             </span>
                           </div>
                         </div>
@@ -1934,7 +1938,6 @@
 <ng-template #skipped_timesheets_details let-modal>
   <div class="modal-header bg-light">
     <h5 class="modal-title">
-      <i class="fa fa-times-circle text-danger"></i>
       {{modalMessage || "No Valid Request Found"}}
     </h5>
     <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
@@ -1949,7 +1952,7 @@
     <h6>
       Skipped Timesheets
     </h6>
-
+    <ng-container *ngIf="!skippedTimesheetList || skippedTimesheetList == undefined"> None</ng-container>
       <!-- Rejection Table -->
       <table class="table table-sm table-bordered mb-0"
              *ngIf="skippedTimesheetList && skippedTimesheetList.length > 0">
