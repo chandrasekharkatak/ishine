@@ -2043,8 +2043,9 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
             UpdateLeaveStatusValidationResult validated = updateLeaveStatusValidator.validateForStatusUpdate(leaveDTO);
             EmployeeLeave pendingLeaveApplication = validated.leaveApplication();
             EmployeeLeavesMap employeeLeavesMap = validated.employeeLeavesMap();
-            Optional<Employee> employee = Optional.of(validated.employee());
-
+            Employee employee = Optional.ofNullable(validated.employee())
+        						.orElseThrow(() -> new RuntimeException("Employee not found"));
+			Employee empObj = employee;
                 pendingLeaveApplication.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
                 pendingLeaveApplication.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 
@@ -2064,49 +2065,54 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 
                     // Final Approval
                     if ((leaveDTO.getCurrentApprovalLevel() == null && leaveDTO.getFinalApprovalLevel() == null) ||
-                            (leaveDTO.getCurrentApprovalLevel() != null && leaveDTO.getFinalApprovalLevel() != null && leaveDTO.getCurrentApprovalLevel() == leaveDTO.getFinalApprovalLevel())) {
+                            (leaveDTO.getCurrentApprovalLevel() != null && leaveDTO.getFinalApprovalLevel() != null && leaveDTO.getCurrentApprovalLevel().equals(leaveDTO.getFinalApprovalLevel()))) {
                         employeeLeavesMap.setPendingForApproval(
                                 employeeLeavesMap.getPendingForApproval() - pendingLeaveApplication.getNoOfDays());
 
                         pendingLeaveApplication.setLeaveStatusId((short) 2);
 
                         // Increase Notice period If employee resigned
-                        Optional<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findById(leaveDTO.getLeaveTypeMasterId());
+                        LeaveTypeMaster leaveTypeObj = leaveTypeMasterRepository
+										.findById(leaveDTO.getLeaveTypeMasterId())
+										.orElseThrow(() -> new RuntimeException("LeaveType not found"));
 
-                        LeaveTypeMaster leaveTypeObj = leaveType.get();
+                            if  ("Resigned".equals(empObj.getEmploymentstatus()) &&
+									("PL".equals(leaveTypeObj.getLeaveTypeCode()) ||
+									"CL".equals(leaveTypeObj.getLeaveTypeCode()))) {
 
-                        if (!employee.isEmpty()) {
-                            Employee empObj = employee.get();
-                            if (empObj.getEmploymentstatus().equals("Resigned") &&
-                                    (leaveTypeObj.getLeaveTypeCode().equals("PL") || leaveTypeObj.getLeaveTypeCode().equals("CL"))) {
+								empObj.setNoticePeriod((short) Math.ceil(
+										empObj.getNoticePeriod() + pendingLeaveApplication.getNoOfDays()));
 
-                                empObj.setNoticePeriod((short) Math
-                                        .ceil(empObj.getNoticePeriod() + pendingLeaveApplication.getNoOfDays()));
-                                employeeRepository.save(empObj);
-                            }
-                        }
+								employeeRepository.save(empObj);
+							}
 
                         response.setServiceResponse("Leave application approved.");
                         apiLogInfo.setApiResponse("Leave application approved.");
 
                         //send Approval Mail
-                        if (!employee.isEmpty()) {
-                            Employee empObj = employee.get();
                             Optional<Employee> approver = employeeRepository.findById(Long.parseLong(pendingLeaveApplication.getManagerId().toString()));
                             Optional<Employee> reportingManager = employeeRepository.findById(empObj.getManagerId());
 
                             String managerEmail = "";
-                            if (!leaveDTO.getApproverEmail().equals(reportingManager.get().getEmail())) {
-                                managerEmail = "," + reportingManager.get().getEmail();
-                            }
+                             if (reportingManager.isPresent()) {
+								String reportingEmail = reportingManager.get().getEmail();
+
+								if (leaveDTO.getApproverEmail() != null &&
+										!leaveDTO.getApproverEmail().equals(reportingEmail)) {
+
+									managerEmail = "," + reportingEmail;
+								}
+							}
 
                             // Level 2/3 Approver Email
-                            if (leaveDTO.getFinalApprovalLevel() == 2) {
-                                managerEmail = "," + leaveDTO.getLevel2ApproverEmail();
-
-                            } else if (leaveDTO.getFinalApprovalLevel() == 3) {
-                                managerEmail = "," + leaveDTO.getLevel2ApproverEmail() + "," + leaveDTO.getLevel3ApproverEmail();
-                            }
+                            if (leaveDTO.getFinalApprovalLevel() != null) {
+								if (leaveDTO.getFinalApprovalLevel() == 2) {
+									managerEmail = "," + leaveDTO.getLevel2ApproverEmail();
+								} else if (leaveDTO.getFinalApprovalLevel() == 3) {
+									managerEmail = "," + leaveDTO.getLevel2ApproverEmail()
+											+ "," + leaveDTO.getLevel3ApproverEmail();
+								}
+							}
 
                             if (!approver.isEmpty()) {
                                 Employee approverObj = approver.get();
@@ -2120,7 +2126,6 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
                                                 + "<br> Leave Type : " + leaveDTO.getLeaveType()
                                                 + "<br> Final Approval Status : Approved");
                             }
-                        }
 
 //						mailService.sendMail(leaveDTO.getEmail(),
 //								"Regarding leave Approval ",
@@ -2130,11 +2135,11 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 
 
                         // CompOff Leave : 4 (LeaveTypeMasterId)
-                        if (leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+                        if ("CO".equals(leaveTypeObj.getLeaveTypeCode())) {
 
                             List<CompOffLeave> compOffLeave = compOffLeaveRepository.findByLeaveId(pendingLeaveApplication.getLeaveId());
 
-                            if (!compOffLeave.isEmpty()) {
+                            if (compOffLeave != null && !compOffLeave.isEmpty()){
                                 compOffLeave.forEach((leave) -> {
                                     leave.setCompOffStatus("Availed");
                                     compOffLeaveRepository.save(leave);
@@ -2152,7 +2157,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
                         String currentApproverName = null;
                         String currentApproverEmail = null;
 
-                        if (leaveDTO.getCurrentApprovalLevel() == 2 && leaveDTO.getFinalApprovalLevel() != 2) {
+                        if (leaveDTO.getCurrentApprovalLevel() == 2 && leaveDTO.getFinalApprovalLevel() != null && leaveDTO.getFinalApprovalLevel() != 2) {
                             nextApproverEmail = leaveDTO.getLevel3ApproverEmail();
                             nextApproverName = leaveDTO.getLevel3ApproverName();
 
@@ -2172,22 +2177,29 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
                         apiLogInfo.setApiResponse("Leave application approved.");
 
                         //send Approval Mail
-                        if (!employee.isEmpty()) {
-                            Employee empObj = employee.get();
+                        
                             Optional<Employee> reportingManager = employeeRepository.findById(empObj.getManagerId());
 
                             String managerEmail = "";
-                            if (!leaveDTO.getApproverEmail().equals(reportingManager.get().getEmail())) {
-                                managerEmail = "," + reportingManager.get().getEmail();
-                            }
+                            if (reportingManager.isPresent()) {
+								String reportingEmail = reportingManager.get().getEmail();
+
+								if (leaveDTO.getApproverEmail() != null &&
+										!leaveDTO.getApproverEmail().equals(reportingEmail)) {
+
+									managerEmail = "," + reportingEmail;
+								}
+							}
 
                             // Level 2/3 Approver Email
-                            if (leaveDTO.getFinalApprovalLevel() == 2) {
-                                managerEmail = "," + leaveDTO.getLevel2ApproverEmail();
+							if (leaveDTO.getFinalApprovalLevel() != null) {
+								if (leaveDTO.getFinalApprovalLevel() == 2) {
+									managerEmail = "," + leaveDTO.getLevel2ApproverEmail();
 
-                            } else if (leaveDTO.getFinalApprovalLevel() == 3) {
-                                managerEmail = "," + leaveDTO.getLevel2ApproverEmail() + "," + leaveDTO.getLevel3ApproverEmail();
-                            }
+								} else if (leaveDTO.getFinalApprovalLevel() == 3) {
+									managerEmail = "," + leaveDTO.getLevel2ApproverEmail() + "," + leaveDTO.getLevel3ApproverEmail();
+								}
+							}
 
                             if (nextApproverName != null && currentApproverName != null) {
                                 mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress + "," + currentApproverEmail + managerEmail,
@@ -2201,7 +2213,6 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
                                                 + "<br> Leave Type : " + leaveDTO.getLeaveType()
                                                 + "<br> Final Approval Status : Pending");
                             }
-                        }
 
                     }
 
@@ -2223,27 +2234,28 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
                     //Get Expiration Period of CompOff
                     Integer expirationPeriod = null;
                     boolean isExpirationValid = false;
-                    Optional<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findById(leaveDTO.getLeaveTypeMasterId());
-                    LeaveTypeMaster leaveTypeObj = leaveType.get();
-                    if (leaveTypeObj.getLeaveTypeCode().equals("CO")) {
-                        LeavePolicyMaster leavePolicy = leavePolicyMasterRepository.findByLeaveTypeMasterIdAndEmploymentStatus(leaveTypeObj.getLeaveTypeMasterId(), employee.get().getEmploymentstatus());
+                    LeaveTypeMaster leaveTypeObj = leaveTypeMasterRepository
+							.findById(leaveDTO.getLeaveTypeMasterId())
+							.orElseThrow(() -> new RuntimeException("LeaveType not found"));
+                    if ("CO".equals(leaveTypeObj.getLeaveTypeCode())) {
+                        LeavePolicyMaster leavePolicy = leavePolicyMasterRepository.findByLeaveTypeMasterIdAndEmploymentStatus(leaveTypeObj.getLeaveTypeMasterId(), employee.getEmploymentstatus());
                         if (leavePolicy != null) {
-                            if (leavePolicy.getExpirationPeriod().equals("Yes")) {
+                            if ("Yes".equals(leavePolicy.getExpirationPeriod())) {
                                 isExpirationValid = true;
                                 expirationPeriod = leavePolicy.getExpirationPeriodValue();
                             }
                         }
                     }
 
-                    if (!leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+                    if (!"CO".equals(leaveTypeObj.getLeaveTypeCode())) {
                         pendingLeaveApplication.setRemark(leaveDTO.getRejectReason());
 
                         Float balance = employeeLeavesMap.getBalance();
-                        if (leaveTypeObj.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
+                        if ("LWP".equalsIgnoreCase(leaveTypeObj.getLeaveTypeCode())) {
                             balance = 0F;
                         } else {
                             balance = balance + pendingLeaveApplication.getNoOfDays();
-                            System.err.println("check balance :: " + balance);
+                            // System.err.println("check balance :: " + balance);
                         }
 
                         employeeLeavesMap.setBalance(balance);
@@ -2271,28 +2283,36 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 
                     //send reject Mail
                     if (!employeeInfo.isEmpty()) {
-                        Employee empObj = employeeInfo.get();
+                        Employee empObj2 = employeeInfo.get();
                         Optional<Employee> approver = employeeRepository.findById(Long.parseLong(pendingLeaveApplication.getManagerId().toString()));
-                        Optional<Employee> reportingManager = employeeRepository.findById(empObj.getManagerId());
+                        Optional<Employee> reportingManager = employeeRepository.findById(empObj2.getManagerId());
 
                         String managerEmail = "";
-                        if (!leaveDTO.getApproverEmail().equals(reportingManager.get().getEmail())) {
-                            managerEmail = "," + reportingManager.get().getEmail();
-                        }
+                        if (reportingManager.isPresent()) {
+							String reportingEmail = reportingManager.get().getEmail();
+
+							if (leaveDTO.getApproverEmail() != null &&
+									!leaveDTO.getApproverEmail().equals(reportingEmail)) {
+
+								managerEmail = "," + reportingEmail;
+							}
+						}
 
                         // Level 2/3 Approver Email
-                        if (leaveDTO.getFinalApprovalLevel() == 2) {
-                            managerEmail = "," + leaveDTO.getLevel2ApproverEmail();
+						if (leaveDTO.getFinalApprovalLevel() != null) {
+							if (leaveDTO.getFinalApprovalLevel() == 2) {
+								managerEmail = "," + leaveDTO.getLevel2ApproverEmail();
 
-                        } else if (leaveDTO.getFinalApprovalLevel() == 3) {
-                            managerEmail = "," + leaveDTO.getLevel2ApproverEmail() + "," + leaveDTO.getLevel3ApproverEmail();
-                        }
+							} else if (leaveDTO.getFinalApprovalLevel() == 3) {
+								managerEmail = "," + leaveDTO.getLevel2ApproverEmail() + "," + leaveDTO.getLevel3ApproverEmail();
+							}
+						}
 
                         if (!approver.isEmpty()) {
                             Employee approverObj = approver.get();
-                            mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress + "," + approverObj.getEmail() + managerEmail,
+                            mailService.sendMailWithCC(empObj2.getEmail(), hrMailAddress + "," + approverObj.getEmail() + managerEmail,
                                     "Regarding leave Rejection",
-                                    "Dear " + empObj.getName() + ","
+                                    "Dear " + empObj2.getName() + ","
                                             + " <br> " + "Your leave request from" + "&nbsp;" + leaveDTO.getFromDate() + " to " + leaveDTO.getToDate() + " has been rejected"
                                             + "<br><br> Leave Application Details :"
                                             + "<br> From Date : " + leaveDTO.getFromDate() + "   To Date : " + leaveDTO.getToDate()
@@ -2333,7 +2353,9 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 
                     if (empTimeSheet != null && !empTimeSheet.isEmpty()) {
                         for (EmployeeTimesheetsNew ts : empTimeSheet) {
-                            employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
+							if (Boolean.TRUE.equals(ts.getIsSystemGenerated())) {
+                            	employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
+							}
                         }
                     // entityManager.flush();
                     } else {
@@ -2350,11 +2372,11 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 
 
                     // CompOff Leave : 4 (LeaveTypeMasterId)
-                    if (leaveTypeObj.getLeaveTypeCode().equals("CO")) {
+                    if ("CO".equals(leaveTypeObj.getLeaveTypeCode())) {
 
                         List<CompOffLeave> compOffLeave = compOffLeaveRepository.findByLeaveId(pendingLeaveApplication.getLeaveId());
 
-                        if (!compOffLeave.isEmpty()) {
+                        if (compOffLeave != null && !compOffLeave.isEmpty()) {
 
                             for (CompOffLeave leave : compOffLeave) {
 
@@ -2402,8 +2424,10 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
                 EmployeeLeave updatedLeaveApplication = employeeLeaveRepository.save(pendingLeaveApplication);
                 EmployeeLeavesMap updatedEmployeeLeavesMap = employeeLeavesMapRepository.save(employeeLeavesMap);
 
-                System.err.println(updatedLeaveApplication);
-                System.err.println(updatedEmployeeLeavesMap);
+                log.debug("Updated leave application: id={}", updatedLeaveApplication.getLeaveId());
+				log.debug("Updated leave map: empId={}, leaveTypeId={}", 
+					updatedEmployeeLeavesMap.getEmpId(), 
+					updatedEmployeeLeavesMap.getLeaveTypeMasterId());
 
 
                 if (updatedLeaveApplication != null && updatedEmployeeLeavesMap != null) {
@@ -3811,7 +3835,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 						if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
 							LeavePolicyMaster leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterIdAndEmploymentStatus(leaveTypeObj.getLeaveTypeMasterId(),emp.get().getEmploymentstatus());
 						      if(leavePolicy != null){
-						    	  if(leavePolicy.getExpirationPeriod().equals("Yes")) {
+						    	  if("Yes".equals(leavePolicy.getExpirationPeriod())) {
 							        	 expirationPeriod = leavePolicy.getExpirationPeriodValue();
 					               }
 						      }
