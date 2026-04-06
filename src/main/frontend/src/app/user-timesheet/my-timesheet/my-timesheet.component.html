@@ -743,7 +743,7 @@
         <input type="month" class="bu-input"
           [(ngModel)]="timesheetObj.monthYear"
           (change)="onMonthYearChange()" 
-          [max]="maxMonth" 
+          [max]="maxMonth" [min] = "minMonth"
           />
       </div>
 
@@ -769,7 +769,7 @@
     <input matInput [matDatepicker]="picker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalFromDate"
       (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required placeholder="Select date" readonly />
     <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-    <mat-datepicker #picker></mat-datepicker>
+    <mat-datepicker #picker [startAt]="pickerStartDate"></mat-datepicker>
   </mat-form-field>
 </div>
 
