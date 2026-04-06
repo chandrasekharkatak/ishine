@@ -28,7 +28,7 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { DateTimePickerComponent } from 'src/app/helpers/date-time-picker/date-time-picker.component';
+import { APP_DATE_FORMATS, AppDateAdapter, DateTimePickerComponent } from 'src/app/helpers/date-time-picker/date-time-picker.component';
 import { ProjectEntry } from 'src/app/models/projectEntry';
 import { ActivityNew } from 'src/app/models/activityNew';
 import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
@@ -37,12 +37,23 @@ import { ProjectBasedBulkUploadPayload } from '../team-timesheet/types';
 import { M } from '@angular/material/ripple.d-BxTUZJt7';
 import { ExcelDownloadService } from 'src/app/services/excel-download-service';
 import { firstValueFrom } from 'rxjs';
+import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 
 @Component({
   standalone: false,
   selector: 'app-my-timesheet',
   templateUrl: './my-timesheet.component.html',
-  styleUrls: ['./my-timesheet.component.css']
+  styleUrls: ['./my-timesheet.component.css'],
+  providers: [         
+    {
+      provide: DateAdapter,
+      useClass: AppDateAdapter
+    },
+    {
+      provide: MAT_DATE_FORMATS,
+      useValue: APP_DATE_FORMATS
+    }
+  ]
 })
 export class MyTimesheetComponent implements OnInit {
 
