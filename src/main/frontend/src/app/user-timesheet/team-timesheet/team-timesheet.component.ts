@@ -1801,6 +1801,8 @@ sortData(sort: Sort) {
     console.log("test", this.selectedRows);
     if(this.selectedRows.length != this.filteredData().length){
       this.isAllSelected = false;
+    }else if (this.selectedRows.length == this.filteredData().length){
+      this.isAllSelected = true;
     }
   }
 
@@ -2051,55 +2053,60 @@ sortData(sort: Sort) {
 
 
   prepareFlatTimesheetData(timesheets: any[]): any[] {
-    const flatList: any[] = [];
+  const flatList: any[] = [];
 
-    timesheets.forEach(timesheet => {
-      (timesheet.locationSessions || []).forEach(location => {
-        (location.projects || []).forEach(project => {
-          (project.activities || []).forEach(activity => {
+  timesheets.forEach(timesheet => {
+    (timesheet.locationSessions || []).forEach(location => {
+      (location.projects || []).forEach(project => {
 
-            flatList.push({
-              // ===== TIMESHEET LEVEL =====
-              "Employee Id": timesheet.employmentId,
-              "Employee Name": timesheet.employeeName,
-              "Date": timesheet.date,
-              "Day Type": timesheet.dayType,
-              "Applied By": timesheet.appliedBy,
-              "Applied On": timesheet.appliedOn,
+        const activities = project.activities && project.activities.length
+          ? project.activities
+          : [null]; // 👈 fallback
 
-              // ===== LOCATION LEVEL =====
-              "Work Location": location.workLocationType,
-              "Location In": location.locationInTime,
-              "Location Out": location.locationOutTime,
+        activities.forEach(activity => {
 
-              // ===== PROJECT LEVEL =====
-              "Project Name": project.projectName,
-              "PO No": project.poNo || '-',
-              "Shadow Employee": project.shadowEmp ? 'Yes' : 'No',
+          flatList.push({
+            // ===== TIMESHEET LEVEL =====
+            "Employee Id": timesheet.employmentId,
+            "Employee Name": timesheet.employeeName,
+            "Date": timesheet.date,
+            "Day Type": timesheet.dayType,
+            "Applied By": timesheet.appliedBy,
+            "Applied On": timesheet.appliedOn,
 
-              // ===== ACTIVITY LEVEL =====
-              "Activity Team": activity.teamName,
-              "Activity": activity.activity,
-              "Description": activity.activityDescription || '-',
-              "Hours (Minutes)": activity.durationMinutes
-            });
+            // ===== LOCATION LEVEL =====
+            "Work Location": location.workLocationType,
+            "Location In": location.locationInTime,
+            "Location Out": location.locationOutTime,
 
+            // ===== PROJECT LEVEL =====
+            "Project Name": project.projectName,
+            "Is Shadow": project.shadowEmp ? 'Yes' : 'No',
+
+            // ===== ACTIVITY LEVEL =====
+            // "Team Name": activity?.teamName || '-',
+            "Activity": activity?.activity || 'No Activity',
+            "Description": project.description || '-',
+            "Hours": activity?.durationMinutes || '00:00'
           });
+
         });
+
       });
     });
+  });
 
-    return flatList;
-  }
+  return flatList;
+}
 
 
   exportExcel1() {
     this.excelName = 'Timesheet_Report.xlsx';
-
+    console.log(this.allTeamTimesheetRequestsProjectView,'data');
     const flatData = this.prepareFlatTimesheetData(
-      this.filteredData()
+      this.allTeamTimesheetRequestsProjectView
     );
-
+    console.log(flatData, 'flatData')
     if (!flatData.length) {
       return;
     }
