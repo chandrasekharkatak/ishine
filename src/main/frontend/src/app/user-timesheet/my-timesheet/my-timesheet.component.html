@@ -743,7 +743,7 @@
         <input type="month" class="bu-input"
           [(ngModel)]="timesheetObj.monthYear"
           (change)="onMonthYearChange()" 
-          [max]="maxMonth"
+          [max]="maxMonth" 
           />
       </div>
 
@@ -767,7 +767,7 @@
   <label class="bu-label"><span class="bu-required">*</span> From Date</label>
   <mat-form-field class="bu-mat-field">
     <input matInput [matDatepicker]="picker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalFromDate"
-      (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required placeholder="Select date" />
+      (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required placeholder="Select date" readonly />
     <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
     <mat-datepicker #picker></mat-datepicker>
   </mat-form-field>
@@ -779,7 +779,7 @@
   <mat-form-field class="bu-mat-field">
     <input matInput [matDatepicker]="toPicker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalToDate"
       name="toDate" required #toDateRef="ngModel" [min]="finalFromDate" [max]="maxDate" [disabled]="!finalFromDate"
-      (dateChange)="checkUploadEligibility()" placeholder="Select date" />
+      (dateChange)="checkUploadEligibility()" placeholder="Select date" readonly />
     <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
     <mat-datepicker #toPicker></mat-datepicker>
   </mat-form-field>
