@@ -143,7 +143,7 @@ rejectRemarkError = false;
   timesheetApplicationCount: any = 0;
   allTimesheetColumns: any[] = ['blank', 'blank', 'blank', 'employmentIdAcToET', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', , 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'createdOn'];
   allTimesheetReqColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus'];
-  allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employmentId', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'locationCount', 'projectCount', 'appliedBy', 'appliedOn', 'blank'];
+  allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employmentId', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'locationCount', 'projectCount', 'appliedBy', 'appliedOn', 'blank','blank'];
   allTimesheetColumnsVMSStatusChange: any[] = [
   'blank',   // Sr No (now becomes first column)
   'employmentId',
@@ -156,6 +156,7 @@ rejectRemarkError = false;
   'projectCount',
   'appliedBy',
   'appliedOn',
+  'blank',
   'blank'    // action column
 ];
 
@@ -1022,6 +1023,7 @@ sortData(sort: Sort) {
       this.getMyReporteesTimesheetRequests();
     this.getTimesheetStatusCountsByEmpId();
     this.isAllSelected = false;
+    this.toggleAllRows({ target: { checked: false } });
     }
 
   }
@@ -2627,20 +2629,40 @@ projectList: any[] = [];
 // }
 
   // BULK APPROVAL
-  bulkApproveByIds(confirmNightShift: boolean = false, ids?: number[]) {
+async  bulkApproveByIds(confirmNightShift: boolean = false, ids?: number[]) {
 
     // const timesheetIds  = ids || this.getSelectedTimesheetIds();
-     const selectedTimesheets = ids
-    ? this.getSelectedTimesheets().filter(ts => ids.includes(ts.timesheetId))
-    : this.getSelectedTimesheets();
+    console.log('befor', this.selectedRows)
+     const selectedTimesheets =  this.selectedRows.filter(row => row?.timesheetId != null);
 
-    console.log("selectedTimesheets",  this.getSelectedTimesheets());
+     console.log('After', this.selectedRows)
+    console.log("selectedTimesheets",  selectedTimesheets);
+    let dataToValidate = structuredClone(selectedTimesheets);
+  let payloadData = structuredClone(selectedTimesheets);
+  let compOffValidate = structuredClone(selectedTimesheets);
+  let timesheetIds = [];
+    if(dataToValidate.filter(ts=>ts.isNightShift == true).length > 0){
 
+          const modalRef = this.modalService.open(this.nightShiftConfirmModal, {
+      modalDialogClass: 'ts-alert-modal',
+      backdrop: 'static'
+    });
 
-  const timesheetIds = selectedTimesheets.map(ts => ts.timesheetId);
-    if (!timesheetIds.length) return;
+          await modalRef.result.then((result) => {
+            console.log(result);
+            if (result != undefined && result === 'YES') {
+              confirmNightShift = true;
+              timesheetIds = payloadData.map(ts => ts.timesheetId);
+            } else if(result != undefined && result === 'NO'){
+              confirmNightShift = false;
+             timesheetIds =  payloadData.filter(ts=>ts.isNightShift != true).map(ts => ts.timesheetId);
+            }else{
+              return;
+            }
 
-    const hasCompOff = selectedTimesheets.some(ts =>
+          }).catch(() => {});
+  }
+    const hasCompOff = compOffValidate.some(ts =>
       ts.dayType?.toLowerCase() === 'comp off'
     );
 
@@ -2648,16 +2670,17 @@ projectList: any[] = [];
 
       const modalRef = this.modalService.open(this.compOffConfirmModal, { centered: true });
 
-      modalRef.result.then((result) => {
+      await modalRef.result.then((result) => {
         if (result === 'APPROVE') {
-          this.executeBulkApprove(selectedTimesheets,confirmNightShift);
+          this.executeBulkApprove(timesheetIds,confirmNightShift);
         }
       }).catch(() => {});
 
       return;
     }
 
-    this.executeBulkApprove(selectedTimesheets,confirmNightShift);
+    timesheetIds = selectedTimesheets.map(ts=> ts.timesheetId);
+    this.executeBulkApprove(timesheetIds,confirmNightShift);
 
 
   }
@@ -2785,8 +2808,6 @@ approveSingleTimesheet(timesheet: any) {
 
             this.skippedTimesheetList = skipped
 
-          this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
-          backdrop: 'static'} );
               // message += `
               //   <p><strong>Skipped Timesheets</strong></p>
               //   <table class="table table-bordered table-sm">
@@ -2817,10 +2838,10 @@ approveSingleTimesheet(timesheet: any) {
           // this.selectedStatus = 2;
           // this.onStatusChange(2);
           this.page1 = 0;
-
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
-         
+          this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
+          backdrop: 'static'} );
 
         } else {
            this.modalTitle = 'Error';
@@ -3255,8 +3276,7 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
 
             this.skippedTimesheetList = skipped
 
-          this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
-          backdrop: 'static'} );
+          
           // message += `
           //   <p><strong>Skipped Timesheets</strong></p>
           //   <table class="table table-bordered table-sm">
@@ -3288,6 +3308,9 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
           // this.onStatusChange(3);
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
+
+          this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
+          backdrop: 'static'} );
           
       } else {
           this.modalTitle = 'Error';
@@ -3469,9 +3492,10 @@ openRejectReasonsModal(data: any, template: TemplateRef<any>) {
 }
 
 executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
-  const timesheetIds = selectedTimesheets.map(ts => ts.timesheetId);
+  console.log(selectedTimesheets,"selectedTimesheets")
+  if(selectedTimesheets.length == 0 ) return;
   const payload = {
-    timesheetIds,
+    timesheetIds : selectedTimesheets,
     status: 'APPROVED',
     updatedBy: this.currentUser.empId,
     rmId : this.currentUser.empId,
@@ -3486,28 +3510,6 @@ executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
     .subscribe({
       next: (res: any) => {
         const response = res?.serviceResponse;
-
-        if (response?.requiresNightShiftConfirmation) {
-
-          const modalRef = this.modalService.open(this.nightShiftConfirmModal, {
-      modalDialogClass: 'ts-alert-modal',
-      backdrop: 'static'
-    });
-
-          modalRef.result.then((result) => {
-            console.log(result);
-            if (result != undefined && result === 'YES') {
-              this.bulkApproveByIds(true, timesheetIds);
-            } else if(result != undefined && result === 'NO'){
-              this.bulkApproveByIds(true, response.normalTimesheets);
-            }else{
-              return;
-            }
-
-          }).catch(() => {});
-
-          return;
-        }
         this.modalTitle = 'Result';
       let message = '';
         if (res?.serviceStatus === 'Success') {
@@ -3524,9 +3526,6 @@ executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
 
         if (skipped.length) {
           this.skippedTimesheetList = skipped
-
-          this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
-          backdrop: 'static'} );
             // message += `
             //   <p><strong>Skipped Timesheets</strong></p>
             //   <table class="table table-bordered table-sm">
@@ -3553,12 +3552,13 @@ executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
             // message += `</tbody></table>`;
           }
 
-
+         
         this.clearAllSelections();
         this.page1 = 0;
         this.getMyReporteesTimesheetRequests();
         this.getTimesheetStatusCountsByEmpId();
-
+            this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
+          backdrop: 'static'} );
       } else {
           this.modalTitle = 'Error';
           this.modalMessage =
@@ -3633,9 +3633,6 @@ this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this
       if (skipped.length) {
 
         this.skippedTimesheetList = skipped
-
-          this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
-          backdrop: 'static'} );
         // message += `
         //   <p><strong>Skipped Timesheets</strong></p>
         //   <table class="table table-bordered table-sm">
@@ -3661,14 +3658,14 @@ this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this
 
         // message += `</tbody></table>`;
       }
-
-
       this.clearAllSelections();
       // this.onStatusChange(3);
       this.page1 = 0;
 
       this.getMyReporteesTimesheetRequests();
       this.getTimesheetStatusCountsByEmpId();
+      this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
+          backdrop: 'static'} );
 
     } else {
 
