@@ -1021,6 +1021,7 @@ sortData(sort: Sort) {
       this.filters = {};
       this.getMyReporteesTimesheetRequests();
     this.getTimesheetStatusCountsByEmpId();
+    this.isAllSelected = false;
     }
 
   }
