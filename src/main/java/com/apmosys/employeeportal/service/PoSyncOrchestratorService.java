@@ -106,6 +106,12 @@ public class PoSyncOrchestratorService {
 
 	@Autowired
 	PoDetailsService poDetailsService;
+	
+	@Value("${exceptiondataReconcile.maildev}")
+	private String exceptionMaildev;
+	
+	@Value("${exceptiondataReconcile.mailplsql}")
+	private String exceptionMailplsql;
 
 	@Autowired
 	ResourceRequirementService requirementService;
@@ -1047,15 +1053,27 @@ public class PoSyncOrchestratorService {
 			try {
 		        if (exceptionDetailsForLog != null && !exceptionDetailsForLog.isEmpty()) {
 
-		            String mailBody =
-		                    "<b>Trace ID:</b> " + traceId + "<br/><br/>"
-		                  + "<b>API:</b> syncClientsFromPoPortalCron<br/><br/>"
-		                  + "<b>Exception Details:</b><br/>"
-		                  + "<pre>" + exceptionDetailsForLog + "</pre>";
+		        	String formattedFailures = exceptionDetailsForLog != null
+		        	        ? exceptionDetailsForLog.replace("||", "<br/><br/>")
+		        	        : "No failures";
+
+		        	String mailBody =
+		        	        "<b>Trace ID:</b> " + traceId + "<br/><br/>"
+
+		        	      + "<b>Summary:</b><br/>"
+		        	      + "Total Eligible Clients: " + clientsEligible + "<br/>"
+		        	      + "Processed: " + clientsProcessed + "<br/>"
+		        	      + "Failed: <span style='color:red;'>" + clientsFailed + "</span><br/>"
+		        	      + "Synced Addresses: " + totalSyncedAddresses + "<br/>"
+		        	      + "Skipped Addresses: " + totalSkippedAddresses + "<br/>"
+		        	      + "Deactivated Locations: " + totalDeactivated + "<br/><br/>"
+
+		        	      + "<b>Failure Details:</b><br/><br/>"
+		        	      + formattedFailures;
 
 		            mailService.sendMailWithCC(
-		                    "prarthana.lenka@apmosys.com",
-		                    "sumit.modi@apmosys.com",
+		            		exceptionMailplsql,
+		            		exceptionMaildev,
 		                    "Client PO Sync Issues | TraceId : " + traceId,
 		                    mailBody
 		            );
@@ -1071,32 +1089,29 @@ public class PoSyncOrchestratorService {
 	private String buildClearErrorMessage(Exception ex, ClientDetailsSyncDto poDto) {
 
 	    Throwable root = ex;
-
 	    while (root.getCause() != null) {
 	        root = root.getCause();
 	    }
 
 	    String message = root.getMessage();
 
-	   
+	    String base = "PoClientId=" + poDto.getClientid() +
+	                  ", ClientName=" + poDto.getClientName() + " → ";
+
 	    if (root instanceof javax.persistence.NonUniqueResultException) {
-	        return "DUPLICATE DATA in DB → Expected single record but found multiple. "
-	                + "Check client OR location uniqueness for poClientId=" + poDto.getClientid();
+	        return base + " DUPLICATE IN DB: Multiple records found for same client/location";
 	    }
 
-	    
 	    if (root instanceof IllegalStateException &&
 	            message != null && message.contains("Duplicate clientAddressId")) {
-	        return "DUPLICATE ADDRESS in PO PAYLOAD → " + message;
+	        return base + " DUPLICATE ADDRESS IN PO: " + message;
 	    }
 
-	 
 	    if (root instanceof IllegalArgumentException) {
-	        return "INVALID DATA → " + message;
+	        return base + " INVALID DATA: " + message;
 	    }
 
-	 
-	    return message != null ? message : "UNKNOWN ERROR";
+	    return base + " UNKNOWN ERROR: " + (message != null ? message : "No details");
 	}
 
 
