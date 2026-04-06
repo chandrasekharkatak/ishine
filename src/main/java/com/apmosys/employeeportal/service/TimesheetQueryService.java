@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -877,8 +878,8 @@ rows.forEach(row -> {
                 p.setProjectName(row[16] != null ? row[16].toString() : null);
                 p.setClientLocationId(clientLocationId);
                 p.setClientSideId(row[33] != null ? row[33].toString() : null);
-                p.setPoNo(row[17] != null ? row[17].toString() : null);
-                p.setPoId(row[18] != null ? ((Number) row[18]).longValue() : null);
+                // p.setPoNo(row[17] != null ? row[17].toString() : null);
+                // p.setPoId(row[18] != null ? ((Number) row[18]).longValue() : null);
                 p.setStatus(((Number) row[19]).intValue());
                 p.setClientApprovalStatus(
                     row[20] != null ? ((Number) row[20]).intValue() : null
@@ -926,6 +927,8 @@ rows.forEach(row -> {
 
  String rejectedOn =
          rejectedOnLdt != null ? DateConversionUtil.localDateTimeToString(rejectedOnLdt, pattern) : null;
+ 
+ Long rejectionId = row[46] != null ? ((BigInteger) row[46]).longValue():null;
 
  // Add only if any rejection data exists for this project row
  if (remark != null || rejectionReason != null || rejectedOn != null) {
@@ -933,7 +936,8 @@ rows.forEach(row -> {
      boolean alreadyAdded = project.getRejectionDetails().stream().anyMatch(r ->
              Objects.equals(r.getTimesheetId(), timesheetId) &&
              Objects.equals(r.getProjectId(), projectId != null ? projectId.intValue() : null) &&
-             Objects.equals(r.getLocationMappingId(), locationMappingId)
+             Objects.equals(r.getLocationMappingId(), locationMappingId) &&
+             Objects.equals(r.getRejectionReasonId(),rejectionId)
      );
 
      if (!alreadyAdded) {
@@ -944,6 +948,7 @@ rows.forEach(row -> {
          rejectionData.setRejectionReason(rejectionReason);
          rejectionData.setRejectedOn(rejectedOn);
          rejectionData.setRemark(remark);
+         rejectionData.setRejectionReasonId(rejectionId);
 
          project.getRejectionDetails().add(rejectionData);
      }
@@ -1049,8 +1054,8 @@ rows.forEach(row -> {
                                 p.setProjectName(row[16] != null ? row[16].toString() : null);
                                 p.setClientLocationId(clientLocationId);
                                 p.setClientSideId(row[33] != null ? row[33].toString() : null);
-                                p.setPoNo(row[17] != null ? row[17].toString() : null);
-                                p.setPoId(row[18] != null ? ((Number) row[18]).longValue() : null);
+//                                p.setPoNo(row[17] != null ? row[17].toString() : null);
+//                                p.setPoId(row[18] != null ? ((Number) row[18]).longValue() : null);
                                 p.setStatus(row[19] != null ? ((Number) row[19]).intValue() : null);
                                 p.setClientApprovalStatus(row[20] != null ? ((Number) row[20]).intValue() : null);
                                 p.setTotalClientWorkingMinutes(row[21] != null ? ((Number) row[21]).intValue() : null);
@@ -1095,6 +1100,8 @@ rows.forEach(row -> {
             String rejectedOn =
                     rejectedOnLdt != null ? DateConversionUtil.localDateTimeToString(rejectedOnLdt, pattern) : null;
 
+                    Long rejectionId = row[44] != null ? ((BigInteger) row[44]).longValue():null;
+
             if (remark != null || rejectionReason != null || rejectedOn != null) {
 
                 boolean alreadyAdded = project.getRejectionDetails().stream().anyMatch(r ->
@@ -1103,7 +1110,8 @@ rows.forEach(row -> {
                         Objects.equals(r.getLocationMappingId(), locationMappingId) &&
                         Objects.equals(r.getRejectionReason(), rejectionReason) &&
                         Objects.equals(r.getRemark(), remark) &&
-                        Objects.equals(r.getRejectedOn(), rejectedOn)
+                        Objects.equals(r.getRejectedOn(), rejectedOn) &&
+                        Objects.equals(r.getRejectionReasonId(),rejectionId)
                 );
 
                 if (!alreadyAdded) {
@@ -1114,6 +1122,7 @@ rows.forEach(row -> {
                     rejectionData.setRejectionReason(rejectionReason);
                     rejectionData.setRemark(remark);
                     rejectionData.setRejectedOn(rejectedOn);
+                    rejectionData.setRejectionReasonId(rejectionId);
                     project.getRejectionDetails().add(rejectionData);
                 }
             }
