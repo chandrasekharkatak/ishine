@@ -1354,6 +1354,7 @@ export class RmgDashboardComponent implements OnInit {
 
   async getCount(status: any, statusList: any[]) {
     let newRmgDashboardProjectRequest = this.getRMGRequestObject();
+    newRmgDashboardProjectRequest.projectFilter = null;
     newRmgDashboardProjectRequest.projectStatus = status;
     try {
       const response: any = await firstValueFrom(this.resourceManagementService.getProjectStatusCount(newRmgDashboardProjectRequest));
@@ -1374,6 +1375,7 @@ export class RmgDashboardComponent implements OnInit {
 
   async getExpiredTNMFilterWiseProjectStatusCount() {
     let newRmgDashboardProjectRequest = this.getRMGRequestObject();
+    newRmgDashboardProjectRequest.projectFilter = null;
     newRmgDashboardProjectRequest.projectStatus = 'TOTAL_EXPIRED_TNM';
 
     try {
@@ -1407,6 +1409,7 @@ export class RmgDashboardComponent implements OnInit {
 
   async getEmployeeCountByEmployeeGroup(key: any, statusList: any[]) {
     let newRmgDashboardProjectRequest = this.getRMGRequestObject();
+    newRmgDashboardProjectRequest.projectFilter = null;
     newRmgDashboardProjectRequest.employeeGroupKey = key;
 
     try {
@@ -1450,6 +1453,7 @@ export class RmgDashboardComponent implements OnInit {
 
   getProjectStatusCount(projectStatus: any, projectStatusList: any[]) {
     let newRmgDashboardProjectRequest = this.getRMGRequestObject();
+    newRmgDashboardProjectRequest.projectFilter = null;
     this.resourceManagementService.getProjectStatusCount(newRmgDashboardProjectRequest).pipe(first()).subscribe((response: any) => {
       if (response?.serviceStatus == "Success" && response?.serviceResponse != null) {
         const counts = response.serviceResponse;
@@ -1469,6 +1473,7 @@ export class RmgDashboardComponent implements OnInit {
 
   async getUnFilledTimesheetProjectStatusCount(unFilledProjectTimesheetFilter?: any) {
     let newRmgDashboardProjectRequest = this.getRMGRequestObject();
+    newRmgDashboardProjectRequest.projectFilter = null;
     newRmgDashboardProjectRequest.projectStatus = 'TIMESHEET_NON_COMPLIANCE';
 
     try {
@@ -1488,6 +1493,7 @@ export class RmgDashboardComponent implements OnInit {
 
   async getFCFilterWiseProjectStatusCount() {
     let newRmgDashboardProjectRequest = this.getRMGRequestObject();
+    newRmgDashboardProjectRequest.projectFilter = null;
     newRmgDashboardProjectRequest.projectStatus = 'TOTAL_FC';
     try {
       const response: any = await firstValueFrom(this.resourceManagementService.getFCFilterWiseProjectStatusCount(newRmgDashboardProjectRequest));
@@ -1587,6 +1593,7 @@ export class RmgDashboardComponent implements OnInit {
 
   async intializeBillingLossProgressBar() {
     let newRmgDashboardProjectRequest = this.getRMGRequestObject();
+    newRmgDashboardProjectRequest.projectFilter = null;
     let subKeyKeyMap = new Map<string, string>();
 
     this.attentionRequiredProjectAlerts.forEach(item => {
