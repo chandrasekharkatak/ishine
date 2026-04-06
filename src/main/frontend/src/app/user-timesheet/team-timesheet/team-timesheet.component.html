@@ -724,7 +724,7 @@
 
           </thead>
           <tbody> <ng-container *ngFor="let timesheet of allTeamTimesheetRequestsProjectView; let i = index">
-              <tr class="main-row" [class.active-row]="expandedTimesheetIndex === i">
+              <tr class="main-row" [class.active-row]="expandedTimesheetIndex === i" [class.night-shift-row]="timesheet.isNightShift">
                 <td *ngIf="selectedStatus != 3"> <input type="checkbox" [(ngModel)]="timesheet.selected"
                     (change)="onEmployeeToggle(timesheet); updateSelectedRows(timesheet)" /> </td>
                <td>{{ (page1 * items) + i + 1 }}</td>
@@ -768,6 +768,9 @@
                             <span class="ml-3 text-muted">
                               <i class="far fa-clock mr-1"></i>
                               {{ location.locationInTime || 'NA' }} - {{ location.locationOutTime || 'NA' }}
+                            </span>
+                            <span class="ml-3 text-primary" *ngIf="timesheet.isNightShift">
+                              Night Shift
                             </span>
                           </div>
                         </div>
@@ -1928,13 +1931,72 @@
   </div>
 </ng-template>
 
+<ng-template #skipped_timesheets_details let-modal>
+  <div class="modal-header bg-light">
+    <h5 class="modal-title">
+      <i class="fa fa-times-circle text-danger"></i>
+      {{modalMessage || "No Valid Request Found"}}
+    </h5>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body">
+
+    <!-- Rejection List -->
+
+    <h6>
+      Skipped Timesheets
+    </h6>
+
+      <!-- Rejection Table -->
+      <table class="table table-sm table-bordered mb-0"
+             *ngIf="skippedTimesheetList && skippedTimesheetList.length > 0">
+
+        <thead class="thead-light">
+          <tr>
+            <th style="width: 5%">#</th>
+            <th style="width: 30%">Employee Id</th>
+            <th style="width: 40%">Date</th>
+            <th style="width: 25%">Reason</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let r of skippedTimesheetList; let j = index">
+            <td>{{ j + 1 }}</td>
+            <td>{{ r.employmentId || '-' }}</td>
+            <td>{{ r.date || '-' }}</td>
+            <td>{{ r.reason || '-' }}</td>
+          </tr>
+        </tbody>
+
+      </table>
+
+    </div>
+
+  <div class="modal-footer text-center">
+    <button type="button" class="btn btn-primary" (click)="modal.close()">
+      OK
+    </button>
+  </div>
+</ng-template>
+
 <ng-template #night_shift_template_revampd let-modal>
+  <div class="modal-header bg-light">
+    <h5 class="modal-title">
+      Bulk Approve Confirmation
+    </h5>
+    <button type="button" class="close" aria-label="Close" (click)="modal.close()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
   <div class="modal-body text-center">
     <p>Are you sure you want to continue, your timesheet bulk update contain Night shift request(s) also?</p>
-    <button type="button" class="btn btn-outline-danger" (click)="modal.close('YES')">Yes, Approve All</button>&nbsp;
-    <button type="button" class="btn btn-outline-primary"
-      (click)="modal.close('NO')">Continue without Night Shift
-      Request(s)</button>&nbsp;
+    <button type="button" class="btn btn-primary" (click)="modal.close('YES')">Approve All</button>
+    <button type="button" class="btn btn-primary ml-2"
+      (click)="modal.close('NO')">Exclude Night Shift</button>
   </div>
 </ng-template>
 

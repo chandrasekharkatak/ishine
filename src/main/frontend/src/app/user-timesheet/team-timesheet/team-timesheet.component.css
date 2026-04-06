@@ -4778,6 +4778,14 @@ tr[app-column-filter-bar] .clear-filter:hover {
   cursor: grab;
 }
 
+.night-shift-row {
+  background-color: rgba(0, 123, 255, 0.08); /* subtle blue highlight */
+}
+
+.night-shift-row:hover {
+  background-color: rgba(0, 123, 255, 0.15);
+}
+
 
 /* =========================
    Modal Shell
@@ -5267,3 +5275,4 @@ tr[app-column-filter-bar] .clear-filter:hover {
   height: 100%;
   border: none;
 }
+
