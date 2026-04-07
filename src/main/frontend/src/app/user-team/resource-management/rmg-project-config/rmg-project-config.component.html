@@ -836,8 +836,7 @@
                         <td class="min-width100 max-width150" [title]="member.employementId|| 'NA' ">
                             {{ member.employementId || 'NA' }}
                         </td>
-                        <td class="min-width100 max-width150 truncate" [ti
-                        tle]="member.memberName|| 'NA' ">
+                        <td class="min-width100 max-width150 truncate" [title]="member.memberName|| 'NA' ">
                             <span *ngIf="member.empId" class="cursor-pointer emp_360-span text-underline"
                                 [navigateToEmployee360]="member.empId">{{member.memberName || 'NA' }}</span>
                             <span *ngIf="!member.empId">{{member.memberName || 'NA' }}</span>
