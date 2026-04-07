@@ -1,36 +1,40 @@
 package com.apmosys.employeeportal.service;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.apmosys.employeeportal.model.*;
-import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HolidayDTO;
-import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.enums.DayTypeCode;
+import com.apmosys.employeeportal.model.Activity;
+import com.apmosys.employeeportal.model.DayTypeMasterNew;
+import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
+import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
+import com.apmosys.employeeportal.model.Holiday;
+import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
@@ -610,7 +614,7 @@ public class HolidayService {
 	}
 	
 	 // method called when holiday is filled using reconsileholiday so the holiday context is saved and not leave
-    void saveRelationalLeaveTimesheet(Employee emp, LocalDate date, Holiday holidayObj,
+    void saveRelationalLeaveTimesheet123(Employee emp, LocalDate date, Holiday holidayObj,
             LocalDateTime startOfDay, LocalDateTime endOfDay, DayTypeMasterNew holidayDayType, DayTypeMasterNew weekoffDayType) {
         int resolvedDayTypeId;
         String tsDescription;
@@ -692,212 +696,171 @@ public class HolidayService {
             projectTimesheetService.create(newTsId, defaultProject, emp.getEmpId());
         }
     }
-  
+	
+    @Transactional(rollbackFor = Exception.class)
 	public void saveRelationalLeaveTimesheetBulk(
-        List<Employee> employees,
-        LocalDate date,
-        Holiday holidayObj,
-        LocalDateTime startOfDay,
-        LocalDateTime endOfDay,
-        DayTypeMasterNew holidayDayType,
-        DayTypeMasterNew weekoffDayType) {
+	        List<Employee> employees,
+	        LocalDate date,
+	        Holiday holidayObj,
+	        LocalDateTime startOfDay,
+	        LocalDateTime endOfDay,
+	        DayTypeMasterNew holidayDayType,
+	        DayTypeMasterNew weekoffDayType) {
 
-		int resolvedDayTypeId;
-		String tsDescription;
+	    int resolvedDayTypeId;
+	    String tsDescription;
 
-		if ("Festival".equalsIgnoreCase(holidayObj.getHolidayType())
-				|| "nonWorking".equalsIgnoreCase(holidayObj.getHolidayType())) {
+	    // STEP 1: Resolve Day Type
+	    if ("Festival".equalsIgnoreCase(holidayObj.getHolidayType())
+	            || "nonWorking".equalsIgnoreCase(holidayObj.getHolidayType())) {
 
-			resolvedDayTypeId = holidayDayType.getDayTypeId();
-			tsDescription = holidayDayType.getDayType() + " : " + holidayObj.getOccasion();
+	        resolvedDayTypeId = holidayDayType.getDayTypeId();
+	        tsDescription = holidayDayType.getDayType() + " : " + holidayObj.getOccasion();
 
-		} else if ("WeekOff".equalsIgnoreCase(holidayObj.getHolidayType())) {
+	    } else if ("WeekOff".equalsIgnoreCase(holidayObj.getHolidayType())) {
 
-			resolvedDayTypeId = weekoffDayType.getDayTypeId();
+	        resolvedDayTypeId = weekoffDayType.getDayTypeId();
 
-			String day = holidayObj.getDayOfTheWeek().toLowerCase().contains("saturday")
-					? "Saturday"
-					: "Sunday";
+	        String day = holidayObj.getDayOfTheWeek().toLowerCase().contains("saturday")
+	                ? "Saturday"
+	                : "Sunday";
 
-			tsDescription = weekoffDayType.getDayType() + " : " + day;
+	        tsDescription = weekoffDayType.getDayType() + " : " + day;
 
-		} else {
+	    } else {
 
-			resolvedDayTypeId = 0;
-			tsDescription = holidayObj.getDayOfTheWeek();
-		}
+	        resolvedDayTypeId = 0;
+	        tsDescription = holidayObj.getDayOfTheWeek();
+	    }
 
-		List<EmployeeTimesheetsNew> timesheets = new ArrayList<>();
+	    // STEP 2: Prepare Timesheets
+	    List<EmployeeTimesheetsNew> timesheets = new ArrayList<>();
 
-		for (Employee emp : employees) {
+	    for (Employee emp : employees) {
 
-			EmployeeTimesheetsNew ts = new EmployeeTimesheetsNew();
+	        EmployeeTimesheetsNew ts = new EmployeeTimesheetsNew();
 
-			ts.setEmpId(emp.getEmpId());
-			ts.setDate(date);
-			ts.setIsNightShift(false);
-			ts.setStatus(2);
-			ts.setTotalWorkingMinutes(0);
-			ts.setCreatedBy(emp.getEmpId());
-			ts.setCreatedOn(LocalDateTime.now());
+	        ts.setEmpId(emp.getEmpId());
+	        ts.setDate(date);
+	        ts.setIsNightShift(false);
+	        ts.setStatus(2);
+	        ts.setTotalWorkingMinutes(0);
+	        ts.setCreatedBy(emp.getEmpId());
+	        ts.setCreatedOn(LocalDateTime.now());
+	        ts.setCurrentManagerId(emp.getManagerId());
+	        ts.setDayTypeId(resolvedDayTypeId);
+	        ts.setIsSystemGenerated(true);
 
-			Long managerId = "Reporting Manager".equals(emp.getApprovalsTo())
-					? emp.getReportingManagerId()
-					: emp.getManagerId();
+	        timesheets.add(ts);
+	    }
 
-			ts.setCurrentManagerId(managerId);
-			ts.setDayTypeId(resolvedDayTypeId);
-			ts.setDescription(tsDescription);
-			ts.setIsSystemGenerated(true);
+	    // STEP 3: Save Timesheets
+	    List<EmployeeTimesheetsNew> savedTimesheets =
+	            employeeTimesheetsNewRepository.saveAll(timesheets);
 
-			timesheets.add(ts);
-		}
+	    // SAFE MAP: empId -> Timesheet
+	    Map<Long, EmployeeTimesheetsNew> empTsMap = new HashMap<>();
+	    for (EmployeeTimesheetsNew ts : savedTimesheets) {
+	        empTsMap.put(ts.getEmpId(), ts);
+	    }
 
-		List<EmployeeTimesheetsNew> savedTimesheets =
-				employeeTimesheetsNewRepository.saveAll(timesheets);
+	    // STEP 4: Prepare Location Mappings
+	    List<EmployeeTimesheetLocationMapping> locationMappings = new ArrayList<>();
 
-		List<EmployeeTimesheetLocationMapping> locationMappings = new ArrayList<>();
+	    for (EmployeeTimesheetsNew ts : savedTimesheets) {
 
-		for (EmployeeTimesheetsNew ts : savedTimesheets) {
+	        EmployeeTimesheetLocationMapping loc = EmployeeTimesheetLocationMapping.builder()
+	                .timesheetId(ts.getTimesheetId())
+	                .locationTypeId(4)
+	                .build();
 
-			EmployeeTimesheetLocationMapping loc = EmployeeTimesheetLocationMapping.builder()
-					.timesheetId(ts.getTimesheetId())
-					.locationTypeId(4)
-					.build();
+	        locationMappings.add(loc);
+	    }
 
-			locationMappings.add(loc);
-		}
+	    // STEP 5: Save Location Mappings
+	    List<EmployeeTimesheetLocationMapping> savedLocationMappings =
+	            employeeTimesheetLocationMappingRepository.saveAll(locationMappings);
 
-		List<EmployeeTimesheetLocationMapping> savedLocationMappings = employeeTimesheetLocationMappingRepository.saveAll(locationMappings);
-	// 	for (int i = 0; i < employees.size(); i++) {
+	    // SAFE MAP: timesheetId -> LocationMapping
+	    Map<Long, EmployeeTimesheetLocationMapping> tsLocMap = new HashMap<>();
+	    for (EmployeeTimesheetLocationMapping loc : savedLocationMappings) {
+	        tsLocMap.put(loc.getTimesheetId(), loc);
+	    }
 
-	// 	Employee emp = employees.get(i);
-	// 	EmployeeTimesheetsNew ts = savedTimesheets.get(i);
-	// 	EmployeeTimesheetLocationMapping locMapping = locationMappings.get(i);
+	    // STEP 6: Build Project Entities
+	    List<ProjectTimesheetStatusNew> projectEntities = new ArrayList<>();
 
-	// 	Long newTsId = ts.getTimesheetId();	
+	    for (Employee emp : employees) {
 
-	// 	List<ProjectNameAndPrjoectIdDTO> projectDTOList =
-	// 			timesheetsRepository.getProjectListForDateAndEmpId(
-	// 					emp.getEmpId(), startOfDay, endOfDay);
+	        EmployeeTimesheetsNew ts = empTsMap.get(emp.getEmpId());
+	        if (ts == null) continue;
 
-	// 	if (projectDTOList != null && !projectDTOList.isEmpty()) {
+	        EmployeeTimesheetLocationMapping locMapping =
+	                tsLocMap.get(ts.getTimesheetId());
+	        if (locMapping == null) continue; 
 
-	// 		for (ProjectNameAndPrjoectIdDTO projDto : projectDTOList) {
+	        Long newTsId = ts.getTimesheetId();
 
-	// 			ProjectTimesheetDTO projectDTO = new ProjectTimesheetDTO();
+	        List<ProjectNameAndPrjoectIdDTO> projectDTOList =
+	                employeeTimesheetsNewRepository.getProjectListForDateAndEmpId(
+	                        emp.getEmpId(), startOfDay, endOfDay);
 
-	// 			projectDTO.setTimesheetId(newTsId);
-	// 			projectDTO.setLocationMappingId(locMapping.getLocationMappingId());
-	// 			projectDTO.setProjectId(projDto.getProjectId());
-	// 			projectDTO.setStatus(2);
-	// 			projectDTO.setActivities(null);
-	// 			projectDTO.setDescription(tsDescription);
+	        if (projectDTOList != null && !projectDTOList.isEmpty()) {
 
-	// 			projectTimesheetService.create(newTsId, projectDTO, emp.getEmpId());
-	// 		}
+	            for (ProjectNameAndPrjoectIdDTO projDto : projectDTOList) {
 
-	// 	} else {
+	                ProjectTimesheetDTO projectDTO = new ProjectTimesheetDTO();
 
-	// 		int resolvedProjectId = 0;
+	                projectDTO.setTimesheetId(newTsId);
+	                projectDTO.setLocationMappingId(locMapping.getLocationMappingId());
+	                projectDTO.setProjectId(projDto.getProjectId());
+	                projectDTO.setStatus(2);
+	                projectDTO.setActivities(null);
+	                projectDTO.setDescription(tsDescription);
 
-	// 		if (emp.getJobRoleId() != null) {
+	                projectEntities.add(
+	                        buildProjectEntity(newTsId, projectDTO, emp.getEmpId())
+	                );
+	            }
 
-	// 			JobRole jobRole =
-	// 					jobRoleRepository.findById(emp.getJobRoleId()).orElse(null);
+	        } else {
 
-	// 			if (jobRole != null && jobRole.getDeptId() != null) {
+	            int resolvedProjectId = 0;
 
-	// 				Optional<Integer> benchProjectId =
-	// 						projectRepository.findBenchProjectIdByDeptId(jobRole.getDeptId());
+	            if (emp.getJobRoleId() != null) {
 
-	// 				if (benchProjectId.isPresent()) {
-	// 					resolvedProjectId = benchProjectId.get();
-	// 				}
-	// 			}
-	// 		}
+	                JobRole jobRole =
+	                        jobRoleRepository.findById(emp.getJobRoleId()).orElse(null);
 
-	// 		ProjectTimesheetDTO defaultProject = new ProjectTimesheetDTO();
+	                if (jobRole != null && jobRole.getDeptId() != null) {
 
-	// 		defaultProject.setTimesheetId(newTsId);
-	// 		defaultProject.setLocationMappingId(locMapping.getLocationMappingId());
-	// 		defaultProject.setStatus(2);
-	// 		defaultProject.setActivities(null);
-	// 		defaultProject.setDescription(tsDescription);
-	// 		defaultProject.setProjectId(resolvedProjectId);
+	                    Optional<Integer> benchProjectId =
+	                            projectRepository.findBenchProjectIdByDeptId(jobRole.getDeptId());
 
-	// 		projectTimesheetService.create(newTsId, defaultProject, emp.getEmpId());
-	// 	}
-	// }
-	List<ProjectTimesheetStatusNew> projectEntities = new ArrayList<>();
+	                    if (benchProjectId.isPresent()) {
+	                        resolvedProjectId = benchProjectId.get();
+	                    }
+	                }
+	            }
+	            /* In case of no default project found then we are setting project id as 0 so for reference 
+	            if such case exits and creating any anomalies replace 0 with bench project */
 
-    for (int i = 0; i < employees.size(); i++) {
+	            ProjectTimesheetDTO defaultProject = new ProjectTimesheetDTO();
+	            defaultProject.setTimesheetId(newTsId);
+	            defaultProject.setLocationMappingId(locMapping.getLocationMappingId());
+	            defaultProject.setStatus(2);
+	            defaultProject.setActivities(null);
+	            defaultProject.setDescription(tsDescription);
+	            defaultProject.setProjectId(resolvedProjectId);
 
-        Employee emp = employees.get(i);
-        EmployeeTimesheetsNew ts = savedTimesheets.get(i);
-        EmployeeTimesheetLocationMapping locMapping = savedLocationMappings.get(i);
-
-        Long newTsId = ts.getTimesheetId();
-
-        List<ProjectNameAndPrjoectIdDTO> projectDTOList =
-        		employeeTimesheetsNewRepository.getProjectListForDateAndEmpId(
-                        emp.getEmpId(), startOfDay, endOfDay);
-
-        if (projectDTOList != null && !projectDTOList.isEmpty()) {
-
-            for (ProjectNameAndPrjoectIdDTO projDto : projectDTOList) {
-
-                ProjectTimesheetDTO projectDTO = new ProjectTimesheetDTO();
-
-                projectDTO.setTimesheetId(newTsId);
-                projectDTO.setLocationMappingId(locMapping.getLocationMappingId());
-                projectDTO.setProjectId(projDto.getProjectId());
-                projectDTO.setStatus(2);
-                projectDTO.setActivities(null);
-                projectDTO.setDescription(tsDescription);
-
-                projectEntities.add(
-                        buildProjectEntity(newTsId, projectDTO, emp.getEmpId())
-                );
-            }
-
-        } else {
-
-            int resolvedProjectId = 0;
-
-            if (emp.getJobRoleId() != null) {
-
-                JobRole jobRole =
-                        jobRoleRepository.findById(emp.getJobRoleId()).orElse(null);
-
-                if (jobRole != null && jobRole.getDeptId() != null) {
-
-                    Optional<Integer> benchProjectId =
-                            projectRepository.findBenchProjectIdByDeptId(jobRole.getDeptId());
-
-                    if (benchProjectId.isPresent()) {
-                        resolvedProjectId = benchProjectId.get();
-                    }
-                }
-            }
-
-            ProjectTimesheetDTO defaultProject = new ProjectTimesheetDTO();
-
-            defaultProject.setTimesheetId(newTsId);
-            defaultProject.setLocationMappingId(locMapping.getLocationMappingId());
-            defaultProject.setStatus(2);
-            defaultProject.setActivities(null);
-            defaultProject.setDescription(tsDescription);
-            defaultProject.setProjectId(resolvedProjectId);
-
-            projectEntities.add(
-                    buildProjectEntity(newTsId, defaultProject, emp.getEmpId())
-            );
-        }
-    }
-
-    projectTimesheetStatusNewRepository.saveAll(projectEntities);
-}
+	            projectEntities.add(
+	                    buildProjectEntity(newTsId, defaultProject, emp.getEmpId())
+	            );
+	        }
+	    }
+       // STEP 7: Save All Projects
+	    projectTimesheetStatusNewRepository.saveAll(projectEntities);
+	}
 
 private ProjectTimesheetStatusNew buildProjectEntity(
         Long timesheetId,
