@@ -1213,7 +1213,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 			Integer expirationPeriod = validated.compOffExpirationPeriod();
 
 			createLeaveRevokeRecord(leaveDTO, leaveToBeDeleted, empObj);
-			employeeLeaveRepository.deleteById(leaveDTO.getLeaveId());
+			
 
 			if(!"CO".equalsIgnoreCase(leaveTypeObj.getLeaveTypeCode())){
 				restoreBalanceOnDeleteNonCompOff(leaveDTO, leaveToBeDeleted, leaveTypeObj);
@@ -1221,6 +1221,8 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 			if("CO".equalsIgnoreCase(leaveTypeObj.getLeaveTypeCode())) {
 				restoreCompOffOnDelete(leaveToBeDeleted, expirationPeriod);
 			}
+
+			employeeLeaveRepository.deleteById(leaveDTO.getLeaveId());
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Leave Application Deleted.");
@@ -1233,13 +1235,14 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 		} catch (LeaveApplicationException e) {
 			throw e;
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error deleting pending leave", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 			
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+			throw new RuntimeException(e);
 		}
 		
 		apiLogInfo.setApiRequest(logBuilder.toString());
@@ -1268,13 +1271,13 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 	private void restoreBalanceOnDeleteNonCompOff(LeaveDTO leaveDTO, EmployeeLeave leaveToBeDeleted, LeaveTypeMaster leaveTypeObj) {
 		EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(
 				leaveToBeDeleted.getEmpId(), leaveToBeDeleted.getLeaveTypeMasterId());
-		Float balance = employeeLeavesMap.getBalance();
+		Float balance = Optional.ofNullable(employeeLeavesMap.getBalance()).orElse(0F);
 		if("LWP".equalsIgnoreCase(leaveTypeObj.getLeaveTypeCode())) {
 			balance = 0F;
 		}else {
 			balance = balance + leaveDTO.getNoOfDays();
 		}
-		Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
+		Float pendingForApproval = Optional.ofNullable(employeeLeavesMap.getPendingForApproval()).orElse(0F);
 		pendingForApproval = pendingForApproval - leaveDTO.getNoOfDays();
 		employeeLeavesMap.setBalance(balance);
 		employeeLeavesMap.setPendingForApproval(pendingForApproval);
@@ -1378,7 +1381,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 				}
 			}
 		} catch (Exception e) {
-			System.err.println("Error flushing timesheets during leave deletion: " + e.getMessage());
+			log.error("Error flushing timesheets during leave deletion: " ,e);
 		}
 	}
 	
@@ -1404,7 +1407,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 
 			Float balance = employeeLeavesMap.getBalance();
 			Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
-			if (!leaveType.getLeaveTypeCode().equalsIgnoreCase("LWP")) {
+			if (!"LWP".equalsIgnoreCase(leaveType.getLeaveTypeCode()) && difference != null) {
 				if (difference > 0) {
 					balance = balance - difference;
 					pendingForApproval = pendingForApproval + difference;
@@ -1463,15 +1466,20 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 				cleanNonSystemTimesheetsInRange(leaveDTO.getEmpId(), newFromDate, newToDate);
 				refillLeaveTimesheetsAfterUpdate(leaveDTO, newFromDate, newToDate);
 			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Leave Application Updation Failed.");
 				apiLogInfo.setApiResponse("Leave Application Updation Failed.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		} catch (LeaveApplicationException e) {
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse("Leave Application Updation Failed.");
+			apiLogInfo.setLogLevel("WARN");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			throw e;
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error updating pending leave", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
