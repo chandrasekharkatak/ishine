@@ -2252,6 +2252,7 @@ public class ResourceManagementService {
 	        if (onlyRejected) {
 
 	            employeeTeamMapRepository.deleteAllByTeamId(team.getTeamId());
+				activitiesRepository.deleteByTeamId(team.getTeamId());
 	            teamRepository.delete(team);
 
 	        } else {
@@ -4699,11 +4700,12 @@ public class ResourceManagementService {
 			projectObj.setUpdatedOn(LocalDateTime.now());
 			Project projectDbResponse = projectRepository.save(projectObj);
 
+			Set nonBillableProjectTypeSet = Set.of("internal", "bench", "internalrndproducts");
 			String projectType = (projectDbResponse.getPoProjectType() != null
 					&& !projectDbResponse.getPoProjectType().trim().equals("")) ? projectDbResponse.getPoProjectType()
 							: projectDbResponse.getInternalProjectType();	
 			
-			if (!projectType.equals("Internal")) {
+			if (!nonBillableProjectTypeSet.contains(projectType.toLowerCase())) {
 				ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
 				if (poPortalResponse != null && poPortalResponse.getServiceStatus() != null
 						&& poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
