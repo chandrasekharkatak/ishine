@@ -1795,7 +1795,7 @@
               Date</label>
             <mat-form-field style="display: contents;">
               <input matInput [matDatepicker]="picker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalFromDate"
-                (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required />
+                (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required readonly />
               <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
               <mat-datepicker #picker></mat-datepicker>
             </mat-form-field>
@@ -1810,7 +1810,7 @@
             <mat-form-field style="display: contents;">
               <input matInput [matDatepicker]="toPicker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalToDate"
                 name="toDate" required #toDateRef="ngModel" [min]="finalFromDate" [max]="maxDate"
-                [disabled]="!finalFromDate" (dateChange)="checkUploadEligibility()" />
+                [disabled]="!finalFromDate" (dateChange)="checkUploadEligibility()" readonly />
               <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
               <mat-datepicker #toPicker></mat-datepicker>
             </mat-form-field>

@@ -1566,7 +1566,7 @@ public class CronJobService {
 	                    ts.setTotalWorkingMinutes(0);
 	                    ts.setStatus(2);
 	                    ts.setDescription("WeekOff : " + dayOfWeek);
-
+	                    ts.setIsSystemGenerated(true);
 	                    toSave.add(ts);
                         empHolidayMap.put(empId, holiday);
 	                    timesheetMap.put(empId, ts);
@@ -1591,7 +1591,7 @@ public class CronJobService {
 	                    ts.setDayTypeId(6);
 	                    ts.setStatus(2);
 	                    ts.setDescription("Public Holiday : " + holiday.getOccasion());
-
+	                    ts.setIsSystemGenerated(true);
 	                    toSave.add(ts);
                         empHolidayMap.put(empId, holiday); 
 	                    timesheetMap.put(empId, ts);
