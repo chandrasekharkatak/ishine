@@ -319,7 +319,6 @@ rejectionReasons:any;
     // } else {
     //   this.minMonth = null;
     // }
-
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -505,6 +504,7 @@ totalPages: number = 0;
   }
 
   this.expandedTimesheetIndex = null;
+  this.isAllSelected = false;
       this.toggleAllRows({ target: { checked: false } });
   this.loaderService.requestStarted();
 
@@ -1805,9 +1805,10 @@ sortData(sort: Sort) {
     console.log("test", this.selectedRows);
     if(this.selectedRows.length != this.filteredData().length){
       this.isAllSelected = false;
-    }else if (this.selectedRows.length == this.filteredData().length){
+    }else if (this.selectedRows.length !=0 && this.selectedRows.length == this.filteredData().length){
       this.isAllSelected = true;
     }
+    console.log(" this.isAllSelected =", this.isAllSelected )
   }
 
   toggleAllRows(event: any) {

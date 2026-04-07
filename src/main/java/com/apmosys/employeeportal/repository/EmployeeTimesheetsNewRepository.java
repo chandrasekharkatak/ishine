@@ -17510,7 +17510,10 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				"    wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId, \n" +
 				"    ptsn.id.timesheetId, etamn.locationMappingId, ptsn.id.projectId, \n" +
 				"    p.projectName, c.clientName, cl.clientLocation, ptsn.clientApprovalStatus,\n" +
-				"    ptsn.poNo, es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, \n" +
+				"    ptsn.poNo, es.name, \n"+
+				"    CASE WHEN es.isApmosysProduct = 'true' THEN CONCAT('AP-', es.employeementId) \n" +
+				"         ELSE CONCAT('A-', es.employeementId) END, \n" +
+				" ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, \n" +
 				"    etamn.timesheetId, etamn.locationMappingId, etamn.projectId, \n" +
 				"    etamn.id, a.activity, etamn.description, etamn.durationMinutes, \n" +
 				"    t.teamName, \n" +

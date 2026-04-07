@@ -43,6 +43,7 @@ public class GetReporteesTimesheetReqFlatDTO {
     private String clientLocation;
     private String poNo;
     private String shadowEmp;
+    private String shadowEmployeementId;
     private Integer status;
     private Integer totalClientWorkingMinutes;
     private Integer clientApprovalStatus;
@@ -76,7 +77,7 @@ public class GetReporteesTimesheetReqFlatDTO {
 			String dayType, LocalDate date, Boolean isNightShift, LocalDateTime workCheckIn, LocalDateTime workCheckOut,
 			Long projectCount, Long locationCount, String appliedBy, LocalDateTime appliedOn, String workLocationType,
 			LocalDateTime locationInTime, LocalDateTime locationOutTime, Long locationMappingId,Long projectTimesheetId,Long projectLocationMappingId, Integer projectId,
-			String projectName, String clientName, String clientLocation,Integer clientApprovalStatus, String poNo, String shadowEmp, Integer status,
+			String projectName, String clientName, String clientLocation,Integer clientApprovalStatus, String poNo, String shadowEmp,String shadowEmployeementId, Integer status,
 			Integer totalClientWorkingMinutes, String description,Long activityTimesheetId,Long activityLocationMappingId,Integer activityProjectId,Long activityMappingId, String activity, String activityDescription,
 			Short durationMinutes, String teamName, Long docId, String docName, Boolean finalFlag,
 			Long bulkApprovedDocId, String mimeType, Integer docsProjectId,Long rejectionTimesheetId,Long rejectionLocationMappingId,Integer rejectionProjectId, String rejectionReason, String remarks, LocalDateTime rejectedOn) {
@@ -107,6 +108,7 @@ public class GetReporteesTimesheetReqFlatDTO {
 		this.clientApprovalStatus = clientApprovalStatus;
 		this.poNo = poNo;
 		this.shadowEmp = shadowEmp;
+		this.shadowEmployeementId = shadowEmployeementId;
 		this.status = status;
 		this.totalClientWorkingMinutes = totalClientWorkingMinutes;
 		this.description = description;

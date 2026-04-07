@@ -635,6 +635,9 @@
                                 <span *ngIf="project.clientLocation" class="ts-chip ts-chip--grey">
                                   Client Location: {{ project.clientLocation }}
                                 </span>
+                                <span *ngIf="project.shadowEmpId" class="ts-chip ts-chip--grey">
+                                  Shadow For: ({{project.shadowEmployeementId}})-{{ project.shadowName }}
+                                </span>
                                 <span *ngIf="project.clientApprovalStatus" class="ts-chip" title="Client Approval StatusLocation" [class.ts-chip--pending]="project.clientApprovalStatus === 1"
                                   [class.ts-chip--approved]="project.clientApprovalStatus === 2"
                                   [class.ts-chip--rejected]="project.clientApprovalStatus === 3">

@@ -788,10 +788,10 @@
                             <div class="d-flex justify-content-between align-items-center">
                               <div class="flex-grow-1">
                                 <i class="fas fa-briefcase mr-2 text-info"></i>
-                                <strong>{{ project.projectName }}</strong>
+                                <strong>{{ project.projectName }} &nbsp;</strong>
                                <!-- <span class="ml-3 text-muted small">PO: {{ project.poNo || '-' }}</span>-->
-                                <span class="ml-2 small">{{ project.shadowEmp ? '(Shadow)' : '' }}</span>
-                                <span class="ml-2 small">{{ project.clientLocation}}</span>
+                                <span class="ml-2 small" *ngIf="project.shadowEmp">Shadow For: ({{project.shadowEmployeementId}})-{{ project.shadowEmp }} &nbsp;</span>
+                                <span class="ml-2 small">Client Location:{{ project.clientLocation}}</span>
                               </div>
                               <div class="d-flex align-items-center">
                                 <button type="button" class="btn btn-danger mr-2"

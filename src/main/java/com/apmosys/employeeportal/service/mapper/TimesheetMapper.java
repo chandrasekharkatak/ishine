@@ -336,6 +336,7 @@ public class TimesheetMapper {
                                                 r.getClientLocation(),
                                                 r.getPoNo(),
                                                 r.getShadowEmp(),
+                                                null,
                                                 r.getStatus(),
                                                 r.getClientApprovalStatus() != null ? r.getClientApprovalStatus() : null,
                                                 TimesheetFormatUtil.formatMinutes(r.getTotalClientWorkingMinutes()),
@@ -511,6 +512,7 @@ public class TimesheetMapper {
                         projDto.setClientLocation(row.getClientLocation());
                         projDto.setPoNo(row.getPoNo());
                         projDto.setShadowEmp(row.getShadowEmp());
+                        projDto.setShadowEmployeementId(row.getShadowEmployeementId());
                         projDto.setStatus(row.getStatus());
                         projDto.setTotalClientWorkingMinutes(
                                 row.getTotalClientWorkingMinutes() != null
