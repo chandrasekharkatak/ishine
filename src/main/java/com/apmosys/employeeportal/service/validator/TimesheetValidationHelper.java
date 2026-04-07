@@ -1172,8 +1172,14 @@ public class TimesheetValidationHelper {
                 resolveDayType(empDTO.getDayTypeId());
 
         // ONLY Non-Working allows override
-        if (dayType == DayTypeCode.NON_WORKING) {
-            return existingOpt.get();
+        if (dayType == DayTypeCode.NON_WORKING ) {
+        	EmployeeTimesheetsNew obj=existingOpt.get();
+        	if(! obj.getIsSystemGenerated()) {
+        		 throw new TimesheetValidationFailedException(
+        	                "A timesheet already exists on this date."
+        	        );
+        	}
+            return obj;
         }
 
         //Everything else is blocked
