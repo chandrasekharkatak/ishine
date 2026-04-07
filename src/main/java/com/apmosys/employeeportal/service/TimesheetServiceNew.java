@@ -417,7 +417,7 @@ public class TimesheetServiceNew {
 				newTimesheet.setUpdatedBy(empDTO.getCreatedBy());
 				newTimesheet.setUpdatedOn(LocalDateTime.now());
 				DayTypeTransition  transition= timesheetValidationHelper.resolveDayTypeTransition(existing, empDTO);
-				timesheetStructureCleanupService.cleanTimesheetStructure(existing.getTimesheetId(), empDTO.getLocationSessions(),transition);
+				timesheetStructureCleanupService.cleanTimesheetStructure(true,existing.getTimesheetId(), empDTO.getLocationSessions(),transition);
 				
 			} else {
 				newTimesheet = new EmployeeTimesheetsNew();
@@ -1137,7 +1137,7 @@ public class TimesheetServiceNew {
 
 			// Run structure cleanup for all transitions (including WORKING_TO_NON_WORKING:
 			// removes locations/projects when incoming payload has none or fewer)
-			timesheetStructureCleanupService.cleanTimesheetStructure(timesheetId, newEmpDTO.getLocationSessions(),transition);
+			timesheetStructureCleanupService.cleanTimesheetStructure(false,timesheetId, newEmpDTO.getLocationSessions(),transition);
 
 			Long currentUserId = getCurrentUserId();
 			Long updatedBy = currentUserId != null ? currentUserId
