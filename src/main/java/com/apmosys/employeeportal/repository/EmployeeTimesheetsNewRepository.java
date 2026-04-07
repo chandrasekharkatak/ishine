@@ -17433,9 +17433,9 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				    "AND ( :workCheckOut IS NULL OR DATE_FORMAT(etn.work_out_time, '%h:%i %p') LIKE CONCAT('%', :workCheckOut, '%') ) " +
 
 				    "AND ( :appliedBy IS NULL OR LOWER(ab.name) LIKE LOWER(CONCAT('%', :appliedBy, '%')) ) " +
-				    "AND ( :appliedOn IS NULL OR LOWER(DATE_FORMAT(etn.created_on, '%h:%i %p')) " +
+				    "AND ( :appliedOn IS NULL OR LOWER(DATE_FORMAT(etn.created_on, '%d/%m/%Y %h:%i %p')) " +
 				    "      LIKE LOWER(CONCAT('%', :appliedOn, '%')) ) " +
-
+				    "AND ( :isNightShift IS NULL OR etn.is_night_shift = :isNightShift) " +
 				    "AND ( :search IS NULL OR :search = '' " +
 				    "       OR LOWER(e.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
 				    "       OR LOWER(p.project_name) LIKE LOWER(CONCAT('%', :search, '%')) " +
@@ -17475,6 +17475,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				    "    AND ( :projectName IS NULL OR LOWER(p.project_name) LIKE LOWER(CONCAT('%', :projectName, '%')) ) " +
 				    "    AND ( :clientName IS NULL OR LOWER(c.client_name) LIKE LOWER(CONCAT('%', :clientName, '%')) ) " +
 				    "    AND ( :activity IS NULL OR LOWER(a.activity) LIKE LOWER(CONCAT('%', :activity, '%')) ) " +
+				    "	 AND ( :isNightShift IS NULL OR etn.is_night_shift = :isNightShift) " +
 
 				    "    GROUP BY etn.timesheet_id " +
 
@@ -17494,7 +17495,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				@Param("search") String search, @Param("workCheckIn") String workCheckIn,
 				@Param("workCheckOut") String workCheckOut, @Param("locationCount") Long locationCount,
 				@Param("projectCount") Long projectCount, @Param("appliedBy") String appliedBy,
-				@Param("appliedOn") String appliedOn, @Param("status") int status, Pageable pageable);
+				@Param("appliedOn") String appliedOn, @Param("isNightShift")Boolean isNightShift, @Param("status") int status, Pageable pageable);
 
 			
 			

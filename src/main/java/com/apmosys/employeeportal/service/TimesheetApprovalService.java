@@ -53,6 +53,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 	import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
+import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
 import com.apmosys.employeeportal.model.SkippedTimesheetLog;
 import com.apmosys.employeeportal.model.TimesheetActionAuditNew;
 import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
@@ -1621,6 +1622,7 @@ public ServiceResponse getMyReporteesTimesheetRequestsNew_backup(GetMyReporteesT
                         payload.getProjectCount(),
                         payload.getAppliedBy(),
                         payload.getAppliedOn(),
+                        null,
                         payload.getStatus(),
                         pageable
                 );
@@ -1870,6 +1872,7 @@ private Page<BigInteger> fetchTimesheetIds(TimesheetFilterCriteria criteria, Pag
             criteria.getProjectCount(),
             criteria.getAppliedBy(),
             criteria.getAppliedOn(),
+            criteria.getIsNightShift(),
             criteria.getStatus(),
             pageable
     );
@@ -2266,10 +2269,10 @@ private boolean isMissingClientSideDocs(
                   .collect(Collectors.toSet());
 
     for (Long projectId : projectIds) {
-
+    	List<ProjectTimesheetStatusNew> shadowForSelf = projectTimesheetStatusNewRepository.findShadowForSelf(projectId.intValue());
         Integer hasClientSide = projectClientSideMap.get(projectId);
-
-        if (hasClientSide != null && hasClientSide == 1) {
+        
+        if (hasClientSide != null && hasClientSide == 1 && shadowForSelf.isEmpty()) {
 
             if (!docProjectIds.contains(projectId)) {
                 return true; //  missing doc

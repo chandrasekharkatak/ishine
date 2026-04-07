@@ -22,7 +22,8 @@ public enum TimesheetSortField {
     TEAM_NAME("teamName", "t.teamName"),
     APPLIED_BY("appliedBy", "ab.name"),
     APPLIED_ON("appliedOn", "etn.createdOn"),
-    CREATED_ON("createdOn", "bt.created_on");
+    CREATED_ON("createdOn", "bt.created_on"),
+	IS_NIGHT_SHIFT("isNightShift","etn.is_night_shift");
 
     private final String apiField;
     private final String dbColumn;
