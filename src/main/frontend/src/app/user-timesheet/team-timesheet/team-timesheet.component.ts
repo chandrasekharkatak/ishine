@@ -143,7 +143,7 @@ rejectRemarkError = false;
   timesheetApplicationCount: any = 0;
   allTimesheetColumns: any[] = ['blank', 'blank', 'blank', 'employmentIdAcToET', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', , 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'createdOn'];
   allTimesheetReqColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus'];
-  allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employmentId', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'locationCount', 'projectCount', 'appliedBy', 'appliedOn', 'blank','blank'];
+  allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employmentId', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'locationCount', 'projectCount', 'appliedBy', 'appliedOn', 'isNightShift','blank'];
   allTimesheetColumnsVMSStatusChange: any[] = [
   'blank',   // Sr No (now becomes first column)
   'employmentId',
@@ -156,7 +156,7 @@ rejectRemarkError = false;
   'projectCount',
   'appliedBy',
   'appliedOn',
-  'blank',
+  'isNightShift',
   'blank'    // action column
 ];
 
@@ -504,6 +504,7 @@ totalPages: number = 0;
     return;
   }
 
+  this.expandedTimesheetIndex = null;
   this.loaderService.requestStarted();
 
   const payload: any = {
@@ -531,7 +532,7 @@ totalPages: number = 0;
   this.addIfPresent(payload, 'projectCount', this.filters.projectCount);
   this.addIfPresent(payload, 'appliedBy', this.filters.appliedBy);
   this.addIfPresent(payload, 'appliedOn', this.filters.appliedOn);
-
+  this.addIfPresent(payload, 'isNightShift', this.filters.isNightShift)
   this.addIfPresent(payload, 'startDate', this.startDate);
   this.addIfPresent(payload, 'endDate', this.endDate);
 
@@ -2780,9 +2781,11 @@ approveSingleTimesheet(timesheet: any) {
     updatedBy: this.currentUser.empId,
     rmId: this.currentUser.empId
   };
-
+this.modalMessage = null;
+this.skippedTimesheetList = null
   this.loaderService.requestStarted();
-
+this.modalMessage = null;
+this.skippedTimesheetList = null
   this.timesheetNewService
     .bulkApproveTimesheetsByIds1(payload)
     .pipe(finalize(() => this.loaderService.requestEnded()))
@@ -2797,13 +2800,11 @@ approveSingleTimesheet(timesheet: any) {
           const skipped = Array.isArray(res?.serviceResponse?.skipped)
             ? res.serviceResponse.skipped
             : [];
-
           if (processed.length) {
             message += `${processed.length} timesheet(s) approved successfully.\n`;
              this.modalMessage = message;
             //  this.modalService.open(this.statusModal, {modalDialogClass: 'ts-alert-modal'});
           }
-
           if (skipped.length) {
 
             this.skippedTimesheetList = skipped
@@ -3242,6 +3243,8 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
   rejectRemark: entry.remark?.trim() || ''
 
 }));
+this.modalMessage = null;
+this.skippedTimesheetList = null
 
   const payload = {
     timesheetIds: [Number(this.selectedTimesheet.timesheetId)],
@@ -3250,7 +3253,8 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
     updatedBy: Number(this.currentUser.empId),
     projectRejections
   };
-
+this.modalMessage = null;
+this.skippedTimesheetList = null
   this.loaderService.requestStarted();
 
   this.timesheetNewService
@@ -3265,13 +3269,11 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
           const skipped = Array.isArray(res?.serviceResponse?.skipped)
             ? res.serviceResponse.skipped
             : [];
-
           if (processed.length) {
             message += `${processed.length} timesheet(s) rejected successfully.\n`;
             this.modalMessage = message;
             // this.modalService.open(this.statusModal, { modalDialogClass: 'ts-alert-modal' });
           }
-
           if (skipped.length) {
 
             this.skippedTimesheetList = skipped
@@ -3503,7 +3505,8 @@ executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
   };
 
   this.loaderService.requestStarted();
-
+  this.modalMessage = null;
+  this.skippedTimesheetList = null
   this.timesheetNewService
     .bulkApproveTimesheetsByIds1(payload)
     .pipe(finalize(() => this.loaderService.requestEnded()))
@@ -3520,11 +3523,9 @@ executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
           : [];
         if (processed.length) {
             message += `${processed.length} timesheet(s) approved successfully.`;
-            this.modalMessage = message;
-            // this.modalService.open(this.statusModal, {modalDialogClass: 'ts-alert-modal'});
+          // this.modalService.open(this.statusModal, {modalDialogClass: 'ts-alert-modal'});
           }
-
-        if (skipped.length) {
+          if (skipped.length) {
           this.skippedTimesheetList = skipped
             // message += `
             //   <p><strong>Skipped Timesheets</strong></p>
@@ -3624,7 +3625,6 @@ this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this
       const skipped = Array.isArray(res?.serviceResponse?.skipped)
         ? res.serviceResponse.skipped
         : [];
-
       if (processed.length) {
         message += `${processed.length} timesheet(s) rejected successfully.`;
         this.modalMessage = message;

@@ -898,7 +898,14 @@ rows.forEach(row -> {
             });
 
     /* ================= ACTIVITY ================= */
-    if (row[26] != null) {
+    Long timesheet_activity_map_id = row[27] != null ? ((Number) row[27]).longValue() : null;
+
+    if (timesheet_activity_map_id != null) {
+    	  boolean exists = project.getActivities().stream()
+    		        .anyMatch(a -> a.getId().equals(timesheet_activity_map_id));
+    	  
+     if(!exists) {
+    	     
         ActivityTimesheetDTO activity = new ActivityTimesheetDTO();
         activity.setId(row[27] != null ? ((Number) row[27]).longValue() : null);
         activity.setTimesheetId(timesheetId);
@@ -913,6 +920,8 @@ rows.forEach(row -> {
         );
         activity.setTeamId(row[31] != null ? ((Number) row[31]).longValue() : null);
         project.getActivities().add(activity);
+     }
+       
     }
     
     /* ================= REJECTION DETAILS ================= */

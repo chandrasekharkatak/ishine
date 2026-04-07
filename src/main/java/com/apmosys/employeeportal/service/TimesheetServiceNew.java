@@ -60,6 +60,7 @@ import com.apmosys.employeeportal.dto.ProjectWithClientAndLocationDTO;
 import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO;
+import com.apmosys.employeeportal.dto.TimesheetRejectionReasonDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeProjectAndClientData;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
@@ -3205,5 +3206,33 @@ public class TimesheetServiceNew {
 	        System.out.println(clientSideMap);
 	        return clientSideMap;
 	    }
+
+		public ServiceResponse  getRejectionDetailsWithProjectsByTimesheetId(Long timesheetId) {
+			ServiceResponse response = new ServiceResponse();
+			
+			try{
+			
+			List<Object[]> results = employeeTimesheetsNewRepository.getTimesheetRejectionRaw(timesheetId);
+
+			List<TimesheetRejectionReasonDTO> data = results.stream().map(obj -> new TimesheetRejectionReasonDTO(
+					(String) obj[0],
+					((String) obj[1]),
+					(String) obj[2]
+			)).toList();
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(data);
+            response.setServiceMessage("Rejection reasons fetched successfully!");
+			
+		}
+	catch(Exception ex){
+		ex.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something went wrong.");
+		response.setServiceError(ex.getMessage());
+	}
+	return response;
+
+}
 
 }

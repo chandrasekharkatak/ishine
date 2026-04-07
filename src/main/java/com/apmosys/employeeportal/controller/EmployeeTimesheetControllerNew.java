@@ -581,6 +581,13 @@ public class EmployeeTimesheetControllerNew {
 		 public ServiceResponse getProjectListForDateAndEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
 		     return timesheetServiceNew.getProjectListForDateAndEmpId(payload);
 		 }
+
+		 @PostMapping("/getRejectionDetailsWithProjectsByTimesheetId")
+		 public ServiceResponse getRejectionDetailsWithProjectsByTimesheetId(@RequestBody Long timesheetId) {
+			 
+		     return  timesheetServiceNew.getRejectionDetailsWithProjectsByTimesheetId(timesheetId);
+		 }
+
 }
 
 

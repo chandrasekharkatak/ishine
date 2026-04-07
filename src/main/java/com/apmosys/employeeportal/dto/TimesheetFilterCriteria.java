@@ -47,7 +47,7 @@ public class TimesheetFilterCriteria {
     // Applied by/on filters
     private final String appliedBy;
     private final String appliedOn;
-    
+    private final Boolean isNightShift;
     // Status & search filters
     private final int status;
     private final String search;
@@ -59,6 +59,12 @@ public class TimesheetFilterCriteria {
      * @return a new TimesheetFilterCriteria instance
      */
     public static TimesheetFilterCriteria fromPayload(GetMyReporteesTimesheetRequestsPayload payload) {
+    	Boolean nightShiftSearch = null;
+    	if(payload.getIsNightShift() != null && "yes".contains(payload.getIsNightShift().toLowerCase())) {
+    		nightShiftSearch = true;
+    	}else if(payload.getIsNightShift() != null && "no".contains(payload.getIsNightShift().toLowerCase())) {
+    		nightShiftSearch = false;
+    	}else nightShiftSearch = null;
         return TimesheetFilterCriteria.builder()
                 .empId(payload.getEmpId())
                 .clientFilter(Boolean.TRUE.equals(payload.getClientFilter()))
@@ -81,6 +87,7 @@ public class TimesheetFilterCriteria {
                 .projectCount(payload.getProjectCount())
                 .appliedBy(payload.getAppliedBy())
                 .appliedOn(payload.getAppliedOn())
+                .isNightShift(nightShiftSearch)
                 .status(payload.getStatus())
                 .search(payload.getSearch())
                 .build();
