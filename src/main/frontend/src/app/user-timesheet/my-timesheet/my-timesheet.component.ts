@@ -227,8 +227,8 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
   isSearchEnabled: boolean = false;
   // Simplified columns for card-based accordion view
   // Column order must match table header: expand, Sr No., [Name if team], Date, Day Type, In, Out, Total Hrs, Status, [Applied By if self], Applied On, Shift, Leave Type, Reject Reason, Remarks, Actions
-  selfTimesheetColumns: any[] = ['blank', 'blank', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'totalWorkingMinutes', 'statusDisplay', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason', 'remarks', 'blank'];
-  teamTimesheetColumns: any[] = ['blank', 'blank', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'totalWorkingMinutes', 'statusDisplay', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason', 'remarks', 'blank', 'blank'];
+  selfTimesheetColumns: any[] = ['blank', 'blank', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'totalWorkingHours', 'statusDisplay', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'blank',  'blank'];
+  teamTimesheetColumns: any[] = ['blank', 'blank', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'totalWorkingHours', 'statusDisplay', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'blank', 'blank', 'blank'];
   tableName: string;
   activeProjectList: Project[];
   selectedProjectId: any;
@@ -2498,6 +2498,7 @@ get tooltipCta(): string {
       timesheet.leaveType = timesheet.leaveType != null ? String(timesheet.leaveType) : '';
       timesheet.rejectReason = timesheet.rejectReason != null ? String(timesheet.rejectReason) : '';
       timesheet.remarks = timesheet.remarks != null ? String(timesheet.remarks) : '';
+      timesheet.totalWorkingHours = this.getTotalWorkingHours(timesheet.totalWorkingMinutes?? 0, false);
       // Populate from first rejection in nested data if not at top level
       if ((!timesheet.rejectReason || !timesheet.remarks) && timesheet.locationSessions && timesheet.locationSessions.length > 0) {
         for (const loc of timesheet.locationSessions) {
@@ -2751,8 +2752,8 @@ get tooltipCta(): string {
           'Applied On': x.createdOn ?? '',
           'Shift Type': x.isNightShiftDisplay ?? (x.isNightShift === true || x.isNightShift === 'true' ? 'Night Shift' : 'Regular Shift'),
           'Leave Type': x.leaveType ?? '',
-          'Reject Reason': x.rejectReason ?? '',
-          'Remarks': x.remarks ?? ''
+          // 'Reject Reason': x.rejectReason ?? '',
+          // 'Remarks': x.remarks ?? ''
         };
       });
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
@@ -4484,14 +4485,17 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
         const diffMinutes = outTime.diff(inTime, 'minutes');
         const adjustedDiff = diffMinutes < 0 ? diffMinutes + 1440 : diffMinutes;
         console.log("adjustedDiff",adjustedDiff)
-        return (adjustedDiff / 60).toFixed(2);
+        const hours = Math.floor(adjustedDiff / 60);
+        const minutes = adjustedDiff % 60;
+        return `${hours}:${minutes.toString().padStart(2, '0')}`;
+        // return (adjustedDiff / 60).toFixed(2);
         // return this.getTotalWorkingHours(adjustedDiff);
       }
     }
     // Fallback: sum activity hours when in/out times are null (e.g. non-fillable days)
     console.log("Logging out side")
     const totalActivityHours = this.getTotalLocationActivityHours(location);
-    return totalActivityHours > 0 ? totalActivityHours.toFixed(2) : '0.00';
+    return totalActivityHours > 0 ? totalActivityHours.toFixed(2) : '0:00';
   }
 
   /**
@@ -4543,14 +4547,15 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
    * Get total working hours from minutes
    */
   getTotalWorkingHours(minutes: number,isActivity:boolean): string {
-    if (!minutes) return '0.00';
     if(!isActivity){
+      if (!minutes) return '0:00';
       const time:number = Number((minutes / 60).toFixed(2));
       const hours = Math.floor(time);
       const minute = Math.round((time - hours) * 60);
       return `${hours}:${minute.toString().padStart(2, '0')}`;
     }
     else{
+      if (!minutes) return '0.00';
       return (minutes / 60).toFixed(2);
     }
   }
@@ -4713,6 +4718,27 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
         this.openAlertMod(this.alertTemplate, message);
       }
     }
+
+    rejectiondetails:any[]=[]
+    fetchRejectionReasonByTimesheet(timesheetId:number,template: TemplateRef<any>){
+    this.timesheetNewService.getRejectionDetailsWithProjectsByTimesheetId(timesheetId).subscribe({
+      next:(res)=>{
+        if(res.serviceStatus=='Success'){
+          this.rejectiondetails=res.serviceResponse
+          this.modalService.open(
+            template,
+            { modalDialogClass: 'modal-lg', backdrop: 'static' }
+          );
+        }
+        else{
+          this.handleError(res,"Fetching rejection details",true,"Unable to fetch rejection details")
+        }
+      },
+      error:(err)=>{
+        this.handleError(err,"Fetching rejection details",true,"Unable to fetch rejection details")
+      }
+    })
+   }
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

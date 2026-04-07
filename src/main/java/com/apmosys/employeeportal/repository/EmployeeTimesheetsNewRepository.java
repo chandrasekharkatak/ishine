@@ -18616,4 +18616,20 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 						+ "group by p.projectId, p.projectName, p.startDate, etm.startDate \n")
 				public List<EmployeeProjectTimesheetDto> findByEmpIdAndDate(Long empId, LocalDateTime startDate, List<Integer> projectIds);
 
+				@Query(value = "SELECT " +
+        			"p.project_name AS projectName, " +
+       				"trrm.rejection_reason AS rejectionReason, " +
+        			"trdn.remarks AS remarks " +
+        			"FROM employee_timesheets_new etn " +
+        			"INNER JOIN project_timesheet_status_new ptsn " +
+        			"ON ptsn.timesheet_id = etn.timesheet_id " +
+        			"INNER JOIN timesheet_rejection_details_new trdn " +
+        			"ON trdn.timesheet_id = etn.timesheet_id AND trdn.project_id = ptsn.project_id " +
+        			"INNER JOIN timesheet_rejection_reasons_master trrm " +
+        			"ON trrm.rejection_id = trdn.rejection_id " +
+        			"INNER JOIN projects p " +
+        			"ON p.project_id = ptsn.project_id where etn.timesheet_id = :timesheetId ",
+        				nativeQuery = true)
+					List<Object[]> getTimesheetRejectionRaw(Long timesheetId);
+
 }

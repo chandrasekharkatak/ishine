@@ -354,4 +354,8 @@ export class TimesheetNewService {
   getProjectListForDateAndEmpId(payload: any): Observable<any> {
       return this.http.post(`${this.baseUrl}api/v2/timesheet/getProjectListForDateAndEmpId`, payload);
 }
+
+getRejectionDetailsWithProjectsByTimesheetId(timesheetId:number):Observable<any> {
+  return this.http.post(`${this.baseUrl}api/v2/timesheet/getRejectionDetailsWithProjectsByTimesheetId`, timesheetId);
+}
 }
