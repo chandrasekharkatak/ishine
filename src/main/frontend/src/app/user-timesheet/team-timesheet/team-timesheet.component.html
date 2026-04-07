@@ -1936,54 +1936,81 @@
 </ng-template>
 
 <ng-template #skipped_timesheets_details let-modal>
-  <div class="modal-header bg-light">
-    <h5 class="modal-title">
-      {{modalMessage || "No Valid Request Found"}}
-    </h5>
-    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
-      <span aria-hidden="true">&times;</span>
+
+  <!-- HEADER -->
+  <div class="modal-header enterprise-header">
+    <div class="d-flex align-items-center">
+      <i class="fa fa-exclamation-circle header-icon"></i>
+      <div>
+        <h5 class="modal-title mb-0">
+          {{ modalMessage}}
+        </h5>
+        <small class="text-muted">Review skipped timesheet entries</small>
+      </div>
+    </div>
+
+    <button type="button" class="close custom-close" (click)="modal.dismiss()">
+      <span>&times;</span>
     </button>
   </div>
 
-  <div class="modal-body">
+  <!-- BODY -->
+  <div class="modal-body enterprise-body">
 
-    <!-- Rejection List -->
+    <!-- EMPTY STATE -->
+    <div *ngIf="!skippedTimesheetList || skippedTimesheetList.length === 0"
+         class="empty-state text-center">
+      <i class="fa fa-check-circle text-success"></i>
+      <p>No skipped timesheets found</p>
+    </div>
 
-    <h6>
-      Skipped Timesheets
-    </h6>
-    <ng-container *ngIf="!skippedTimesheetList || skippedTimesheetList == undefined"> None</ng-container>
-      <!-- Rejection Table -->
-      <table class="table table-sm table-bordered mb-0"
-             *ngIf="skippedTimesheetList && skippedTimesheetList.length > 0">
+    <!-- TABLE CARD -->
+    <div *ngIf="skippedTimesheetList && skippedTimesheetList.length > 0"
+         class="table-card">
 
-        <thead class="thead-light">
-          <tr>
-            <th style="width: 5%">#</th>
-            <th style="width: 30%">Employee Id</th>
-            <th style="width: 40%">Date</th>
-            <th style="width: 25%">Reason</th>
-          </tr>
-        </thead>
+      <div class="table-header">
+        <h6>Skipped Timesheets</h6>
+        <span class="badge badge-primary">
+          {{ skippedTimesheetList.length }} Records
+        </span>
+      </div>
 
-        <tbody>
-          <tr *ngFor="let r of skippedTimesheetList; let j = index">
-            <td>{{ j + 1 }}</td>
-            <td>{{ r.employmentId || '-' }}</td>
-            <td>{{ r.date || '-' }}</td>
-            <td>{{ r.reason || '-' }}</td>
-          </tr>
-        </tbody>
+      <div class="table-responsive">
+        <table class="table enterprise-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Employee ID</th>
+              <th>Date</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
 
-      </table>
+          <tbody>
+            <tr *ngFor="let r of skippedTimesheetList; let j = index">
+              <td>{{ j + 1 }}</td>
+              <td class="fw-bold">{{ r.employmentId || '-' }}</td>
+              <td>{{ r.date || '-' }}</td>
+              <td>
+                <span class="badge badge-danger-soft">
+                  {{ r.reason || '-' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
     </div>
 
-  <div class="modal-footer text-center">
-    <button type="button" class="btn btn-primary" (click)="modal.close()">
-      OK
-    </button>
   </div>
+
+  <!-- FOOTER -->
+  <div class="modal-footer enterprise-footer">
+    <!-- <button class="btn btn-light mr-2" (click)="modal.dismiss()">Close</button> -->
+    <button class="btn btn-primary" (click)="modal.close()">OK</button>
+  </div>
+
 </ng-template>
 
 <ng-template #night_shift_template_revampd let-modal>

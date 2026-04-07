@@ -505,6 +505,7 @@ totalPages: number = 0;
   }
 
   this.expandedTimesheetIndex = null;
+      this.toggleAllRows({ target: { checked: false } });
   this.loaderService.requestStarted();
 
   const payload: any = {
@@ -2804,6 +2805,8 @@ this.skippedTimesheetList = null
             message += `${processed.length} timesheet(s) approved successfully.\n`;
              this.modalMessage = message;
             //  this.modalService.open(this.statusModal, {modalDialogClass: 'ts-alert-modal'});
+          }else{
+            this.modalMessage = "No Valid Timesheet Request Found For Approval."
           }
           if (skipped.length) {
 
@@ -3273,6 +3276,8 @@ this.skippedTimesheetList = null
             message += `${processed.length} timesheet(s) rejected successfully.\n`;
             this.modalMessage = message;
             // this.modalService.open(this.statusModal, { modalDialogClass: 'ts-alert-modal' });
+          }else{
+            this.modalMessage = "No Valid Timesheet Request Found For Rejection."
           }
           if (skipped.length) {
 
@@ -3310,7 +3315,6 @@ this.skippedTimesheetList = null
           // this.onStatusChange(3);
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
-
           this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
           backdrop: 'static'} );
           
@@ -3523,7 +3527,10 @@ executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
           : [];
         if (processed.length) {
             message += `${processed.length} timesheet(s) approved successfully.`;
+            this.modalMessage = message;
           // this.modalService.open(this.statusModal, {modalDialogClass: 'ts-alert-modal'});
+          }else{
+            this.modalMessage = "No Valid Timesheet Request Found For Approval."
           }
           if (skipped.length) {
           this.skippedTimesheetList = skipped
@@ -3611,7 +3618,8 @@ const payload = {timesheetIds: this.selectedTimesheetIds,
                 rejectRemark: this.bulkRejectRemark};
 
 this.loaderService.requestStarted();
-
+this.modalMessage = null;
+  this.skippedTimesheetList = null
 this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this.loaderService.requestEnded())).subscribe({next: (res: any) => {
 
     modal.close();
@@ -3628,6 +3636,8 @@ this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this
       if (processed.length) {
         message += `${processed.length} timesheet(s) rejected successfully.`;
         this.modalMessage = message;
+      }else{
+        this.modalMessage = "No Valid Timesheet Request Found For Rejection."
       }
 
       if (skipped.length) {
@@ -3661,11 +3671,10 @@ this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this
       this.clearAllSelections();
       // this.onStatusChange(3);
       this.page1 = 0;
-
-      this.getMyReporteesTimesheetRequests();
-      this.getTimesheetStatusCountsByEmpId();
       this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
           backdrop: 'static'} );
+      this.getMyReporteesTimesheetRequests();
+      this.getTimesheetStatusCountsByEmpId();
 
     } else {
 

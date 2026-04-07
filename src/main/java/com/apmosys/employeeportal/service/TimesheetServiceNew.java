@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.HashMap;
@@ -3218,7 +3219,7 @@ public class TimesheetServiceNew {
 					(String) obj[0],
 					((String) obj[1]),
 					(String) obj[2]
-			)).toList();
+			)).collect(Collectors.toList());
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse(data);
