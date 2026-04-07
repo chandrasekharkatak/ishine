@@ -417,6 +417,9 @@ public class TimesheetServiceNew {
 				newTimesheet = existing;
 				newTimesheet.setUpdatedBy(empDTO.getCreatedBy());
 				newTimesheet.setUpdatedOn(LocalDateTime.now());
+				DayTypeTransition  transition= timesheetValidationHelper.resolveDayTypeTransition(existing, empDTO);
+				timesheetStructureCleanupService.cleanTimesheetStructure(existing.getTimesheetId(), empDTO.getLocationSessions(),transition);
+				
 			} else {
 				newTimesheet = new EmployeeTimesheetsNew();
 				newTimesheet.setCreatedBy(empDTO.getCreatedBy());
@@ -460,6 +463,7 @@ public class TimesheetServiceNew {
 				newTimesheet.setTotalWorkingMinutes(empDTO.getTotalWorkingMinutes());
 			}
 			newTimesheet.setCreatedBy(empDTO.getCreatedBy());
+			newTimesheet.setIsSystemGenerated(false);
 			EmployeeTimesheetsNew empTS = employeeTimesheetsNewRepository.save(newTimesheet);
 			empDTO.setTimesheetId(empTS.getTimesheetId());
 			
@@ -1167,7 +1171,7 @@ public class TimesheetServiceNew {
 				empTS.setTotalWorkingMinutes(0);
 				empTS.setDescription(newEmpDTO.getDescription());
 			}
-			
+			empTS.setIsSystemGenerated(false);
 			empTS = employeeTimesheetsNewRepository.save(empTS);
 			
 			handleUpdateTimesheet(timesheetId, newEmpDTO);

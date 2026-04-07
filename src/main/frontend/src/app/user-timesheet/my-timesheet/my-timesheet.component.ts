@@ -184,7 +184,8 @@ popupMessage = '';
   isTimesheetLockCheckEnable: any = "true";
   employeeInTNMProject: boolean = false;
   maxMonth: string;
-
+  minMonth: string;
+  setBulkUploadRange : number;
   // Summary metrics for mini dashboard (EOD-style counts)
   // New mini-dashboard summaries (computed from allMyTimesheets for current date range)
   dayTypeSummary = {
@@ -329,6 +330,7 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
   noOtherShadowResourceTemp: TemplateRef<any>;
   noOtherShadowResourceModalRef:NgbModalRef;
 
+  pickerStartDate : Date | null = null;
 
   //latestProjectId = this.activeProjectList
 
@@ -846,19 +848,25 @@ get tooltipCta(): string {
 
   showBulkUploadForm() {
     this.clientSideIdNotMandatory = true;
-    this.isTimesheetForm = false;
-    this.isCreation = false;
+  this.isTimesheetForm = false;
+  this.isCreation = false;
+  this.isTimesheetTable = false;
+  this.isUpdation = false;
+  this.isTimesheetBulkForm = true;
+    this.setBulkUploadRange = 1;
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth(); // 0-indexed
 
-    this.isTimesheetTable = false;
-    this.isUpdation = false;
+  // Max = current month
+  this.maxMonth = `${year}-${String(month + 1).padStart(2, '0')}`;
 
-    this.isTimesheetBulkForm = true;
-    console.log("Bulk Upload Form",this.isTimesheetBulkForm);
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    this.maxMonth = `${year}-${month}`;
-    this.reset();
+  const prevMonthDate = new Date(year, month - this.setBulkUploadRange, 1);
+  const prevYear = prevMonthDate.getFullYear();
+  const prevMonth = String(prevMonthDate.getMonth() + 1).padStart(2, '0');
+  this.minMonth = `${prevYear}-${prevMonth}`;
+  console.log(today, year, month,'<-month', prevMonth , prevYear,prevMonth, this.maxMonth, this.minMonth,'*-*-*-*-*-*-*-*-*-');
+  this.reset();
   }
 
   showViewMyTimesheets() {
@@ -1017,6 +1025,14 @@ get tooltipCta(): string {
 
 
   onMonthYearChange() {
+     if (!this.timesheetObj.monthYear) {
+    this.resetBulkUploadForm('MONTH');
+    return;
+  }
+  
+  const [year, month] = this.timesheetObj.monthYear.split('-').map(Number);
+  this.pickerStartDate = new Date(year, month - 1, 1);
+
   this.resetBulkUploadForm('MONTH');
   this.getMyProjectsInMonthYear();
   }
@@ -1024,6 +1040,7 @@ get tooltipCta(): string {
    getMyProjectsInMonthYear() {
       this.timesheetObj.c
       this.timesheetObj.empId = this.currentUser.empId;
+      console.log("***-*-*-*---*" , this.timesheetObj);
       this.timesheetService.getMyProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.projectsInMonthYear = response.serviceResponse;

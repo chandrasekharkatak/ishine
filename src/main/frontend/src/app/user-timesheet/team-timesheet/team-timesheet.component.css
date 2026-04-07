@@ -2830,7 +2830,7 @@ th {
 
 .timesheet-table th:nth-child(4), /* Name */
 .timesheet-table td:nth-child(4) {
-  width: 150px;
+  width: 200px;
   min-width: 150px;
 }
 
@@ -2842,19 +2842,19 @@ th {
 
 .timesheet-table th:nth-child(6), /* Day Type */
 .timesheet-table td:nth-child(6) {
-  width: 100px;
+  width: 150px;
   min-width: 100px;
 }
 
 .timesheet-table th:nth-child(7), /* Work In */
 .timesheet-table td:nth-child(7) {
-  width: 85px;
+  width: 100px;
   min-width: 85px;
 }
 
 .timesheet-table th:nth-child(8), /* Work Out */
 .timesheet-table td:nth-child(8) {
-  width: 85px;
+  width: 100px;
   min-width: 85px;
 }
 
@@ -2874,7 +2874,7 @@ th {
 
 .timesheet-table th:nth-child(11), /* Applied By */
 .timesheet-table td:nth-child(11) {
-  width: 130px;
+  width: 200px;
   min-width: 130px;
 }
 
@@ -2884,8 +2884,15 @@ th {
   min-width: 120px;
 }
 
-.timesheet-table th:nth-child(13), /* Actions */
+.timesheet-table th:nth-child(13), /* Night Shift */
 .timesheet-table td:nth-child(13) {
+  width: 120px;
+  min-width: 100px;
+  white-space: nowrap;
+}
+
+.timesheet-table th:nth-child(14), /* Actions */
+.timesheet-table td:nth-child(14) {
   width: 150px;
   min-width: 150px;
   white-space: nowrap;
@@ -3573,6 +3580,10 @@ tr[app-column-filter-bar] td:nth-child(12) input {
 
 tr[app-column-filter-bar] th:nth-child(13) input, /* Actions */
 tr[app-column-filter-bar] td:nth-child(13) input {
+  width: 80px;
+}
+tr[app-column-filter-bar] th:nth-child(14) input, /* Actions */
+tr[app-column-filter-bar] td:nth-child(14) input {
   width: 80px;
 }
 
@@ -4778,6 +4789,14 @@ tr[app-column-filter-bar] .clear-filter:hover {
   cursor: grab;
 }
 
+.night-shift-row {
+  background-color: rgba(0, 123, 255, 0.08); /* subtle blue highlight */
+}
+
+.night-shift-row:hover {
+  background-color: rgba(0, 123, 255, 0.15);
+}
+
 
 /* =========================
    Modal Shell
@@ -5267,3 +5286,4 @@ tr[app-column-filter-bar] .clear-filter:hover {
   height: 100%;
   border: none;
 }
+
