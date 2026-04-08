@@ -107,6 +107,9 @@ public class PoSyncOrchestratorService {
 	@Autowired
 	PoDetailsService poDetailsService;
 	
+	@Autowired
+	CronJobService cronJobService;
+	
 	@Value("${exceptiondataReconcile.maildev}")
 	private String exceptionMaildev;
 	
@@ -448,7 +451,16 @@ public class PoSyncOrchestratorService {
 
 		poDetailsService.validateAssociatedPosIntegrity(project.getProjectId(), dto.getAssociatePosAfterRenewal());
 		poDetailsService.updatePoLinksAfterRenewal(project.getProjectId(), dto);
-		teamsService.migrateResourcesAfterRenewal(project.getProjectId(), newPo.getPoId(), dto.getRenewedByEmpId());
+		List<AutoMigrationDTO> autoMigrated =
+		        teamsService.migrateResourcesAfterRenewalDTO(
+		                project.getProjectId(),
+		                newPo.getPoId(),
+		                dto.getRenewedByEmpId()
+		        );
+
+		if (!autoMigrated.isEmpty()) {
+			cronJobService.sendAutoMigrationMail(autoMigrated);
+		}
 		projectService.recalculateProjectDates(project.getProjectId(), true);
 
 		applyRenewPoSuccess(response);
