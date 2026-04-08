@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.HashMap;
@@ -418,7 +419,7 @@ public class TimesheetServiceNew {
 				newTimesheet.setUpdatedBy(empDTO.getCreatedBy());
 				newTimesheet.setUpdatedOn(LocalDateTime.now());
 				DayTypeTransition  transition= timesheetValidationHelper.resolveDayTypeTransition(existing, empDTO);
-				timesheetStructureCleanupService.cleanTimesheetStructure(existing.getTimesheetId(), empDTO.getLocationSessions(),transition);
+				timesheetStructureCleanupService.cleanTimesheetStructure(true,existing.getTimesheetId(), empDTO.getLocationSessions(),transition);
 				
 			} else {
 				newTimesheet = new EmployeeTimesheetsNew();
@@ -1138,7 +1139,7 @@ public class TimesheetServiceNew {
 
 			// Run structure cleanup for all transitions (including WORKING_TO_NON_WORKING:
 			// removes locations/projects when incoming payload has none or fewer)
-			timesheetStructureCleanupService.cleanTimesheetStructure(timesheetId, newEmpDTO.getLocationSessions(),transition);
+			timesheetStructureCleanupService.cleanTimesheetStructure(false,timesheetId, newEmpDTO.getLocationSessions(),transition);
 
 			Long currentUserId = getCurrentUserId();
 			Long updatedBy = currentUserId != null ? currentUserId
@@ -3218,7 +3219,7 @@ public class TimesheetServiceNew {
 					(String) obj[0],
 					((String) obj[1]),
 					(String) obj[2]
-			)).toList();
+			)).collect(Collectors.toList());
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse(data);

@@ -635,6 +635,9 @@
                                 <span *ngIf="project.clientLocation" class="ts-chip ts-chip--grey">
                                   Client Location: {{ project.clientLocation }}
                                 </span>
+                                <span *ngIf="project.shadowEmpId" class="ts-chip ts-chip--grey">
+                                  Shadow For: ({{project.shadowEmployeementId}})-{{ project.shadowName }}
+                                </span>
                                 <span *ngIf="project.clientApprovalStatus" class="ts-chip" title="Client Approval StatusLocation" [class.ts-chip--pending]="project.clientApprovalStatus === 1"
                                   [class.ts-chip--approved]="project.clientApprovalStatus === 2"
                                   [class.ts-chip--rejected]="project.clientApprovalStatus === 3">
@@ -1152,10 +1155,11 @@
 <ng-template #clientSideIdForm>
     <form #clientSideForm="ngForm" novalidate>
          <div class="modal-body text-center position-relative">
-             <div class="info-modal">  <app-info-tooltip class="me-2" style="margin-right: 8px;" pdfPath="assets/pdfFiles/Entering client side id.pdf"
+          <h5>Please provide Client Side ID to continue.</h5>   
+          <div class="info-modal"> 
+              <app-info-tooltip class="me-2" style="margin-right: 8px;" pdfPath="assets/pdfFiles/Entering client side id.pdf"
   pdfCtaText="Client Side ID Entry Guide" iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
             </app-info-tooltip></div>
-            <h5>Please provide Client Side ID to continue.</h5>
 
         </div>
 

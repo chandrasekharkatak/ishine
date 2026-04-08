@@ -23,6 +23,7 @@ public class GetReporteesTimesheetProjectsDTO {
     private String clientLocation;
     private String poNo;
     private String shadowEmp;
+    private String shadowEmployeementId;
     private Integer status;
     private Integer clientApprovalStatus;
     private String totalClientWorkingMinutes;
