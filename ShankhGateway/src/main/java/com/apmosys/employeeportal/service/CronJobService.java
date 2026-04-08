@@ -91,8 +91,10 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
+import com.apmosys.employeeportal.dto.AutoMigrationDTO;
 import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeImpactDTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -7115,5 +7117,141 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	        apiLogInfo.setApiRequest(logBuilder.toString());
 	        logService.logMyInfo(httpRequest, apiLogInfo);
 	    }
+	    
+	    public void sendAutoMigrationMail(List<AutoMigrationDTO> migrations) {
+
+		    AutoMigrationDTO dto = migrations.get(0);
+
+		    String subject = "PO Renewal Auto Resource Onboarding - " + dto.getProjectName();
+
+		    String body = buildAutoMigrationHtml(dto);
+		    
+		    try {
+ mailService.sendMailWithCC("prarthana.lenka@apmosys.com","priyadarshini.singh@apmosys.com",subject, body);
+		    }  catch (Exception e) {
+                e.printStackTrace();
+              
+		    }
+            
+		}
+	    
+	    private String buildAutoMigrationHtml(AutoMigrationDTO dto) {
+
+	        StringBuilder sb = new StringBuilder();
+
+	        sb.append("<!DOCTYPE html>")
+	          .append("<html><head>")
+	          .append("<meta charset='UTF-8'>")
+	          .append("<style>")
+
+	         
+	          .append("body { font-family: 'Segoe UI', sans-serif; background:#faf8fc; color:#4a4a4a; }")
+	          .append(".container { max-width:800px; margin:auto; padding:20px; }")
+
+	         
+	          .append(".header { background: linear-gradient(135deg,#e6d9f3,#f9e4ec); padding:25px; border-radius:12px; text-align:center; }")
+	          .append(".header h2 { margin:0; color:#5a3d6d; }")
+	          .append(".sub { color:#7b6a8d; font-size:14px; margin-top:5px; }")
+
+	         
+	          .append(".info { background:#f3edf9; padding:15px; border-radius:10px; margin-top:20px; }")
+
+	         
+	          .append(".section-title { margin-top:25px; font-size:18px; color:#6b4c7a; font-weight:600; }")
+
+	        
+	          .append(".card { background:#ffffff; border-left:5px solid #d9c9e8; padding:15px; margin-top:15px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05);} ")
+
+	          .append(".name { font-weight:600; color:#4a3b5c; font-size:15px; }")
+	          .append(".label { color:#8b7a9d; font-size:12px; }")
+	          .append(".value { margin-bottom:6px; }")
+
+	         
+	          .append(".move { background:#f9f6fc; padding:10px; border-radius:6px; margin-top:8px; }")
+
+	       
+	          .append(".footer { margin-top:30px; font-size:12px; color:#8b7a9d; text-align:center; }")
+
+	          .append("</style></head><body>");
+
+	        sb.append("<div class='container'>");
+
+	      
+	        sb.append("<div class='header'>")
+	          .append("<h2> PO Renewal - Automatic Resource Onboarding</h2>")
+	          .append("<div class='sub'>Ensuring smooth project continuity</div>")
+	          .append("</div>");
+
+	    
+	        sb.append("<div class='info'>")
+	          .append("<div><b>Project:</b> ").append(dto.getProjectName()).append("</div>")
+	          .append("<div><b>Project Type:</b> ").append(dto.getProjectType()).append("</div>")
+	          .append("<div><b>PO Movement:</b> ")
+	          .append(dto.getPreviousPoNumber())
+	          .append(" ➝ ")
+	          .append(dto.getCurrentPoNumber())
+	          .append("</div>")
+	          .append("</div>");
+
+	      
+	        sb.append("<div class='section-title'>What does this mean?</div>");
+
+	        if ("TNM".equalsIgnoreCase(dto.getProjectType())) {
+	            sb.append("<div class='info'>")
+	              .append("The previous PO has expired. To ensure work continues smoothly, ")
+	              .append("employees with matching roles have been automatically moved to the renewed PO. ")
+	              .append("This avoids any disruption in ongoing project activities.")
+	              .append("</div>");
+	        } else {
+	            sb.append("<div class='info'>")
+	              .append("The previous PO has expired. To maintain uninterrupted monitoring operations, ")
+	              .append("all active employees have been automatically moved to the renewed PO.")
+	              .append("</div>");
+	        }
+
+	      
+	        sb.append("<div class='section-title'> Auto Onboarded Resources</div>");
+
+	        for (EmployeeImpactDTO emp : dto.getEmployees()) {
+
+	            sb.append("<div class='card'>");
+
+	            sb.append("<div class='name'>").append(emp.getEmployeeName()).append("</div>");
+
+	            sb.append("<div class='value'><span class='label'>Role:</span> ")
+	              .append(emp.getRoleName()).append("</div>");
+
+	            sb.append("<div class='move'>");
+
+	            sb.append("<div class='value'><span class='label'>PO Movement:</span><br>")
+	              .append(emp.getPreviousPoNumber())
+	              .append(" ➝ ")
+	              .append(emp.getCurrentPoNumber())
+	              .append("</div>");
+
+	            sb.append("<div class='value'><span class='label'>Team Movement:</span><br>")
+	              .append(emp.getPreviousTeamName())
+	              .append(" ➝ ")
+	              .append(emp.getNewTeamName())
+	              .append("</div>");
+
+	            sb.append("</div>");
+
+	            sb.append("<div class='value'><span class='label'>Reason:</span> ")
+	              .append(emp.getReason()).append("</div>");
+
+	            sb.append("</div>");
+	        }
+
+	       
+	        sb.append("<div class='footer'>")
+	          .append("This is an automated notification generated during PO renewal.<br>")
+	          .append("</div>");
+
+	        sb.append("</div></body></html>");
+
+	        return sb.toString();
+	    }
+
 
 }	

@@ -1451,5 +1451,22 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "AND e.endDate IS NULL\n"
 			+ "AND FUNCTION('DATE', e.startDate) > CURRENT_DATE ")
 	void deleteScheduledEmployeesByTeamIds(List<Long> teamIds);
+	
+	
+	@Query(value ="SELECT etm FROM EmployeeTeamMap etm\n"
+			+ "WHERE etm.poId = :previousPoId\n"
+			+ "AND (\n"
+			+ "        etm.active != 0\n"
+			+ "     OR (\n"
+			+ "            etm.active = 0\n"
+			+ "        AND etm.endDate IS NULL\n"
+			+ "        AND etm.startDate IS NOT NULL\n"
+			+ "        AND FUNCTION('DATE', etm.startDate) > CURRENT_DATE\n"
+			+ "     )\n"
+			+ ")")
+	List<EmployeeTeamMap> findActiveEmployeesByPoId(Long previousPoId);
+
+	
+	
 
 }
