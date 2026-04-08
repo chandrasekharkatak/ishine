@@ -2096,7 +2096,7 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
             if ("APPROVED".equals(status) && Boolean.TRUE.equals(ts.getIsWorkingDay())) {
 
             // Check: client-side project but no docs
-            if (isMissingClientSideDocs(projectIds, docs, projectClientSideMap)) {
+            if (isMissingClientSideDocs(ts.getTimesheetId(),projectIds, docs, projectClientSideMap)) {
                 skippedTimesheets.add(new SkippedTimesheetDTO(
                         ts.getTimesheetId(),
                         formattedEmpId,
@@ -2227,7 +2227,6 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
     return response;
 
 }
-
 /**
  * Client approval gate for working days: uses only DB-loaded document rows (not request.documentDetails).
  *
@@ -2252,6 +2251,7 @@ private boolean isClientApprovalBlockedByDbDocuments(List<TimesheetDocumentDetai
     });
 }
 private boolean isMissingClientSideDocs(
+		Long timesheetId,
         List<Long> projectIds,
         List<TimesheetDocumentDetailsNew> docs,
         Map<Long, Integer> projectClientSideMap) {
@@ -2269,18 +2269,29 @@ private boolean isMissingClientSideDocs(
                   .collect(Collectors.toSet());
 
     for (Long projectId : projectIds) {
-    	List<ProjectTimesheetStatusNew> shadowForSelf = projectTimesheetStatusNewRepository.findShadowForSelf(projectId.intValue());
+    	//shoulSkipForShadow
         Integer hasClientSide = projectClientSideMap.get(projectId);
         
-        if (hasClientSide != null && hasClientSide == 1 && shadowForSelf.isEmpty()) {
-
-            if (!docProjectIds.contains(projectId)) {
+        if (hasClientSide != null && hasClientSide == 1 && !shoulSkipForShadow(timesheetId,projectId.intValue())) {
+           if (!docProjectIds.contains(projectId)) {
                 return true; //  missing doc
             }
         }
     }
 
     return false;
+}
+private boolean shoulSkipForShadow(Long timesheetId,Integer projectId){
+	boolean skip=false;
+	/*skip doc validation if shadow for self or shadow timesheet and client approval status is null*/
+	List<ProjectTimesheetStatusNew> projList=projectTimesheetStatusNewRepository.findByProjectIdAndTimesheetId(projectId,timesheetId);
+	ProjectTimesheetStatusNew proj=projList.get(0);
+	if(proj.getShadowEmpId()!=null && proj.getClientApprovalStatus()==null) {
+		skip=true;
+	}
+	return skip;
+
+	
 }
 private void validateSingleRejectMappings(List<Long> timesheetIds, List<ProjectRejectionDTO> projectRejections) {
     Set<String> requiredPairs = new HashSet<>();

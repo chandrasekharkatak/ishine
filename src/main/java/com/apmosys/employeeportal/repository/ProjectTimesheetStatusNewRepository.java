@@ -175,5 +175,13 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
         
         @Query("SELECT p FROM ProjectTimesheetStatusNew p WHERE p.shadowEmpId = p.createdBy and p.id.projectId = :projectId")
         List<ProjectTimesheetStatusNew> findShadowForSelf(@Param("projectId") Integer projectId);
+        @Query(
+                "SELECT p FROM ProjectTimesheetStatusNew p \n" +
+                "WHERE p.id.timesheetId = :timesheetId \n" +
+                "AND p.id.projectId = :projectId"
+        )
+         List<ProjectTimesheetStatusNew> findByProjectIdAndTimesheetId(Integer projectId,Long timesheetId);
+        
+        
 }
 

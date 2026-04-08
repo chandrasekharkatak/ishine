@@ -639,9 +639,9 @@ export class TimesheetValidationService {
 
     for (const project of context.uniqueProjectsList) {
       // Skip when Shadow for self (client approval status and documents not required)
-      if (project.isShadowForSelf) continue;
+      if (project.isShadowForSelf && project.clientApprovalStatus !== 1 && project.clientApprovalStatus !== 2) continue;
       // Only validate for approved (2) or pending (1) projects
-      if (project.clientApprovalStatus !== 1 && project.clientApprovalStatus !== 2) {
+      if (project.isShadowTimesheet && project.clientApprovalStatus !== 1 && project.clientApprovalStatus !== 2) {
         continue;
       }
 
