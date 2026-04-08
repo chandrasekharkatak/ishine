@@ -4254,12 +4254,12 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
           if (response.serviceStatus === "Success") {
             
             // After successful create, refresh disabled dates so just-filled date becomes non-selectable
-            if (targetEmpId) {
-              this.getAllAvailableTimesheetByEmpId({ empId: targetEmpId } as User);
-            }
-            this.appelectMember = null;
+            // if (targetEmpId) {
+            //   this.getAllAvailableTimesheetByEmpId({ empId: targetEmpId } as User);
+            // }
+            // this.appelectMember = null;
             this.resetForm();
-            this.onTimesheetAppliedForChange();
+            // this.onTimesheetAppliedForChange();
             setTimeout(() => {
               this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
             });
