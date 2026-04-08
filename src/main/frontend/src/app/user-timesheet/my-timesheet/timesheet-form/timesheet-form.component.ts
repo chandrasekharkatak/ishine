@@ -2691,7 +2691,9 @@ this.isNightShift = false;
               loc.projects.forEach(proj => {
                 if (proj === project) {
                   if (proj.activities && Array.isArray(proj.activities)) {
+                    console.log("Project activities, before:", proj.activities);
                     proj.activities.forEach(activity => {
+                      if(teamId == activity.teamId){
                       activity.allActivitiesForProject = allActivityList;
                       // Ensure activityId matches type after list loads (for Angular binding)
                       if (activity.activityId != null && allActivityList.length > 0) {
@@ -2709,6 +2711,7 @@ this.isNightShift = false;
                       } else if (activity.activityId != null) {
                         console.warn(`[loadActivitiesForProject] activityId ${activity.activityId} set but allActivitiesForProject is empty for project ${project.projectId}, team ${teamId}`);
                       }
+                    }
                     });
                   }
                 }
@@ -4254,12 +4257,12 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
           if (response.serviceStatus === "Success") {
             
             // After successful create, refresh disabled dates so just-filled date becomes non-selectable
-            if (targetEmpId) {
-              this.getAllAvailableTimesheetByEmpId({ empId: targetEmpId } as User);
-            }
-            this.appelectMember = null;
+            // if (targetEmpId) {
+            //   this.getAllAvailableTimesheetByEmpId({ empId: targetEmpId } as User);
+            // }
+            // this.appelectMember = null;
             this.resetForm();
-            this.onTimesheetAppliedForChange();
+            // this.onTimesheetAppliedForChange();
             setTimeout(() => {
               this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
             });
@@ -4370,6 +4373,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
    * @param timesheetData - Timesheet data from server
    */
   populateFormFromTimesheetData(timesheetData: EmployeeTimesheetDTO): void {
+    console.log("Populate Form From timesheet data called");
     if (!timesheetData) {
       this.openAlertMod(
         this.alertTemplate,

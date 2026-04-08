@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.FetchActivityDTO;
 import com.apmosys.employeeportal.model.EmployeeTimesheetActivitiesMappingNew;
 
 public interface TimesheetActivityMapNewRepository extends JpaRepository<EmployeeTimesheetActivitiesMappingNew,Long>  {
@@ -159,5 +160,34 @@ public interface TimesheetActivityMapNewRepository extends JpaRepository<Employe
 		
 		@Query(nativeQuery = true)
 		public List<Object[]> activitiesByTimesheetId(Long timesheetId);
+
+
+		// @Query("SELECT a FROM EmployeeTimesheetActivitiesMappingNew etam \n" 
+		// +  " left join Activity a on etam.activityId = a.activityId WHERE a.timesheetId = :timesheetId AND a.locationMappingId = :locationMappingId AND a.projectId = :projectId")
+		// List<EmployeeTimesheetActivitiesMappingNew> findByTimesheetIdAndLocationMappingIdAndProjectIdWithBuiltDTOStructure(
+		// 		@Param("timesheetId") Long timesheetId,
+		// 		@Param("locationMappingId") Long locationMappingId,
+		// 		@Param("projectId") Integer projectId);
+
+
+		@Query("SELECT new com.apmosys.employeeportal.dto.FetchActivityDTO(" +
+       "etam.id, " +
+       "etam.timesheetId, " +
+       "etam.activityId, " +
+       "etam.projectId, " +
+       "etam.locationMappingId, " +
+       "etam.description, " +
+       "etam.durationMinutes, " +
+       "a.teamId) " +
+       "FROM EmployeeTimesheetActivitiesMappingNew etam " +
+       "LEFT JOIN Activity a ON etam.activityId = a.activityId " +
+       "WHERE etam.timesheetId = :timesheetId " +
+       "AND etam.locationMappingId = :locationMappingId " +
+       "AND etam.projectId = :projectId")
+		List<FetchActivityDTO>
+		findByTimesheetIdAndLocationMappingIdAndProjectIdWithDTO(
+        @Param("timesheetId") Long timesheetId,
+        @Param("locationMappingId") Long locationMappingId,
+        @Param("projectId") Integer projectId);
 
 }

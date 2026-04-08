@@ -1562,7 +1562,7 @@ public class TimesheetServiceNew {
 
 				// 5️ Fetch activities for this project under THIS location only (by locationMappingId)
 				List<ActivityTimesheetDTO> activities = activityTimesheetService
-						.findByTimesheetIdAndLocationMappingIdAndProjectId(timesheetId, locationMappingId,
+						.findByTimesheetIdAndLocationMappingIdAndProjectId2(timesheetId, locationMappingId,
 								projectDTO.getProjectId());
 
 				projectDTO.setActivities(activities);
