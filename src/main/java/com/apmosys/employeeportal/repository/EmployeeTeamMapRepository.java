@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
+import com.apmosys.employeeportal.dto.ProjectEmployeeTeamReportDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -607,6 +608,23 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ "FROM EmployeeTeamMap etm \n"
 				+ "WHERE etm.empId=:empId AND etm.active!=0")
 		List<EmployeeTeamMap> findByEmpIdAndActiveStatus(Long empId);
-		
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectEmployeeTeamReportDTO("
+			+ "p.projectId, p.projectName, d.deptId, d.name, e.employeementId, e.name, etm.startDate, etm.endDate, etm.resourceOverviewId, etm.isShadow) "
+			+ "FROM EmployeeTeamMap etm "
+			+ "INNER JOIN Team t ON t.teamId = etm.teamId "
+			+ "INNER JOIN Project p ON p.projectId = t.projectId "
+			+ "INNER JOIN Employee e ON e.empId = etm.empId "
+			+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId "
+			+ "INNER JOIN Department d ON d.deptId = jr.deptId "
+			+ "WHERE p.projectName IN :projectNames "
+			+ "AND e.empId NOT BETWEEN 1 AND 6 "
+			+ "AND etm.startDate <= :rangeEnd "
+			+ "AND (etm.endDate IS NULL OR etm.endDate >= :rangeStart) "
+			+ "ORDER BY p.projectId, e.name")
+	List<ProjectEmployeeTeamReportDTO> findEmployeesInProjectsByProjectNames(
+			@Param("projectNames") List<String> projectNames,
+			@Param("rangeStart") LocalDateTime rangeStart,
+			@Param("rangeEnd") LocalDateTime rangeEnd);
 
 	}
