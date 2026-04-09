@@ -188,7 +188,7 @@ public class LeaveApplicationValidator {
             return;
         }
         if (dto.getNoOfDays() > clLeaveDays) {
-            throw new LeaveApplicationException("Casual Leave Can't take more than " + clLeaveDays + " days");
+            throw new LeaveApplicationException("Casual leave cannot be taken for more than" + clLeaveDays + " days");
         }
         YearMonth appliedMonth = YearMonth.from(LocalDate.parse(dto.getFromDate()));
         List<EmployeeLeave> clLeavesThisMonth = employeeLeaveRepository.findByEmpIdAndLeaveTypeAndMonth(
@@ -202,6 +202,34 @@ public class LeaveApplicationValidator {
                                 && (leave.getLeaveStatusId() == 1 || leave.getLeaveStatusId() == 2))
                 .mapToDouble(EmployeeLeave::getNoOfDays)
                 .sum();
+        if (totalCLDaysThisMonth + dto.getNoOfDays() > 2.0) {
+            throw new LeaveApplicationException(
+                    "Casual Leave cannot exceed 2 days in a month. Already applied: "
+                            + totalCLDaysThisMonth + " days.");
+        }
+    }
+    public void validateCasualLeaveRulesForUpdate(LeaveDTO dto) {
+        if (!"Casual Leave".equalsIgnoreCase(dto.getLeaveType())) {
+            return;
+        } 
+        if (dto.getNoOfDays() > clLeaveDays) {
+            throw new LeaveApplicationException("Casual leave cannot be taken for more than " + clLeaveDays + " days");
+        }
+        YearMonth appliedMonth = YearMonth.from(LocalDate.parse(dto.getFromDate()));
+        List<EmployeeLeave> clLeavesThisMonth = employeeLeaveRepository.findByEmpIdAndLeaveTypeAndMonth(
+                dto.getEmpId(),
+                dto.getLeaveTypeMasterId(),
+                appliedMonth.getYear(),
+                appliedMonth.getMonthValue());
+        double totalCLDaysThisMonth = clLeavesThisMonth.stream()
+        .filter(leave ->
+                leave.getLeaveStatusId() != null
+                        && (leave.getLeaveStatusId() == 1 || leave.getLeaveStatusId() == 2)
+                        // 👇 Exclude current leave being updated
+                        && (dto.getLeaveId() == null || !leave.getLeaveId().equals(dto.getLeaveId()))
+        )
+        .mapToDouble(EmployeeLeave::getNoOfDays)
+        .sum();
         if (totalCLDaysThisMonth + dto.getNoOfDays() > 2.0) {
             throw new LeaveApplicationException(
                     "Casual Leave cannot exceed 2 days in a month. Already applied: "

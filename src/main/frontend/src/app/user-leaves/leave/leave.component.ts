@@ -631,6 +631,7 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.toDateDayType = '';
     this.leaveObj.noOfDays = '';
     this.leaveObj.reason = '';
+    this.overLappingTeamMemberList = [];
   }
 
   setLeaveTypeCode(leaveTypeMasterId: any) {
@@ -1337,18 +1338,45 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
       }
       this.leaveObj.state = this.currentUser.workLocation;
       //console.log("leaveObj  ",this.leaveObj);
-      this.leaveService.applyLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.openAlertMod(template, response.serviceResponse);
-          if (this.leaveObj.leaveAppliedFor == 'self') {
-            this.showSelfLeaveHistoryTable();
-          } else {
-            this.showTeamLeaveHistoryTable();
-          }
+      this.leaveService.applyLeave(this.leaveObj)
+  .pipe(first())
+  .subscribe({
+    next: (response: any) => {
+      console.log("API SUCCESS RESPONSE:", response);
+
+      const message = response?.serviceResponse || "Operation completed";
+
+      if (response?.serviceStatus === "Success") {
+        this.openAlertMod(template, message);
+
+        if (this.leaveObj.leaveAppliedFor === 'self') {
+          this.showSelfLeaveHistoryTable();
         } else {
-          this.openAlertMod(template, response.serviceResponse);
+          this.showTeamLeaveHistoryTable();
         }
-      });
+
+      } else {
+        this.openAlertMod(template, message);
+      }
+    },
+
+    error: (error) => {
+      console.error("API ERROR RESPONSE:", error);
+
+      let errorMessage = "Something went wrong";
+
+      if (error?.error) {
+        errorMessage =
+          error.error.serviceResponse ||
+          error.error.message ||
+          error.message ||
+          errorMessage;
+      }
+
+      //  ALWAYS show modal even on error
+      this.openAlertMod(template, errorMessage);
+    }
+  });
     });
   }
 
@@ -1483,17 +1511,31 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
 
 
     this.leaveService.updatePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        if (this.leaveObj.leaveAppliedFor == 'self') {
-          this.showSelfLeaveHistoryTable();
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template, response.serviceResponse);
+          if (this.leaveObj.leaveAppliedFor == 'self') {
+            this.showSelfLeaveHistoryTable();
+          } else {
+            this.showTeamLeaveHistoryTable();
+          }
         } else {
-          this.showTeamLeaveHistoryTable();
+          this.openAlertMod(template, response.serviceResponse);
         }
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
+      },
+      (error) => {
+        console.error("Error occurred:", error);
+
+        let errorMessage = "Something went wrong. Please try again.";
+
+        if (error?.error?.serviceResponse) {
+          errorMessage = error.error.serviceResponse;
+        } else if (error?.message) {
+          errorMessage = error.message;
+        }
+
+        this.openAlertMod(template, errorMessage);
       }
-    });
+    );
   }
 
   getOverlappedTeamMemberLeave(overLapLeaveTemplate?: TemplateRef<any>) {
@@ -1575,6 +1617,7 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
 
     // this.getAllLeaveTypesByLeavePolicies(userObj);
     this.getAllMyLeaveApplicationsByEmpId(userObj);
+    this.getAllLeaveTypesByLeavePolicies(userObj)
   }
 
   getAllTeamMemberList() {
@@ -1706,9 +1749,10 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
     const today = new Date();
     if (this.leaveHistoryDateRangeType === 'currentYear') {
       const yearStart = new Date(today.getFullYear(), 0, 1);
+      const yearEnd = new Date(today.getFullYear(), 11, 31);
       return {
         start: moment(yearStart).startOf('day'),
-        end: moment(today).endOf('day')
+        end: moment(yearEnd).endOf('day')
       };
     }
     if (this.leaveHistoryDateRangeType === 'currentMonth') {

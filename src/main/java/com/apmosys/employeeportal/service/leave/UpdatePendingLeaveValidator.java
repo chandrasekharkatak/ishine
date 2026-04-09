@@ -30,6 +30,9 @@ public class UpdatePendingLeaveValidator {
     private EmployeeLeaveRepository employeeLeaveRepository;
 
     @Autowired
+    private LeaveApplicationValidator leaveApplicationValidator;
+
+    @Autowired
     private LeaveTypeMasterRepository leaveTypeMasterRepository;
 
     @Autowired
@@ -66,7 +69,7 @@ public class UpdatePendingLeaveValidator {
 
         int difference = computeDifference(leaveDTO, leaveToBeUpdated);
         validateCompOffAndBalance(leaveDTO, leaveType, employeeLeavesMap, difference);
-
+        leaveApplicationValidator.validateCasualLeaveRulesForUpdate(leaveDTO);
         return new UpdatePendingLeaveValidationResult(
                 leaveToBeUpdated,
                 leaveType,

@@ -23,11 +23,11 @@
                         <div class="form-group">
                             <label class="d-block info-label"><span class="text-danger">*</span>Leave Application For</label>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="leaveFor" id="forSelf" value="self" [(ngModel)]="leaveObj.leaveAppliedFor" [disabled]="isUpdation" (change)="getAllTeamMemberList();getLeaveMetadata()">
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forSelf" value="self" [(ngModel)]="leaveObj.leaveAppliedFor" [disabled]="isUpdation" (change)="getAllTeamMemberList();getLeaveMetadata();resetLeaveObj()">
                                 <label class="form-check-label" for="forSelf">Self</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="leaveFor" id="forTeamMember" value="team" [(ngModel)]="leaveObj.leaveAppliedFor" [disabled]="isUpdation" (change)="getAllTeamMemberList()">
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forTeamMember" value="team" [(ngModel)]="leaveObj.leaveAppliedFor" [disabled]="isUpdation" (change)="getAllTeamMemberList();resetLeaveObj()">
                                 <label class="form-check-label" for="forTeamMember">Team member</label>
                             </div>
                         </div>
@@ -169,7 +169,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label">No.of Days</label>
-                            <input type="text" class="form-control" [disabled]="isUpdation" autocomplete="none" disabled [(ngModel)]="leaveObj.noOfDays">
+                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="leaveObj.noOfDays">
                         </div>
                     </div>
                 </div>
@@ -239,9 +239,10 @@
                     <div class="col-md-2">
                         <div class="form-group mb-0">
                             <label class="info-label"><span class="text-danger">*</span>Start date</label>
-                            <input [max]="leaveHistoryTodayMax" id="leaveHistoryStartDate" type="date"
+                            <input  id="leaveHistoryStartDate" type="date"
                                 OnClick="this.showPicker()" class="form-control form-control-sm" autocomplete="none"
                                 [(ngModel)]="leaveHistoryFilterStartDate"
+                                [max]="leaveHistoryFilterEndDate || null"
                                 (change)="applyLeaveHistoryDateRangeFilterAndRender()"
                                 (keydown)="disableMannualDateInput()">
                         </div>
@@ -249,9 +250,10 @@
                     <div class="col-md-2">
                         <div class="form-group mb-0">
                             <label class="info-label"><span class="text-danger">*</span>End date</label>
-                            <input id="leaveHistoryEndDate" [max]="leaveHistoryTodayMax" type="date"
+                            <input id="leaveHistoryEndDate"  type="date"
                                 OnClick="this.showPicker()" class="form-control form-control-sm" autocomplete="none"
                                 [(ngModel)]="leaveHistoryFilterEndDate"
+                                [min]="leaveHistoryFilterStartDate || null"
                                 (change)="applyLeaveHistoryDateRangeFilterAndRender()"
                                 (keydown)="disableMannualDateInput()">
                         </div>
