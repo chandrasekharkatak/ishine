@@ -107,7 +107,7 @@ export class AttendanceReconciliationComponent implements OnInit {
   startformattedDate: string;
   endformattedDate: string;
   maxTodayDate: any;
-  AttendancereConciliation: any[] = ['employeeCode', 'employeeName', 'logDate', 'inTime', 'outTime', 'totalDuration', 'departmentName', 'reportingManagerName'];
+  AttendancereConciliation: any[] = ['employeeCode', 'employeeName', 'inTime', 'outTime', 'totalDuration', 'logDate', 'departmentName', 'reportingManagerName'];
   timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
 
   filters: any = {};
@@ -154,10 +154,10 @@ export class AttendanceReconciliationComponent implements OnInit {
     list.forEach((employee) => {
       employee.emp360 = employee.empId;
       employee.employeementId = String(employee.employeeCode);
-      if (employee.employeementId.startsWith('A')) {
-        employee.employeementId = employee.employeementId.substring(1);
-      }
-      employee.employeementId = 'A-'.concat(employee.employeementId);
+      // if (employee.employeementId.startsWith('A')) {
+      //   employee.employeementId = employee.employeementId.substring(1);
+      // }
+      // employee.employeementId = 'A-'.concat(employee.employeementId);
     });
   }
 

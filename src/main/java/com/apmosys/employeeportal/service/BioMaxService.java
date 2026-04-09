@@ -986,88 +986,109 @@ public class BioMaxService {
 			return bioMaxTOList;
 		}
 		
-		// Extract numeric part from each employee code and also keep original for mapping
-		List<String> allEmployeeIds = bioMaxTOList.stream()
-			.map(e -> {
-				String empCode = e.getEmployeeCode();
-				// Extract numeric part (remove A, AP, CS, A-, AP-, etc.)
-				String numericPart = empCode.replaceAll("[^0-9]", "");
-				return numericPart;
-			})
-			.filter(num -> !num.isEmpty()) // Remove empty strings
+		// Extract prefixed codes, ignore numeric-only ones, and remove hyphens (e.g., AP-2134 -> AP2134)
+		List<String> biometricCodes = bioMaxTOList.stream()
+			.map(BioMaTO::getEmployeeCode)
+			.filter(code -> code != null && !code.matches("^[0-9]+$"))
+			.map(code -> code.replace("-", ""))
+			.distinct()
 			.collect(Collectors.toList());
 		
-		// Also create a map of original code to numeric part for later mapping
-		Map<String, String> codeToNumericMap = bioMaxTOList.stream()
+		// Map of original biometric code to its cleaned version for later lookup
+		Map<String, String> rawToCleanedCodeMap = bioMaxTOList.stream()
+			.filter(e -> e.getEmployeeCode() != null && !e.getEmployeeCode().matches("^[0-9]+$"))
 			.collect(Collectors.toMap(
 				BioMaTO::getEmployeeCode,
-				e -> e.getEmployeeCode().replaceAll("[^0-9]", ""),
+				e -> e.getEmployeeCode().replace("-", ""),
 				(existing, replacement) -> existing
 			));
 		
 		// Extract filter parameters
 		String employeeName = searchParams != null ? searchParams.get("employeeName") : null;
-		String employeeCode = searchParams != null ? searchParams.get("employeeCode") : null;
+		String employeeCodeInput = searchParams != null ? searchParams.get("employeeCode") : null;
 		String departmentName = searchParams != null ? searchParams.get("departmentName") : null;
 		String managerName = searchParams != null ? searchParams.get("reportingManagerName") : null;
 		
-		// Query with filters applied - but we need to search by employeement_id (numeric)
+		// Query with filters applied using the cleaned prefixed codes 
 		List<Object[]> employees = employeeRepository.findByPrefixedEmployeementIdInWithFilters(
-			allEmployeeIds,
+			biometricCodes,
 			(employeeName != null && !employeeName.trim().isEmpty()) ? employeeName : null,
-			(employeeCode != null && !employeeCode.trim().isEmpty()) ? employeeCode : null,
+			(employeeCodeInput != null && !employeeCodeInput.trim().isEmpty()) ? employeeCodeInput : null,
 			(departmentName != null && !departmentName.trim().isEmpty()) ? departmentName : null,
 			(managerName != null && !managerName.trim().isEmpty()) ? managerName : null
 		);
 		
 		Map<String, Map<String, String>> employeeMap = new HashMap<>();
 		
-		for (Object[] employee : employees) {
-			// Assuming the query returns: emp_id, name, reporting_manager_name, department_name, prefixed_id, employeement_id
-			Long employeementId = employee[5] != null ? ((Number) employee[5]).longValue() : null;
-			
-			if (employeementId == null) {
-				continue;
-			}
-			
-			String employeementIdStr = String.valueOf(employeementId);
-			
+		for (Object[] row : employees) {
 			Map<String, String> employeeDetails = new HashMap<>();
 			
-			String empName = employee[1] != null ? employee[1].toString() : "N/A";
-			String reportingManager = employee[2] != null ? employee[2].toString() : "N/A";
-			String deptName = employee[3] != null ? employee[3].toString() : "N/A";
-			String prefixedId = employee[4] != null ? employee[4].toString() : null;
+			String empName = row[1] != null ? row[1].toString() : "N/A";
+			String reportingManager = row[2] != null ? row[2].toString() : "N/A";
+			String deptName = row[3] != null ? row[3].toString() : "N/A";
+			String prefixedId = row[4] != null ? row[4].toString() : null; // MySQL returns with hyphen
 			
 			employeeDetails.put("reportingManager", reportingManager);
 			employeeDetails.put("employeeName", empName);
 			employeeDetails.put("departmentName", deptName);
 			if (prefixedId != null) {
 				employeeDetails.put("employeeCode", prefixedId);
+				// Cleaned version for key (e.g., AP-2134 -> AP2134)
+				employeeMap.put(prefixedId.replace("-", ""), employeeDetails);
 			}
-			
-			// Store by numeric employeement ID
-			employeeMap.put(employeementIdStr, employeeDetails);
 		}
 		
-		// Filter the bioMaxTOList based on which employees exist in the filtered results
+		// Filter and map details
 		List<BioMaTO> filteredList = new ArrayList<>();
 		for (BioMaTO bioMaTO : bioMaxTOList) {
-			String originalCode = bioMaTO.getEmployeeCode();
-			String numericId = codeToNumericMap.get(originalCode);
+			String rawCode = bioMaTO.getEmployeeCode();
+			String cleanedCode = rawToCleanedCodeMap.get(rawCode);
 			
-			Map<String, String> employeeDetails = employeeMap.get(numericId);
-			
-			if (employeeDetails != null) {
-				bioMaTO.setReportingManagerName(employeeDetails.get("reportingManager"));
-				bioMaTO.setEmployeeName(employeeDetails.get("employeeName"));
-				bioMaTO.setDepartmentName(employeeDetails.get("departmentName"));
-				if (employeeDetails.containsKey("employeeCode")) {
-					bioMaTO.setEmployeeCode(employeeDetails.get("employeeCode"));
+			if (cleanedCode != null) {
+				Map<String, String> employeeDetails = employeeMap.get(cleanedCode);
+				if (employeeDetails != null) {
+					// Map employee info from MySQL
+					bioMaTO.setReportingManagerName(employeeDetails.get("reportingManager"));
+					bioMaTO.setEmployeeName(employeeDetails.get("employeeName"));
+					bioMaTO.setDepartmentName(employeeDetails.get("departmentName"));
+					if (employeeDetails.containsKey("employeeCode")) {
+						bioMaTO.setEmployeeCode(employeeDetails.get("employeeCode"));
+					}
+					
+					// Apply strict search filters in Java to ensure accuracy
+					boolean matchesFilters = true;
+					if (searchParams != null && !searchParams.isEmpty()) {
+						for (Map.Entry<String, String> entry : searchParams.entrySet()) {
+							String field = entry.getKey();
+							String value = entry.getValue();
+							if (value != null && !value.trim().isEmpty()) {
+								String searchVal = value.toLowerCase();
+								switch (field) {
+									case "employeeName":
+										if (bioMaTO.getEmployeeName() == null || !bioMaTO.getEmployeeName().toLowerCase().contains(searchVal)) matchesFilters = false;
+										break;
+									case "inTime":
+										if (bioMaTO.getInTime() == null || !bioMaTO.getInTime().toLowerCase().contains(searchVal)) matchesFilters = false;
+										break;
+									case "outTime":
+										if (bioMaTO.getOutTime() == null || !bioMaTO.getOutTime().toLowerCase().contains(searchVal)) matchesFilters = false;
+										break;
+									case "totalDuration":
+										if (bioMaTO.getTotalDuration() == null || !bioMaTO.getTotalDuration().toLowerCase().contains(searchVal)) matchesFilters = false;
+										break;
+									case "logDate":
+										if (bioMaTO.getLogDate() == null || !bioMaTO.getLogDate().contains(value)) matchesFilters = false;
+										break;
+								}
+							}
+							if (!matchesFilters) break;
+						}
+					}
+					
+					if (matchesFilters) {
+						filteredList.add(bioMaTO);
+					}
 				}
-				filteredList.add(bioMaTO);
-			} else {
-				// This employee doesn't match the filters, so skip adding to filteredList
 			}
 		}
 		
@@ -1180,21 +1201,32 @@ public class BioMaxService {
 				if (numericCodeSearch.isEmpty()) numericCodeSearch = null;
 			}
 			
-			// Get raw numeric employee IDs based on search criteria
-			List<String> rawIds = employeeRepository.findRawEmployeementIdsBySearchCriteria(
+			// Get data based on search criteria
+			List<Object[]> rawData = employeeRepository.findRawEmployeementIdsBySearchCriteria(
 				(employeeName != null && !employeeName.trim().isEmpty()) ? employeeName : null,
-				numericCodeSearch,
+				(employeeCodeInput != null && !employeeCodeInput.trim().isEmpty()) ? employeeCodeInput : null,
 				(departmentName != null && !departmentName.trim().isEmpty()) ? departmentName : null,
 				(reportingManagerName != null && !reportingManagerName.trim().isEmpty()) ? reportingManagerName : null
 			);
 			
-			for (String rawId : rawIds) {
-				employeeCodes.add("A-" + rawId);
-				employeeCodes.add("AP-" + rawId);
-				employeeCodes.add("CS-" + rawId);
-				employeeCodes.add("A" + rawId);
-				employeeCodes.add("AP" + rawId);
-				employeeCodes.add("CS" + rawId);
+			for (Object[] row : rawData) {
+				if (row != null && row.length >= 2) {
+					String type = row[0] != null ? row[0].toString() : "A";
+					String id = row[1] != null ? row[1].toString() : null;
+					
+					if (id != null) {
+						if ("AP".equals(type)) {
+							employeeCodes.add("AP" + id);
+							employeeCodes.add("AP-" + id);
+						} else if ("CS".equals(type)) {
+							employeeCodes.add("CS" + id);
+							employeeCodes.add("CS-" + id);
+						} else {
+							employeeCodes.add("A" + id);
+							employeeCodes.add("A-" + id);
+						}
+					}
+				}
 			}
 			
 			if (employeeCodeInput != null && !employeeCodeInput.trim().isEmpty()) {
