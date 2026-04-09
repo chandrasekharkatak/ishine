@@ -2096,6 +2096,7 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
             if ("APPROVED".equals(status) && Boolean.TRUE.equals(ts.getIsWorkingDay())) {
 
             // Check: client-side project but no docs
+            if (isMissingClientSideDocs(ts.getTimesheetId(),projectIds, docs, projectClientSideMap)) {
                 skippedTimesheets.add(new SkippedTimesheetDTO(
                         ts.getTimesheetId(),
                         formattedEmpId,
