@@ -303,6 +303,9 @@ public class CronJobService {
 	@Value("${admin.mail}")
 	private String adminMail;
 	
+	@Value("${supportMail}")
+	private String supportMail;
+	
  
 	
 	 @PersistenceContext
@@ -5494,6 +5497,17 @@ try {
 							            "</html>");
 							
 							try {
+								
+								String formattedSupportMail = Arrays.stream(supportMail.split(","))
+								        .map(entry -> {
+								            String[] parts = entry.split(":");
+								            String name = parts[0].trim();
+								            String email = parts[1].trim();
+								            return name + " (" + email + ")";
+								        })
+								        .collect(Collectors.joining(" / "));
+								
+								
 								mailService.sendMailWithCC(defaulterMail.toString(), String.join(",", hodMail)+","+String.join(",", managerMail),
 										"Defaulter : Profile not yet updated in ishine",
 										"Dear Ishine Member,"
@@ -5506,8 +5520,8 @@ try {
 										+ "<br><br>"
 										+ "In order to avoid any such complications, Please take immediate action and complete your KYC as soon as possible.\n"
 										+ "<br><br>"
-										+ "For any further assistance please reach out to HR department.For any technical challenge please mail with the screenshots to Prasad more (prasad.more@apmosys.com)/ Harshit Toxia (harshit.toxia@apmosys.com).\n"
-										+ "<br><br>"
+										+ "For any further assistance please reach out to HR department.\n"
+										+ "For any technical challenge please mail with the screenshots to " + formattedSupportMail + ".<br><br>"
 										+ "Sincerely,<br>"
 										+ "ApMoSys Technologies"
 										+ "<br> <br>"
