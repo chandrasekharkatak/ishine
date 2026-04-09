@@ -607,9 +607,16 @@ public class TimesheetValidationHelper {
                 for (ProjectTimesheetDTO project : location.getProjects()) {
 
                     Integer projectId = project.getProjectId();
-                    
-                    if(project.getIsShadowForSelf() && project.getClientApprovalStatus() == null) continue;
-                    if(Boolean.TRUE.equals(project.getIsShadowTimesheet()) && project.getClientApprovalStatus() == null) continue;
+                    Integer status = project.getClientApprovalStatus();
+
+					if (project.getIsShadowForSelf() &&
+					    (status == null || (status != 1 && status != 2))) {
+					    continue;
+					}
+                    if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) &&
+						    (status == null || (status != 1 && status != 2))) {
+						    continue;
+						}
 
                     // Check if client-side document is mandatory for this project
                     Boolean isClientSideMandatory =
