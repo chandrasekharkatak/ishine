@@ -2113,21 +2113,21 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	 * - etm.active != 0
 	 * - exclude currentUser
 	 */
-	@Query("SELECT new com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO(e.empId, e.name) " +
-		       "FROM com.apmosys.employeeportal.model.Employee e " +
-		       "INNER JOIN com.apmosys.employeeportal.model.EmployeeTeamMap etm ON etm.empId = e.empId " +
-		       "INNER JOIN com.apmosys.employeeportal.model.Team t ON t.teamId = etm.teamId " +
-		       "INNER JOIN com.apmosys.employeeportal.model.Project p ON p.projectId = t.projectId " +
-		       "WHERE p.projectId = :projectId " +
-		       "  AND etm.active in (0,1) " +
-		       "  AND etm.empId != :currentUser " +
-		       "  AND etm.startDate <= :endOfDay " +
-		       "  AND (etm.endDate IS NULL OR etm.endDate >= :startOfDay)")
-	public List<GetEmployeeListByProjectIdDTO> getEmployeeListByProjectIdForDate(
-			Integer projectId,
-			Long currentUser,
-			LocalDateTime startOfDay,
-			LocalDateTime endOfDay);
+	// @Query("SELECT new com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO(e.empId, e.name) " +
+	// 	       "FROM com.apmosys.employeeportal.model.Employee e " +
+	// 	       "INNER JOIN com.apmosys.employeeportal.model.EmployeeTeamMap etm ON etm.empId = e.empId " +
+	// 	       "INNER JOIN com.apmosys.employeeportal.model.Team t ON t.teamId = etm.teamId " +
+	// 	       "INNER JOIN com.apmosys.employeeportal.model.Project p ON p.projectId = t.projectId " +
+	// 	       "WHERE p.projectId = :projectId " +
+	// 	       "  AND etm.active in (0,1) " +
+	// 	       "  AND etm.empId != :currentUser " +
+	// 	       "  AND etm.startDate <= :endOfDay " +
+	// 	       "  AND (etm.endDate IS NULL OR etm.endDate >= :startOfDay)")
+	// public List<GetEmployeeListByProjectIdDTO> getEmployeeListByProjectIdForDate(
+	// 		Integer projectId,
+	// 		Long currentUser,
+	// 		LocalDateTime startOfDay,
+	// 		LocalDateTime endOfDay);
 
 	/**
 	 * Helper query for timesheet flows:
@@ -4710,5 +4710,33 @@ public List<Object[]> fetchInActivePOListOfProject(
 			+ " WHERE p.po_project_type IS NOT NULL AND p.active = 'true' \n"
 			+ " AND t.is_active = 'Y'  AND (etm.active = 1 OR (etm.active = 2 AND DATE(etm.start_date) <= CURDATE()) )  \n", nativeQuery = true)
 	public String getEmployeeMappedToClientPercent();
+
+
+	@Query(value =
+        "WITH user_teams AS ( " +
+        "    SELECT etm.team_id " +
+        "    FROM employee_team_mapping etm " +
+        "    INNER JOIN teams t ON t.team_id = etm.team_id " +
+        "    WHERE etm.emp_id = :currentUser " +
+        "      AND t.project_id = :projectId " +
+        "      AND etm.active IN (0,1) " +
+        "      AND etm.start_date <= :endOfDay " +
+        "      AND (etm.end_date IS NULL OR etm.end_date >= :startOfDay) " +
+        ") " +
+        "SELECT DISTINCT e.emp_id AS empId, e.name AS name " +
+        "FROM employee e " +
+        "INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id " +
+        "INNER JOIN user_teams ut ON ut.team_id = etm.team_id " +
+        "WHERE etm.emp_id != :currentUser " +
+        "  AND etm.active IN (0,1) " +
+        "  AND etm.start_date <= :endOfDay " +
+        "  AND (etm.end_date IS NULL OR etm.end_date >= :startOfDay)",
+        nativeQuery = true)
+List<Object[]> getEmployeeListByProjectIdForDate(
+        @Param("projectId") Integer projectId,
+        @Param("currentUser") Long currentUser,
+        @Param("startOfDay") LocalDateTime startOfDay,
+        @Param("endOfDay") LocalDateTime endOfDay
+);
 
 }
