@@ -3159,7 +3159,7 @@ public class TimesheetService {
 							obj[0] != null ? ((Number) obj[0]).longValue() : null, // empId
 							obj[1] != null ? obj[1].toString() : null             // name
 					))
-					.toList();
+					.collect(Collectors.toList());
 
 			if (empList == null || empList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
