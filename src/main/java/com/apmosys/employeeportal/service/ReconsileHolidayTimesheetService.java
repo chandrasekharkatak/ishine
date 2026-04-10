@@ -100,13 +100,14 @@ public class ReconsileHolidayTimesheetService {
 					List<Employee> employeesToProcess = new ArrayList<>();
 
 					for (Employee emp : allEmployees) {
-						if (!existingEmpIds.contains(emp.getEmpId())) {
+						if (!existingEmpIds.contains(emp.getEmpId()) && !"TNM".equalsIgnoreCase(emp.getBillableType())) {
+							System.out.println("-*-*--*" + emp.getBillableType());
 							employeesToProcess.add(emp);
 						}
 					}
 
 					if (!employeesToProcess.isEmpty()) {
-
+						System.out.println("*-*-*-*-*-*-*-" + employeesToProcess);
 						holidayService.saveRelationalLeaveTimesheetBulk(
 								employeesToProcess,
 								holidayDate,
