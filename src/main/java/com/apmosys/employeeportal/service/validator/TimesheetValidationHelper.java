@@ -755,6 +755,9 @@ public class TimesheetValidationHelper {
 				throw new TimesheetValidationFailedException(
 						"Please upload required documents for the selected project.");
 			}
+            if (documents == null || documents.isEmpty()) {
+				return;
+			}
             Map<Integer, List<MultipartFile>> filesByProject;
 			try {
 				filesByProject = groupFilesByProjectId(documents);
