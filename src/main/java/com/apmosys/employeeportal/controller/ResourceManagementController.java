@@ -290,7 +290,7 @@ public class ResourceManagementController {
 	@RequestMapping(value = "/completionDateOfProject", method = RequestMethod.POST)
 	public ServiceResponse completionDateOfProject(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
-		ServiceResponse response = resourceManagementService.completionDateOfProject(resourceManagementDTO);
+		ServiceResponse response = poSyncOrchestratorService.completionDateOfProject(resourceManagementDTO);
 		return response;
 	}
 	@Encrypted

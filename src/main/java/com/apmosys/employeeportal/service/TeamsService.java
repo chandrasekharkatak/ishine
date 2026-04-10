@@ -5611,4 +5611,55 @@ public class TeamsService {
 		return response;
 	}
 	
+	public void disableActiveTeamsAndMembers(Project project, Long currentUserEmpId, StringBuilder logBuilder) {
+		List<Team> teams = teamRepository.findByProjectIdAndIsActive(project.getProjectId(), "Y");
+		if (teams.isEmpty()) {
+			logBuilder.append("\n Empty teamlist found in database for method findByProjectIdAndIsActive for project : "
+					+ project.getProjectName());
+			return;
+		}
+		try {
+			List<Long> teamIds = teams.stream().map(Team::getTeamId).collect(Collectors.toList());
+            
+			employeeTeamMapRepository.deleteFutureMappings(teamIds);
+			List<EmployeeTeamMap> allTeamsMemberMappings = employeeTeamMapRepository.findActiveByTeamIds(teamIds);
+			Map<Long, List<EmployeeTeamMap>> teamIdAndMemberMap = new HashMap<Long, List<EmployeeTeamMap>>();
+			if (allTeamsMemberMappings != null && !allTeamsMemberMappings.isEmpty()) {
+				teamIdAndMemberMap = allTeamsMemberMappings.stream()
+						.collect(Collectors.groupingBy(EmployeeTeamMap::getTeamId));
+			}
+
+			List<EmployeeTeamMap> updatedEmployeeTeamMappingList = new ArrayList<EmployeeTeamMap>();
+			for (Team team : teams) {
+				team.setIsActive("N");
+				team.setUpdatedBy(currentUserEmpId);
+				team.setUpdatedOn(LocalDateTime.now());
+
+				List<EmployeeTeamMap> allMappedEmp = teamIdAndMemberMap.getOrDefault(team.getTeamId(), List.of());
+				for (EmployeeTeamMap etm : allMappedEmp) {
+					etm.setActive(0L);
+					etm.setRescRemovedBy(currentUserEmpId);
+					etm.setUpdatedBy(currentUserEmpId);
+					etm.setUpdatedOn(LocalDateTime.now());
+					if (etm.getEndDate() != null) {
+						if (etm.getStartDate() != null && !etm.getStartDate().isAfter(etm.getEndDate())) {
+							throw new IllegalArgumentException(
+									"End cannot be less than start date For Emp Id : " + etm.getEmpId());
+						}
+					} else {
+						etm.setEndDate(LocalDateTime.now());
+					}
+					updatedEmployeeTeamMappingList.add(etm);
+				}
+			}
+
+			teamRepository.saveAll(teams);
+			if (!updatedEmployeeTeamMappingList.isEmpty()) {
+				employeeTeamMapRepository.saveAll(updatedEmployeeTeamMappingList);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 }
