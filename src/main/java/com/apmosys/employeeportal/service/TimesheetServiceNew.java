@@ -1362,7 +1362,7 @@ public class TimesheetServiceNew {
 				}
 				// Scenario 4.2: for shadow timesheet if document was uploaded eirlier but later it get removed any how
 				if(oldClientApprovalStatus != null && (projectDTO.getClientApprovalStatus() == null
-						|| (projectDTO.getClientApprovalStatus() !=2 && projectDTO.getClientApprovalStatus() !=3))
+						|| (projectDTO.getClientApprovalStatus() !=2 && projectDTO.getClientApprovalStatus() !=1))
 						&& (projectDTO.getIsShadowTimesheet() || projectDTO.getIsShadowForSelf())) {
 					timesheetDocumentService.deleteDocumentCascade(timesheetId, projectDTO.getProjectId());
 				}
