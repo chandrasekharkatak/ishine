@@ -12,9 +12,13 @@
 <!-- start :: Create & Update Form -->
 <div class="row">
     <div class="card col-md-12 px-0" *ngIf="isForm">
-        <div class="card-header text-center text-uppercase">
-            <strong *ngIf="isCreation">Apply for Leave</strong>
-            <strong *ngIf="isUpdation">Update Leave</strong>
+        <div class="card-header leave-section-header text-center">
+            <span *ngIf="isCreation">
+                <i class="fa fa-paper-plane me-2"></i> Apply for Leave
+            </span>
+            <span *ngIf="isUpdation">
+                <i class="fa fa-pen-to-square me-2"></i> Update Leave
+            </span>
         </div>
         <div class="card-body">
             <div class="row">
@@ -201,7 +205,7 @@
         <div class="row text-center mb-3">
             <div class="card col-md-12 px-0 shadow-sm">
                 <div class="card-header leave-section-header">
-                    <span><i class="fa fa-list-alt me-2"></i>My Leave History</span>
+                    <span><i class="fa fa-list-alt me-2"></i> My Leave History</span>
                 </div>
             </div>
         </div>
@@ -453,7 +457,7 @@
         <div class="row text-center mb-3">
             <div class="card col-md-12 px-0 shadow-sm">
                 <div class="card-header leave-section-header">
-                    <span><i class="fa fa-balance-scale me-2"></i>My Leave Balances</span>
+                    <span><i class="fa fa-balance-scale me-2"></i> My Leave Balances</span>
                 </div>
             </div>
         </div>
@@ -515,7 +519,7 @@
         <div class="row text-center mb-3">
             <div class="card col-md-12 px-0 shadow-sm">
                 <div class="card-header leave-section-header">
-                    <span><i class="fa fa-clipboard me-2"></i>My Leave Logs</span>
+                    <span><i class="fa fa-clipboard me-2"></i> My Leave Logs</span>
                 </div>
             </div>
         </div>
@@ -581,7 +585,7 @@
         <div class="row text-center mb-3">
             <div class="card col-md-12 px-0 shadow-sm">
                 <div class="card-header leave-section-header">
-                    <span><i class="fa fa-undo me-2"></i>My Leave Revoke History</span>
+                    <span><i class="fa fa-undo me-2"></i> My Leave Revoke History</span>
                 </div>
             </div>
         </div>
@@ -677,79 +681,108 @@
         <div class="row text-center mb-3">
             <div class="card col-md-12 px-0 shadow-sm">
                 <div class="card-header leave-section-header">
-                    <span><i class="fa fa-check-circle me-2"></i>Leaves Approved by Me</span>
+                    <span><i class="fa fa-check-circle me-2"></i> Leaves Approved by Me</span>
                 </div>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-12">
-                <!-- Search toggle -->
-                <div class="selector-toggle">
-                    <a href="javascript:void(0)" (click)="toggleSearch()">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-                    </a>
-                </div>
+                <div class="ts-table-wrapper">
 
-                <!-- Export Button -->
-                <div class="export-button mt-3">
-                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
-                        [hidden]="approvedLeaveLogList.length == 0"
-                        (click)="exportToExcelForApprovedLeave()">
-                        <em class="fa fa-file-arrow-down fa-2x"></em>
-                    </button>
-                </div>
+                    <!-- Toolbar -->
+                    <div class="ts-toolbar">
+                        <a class="ts-search-toggle" href="javascript:void(0)" (click)="toggleSearch()"
+                           [title]="isSearchEnabled ? 'Close search' : 'Search'">
+                            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        </a>
 
-                <div class="overflow-auto">
-                    <table class="table" matSort (matSortChange)="sortData($event)">
-                        <thead class="thead-light text-center" id="leaveApprovedTHead">
-                            <tr id="leaveApprovedTHeadTr">
-                                <th scope="col">Sr. No</th>
-                                <th scope="col" mat-sort-header="employeeName|string">Employee Name</th>
-                                <th scope="col" mat-sort-header="leaveType|string">Leave Type</th>
-                                <th scope="col" mat-sort-header="fromDate|date">From Date</th>
-                                <th scope="col" mat-sort-header="toDate|date">To Date</th>
-                                <th scope="col" mat-sort-header="noOfDays|number">Duration</th>
-                                <th scope="col" mat-sort-header="status|string">Status</th>
-                                <th scope="col" mat-sort-header="createdByName|string">Applied By</th>
-                                <th scope="col" mat-sort-header="createdOn|datetime">Applied On</th>
-                                <th scope="col" mat-sort-header="reason|string">Reason</th>
-                                <th scope="col">Actions</th>
-                            </tr>
-                            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="leaveApprovedColumns"
-                                (onSearch)="onSearch($event); page=1"></tr>
-                        </thead>
-                        <tbody class="text-center">
-                            <tr *ngIf="approvedLeaveLogList.length == 0">
-                                <td colspan="11" class="text-center info-label">No details to display...</td>
-                            </tr>
-                            <tr *ngFor="let leave of approvedLeaveLogList | colFilter:filters:false | sort:[sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
-                                <td>{{items*(page-1)+i+1}}</td>
-                                <td>{{leave.employeeName}}</td>
-                                <td>{{leave.leaveType}}</td>
-                                <td>{{leave.fromDate}}</td>
-                                <td>{{leave.toDate}}</td>
-                                <td>{{leave.noOfDays}} day(s)</td>
-                                <td>{{leave.status}}</td>
-                                <td>{{leave.createdByName}}</td>
-                                <td>{{leave.createdOn}}</td>
-                                <td>{{leave.reason}}</td>
-                                <td>
-                                    <!-- <button *ngIf="userMapping.update_request_status" -->
-                                    <button
-                                    class="btn btn-sm btn-outline-danger mb2" type="submit"
-                                    (click)="openLeaveRejectModal(revoke_leave_modal,leave)"
-                                    title="Revoke"><em class="fa-solid fa-xmark"></em></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                        <button type="button" class="ts-export-btn"
+                                [hidden]="approvedLeaveLogList.length == 0"
+                                (click)="exportToExcelForApprovedLeave()"
+                                title="Export to Excel">
+                            <i class="fa fa-file-arrow-down"></i>
+                            <span>Export</span>
+                        </button>
+                    </div>
 
-                <pagination-controls class="my-pagination" [hidden]="approvedLeaveLogList.length == 0"
-                    (pageChange)="handlePageChange($event)">
-                </pagination-controls>
+                    <!-- Table -->
+                    <div class="ts-table-scroll">
+                        <table class="ts-table" matSort (matSortChange)="sortData($event)">
+                            <thead>
+                                <tr>
+                                    <th>Sr No.</th>
+                                    <th mat-sort-header="employeeName|string">Employee Name</th>
+                                    <th mat-sort-header="leaveType|string">Leave Type</th>
+                                    <th mat-sort-header="fromDate|date">From Date</th>
+                                    <th mat-sort-header="toDate|date">To Date</th>
+                                    <th mat-sort-header="noOfDays|number">Duration</th>
+                                    <th mat-sort-header="status|string">Status</th>
+                                    <th mat-sort-header="createdByName|string">Applied By</th>
+                                    <th mat-sort-header="createdOn|datetime">Applied On</th>
+                                    <th class="wide-col" mat-sort-header="reason|string">Reason</th>
+                                    <th>Actions</th>
+                                </tr>
+
+                                <!-- Filter Row -->
+                                <tr app-column-filter-bar 
+                                    *ngIf="isSearchEnabled"
+                                    [columnList]="leaveApprovedColumns"
+                                    (onSearch)="onSearch($event); page=1">
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <!-- Empty State -->
+                                <tr *ngIf="approvedLeaveLogList.length == 0 || 
+                                          (approvedLeaveLogList | colFilter:filters:false).length == 0">
+                                    <td colspan="11" class="ts-empty">
+                                        <i class="fa fa-inbox"></i>
+                                        <span>No details to display</span>
+                                    </td>
+                                </tr>
+
+                                <!-- Data Rows -->
+                                <tr class="ts-row"
+                                    *ngFor="let leave of approvedLeaveLogList 
+                                    | colFilter:filters:false 
+                                    | sort:[sortColumn, sortColumnType, sortDirection] 
+                                    | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+
+                                    <td>{{ leave.rowNumber || (20*(page-1)+i+1) }}</td>
+                                    <td>{{ leave.employeeName }}</td>
+                                    <td>{{ leave.leaveType }}</td>
+                                    <td>{{ leave.fromDate }}</td>
+                                    <td>{{ leave.toDate }}</td>
+                                    <td>{{ leave.noOfDays }} day(s)</td>
+                                    <td>{{ leave.status }}</td>
+                                    <td>{{ leave.createdByName }}</td>
+                                    <td>{{ leave.createdOn }}</td>
+                                    <td>{{ leave.reason }}</td>
+
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                type="button"
+                                                (click)="openLeaveRejectModal(revoke_leave_modal, leave)"
+                                                title="Revoke">
+                                            <em class="fa-solid fa-xmark"></em>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <pagination-controls 
+                        *ngIf="approvedLeaveLogList.length > 0"
+                        class="ts-pagination my-pagination"
+                        [maxSize]="5"
+                        (pageChange)="handlePageChange($event)">
+                    </pagination-controls>
+
+                </div>
             </div>
         </div>
     </div>

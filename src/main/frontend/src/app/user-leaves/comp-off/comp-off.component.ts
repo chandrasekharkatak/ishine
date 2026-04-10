@@ -53,7 +53,7 @@ export class CompOffComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  compOffReqColumns:any[] = ['blank','compOffReasons','fromDate','noOfDays','description','status'];
+  compOffReqColumns:any[] = ['blank','compOffReasons','fromDate','noOfDays','description','status','rejectCompOffReason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','blank'];
   tabName: string;
 
   constructor(

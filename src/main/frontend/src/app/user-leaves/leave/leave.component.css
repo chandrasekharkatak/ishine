@@ -1,621 +1,621 @@
-.info-wrapper .info-label{
-    font-size: 1.05rem;    
-    font-weight: 500;
-    margin-bottom: .25rem;
-}
+  .info-wrapper .info-label{
+      font-size: 1.05rem;    
+      font-weight: 500;
+      margin-bottom: .25rem;
+  }
 
-.info-wrapper .info-text{
-    font-size: .9rem;
+  .info-wrapper .info-text{
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--middle-grey);
+  }
+
+  .leave_day{
+      margin-top: 1.75rem;
+  }
+
+  /* Section titles: match my-timesheet .timesheet-header (centered card bar) */
+  .leave-section-header {
+    background: linear-gradient(90deg, #f8f9fa, #ffffff);
+    font-size: 15px;
     font-weight: 600;
-    color: var(--middle-grey);
-}
+    color: #343a40;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #dee2e6;
+    padding: 10px 16px;
+  }
 
-.leave_day{
-    margin-top: 1.75rem;
-}
+  .leave-section-header i {
+    color: #0d6efd;
+  }
 
-/* Section titles: match my-timesheet .timesheet-header (centered card bar) */
-.leave-section-header {
-  background: linear-gradient(90deg, #f8f9fa, #ffffff);
-  font-size: 15px;
-  font-weight: 600;
-  color: #343a40;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid #dee2e6;
-  padding: 10px 16px;
-}
-
-.leave-section-header i {
-  color: #0d6efd;
-}
-
-/* Legacy / modal titles — same typography as timesheet header */
-.table-header {
-  width: 100%;
-  margin-bottom: 1em;
-  text-align: center;
-  background: transparent;
-  height: auto;
-}
-
-.table-header-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #343a40;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 0.35em 0;
-  margin-bottom: 0;
-}
-
-.my-pagination::ng-deep .ngx-pagination .current {
-    background: #193d8a  !important;
-}
-
-.my-pagination::ng-deep{
-    padding-top: 10px;
-}
-
-.balance-table > tbody > tr:last-child { 
-    font-weight: bold;
-}
-
-.scrollable-table{
-    width: 92vw;
-    height: 70vh;
-} 
-
-.col{
-    min-width: 300px;
-}
-
-.thead-light th{
-    position: sticky;
-    top: -0.7px;
-}
-
-.info-label{
-    width: 300px;
-}
-.btn{
-    margin-bottom: 4px;
-}
-
-.wide-col{
-    word-wrap: break-word;
-    min-width: 350px;
-}
-.overflow-auto{
-    position: relative;
-    max-height: 500px; 
-    overflow-y: auto;
-    margin-top: 20px;
-}
-.table{
+  /* Legacy / modal titles — same typography as timesheet header */
+  .table-header {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-.thead-light{
+    margin-bottom: 1em;
+    text-align: center;
+    background: transparent;
+    height: auto;
+  }
+
+  .table-header-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #343a40;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.35em 0;
+    margin-bottom: 0;
+  }
+
+  .my-pagination::ng-deep .ngx-pagination .current {
+      background: #193d8a  !important;
+  }
+
+  .my-pagination::ng-deep{
+      padding-top: 10px;
+  }
+
+  .balance-table > tbody > tr:last-child { 
+      font-weight: bold;
+  }
+
+  .scrollable-table{
+      width: 92vw;
+      height: 70vh;
+  } 
+
+  .col{
+      min-width: 300px;
+  }
+
+  .thead-light th{
+      position: sticky;
+      top: -0.7px;
+  }
+
+  .info-label{
+      width: 300px;
+  }
+  .btn{
+      margin-bottom: 4px;
+  }
+
+  .wide-col{
+      word-wrap: break-word;
+      min-width: 350px;
+  }
+  .overflow-auto{
+      position: relative;
+      max-height: 500px; 
+      overflow-y: auto;
+      margin-top: 20px;
+  }
+  .table{
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+  }
+  .thead-light{
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--ghost-white);
+  }
+  .export-button {
+      position: absolute;
+      right: 0%;
+      top: -25px;
+  }
+
+  .dropdown-btn {
+    background: none;
+    border: 1px solid #ced4da;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #212529;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .dropdown-btn:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+  }
+
+  .d-flex.gap-3 {
+    display: flex;
+    gap: 12px; /* spacing between buttons */
+  }
+
+  .active-btn {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+  }
+
+  /* ── My Leave History: match my-timesheet.component.ts-table (line ~499) ── */
+  .ts-table-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+
+  .ts-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 0 0 10px 0;
+  }
+
+  .ts-search-toggle {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 13px;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+
+  .ts-search-toggle:hover {
+    background: #f1f5f9;
+    color: #1a2e44;
+  }
+
+  .ts-export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 32px;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #1a73e8;
+    background: #e7f1ff;
+    border: 1px solid #b3d4fc;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .ts-export-btn:hover {
+    background: #1a73e8;
+    color: #ffffff;
+    border-color: #1a73e8;
+  }
+
+  .ts-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Leave history table scroll: horizontal only (matches my-timesheet .ts-table-scroll); page scrolls vertically */
+  .ts-table-wrapper .ts-table-scroll {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ts-table-wrapper .ts-table-scroll .ts-table {
+    overflow: visible;
+  }
+
+  .ts-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    color: #1e293b;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .ts-table thead tr {
+    background: #1a2e44;
+  }
+
+  .ts-table thead th {
+    padding: 11px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #ffffff;
+    white-space: nowrap;
+    border: none;
+  }
+
+  /* Sticky header rows — scroll with page / main layout */
+  .ts-table-wrapper .ts-table-scroll .ts-table thead tr:first-child th {
     position: sticky;
     top: 0;
-    z-index: 100;
-    background: var(--ghost-white);
-}
-.export-button {
-     position: absolute;
-    right: 0%;
-    top: -25px;
-}
-
-.dropdown-btn {
-  background: none;
-  border: 1px solid #ced4da;
-  padding: 6px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  color: #212529;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.dropdown-btn:hover {
-  background-color: #f8f9fa;
-  border-color: #adb5bd;
-}
-
-.d-flex.gap-3 {
-  display: flex;
-  gap: 12px; /* spacing between buttons */
-}
-
-.active-btn {
-  background-color: #0d6efd;
-  color: white;
-  border-color: #0d6efd;
-}
-
-/* ── My Leave History: match my-timesheet.component.ts-table (line ~499) ── */
-.ts-table-wrapper {
-  width: 100%;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', system-ui, sans-serif;
-}
-
-.ts-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 0 0 10px 0;
-}
-
-.ts-search-toggle {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #64748b;
-  font-size: 13px;
-  text-decoration: none;
-  transition: all 0.15s;
-}
-
-.ts-search-toggle:hover {
-  background: #f1f5f9;
-  color: #1a2e44;
-}
-
-.ts-export-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 32px;
-  padding: 0 14px;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  color: #1a73e8;
-  background: #e7f1ff;
-  border: 1px solid #b3d4fc;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.ts-export-btn:hover {
-  background: #1a73e8;
-  color: #ffffff;
-  border-color: #1a73e8;
-}
-
-.ts-table-scroll {
-  width: 100%;
-  overflow-x: auto;
-}
-
-/* Leave history table scroll: horizontal only (matches my-timesheet .ts-table-scroll); page scrolls vertically */
-.ts-table-wrapper .ts-table-scroll {
-  overflow-x: auto;
-  overflow-y: visible;
-  -webkit-overflow-scrolling: touch;
-}
-
-.ts-table-wrapper .ts-table-scroll .ts-table {
-  overflow: visible;
-}
-
-.ts-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  color: #1e293b;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.ts-table thead tr {
-  background: #1a2e44;
-}
-
-.ts-table thead th {
-  padding: 11px 12px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #ffffff;
-  white-space: nowrap;
-  border: none;
-}
-
-/* Sticky header rows — scroll with page / main layout */
-.ts-table-wrapper .ts-table-scroll .ts-table thead tr:first-child th {
-  position: sticky;
-  top: 0;
-  z-index: 4;
-  background: #1a2e44;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
-}
-
-.ts-table thead th .mat-sort-header-arrow {
-  color: #94a3b8 !important;
-}
-
-.ts-table thead th .mat-sort-header-content {
-  color: #ffffff;
-}
-
-.ts-table tbody tr.ts-row {
-  border-bottom: 1px solid #f1f5f9;
-  transition: background 0.1s;
-}
-
-.ts-table tbody tr.ts-row:hover {
-  background: #f8fafc;
-}
-
-.ts-table tbody td {
-  padding: 10px 12px;
-  vertical-align: middle;
-  font-size: 13px;
-  color: #334155;
-  border: none;
-}
-
-.ts-actions-cell {
-  white-space: nowrap;
-}
-
-.ts-action-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 5px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #64748b;
-  font-size: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin-right: 4px;
-  transition: all 0.15s;
-}
-
-.ts-action-btn:hover {
-  background: #1a2e44;
-  color: #ffffff;
-  border-color: #1a2e44;
-}
-
-.ts-action-btn--edit:hover {
-  background: #1a73e8;
-  border-color: #1a73e8;
-  color: #ffffff;
-}
-
-.ts-action-btn--danger:hover {
-  background: #b91c1c;
-  border-color: #b91c1c;
-  color: #ffffff;
-}
-
-.ts-action-btn--text {
-  width: auto;
-  min-width: 56px;
-  padding: 0 8px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.ts-empty {
-  text-align: center;
-  padding: 40px 20px;
-  color: #94a3b8;
-  font-size: 13px;
-}
-
-.ts-empty i {
-  font-size: 24px;
-  display: block;
-  margin-bottom: 8px;
-}
-
-.ts-pagination {
-  padding-top: 12px;
-  display: flex;
-  justify-content: center;
-}
-
-.ts-pagination::ng-deep .ngx-pagination .current {
-  background: #1a2e44 !important;
-  border-radius: 4px;
-}
-
-.ts-pagination::ng-deep .ngx-pagination a,
-.ts-pagination::ng-deep .ngx-pagination button {
-  border-radius: 4px;
-  font-size: 13px;
-}
-
-/* Filter row: keep inputs readable under column-filter-bar */
-.ts-table thead tr:nth-child(2) th {
-  background: #f1f5f9 !important;
-  color: #334155 !important;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: none;
-  letter-spacing: normal;
-  padding: 8px 10px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.ts-table-wrapper .ts-table-scroll .ts-table thead tr:nth-child(2) th {
-  position: sticky;
-  top: 40px;
-  z-index: 3;
-  box-shadow: 0 1px 0 #e2e8f0;
-}
-
-/* Filter bar + summary mini-dashboard (aligned with my-timesheet View Timesheets section) */
-.filter-bar .filter-group-label,
-.filter-group-label {
-  display: block;
-  margin-bottom: 0.35rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #374151;
-  letter-spacing: 0.02em;
-}
-
-.summary-dashboard {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 16px 18px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-  border: 1px solid #e2e8f0;
-}
-
-.summary-title {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.summary-card-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.summary-card {
-  flex: 1 1 420px;
-  min-width: 0;
-  background: #f9fafb;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.22s ease;
-}
-
-/* Slightly tighter leave-type card so metrics stay readable with extra rows */
-.summary-card--leavetype {
-  flex: 1 1 320px;
-  max-width: 520px;
-  padding: 10px 12px;
-}
-
-.summary-card--leavetype .summary-card-value {
-  font-size: 1.35rem;
-}
-
-.summary-card--leavetype .summary-card-icon {
-  width: 34px;
-  height: 34px;
-}
-
-.summary-card--leavetype .summary-card-icon i {
-  font-size: 16px;
-}
-
-.summary-card--leavetype .summary-metric-grid {
-  gap: 8px;
-}
-
-.summary-card--leavetype .summary-metric {
-  padding: 6px 8px;
-  border-radius: 8px;
-  flex: 1 1 88px;
-}
-
-.summary-card--leavetype .summary-metric-label {
-  font-size: 0.7rem;
-}
-
-.summary-card--leavetype .summary-metric-value {
-  font-size: 1.12rem;
-}
-
-.summary-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 20% 10%, rgba(59, 130, 246, 0.08), transparent 55%);
-  pointer-events: none;
-}
-
-.summary-card--leavetype::before {
-  background: radial-gradient(circle at 20% 10%, rgba(16, 185, 129, 0.09), transparent 55%);
-}
-
-.summary-card--status::before {
-  background: radial-gradient(circle at 20% 10%, rgba(99, 102, 241, 0.09), transparent 55%);
-}
-
-.summary-card:hover {
-  background: #ffffff;
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-}
-
-.summary-card-left {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  padding-right: 10px;
-}
-
-.summary-card-label {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #64748b;
-}
-
-.summary-card-value {
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: #1e293b;
-  line-height: 1.1;
-}
-
-.summary-card-value-suffix {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #64748b;
-  margin-left: 6px;
-}
-
-.summary-card-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 9999px;
-  background: rgba(59, 130, 246, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  z-index: 1;
-}
-
-.summary-card-icon i {
-  font-size: 18px;
-  color: #3b82f6;
-}
-
-.summary-card--leavetype .summary-card-icon {
-  background: rgba(5, 150, 105, 0.12);
-}
-
-.summary-card--leavetype .summary-card-icon i {
-  color: #047857;
-}
-
-.summary-card--status .summary-card-icon {
-  background: rgba(59, 130, 246, 0.14);
-}
-
-.summary-card--status .summary-card-icon i {
-  color: #1d4ed8;
-}
-
-.summary-card-top {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.summary-metric-grid {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.summary-metric {
-  flex: 1 1 0;
-  min-width: 0;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 8px 10px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  transition: all 0.18s ease;
-}
-
-.summary-metric-label {
-  font-size: 0.78rem;
-  color: #64748b;
-  margin-bottom: 2px;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.summary-metric-value {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #1e293b;
-  line-height: 1.1;
-}
-
-.summary-metric:hover {
-  background: #ffffff;
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
-}
-
-.summary-metric--leavetype .summary-metric-value {
-  color: #0f766e;
-}
-
-.summary-metric--approved .summary-metric-value {
-  color: #047857;
-}
-
-.summary-metric--pending .summary-metric-value {
-  color: #b45309;
-}
-
-.summary-metric--rejected .summary-metric-value {
-  color: #b91c1c;
-}
-
-.summary-metric--revoked .summary-metric-value {
-  color: #6b21a8;
-}
-
-.summary-metric--other .summary-metric-value {
-  color: #475569;
-}
-
-@media (max-width: 768px) {
-  .summary-dashboard {
+    z-index: 4;
+    background: #1a2e44;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+  }
+
+  .ts-table thead th .mat-sort-header-arrow {
+    color: #94a3b8 !important;
+  }
+
+  .ts-table thead th .mat-sort-header-content {
+    color: #ffffff;
+  }
+
+  .ts-table tbody tr.ts-row {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.1s;
+  }
+
+  .ts-table tbody tr.ts-row:hover {
+    background: #f8fafc;
+  }
+
+  .ts-table tbody td {
     padding: 10px 12px;
+    vertical-align: middle;
+    font-size: 13px;
+    color: #334155;
+    border: none;
+  }
+
+  .ts-actions-cell {
+    white-space: nowrap;
+  }
+
+  .ts-action-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 5px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-right: 4px;
+    transition: all 0.15s;
+  }
+
+  .ts-action-btn:hover {
+    background: #1a2e44;
+    color: #ffffff;
+    border-color: #1a2e44;
+  }
+
+  .ts-action-btn--edit:hover {
+    background: #1a73e8;
+    border-color: #1a73e8;
+    color: #ffffff;
+  }
+
+  .ts-action-btn--danger:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
+    color: #ffffff;
+  }
+
+  .ts-action-btn--text {
+    width: auto;
+    min-width: 56px;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .ts-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #94a3b8;
+    font-size: 13px;
+  }
+
+  .ts-empty i {
+    font-size: 24px;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .ts-pagination {
+    padding-top: 12px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .ts-pagination::ng-deep .ngx-pagination .current {
+    background: #1a2e44 !important;
+    border-radius: 4px;
+  }
+
+  .ts-pagination::ng-deep .ngx-pagination a,
+  .ts-pagination::ng-deep .ngx-pagination button {
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  /* Filter row: keep inputs readable under column-filter-bar */
+  .ts-table thead tr:nth-child(2) th {
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    padding: 8px 10px;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .ts-table-wrapper .ts-table-scroll .ts-table thead tr:nth-child(2) th {
+    position: sticky;
+    top: 40px;
+    z-index: 3;
+    box-shadow: 0 1px 0 #e2e8f0;
+  }
+
+  /* Filter bar + summary mini-dashboard (aligned with my-timesheet View Timesheets section) */
+  .filter-bar .filter-group-label,
+  .filter-group-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #374151;
+    letter-spacing: 0.02em;
+  }
+
+  .summary-dashboard {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    border: 1px solid #e2e8f0;
+  }
+
+  .summary-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .summary-card-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
   .summary-card {
-    flex: 1 1 100%;
+    flex: 1 1 420px;
+    min-width: 0;
+    background: #f9fafb;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.22s ease;
+  }
+
+  /* Slightly tighter leave-type card so metrics stay readable with extra rows */
+  .summary-card--leavetype {
+    flex: 1 1 320px;
+    max-width: 520px;
+    padding: 10px 12px;
+  }
+
+  .summary-card--leavetype .summary-card-value {
+    font-size: 1.35rem;
+  }
+
+  .summary-card--leavetype .summary-card-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .summary-card--leavetype .summary-card-icon i {
+    font-size: 16px;
+  }
+
+  .summary-card--leavetype .summary-metric-grid {
+    gap: 8px;
+  }
+
+  .summary-card--leavetype .summary-metric {
+    padding: 6px 8px;
+    border-radius: 8px;
+    flex: 1 1 88px;
+  }
+
+  .summary-card--leavetype .summary-metric-label {
+    font-size: 0.7rem;
+  }
+
+  .summary-card--leavetype .summary-metric-value {
+    font-size: 1.12rem;
+  }
+
+  .summary-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 10%, rgba(59, 130, 246, 0.08), transparent 55%);
+    pointer-events: none;
+  }
+
+  .summary-card--leavetype::before {
+    background: radial-gradient(circle at 20% 10%, rgba(16, 185, 129, 0.09), transparent 55%);
+  }
+
+  .summary-card--status::before {
+    background: radial-gradient(circle at 20% 10%, rgba(99, 102, 241, 0.09), transparent 55%);
+  }
+
+  .summary-card:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  }
+
+  .summary-card-left {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding-right: 10px;
+  }
+
+  .summary-card-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+  }
+
+  .summary-card-value {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.1;
+  }
+
+  .summary-card-value-suffix {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-left: 6px;
+  }
+
+  .summary-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 9999px;
+    background: rgba(59, 130, 246, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .summary-card-icon i {
+    font-size: 18px;
+    color: #3b82f6;
+  }
+
+  .summary-card--leavetype .summary-card-icon {
+    background: rgba(5, 150, 105, 0.12);
+  }
+
+  .summary-card--leavetype .summary-card-icon i {
+    color: #047857;
+  }
+
+  .summary-card--status .summary-card-icon {
+    background: rgba(59, 130, 246, 0.14);
+  }
+
+  .summary-card--status .summary-card-icon i {
+    color: #1d4ed8;
+  }
+
+  .summary-card-top {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
   .summary-metric-grid {
+    display: flex;
+    gap: 10px;
     flex-wrap: wrap;
   }
-}
+
+  .summary-metric {
+    flex: 1 1 0;
+    min-width: 0;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 8px 10px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    transition: all 0.18s ease;
+  }
+
+  .summary-metric-label {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin-bottom: 2px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .summary-metric-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.1;
+  }
+
+  .summary-metric:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+  }
+
+  .summary-metric--leavetype .summary-metric-value {
+    color: #0f766e;
+  }
+
+  .summary-metric--approved .summary-metric-value {
+    color: #047857;
+  }
+
+  .summary-metric--pending .summary-metric-value {
+    color: #b45309;
+  }
+
+  .summary-metric--rejected .summary-metric-value {
+    color: #b91c1c;
+  }
+
+  .summary-metric--revoked .summary-metric-value {
+    color: #6b21a8;
+  }
+
+  .summary-metric--other .summary-metric-value {
+    color: #475569;
+  }
+
+  @media (max-width: 768px) {
+    .summary-dashboard {
+      padding: 10px 12px;
+    }
+
+    .summary-card {
+      flex: 1 1 100%;
+    }
+
+    .summary-metric-grid {
+      flex-wrap: wrap;
+    }
+  }
