@@ -387,7 +387,7 @@ public class TimesheetServiceNew {
 			timesheetValidationHelper.validateNullAndUnexpectedData(empDTO);
 
 			
-			Integer effectiveLockDays = (timesheetLockDays != null) ? timesheetLockDays : 30;
+			Integer effectiveLockDays = (timesheetLockDays != null) ? timesheetLockDays : 60;
 			timesheetValidationHelper.validateTimesheetLockPeriod(empDTO.getEmpId(), empDTO.getDate(),
 			effectiveLockDays);
 			
@@ -1355,10 +1355,16 @@ public class TimesheetServiceNew {
 
 				Integer oldClientApprovalStatus = existingProject.getClientApprovalStatus();
 				projectTimesheetService.update(projectDTO);
-				// Scenario 4: status changed from Approved (2) to Filled/Pending (1) → unlink approved doc reference
+				// Scenario 4.1: status changed from Approved (2) to Filled/Pending (1) → unlink approved doc reference
 				if (oldClientApprovalStatus != null && Integer.valueOf(2).equals(oldClientApprovalStatus)
 						&& projectDTO.getClientApprovalStatus() != null && Integer.valueOf(1).equals(projectDTO.getClientApprovalStatus())) {
 					timesheetDocumentService.deleteApprovedDocumentsByTimesheetIdAndProjectId(timesheetId, projectDTO.getProjectId());
+				}
+				// Scenario 4.2: for shadow timesheet if document was uploaded eirlier but later it get removed any how
+				if(oldClientApprovalStatus != null && (projectDTO.getClientApprovalStatus() == null
+						|| (projectDTO.getClientApprovalStatus() !=2 && projectDTO.getClientApprovalStatus() !=3))
+						&& (projectDTO.getIsShadowTimesheet() || projectDTO.getIsShadowForSelf())) {
+					timesheetDocumentService.deleteDocumentCascade(timesheetId, projectDTO.getProjectId());
 				}
 
 				// Replace activities
