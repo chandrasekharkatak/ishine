@@ -1565,9 +1565,13 @@ public class TimesheetServiceNew {
 				// Derive shadow flags for response
 				Long shadowEmp = projectDTO.getShadowEmpId();
 				if (shadowEmp != null) {
-					projectDTO.setIsShadowTimesheet(Boolean.TRUE);
-					Long empId = empDTO.getEmpId();
-					projectDTO.setIsShadowForSelf(empId != null && empId.equals(shadowEmp));
+					Long empId = empDTO.getEmpId();					
+					if(empId!= null && empId.equals(shadowEmp)) {
+						projectDTO.setIsShadowForSelf(empId != null && empId.equals(shadowEmp));
+					}
+					else {
+						projectDTO.setIsShadowTimesheet(Boolean.TRUE);
+					}
 				} else {
 					projectDTO.setIsShadowTimesheet(Boolean.FALSE);
 					projectDTO.setIsShadowForSelf(Boolean.FALSE);

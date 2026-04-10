@@ -5000,7 +5000,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     const dataSet: LocationEntry[] = structuredClone(this.timesheetLocations);
 
     // Ensure Shadow for self projects do not send client approval status (not required, dropdown hidden)
-    dataSet.forEach((loc) => loc.projects?.forEach((p) => { if (p.isShadowForSelf) p.clientApprovalStatus = null; }));
+    // dataSet.forEach((loc) => loc.projects?.forEach((p) => { if (p.isShadowForSelf) p.clientApprovalStatus = null; }));
 
     // ✅ MODERATE FIX: Add null checks for empId
     const targetEmpId = this.timesheetAppliedFor?.toLowerCase() === 'self'

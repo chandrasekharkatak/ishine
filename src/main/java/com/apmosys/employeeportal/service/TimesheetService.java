@@ -3151,8 +3151,15 @@ public class TimesheetService {
 		apiLogInfo.setLogLevel("INFO");
 
 		try {
-			List<GetEmployeeListByProjectIdDTO> empList =
+			List<Object[]> rawList =
 					employeeRepository.getEmployeeListByProjectIdForDate(projectId, currentUser, startOfDay, endOfDay);
+
+			List<GetEmployeeListByProjectIdDTO> empList = rawList.stream()
+					.map(obj -> new GetEmployeeListByProjectIdDTO(
+							obj[0] != null ? ((Number) obj[0]).longValue() : null, // empId
+							obj[1] != null ? obj[1].toString() : null             // name
+					))
+					.toList();
 
 			if (empList == null || empList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
