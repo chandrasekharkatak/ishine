@@ -4606,13 +4606,16 @@ public class ProjectService {
 	        // revive inactive project
 	        if (!"true".equalsIgnoreCase(project.getActive())) {
 	            project.setActive("true");
-	            project.setProjectStatus("Not Started");	        }
+	            project.setProjectStatus("Not Started");
+	            project.setIsDraftProject(null);
+	        }
 
 	        // reset completed project
 	        if ("Completed".equalsIgnoreCase(project.getProjectStatus())) {
-	            project.setProjectStatus("Not Started");
+	        	project.setActive("true");	            
+	        	project.setProjectStatus("Not Started");
 	            project.setProjectCompletionDate(null);
-	        }
+	            project.setIsDraftProject(null);        }
 	    }
 
 	   
