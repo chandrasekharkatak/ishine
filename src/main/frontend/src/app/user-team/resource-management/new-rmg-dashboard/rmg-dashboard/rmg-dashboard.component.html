@@ -22,6 +22,11 @@
                                     {{kpi.suffix }}
                                 </span>
                             </h6>
+                            <p *ngIf="kpi.extraValue !== null" 
+                            class="text-muted mb-0"
+                            style="font-size: 11px; line-height: 1;">
+                           ({{ kpi.extraValue }} / {{ workforceOverview[0]?.value || 0 }})
+                         </p>
                             <!-- <p class="kpi-change text-success small mb-0">
                                 <i
                                     [ngClass]="{ 'normal fa-solid fa-arrow-trend-up' : kpi.status == 'NORMAL', 'danger fa-solid fa-arrow-trend-down': kpi.status == 'DANGER'}"></i>
