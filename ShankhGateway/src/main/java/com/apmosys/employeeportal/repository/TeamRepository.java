@@ -292,5 +292,8 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	void deactivateTeamsByProjectId(Integer projectId,
 			LocalDateTime updatedOn,
 			Long updatedBy);
+	
+	@Query("SELECT t.teamName FROM Team t WHERE t.projectId = :projectId and t.isActive = 'Y'")
+	List<String> findTeamNamesByProjectId(Integer projectId);
 
 }

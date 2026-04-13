@@ -18,10 +18,12 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import com.apmosys.employeeportal.dto.AutoMigrationDTO;
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
+import com.apmosys.employeeportal.dto.EmployeeDeletionDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
+import com.apmosys.employeeportal.dto.PoDeletionImpactDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
@@ -538,6 +540,15 @@ public class PoSyncOrchestratorService {
 		Long deletedPoId = deletedPoDto.getPoId();
 
 		ProjectPoDetails deletedPo = poDetailsService.validateDeletedPoExists(project.getProjectId(), deletedPoId);
+		
+		List<EmployeeDeletionDTO> scheduledEmployees =
+	            employeeTeamMapRepository.findScheduledEmployeesForPo(deletedPo.getPoId());
+
+	    List<String> teamNames =
+	            teamRepository.findTeamNamesByProjectId(project.getProjectId());
+
+	    boolean isProjectClosed =
+	            (dto.getAssociatePos() == null || dto.getAssociatePos().isEmpty());
 
 		poDetailsService.validateNoActiveTeamsForPo(deletedPo.getPoId());
 
@@ -567,6 +578,17 @@ public class PoSyncOrchestratorService {
 		}
 
 		projectService.recalculateProjectDates(project.getProjectId(), false);
+		
+		PoDeletionImpactDTO mailDto = new PoDeletionImpactDTO();
+	    mailDto.setProjectName(project.getProjectName());
+	    mailDto.setDeletedPoNumber(deletedPo.getPoNo());
+	    mailDto.setDeletedEmployees(scheduledEmployees);
+	    mailDto.setProjectClosed(isProjectClosed);
+	    mailDto.setDeactivatedTeams(teamNames);
+	    
+	    if ((scheduledEmployees != null && !scheduledEmployees.isEmpty()) || isProjectClosed) {
+	        cronJobService.sendPoDeletionImpactMail(mailDto);
+	    }
 
 		applyDeletePoSuccess(response);
 		log.info("[{}] success projectId={} deletedPoId={} path={}", OP_DELETE_PO, dto.getProjectId(), deletedPoId,

@@ -17,6 +17,7 @@ import com.apmosys.employeeportal.dto.ActivationCandidateDTO;
 import com.apmosys.employeeportal.dto.ActiveProjectDTO;
 import com.apmosys.employeeportal.dto.DeactivationCandidateDTO;
 import com.apmosys.employeeportal.dto.EmpMappingDTO;
+import com.apmosys.employeeportal.dto.EmployeeDeletionDTO;
 import com.apmosys.employeeportal.dto.EmployeeImpactDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto;
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
@@ -1456,6 +1457,17 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "     )\n"
 			+ ")")
 	List<EmployeeTeamMap> findActiveEmployeesByPoId(Long previousPoId);
+	
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDeletionDTO(e.name, t.teamName, r.role, etm.startDate) " +
+		       "FROM EmployeeTeamMap etm " +
+		       "JOIN Employee e ON e.empId = etm.empId " +
+		       "JOIN Team t ON t.teamId = etm.teamId " +
+		       "JOIN RoleDetails r ON r.roleId = etm.roleId " +
+		       "WHERE etm.poId = :poId " +
+		       "AND etm.active = 0 " +
+		       "AND etm.endDate IS NULL " +
+		       "AND FUNCTION('DATE', etm.startDate) > CURRENT_DATE")
+		List<EmployeeDeletionDTO> findScheduledEmployeesForPo(Long poId);
 
 	
 	

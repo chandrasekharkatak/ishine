@@ -82,5 +82,12 @@ List<Integer> isUserProjectManagerOfAnyActiveInternalProjectList(@Param("empId")
 
 	@Query("SELECT DISTINCT pmm.projectManagerId from ProjectManagerMapping pmm where pmm.projectId = :projectId and pmm.active=:active")
 	List<Long> findProjectManagerIdByProjectIdAndActive(Long projectId, Integer active);
+	
+	@Query("SELECT DISTINCT e.email " +
+		       "FROM ProjectManagerMapping pm " +
+		       "JOIN Employee e ON pm.projectManagerId = e.empId " +
+		       "WHERE pm.projectId = :projectId " +
+		       "AND pm.active = 1")
+		List<String> findProjectManagerEmails(Integer projectId);
 
 }

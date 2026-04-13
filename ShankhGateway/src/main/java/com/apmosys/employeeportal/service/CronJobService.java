@@ -94,11 +94,13 @@ import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.AutoMigrationDTO;
 import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeDeletionDTO;
 import com.apmosys.employeeportal.dto.EmployeeImpactDTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MilestoneExpireDto;
+import com.apmosys.employeeportal.dto.PoDeletionImpactDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
@@ -167,9 +169,15 @@ public class CronJobService {
 
     @Autowired
     private DayTypeMasterNewRepository dayTypeMasterNewRepository;
+    
+    @Autowired
+    ProjectManagerMappingRepository projectManagerMappingRepository;
 
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
+	
+	@Autowired
+	PoDepartmentMappingRepository poDepartmentMappingRepository;
 
 	@Autowired
 	LeavePolicyMasterRepository leavePolicyMasterRepository;
@@ -240,6 +248,9 @@ public class CronJobService {
 
 	@Autowired
 	ResourceRequirementRepository resourceRequirementRepository;
+	
+	@Autowired
+	ProjectOverheadMappingRepository projectOverheadMappingRepository;
 	
 	@Autowired
 	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
@@ -7188,7 +7199,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	          .append("<div><b>Project Type:</b> ").append(dto.getProjectType()).append("</div>")
 	          .append("<div><b>PO Movement:</b> ")
 	          .append(dto.getPreviousPoNumber())
-	          .append(" ➝ ")
+	          .append(" -> ")
 	          .append(dto.getCurrentPoNumber())
 	          .append("</div>")
 	          .append("</div>");
@@ -7225,13 +7236,13 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 	            sb.append("<div class='value'><span class='label'>PO Movement:</span><br>")
 	              .append(emp.getPreviousPoNumber())
-	              .append(" ➝ ")
+	              .append(" -> ")
 	              .append(emp.getCurrentPoNumber())
 	              .append("</div>");
 
 	            sb.append("<div class='value'><span class='label'>Team Movement:</span><br>")
 	              .append(emp.getPreviousTeamName())
-	              .append(" ➝ ")
+	              .append(" -> ")
 	              .append(emp.getNewTeamName())
 	              .append("</div>");
 
@@ -7251,6 +7262,105 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	        sb.append("</div></body></html>");
 
 	        return sb.toString();
+	    }
+	    
+	    public void sendPoDeletionImpactMail(PoDeletionImpactDTO dto) {
+
+	        String subject = "PO Deletion Impact - " + dto.getProjectName();
+
+	        String body = buildPoDeletionHtml(dto);
+
+	        try {
+	            mailService.sendMailWithCC(
+	                    "prarthana.lenka@apmosys.com",
+	                    "priyadarshini.singh@apmosys.com",
+	                    subject,
+	                    body
+	            );
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
+	    
+	    private String buildPoDeletionHtml(PoDeletionImpactDTO dto) {
+
+	        StringBuilder sb = new StringBuilder();
+
+	        sb.append("<html><body style='font-family:Segoe UI;background:#faf8fc;'>");
+	        sb.append("<div style='max-width:800px;margin:auto;padding:20px;'>");
+
+	        // HEADER
+	        sb.append("<div style='background:linear-gradient(135deg,#ffd6e0,#e6d9f3);padding:20px;border-radius:12px;text-align:center;'>")
+	          .append("<h2>PO Deletion Impact Notification</h2>")
+	          .append("</div>");
+
+	        // INFO
+	        sb.append("<div style='background:#f3edf9;padding:15px;border-radius:10px;margin-top:20px;'>")
+	          .append("<b>Project:</b> ").append(dto.getProjectName()).append("<br>")
+	          .append("<b>Deleted PO:</b> ").append(dto.getDeletedPoNumber())
+	          .append("</div>");
+
+	        // MESSAGE
+	        sb.append("<div style='margin-top:20px;background:#fff4f6;padding:15px;border-radius:10px;'>")
+	          .append("This PO has been deleted. As a result, future planned resource allocations could not be retained.")
+	          .append("</div>");
+
+	        // EMPLOYEES
+	        if (dto.getDeletedEmployees() != null && !dto.getDeletedEmployees().isEmpty()) {
+
+	            sb.append("<h3 style='margin-top:25px;'>Removed Scheduled Resources</h3>");
+
+	            for (EmployeeDeletionDTO emp : dto.getDeletedEmployees()) {
+
+	                sb.append("<div style='background:white;padding:10px;margin:10px 0;border-left:4px solid #f5b7b1;'>")
+	                  .append("<b>").append(emp.getEmployeeName()).append("</b><br>")
+	                  .append("Role: ").append(emp.getRoleName()).append("<br>")
+	                  .append("Team: ").append(emp.getTeamName()).append("<br>")
+	                  .append("Scheduled Start: ").append(emp.getScheduledStartDate()).append("<br>")
+	                  .append("</div>");
+	            }
+	        }
+
+	      
+	        if (dto.isProjectClosed()) {
+	            sb.append("<div style='margin-top:20px;background:#fdebd0;padding:15px;border-radius:10px;'>")
+	              .append("This was the last PO. Project is now marked as InActive and teams are deactivated.")
+	              .append("</div>");
+	        }
+
+	      
+	        sb.append("<div style='margin-top:20px;background:#e8f8f5;padding:15px;border-radius:10px;'>")
+	          .append("You may reassign these employees to another project/PO if required.")
+	          .append("</div>");
+
+	        sb.append("</div></body></html>");
+
+	        return sb.toString();
+	    }
+	    
+	    
+	    public Set<String> getProjectStakeholderEmails(Integer projectId) {
+
+	        Set<String> uniqueEmails = new HashSet<>();
+
+	       
+	        List<String> hodEmails =
+	                poDepartmentMappingRepository.findHodEmailsByProjectId(projectId);
+
+	        
+	        List<String> managerEmails =
+	                projectManagerMappingRepository.findProjectManagerEmails(projectId);
+
+	      
+	        List<String> overheadEmails =
+	                projectOverheadMappingRepository.findProjectOverheadEmails(projectId);
+
+	        // ✅ Merge all & remove duplicates automatically
+	        if (hodEmails != null) uniqueEmails.addAll(hodEmails);
+	        if (managerEmails != null) uniqueEmails.addAll(managerEmails);
+	        if (overheadEmails != null) uniqueEmails.addAll(overheadEmails);
+
+	        return uniqueEmails;
 	    }
 
 

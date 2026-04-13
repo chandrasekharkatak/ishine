@@ -62,4 +62,12 @@ List<Integer> isUserProjectOverheadOfAnyActiveInternalAndExternalProjectList(@Pa
 	@Query("SELECT DISTINCT pom.projectOverheadId from ProjectOverheadMapping pom where pom.projectId = :projectId and pom.active=:active")
 	List<Long> findProjectOverheadIdByProjectIdAndActive(Long projectId, Integer active);
 	
+	
+	@Query("SELECT DISTINCT e.email " +
+		       "FROM ProjectOverheadMapping po " +
+		       "JOIN Employee e ON po.projectOverheadId = e.empId " +
+		       "WHERE po.projectId = :projectId " +
+		       "AND po.active = 1")
+		List<String> findProjectOverheadEmails(Integer projectId);
+	
 }
