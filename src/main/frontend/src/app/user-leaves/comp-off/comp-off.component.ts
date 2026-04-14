@@ -302,14 +302,26 @@ export class CompOffComponent implements OnInit {
 
       //console.log("Apply Comp off : ", this.compOffObj);
       //console.log("compoff currentuser    ::   ",this.currentUser);
-      this.leaveService.applyForCompOff(this.compOffObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.openAlertMod(template, response.serviceResponse);
-          this.showCompOffRequestTable();
-        } else {
-          this.openAlertMod(template, response.serviceResponse);
-        }
-      });
+      this.leaveService.applyForCompOff(this.compOffObj)
+  .pipe(first())
+  .subscribe({
+    next: (response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showCompOffRequestTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    },
+    error: (error) => {
+      const msg =
+        error?.error?.serviceResponse ||
+        error?.error?.message ||
+        "Something went wrong!";
+        
+      this.openAlertMod(template, msg);
+    }
+  });
     }
 
 

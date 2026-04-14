@@ -11,6 +11,17 @@
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Apply Compensatory Off</strong>
             <strong *ngIf="isUpdation">Update Compensatory Off</strong>
+            <span
+                class="position-absolute text-info"
+                style="right: 10px; cursor: pointer;"
+                [ngbTooltip]="rulesTip"
+                placement="left"
+                triggers="mouseenter:mouseleave"
+                [openDelay]="0"
+                [closeDelay]="0">
+
+                <i class="fa fa-info-circle fa-lg"></i>
+                </span>
         </div>
         <div class="card-body">
             <div class="row">
@@ -288,4 +299,11 @@
         <button type="button" class="btn btn-success" (click)="deleteCompOff(alert_message);">Yes, proceed</button>&nbsp;	
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;	
     </div>	
+</ng-template>
+
+<ng-template #rulesTip>
+  Comp-Off Rules:<br>
+  • Apply within 3 days of working<br>
+  • Future dates not allowed<br>
+  • If leave granted, it must be taken within 15 days of approval
 </ng-template>

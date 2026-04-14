@@ -40,7 +40,7 @@ public class CompOffLeaveValidator {
 		LocalDate lastSeventhDate = LocalDate.now().minusDays(compOffApplyWithIn);
 		LocalDate currentDate = LocalDate.now();
 		require(!appliedForDate.isBefore(lastSeventhDate) && !appliedForDate.isAfter(currentDate),
-				"Comp Off Date range exceed !!");
+				"Comp Off Date range exceeded !!");
 	}
 
 	public void validateGetPendingCompOffRequestsByManagerId(LeaveDTO leaveDTO) {

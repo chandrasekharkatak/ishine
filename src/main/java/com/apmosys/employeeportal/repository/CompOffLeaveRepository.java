@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.EmployeeLeave;
@@ -77,5 +78,13 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getPendingCompOffRequestsByManagerIdInHirarchy(List<Long> empIds);
+
+	@Query(nativeQuery = true)
+	public CompOffLeave findOldestCompOffApplicationByEmpIdIn15Days(Long empId, String compOffStatus, LocalDate date);
 	
+	@Query(nativeQuery = true)
+    public Long countMonthlyActiveCompOffByEmpId(
+        @Param("empId") Long empId,
+        @Param("fromDate") LocalDate fromDate
+);
 }

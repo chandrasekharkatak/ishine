@@ -232,6 +232,7 @@ import {MatSidenavModule} from '@angular/material/sidenav';
 import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
+import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 
 registerLocaleData(localeGb);
 
@@ -425,6 +426,7 @@ registerLocaleData(localeGb);
     QuizSubmit
   ],
   imports: [
+    NgbTooltipModule,
     BrowserModule,
     AppRoutingModule,
     MatCardModule,

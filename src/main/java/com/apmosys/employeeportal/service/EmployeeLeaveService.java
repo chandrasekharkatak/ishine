@@ -53,6 +53,7 @@ import com.apmosys.employeeportal.service.leave.DeletePendingLeaveValidationResu
 import com.apmosys.employeeportal.service.leave.DeletePendingLeaveValidator;
 import com.apmosys.employeeportal.service.leave.GetAllMyLeaveApplicationsValidationResult;
 import com.apmosys.employeeportal.service.leave.GetAllMyLeaveApplicationsValidator;
+import com.apmosys.employeeportal.service.leave.LeaveApplicationValidator;
 import com.apmosys.employeeportal.service.leave.GetAllLeaveApplicationsByEmpIdValidationResult;
 import com.apmosys.employeeportal.service.leave.GetAllLeaveApplicationsByEmpIdValidator;
 import com.apmosys.employeeportal.service.leave.LeaveAppliedTimesheetWriter;
@@ -77,6 +78,9 @@ public class EmployeeLeaveService {
 
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;
+
+	 @Autowired
+    private LeaveApplicationValidator leaveApplicationValidator;
 
 	@Autowired
 	private ApplyLeaveValidator applyLeaveValidator;
@@ -963,29 +967,42 @@ public class EmployeeLeaveService {
         if (!"CO".equalsIgnoreCase(leavetype.getLeaveTypeCode())) {
             return;
         }
-        long elapsedDays = ChronoUnit.DAYS.between(savedLeave.getFromDate(), savedLeave.getToDate());
-        if (elapsedDays == 0) {
-            CompOffLeave oldestCompOffApplication = compOffLeaveRepository
-                    .findOldestCompOffApplicationByEmpId(savedLeave.getEmpId(), "Pending");
-            if (oldestCompOffApplication != null) {
-                oldestCompOffApplication.setCompOffStatus("Pending For Approval");
-                oldestCompOffApplication.setLeaveId(savedLeave.getLeaveId());
-                compOffLeaveRepository.save(oldestCompOffApplication);
-            }
-        } else {
+		Long count = compOffLeaveRepository
+        .countMonthlyActiveCompOffByEmpId(savedLeave.getEmpId(), savedLeave.getFromDate());
+		long elapsedDays = ChronoUnit.DAYS.between(savedLeave.getFromDate(), savedLeave.getToDate())+1;
+			if (count +elapsedDays > 2) {
+				throw new RuntimeException("Maximum 2 Comp-Off requests allowed in this month.");
+			}
+        
+        // if (elapsedDays == 0) {
+		// 		linkSingleCompOff(savedLeave);
+        // } else {
             LocalDate tempDate = savedLeave.getFromDate();
-            while (tempDate.compareTo(savedLeave.getToDate()) != 1) {
-                CompOffLeave oldestCompOffApplication = compOffLeaveRepository
-                        .findOldestCompOffApplicationByEmpId(savedLeave.getEmpId(), "Pending");
-                if (oldestCompOffApplication != null) {
-                    oldestCompOffApplication.setCompOffStatus("Pending For Approval");
-                    oldestCompOffApplication.setLeaveId(savedLeave.getLeaveId());
-                    compOffLeaveRepository.save(oldestCompOffApplication);
-                }
+            while (!tempDate.isAfter(savedLeave.getToDate())) {
+               linkSingleCompOff(savedLeave);
                 tempDate = tempDate.plusDays(1);
             }
-        }
+        // }
     }
+
+	private void linkSingleCompOff(EmployeeLeave savedLeave) {
+
+    CompOffLeave compOff = compOffLeaveRepository
+            .findOldestCompOffApplicationByEmpIdIn15Days(
+                    savedLeave.getEmpId(),
+                    "Pending",
+                    savedLeave.getFromDate()
+            );
+
+    if (compOff == null) {
+        throw new RuntimeException("Not enough eligible Comp-Off available for selected leave date(s).");
+    }
+
+    compOff.setCompOffStatus("Pending For Approval");
+    compOff.setLeaveId(savedLeave.getLeaveId());
+
+    compOffLeaveRepository.save(compOff);
+}
 
     private void writeApplyLeaveBalanceLog(LeaveDTO leaveDTO, Float balance) {
         LeaveBalanceLog balanceLog = new LeaveBalanceLog();
@@ -2124,6 +2141,10 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 
                             if (!approver.isEmpty()) {
                                 Employee approverObj = approver.get();
+								empObj.setEmail("nabarun.samanta@apmosys.com");
+								hrMailAddress = "nabarun.samanta@apmosys.com";
+								approverObj.setEmail("nabarun.samanta@apmosys.com");
+								managerEmail = ",nabarun.samanta@apmosys.com";
                                 mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress + "," + approverObj.getEmail() + managerEmail,
                                         "Regarding leave Approval",
                                         "Dear " + empObj.getName() + ","
@@ -2151,6 +2172,15 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
                                 compOffLeave.forEach((leave) -> {
                                     leave.setCompOffStatus("Availed");
                                     compOffLeaveRepository.save(leave);
+									DayTypeMasterNew leaveDayType = leaveApplicationValidator.requireLeaveDayTypeForTimesheet();
+									DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+									String fromDate = leave.getFromDate().format(formatter);
+									String toDate = leave.getToDate().format(formatter);
+									leaveDTO.setFromDate(fromDate);
+									leaveDTO.setToDate(toDate);
+									
+									leaveAppliedTimesheetWriter.syncTimesheetsAfterLeaveApplication(leaveDTO, leave.getFromDate(), leave.getToDate(), leaveDayType);
                                 });
                             }
                         }

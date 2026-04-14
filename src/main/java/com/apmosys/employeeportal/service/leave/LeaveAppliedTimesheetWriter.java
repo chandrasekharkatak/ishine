@@ -122,7 +122,11 @@ public class LeaveAppliedTimesheetWriter {
      */
     public void saveRelationalLeaveTimesheet(LeaveDTO leaveDTO, LocalDate date, LocalDateTime startOfDay,
             LocalDateTime endOfDay, DayTypeMasterNew leaveDayType) {
-        Long userId = (leaveDTO.getCreatedBy() != null) ? leaveDTO.getCreatedBy() : leaveDTO.getUpdatedBy();
+        Long userId = (leaveDTO.getCreatedBy() != null) ? leaveDTO.getCreatedBy() : leaveDTO.getUpdatedBy()!= null
+            ? leaveDTO.getUpdatedBy().longValue()
+            : leaveDTO.getLeaveStatusUpdatedBy() != null
+                ? leaveDTO.getLeaveStatusUpdatedBy().longValue()
+                : null;
         if (userId == null) {
             throw new RuntimeException("Cannot save timesheet: Both CreatedBy and UpdatedBy are null in LeaveDTO.");
         }

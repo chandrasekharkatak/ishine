@@ -638,8 +638,10 @@ public class CompOffLeaveService {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Compoff Request Approved");
 							System.err.println("Mail calling   ::   "+" , user email   "+leaveDTO.getEmail()+", hod mail   "+findHOD.getEmail()+",manager email "+leaveDTO.getManagerEmail()+","+ findRequestor.getName());
+							if(compOffUpdated.getLevel2ApprovalStatus()=="Approved") {
 							compOffNotificationMailSender.sendApprovedNotification(leaveDTO, findHOD, updatedBy,
-									findRequestor);
+									findRequestor);	
+							}
 							
 						}else if(leaveDTO.getLeaveStatusId() == 3){
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
