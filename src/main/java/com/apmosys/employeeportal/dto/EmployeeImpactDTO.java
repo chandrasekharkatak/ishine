@@ -33,7 +33,5 @@ public class EmployeeImpactDTO {
     	this.employeeName = employeeName;
     	this.teamName = teamName;
     }
-    
-    
 
 }

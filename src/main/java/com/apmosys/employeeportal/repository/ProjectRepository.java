@@ -9023,6 +9023,12 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 			+ " INNER JOIN projects p2 ON p2.project_id = t2.project_id   \n"
 			+ " WHERE 1=1) \n", nativeQuery = true)
 	public List<Integer> getTimesheetNonComplianceProjectIds(List<Long> deptIds, Set<Integer> projectIds);
+	
+	
+	@Query(value = "SELECT pa.project_status FROM projects_aud pa WHERE pa.project_id = :projectId \n"
+			+ "ORDER BY pa.rev DESC LIMIT 1 OFFSET 1",
+    nativeQuery = true)
+   String findLatestProjectStatus(@Param("projectId") Integer projectId);
 
 	@Query(value = " SELECT CASE WHEN EXISTS ( \n"
 			+ "     SELECT 1 FROM teams t \n"

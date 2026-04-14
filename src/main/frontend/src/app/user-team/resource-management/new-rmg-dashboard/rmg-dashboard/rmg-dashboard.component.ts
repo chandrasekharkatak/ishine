@@ -333,9 +333,9 @@ export class RmgDashboardComponent implements OnInit {
   mappedToClientPercentage = { key: 'MAPPED_TO_SHANKH_PERCENTAGE', icon: 'bi-building', label: 'Internal & Bench project Allocation', value: null, desc: 'Internal projects only', colorClass: 'text-info', columnConfig: this.mappedToInternalEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#64B4AF' };
 
   kpis = [
-    { label: 'TOTAL PROJECTS', value: this.statusCards[0]?.value, change: null, period: 'vs last week', status: null, icon: 'bi-lightning', key: 'ALL' },
-    { label: 'EMPLOYEES ONBOARDED', value: this.workforceOverview[0]?.value, change: null, period: 'vs last week', status: null, icon: 'bi-people', key: 'TOTAL' },
-    { label: '% OF EMPLOYEES ON CLIENT PROJECTS', value: null, suffix: '%', change: null, period: 'vs last month', status: null, icon: 'bi-graph-up', key: 'MAPPED_TO_SHANKH' },
+    { label: 'TOTAL PROJECTS', value: this.statusCards[0]?.value, change: null, period: 'vs last week', status: null, icon: 'bi-lightning', key: 'ALL', extraValue: null },
+    { label: 'EMPLOYEES ONBOARDED', value: this.workforceOverview[0]?.value, change: null, period: 'vs last week', status: null, icon: 'bi-people', key: 'TOTAL', extraValue: null },
+    { label: '% OF EMPLOYEES ON CLIENT PROJECTS', value: null, suffix: '%', change: null, period: 'vs last month', status: null, icon: 'bi-graph-up', key: 'MAPPED_TO_SHANKH', extraValue: null},
   ];
 
   // Flags
@@ -759,6 +759,13 @@ export class RmgDashboardComponent implements OnInit {
     const statusMap = Object.fromEntries(this.statusCards.map(s => [s.key, s.value]));
     const workforceMap = Object.fromEntries(this.workforceOverview.map(w => [w.key, w.value]));
 
+    const totalEmployees = Number(workforceMap['TOTAL']) || 0;
+    const percentage = Number(this.mappedToClientPercentage) || 0;
+    
+    const mappedCount = totalEmployees
+      ? Math.round((percentage / 100) * totalEmployees)
+      : 0;
+
     this.kpis = this.kpis.map(kpi => {
       switch (kpi.key) {
         case 'ALL':
@@ -768,7 +775,7 @@ export class RmgDashboardComponent implements OnInit {
           return { ...kpi, value: workforceMap['TOTAL'] };
 
         case 'MAPPED_TO_SHANKH':
-          return { ...kpi, value: this.mappedToClientPercentage ? this.mappedToClientPercentage : 0.00 };
+          return { ...kpi, value: this.mappedToClientPercentage ? this.mappedToClientPercentage : 0.00, extraValue: mappedCount ? mappedCount : 0 };
 
         default:
           return kpi;

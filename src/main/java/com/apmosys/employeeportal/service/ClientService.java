@@ -395,6 +395,8 @@ public class ClientService {
 		    return clientLocationRepository.save(cl);
 		}
 
+
+
 	 @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
 	 public int[] processSingleClientByName(ClientDetailsSyncDto poDto,Client iShineClient,
 	 		       List<ClientLocation> existingLocations) {

@@ -4798,7 +4798,7 @@ public class ResourceManagementService {
 		}
 	}
 
-	private void sendProjectCompletionMail(Project projectObj, Long currentUserEmpId, StringBuilder logBuilder) {
+	public void sendProjectCompletionMail(Project projectObj, Long currentUserEmpId, StringBuilder logBuilder) {
 		try {
 			Employee empupdatedBy = employeeRepository.findByEmpId(currentUserEmpId);
 			List<String> managerOverheadEmails = projectRepository
@@ -13736,10 +13736,18 @@ public class ResourceManagementService {
 				response = context.getBean(getClass()).updateProjectManagers(projectId, empId);
 				response = context.getBean(getClass()).updateProjectOverheads(projectId, empId);
 			}
+			
 			project.setActive("true");
 			project.setIsDraftProject("true");
 			project.setProjectCompletionDate(null);
-			project.setProjectStatus(null);
+			
+			String latestStatus = projectRepository.findLatestProjectStatus(projectId);
+
+			if (latestStatus != null) {
+			    project.setProjectStatus(latestStatus);
+			} else {
+			    project.setProjectStatus(null); 
+			}
 			projectRepository.save(project);
 			if (ServiceResponse.STATUS_SUCCESS.equals(response.getServiceStatus())) {
 				project.setActive("true");
@@ -14133,30 +14141,25 @@ public class ResourceManagementService {
 //				validResourceOverviewIds = requirements.stream().map(ResourceRequirementResponse::getResourceOverviewId)
 //						.collect(Collectors.toSet());
 //			}
-			Set<Long> validPoRequirementMappingIds = getValidPoRequirementMappingIds(poId);
-			logBuilder.append("Valid PO Requirement Mapping IDs: ").append(validPoRequirementMappingIds).append("\n");
-
-			if (validPoRequirementMappingIds.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("No valid PO requirements found for PO ID: " + poId);
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setLogLevel("ERROR");
-				logBuilder.append("No valid PO requirements found for PO ID: ").append(poId).append("\n");
-				throw new IllegalStateException("No valid PO requirements found for the given PO");
-			}
+//			Set<Long> validPoRequirementMappingIds = getValidPoRequirementMappingIds(poId);
+//			logBuilder.append("Valid PO Requirement Mapping IDs: ").append(validPoRequirementMappingIds).append("\n");
+//
+//			if (validPoRequirementMappingIds.isEmpty()) {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("No valid PO requirements found for PO ID: " + poId);
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				apiLogInfo.setLogLevel("ERROR");
+//				logBuilder.append("No valid PO requirements found for PO ID: ").append(poId).append("\n");
+//				throw new IllegalStateException("No valid PO requirements found for the given PO");
+//			}
 
 			if (empList != null && !empList.isEmpty()) {
 				List<EmployeeTeamMap> toUpdate = new ArrayList<>();
 				for (EmployeeTeamMap etm : empList) {
-					if (etm.getPoRequirementMappingId() != null
-							&& validPoRequirementMappingIds.contains(etm.getPoRequirementMappingId())) {
 						etm.setActive(2L);
 						etm.setUpdatedOn(LocalDateTime.now());
 						etm.setUpdatedBy(empId);
 						toUpdate.add(etm);
-					} else {
-						skippedEmpMap.put(etm.getEmpId(), etm.getPoRequirementMappingId());
-					}
 				}
 				if (!toUpdate.isEmpty()) {
 					employeeTeamMapRepository.saveAll(toUpdate);
@@ -14181,13 +14184,13 @@ public class ResourceManagementService {
 //				    notifyHod(empIds, resourceOverviewIds);
 //				}
 
-			if (!skippedEmpMap.isEmpty()) {
-				Set<Long> empIds = skippedEmpMap.keySet();
-				Set<Long> poRequirementMappingIds = new HashSet<>(skippedEmpMap.values());
-				notifyHod(empIds, poRequirementMappingIds);
-				logBuilder.append("HOD notification sent for ").append(skippedEmpMap.size())
-						.append(" skipped employees\n");
-			}
+//			if (!skippedEmpMap.isEmpty()) {
+//				Set<Long> empIds = skippedEmpMap.keySet();
+//				Set<Long> poRequirementMappingIds = new HashSet<>(skippedEmpMap.values());
+//				notifyHod(empIds, poRequirementMappingIds);
+//				logBuilder.append("HOD notification sent for ").append(skippedEmpMap.size())
+//						.append(" skipped employees\n");
+//			}
 		} catch (BadRequestException bre) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Bad Request: " + bre.getMessage());

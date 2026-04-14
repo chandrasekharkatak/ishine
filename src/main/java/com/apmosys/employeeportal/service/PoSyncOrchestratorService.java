@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +41,7 @@ import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.RequirementChangeDTO;
+import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.RmUpdateSyncDto;
 import com.apmosys.employeeportal.enums.SyncRequestType;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
@@ -695,6 +697,11 @@ public class PoSyncOrchestratorService {
 	            );
 
 		        projectService.recalculateProjectDates(primaryProject.getProjectId(),false);
+		        
+		        poDetailsService.migrateResourcesAfterPoLink(
+	                    primaryProject.getProjectId(),
+	                    dto.getPrimaryProject().getPoDetailsList()
+	            );
 	            
 	           ishineStatus = resourceManagementService.ishineStatusReturn( dto.getDeletedProjects(),primaryProject);
 	           
@@ -1172,6 +1179,107 @@ public class PoSyncOrchestratorService {
 			sb.append(ctx);
 		}
 		return sb.length() == 0 ? null : sb.toString();
+	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse completionDateOfProject(ResourceManagementDTO resourceManagementDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("completionDateOfProject");
+		apiLogInfo.setApiUrl("/api/completionDateOfProject");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		try {
+			if (resourceManagementDTO == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request cannot be null!!");
+				return response;
+			}
+			if (resourceManagementDTO.getProjectId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id cannot be null!!");
+				return response;
+			}
+			if (resourceManagementDTO.getUpdatedBy() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Current User Employee Id cannot be null!!");
+				return response;
+			}
+			if (resourceManagementDTO.getProjectCompletionDate() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Provided Project Completion Date cannot be null!!");
+				return response;
+			}
+
+			logBuilder.append("ProjectType : " + resourceManagementDTO.getProjectType() + " ,ProjectId :"
+					+ resourceManagementDTO.getProjectId() + " ,ProjectName :" + resourceManagementDTO.getName());
+
+			Project projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+			if (projectObj == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project not found!!");
+				apiLogInfo.setApiResponse("Project not found!!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				return response;
+			}
+
+			teamsService.disableActiveTeamsAndMembers(projectObj, resourceManagementDTO.getUpdatedBy(), logBuilder);
+
+			projectObj.setProjectCompletionDate(resourceManagementDTO.getProjectCompletionDate());
+			projectObj.setActive("false");
+			projectObj.setProjectStatus(resourceManagementDTO.getProjectStatus());
+			projectObj.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
+			projectObj.setUpdatedOn(LocalDateTime.now());
+			Project projectDbResponse = projectRepository.save(projectObj);
+
+			String projectType = (projectDbResponse.getPoProjectType() != null
+					&& !projectDbResponse.getPoProjectType().trim().equals("")) ? projectDbResponse.getPoProjectType()
+							: "Internal";	
+			resourceManagementDTO.setProjectType(projectType);
+			
+			
+			if (!projectType.equals("Internal")) {
+				resourceManagementDTO.setPoProjectId(projectDbResponse.getPoProjectId());
+				ServiceResponse poPortalResponse = resourceManagementService.sendProjectInfoToPoPortal(resourceManagementDTO);
+				if (poPortalResponse != null && poPortalResponse.getServiceStatus() != null
+						&& poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Completion status updated to Shankh portal!");
+					apiLogInfo.setApiResponse("Reverse synced successfully!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Unable to intimate completion status to Shankh portal!");
+					apiLogInfo.setApiResponse("Reverse synced failed!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					throw new RuntimeException("Reverse synced failed, Unable to sync project completion status to Shankh portal!!");
+				}
+			}
+
+			if (projectDbResponse != null) {
+				resourceManagementService.sendProjectCompletionMail(projectDbResponse,resourceManagementDTO.getUpdatedBy(), logBuilder);
+			}
+
+			if (projectDbResponse != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Project Status Updated As Completed !!");
+				apiLogInfo.setApiResponse("Project Status Updated As Completed");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Status Not Updated");
+				apiLogInfo.setApiResponse("Project Status Not Updated to Completed");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+		} catch (Exception e) {
+			log.error("Error occured while marking Project as complete : ", e);
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		return response;
 	}
 
 }
