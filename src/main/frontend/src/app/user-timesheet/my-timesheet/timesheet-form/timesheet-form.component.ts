@@ -750,7 +750,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             projectId: p.projectId,
             projectName: p.projectName,
             hasClientSideId: p.hasClientSideId || false,
-            hasClientFlag: p.hasClientFlag || false
+            hasClientFlag: p.hasClientFlag || false,
+            isShadow: p.isShadow
           }
         ])
       ).values()
@@ -1507,7 +1508,8 @@ this.isNightShift = false;
             projectId: p.projectId,
             projectName: p.projectName,
             hasClientSideId: p.hasClientSideId || false,
-            hasClientFlag: p.hasClientFlag || false
+            hasClientFlag: p.hasClientFlag || false,
+            isShadow: p.isShadow
           }
         ])
       ).values()
@@ -1552,7 +1554,8 @@ this.isNightShift = false;
               projectId: p.projectId,
               projectName: p.projectName,
               hasClientSideId: p.hasClientSideId || false,
-              hasClientFlag: p.hasClientFlag || false
+              hasClientFlag: p.hasClientFlag || false,
+              isShadow: p.isShadow
             }
           ])
         ).values()
@@ -1849,7 +1852,8 @@ this.isNightShift = false;
             projectId: p.projectId,
             projectName: p.projectName,
             hasClientSideId: p.hasClientSideId || false,
-            hasClientFlag: p.hasClientFlag || false
+            hasClientFlag: p.hasClientFlag || false,
+            isShadow: p.isShadow
           }
         ])
       ).values()
@@ -2048,6 +2052,7 @@ this.isNightShift = false;
     shadowEmpId: null,
     isShadowTimesheet: false,
     isShadowForSelf: false,
+    isShadowRequired: matchedProject?.isShadow,
     clientSideId: null,
     clientId: null,
     clientLocationId: null,
@@ -4037,7 +4042,8 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
           projectId: p.projectId,
           projectName: p.projectName,
           hasClientSideId: p.hasClientSideId || false,
-          hasClientFlag: p.hasClientFlag || false
+          hasClientFlag: p.hasClientFlag || false,
+          isShadow: p.isShadow
         }
       ])
     ).values()
@@ -4471,7 +4477,20 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     // 5. SIMPLE, DIRECT MAPPING: map backend locationSessions -> timesheetLocations in one pass
     const locationSessionsToPopulate = timesheetData.locationSessions || [];
     this.timesheetLocations = [];
-
+    const uniqueProjects = Array.from(
+    new Map(
+      this.activeProjectList.map(p => [
+        p.projectId,
+        {
+          projectId: p.projectId,
+          projectName: p.projectName,
+          hasClientSideId: p.hasClientSideId || false,
+          hasClientFlag: p.hasClientFlag || false,
+          isShadow: p.isShadow
+        }
+      ])
+    ).values()
+  );
     locationSessionsToPopulate.forEach((locationData, lIndex) => {
       const location: LocationEntry = {
         locationMappingId: locationData.locationMappingId,
@@ -4494,6 +4513,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
             shadowEmpId: projectData.shadowEmpId,
             isShadowTimesheet: projectData.isShadowTimesheet || false,
             isShadowForSelf: projectData.isShadowForSelf || false,
+            // isShadowRequired: uniqueProjects.find(project =>{project.projectId = projectData.projectId}).isShadow,
             clientId: projectData.clientId != null ? Number(projectData.clientId) : null,
             clientLocationId: projectData.clientLocationId != null ? Number(projectData.clientLocationId) : null,
             clientApprovalStatus: projectData.clientApprovalStatus,
@@ -4547,6 +4567,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       }
       
       this.timesheetLocations.push(location);
+      console.log(this.activeProjectList,"activeProjectList")
       if(!this.isDayTypeFillable()){
         this.holidayDescription = this.timesheetLocations[0].projects[0].description;
       }else{
@@ -6050,7 +6071,8 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
                         projectId: p.projectId,
                         projectName: p.projectName,
                         hasClientSideId: p.hasClientSideId || false,
-                        hasClientFlag: p.hasClientFlag || false
+                        hasClientFlag: p.hasClientFlag || false,
+                        isShadow: p.isShadow
                       }
                     ])
                   ).values()
@@ -6067,6 +6089,12 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
                           // Ensure ID is set as number for Angular binding
                           proj.projectId = projectIdNum;
                           proj.hasClientSideId=matchedProject.hasClientSideId;
+                          proj.isShadowRequired = matchedProject.isShadow;
+                          if(proj.isShadowRequired != 1){
+                            proj.isShadowForSelf = false;
+                            proj.isShadowTimesheet = false;
+                            proj.shadowEmpId = null;
+                          }
                           if (!proj.projectName && matchedProject.projectName) {
                             proj.projectName = matchedProject.projectName;
                             console.log(`[getProjectListForDateAndEmpId] Updated projectName for projectId ${proj.projectId}: ${proj.projectName}`);

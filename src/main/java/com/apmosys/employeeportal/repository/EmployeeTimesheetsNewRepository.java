@@ -18317,7 +18317,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			//         @Param("status") int status
 			// );
 					      
-					    @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName, p.clientFlag, p.hasClientSideId,p.poProjectType)\n"
+					    @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName, p.clientFlag, p.hasClientSideId,p.poProjectType, etm.isShadow)\n"
 							+ "FROM EmployeeTeamMap etm\n"
 							+ "inner join Team t on t.teamId = etm.teamId \n"
 							+ "inner join Project p on p.projectId = t.projectId\n"
@@ -18325,6 +18325,15 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							+ "  AND (etm.endDate IS NULL OR etm.endDate >= :startOfDay) and etm.active != 2 and etm.empId = :emp_id")
 						List<ProjectNameAndPrjoectIdDTO> getProjectListForDateAndEmpId( @Param("emp_id") Long empId, @Param("startOfDay") LocalDateTime startOfDay,
 						        @Param("endOfDay") LocalDateTime endOfDay);	
+					    
+					    @Query(" SELECT etm.isShadow\n"
+								+ "FROM EmployeeTeamMap etm\n"
+								+ "inner join Team t on t.teamId = etm.teamId \n"
+								+ "inner join Project p on p.projectId = t.projectId\n"
+								+ "WHERE DATE(etm.startDate) <= DATE(:date)\n"
+								+ "  AND (etm.endDate IS NULL OR DATE(etm.endDate) >= DATE(:date)) and etm.active != 2 and etm.empId = :emp_id AND p.projectId = :projectId")
+							Integer getShadowStatusForDateAndEmpIdAndProjectId( @Param("emp_id") Long empId, @Param("date") LocalDate date,
+							        @Param("projectId") Integer projectId);	
 					    
 					    @Query(value ="select distinct new com.apmosys.employeeportal.dto.ProjectClientSideIdDTO( p.projectId , p.projectName, ecsm.clientSideId )  \n"+
 								"from Project p  \n"+

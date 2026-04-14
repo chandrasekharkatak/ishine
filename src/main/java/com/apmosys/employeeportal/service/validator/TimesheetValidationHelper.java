@@ -28,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeJobRoleDept;
+import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
@@ -437,6 +438,15 @@ public class TimesheetValidationHelper {
             }
             
             if (isWorkingDay) {
+            	
+            	if (isShadowMandatoryForProjectAndDateForEmp(empDTO.getEmpId(),empDTO.getDate(), project.getProjectId()) && Boolean.FALSE.equals(project.getIsShadowTimesheet()) 
+                        && Boolean.FALSE.equals(project.getIsShadowForSelf()) ) {
+
+                        throw new TimesheetValidationFailedException(
+                            String.format("Shadow/Shadow For Self option is mandatory for the project  "+ project.getProjectName())
+                        );
+                    }
+            	
 
                 if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) 
                     && Boolean.FALSE.equals(project.getIsShadowForSelf()) 
@@ -1000,6 +1010,8 @@ public class TimesheetValidationHelper {
                 || "Leave".equalsIgnoreCase(dayType)
                 || "Client Holiday".equalsIgnoreCase(dayType);
         }
+        
+        
 
         /**
          * Check if day type is non-working by dayTypeId (consistent with day_type_master_new).
@@ -1015,6 +1027,16 @@ public class TimesheetValidationHelper {
                 return false;
             }
         }   
+        
+        private boolean  isShadowMandatoryForProjectAndDateForEmp(Long empId,LocalDate date, Integer projectId) {
+        	
+	        Integer isShadow = employeeTimesheetsNewRepository.getShadowStatusForDateAndEmpIdAndProjectId(empId, date, projectId);
+        	if(isShadow != null && isShadow ==1) {
+        		return true;
+        	}else {
+        		return false;
+        	}
+        }
     /**
      * Validate date is not within lock period.
      * 

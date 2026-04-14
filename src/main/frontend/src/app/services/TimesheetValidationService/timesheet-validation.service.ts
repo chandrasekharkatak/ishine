@@ -385,6 +385,26 @@ export class TimesheetValidationService {
             locationId
           }, locationId);
         }
+        if(project.isShadowRequired == 1 && project.isShadowTimesheet== false && project.isShadowForSelf == false){
+          return fail({
+            field: 'projectId',
+            message: `Project ${pIndex + 1} requires Shadow/Shadow For Self option to be selected for ${locLabel}`,
+            scope: 'PROJECT',
+            locationIndex: lIndex,
+            projectIndex: pIndex,
+            locationId
+          }, locationId);
+        }
+        if(project.isShadowTimesheet== true && project.shadowEmpId == null){
+           return fail({
+            field: 'projectId',
+            message: `Project ${pIndex + 1} requires Employee to be selected in case of Shadow timesheet for ${locLabel}`,
+            scope: 'PROJECT',
+            locationIndex: lIndex,
+            projectIndex: pIndex,
+            locationId
+          }, locationId);
+        }
         if (!project.clientId) {
           console.log('clientId value:', project.clientId);
           console.log('clientId type:', typeof project.clientId);
