@@ -4798,7 +4798,7 @@ public class ResourceManagementService {
 		}
 	}
 
-	private void sendProjectCompletionMail(Project projectObj, Long currentUserEmpId, StringBuilder logBuilder) {
+	public void sendProjectCompletionMail(Project projectObj, Long currentUserEmpId, StringBuilder logBuilder) {
 		try {
 			Employee empupdatedBy = employeeRepository.findByEmpId(currentUserEmpId);
 			List<String> managerOverheadEmails = projectRepository
