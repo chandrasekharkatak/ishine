@@ -1226,14 +1226,14 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
         // return;
         // this.fromDate = null;
         this.resetForm('dayType');
-        return;
+        // return;
       }
     } 
       if(this.halfDayValidation()){
       return;
     }
-this.isNightShift = false;
-        this.toDate = null;
+    this.isNightShift = false;
+    this.toDate = null;
     const dayTypeFillable = this.isDayTypeFillable();
     this.clearAndInitOnDayTypeChange(dayTypeFillable);
     // if (!dayTypeFillable) {
@@ -5047,7 +5047,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
         }
       });
     });
-
+   
     // Call update API
     this.timesheetNewService.updateTimesheet(this.createOrUpdateObj, this.selectedFile)
       .pipe(takeUntil(this.destroy$))
@@ -6278,7 +6278,7 @@ limitDecimals(event: any ,activity : any) {
           "Please apply half day leave on the selected day first"
         );
         // this.fromDate = null;
-        // this.resetForm();
+        this.resetForm();
         return true;
       }
     }
