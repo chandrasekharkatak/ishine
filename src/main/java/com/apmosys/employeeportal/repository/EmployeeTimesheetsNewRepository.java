@@ -16,6 +16,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
+import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -23,7 +25,6 @@ import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
-import com.apmosys.employeeportal.model.Timesheet;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeTimesheetsNew, Long> {
@@ -188,7 +189,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			@Param("endDate") LocalDate endDate);
 	// ========== OLD METHODS (Backward Compatibility) ==========
 
-	public List<Timesheet> findAllByEmpIdAndDateBetweenOrderByDateDesc(Long empId, LocalDate start, LocalDate end);
+//	public List<Timesheet> findAllByEmpIdAndDateBetweenOrderByDateDesc(Long empId, LocalDate start, LocalDate end);
 
 	// @Query(nativeQuery = true)
 	// public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String
@@ -242,17 +243,17 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	@Query(nativeQuery = true)
 	public List<Object[]> getTimesheetsForHomePageByEmpId(Long empId, LocalDate start, LocalDate end);
 
-	public Optional<Timesheet> findByEmpIdAndDate(Long empId, LocalDate dateToday);
+//	public Optional<Timesheet> findByEmpIdAndDate(Long empId, LocalDate dateToday);
 
-	List<Timesheet> findByEmpIdAndTimesheetIdIn(Long empId, List<Long> timesheetIds);
+//	List<Timesheet> findByEmpIdAndTimesheetIdIn(Long empId, List<Long> timesheetIds);
 
-	List<Timesheet> findByTimesheetIdIn(List<Long> timesheetIds);
+//	List<Timesheet> findByTimesheetIdIn(List<Long> timesheetIds);
 
 	// ========== BACKUP: Original queries renamed with _old suffix ==========
-	@Query(nativeQuery = true, value = "Select emp_Id,date,status "
-			+ "from employee_timesheets "
-			+ "where emp_Id=:empId and date=:localDate")
-	List<Object[]> getTimesheetDataByEmpIdAndDateOLD(Long empId, LocalDate localDate);
+//	@Query(nativeQuery = true, value = "Select emp_Id,date,status "
+//			+ "from employee_timesheets "
+//			+ "where emp_Id=:empId and date=:localDate")
+//	List<Object[]> getTimesheetDataByEmpIdAndDateOLD(Long empId, LocalDate localDate);
 
 	// @Query(nativeQuery = true)
 	// public List<Object[]> getAllTimesheetDataOLD();
@@ -384,12 +385,12 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	);
 
 	@Query(nativeQuery = true)
-	public List<Timesheet> findTimesheetOnLeaveDate(Long empId, String start, String end);
+	public List<EmployeeTimesheetsNew> findTimesheetOnLeaveDate(Long empId, String start, String end);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query("SELECT t FROM Timesheet t WHERE t.empId = :empId AND t.date >= :startDate AND t.date <= :endDate")
-	List<Timesheet> findTimesheetsForRejectionOLD(@Param("empId") Long empId, @Param("startDate") LocalDate startDate,
-			@Param("endDate") LocalDate endDate);
+//	@Query("SELECT t FROM Timesheet t WHERE t.empId = :empId AND t.date >= :startDate AND t.date <= :endDate")
+//	List<Timesheet> findTimesheetsForRejectionOLD(@Param("empId") Long empId, @Param("startDate") LocalDate startDate,
+//			@Param("endDate") LocalDate endDate);
 
 	// ========== UPDATED: New query using _new tables (JPQL - using new entity)
 	// ==========
@@ -405,70 +406,70 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	// LocalDate end);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(" +
-			" e.employeementId, " +
-			" e.name, " +
-			" t.date, " +
-			" t.dayType, " +
-			" t.description, " +
-			" t.status, " +
-			" l.leaveType, " +
-			" mgr.name, " +
-			" d.name, " +
-			" t.commonProperty.createdOn, " +
-			" t.commonProperty.updatedOn, " +
-			" s.name, " +
-			" e.isConsultant, " +
-			" e.isApprenticeship, " +
-			" e.managerId, " +
-			" t.timesheetStatusUpdatedBy, " +
-			" t.empId, " +
-			" e.isApmosysProduct) " +
-			"FROM Timesheet t " +
-			"JOIN Employee e ON t.empId = e.empId " +
-			"LEFT JOIN Employee s ON t.timesheetStatusUpdatedBy = s.empId " +
-			"LEFT JOIN Employee mgr ON e.managerId = mgr.empId " +
-			"LEFT JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
-			"LEFT JOIN Department d ON jr.deptId = d.deptId " +
-			"LEFT JOIN LeaveTypeMaster l ON l.leaveTypeMasterId = t.leaveTypeMasterId " +
-			"WHERE t.dayType <> 'Week Off' " +
-			"AND t.leaveTypeMasterId IS NULL " +
-			"AND t.date BETWEEN :start AND :end " +
-			"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
-			"AND ((:empId IS NULL OR e.employeementId = :empId) " +
-			"OR (:empIdStr IS NOT NULL AND CAST(e.employeementId AS string) LIKE :empIdStr)) " +
-			"AND ((:date IS NULL OR t.date = :date) " +
-			"OR (:dateStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.date, '%Y-%m-%d') LIKE CONCAT('%', :dateStr, '%'))) "
-			+
-			"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
-			"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
-			"AND (:managerName IS NULL OR LOWER(mgr.name) LIKE LOWER(CONCAT('%', :managerName, '%'))) " +
-			"AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
-			"AND ((:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
-			"OR (:createdOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.createdOn, '%Y-%m-%d') LIKE CONCAT('%', :createdOnStr, '%'))) "
-			+
-			"AND ((:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
-			"OR (:updatedOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.updatedOn, '%Y-%m-%d') LIKE CONCAT('%', :updatedOnStr, '%'))) "
-			+
-			"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
-	Page<TimesheetDTO> findAllLeaveTimesheetsWithoutLeaveApplicationOLD(
-			@Param("start") LocalDate start,
-			@Param("end") LocalDate end,
-			@Param("empName") String empName,
-			@Param("empId") Long empId,
-			@Param("date") LocalDate date,
-			@Param("dayType") String dayType,
-			@Param("status") String status,
-			@Param("managerName") String managerName,
-			@Param("departmentName") String departmentName,
-			@Param("createdOn") java.sql.Date createdOn,
-			@Param("updatedOn") java.sql.Date updatedOn,
-			@Param("updatedBy") String updatedBy,
-			@Param("dateStr") String dateStr,
-			@Param("createdOnStr") String createdOnStr,
-			@Param("updatedOnStr") String updatedOnStr,
-			@Param("empIdStr") String empIdStr,
-			Pageable pageable);
+//	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(" +
+//			" e.employeementId, " +
+//			" e.name, " +
+//			" t.date, " +
+//			" t.dayType, " +
+//			" t.description, " +
+//			" t.status, " +
+//			" l.leaveType, " +
+//			" mgr.name, " +
+//			" d.name, " +
+//			" t.commonProperty.createdOn, " +
+//			" t.commonProperty.updatedOn, " +
+//			" s.name, " +
+//			" e.isConsultant, " +
+//			" e.isApprenticeship, " +
+//			" e.managerId, " +
+//			" t.timesheetStatusUpdatedBy, " +
+//			" t.empId, " +
+//			" e.isApmosysProduct) " +
+//			"FROM Timesheet t " +
+//			"JOIN Employee e ON t.empId = e.empId " +
+//			"LEFT JOIN Employee s ON t.timesheetStatusUpdatedBy = s.empId " +
+//			"LEFT JOIN Employee mgr ON e.managerId = mgr.empId " +
+//			"LEFT JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+//			"LEFT JOIN Department d ON jr.deptId = d.deptId " +
+//			"LEFT JOIN LeaveTypeMaster l ON l.leaveTypeMasterId = t.leaveTypeMasterId " +
+//			"WHERE t.dayType <> 'Week Off' " +
+//			"AND t.leaveTypeMasterId IS NULL " +
+//			"AND t.date BETWEEN :start AND :end " +
+//			"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
+//			"AND ((:empId IS NULL OR e.employeementId = :empId) " +
+//			"OR (:empIdStr IS NOT NULL AND CAST(e.employeementId AS string) LIKE :empIdStr)) " +
+//			"AND ((:date IS NULL OR t.date = :date) " +
+//			"OR (:dateStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.date, '%Y-%m-%d') LIKE CONCAT('%', :dateStr, '%'))) "
+//			+
+//			"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
+//			"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
+//			"AND (:managerName IS NULL OR LOWER(mgr.name) LIKE LOWER(CONCAT('%', :managerName, '%'))) " +
+//			"AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+//			"AND ((:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
+//			"OR (:createdOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.createdOn, '%Y-%m-%d') LIKE CONCAT('%', :createdOnStr, '%'))) "
+//			+
+//			"AND ((:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
+//			"OR (:updatedOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.updatedOn, '%Y-%m-%d') LIKE CONCAT('%', :updatedOnStr, '%'))) "
+//			+
+//			"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
+//	Page<TimesheetDTO> findAllLeaveTimesheetsWithoutLeaveApplicationOLD(
+//			@Param("start") LocalDate start,
+//			@Param("end") LocalDate end,
+//			@Param("empName") String empName,
+//			@Param("empId") Long empId,
+//			@Param("date") LocalDate date,
+//			@Param("dayType") String dayType,
+//			@Param("status") String status,
+//			@Param("managerName") String managerName,
+//			@Param("departmentName") String departmentName,
+//			@Param("createdOn") java.sql.Date createdOn,
+//			@Param("updatedOn") java.sql.Date updatedOn,
+//			@Param("updatedBy") String updatedBy,
+//			@Param("dateStr") String dateStr,
+//			@Param("createdOnStr") String createdOnStr,
+//			@Param("updatedOnStr") String updatedOnStr,
+//			@Param("empIdStr") String empIdStr,
+//			Pageable pageable);
 
 	// ========== UPDATED: New query using _new tables (JPQL - using new entities)
 	// ==========
@@ -541,63 +542,63 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			Pageable pageable);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(" +
-			" e.employeementId, " +
-			" e.name, " +
-			" t.date, " +
-			" t.dayType, " +
-			" t.description, " +
-			" t.status, " +
-			" l.leaveType, " +
-			" mgr.name, " +
-			" d.name, " +
-			" t.commonProperty.createdOn, " +
-			" t.commonProperty.updatedOn, " +
-			" s.name, " +
-			" e.isConsultant, " +
-			" e.isApprenticeship, " +
-			" e.managerId, " +
-			" t.timesheetStatusUpdatedBy, " +
-			" t.empId, " +
-			" e.isApmosysProduct) " +
-			"FROM Timesheet t " +
-			"JOIN Employee e ON t.empId = e.empId " +
-			"LEFT JOIN Employee s ON t.timesheetStatusUpdatedBy = s.empId " +
-			"LEFT JOIN Employee mgr ON e.managerId = mgr.empId " +
-			"LEFT JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
-			"LEFT JOIN Department d ON jr.deptId = d.deptId " +
-			"LEFT JOIN LeaveTypeMaster l ON l.leaveTypeMasterId = t.leaveTypeMasterId " +
-			"WHERE t.dayType <> 'Week Off' " +
-			"AND t.leaveTypeMasterId IS NULL " +
-			"AND d.deptId IN :deptIds " +
-			"AND t.date BETWEEN :start AND :end " +
-			"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
-			"AND ((:empId IS NULL OR e.employeementId = :empId) " +
-			"OR (:empIdStr IS NOT NULL AND CAST(e.employeementId AS string) LIKE :empIdStr)) " +
-			"AND (:date IS NULL OR t.date = :date) " +
-			"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
-			"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
-			"AND (:managerName IS NULL OR LOWER(mgr.name) LIKE LOWER(CONCAT('%', :managerName, '%'))) " +
-			"AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
-			"AND (:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
-			"AND (:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
-			"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
-	Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWiseOLD(
-			@Param("start") LocalDate start,
-			@Param("end") LocalDate end,
-			@Param("empName") String empName,
-			@Param("empId") Long empId,
-			@Param("date") LocalDate date,
-			@Param("dayType") String dayType,
-			@Param("status") String status,
-			@Param("managerName") String managerName,
-			@Param("departmentName") String departmentName,
-			@Param("createdOn") java.sql.Date createdOn,
-			@Param("updatedOn") java.sql.Date updatedOn,
-			@Param("updatedBy") String updatedBy,
-			@Param("deptIds") List<Long> deptIds,
-			@Param("empIdStr") String empIdStr,
-			Pageable pageable);
+//	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(" +
+//			" e.employeementId, " +
+//			" e.name, " +
+//			" t.date, " +
+//			" t.dayType, " +
+//			" t.description, " +
+//			" t.status, " +
+//			" l.leaveType, " +
+//			" mgr.name, " +
+//			" d.name, " +
+//			" t.commonProperty.createdOn, " +
+//			" t.commonProperty.updatedOn, " +
+//			" s.name, " +
+//			" e.isConsultant, " +
+//			" e.isApprenticeship, " +
+//			" e.managerId, " +
+//			" t.timesheetStatusUpdatedBy, " +
+//			" t.empId, " +
+//			" e.isApmosysProduct) " +
+//			"FROM Timesheet t " +
+//			"JOIN Employee e ON t.empId = e.empId " +
+//			"LEFT JOIN Employee s ON t.timesheetStatusUpdatedBy = s.empId " +
+//			"LEFT JOIN Employee mgr ON e.managerId = mgr.empId " +
+//			"LEFT JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+//			"LEFT JOIN Department d ON jr.deptId = d.deptId " +
+//			"LEFT JOIN LeaveTypeMaster l ON l.leaveTypeMasterId = t.leaveTypeMasterId " +
+//			"WHERE t.dayType <> 'Week Off' " +
+//			"AND t.leaveTypeMasterId IS NULL " +
+//			"AND d.deptId IN :deptIds " +
+//			"AND t.date BETWEEN :start AND :end " +
+//			"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
+//			"AND ((:empId IS NULL OR e.employeementId = :empId) " +
+//			"OR (:empIdStr IS NOT NULL AND CAST(e.employeementId AS string) LIKE :empIdStr)) " +
+//			"AND (:date IS NULL OR t.date = :date) " +
+//			"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
+//			"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
+//			"AND (:managerName IS NULL OR LOWER(mgr.name) LIKE LOWER(CONCAT('%', :managerName, '%'))) " +
+//			"AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+//			"AND (:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
+//			"AND (:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
+//			"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
+//	Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWiseOLD(
+//			@Param("start") LocalDate start,
+//			@Param("end") LocalDate end,
+//			@Param("empName") String empName,
+//			@Param("empId") Long empId,
+//			@Param("date") LocalDate date,
+//			@Param("dayType") String dayType,
+//			@Param("status") String status,
+//			@Param("managerName") String managerName,
+//			@Param("departmentName") String departmentName,
+//			@Param("createdOn") java.sql.Date createdOn,
+//			@Param("updatedOn") java.sql.Date updatedOn,
+//			@Param("updatedBy") String updatedBy,
+//			@Param("deptIds") List<Long> deptIds,
+//			@Param("empIdStr") String empIdStr,
+//			Pageable pageable);
 
 	// ========== UPDATED: New query using _new tables (JPQL - using new entities)
 	// ==========
@@ -662,71 +663,71 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			@Param("empIdStr") String empIdStr,
 			Pageable pageable);
 
-	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(" +
-			" e.employeementId, " +
-			" e.name, " +
-			" t.date, " +
-			" t.dayType, " +
-			" t.description, " +
-			" t.status, " +
-			" l.leaveType, " +
-			" mgr.name, " +
-			" d.name, " +
-			" t.commonProperty.createdOn, " +
-			" t.commonProperty.updatedOn, " +
-			" s.name, " +
-			" e.isConsultant, " +
-			" e.isApprenticeship, " +
-			" e.managerId, " +
-			" t.timesheetStatusUpdatedBy, " +
-			" t.empId, " +
-			" e.isApmosysProduct) " +
-			"FROM Timesheet t " +
-			"JOIN Employee e ON t.empId = e.empId " +
-			"LEFT JOIN Employee s ON t.timesheetStatusUpdatedBy = s.empId " +
-			"LEFT JOIN Employee mgr ON e.managerId = mgr.empId " +
-			"LEFT JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
-			"LEFT JOIN Department d ON jr.deptId = d.deptId " +
-			"LEFT JOIN LeaveTypeMaster l ON l.leaveTypeMasterId = t.leaveTypeMasterId " +
-			"WHERE t.dayType <> 'Week Off' " +
-			"AND t.leaveTypeMasterId IS NULL " +
-			"AND d.deptId = :deptId " +
-			"AND t.date BETWEEN :start AND :end " +
-			"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
-			"AND ((:empId IS NULL OR e.employeementId = :empId) " +
-			"OR (:empIdStr IS NOT NULL AND CAST(e.employeementId AS string) LIKE :empIdStr)) " +
-			"AND ((:date IS NULL OR t.date = :date) " +
-			"OR (:dateStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.date, '%Y-%m-%d') LIKE CONCAT('%', :dateStr, '%'))) "
-			+
-			"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
-			"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
-			"AND (:managerName IS NULL OR LOWER(mgr.name) LIKE LOWER(CONCAT('%', :managerName, '%'))) " +
-			"AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
-			"AND ((:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
-			"     OR (:createdOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.createdOn, '%Y-%m-%d') LIKE CONCAT('%', :createdOnStr, '%'))) "
-			+
-			"AND ((:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
-			"     OR (:updatedOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.updatedOn, '%Y-%m-%d') LIKE CONCAT('%', :updatedOnStr, '%'))) "
-			+ "AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
-	Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWiseOLD(
-			@Param("start") LocalDate start,
-			@Param("end") LocalDate end,
-			@Param("empName") String empName,
-			@Param("empId") Long empId,
-			@Param("date") LocalDate date,
-			@Param("dayType") String dayType,
-			@Param("status") String status,
-			@Param("managerName") String managerName,
-			@Param("departmentName") String departmentName,
-			@Param("createdOn") java.sql.Date createdOn,
-			@Param("updatedOn") java.sql.Date updatedOn,
-			@Param("updatedBy") String updatedBy,
-			@Param("deptId") Long deptId,
-			@Param("dateStr") String dateStr,
-			@Param("createdOnStr") String createdOnStr,
-			@Param("updatedOnStr") String updatedOnStr,
-			@Param("empIdStr") String empIdStr,
-			Pageable pageable);
+//	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(" +
+//			" e.employeementId, " +
+//			" e.name, " +
+//			" t.date, " +
+//			" t.dayType, " +
+//			" t.description, " +
+//			" t.status, " +
+//			" l.leaveType, " +
+//			" mgr.name, " +
+//			" d.name, " +
+//			" t.commonProperty.createdOn, " +
+//			" t.commonProperty.updatedOn, " +
+//			" s.name, " +
+//			" e.isConsultant, " +
+//			" e.isApprenticeship, " +
+//			" e.managerId, " +
+//			" t.timesheetStatusUpdatedBy, " +
+//			" t.empId, " +
+//			" e.isApmosysProduct) " +
+//			"FROM Timesheet t " +
+//			"JOIN Employee e ON t.empId = e.empId " +
+//			"LEFT JOIN Employee s ON t.timesheetStatusUpdatedBy = s.empId " +
+//			"LEFT JOIN Employee mgr ON e.managerId = mgr.empId " +
+//			"LEFT JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+//			"LEFT JOIN Department d ON jr.deptId = d.deptId " +
+//			"LEFT JOIN LeaveTypeMaster l ON l.leaveTypeMasterId = t.leaveTypeMasterId " +
+//			"WHERE t.dayType <> 'Week Off' " +
+//			"AND t.leaveTypeMasterId IS NULL " +
+//			"AND d.deptId = :deptId " +
+//			"AND t.date BETWEEN :start AND :end " +
+//			"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
+//			"AND ((:empId IS NULL OR e.employeementId = :empId) " +
+//			"OR (:empIdStr IS NOT NULL AND CAST(e.employeementId AS string) LIKE :empIdStr)) " +
+//			"AND ((:date IS NULL OR t.date = :date) " +
+//			"OR (:dateStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.date, '%Y-%m-%d') LIKE CONCAT('%', :dateStr, '%'))) "
+//			+
+//			"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
+//			"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
+//			"AND (:managerName IS NULL OR LOWER(mgr.name) LIKE LOWER(CONCAT('%', :managerName, '%'))) " +
+//			"AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+//			"AND ((:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
+//			"     OR (:createdOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.createdOn, '%Y-%m-%d') LIKE CONCAT('%', :createdOnStr, '%'))) "
+//			+
+//			"AND ((:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
+//			"     OR (:updatedOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.updatedOn, '%Y-%m-%d') LIKE CONCAT('%', :updatedOnStr, '%'))) "
+//			+ "AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
+//	Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWiseOLD(
+//			@Param("start") LocalDate start,
+//			@Param("end") LocalDate end,
+//			@Param("empName") String empName,
+//			@Param("empId") Long empId,
+//			@Param("date") LocalDate date,
+//			@Param("dayType") String dayType,
+//			@Param("status") String status,
+//			@Param("managerName") String managerName,
+//			@Param("departmentName") String departmentName,
+//			@Param("createdOn") java.sql.Date createdOn,
+//			@Param("updatedOn") java.sql.Date updatedOn,
+//			@Param("updatedBy") String updatedBy,
+//			@Param("deptId") Long deptId,
+//			@Param("dateStr") String dateStr,
+//			@Param("createdOnStr") String createdOnStr,
+//			@Param("updatedOnStr") String updatedOnStr,
+//			@Param("empIdStr") String empIdStr,
+//			Pageable pageable);
 
 	// ========== UPDATED: New query using _new tables (JPQL - using new entities)
 	// ==========
@@ -850,57 +851,59 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	// void updateCurrentManagerId(Long timesheetId, Long managerId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(value = "SELECT \n"
-			+ "    et.timesheet_id,\n"
-			+ "    et.date,\n"
-			+ "    et.day_type,\n"
-			+ "    e.employeement_id,\n"
-			+ "    e.name AS employeeName,\n"
-			+ "    et.total_time,\n"
-			+ "    et.status,\n"
-			+ "    em.name AS created_by,\n"
-			+ "    et.created_on,\n"
-			+ "    et.emp_id,\n"
-			+ "    et.remarks,\n"
-			+ "    et.office_in_time,\n"
-			+ "    et.office_out_time,\n"
-			+ "    et.is_night_shift,\n"
-			+ "    ltm.leave_type,\n"
-			+ "    map.timesheet_id AS activity_timesheet_id,\n"
-			+ "    ac.activity,\n"
-			+ "    ac.eta,\n"
-			+ "    map.description AS activity_description,\n"
-			+ "    p.project_name,\n"
-			+ "    c.client_name,\n"
-			+ "    cl.client_location,\n"
-			+ "    t.team_name,\n"
-			+ "    e2.name AS manager,\n"
-			+ "    ac.activity_id,\n"
-			+ "    p.project_id,\n"
-			+ "    map.timesheet_activity_map_id,\n"
-			+ "    c.client_id,\n"
-			+ "    cl.client_location_id,\n"
-			+ "    t.team_id,\n"
-			+ "    e.is_consultant,\n"
-			+ "    e.is_apprenticeship,\n"
-			+ "    d.name As departmentName,e2.emp_id AS managerEmpId,e.emp_id AS employeeEmpId\n"
-			+ "FROM employee_timesheets et\n"
-			+ "INNER JOIN employee e ON e.emp_id = et.emp_id\n"
-			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
-			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
-			+ "INNER JOIN employee em ON et.created_by = em.emp_id\n"
-			+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id\n"
-			+ "LEFT JOIN employee_timesheet_activities_mapping map ON map.timesheet_id = et.timesheet_id\n"
-			+ "LEFT JOIN activities ac ON ac.activity_id = map.activity_id\n"
-			+ "LEFT JOIN teams t ON t.team_id = ac.team_id\n"
-			+ "LEFT JOIN projects p ON p.project_id = t.project_id\n"
-			+ "LEFT JOIN clients c ON c.client_id = p.client_id\n"
-			+ "LEFT JOIN client_locations cl ON cl.client_location_id = map.client_location_id\n"
-			+ "LEFT JOIN employee e2 ON e2.emp_id = e.manager_id\n"
-			+ "WHERE et.date BETWEEN :startDate AND :endDate\n "
-			+ "ORDER BY et.created_on DESC", nativeQuery = true)
-	List<Object[]> getAllEmployeeTimesheetsBetweenDatesOLD(@Param("startDate") String startDate,
-			@Param("endDate") String endDate);
+
+//	@Query(value = "SELECT \n"
+//			+ "    et.timesheet_id,\n"
+//			+ "    et.date,\n"
+//			+ "    et.day_type,\n"
+//			+ "    e.employeement_id,\n"
+//			+ "    e.name AS employeeName,\n"
+//			+ "    et.total_time,\n"
+//			+ "    et.status,\n"
+//			+ "    em.name AS created_by,\n"
+//			+ "    et.created_on,\n"
+//			+ "    et.emp_id,\n"
+//			+ "    et.remarks,\n"
+//			+ "    et.office_in_time,\n"
+//			+ "    et.office_out_time,\n"
+//			+ "    et.is_night_shift,\n"
+//			+ "    ltm.leave_type,\n"
+//			+ "    map.timesheet_id AS activity_timesheet_id,\n"
+//			+ "    ac.activity,\n"
+//			+ "    ac.eta,\n"
+//			+ "    map.description AS activity_description,\n"
+//			+ "    p.project_name,\n"
+//			+ "    c.client_name,\n"
+//			+ "    cl.client_location,\n"
+//			+ "    t.team_name,\n"
+//			+ "    e2.name AS manager,\n"
+//			+ "    ac.activity_id,\n"
+//			+ "    p.project_id,\n"
+//			+ "    map.timesheet_activity_map_id,\n"
+//			+ "    c.client_id,\n"
+//			+ "    cl.client_location_id,\n"
+//			+ "    t.team_id,\n"
+//			+ "    e.is_consultant,\n"
+//			+ "    e.is_apprenticeship,\n"
+//			+ "    d.name As departmentName,e2.emp_id AS managerEmpId,e.emp_id AS employeeEmpId\n"
+//			+ "FROM employee_timesheets et\n"
+//			+ "INNER JOIN employee e ON e.emp_id = et.emp_id\n"
+//			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+//			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+//			+ "INNER JOIN employee em ON et.created_by = em.emp_id\n"
+//			+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id\n"
+//			+ "LEFT JOIN employee_timesheet_activities_mapping map ON map.timesheet_id = et.timesheet_id\n"
+//			+ "LEFT JOIN activities ac ON ac.activity_id = map.activity_id\n"
+//			+ "LEFT JOIN teams t ON t.team_id = ac.team_id\n"
+//			+ "LEFT JOIN projects p ON p.project_id = t.project_id\n"
+//			+ "LEFT JOIN clients c ON c.client_id = p.client_id\n"
+//			+ "LEFT JOIN client_locations cl ON cl.client_location_id = map.client_location_id\n"
+//			+ "LEFT JOIN employee e2 ON e2.emp_id = e.manager_id\n"
+//			+ "WHERE et.date BETWEEN :startDate AND :endDate\n "
+//			+ "ORDER BY et.created_on DESC", nativeQuery = true)
+//	List<Object[]> getAllEmployeeTimesheetsBetweenDatesOLD(@Param("startDate") String startDate,
+//			@Param("endDate") String endDate);
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "SELECT \n"
@@ -957,58 +960,61 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			@Param("endDate") String endDate);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(value = "SELECT \n"
-			+ "    et.timesheet_id,\n"
-			+ "    et.date,\n"
-			+ "    et.day_type,\n"
-			+ "    e.employeement_id,\n"
-			+ "    e.name AS employeeName,\n"
-			+ "    et.total_time,\n"
-			+ "    et.status,\n"
-			+ "    em.name AS created_by,\n"
-			+ "    et.created_on,\n"
-			+ "    et.emp_id,\n"
-			+ "    et.remarks,\n"
-			+ "    et.office_in_time,\n"
-			+ "    et.office_out_time,\n"
-			+ "    et.is_night_shift,\n"
-			+ "    ltm.leave_type,\n"
-			+ "    map.timesheet_id AS activity_timesheet_id,\n"
-			+ "    ac.activity,\n"
-			+ "    ac.eta,\n"
-			+ "    map.description AS activity_description,\n"
-			+ "    p.project_name,\n"
-			+ "    c.client_name,\n"
-			+ "    cl.client_location,\n"
-			+ "    t.team_name,\n"
-			+ "    e2.name AS manager,\n"
-			+ "    ac.activity_id,\n"
-			+ "    p.project_id,\n"
-			+ "    map.timesheet_activity_map_id,\n"
-			+ "    c.client_id,\n"
-			+ "    cl.client_location_id,\n"
-			+ "    t.team_id,\n"
-			+ "    e.is_consultant,\n"
-			+ "    e.is_apprenticeship,\n"
-			+ "    d.name As departmentName,e2.emp_id AS managerEmpId,e.emp_id AS employeeEmpId\n"
-			+ "FROM employee_timesheets et\n"
-			+ "INNER JOIN employee e ON e.emp_id = et.emp_id\n"
-			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
-			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
-			+ "INNER JOIN employee em ON et.created_by = em.emp_id\n"
-			+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id\n"
-			+ "LEFT JOIN employee_timesheet_activities_mapping map ON map.timesheet_id = et.timesheet_id\n"
-			+ "LEFT JOIN activities ac ON ac.activity_id = map.activity_id\n"
-			+ "LEFT JOIN teams t ON t.team_id = ac.team_id\n"
-			+ "LEFT JOIN projects p ON p.project_id = t.project_id\n"
-			+ "LEFT JOIN clients c ON c.client_id = p.client_id\n"
-			+ "LEFT JOIN client_locations cl ON cl.client_location_id = map.client_location_id\n"
-			+ "LEFT JOIN employee e2 ON e2.emp_id = e.manager_id\n"
-			+ "where d.dept_id = :deptId AND et.date BETWEEN :startDate AND :endDate\n"
-			+ "ORDER BY et.created_on DESC ", nativeQuery = true)
-	List<Object[]> getTimesheetsByDepartmentAndDateRangeOLD(@Param("deptId") Long deptId,
-			@Param("startDate") String startDate,
-			@Param("endDate") String endDate);
+
+//	@Query(value = "SELECT \n"
+//			+ "    et.timesheet_id,\n"
+//			+ "    et.date,\n"
+//			+ "    et.day_type,\n"
+//			+ "    e.employeement_id,\n"
+//			+ "    e.name AS employeeName,\n"
+//			+ "    et.total_time,\n"
+//			+ "    et.status,\n"
+//			+ "    em.name AS created_by,\n"
+//			+ "    et.created_on,\n"
+//			+ "    et.emp_id,\n"
+//			+ "    et.remarks,\n"
+//			+ "    et.office_in_time,\n"
+//			+ "    et.office_out_time,\n"
+//			+ "    et.is_night_shift,\n"
+//			+ "    ltm.leave_type,\n"
+//			+ "    map.timesheet_id AS activity_timesheet_id,\n"
+//			+ "    ac.activity,\n"
+//			+ "    ac.eta,\n"
+//			+ "    map.description AS activity_description,\n"
+//			+ "    p.project_name,\n"
+//			+ "    c.client_name,\n"
+//			+ "    cl.client_location,\n"
+//			+ "    t.team_name,\n"
+//			+ "    e2.name AS manager,\n"
+//			+ "    ac.activity_id,\n"
+//			+ "    p.project_id,\n"
+//			+ "    map.timesheet_activity_map_id,\n"
+//			+ "    c.client_id,\n"
+//			+ "    cl.client_location_id,\n"
+//			+ "    t.team_id,\n"
+//			+ "    e.is_consultant,\n"
+//			+ "    e.is_apprenticeship,\n"
+//			+ "    d.name As departmentName,e2.emp_id AS managerEmpId,e.emp_id AS employeeEmpId\n"
+//			+ "FROM employee_timesheets et\n"
+//			+ "INNER JOIN employee e ON e.emp_id = et.emp_id\n"
+//			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+//			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+//			+ "INNER JOIN employee em ON et.created_by = em.emp_id\n"
+//			+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id\n"
+//			+ "LEFT JOIN employee_timesheet_activities_mapping map ON map.timesheet_id = et.timesheet_id\n"
+//			+ "LEFT JOIN activities ac ON ac.activity_id = map.activity_id\n"
+//			+ "LEFT JOIN teams t ON t.team_id = ac.team_id\n"
+//			+ "LEFT JOIN projects p ON p.project_id = t.project_id\n"
+//			+ "LEFT JOIN clients c ON c.client_id = p.client_id\n"
+//			+ "LEFT JOIN client_locations cl ON cl.client_location_id = map.client_location_id\n"
+//			+ "LEFT JOIN employee e2 ON e2.emp_id = e.manager_id\n"
+//			+ "where d.dept_id = :deptId AND et.date BETWEEN :startDate AND :endDate\n"
+//			+ "ORDER BY et.created_on DESC ", nativeQuery = true)
+//	List<Object[]> getTimesheetsByDepartmentAndDateRangeOLD(@Param("deptId") Long deptId,
+//			@Param("startDate") String startDate,
+//			@Param("endDate") String endDate);
+
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "SELECT \n"
@@ -1066,43 +1072,45 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			@Param("endDate") String endDate);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(value = "SELECT " +
-			"ets.timesheet_id, " +
-			"ets.date AS timesheet_date, " +
-			"ets.day_type, " +
-			"ets.office_in_time, " +
-			"ets.office_out_time, " +
-			"ets.total_working_hours, " +
-			"ets.description AS timesheet_description, " +
-			"etam.completion_time, " +
-			"etam.description AS activity_description, " +
-			"a.activity_id, " +
-			"a.activity, " +
-			"t.team_id, " +
-			"t.team_name, " +
-			"t.team_lead_name, " +
-			"p.project_id, " +
-			"p.project_name, " +
-			"p.client_id, " +
-			"cl.client_location_id, " +
-			"cl.client_location AS project_location, " +
-			"c.client_name " +
-			"FROM employee_timesheets ets " +
-			"JOIN ( " +
-			"   SELECT timesheet_id " +
-			"   FROM employee_timesheets " +
-			"   WHERE emp_id = :empId " +
-			"     AND day_type NOT IN ('Public Holiday', 'ApMoSys Holiday','Client Holiday','Week Off', 'Leave','Comp Off') " +
-			"   ORDER BY date DESC " +
-			"   LIMIT 1 " +
-			") latest_ts ON ets.timesheet_id = latest_ts.timesheet_id " +
-			"JOIN employee_timesheet_activities_mapping etam ON ets.timesheet_id = etam.timesheet_id " +
-			"JOIN activities a ON etam.activity_id = a.activity_id " +
-			"JOIN teams t ON a.team_id = t.team_id " +
-			"JOIN projects p ON t.project_id = p.project_id " +
-			"LEFT JOIN client_locations cl ON cl.client_id = p.client_id " +
-			"LEFT JOIN clients c ON p.client_id = c.client_id", nativeQuery = true)
-	List<Object[]> getLastFilledTimesheetOLD(@Param("empId") Long empId);
+
+//	@Query(value = "SELECT " +
+//			"ets.timesheet_id, " +
+//			"ets.date AS timesheet_date, " +
+//			"ets.day_type, " +
+//			"ets.office_in_time, " +
+//			"ets.office_out_time, " +
+//			"ets.total_working_hours, " +
+//			"ets.description AS timesheet_description, " +
+//			"etam.completion_time, " +
+//			"etam.description AS activity_description, " +
+//			"a.activity_id, " +
+//			"a.activity, " +
+//			"t.team_id, " +
+//			"t.team_name, " +
+//			"t.team_lead_name, " +
+//			"p.project_id, " +
+//			"p.project_name, " +
+//			"p.client_id, " +
+//			"cl.client_location_id, " +
+//			"cl.client_location AS project_location, " +
+//			"c.client_name " +
+//			"FROM employee_timesheets ets " +
+//			"JOIN ( " +
+//			"   SELECT timesheet_id " +
+//			"   FROM employee_timesheets " +
+//			"   WHERE emp_id = :empId " +
+//			"     AND day_type NOT IN ('Public Holiday', 'ApMoSys Holiday','Client Holiday','Week Off', 'Leave','Comp Off') " +
+//			"   ORDER BY date DESC " +
+//			"   LIMIT 1 " +
+//			") latest_ts ON ets.timesheet_id = latest_ts.timesheet_id " +
+//			"JOIN employee_timesheet_activities_mapping etam ON ets.timesheet_id = etam.timesheet_id " +
+//			"JOIN activities a ON etam.activity_id = a.activity_id " +
+//			"JOIN teams t ON a.team_id = t.team_id " +
+//			"JOIN projects p ON t.project_id = p.project_id " +
+//			"LEFT JOIN client_locations cl ON cl.client_id = p.client_id " +
+//			"LEFT JOIN clients c ON p.client_id = c.client_id", nativeQuery = true)
+//	List<Object[]> getLastFilledTimesheetOLD(@Param("empId") Long empId);
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "SELECT " +
@@ -1147,30 +1155,32 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	List<Object[]> getLastFilledTimesheet(@Param("empId") Long empId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(value = "SELECT DISTINCT et.emp_id, etm.active, etm.team_id, et.date " +
-			"FROM ( " +
-			"    SELECT emp_id, MAX(date) AS max_date " +
-			"    FROM employee_timesheets " +
-			"    WHERE day_type = 'Working' " +
-			"    GROUP BY emp_id " +
-			") latest " +
-			"INNER JOIN employee_timesheets et " +
-			"    ON et.emp_id = latest.emp_id AND et.date = latest.max_date " +
-			"INNER JOIN employee_timesheet_activities_mapping etam " +
-			"    ON etam.timesheet_id = et.timesheet_id " +
-			"INNER JOIN activities a " +
-			"    ON a.activity_id = etam.activity_id " +
-			"INNER JOIN ( " +
-			"    SELECT emp_id, team_id, active FROM ( " +
-			"        SELECT emp_id, team_id, active, " +
-			"               ROW_NUMBER() OVER (PARTITION BY emp_id, team_id ORDER BY active DESC) AS rn " +
-			"        FROM employee_team_mapping " +
-			"    ) ranked " +
-			"    WHERE rn = 1 " +
-			") etm " +
-			"    ON etm.team_id = a.team_id AND etm.emp_id = et.emp_id " +
-			"WHERE et.emp_id = :empId", nativeQuery = true)
-	List<Object[]> checkEmployeeActiveOrNotOLD(@Param("empId") Long empId);
+
+//	@Query(value = "SELECT DISTINCT et.emp_id, etm.active, etm.team_id, et.date " +
+//			"FROM ( " +
+//			"    SELECT emp_id, MAX(date) AS max_date " +
+//			"    FROM employee_timesheets " +
+//			"    WHERE day_type = 'Working' " +
+//			"    GROUP BY emp_id " +
+//			") latest " +
+//			"INNER JOIN employee_timesheets et " +
+//			"    ON et.emp_id = latest.emp_id AND et.date = latest.max_date " +
+//			"INNER JOIN employee_timesheet_activities_mapping etam " +
+//			"    ON etam.timesheet_id = et.timesheet_id " +
+//			"INNER JOIN activities a " +
+//			"    ON a.activity_id = etam.activity_id " +
+//			"INNER JOIN ( " +
+//			"    SELECT emp_id, team_id, active FROM ( " +
+//			"        SELECT emp_id, team_id, active, " +
+//			"               ROW_NUMBER() OVER (PARTITION BY emp_id, team_id ORDER BY active DESC) AS rn " +
+//			"        FROM employee_team_mapping " +
+//			"    ) ranked " +
+//			"    WHERE rn = 1 " +
+//			") etm " +
+//			"    ON etm.team_id = a.team_id AND etm.emp_id = et.emp_id " +
+//			"WHERE et.emp_id = :empId", nativeQuery = true)
+//	List<Object[]> checkEmployeeActiveOrNotOLD(@Param("empId") Long empId);
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "SELECT DISTINCT et.emp_id, etm.active, etm.team_id, et.date " +
@@ -1217,52 +1227,53 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "AND p.active = 'true' AND p.poProjectType = 'TNM'")
 	public Boolean isInTNMProject(Long empId);
 
-	@Query(value = "select new com.apmosys.employeeportal.dto.ProjectClientSideIdDTO(p.projectId, p.projectName, ecsm.clientSideId )  \n"
-			+
-			"from Project p  \n" +
-			"inner join Team t on t.projectId = p.projectId \n" +
-			"inner join EmployeeTeamMap etm on etm.teamId = t.teamId \n" +
-			"left join EmployeeClientSideIdMapping ecsm on ecsm.projectId = p.projectId AND ecsm.active = TRUE AND ecsm.empId = etm.empId \n"
-			+
-			"where etm.empId = :empId and etm.active = 1 and p.active = 'true' and t.isActive = 'Y'")
-	public List<ProjectClientSideIdDTO> getActiveProjectsAndClientSideIdByEmpId(Long empId);
+//	@Query(value = "select new com.apmosys.employeeportal.dto.ProjectClientSideIdDTO(p.projectId, p.projectName, ecsm.clientSideId )  \n"
+//			+
+//			"from Project p  \n" +
+//			"inner join Team t on t.projectId = p.projectId \n" +
+//			"inner join EmployeeTeamMap etm on etm.teamId = t.teamId \n" +
+//			"left join EmployeeClientSideIdMapping ecsm on ecsm.projectId = p.projectId AND ecsm.active = TRUE AND ecsm.empId = etm.empId \n"+
+//			"where etm.empId = :empId and etm.active = 1 and p.active = 'true' and t.isActive = 'Y'")
+//	public List<ProjectClientSideIdDTO> getActiveProjectsAndClientSideIdByEmpId(Long empId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(value = "SELECT SQL_CALC_FOUND_ROWS DISTINCT e.name, p.project_name, t.team_name,   \n"
-			+ "CASE WHEN po_project_type IS NOT NULL THEN po_project_type   \n"
-			+ "ELSE internal_project_type END AS project_type,   \n"
-			+ "et.date, day_type, et.total_time,   \n"
-			+ "GROUP_CONCAT(distinct a.activity ORDER BY a.activity SEPARATOR ',') AS activity,  \n"
-			+ "GROUP_CONCAT(distinct etam.description ORDER BY etam.description SEPARATOR ',') AS description,  \n"
-			+ "GROUP_CONCAT(DISTINCT pm.name ORDER BY pm.name SEPARATOR ',') AS Project_Manager_name,\n"
-			+ "et.timesheet_id, et.status,  \n"
-			+ "client_in_time, client_out_time,  \n"
-			+ "CASE WHEN final_flag = 0 THEN doc_id END AS doc_id_1,  \n"
-			+ "CASE WHEN final_flag = 1 THEN doc_id END AS doc_id_2  \n"
-			+ "FROM employee_timesheets et   \n"
-			+ "LEFT JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id   \n"
-			+ "LEFT JOIN activities a ON a.activity_id = etam.activity_id   \n"
-			+ "LEFT JOIN teams t ON a.team_id = t.team_id  AND t.is_active != 'N' \n"
-			+ "LEFT JOIN projects p ON t.project_id = p.project_id  AND p.active = 'true' \n"
-			+ "LEFT JOIN project_manager_mapping pmm ON p.project_id = pmm.project_id and pmm.active = 1\n"
-			+ "LEFT JOIN employee pm ON pm.emp_id = pmm.project_manager_id   \n"
-			+ "LEFT JOIN employee_team_mapping etm ON t.team_id = etm.team_id  AND etm.active != 0        \n"
-			+ "LEFT JOIN employee e ON et.emp_id = e.emp_id   \n"
-			+ "LEFT JOIN timesheet_document_details tdd ON tdd.emp_id = et.emp_id \n"
-			+ "and tdd.timesheet_id = et.timesheet_id\n"
-			+ "WHERE e.employmentstatus != 'InActive'   \n"
-			+ "AND et.emp_id = :empId\n"
-			// + " AND p.has_client_side_id = 1\n"
-			+ "AND (et.date BETWEEN :fromDate AND :toDate)  \n"
-			+ "GROUP BY e.name, p.project_name, t.team_name, et.date, day_type, et.total_time,   \n"
-			+ "et.timesheet_id, et.status, client_in_time, client_out_time \n"
-			+ "ORDER BY et.date asc \n"
-			+ "  LIMIT :offset, :pageSize", nativeQuery = true)
-	List<Object[]> findByEmpIdAndDateBetweenOLD(@Param("empId") Long empId,
-			@Param("fromDate") String fromDate,
-			@Param("toDate") String toDate,
-			@Param("offset") int offset,
-			@Param("pageSize") int pageSize);
+
+//	@Query(value = "SELECT SQL_CALC_FOUND_ROWS DISTINCT e.name, p.project_name, t.team_name,   \n"
+//			+ "CASE WHEN po_project_type IS NOT NULL THEN po_project_type   \n"
+//			+ "ELSE internal_project_type END AS project_type,   \n"
+//			+ "et.date, day_type, et.total_time,   \n"
+//			+ "GROUP_CONCAT(distinct a.activity ORDER BY a.activity SEPARATOR ',') AS activity,  \n"
+//			+ "GROUP_CONCAT(distinct etam.description ORDER BY etam.description SEPARATOR ',') AS description,  \n"
+//			+ "GROUP_CONCAT(DISTINCT pm.name ORDER BY pm.name SEPARATOR ',') AS Project_Manager_name,\n"
+//			+ "et.timesheet_id, et.status,  \n"
+//			+ "client_in_time, client_out_time,  \n"
+//			+ "CASE WHEN final_flag = 0 THEN doc_id END AS doc_id_1,  \n"
+//			+ "CASE WHEN final_flag = 1 THEN doc_id END AS doc_id_2  \n"
+//			+ "FROM employee_timesheets et   \n"
+//			+ "LEFT JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id   \n"
+//			+ "LEFT JOIN activities a ON a.activity_id = etam.activity_id   \n"
+//			+ "LEFT JOIN teams t ON a.team_id = t.team_id  AND t.is_active != 'N' \n"
+//			+ "LEFT JOIN projects p ON t.project_id = p.project_id  AND p.active = 'true' \n"
+//			+ "LEFT JOIN project_manager_mapping pmm ON p.project_id = pmm.project_id and pmm.active = 1\n"
+//			+ "LEFT JOIN employee pm ON pm.emp_id = pmm.project_manager_id   \n"
+//			+ "LEFT JOIN employee_team_mapping etm ON t.team_id = etm.team_id  AND etm.active != 0        \n"
+//			+ "LEFT JOIN employee e ON et.emp_id = e.emp_id   \n"
+//			+ "LEFT JOIN timesheet_document_details tdd ON tdd.emp_id = et.emp_id \n"
+//			+ "and tdd.timesheet_id = et.timesheet_id\n"
+//			+ "WHERE e.employmentstatus != 'InActive'   \n"
+//			+ "AND et.emp_id = :empId\n"
+//			// + " AND p.has_client_side_id = 1\n"
+//			+ "AND (et.date BETWEEN :fromDate AND :toDate)  \n"
+//			+ "GROUP BY e.name, p.project_name, t.team_name, et.date, day_type, et.total_time,   \n"
+//			+ "et.timesheet_id, et.status, client_in_time, client_out_time \n"
+//			+ "ORDER BY et.date asc \n"
+//			+ "  LIMIT :offset, :pageSize", nativeQuery = true)
+//	List<Object[]> findByEmpIdAndDateBetweenOLD(@Param("empId") Long empId,
+//			@Param("fromDate") String fromDate,
+//			@Param("toDate") String toDate,
+//			@Param("offset") int offset,
+//			@Param("pageSize") int pageSize);
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "SELECT SQL_CALC_FOUND_ROWS DISTINCT "
@@ -1310,58 +1321,58 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			@Param("pageSize") int pageSize);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(value = "WITH\n"
-			+ "    Employees_With_ClientID AS (\n"
-			+ "        SELECT DISTINCT ecsm.emp_id\n"
-			+ "        FROM employee_client_side_id_mapping_new ecsm\n"
-			+ "        WHERE ecsm.client_side_id IS NOT NULL AND ecsm.client_side_id != '' AND ecsm.active = 1\n"
-			+ "    ),\n"
-			+ "    Authorized_Employees AS (\n"
-			+ "        SELECT DISTINCT emp_id FROM (\n"
-			+ "            SELECT e.emp_id\n"
-			+ "            FROM employee e\n"
-			+ "            WHERE EXISTS (\n"
-			+ "                SELECT 1 FROM employee u\n"
-			+ "                inner JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
-			+ "                inner JOIN department d ON jr.dept_id = d.dept_id\n"
-			+ "                WHERE u.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group'))\n"
-			+ "            )\n"
-			+ "\n"
-			+ "            UNION\n"
-			+ "\n"
-			+ "            SELECT e.emp_id\n"
-			+ "            FROM employee e\n"
-			+ "            inner JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
-			+ "            WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
-			+ "\n"
-			+ "            UNION\n"
-			+ "\n"
-			+ "            SELECT etm.emp_id\n"
-			+ "            FROM employee_team_mapping etm\n"
-			+ "            WHERE etm.team_id IN (\n"
-			+ "                SELECT t.team_id FROM teams t\n"
-			+ "                WHERE t.project_id IN (\n"
-			+ "                    SELECT DISTINCT p.project_id FROM projects p\n"
-			+ "                    LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
-			+ "                    LEFT JOIN project_overhead_mapping pom ON p.project_id = pom.project_id\n"
-			+ "                    LEFT JOIN teams t2 ON p.project_id = t2.project_id\n"
-			+ "                    LEFT JOIN employee_team_mapping etm2 ON etm2.team_id = t2.team_id\n"
-			+ "                    WHERE pm.project_manager_id = :emp_id\n"
-			+ "                      OR pom.project_overhead_id = :emp_id\n"
-			+ "                      OR t2.spoc_id = :emp_id\n"
-			+ "                      OR t2.team_lead_id = :emp_id\n"
-			+ "                      OR etm2.emp_id = :emp_id\n"
-			+ "                )\n"
-			+ "            )\n"
-			+ "        ) AS employee_list\n"
-			+ "    )\n"
-			+ "SELECT\n"
-			+ "    COUNT(DISTINCT auth.emp_id)\n"
-			+ "FROM\n"
-			+ "    Authorized_Employees auth\n"
-			+ "INNER JOIN\n"
-			+ "    Employees_With_ClientID crit ON auth.emp_id = crit.emp_id", nativeQuery = true)
-	public List<Object[]> getTotalVmsFilledCountOLD(@Param("emp_id") Long emp_id);
+//	@Query(value = "WITH\n"
+//			+ "    Employees_With_ClientID AS (\n"
+//			+ "        SELECT DISTINCT ecsm.emp_id\n"
+//			+ "        FROM employee_client_side_id_mapping_new ecsm\n"
+//			+ "        WHERE ecsm.client_side_id IS NOT NULL AND ecsm.client_side_id != '' AND ecsm.active = 1\n"
+//			+ "    ),\n"
+//			+ "    Authorized_Employees AS (\n"
+//			+ "        SELECT DISTINCT emp_id FROM (\n"
+//			+ "            SELECT e.emp_id\n"
+//			+ "            FROM employee e\n"
+//			+ "            WHERE EXISTS (\n"
+//			+ "                SELECT 1 FROM employee u\n"
+//			+ "                inner JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
+//			+ "                inner JOIN department d ON jr.dept_id = d.dept_id\n"
+//			+ "                WHERE u.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group'))\n"
+//			+ "            )\n"
+//			+ "\n"
+//			+ "            UNION\n"
+//			+ "\n"
+//			+ "            SELECT e.emp_id\n"
+//			+ "            FROM employee e\n"
+//			+ "            inner JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+//			+ "            WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
+//			+ "\n"
+//			+ "            UNION\n"
+//			+ "\n"
+//			+ "            SELECT etm.emp_id\n"
+//			+ "            FROM employee_team_mapping etm\n"
+//			+ "            WHERE etm.team_id IN (\n"
+//			+ "                SELECT t.team_id FROM teams t\n"
+//			+ "                WHERE t.project_id IN (\n"
+//			+ "                    SELECT DISTINCT p.project_id FROM projects p\n"
+//			+ "                    LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
+//			+ "                    LEFT JOIN project_overhead_mapping pom ON p.project_id = pom.project_id\n"
+//			+ "                    LEFT JOIN teams t2 ON p.project_id = t2.project_id\n"
+//			+ "                    LEFT JOIN employee_team_mapping etm2 ON etm2.team_id = t2.team_id\n"
+//			+ "                    WHERE pm.project_manager_id = :emp_id\n"
+//			+ "                      OR pom.project_overhead_id = :emp_id\n"
+//			+ "                      OR t2.spoc_id = :emp_id\n"
+//			+ "                      OR t2.team_lead_id = :emp_id\n"
+//			+ "                      OR etm2.emp_id = :emp_id\n"
+//			+ "                )\n"
+//			+ "            )\n"
+//			+ "        ) AS employee_list\n"
+//			+ "    )\n"
+//			+ "SELECT\n"
+//			+ "    COUNT(DISTINCT auth.emp_id)\n"
+//			+ "FROM\n"
+//			+ "    Authorized_Employees auth\n"
+//			+ "INNER JOIN\n"
+//			+ "    Employees_With_ClientID crit ON auth.emp_id = crit.emp_id", nativeQuery = true)
+//	public List<Object[]> getTotalVmsFilledCountOLD(@Param("emp_id") Long emp_id);
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "WITH\n"
@@ -1418,12 +1429,12 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	public List<Object[]> getTotalVmsFilledCount(@Param("emp_id") Long emp_id);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(value = "SELECT COUNT(DISTINCT emp_id) AS employee_count_with_client_id " +
-			"FROM employee_timesheets " +
-			"WHERE MONTH(created_on) = MONTH(CURRENT_DATE()) " +
-			"AND YEAR(created_on) = YEAR(CURRENT_DATE()) " +
-			"AND day_type = 'Working'", nativeQuery = true)
-	public List<Object[]> totalIshineFilledCountOLD();
+//	@Query(value = "SELECT COUNT(DISTINCT emp_id) AS employee_count_with_client_id " +
+//			"FROM employee_timesheets " +
+//			"WHERE MONTH(created_on) = MONTH(CURRENT_DATE()) " +
+//			"AND YEAR(created_on) = YEAR(CURRENT_DATE()) " +
+//			"AND day_type = 'Working'", nativeQuery = true)
+//	public List<Object[]> totalIshineFilledCountOLD();
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "SELECT COUNT(DISTINCT et.emp_id) AS employee_count_with_client_id " +
@@ -1435,65 +1446,65 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	public List<Object[]> totalIshineFilledCount();
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(value = "WITH\n"
-			+ " Employees_Without_ClientID AS (\n"
-			+ "       select distinct e.emp_id from employee e inner join employee_timesheets et\n"
-			+ "				on e.emp_id = et.emp_id \n"
-			+ "				where e.emp_id not in\n"
-			+ "				(\n"
-			+ "				SELECT DISTINCT emp_id AS employee_count_with_client_id\n"
-			+ "				FROM employee_timesheets\n"
-			+ "				WHERE client_side_id IS NOT NULL AND client_side_id != ''\n"
-			+ "				)\n"
-			+ "				and client_side_id IS NOT NULL AND client_side_id != ''\n"
-			+ "                ),\n"
-			+ "  Authorized_Employees AS (\n"
-			+ "        SELECT DISTINCT emp_id FROM (\n"
-			+ "            SELECT e.emp_id\n"
-			+ "            FROM employee e\n"
-			+ "            WHERE EXISTS (\n"
-			+ "                SELECT 1 FROM employee u\n"
-			+ "                JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
-			+ "                INNER JOIN department d ON jr.dept_id = d.dept_id"
-			+ "                WHERE u.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group'))\n"
-			+ "            )\n"
-			+ "\n"
-			+ "            UNION\n"
-			+ "\n"
-			+ "            SELECT e.emp_id\n"
-			+ "            FROM employee e\n"
-			+ "            JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
-			+ "            WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
-			+ "\n"
-			+ "            UNION\n"
-			+ "\n"
-			+ "            SELECT etm.emp_id\n"
-			+ "            FROM employee_team_mapping etm\n"
-			+ "            WHERE etm.team_id IN (\n"
-			+ "                SELECT t.team_id FROM teams t\n"
-			+ "                WHERE t.project_id IN (\n"
-			+ "                    SELECT DISTINCT p.project_id FROM projects p\n"
-			+ "                    LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
-			+ "                    LEFT JOIN project_overhead_mapping pom ON p.project_id = pom.project_id\n"
-			+ "                    LEFT JOIN teams t2 ON p.project_id = t2.project_id\n"
-			+ "                    LEFT JOIN employee_team_mapping etm2 ON etm2.team_id = t2.team_id\n"
-			+ "                    WHERE pm.project_manager_id = :emp_id\n"
-			+ "                      OR pom.project_overhead_id = :emp_id\n"
-			+ "                      OR t2.spoc_id = :emp_id\n"
-			+ "                      OR t2.team_lead_id = :emp_id\n"
-			+ "                      OR etm2.emp_id = :emp_id\n"
-			+ "                )\n"
-			+ "            )\n"
-			+ "        ) AS employee_list\n"
-			+ "    )\n"
-			+ "\n"
-			+ "SELECT\n"
-			+ "    COUNT(DISTINCT auth.emp_id)\n"
-			+ "FROM\n"
-			+ "    Authorized_Employees auth\n"
-			+ "INNER JOIN\n"
-			+ "    Employees_Without_ClientID crit ON auth.emp_id = crit.emp_id", nativeQuery = true)
-	public List<Object[]> totalvmsNotFilledOLD(@Param("emp_id") Long emp_id);
+//	@Query(value = "WITH\n"
+//			+ " Employees_Without_ClientID AS (\n"
+//			+ "       select distinct e.emp_id from employee e inner join employee_timesheets et\n"
+//			+ "				on e.emp_id = et.emp_id \n"
+//			+ "				where e.emp_id not in\n"
+//			+ "				(\n"
+//			+ "				SELECT DISTINCT emp_id AS employee_count_with_client_id\n"
+//			+ "				FROM employee_timesheets\n"
+//			+ "				WHERE client_side_id IS NOT NULL AND client_side_id != ''\n"
+//			+ "				)\n"
+//			+ "				and client_side_id IS NOT NULL AND client_side_id != ''\n"
+//			+ "                ),\n"
+//			+ "  Authorized_Employees AS (\n"
+//			+ "        SELECT DISTINCT emp_id FROM (\n"
+//			+ "            SELECT e.emp_id\n"
+//			+ "            FROM employee e\n"
+//			+ "            WHERE EXISTS (\n"
+//			+ "                SELECT 1 FROM employee u\n"
+//			+ "                JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
+//			+ "                INNER JOIN department d ON jr.dept_id = d.dept_id"
+//			+ "                WHERE u.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group'))\n"
+//			+ "            )\n"
+//			+ "\n"
+//			+ "            UNION\n"
+//			+ "\n"
+//			+ "            SELECT e.emp_id\n"
+//			+ "            FROM employee e\n"
+//			+ "            JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+//			+ "            WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
+//			+ "\n"
+//			+ "            UNION\n"
+//			+ "\n"
+//			+ "            SELECT etm.emp_id\n"
+//			+ "            FROM employee_team_mapping etm\n"
+//			+ "            WHERE etm.team_id IN (\n"
+//			+ "                SELECT t.team_id FROM teams t\n"
+//			+ "                WHERE t.project_id IN (\n"
+//			+ "                    SELECT DISTINCT p.project_id FROM projects p\n"
+//			+ "                    LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
+//			+ "                    LEFT JOIN project_overhead_mapping pom ON p.project_id = pom.project_id\n"
+//			+ "                    LEFT JOIN teams t2 ON p.project_id = t2.project_id\n"
+//			+ "                    LEFT JOIN employee_team_mapping etm2 ON etm2.team_id = t2.team_id\n"
+//			+ "                    WHERE pm.project_manager_id = :emp_id\n"
+//			+ "                      OR pom.project_overhead_id = :emp_id\n"
+//			+ "                      OR t2.spoc_id = :emp_id\n"
+//			+ "                      OR t2.team_lead_id = :emp_id\n"
+//			+ "                      OR etm2.emp_id = :emp_id\n"
+//			+ "                )\n"
+//			+ "            )\n"
+//			+ "        ) AS employee_list\n"
+//			+ "    )\n"
+//			+ "\n"
+//			+ "SELECT\n"
+//			+ "    COUNT(DISTINCT auth.emp_id)\n"
+//			+ "FROM\n"
+//			+ "    Authorized_Employees auth\n"
+//			+ "INNER JOIN\n"
+//			+ "    Employees_Without_ClientID crit ON auth.emp_id = crit.emp_id", nativeQuery = true)
+//	public List<Object[]> totalvmsNotFilledOLD(@Param("emp_id") Long emp_id);
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "WITH\n"
@@ -1560,122 +1571,122 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	public List<Object[]> totalvmsNotFilled(@Param("emp_id") Long emp_id);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(value = "\n"
-			+ "WITH RECURSIVE\n"
-			+ "  Authorized_Employees AS (\n"
-			+ "        SELECT DISTINCT emp_id FROM (\n"
-			+ "            SELECT e.emp_id \n"
-			+ "            FROM employee e\n"
-			+ "            WHERE EXISTS (  \n"
-			+ "                SELECT 1\n"
-			+ "                FROM employee u\n"
-			+ "                INNER JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
-			+ "                INNER JOIN department d ON jr.dept_id = d.dept_id"
-			+ "                WHERE u.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group'))\n"
-			+ "            )\n"
-			+ "\n"
-			+ "            UNION\n"
-			+ "            \n"
-			+ "            SELECT e.emp_id\n"
-			+ "            FROM employee e\n"
-			+ "            INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
-			+ "            WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
-			+ "\n"
-			+ "            UNION\n"
-			+ "            \n"
-			+ "            SELECT etm.emp_id\n"
-			+ "            FROM employee_team_mapping etm\n"
-			+ "            WHERE etm.team_id IN (\n"
-			+ "                SELECT t.team_id FROM teams t\n"
-			+ "                WHERE t.project_id IN (\n"
-			+ "                    SELECT DISTINCT p.project_id FROM projects p\n"
-			+ "                    LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
-			+ "                    LEFT JOIN project_overhead_mapping pom ON p.project_id = pom.project_id\n"
-			+ "                    LEFT JOIN teams t2 ON p.project_id = t2.project_id\n"
-			+ "                    LEFT JOIN employee_team_mapping etm2 ON etm2.team_id = t2.team_id\n"
-			+ "                    WHERE pm.project_manager_id = :emp_id\n"
-			+ "                      OR pom.project_overhead_id = :emp_id\n"
-			+ "                      OR t2.spoc_id = :emp_id\n"
-			+ "                      OR t2.team_lead_id = :emp_id\n"
-			+ "                      OR etm2.emp_id = :emp_id\n"
-			+ "                )\n"
-			+ "            )\n"
-			+ "        ) AS employee_list\n"
-			+ "    ),\n"
-			+ "\n"
-			+ " Date_Generator (dt) AS (\n"
-			+ "        SELECT DATE_FORMAT(CURDATE(), '%Y-%m-01')\n"
-			+ "        UNION ALL\n"
-			+ "        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM Date_Generator WHERE dt < CURDATE()\n"
-			+ "    ),\n"
-			+ "\n"
-			+ "    WorkingDays_Summary AS (\n"
-			+ "        SELECT COUNT(*) AS expected_fill_count\n"
-			+ "        FROM Date_Generator\n"
-			+ "        WHERE dt NOT IN (\n"
-			+ "            SELECT date_of_holiday\n"
-			+ "            FROM holiday\n"
-			+ "            WHERE MONTH(date_of_holiday) = MONTH(CURRENT_DATE())\n"
-			+ "              AND YEAR(date_of_holiday) = YEAR(CURRENT_DATE())\n"
-			+ "        )\n"
-			+ "    ),\n"
-			+ "\n"
-			+ "    Base_Project_Employees AS (\n"
-			+ "        SELECT DISTINCT etm.emp_id\n"
-			+ "        FROM projects p\n"
-			+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
-			+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
-			+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
-			+ "        INNER JOIN Authorized_Employees ae ON e.emp_id = ae.emp_id\n"
-			+ "        WHERE etm.active != 0\n"
-			+ "          AND t.is_active != 'N'\n"
-			+ "          AND p.active != 'false'\n"
-			+ "          AND p.has_client_side_id = true\n"
-			+ "          AND e.employmentstatus != 'InActive'\n"
-			+ "          AND date(etm.start_date) < curdate()\n"
-			+ "    ),\n"
-			+ "\n"
-			+ "    Document_Summary AS (\n"
-			+ "        SELECT\n"
-			+ "            emp_id,\n"
-			+ "            COUNT(CASE WHEN UPPER(csm.status) = 'PENDING' THEN 1 END) AS Client_pending_count,\n"
-			+ "            COUNT(CASE WHEN UPPER(csm.status) = 'APPROVED' THEN 1 END) AS Client_Approved_count,\n"
-			+ "            COUNT(CASE WHEN UPPER(csm.status) = 'REJECTED' THEN 1 END) AS Client_Rejected_count\n"
-			+ "        FROM timesheet_document_details_new tdd\n"
-			+ "        LEFT JOIN client_status_master_new csm ON tdd.client_approval_status_id = csm.status_id\n"
-			+ "         WHERE MONTH(tdd.created_on) = MONTH(CURRENT_DATE()) AND YEAR(tdd.created_on) = YEAR(CURRENT_DATE())\n"
-			+ "        GROUP BY tdd.emp_id\n"
-			+ "    ),\n"
-			+ "\n"
-			+ "    Final_Counts AS (\n"
-			+ "        SELECT\n"
-			+ "            SUM(IFNULL(ds.Client_Approved_count, 0)) as totalApproved,\n"
-			+ "            SUM(IFNULL(ds.Client_pending_count, 0)) as totalPending,\n"
-			+ "            SUM(IFNULL(ds.Client_Rejected_count, 0)) as totalRejected,\n"
-			+ "            (SELECT COUNT(*) FROM Base_Project_Employees) as totalUniqueEmployees\n"
-			+ "        FROM Base_Project_Employees bpe\n"
-			+ "        LEFT JOIN Document_Summary ds ON bpe.emp_id = ds.emp_id\n"
-			+ "    )\n"
-			+ "\n"
-			+ "SELECT\n"
-			+ "    fc.totalApproved AS totalClientSideApprovedCount,\n"
-			+ "    fc.totalPending AS totalClientSidePendingCount,\n"
-			+ "    ( (fc.totalUniqueEmployees * wds.expected_fill_count) - (fc.totalApproved + fc.totalPending) ) AS eod_not_filled,\n"
-			+ "    (fc.totalApproved + fc.totalPending + fc.totalRejected) as totalSubmitted,\n"
-			+ "    CASE\n"
-			+ "        WHEN (fc.totalApproved + fc.totalPending + fc.totalRejected) > 0\n"
-			+ "        THEN (fc.totalApproved * 100.0 / (fc.totalApproved + fc.totalPending + fc.totalRejected))\n"
-			+ "        ELSE 0\n"
-			+ "    END AS document_approved_percentage,\n"
-			+ "    CASE\n"
-			+ "        WHEN (fc.totalApproved + fc.totalPending + fc.totalRejected) > 0\n"
-			+ "        THEN (fc.totalRejected * 100.0 / (fc.totalApproved + fc.totalPending + fc.totalRejected))\n"
-			+ "        ELSE 0\n"
-			+ "    END AS document_rejected_percentage\n"
-			+ "FROM\n"
-			+ "    Final_Counts fc,\n"
-			+ "    WorkingDays_Summary wds", nativeQuery = true)
-	public List<Object[]> totalIshineNotFilledCountOLD(@Param("emp_id") Long emp_id);
+//	@Query(value = "\n"
+//			+ "WITH RECURSIVE\n"
+//			+ "  Authorized_Employees AS (\n"
+//			+ "        SELECT DISTINCT emp_id FROM (\n"
+//			+ "            SELECT e.emp_id \n"
+//			+ "            FROM employee e\n"
+//			+ "            WHERE EXISTS (  \n"
+//			+ "                SELECT 1\n"
+//			+ "                FROM employee u\n"
+//			+ "                INNER JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
+//			+ "                INNER JOIN department d ON jr.dept_id = d.dept_id"
+//			+ "                WHERE u.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group'))\n"
+//			+ "            )\n"
+//			+ "\n"
+//			+ "            UNION\n"
+//			+ "            \n"
+//			+ "            SELECT e.emp_id\n"
+//			+ "            FROM employee e\n"
+//			+ "            INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+//			+ "            WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
+//			+ "\n"
+//			+ "            UNION\n"
+//			+ "            \n"
+//			+ "            SELECT etm.emp_id\n"
+//			+ "            FROM employee_team_mapping etm\n"
+//			+ "            WHERE etm.team_id IN (\n"
+//			+ "                SELECT t.team_id FROM teams t\n"
+//			+ "                WHERE t.project_id IN (\n"
+//			+ "                    SELECT DISTINCT p.project_id FROM projects p\n"
+//			+ "                    LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
+//			+ "                    LEFT JOIN project_overhead_mapping pom ON p.project_id = pom.project_id\n"
+//			+ "                    LEFT JOIN teams t2 ON p.project_id = t2.project_id\n"
+//			+ "                    LEFT JOIN employee_team_mapping etm2 ON etm2.team_id = t2.team_id\n"
+//			+ "                    WHERE pm.project_manager_id = :emp_id\n"
+//			+ "                      OR pom.project_overhead_id = :emp_id\n"
+//			+ "                      OR t2.spoc_id = :emp_id\n"
+//			+ "                      OR t2.team_lead_id = :emp_id\n"
+//			+ "                      OR etm2.emp_id = :emp_id\n"
+//			+ "                )\n"
+//			+ "            )\n"
+//			+ "        ) AS employee_list\n"
+//			+ "    ),\n"
+//			+ "\n"
+//			+ " Date_Generator (dt) AS (\n"
+//			+ "        SELECT DATE_FORMAT(CURDATE(), '%Y-%m-01')\n"
+//			+ "        UNION ALL\n"
+//			+ "        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM Date_Generator WHERE dt < CURDATE()\n"
+//			+ "    ),\n"
+//			+ "\n"
+//			+ "    WorkingDays_Summary AS (\n"
+//			+ "        SELECT COUNT(*) AS expected_fill_count\n"
+//			+ "        FROM Date_Generator\n"
+//			+ "        WHERE dt NOT IN (\n"
+//			+ "            SELECT date_of_holiday\n"
+//			+ "            FROM holiday\n"
+//			+ "            WHERE MONTH(date_of_holiday) = MONTH(CURRENT_DATE())\n"
+//			+ "              AND YEAR(date_of_holiday) = YEAR(CURRENT_DATE())\n"
+//			+ "        )\n"
+//			+ "    ),\n"
+//			+ "\n"
+//			+ "    Base_Project_Employees AS (\n"
+//			+ "        SELECT DISTINCT etm.emp_id\n"
+//			+ "        FROM projects p\n"
+//			+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
+//			+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
+//			+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
+//			+ "        INNER JOIN Authorized_Employees ae ON e.emp_id = ae.emp_id\n"
+//			+ "        WHERE etm.active != 0\n"
+//			+ "          AND t.is_active != 'N'\n"
+//			+ "          AND p.active != 'false'\n"
+//			+ "          AND p.has_client_side_id = true\n"
+//			+ "          AND e.employmentstatus != 'InActive'\n"
+//			+ "          AND date(etm.start_date) < curdate()\n"
+//			+ "    ),\n"
+//			+ "\n"
+//			+ "    Document_Summary AS (\n"
+//			+ "        SELECT\n"
+//			+ "            emp_id,\n"
+//			+ "            COUNT(CASE WHEN UPPER(csm.status) = 'PENDING' THEN 1 END) AS Client_pending_count,\n"
+//			+ "            COUNT(CASE WHEN UPPER(csm.status) = 'APPROVED' THEN 1 END) AS Client_Approved_count,\n"
+//			+ "            COUNT(CASE WHEN UPPER(csm.status) = 'REJECTED' THEN 1 END) AS Client_Rejected_count\n"
+//			+ "        FROM timesheet_document_details_new tdd\n"
+//			+ "        LEFT JOIN client_status_master_new csm ON tdd.client_approval_status_id = csm.status_id\n"
+//			+ "         WHERE MONTH(tdd.created_on) = MONTH(CURRENT_DATE()) AND YEAR(tdd.created_on) = YEAR(CURRENT_DATE())\n"
+//			+ "        GROUP BY tdd.emp_id\n"
+//			+ "    ),\n"
+//			+ "\n"
+//			+ "    Final_Counts AS (\n"
+//			+ "        SELECT\n"
+//			+ "            SUM(IFNULL(ds.Client_Approved_count, 0)) as totalApproved,\n"
+//			+ "            SUM(IFNULL(ds.Client_pending_count, 0)) as totalPending,\n"
+//			+ "            SUM(IFNULL(ds.Client_Rejected_count, 0)) as totalRejected,\n"
+//			+ "            (SELECT COUNT(*) FROM Base_Project_Employees) as totalUniqueEmployees\n"
+//			+ "        FROM Base_Project_Employees bpe\n"
+//			+ "        LEFT JOIN Document_Summary ds ON bpe.emp_id = ds.emp_id\n"
+//			+ "    )\n"
+//			+ "\n"
+//			+ "SELECT\n"
+//			+ "    fc.totalApproved AS totalClientSideApprovedCount,\n"
+//			+ "    fc.totalPending AS totalClientSidePendingCount,\n"
+//			+ "    ( (fc.totalUniqueEmployees * wds.expected_fill_count) - (fc.totalApproved + fc.totalPending) ) AS eod_not_filled,\n"
+//			+ "    (fc.totalApproved + fc.totalPending + fc.totalRejected) as totalSubmitted,\n"
+//			+ "    CASE\n"
+//			+ "        WHEN (fc.totalApproved + fc.totalPending + fc.totalRejected) > 0\n"
+//			+ "        THEN (fc.totalApproved * 100.0 / (fc.totalApproved + fc.totalPending + fc.totalRejected))\n"
+//			+ "        ELSE 0\n"
+//			+ "    END AS document_approved_percentage,\n"
+//			+ "    CASE\n"
+//			+ "        WHEN (fc.totalApproved + fc.totalPending + fc.totalRejected) > 0\n"
+//			+ "        THEN (fc.totalRejected * 100.0 / (fc.totalApproved + fc.totalPending + fc.totalRejected))\n"
+//			+ "        ELSE 0\n"
+//			+ "    END AS document_rejected_percentage\n"
+//			+ "FROM\n"
+//			+ "    Final_Counts fc,\n"
+//			+ "    WorkingDays_Summary wds", nativeQuery = true)
+//	public List<Object[]> totalIshineNotFilledCountOLD(@Param("emp_id") Long emp_id);
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "\n"
@@ -1796,16 +1807,16 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	public List<Object[]> totalIshineNotFilledCount(@Param("emp_id") Long emp_id);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query("SELECT et.date FROM Timesheet et " +
-			"INNER JOIN TimesheetDocumentDetails tdd ON et.timesheetId = tdd.timesheetId " +
-			"WHERE et.empId = :empId " +
-			"AND et.projectId = :projectId " +
-			"AND et.clientSideId IS NOT NULL " +
-			"AND tdd.active IS TRUE " +
-			"AND tdd.finalFlag IS TRUE " +
-			"AND (tdd.rmApprovalStatus = 'Approved' OR tdd.rmApprovalStatus = 'Pending' OR tdd.hrApprovalStatus != 'Rejected')")
-	Set<LocalDate> findDatesByEmpIdAndProjectIdOLD(@Param("empId") Long empId,
-			@Param("projectId") Integer projectId);
+//	@Query("SELECT et.date FROM Timesheet et " +
+//			"INNER JOIN TimesheetDocumentDetails tdd ON et.timesheetId = tdd.timesheetId " +
+//			"WHERE et.empId = :empId " +
+//			"AND et.projectId = :projectId " +
+//			"AND et.clientSideId IS NOT NULL " +
+//			"AND tdd.active IS TRUE " +
+//			"AND tdd.finalFlag IS TRUE " +
+//			"AND (tdd.rmApprovalStatus = 'Approved' OR tdd.rmApprovalStatus = 'Pending' OR tdd.hrApprovalStatus != 'Rejected')")
+//	Set<LocalDate> findDatesByEmpIdAndProjectIdOLD(@Param("empId") Long empId,
+//			@Param("projectId") Integer projectId);
 
 	// ========== UPDATED: New query using _new tables (JPQL - using new entities)
 	// ==========
@@ -2703,22 +2714,24 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	// @Param("year") Integer year);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.date,et.day_type,e.name employeeName,et.description ,et.status, \n"
-			+ "em.name created_by,em.emp_id as createdById,et.created_on,e.employeement_id,et.total_time , e.email,et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, et.current_manager_id,e.is_consultant,e.is_apprenticeship,e.emp_id, \n"
-			+ "et.client_in_time, et.client_out_time, et.client_side_id, et.total_client_working_hours,\n"
-			+ "et.project_id, et.client_approval_status, et.has_client_side_id, et.is_shadow_timesheet , et.shadow_emp_id\n"
-			+ "        FROM employee_timesheets et\n"
-			+ "        INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
-			+ "        INNER JOIN teams t ON t.team_id = etm.team_id\n"
-			+ "        INNER JOIN projects p ON p.project_id = t.project_id\n"
-			+ "        INNER join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
-			+ "        INNER join activities a on etam.activity_id = a.activity_id and a.team_id = t.team_id\n"
-			+ "        INNER JOIN employee e ON e.emp_id = et.emp_id\n"
-			+ "        INNER JOIN employee em ON  et.created_by = em.emp_id\n"
-			+ "        WHERE day_type LIKE '%Working%'\n"
-			+ "        and et.status = 'Pending'\n"
-			+ "         and et.emp_id = :empId and t.team_id = :teamId")
-	public List<Object[]> getPendingTimesheetsByEmpAndTeamOLD(Long empId, Long teamId);
+
+	// @Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.date,et.day_type,e.name employeeName,et.description ,et.status, \n"
+	// 		+ "em.name created_by,em.emp_id as createdById,et.created_on,e.employeement_id,et.total_time , e.email,et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, et.current_manager_id,e.is_consultant,e.is_apprenticeship,e.emp_id, \n"
+	// 		+ "et.client_in_time, et.client_out_time, et.client_side_id, et.total_client_working_hours,\n"
+	// 		+ "et.project_id, et.client_approval_status, et.has_client_side_id, et.is_shadow_timesheet , et.shadow_emp_id\n"
+	// 		+ "        FROM employee_timesheets et\n"
+	// 		+ "        INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
+	// 		+ "        INNER JOIN teams t ON t.team_id = etm.team_id\n"
+	// 		+ "        INNER JOIN projects p ON p.project_id = t.project_id\n"
+	// 		+ "        INNER join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
+	// 		+ "        INNER join activities a on etam.activity_id = a.activity_id and a.team_id = t.team_id\n"
+	// 		+ "        INNER JOIN employee e ON e.emp_id = et.emp_id\n"
+	// 		+ "        INNER JOIN employee em ON  et.created_by = em.emp_id\n"
+	// 		+ "        WHERE day_type LIKE '%Working%'\n"
+	// 		+ "        and et.status = 'Pending'\n"
+	// 		+ "         and et.emp_id = :empId and t.team_id = :teamId")
+	// public List<Object[]> getPendingTimesheetsByEmpAndTeamOLD(Long empId, Long teamId);
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.date,dtm.day_type,e.name employeeName,etam.description ,sm.status, \n"
@@ -2744,32 +2757,34 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	public List<Object[]> getPendingTimesheetsByEmpAndTeam(Long empId, Long teamId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(nativeQuery = true, value = "SELECT DISTINCT et.timesheet_id,et.date,et.day_type,e.name employeeName,et.description ,et.status,\n"
-			+ "				 				em.name created_by,em.emp_id as createdById,et.created_on,e.employeement_id,et.total_time , e.email,et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, et.current_manager_id,e.is_consultant,e.is_apprenticeship,e.emp_id,\n"
-			+ "				 			et.client_in_time, et.client_out_time, et.client_side_id, et.total_client_working_hours, \n"
-			+ "				 				et.project_id, et.client_approval_status, et.has_client_side_id, et.is_shadow_timesheet , et.shadow_emp_id, e.is_apmosys_product \n"
-			+ "				 			       FROM employee_timesheets et\n"
-			+ "				 				        INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
-			+ "				 				       INNER JOIN teams t ON t.team_id = etm.team_id\n"
-			+ "				 				        INNER JOIN projects p ON p.project_id = t.project_id\n"
-			+ "				 				        INNER join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
-			+ "				 				        INNER join activities a on etam.activity_id = a.activity_id and a.team_id = t.team_id\n"
-			+ "				 				        INNER JOIN employee e ON e.emp_id = et.emp_id\n"
-			+ "				 				       INNER JOIN employee em ON  et.created_by = em.emp_id\n"
-			+ "				 				        WHERE day_type LIKE '%Working%'\n"
-			+ "				 				        and et.status = 'Pending'\n"
-			+ "				 				        and et.emp_id = :empId  and t.team_id = :teamId \n"
-			+ "                                        and et.date between \n"
-			+ "                                        COALESCE(NULLIF(:fromDate, ''), DATE_FORMAT(CURDATE(), '%Y-%m-01')) and\n"
-			+ "										COALESCE(NULLIF(:toDate, ''), CURDATE())\n"
-			+ "	                                       AND ( \n"
-			+ "	                                             (:clientFlag IS NULL) \n"
-			+ "	                                          OR (:clientFlag = TRUE  AND et.has_client_side_id = 1) \n"
-			+ "	                                          OR (:clientFlag = FALSE AND (et.has_client_side_id = 0 OR et.has_client_side_id IS NULL)) \n"
-			+ "	                                         ) \n"
-			+ "                                        Order by et.date desc")
-	public List<Object[]> getMyTimesheetRequestsOLD(Long empId, Long teamId, String fromDate, String toDate,
-			Boolean clientFlag);
+
+//	@Query(nativeQuery = true, value = "SELECT DISTINCT et.timesheet_id,et.date,et.day_type,e.name employeeName,et.description ,et.status,\n"
+//			+ "				 				em.name created_by,em.emp_id as createdById,et.created_on,e.employeement_id,et.total_time , e.email,et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, et.current_manager_id,e.is_consultant,e.is_apprenticeship,e.emp_id,\n"
+//			+ "				 			et.client_in_time, et.client_out_time, et.client_side_id, et.total_client_working_hours, \n"
+//			+ "				 				et.project_id, et.client_approval_status, et.has_client_side_id, et.is_shadow_timesheet , et.shadow_emp_id, e.is_apmosys_product \n"
+//			+ "				 			       FROM employee_timesheets et\n"
+//			+ "				 				        INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
+//			+ "				 				       INNER JOIN teams t ON t.team_id = etm.team_id\n"
+//			+ "				 				        INNER JOIN projects p ON p.project_id = t.project_id\n"
+//			+ "				 				        INNER join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
+//			+ "				 				        INNER join activities a on etam.activity_id = a.activity_id and a.team_id = t.team_id\n"
+//			+ "				 				        INNER JOIN employee e ON e.emp_id = et.emp_id\n"
+//			+ "				 				       INNER JOIN employee em ON  et.created_by = em.emp_id\n"
+//			+ "				 				        WHERE day_type LIKE '%Working%'\n"
+//			+ "				 				        and et.status = 'Pending'\n"
+//			+ "				 				        and et.emp_id = :empId  and t.team_id = :teamId \n"
+//			+ "                                        and et.date between \n"
+//			+ "                                        COALESCE(NULLIF(:fromDate, ''), DATE_FORMAT(CURDATE(), '%Y-%m-01')) and\n"
+//			+ "										COALESCE(NULLIF(:toDate, ''), CURDATE())\n"
+//			+ "	                                       AND ( \n"
+//			+ "	                                             (:clientFlag IS NULL) \n"
+//			+ "	                                          OR (:clientFlag = TRUE  AND et.has_client_side_id = 1) \n"
+//			+ "	                                          OR (:clientFlag = FALSE AND (et.has_client_side_id = 0 OR et.has_client_side_id IS NULL)) \n"
+//			+ "	                                         ) \n"
+//			+ "                                        Order by et.date desc")
+//	public List<Object[]> getMyTimesheetRequestsOLD(Long empId, Long teamId, String fromDate, String toDate,
+//			Boolean clientFlag);
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(nativeQuery = true, value = "SELECT DISTINCT et.timesheet_id,et.date,dtm.day_type,e.name employeeName,etam.description ,sm.status,\n"
@@ -4469,35 +4484,37 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	// Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(value = "WITH RankedTimeSheets AS ( " +
-			"SELECT et.emp_id, et.office_in_time, et.office_out_time, p.project_id, c.client_id, cl.client_location_id, "
-			+
-			"t.team_name, a.activity, a.activity_id, etam.description, ecsm.client_side_id, t.team_id, et.client_approval_status, "
-			+
-			"RANK() OVER (PARTITION BY et.emp_id ORDER BY et.date DESC) as rnk, " +
-			"CASE WHEN e.is_apmosys_product = 'true' " +
-			"THEN CONCAT('AP-', e.employeement_id) " +
-			"ELSE CONCAT('A-', e.employeement_id) END AS employement_id,"
-			+ "et.total_time, e.timesheet_lock_updated_on, is_timesheet_lock_check_enable " +
-			"FROM employee_timesheets et " +
-			"INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id " +
-			"INNER JOIN activities a ON etam.activity_id = a.activity_id " +
-			"LEFT JOIN employee e ON et.emp_id = e.emp_id " +
-			"LEFT JOIN teams t ON a.team_id = t.team_id " +
-			"LEFT JOIN projects p ON p.project_id = t.project_id " +
-			"LEFT JOIN clients c ON p.client_id = c.client_id " +
-			"LEFT JOIN client_locations cl ON cl.client_id = c.client_id " +
-			"LEFT JOIN employee_client_side_id_mapping ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = p.project_id "
-			+
-			"WHERE UPPER(et.day_type) LIKE '%WORKING%' " +
-			") " +
-			"SELECT DISTINCT employement_id, office_in_time, office_out_time, project_id, client_id, client_location_id, "
-			+
-			"team_name, activity, activity_id, description, team_id, client_approval_status, total_time, timesheet_lock_updated_on, is_timesheet_lock_check_enable "
-			+
-			"FROM RankedTimeSheets " +
-			"WHERE rnk = 1 AND emp_id = :emp_id", nativeQuery = true)
-	List<Object[]> getLastTimesheetFiledByEmpIdOLD(@Param("emp_id") Long emp_id);
+
+//	@Query(value = "WITH RankedTimeSheets AS ( " +
+//			"SELECT et.emp_id, et.office_in_time, et.office_out_time, p.project_id, c.client_id, cl.client_location_id, "
+//			+
+//			"t.team_name, a.activity, a.activity_id, etam.description, ecsm.client_side_id, t.team_id, et.client_approval_status, "
+//			+
+//			"RANK() OVER (PARTITION BY et.emp_id ORDER BY et.date DESC) as rnk, " +
+//			"CASE WHEN e.is_apmosys_product = 'true' " +
+//			"THEN CONCAT('AP-', e.employeement_id) " +
+//			"ELSE CONCAT('A-', e.employeement_id) END AS employement_id,"
+//			+ "et.total_time, e.timesheet_lock_updated_on, is_timesheet_lock_check_enable " +
+//			"FROM employee_timesheets et " +
+//			"INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id " +
+//			"INNER JOIN activities a ON etam.activity_id = a.activity_id " +
+//			"LEFT JOIN employee e ON et.emp_id = e.emp_id " +
+//			"LEFT JOIN teams t ON a.team_id = t.team_id " +
+//			"LEFT JOIN projects p ON p.project_id = t.project_id " +
+//			"LEFT JOIN clients c ON p.client_id = c.client_id " +
+//			"LEFT JOIN client_locations cl ON cl.client_id = c.client_id " +
+//			"LEFT JOIN employee_client_side_id_mapping ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = p.project_id "
+//			+
+//			"WHERE UPPER(et.day_type) LIKE '%WORKING%' " +
+//			") " +
+//			"SELECT DISTINCT employement_id, office_in_time, office_out_time, project_id, client_id, client_location_id, "
+//			+
+//			"team_name, activity, activity_id, description, team_id, client_approval_status, total_time, timesheet_lock_updated_on, is_timesheet_lock_check_enable "
+//			+
+//			"FROM RankedTimeSheets " +
+//			"WHERE rnk = 1 AND emp_id = :emp_id", nativeQuery = true)
+//	List<Object[]> getLastTimesheetFiledByEmpIdOLD(@Param("emp_id") Long emp_id);
+
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "WITH RankedTimeSheets AS ( " +
@@ -4780,121 +4797,121 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	// projectActive);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(value = "\n"
-			+ "WITH RECURSIVE\n"
-			+ "  Authorized_Employees AS (\n"
-			+ "        SELECT DISTINCT emp_id FROM (\n"
-			+ "            SELECT e.emp_id \n"
-			+ "            FROM employee e\n"
-			+ "            WHERE EXISTS (  \n"
-			+ "                SELECT 1\n"
-			+ "                FROM employee u\n"
-			+ "                INNER JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
-			+ "                INNER JOIN department d ON jr.dept_id = d.dept_id"
-			+ "                WHERE u.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group'))\n"
-			+ "            )\n"
-			+ "\n"
-			+ "            UNION\n"
-			+ "            \n"
-			+ "            SELECT e.emp_id\n"
-			+ "            FROM employee e\n"
-			+ "            INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
-			+ "            WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
-			+ "\n"
-			+ "            UNION\n"
-			+ "            \n"
-			+ "            SELECT etm.emp_id\n"
-			+ "            FROM employee_team_mapping etm\n"
-			+ "            WHERE etm.team_id IN (\n"
-			+ "                SELECT t.team_id FROM teams t\n"
-			+ "                WHERE t.project_id IN (\n"
-			+ "                    SELECT DISTINCT p.project_id FROM projects p\n"
-			+ "                    LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
-			+ "                    LEFT JOIN project_overhead_mapping pom ON p.project_id = pom.project_id\n"
-			+ "                    LEFT JOIN teams t2 ON p.project_id = t2.project_id\n"
-			+ "                    LEFT JOIN employee_team_mapping etm2 ON etm2.team_id = t2.team_id\n"
-			+ "                    WHERE pm.project_manager_id = :emp_id\n"
-			+ "                      OR pom.project_overhead_id = :emp_id\n"
-			+ "                      OR t2.spoc_id = :emp_id\n"
-			+ "                      OR t2.team_lead_id = :emp_id\n"
-			+ "                      OR etm2.emp_id = :emp_id\n"
-			+ "                )\n"
-			+ "            )\n"
-			+ "        ) AS employee_list\n"
-			+ "    ),\n"
-			+ "\n"
-			+ " Date_Generator (dt) AS (\n"
-			+ "        SELECT DATE_FORMAT(CURDATE(), '%Y-%m-01')\n"
-			+ "        UNION ALL\n"
-			+ "        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM Date_Generator WHERE dt < CURDATE()\n"
-			+ "    ),\n"
-			+ "\n"
-			+ "    WorkingDays_Summary AS (\n"
-			+ "        SELECT COUNT(*) AS expected_fill_count\n"
-			+ "        FROM Date_Generator\n"
-			+ "        WHERE dt NOT IN (\n"
-			+ "            SELECT date_of_holiday\n"
-			+ "            FROM holiday\n"
-			+ "            WHERE MONTH(date_of_holiday) = MONTH(CURRENT_DATE())\n"
-			+ "              AND YEAR(date_of_holiday) = YEAR(CURRENT_DATE())\n"
-			+ "        )\n"
-			+ "    ),\n"
-			+ "\n"
-			+ "    Base_Project_Employees AS (\n"
-			+ "        SELECT DISTINCT etm.emp_id\n"
-			+ "        FROM projects p\n"
-			+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
-			+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
-			+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
-			+ "        INNER JOIN Authorized_Employees ae ON e.emp_id = ae.emp_id\n"
-			+ "        WHERE etm.active != 0\n"
-			+ "          AND t.is_active != 'N'\n"
-			+ "          AND p.active != 'false'\n"
-			+ "          AND e.employmentstatus != 'InActive'\n"
-			+ "          AND date(etm.start_date) < curdate()\n"
-			+ "    ),\n"
-			+ "\n"
-			+ "    Document_Summary AS (\n"
-			+ "        SELECT\n"
-			+ "            tdd.emp_id,\n"
-			+ "            COUNT(CASE WHEN UPPER(csm.status) = 'PENDING' THEN 1 END) AS Client_pending_count,\n"
-			+ "            COUNT(CASE WHEN UPPER(csm.status) = 'APPROVED' THEN 1 END) AS Client_Approved_count,\n"
-			+ "            COUNT(CASE WHEN UPPER(csm.status) = 'REJECTED' THEN 1 END) AS Client_Rejected_count\n"
-			+ "        FROM timesheet_document_details_new tdd\n"
-			+ "        LEFT JOIN client_status_master_new csm ON tdd.client_approval_status = csm.status_id\n"
-			+ "         WHERE MONTH(tdd.created_on) = MONTH(CURRENT_DATE()) AND YEAR(tdd.created_on) = YEAR(CURRENT_DATE())\n"
-			+ "        GROUP BY tdd.emp_id\n"
-			+ "    ),\n"
-			+ "\n"
-			+ "    Final_Counts AS (\n"
-			+ "        SELECT\n"
-			+ "            SUM(IFNULL(ds.Client_Approved_count, 0)) as totalApproved,\n"
-			+ "            SUM(IFNULL(ds.Client_pending_count, 0)) as totalPending,\n"
-			+ "            SUM(IFNULL(ds.Client_Rejected_count, 0)) as totalRejected,\n"
-			+ "            (SELECT COUNT(*) FROM Base_Project_Employees) as totalUniqueEmployees\n"
-			+ "        FROM Base_Project_Employees bpe\n"
-			+ "        LEFT JOIN Document_Summary ds ON bpe.emp_id = ds.emp_id\n"
-			+ "    )\n"
-			+ "\n"
-			+ "SELECT\n"
-			+ "    fc.totalApproved AS totalClientSideApprovedCount,\n"
-			+ "    fc.totalPending AS totalClientSidePendingCount,\n"
-			+ "    ( (fc.totalUniqueEmployees * wds.expected_fill_count) - (fc.totalApproved + fc.totalPending) ) AS eod_not_filled,\n"
-			+ "    (fc.totalApproved + fc.totalPending + fc.totalRejected) as totalSubmitted,\n"
-			+ "    CASE\n"
-			+ "        WHEN (fc.totalApproved + fc.totalPending + fc.totalRejected) > 0\n"
-			+ "        THEN (fc.totalApproved * 100.0 / (fc.totalApproved + fc.totalPending + fc.totalRejected))\n"
-			+ "        ELSE 0\n"
-			+ "    END AS document_approved_percentage,\n"
-			+ "    CASE\n"
-			+ "        WHEN (fc.totalApproved + fc.totalPending + fc.totalRejected) > 0\n"
-			+ "        THEN (fc.totalRejected * 100.0 / (fc.totalApproved + fc.totalPending + fc.totalRejected))\n"
-			+ "        ELSE 0\n"
-			+ "    END AS document_rejected_percentage\n"
-			+ "FROM\n"
-			+ "    Final_Counts fc,\n"
-			+ "    WorkingDays_Summary wds", nativeQuery = true)
-	public List<Object[]> totalIshineNotFilledCountForAllEmpDashOLD(@Param("emp_id") Long emp_id);
+//	@Query(value = "\n"
+//			+ "WITH RECURSIVE\n"
+//			+ "  Authorized_Employees AS (\n"
+//			+ "        SELECT DISTINCT emp_id FROM (\n"
+//			+ "            SELECT e.emp_id \n"
+//			+ "            FROM employee e\n"
+//			+ "            WHERE EXISTS (  \n"
+//			+ "                SELECT 1\n"
+//			+ "                FROM employee u\n"
+//			+ "                INNER JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
+//			+ "                INNER JOIN department d ON jr.dept_id = d.dept_id"
+//			+ "                WHERE u.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group'))\n"
+//			+ "            )\n"
+//			+ "\n"
+//			+ "            UNION\n"
+//			+ "            \n"
+//			+ "            SELECT e.emp_id\n"
+//			+ "            FROM employee e\n"
+//			+ "            INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+//			+ "            WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
+//			+ "\n"
+//			+ "            UNION\n"
+//			+ "            \n"
+//			+ "            SELECT etm.emp_id\n"
+//			+ "            FROM employee_team_mapping etm\n"
+//			+ "            WHERE etm.team_id IN (\n"
+//			+ "                SELECT t.team_id FROM teams t\n"
+//			+ "                WHERE t.project_id IN (\n"
+//			+ "                    SELECT DISTINCT p.project_id FROM projects p\n"
+//			+ "                    LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
+//			+ "                    LEFT JOIN project_overhead_mapping pom ON p.project_id = pom.project_id\n"
+//			+ "                    LEFT JOIN teams t2 ON p.project_id = t2.project_id\n"
+//			+ "                    LEFT JOIN employee_team_mapping etm2 ON etm2.team_id = t2.team_id\n"
+//			+ "                    WHERE pm.project_manager_id = :emp_id\n"
+//			+ "                      OR pom.project_overhead_id = :emp_id\n"
+//			+ "                      OR t2.spoc_id = :emp_id\n"
+//			+ "                      OR t2.team_lead_id = :emp_id\n"
+//			+ "                      OR etm2.emp_id = :emp_id\n"
+//			+ "                )\n"
+//			+ "            )\n"
+//			+ "        ) AS employee_list\n"
+//			+ "    ),\n"
+//			+ "\n"
+//			+ " Date_Generator (dt) AS (\n"
+//			+ "        SELECT DATE_FORMAT(CURDATE(), '%Y-%m-01')\n"
+//			+ "        UNION ALL\n"
+//			+ "        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM Date_Generator WHERE dt < CURDATE()\n"
+//			+ "    ),\n"
+//			+ "\n"
+//			+ "    WorkingDays_Summary AS (\n"
+//			+ "        SELECT COUNT(*) AS expected_fill_count\n"
+//			+ "        FROM Date_Generator\n"
+//			+ "        WHERE dt NOT IN (\n"
+//			+ "            SELECT date_of_holiday\n"
+//			+ "            FROM holiday\n"
+//			+ "            WHERE MONTH(date_of_holiday) = MONTH(CURRENT_DATE())\n"
+//			+ "              AND YEAR(date_of_holiday) = YEAR(CURRENT_DATE())\n"
+//			+ "        )\n"
+//			+ "    ),\n"
+//			+ "\n"
+//			+ "    Base_Project_Employees AS (\n"
+//			+ "        SELECT DISTINCT etm.emp_id\n"
+//			+ "        FROM projects p\n"
+//			+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
+//			+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
+//			+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
+//			+ "        INNER JOIN Authorized_Employees ae ON e.emp_id = ae.emp_id\n"
+//			+ "        WHERE etm.active != 0\n"
+//			+ "          AND t.is_active != 'N'\n"
+//			+ "          AND p.active != 'false'\n"
+//			+ "          AND e.employmentstatus != 'InActive'\n"
+//			+ "          AND date(etm.start_date) < curdate()\n"
+//			+ "    ),\n"
+//			+ "\n"
+//			+ "    Document_Summary AS (\n"
+//			+ "        SELECT\n"
+//			+ "            tdd.emp_id,\n"
+//			+ "            COUNT(CASE WHEN UPPER(csm.status) = 'PENDING' THEN 1 END) AS Client_pending_count,\n"
+//			+ "            COUNT(CASE WHEN UPPER(csm.status) = 'APPROVED' THEN 1 END) AS Client_Approved_count,\n"
+//			+ "            COUNT(CASE WHEN UPPER(csm.status) = 'REJECTED' THEN 1 END) AS Client_Rejected_count\n"
+//			+ "        FROM timesheet_document_details_new tdd\n"
+//			+ "        LEFT JOIN client_status_master_new csm ON tdd.client_approval_status = csm.status_id\n"
+//			+ "         WHERE MONTH(tdd.created_on) = MONTH(CURRENT_DATE()) AND YEAR(tdd.created_on) = YEAR(CURRENT_DATE())\n"
+//			+ "        GROUP BY tdd.emp_id\n"
+//			+ "    ),\n"
+//			+ "\n"
+//			+ "    Final_Counts AS (\n"
+//			+ "        SELECT\n"
+//			+ "            SUM(IFNULL(ds.Client_Approved_count, 0)) as totalApproved,\n"
+//			+ "            SUM(IFNULL(ds.Client_pending_count, 0)) as totalPending,\n"
+//			+ "            SUM(IFNULL(ds.Client_Rejected_count, 0)) as totalRejected,\n"
+//			+ "            (SELECT COUNT(*) FROM Base_Project_Employees) as totalUniqueEmployees\n"
+//			+ "        FROM Base_Project_Employees bpe\n"
+//			+ "        LEFT JOIN Document_Summary ds ON bpe.emp_id = ds.emp_id\n"
+//			+ "    )\n"
+//			+ "\n"
+//			+ "SELECT\n"
+//			+ "    fc.totalApproved AS totalClientSideApprovedCount,\n"
+//			+ "    fc.totalPending AS totalClientSidePendingCount,\n"
+//			+ "    ( (fc.totalUniqueEmployees * wds.expected_fill_count) - (fc.totalApproved + fc.totalPending) ) AS eod_not_filled,\n"
+//			+ "    (fc.totalApproved + fc.totalPending + fc.totalRejected) as totalSubmitted,\n"
+//			+ "    CASE\n"
+//			+ "        WHEN (fc.totalApproved + fc.totalPending + fc.totalRejected) > 0\n"
+//			+ "        THEN (fc.totalApproved * 100.0 / (fc.totalApproved + fc.totalPending + fc.totalRejected))\n"
+//			+ "        ELSE 0\n"
+//			+ "    END AS document_approved_percentage,\n"
+//			+ "    CASE\n"
+//			+ "        WHEN (fc.totalApproved + fc.totalPending + fc.totalRejected) > 0\n"
+//			+ "        THEN (fc.totalRejected * 100.0 / (fc.totalApproved + fc.totalPending + fc.totalRejected))\n"
+//			+ "        ELSE 0\n"
+//			+ "    END AS document_rejected_percentage\n"
+//			+ "FROM\n"
+//			+ "    Final_Counts fc,\n"
+//			+ "    WorkingDays_Summary wds", nativeQuery = true)
+//	public List<Object[]> totalIshineNotFilledCountForAllEmpDashOLD(@Param("emp_id") Long emp_id);
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "\n"
@@ -5014,14 +5031,14 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	public List<Object[]> totalIshineNotFilledCountForAllEmpDash(@Param("emp_id") Long emp_id);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query("SELECT et.date \n"
-			+ "FROM Timesheet et \n"
-			+ "WHERE et.empId = :empId \n"
-			+ "AND et.projectId = :projectId \n"
-			+ "AND et.date BETWEEN :startDate AND :endDate \n"
-			+ "AND et.dayType in ('Non-working','Working')")
-	Set<LocalDate> allTimesheetFilledDatesForDateRangeOLD(@Param("startDate") LocalDate startDate,
-			@Param("endDate") LocalDate endDate, @Param("projectId") Integer projectId, @Param("empId") Long empId);
+//	@Query("SELECT et.date \n"
+//			+ "FROM Timesheet et \n"
+//			+ "WHERE et.empId = :empId \n"
+//			+ "AND et.projectId = :projectId \n"
+//			+ "AND et.date BETWEEN :startDate AND :endDate \n"
+//			+ "AND et.dayType in ('Non-working','Working')")
+//	Set<LocalDate> allTimesheetFilledDatesForDateRangeOLD(@Param("startDate") LocalDate startDate,
+//			@Param("endDate") LocalDate endDate, @Param("projectId") Integer projectId, @Param("empId") Long empId);
 
 	// ========== UPDATED: New query using _new tables (JPQL - using new entities)
 	// ==========
@@ -7784,70 +7801,110 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 		    + "        GROUP BY emp_id, project_id, employee_team_map_id\n"
 		    + "    ),\n"
 
-		    // ✅ DAILY STATUS uses NEW tables; shadow always from pts
-		    + "    Daily_Status_Details AS (\n"
-		    + "        SELECT DISTINCT\n"
-		    + "            bpe.emp_id, bpe.project_id, bpe.employee_team_map_id,\n"
-		    + "            adir.dt AS timesheet_date,\n"
-		    + "            global_ts.work_in_time client_in_time, global_ts.work_out_time client_out_time, pts.shadow_emp_id,\n"
-		    + "            CASE\n"
-		    + "                WHEN adir.dt NOT IN (\n"
-		    + "                    SELECT et.date FROM employee_timesheets_new et WHERE et.emp_id = bpe.emp_id\n"
-		    + "                ) AND (adir.dt <= bpe.end_date AND adir.dt >= bpe.start_date) THEN 'A'\n"
-		    + "                WHEN adir.dt NOT IN (\n"
-		    + "                    SELECT et.date FROM employee_timesheets_new et WHERE et.emp_id = bpe.emp_id\n"
-		    + "                ) AND (bpe.end_date IS NULL AND adir.dt >= bpe.start_date) THEN 'A'\n"
-		    + "                WHEN UPPER(dtm.day_type) LIKE '%WEEK%OFF%' THEN 'WO'\n"
-		    + "                WHEN UPPER(dtm.day_type) LIKE '%PUBLIC HOLIDAY%' THEN 'AH'\n"
-			+ "                WHEN UPPER(dtm.day_type) LIKE '%APMOSYS HOLIDAY%' THEN 'AH'\n"
-		    + "                WHEN UPPER(dtm.day_type) LIKE '%CLIENT HOLIDAY%' THEN 'CH'\n"
-		    + "                WHEN UPPER(dtm.day_type) LIKE '%LEAVE%' THEN 'L'\n"
-		    + "                WHEN UPPER(dtm.day_type) LIKE '%COMP%OFF%' THEN 'CO'\n"
-		    + "                WHEN (\n"
-		    + "                    ts_data_all_employee.timesheet_id IS NOT NULL\n"
-		    + "                    AND (ts_data_relevant.timesheet_id IS NULL OR bpe.employee_team_map_id != ts_data_relevant.employee_team_map_id)\n"
-		    + "                ) THEN 'O'\n"
-		    + "                WHEN doc_approved.timesheet_id IS NOT NULL THEN 'CA'\n"
-		    + "                WHEN doc_pending.timesheet_id IS NOT NULL THEN 'CN'\n"
-		    + "                WHEN ts_data_relevant.timesheet_id IS NOT NULL THEN 'P'\n"
-		    + "                ELSE 'NA'\n"
-		    + "            END AS daily_status \n"
-		    + "        FROM Base_Project_Employees bpe\n"
-		    + "        CROSS JOIN All_Dates_In_Range adir\n"
-		    + "        LEFT JOIN employee_timesheets_new global_ts\n"
-		    + "               ON bpe.emp_id = global_ts.emp_id AND adir.dt = global_ts.date\n"
-		    + "        LEFT JOIN day_type_master_new dtm\n"
-		    + "               ON global_ts.day_type_id = dtm.day_type_id\n"
-		    + "        LEFT JOIN project_timesheet_status_new pts\n"
-		    + "               ON pts.timesheet_id = global_ts.timesheet_id\n"
-		    + "              AND pts.project_id = bpe.project_id\n"
-		    + "        LEFT JOIN employee_timesheet_location_mapping etlm\n"
-		    + "				ON pts.location_mapping_id = etlm.location_mapping_id\n"
-		    + "        LEFT JOIN Timesheet_Base_Data ts_data_relevant\n"
-		    + "               ON bpe.emp_id = ts_data_relevant.emp_id\n"
-		    + "              AND adir.dt = ts_data_relevant.date\n"
-		    + "              AND bpe.employee_team_map_id = ts_data_relevant.employee_team_map_id\n"
-		    + "        LEFT JOIN Timesheet_Base_Data ts_data_all_employee\n"
-		    + "               ON bpe.emp_id = ts_data_all_employee.emp_id\n"
-		    + "              AND adir.dt = ts_data_all_employee.date\n"
-		    + "        LEFT JOIN Employee_Document_Summary_Details doc_approved\n"
-		    + "               ON ts_data_relevant.timesheet_id = doc_approved.timesheet_id\n"
-		    + "              AND UPPER(doc_approved.client_approval_status) = 'APPROVED'\n"
-		    + "              AND doc_approved.final_flag = 1\n"
-		    + "              AND bpe.employee_team_map_id = doc_approved.employee_team_map_id\n"
-		    + "        LEFT JOIN Employee_Document_Summary_Details doc_pending\n"
-		    + "               ON ts_data_relevant.timesheet_id = doc_pending.timesheet_id\n"
-		    + "              AND UPPER(doc_pending.client_approval_status) = 'PENDING'\n"
-		    + "              AND NOT EXISTS (\n"
-		    + "                    SELECT 1\n"
-		    + "                    FROM timesheet_document_details_new tdd3\n"
-		    + "                    LEFT JOIN client_status_master_new csm3 ON tdd3.client_approval_status_id = csm3.status_id\n"
-		    + "                    WHERE tdd3.timesheet_id = doc_pending.timesheet_id\n"
-		    + "                      AND UPPER(csm3.status) = 'APPROVED'\n"
-		    + "              )\n"
-		    + "              AND bpe.employee_team_map_id = doc_pending.employee_team_map_id\n"
-		    + "    ),\n"
-
+	// ✅ DAILY STATUS uses NEW tables; shadow always from pts
+			+ "Daily_Status_Details AS (\n"
+			+ "    SELECT DISTINCT\n"
+			+ "        bpe.emp_id,\n"
+			+ "        bpe.project_id,\n"
+			+ "        bpe.employee_team_map_id,\n"
+			+ "        adir.dt AS timesheet_date,\n"
+			+ "\n"
+			+ "        /* ✅ expose these aliases so outer query can safely do dsd.client_in_time / dsd.client_out_time */\n"
+			+ "        global_ts.work_in_time  AS client_in_time,\n"
+			+ "        global_ts.work_out_time AS client_out_time,\n"
+			+ "        global_pts.shadow_emp_id   AS shadow_emp_id,\n"
+			+ "\n"
+			+ "        CASE\n"
+			+ "            WHEN adir.dt NOT IN (SELECT et.date FROM employee_timesheets_new et WHERE et.emp_id = bpe.emp_id)\n"
+			+ "                 AND (adir.dt <= bpe.end_date AND adir.dt >= bpe.start_date) THEN 'A'\n"
+			+ "            WHEN adir.dt NOT IN (SELECT et.date FROM employee_timesheets_new et WHERE et.emp_id = bpe.emp_id)\n"
+			+ "                 AND (bpe.end_date IS NULL AND adir.dt >= bpe.start_date) THEN 'A'\n"
+			+ "            WHEN UPPER(global_ts_day.day_type) LIKE '%WEEK%OFF%' THEN 'WO'\n"
+			+ "            WHEN UPPER(global_ts_day.day_type) LIKE '%PUBLIC HOLIDAY%' THEN 'AH'\n"
+			+ "            WHEN UPPER(global_ts_day.day_type) LIKE '%APMOSYS HOLIDAY%' THEN 'AH'\n"
+			+ "            WHEN UPPER(global_ts_day.day_type) LIKE '%CLIENT HOLIDAY%' THEN 'CH'\n"
+			+ "            WHEN UPPER(global_ts_day.day_type) LIKE '%LEAVE%' THEN 'L'\n"
+			+ "            WHEN UPPER(global_ts_day.day_type) LIKE '%COMP%OFF%' THEN 'CO' \n"
+			+ "            WHEN (\n"
+			+ "                    ts_data_all_employee.timesheet_id IS NOT NULL\n"
+			+ "                    AND (ts_data_relevant.timesheet_id IS NULL OR bpe.employee_team_map_id <> ts_data_relevant.employee_team_map_id)\n"
+			+ "                 ) THEN 'O'\n"
+			+ "            WHEN doc_approved.timesheet_id IS NOT NULL THEN 'CA'\n"
+			+ "            WHEN doc_pending.timesheet_id IS NOT NULL THEN 'CN'\n"
+			+ "            WHEN doc_approved_rj.timesheet_id IS NOT NULL THEN 'CA_R'\n"
+			+ "            WHEN doc_pending_rj.timesheet_id IS NOT NULL THEN 'CN_R'\n"
+			+ "            WHEN ts_data_relevant.timesheet_id IS NOT NULL THEN 'P'\n"
+			+ "            ELSE 'NA'\n"
+			+ "        END AS daily_status\n"
+			+ "    FROM Base_Project_Employees bpe\n"
+			+ "    CROSS JOIN All_Dates_In_Range adir\n"
+			+ "\n"
+			+ "    LEFT JOIN employee_timesheets_new global_ts\n"
+			+ "        ON bpe.emp_id = global_ts.emp_id\n"
+			+ "       AND adir.dt = global_ts.date\n"
+			+ "\n"
+			+ "    LEFT JOIN day_type_master_new global_ts_day\n"
+			+ "        ON global_ts.day_type_id = global_ts_day.day_type_id\n"
+			+ "\n"
+			+ "    /* ✅ project-wise status table */\n"
+			+ "    LEFT JOIN project_timesheet_status_new global_pts\n"
+			+ "        ON global_pts.timesheet_id = global_ts.timesheet_id\n"
+			+ "       AND global_pts.project_id  = bpe.project_id\n"
+			+ "\n"
+			+ "    LEFT JOIN Timesheet_Base_Data ts_data_relevant\n"
+			+ "        ON bpe.emp_id = ts_data_relevant.emp_id\n"
+			+ "       AND adir.dt = ts_data_relevant.date\n"
+			+ "       AND bpe.employee_team_map_id = ts_data_relevant.employee_team_map_id\n"
+			+ "       AND bpe.project_id = ts_data_relevant.project_id\n"
+			+ "\n"
+			+ "    LEFT JOIN Timesheet_Base_Data ts_data_all_employee\n"
+			+ "        ON bpe.emp_id = ts_data_all_employee.emp_id\n"
+			+ "       AND adir.dt = ts_data_all_employee.date\n"
+			+ "\n"
+			+ "    LEFT JOIN Employee_Document_Summary_Details doc_approved\n"
+			+ "        ON ts_data_relevant.timesheet_id = doc_approved.timesheet_id\n"
+			+ "       AND UPPER(doc_approved.client_approval_status) = 'APPROVED'\n"
+			+ "       AND UPPER(ts_data_relevant.status) <> 'REJECTED'\n"
+			+ "       AND doc_approved.final_flag = 1\n"
+			+ "       AND bpe.employee_team_map_id = doc_approved.employee_team_map_id\n"
+			+ "       AND bpe.project_id = doc_approved.project_id\n"
+			+ "\n"
+			+ "    LEFT JOIN Employee_Document_Summary_Details doc_pending\n"
+			+ "        ON ts_data_relevant.timesheet_id = doc_pending.timesheet_id\n"
+			+ "       AND UPPER(doc_pending.client_approval_status) = 'PENDING'\n"
+			+ "       AND UPPER(ts_data_relevant.status) <> 'REJECTED'\n"
+			+ "       AND NOT EXISTS (\n"
+			+ "           SELECT 1\n"
+			+ "           FROM timesheet_document_details_new\n"
+			+ "			  LEFT JOIN client_status_master_new csm ON client_approval_status_id = csm.status_id "
+			+ "           WHERE timesheet_id = doc_pending.timesheet_id\n"
+			+ "             AND UPPER(csm.status) = 'APPROVED'\n"
+			+ "       )\n"
+			+ "       AND bpe.employee_team_map_id = doc_pending.employee_team_map_id\n"
+			+ "       AND bpe.project_id = doc_pending.project_id\n"
+			+ "\n"
+			+ "    LEFT JOIN Employee_Document_Summary_Details doc_approved_rj\n"
+			+ "        ON ts_data_relevant.timesheet_id = doc_approved_rj.timesheet_id\n"
+			+ "       AND UPPER(doc_approved_rj.client_approval_status) = 'APPROVED'\n"
+			+ "       AND UPPER(ts_data_relevant.status) = 'REJECTED'\n"
+			+ "       AND doc_approved_rj.final_flag = 1\n"
+			+ "       AND bpe.employee_team_map_id = doc_approved_rj.employee_team_map_id\n"
+			+ "\n"
+			+ "    LEFT JOIN Employee_Document_Summary_Details doc_pending_rj\n"
+			+ "        ON ts_data_relevant.timesheet_id = doc_pending_rj.timesheet_id\n"
+			+ "       AND UPPER(doc_pending_rj.client_approval_status) = 'PENDING'\n"
+			+ "       AND UPPER(ts_data_relevant.status) = 'REJECTED'\n"
+			+ "       AND NOT EXISTS (\n"
+			+ "           SELECT 1\n"
+			+ "          FROM timesheet_document_details_new\n"
+			+ "		     LEFT JOIN client_status_master_new csm ON client_approval_status_id = csm.status_id "
+			+ "           WHERE timesheet_id = doc_pending_rj.timesheet_id\n"
+			+ "             AND UPPER(csm.status) = 'APPROVED'\n"
+			+ "       )\n"
+			+ "       AND bpe.employee_team_map_id = doc_pending_rj.employee_team_map_id\n"
+			+ "       AND bpe.project_id = doc_pending_rj.project_id\n"
+			+ "),\n"
+			+ "\n"
 		    + "    Employee_Calculated_Status AS (\n"
 		    + "        SELECT\n"
 		    + "            bpe.emp_id, bpe.project_id, bpe.employee_team_map_id,\n"
@@ -7871,7 +7928,6 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 		    + "        LEFT JOIN WorkingDays_Summary wds ON bpe.employee_team_map_id = wds.employee_team_map_id\n"
 		    + "        LEFT JOIN Employee_Document_Summary eds ON bpe.employee_team_map_id = eds.employee_team_map_id\n"
 		    + "    )\n"
-
 		    + "SELECT SQL_CALC_FOUND_ROWS DISTINCT\n"
 		    + "    bpe.emp_id, bpe.client_side_id, bpe.start_date, bpe.team_name, bpe.team_id,\n"
 		    + "    CASE\n"
@@ -9635,7 +9691,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "        FROM timesheet_document_details_new tdd\n"
 			+ "        INNER JOIN Q1_Timesheet_Base_Data tbd\n"
 			+ "            ON tdd.timesheet_id = tbd.timesheet_id\n"
-			+ "           AND tdd.project_id = tbd.project_id\n"
+//			+ "           AND tdd.project_id = tbd.project_id\n"
 			+ "        LEFT JOIN client_status_master_new csm\n"
 			+ "            ON csm.status_id = tdd.client_approval_status_id\n"
 			+ "        WHERE tdd.active = TRUE\n"
@@ -9716,7 +9772,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "            bpe.emp_id,\n"
 			+ "            bpe.employee_team_map_id,\n"
 			+ "            CASE\n"
-			+ " 			   WHEN wds.expected_fill_count IS NULL THEN 'Defaulter'\n"		
+//			+ " 			   WHEN wds.expected_fill_count IS NULL THEN 'Defaulter'\n"		
 			+ "                WHEN GREATEST(\n"
 			+ "                    0,\n"
 			+ "                    COALESCE(wds.expected_fill_count, 0)\n"
@@ -11817,7 +11873,11 @@ List<Long> getPaginatedEmployeeIds(
 			+ "        LEFT JOIN activities a ON etam.activity_id = a.activity_id\n"
 			+ "        LEFT JOIN teams t ON a.team_id = t.team_id\n"
 			+ "        LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.project_id = etam.project_id\n"
-			+ "        LEFT JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id and etm.team_id = t.team_id\n"
+			+ "        LEFT JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id and etm.team_id = t.team_id AND et.date >= DATE(etm.start_date) \n"
+			+ "				   AND (\n"
+			+ "					 etm.end_date IS NULL \n"
+			+ "					 OR et.date <= DATE(etm.end_date)\n"
+			+ "				   )  \n"
 			+ "        WHERE et.date BETWEEN (SELECT from_date FROM Date_Parameters) AND (SELECT to_date FROM Date_Parameters)\n"
 			+ "        --  AND et.date BETWEEN DATE(etm.start_date) AND COALESCE(date(etm.end_date), '2099-12-31')\n"
 			+ "    ),\n"
@@ -11981,7 +12041,7 @@ List<Long> getPaginatedEmployeeIds(
 			+ "       AND UPPER(ts_data_relevant.status) <> 'REJECTED'\n"
 			+ "       AND doc_approved.final_flag = 1\n"
 			+ "       AND bpe.employee_team_map_id = doc_approved.employee_team_map_id\n"
-			+ "       AND bpe.project_id = doc_approved.project_id\n"
+//			+ "       AND bpe.project_id = doc_approved.project_id\n"
 			+ "\n"
 			+ "    LEFT JOIN Employee_Document_Summary_Details doc_pending\n"
 			+ "        ON ts_data_relevant.timesheet_id = doc_pending.timesheet_id\n"
@@ -11995,7 +12055,7 @@ List<Long> getPaginatedEmployeeIds(
 			+ "             AND UPPER(csm.status) = 'APPROVED'\n"
 			+ "       )\n"
 			+ "       AND bpe.employee_team_map_id = doc_pending.employee_team_map_id\n"
-			+ "       AND bpe.project_id = doc_pending.project_id\n"
+//			+ "       AND bpe.project_id = doc_pending.project_id\n"
 			+ "\n"
 			+ "    LEFT JOIN Employee_Document_Summary_Details doc_approved_rj\n"
 			+ "        ON ts_data_relevant.timesheet_id = doc_approved_rj.timesheet_id\n"
@@ -12322,7 +12382,11 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "        LEFT JOIN activities a ON etam.activity_id = a.activity_id\n"
 			+ "        LEFT JOIN teams t ON a.team_id = t.team_id\n"
 			+ "        LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.project_id = etam.project_id\n"
-			+ "        LEFT JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id and etm.team_id = t.team_id\n"
+			+ "        LEFT JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id and etm.team_id = t.team_id AND et.date >= DATE(etm.start_date) \n"
+			+ "				   AND (\n"
+			+ "					 etm.end_date IS NULL \n"
+			+ "					 OR et.date <= DATE(etm.end_date)\n"
+			+ "				   )  \n"
 			+ "        WHERE et.date BETWEEN (SELECT from_date FROM Date_Parameters) AND (SELECT to_date FROM Date_Parameters)\n"
 			+ "        --  AND et.date BETWEEN DATE(etm.start_date) AND COALESCE(date(etm.end_date), '2099-12-31')\n"
 			+ "    ),\n"
@@ -12486,7 +12550,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "       AND UPPER(ts_data_relevant.status) <> 'REJECTED'\n"
 			+ "       AND doc_approved.final_flag = 1\n"
 			+ "       AND bpe.employee_team_map_id = doc_approved.employee_team_map_id\n"
-			+ "       AND bpe.project_id = doc_approved.project_id\n"
+//			+ "       AND bpe.project_id = doc_approved.project_id\n"
 			+ "\n"
 			+ "    LEFT JOIN Employee_Document_Summary_Details doc_pending\n"
 			+ "        ON ts_data_relevant.timesheet_id = doc_pending.timesheet_id\n"
@@ -12500,7 +12564,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "             AND UPPER(csm.status) = 'APPROVED'\n"
 			+ "       )\n"
 			+ "       AND bpe.employee_team_map_id = doc_pending.employee_team_map_id\n"
-			+ "       AND bpe.project_id = doc_pending.project_id\n"
+//			+ "       AND bpe.project_id = doc_pending.project_id\n"
 			+ "\n"
 			+ "    LEFT JOIN Employee_Document_Summary_Details doc_approved_rj\n"
 			+ "        ON ts_data_relevant.timesheet_id = doc_approved_rj.timesheet_id\n"
@@ -12521,7 +12585,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "             AND UPPER(csm.status) = 'APPROVED'\n"
 			+ "       )\n"
 			+ "       AND bpe.employee_team_map_id = doc_pending_rj.employee_team_map_id\n"
-			+ "       AND bpe.project_id = doc_pending_rj.project_id\n"
+//			+ "       AND bpe.project_id = doc_pending_rj.project_id\n"
 			+ "),\n"
 			+ "\n"
 			+ "    Employee_Calculated_Status AS (\n"
@@ -12726,14 +12790,14 @@ Integer getTotalEmployeeCountForClientApplicable(
 	Boolean checkProjectIsClientApplicable(Integer projectId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query("SELECT et FROM Timesheet et\n" +
-			"LEFT JOIN TimesheetDocumentDetails tdd on tdd.timesheetId = et.timesheetId \n" +
-			"WHERE et.empId = :empId \n" +
-			"AND et.date BETWEEN :fromDate AND :toDate and et.status='Rejected'")
-	List<Timesheet> getRejectedTimesheetIdByEmpAndDateRangeOLD(
-			@Param("empId") Long empId,
-			@Param("fromDate") LocalDate fromDate,
-			@Param("toDate") LocalDate toDate);
+//	@Query("SELECT et FROM Timesheet et\n" +
+//			"LEFT JOIN TimesheetDocumentDetails tdd on tdd.timesheetId = et.timesheetId \n" +
+//			"WHERE et.empId = :empId \n" +
+//			"AND et.date BETWEEN :fromDate AND :toDate and et.status='Rejected'")
+//	List<Timesheet> getRejectedTimesheetIdByEmpAndDateRangeOLD(
+//			@Param("empId") Long empId,
+//			@Param("fromDate") LocalDate fromDate,
+//			@Param("toDate") LocalDate toDate);
 
 	// ========== UPDATED: New query using _new tables (JPQL - using new entities)
 	// ==========
@@ -16790,7 +16854,11 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 						+ "        LEFT JOIN activities a ON etam.activity_id = a.activity_id\n"
 						+ "        LEFT JOIN teams t ON a.team_id = t.team_id\n"
 						+ "        LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.project_id = etam.project_id\n"
-						+ "        LEFT JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id and etm.team_id = t.team_id\n"
+						+ "        LEFT JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id and etm.team_id = t.team_id AND et.date >= DATE(etm.start_date) \n"
+						+ "			   AND (\n"
+						+ "			     etm.end_date IS NULL \n"
+						+ "			     OR et.date <= DATE(etm.end_date)\n"
+						+ "			   ) \n"
 						+ "        WHERE et.date BETWEEN (SELECT from_date FROM Date_Parameters) AND (SELECT to_date FROM Date_Parameters)\n"
 						+ "        --  AND et.date BETWEEN DATE(etm.start_date) AND COALESCE(date(etm.end_date), '2099-12-31')\n"
 						+ "    ),\n"
@@ -16954,7 +17022,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 		    			+ "       AND UPPER(ts_data_relevant.status) <> 'REJECTED'\n"
 		    			+ "       AND doc_approved.final_flag = 1\n"
 		    			+ "       AND bpe.employee_team_map_id = doc_approved.employee_team_map_id\n"
-		    			+ "       AND bpe.project_id = doc_approved.project_id\n"
+//		    			+ "       AND bpe.project_id = doc_approved.project_id\n"
 		    			+ "\n"
 		    			+ "    LEFT JOIN Employee_Document_Summary_Details doc_pending\n"
 		    			+ "        ON ts_data_relevant.timesheet_id = doc_pending.timesheet_id\n"
@@ -16968,7 +17036,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 		    			+ "             AND UPPER(csm.status) = 'APPROVED'\n"
 		    			+ "       )\n"
 		    			+ "       AND bpe.employee_team_map_id = doc_pending.employee_team_map_id\n"
-		    			+ "       AND bpe.project_id = doc_pending.project_id\n"
+//		    			+ "       AND bpe.project_id = doc_pending.project_id\n"
 		    			+ "\n"
 		    			+ "    LEFT JOIN Employee_Document_Summary_Details doc_approved_rj\n"
 		    			+ "        ON ts_data_relevant.timesheet_id = doc_approved_rj.timesheet_id\n"
@@ -16989,7 +17057,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 		    			+ "             AND UPPER(csm.status) = 'APPROVED'\n"
 		    			+ "       )\n"
 		    			+ "       AND bpe.employee_team_map_id = doc_pending_rj.employee_team_map_id\n"
-		    			+ "       AND bpe.project_id = doc_pending_rj.project_id\n"
+//		    			+ "       AND bpe.project_id = doc_pending_rj.project_id\n"
 		    			+ "),\n"
 		    			+ "\n"
 		    			+ "    Employee_Calculated_Status AS (\n"
@@ -17377,9 +17445,9 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				    "AND ( :workCheckOut IS NULL OR DATE_FORMAT(etn.work_out_time, '%h:%i %p') LIKE CONCAT('%', :workCheckOut, '%') ) " +
 
 				    "AND ( :appliedBy IS NULL OR LOWER(ab.name) LIKE LOWER(CONCAT('%', :appliedBy, '%')) ) " +
-				    "AND ( :appliedOn IS NULL OR LOWER(DATE_FORMAT(etn.created_on, '%h:%i %p')) " +
+				    "AND ( :appliedOn IS NULL OR LOWER(DATE_FORMAT(etn.created_on, '%d/%m/%Y %h:%i %p')) " +
 				    "      LIKE LOWER(CONCAT('%', :appliedOn, '%')) ) " +
-
+				    "AND ( :isNightShift IS NULL OR etn.is_night_shift = :isNightShift) " +
 				    "AND ( :search IS NULL OR :search = '' " +
 				    "       OR LOWER(e.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
 				    "       OR LOWER(p.project_name) LIKE LOWER(CONCAT('%', :search, '%')) " +
@@ -17419,6 +17487,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				    "    AND ( :projectName IS NULL OR LOWER(p.project_name) LIKE LOWER(CONCAT('%', :projectName, '%')) ) " +
 				    "    AND ( :clientName IS NULL OR LOWER(c.client_name) LIKE LOWER(CONCAT('%', :clientName, '%')) ) " +
 				    "    AND ( :activity IS NULL OR LOWER(a.activity) LIKE LOWER(CONCAT('%', :activity, '%')) ) " +
+				    "	 AND ( :isNightShift IS NULL OR etn.is_night_shift = :isNightShift) " +
 
 				    "    GROUP BY etn.timesheet_id " +
 
@@ -17438,7 +17507,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				@Param("search") String search, @Param("workCheckIn") String workCheckIn,
 				@Param("workCheckOut") String workCheckOut, @Param("locationCount") Long locationCount,
 				@Param("projectCount") Long projectCount, @Param("appliedBy") String appliedBy,
-				@Param("appliedOn") String appliedOn, @Param("status") int status, Pageable pageable);
+				@Param("appliedOn") String appliedOn, @Param("isNightShift")Boolean isNightShift, @Param("status") int status, Pageable pageable);
 
 			
 			
@@ -17453,7 +17522,10 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				"    wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId, \n" +
 				"    ptsn.id.timesheetId, etamn.locationMappingId, ptsn.id.projectId, \n" +
 				"    p.projectName, c.clientName, cl.clientLocation, ptsn.clientApprovalStatus,\n" +
-				"    ptsn.poNo, es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, \n" +
+				"    ptsn.poNo, es.name, \n"+
+				"    CASE WHEN es.isApmosysProduct = 'true' THEN CONCAT('AP-', es.employeementId) \n" +
+				"         ELSE CONCAT('A-', es.employeementId) END, \n" +
+				" ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, \n" +
 				"    etamn.timesheetId, etamn.locationMappingId, etamn.projectId, \n" +
 				"    etamn.id, a.activity, etamn.description, etamn.durationMinutes, \n" +
 				"    t.teamName, \n" +
@@ -18253,5 +18325,366 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							+ "  AND (etm.endDate IS NULL OR etm.endDate >= :startOfDay) and etm.active != 2 and etm.empId = :emp_id")
 						List<ProjectNameAndPrjoectIdDTO> getProjectListForDateAndEmpId( @Param("emp_id") Long empId, @Param("startOfDay") LocalDateTime startOfDay,
 						        @Param("endOfDay") LocalDateTime endOfDay);	
+					    
+					    @Query(value ="select distinct new com.apmosys.employeeportal.dto.ProjectClientSideIdDTO( p.projectId , p.projectName, ecsm.clientSideId )  \n"+
+								"from Project p  \n"+
+								"inner join Team t on t.projectId = p.projectId \n"+
+								"inner join EmployeeTeamMap etm on etm.teamId = t.teamId \n"+
+								"left join EmployeeClientSideIdMapping ecsm on ecsm.projectId = p.projectId AND ecsm.empId = etm.empId \n"+
+								"where etm.startDate < :nextDay and etm.active != 2 \n"+
+								" AND (etm.endDate IS NULL OR etm.endDate >= :startDay) and etm.empId = :empId and p.projectId = :projectId")
+						public List<ProjectClientSideIdDTO> getActiveProjectsAndClientSideIdByEmpId(@Param("empId") Long empId,
+						        @Param("startDay") LocalDateTime startDay,
+						        @Param("nextDay") LocalDateTime nextDay,
+								@Param("projectId") Integer projectId);
+
+						@Query(value="WITH RECURSIVE\n"
+						+ "Date_Parameters AS (\n"
+						+ "    SELECT\n"
+						+ "        COALESCE(\n"
+						+ "            STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d'),\n"
+						+ "            DATE_FORMAT(CURDATE(), '%Y-%m-01')\n"
+						+ "        ) AS from_date,\n"
+						+ "        CASE\n"
+						+ "            WHEN :year IS NOT NULL AND :month IS NOT NULL THEN\n"
+						+ "                IF(\n"
+						+ "                    :year = YEAR(CURDATE()) AND :month = MONTH(CURDATE()),\n"
+						+ "                    CURDATE(),\n"
+						+ "                    LAST_DAY(STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d'))\n"
+						+ "                )\n"
+						+ "            ELSE CURDATE()\n"
+						+ "        END AS to_date\n"
+						+ "),\n"
+						+ "\n"
+						+ "All_Dates_In_Range AS (\n"
+						+ "    SELECT from_date AS dt FROM Date_Parameters\n"
+						+ "    UNION ALL\n"
+						+ "    SELECT DATE_ADD(dt, INTERVAL 1 DAY)\n"
+						+ "    FROM All_Dates_In_Range, Date_Parameters\n"
+						+ "    WHERE dt < Date_Parameters.to_date\n"
+						+ "),\n"
+						+ "\n"
+						+ "Project_Managers AS (\n"
+						+ "    SELECT\n"
+						+ "        pm.project_id,\n"
+						+ "        GROUP_CONCAT(DISTINCT e.name ORDER BY e.name SEPARATOR ', ') AS project_manager_name\n"
+						+ "    FROM project_manager_mapping pm\n"
+						+ "    LEFT JOIN employee e ON e.emp_id = pm.project_manager_id\n"
+						+ "    GROUP BY pm.project_id\n"
+						+ "),\n"
+						+ "\n"
+						+ "auth_emp AS (\n"
+						+ "    SELECT\n"
+						+ "        etm.emp_id,\n"
+						+ "        p.project_id,\n"
+						+ "        t.spoc_id,\n"
+						+ "        t.team_lead_id,\n"
+						+ "        t.team_id,\n"
+						+ "        etm.employee_team_map_id,\n"
+						+ "        DATE(etm.start_date) AS start_date,\n"
+						+ "        etm.end_date\n"
+						+ "    FROM employee_team_mapping etm\n"
+						+ "    INNER JOIN teams t ON etm.team_id = t.team_id\n"
+						+ "    INNER JOIN projects p ON t.project_id = p.project_id\n"
+						+ "),\n"
+						+ "\n"
+						+ "Authorized_Employees AS (\n"
+						+ "    SELECT DISTINCT e.emp_id\n"
+						+ "    FROM employee e\n"
+						+ "    WHERE (\n"
+						+ "        EXISTS (\n"
+						+ "            SELECT 1\n"
+						+ "            FROM employee u\n"
+						+ "            JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
+						+ "            JOIN department d ON jr.dept_id = d.dept_id\n"
+						+ "            WHERE u.emp_id = :emp_id\n"
+						+ "              AND (\n"
+						+ "                    jr.employee_role IN ('SuperAdmin')\n"
+						+ "                    OR d.name IN ('HR', 'Accounts', 'Resource Management Group')\n"
+						+ "                  )\n"
+						+ "        )\n"
+						+ "    )\n"
+						+ "),\n"
+						+ "\n"
+						+ "Base_Project_Employees AS (\n"
+						+ "    SELECT DISTINCT\n"
+						+ "        etm.team_id,\n"
+						+ "        t.team_name,\n"
+						+ "        etm.emp_id,\n"
+						+ "        e.name,\n"
+						+ "        etm.employee_role,\n"
+						+ "        e.billable_type,\n"
+						+ "        DATE(etm.start_date) AS start_date,\n"
+						+ "        DATE(etm.end_date) AS end_date,\n"
+						+ "        etm.employee_team_map_id,\n"
+						+ "        etm.active,\n"
+						+ "        p.project_id,\n"
+						+ "        p.project_name,\n"
+						+ "        c.client_id,\n"
+						+ "        c.client_name,\n"
+						+ "        ecsm.client_side_id,\n"
+						+ "        GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n"
+						+ "        s.name AS spoc,\n"
+						+ "        tl.name AS teamLead,\n"
+						+ "        e.reporting_manager_id,\n"
+						+ "        e.employmentstatus,\n"
+						+ "        d.name AS dept_name,\n"
+						+ "        CASE\n"
+						+ "            WHEN e.is_apmosys_product = 'true'\n"
+						+ "                THEN CONCAT('AP-', e.employeement_id)\n"
+						+ "            ELSE CONCAT('A-', e.employeement_id)\n"
+						+ "        END AS employement_id\n"
+						+ "    FROM projects p\n"
+						+ "	   LEFT JOIN project_po_details ppd \n"
+						+ "    ON ppd.project_id = p.project_id  \n"
+						+ "    AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters) \n"
+						+ "    AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)) \n"
+						+ "    INNER JOIN teams t ON p.project_id = t.project_id\n"
+						+ "    INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
+						+ "    INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
+						+ "    INNER JOIN clients c ON c.client_id = p.client_id\n"
+						+ "    LEFT JOIN Authorized_Employees ae ON e.emp_id = ae.emp_id\n"
+						+ "    LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id\n"
+						+ "    LEFT JOIN employee s ON s.emp_id = t.spoc_id\n"
+						+ "    LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+						+ "    LEFT JOIN department d ON d.dept_id = jr.dept_id\n"
+						+ "    LEFT JOIN employee_client_side_id_mapping ecsm\n"
+						+ "        ON e.emp_id = ecsm.emp_id\n"
+						+ "       AND ecsm.project_id = t.project_id\n"
+						+ "    WHERE p.has_client_side_id = 1\n"
+						+ "      AND (\n"
+						+ "            e.date_of_relieving IS NULL\n"
+						+ "            OR YEAR(e.date_of_relieving) > :year\n"
+						+ "            OR (YEAR(e.date_of_relieving) = :year AND MONTH(e.date_of_relieving) >= :month)\n"
+						+ "      )\n"
+						+ "      AND e.emp_id NOT BETWEEN 1 AND 6\n"
+						+ "      AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
+						+ "      AND (\n"
+						+ "            etm.end_date IS NULL\n"
+						+ "            OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters)\n"
+						+ "      )\n"
+						+ "        GROUP BY\n"
+						+ "            etm.team_id,\n"
+						+ "            t.team_name,\n"
+						+ "            etm.emp_id,\n"
+						+ "            e.name,\n"
+						+ "            etm.employee_role,\n"
+						+ "            e.billable_type,\n"
+						+ "            DATE(etm.start_date),\n"
+						+ "            DATE(etm.end_date),\n"
+						+ "            etm.employee_team_map_id,\n"
+						+ "            etm.active,\n"
+						+ "            p.project_id,\n"
+						+ "            p.project_name,\n"
+						+ "            c.client_id,\n"
+						+ "            c.client_name,\n"
+						+ "            ecsm.client_side_id,\n"
+						+ "            s.name,\n"
+						+ "            tl.name,\n"
+						+ "            e.reporting_manager_id,\n"
+						+ "            e.employmentstatus,\n"
+						+ "            d.name,\n"
+						+ "            e.is_apmosys_product,\n"
+						+ "            e.employeement_id\n"
+						+ ")\n"
+						+ "\n"
+						+ "SELECT DISTINCT\n"
+						+ "    bpe.project_id,\n"
+						+ "    bpe.project_name\n"
+						+ "FROM Base_Project_Employees bpe\n"
+						+ "JOIN Date_Parameters dp ON 1 = 1\n"
+						+ "LEFT JOIN Project_Managers pm ON bpe.project_id = pm.project_id\n"
+						+ "WHERE bpe.emp_id = :emp_id \n"
+						+ "" ,nativeQuery = true)
+				List<Object[]> getMyProjectsInMonthYear(Integer month,Integer year,Long emp_id);
+				
+				@Query(value =" WITH RECURSIVE\n"
+				+ "Date_Parameters AS (\n"
+				+ "    SELECT\n"
+				+ "        DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH) AS from_date,\n"
+				+ "        CURDATE() AS to_date\n"
+				+ "),\n"
+				+ "All_Dates_In_Range AS (\n"
+				+ "    SELECT from_date AS dt FROM Date_Parameters\n"
+				+ "    UNION ALL\n"
+				+ "    SELECT DATE_ADD(dt, INTERVAL 1 DAY)\n"
+				+ "    FROM All_Dates_In_Range adr\n"
+				+ "    JOIN Date_Parameters dp\n"
+				+ "      ON adr.dt < dp.to_date\n"
+				+ "),\n"
+				+ "Project_Managers AS (\n"
+				+ "    SELECT\n"
+				+ "        pm.project_id,\n"
+				+ "        GROUP_CONCAT(DISTINCT e.name ORDER BY e.name SEPARATOR ', ') AS project_manager_name\n"
+				+ "    FROM project_manager_mapping pm\n"
+				+ "    LEFT JOIN employee e\n"
+				+ "        ON e.emp_id = pm.project_manager_id\n"
+				+ "    GROUP BY pm.project_id\n"
+				+ "),\n"
+				+ "Authorized_Employees AS (\n"
+				+ "    SELECT DISTINCT e.emp_id\n"
+				+ "    FROM employee e\n"
+				+ "    WHERE EXISTS (\n"
+				+ "        SELECT 1\n"
+				+ "        FROM employee u\n"
+				+ "        JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
+				+ "        JOIN department d ON jr.dept_id = d.dept_id\n"
+				+ "        WHERE u.emp_id = :empId\n"
+				+ "          AND (\n"
+				+ "                jr.employee_role IN ('SuperAdmin')\n"
+				+ "                OR d.name IN ('HR', 'Accounts', 'Resource Management Group')\n"
+				+ "              )\n"
+				+ "    )\n"
+				+ "),\n"
+				+ "Base_Project_Employees AS (\n"
+				+ "    SELECT DISTINCT\n"
+				+ "        etm.team_id,\n"
+				+ "        t.team_name,\n"
+				+ "        etm.emp_id,\n"
+				+ "        e.name,\n"
+				+ "        etm.employee_role,\n"
+				+ "        e.billable_type,\n"
+				+ "        DATE(etm.start_date) AS start_date,\n"
+				+ "        DATE(etm.end_date) AS end_date,\n"
+				+ "        etm.employee_team_map_id,\n"
+				+ "        etm.active,\n"
+				+ "        p.project_id,\n"
+				+ "        p.project_name,\n"
+				+ "        c.client_id,\n"
+				+ "        c.client_name,\n"
+				+ "        ecsm.client_side_id,\n"
+				// + "        p.po_no,\n"
+				+ "        GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n"
+				+ "        s.name AS spoc,\n"
+				+ "        tl.name AS teamLead,\n"
+				+ "        e.reporting_manager_id,\n"
+				+ "        e.employmentstatus,\n"
+				+ "        d.name AS dept_name,\n"
+				+ "        DATE_FORMAT(ad.dt, '%Y-%m') AS report_month,\n"
+				+ "        CASE\n"
+				+ "            WHEN e.is_apmosys_product = 'true'\n"
+				+ "                THEN CONCAT('AP-', e.employeement_id)\n"
+				+ "            ELSE CONCAT('A-', e.employeement_id)\n"
+				+ "        END AS employement_id,\n"
+				+ "        CASE\n"
+				+ "            WHEN p.has_client_side_id = 1 THEN 'TRUE'\n"
+				+ "            ELSE 'FALSE'\n"
+				+ "        END AS client_filter\n"
+				+ "    FROM projects p\n"
+				+ "	   LEFT JOIN project_po_details ppd "
+				+ "	   ON ppd.project_id = p.project_id  "
+				+ "    AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters) "
+				+ "    AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)) "
+				+ "    INNER JOIN teams t\n"
+				+ "        ON p.project_id = t.project_id\n"
+				+ "    INNER JOIN employee_team_mapping etm\n"
+				+ "        ON t.team_id = etm.team_id\n"
+				+ "    INNER JOIN employee e\n"
+				+ "        ON e.emp_id = etm.emp_id\n"
+				+ "    INNER JOIN clients c\n"
+				+ "        ON c.client_id = p.client_id\n"
+				+ "    INNER JOIN All_Dates_In_Range ad\n"
+				+ "        ON ad.dt BETWEEN DATE(etm.start_date)\n"
+				+ "        AND COALESCE(DATE(etm.end_date), ad.dt)\n"
+				+ "    LEFT JOIN Authorized_Employees ae\n"
+				+ "        ON e.emp_id = ae.emp_id\n"
+				+ "    LEFT JOIN employee tl\n"
+				+ "        ON tl.emp_id = t.team_lead_id\n"
+				+ "    LEFT JOIN employee s\n"
+				+ "        ON s.emp_id = t.spoc_id\n"
+				+ "    LEFT JOIN job_role jr\n"
+				+ "        ON e.job_role_id = jr.job_role_id\n"
+				+ "    LEFT JOIN department d\n"
+				+ "        ON d.dept_id = jr.dept_id\n"
+				+ "    LEFT JOIN employee_client_side_id_mapping ecsm\n"
+				+ "        ON e.emp_id = ecsm.emp_id\n"
+				+ "       AND ecsm.project_id = t.project_id\n"
+				+ "    WHERE 1 = 1\n"
+				+ "      AND (\n"
+				+ "            e.date_of_relieving IS NULL\n"
+				+ "            OR e.date_of_relieving >= (SELECT from_date FROM Date_Parameters)\n"
+				+ "          )\n"
+				+ "      AND e.emp_id NOT BETWEEN 1 AND 6\n"
+				+ "    GROUP BY\n"
+				+ "        etm.team_id,\n"
+				+ "        t.team_name,\n"
+				+ "        etm.emp_id,\n"
+				+ "        e.name,\n"
+				+ "        etm.employee_role,\n"
+				+ "        e.billable_type,\n"
+				+ "        DATE(etm.start_date),\n"
+				+ "        DATE(etm.end_date),\n"
+				+ "        etm.employee_team_map_id,\n"
+				+ "        etm.active,\n"
+				+ "        p.project_id,\n"
+				+ "        p.project_name,\n"
+				+ "        c.client_id,\n"
+				+ "        c.client_name,\n"
+				+ "        ecsm.client_side_id,\n"
+				+ "        s.name,\n"
+				+ "        tl.name,\n"
+				+ "        e.reporting_manager_id,\n"
+				+ "        e.employmentstatus,\n"
+				+ "        d.name,\n"
+				+ "        DATE_FORMAT(ad.dt, '%Y-%m'),\n"
+				+ "        e.is_apmosys_product,\n"
+				+ "        e.employeement_id,\n"
+				+ "        p.has_client_side_id\n"
+				+ ")\n"
+				+ "\n"
+				+ "SELECT\n"
+				+ "    CASE\n"
+				+ "        WHEN MAX(bpe.client_filter) = 'TRUE' THEN TRUE\n"
+				+ "        ELSE FALSE\n"
+				+ "    END AS client_filter\n"
+				+ "FROM Base_Project_Employees bpe\n"
+				+ "LEFT JOIN Project_Managers pm\n"
+				+ "    ON bpe.project_id = pm.project_id\n"
+				+ "WHERE bpe.emp_id = :empId\n"
+				+ " ",nativeQuery = true)
+		public Integer wasEmployeeInClientProjCurrAndPrevMon(@Param("empId") Long empId);
+
+				@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.EmpIdAndNameDTO(etm.empId, e.name)\n"
+				+ "FROM EmployeeTeamMap etm\n"
+				+ "inner join Team t on t.teamId = etm.teamId \n"
+				+ "inner join Project p on p.projectId = t.projectId\n"
+				+ "inner join Employee e on e.empId = etm.empId\n"
+				+ "WHERE p.projectId = :projectId and etm.startDate <= :date\n"
+				+ "  AND (etm.endDate IS NULL OR etm.endDate >= :date) and etm.active != 2 and etm.empId != :empId")
+		List<EmpIdAndNameDTO> getOtherTeamMembersByDateAndProjectId( @Param("empId") Long empId, 
+				@Param("date") LocalDateTime date, @Param("projectId") Integer projectId);
+
+				@Query(value = "select new com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto( "
+						+ " p.projectId, p.projectName, "
+						+ " CASE WHEN p.poProjectType IS NOT NULL AND TRIM(p.poProjectType) != '' THEN p.poProjectType ELSE p.internalProjectType END, \n"
+						+ " t.teamName, date(p.startDate), date(etm.startDate), date(etm.endDate), count(distinct et.timesheetId)) \n"
+						+ "FROM Employee e  \n"
+						+ "INNER JOIN EmployeeTeamMap etm on e.empId = etm.empId \n"
+						+ "INNER JOIN Team t on etm.teamId = t.teamId \n"
+						+ "INNER JOIN Project p on t.projectId = p.projectId \n"
+						+ "INNER JOIN EmployeeTimesheetsNew et on et.empId = e.empId \n"
+						+ "LEFT JOIN DayTypeMasterNew dt on et.dayTypeId = dt.dayTypeId \n"
+						+ "INNER JOIN EmployeeTimesheetActivitiesMappingNew etam on et.timesheetId = etam.timesheetId \n"
+						+ "INNER JOIN Activity a on etam.activityId = a.activityId and a.teamId = t.teamId \n"
+						+ "where e.empId = :empId and et.date between DATE(:startDate) and CURDATE() \n"
+						+ "and lower(dt.dayType) like '%working%' and p.projectId  NOT IN :projectIds  \n"
+						+ "group by p.projectId, p.projectName, p.startDate, etm.startDate \n")
+				public List<EmployeeProjectTimesheetDto> findByEmpIdAndDate(Long empId, LocalDateTime startDate, List<Integer> projectIds);
+
+				@Query(value = "SELECT " +
+        			"p.project_name AS projectName, " +
+       				"trrm.rejection_reason AS rejectionReason, " +
+        			"trdn.remarks AS remarks " +
+        			"FROM employee_timesheets_new etn " +
+        			"INNER JOIN project_timesheet_status_new ptsn " +
+        			"ON ptsn.timesheet_id = etn.timesheet_id " +
+        			"INNER JOIN timesheet_rejection_details_new trdn " +
+        			"ON trdn.timesheet_id = etn.timesheet_id AND trdn.project_id = ptsn.project_id " +
+        			"INNER JOIN timesheet_rejection_reasons_master trrm " +
+        			"ON trrm.rejection_id = trdn.rejection_id " +
+        			"INNER JOIN projects p " +
+        			"ON p.project_id = ptsn.project_id where etn.timesheet_id = :timesheetId ",
+        				nativeQuery = true)
+					List<Object[]> getTimesheetRejectionRaw(Long timesheetId);
 
 }

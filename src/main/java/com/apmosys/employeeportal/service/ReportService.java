@@ -38,7 +38,6 @@ import com.apmosys.employeeportal.repository.EmployeeRoleMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.FieldAlterationRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -47,8 +46,8 @@ public class ReportService {
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;
 	
-	@Autowired
-	TimesheetsRepository timesheetsRepository;
+//	@Autowired
+//	TimesheetsRepository timesheetsRepository;
 	
 	@Autowired
 	EmployeeRoleMasterRepository employeeRoleMasterRepository;
@@ -142,64 +141,64 @@ public class ReportService {
 		return response;
 	}
 
-	public ServiceResponse timesheetReport() {
-		ServiceResponse response = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
-        //apiLogInfo.setSubFeatureName("");
-        apiLogInfo.setApiUrl("/api/timesheetReport");
-        apiLogInfo.setLogLevel("INFO");
-        StringBuilder logBuilder = new StringBuilder();
-		try {
-			List<Object[]> allTimeSheetData = timesheetsRepository.getAllTimesheetDataOLD();
-       		logBuilder.append("TimeSheetReport:" + allTimeSheetData.size());
-			List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
-			
-			if(allTimeSheetData != null) {
-				allTimeSheetData.forEach((object) -> {
-					TimesheetDTO timesheetDto = new TimesheetDTO();
-					
-					timesheetDto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					timesheetDto.setEmployeeName(object[1] != null ? object[1].toString() : null);
-					timesheetDto.setDate(object[2] != null ? object[2].toString() : null);
-					timesheetDto.setDayType(object[3] != null ? object[3].toString() : null);
-					timesheetDto.setDescription(object[4] != null ? object[4].toString() : null);
-					timesheetDto.setStatus(object[5] != null ? object[5].toString() : null);
-					timesheetDto.setTotalWorkingHours(object[6] != null ? Float.parseFloat(object[6].toString()) : null);
-					timesheetDto.setCreatedOn(object[7] != null ? object[7].toString() : null);
-					timesheetDto.setUpdatedOn(object[8] != null ? object[8].toString() : null);
-					timesheetDto.setTimesheetStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
-					timesheetDto.setOfficeInTime(object[10] != null ? object[10].toString() : null);
-					timesheetDto.setOfficeOutTime(object[11] != null ? object[11].toString() : null);
-					timesheetDto.setTotalWorkingOfficeHours(object[12] != null ? object[12].toString() : null);
-					timesheetDto.setEmploymentstatus(object[10] != null ? object[10].toString() : null);	
-					timesheetDto.setTimesheetStatusUpdatedBy(object[11] != null ? Long.parseLong(object[11].toString()) : null);
-					
-					dtoList.add(timesheetDto);
-				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				System.out.println("DTOList :" +dtoList);
-                apiLogInfo.setApiResponse("TimeSheetReport: " + dtoList.size());			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Timesheet list is empty.");
-                apiLogInfo.setApiResponse("Timesheet list is empty");			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-		}catch(Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
+//	public ServiceResponse timesheetReport() {
+//		ServiceResponse response = new ServiceResponse();
+//        LogDTO apiLogInfo = new LogDTO();
+//        //apiLogInfo.setSubFeatureName("");
+//        apiLogInfo.setApiUrl("/api/timesheetReport");
+//        apiLogInfo.setLogLevel("INFO");
+//        StringBuilder logBuilder = new StringBuilder();
+//		try {
+//			List<Object[]> allTimeSheetData = time.getAllTimesheetData();
+//       		logBuilder.append("TimeSheetReport:" + allTimeSheetData.size());
+//			List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+//			
+//			if(allTimeSheetData != null) {
+//				allTimeSheetData.forEach((object) -> {
+//					TimesheetDTO timesheetDto = new TimesheetDTO();
+//					
+//					timesheetDto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+//					timesheetDto.setEmployeeName(object[1] != null ? object[1].toString() : null);
+//					timesheetDto.setDate(object[2] != null ? object[2].toString() : null);
+//					timesheetDto.setDayType(object[3] != null ? object[3].toString() : null);
+//					timesheetDto.setDescription(object[4] != null ? object[4].toString() : null);
+//					timesheetDto.setStatus(object[5] != null ? object[5].toString() : null);
+//					timesheetDto.setTotalWorkingHours(object[6] != null ? Float.parseFloat(object[6].toString()) : null);
+//					timesheetDto.setCreatedOn(object[7] != null ? object[7].toString() : null);
+//					timesheetDto.setUpdatedOn(object[8] != null ? object[8].toString() : null);
+//					timesheetDto.setTimesheetStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
+//					timesheetDto.setOfficeInTime(object[10] != null ? object[10].toString() : null);
+//					timesheetDto.setOfficeOutTime(object[11] != null ? object[11].toString() : null);
+//					timesheetDto.setTotalWorkingOfficeHours(object[12] != null ? object[12].toString() : null);
+//					timesheetDto.setEmploymentstatus(object[10] != null ? object[10].toString() : null);	
+//					timesheetDto.setTimesheetStatusUpdatedBy(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+//					
+//					dtoList.add(timesheetDto);
+//				});
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse(dtoList);
+//				System.out.println("DTOList :" +dtoList);
+//                apiLogInfo.setApiResponse("TimeSheetReport: " + dtoList.size());			
+//                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			}else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Timesheet list is empty.");
+//                apiLogInfo.setApiResponse("Timesheet list is empty");			
+//                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			}
+//		}catch(Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
 
 	public ServiceResponse getMappedSubFeatureList(EmployeeDTO employeeDto) {
 		ServiceResponse response = new ServiceResponse();

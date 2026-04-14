@@ -712,11 +712,12 @@
               <th mat-sort-header="projectCount">Total Projects</th>
               <th mat-sort-header="appliedBy">Applied By</th>
               <th mat-sort-header="appliedOn">Applied On</th>
+              <th mat-sort-header="isNightShift">Night Shift</th>
               <th>Actions</th>
             </tr>
            <tr app-column-filter-bar
     *ngIf="isSearchEnabled"
-    [columnList]="selectedStatus === 1
+    [columnList]="selectedStatus != 3
         ? allTimesheetColumnsVMS
         : allTimesheetColumnsVMSStatusChange"
     (onSearch)="onSearch($event);" >
@@ -724,11 +725,10 @@
 
           </thead>
           <tbody> <ng-container *ngFor="let timesheet of allTeamTimesheetRequestsProjectView; let i = index">
-              <tr class="main-row" [class.active-row]="expandedTimesheetIndex === i">
+              <tr class="main-row" [class.active-row]="expandedTimesheetIndex === i" [class.night-shift-row]="timesheet.isNightShift">
                 <td *ngIf="selectedStatus != 3"> <input type="checkbox" [(ngModel)]="timesheet.selected"
                     (change)="onEmployeeToggle(timesheet); updateSelectedRows(timesheet)" /> </td>
                <td>{{ (page1 * items) + i + 1 }}</td>
-
                 <td class="emp-id emp-femp-id" (click)="toggleAccordion(i,timesheet)" title="Click to view location → project → activity details">{{ timesheet.employmentId }}</td>
                 <td>{{ timesheet.employeeName }}</td>
                 <td>{{ timesheet.date }}</td>
@@ -739,6 +739,13 @@
                 <td>{{ timesheet.projectCount}}</td>
                 <td>{{ timesheet.appliedBy }}</td>
                 <td>{{ timesheet.appliedOn }}</td>
+                <td>
+                    @if (timesheet.isNightShift) {
+                      Yes
+                    }@else{
+                      No
+                    }
+                  </td>
                 <td class="ts-actions-cell">
                   <button type="button" class="ts-action-btn ts-doc-btn" *ngIf="timesheet.documentData.length > 0" (click)="openDocumentPopup(timesheet, null, false)" title="View all documents">
                     <i class="fa fa-eye"></i>
@@ -781,10 +788,10 @@
                             <div class="d-flex justify-content-between align-items-center">
                               <div class="flex-grow-1">
                                 <i class="fas fa-briefcase mr-2 text-info"></i>
-                                <strong>{{ project.projectName }}</strong>
+                                <strong>{{ project.projectName }} &nbsp;</strong>
                                <!-- <span class="ml-3 text-muted small">PO: {{ project.poNo || '-' }}</span>-->
-                                <span class="ml-2 small">{{ project.shadowEmp ? '(Shadow)' : '' }}</span>
-                                <span class="ml-2 small">{{ project.clientLocation}}</span>
+                                <span class="ml-2 small" *ngIf="project.shadowEmp">Shadow For: ({{project.shadowEmployeementId}})-{{ project.shadowEmp }} &nbsp;</span>
+                                <span class="ml-2 small">Client Location:{{ project.clientLocation}}</span>
                               </div>
                               <div class="d-flex align-items-center">
                                 <button type="button" class="btn btn-danger mr-2"
@@ -897,7 +904,7 @@
   <div class="doc-project-card"
        *ngFor="let p of getUniqueProjectsFromTimesheet(selectedTimesheet); let i = index"
        [class.active]="p === activeDocProject"
-       (click)="selectProjectForDoc(p)">
+       (click)="selectProjectForDoc(p, 'Pending')">
 
     <!-- Card Header -->
     <div class="doc-card-header">
@@ -920,7 +927,7 @@
 
       <button class="doc-btn filled"
               [class.active]="activeDocType === 'Pending' && p === activeDocProject"
-              (click)="selectProjectForDoc(p);switchDocType('Pending');$event.stopPropagation()"
+              (click)="selectProjectForDoc(p,'Pending');$event.stopPropagation()"
               [disabled]="!hasPendingDoc(p.projectId)">
 
         <i class="fa-solid fa-file-pen"></i>
@@ -929,7 +936,7 @@
 
       <button class="doc-btn approved"
               [class.active]="activeDocType === 'Approved' && p === activeDocProject"
-              (click)="selectProjectForDoc(p);switchDocType('Approved');$event.stopPropagation()"
+              (click)="selectProjectForDoc(p,'Approved');$event.stopPropagation()"
               [disabled]="!hasApprovedDoc(p.projectId)">
 
         <i class="fa-solid fa-circle-check"></i>
@@ -1788,7 +1795,7 @@
               Date</label>
             <mat-form-field style="display: contents;">
               <input matInput [matDatepicker]="picker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalFromDate"
-                (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required />
+                (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required readonly />
               <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
               <mat-datepicker #picker></mat-datepicker>
             </mat-form-field>
@@ -1803,7 +1810,7 @@
             <mat-form-field style="display: contents;">
               <input matInput [matDatepicker]="toPicker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalToDate"
                 name="toDate" required #toDateRef="ngModel" [min]="finalFromDate" [max]="maxDate"
-                [disabled]="!finalFromDate" (dateChange)="checkUploadEligibility()" />
+                [disabled]="!finalFromDate" (dateChange)="checkUploadEligibility()" readonly />
               <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
               <mat-datepicker #toPicker></mat-datepicker>
             </mat-form-field>
@@ -1928,13 +1935,98 @@
   </div>
 </ng-template>
 
+<ng-template #skipped_timesheets_details let-modal>
+
+  <!-- HEADER -->
+  <div class="modal-header enterprise-header">
+    <div class="d-flex align-items-center">
+      <i class="fa fa-exclamation-circle header-icon"></i>
+      <div>
+        <h5 class="modal-title mb-0">
+          {{ modalMessage}}
+        </h5>
+        <small class="text-muted">Review skipped timesheet entries</small>
+      </div>
+    </div>
+
+    <button type="button" class="close custom-close" (click)="modal.dismiss()">
+      <span>&times;</span>
+    </button>
+  </div>
+
+  <!-- BODY -->
+  <div class="modal-body enterprise-body">
+
+    <!-- EMPTY STATE -->
+    <div *ngIf="!skippedTimesheetList || skippedTimesheetList.length === 0"
+         class="empty-state text-center">
+      <i class="fa fa-check-circle text-success"></i>
+      <p>No skipped timesheets found</p>
+    </div>
+
+    <!-- TABLE CARD -->
+    <div *ngIf="skippedTimesheetList && skippedTimesheetList.length > 0"
+         class="table-card">
+
+      <div class="table-header">
+        <h6>Skipped Timesheets</h6>
+        <span class="badge badge-primary">
+          {{ skippedTimesheetList.length }} Records
+        </span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table enterprise-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Employee ID</th>
+              <th>Date</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let r of skippedTimesheetList; let j = index">
+              <td>{{ j + 1 }}</td>
+              <td class="fw-bold">{{ r.employmentId || '-' }}</td>
+              <td>{{ r.date || '-' }}</td>
+              <td>
+                <span class="badge badge-danger-soft">
+                  {{ r.reason || '-' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="modal-footer enterprise-footer">
+    <!-- <button class="btn btn-light mr-2" (click)="modal.dismiss()">Close</button> -->
+    <button class="btn btn-primary" (click)="modal.close()">OK</button>
+  </div>
+
+</ng-template>
+
 <ng-template #night_shift_template_revampd let-modal>
+  <div class="modal-header bg-light">
+    <h5 class="modal-title">
+      Bulk Approve Confirmation
+    </h5>
+    <button type="button" class="close" aria-label="Close" (click)="modal.close()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
   <div class="modal-body text-center">
     <p>Are you sure you want to continue, your timesheet bulk update contain Night shift request(s) also?</p>
-    <button type="button" class="btn btn-outline-danger" (click)="modal.close('YES')">Yes, Approve All</button>&nbsp;
-    <button type="button" class="btn btn-outline-primary"
-      (click)="modal.close('NO')">Continue without Night Shift
-      Request(s)</button>&nbsp;
+    <button type="button" class="btn btn-primary" (click)="modal.close('YES')">Approve All</button>
+    <button type="button" class="btn btn-primary ml-2"
+      (click)="modal.close('NO')">Exclude Night Shift</button>
   </div>
 </ng-template>
 

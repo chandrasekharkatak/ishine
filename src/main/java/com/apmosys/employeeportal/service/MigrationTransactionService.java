@@ -115,8 +115,8 @@ public class MigrationTransactionService {
             timesheetDocumentServiceNew.getMimeTypeId(doc.getDocMimeType(), doc.getDocName()));
     newDoc.setClientApprovalStatusId(
             timesheetDocumentServiceNew.getClientApprovalStatusId(doc.getClientApprovalStatus()));
-//    newDoc.setCreatedOn(doc.getCreatedOn() != null ? doc.getCreatedOn() : doc.getUpdatedOn());
-    newDoc.setCreatedOn(LocalDateTime.now());
+   newDoc.setCreatedOn(doc.getCreatedOn() != null ? doc.getCreatedOn() : null);
+    // newDoc.setCreatedOn(LocalDateTime.now());
     newDoc.setCreatedBy(doc.getCreatedBy() != null ? doc.getCreatedBy() : doc.getEmpId());
     newDoc.setUpdatedBy(doc.getUpdatedBy());
     newDoc.setUpdatedOn(doc.getUpdatedOn());
@@ -136,8 +136,8 @@ public FinalDocumentNew buildFinalDocumentNewFromDto(
     finalDoc.setFileUrl(uniqueFileName);
     finalDoc.setMimeTypeId(
     		timesheetDocumentServiceNew.getMimeTypeId(doc.getDocMimeType(), doc.getDocName()));
-//    finalDoc.setCreatedOn(doc.getCreatedOn() != null ? doc.getCreatedOn() : doc.getUpdatedOn());
-    finalDoc.setCreatedOn(LocalDateTime.now());
+    finalDoc.setCreatedOn(doc.getCreatedOn() != null ? doc.getCreatedOn() : null);
+    // finalDoc.setCreatedOn(LocalDateTime.now());
     finalDoc.setCreatedBy(doc.getCreatedBy() != null ? doc.getCreatedBy() : doc.getEmpId());
     finalDoc.setUpdatedBy(doc.getUpdatedBy());
     finalDoc.setUpdatedOn(doc.getUpdatedOn());

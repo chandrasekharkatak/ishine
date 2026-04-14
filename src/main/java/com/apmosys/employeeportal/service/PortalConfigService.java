@@ -27,7 +27,6 @@ import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.PortalConfigRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -45,10 +44,6 @@ public class PortalConfigService {
 	
 	@Autowired
 	DepartmentRepository departmentRepository;
-	
-	@Autowired
-	TimesheetsRepository timesheetsRepository;
-	
 	
 	@Autowired
     private EmployeeRepository employeeRepository;

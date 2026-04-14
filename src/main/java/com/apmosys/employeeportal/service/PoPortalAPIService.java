@@ -116,6 +116,12 @@ public class PoPortalAPIService {
 	@Autowired
 	RoleDetailsRepository roleDetailsRepository;
 	
+	@Value("${exceptiondataReconcile.maildev}")
+	private String exceptionMaildev;
+	
+	@Value("${exceptiondataReconcile.mailplsql}")
+	private String exceptionMailplsql;
+	
 	@Autowired
 	ClientService clientService;
 	
@@ -2095,7 +2101,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                traceId,
 	                "syncProjectPoFromPoPortal",
 	                "Ishine",
-	                6l,
+	                null,
 	                httpRequest
 	        );
 	        
@@ -2256,7 +2262,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                      + "<pre>" + exceptionDetailsForLog.toString() + "</pre>";
 
 	                mailService.sendMailWithCC(
-	                        "prarthana.lenka@apmosys.com","sumit.modi@apmosys.com",
+	                		exceptionMaildev,exceptionMaildev,
 	                        "PO Sync Issues | TraceId : " + traceId,
 	                        mailBody
 	                );

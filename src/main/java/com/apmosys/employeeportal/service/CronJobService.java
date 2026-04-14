@@ -129,7 +129,6 @@ import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ProjectPo;
 import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.Team;
-import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -184,8 +183,8 @@ public class CronJobService {
 	@Autowired
 	TimesheetActivityMapNewRepository timesheetActivityMapNewRepository;
 	
-	@Autowired
-	TimesheetsRepository timesheetsRepository;
+//	@Autowired
+//	TimesheetsRepository timesheetsRepository;
 
 	@Autowired
 	HolidayRepository holidayRepository;
@@ -202,8 +201,11 @@ public class CronJobService {
 	@Autowired
 	TimesheetService timesheetService;
 
+//	@Autowired
+//	TimesheetActivityMapRepository timesheetActivityMapRepository;
+	
 	@Autowired
-	TimesheetActivityMapRepository timesheetActivityMapRepository;
+	TimesheetActivityMapNewRepository timesheetActivityMapRepository;
 
 	@Autowired
 	BirthdayMailRepository birthdayMailRepository;
@@ -1555,21 +1557,7 @@ public class CronJobService {
 	                        && ("Saturday".equals(dayOfWeek) || "Sunday".equals(dayOfWeek))
 	                        && billableType != null
 	                        && !"TNM".equalsIgnoreCase(billableType)) {
-
-	                    EmployeeTimesheetsNew ts = new EmployeeTimesheetsNew();
-	                    ts.setCreatedBy(empId);
-	                    ts.setCreatedOn(dateTimeToday);
-	                    ts.setDate(dateToday);
-	                    ts.setEmpId(empId);
-	                    ts.setIsNightShift(false);
-	                    ts.setDayTypeId(4);
-	                    ts.setTotalWorkingMinutes(0);
-	                    ts.setStatus(2);
-	                    ts.setDescription("WeekOff : " + dayOfWeek);
-
-	                    toSave.add(ts);
                         empHolidayMap.put(empId, holiday);
-	                    timesheetMap.put(empId, ts);
 	                    continue;
 	                }
 
@@ -1582,42 +1570,19 @@ public class CronJobService {
 	                        && billableType != null
 	                        && !"TNM".equalsIgnoreCase(billableType)) {
 
-	                    EmployeeTimesheetsNew ts = new EmployeeTimesheetsNew();
-	                    ts.setCreatedBy(empId);
-	                    ts.setCreatedOn(dateTimeToday);
-	                    ts.setDate(dateToday);
-	                    ts.setEmpId(empId);
-	                    ts.setIsNightShift(false);
-	                    ts.setDayTypeId(6);
-	                    ts.setStatus(2);
-	                    ts.setDescription("Public Holiday : " + holiday.getOccasion());
-
-	                    toSave.add(ts);
                         empHolidayMap.put(empId, holiday); 
-	                    timesheetMap.put(empId, ts);
 	                }
 	            }
 	        }
 
-	        if (!toSave.isEmpty()) {
-				            log.info("Total auto-filled timesheets: {}", toSave.size());
+	        if (!empHolidayMap.isEmpty()) {
+				            log.info("Total auto-filled timesheets: {}", empHolidayMap.size());
 	            Map<Long, Employee> employeeMap = employeeRepository.findAllById(empHolidayMap.keySet())
                         .stream()
                         .collect(Collectors.toMap(Employee::getEmpId, e -> e));
 
                 LocalDateTime startOfDay = dateToday.atStartOfDay();
                 LocalDateTime endOfDay = dateToday.atTime(LocalTime.MAX);
-
-                // for (Map.Entry<Long, Holiday> entry : empHolidayMap.entrySet()) {
-                //     Employee emp = employeeMap.get(entry.getKey());
-                //     if (emp != null) {
-                //         holidayService.saveRelationalLeaveTimesheet(emp, dateToday, entry.getValue(), startOfDay,
-                //                 endOfDay ,holidayDayType,weekoffDayType );
-                //     }
-                // }
-
-
-				//correct code
 				Map<Holiday, List<Employee>> holidayEmployeeMap = new HashMap<>();
 
 				for (Map.Entry<Long, Holiday> entry : empHolidayMap.entrySet()) {
@@ -1652,10 +1617,7 @@ public class CronJobService {
 				}
 
 	        }
-
-	        System.out.println("Method end reached");
-
-	    } catch (Exception e) {
+         } catch (Exception e) {
 	        e.printStackTrace();
 	    }
 	}
@@ -7117,6 +7079,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	        apiLogInfo.setApiRequest(logBuilder.toString());
 	        logService.logMyInfo(httpRequest, apiLogInfo);
 	    }
+	    
 	    
 	    public void sendAutoMigrationMail(List<AutoMigrationDTO> migrations) {
 

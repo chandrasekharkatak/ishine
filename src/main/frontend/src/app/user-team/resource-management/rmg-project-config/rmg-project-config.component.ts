@@ -1132,6 +1132,31 @@ export class RmgProjectConfigComponent implements OnInit {
             this.getResourceRequirementDetailsByProjectId(false);
         }
     }
+
+    updateEmployeeList() {
+        const deptIds = this.currentTeam?.deptIds ?? [];
+        const currentTeamEmpIds = new Set(
+            this.currentTeam?.rmgCurrentTeamMemberList?.map(emp => emp.empId) ?? []
+        );
+        const spocList = this.spocList ?? [];
+
+        this.cloneMemberMappingList.forEach(mem => {
+
+            // Get selected empIds from OTHER dropdowns
+            const otherSelectedEmpIds = new Set(
+                this.cloneMemberMappingList
+                    .filter(m => m !== mem && m?.empId != null)
+                    .map(m => m.empId)
+            );
+
+            mem.memberList = spocList.filter(emp => {
+                if (!deptIds.includes(emp.deptId)) return false;
+                if (currentTeamEmpIds.has(emp.empId)) return false;
+                return !otherSelectedEmpIds.has(emp.empId) || emp.empId === mem.empId;
+            });
+        });
+    }
+
     // Helpers End
 
     // Checkbox Helper Methods Start
@@ -1789,7 +1814,8 @@ export class RmgProjectConfigComponent implements OnInit {
             this.defaultProjectObj.poDetailsList = this.projectIdPoListMap.get(this.defaultProjectObj.projectId);
             return;
         }
-        const poDetailsList = await this.employeeProjectService.getPoDetailsByProjectId(this.defaultProjectObj.projectId);
+        const response = await this.employeeProjectService.getPoDetailsByProjectId(this.defaultProjectObj.projectId);
+        const poDetailsList = response?.data || [];
         this.defaultProjectObj.poDetailsList = poDetailsList;
         this.projectIdPoListMap.set(this.defaultProjectObj.projectId, poDetailsList);
     }
@@ -1800,7 +1826,8 @@ export class RmgProjectConfigComponent implements OnInit {
             member.poDetailsList = this.projectIdPoListMap.get(member.projectId);
             return;
         }
-        const poDetailsList = await this.employeeProjectService.getPoDetailsByProjectId(member.projectId);
+        const response = await this.employeeProjectService.getPoDetailsByProjectId(member.projectId);
+        const poDetailsList = response?.data || [];
         member.poDetailsList = poDetailsList;
         this.projectIdPoListMap.set(member.projectId, poDetailsList);
     }
@@ -1822,11 +1849,10 @@ export class RmgProjectConfigComponent implements OnInit {
         if (this.teamMembersMigrationObj.isInternalProject) {
             return;
         }
-
-        this.teamMigrationPoDetailsList = await this.employeeProjectService.getPoDetailsByProjectId(this.teamMembersMigrationObj.targetProjectId);
-        this.teamMigrationTeamMembersList?.forEach(emp => {
-            emp.poDetailsList = this.teamMigrationPoDetailsList;
-        });
+        const response = await this.employeeProjectService.getPoDetailsByProjectId(this.teamMembersMigrationObj.targetProjectId);
+        const poDetailsList = response?.data || [];
+        this.teamMigrationPoDetailsList = poDetailsList;
+        this.teamMigrationTeamMembersList?.forEach(emp => { emp.poDetailsList = this.teamMigrationPoDetailsList; });
     }
     // PO List Method & APIs End
 
@@ -2130,6 +2156,7 @@ export class RmgProjectConfigComponent implements OnInit {
             if (response.serviceStatus == "Success") {
                 this.toastService.success(response.serviceResponse);
                 this.getResourceRequirementDetailsByProjectIdForTeamMemberMigration(this.teamMembersMigrationObj.targetProjectId);
+                this.getActivePoDetailsByProjectIdForTeamMigration();
             } else {
                 this.toastService.error(response.serviceResponse || 'Something went wrong!!');
             }
@@ -2162,6 +2189,7 @@ export class RmgProjectConfigComponent implements OnInit {
             if (response.serviceStatus == "Success") {
                 this.toastService.success(response.serviceResponse);
                 this.getResourceRequirementDetailsByProjectIdForTeamMemberMigration(this.teamMembersMigrationObj.targetProjectId);
+                this.getActivePoDetailsByProjectIdForTeamMigration();
             } else {
                 this.toastService.error(response.serviceResponse || 'Something went wrong!!');
             }
@@ -2344,6 +2372,7 @@ export class RmgProjectConfigComponent implements OnInit {
             this.cloneMemberMappingList = [];
         }
         this.cloneMemberMappingList.push(newMember);
+        this.updateEmployeeList();
     }
 
     removeFromCloneMemberMappingList(member: RmgTeamMember, index: number) {
@@ -2352,6 +2381,7 @@ export class RmgProjectConfigComponent implements OnInit {
             this.currentTeam.newRmgTeamMember = new RmgTeamMember();
             this.currentTeam.addNewTeamMemberToggle = false;
         }
+        this.updateEmployeeList();
     }
 
     async saveClonedMembers() {

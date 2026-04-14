@@ -60,6 +60,7 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MigrateTeam;
 import com.apmosys.employeeportal.dto.MultiProjectEmployeeDTO;
+import com.apmosys.employeeportal.dto.PoDepartmentMappingDto;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectEmpInfoDTO;
@@ -120,7 +121,6 @@ import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.RoleDetailsRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.EmailTrigger;
 import com.apmosys.employeeportal.utility.EmployeeHirarchyCache;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
@@ -182,8 +182,8 @@ public class TeamsService {
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
 
-	@Autowired
-	TimesheetsRepository timesheetsRepository;
+//	@Autowired
+//	TimesheetsRepository timesheetsRepository;
 
 	@Autowired
 	EmployeeTimesheetsNewRepository timesheetsRepositoryNew;
@@ -1347,7 +1347,7 @@ public class TeamsService {
 				Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
 
 				// Get Filled EOD Count for Team Members
-				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(firstOfMonth, end, employeedto.getEmpId());
+				List<Object[]> timesheetList = timesheetsRepositoryNew.getMyTeamsFilledEodCountByManagerId(firstOfMonth, end, employeedto.getEmpId());
 				System.err.println(timesheetList.size());
 
 				list.forEach((object) -> {
@@ -1464,7 +1464,7 @@ public class TeamsService {
 
 				// Get filled EOD counts for team members
 	            List<Object[]> timesheetList =
-	                timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(
+	                timesheetsRepositoryNew.getMyTeamsFilledEodCountByManagerId(
 	                    firstOfMonth, end, employeedto.getEmpId()
 	                );
 
@@ -1518,10 +1518,9 @@ public class TeamsService {
 
 		// Fetch timesheet status for this manager's direct reportees
 	    List<Object[]> timesheetList =
-	        timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(
+	        timesheetsRepositoryNew.getMyTeamsFilledEodCountByManagerId(
 	            firstOfMonth, end, manager.getEmpId()
-	        );
-	    
+	        );	    
 
 		for (Object[] obj : subList) {
 			EmployeeDTO child = mapObjectToDTO(obj, period, timesheetList);
@@ -3749,12 +3748,12 @@ public class TeamsService {
 		Integer tgtProjectId = migrateTeam.getTargetProjectId();
 		List<PoDepartmentMapping> migratedPoDepartmentMapping = new ArrayList<>();
 
-		List<PoDepartmentMapping> sourceDeptMappings = poDepartmentMappingRepository
+		List<PoDepartmentMappingDto> sourceDeptMappings = poDepartmentMappingRepository
 				.findByProjectIdAndActive(srcProjectId);
 		List<Long> targetDeptIds = poDepartmentMappingRepository
 				.findPoDeptIdsByProjectId(tgtProjectId, false);
 
-		for (PoDepartmentMapping s : sourceDeptMappings) {
+		for (PoDepartmentMappingDto s : sourceDeptMappings) {
 			if (!targetDeptIds.contains(s.getDeptId())) {
 				PoDepartmentMapping nm = new PoDepartmentMapping();
 				nm.setPoId(migrateTeam.getTargetPoId());
@@ -4649,6 +4648,141 @@ public class TeamsService {
 		}
 		}
 	}
+	
+	
+	public List<AutoMigrationDTO> migrateResourcesAfterRenewalDTO(Integer projectId, Long renewedPoId, Long renewedBy) {
+		
+		List<AutoMigrationDTO> result = new ArrayList<>();
+		ProjectPoDetails previousPo = projectPoDetailsRepository
+				.findByNextPOAndProjectIdAndActiveTrue(renewedPoId, projectId).orElse(null);
+		
+		Optional<ProjectPoDetails> currentPo = projectPoDetailsRepository.findByPoIdAndProjectIdAndActiveTrue(renewedPoId, projectId)	;	
+				
+				
+				
+		if (previousPo == null) {
+			return result;
+		}
+		
+		if (previousPo.getPoEndDate() != null &&
+	            previousPo.getPoEndDate().isAfter(LocalDateTime.now())) {
+
+	        return result;
+	    }
+		
+		Optional<Project> project = projectRepository.findById(projectId);
+		String projectType = project.get().getPoProjectType();
+		Long previousPoId = previousPo.getPoId();
+		
+		AutoMigrationDTO dto = new AutoMigrationDTO();
+	    dto.setProjectName(project.get().getProjectName());
+	    dto.setProjectType(projectType);
+	    dto.setPreviousPoNumber(previousPo.getPoNo());
+	    dto.setCurrentPoNumber(currentPo.get().getPoNo());
+
+	    List<EmployeeImpactDTO> migratedEmployees = new ArrayList<>();
+
+		if ("TNM".equalsIgnoreCase(projectType)) {
+		
+		List<Long> oldRoles = poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
+		List<Long> newRoles = poRequirementMappingRepository.findRoleIdsByPoId(renewedPoId);
+		Set<Long> carryForwardRoles = oldRoles.stream().filter(newRoles::contains).collect(Collectors.toSet());
+		if (!carryForwardRoles.isEmpty()) {
+			for (Long roleId : carryForwardRoles) {
+				List<EmployeeTeamMap> employees = employeeTeamMapRepository.findActiveEmployeesForRole(previousPoId,
+						roleId);
+				for (EmployeeTeamMap oldRow : employees) {
+					EmployeeTeamMap newRow = new EmployeeTeamMap();
+					BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+					newRow.setPoId(renewedPoId);
+					newRow.setEndDate(null);
+					newRow.setCreatedBy(renewedBy);
+//					newRow.setUpdatedBy(renewedBy);
+					newRow.setUpdatedOn(LocalDateTime.now());
+					newRow.setStartDate(LocalDateTime.now());
+					newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+					employeeTeamMapRepository.save(newRow);
+					oldRow.setActive(0L);
+					oldRow.setEndDate(LocalDateTime.now());
+					oldRow.setUpdatedBy(renewedBy);
+					oldRow.setUpdatedOn(LocalDateTime.now());
+					employeeTeamMapRepository.save(oldRow);
+					
+					  migratedEmployees.add(buildEmployeeImpactDTO(
+		                        oldRow, newRow, previousPo, currentPo, projectType));
+				}
+			}
+		}
+		}else if  ("Monitoring".equalsIgnoreCase(projectType)) {
+			List<EmployeeTeamMap> employees =
+	                employeeTeamMapRepository.findActiveEmployeesByPoId(previousPoId);
+			 for (EmployeeTeamMap oldRow : employees) {
+			  EmployeeTeamMap newRow = new EmployeeTeamMap();
+	            BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+
+	            newRow.setPoId(renewedPoId);
+	            newRow.setEndDate(null);
+	            newRow.setCreatedBy(renewedBy);
+//	            newRow.setUpdatedBy(renewedBy);
+	            newRow.setUpdatedOn(LocalDateTime.now());
+	            newRow.setStartDate(LocalDateTime.now());
+	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+	            employeeTeamMapRepository.save(newRow);
+	            oldRow.setActive(0L);
+	            oldRow.setEndDate(LocalDateTime.now());
+	            oldRow.setUpdatedBy(renewedBy);
+	            oldRow.setUpdatedOn(LocalDateTime.now());
+
+	            employeeTeamMapRepository.save(oldRow);
+	            migratedEmployees.add(buildEmployeeImpactDTO(
+	                    oldRow, newRow, previousPo, currentPo, projectType));
+		}
+		}
+		   if (!migratedEmployees.isEmpty()) {
+		        dto.setEmployees(migratedEmployees);
+		        result.add(dto);
+		    }
+
+		    return result;
+		
+	}
+	
+	private EmployeeImpactDTO buildEmployeeImpactDTO(
+	        EmployeeTeamMap oldRow,
+	        EmployeeTeamMap newRow,
+	        ProjectPoDetails previousPo,
+	        Optional<ProjectPoDetails> currentPo,
+	        String projectType) {
+
+	    EmployeeImpactDTO emp = new EmployeeImpactDTO();
+
+	    Employee empEntity = employeeRepository.findById(oldRow.getEmpId()).orElse(null);
+	    Team oldTeam = teamRepository.findById(oldRow.getTeamId()).orElse(null);
+	    Team newTeam = teamRepository.findById(newRow.getTeamId()).orElse(null);
+	    RoleDetails role = roleDetailsRepository.findById(oldRow.getRoleId()).orElse(null);
+
+	    emp.setEmployeeName(empEntity != null ? empEntity.getName() : "Unknown");
+	    emp.setRoleName(role != null ? role.getRole() : "Unknown Role");
+
+	    emp.setPreviousTeamName(oldTeam != null ? oldTeam.getTeamName() : "Unknown");
+	    emp.setNewTeamName(newTeam != null ? newTeam.getTeamName() : "Same Team");
+
+	    emp.setPreviousPoNumber(previousPo.getPoNo());
+	    emp.setCurrentPoNumber(currentPo.get().getPoNo());
+
+	    if ("TNM".equalsIgnoreCase(projectType)) {
+	        emp.setReason("Auto onboarded due to PO renewal and role continuity (TNM)");
+	    } else {
+	        emp.setReason("Auto onboarded due to PO renewal for uninterrupted monitoring");
+	    }
+
+	    return emp;
+	}
+	
+	
+	
+	
+	
 	
 	
 	

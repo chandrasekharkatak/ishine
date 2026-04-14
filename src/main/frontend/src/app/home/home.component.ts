@@ -2703,62 +2703,62 @@ private roundToTwo(num: number): number {
 
 
 
-  renderTimesheet(day?: any): void {
-    console.log("Render triggered for:", day?.displayDate);
-    const empId = this.currentUser?.empId;
+  // renderTimesheet(day?: any): void {
+  //   console.log("Render triggered for:", day?.displayDate);
+  //   const empId = this.currentUser?.empId;
 
-    if (empId) {
-      this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
-        next: (res) => {
-
-
-          if (res.serviceStatus === 'Success') {
-
-            if (res.serviceResponse1 === 'No Timesheet') {
-
-              this.triggerNoTimesheetPopup = true;
-
-              this.lastTimesheetData = null;
+  //   if (empId) {
+  //     this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
+  //       next: (res) => {
 
 
+  //         if (res.serviceStatus === 'Success') {
+
+  //           if (res.serviceResponse1 === 'No Timesheet') {
+
+  //             this.triggerNoTimesheetPopup = true;
+
+  //             this.lastTimesheetData = null;
 
 
-            } if (res.serviceResponse1 === 'Not Active') {
-              this.triggerNoTimesheetPopupForInactiveEmployee = true;
-            }
-            else {
-              // this.lastTimesheetData = JSON.parse(JSON.stringify(res.serviceResponse));
-              const originalData = JSON.parse(JSON.stringify(res.serviceResponse));
-              const selectedDate = day?.displayDate; // e.g., '2025-07-04'
 
 
-              const fixDateTime = (datetime: string): string => {
-                if (!datetime || !selectedDate) return datetime;
-                const timePart = datetime.split(' ')[1];
-                return `${selectedDate} ${timePart}`;
-              };
-
-              originalData.officeInTime = fixDateTime(originalData.officeInTime);
-              originalData.officeOutTime = fixDateTime(originalData.officeOutTime);
-              originalData.date = selectedDate;
-
-              this.lastTimesheetData = originalData;
-            }
-          } else {
-            this.lastTimesheetData = null;
-          }
+  //           } if (res.serviceResponse1 === 'Not Active') {
+  //             this.triggerNoTimesheetPopupForInactiveEmployee = true;
+  //           }
+  //           else {
+  //             // this.lastTimesheetData = JSON.parse(JSON.stringify(res.serviceResponse));
+  //             const originalData = JSON.parse(JSON.stringify(res.serviceResponse));
+  //             const selectedDate = day?.displayDate; // e.g., '2025-07-04'
 
 
-          this.isTimesheetFormVisible = true;
-        },
-        error: (err) => {
-          console.error("Failed to fetch last timesheet", err);
-          this.lastTimesheetData = null;
-          this.isTimesheetFormVisible = true;
-        }
-      });
-    }
-  }
+  //             const fixDateTime = (datetime: string): string => {
+  //               if (!datetime || !selectedDate) return datetime;
+  //               const timePart = datetime.split(' ')[1];
+  //               return `${selectedDate} ${timePart}`;
+  //             };
+
+  //             originalData.officeInTime = fixDateTime(originalData.officeInTime);
+  //             originalData.officeOutTime = fixDateTime(originalData.officeOutTime);
+  //             originalData.date = selectedDate;
+
+  //             this.lastTimesheetData = originalData;
+  //           }
+  //         } else {
+  //           this.lastTimesheetData = null;
+  //         }
+
+
+  //         this.isTimesheetFormVisible = true;
+  //       },
+  //       error: (err) => {
+  //         console.error("Failed to fetch last timesheet", err);
+  //         this.lastTimesheetData = null;
+  //         this.isTimesheetFormVisible = true;
+  //       }
+  //     });
+  //   }
+  // }
 
 
 
@@ -2843,7 +2843,7 @@ private roundToTwo(num: number): number {
     console.log('Timesheet Details:', this.timesheetDetails);
 
     if (this.shouldRenderTimesheet()) {
-      this.renderTimesheet();
+      // this.renderTimesheet();
     }
   }
 

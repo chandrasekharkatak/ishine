@@ -330,13 +330,14 @@ export class TimesheetNewService {
 
   getLastFilledLocationIdForProjectAndEmp(projectId: number, empId: number): Observable<any> {
     
-    const params = new HttpParams()
-      .set('empId', empId)
-      .set('projectId', projectId);
+    // const params = new HttpParams()
+    //   .set('empId', empId)
+    //   .set('projectId', projectId);
+    const body = { empId, projectId };
 
-    return this.http.get(
-      `${this.baseUrl}api/v2/timesheet/getMyLastFilledLocationIdForProjectAndEmp`,
-      { params }
+    return this.http.post(
+      `${this.baseUrl}api/v2/timesheet/getMyLastFilledLocationIdForProjectAndEmp`, body
+     
     );
   }
 
@@ -352,5 +353,9 @@ export class TimesheetNewService {
   }
   getProjectListForDateAndEmpId(payload: any): Observable<any> {
       return this.http.post(`${this.baseUrl}api/v2/timesheet/getProjectListForDateAndEmpId`, payload);
+}
+
+getRejectionDetailsWithProjectsByTimesheetId(timesheetId:number):Observable<any> {
+  return this.http.post(`${this.baseUrl}api/v2/timesheet/getRejectionDetailsWithProjectsByTimesheetId`, timesheetId);
 }
 }

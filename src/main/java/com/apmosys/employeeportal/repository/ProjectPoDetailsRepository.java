@@ -84,7 +84,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
             + "        	    LEFT JOIN EmployeeClientSideIdMapping ecsm ON ecsm.empId = etm.empId "
             + "				LEFT JOIN Project p on p.projectId=ppo.projectId "
             + "              LEFT JOIN ProjectPoDetails ppd on ppd.poId=ppo.poId "
-            + "        	    LEFT JOIN Timesheet ts ON ts.empId = e.empId "
+            + "        	    LEFT JOIN EmployeeTimesheetsNew ts ON ts.empId = e.empId "
             + "        	        AND ts.date BETWEEN :startDate AND :endDate "
             + "        	    WHERE ppo.poId = :poId "
             + "        	      AND ppo.projectId = :projectId "
@@ -201,11 +201,11 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
             + " prm.poRequirementMappingId, ppd.poId, ppd.poNo, ppd.poStartDate, ppd.poEndDate, rd.roleId, rd.role, rd.experience, rd.department,prm.lineItemStartDate , prm.lineItemEndDate, prm.count"
             + " )  \n"
             + "FROM Project p \n"
-            + "INNER JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND ppd.active = true \n"
+            + "INNER JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.active = true \n"
             + "LEFT JOIN PoRequirementMapping prm ON prm.poId = ppd.poId AND prm.active = true \n"
             + "LEFT JOIN RoleDetails rd on rd.roleId = prm.roleId \n"
             + "WHERE p.projectId =:projectId  \n")
-    List<RmgResourceRequirementDto> getResourceRequirementDetailsByProjectId(Integer projectId, boolean currentActivePO);
+    List<RmgResourceRequirementDto> getResourceRequirementDetailsByProjectId(Integer projectId);
 
     Optional<ProjectPoDetails> findByNextPOAndProjectIdAndActiveTrue(Long nextPo, Integer projectId);
 

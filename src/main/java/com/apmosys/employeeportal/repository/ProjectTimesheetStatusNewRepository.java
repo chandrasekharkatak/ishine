@@ -172,5 +172,16 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
         		+ "and p.active = 'true'\n"
         		+ "AND pdm.active is true order by cl.created_on desc limit 1", nativeQuery = true)
         List<Object[]> getDeptBaseProjectAndClientDataFromEmpId(@Param("empId") Long empId);
+        
+        @Query("SELECT p FROM ProjectTimesheetStatusNew p WHERE p.shadowEmpId = p.createdBy and p.id.projectId = :projectId")
+        List<ProjectTimesheetStatusNew> findShadowForSelf(@Param("projectId") Integer projectId);
+        @Query(
+                "SELECT p FROM ProjectTimesheetStatusNew p \n" +
+                "WHERE p.id.timesheetId = :timesheetId \n" +
+                "AND p.id.projectId = :projectId"
+        )
+         List<ProjectTimesheetStatusNew> findByProjectIdAndTimesheetId(Integer projectId,Long timesheetId);
+        
+        
 }
 

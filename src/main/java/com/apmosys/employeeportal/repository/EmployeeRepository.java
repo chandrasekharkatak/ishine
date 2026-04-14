@@ -605,21 +605,21 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Object[]> findDepartmentsByReporties(Long empId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(nativeQuery = true, value = "select et.description,p.project_id, a.activity_id,\n"
-			+ "    e.name, et.date, et.day_type,\n"
-			+ "    et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, \n"
-			+ "    et.status, et.created_on,\n"
-			+ "    a.activity,\n"
-			+ "    p.project_name,t.team_name,et.remarks   \n"
-			+ "from employee_timesheets et \n"
-			+ "INNER JOIN employee e ON et.created_by = e.emp_id\n"
-			+ "inner join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
-			+ "inner join activities a on a.activity_id = etam.activity_id\n"
-			+ "INNER JOIN teams t ON t.team_id = a.team_id \n"
-			+ " INNER JOIN projects p ON p.project_id = t.project_id\n"
-			+ "WHERE et.status = :status "
-			+ "and  et.emp_id=:empId")
-	List<Object[]> getTimesheetDataByEmpId_old(@Param("status") String status, @Param("empId") long empId);
+	// @Query(nativeQuery = true, value = "select et.description,p.project_id, a.activity_id,\n"
+	// 		+ "    e.name, et.date, et.day_type,\n"
+	// 		+ "    et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, \n"
+	// 		+ "    et.status, et.created_on,\n"
+	// 		+ "    a.activity,\n"
+	// 		+ "    p.project_name,t.team_name,et.remarks   \n"
+	// 		+ "from employee_timesheets et \n"
+	// 		+ "INNER JOIN employee e ON et.created_by = e.emp_id\n"
+	// 		+ "inner join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
+	// 		+ "inner join activities a on a.activity_id = etam.activity_id\n"
+	// 		+ "INNER JOIN teams t ON t.team_id = a.team_id \n"
+	// 		+ " INNER JOIN projects p ON p.project_id = t.project_id\n"
+	// 		+ "WHERE et.status = :status "
+	// 		+ "and  et.emp_id=:empId")
+	// List<Object[]> getTimesheetDataByEmpId_old(@Param("status") String status, @Param("empId") long empId);
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(nativeQuery = true, value = "select et.description,p.project_id, a.activity_id,\n"
@@ -641,23 +641,23 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	List<Object[]> getTimesheetDataByEmpId(@Param("status") String status, @Param("empId") long empId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(nativeQuery = true, value = "select et.description,et.emp_id, a.activity_id,\n"
-			+ "    e.name, et.date, et.day_type,\n"
-			+ "    et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, \n"
-			+ "    et.status, et.created_on,\n"
-			+ "    a.activity,\n"
-			+ "    p.project_name,t.team_name,et.remarks   \n"
-			+ "from employee_timesheets et \n"
-			+ "INNER JOIN employee e ON et.created_by = e.emp_id\n"
-			+ "inner join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
-			+ "inner join activities a on a.activity_id = etam.activity_id\n"
-			+ "INNER JOIN teams t ON t.team_id = a.team_id \n"
-			+ " INNER JOIN projects p ON p.project_id = t.project_id\n"
-			+ "WHERE et.status = :status "
-			+ "and  p.project_id=:projectId "
-			+ "and et.current_manager_id=:managerId")
-	List<Object[]> getTimesheetDataByProjectId_old(@Param("status") String status, @Param("projectId") long projectId,
-			@Param("managerId") long managerId);
+//	@Query(nativeQuery = true, value = "select et.description,et.emp_id, a.activity_id,\n"
+//			+ "    e.name, et.date, et.day_type,\n"
+//			+ "    et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, \n"
+//			+ "    et.status, et.created_on,\n"
+//			+ "    a.activity,\n"
+//			+ "    p.project_name,t.team_name,et.remarks   \n"
+//			+ "from employee_timesheets et \n"
+//			+ "INNER JOIN employee e ON et.created_by = e.emp_id\n"
+//			+ "inner join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
+//			+ "inner join activities a on a.activity_id = etam.activity_id\n"
+//			+ "INNER JOIN teams t ON t.team_id = a.team_id \n"
+//			+ " INNER JOIN projects p ON p.project_id = t.project_id\n"
+//			+ "WHERE et.status = :status "
+//			+ "and  p.project_id=:projectId "
+//			+ "and et.current_manager_id=:managerId")
+//	List<Object[]> getTimesheetDataByProjectId_old(@Param("status") String status, @Param("projectId") long projectId,
+//			@Param("managerId") long managerId);
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(nativeQuery = true, value = "select et.description,et.emp_id, a.activity_id,\n"
@@ -681,23 +681,23 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			@Param("managerId") long managerId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(nativeQuery = true, value = "select et.description,et.emp_id, a.activity_id,\n"
-			+ "    e.name, et.date, et.day_type,\n"
-			+ "    et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, \n"
-			+ "    et.status, et.created_on,\n"
-			+ "    a.activity,\n"
-			+ "    p.project_name,et.remarks   \n"
-			+ "from employee_timesheets et \n"
-			+ "INNER JOIN employee e ON et.created_by = e.emp_id\n"
-			+ "inner join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
-			+ "inner join activities a on a.activity_id = etam.activity_id\n"
-			+ "INNER JOIN teams t ON t.team_id = a.team_id \n"
-			+ " INNER JOIN projects p ON p.project_id = t.project_id\n"
-			+ "WHERE et.status = :status "
-			+ "and t.team_name=:teamName "
-			+ "and et.current_manager_id=:managerId")
-	List<Object[]> getTimesheetDataByTeamName_old(@Param("status") String status, @Param("teamName") String teamName,
-			@Param("managerId") long managerId);
+//	@Query(nativeQuery = true, value = "select et.description,et.emp_id, a.activity_id,\n"
+//			+ "    e.name, et.date, et.day_type,\n"
+//			+ "    et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, \n"
+//			+ "    et.status, et.created_on,\n"
+//			+ "    a.activity,\n"
+//			+ "    p.project_name,et.remarks   \n"
+//			+ "from employee_timesheets et \n"
+//			+ "INNER JOIN employee e ON et.created_by = e.emp_id\n"
+//			+ "inner join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
+//			+ "inner join activities a on a.activity_id = etam.activity_id\n"
+//			+ "INNER JOIN teams t ON t.team_id = a.team_id \n"
+//			+ " INNER JOIN projects p ON p.project_id = t.project_id\n"
+//			+ "WHERE et.status = :status "
+//			+ "and t.team_name=:teamName "
+//			+ "and et.current_manager_id=:managerId")
+//	List<Object[]> getTimesheetDataByTeamName_old(@Param("status") String status, @Param("teamName") String teamName,
+//			@Param("managerId") long managerId);
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(nativeQuery = true, value = "select et.description,et.emp_id, a.activity_id,\n"
@@ -721,32 +721,32 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			@Param("managerId") long managerId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(nativeQuery = true, value = "SELECT et.description, p.project_id, a.activity_id, " +
-			"e.name, et.date, et.day_type, " +
-			"et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, " +
-			"et.status, et.created_on, " +
-			"a.activity, " +
-			"p.project_name, t.team_name,et.remarks,et.timesheet_id ,e.employeement_id,et.total_time " +
-			"FROM employee_timesheets et " +
-			"LEFT JOIN employee e ON et.created_by = e.emp_id " +
-			"LEFT JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id " +
-			"LEFT JOIN activities a ON a.activity_id = etam.activity_id " +
-			"LEFT JOIN teams t ON t.team_id = a.team_id " +
-			"LEFT JOIN projects p ON p.project_id = t.project_id " +
-			"WHERE et.status = :status " +
-			"AND (:empId = 0 OR et.emp_id = :empId) " +
-			"AND (:projectId = 0 OR p.project_id = :projectId) " +
-			"AND (:teamName IS NULL OR t.team_name = :teamName) " +
-			"AND (:managerId = 0 OR et.current_manager_id = :managerId) " +
-			"AND ((:startDate IS NULL OR :endDate IS NULL) OR (et.date BETWEEN :startDate AND :endDate))")
-	List<Object[]> getDynamicTimesheetData_old(
-			@Param("status") String status,
-			@Param("empId") long empId,
-			@Param("projectId") long projectId,
-			@Param("teamName") String teamName,
-			@Param("managerId") Long managerId,
-			@Param("startDate") LocalDate startDate,
-			@Param("endDate") LocalDate endDate);
+	// @Query(nativeQuery = true, value = "SELECT et.description, p.project_id, a.activity_id, " +
+	// 		"e.name, et.date, et.day_type, " +
+	// 		"et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, " +
+	// 		"et.status, et.created_on, " +
+	// 		"a.activity, " +
+	// 		"p.project_name, t.team_name,et.remarks,et.timesheet_id ,e.employeement_id,et.total_time " +
+	// 		"FROM employee_timesheets et " +
+	// 		"LEFT JOIN employee e ON et.created_by = e.emp_id " +
+	// 		"LEFT JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id " +
+	// 		"LEFT JOIN activities a ON a.activity_id = etam.activity_id " +
+	// 		"LEFT JOIN teams t ON t.team_id = a.team_id " +
+	// 		"LEFT JOIN projects p ON p.project_id = t.project_id " +
+	// 		"WHERE et.status = :status " +
+	// 		"AND (:empId = 0 OR et.emp_id = :empId) " +
+	// 		"AND (:projectId = 0 OR p.project_id = :projectId) " +
+	// 		"AND (:teamName IS NULL OR t.team_name = :teamName) " +
+	// 		"AND (:managerId = 0 OR et.current_manager_id = :managerId) " +
+	// 		"AND ((:startDate IS NULL OR :endDate IS NULL) OR (et.date BETWEEN :startDate AND :endDate))")
+	// List<Object[]> getDynamicTimesheetData_old(
+	// 		@Param("status") String status,
+	// 		@Param("empId") long empId,
+	// 		@Param("projectId") long projectId,
+	// 		@Param("teamName") String teamName,
+	// 		@Param("managerId") Long managerId,
+	// 		@Param("startDate") LocalDate startDate,
+	// 		@Param("endDate") LocalDate endDate);
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(nativeQuery = true, value = "SELECT et.description, p.project_id, a.activity_id, " +
@@ -779,30 +779,30 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			@Param("endDate") LocalDate endDate);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.emp_id,e.name,et.date,et.day_type,\n"
-			+ "et.office_in_time,et.office_out_time,et.total_time,\n"
-			+ "et.status,et.remarks,e.employeement_id,et.created_on,et.current_manager_id\n"
-			+ "FROM employee_timesheets et  \n"
-			+ "inner join employee_timesheet_activities_mapping etam on etam.timesheet_id = et.timesheet_id \n"
-			+ "inner join activities a on a.activity_id = etam.activity_id \n"
-			+ "inner join teams t on t.team_id = a.team_id \n"
-			+ "inner join projects p on p.project_id = t.project_id \n"
-			+ "inner join employee e ON et.emp_id = e.emp_id \n"
-			+ "WHERE et.status = :status "
-			+ " AND (:projectId = 0 OR p.project_id = :projectId) \n "
-			+ " AND (:teamName = 0 OR t.team_id = :teamName) \n "
-			+ "AND (:empId = 0 OR et.emp_id = :empId) "
-			+ "AND et.date >= CURDATE() - INTERVAL 3 MONTH\n"
-			+ "AND ((:startDate IS NULL OR :endDate IS NULL) OR (et.date BETWEEN :startDate AND :endDate))"
-			+ "ORDER BY et.date DESC\n")
-	List<Object[]> getTimesheetData_old(
-			@Param("status") String status,
-			@Param("empId") long empId,
-			// @Param("managerId") Long managerId,
-			@Param("startDate") LocalDate startDate,
-			@Param("endDate") LocalDate endDate,
-			@Param("projectId") long projectId,
-			@Param("teamName") long teamName);
+	// @Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.emp_id,e.name,et.date,et.day_type,\n"
+	// 		+ "et.office_in_time,et.office_out_time,et.total_time,\n"
+	// 		+ "et.status,et.remarks,e.employeement_id,et.created_on,et.current_manager_id\n"
+	// 		+ "FROM employee_timesheets et  \n"
+	// 		+ "inner join employee_timesheet_activities_mapping etam on etam.timesheet_id = et.timesheet_id \n"
+	// 		+ "inner join activities a on a.activity_id = etam.activity_id \n"
+	// 		+ "inner join teams t on t.team_id = a.team_id \n"
+	// 		+ "inner join projects p on p.project_id = t.project_id \n"
+	// 		+ "inner join employee e ON et.emp_id = e.emp_id \n"
+	// 		+ "WHERE et.status = :status "
+	// 		+ " AND (:projectId = 0 OR p.project_id = :projectId) \n "
+	// 		+ " AND (:teamName = 0 OR t.team_id = :teamName) \n "
+	// 		+ "AND (:empId = 0 OR et.emp_id = :empId) "
+	// 		+ "AND et.date >= CURDATE() - INTERVAL 3 MONTH\n"
+	// 		+ "AND ((:startDate IS NULL OR :endDate IS NULL) OR (et.date BETWEEN :startDate AND :endDate))"
+	// 		+ "ORDER BY et.date DESC\n")
+	// List<Object[]> getTimesheetData_old(
+	// 		@Param("status") String status,
+	// 		@Param("empId") long empId,
+	// 		// @Param("managerId") Long managerId,
+	// 		@Param("startDate") LocalDate startDate,
+	// 		@Param("endDate") LocalDate endDate,
+	// 		@Param("projectId") long projectId,
+	// 		@Param("teamName") long teamName);
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.emp_id,e.name,et.date,dtm.day_type,\n"
@@ -833,17 +833,17 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			@Param("teamName") long teamName);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(nativeQuery = true, value = "select a.activity_id,etam.description,etam.timesheet_id,etam.completion_time,\n"
-			+ "t.team_id,t.team_name,p.project_id,p.project_name\n"
-			+ "from employee_timesheet_activities_mapping etam\n"
-			+ "LEFT JOIN activities a \n"
-			+ "ON a.activity_id = etam.activity_id\n"
-			+ "LEFT JOIN teams t \n"
-			+ "ON t.team_id = a.team_id \n"
-			+ "LEFT JOIN projects p \n"
-			+ "ON p.project_id = t.project_id \n"
-			+ "where timesheet_id =:timeSheetId")
-	List<Object[]> getActivityData_old(@Param("timeSheetId") long timeSheetId);
+	// @Query(nativeQuery = true, value = "select a.activity_id,etam.description,etam.timesheet_id,etam.completion_time,\n"
+	// 		+ "t.team_id,t.team_name,p.project_id,p.project_name\n"
+	// 		+ "from employee_timesheet_activities_mapping etam\n"
+	// 		+ "LEFT JOIN activities a \n"
+	// 		+ "ON a.activity_id = etam.activity_id\n"
+	// 		+ "LEFT JOIN teams t \n"
+	// 		+ "ON t.team_id = a.team_id \n"
+	// 		+ "LEFT JOIN projects p \n"
+	// 		+ "ON p.project_id = t.project_id \n"
+	// 		+ "where timesheet_id =:timeSheetId")
+	// List<Object[]> getActivityData_old(@Param("timeSheetId") long timeSheetId);
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(nativeQuery = true, value = "select a.activity_id,etam.description,etam.timesheet_id,CAST(etam.duration_minutes AS DECIMAL(10,2))/60 AS completion_time,\n"
@@ -2113,21 +2113,21 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	 * - etm.active != 0
 	 * - exclude currentUser
 	 */
-	@Query("SELECT new com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO(e.empId, e.name) " +
-		       "FROM com.apmosys.employeeportal.model.Employee e " +
-		       "INNER JOIN com.apmosys.employeeportal.model.EmployeeTeamMap etm ON etm.empId = e.empId " +
-		       "INNER JOIN com.apmosys.employeeportal.model.Team t ON t.teamId = etm.teamId " +
-		       "INNER JOIN com.apmosys.employeeportal.model.Project p ON p.projectId = t.projectId " +
-		       "WHERE p.projectId = :projectId " +
-		       "  AND etm.active in (0,1) " +
-		       "  AND etm.empId != :currentUser " +
-		       "  AND etm.startDate <= :endOfDay " +
-		       "  AND (etm.endDate IS NULL OR etm.endDate >= :startOfDay)")
-	public List<GetEmployeeListByProjectIdDTO> getEmployeeListByProjectIdForDate(
-			Integer projectId,
-			Long currentUser,
-			LocalDateTime startOfDay,
-			LocalDateTime endOfDay);
+	// @Query("SELECT new com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO(e.empId, e.name) " +
+	// 	       "FROM com.apmosys.employeeportal.model.Employee e " +
+	// 	       "INNER JOIN com.apmosys.employeeportal.model.EmployeeTeamMap etm ON etm.empId = e.empId " +
+	// 	       "INNER JOIN com.apmosys.employeeportal.model.Team t ON t.teamId = etm.teamId " +
+	// 	       "INNER JOIN com.apmosys.employeeportal.model.Project p ON p.projectId = t.projectId " +
+	// 	       "WHERE p.projectId = :projectId " +
+	// 	       "  AND etm.active in (0,1) " +
+	// 	       "  AND etm.empId != :currentUser " +
+	// 	       "  AND etm.startDate <= :endOfDay " +
+	// 	       "  AND (etm.endDate IS NULL OR etm.endDate >= :startOfDay)")
+	// public List<GetEmployeeListByProjectIdDTO> getEmployeeListByProjectIdForDate(
+	// 		Integer projectId,
+	// 		Long currentUser,
+	// 		LocalDateTime startOfDay,
+	// 		LocalDateTime endOfDay);
 
 	/**
 	 * Helper query for timesheet flows:
@@ -3936,23 +3936,23 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query(value = "SELECT count(*)\n"
-		    + "FROM employee_timesheets et\n"
-		    + "INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
-		    + "INNER JOIN teams t ON t.team_id = etm.team_id\n"
-		    + "INNER JOIN projects p ON p.project_id = t.project_id\n"
-		    + "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id\n"
-		    + "INNER JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id\n"
-		    + "INNER JOIN employee e ON e.emp_id = et.emp_id\n"
-		    + "WHERE et.day_type LIKE '%Working%'\n"
-		    + "AND (et.status = 'Pending' OR et.status IS NULL)\n"
-		    + "AND et.created_on <= :checkDate\n"
-		    + "AND et.emp_id = :empId and etm.active = 1 and t.is_active = 'Y'",
-		    nativeQuery = true)
-		Long countPendingTimesheetsByEmployeeAndDate_old(
-		    @Param("empId") Long empId,
-		    @Param("checkDate") LocalDate checkDate
-		);
+	// @Query(value = "SELECT count(*)\n"
+	// 	    + "FROM employee_timesheets et\n"
+	// 	    + "INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
+	// 	    + "INNER JOIN teams t ON t.team_id = etm.team_id\n"
+	// 	    + "INNER JOIN projects p ON p.project_id = t.project_id\n"
+	// 	    + "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id\n"
+	// 	    + "INNER JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id\n"
+	// 	    + "INNER JOIN employee e ON e.emp_id = et.emp_id\n"
+	// 	    + "WHERE et.day_type LIKE '%Working%'\n"
+	// 	    + "AND (et.status = 'Pending' OR et.status IS NULL)\n"
+	// 	    + "AND et.created_on <= :checkDate\n"
+	// 	    + "AND et.emp_id = :empId and etm.active = 1 and t.is_active = 'Y'",
+	// 	    nativeQuery = true)
+	// 	Long countPendingTimesheetsByEmployeeAndDate_old(
+	// 	    @Param("empId") Long empId,
+	// 	    @Param("checkDate") LocalDate checkDate
+	// 	);
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "SELECT count(*)\n"
@@ -3976,23 +3976,23 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		);
 
 		// ========== BACKUP: Original query renamed with _old suffix ==========
-		@Query(value = "SELECT DISTINCT p.project_name\n"
-				+ "FROM employee_timesheets et \n"
-				+ "INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id \n"
-				+ "INNER JOIN teams t ON t.team_id = etm.team_id \n"
-				+ "INNER JOIN projects p ON p.project_id = t.project_id \n"
-				+ "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id \n"
-				+ "INNER JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id \n"
-				+ "INNER JOIN employee e ON e.emp_id = et.emp_id \n"
-				+ "WHERE et.day_type LIKE '%Working%' \n"
-				+ "AND (et.status = 'Pending' OR et.status IS NULL) \n"
-				+ "AND et.created_on <= :checkDate \n"
-				+ "AND et.emp_id = :empId and etm.active = 1 and t.is_active = 'Y'",
-		        nativeQuery = true)
-		List<String> findPendingTimesheetProjectNames_old(
-		        @Param("empId") Long empId,
-		        @Param("checkDate") LocalDate checkDate
-		);
+		// @Query(value = "SELECT DISTINCT p.project_name\n"
+		// 		+ "FROM employee_timesheets et \n"
+		// 		+ "INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id \n"
+		// 		+ "INNER JOIN teams t ON t.team_id = etm.team_id \n"
+		// 		+ "INNER JOIN projects p ON p.project_id = t.project_id \n"
+		// 		+ "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id \n"
+		// 		+ "INNER JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id \n"
+		// 		+ "INNER JOIN employee e ON e.emp_id = et.emp_id \n"
+		// 		+ "WHERE et.day_type LIKE '%Working%' \n"
+		// 		+ "AND (et.status = 'Pending' OR et.status IS NULL) \n"
+		// 		+ "AND et.created_on <= :checkDate \n"
+		// 		+ "AND et.emp_id = :empId and etm.active = 1 and t.is_active = 'Y'",
+		//         nativeQuery = true)
+		// List<String> findPendingTimesheetProjectNames_old(
+		//         @Param("empId") Long empId,
+		//         @Param("checkDate") LocalDate checkDate
+		// );
 
 		// ========== UPDATED: New query using _new tables ==========
 		@Query(value = "SELECT DISTINCT p.project_name\n"
@@ -4710,5 +4710,33 @@ public List<Object[]> fetchInActivePOListOfProject(
 			+ " WHERE p.po_project_type IS NOT NULL AND p.active = 'true' \n"
 			+ " AND t.is_active = 'Y'  AND (etm.active = 1 OR (etm.active = 2 AND DATE(etm.start_date) <= CURDATE()) )  \n", nativeQuery = true)
 	public String getEmployeeMappedToClientPercent();
+
+
+	@Query(value =
+        "WITH user_teams AS ( " +
+        "    SELECT etm.team_id " +
+        "    FROM employee_team_mapping etm " +
+        "    INNER JOIN teams t ON t.team_id = etm.team_id " +
+        "    WHERE etm.emp_id = :currentUser " +
+        "      AND t.project_id = :projectId " +
+        "      AND etm.active IN (0,1) " +
+        "      AND etm.start_date <= :endOfDay " +
+        "      AND (etm.end_date IS NULL OR etm.end_date >= :startOfDay) " +
+        ") " +
+        "SELECT DISTINCT e.emp_id AS empId, e.name AS name " +
+        "FROM employee e " +
+        "INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id " +
+        "INNER JOIN user_teams ut ON ut.team_id = etm.team_id " +
+        "WHERE etm.emp_id != :currentUser " +
+        "  AND etm.active IN (0,1) " +
+        "  AND etm.start_date <= :endOfDay " +
+        "  AND (etm.end_date IS NULL OR etm.end_date >= :startOfDay)",
+        nativeQuery = true)
+List<Object[]> getEmployeeListByProjectIdForDate(
+        @Param("projectId") Integer projectId,
+        @Param("currentUser") Long currentUser,
+        @Param("startOfDay") LocalDateTime startOfDay,
+        @Param("endOfDay") LocalDateTime endOfDay
+);
 
 }

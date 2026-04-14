@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.model.Activity;
 
@@ -61,4 +62,9 @@ public interface ActivitiesRepository extends JpaRepository<Activity, Long> {
 			+ "	    AND etn.emp_id = :empId\n"
 			+ "	)", nativeQuery = true)
 	public void deleteActivitiesForRejectedEmployee(Long empId, Long teamId, Integer projectId);
+
+	@Transactional
+	@Modifying
+	@Query(value="delete from Activity where teamId= :teamId")
+    public void deleteByTeamId(Long teamId);
 }

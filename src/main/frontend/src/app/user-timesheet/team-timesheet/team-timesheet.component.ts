@@ -30,6 +30,8 @@ import {LoaderService} from 'src/app/services/loader.service';import { MatSortMo
 import { firstValueFrom, Observable, of, Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { ExcelDownloadService } from 'src/app/services/excel-download-service';
+import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
+import { APP_DATE_FORMATS, AppDateAdapter } from 'src/app/helpers/date-time-picker/date-time-picker.component';
 
 
 
@@ -38,7 +40,17 @@ import { ExcelDownloadService } from 'src/app/services/excel-download-service';
   standalone: false,
   selector: 'app-team-timesheet',
   templateUrl: './team-timesheet.component.html',
-  styleUrls: ['./team-timesheet.component.css']
+  styleUrls: ['./team-timesheet.component.css'],
+   providers: [         
+      {
+        provide: DateAdapter,
+        useClass: AppDateAdapter
+      },
+      {
+        provide: MAT_DATE_FORMATS,
+        useValue: APP_DATE_FORMATS
+      }
+    ]
 })
 export class TeamTimesheetComponent implements OnInit {
 
@@ -55,6 +67,9 @@ export class TeamTimesheetComponent implements OnInit {
 
   @ViewChild("clientSideIdNotMandatoryFound")
   clientSideIdNotMandatoryFound: TemplateRef<any>;
+
+  @ViewChild('skipped_timesheets_details')
+  skippedTimesheetModal!: TemplateRef<any>;
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
@@ -75,7 +90,8 @@ export class TeamTimesheetComponent implements OnInit {
   sortColumnType: any;
   clientSideIdForm: NgbModalRef;
   updateClientIdModalRef: NgbModalRef;
-  bulkRejectReasonIds: number[] = [];;
+  bulkRejectReasonIds: number[] = [];skippedTimesheetList: any;
+;
 bulkRejectRemark: string = '';
 rejectReasonError = false;
 rejectRemarkError = false;
@@ -127,7 +143,7 @@ rejectRemarkError = false;
   timesheetApplicationCount: any = 0;
   allTimesheetColumns: any[] = ['blank', 'blank', 'blank', 'employmentIdAcToET', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', , 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'createdOn'];
   allTimesheetReqColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus'];
-  allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employmentId', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'locationCount', 'projectCount', 'appliedBy', 'appliedOn', 'blank'];
+  allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employmentId', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'locationCount', 'projectCount', 'appliedBy', 'appliedOn', 'isNightShift','blank'];
   allTimesheetColumnsVMSStatusChange: any[] = [
   'blank',   // Sr No (now becomes first column)
   'employmentId',
@@ -140,6 +156,7 @@ rejectRemarkError = false;
   'projectCount',
   'appliedBy',
   'appliedOn',
+  'isNightShift',
   'blank'    // action column
 ];
 
@@ -302,7 +319,6 @@ rejectionReasons:any;
     // } else {
     //   this.minMonth = null;
     // }
-
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -487,6 +503,9 @@ totalPages: number = 0;
     return;
   }
 
+  this.expandedTimesheetIndex = null;
+  this.isAllSelected = false;
+      this.toggleAllRows({ target: { checked: false } });
   this.loaderService.requestStarted();
 
   const payload: any = {
@@ -514,7 +533,7 @@ totalPages: number = 0;
   this.addIfPresent(payload, 'projectCount', this.filters.projectCount);
   this.addIfPresent(payload, 'appliedBy', this.filters.appliedBy);
   this.addIfPresent(payload, 'appliedOn', this.filters.appliedOn);
-
+  this.addIfPresent(payload, 'isNightShift', this.filters.isNightShift)
   this.addIfPresent(payload, 'startDate', this.startDate);
   this.addIfPresent(payload, 'endDate', this.endDate);
 
@@ -1005,6 +1024,8 @@ sortData(sort: Sort) {
       this.filters = {};
       this.getMyReporteesTimesheetRequests();
     this.getTimesheetStatusCountsByEmpId();
+    this.isAllSelected = false;
+    this.toggleAllRows({ target: { checked: false } });
     }
 
   }
@@ -1782,11 +1803,17 @@ sortData(sort: Sort) {
   updateSelectedRows(row: any) {
     this.selectedRows = this.filteredData().filter(r => r.selected);
     console.log("test", this.selectedRows);
+    if(this.selectedRows.length != this.filteredData().length){
+      this.isAllSelected = false;
+    }else if (this.selectedRows.length !=0 && this.selectedRows.length == this.filteredData().length){
+      this.isAllSelected = true;
+    }
+    console.log(" this.isAllSelected =", this.isAllSelected )
   }
 
   toggleAllRows(event: any) {
     const checked = event.target.checked;
-
+    console.log(checked);
     this.filteredData().forEach((timesheet: any) => {
       timesheet.selected = checked;
       this.onEmployeeToggle(timesheet); // 🔥 hierarchy call
@@ -2031,55 +2058,60 @@ sortData(sort: Sort) {
 
 
   prepareFlatTimesheetData(timesheets: any[]): any[] {
-    const flatList: any[] = [];
+  const flatList: any[] = [];
 
-    timesheets.forEach(timesheet => {
-      (timesheet.locationSessions || []).forEach(location => {
-        (location.projects || []).forEach(project => {
-          (project.activities || []).forEach(activity => {
+  timesheets.forEach(timesheet => {
+    (timesheet.locationSessions || []).forEach(location => {
+      (location.projects || []).forEach(project => {
 
-            flatList.push({
-              // ===== TIMESHEET LEVEL =====
-              "Employee Id": timesheet.employmentId,
-              "Employee Name": timesheet.employeeName,
-              "Date": timesheet.date,
-              "Day Type": timesheet.dayType,
-              "Applied By": timesheet.appliedBy,
-              "Applied On": timesheet.appliedOn,
+        const activities = project.activities && project.activities.length
+          ? project.activities
+          : [null]; // 👈 fallback
 
-              // ===== LOCATION LEVEL =====
-              "Work Location": location.workLocationType,
-              "Location In": location.locationInTime,
-              "Location Out": location.locationOutTime,
+        activities.forEach(activity => {
 
-              // ===== PROJECT LEVEL =====
-              "Project Name": project.projectName,
-              "PO No": project.poNo || '-',
-              "Shadow Employee": project.shadowEmp ? 'Yes' : 'No',
+          flatList.push({
+            // ===== TIMESHEET LEVEL =====
+            "Employee Id": timesheet.employmentId,
+            "Employee Name": timesheet.employeeName,
+            "Date": timesheet.date,
+            "Day Type": timesheet.dayType,
+            "Applied By": timesheet.appliedBy,
+            "Applied On": timesheet.appliedOn,
 
-              // ===== ACTIVITY LEVEL =====
-              "Activity Team": activity.teamName,
-              "Activity": activity.activity,
-              "Description": activity.activityDescription || '-',
-              "Hours (Minutes)": activity.durationMinutes
-            });
+            // ===== LOCATION LEVEL =====
+            "Work Location": location.workLocationType,
+            "Location In": location.locationInTime,
+            "Location Out": location.locationOutTime,
 
+            // ===== PROJECT LEVEL =====
+            "Project Name": project.projectName,
+            "Is Shadow": project.shadowEmp ? 'Yes' : 'No',
+
+            // ===== ACTIVITY LEVEL =====
+            // "Team Name": activity?.teamName || '-',
+            "Activity": activity?.activity || 'No Activity',
+            "Description": project.description || '-',
+            "Hours": activity?.durationMinutes || '00:00'
           });
+
         });
+
       });
     });
+  });
 
-    return flatList;
-  }
+  return flatList;
+}
 
 
   exportExcel1() {
-    this.excelName = 'Timesheet_Flat_Report.xlsx';
-
+    this.excelName = 'Timesheet_Report.xlsx';
+    console.log(this.allTeamTimesheetRequestsProjectView,'data');
     const flatData = this.prepareFlatTimesheetData(
-      this.filteredData()
+      this.allTeamTimesheetRequestsProjectView
     );
-
+    console.log(flatData, 'flatData')
     if (!flatData.length) {
       return;
     }
@@ -2226,7 +2258,7 @@ openDocumentPopup(
     }
   }
 
-  this.activeDocType =  docType;
+  this.activeDocType =  docType ? docType : 'Pending';
 
 
 if (toggleMode) {
@@ -2273,8 +2305,9 @@ getProjectById(projectId: number, timesheet: any) {
    }
 
    /* LEFT PROJECT CLICK */
-   selectProjectForDoc(project: any): void {
+   selectProjectForDoc(project: any, type: 'Pending' | 'Approved'): void {
      this.activeDocProject = project;
+     this.switchDocType(type);
     //  this.setDefaultDocForProject();
    }
 
@@ -2530,6 +2563,8 @@ getDocument(type: 'Pending' | 'Approved'): void {
     this.expandedTimesheetIndex = null;
     this.expandedProjectKey = null;
     this.filters = {};
+    this.isAllSelected = false;
+    this.toggleAllRows({ target: { checked: false } });
     this.getMyReporteesTimesheetRequests();
     this.getTimesheetStatusCountsByEmpId();
   }
@@ -2597,20 +2632,40 @@ projectList: any[] = [];
 // }
 
   // BULK APPROVAL
-  bulkApproveByIds(confirmNightShift: boolean = false, ids?: number[]) {
+async  bulkApproveByIds(confirmNightShift: boolean = false, ids?: number[]) {
 
     // const timesheetIds  = ids || this.getSelectedTimesheetIds();
-     const selectedTimesheets = ids
-    ? this.getSelectedTimesheets().filter(ts => ids.includes(ts.timesheetId))
-    : this.getSelectedTimesheets();
+    console.log('befor', this.selectedRows)
+     const selectedTimesheets =  this.selectedRows.filter(row => row?.timesheetId != null);
 
-    console.log("selectedTimesheets",  this.getSelectedTimesheets());
+     console.log('After', this.selectedRows)
+    console.log("selectedTimesheets",  selectedTimesheets);
+    let dataToValidate = structuredClone(selectedTimesheets);
+  let payloadData = structuredClone(selectedTimesheets);
+  let compOffValidate = structuredClone(selectedTimesheets);
+  let timesheetIds = [];
+    if(dataToValidate.filter(ts=>ts.isNightShift == true).length > 0){
 
+          const modalRef = this.modalService.open(this.nightShiftConfirmModal, {
+      modalDialogClass: 'ts-alert-modal',
+      backdrop: 'static'
+    });
 
-  const timesheetIds = selectedTimesheets.map(ts => ts.timesheetId);
-    if (!timesheetIds.length) return;
+          await modalRef.result.then((result) => {
+            console.log(result);
+            if (result != undefined && result === 'YES') {
+              confirmNightShift = true;
+              timesheetIds = payloadData.map(ts => ts.timesheetId);
+            } else if(result != undefined && result === 'NO'){
+              confirmNightShift = false;
+             timesheetIds =  payloadData.filter(ts=>ts.isNightShift != true).map(ts => ts.timesheetId);
+            }else{
+              return;
+            }
 
-    const hasCompOff = selectedTimesheets.some(ts =>
+          }).catch(() => {});
+  }
+    const hasCompOff = compOffValidate.some(ts =>
       ts.dayType?.toLowerCase() === 'comp off'
     );
 
@@ -2618,16 +2673,17 @@ projectList: any[] = [];
 
       const modalRef = this.modalService.open(this.compOffConfirmModal, { centered: true });
 
-      modalRef.result.then((result) => {
+      await modalRef.result.then((result) => {
         if (result === 'APPROVE') {
-          this.executeBulkApprove(selectedTimesheets,confirmNightShift);
+          this.executeBulkApprove(timesheetIds,confirmNightShift);
         }
       }).catch(() => {});
 
       return;
     }
 
-    this.executeBulkApprove(selectedTimesheets,confirmNightShift);
+    timesheetIds = selectedTimesheets.map(ts=> ts.timesheetId);
+    this.executeBulkApprove(timesheetIds,confirmNightShift);
 
 
   }
@@ -2727,9 +2783,11 @@ approveSingleTimesheet(timesheet: any) {
     updatedBy: this.currentUser.empId,
     rmId: this.currentUser.empId
   };
-
+this.modalMessage = null;
+this.skippedTimesheetList = null
   this.loaderService.requestStarted();
-
+this.modalMessage = null;
+this.skippedTimesheetList = null
   this.timesheetNewService
     .bulkApproveTimesheetsByIds1(payload)
     .pipe(finalize(() => this.loaderService.requestEnded()))
@@ -2744,54 +2802,59 @@ approveSingleTimesheet(timesheet: any) {
           const skipped = Array.isArray(res?.serviceResponse?.skipped)
             ? res.serviceResponse.skipped
             : [];
-
           if (processed.length) {
             message += `${processed.length} timesheet(s) approved successfully.\n`;
+             this.modalMessage = message;
+            //  this.modalService.open(this.statusModal, {modalDialogClass: 'ts-alert-modal'});
+          }else{
+            this.modalMessage = "No Valid Timesheet Request Found For Approval."
           }
-
           if (skipped.length) {
 
-              message += `
-                <p><strong>Skipped Timesheets</strong></p>
-                <table class="table table-bordered table-sm">
-                  <thead>
-                    <tr>
-                      <th>EMP ID</th>
-                      <th>Date</th>
-                      <th>Reason</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-              `;
+            this.skippedTimesheetList = skipped
 
-              skipped.forEach((item: any) => {
-                message += `
-                  <tr>
-                    <td>${item.employmentId}</td>
-                    <td>${item.date}</td>
-                    <td>${item.reason}</td>
-                  </tr>
-                `;
-              });
+              // message += `
+              //   <p><strong>Skipped Timesheets</strong></p>
+              //   <table class="table table-bordered table-sm">
+              //     <thead>
+              //       <tr>
+              //         <th>EMP ID</th>
+              //         <th>Date</th>
+              //         <th>Reason</th>
+              //       </tr>
+              //     </thead>
+              //     <tbody>
+              // `;
 
-              message += `</tbody></table>`;
+              // skipped.forEach((item: any) => {
+              //   message += `
+              //     <tr>
+              //       <td>${item.employmentId}</td>
+              //       <td>${item.date}</td>
+              //       <td>${item.reason}</td>
+              //     </tr>
+              //   `;
+              // });
+
+              // message += `</tbody></table>`;
             }
 
           this.clearAllSelections();
           // this.selectedStatus = 2;
-          this.onStatusChange(2);
+          // this.onStatusChange(2);
           this.page1 = 0;
-
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
-          this.modalMessage = message;
+          this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
+          backdrop: 'static'} );
 
         } else {
            this.modalTitle = 'Error';
           this.modalMessage =
             res?.serviceResponse || 'Timesheet approval failed';
+            this.modalService.open(this.statusModal, { modalDialogClass: 'ts-alert-modal'});
         }
-        this.modalService.open(this.statusModal, { centered: true });
+        
 
       },
       error: (err) => {
@@ -2802,7 +2865,7 @@ approveSingleTimesheet(timesheet: any) {
           err?.error?.serviceResponse ||
           'Timesheet approval failed';
 
-        this.modalService.open(this.statusModal, { centered: true });
+        this.modalService.open(this.statusModal, { modalDialogClass: 'ts-alert-modal'});
       }
     });
 }
@@ -3184,6 +3247,8 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
   rejectRemark: entry.remark?.trim() || ''
 
 }));
+this.modalMessage = null;
+this.skippedTimesheetList = null
 
   const payload = {
     timesheetIds: [Number(this.selectedTimesheet.timesheetId)],
@@ -3192,7 +3257,8 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
     updatedBy: Number(this.currentUser.empId),
     projectRejections
   };
-
+this.modalMessage = null;
+this.skippedTimesheetList = null
   this.loaderService.requestStarted();
 
   this.timesheetNewService
@@ -3207,57 +3273,64 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
           const skipped = Array.isArray(res?.serviceResponse?.skipped)
             ? res.serviceResponse.skipped
             : [];
-
           if (processed.length) {
             message += `${processed.length} timesheet(s) rejected successfully.\n`;
+            this.modalMessage = message;
+            // this.modalService.open(this.statusModal, { modalDialogClass: 'ts-alert-modal' });
+          }else{
+            this.modalMessage = "No Valid Timesheet Request Found For Rejection."
           }
-
           if (skipped.length) {
 
-          message += `
-            <p><strong>Skipped Timesheets</strong></p>
-            <table class="table table-bordered table-sm">
-              <thead>
-                <tr>
-                  <th>EMP ID</th>
-                  <th>Date</th>
-                  <th>Reason</th>
-                </tr>
-              </thead>
-              <tbody>
-          `;
+            this.skippedTimesheetList = skipped
 
-          skipped.forEach((item: any) => {
-            message += `
-              <tr>
-                <td>${item.employmentId}</td>
-                <td>${item.date}</td>
-                <td>${item.reason}</td>
-              </tr>
-            `;
-          });
+          
+          // message += `
+          //   <p><strong>Skipped Timesheets</strong></p>
+          //   <table class="table table-bordered table-sm">
+          //     <thead>
+          //       <tr>
+          //         <th>EMP ID</th>
+          //         <th>Date</th>
+          //         <th>Reason</th>
+          //       </tr>
+          //     </thead>
+          //     <tbody>
+          // `;
 
-          message += `</tbody></table>`;
+          // skipped.forEach((item: any) => {
+          //   message += `
+          //     <tr>
+          //       <td>${item.employmentId}</td>
+          //       <td>${item.date}</td>
+          //       <td>${item.reason}</td>
+          //     </tr>
+          //   `;
+          // });
+
+          // message += `</tbody></table>`;
         }
 
           this.modalRef?.close();
           this.page1 = 0;
-          this.onStatusChange(3);
-          // this.getMyReporteesTimesheetRequests();
-          // this.getTimesheetStatusCountsByEmpId();
-          this.modalMessage = message;
+          // this.onStatusChange(3);
+          this.getMyReporteesTimesheetRequests();
+          this.getTimesheetStatusCountsByEmpId();
+          this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
+          backdrop: 'static'} );
+          
       } else {
           this.modalTitle = 'Error';
           this.modalMessage =
             res?.serviceResponse || 'Timesheet rejection failed';
+            this.modalService.open(this.statusModal, { modalDialogClass: 'ts-alert-modal' });
 
       }
-       this.modalService.open(this.statusModal, { centered: true });
       },
       error: () => {
         this.modalTitle = 'Error';
         this.modalMessage = 'Timesheet rejection failed';
-        this.modalService.open(this.statusModal, { centered: true });
+        this.modalService.open(this.statusModal, { modalDialogClass: 'ts-alert-modal' });
       }
     });
     this.getTimesheetStatusCountsByEmpId();
@@ -3348,13 +3421,11 @@ clearPreview(): void {
 }
 zoomIn(): void {
   console.log("Zoomed in");
-  this.zoomScale = Math.min(this.zoomScale + 0.2, 3);
-  this.zoomLevel = Math.round(this.zoomScale * 100);
+  this.scale = Math.min(this.scale + 0.2, 3);
 }
 
 zoomOut(): void {
-  this.zoomScale = Math.max(this.zoomScale - 0.2, 0.5);
-  this.zoomLevel = Math.round(this.zoomScale * 100);
+  this.scale = Math.max(this.scale - 0.2, 0.5);
 }
 
 rotate(): void {
@@ -3428,9 +3499,10 @@ openRejectReasonsModal(data: any, template: TemplateRef<any>) {
 }
 
 executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
-  const timesheetIds = selectedTimesheets.map(ts => ts.timesheetId);
+  console.log(selectedTimesheets,"selectedTimesheets")
+  if(selectedTimesheets.length == 0 ) return;
   const payload = {
-    timesheetIds,
+    timesheetIds : selectedTimesheets,
     status: 'APPROVED',
     updatedBy: this.currentUser.empId,
     rmId : this.currentUser.empId,
@@ -3438,30 +3510,14 @@ executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
   };
 
   this.loaderService.requestStarted();
-
+  this.modalMessage = null;
+  this.skippedTimesheetList = null
   this.timesheetNewService
     .bulkApproveTimesheetsByIds1(payload)
     .pipe(finalize(() => this.loaderService.requestEnded()))
     .subscribe({
       next: (res: any) => {
         const response = res?.serviceResponse;
-
-        if (response?.requiresNightShiftConfirmation) {
-
-          const modalRef = this.modalService.open(this.nightShiftConfirmModal, { centered: true });
-
-          modalRef.result.then((result) => {
-
-            if (result === 'YES') {
-              this.bulkApproveByIds(true, timesheetIds);
-            } else {
-              this.bulkApproveByIds(true, response.normalTimesheets);
-            }
-
-          }).catch(() => {});
-
-          return;
-        }
         this.modalTitle = 'Result';
       let message = '';
         if (res?.serviceStatus === 'Success') {
@@ -3470,53 +3526,54 @@ executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
         const skipped = Array.isArray(res?.serviceResponse?.skipped)
           ? res.serviceResponse.skipped
           : [];
-
         if (processed.length) {
-            message += `<p><strong>${processed.length} timesheet(s) approved successfully.</strong></p>`;
+            message += `${processed.length} timesheet(s) approved successfully.`;
+            this.modalMessage = message;
+          // this.modalService.open(this.statusModal, {modalDialogClass: 'ts-alert-modal'});
+          }else{
+            this.modalMessage = "No Valid Timesheet Request Found For Approval."
+          }
+          if (skipped.length) {
+          this.skippedTimesheetList = skipped
+            // message += `
+            //   <p><strong>Skipped Timesheets</strong></p>
+            //   <table class="table table-bordered table-sm">
+            //     <thead>
+            //       <tr>
+            //         <th>EMP ID</th>
+            //         <th>Date</th>
+            //         <th>Reason</th>
+            //       </tr>
+            //     </thead>
+            //     <tbody>
+            // `;
+
+            // skipped.forEach((item: any) => {
+            //   message += `
+            //     <tr>
+            //       <td>${item.employmentId}</td>
+            //       <td>${item.date}</td>
+            //       <td>${item.reason}</td>
+            //     </tr>
+            //   `;
+            // });
+
+            // message += `</tbody></table>`;
           }
 
-        if (skipped.length) {
-
-            message += `
-              <p><strong>Skipped Timesheets</strong></p>
-              <table class="table table-bordered table-sm">
-                <thead>
-                  <tr>
-                    <th>EMP ID</th>
-                    <th>Date</th>
-                    <th>Reason</th>
-                  </tr>
-                </thead>
-                <tbody>
-            `;
-
-            skipped.forEach((item: any) => {
-              message += `
-                <tr>
-                  <td>${item.employmentId}</td>
-                  <td>${item.date}</td>
-                  <td>${item.reason}</td>
-                </tr>
-              `;
-            });
-
-            message += `</tbody></table>`;
-          }
-
-
+         
         this.clearAllSelections();
-        this.onStatusChange(2);
         this.page1 = 0;
         this.getMyReporteesTimesheetRequests();
         this.getTimesheetStatusCountsByEmpId();
-        this.modalMessage =message;
-
+            this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
+          backdrop: 'static'} );
       } else {
           this.modalTitle = 'Error';
           this.modalMessage =
           res?.serviceResponse || 'Bulk approval failed';
+          this.modalService.open(this.statusModal, { centered: true });
         }
-        this.modalService.open(this.statusModal, { centered: true });
       }
 
     });
@@ -3562,7 +3619,8 @@ const payload = {timesheetIds: this.selectedTimesheetIds,
                 rejectRemark: this.bulkRejectRemark};
 
 this.loaderService.requestStarted();
-
+this.modalMessage = null;
+  this.skippedTimesheetList = null
 this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this.loaderService.requestEnded())).subscribe({next: (res: any) => {
 
     modal.close();
@@ -3576,45 +3634,46 @@ this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this
       const skipped = Array.isArray(res?.serviceResponse?.skipped)
         ? res.serviceResponse.skipped
         : [];
-
       if (processed.length) {
-        message += `<p><strong>${processed.length} timesheet(s) rejected successfully.</strong></p>`;
+        message += `${processed.length} timesheet(s) rejected successfully.`;
+        this.modalMessage = message;
+      }else{
+        this.modalMessage = "No Valid Timesheet Request Found For Rejection."
       }
 
       if (skipped.length) {
 
-        message += `
-          <p><strong>Skipped Timesheets</strong></p>
-          <table class="table table-bordered table-sm">
-            <thead>
-              <tr>
-                <th>EMP ID</th>
-                <th>Date</th>
-                <th>Reason</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
+        this.skippedTimesheetList = skipped
+        // message += `
+        //   <p><strong>Skipped Timesheets</strong></p>
+        //   <table class="table table-bordered table-sm">
+        //     <thead>
+        //       <tr>
+        //         <th>EMP ID</th>
+        //         <th>Date</th>
+        //         <th>Reason</th>
+        //       </tr>
+        //     </thead>
+        //     <tbody>
+        // `;
 
-        skipped.forEach((item: any) => {
-          message += `
-            <tr>
-              <td>${item.employmentId}</td>
-              <td>${item.date}</td>
-              <td>${item.reason}</td>
-            </tr>
-          `;
-        });
+        // skipped.forEach((item: any) => {
+        //   message += `
+        //     <tr>
+        //       <td>${item.employmentId}</td>
+        //       <td>${item.date}</td>
+        //       <td>${item.reason}</td>
+        //     </tr>
+        //   `;
+        // });
 
-        message += `</tbody></table>`;
+        // message += `</tbody></table>`;
       }
-
-      this.modalMessage = message;
-
       this.clearAllSelections();
-      this.onStatusChange(3);
+      // this.onStatusChange(3);
       this.page1 = 0;
-
+      this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
+          backdrop: 'static'} );
       this.getMyReporteesTimesheetRequests();
       this.getTimesheetStatusCountsByEmpId();
 
@@ -3623,9 +3682,9 @@ this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this
       this.modalTitle = 'Error';
       this.modalMessage = res?.serviceResponse || 'Bulk rejection failed';
 
+      this.modalService.open(this.statusModal, { modalDialogClass: 'modal-lg' });
     }
 
-    this.modalService.open(this.statusModal, { centered: true });
 
   }
 });

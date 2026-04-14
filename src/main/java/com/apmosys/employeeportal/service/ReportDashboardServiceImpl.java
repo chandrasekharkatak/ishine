@@ -50,16 +50,20 @@ import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.WorkLocationCountDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.PortalConfig;
-import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.ReportDashboardRepository;
+import com.apmosys.employeeportal.repository.TimesheetActivityMapNewRepository;
 import com.apmosys.employeeportal.repository.ReportDashboardRepository;
 import com.apmosys.employeeportal.repository.ReportDashboardRepository;
-import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
+
+//import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
+
+//import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
+//import com.apmosys.employeeportal.repository.TimesheetsRepository;
+
 import com.apmosys.employeeportal.serviceInterface.ReportDashboardService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -73,9 +77,6 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;
-
-	@Autowired
-	TimesheetsRepository timesheetsRepository;
 	
 	@Autowired
 	EmployeeTimesheetsNewRepository timesheetsNewRepository ;
@@ -90,7 +91,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	StringToDateTimeParser stringToDateTimeParser;
 	
 	@Autowired
-	TimesheetActivityMapRepository timesheetActivityMapRepository;
+	TimesheetActivityMapNewRepository timesheetActivityMapRepository;
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
@@ -364,188 +365,6 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;	
 	}
-
-	@Override
-	public ServiceResponse getEmployeeWorkLocationForSummary() {
-		ServiceResponse response = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
-       // apiLogInfo.setSubFeatureName("");
-        apiLogInfo.setApiUrl("/api/getEmployeeWorkLocationForSummary");
-        apiLogInfo.setLogLevel("INFO");
-        StringBuilder logBuilder = new StringBuilder();
-       
-
-		try {
-			
-			List<TimesheetDTO> dtoList = new ArrayList<>();
-			
-			Calendar calendar = Calendar.getInstance();
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-			calendar.add(Calendar.MONTH, -1);
-			calendar.set(Calendar.DATE, 1);
-
-			LocalDate firstDateOfPreviousMonth = LocalDate.parse(dateFormat.format(calendar.getTime()));
-			
-			calendar.set(Calendar.DATE,calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
-			LocalDate lastDateOfPreviousMonth = LocalDate.parse(dateFormat.format(calendar.getTime()));
-			
-			List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
-			 
-			for(Object[] empObj : employeeList) {
-				
-				Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
-				Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
-				
-				
-//				System.out.println("Emp ID :" + empId);
-				
-				List<Timesheet> monthlyTimesheet = timesheetsRepository.
-						findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstDateOfPreviousMonth, lastDateOfPreviousMonth);
-					
-						for(Timesheet timesheetObj: monthlyTimesheet) {								
-							List<Object[]> objectList = timesheetActivityMapRepository.activitiesByTimesheetId(timesheetObj.getTimesheetId());
-							
-							if(!objectList.isEmpty()) {
-								for(Object[] object : objectList) {
-									TimesheetDTO dto = new TimesheetDTO();
-									
-									dto.setEmpId(object[0] != null ? Long.parseLong(empObj[0].toString()): null);									
-									dto.setEmployeeName(object[9] != null ? object[9].toString() : null);
-									dto.setProjectName(object[5] != null ? object[5].toString() : null);
-									dto.setClientName(object[6] != null ? object[6].toString() : null);
-									dto.setClientLocation(object[7] != null ? object[7].toString() : null);
-									dto.setTeamName(object[8] != null ? object[8].toString() : null);
-									dto.setManagerName(object[10] != null ? object[10].toString() : null);
-									dto.setDate(timesheetObj.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-									dto.setEmployeementId(employeementId);
-									dto.setIsConsultant(object[17] != null ? object[17].toString() : null);
-									dto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);									dtoList.add(dto);
-								}
-								logBuilder.append("EmpId: " + empId);
-							}else {
-								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceResponse("Timesheet Activities not found.");
-                                apiLogInfo.setApiResponse("Timesheet Activities not found");			
-                                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-							}
-						}
-			}
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-			response.setServiceResponse(dtoList);
-
-            apiLogInfo.setApiResponse("dtoList: " + dtoList.size());			
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-            
-		}catch(Exception e) {
-			e.printStackTrace();	
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);	
-			response.setServiceResponse("Something Went Wrong.");	
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-
-        apiLogInfo.setApiRequest(logBuilder.toString());
-        logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
-
-//	public ServiceResponse getDepartmentWiseBillableData(LeaveDTO leaveDto) {
-//		ServiceResponse response = new ServiceResponse();
-//		 
-//		try {
-//			List<Object[]> getAllBillableEmployee = employeeRepository.getBillableEmpWithDepartment();
-//			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
-//			
-//			getAllBillableEmployee.forEach((object)->{
-//				EmployeeDTO dto = new EmployeeDTO();
-//				
-//				dto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-//				dto.setEmail(object[1] != null ? object[1].toString() : null);
-//				dto.setName(object[2] != null ? object[2].toString() : null);
-//				dto.setManagerName(object[3] != null ? object[3].toString() : null);
-//				dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
-//				dto.setHodName(object[5] != null ? object[5].toString() : null);
-//				dto.setBillable(object[6] != null ? object[6].toString() : null);
-//				dto.setBillableType(object[7] != null ? object[7].toString() : null);
-//				dto.setMobileNo(object[8] != null ? Long.parseLong(object[8].toString()): null);
-//				dto.setMothersName(object[9] != null ? object[9].toString() : null);
-//				dto.setApprovalsTo(object[10] != null ? object[10].toString() : null);
-//				dto.setMaritalStatus(object[11] != null ? object[11].toString() : null);	
-//				dto.setProjectName(object[12] != null ? object[12].toString() : null);
-//				dto.setClientName(object[13] != null ? object[13].toString() : null);
-//				dto.setGender(object[14] != null ? object[14].toString() : null);
-//				dto.setEmploymentstatus(object[15] != null ? object[15].toString() : null);
-//				dto.setTotalExperience(object[16] != null ? Float.parseFloat(object[16].toString()) : null);	
-//				dto.setDateOfBirth(object[17] != null ? object[17].toString() : null);
-//				dto.setDateOfJoining(object[18] != null ? object[18].toString() : null);
-//				dto.setWorkLocation(object[19] != null ? object[19].toString() : null);
-//				dto.setExperience(object[20] != null ? object[20].toString() : null);
-//				dto.setEmpId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
-//				dto.setTeamName(object[22] != null ? object[22].toString() : null);
-//				dto.setIsConsultant(object[23] != null ? object[23].toString() : null);
-//				dto.setIsApprenticeship(object[24] != null ? object[24].toString() : null);
-//						
-//				if (object[25] != null && object[12] != null) {
-//				 String[] projectIds = object[25].toString().split(",");
-//				 String[] projectNames = object[12].toString().split(",");
-//				 
-//				 List<ProjectDTO> projectList = new ArrayList<>();
-//				 for (int i = 0; i < projectIds.length; i++) {
-//					 ProjectDTO projectDTO = new ProjectDTO();
-//				        projectDTO.setProjectId(Integer.parseInt(projectIds[i].trim()));
-//				        projectDTO.setProjectName(projectNames[i].trim());
-//				        projectList.add(projectDTO);
-//				    }
-//				    dto.setProjectList(projectList);
-//				}
-//				
-//				
-//				
-////				ServiceResponse completionResponse = profileCompletionReport(dto);
-////				EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
-////				
-////				dto.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
-//				
-//				ServiceResponse completionResponse = profileCompletionReport(dto);
-//				Object emp = completionResponse.getServiceResponse();
-//
-//				if (emp instanceof EmployeeDTO) {
-//				    EmployeeDTO employeeDTO = (EmployeeDTO) emp;
-//				    dto.setProfileCompletedPercent(employeeDTO.getProfileCompletedPercent());
-//				} else {
-//				    dto.setProfileCompletedPercent(0.00);
-//				    if (emp instanceof String) {
-//				        System.out.println("ServiceResponse message: " + emp);
-//				    }
-//				}
-//
-//				
-//				
-//				dtoList.add(dto);
-//				
-//			});
-//			
-//			if(dtoList != null) {
-//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//				response.setServiceResponse(dtoList);
-//				System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-//				System.out.println(dtoList);
-//				System.err.println("__________________________________________________---------------_________---------________-----______---____--____-");
-//			}
-//			else {
-//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//				response.setServiceResponse("List is empty !!");
-//			}
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-//			response.setServiceResponse("Something went wrong !!");
-//			
-//		}
-//		
-//		return response;
-//	}
 	
 	public ServiceResponse getDepartmentWiseBillableData(LeaveDTO leaveDto) {
 	    ServiceResponse response = new ServiceResponse();

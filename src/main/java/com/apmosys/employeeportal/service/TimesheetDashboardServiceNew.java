@@ -6,6 +6,8 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +15,6 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -22,12 +23,16 @@ public class TimesheetDashboardServiceNew {
     @Autowired
     private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
-    @Autowired
-    private TimesheetsRepository timesheetsRepository;
+   
 
     @Autowired
     private EmployeeRepository employeeRepository;
 
+    @Autowired
+    private LogService logService;
+
+    @Autowired
+    private HttpServletRequest httpRequest;
 
     /**
      * Gets timesheet dashboard count for employee.
@@ -98,6 +103,7 @@ public class TimesheetDashboardServiceNew {
             }
             
             apiLogInfo.setApiRequest(logBuilder.toString());
+            logService.logMyInfo(httpRequest, apiLogInfo);
             return response;
         } catch (Exception e) {
             e.printStackTrace();
@@ -106,7 +112,10 @@ public class TimesheetDashboardServiceNew {
             response.setServiceError(e.getMessage());
             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
             apiLogInfo.setApiResponse(e.getMessage());
+            apiLogInfo.setApiError(e.getMessage());
             apiLogInfo.setLogLevel("ERROR");
+            apiLogInfo.setApiRequest(logBuilder.toString());
+            logService.logMyInfo(httpRequest, apiLogInfo);
         }
         
         return response;

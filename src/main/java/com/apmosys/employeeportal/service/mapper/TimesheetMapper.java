@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
+import com.apmosys.employeeportal.dto.FetchActivityDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetActivitiesDTO;
@@ -336,6 +337,7 @@ public class TimesheetMapper {
                                                 r.getClientLocation(),
                                                 r.getPoNo(),
                                                 r.getShadowEmp(),
+                                                null,
                                                 r.getStatus(),
                                                 r.getClientApprovalStatus() != null ? r.getClientApprovalStatus() : null,
                                                 TimesheetFormatUtil.formatMinutes(r.getTotalClientWorkingMinutes()),
@@ -511,6 +513,7 @@ public class TimesheetMapper {
                         projDto.setClientLocation(row.getClientLocation());
                         projDto.setPoNo(row.getPoNo());
                         projDto.setShadowEmp(row.getShadowEmp());
+                        projDto.setShadowEmployeementId(row.getShadowEmployeementId());
                         projDto.setStatus(row.getStatus());
                         projDto.setTotalClientWorkingMinutes(
                                 row.getTotalClientWorkingMinutes() != null
@@ -732,6 +735,22 @@ public class TimesheetMapper {
         }
 
         return new ArrayList<>(timesheetMap.values());
+    }
+
+
+    public ActivityTimesheetDTO toDTO(FetchActivityDTO entity) {
+        if (entity == null || entity.getId() == null) {
+            return null;
+        }
+
+        ActivityTimesheetDTO dto = new ActivityTimesheetDTO();
+        dto.setTimesheetId(entity.getTimesheetId());
+        dto.setActivityId(entity.getActivityId());
+        dto.setProjectId(entity.getProjectId());
+        dto.setDescription(entity.getDescription());
+        dto.setDurationMinutes(entity.getDurationMinutes() != null ? entity.getDurationMinutes().shortValue() : null);
+        dto.setTeamId(entity.getTeamId());
+        return dto;
     }
 
 }

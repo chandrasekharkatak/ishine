@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.FetchActivityDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.model.EmployeeTimesheetActivitiesMappingNew;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapNewRepository;
@@ -317,6 +318,21 @@ public class ActivityTimesheetService {
 
 
 
+
+    public List<ActivityTimesheetDTO> findByTimesheetIdAndLocationMappingIdAndProjectId2(Long timesheetId,
+    Long locationMappingId,
+    Integer projectId) {
+            if (timesheetId == null || locationMappingId == null || projectId == null) {
+            return List.of();
+            }
+
+            List<FetchActivityDTO> entities = timesheetActivityMapNewRepository
+            .findByTimesheetIdAndLocationMappingIdAndProjectIdWithDTO(timesheetId, locationMappingId, projectId);
+
+                return entities.stream()
+                .map(timesheetMapper::toDTO)
+                .collect(Collectors.toList());
+        }
 
 }
 

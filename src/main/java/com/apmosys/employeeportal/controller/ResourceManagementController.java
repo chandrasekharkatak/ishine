@@ -813,12 +813,20 @@ public class ResourceManagementController {
 
 	
 
-//	@Scheduled(cron = "${clientSyncFromPoCron.time}")
+//	
 	@GetMapping("/cronClient")
+	public void syncClientsFromPoPortalApi() {
+		System.out.println("cron started");
+		poSyncOrchestratorService.syncClientsFromPoPortalCron();
+		System.out.println("cron ended");
+	}
+	
+	@Scheduled(cron = "${clientSyncFromPoCron.time}")
 	public void syncClientsFromPoPortalCron() {
 		System.out.println("cron started");
 		poSyncOrchestratorService.syncClientsFromPoPortalCron();
 		System.out.println("cron ended");
 	}
+	
 	
 }

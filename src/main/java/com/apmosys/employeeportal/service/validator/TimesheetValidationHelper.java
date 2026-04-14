@@ -607,9 +607,16 @@ public class TimesheetValidationHelper {
                 for (ProjectTimesheetDTO project : location.getProjects()) {
 
                     Integer projectId = project.getProjectId();
-                    
-                    if(project.getIsShadowForSelf()) continue;
-                    if(Boolean.TRUE.equals(project.getIsShadowTimesheet()) && project.getClientApprovalStatus() == null) continue;
+                    Integer status = project.getClientApprovalStatus();
+
+					if (project.getIsShadowForSelf() &&
+					    (status == null || (status != 1 && status != 2))) {
+					    continue;
+					}
+                    if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) &&
+						    (status == null || (status != 1 && status != 2))) {
+						    continue;
+						}
 
                     // Check if client-side document is mandatory for this project
                     Boolean isClientSideMandatory =
@@ -677,8 +684,17 @@ public class TimesheetValidationHelper {
 			for (LocationSessionDTO location : locationSessions) {
 				if (location.getProjects() == null) continue;
 				for (ProjectTimesheetDTO project : location.getProjects()) {
-					if (project.getIsShadowForSelf()) continue;
-					if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) && project.getClientApprovalStatus() == null) continue;
+					Integer status = project.getClientApprovalStatus();
+
+					if (project.getIsShadowForSelf() &&
+					    (status == null || (status != 1 && status != 2))) {
+					    continue;
+					}
+					
+					if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) &&
+						    (status == null || (status != 1 && status != 2))) {
+						    continue;
+						}
 					if (Boolean.TRUE.equals(projectRepository.getClientSideIdMandatory(project.getProjectId()))) {
 						targetProjectIdsWithClientSide.add(project.getProjectId());
 						projectMap.put(project.getProjectId(), project);
@@ -736,16 +752,13 @@ public class TimesheetValidationHelper {
 			// Check: if any project requires docs but documents list is empty
 			if (!projectsRequiringDocsInRequest.isEmpty() && (documents == null || documents.isEmpty())) {
 				Integer first = projectsRequiringDocsInRequest.iterator().next();
-				String name = projectMap.getOrDefault(first, new ProjectTimesheetDTO()).getProjectName();
 				throw new TimesheetValidationFailedException(
 						"Please upload required documents for the selected project.");
 			}
-
-			if (documents == null || documents.isEmpty()) {
+            if (documents == null || documents.isEmpty()) {
 				return;
 			}
-
-			Map<Integer, List<MultipartFile>> filesByProject;
+            Map<Integer, List<MultipartFile>> filesByProject;
 			try {
 				filesByProject = groupFilesByProjectId(documents);
 			} catch (TimesheetValidationFailedException e) {
@@ -760,15 +773,19 @@ public class TimesheetValidationHelper {
 
 			for (Integer projectId : projectsToValidate) {
 				ProjectTimesheetDTO project = projectMap.get(projectId);
-				String projectName = project != null ? project.getProjectName() : "Project " + projectId;
 				List<MultipartFile> projectFiles = filesByProject.getOrDefault(projectId, List.of());
 
 				if (projectFiles.isEmpty()) {
-					throw new TimesheetValidationFailedException("Please upload the filled document for the selected project.");
+					throw new TimesheetValidationFailedException("Please upload the required document for the selected project.");
 				}
 				if (projectFiles.size() > 2) {
 					throw new TimesheetValidationFailedException(
 							"Maximum 2 documents (filled and approved) are allowed per project.");
+				}
+				if (isCreate && project != null && project.getClientApprovalStatus() != null
+						&& project.getClientApprovalStatus() == 1 && projectFiles.isEmpty()) {
+					throw new TimesheetValidationFailedException(
+							"Please upload the filled document for the selected project..");
 				}
 				// On CREATE only: approved projects must have both filled and approved docs in this request.
 				// On UPDATE: allow partial upload (e.g. user replacing only one file); do not require all four.
@@ -1172,8 +1189,14 @@ public class TimesheetValidationHelper {
                 resolveDayType(empDTO.getDayTypeId());
 
         // ONLY Non-Working allows override
-        if (dayType == DayTypeCode.NON_WORKING) {
-            return existingOpt.get();
+        if (dayType == DayTypeCode.NON_WORKING ) {
+        	EmployeeTimesheetsNew obj=existingOpt.get();
+        	if(! obj.getIsSystemGenerated()) {
+        		 throw new TimesheetValidationFailedException(
+        	                "A timesheet already exists on this date."
+        	        );
+        	}
+            return obj;
         }
 
         //Everything else is blocked
@@ -1893,7 +1916,7 @@ public class TimesheetValidationHelper {
 	 * 2. Non-Working: ONLY allowed on dates that are announced as Holiday / Week Off.
 	 *    Non-working day type can only be selected for dates that exist in the holiday table.
 	 */
-	public void validateDayTypeAgainstHoliday(LocalDate timesheetDate, Integer dayTypeId) {
+	public void validateDayTypeAgainstHoliday(LocalDate timesheetDate, Integer dayTypeId , Boolean hasClient) {
 		
 		if (timesheetDate == null || dayTypeId == null) {
 			return;
@@ -1913,7 +1936,7 @@ public class TimesheetValidationHelper {
 		}
 		
 		// Rule 1: Working / Half-day Working NOT allowed on holiday dates
-		if (incomingDayType == DayTypeCode.WORKING || incomingDayType == DayTypeCode.HALF_DAY_WORKING) {
+		if ((incomingDayType == DayTypeCode.WORKING || incomingDayType == DayTypeCode.HALF_DAY_WORKING ) && !hasClient) {
 			if (isHolidayDate) {
 				throw new TimesheetValidationFailedException(
 						"Date is configured as Holiday/Week Off. Only Non-working timesheet is allowed on this date.");

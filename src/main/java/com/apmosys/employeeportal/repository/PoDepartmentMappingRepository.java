@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.PoDepartmentMappingDto;
 import com.apmosys.employeeportal.dto.ProjectPoDepartmentMapDTO;
 import com.apmosys.employeeportal.model.PoDepartmentMapping;
 
@@ -51,16 +52,16 @@ public interface PoDepartmentMappingRepository extends JpaRepository<PoDepartmen
 
 	public List<PoDepartmentMapping> findByPoId(Long poId);
 
-	@Query(value = "SELECT pdm.dept_id , pdm.po_id , pdm.project_id , pdm.active " +
-			"FROM po_department_mapping pdm " +
-			"INNER JOIN project_po_details ppo ON ((ppo.po_id IS NOT NULL AND pdm.po_id = ppo.po_id) "+
-			"OR (ppo.po_id IS NULL AND pdm.project_id = ppo.project_id)) "+
-			"WHERE ppo.project_id = :projectId AND DATE(ppo.po_end_date) >= CURRENT_DATE ", nativeQuery = true)
-	List<PoDepartmentMapping> findByProjectIdAndActive(@Param("projectId") Integer projectId);
+	@Query(value = "SELECT new com.apmosys.employeeportal.dto.PoDepartmentMappingDto(pdm.deptId , pdm.poId , pdm.projectId , pdm.active) \n" +
+			"FROM PoDepartmentMapping pdm   \n" +
+			"INNER JOIN ProjectPoDetails ppo ON ((ppo.poId IS NOT NULL AND pdm.poId = ppo.poId) \n"+
+			"OR (ppo.poId IS NULL AND pdm.projectId = ppo.projectId)) \n"+	
+			"WHERE ppo.projectId =:projectId AND DATE(ppo.poEndDate) >= CURRENT_DATE \n")
+	List<PoDepartmentMappingDto> findByProjectIdAndActive(@Param("projectId") Integer projectId);
 
-	@Query(value = "SELECT Distinct pdm.dept_Id FROM po_department_mapping pdm "
+	@Query(value = "SELECT Distinct pdm.dept_Id FROM po_department_mapping pdm \n"
 			+ "LEFT JOIN project_po_details ppo ON ((ppo.po_id IS NOT NULL AND pdm.po_id = ppo.po_id) OR (ppo.po_id IS NULL AND pdm.project_id = :projectId)) \n"
-			+ "AND (DATE(ppo.po_end_date) >= CURRENT_DATE or :isAllProjects = true ) "
+			+ "AND (DATE(ppo.po_end_date) >= CURRENT_DATE or :isAllProjects = true ) \n"
 			+ "WHERE pdm.project_id = :projectId ", nativeQuery = true)
 	List<Long> findPoDeptIdsByProjectId(@Param("projectId") Integer projectId, boolean isAllProjects);
 
