@@ -8,7 +8,7 @@ import {
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, finalize, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { LoaderService } from '../services/loader.service';
 
@@ -646,6 +646,9 @@ export class LoaderInterceptor implements HttpInterceptor {
       }
 
       return throwError(() => error);
+    }),
+     finalize(() => {
+      this.loaderService.requestEnded();
     })
   );
 }
