@@ -85,7 +85,7 @@ export class Employee360ProjectComponent implements OnInit {
   currentUser: User;
   filters: any = {};
   isSearchEnabled: boolean = false;
-  projectColumns: any[] = ['blank', 'projectName', 'teamName', 'clientName', 'billableType', 'combinedProjectType','startDate', 'endDate','rescRemovedByName' ,'projectStartDate', 'poEndDate', 'status'];
+  projectColumns: any[] = ['blank', 'projectName', 'teamName', 'clientName', 'billableType', 'combinedProjectType','poNoSearch','startDateSearch', 'endDateSearch','rescRemovedByName' ,'projectStartDateSearch', 'projectEndDateSearch', 'status'];
   employeesColumns: any[] = ['blank', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
   teamColumns: any[] = ['blank','employmentIdAcToET','name','teamName','teamLeadName']
   alertMessage: any;
@@ -287,7 +287,23 @@ export class Employee360ProjectComponent implements OnInit {
     window.location.reload();
   }
 
+flattenProjectData(data: any[]): any[] {
+  const flatList: any[] = [];
+
+  data.forEach(parent => {
+    flatList.push(parent);
+
+    parent.history?.forEach(child => {
+      flatList.push(child);
+    });
+  });
+
+  return flatList;
+}
+
   exportToExcel(id: any): void {
+
+
     let exportToExcelTeamfile = id + ".xlsx";
     const table = document.getElementById('' + id); // Get table by ID
     if (!table) {
@@ -303,7 +319,68 @@ export class Employee360ProjectComponent implements OnInit {
     const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
 
     saveAs(data, exportToExcelTeamfile);
+
   }
+
+
+  // added by Soumyakant
+exportFullDataToExcel(): void {
+
+  let exportData: any[] = [];
+  this.allProjectList.forEach((project, index) => {
+
+    exportData.push({
+      'Sr No.': index + 1,
+      'Project Name': project.projectName,
+      'Team Name': project.teamName,
+      'Client Name': project.clientName,
+      'Billable Type': project.billableType,
+      'Project Type': project.combinedProjectType,
+      'PO No': project.poNo || '',
+      'Start Date': project.startDate,
+      'End Date': project.endDate,
+      'Removed By': project.rescRemovedByName || '',
+      'PO Start Date': project.projectStartDate,
+      'PO End Date': project.projectEndDate,
+      'Project Status': project.status,
+      'Type': 'Parent'
+    });
+
+
+    (project.history || []).forEach(h => {
+      exportData.push({
+        'Sr No.': '',
+        'Project Name': h.projectName,
+        'Team Name': h.teamName,
+        'Client Name': h.clientName,
+        'Billable Type': h.billableType,
+        'Project Type': h.combinedProjectType,
+        'PO No': h.poNo || '',
+        'Start Date': h.startDate,
+        'End Date': h.endDate,
+        'Removed By': h.rescRemovedByName || '',
+        'PO Start Date': h.projectStartDate,
+        'PO End Date': h.projectEndDate,
+        'Project Status': h.status,
+        'Type': 'History'
+      });
+    });
+
+  });
+
+  const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
+  const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Project Data');
+
+  const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+
+  saveAs(data, 'Full_Project_Data.xlsx');
+}
+
+
+
   async getTeamEmployeeByTeamId(teamId: any) {
     try {
       const response: any = await this.projectService.getTeamMemberByTeamId(teamId).pipe(first()).toPromise();
@@ -350,22 +427,99 @@ getProjectType(project: any): string {
   }
 }
 
+// async getExistingProjectsByUser() {
+//   let projectObj = new Project();
+//   projectObj.empId = this.employeeData.empId;
+//   projectObj.isAllProj = true;
+//   this.allProjectList = [];
+//   // getExistingProjectsAndTeamsByEmployee service impl
+//   this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
+//     if (response.serviceStatus == "Success") {
+//       this.allProjectList = response.serviceResponse;
+//       // Add combined project type to each project in the list
+//       this.allProjectList = this.allProjectList.map((project: any) => {
+//         project.combinedProjectType = this.getProjectType(project);
+//         return project;
+//       });
+//     }
+//   });
+// }
+
+//Updated by Soumyakant
 async getExistingProjectsByUser() {
   let projectObj = new Project();
   projectObj.empId = this.employeeData.empId;
   projectObj.isAllProj = true;
   this.allProjectList = [];
-  // getExistingProjectsAndTeamsByEmployee service impl
+
   this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.allProjectList = response.serviceResponse;
-      // Add combined project type to each project in the list
-      this.allProjectList = this.allProjectList.map((project: any) => {
-        project.combinedProjectType = this.getProjectType(project);
-        return project;
+      let rawData = response.serviceResponse || [];
+
+
+     rawData.forEach((p: any) => {
+  p.combinedProjectType = this.getProjectType(p);
+  p.startDateSearch = this.formatDateForSearch(p.startDate);
+  p.endDateSearch = this.formatDateForSearch(p.endDate);
+  p.projectStartDateSearch = this.formatDateForSearch(p.projectStartDate);
+  p.projectEndDateSearch = this.formatDateForSearch(p.projectEndDate);
+});
+
+      rawData.sort((a: any, b: any) => {
+        const dateA = new Date(a.startDate).getTime();
+        const dateB = new Date(b.startDate).getTime();
+        return dateB - dateA;
       });
+
+      const groupedMap = new Map();
+
+      rawData.forEach((item: any) => {
+
+        const key = `${item.projectName?.trim()}|${item.teamName?.trim()}`;
+        item.isExpanded = false;
+
+       if (!groupedMap.has(key)) {
+
+  item.history = [];
+
+  item.poNoSearch = item.poNo ? item.poNo.toString() : '';
+   item.startDateSearch = item.startDateSearch || '';
+   item.endDateSearch = item.endDateSearch || '';
+   item.projectStartDateSearch = item.projectStartDateSearch || '';
+   item.projectEndDateSearch = item.projectEndDateSearch || '';
+
+  groupedMap.set(key, item);
+
+} else {
+
+  const parent = groupedMap.get(key);
+  parent.history.push(item);
+
+  if (item.poNo) {
+    parent.poNoSearch += ' ' + item.poNo.toString();
+     parent.startDateSearch += ' ' + (item.startDateSearch || '');
+    parent.endDateSearch += ' ' + (item.endDateSearch || '');
+    parent.projectStartDateSearch += ' ' + (item.projectStartDateSearch || '');
+    parent.projectEndDateSearch += ' ' + (item.projectEndDateSearch || '');
+  }
+}
+      });
+
+      this.allProjectList = Array.from(groupedMap.values());
     }
   });
+}
+
+//added by Soumyakant
+formatDateForSearch(date: any): string {
+  if (!date) return '';
+
+  const d = new Date(date);
+
+  const ddmmyyyy = `${('0' + d.getDate()).slice(-2)}-${('0' + (d.getMonth()+1)).slice(-2)}-${d.getFullYear()}`;
+  const yyyymmdd = `${d.getFullYear()}-${('0' + (d.getMonth()+1)).slice(-2)}-${('0' + d.getDate()).slice(-2)}`;
+
+  return ddmmyyyy + ' ' + yyyymmdd;
 }
 
 
@@ -570,12 +724,12 @@ async getExistingProjectsByUser() {
     projectObj.teamId = this.projectObj.teamId;
     projectObj.empId = this.projectObj.empId;
     projectObj.startDate = this.startDate;
-    
+
     if (this.isBefore(this.projectObj.projectStartDate, projectObj.startDate)) {
       this.errModalRef = this.modalService.open(this.updateProjectStartDateErrorModalRef, { modalDialogClass: 'modal-md' });
       return;
     }
-    
+
     const flag: boolean = await this.validateEmployeeProjectStartDate(this.projectObj.empId, this.projectObj.projectId, '', edit_enddate_template);
     if (!flag) {
       return;
@@ -1006,7 +1160,7 @@ console.log("mapping ID",this.employeeTeamMapId);
       projectObj.projectId = this.projectObj.projectId;
       projectObj.startDate = moment(this.normalizeDate(this.projectNewStartDate)).format('YYYY-MM-DD');
       projectObj.updatedBy = this.currentUser.empId;
-  
+
       this.projectService.updateProjectStartDate(projectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.projectObj.projectStartDate = this.normalizeDate(this.projectNewStartDate);
@@ -1029,7 +1183,7 @@ console.log("mapping ID",this.employeeTeamMapId);
 		}
 
 		return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-	} 
+	}
 
   closeUpdateProjectStartDateConfirmationModal() {
 		if (this.updateProjectStartDateConfirmationModalRef) {
@@ -1046,7 +1200,7 @@ console.log("mapping ID",this.employeeTeamMapId);
 
   openUpdateProjectStartDateConfirmationModal() {
 		this.projectNewStartDate = null;
-		this.updateProjectStartDateConfirmationModalRef = this.modalService.open(this.updateProjStartDateModal, 
+		this.updateProjectStartDateConfirmationModalRef = this.modalService.open(this.updateProjStartDateModal,
       { modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false });
 	}
 
@@ -1082,5 +1236,5 @@ console.log("mapping ID",this.employeeTeamMapId);
       return false;
     }
   }
-  
+
 }

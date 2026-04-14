@@ -2758,6 +2758,7 @@ public class ResourceManagementService {
 				dto.setRescRemovedBy(obj[16] != null ? Long.parseLong(obj[16].toString()) : null);
 				dto.setRescRemovedByName(obj[17] != null ? obj[17].toString() : null);
 				dto.setEmployeeTeamMapId(obj[18] != null ? Long.parseLong(obj[18].toString()) : null);
+				dto.setPoNo(obj[19] != null ? obj[19].toString() : null);
 				allData.add(dto);
 			});
 
