@@ -2140,7 +2140,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 							}
 
                             if (!approver.isEmpty()) {
-                                
+                            	Employee approverObj = approver.get();
                                 mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress + "," + approverObj.getEmail() + managerEmail,
                                         "Regarding leave Approval",
                                         "Dear " + empObj.getName() + ","
