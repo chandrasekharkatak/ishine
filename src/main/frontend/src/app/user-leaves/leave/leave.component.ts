@@ -251,6 +251,7 @@ export class LeaveComponent implements OnInit {
     this.sortDirection = '';
     this.isLeaveHistoryTable = true;
     this.isLeaveBalanceTable = false;
+    this.isLeaveApprovedByMeTable = false;
     this.isLeaveApplicationsTable = false;
     this.isLeaveLogTable = false;
     this.isForm = false;
@@ -326,6 +327,7 @@ export class LeaveComponent implements OnInit {
     this.sortColumnType = [];
     this.sortDirection = '';
     this.isLeaveHistoryTable = false;
+    this.isLeaveApprovedByMeTable = false;
     this.isLeaveApplicationsTable = false;
     this.isLeaveLogTable = false;
     this.isForm = false;
@@ -346,6 +348,7 @@ export class LeaveComponent implements OnInit {
     this.sortColumnType = [];
     this.sortDirection = '';
     this.isLeaveApplicationsTable = false;
+    this.isLeaveApprovedByMeTable = false;
     this.isLeaveHistoryTable = false;
     this.isLeaveBalanceTable = false;
     this.isForm = false;
@@ -366,6 +369,7 @@ export class LeaveComponent implements OnInit {
     this.sortDirection = '';
     this.isLeaveRevokeApplicationTable = true;
     this.isSelfLeaveRevokeApplication = true;
+    this.isLeaveApprovedByMeTable = false;
 
     this.isLeaveLogTable = false;
     this.isLeaveApplicationsTable = false;
