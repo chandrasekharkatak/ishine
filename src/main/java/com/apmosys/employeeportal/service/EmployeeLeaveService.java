@@ -954,10 +954,10 @@ public class EmployeeLeaveService {
 
         apiLogInfo.setApiResponse("Leave application submitted.");
         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-        leaveAppliedTimesheetWriter.syncTimesheetsAfterLeaveApplication(
-                leaveDTO, dates.fromDate, dates.toDate, leaveDayType);
-
+		if(leaveDayType.getDayTypeId()!=5){
+			leaveAppliedTimesheetWriter.syncTimesheetsAfterLeaveApplication(
+					leaveDTO, dates.fromDate, dates.toDate, leaveDayType);
+		}
         if (isHalfDayLeave(leaveDTO)) {
             rejectFullDayTimesheetsForHalfDayLeave(leaveDTO.getEmpId(), dates.fromDate, dates.toDate, leaveDTO);
         }
@@ -2140,11 +2140,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 							}
 
                             if (!approver.isEmpty()) {
-                                Employee approverObj = approver.get();
-								empObj.setEmail("nabarun.samanta@apmosys.com");
-								hrMailAddress = "nabarun.samanta@apmosys.com";
-								approverObj.setEmail("nabarun.samanta@apmosys.com");
-								managerEmail = ",nabarun.samanta@apmosys.com";
+                                
                                 mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress + "," + approverObj.getEmail() + managerEmail,
                                         "Regarding leave Approval",
                                         "Dear " + empObj.getName() + ","
@@ -2175,12 +2171,12 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 									DayTypeMasterNew leaveDayType = leaveApplicationValidator.requireLeaveDayTypeForTimesheet();
 									DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-									String fromDate = leave.getFromDate().format(formatter);
-									String toDate = leave.getToDate().format(formatter);
+									String fromDate = pendingLeaveApplication.getFromDate().format(formatter);
+									String toDate = pendingLeaveApplication.getToDate().format(formatter);
 									leaveDTO.setFromDate(fromDate);
 									leaveDTO.setToDate(toDate);
 									
-									leaveAppliedTimesheetWriter.syncTimesheetsAfterLeaveApplication(leaveDTO, leave.getFromDate(), leave.getToDate(), leaveDayType);
+									leaveAppliedTimesheetWriter.syncTimesheetsAfterLeaveApplication(leaveDTO, pendingLeaveApplication.getFromDate(), pendingLeaveApplication.getToDate(), leaveDayType);
                                 });
                             }
                         }
