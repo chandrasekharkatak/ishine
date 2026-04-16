@@ -187,8 +187,14 @@ List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate,
 // 		+ "AND (COALESCE(:startDate, '') = '' OR COALESCE(:endDate, '') = '' OR DATE(a.appreciation_date) BETWEEN :startDate AND :endDate)"+
 //            "ORDER BY a.appreciation_date DESC",nativeQuery = true)
 
-	@Query(value = "SELECT a.appreciation_date, ae.appreciation_event_name, " +
-        "eb.name AS appreciated_byName, et.name AS appreciated_toName, a.comment " +
+	@Query(value = " SELECT a.appreciation_date,  \r\n"
+			+ " ae.appreciation_event_name,  \r\n"
+			+ " a.appreciation_by,  \r\n"
+			+ " eb.name AS appreciated_byName,  \r\n"
+			+ " a.appreciation_to,  \r\n"
+			+ " et.name AS appreciated_toName,  \r\n"
+			+ " a.appriate_type,  \r\n"
+			+ " a.comment, eb.emp_id AS appreciated_by_id, et.emp_id AS appreciated_to_id   " +
         "FROM appreciation a " +
         "JOIN appreciation_event ae ON a.appreciation_event_id = ae.appreciation_eventid " +
         "JOIN employee eb ON a.appreciation_by = eb.emp_id " +
