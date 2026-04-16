@@ -122,7 +122,7 @@ public class MailService {
 		}
 	}
 	
-	public boolean sendMailWithImage(String receiver, List<String> cc, String subject, String htmlBody)
+	public boolean sendMailWithImage(String receiver, List<String> cc, String subject, String htmlBody,String imageFileName)
 			throws AddressException, MessagingException {
 
 		try {
@@ -147,13 +147,13 @@ public class MailService {
 			multipart.addBodyPart(messageBodyPart);
 			
 			// adds inline image attachments
-			//MimeBodyPart imagePart = new MimeBodyPart();
-			//imagePart.setHeader("Content-ID", "image");
-			//imagePart.setDisposition(MimeBodyPart.INLINE);
+			MimeBodyPart imagePart = new MimeBodyPart();
+			imagePart.setHeader("Content-ID", "image");
+			imagePart.setDisposition(MimeBodyPart.INLINE);
 			// attach the image file
-			//imagePart.attachFile(imageFilepath+  File.separator +imageFileName);
+			imagePart.attachFile(imageFilepath+  File.separator +imageFileName);
 			
-			//multipart.addBodyPart(imagePart);
+			multipart.addBodyPart(imagePart);
 
 			msg.setContent(multipart);
 
