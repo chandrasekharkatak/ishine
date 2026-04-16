@@ -172,6 +172,11 @@ export class MyTableComponent {
       const response: any = await firstValueFrom(this.http.post<any>(this.baseUrl + this.apiUrl, this.pageObj));
       if (response != null && response?.serviceResponse != null && response?.serviceStatus === 'Success') {
         this.data = response?.serviceResponse?.content || [];
+        this.data.forEach(element => {
+        if (typeof element?.employeeRole === 'string') {
+          element.employeeRole = element.employeeRole.replace(/^,+|,+$/g, '').trim();
+        }
+      });
         if (this.isRowExpandable) {
           this.isRowExpandable = false;
           this.data.forEach(element => {
