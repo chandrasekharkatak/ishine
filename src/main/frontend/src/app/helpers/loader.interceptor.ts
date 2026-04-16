@@ -647,9 +647,9 @@ export class LoaderInterceptor implements HttpInterceptor {
 
       return throwError(() => error);
     }),
-     finalize(() => {
-      this.loaderService.requestEnded();
-    })
+    //  finalize(() => {
+    //   this.loaderService.requestEnded();
+    // })
   );
 }
 
