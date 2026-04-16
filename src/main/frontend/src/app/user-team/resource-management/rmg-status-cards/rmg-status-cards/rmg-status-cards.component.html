@@ -283,7 +283,7 @@
 
 <ng-container>
     <!-- Project Details List -->
-    <div class="row row m-1 mb-3 card border rounded">
+    <div class="row row m-1 mb-3 card border rounded" id="projectTable">
         <div class="row m-2 ml-4">
             <h3 class="mb-0">{{ selectedProjectStatusLabel }}</h3>
         </div>
@@ -353,9 +353,9 @@
                             <th class="max-width200 min-width200" mat-sort-header="createdOn|datetime">
                                 Created On
                             </th>
-                            <th class="max-width200 min-width200" mat-sort-header="status|string">
+                            <!-- <th class="max-width200 min-width200" mat-sort-header="status|string">
                                 PO Project Status
-                            </th>
+                            </th> -->
                             <th class="max-width200 min-width200" mat-sort-header="projectStatus|string">
                                 Ishine Project Status
                             </th>
@@ -481,9 +481,9 @@
                                     [title]=" project?.createdOn ? (project?.createdOn | date: 'dd/MM/yyyy') : 'NA'">
                                     {{ project?.createdOn ? (project?.createdOn | date: 'dd/MM/yyyy') : 'NA' }}
                                 </td>
-                                <td class="max-width200 min-width200 truncate" [title]="project?.status || 'NA'">
+                                <!-- <td class="max-width200 min-width200 truncate" [title]="project?.status || 'NA'">
                                     {{ project?.status || 'NA'}}
-                                </td>
+                                </td> -->
                                 <td class="max-width200 min-width200 truncate" [title]="project?.projectStatus || 'NA'">
                                     {{ project?.projectStatus||'NA'}}
                                 </td>

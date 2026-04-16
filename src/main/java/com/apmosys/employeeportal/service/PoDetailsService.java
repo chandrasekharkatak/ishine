@@ -50,6 +50,8 @@ import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ExceptionLogContext;
 
+
+
 @Service
 public class PoDetailsService {
 
@@ -108,6 +110,9 @@ public class PoDetailsService {
 
 	@Value("${finance.mail}")
 	private String financeMail;
+	
+	@Autowired
+	TeamsService teamsService;
 
 	public ProjectPoDetails createPoRTS(Project project, ProjectPoMappingWithResourceDTO dto, Client client) {
 
@@ -1222,6 +1227,41 @@ public class PoDetailsService {
 
 	    } catch (Exception e) {
 	        log.error("sendPoLinkSuccessMail: failed primaryProjectId={}", primaryProject.getProjectId(), e);
+	    }
+	}
+	
+	public void migrateResourcesAfterPoLink(
+	        Integer projectId,
+	        List<PoDetailsForProjectPoMappingDTO> poList) {
+
+	    if (poList == null || poList.isEmpty()) {
+	        return;
+	    }
+
+	    Long updatedBy = poList.stream()
+	            .map(PoDetailsForProjectPoMappingDTO::getUpdatedByEmpId)
+	            .filter(Objects::nonNull)
+	            .findFirst()
+	            .orElse(null);
+
+	    if (updatedBy == null) {
+	        throw new RuntimeException("UpdatedBy missing for PO migration");
+	    }
+
+	    for (PoDetailsForProjectPoMappingDTO po : poList) {
+
+	        Long renewedPoId = po.getPoId();
+
+	        if (renewedPoId == null) continue;
+
+	        try {
+	        	teamsService.migrateResourcesAfterRenewal(projectId, renewedPoId, updatedBy);
+	        } catch (Exception e) {
+	            ExceptionLogContext.add(
+	                "Resource migration failed for poId=" + renewedPoId + " | " + e.getMessage()
+	            );
+	            throw e; 
+	        }
 	    }
 	}
 

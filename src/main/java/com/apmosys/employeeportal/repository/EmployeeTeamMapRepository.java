@@ -1466,6 +1466,15 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	void deleteScheduledEmployeesByPoId(Long poId);
 	
 	@Modifying
+	@Transactional
+	@Query("DELETE FROM EmployeeTeamMap e\n"
+			+ "WHERE e.active = 0\n"
+			+ "AND e.endDate IS NULL\n"
+			+ "AND FUNCTION('DATE', e.startDate) > CURRENT_DATE AND e.teamId IN :teamIds")
+	void deleteFutureMappings(@Param("teamIds") List<Long> teamIds);
+	
+	
+	@Modifying
 	@Query("DELETE FROM EmployeeTeamMap e\n"
 			+ "WHERE e.teamId IN :teamIds\n"
 			+ "AND e.active = 0\n"

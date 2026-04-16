@@ -343,7 +343,14 @@ public List<Object[]> getAllTeamCompOffHistoryViewHirarchy(List<Long> empIds, Lo
 		@Param("empId") Long empId,
 		@Param("startDate") LocalDate startDate,
 		@Param("endDate") LocalDate endDate
-	);				
+	);	
+		
+		@Query(value = "SELECT el.emp_id, COUNT(*) FROM emp_portal_db.employee_leave el "
+				+ "	  WHERE el.emp_id IN (:empIds) "
+				+ "	  AND el.leave_type_master_id IN (1,2,3,4) "
+				+ "	  AND el.from_date <= :endDate AND el.to_date >= :startDate\n"
+				+ "	 GROUP BY el.emp_id", nativeQuery = true)
+	List<Object[]> findLeaveCountByEmpIdsAndDateRange(List<Long> empIds,LocalDate startDate,LocalDate endDate);
 
 }
 

@@ -181,6 +181,8 @@ public class TeamMembersService {
 				response.setServiceResponse("Project not found!!");
 				return response;
 			}
+			
+			
 
 			log.info("Adding/updating Team members for ProjectId : {}", rmgTeamDto.getProjectId());
 
@@ -341,6 +343,9 @@ public class TeamMembersService {
 		}
 
 		if (updateProjectFlag) {
+			if ("Not Started".equalsIgnoreCase(project.getProjectStatus())) {
+			    project.setProjectStatus("In Progress");
+			}
 			project.setIsDraftProject("true");
 			projectRepository.save(project);
 		}

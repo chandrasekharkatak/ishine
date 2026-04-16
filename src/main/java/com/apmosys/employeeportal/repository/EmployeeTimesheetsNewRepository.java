@@ -18689,14 +18689,16 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
        				"trrm.rejection_reason AS rejectionReason, " +
         			"trdn.remarks AS remarks " +
         			"FROM employee_timesheets_new etn " +
+					" inner join employee_timesheet_location_mapping etlm on etlm.timesheet_id = etn.timesheet_id " +
         			"INNER JOIN project_timesheet_status_new ptsn " +
-        			"ON ptsn.timesheet_id = etn.timesheet_id " +
+        			"ON ptsn.timesheet_id = etn.timesheet_id  and ptsn.location_mapping_id = etlm.location_mapping_id " +
         			"INNER JOIN timesheet_rejection_details_new trdn " +
         			"ON trdn.timesheet_id = etn.timesheet_id AND trdn.project_id = ptsn.project_id " +
         			"INNER JOIN timesheet_rejection_reasons_master trrm " +
         			"ON trrm.rejection_id = trdn.rejection_id " +
         			"INNER JOIN projects p " +
-        			"ON p.project_id = ptsn.project_id where etn.timesheet_id = :timesheetId ",
+        			"ON p.project_id = ptsn.project_id where etn.timesheet_id = :timesheetId " +
+					" group by p.project_name, trrm.rejection_reason ",
         				nativeQuery = true)
 					List<Object[]> getTimesheetRejectionRaw(Long timesheetId);
 
