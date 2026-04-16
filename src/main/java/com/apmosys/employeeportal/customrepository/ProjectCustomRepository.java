@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.customrepository;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -110,6 +111,8 @@ public class ProjectCustomRepository {
 
         String query = getAllProjectsQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
                 projectNames);
+        
+        System.err.println(query.toString());
 
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
@@ -994,6 +997,14 @@ public class ProjectCustomRepository {
                 String column = getSortBy(entry.getKey(), false);
                 String value = entry.getValue();
                 if (column != null && !column.trim().isEmpty() && value != null && !value.trim().isEmpty()) {
+               	   if (column.equalsIgnoreCase("start_date") 
+                    || column.equalsIgnoreCase("end_date") 
+                    || column.equalsIgnoreCase("created_on")) {
+
+                    appendDateCondition(query, column, value);
+                    continue;
+                }
+
                     if(column.equals("poNo") || column.equals("po_no")){
                         continue;
                     }
@@ -1002,6 +1013,41 @@ public class ProjectCustomRepository {
                 }
             }
             query.append(" ");
+            System.err.println(query.toString());
+        }
+    }
+    
+    private void appendDateCondition(StringBuilder query, String column, String value) {
+
+    	 String normalizedValue = value.replace("/", "-").trim();
+        String formattedDate = convertToYYYYMMDD(normalizedValue);
+
+        if (formattedDate != null) {
+          
+            query.append(String.format(
+                " AND DATE(%s) = '%s' \n",
+                column,
+                formattedDate
+            ));
+        } else {
+           
+            query.append(String.format(
+                " AND DATE_FORMAT(%s, '%%d-%%m-%%Y') LIKE '%%%s%%' \n",
+                column,
+                normalizedValue.replace("'", "''")
+            ));
+        }
+    }
+    
+    
+    private String convertToYYYYMMDD(String value) {
+        try {
+        	 value = value.replace("/", "-").trim();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            LocalDate date = LocalDate.parse(value, formatter);
+            return date.toString(); // yyyy-MM-dd
+        } catch (Exception e) {
+            return null; // not full date
         }
     }
 

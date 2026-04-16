@@ -380,7 +380,7 @@ export class RmgDashboardComponent implements OnInit {
   projectSortColumn: string;
   projectSortColumnType: string;
   projectFilters: any = {};
-  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "blank", "blank", "state", "blank", "status", "projectStatus", "draftStatus"];
+  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "projectStartDate", "projectEndDate", "state", "createdOn", "projectStatus", "draftStatus"];
 
   constructor(
     private route: ActivatedRoute,
@@ -1781,6 +1781,7 @@ export class RmgDashboardComponent implements OnInit {
         const apiResponse = response?.serviceResponse?.projectList;
         this.totalProjectsCount = apiResponse?.totalElements || 0;
         this.projectDetailsList = [...apiResponse?.content];
+        console.log(this.projectDetailsList,"lalallala");
       } else {
         this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
       }
