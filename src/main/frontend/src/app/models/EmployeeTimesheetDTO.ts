@@ -7,6 +7,7 @@ export class EmployeeTimesheetDTO {
     timesheetId?:any;
     empId?:any;
     date?:any;
+    compOffForDate?:any;
     dayTypeId?:any;
     leaveTypeId?:any;
     status?:any;

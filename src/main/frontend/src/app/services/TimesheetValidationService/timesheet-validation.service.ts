@@ -44,6 +44,7 @@ export interface TimesheetValidationContext {
   apmosysInTime: string | null;
   apmosysOutTime: string | null;
   totalPresence: number;
+  compOffForDate: string | null; // DD-MM-YYYY format
   
   // Employee Information
   timesheetAppliedFor: string; // 'self' | 'team'
@@ -191,7 +192,15 @@ export class TimesheetValidationService {
       return { isValid: false, errors, warnings };
     }
 
-    // 8. Time validations for fillable day types
+    // 8. Comp off for date validation
+    if(context.dayType == 9){
+      if(context.compOffForDate == null || context.compOffForDate == ''){
+        errors.push({ field: 'compOffForDate', message: 'Comp Off for date is required for Copm Off day type', scope: 'TIMESHEET' });
+      return { isValid: false, errors, warnings };
+      }
+    }
+
+    // 9. Time validations for fillable day types
     if (isDayTypeFillable) {
       if (!context.apmosysInTime) {
         errors.push({ field: 'apmosysInTime', message: 'Work check in time must be filled', scope: 'TIMESHEET' });

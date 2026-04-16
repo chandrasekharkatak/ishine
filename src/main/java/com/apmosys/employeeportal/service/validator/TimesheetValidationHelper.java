@@ -1668,6 +1668,49 @@ public class TimesheetValidationHelper {
 	
 	
 	public void validateNonWorkingDayTimesheet(EmployeeTimesheetDTO empDTO) {
+		
+		if (empDTO.getDayTypeId() == 9) {
+		    if (empDTO.getCompOffForDate() != null) {
+
+		        LocalDate maxDate = empDTO.getDate();
+		        LocalDate minDate = maxDate.minusMonths(1);
+
+		        LocalDate compOffDate = empDTO.getCompOffForDate();
+
+		        if (compOffDate.isBefore(minDate) || !compOffDate.isBefore(maxDate)) {
+		            throw new TimesheetValidationFailedException(
+		                "Comp Off date must be between " + formatDate(minDate) + " (inclusive) and " + formatDate(maxDate) + " (exclusive)"
+		            );
+		        }
+		        EmployeeTimesheetsNew compOffForAlreadyExistTimesheet =
+		        	    employeeTimesheetsNewRepository.findByEmpIdAndCompOffFor(empDTO.getEmpId(), compOffDate)
+	        	        .orElse(null);
+		        if(compOffForAlreadyExistTimesheet != null) {
+		        	throw new TimesheetValidationFailedException(
+			                "You have already applied a comp off for date: "+formatDate(empDTO.getCompOffForDate())
+			        );
+		        }
+		        EmployeeTimesheetsNew compOffForTimesheet =
+		        	    employeeTimesheetsNewRepository
+		        	        .findByEmpIdAndDateNew(empDTO.getEmpId(), compOffDate)
+		        	        .orElse(null);
+		        if(compOffForTimesheet != null) {
+		        	if(compOffForTimesheet.getDayTypeId() != 1 && compOffForTimesheet.getDayTypeId() != 3) {
+		        		throw new TimesheetValidationFailedException(
+				                "No working day type Timesheet found against the Comp-Off date: "+formatDate(empDTO.getCompOffForDate())
+				        );
+		        	}
+		        }else {
+		        	throw new TimesheetValidationFailedException(
+			                "No Timesheet found against the Comp-Off date: "+(empDTO.getCompOffForDate())
+			        );
+		        }
+		    }else {
+		    	throw new TimesheetValidationFailedException(
+		                "Comp Off for date is required Comp Off day type"
+		        );
+		    }
+		}
 
 	    if (empDTO.getLocationSessions() == null ||
 	        empDTO.getLocationSessions().isEmpty()) {
@@ -2046,7 +2089,12 @@ public class TimesheetValidationHelper {
 
 	}
 
+	private String formatDate(LocalDate date) {
+        if (date == null) return null;
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        return date.format(formatter);
+    }
 
     private LocalTime extractTime(String dateTimeStr) {
         if (dateTimeStr.contains(" ")) {

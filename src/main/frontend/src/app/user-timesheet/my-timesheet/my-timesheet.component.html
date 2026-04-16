@@ -613,6 +613,9 @@
                             <span class="ts-meta">
                               <strong>Presence At Location:</strong> {{ getTotalLocationHours(location) }}
                             </span>
+                            <span class="ts-meta" *ngIf="timesheet.compOffForDate && timesheet.compOffForDate != ''">
+                              <strong>Comp Off For:</strong> {{ timesheet.compOffForDate | date:'dd-MM-yyyy' }}
+                            </span>
                           </div>
                           <i *ngIf="hasProjects(location)" class="fas ts-chevron"
                             [class.fa-chevron-down]="isLocationExpanded(timesheet.timesheetId, location.locationMappingId)"

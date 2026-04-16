@@ -57,6 +57,10 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	java.util.Optional<EmployeeTimesheetsNew> findByEmpIdAndDateNew(@Param("empId") Long empId,
 			@Param("date") LocalDate date);
 	
+	@Query("SELECT e FROM EmployeeTimesheetsNew e WHERE e.empId = :empId AND e.compOffForDate = :date")
+	java.util.Optional<EmployeeTimesheetsNew> findByEmpIdAndCompOffFor(@Param("empId") Long empId,
+			@Param("date") LocalDate date);
+	
 	
 	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO(" +
 		       "et.timesheetId, " +
@@ -17516,7 +17520,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				"    etn.timesheetId, etn.empId, \n" +
 				"    CASE WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId) \n" +
 				"         ELSE CONCAT('A-', e.employeementId) END, \n" +
-				"    e.name, dtmn.dayType, etn.date, etn.isNightShift, etn.workCheckIn, etn.workCheckOut, \n" +
+				"    e.name, dtmn.dayType, etn.date, etn.compOffForDate, etn.isNightShift, etn.workCheckIn, etn.workCheckOut, \n" +
 				"    COUNT(DISTINCT ptsn.id.projectId), COUNT(DISTINCT etlm.locationMappingId), \n" +
 				"    ab.name, etn.createdOn, \n" +
 				"    wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId, \n" +

@@ -51,6 +51,10 @@ public class EmployeeTimesheetDTO {
      */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
+    
+    
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate compOffForDate;
 
     /**
      * Day Type ID (FK to day_type_master_new)

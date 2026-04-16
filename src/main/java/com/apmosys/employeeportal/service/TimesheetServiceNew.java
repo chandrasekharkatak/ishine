@@ -317,9 +317,9 @@ public class TimesheetServiceNew {
 	 * 
 	 * @param empDTO Employee timesheet DTO from new contract
 	 */
-	private void normalizeEmployeeTimesheetFromNewContract(EmployeeTimesheetDTO empDTO, LocalDate date) {
-
-	}
+//	private void normalizeEmployeeTimesheetFromNewContract(EmployeeTimesheetDTO empDTO, LocalDate date) {
+//
+//	}
 
 	/**
 	 * API 1.1: Create Timesheet (New Hierarchical Structure) Creates
@@ -367,7 +367,7 @@ public class TimesheetServiceNew {
 		try {
 
 			// Normalize new contract
-			normalizeEmployeeTimesheetFromNewContract(empDTO, empDTO.getDate());
+//			normalizeEmployeeTimesheetFromNewContract(empDTO, empDTO.getDate());
 			
 			Boolean hasClient = anyProjectWithClientSideId(empDTO);
 
@@ -449,6 +449,7 @@ public class TimesheetServiceNew {
 
 			newTimesheet.setEmpId(empDTO.getEmpId());
 			newTimesheet.setDate(empDTO.getDate());
+			newTimesheet.setCompOffForDate(empDTO.getCompOffForDate());
 			newTimesheet.setDayTypeId(empDTO.getDayTypeId());
 			newTimesheet.setIsNightShift(empDTO.getIsNightShift());
 			newTimesheet.setStatus(TimesheetAggregationHelper.STATUS_PENDING);
@@ -1059,7 +1060,7 @@ public class TimesheetServiceNew {
 				.append(documents == null ? 0 : documents.size());
 
 		try {
-			normalizeEmployeeTimesheetFromNewContract(newEmpDTO, newEmpDTO.getDate());
+//			normalizeEmployeeTimesheetFromNewContract(newEmpDTO, newEmpDTO.getDate());
 
 			Boolean hasClient = anyProjectWithClientSideId(newEmpDTO);
 			
@@ -1129,9 +1130,10 @@ public class TimesheetServiceNew {
 				timesheetDocumentService.deleteByTimesheetId(timesheetId);
 			} else if (transition == DayTypeTransition.NON_WORKING_TO_NON_WORKING) {
 
-				timesheetValidationHelper.validateLocationDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
-				timesheetValidationHelper.validateApprovedProjectImmutableByLocationMapping(timesheetId,
-						newEmpDTO.getLocationSessions());
+				timesheetValidationHelper.validateNonWorkingDayTimesheet(newEmpDTO);
+//				timesheetValidationHelper.validateLocationDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
+//				timesheetValidationHelper.validateApprovedProjectImmutableByLocationMapping(timesheetId,
+//						newEmpDTO.getLocationSessions());
 
 			} else {
 				throw new TimesheetValidationFailedException("Invalid day type transition. Please try again.");
@@ -1153,6 +1155,8 @@ public class TimesheetServiceNew {
 			// safety)
 			empTS.setEmpId(newEmpDTO.getEmpId());
 			empTS.setDate(newEmpDTO.getDate());
+				if(newEmpDTO.getDayTypeId() == 9) empTS.setCompOffForDate(newEmpDTO.getCompOffForDate());
+				else empTS.setCompOffForDate(null);
 			empTS.setDayTypeId(newEmpDTO.getDayTypeId());
 			empTS.setIsNightShift(newEmpDTO.getIsNightShift());
 			empTS.setLeaveTypeMasterId(newEmpDTO.getLeaveTypeId());

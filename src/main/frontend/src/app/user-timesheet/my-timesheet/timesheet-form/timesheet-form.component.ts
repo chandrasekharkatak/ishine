@@ -92,11 +92,13 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   alertMessage: string;
   fromDate: any = null;
   toDate: any = null;
+  compOffForDate: any = null;
   disableAdd: boolean = false;
   availableTimesheets: any[] = [];
   serverDate: any; // Server's current date for date range calculation
   minDateForPicker: any; // Minimum selectable date (dd-MM-yyyy format)
   maxDateForPicker: any; // Maximum selectable date (dd-MM-yyyy format)
+  minDateForCompOffPicker: any;
   disabledDatesForPicker: string[] = []; // Dates to disable (dd-MM-yyyy format)
   /** Base disabled dates independent of day type (already-filled timesheets, etc.) */
   private disabledDatesBase: string[] = [];
@@ -2989,12 +2991,34 @@ this.isNightShift = false;
       if (!fromDate) return;
       this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
     }
+    if(this.dayType == 9){
+      this.setMinDateForCompOffDate();
+    }
     if(this.halfDayValidation()){
       return;
     };
     this.applyChanges();
   }
 
+  setMinDateForCompOffDate(){
+    if(this.dayType == 9){
+      const fromDate = this.parseDDMMYYYY(this.fromDate);
+      this.minDateForCompOffPicker = this.formatDDMMYYYY(this.subtractOneMonthSafe(fromDate));
+    }
+  }
+
+  subtractOneMonthSafe(date: Date): Date {
+  const d = new Date(date);
+
+  const originalDate = d.getDate();
+  d.setMonth(d.getMonth() - 1);
+
+  if (d.getDate() < originalDate) {
+    d.setDate(0); // go to last valid day of previous month
+  }
+
+  return d;
+}
   /** Apply date change: clear date-dependent form state, recalc hours, load projects. */
   applyChanges(): void {
     this.resetDateDependentFormState();
@@ -3841,6 +3865,7 @@ this.isNightShift = false;
       this.fromDate = null;
       this.toDate = null;
     }
+    this.compOffForDate = null;
     this.appelectMember = null;
     this.isNightShift = false;
     this.apmosysInTime = null;
@@ -4158,6 +4183,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       dayType: this.dayType,
       fromDate: this.fromDate,
       toDate: this.toDate,
+      compOffForDate: this.compOffForDate,
       isNightShift: this.isNightShift,
       apmosysInTime: this.apmosysInTime,
       apmosysOutTime: this.apmosysOutTime,
@@ -4224,6 +4250,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       timesheetId: null,
       // date: this.formatDDMMYYYY(new Date(this.fromDate as string)),
       date: convertToYYYYMMDD(this.fromDate),
+      compOffForDate:convertToYYYYMMDD(this.compOffForDate),
       workCheckIn: TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
       workCheckOut: TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate)),
       currentManagerId: this.currentUser.managerId,
@@ -4409,6 +4436,9 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     this.lastDayTypeId = this.dayType;
     if (timesheetData.date) {
       this.fromDate = this.convertYYYYMMDDToDDMMYYYY(timesheetData.date);
+    }
+    if(this.dayType == 9){
+      this.compOffForDate = this.convertYYYYMMDDToDDMMYYYY(timesheetData.compOffForDate);
     }
     this.isNightShift = !!timesheetData.isNightShift;
 
@@ -4980,6 +5010,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       dayType: this.dayType,
       fromDate: this.fromDate,
       toDate: this.toDate,
+      compOffForDate: this.compOffForDate,
       isNightShift: this.isNightShift,
       apmosysInTime: this.apmosysInTime,
       apmosysOutTime: this.apmosysOutTime,
@@ -5048,6 +5079,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       isApmosysProduct: this.currentUser.isApmosysProduct,
       isNightShift: this.isNightShift,
       date: convertToYYYYMMDD(this.fromDate),
+      compOffForDate: convertToYYYYMMDD(this.compOffForDate),
       workCheckIn: TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
       workCheckOut: TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate)),
       currentManagerId: this.currentUser.managerId,
@@ -5982,6 +6014,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
   resetTimesheetForm() {
     this.fromDate = null;
     this.toDate = null;
+    this.compOffForDate = null;
   }
 
   /**

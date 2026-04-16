@@ -173,7 +173,17 @@
                                 </app-date-time-picker>
                             </div>
                         </div>
-                
+                        <div class="form-field-v2 field-date" *ngIf="dayType == 9">
+                            <label class="form-label-v2">
+                                <span class="required-mark">*</span> Comp-Off for
+                            </label>
+                            <div class="field-input-wrapper">
+                                <app-date-time-picker mode="date" [required]="true" [(ngModel)]="compOffForDate"
+                                    [disabled]="!dayType"
+                                    [minDate]="minDateForCompOffPicker" [maxDate]="fromDate">
+                                </app-date-time-picker>
+                            </div>
+                        </div>
                         <!-- Night Shift Toggle -->
                         <div class="form-field-v2 field-night-shift" *ngIf="isDayTypeFillable() && fromDate">
                             <label class="form-label-v2">
