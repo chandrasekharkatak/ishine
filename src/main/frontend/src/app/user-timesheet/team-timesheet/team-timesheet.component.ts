@@ -32,6 +32,7 @@ import { debounceTime } from 'rxjs/operators';
 import { ExcelDownloadService } from 'src/app/services/excel-download-service';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { APP_DATE_FORMATS, AppDateAdapter } from 'src/app/helpers/date-time-picker/date-time-picker.component';
+import { MatPaginator } from '@angular/material/paginator';
 
 
 
@@ -79,6 +80,8 @@ export class TeamTimesheetComponent implements OnInit {
 
   @ViewChild('compOffConfirmModal')
   compOffConfirmModal!: TemplateRef<any>;
+
+  @ViewChild('myPaginator', { static: false }) paginator: MatPaginator;
 
   data: string;
   feature = "Team Timesheets";
@@ -238,6 +241,7 @@ alertModal: TemplateRef<any>;
 activeRawObjectUrl: string | null = null;
 rejectionReasons:any;
 
+selectedTimesheetsAccrossThePages:any=[];
 
   constructor(
     public validationService: ValidationService,
@@ -386,6 +390,8 @@ getTotalDocCount(projectId: number): number {
   /** Apply current/previous month or custom dates and reload request list and status counts. */
   applyRequestDateRangeAndLoad() {
     const today = new Date();
+    this.page1 = 0; // pagination reset
+    this.paginator.firstPage();
     if (this.requestDateRangeType === 'currentMonth') {
       const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
       this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
@@ -505,7 +511,7 @@ totalPages: number = 0;
 
   this.expandedTimesheetIndex = null;
   this.isAllSelected = false;
-      this.toggleAllRows({ target: { checked: false } });
+      // this.toggleAllRows({ target: { checked: false } });
   this.loaderService.requestStarted();
 
   const payload: any = {
@@ -551,6 +557,20 @@ totalPages: number = 0;
 
         this.totalPages =
           res.serviceResponse.totalPages || 0;
+
+          const selectedIds = new Set(
+            this.selectedTimesheetsAccrossThePages.map(r => r.timesheetId)
+          );
+
+          this.allTeamTimesheetRequestsProjectView.forEach(ts => {
+            ts.selected = selectedIds.has(ts.timesheetId);
+          });
+
+          this.selectedRows = this.allTeamTimesheetRequestsProjectView
+          .filter(r => r.selected);
+          if(this.selectedRows.length == this.allTeamTimesheetRequestsProjectView.length){
+            this.isAllSelected = true;
+          }
       }
     });
     //console.log(this.items);
@@ -568,7 +588,7 @@ onPageSizeChange() {
 
 onPageChange(event: any) {
   this.page1 = event.pageIndex;
-this.items = event.pageSize;
+  this.items = event.pageSize;
 
   this.getMyReporteesTimesheetRequests(); // 🔥 BACKEND HIT
 }
@@ -1025,6 +1045,7 @@ sortData(sort: Sort) {
       this.getMyReporteesTimesheetRequests();
     this.getTimesheetStatusCountsByEmpId();
     this.isAllSelected = false;
+     this.selectedTimesheetsAccrossThePages = [];
     this.toggleAllRows({ target: { checked: false } });
     }
 
@@ -1802,6 +1823,17 @@ sortData(sort: Sort) {
 
   updateSelectedRows(row: any) {
     this.selectedRows = this.filteredData().filter(r => r.selected);
+    const currentPageIds = new Set(this.filteredData().map(r => r.timesheetId));
+    console.log("Before removal of selected rows", this.selectedTimesheetsAccrossThePages);
+    console.log("Current page Id's",currentPageIds);
+     this.selectedTimesheetsAccrossThePages = this.selectedTimesheetsAccrossThePages
+    ?.filter(r => !currentPageIds.has(r.timesheetId));
+
+  // Add currently selected ones back
+  this.selectedTimesheetsAccrossThePages = [
+    ...this.selectedTimesheetsAccrossThePages,
+    ...this.selectedRows
+  ];
     console.log("test", this.selectedRows);
     if(this.selectedRows.length != this.filteredData().length){
       this.isAllSelected = false;
@@ -1809,6 +1841,7 @@ sortData(sort: Sort) {
       this.isAllSelected = true;
     }
     console.log(" this.isAllSelected =", this.isAllSelected )
+    console.log("Selected rows across pages", this.selectedTimesheetsAccrossThePages);
   }
 
   toggleAllRows(event: any) {
@@ -1818,7 +1851,7 @@ sortData(sort: Sort) {
       timesheet.selected = checked;
       this.onEmployeeToggle(timesheet); // 🔥 hierarchy call
     });
-
+   
     this.updateSelectedRows(null);
   }
 
@@ -1826,6 +1859,7 @@ sortData(sort: Sort) {
   clearAllSelections() {
     this.filteredData().forEach(r => r.selected = false);
     this.selectedRows = [];
+    this.selectedTimesheetsAccrossThePages = [];
   }
 
   // bulkApprove1(template: TemplateRef<any>) {
@@ -1859,7 +1893,8 @@ sortData(sort: Sort) {
       .filter(id => id != null);
   }
   getSelectedTimesheets(): any[] {
-  return this.selectedRows.filter(row => row?.timesheetId != null);
+  // return this.selectedRows.filter(row => row?.timesheetId != null);
+  return this.selectedTimesheetsAccrossThePages.filter(row => row?.timesheetId!= null);
 }
 
 
@@ -2559,6 +2594,8 @@ getDocument(type: 'Pending' | 'Approved'): void {
     this.selectedStatus = status;
     console.log("Status changed to:", this.selectedStatus);
     this.page1 = 0; // pagination reset
+    this.paginator.firstPage();
+    // this.items = 10;
     this.isSearchEnabled = false;
     this.expandedTimesheetIndex = null;
     this.expandedProjectKey = null;
@@ -2632,13 +2669,15 @@ projectList: any[] = [];
 // }
 
   // BULK APPROVAL
+  
 async  bulkApproveByIds(confirmNightShift: boolean = false, ids?: number[]) {
 
+  let shouldCancel = false;
     // const timesheetIds  = ids || this.getSelectedTimesheetIds();
     console.log('befor', this.selectedRows)
-     const selectedTimesheets =  this.selectedRows.filter(row => row?.timesheetId != null);
+     const selectedTimesheets =  this.selectedTimesheetsAccrossThePages.filter(row => row?.timesheetId != null);
 
-     console.log('After', this.selectedRows)
+    console.log('After', this.selectedRows)
     console.log("selectedTimesheets",  selectedTimesheets);
     let dataToValidate = structuredClone(selectedTimesheets);
   let payloadData = structuredClone(selectedTimesheets);
@@ -2655,15 +2694,19 @@ async  bulkApproveByIds(confirmNightShift: boolean = false, ids?: number[]) {
             console.log(result);
             if (result != undefined && result === 'YES') {
               confirmNightShift = true;
-              timesheetIds = payloadData.map(ts => ts.timesheetId);
+              // timesheetIds = payloadData.map(ts => ts.timesheetId);
             } else if(result != undefined && result === 'NO'){
               confirmNightShift = false;
-             timesheetIds =  payloadData.filter(ts=>ts.isNightShift != true).map(ts => ts.timesheetId);
+            //  timesheetIds =  payloadData.filter(ts=>ts.isNightShift != true).map(ts => ts.timesheetId);
             }else{
-              return;
+              // return;
+              shouldCancel = true;
             }
 
           }).catch(() => {});
+        if(shouldCancel){
+          return;
+        }
   }
     const hasCompOff = compOffValidate.some(ts =>
       ts.dayType?.toLowerCase() === 'comp off'
@@ -2671,10 +2714,11 @@ async  bulkApproveByIds(confirmNightShift: boolean = false, ids?: number[]) {
 
     if (hasCompOff) {
 
-      const modalRef = this.modalService.open(this.compOffConfirmModal, { centered: true });
+      const modalRef = this.modalService.open(this.compOffConfirmModal);
 
       await modalRef.result.then((result) => {
         if (result === 'APPROVE') {
+          timesheetIds = selectedTimesheets.map(ts=> ts.timesheetId);
           this.executeBulkApprove(timesheetIds,confirmNightShift);
         }
       }).catch(() => {});
@@ -2843,6 +2887,7 @@ this.skippedTimesheetList = null
           // this.selectedStatus = 2;
           // this.onStatusChange(2);
           this.page1 = 0;
+          this.paginator.firstPage();
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
           this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
@@ -3313,6 +3358,7 @@ this.skippedTimesheetList = null
 
           this.modalRef?.close();
           this.page1 = 0;
+          this.paginator?.firstPage();
           // this.onStatusChange(3);
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
@@ -3672,6 +3718,7 @@ this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this
       this.clearAllSelections();
       // this.onStatusChange(3);
       this.page1 = 0;
+      this.paginator?.firstPage();
       this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
           backdrop: 'static'} );
       this.getMyReporteesTimesheetRequests();

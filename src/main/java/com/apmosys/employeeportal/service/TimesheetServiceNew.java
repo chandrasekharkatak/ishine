@@ -1094,11 +1094,11 @@ public class TimesheetServiceNew {
 
 			DayTypeTransition transition = timesheetValidationHelper.resolveDayTypeTransition(empTS, newEmpDTO);
 
-			if (transition == DayTypeTransition.WORKING_TO_WORKING) {
+			if (transition == DayTypeTransition.WORKING_TO_WORKING || transition == DayTypeTransition.NON_WORKING_TO_WORKING) {
 
-				timesheetValidationHelper.validateLocationDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
-				timesheetValidationHelper.validateApprovedProjectImmutableByLocationMapping(timesheetId,
-						newEmpDTO.getLocationSessions());
+				// timesheetValidationHelper.validateLocationDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
+				// timesheetValidationHelper.validateApprovedProjectImmutableByLocationMapping(timesheetId,
+				// 		newEmpDTO.getLocationSessions());
 				timesheetValidationHelper.validateClientSideIdMandatory(newEmpDTO);
 
 				timesheetValidationHelper.validateWorkInWorkOutTime(newEmpDTO);
@@ -1111,29 +1111,35 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents, timesheetId);
 				timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
 
-			} else if (transition == DayTypeTransition.NON_WORKING_TO_WORKING) {
+			}
+			//  else if (transition == DayTypeTransition.NON_WORKING_TO_WORKING) {
 
-				timesheetValidationHelper.validateWorkInWorkOutTime(newEmpDTO);
-				timesheetValidationHelper.validateLocationTimeOverlap(newEmpDTO.getLocationSessions());
-				timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
-				// Ensure same project has consistent client approval status across locations
-				timesheetValidationHelper.validateClientApprovalStatusConsistency(newEmpDTO);
-				timesheetValidationHelper.validateShadowConsistencyAcrossLocations(newEmpDTO);
-				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
-				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents, timesheetId);
-				timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
+			// 	timesheetValidationHelper.validateWorkInWorkOutTime(newEmpDTO);
+			// 	timesheetValidationHelper.validateLocationTimeOverlap(newEmpDTO.getLocationSessions());
+			// 	timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
+			// 	// Ensure same project has consistent client approval status across locations
+			// 	timesheetValidationHelper.validateClientApprovalStatusConsistency(newEmpDTO);
+			// 	timesheetValidationHelper.validateShadowConsistencyAcrossLocations(newEmpDTO);
+			// 	timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
+			// 	timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents, timesheetId);
+			// 	timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
 
-			} else if (transition == DayTypeTransition.WORKING_TO_NON_WORKING) {
+			// } 
+			else if (transition == DayTypeTransition.WORKING_TO_NON_WORKING || transition == DayTypeTransition.NON_WORKING_TO_NON_WORKING) {
 				timesheetValidationHelper.validateNonWorkingDayTimesheet(newEmpDTO);
 				// Scenario 1: unlink all document references for this timesheet (day type → non-working)
-				timesheetDocumentService.deleteByTimesheetId(timesheetId);
-			} else if (transition == DayTypeTransition.NON_WORKING_TO_NON_WORKING) {
+				if(transition != DayTypeTransition.NON_WORKING_TO_NON_WORKING){
+					timesheetDocumentService.deleteByTimesheetId(timesheetId);
+				}
+			}
+			//  else if (transition == DayTypeTransition.NON_WORKING_TO_NON_WORKING) {
 
-				timesheetValidationHelper.validateLocationDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
-				timesheetValidationHelper.validateApprovedProjectImmutableByLocationMapping(timesheetId,
-						newEmpDTO.getLocationSessions());
+			// 	timesheetValidationHelper.validateLocationDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
+			// 	timesheetValidationHelper.validateApprovedProjectImmutableByLocationMapping(timesheetId,
+			// 			newEmpDTO.getLocationSessions());
 
-			} else {
+			// } 
+			else {
 				throw new TimesheetValidationFailedException("Invalid day type transition. Please try again.");
 			}
 

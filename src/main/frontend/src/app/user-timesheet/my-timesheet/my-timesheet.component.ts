@@ -4737,11 +4737,13 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
     }
 
     rejectiondetails:any[]=[]
+    groupedRejections: any[] = [];
     fetchRejectionReasonByTimesheet(timesheetId:number,template: TemplateRef<any>){
     this.timesheetNewService.getRejectionDetailsWithProjectsByTimesheetId(timesheetId).subscribe({
       next:(res)=>{
         if(res.serviceStatus=='Success'){
           this.rejectiondetails=res.serviceResponse
+          this.groupedRejections = this.getGroupedRejections(this.rejectiondetails);
           this.modalService.open(
             template,
             { modalDialogClass: 'modal-lg', backdrop: 'static' }
@@ -4756,6 +4758,26 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
       }
     })
    }
+
+
+   getGroupedRejections(rejections: any[]) {
+    const grouped = [];
+    const seen = new Map();
+  
+    rejections.forEach((r, index) => {
+      const key = r.projectName;
+      if (!seen.has(key)) {
+        seen.set(key, { ...r, rowspan: 1, index: grouped.length });
+        grouped.push({ ...r, rowspan: 1, showRemarks: true });
+      } else {
+        const existing = seen.get(key);
+        grouped[existing.index].rowspan++;
+        grouped.push({ ...r, showRemarks: false });
+      }
+    });
+  
+    return grouped;
+  }
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

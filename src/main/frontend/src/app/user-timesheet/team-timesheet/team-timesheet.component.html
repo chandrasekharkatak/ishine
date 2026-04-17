@@ -588,11 +588,11 @@
         </ng-container>
       </div>
     </div>
-    <div class="bulk-actions-fixed" [class.active]="selectedRows.length >= 2">
+    <div class="bulk-actions-fixed" [class.active]="selectedTimesheetsAccrossThePages.length >= 2">
       <div class="bulk-actions-wrapper">
         <div class="selection-info">
-          <span class="selected-count">{{ selectedRows.length }}</span>
-          <span class="selected-text">item{{ selectedRows.length !== 1 ? 's' : '' }} selected</span>
+          <span class="selected-count">{{ selectedTimesheetsAccrossThePages.length }}</span>
+          <span class="selected-text">item{{ selectedTimesheetsAccrossThePages.length !== 1 ? 's' : '' }} selected</span>
         </div>
         <div class="bulk-buttons-group">
           <button type="button" *ngIf="selectedStatus == 1"  class="ts-bulk-btn ts-bulk-approve" (click)="bulkApproveByIds()">
@@ -602,7 +602,7 @@
             <i class="fas fa-times-circle"></i> Bulk Reject
           </button>
         </div>
-        <button type="button" class="ts-bulk-clear" (click)="clearAllSelections()" *ngIf="selectedRows.length > 0">
+        <button type="button" class="ts-bulk-clear" (click)="clearAllSelections()" *ngIf="selectedTimesheetsAccrossThePages.length > 0">
           <i class="fas fa-times"></i> Clear
         </button>
       </div>
@@ -724,7 +724,14 @@
 </tr>
 
           </thead>
-          <tbody> <ng-container *ngFor="let timesheet of allTeamTimesheetRequestsProjectView; let i = index">
+          <tbody>
+            <tr *ngIf="allTeamTimesheetRequestsProjectView?.length == 0 || (allTeamTimesheetRequestsProjectView | colFilter:filters:false).length == 0">
+              <td [attr.colspan]="allTeamTimesheetRequestsProjectView ? 14 : 13" class="ts-empty">
+                <i class="fa fa-inbox"></i>
+                <span>No details to display</span>
+              </td>
+            </tr>
+            <ng-container *ngFor="let timesheet of allTeamTimesheetRequestsProjectView; let i = index">
               <tr class="main-row" [class.active-row]="expandedTimesheetIndex === i" [class.night-shift-row]="timesheet.isNightShift">
                 <td *ngIf="selectedStatus != 3"> <input type="checkbox" [(ngModel)]="timesheet.selected"
                     (change)="onEmployeeToggle(timesheet); updateSelectedRows(timesheet)" /> </td>
@@ -867,9 +874,10 @@
     -->
 
 <mat-paginator
+  #myPaginator
   [length]="totalRecords"
   [pageSize]="items"
-  [pageSizeOptions]="[10, 20, 50, 100, 200,10000]"
+  [pageSizeOptions]="[10, 20, 50, 100, 200,1000]"
   (page)="onPageChange($event)">
 </mat-paginator>
 
@@ -1919,8 +1927,8 @@
           <tr *ngFor="let r of rejectionReasons; let j = index">
             <td>{{ j + 1 }}</td>
             <td>{{ r.rejectionReason || '-' }}</td>
-            <td>{{ r.remark || '-' }}</td>
-            <td>{{ r.rejectedOn || '-' }}</td>
+            <td *ngIf="j==0" [attr.rowspan]="rejectionReasons.length">{{ r.remark || '-' }}</td>
+            <td *ngIf="j==0" [attr.rowspan]="rejectionReasons.length">{{ r.rejectedOn || '-' }}</td>
           </tr>
         </tbody>
 
