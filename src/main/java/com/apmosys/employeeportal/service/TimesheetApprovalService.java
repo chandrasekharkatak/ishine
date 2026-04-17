@@ -2193,12 +2193,13 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 	
 					finalResponse.put("requiresNightShiftConfirmation", true);
 					finalResponse.put("nightShiftTimesheets", nightShiftTimesheetIds);
-					finalResponse.put("normalTimesheets", normalTimesheetIds);
+					finalResponse.put("processed", normalTimesheetIds);
 					finalResponse.put("skipped", skippedTimesheets);
 	
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(finalResponse);
 					saveSkippedTimesheets(skippedTimesheets,request.getUpdatedBy());
+					saveAuditForApproval(normalTimesheetIds,timesheetProjectMap,request.getUpdatedBy(),status);
 					return response;
 				}
 			}

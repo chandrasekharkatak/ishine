@@ -2693,6 +2693,15 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
                     );
                   }
               }
+
+              if (allActivityList.length === 0) {
+              this.handleError(
+                new Error('No activities found'),
+                'loadActivitiesForProject',
+                true,
+                "No activity found for your department. Please contact RMG team!"
+              );
+            }
             }
 
             // Store activities at project level for all activities to use
@@ -6396,7 +6405,21 @@ limitDecimals(event: any ,activity : any) {
         this.resetForm();
         return true;
       }
+      
     }
+    else if(this.dayType!=8 && this.fromDate !=null){
+      if(isHalfday){
+         this.handleError(
+          ("Only Half-Day timesheet is allowed because a half-day leave exists on the selected date."),
+          'createTimesheet',
+          true,
+          "Only Half-Day timesheet is allowed because a half-day leave exists on the selected date."
+        );
+
+        this.resetForm();
+        return true;
+      }}
+
     return false;
 
   }
@@ -6417,5 +6440,22 @@ limitDecimals(event: any ,activity : any) {
   ): string {
     return `${projectId}_${fromDate}_${dayType}_${docType}`.toLowerCase();
   }
+
+  specialChar(event :any)
+  {
+    const input = event.target as HTMLTextAreaElement;
+    let value = input.value;
+
+    value = value.replace(/[^a-zA-Z0-9 ]/g, '');
+    // maximum user fill the description like 2nd sat/4th sat/14th sep or any date so max 2 digits are allowed
+    //  let digitCount = 0;
+    //   value = value.replace(/[0-9]/g, (digit) => {
+    //     digitCount++;
+    //     return digitCount <= 2 ? digit : '';
+    //   });
+    this.holidayDescription = value;
+    input.value = value;
+  }
+  
 
 }
