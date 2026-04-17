@@ -619,7 +619,16 @@ public class EmployeeLeaveService {
                         for (EmployeeTimesheetsNew ts : existingTimeSheet) {
                             if (!Boolean.TRUE.equals(ts.getIsSystemGenerated())) {
                                 Long currentTsId = ts.getTimesheetId();
-                                cleanTimesheetWithRetry(currentTsId);
+                                //deleting timesheet only when timesheet exists for the full day
+                                if((ts.getDate().isEqual(fromDate) && !Objects.equals(leaveDTO.getFromDateDayType(), 0.5f))
+                                		||
+                                (ts.getDate().isEqual(toDate) && !Objects.equals(leaveDTO.getToDateDayType(), 0.5f))
+                                		||
+                                ts.getDate().isAfter(fromDate) && ts.getDate().isBefore(toDate)
+                                		) {
+                                	cleanTimesheetWithRetry(currentTsId);
+                                }
+                                
                             }
                         }
                     }

@@ -241,12 +241,12 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         		+ "		LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId "
         		+ "		LEFT JOIN Employee e on e.empId=etm.empId "
         		+ "		LEFT JOIN Department d ON d.name = prm.department "
-        		+ "		where 1=1 AND et.empId = :empId AND p.clientId = :clientId "
+        		+ "		where 1=1 AND et.empId = :empId "
         		+ "        AND etm.poId = :poId and et.status = 2 "
         		+ "        AND etm.active!= 2 AND et.dayTypeId not in (5 ,9) "
         		+ "        AND et.date BETWEEN :startDate AND :endDate")
         	IshineToPoEmployeeDTO findEmployeesWithTimesheetCount(Long empId,
-        	         LocalDate startDate,LocalDate endDate,Long poId,Integer clientId);
+        	         LocalDate startDate,LocalDate endDate,Long poId);
 	ProjectPoDetails findByPoId(Long poId);
 
 	boolean existsByPoIdAndProjectIdAndActiveTrue(Long poId, Integer projectId);

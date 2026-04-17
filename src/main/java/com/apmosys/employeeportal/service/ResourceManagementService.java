@@ -16,7 +16,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -38,7 +37,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.core.io.Resource;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.persistence.EntityManager;
@@ -53,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -79,8 +78,6 @@ import com.apmosys.employeeportal.controller.ProjectStructureRequest;
 import com.apmosys.employeeportal.customrepository.EmployeeCustomRepository;
 import com.apmosys.employeeportal.customrepository.ProjectCustomRepository;
 import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
-import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
-import com.apmosys.employeeportal.dto.BulkTimesheetRequestDTO;
 import com.apmosys.employeeportal.dto.ClientDetailsSyncDto;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
@@ -91,7 +88,6 @@ import com.apmosys.employeeportal.dto.EmployeeDetailsDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
-import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
 import com.apmosys.employeeportal.dto.ExceptionReportDTO;
 import com.apmosys.employeeportal.dto.ExpiredPoDto;
 import com.apmosys.employeeportal.dto.FCLineItemDTO;
@@ -108,8 +104,6 @@ import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateTeamD
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForEmployeeDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForTeamDTO;
-import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
-import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoProjectDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.IshineToPoEmpDetailsSharingDTO;
 import com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO;
@@ -122,7 +116,6 @@ import com.apmosys.employeeportal.dto.PageDTO;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
-import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
@@ -131,7 +124,6 @@ import com.apmosys.employeeportal.dto.ProjectManagersDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.ProjectOverheadsDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
-import com.apmosys.employeeportal.dto.ProjectRejectionDTO;
 import com.apmosys.employeeportal.dto.ProjectRequirementResponse;
 import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
 import com.apmosys.employeeportal.dto.RMGDashboardProjectRequest;
@@ -146,14 +138,11 @@ import com.apmosys.employeeportal.dto.ResourceCountDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
-import com.apmosys.employeeportal.dto.RmgMemberEndDateDto;
 import com.apmosys.employeeportal.dto.RmgProjectDto;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
-import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.SkippedEmployeeDTO;
-import com.apmosys.employeeportal.dto.SkippedTimesheetDTO;
 import com.apmosys.employeeportal.dto.SpocDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
@@ -164,7 +153,6 @@ import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamSpocDTO;
 import com.apmosys.employeeportal.dto.TimeSheetDetailsDto;
 import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
-import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.dto.UnmappedEmployeeProjectDto;
 import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
@@ -182,7 +170,6 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeCertificates;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
-import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.FCLineItem;
 import com.apmosys.employeeportal.model.FCProjectMilestone;
 import com.apmosys.employeeportal.model.FinalDocumentNew;
@@ -197,11 +184,7 @@ import com.apmosys.employeeportal.model.ProjectPoDetails;
 import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.ResourceRequirementTemp;
 import com.apmosys.employeeportal.model.Team;
-import com.apmosys.employeeportal.model.TimesheetActionAuditNew;
-import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
-import com.apmosys.employeeportal.model.TimesheetRejectionDetailsId;
-import com.apmosys.employeeportal.model.TimesheetRejectionDetailsNew;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
@@ -210,6 +193,7 @@ import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificatesRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
@@ -231,7 +215,6 @@ import com.apmosys.employeeportal.repository.ResourceRequirementTempRepo;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TimesheetActionAuditNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsNewRepository;
-import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.repository.TimesheetRejectionDetailsNewRepository;
 import com.apmosys.employeeportal.response.ProjectStructureResponse;
 import com.apmosys.employeeportal.response.ResourceRequirementResponse;
@@ -417,6 +400,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	private EmployeeCustomRepository employeeCustomRepository;
+	
+	@Autowired
+	private EmployeeLeaveRepository employeeLeaveRepository;
 
 	private static final Logger log = LoggerFactory.getLogger(ResourceManagementService.class);
 
@@ -2758,6 +2744,7 @@ public class ResourceManagementService {
 				dto.setRescRemovedBy(obj[16] != null ? Long.parseLong(obj[16].toString()) : null);
 				dto.setRescRemovedByName(obj[17] != null ? obj[17].toString() : null);
 				dto.setEmployeeTeamMapId(obj[18] != null ? Long.parseLong(obj[18].toString()) : null);
+				dto.setPoNo(obj[19] != null ? obj[19].toString() : null);
 				allData.add(dto);
 			});
 
@@ -4798,7 +4785,7 @@ public class ResourceManagementService {
 		}
 	}
 
-	private void sendProjectCompletionMail(Project projectObj, Long currentUserEmpId, StringBuilder logBuilder) {
+	public void sendProjectCompletionMail(Project projectObj, Long currentUserEmpId, StringBuilder logBuilder) {
 		try {
 			Employee empupdatedBy = employeeRepository.findByEmpId(currentUserEmpId);
 			List<String> managerOverheadEmails = projectRepository
@@ -13736,10 +13723,18 @@ public class ResourceManagementService {
 				response = context.getBean(getClass()).updateProjectManagers(projectId, empId);
 				response = context.getBean(getClass()).updateProjectOverheads(projectId, empId);
 			}
+			
 			project.setActive("true");
 			project.setIsDraftProject("true");
 			project.setProjectCompletionDate(null);
-			project.setProjectStatus(null);
+			
+			String latestStatus = projectRepository.findLatestProjectStatus(projectId);
+
+			if (latestStatus != null) {
+			    project.setProjectStatus(latestStatus);
+			} else {
+			    project.setProjectStatus(null); 
+			}
 			projectRepository.save(project);
 			if (ServiceResponse.STATUS_SUCCESS.equals(response.getServiceStatus())) {
 				project.setActive("true");
@@ -14133,30 +14128,25 @@ public class ResourceManagementService {
 //				validResourceOverviewIds = requirements.stream().map(ResourceRequirementResponse::getResourceOverviewId)
 //						.collect(Collectors.toSet());
 //			}
-			Set<Long> validPoRequirementMappingIds = getValidPoRequirementMappingIds(poId);
-			logBuilder.append("Valid PO Requirement Mapping IDs: ").append(validPoRequirementMappingIds).append("\n");
-
-			if (validPoRequirementMappingIds.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("No valid PO requirements found for PO ID: " + poId);
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setLogLevel("ERROR");
-				logBuilder.append("No valid PO requirements found for PO ID: ").append(poId).append("\n");
-				throw new IllegalStateException("No valid PO requirements found for the given PO");
-			}
+//			Set<Long> validPoRequirementMappingIds = getValidPoRequirementMappingIds(poId);
+//			logBuilder.append("Valid PO Requirement Mapping IDs: ").append(validPoRequirementMappingIds).append("\n");
+//
+//			if (validPoRequirementMappingIds.isEmpty()) {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("No valid PO requirements found for PO ID: " + poId);
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				apiLogInfo.setLogLevel("ERROR");
+//				logBuilder.append("No valid PO requirements found for PO ID: ").append(poId).append("\n");
+//				throw new IllegalStateException("No valid PO requirements found for the given PO");
+//			}
 
 			if (empList != null && !empList.isEmpty()) {
 				List<EmployeeTeamMap> toUpdate = new ArrayList<>();
 				for (EmployeeTeamMap etm : empList) {
-					if (etm.getPoRequirementMappingId() != null
-							&& validPoRequirementMappingIds.contains(etm.getPoRequirementMappingId())) {
 						etm.setActive(2L);
 						etm.setUpdatedOn(LocalDateTime.now());
 						etm.setUpdatedBy(empId);
 						toUpdate.add(etm);
-					} else {
-						skippedEmpMap.put(etm.getEmpId(), etm.getPoRequirementMappingId());
-					}
 				}
 				if (!toUpdate.isEmpty()) {
 					employeeTeamMapRepository.saveAll(toUpdate);
@@ -14181,13 +14171,13 @@ public class ResourceManagementService {
 //				    notifyHod(empIds, resourceOverviewIds);
 //				}
 
-			if (!skippedEmpMap.isEmpty()) {
-				Set<Long> empIds = skippedEmpMap.keySet();
-				Set<Long> poRequirementMappingIds = new HashSet<>(skippedEmpMap.values());
-				notifyHod(empIds, poRequirementMappingIds);
-				logBuilder.append("HOD notification sent for ").append(skippedEmpMap.size())
-						.append(" skipped employees\n");
-			}
+//			if (!skippedEmpMap.isEmpty()) {
+//				Set<Long> empIds = skippedEmpMap.keySet();
+//				Set<Long> poRequirementMappingIds = new HashSet<>(skippedEmpMap.values());
+//				notifyHod(empIds, poRequirementMappingIds);
+//				logBuilder.append("HOD notification sent for ").append(skippedEmpMap.size())
+//						.append(" skipped employees\n");
+//			}
 		} catch (BadRequestException bre) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Bad Request: " + bre.getMessage());
@@ -14713,7 +14703,7 @@ public class ResourceManagementService {
 			for (EmpMappingDTO e : etm) {
 
 				IshineToPoEmployeeDTO emp = projectPoDetailsRepository.findEmployeesWithTimesheetCount(e.getEmpId(),
-						startDate, endDate, ishineToPoRequest.getPoId(), ishineToPoRequest.getClientId());
+						startDate, endDate, ishineToPoRequest.getPoId());
 
 				if (emp != null && (emp.getPoId() != null && emp.getPoId().equals(ishineToPoRequest.getPoId()))) {
 					employees.add(emp);
@@ -14792,6 +14782,32 @@ public class ResourceManagementService {
 			}
 
 			employees = new ArrayList<>(empMap.values());
+			
+			//Main employee's leave count
+			List<Long> empIds = employees.stream().map(IshineToPoEmployeeDTO::getIshineEmpId)
+			        .filter(Objects::nonNull)
+			        .distinct()
+			        .collect(Collectors.toList());
+
+			Map<Long, Long> leaveCountMap = new HashMap<>();
+
+			if (!empIds.isEmpty()) {
+
+			    List<Object[]> results = employeeLeaveRepository
+			            .findLeaveCountByEmpIdsAndDateRange(empIds, startDate, endDate);
+
+			    for (Object[] row : results) {
+			        Long empId = ((Number) row[0]).longValue();
+			        Long leaveDays = ((Number) row[1]).longValue();
+			        leaveCountMap.put(empId, leaveDays);
+			    }
+			}
+
+			// Set leave count in DTO
+			for (IshineToPoEmployeeDTO emp : employees) {
+			    emp.setEmpLeaveCount(leaveCountMap.getOrDefault(emp.getIshineEmpId(), 0L));
+			}
+			
 			dto.setProjectName(ishineToPoRequest.getProjectName());
 			dto.setProjectId(ishineToPoRequest.getProjectId());
 			dto.setPoId(ishineToPoRequest.getPoId());

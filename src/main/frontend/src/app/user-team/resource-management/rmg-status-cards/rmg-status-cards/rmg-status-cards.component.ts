@@ -362,7 +362,7 @@ export class RmgStatusCardsComponent {
   ];
 
   allStates: any[] = ["Maharashtra"];
-  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "blank", "blank", "state", "blank", "status", "projectStatus", "draftStatus"];
+  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "projectStartDate", "projectEndDate", "state", "createdOn", "projectStatus", "draftStatus"];
 
 
   currentUser: User;
@@ -885,7 +885,7 @@ export class RmgStatusCardsComponent {
   loadRMGDashboard(rmgDashboardProjectRequest: any) {
     this.getAllEmployeeGroupCount();
     this.getAllProjectStatusCount();
-    this.fetchProjectDetailsList(rmgDashboardProjectRequest);
+    this.fetchProjectDetailsList(rmgDashboardProjectRequest,false);
   }
 
   onAction(action: string, project: any) {
@@ -943,7 +943,7 @@ export class RmgStatusCardsComponent {
     }
     this.getProjectStatusCount(this.selectedProjectStatus, projectStatusList);
     this.getAllEmployeeGroupCount();
-    this.fetchProjectDetailsList(newRmgDashboardProjectRequest);
+    this.fetchProjectDetailsList(newRmgDashboardProjectRequest,true);
   }
   // 
 
@@ -1101,7 +1101,7 @@ export class RmgStatusCardsComponent {
       });
   }
 
-  fetchProjectDetailsList(rmgDashboardProjectRequest: any) {
+  fetchProjectDetailsList(rmgDashboardProjectRequest: any, scrollToBottom:any) {
     this.totalProjectsCount = 0;
     this.projectDetailsList = [];
     let rmgProjectRequest = this.mapToRMGRequest(rmgDashboardProjectRequest);
@@ -1112,6 +1112,10 @@ export class RmgStatusCardsComponent {
         this.projectDetailsList = [...apiResponse?.content];
       } else {
         this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
+      }
+
+      if (scrollToBottom) {
+        setTimeout(() => this.scrollToTable());
       }
     },
       (error) => {
@@ -1128,7 +1132,7 @@ export class RmgStatusCardsComponent {
     let newRmgDashboardProjectRequest = this.getNewRMGRequestObject();
     newRmgDashboardProjectRequest.projectStatus = expiredTNMProjectStatusObj?.key;
     newRmgDashboardProjectRequest.expiredProjectFilter = filter.key;
-    this.fetchProjectDetailsList(newRmgDashboardProjectRequest);
+    this.fetchProjectDetailsList(newRmgDashboardProjectRequest,true);
     this.getAllEmployeeGroupCount();
   }
 
@@ -1141,7 +1145,7 @@ export class RmgStatusCardsComponent {
     let newRmgDashboardProjectRequest = this.getNewRMGRequestObject();
     newRmgDashboardProjectRequest.projectStatus = fcProjectStatusObj?.key;
     newRmgDashboardProjectRequest.fixedCostFilter = filter.key;
-    this.fetchProjectDetailsList(newRmgDashboardProjectRequest);
+    this.fetchProjectDetailsList(newRmgDashboardProjectRequest,true);
     this.getAllEmployeeGroupCount();
   }
 
@@ -1546,14 +1550,14 @@ export class RmgStatusCardsComponent {
     this.projectPage = 0;
     this.projectFilters = searchData;
     this.filterStateService.projectReportFilters = this.projectFilters;
-    this.fetchProjectDetailsList(this.rmgProjectFilterDTO);
+    this.fetchProjectDetailsList(this.rmgProjectFilterDTO,false);
   }
 
   onProjectPageChange(event: any) {
     this.projectPage = event.pageIndex;
     this.projectPageSize = event.pageSize;
     this.filterStateService.projectPageSize = this.projectPageSize;
-    this.fetchProjectDetailsList(this.rmgProjectFilterDTO);
+    this.fetchProjectDetailsList(this.rmgProjectFilterDTO,false);
   }
 
   sortProjectData(sort: Sort) {
@@ -1562,7 +1566,7 @@ export class RmgStatusCardsComponent {
       this.projectSortColumn = sortParams[0];
       this.projectSortColumnType = sortParams[1];
       this.projectSortDirection = sort.direction;
-      this.fetchProjectDetailsList(this.rmgProjectFilterDTO);
+      this.fetchProjectDetailsList(this.rmgProjectFilterDTO,false);
     }
   }
 
@@ -1571,7 +1575,7 @@ export class RmgStatusCardsComponent {
     if (!this.isProjectSearchEnabled) {
       this.projectFilters = {};
       this.filterStateService.clearProjectReportFilters();
-      this.fetchProjectDetailsList(this.rmgProjectFilterDTO);
+      this.fetchProjectDetailsList(this.rmgProjectFilterDTO,false);
     }
   }
 
@@ -1630,6 +1634,13 @@ export class RmgStatusCardsComponent {
       if (response.serviceStatus == "Success") {
         this.departmentList = response.serviceResponse || [];
       }
+    });
+  }
+
+  scrollToTable() {
+    document.getElementById('projectTable')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
     });
   }
 }

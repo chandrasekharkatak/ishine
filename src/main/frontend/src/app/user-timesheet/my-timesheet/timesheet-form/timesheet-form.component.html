@@ -204,7 +204,7 @@
                                 <div class="col-md-12">
                                     <label class="info-label small"><span class="text-danger">*</span> Description</label>
                                     <textarea class="form-control" rows="2" placeholder="Enter description"
-                                        [(ngModel)]="holidayDescription"></textarea>
+                                        [(ngModel)]="holidayDescription" (input)="specialChar($event)" ></textarea>
                                 </div>
                             </div>
                 

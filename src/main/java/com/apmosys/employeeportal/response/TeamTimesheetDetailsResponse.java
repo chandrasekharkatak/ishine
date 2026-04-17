@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.Column;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,6 +37,12 @@ public class TeamTimesheetDetailsResponse {
 	private Long isEmployeeActive;
 	private Long poId;
 	private String billingRole;
+	private String employementIdStr;
+	private String isConsultant;
+	private String isApprenticeship;
+	private String isApmosysProduct;
+	
+
 
 	public TeamTimesheetDetailsResponse(Long empId, Long employementId, String empName, String department, String role,
 			String teamName, Long teamId, String teamLeadName, String managerName, Integer projectId,
@@ -99,6 +107,39 @@ public class TeamTimesheetDetailsResponse {
 		this.endDate = endDate;
 	}
 	
+	public TeamTimesheetDetailsResponse(Long empId, Long employementId, String empName, String department, String role,
+			String teamName, Long teamId, String teamLeadName, String managerName, Integer projectId,
+			String projectName, String projectManagerName, Long isEmployeeActive, Long poId,String isConsultant,
+			String isApprenticeship,String isApmosysProduct) {
+		this.empId = empId;
+		this.employementId = employementId;
+		this.empName = empName;
+		this.department = department;
+		role = role != null ? role.replaceAll(",+$", "") : null;
+		this.role = role;
+		this.teamName = teamName;
+		this.teamId = teamId;
+		this.teamLeadName = teamLeadName;
+		this.managerName = managerName;
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.projectManagerName = projectManagerName;
+		this.isEmployeeActive = isEmployeeActive;
+		this.poId = poId;
+		this.employementIdStr = employmentId != null ? getSuffix(isConsultant, isApprenticeship, isApmosysProduct)+ "-" + employmentId: null;		
+		}
+
+	
+	private String getSuffix(String isConsultant, String isApprenticeship, String isApmosysProduct) {
+	    if ("true".equalsIgnoreCase(isConsultant) || "1".equals(isConsultant)) {
+	        return "CS";
+	    } else if ("true".equalsIgnoreCase(isApprenticeship) || "1".equals(isApprenticeship)) {
+	        return "A";
+	    } else if ("true".equalsIgnoreCase(isApmosysProduct) || "1".equals(isApmosysProduct)) {
+	        return "AP";
+	    }
+	    return "A";
+	}
 	
 
 }

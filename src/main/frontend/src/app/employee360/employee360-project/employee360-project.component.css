@@ -1,35 +1,85 @@
 .table-container {
     width: 100%;
-    max-height: 60vh; 
+    max-height: 60vh;
     position: relative;
   }
-  
+
   .fixed-header-table thead th {
     position: sticky;
-    top: 0; 
-    z-index: 2; 
+    top: 0;
+    z-index: 2;
   }
   #BassScrollBar {
-    overflow: hidden !important; 
-    position: relative; 
+    overflow: hidden !important;
+    position: relative;
   }
 
 
 
+/* Highlights the parent when history is open */
+.parent-expanded {
+    background-color: #f0f7ff !important;
+    border-bottom: 2px solid #007bff;
+}
 
+/* History row styling */
+.history-row {
+    background-color: #fafafa !important;
+    font-size: 0.88rem;
+    color: #666;
+}
+
+/* The blue vertical line that connects history items */
+.accent-border {
+    border-left: 4px solid #007bff;
+    position: relative;
+    background-color: transparent !important;
+}
+
+/* Entrance Animation (Motion) */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-in {
+    animation: fadeInDown 0.3s ease-out;
+}
+
+/* Hover effect for history items */
+.history-row:hover {
+    background-color: #f1f1f1 !important;
+    color: #333;
+}
 
   .team-preview-field {
     flex: 1;
     display: flex;
     flex-direction: column;
   }
-  
+.collapse-icon {
+    transition: transform 0.3s ease, color 0.2s ease;
+    cursor: pointer;
+}
+
+.collapse-icon.rotated {
+    transform: rotate(90deg);
+}
+
+
   .team-preview-field label {
     font-weight: bold;
     color: #061e5c;
     margin-bottom: 5px;
   }
-  
+
+
   .team-preview-field input {
     padding: 8px;
     border: 1px solid #ccc;
@@ -66,7 +116,7 @@
     box-shadow: 0 0 10px rgba(0,0,0,0.08);
   }
 
-     .form-field input, 
+     .form-field input,
   .form-field mat-select {
     padding: 10px;
     /* border-radius: 20px; */

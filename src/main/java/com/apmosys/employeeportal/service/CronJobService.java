@@ -7151,7 +7151,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	          .append("<div><b>Project Type:</b> ").append(dto.getProjectType()).append("</div>")
 	          .append("<div><b>PO Movement:</b> ")
 	          .append(dto.getPreviousPoNumber())
-	          .append(" ➝ ")
+	          .append(" -> ")
 	          .append(dto.getCurrentPoNumber())
 	          .append("</div>")
 	          .append("</div>");
@@ -7188,13 +7188,13 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 	            sb.append("<div class='value'><span class='label'>PO Movement:</span><br>")
 	              .append(emp.getPreviousPoNumber())
-	              .append(" ➝ ")
+	              .append(" -> ")
 	              .append(emp.getCurrentPoNumber())
 	              .append("</div>");
 
 	            sb.append("<div class='value'><span class='label'>Team Movement:</span><br>")
 	              .append(emp.getPreviousTeamName())
-	              .append(" ➝ ")
+	              .append(" -> ")
 	              .append(emp.getNewTeamName())
 	              .append("</div>");
 
@@ -7215,5 +7215,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 	        return sb.toString();
 	    }
+
+
 
 }	
