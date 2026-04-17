@@ -1253,6 +1253,12 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     //   this.resetForm();
     // }
 
+    if(this.fromDate != null){
+      if(this.dayType == 9){
+      this.setMinDateForCompOffDate();
+    }
+    }
+
     this.getListToRenderUpload();  
 
     // Update lastDayTypeId after successful change
