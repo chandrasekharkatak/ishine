@@ -119,7 +119,7 @@ export class RmgProjectConfigComponent implements OnInit {
     employeeProjectEndDateType: 'PO' | 'Custom' = 'Custom';
     membersEndDateType: 'PO' | 'Custom' = 'Custom';
     currentTab: 'Project' | 'Milestones' = 'Project';
-    defaultProjectMappingActionType: 'DELETE_TEAM' | 'REMOVE_MEMBERS' | 'PROJECT_COMPLETION' = 'REMOVE_MEMBERS';
+    defaultProjectMappingActionType: 'DELETE_TEAM' | 'REMOVE_MEMBERS' | 'PROJECT_COMPLETION' | 'DEFAULT_REMOVE' = 'REMOVE_MEMBERS';
     todayTimestamp: any;
     employeeExistingProjectEmpName: any;
     employeeExistingProjectEmploymentId: any;
@@ -408,9 +408,7 @@ export class RmgProjectConfigComponent implements OnInit {
     openMappingToOtherProjectAsDefaultModal(actionType: any) {
         this.defaultProjectMappingActionType = actionType;
         this.closeMappingToOtherProjectAsDefaultModal();
-        this.drawerService.open(this.mappingToOtherProjectAsDefaultTemplateRef);
-        // this.mappingToOtherProjectAsDefaultModalRef = this.modalService?.open(this.mappingToOtherProjectAsDefaultTemplateRef, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
-    }
+        this.drawerService.open(this.mappingToOtherProjectAsDefaultTemplateRef);    }
 
     closeMappingToOtherProjectAsDefaultModal() {
         if (this.isValidList(this.mappingToOtherProjectAsDefaultList)) {
@@ -981,7 +979,7 @@ export class RmgProjectConfigComponent implements OnInit {
             this.mappingToOtherProjectAsDefaultList = [];
             this.mappingToOtherProjectAsDefaultList.push(member);
             this.mapProjectListToEmployees(this.mappingToOtherProjectAsDefaultList);
-            this.openMappingToOtherProjectAsDefaultModal('REMOVE_MEMBERS');
+            this.openMappingToOtherProjectAsDefaultModal('DEFAULT_REMOVE');
         }
     }
 
@@ -2672,7 +2670,6 @@ export class RmgProjectConfigComponent implements OnInit {
             return;
         }
         employee.selectedProject.updatedBy = this.currentUser.empId;
-
         try {
             const response: any = await firstValueFrom(this.projectService.updateMappingToOtherProjectAsDefault(employee.selectedProject));
             if (response.serviceStatus == "Success") {
@@ -2685,6 +2682,8 @@ export class RmgProjectConfigComponent implements OnInit {
                 } else if (this.defaultProjectMappingActionType === 'REMOVE_MEMBERS') {
                     await this.getTeamDetailsByTeamId(this.currentTeam);
                     await this.validateRemoveMembers(this.currentTeam?.rmgCurrentTeamMemberList);
+                }else if (this.defaultProjectMappingActionType === 'DEFAULT_REMOVE') {
+                   await this.getTeamDetailsByTeamId(this.currentTeam);
                 }
             } else {
                 this.toastService.error(response.serviceResponse || "Something went wrong!");
