@@ -1210,7 +1210,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
 	"ete.name, te.deptIds, prm.role, te.teamName, te.teamId, " +
 	"etl.name, etm.name, " +
-	"p.projectId, p.projectName, etpm.name, tm.active,ppd.poId) " +
+	"p.projectId, p.projectName, etpm.name, tm.active,ppd.poId, ete.isConsultant,ete.isApprenticeship,ete.isApmosysProduct) " +
 	"FROM EmployeeTeamMap tm " +
 	"LEFT JOIN Team te ON tm.teamId = te.teamId " + 
 	"LEFT JOIN PoRequirementMapping prm on prm.roleId = tm.roleId and prm.poId = tm.poId " +
