@@ -7356,10 +7356,32 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 			        
 			        String totalExperience = "";
 
+//			        if (empDataForExp != null && !empDataForExp.isEmpty()) {
+//			            Object[] row = empDataForExp.get(0);
+//			            if (row != null && row.length > 0 && row[0] != null) {
+//			            	totalExperience = row[0].toString();
+//			            }
+//			        }
+			        
 			        if (empDataForExp != null && !empDataForExp.isEmpty()) {
 			            Object[] row = empDataForExp.get(0);
 			            if (row != null && row.length > 0 && row[0] != null) {
-			            	totalExperience = row[0].toString();
+			                try {
+			                    // Parse the date_of_joining
+			                    LocalDate dateOfJoining = ((java.sql.Date) row[0]).toLocalDate();
+			                    LocalDate today = LocalDate.now();
+
+			                    Period period = Period.between(dateOfJoining, today);
+
+			                    int years = period.getYears();
+			                    int months = period.getMonths();
+
+			                    totalExperience = years + "." + months ;
+
+			                } catch (Exception e) {
+			                	totalExperience = "0.0";
+			                    System.err.println("Date cast error for emp: " + e.getMessage());
+			                }
 			            }
 			        }
 
