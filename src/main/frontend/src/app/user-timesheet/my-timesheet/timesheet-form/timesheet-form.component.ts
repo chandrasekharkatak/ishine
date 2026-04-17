@@ -4508,6 +4508,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     }
     if(this.dayType == 9){
       this.compOffForDate = this.convertYYYYMMDDToDDMMYYYY(timesheetData.compOffForDate);
+      this.setMinDateForCompOffDate();
     }
     this.isNightShift = !!timesheetData.isNightShift;
 
