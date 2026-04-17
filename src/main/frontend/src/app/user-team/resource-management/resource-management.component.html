@@ -180,9 +180,15 @@
             <div class="team-preview-row">
                 <div class="team-preview-field">
                     <label><span class="text-danger">*</span>Department</label>
-                    <app-my-select #departmentSelect class="form-control" placeholder="Select Department"
-                        [(ngModel)]="projectObj.departmentList" (ngModelChange)="filterDepartments($event)"
-                        [options]="filteredDepartments" displayKey="name" valueKey="deptId" [multiple]="true">
+                    <!-- <app-my-select #departmentSelect class="form-control" placeholder="Select Department"
+                        [(ngModel)]="projectObj.departmentList" (ngModelChange)="filterDepartmentsInternal($event)"
+                        [options]="filteredDepartmentsInternal" displayKey="name" valueKey="deptId" [multiple]="true">
+                    </app-my-select> -->
+
+                    <app-my-select class="form-control"
+                        placeholder="Select Department" [(ngModel)]="projectObj.departmentList"
+                        (dropdownClosed)="onDepartmentSelectionChange($event)" [options]="filteredDepartmentsInternal"
+                        displayKey="name" valueKey="deptId" [multiple]="true">
                     </app-my-select>
                 </div>
                 <div class="team-preview-field">
