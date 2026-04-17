@@ -180,7 +180,7 @@
                             <div class="field-input-wrapper">
                                 <app-date-time-picker mode="date" [required]="true" [(ngModel)]="compOffForDate"
                                     [disabled]="!dayType"
-                                    [minDate]="minDateForCompOffPicker" [maxDate]="fromDate">
+                                    [minDate]="minDateForCompOffPicker" [maxDate]="fromDate" [disabledDates]="disabledDateForCompOffDate">
                                 </app-date-time-picker>
                             </div>
                         </div>
@@ -556,7 +556,7 @@
                                                 <div class="col-md-4 mb-3"
                                                     *ngIf="( project.hasClientSideId ?? false) && project.clientId && project.clientLocationId && isDayTypeFillable()">
                                                     <label class="info-label">
-                                                        <span class="text-danger" *ngIf="!project.isShadowTimesheet && !project.isShadowForSelf">*</span> Client DSR Approval Status
+                                                        <span class="text-danger" *ngIf="!project.isShadowForSelf">*</span> Client DSR Approval Status
                                                     </label>
                                                     <app-my-select class="form-control"
                                                         placeholder="Select Approval Status"

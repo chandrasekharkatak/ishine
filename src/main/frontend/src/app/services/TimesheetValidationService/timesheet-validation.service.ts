@@ -195,7 +195,7 @@ export class TimesheetValidationService {
     // 8. Comp off for date validation
     if(context.dayType == 9){
       if(context.compOffForDate == null || context.compOffForDate == ''){
-        errors.push({ field: 'compOffForDate', message: 'Comp Off for date is required for Copm Off day type', scope: 'TIMESHEET' });
+        errors.push({ field: 'compOffForDate', message: 'Comp Off for date is required for Comp Off day type timesheets', scope: 'TIMESHEET' });
       return { isValid: false, errors, warnings };
       }
     }
@@ -397,7 +397,7 @@ export class TimesheetValidationService {
         if(project.isShadowRequired == 1 && project.isShadowTimesheet== false && project.isShadowForSelf == false){
           return fail({
             field: 'projectId',
-            message: `Project ${pIndex + 1} requires Shadow/Shadow For Self option to be selected for ${locLabel}`,
+            message: `Project ${pIndex + 1} requires Shadow timesheet for ${locLabel}`,
             scope: 'PROJECT',
             locationIndex: lIndex,
             projectIndex: pIndex,
@@ -437,7 +437,7 @@ export class TimesheetValidationService {
             locationId
           }, locationId);
         }
-        if (project.clientSideId && isDayTypeFillable && project.hasClientSideId && !project.isShadowTimesheet && !project.isShadowForSelf && !project.clientApprovalStatus) {
+        if (project.clientSideId && isDayTypeFillable && project.hasClientSideId && !project.isShadowForSelf && !project.clientApprovalStatus) {
           console.log("Project with clientSideId but missing clientApprovalStatus:", project);
           console.log("project.clientSideId:", project.clientSideId, ", isDayTypeFillable:", isDayTypeFillable, ", project.isShadowForSelf:", project.isShadowForSelf, ", project.clientApprovalStatus:", project.clientApprovalStatus);
           return fail({
@@ -670,9 +670,9 @@ export class TimesheetValidationService {
       // Skip when Shadow for self (client approval status and documents not required)
       if (project.isShadowForSelf && project.clientApprovalStatus !== 1 && project.clientApprovalStatus !== 2) continue;
       // Only validate for approved (2) or pending (1) projects
-      if (project.isShadowTimesheet && project.clientApprovalStatus !== 1 && project.clientApprovalStatus !== 2) {
-        continue;
-      }
+      // if (project.isShadowTimesheet && project.clientApprovalStatus !== 1 && project.clientApprovalStatus !== 2) {
+      //   continue;
+      // }
 
       const projectDocs = context.documentData.filter(
         d => d.projectId === project.projectId

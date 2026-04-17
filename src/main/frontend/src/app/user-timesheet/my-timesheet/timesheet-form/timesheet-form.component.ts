@@ -100,6 +100,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   maxDateForPicker: any; // Maximum selectable date (dd-MM-yyyy format)
   minDateForCompOffPicker: any;
   disabledDatesForPicker: string[] = []; // Dates to disable (dd-MM-yyyy format)
+  enabledDatesForCompOffDate: string[] = [];
   /** Base disabled dates independent of day type (already-filled timesheets, etc.) */
   private disabledDatesBase: string[] = [];
   /** 
@@ -166,6 +167,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   holidayDescription: any;
   noProjectEmployee: any = false;
   employeeObjForDateFetching: User = new User();  
+  disabledDateForCompOffDate: string[];
   constructor(private teamViewService: TeamViewService,
     private timesheetService: TimesheetService,
     private timesheetNewService: TimesheetNewService,
@@ -2052,7 +2054,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     hasClientSideId: matchedProject?.hasClientSideId || false,
     hasClientFlag: matchedProject?.hasClientFlag || false,
     shadowEmpId: null,
-    isShadowTimesheet: false,
+    isShadowTimesheet: matchedProject?.isShadow === 1 ? true : false,
     isShadowForSelf: false,
     isShadowRequired: matchedProject?.isShadow,
     clientSideId: null,
@@ -2068,7 +2070,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     _lastValidProjectId: projectId,
     _lastValidProjectName: matchedProject?.projectName || ''
   };
-
+  this.onShadowTimesheetChange(updatedProject);
   parentLocation.projects[projectIndex] = updatedProject;
 
   // 🔹 Fetch client details
@@ -3004,6 +3006,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     if(this.dayType == 9){
       const fromDate = this.parseDDMMYYYY(this.fromDate);
       this.minDateForCompOffPicker = this.formatDDMMYYYY(this.subtractOneMonthSafe(fromDate));
+     this.getLastThreeMonthsWorkingDates();
     }
   }
 
@@ -3011,13 +3014,63 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   const d = new Date(date);
 
   const originalDate = d.getDate();
-  d.setMonth(d.getMonth() - 1);
+  d.setMonth(d.getMonth() - 3);
 
   if (d.getDate() < originalDate) {
     d.setDate(0); // go to last valid day of previous month
   }
 
   return d;
+}
+
+getFilteredCompOffDates(): string[] {
+  const start = this.parseDDMMYYYY(this.minDateForCompOffPicker);
+  const end = this.parseDDMMYYYY(this.fromDate);
+
+  const allDates: string[] = [];
+
+  let current = new Date(start);
+
+  while (current <= end) {
+    allDates.push(this.formatYYYYMMDD(current)); // ✅ match API format
+    current.setDate(current.getDate() + 1);
+  }
+
+  // ✅ No conversion needed
+  const enabledSet = new Set(this.enabledDatesForCompOffDate);
+
+  const filteredDates = allDates.filter(date => !enabledSet.has(date));
+  
+  return filteredDates.map((date: any) =>
+    this.formatDDMMYYYY(date)
+  );
+}
+
+formatYYYYMMDD(date: Date): string {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+async getLastThreeMonthsWorkingDates() {
+
+  await this.timesheetNewService.getLastThreeMonthsWorkingDates(this.convertDDMMYYYYToYYYYMMDD(this.fromDate),  this.timesheetFilledForUser?.empId || this.currentUser?.empId)
+    .subscribe({
+      next: (response: any) => {
+        console.log(response,"last three month")
+       if (response?.serviceStatus === "Success" && response?.serviceResponse) {
+      this.enabledDatesForCompOffDate = response.serviceResponse;
+      console.log(this.enabledDatesForCompOffDate,"enabledDatesForCompOffDate")
+      this.disabledDateForCompOffDate = this.getFilteredCompOffDates();
+      console.log(this.disabledDateForCompOffDate,"this.disabledDateForCompOffDate")
+    }
+       else
+       this.openAlertMod(this.alertTemplate, 'Failed to load working dates for comp-off day type. Please try again later.');
+
+      },
+      error: (err) => console.error(err)
+    });
 }
   /** Apply date change: clear date-dependent form state, recalc hours, load projects. */
   applyChanges(): void {
@@ -3114,9 +3167,10 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * Format Date object to DD-MM-YYYY string
    */
   formatDDMMYYYY(date: Date): string {
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const yyyy = date.getFullYear();
+    const intDate = new Date(date);
+    const dd = String(intDate.getDate()).padStart(2, '0');
+    const mm = String(intDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = intDate.getFullYear();
 
     return `${dd}-${mm}-${yyyy}`;
   }

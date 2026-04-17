@@ -358,4 +358,16 @@ export class TimesheetNewService {
 getRejectionDetailsWithProjectsByTimesheetId(timesheetId:number):Observable<any> {
   return this.http.post(`${this.baseUrl}api/v2/timesheet/getRejectionDetailsWithProjectsByTimesheetId`, timesheetId);
 }
+
+getLastThreeMonthsWorkingDates(date: any, empId: number): Observable<any> {
+    
+    const params = new HttpParams()
+      .set('date', date)
+      .set('empId', empId)
+
+    return this.http.get(
+      `${this.baseUrl}api/v2/timesheet/getLastThreeMonthsWorkingDates`,
+      { params }
+    );
+  }
 }

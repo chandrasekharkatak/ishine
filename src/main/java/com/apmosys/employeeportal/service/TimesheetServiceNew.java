@@ -1155,8 +1155,8 @@ public class TimesheetServiceNew {
 			// safety)
 			empTS.setEmpId(newEmpDTO.getEmpId());
 			empTS.setDate(newEmpDTO.getDate());
-				if(newEmpDTO.getDayTypeId() == 9) empTS.setCompOffForDate(newEmpDTO.getCompOffForDate());
-				else empTS.setCompOffForDate(null);
+			if(newEmpDTO.getDayTypeId() == 9) empTS.setCompOffForDate(newEmpDTO.getCompOffForDate());
+			else empTS.setCompOffForDate(null);
 			empTS.setDayTypeId(newEmpDTO.getDayTypeId());
 			empTS.setIsNightShift(newEmpDTO.getIsNightShift());
 			empTS.setLeaveTypeMasterId(newEmpDTO.getLeaveTypeId());
@@ -3249,5 +3249,53 @@ public class TimesheetServiceNew {
 	return response;
 
 }
+		public ServiceResponse getLastThreeMonthsWorkingDates(String date, Long empId) {
+
+    	    ServiceResponse response = new ServiceResponse();
+    	    LogDTO apiLogInfo = new LogDTO();
+    	    apiLogInfo.setSubFeatureName("Create/Update Timesheet");
+    	    apiLogInfo.setApiUrl("/api/v2/timesheet/getLastThreeMonthsWorkingDates");
+    	    apiLogInfo.setLogLevel("INFO");
+    	    
+    	    try {
+    	    	
+    	    	LocalDate selectedDate = LocalDate.parse(date);
+    	    	LocalDate threeMonthsBefore = selectedDate.minusMonths(3);
+
+    	    	List<LocalDate> dateList = employeeTimesheetsNewRepository.getLastThreeMonthsWorkingAndWorkingOnNonWorkingDates(empId,threeMonthsBefore,selectedDate);
+    	        
+    	        if (dateList.isEmpty()) {
+    	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    	            response.setServiceResponse("No working dates found !");
+    	            response.setServiceMessage("No working dates found !");
+    	            
+    	            apiLogInfo.setApiResponse("No working dates found !");
+    	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+    	            logService.logMyInfo(httpRequest, apiLogInfo);
+    	            return response;
+    	        }
+    	        
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(dateList);
+                response.setServiceMessage("dates fetched successfully!");
+
+                apiLogInfo.setApiResponse("dates fetched successfully!");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+    	        
+    	    } catch (Exception e) {
+    	        e.printStackTrace();
+    	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+    	        response.setServiceResponse("Something went wrong.");
+    	        response.setServiceError(e.getMessage());
+
+    	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+    	        apiLogInfo.setApiResponse(e.getMessage()); 
+    	        apiLogInfo.setLogLevel("ERROR");
+    	    }
+
+    	    logService.logMyInfo(httpRequest, apiLogInfo);
+    	    return response;
+    	
+		}
 
 }

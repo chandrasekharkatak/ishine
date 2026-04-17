@@ -623,10 +623,10 @@ public class TimesheetValidationHelper {
 					    (status == null || (status != 1 && status != 2))) {
 					    continue;
 					}
-                    if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) &&
-						    (status == null || (status != 1 && status != 2))) {
-						    continue;
-						}
+//                    if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) &&
+//						    (status == null || (status != 1 && status != 2))) {
+//						    continue;
+//						}
 
                     // Check if client-side document is mandatory for this project
                     Boolean isClientSideMandatory =
@@ -701,10 +701,10 @@ public class TimesheetValidationHelper {
 					    continue;
 					}
 					
-					if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) &&
-						    (status == null || (status != 1 && status != 2))) {
-						    continue;
-						}
+//					if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) &&
+//						    (status == null || (status != 1 && status != 2))) {
+//						    continue;
+//						}
 					if (Boolean.TRUE.equals(projectRepository.getClientSideIdMandatory(project.getProjectId()))) {
 						targetProjectIdsWithClientSide.add(project.getProjectId());
 						projectMap.put(project.getProjectId(), project);
@@ -1673,21 +1673,21 @@ public class TimesheetValidationHelper {
 		    if (empDTO.getCompOffForDate() != null) {
 
 		        LocalDate maxDate = empDTO.getDate();
-		        LocalDate minDate = maxDate.minusMonths(1);
+		        LocalDate minDate = maxDate.minusMonths(3);
 
 		        LocalDate compOffDate = empDTO.getCompOffForDate();
 
 		        if (compOffDate.isBefore(minDate) || !compOffDate.isBefore(maxDate)) {
 		            throw new TimesheetValidationFailedException(
-		                "Comp Off date must be between " + formatDate(minDate) + " (inclusive) and " + formatDate(maxDate) + " (exclusive)"
+		                "Comp Off for date must be between " + formatDate(minDate) + " (inclusive) and " + formatDate(maxDate) + " (exclusive)"
 		            );
 		        }
 		        EmployeeTimesheetsNew compOffForAlreadyExistTimesheet =
-		        	    employeeTimesheetsNewRepository.findByEmpIdAndCompOffFor(empDTO.getEmpId(), compOffDate)
+		        	    employeeTimesheetsNewRepository.findByEmpIdAndCompOffFor(empDTO.getEmpId(), compOffDate, empDTO.getDate())
 	        	        .orElse(null);
 		        if(compOffForAlreadyExistTimesheet != null) {
 		        	throw new TimesheetValidationFailedException(
-			                "You have already applied a comp off for date: "+formatDate(empDTO.getCompOffForDate())
+			                "You have already applied a comp off timesheet for date: "+formatDate(empDTO.getCompOffForDate())
 			        );
 		        }
 		        EmployeeTimesheetsNew compOffForTimesheet =
@@ -1697,7 +1697,7 @@ public class TimesheetValidationHelper {
 		        if(compOffForTimesheet != null) {
 		        	if(compOffForTimesheet.getDayTypeId() != 1 && compOffForTimesheet.getDayTypeId() != 3) {
 		        		throw new TimesheetValidationFailedException(
-				                "No working day type Timesheet found against the Comp-Off date: "+formatDate(empDTO.getCompOffForDate())
+				                "No working day type timesheet found against the Comp-Off date: "+formatDate(empDTO.getCompOffForDate())
 				        );
 		        	}
 		        }else {

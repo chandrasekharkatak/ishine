@@ -57,9 +57,9 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	java.util.Optional<EmployeeTimesheetsNew> findByEmpIdAndDateNew(@Param("empId") Long empId,
 			@Param("date") LocalDate date);
 	
-	@Query("SELECT e FROM EmployeeTimesheetsNew e WHERE e.empId = :empId AND e.compOffForDate = :date")
+	@Query("SELECT e FROM EmployeeTimesheetsNew e WHERE e.empId = :empId AND e.compOffForDate = :compOffForDate AND e.date !=:date ")
 	java.util.Optional<EmployeeTimesheetsNew> findByEmpIdAndCompOffFor(@Param("empId") Long empId,
-			@Param("date") LocalDate date);
+			@Param("compOffForDate") LocalDate compOffForDate, @Param("date") LocalDate date);
 	
 	
 	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO(" +
@@ -18701,5 +18701,8 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 					" group by p.project_name, trrm.rejection_reason ",
         				nativeQuery = true)
 					List<Object[]> getTimesheetRejectionRaw(Long timesheetId);
+					
+					@Query("SELECT etn.date FROM EmployeeTimesheetsNew etn WHERE etn.empId =:empId AND etn.dayTypeId IN (1,3) AND etn.date BETWEEN :startdate AND :endDate")
+					List<LocalDate> getLastThreeMonthsWorkingAndWorkingOnNonWorkingDates(@Param("empId")Long empId, @Param("startdate") LocalDate startdate,@Param("endDate") LocalDate endDate );  
 
 }
