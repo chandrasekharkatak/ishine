@@ -1328,8 +1328,8 @@
           <tr *ngFor="let r of rejectionReasons; let j = index">
             <td>{{ j + 1 }}</td>
             <td>{{ r.rejectionReason || '-' }}</td>
-            <td>{{ r.remark || '-' }}</td>
-            <td>{{ r.rejectedOn || '-' }}</td>
+            <td *ngIf="j==0" [attr.rowspan]="rejectionReasons.length" style="padding-left: 15px;">{{ r.remark || '-' }}</td>
+            <td *ngIf="j==0" [attr.rowspan]="rejectionReasons.length" style="padding-left: 15px;">{{ r.rejectedOn || '-' }}</td>
           </tr>
         </tbody>
 
@@ -1424,11 +1424,11 @@
         </thead>
 
         <tbody>
-          <tr *ngFor="let r of rejectiondetails; let j = index">
+          <tr *ngFor="let r of groupedRejections; let j = index">
             <td>{{ j + 1 }}</td>
             <td>{{ r.projectName || '-' }}</td>
             <td>{{ r.rejectionReason || '-' }}</td>
-            <td>{{ r.remarks || '-' }}</td>
+            <td  *ngIf="r.showRemarks" [attr.rowspan]="r.rowspan" style="margin-left: 15px;">{{ r.remarks || '-' }}</td>
           </tr>
         </tbody>
 

@@ -790,6 +790,14 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
+  filterDepartmentsInternal() {
+    const lowerText = (this.searchTextDept || '').toLowerCase();
+  
+    this.filteredDepartmentsInternal = this.allDeptList.filter(dept =>
+      dept.name.toLowerCase().includes(lowerText)
+    );
+  }
+
   async getManagerList() {
     this.managerList = [];
     this.filteredManagerList = [];

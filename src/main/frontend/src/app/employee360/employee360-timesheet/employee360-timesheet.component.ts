@@ -603,7 +603,7 @@ activeCalTab: string = 'Last 7 Days';
     this.teamName = "null";
     this.allSelected = false;
 
-let encryptedEmployeeData = localStorage.getItem('employee360Data');
+let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
     let employeeData = null;
     if (encryptedEmployeeData) {
   const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
@@ -987,7 +987,7 @@ if (encryptedUser) {
     return dateStr;
   }
     clearBreadcrumbs(){
-      window.location.reload()
+       window.location.reload()
     }
 
   expandedRows = new Set<number>();

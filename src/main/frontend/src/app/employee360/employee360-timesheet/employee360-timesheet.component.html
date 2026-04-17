@@ -45,8 +45,8 @@
           <mat-form-field class="ts360-mat-field" appearance="outline">
             <mat-label>Date Range</mat-label>
             <mat-date-range-input [rangePicker]="picker" [max]="todayDate">
-              <input matStartDate placeholder="Start" readonly (dateChange)="startDate = $event.value" />
-              <input matEndDate placeholder="End" readonly (dateChange)="endDate = $event.value" />
+              <input matStartDate placeholder="Start" readonly [(ngModel)]="startDate" />
+              <input matEndDate placeholder="End" readonly [(ngModel)]="endDate" />
             </mat-date-range-input>
             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-date-range-picker #picker (closed)="getDateRange()"></mat-date-range-picker>
@@ -195,8 +195,8 @@
         <td class="ts360-td ts360-td--sm ts360-td--muted">{{ i + 1 }}</td>
         <td class="ts360-td ts360-td--muted ts360-td--mono">{{ item.employmentId }}</td>
 
-        <td class="ts360-td" [navigateToEmployee360]="item.emp360" (click)="clearBreadcrumbs()" title="View Employee 360">
-          <span class="ts360-emp-link">{{ item.name }}</span>
+        <td class="ts360-td"  title="View Employee 360">
+          <span class="ts360-td ts360-td--muted">{{ item.name }}</span>
         </td>
 
         <td class="ts360-td ts360-td--mono ts360-td--muted">{{ item.date | date:'dd-MM-yyyy' }}</td>
