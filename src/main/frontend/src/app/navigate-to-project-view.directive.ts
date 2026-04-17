@@ -18,7 +18,8 @@ export class NavigateToProjectViewDirective {
         queryParams: { projectId: this.data }
       });
       const serializedUrl = this.router.serializeUrl(urlTree);
-      const fullUrl = `${window.location.origin}/#${serializedUrl}`;
+      const base = `${window.location.origin}${window.location.pathname}`;
+      const fullUrl = `${base}#${serializedUrl}`;
       window.open(fullUrl, '_blank');
     }
   }
