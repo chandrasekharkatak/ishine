@@ -126,7 +126,7 @@ public class TeamTimesheetDetailsResponse {
 		this.projectManagerName = projectManagerName;
 		this.isEmployeeActive = isEmployeeActive;
 		this.poId = poId;
-		this.employementIdStr = employmentId != null ? getSuffix(isConsultant, isApprenticeship, isApmosysProduct)+ "-" + employmentId: null;		
+		this.employementIdStr = employementId != null ? getSuffix(isConsultant, isApprenticeship, isApmosysProduct)+ "-" + employementId: null;		
 		}
 
 	
