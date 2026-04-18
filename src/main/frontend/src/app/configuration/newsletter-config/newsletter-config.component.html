@@ -1,7 +1,7 @@
 <!-- document upload form -->
 <div class="row">
     <div class="px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mb-1" *ngIf="(userMapping.view_all_newsletters || userMapping.delete_newsletter) && !isTable" [ngClass]="{'active' : isTable}" (click)="showTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+        <button type="button" class="btn btn-outline-primary btn-sm mb-1"  [ngClass]="{'active' : isTable}" (click)="showTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
     </div>
     <div class="card col-md-12 px-0" *ngIf="isUploadForm" >
         <div class="card-header text-center text-uppercase">
