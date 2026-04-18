@@ -222,7 +222,7 @@
                 </button>&nbsp;&nbsp;
                 <button class="btn btn-outline-primary btn-sm" [disabled]="!isProjectManagerValid"
                     (click)="navigateToResourceConfig()">
-                    Go To Resource Config
+                    Next
                 </button>
             </div>
         </div>
@@ -356,7 +356,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <button class="btn btn-primary btn-sm mr-1" title="Save New Team"
+                                        <button class="btn btn-primary btn-sm mr-1" title="Save New Team" [disabled]="!isNewTeamDetailsFilled"
                                             (click)="saveNewTeamDetails()">
                                             Save New Team
                                         </button>
@@ -459,21 +459,21 @@
                 Save New Member(s)
             </button>
             <button type="button" class="btn btn-primary btn-sm mr-1"
-                *ngIf="!currentTeam.isAnyNewMemberAdded && teamMembers?.length > 0 && !(cloneMemberMappingList?.length > 0)"
+                [disabled]="!(!currentTeam.isAnyNewMemberAdded && teamMembers?.length > 0 && !(cloneMemberMappingList?.length > 0))"
                 (click)="addOrUpdateTeamMembers(currentTeam,true)">
                 Update Member(s)
             </button>
-            <button type="button" class="btn btn-primary btn-sm mr-1" *ngIf="cloneMemberMappingList?.length > 0"
+            <button type="button" class="btn btn-primary btn-sm mr-1" [disabled]="!(cloneMemberMappingList?.length > 0)"
                 (click)="saveClonedMembers()">
                 Save Cloned Member(s)
             </button>
             <button type="button" class="btn btn-primary btn-sm mr-1"
-                *ngIf="currentTeam.isAnyMemberSelected && teamMembers?.length > 0"
+                [disabled]="!(currentTeam.isAnyMemberSelected && teamMembers?.length > 0)"
                 (click)="validateRemoveMembers(teamMembers)">
                 Mark End Date
             </button>&nbsp;
             <button type="button" class="btn btn-sm btn-outline-primary m-1"
-                *ngIf="!(cloneMemberMappingList?.length > 0)"
+                [disabled]="cloneMemberMappingList?.length > 0"
                 [title]="!currentTeam.addNewTeamMemberToggle ? 'Show Add New Team Member' : 'Hide Add New Team Member'"
                 (click)="toggleAddNewMember(currentTeam)">
                 <i class="fa" [ngClass]="currentTeam.addNewTeamMemberToggle ? 'fa-minus-circle' : 'fa-plus-circle'"></i>
@@ -867,6 +867,7 @@
         </div>
         <div class="col-md-6 offset-4 d-flex justify-content-end " *ngIf="projectConfigStepperIndex === 1">
             <button class="btn btn-primary btn-sm" *ngIf="teamMembers?.length > 0"
+                [disabled]="!isAnyMemberEndDateChanged"
                 (click)="extendTeamMembersEndDate(currentTeam)">Update Member(s) End Date
             </button>
         </div>

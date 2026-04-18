@@ -38,6 +38,7 @@ export class ColumnFilterBarComponent implements OnInit {
     && this.router.url.includes('resource-management')
     && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
       this.onSearch.emit({'name' : this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.object?.projectName}); 
+      return;
     }
 
     const savedFilters = this.filterStateService.projectReportFilters;

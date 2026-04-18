@@ -353,6 +353,8 @@
 .new-table-container {
     max-height: 400px;
     overflow-y: auto;
+    width: 100%;
+    overflow-x: auto;
 }
 
 .new-custom-table {
@@ -701,3 +703,22 @@ td .manager-popup {
     background-color: rgba(25, 61, 138, 0.1);
     border-radius: 8px;
 }
+
+/* @media (max-width: 1366px) {
+
+    .min-width100 {
+        min-width: 80px !important;
+    }
+
+    .min-width150 {
+        min-width: 120px !important;
+    }
+
+    .min-width180 {
+        min-width: 140px !important;
+    }
+
+    .min-width200 {
+        min-width: 160px !important;
+    }
+} */

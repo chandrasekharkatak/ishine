@@ -75,43 +75,43 @@ export class RmgProjectConfigComponent implements OnInit {
     @Output() openProjectCompletionDatePicker = new EventEmitter<any>();
 
     @ViewChild('project_config_stepper') projectConfigStepper!: MatStepper;
-    @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
-    @ViewChild("migrate_team") migrateTeamTemplateRef: TemplateRef<any>;
-    @ViewChild("delete_team") deleteTeamTemplateRef: TemplateRef<any>;
-    @ViewChild("team_details") teamDetailsTemplateRef: TemplateRef<any>;
-    @ViewChild("remove_members_confirmation") removeMembersConfirmationTemplateRef: TemplateRef<any>;
-    @ViewChild("mark_default_project_completion") markDefaultProjectCompletionTemplateRef: TemplateRef<any>;
-    @ViewChild("mapping_other_project_as_default") mappingToOtherProjectAsDefaultTemplateRef: TemplateRef<any>;
-    @ViewChild("employee_existing_project_details") employeeExistingProjectDetailsTemplateRef: TemplateRef<any>;
-    @ViewChild("delete_employee_from_existing_project") deleteEmployeeFromExistingProjectTemplateRef: TemplateRef<any>;
-    @ViewChild("delete_team_confirmation") deleteTeamConfirmationTemplateRef: TemplateRef<any>;
-    @ViewChild("add_new_member") addNewMemberTemplateRef: TemplateRef<any>;
-    @ViewChild("extend_team_member_end_date") extendTeamMemberEndDateTemplateRef: TemplateRef<any>;
-    @ViewChild("update_project_milestone") updateProjectMilestoneTemplateRef: TemplateRef<any>;
-    @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
-    @ViewChild("mark_complete_fc_project") markCompleteFCProjectTemplateRef: TemplateRef<any>;
-    @ViewChild("team_member_details_preview") teamMemberDetailsPreviewTemplateRef: TemplateRef<any>;
-    @ViewChild("shadow_resource_mapping") shadowResourceMappingTemplateRef: TemplateRef<any>;
+    @ViewChild("alert_message") alertMessageTemplateRef!: TemplateRef<any>;
+    @ViewChild("migrate_team") migrateTeamTemplateRef!: TemplateRef<any>;
+    @ViewChild("delete_team") deleteTeamTemplateRef!: TemplateRef<any>;
+    @ViewChild("team_details") teamDetailsTemplateRef!: TemplateRef<any>;
+    @ViewChild("remove_members_confirmation") removeMembersConfirmationTemplateRef!: TemplateRef<any>;
+    @ViewChild("mark_default_project_completion") markDefaultProjectCompletionTemplateRef!: TemplateRef<any>;
+    @ViewChild("mapping_other_project_as_default") mappingToOtherProjectAsDefaultTemplateRef!: TemplateRef<any>;
+    @ViewChild("employee_existing_project_details") employeeExistingProjectDetailsTemplateRef!: TemplateRef<any>;
+    @ViewChild("delete_employee_from_existing_project") deleteEmployeeFromExistingProjectTemplateRef!: TemplateRef<any>;
+    @ViewChild("delete_team_confirmation") deleteTeamConfirmationTemplateRef!: TemplateRef<any>;
+    @ViewChild("add_new_member") addNewMemberTemplateRef!: TemplateRef<any>;
+    @ViewChild("extend_team_member_end_date") extendTeamMemberEndDateTemplateRef!: TemplateRef<any>;
+    @ViewChild("update_project_milestone") updateProjectMilestoneTemplateRef!: TemplateRef<any>;
+    @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef!: TemplateRef<any>;
+    @ViewChild("mark_complete_fc_project") markCompleteFCProjectTemplateRef!: TemplateRef<any>;
+    @ViewChild("team_member_details_preview") teamMemberDetailsPreviewTemplateRef!: TemplateRef<any>;
+    @ViewChild("shadow_resource_mapping") shadowResourceMappingTemplateRef!: TemplateRef<any>;
 
-    alertMessageModalRef: NgbModalRef;
-    migrateTeamModalRef: NgbModalRef;
-    deleteTeamModalRef: NgbModalRef;
-    teamDetailsModalRef: NgbModalRef;
-    removeMembersConfirmationModalRef: NgbModalRef;
-    markDefaultProjectCompletionModalRef: NgbModalRef;
-    mappingToOtherProjectAsDefaultModalRef: NgbModalRef;
-    employeeExistingProjectDetailsModalRef: NgbModalRef;
-    deleteEmployeeFromExistingProjectModalRef: NgbModalRef;
-    deleteTeamConfirmationModalRef: NgbModalRef;
-    addNewMemberModalRef: NgbModalRef;
-    extendTeamMemberEndDateModalRef: NgbModalRef;
-    updateProjectMilestoneModalRef: NgbModalRef;
-    projectMilestoneDocumentModalRef: NgbModalRef;
-    markCompleteFCProjectModalRef: NgbModalRef;
-    teamMemberDetailsPreviewModalRef: NgbModalRef;
-    shadowResourceMappingModalRef: NgbModalRef;
+    alertMessageModalRef!: NgbModalRef;
+    migrateTeamModalRef!: NgbModalRef;
+    deleteTeamModalRef!: NgbModalRef;
+    teamDetailsModalRef!: NgbModalRef;
+    removeMembersConfirmationModalRef!: NgbModalRef;
+    markDefaultProjectCompletionModalRef!: NgbModalRef;
+    mappingToOtherProjectAsDefaultModalRef!: NgbModalRef;
+    employeeExistingProjectDetailsModalRef!: NgbModalRef;
+    deleteEmployeeFromExistingProjectModalRef!: NgbModalRef;
+    deleteTeamConfirmationModalRef!: NgbModalRef;
+    addNewMemberModalRef!: NgbModalRef;
+    extendTeamMemberEndDateModalRef!: NgbModalRef;
+    updateProjectMilestoneModalRef!: NgbModalRef;
+    projectMilestoneDocumentModalRef!: NgbModalRef;
+    markCompleteFCProjectModalRef!: NgbModalRef;
+    teamMemberDetailsPreviewModalRef!: NgbModalRef;
+    shadowResourceMappingModalRef!: NgbModalRef;
 
-    currentUser: User;
+    currentUser: User = new User();
     userMapping: any = {};
     projectConfigStepperIndex: number = 1;
     alertMessage: string = '';
@@ -131,7 +131,7 @@ export class RmgProjectConfigComponent implements OnInit {
     currentTeam: RmgTeam = new RmgTeam();
     defaultProjectObj: SetDefaultProjectObj = new SetDefaultProjectObj();
     teamMembersMigrationObj: MigrateTeams = new MigrateTeams();
-    deleteEmployeeExistingProjectMappingObj: RmgTeamMember;
+    deleteEmployeeExistingProjectMappingObj: RmgTeamMember = new RmgTeamMember();
     deleteTeamsPo: PoDetails = new PoDetails();
     shadowResourceMappingMember: RmgTeamMember = new RmgTeamMember();
 
@@ -1170,6 +1170,13 @@ export class RmgProjectConfigComponent implements OnInit {
         });
     }
 
+    get isAnyMemberEndDateChanged(): boolean {
+        return this.currentTeam?.rmgOldTeamMemberList.some(member => { return this.normalizeDate(member.endDate) != this.normalizeDate(member.dbEndDate) });
+    } 
+
+    get isNewTeamDetailsFilled(): boolean  {
+        return this.isValidString(this.rmgProjectObj.newTeamObj.teamName) && this.isValidList(this.rmgProjectObj.newTeamObj.deptIds);
+    }
     // Helpers End
 
     // Checkbox Helper Methods Start
@@ -2104,8 +2111,7 @@ export class RmgProjectConfigComponent implements OnInit {
     }
 
     extendTeamMembersEndDate(currentTeam: RmgTeam) {
-        const isAnyMemberEndDateChanged = currentTeam?.rmgOldTeamMemberList.some(member => { return this.normalizeDate(member.endDate) != this.normalizeDate(member.dbEndDate) });
-        if (!isAnyMemberEndDateChanged) {
+        if (!this.isAnyMemberEndDateChanged) {
             this.openAlertMessageModal("Please change the end date of at least one member before updating the end date!!");
             return false;
         }

@@ -436,12 +436,13 @@ export class RmgDashboardComponent implements OnInit {
       this.selectedDepartmentIds = this.filterStateService.deptIdList;
     }
 
-    // if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
-    //   this.projectStatus = 'ALL';
-    //   this.toggleProjectSearch(true);
-    // } else {
-    //   this.getProjectDetailsList(false);
-    // }
+    if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
+      this.projectStatus = 'ALL';
+      this.isProjectSearchEnabled = true;
+      setTimeout(() => this.scrollToTable());
+    } else {
+      this.getProjectDetailsList(false);
+    }
 
     this.loadRMGDashboard();
   }
@@ -580,7 +581,7 @@ export class RmgDashboardComponent implements OnInit {
 
   async loadRMGDashboard() {
     const promises = [];
-    this.getProjectDetailsList(false);
+    // this.getProjectDetailsList(false);
     promises.push(this.getEmployeeMappedToClientPercent());
     promises.push(this.getAllEmployeeGroupCount());
     promises.push(this.getAllProjectStatusCount());
