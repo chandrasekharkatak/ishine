@@ -353,8 +353,6 @@
 .new-table-container {
     max-height: 400px;
     overflow-y: auto;
-    width: 100%;
-    overflow-x: auto;
 }
 
 .new-custom-table {
