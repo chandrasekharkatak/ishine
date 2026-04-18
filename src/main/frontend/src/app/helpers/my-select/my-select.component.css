@@ -47,3 +47,22 @@
  ::ng-deep .no-checkbox-option .mat-pseudo-checkbox {
    display: none !important;
  }
+
+/* Overrides for long option labels (Employee names) */
+::ng-deep .mat-select-panel {
+  min-width: 220px !important;
+  width: auto !important;
+  max-width: min(520px, calc(100vw - 24px)) !important;
+}
+
+::ng-deep .mat-mdc-option {
+  height: auto !important;
+  line-height: 1.2 !important;
+  padding: 8px 12px !important;
+}
+
+::ng-deep .mdc-list-item__primary-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}

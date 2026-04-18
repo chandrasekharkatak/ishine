@@ -115,34 +115,90 @@
                     <input class="form-control" type="text" disabled [ngModel]="projectType || 'NA'" />
                 </div>
             </div>
+            
             <div class="col-md-4 mb-0">
                 <div class="form-group p-2 mb-0">
                     <label><span class="text-danger">*</span>Project Manager</label>
-                    <app-my-select class="form-control" [(ngModel)]="rmgProjectObj.projectManagerIds"
-                        [readonly]="projectConfigStepperIndex !== 0" [options]="managerList" displayKey="name"
-                        valueKey="empId" placeholder="Select Project Manager" [multiple]="true"
-                        (dropdownClosed)="validateProjectManagerIds()">
-                    </app-my-select>
+            
+                    <div class="manager-wrapper" (mouseenter)="showManagerTooltip = true" (mouseleave)="showManagerTooltip = false">
+            
+                        <app-my-select class="form-control" [(ngModel)]="rmgProjectObj.projectManagerIds"
+                            [readonly]="projectConfigStepperIndex !== 0" [class.disable-dropdown]="projectConfigStepperIndex === 2"
+                            [options]="managerList" displayKey="name" valueKey="empId" placeholder="Select Project Manager"
+                            [multiple]="true" (dropdownClosed)="validateProjectManagerIds()">
+                        </app-my-select>
+            
+                        <!-- Popup -->
+                        <div class="manager-popup"
+                            *ngIf="showManagerTooltip && getSelectedManagers().length > 0 && projectConfigStepperIndex === 2 ">
+                            <div class="manager-popup-title">Selected Managers</div>
+                            <div class="manager-popup-item" *ngFor="let name of getSelectedManagers()">
+                                👤 {{ name }}
+                            </div>
+                        </div>
+            
+                    </div>
                 </div>
             </div>
+        
             <div class="col-md-4 mb-0">
                 <div class="form-group p-2 mb-0">
                     <label>Project Overhead</label>
-                    <app-my-select class="form-control" [(ngModel)]="rmgProjectObj.projectOverheadIds"
-                        [readonly]="projectConfigStepperIndex !== 0" [options]="overheadList" displayKey="name"
-                        valueKey="empId" placeholder="Select Project Overhead" [multiple]="true">
-                    </app-my-select>
+            
+                    <div class="manager-wrapper" (mouseenter)="showOverheadTooltip = true"
+                        (mouseleave)="showOverheadTooltip = false">
+            
+                        <app-my-select class="form-control" [(ngModel)]="rmgProjectObj.projectOverheadIds"
+                            [class.disable-dropdown]="projectConfigStepperIndex === 2" [readonly]="projectConfigStepperIndex !== 0"
+                            [options]="overheadList" displayKey="name" valueKey="empId" placeholder="Select Project Overhead"
+                            [multiple]="true">
+                        </app-my-select>
+            
+                        <!-- Popup -->
+                        <div class="manager-popup"
+                            *ngIf="showOverheadTooltip && getSelectedOverheads().length > 0 && projectConfigStepperIndex === 2">
+                            <div class="manager-popup-title">Selected Overheads</div>
+                            <div class="manager-popup-item" *ngFor="let name of getSelectedOverheads()">
+                                👤 {{ name }}
+                            </div>
+                        </div>
+            
+                    </div>
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-4 mb-0">
+            <!-- <div class="col-md-4 mb-0">
                 <div class="form-group p-2 mb-0">
                     <label>Department</label>
                     <app-my-select #departmentSelect2 class="form-control" disabled placeholder="Select Department"
+                        [class.disable-dropdown]="projectConfigStepperIndex === 2"
                         [(ngModel)]="rmgProjectObj.departmentIds" [options]="departmentsList" displayKey="name"
                         [disable]="true" valueKey="deptId" [multiple]="true">
                     </app-my-select>
+                </div>
+            </div> -->
+            <div class="col-md-4 mb-0">
+                <div class="form-group p-2 mb-0">
+                    <label>Department</label>
+            
+                    <div class="manager-wrapper" (mouseenter)="showDepartmentTooltip = true"
+                        (mouseleave)="showDepartmentTooltip = false">
+            
+                        <app-my-select #departmentSelect2 class="form-control" disabled placeholder="Select Department"
+                            [class.disable-dropdown]="projectConfigStepperIndex === 2" [(ngModel)]="rmgProjectObj.departmentIds"
+                            [options]="departmentsList" displayKey="name" [disable]="true" valueKey="deptId" [multiple]="true">
+                        </app-my-select>
+            
+                        <!-- Popup -->
+                        <div class="manager-popup" *ngIf="showDepartmentTooltip && getSelectedDepartments().length > 0 && projectConfigStepperIndex === 2">
+                            <div class="manager-popup-title">Selected Departments</div>
+                            <div class="manager-popup-item" *ngFor="let name of getSelectedDepartments()">
+                                🏢 {{ name }}
+                            </div>
+                        </div>
+            
+                    </div>
                 </div>
             </div>
             <div class="col-md-4 mb-0">
@@ -252,19 +308,52 @@
                                             [disabled]="projectConfigStepperIndex !== 1" placeholder="Enter Team Name"
                                             (blur)="validateTeamName(rmgProjectObj.newTeamObj)" />
                                     </td>
-                                    <td class="min-width180 max-width200">
+                                    <td class="min-width180 max-width200" style="position: relative;"
+                                        (mouseenter)="showTeamDepartmentTooltip = true"
+                                        (mouseleave)="showTeamDepartmentTooltip = false">
+
                                         <app-my-select #teamDepartmentSelect class="form-control"
-                                            [readonly]="projectConfigStepperIndex !== 1" placeholder="Select Department"
+                                            [readonly]="projectConfigStepperIndex !== 1"
+                                            [class.disable-dropdown]="isPreviewStep"
+                                            placeholder="Select Department"
                                             [(ngModel)]="rmgProjectObj.newTeamObj.deptIds" [options]="departmentsList"
                                             displayKey="name" valueKey="deptId" [multiple]="true">
                                         </app-my-select>
+
+                                        <!-- Popup (Preview only) -->
+                                        <div class="manager-popup"
+                                            *ngIf="showTeamDepartmentTooltip && getSelectedTeamDepartments().length > 0 && isPreviewStep">
+                                            <div class="manager-popup-title">Selected Departments</div>
+                                            <div class="manager-popup-body">
+                                                <div class="manager-popup-item"
+                                                    *ngFor="let name of getSelectedTeamDepartments()">
+                                                    🏢 {{ name }}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td class="min-width180 max-width200">
+                                    <td class="min-width180 max-width200" style="position: relative;"
+                                        (mouseenter)="showTeamSpocTooltip = true"
+                                        (mouseleave)="showTeamSpocTooltip = false">
+
                                         <app-my-select #teamSpocSelect class="form-control"
-                                            [readonly]="projectConfigStepperIndex !== 1" placeholder="Select Employee"
+                                            [readonly]="projectConfigStepperIndex !== 1"
+                                            [class.disable-dropdown]="isPreviewStep"
+                                            placeholder="Select Employee"
                                             [(ngModel)]="rmgProjectObj.newTeamObj.spocId" [options]="spocList"
                                             displayKey="name" valueKey="empId" [multiple]="false">
                                         </app-my-select>
+
+                                        <!-- Popup (Preview only) -->
+                                        <div class="manager-popup"
+                                            *ngIf="showTeamSpocTooltip && getSelectedTeamSpoc().length > 0 && isPreviewStep">
+                                            <div class="manager-popup-title">Selected Employee</div>
+                                            <div class="manager-popup-body">
+                                                <div class="manager-popup-item" *ngFor="let name of getSelectedTeamSpoc()">
+                                                    👤 {{ name }}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td>
                                         <button class="btn btn-primary btn-sm mr-1" title="Save New Team"
@@ -285,7 +374,7 @@
                                         Details to display.</td>
                                 </tr>
                             </ng-container>
-                            <ng-container *ngFor="let team of rmgProjectObj.teamDetailsList;  trackBy: trackByTeamId">
+                            <ng-container *ngFor="let team of rmgProjectObj.teamDetailsList; let teamIndex = index; trackBy: trackByTeamId">
                                 <tr>
                                     <td *ngIf="projectConfigStepperIndex === 1">
                                         <mat-checkbox class="custom-checkbox" color="primary"
@@ -297,16 +386,24 @@
                                             [disabled]="projectConfigStepperIndex !== 1" placeholder="Enter Team Name"
                                             (blur)="validateTeamName(team)" />
                                     </td>
-                                    <td class="min-width180 max-width200">
+                                    <td class="min-width180 max-width200"
+                                        (mouseenter)="openTeamHoverPopup($event, 'dept', team)"
+                                        (mouseleave)="closeTeamHoverPopup()">
                                         <app-my-select #teamDepartmentSelect class="form-control"
-                                            [readonly]="projectConfigStepperIndex !== 1" placeholder="Select Department"
+                                            [readonly]="projectConfigStepperIndex !== 1"
+                                            [class.disable-dropdown]="isPreviewStep"
+                                            placeholder="Select Department"
                                             [(ngModel)]="team.deptIds" [options]="departmentsList" displayKey="name"
                                             valueKey="deptId" [multiple]="true">
                                         </app-my-select>
                                     </td>
-                                    <td class="min-width180 max-width200">
+                                    <td class="min-width180 max-width200"
+                                        (mouseenter)="openTeamHoverPopup($event, 'spoc', team)"
+                                        (mouseleave)="closeTeamHoverPopup()">
                                         <app-my-select #teamSpocSelect class="form-control"
-                                            [readonly]="projectConfigStepperIndex !== 1" placeholder="Select Employee"
+                                            [readonly]="projectConfigStepperIndex !== 1"
+                                            [class.disable-dropdown]="isPreviewStep"
+                                            placeholder="Select Employee"
                                             [(ngModel)]="team.spocId" [options]="spocList" displayKey="name"
                                             valueKey="empId" [multiple]="false">
                                         </app-my-select>
@@ -325,6 +422,20 @@
                             </ng-container>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hover popup overlay (not constrained by table scroll) -->
+        <div class="manager-popup manager-popup-fixed"
+            *ngIf="teamHoverPopupVisible && teamHoverPopupItems.length > 0"
+            [ngStyle]="teamHoverPopupStyle">
+            <div class="manager-popup-title">{{ teamHoverPopupTitle }}</div>
+            <div class="manager-popup-body">
+                <div class="manager-popup-item" *ngFor="let name of teamHoverPopupItems">
+                    <span *ngIf="teamHoverPopupTitle === 'Selected Departments'">🏢</span>
+                    <span *ngIf="teamHoverPopupTitle !== 'Selected Departments'">👤</span>
+                    {{ name }}
                 </div>
             </div>
         </div>
@@ -1173,9 +1284,28 @@
 <ng-template #team_details_new>
     <div class="card shadow project-config-card">
         <div class="card-header project-card-header">
+            <nav class="rmg-breadcrumb" aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item">
+                        <a href="javascript:void(0)" title="Back to Resource Management"
+                            (click)="callCloseProjectConfiguration()">Resource Management</a>
+                    </li>
+                    <li class="breadcrumb-item rmg-breadcrumb-active">
+                        <a href="javascript:void(0)" title="Back to Team Configuration"
+                            (click)="(projectConfigStepperIndex == 2 || isProjectPreview) ? closeTeamMemberDetailsPreviewModal() : hideTeamDetails()">
+                            Resource Configuration
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <span>
+                            {{ currentTeam.teamName ? (currentTeam.teamName + ' (Team Member Details)') : 'Team Member Details' }}
+                        </span>
+                    </li>
+                </ol>
+            </nav>
             <div class="row align-items-center">
                 <div class="col-md-11">
-                    <h6 class="card-title text-left">
+                    <h6 class="card-title text-left mb-0">
                         {{ currentTeam.teamName ? (currentTeam.teamName + ' (Team Member Details)')
                         : 'Team Member Details' }}
                     </h6>

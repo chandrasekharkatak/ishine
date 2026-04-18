@@ -303,6 +303,21 @@ export class RmgProjectConfigComponent implements OnInit {
     allResourceRequirementColumnList: any[] = ['blank', 'poNo', 'blank', 'blank', 'role', 'department', 'experience', 'blank', 'blank', 'count', 'assignedApproved', 'assignedPending', 'difference'];
     allResourceRequirementColumnListForInternal: any[] = ['blank', 'poNo', 'blank', 'blank', 'blank', 'assignedApproved', 'assignedPending', 'difference'];
 
+
+    showManagerTooltip: boolean = false;
+    showOverheadTooltip: boolean = false;
+    showDepartmentTooltip: boolean = false;
+    showTeamDepartmentTooltip: boolean = false;
+    showTeamSpocTooltip: boolean = false;
+
+    hoveredTeamDepartmentKey: any = null;
+    hoveredTeamSpocKey: any = null;
+
+    teamHoverPopupVisible: boolean = false;
+    teamHoverPopupTitle: string = '';
+    teamHoverPopupItems: string[] = [];
+    teamHoverPopupStyle: { [key: string]: string } = {};
+
     constructor(
         public validationService: ValidationService,
         private readonly toastService: ToastService,
@@ -712,9 +727,9 @@ export class RmgProjectConfigComponent implements OnInit {
     // Validation Methods End
 
     // Helpers Start
-    // callCloseProjectConfiguration() {
-    //     this.closeProjectConfiguration.emit();
-    // }
+    callCloseProjectConfiguration() {
+        this.closeProjectConfiguration.emit();
+    }
 
     setProjectType(): void {
         if (this.isValidString(this.rmgProjectObj.poProjectType)) {
@@ -3062,4 +3077,128 @@ export class RmgProjectConfigComponent implements OnInit {
         );
     }
     // FC Milestone Method & APIs End
+
+get isPreviewStep(): boolean {
+    return this.projectConfigStepperIndex === 2; // 2 = Preview step index
+}
+
+
+
+getSelectedManagers(): string[] {
+    if (!this.rmgProjectObj.projectManagerIds || !this.managerList) return [];
+
+    return this.managerList
+        .filter(manager => this.rmgProjectObj.projectManagerIds.includes(manager.empId))
+        .map(manager => manager.name);
+}
+
+
+getSelectedOverheads(): string[] {
+    if (!this.rmgProjectObj.projectOverheadIds || !this.overheadList) return [];
+
+    return this.overheadList
+        .filter(overhead => this.rmgProjectObj.projectOverheadIds.includes(overhead.empId))
+        .map(overhead => overhead.name);
+}
+
+
+getSelectedDepartments(): string[] {
+    if (!this.rmgProjectObj.departmentIds || !this.departmentsList) return [];
+
+    return this.departmentsList
+        .filter(dept => this.rmgProjectObj.departmentIds.includes(dept.deptId))
+        .map(dept => dept.name);
+}
+
+
+getSelectedTeamDepartments(): string[] {
+    if (!this.rmgProjectObj.newTeamObj?.deptIds || !this.departmentsList) return [];
+
+    return this.departmentsList
+        .filter(dept => this.rmgProjectObj.newTeamObj.deptIds.includes(dept.deptId))
+        .map(dept => dept.name);
+}
+
+getSelectedTeamSpoc(): string[] {
+    if (!this.rmgProjectObj.newTeamObj?.spocId || !this.spocList) return [];
+
+    // single select so wrap in array for consistent handling
+    return this.spocList
+        .filter(emp => emp.empId === this.rmgProjectObj.newTeamObj.spocId)
+        .map(emp => emp.name);
+}
+
+getSelectedDepartmentsForTeam(team: any): string[] {
+    if (!team?.deptIds || !this.departmentsList) return [];
+
+    return this.departmentsList
+        .filter(dept => team.deptIds.includes(dept.deptId))
+        .map(dept => dept.name);
+}
+
+getSelectedSpocForTeam(team: any): string[] {
+    if (!team?.spocId || !this.spocList) return [];
+
+    return this.spocList
+        .filter(emp => emp.empId === team.spocId)
+        .map(emp => emp.name);
+}
+
+openTeamHoverPopup(event: MouseEvent, type: 'dept' | 'spoc', team: any) {
+    if (!this.isPreviewStep) return;
+
+    const items =
+        type === 'dept'
+            ? this.getSelectedDepartmentsForTeam(team)
+            : this.getSelectedSpocForTeam(team);
+
+    if (!items || items.length === 0) {
+        this.closeTeamHoverPopup();
+        return;
+    }
+
+    this.teamHoverPopupTitle = type === 'dept' ? 'Selected Departments' : 'Selected Employee';
+    this.teamHoverPopupItems = items;
+    this.teamHoverPopupVisible = true;
+
+    const target = event.currentTarget as HTMLElement | null;
+    const rect = target?.getBoundingClientRect();
+    if (!rect) return;
+
+    const popupWidth = 360; // should match CSS max-width
+    const popupHeight = 160; // approximate; body scrolls if needed
+    const padding = 8;
+
+    let left = rect.left;
+    left = Math.max(padding, Math.min(left, window.innerWidth - popupWidth - padding));
+
+    // Prefer above; if not enough space, show below
+    const spaceAbove = rect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const showAbove = spaceAbove >= popupHeight + padding || spaceAbove >= spaceBelow;
+
+    const top = showAbove
+        ? Math.max(padding, rect.top - padding) // we'll translate via CSS (bottom anchored look)
+        : Math.min(window.innerHeight - padding, rect.bottom + padding);
+
+    this.teamHoverPopupStyle = showAbove
+        ? {
+            left: `${left}px`,
+            top: `${Math.max(padding, rect.top - padding)}px`,
+            transform: 'translateY(-100%)',
+        }
+        : {
+            left: `${left}px`,
+            top: `${top}px`,
+            transform: 'none',
+        };
+}
+
+closeTeamHoverPopup() {
+    this.teamHoverPopupVisible = false;
+    this.teamHoverPopupItems = [];
+    this.teamHoverPopupTitle = '';
+    this.teamHoverPopupStyle = {};
+}
+
 }
