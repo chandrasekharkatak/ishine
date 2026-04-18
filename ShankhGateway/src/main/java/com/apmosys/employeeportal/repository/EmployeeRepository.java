@@ -4191,7 +4191,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	// -----------------------------------------------Below this are the mew inner joined queries-----------------------------------------
 		@Query(value = "select new com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse(ppd.poNo, p.poProjectId, p.projectId, p.projectName, e.empId, e.employeementId, e.name, e.billableType, d.name, jr.name " +
 		",(select count(etn) from EmployeeTimesheetsNew etn where etn.date between :startDate and :endDate and etn.empId = e.empId) " +
-		",etm.active) " +
+		",etm.active,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) " +
 		"from Employee e " +
 		"left join EmployeeTeamMap etm on etm.empId = e.empId " +
 		"left join Team t on t.teamId = etm.teamId " +

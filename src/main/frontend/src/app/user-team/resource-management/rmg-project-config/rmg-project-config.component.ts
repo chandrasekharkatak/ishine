@@ -1490,9 +1490,10 @@ export class RmgProjectConfigComponent implements OnInit {
                 this.updateAddTeamButton();
                 this.updateTeamActionButton();
             } else {
-                this.openAlertMessageModal(response.serviceResponse || 'Something went wrong!!');
+            const msg = response?.serviceResponse || 'Something went wrong!!';
+             this.openAlertMessageModal(msg);
             }
-        } catch (error) {
+         } catch (error) {
             console.error(error);
             this.openAlertMessageModal('Something went wrong!!');
         }
