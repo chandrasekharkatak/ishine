@@ -2288,7 +2288,7 @@ private boolean shoulSkipForShadow(Long empId,Long timesheetId,Integer projectId
 	/*skip doc validation if shadow for self or shadow timesheet and client approval status is null*/
 	List<ProjectTimesheetStatusNew> projList = projectTimesheetStatusNewRepository.findByProjectIdAndTimesheetId(projectId,timesheetId);
 	ProjectTimesheetStatusNew proj=projList.get(0);
-	if(proj.getShadowEmpId()!= null && proj.getShadowEmpId() == empId && proj.getClientApprovalStatus()==null) {
+	if(proj.getShadowEmpId()!= null && proj.getShadowEmpId().equals(empId) && proj.getClientApprovalStatus()==null) {
 		skip=true;
 	}
 	return skip;
