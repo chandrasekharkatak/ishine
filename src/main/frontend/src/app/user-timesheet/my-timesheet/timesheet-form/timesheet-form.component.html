@@ -1013,7 +1013,7 @@
                             </label>
                             <input class="form-control" autocomplete="none" disabled
                                 [value]="empClientSideObj.projectName" />
-                            <span *ngIf="empClientSideObj.hasClientSideId" class="text-danger small mt-1">**If you do
+                            <span *ngIf="empClientSideObj.hasClientSideId && !empClientSideObj.hasClientSideFlag" class="text-danger small mt-1">**If you do
                                 not have a Client Side ID, please follow the
                                 given format.</span>
                         </div>

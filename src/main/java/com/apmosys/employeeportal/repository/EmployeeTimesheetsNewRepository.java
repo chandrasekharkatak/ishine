@@ -18693,7 +18693,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
         			"INNER JOIN project_timesheet_status_new ptsn " +
         			"ON ptsn.timesheet_id = etn.timesheet_id  and ptsn.location_mapping_id = etlm.location_mapping_id " +
         			"INNER JOIN timesheet_rejection_details_new trdn " +
-        			"ON trdn.timesheet_id = etn.timesheet_id AND trdn.project_id = ptsn.project_id " +
+        			"ON trdn.timesheet_id = etn.timesheet_id AND trdn.project_id = ptsn.project_id and trdn.is_active = 1 " +
         			"INNER JOIN timesheet_rejection_reasons_master trrm " +
         			"ON trrm.rejection_id = trdn.rejection_id " +
         			"INNER JOIN projects p " +
