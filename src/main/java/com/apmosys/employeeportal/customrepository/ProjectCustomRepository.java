@@ -177,6 +177,8 @@ public class ProjectCustomRepository {
 
         String query = getOverboardedAndUnderboardedProjectQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy,
                 sortDirection, projectNames, projectStatus);
+        
+        System.err.println(query);
 
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
@@ -226,6 +228,8 @@ public class ProjectCustomRepository {
 
         String query = getQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy,
                 sortDirection, projectStatus, addStartAndEndDate, projectNames);
+        
+        System.err.println(query);
 
         final String sDate = startDate;
         final String eDate = endDate;
@@ -258,6 +262,8 @@ public class ProjectCustomRepository {
         boolean isProjectId = !"ADMIN".equals(req.getCurrentUserType());
         String dbProjectStatus = getDBProjectStatus(projectStatus);
         String query = buildQueryForMode(req, sortBy, sortDirection, projectStatus, projectNames);
+        
+        System.err.println(query);
 
         CompletableFuture<Long> countFuture;
         CompletableFuture<List<ProjectFetchDTO>> listFuture;
@@ -577,8 +583,8 @@ public class ProjectCustomRepository {
 		StringBuilder query1 = new StringBuilder(projectDetailsStartQuery); // Pending for Approval
 		StringBuilder query2 = new StringBuilder(projectDetailsStartQuery); // Not Started
 		StringBuilder query3 = new StringBuilder(projectDetailsStartQuery); // Rejected
-		StringBuilder query4 = new StringBuilder(projectDetailsStartQuery); // Offboarded 
-		StringBuilder query5 = new StringBuilder(projectDetailsStartQuery); // Scheduled
+		StringBuilder query4 = new StringBuilder(projectDetailsStartQuery); // OffBoarded
+//		StringBuilder query5 = new StringBuilder(projectDetailsStartQuery); // Scheduled
 		StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" )");
 
 		StringBuilder queryJoins = new StringBuilder();
@@ -612,11 +618,12 @@ public class ProjectCustomRepository {
 			  .append(" WHERE 1=1 \n")
 			  .append(getOffBoardedProjectsCondition());
 		
-		query5.append(" INNER JOIN teams t ON p.project_id = t.project_id  \n")
-			  .append(" INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id  \n")
-			  .append(queryJoins)
-			  .append(" WHERE 1=1 \n")
-		      .append(getScheduledProjectsCondition());
+		
+//		query5.append(" INNER JOIN teams t ON p.project_id = t.project_id  \n")
+//			  .append(" INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id  \n")
+//			  .append(queryJoins)
+//			  .append(" WHERE 1=1 \n")
+//		      .append(getScheduledProjectsCondition());
 		
 		if (projectNames != null && !projectNames.isEmpty()) {
 			query.append(" AND p.project_name IN (:projectNames) \n");
@@ -624,25 +631,25 @@ public class ProjectCustomRepository {
 			query2.append(" AND p.project_name IN (:projectNames) \n");
 			query3.append(" AND p.project_name IN (:projectNames) \n");
 			query4.append(" AND p.project_name IN (:projectNames) \n");
-			query5.append(" AND p.project_name IN (:projectNames) \n");
+//			query5.append(" AND p.project_name IN (:projectNames) \n");
 		}
 		query.append(groupQuery);
 		query1.append(groupQuery);
 		query2.append(groupQuery);
 		query3.append(groupQuery);
 		query4.append(groupQuery);
-		query5.append(groupQuery);
+//		query5.append(groupQuery);
 
-		query.append(" UNION  \n")
+		query.append(" UNION ALL \n")
 			 .append(query1)
-			 .append(" UNION \n")
+			 .append(" UNION ALL \n")
 			 .append(query2)
-			 .append(" UNION  \n")
+			 .append(" UNION ALL \n")
 			 .append(query3)
-			 .append(" UNION  \n")
+			 .append(" UNION ALL \n")
 			 .append(query4)
-			 .append(" UNION  \n")
-			 .append(query5)
+//			 .append(" UNION ALL \n")
+//			 .append(query5)
 			 .append(" ) as T1");
 
 		appenCustomSearchToQuery(projectFilter, query);
@@ -876,9 +883,9 @@ public class ProjectCustomRepository {
 
 	private String getScheduledProjectsCondition() {
 		StringBuilder offBoardedCondition = new StringBuilder();
-		offBoardedCondition.append(" AND p.active= 'true' AND t.is_active = 'Y' AND p.is_draft_project = 'false' \n")
-		.append("AND etm.active = 0 AND DATE(etm.start_date) > CURDATE() \n ")
-		.append(" AND NOT EXISTS ( SELECT 1 FROM teams t2 JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE t2.project_id = p.project_id AND (etm2.active = 1 OR (etm2.active = 0 AND DATE(etm.start_date) <= CURDATE())) ) \n");
+		offBoardedCondition.append(" AND p.active= 'true' AND t.is_active = 'Y' \n")
+		.append("AND etm.active = 0 AND DATE(etm.start_date) > CURDATE() \n ");
+//		.append(" AND NOT EXISTS ( SELECT 1 FROM teams t2 JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE t2.project_id = p.project_id AND (etm2.active = 1 OR (etm2.active = 0 AND DATE(etm.start_date) <= CURDATE())) ) \n");
 		return offBoardedCondition.toString();
 	}
 	
