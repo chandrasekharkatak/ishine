@@ -115,19 +115,19 @@
                     <input class="form-control" type="text" disabled [ngModel]="projectType || 'NA'" />
                 </div>
             </div>
-            
+
             <div class="col-md-4 mb-0">
                 <div class="form-group p-2 mb-0">
                     <label><span class="text-danger">*</span>Project Manager</label>
-            
+
                     <div class="manager-wrapper" (mouseenter)="showManagerTooltip = true" (mouseleave)="showManagerTooltip = false">
-            
+
                         <app-my-select class="form-control" [(ngModel)]="rmgProjectObj.projectManagerIds"
                             [readonly]="projectConfigStepperIndex !== 0" [class.disable-dropdown]="projectConfigStepperIndex === 2"
                             [options]="managerList" displayKey="name" valueKey="empId" placeholder="Select Project Manager"
                             [multiple]="true" (dropdownClosed)="validateProjectManagerIds()">
                         </app-my-select>
-            
+
                         <!-- Popup -->
                         <div class="manager-popup"
                             *ngIf="showManagerTooltip && getSelectedManagers().length > 0 && projectConfigStepperIndex === 2 ">
@@ -136,24 +136,24 @@
                                 👤 {{ name }}
                             </div>
                         </div>
-            
+
                     </div>
                 </div>
             </div>
-        
+
             <div class="col-md-4 mb-0">
                 <div class="form-group p-2 mb-0">
                     <label>Project Overhead</label>
-            
+
                     <div class="manager-wrapper" (mouseenter)="showOverheadTooltip = true"
                         (mouseleave)="showOverheadTooltip = false">
-            
+
                         <app-my-select class="form-control" [(ngModel)]="rmgProjectObj.projectOverheadIds"
                             [class.disable-dropdown]="projectConfigStepperIndex === 2" [readonly]="projectConfigStepperIndex !== 0"
                             [options]="overheadList" displayKey="name" valueKey="empId" placeholder="Select Project Overhead"
                             [multiple]="true">
                         </app-my-select>
-            
+
                         <!-- Popup -->
                         <div class="manager-popup"
                             *ngIf="showOverheadTooltip && getSelectedOverheads().length > 0 && projectConfigStepperIndex === 2">
@@ -162,7 +162,7 @@
                                 👤 {{ name }}
                             </div>
                         </div>
-            
+
                     </div>
                 </div>
             </div>
@@ -181,15 +181,15 @@
             <div class="col-md-4 mb-0">
                 <div class="form-group p-2 mb-0">
                     <label>Department</label>
-            
+
                     <div class="manager-wrapper" (mouseenter)="showDepartmentTooltip = true"
                         (mouseleave)="showDepartmentTooltip = false">
-            
+
                         <app-my-select #departmentSelect2 class="form-control" disabled placeholder="Select Department"
                             [class.disable-dropdown]="projectConfigStepperIndex === 2" [(ngModel)]="rmgProjectObj.departmentIds"
                             [options]="departmentsList" displayKey="name" [disable]="true" valueKey="deptId" [multiple]="true">
                         </app-my-select>
-            
+
                         <!-- Popup -->
                         <div class="manager-popup" *ngIf="showDepartmentTooltip && getSelectedDepartments().length > 0 && projectConfigStepperIndex === 2">
                             <div class="manager-popup-title">Selected Departments</div>
@@ -197,7 +197,7 @@
                                 🏢 {{ name }}
                             </div>
                         </div>
-            
+
                     </div>
                 </div>
             </div>
@@ -261,6 +261,7 @@
                 <div class="col-md-12 d-flex justify-content-end">
                     <button *ngIf="!rmgProjectObj?.isAnyNewTeamAdded && rmgProjectObj?.teamDetailsList?.length > 0"
                         class="btn btn-primary btn-sm mr-1" title="Update Team(s)"
+                        [disabled]="!isAnyTeamUpdated()"
                         (click)="addOrUpdateTeamDetails(true)">
                         Update Team(s)
                     </button>
@@ -305,6 +306,7 @@
                                     <td class="min-width180 max-width200">
                                         <input class="form-control" type="text"
                                             [(ngModel)]="rmgProjectObj.newTeamObj.teamName"
+
                                             [disabled]="projectConfigStepperIndex !== 1" placeholder="Enter Team Name"
                                             (blur)="validateTeamName(rmgProjectObj.newTeamObj)" />
                                     </td>
@@ -341,6 +343,7 @@
                                             [class.disable-dropdown]="isPreviewStep"
                                             placeholder="Select Employee"
                                             [(ngModel)]="rmgProjectObj.newTeamObj.spocId" [options]="spocList"
+
                                             displayKey="name" valueKey="empId" [multiple]="false">
                                         </app-my-select>
 
@@ -383,6 +386,7 @@
                                     </td>
                                     <td class="min-width180 max-width200">
                                         <input class="form-control" type="text" [(ngModel)]="team.teamName"
+
                                             [disabled]="projectConfigStepperIndex !== 1" placeholder="Enter Team Name"
                                             (blur)="validateTeamName(team)" />
                                     </td>

@@ -354,7 +354,7 @@ export class EmployeeProjectService {
     });
   }
 
-  // Helpers Start 
+  // Helpers Start
   mapEmployeeProjectDates(projects: any[]): any[] {
     return this.isValidList(projects) ? projects?.map(project => ({
       ...project,

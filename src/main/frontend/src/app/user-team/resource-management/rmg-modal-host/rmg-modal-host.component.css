@@ -19,6 +19,24 @@
     color: #656565;
 }
 
+/* Disable input look */
+.date-input:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Disable calendar icon visually + interaction */
+.calendar-icon.disabled {
+  pointer-events: none;
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Optional: wrapper style when disabled */
+.date-input-wrapper.disabled {
+  opacity: 0.7;
+}
 .project-card-header {
     background-color: #fff;
     margin: .5rem !important;

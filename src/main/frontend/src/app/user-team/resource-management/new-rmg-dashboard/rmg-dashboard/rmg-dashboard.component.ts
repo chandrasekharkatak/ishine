@@ -82,30 +82,68 @@ export class RmgDashboardComponent implements OnInit {
   teamProjectStatusSummaryModalRef: NgbModalRef;
   projectTimesheetSummaryModalRef: NgbModalRef;
 
-  // HTML Configs 
+  // HTML Configs
   statusCards = [
-    { label: 'TOTAL PROJECTS', value: null, icon: 'bi-globe', colorClass: 'text-info', key: 'ALL', color: '#7b8fc7', display: true },
-    { label: 'ACTIVE PROJECTS', value: null, icon: 'bi-lightning', colorClass: 'text-warning', key: 'TOTAL', color: '#6f85c0', display: true },
-    { label: 'TNM PROJECTS', value: null, icon: 'bi-currency-rupee', colorClass: 'text-success', key: 'TOTAL_TNM', color: '#627bb8', display: true },
-    { label: 'FIXED COST', value: null, icon: 'bi-suitcase-lg', colorClass: 'text-info', key: 'TOTAL_FC', color: '#4f68a9', display: true },
-    { label: 'MONITORING', value: null, icon: 'bi-bar-chart', colorClass: 'text-navy', key: 'TOTAL_MONITORING', color: '#3f5796', display: true },
-    { label: 'INTERNAL & BENCH', value: null, icon: 'bi-people', colorClass: 'text-success', key: 'TOTAL_INTERNAL', color: '#2f467f', display: true },
-    { label: 'ALL TNM PROJECTS', value: null, icon: 'bi-currency-rupee', colorClass: 'text-success', key: 'ALL_TNM', color: '#627bb8', display: false },
+    { label: 'TOTAL PROJECTS', value: null, icon: 'bi-globe', colorClass: 'text-info', key: 'ALL', color: '#7b8fc7', tooltip: ['Total number of projects including Active as well as Completed ones.'],display: true },
+    { label: 'ACTIVE PROJECTS', value: null, icon: 'bi-lightning', colorClass: 'text-warning', key: 'TOTAL', color: '#6f85c0',  tooltip: [
+      'Currently active projects in execution phase.',
+      'Projects active as of the current date.'
+    ],display: true },
+    { label: 'TNM PROJECTS', value: null, icon: 'bi-currency-rupee', colorClass: 'text-success', key: 'TOTAL_TNM', color: '#627bb8', tooltip: [
+      'Projects classified under Time & Money-based active projects.'
+    ], display: true },
+    { label: 'FIXED COST', value: null, icon: 'bi-suitcase-lg', colorClass: 'text-info', key: 'TOTAL_FC', color: '#4f68a9', tooltip: [
+      'Projects classified under Active projects with fixed pricing model.'
+    ], display: true },
+    { label: 'MONITORING', value: null, icon: 'bi-bar-chart', colorClass: 'text-navy', key: 'TOTAL_MONITORING', color: '#3f5796',  tooltip: [
+      'Projects currently under monitoring category.'
+    ],display: true },
+    { label: 'INTERNAL & BENCH', value: null, icon: 'bi-people', colorClass: 'text-success', key: 'TOTAL_INTERNAL', color: '#2f467f', tooltip: [
+      'Internal initiatives and bench allocations, including projects designated for internal or bench resources.'
+    ],display: true },
+    { label: 'ALL TNM PROJECTS', value: null, icon: 'bi-currency-rupee', colorClass: 'text-success', key: 'ALL_TNM', color: '#627bb8',  tooltip: [
+      'All TNM related projects combined.',
+      'Includes both active and archived TNM work.',
+      'Used for consolidated reporting.'
+    ],display: false },
   ];
+
 
   projectLifeCycleStages = [
-    { value: null, label: 'Not Started', desc: 'Awaiting project kickoff', colorClass: 'text-muted', icon: 'fa-solid fa-minus-circle ', key: 'NOT_STARTED' },
-    { value: null, label: 'Pending', desc: 'Awaiting HOD / PM approval', colorClass: 'text-warning', icon: 'fa-solid fa-clock', key: 'PENDING_FOR_APPROVAL' },
-    { value: null, label: 'Approved', desc: 'Approved by HOD / PM', colorClass: 'text-success', icon: 'fa-solid fa-check-circle', key: 'APPROVED' },
-    { value: null, label: 'Scheduled', desc: 'Planned for Future Start', colorClass: 'text-info', icon: 'fa-solid fa-calendar-check', key: 'SCHEDULED' },
-    { value: null, label: 'Rejected', desc: 'Not approved by HOD / PM', colorClass: 'text-danger', icon: 'fa-solid fa-times-circle', key: 'REJECTED' },
+    { value: null, label: 'Not Started', desc: 'Awaiting project kickoff', colorClass: 'text-muted', color: '#6c757d',icon: 'fa-solid fa-minus-circle ', key: 'NOT_STARTED', tooltip: [
+      'Projects where resource onboarding has not yet commenced.',
+      'Teams may be empty or not fully configured.'
+    ] },
+    { value: null, label: 'Pending', desc: 'Awaiting HOD / PM approval', colorClass: 'text-warning',color: '#ffc107', icon: 'fa-solid fa-clock', key: 'PENDING_FOR_APPROVAL',tooltip: [
+      'Projects where resource onboarding has started, but at least one employee is awaiting approval.',
+      'Approval is required before moving forward.'
+    ] },
+    { value: null, label: 'Approved', desc: 'Approved by HOD / PM', colorClass: 'text-success', color: '#198754',icon: 'fa-solid fa-check-circle', key: 'APPROVED',tooltip: [
+      'Projects where all onboarded resources are approved.'
+    ] },
+    { value: null, label: 'Scheduled', desc: 'Planned for Future Start', colorClass: 'text-info', color: '#0dcaf0', icon: 'fa-solid fa-calendar-check', key: 'SCHEDULED' ,  tooltip: [
+      'Projects where resources are onboarded with future start date.'
+    ]},
+    { value: null, label: 'Rejected', desc: 'Not approved by HOD / PM', colorClass: 'text-danger', color: '#dc3545',icon: 'fa-solid fa-times-circle', key: 'REJECTED', tooltip: [
+      'Projects that have been rejected during the resource approval process.'
+    ] },
   ];
 
+
   resourceCards = [
-    { label: 'Underboarded', value: null, icon: 'bi-arrow-trend-down', colorClass: 'text-info', key: 'UNDERBOARDED', color: '#E69D23', subKey: 'UNDERBOARDED' },
-    { label: 'Overboarded', value: null, icon: 'bi-arrow-trend-up', colorClass: 'text-warning', key: 'OVERBOARDED', color: '#DB3838', subKey: 'OVERBOARDED' },
-    { label: 'Deboarded', value: null, icon: 'bi-person-dash', colorClass: 'text-muted', key: 'OFFBOARDED', color: '#6B7280' },
+    { label: 'Underboarded', value: null, icon: 'bi-arrow-trend-down', colorClass: 'text-info', key: 'UNDERBOARDED', color: '#E69D23', subKey: 'UNDERBOARDED',  tooltip: [
+      'TNM projects where one or more role requirements are not yet fully fulfilled.'
+    ] },
+    { label: 'Overboarded', value: null, icon: 'bi-arrow-trend-up', colorClass: 'text-danger', key: 'OVERBOARDED', color: '#DB3838', subKey: 'OVERBOARDED' , tooltip: [
+      'Resources are over-allocated beyond capacity.',
+      'Requires workload balancing or redistribution.'
+    ]},
+    { label: 'Deboarded', value: null, icon: 'bi-person-dash', colorClass: 'text-muted', key: 'OFFBOARDED', color: '#6B7280', tooltip: [
+      'Resources have been released from active projects.',
+      'No current allocation in ongoing work.'
+    ] },
   ];
+
 
   tnmExpiredBars = [
     { label: 'Expired TNM', value: null, color: '#2f467f', key: 'allExpiredTNMProjectsCount', display: false, subKey: 'TOTAL_EXPIRED_TNM' },
@@ -117,12 +155,23 @@ export class RmgDashboardComponent implements OnInit {
     { label: '6-12M', value: null, color: '#3f5796', key: 'expiredProjects6To12Months', display: true },
     { label: '12M+', value: null, color: '#2f467f', key: 'expiredProjectsAbove12Months', display: true },
   ];
-
+getTnmExpiredTooltip(): string[] {
+  return [
+    'TNM projects that have exceeded end date and resources are still onboarded.'
+  ];
+}
   fixedCostItems = [
     { key: "all", label: 'Active', value: null, color: '#1B294B', display: false },
     { key: "defaulter", label: 'Defaulter', value: null, color: '#A2AFCD', subKey: 'TOTAL_FC', display: true },
     { key: "ontime", label: 'On Time', value: null, color: '#4468BB', display: true },
   ];
+  getFixedCostTooltip(): string[] {
+  return [
+    'Defaulter: Projects on which resources are onboarded despite po_end_date is crossed.',
+    'On Time: Projects on which resoruces are onboarded and po_end_date is not crossed.',
+    'Active: Sum of Defaulter and On Time.'
+      ];
+}
 
   zeroTimesheetBars = [
     { label: 'No Timesheet', value: null, color: '#2f467f', key: 'All', display: false, subKey: 'TIMESHEET_NON_COMPLIANCE' },
@@ -131,11 +180,21 @@ export class RmgDashboardComponent implements OnInit {
     { label: '1 Year', value: null, color: '#C65353', key: '1Y', display: true },
   ];
 
+
   completedItems = [
-    { key: 'COMPLETED_IN_ISHINE', label: 'iShine Closed', value: null, icon: 'bi-check-circle' },
-    { key: 'COMPLETED_IN_SHANKH', label: 'Shankh Closed', value: null, icon: 'bi-check-circle' },
-    { key: 'COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE', label: 'Shankh + Active', value: null, icon: 'bi-flag' },
+    { key: 'COMPLETED_IN_ISHINE', label: 'iShine Closed', value: null, icon: 'bi-check-circle' ,   color: '#6f85c0',tooltip: [
+      'Projects marked as completed in iShine.'
+    ]},
+    { key: 'COMPLETED_IN_SHANKH', label: 'Shankh Closed', value: null, icon: 'bi-check-circle' ,   color: '#6f85c0', tooltip: [
+      'Projects completed in Shankh system.'
+    ]},
+    { key: 'COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE', label: 'Shankh + Active', value: null, icon: 'bi-flag' ,   color: '#6f85c0', tooltip: [
+      'Project is marked completed in Shankh.',
+      'However, resources are still active on the project.',
+      'Requires validation or proper deboarding of team members.'
+    ]},
   ];
+
 
   attentionRequiredProjectAlerts = [
     this.resourceCards[0], // Underboarded
@@ -313,29 +372,66 @@ export class RmgDashboardComponent implements OnInit {
   timesheetNonCompliance = { key: 'TIMESHEET_NON_COMPLIANCE', label: 'Timesheet Non-Compliance Projects', value: 'timesheet_non_compliance', count: null, style: 'color: #EC4899', bgstyle: 'background-color: #EC4899;color: #fff;', leftstyle: 'border-left:4px solid;color: #EC4899', i_class: 'fa-solid fa-calendar-xmark fa-beat-fade', columnConfig: this.unfilledTimesheetProjectColumnConfig, defaultSortColumn: 'projectName', subTableColumnConfig: [], color: '', infoLabel: '' };
 
   workforceOverview = [
-    { key: 'TOTAL', icon: 'bi-people', label: 'Active Employees In Apmosys', value: null, desc: 'Full organization headcount', colorClass: 'text-info', columnConfig: [], defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#1B294B' },
-    { key: 'MAPPED_TO_PROJECT', icon: 'bi-person-check', label: 'Assigned to Projects', value: null, desc: 'Mapped to ≥ 1 project', colorClass: 'text-success', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#64B497' },
-    { key: 'NOT_MAPPED_TO_ANY_PROJECT', icon: 'bi-person-x', label: 'Unassigned Employees', value: null, desc: 'No active project mapping', colorClass: 'text-warning', columnConfig: this.notMappedEmployeesColumConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#D68585' },
+    { key: 'TOTAL', icon: 'bi-people', label: 'Active Employees In Apmosys', value: null, desc: 'Full organization headcount', colorClass: 'text-info', columnConfig: [], defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#1B294B', tooltip: [
+      'Total active employees in Apmosys including all categories.'
+    ] },
+    { key: 'MAPPED_TO_PROJECT', icon: 'bi-person-check', label: 'Assigned to Projects', value: null, desc: 'Mapped to ≥ 1 project', colorClass: 'text-success', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#64B497',  tooltip: [
+      'Employees currently assigned to one or more active projects.'
+    ] },
+    { key: 'NOT_MAPPED_TO_ANY_PROJECT', icon: 'bi-person-x', label: 'Unassigned Employees', value: null, desc: 'No active project mapping', colorClass: 'text-warning', columnConfig: this.notMappedEmployeesColumConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#D68585' ,  tooltip: [
+      'Employees not assigned to any active project at present.'
+    ]},
   ];
 
   projectDistribution = [
-    { key: 'MAPPED_TO_SHANKH', icon: 'bi-briefcase', label: 'Client project Allocations', value: null, desc: 'Client projects only', colorClass: 'text-success', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.mappedEmployeeDetailsSubTableColumnConfig, bgColor: '#E7AA74' },
-    { key: 'MAPPED_TO_INTERNAL_AND_SHANKH', icon: 'bi-arrow-left-right', label: 'Dual Allocation (Internal & Client)', value: null, desc: 'Both Internal & Client', colorClass: 'text-accent', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#799ED2' },
-    { key: 'MAPPED_TO_INTERNAL', icon: 'bi-building', label: 'Internal & Bench project Allocation', value: null, desc: 'Internal projects only', colorClass: 'text-info', columnConfig: this.mappedToInternalEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#64B4AF' },
+    { key: 'MAPPED_TO_SHANKH', icon: 'bi-briefcase', label: 'Client project Allocations', value: null, desc: 'Client projects only', colorClass: 'text-success', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.mappedEmployeeDetailsSubTableColumnConfig, bgColor: '#E7AA74' ,tooltip: [
+      'Employees allocated only to client projects.'
+    ]},
+    { key: 'MAPPED_TO_INTERNAL_AND_SHANKH', icon: 'bi-arrow-left-right', label: 'Dual Allocation (Internal & Client)', value: null, desc: 'Both Internal & Client', colorClass: 'text-accent', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#799ED2',tooltip: [
+      'Employees allocated to both internal and client projects.',
+      'Represents dual utilization across domains.',
+      'Balanced workload distribution.'
+    ] },
+    { key: 'MAPPED_TO_INTERNAL', icon: 'bi-building', label: 'Internal & Bench project Allocation', value: null, desc: 'Internal projects only', colorClass: 'text-info', columnConfig: this.mappedToInternalEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#64B4AF' , tooltip: [
+      'Employees allocated only to internal or bench projects.',
+      'Used for internal capacity utilization tracking.'
+    ]},
   ];
 
+
   riskItems = [
-    { key: 'ON_BENCH_BUT_PROJECT_ASSIGNED', icon: 'bi-exclamation-triangle', label: 'Bench with Allocation', value: null, desc: 'On bench but assigned elsewhere', colorClass: 'text-warning', columnConfig: this.onBenchButProjectAssignedEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#DEB67C' },
-    { key: 'ON_BENCH_FOR_MORE_THAN_30_DAYS', icon: 'bi-clock', label: 'Extended Bench', value: null, desc: 'Bench for 30+ days', colorClass: 'text-danger', columnConfig: this.onBenchEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#D68585' },
-    { key: 'WITHOUT_ANY_BILLABILITY', icon: 'bi-person-x', label: 'No Billable Assignment', value: null, desc: 'No default billable type', colorClass: 'text-danger', columnConfig: this.withoutBillabilityEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#DEB67C' },
+    { key: 'ON_BENCH_BUT_PROJECT_ASSIGNED', icon: 'bi-exclamation-triangle', label: 'Bench with Allocation', value: null, desc: 'On bench but assigned elsewhere', colorClass: 'text-warning', columnConfig: this.onBenchButProjectAssignedEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#DEB67C' , tooltip: [
+      'Employees currently on bench but still mapped to a project.',
+      'Indicates allocation mismatch or inactive engagement.'
+    ]},
+    { key: 'ON_BENCH_FOR_MORE_THAN_30_DAYS', icon: 'bi-clock', label: 'Extended Bench', value: null, desc: 'Bench for 30+ days', colorClass: 'text-danger', columnConfig: this.onBenchEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#D68585',tooltip: [
+      'Employees remaining on bench for more than 30 days.',
+      'Shows extended idle time without assignment.'
+    ] },
+    { key: 'WITHOUT_ANY_BILLABILITY', icon: 'bi-person-x', label: 'No Billable Assignment', value: null, desc: 'No default billable type', colorClass: 'text-danger', columnConfig: this.withoutBillabilityEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#DEB67C', tooltip: [
+      'Employees without any defined billable assignment.',
+      'Not linked to any revenue-generating work.',
+      'Needs proper assignment categorization.'
+    ] },
   ];
+
 
   mappedToClientPercentage = { key: 'MAPPED_TO_SHANKH_PERCENTAGE', icon: 'bi-building', label: 'Internal & Bench project Allocation', value: null, desc: 'Internal projects only', colorClass: 'text-info', columnConfig: this.mappedToInternalEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#64B4AF' };
 
   kpis = [
-    { label: 'TOTAL PROJECTS', value: this.statusCards[0]?.value, change: null, period: 'vs last week', status: null, icon: 'bi-lightning', key: 'ALL', extraValue: null },
-    { label: 'EMPLOYEES ONBOARDED', value: this.workforceOverview[0]?.value, change: null, period: 'vs last week', status: null, icon: 'bi-people', key: 'TOTAL', extraValue: null },
-    { label: '% OF EMPLOYEES ON CLIENT PROJECTS', value: null, suffix: '%', change: null, period: 'vs last month', status: null, icon: 'bi-graph-up', key: 'MAPPED_TO_SHANKH', extraValue: null},
+    { label: 'TOTAL PROJECTS', value: this.statusCards[0]?.value, change: null, period: 'vs last week', status: null, icon: 'bi-lightning', key: 'ALL', extraValue: null, tooltip: [
+      'Total number of projects currently present in the system.'
+    ] },
+    { label: 'EMPLOYEES ONBOARDED', value: this.workforceOverview[0]?.value, change: null, period: 'vs last week', status: null, icon: 'bi-people', key: 'TOTAL', extraValue: null ,tooltip: [
+      'Total employees currently mapped to active projects.',
+      'Includes only onboarded (active) resources.',
+      'Excludes deboarded or inactive employees.'
+    ]},
+    { label: '% OF EMPLOYEES ON CLIENT PROJECTS', value: null, suffix: '%', change: null, period: 'vs last month', status: null, icon: 'bi-graph-up', key: 'MAPPED_TO_SHANKH', extraValue: null, tooltip: [
+      'Percentage of employees working on client projects.',
+      'Calculated against total onboarded workforce.',
+      'Represents billable utilization across projects.'
+    ]},
   ];
 
   // Flags
@@ -367,7 +463,7 @@ export class RmgDashboardComponent implements OnInit {
   unassignedEmployeesCount: number = 0;
   assignedEmployeesCount: number = 0;
 
-  // Objects 
+  // Objects
 
   // Project Details Table
   searchOnEnter: boolean = true;
@@ -446,6 +542,8 @@ export class RmgDashboardComponent implements OnInit {
 
     this.loadRMGDashboard();
   }
+
+
 
   // Department Table APIs & Methods Starts
   onDepartmentSelectionChange() {
@@ -630,7 +728,7 @@ export class RmgDashboardComponent implements OnInit {
     // this.filterStateService.selectedProjectStatus = this.projectStatus;
     // this.filterStateService.projectReportFilters = this.projectFilters;
     // this.filterStateService.deptIdList = this.selectedDepartmentIds;
-    // this.filterStateService.myDept = this.myDept; 
+    // this.filterStateService.myDept = this.myDept;
     this.actionTriggered.emit({ action, project });
   }
 
@@ -762,7 +860,7 @@ export class RmgDashboardComponent implements OnInit {
 
     const totalEmployees = Number(workforceMap['TOTAL']) || 0;
     const percentage = Number(this.mappedToClientPercentage) || 0;
-    
+
     const mappedCount = totalEmployees
       ? Math.round((percentage / 100) * totalEmployees)
       : 0;
@@ -1181,6 +1279,7 @@ export class RmgDashboardComponent implements OnInit {
   closeAlertMessageModal() {
     if (this.alertMessageModalRef) {
       this.alertMessageModalRef?.close();
+
     }
   }
 
@@ -1749,6 +1848,7 @@ export class RmgDashboardComponent implements OnInit {
       'End Date': this.normalizeDate(x.projectEndDate) || 'NA',
       'State': x.state || 'NA',
       'Created On': this.normalizeDate(x.createdOn) || 'NA',
+      'PO Project Status': x.status || 'NA',
       'IShine Project Status': x.projectStatus || 'NA',
       'Approval Status': x.draftStatus || 'NA',
     }));
@@ -1797,4 +1897,4 @@ export class RmgDashboardComponent implements OnInit {
   }
   // Projects Table APIs & Methods End
 
-} 
+}

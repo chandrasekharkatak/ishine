@@ -210,6 +210,12 @@
                 <button class="btn btn-sm btn-outline-primary mt-1" title="View" (click)="viewProjectInfo(project)">
                     <em class="fa fa-eye"></em>
                 </button>
+                 <button *ngIf="project.active != 0"
+                      class="btn btn-sm btn-outline-danger mt-1 ml-1"
+                      title="Delete"
+                      (click)="deleteResourceModal(MarkAsCompleteDefaultProject, OtherProjectDefaultMapping, delete_modal_template, project, project.teamId)">
+                      <em class="fa fa-trash"></em>
+                  </button>
             </td>
         </tr>
 
