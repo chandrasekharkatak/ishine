@@ -4123,6 +4123,100 @@ tr[app-column-filter-bar] .clear-filter:hover {
   margin-bottom: 2.5rem;
 }
 
+/* Team member bulk upload: aligned with request tab shell */
+.tm-bulk-upload-wrap {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.tm-bulk-upload-card {
+  margin-bottom: 2.5rem;
+}
+
+.tm-bulk-upload-card .form-control,
+.tm-bulk-upload-card ::ng-deep .custom-select-button,
+.tm-bulk-upload-card ::ng-deep .my-select-trigger {
+  min-height: 38px;
+}
+
+.tm-bulk-fields-row {
+  align-items: flex-start;
+}
+
+.tm-bulk-upload-card .form-group > .info-label {
+  display: block;
+  min-height: 22px;
+  margin-bottom: 0.4rem;
+}
+
+.tm-bulk-upload-card .info-wrapper {
+  width: 100%;
+}
+
+.tm-upload-action-row {
+  margin-top: 0.5rem;
+}
+
+.tm-upload-btn {
+  min-width: 140px;
+}
+
+/* Stable table spacing across Pending/Approved/Rejected */
+.timesheet-table.ts-data-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.timesheet-table.ts-data-table col.col-select { width: 56px; }
+.timesheet-table.ts-data-table col.col-sr { width: 70px; }
+.timesheet-table.ts-data-table col.col-emp-id { width: 120px; }
+.timesheet-table.ts-data-table col.col-name { width: 170px; }
+.timesheet-table.ts-data-table col.col-date { width: 110px; }
+.timesheet-table.ts-data-table col.col-day-type { width: 120px; }
+.timesheet-table.ts-data-table col.col-work-in,
+.timesheet-table.ts-data-table col.col-work-out { width: 100px; }
+.timesheet-table.ts-data-table col.col-location,
+.timesheet-table.ts-data-table col.col-projects { width: 95px; }
+.timesheet-table.ts-data-table col.col-applied-by { width: 150px; }
+.timesheet-table.ts-data-table col.col-applied-on { width: 135px; }
+.timesheet-table.ts-data-table col.col-night-shift { width: 110px; }
+.timesheet-table.ts-data-table col.col-actions { width: 140px; }
+
+.timesheet-table.ts-data-table thead th,
+.timesheet-table.ts-data-table tbody td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timesheet-table.ts-data-table thead th:first-child,
+.timesheet-table.ts-data-table tbody td:first-child {
+  text-align: center;
+}
+
+.timesheet-table.ts-data-table thead th input[type="checkbox"],
+.timesheet-table.ts-data-table tbody td input[type="checkbox"] {
+  margin: 0;
+  vertical-align: middle;
+}
+
+/* Class-based column sizing for Team Requests table
+   (prevents nth-child conflicts when status hides checkbox column) */
+.timesheet-table.ts-data-table .col-select { width: 56px !important; min-width: 56px !important; max-width: 56px !important; text-align: center !important; }
+.timesheet-table.ts-data-table .col-sr { width: 70px !important; min-width: 70px !important; max-width: 70px !important; text-align: center !important; }
+.timesheet-table.ts-data-table .col-emp-id { width: 120px !important; min-width: 120px !important; }
+.timesheet-table.ts-data-table .col-name { width: 170px !important; min-width: 170px !important; }
+.timesheet-table.ts-data-table .col-date { width: 110px !important; min-width: 110px !important; }
+.timesheet-table.ts-data-table .col-day-type { width: 120px !important; min-width: 120px !important; }
+.timesheet-table.ts-data-table .col-work-in,
+.timesheet-table.ts-data-table .col-work-out { width: 100px !important; min-width: 100px !important; }
+.timesheet-table.ts-data-table .col-location,
+.timesheet-table.ts-data-table .col-projects { width: 95px !important; min-width: 95px !important; text-align: center !important; }
+.timesheet-table.ts-data-table .col-applied-by { width: 150px !important; min-width: 150px !important; }
+.timesheet-table.ts-data-table .col-applied-on { width: 135px !important; min-width: 135px !important; }
+.timesheet-table.ts-data-table .col-night-shift { width: 110px !important; min-width: 110px !important; text-align: center !important; }
+.timesheet-table.ts-data-table .col-actions { width: 140px !important; min-width: 140px !important; max-width: 140px !important; text-align: center !important; white-space: nowrap !important; }
+
 /* Table header – enterprise */
 .timesheet-table.ts-data-table .ts-thead tr:first-child th {
   background: #1e3a5f;

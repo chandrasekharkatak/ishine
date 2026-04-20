@@ -214,7 +214,7 @@
                                 <div class="col-md-12">
                                     <label class="info-label small"><span class="text-danger">*</span> Description</label>
                                     <textarea class="form-control" rows="2" placeholder="Enter description"
-                                        [(ngModel)]="holidayDescription" (input)="specialChar($event)" ></textarea>
+                                        [(ngModel)]="holidayDescription"></textarea>
                                 </div>
                             </div>
                 
@@ -574,7 +574,7 @@
                                                 <div class="col-md-3 mb-3">
                                                     <label class="info-label">Total Hours</label>
                                                     <input class="form-control"
-                                                        [value]="project.totalWorkingHours ? (project.totalWorkingHours | number:'1.2-2') : '0.00'"
+                                                        [value]="project.totalWorkingHours ? project.totalWorkingHours : '0.00'"
                                                         disabled>
                                                 </div>
                                             </div>
