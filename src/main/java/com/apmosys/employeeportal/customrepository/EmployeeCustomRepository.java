@@ -363,6 +363,8 @@ public class EmployeeCustomRepository {
 
         Map<String, String> searchFilter = pageDTO.getSearchFilter();
         String baseQuery = getUnfilledTimesheetProjectDetailsQuery(isAllAccessEmployee, fromDate, toDate);
+        
+        System.err.println(baseQuery);
 
         List<Long> projectIdsTemp = getProjectIdsByBaseQuery(baseQuery, pageDTO.getSortColumn(), sortDirection,
                 pageable, projectIds,

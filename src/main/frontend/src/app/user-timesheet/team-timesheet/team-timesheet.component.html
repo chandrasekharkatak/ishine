@@ -697,23 +697,40 @@
     </div>
     <div class="ts-table-card">
       <div class="timesheet-table-wrapper">
-        <table class="timesheet-table ts-data-table" matSort (matSortChange)="sortData($event)" matSortDisableClear>
+        <table class="timesheet-table ts-data-table" [class.no-select-column]="selectedStatus === 3"
+          matSort (matSortChange)="sortData($event)" matSortDisableClear>
+          <colgroup>
+            <col *ngIf="selectedStatus != 3" class="col-select" />
+            <col class="col-sr" />
+            <col class="col-emp-id" />
+            <col class="col-name" />
+            <col class="col-date" />
+            <col class="col-day-type" />
+            <col class="col-work-in" />
+            <col class="col-work-out" />
+            <col class="col-location" />
+            <col class="col-projects" />
+            <col class="col-applied-by" />
+            <col class="col-applied-on" />
+            <col class="col-night-shift" />
+            <col class="col-actions" />
+          </colgroup>
           <thead class="ts-thead">
             <tr>
-              <th *ngIf="selectedStatus != 3"> <input type="checkbox" [(ngModel)]="isAllSelected" (change)="toggleAllRows($event)" /> </th>
-              <th>Sr No.</th>
-              <th mat-sort-header="employmentId">Employee Id</th>
-              <th mat-sort-header="employeeName">Name</th>
-              <th mat-sort-header="date">Date</th>
-              <th mat-sort-header="dayType">Day Type</th>
-              <th mat-sort-header="workCheckIn">Work In</th>
-              <th mat-sort-header="workCheckOut">Work Out</th>
-              <th mat-sort-header="locationCount">Total Location</th>
-              <th mat-sort-header="projectCount">Total Projects</th>
-              <th mat-sort-header="appliedBy">Applied By</th>
-              <th mat-sort-header="appliedOn">Applied On</th>
-              <th mat-sort-header="isNightShift">Night Shift</th>
-              <th>Actions</th>
+              <th class="col-select" *ngIf="selectedStatus != 3"> <input type="checkbox" [(ngModel)]="isAllSelected" (change)="toggleAllRows($event)" /> </th>
+              <th class="col-sr">Sr No.</th>
+              <th class="col-emp-id" mat-sort-header="employmentId">Employee Id</th>
+              <th class="col-name" mat-sort-header="employeeName">Name</th>
+              <th class="col-date" mat-sort-header="date">Date</th>
+              <th class="col-day-type" mat-sort-header="dayType">Day Type</th>
+              <th class="col-work-in" mat-sort-header="workCheckIn">Work In</th>
+              <th class="col-work-out" mat-sort-header="workCheckOut">Work Out</th>
+              <th class="col-location" mat-sort-header="locationCount">Total Location</th>
+              <th class="col-projects" mat-sort-header="projectCount">Total Projects</th>
+              <th class="col-applied-by" mat-sort-header="appliedBy">Applied By</th>
+              <th class="col-applied-on" mat-sort-header="appliedOn">Applied On</th>
+              <th class="col-night-shift" mat-sort-header="isNightShift">Night Shift</th>
+              <th class="col-actions">Actions</th>
             </tr>
            <tr app-column-filter-bar
     *ngIf="isSearchEnabled"
@@ -726,34 +743,34 @@
           </thead>
           <tbody>
             <tr *ngIf="allTeamTimesheetRequestsProjectView?.length == 0 || (allTeamTimesheetRequestsProjectView | colFilter:filters:false).length == 0">
-              <td [attr.colspan]="allTeamTimesheetRequestsProjectView ? 14 : 13" class="ts-empty">
+              <td [attr.colspan]="selectedStatus != 3 ? 14 : 13" class="ts-empty">
                 <i class="fa fa-inbox"></i>
                 <span>No details to display</span>
               </td>
             </tr>
             <ng-container *ngFor="let timesheet of allTeamTimesheetRequestsProjectView; let i = index">
               <tr class="main-row" [class.active-row]="expandedTimesheetIndex === i" [class.night-shift-row]="timesheet.isNightShift">
-                <td *ngIf="selectedStatus != 3"> <input type="checkbox" [(ngModel)]="timesheet.selected"
+                <td class="col-select" *ngIf="selectedStatus != 3"> <input type="checkbox" [(ngModel)]="timesheet.selected"
                     (change)="onEmployeeToggle(timesheet); updateSelectedRows(timesheet)" /> </td>
-               <td>{{ (page1 * items) + i + 1 }}</td>
-                <td class="emp-id emp-femp-id" (click)="toggleAccordion(i,timesheet)" title="Click to view location → project → activity details">{{ timesheet.employmentId }}</td>
-                <td>{{ timesheet.employeeName }}</td>
-                <td>{{ timesheet.date }}</td>
-                <td>{{ timesheet.dayType }}</td>
-                <td>{{ timesheet.workCheckIn }}</td>
-                <td>{{ timesheet.workCheckOut }}</td>
-                <td>{{ timesheet.locationCount }}</td>
-                <td>{{ timesheet.projectCount}}</td>
-                <td>{{ timesheet.appliedBy }}</td>
-                <td>{{ timesheet.appliedOn }}</td>
-                <td>
+               <td class="col-sr">{{ (page1 * items) + i + 1 }}</td>
+                <td class="col-emp-id emp-id emp-femp-id" (click)="toggleAccordion(i,timesheet)" title="Click to view location → project → activity details">{{ timesheet.employmentId }}</td>
+                <td class="col-name">{{ timesheet.employeeName }}</td>
+                <td class="col-date">{{ timesheet.date }}</td>
+                <td class="col-day-type">{{ timesheet.dayType }}</td>
+                <td class="col-work-in">{{ timesheet.workCheckIn }}</td>
+                <td class="col-work-out">{{ timesheet.workCheckOut }}</td>
+                <td class="col-location">{{ timesheet.locationCount }}</td>
+                <td class="col-projects">{{ timesheet.projectCount}}</td>
+                <td class="col-applied-by">{{ timesheet.appliedBy }}</td>
+                <td class="col-applied-on">{{ timesheet.appliedOn }}</td>
+                <td class="col-night-shift">
                     @if (timesheet.isNightShift) {
                       Yes
                     }@else{
                       No
                     }
                   </td>
-                <td class="ts-actions-cell">
+                <td class="col-actions ts-actions-cell">
                   <button type="button" class="ts-action-btn ts-doc-btn" *ngIf="timesheet.documentData.length > 0" (click)="openDocumentPopup(timesheet, null, false)" title="View all documents">
                     <i class="fa fa-eye"></i>
                   </button>
@@ -771,7 +788,7 @@
                 </td>
               </tr>
               <tr *ngIf="expandedTimesheetIndex === i">
-                <td [attr.colspan]="selectedStatus === 1 ? 13 : 12" class="accordion-cell">
+                <td [attr.colspan]="selectedStatus != 3 ? 14 : 13" class="accordion-cell">
                   <div class="timesheet-details-accordion">
                     <div *ngFor="let location of timesheet.locationSessions || []; let l = index" class="location-card mb-3">
                       <div class="location-card-header">
@@ -1748,40 +1765,42 @@
 
 
 <div class="row" *ngIf="isTMBulkUpload">
-  <div class="card col-md-12 px-0">
-    <div class="card-header text-center text-uppercase">
-      <strong *ngIf="isTMBulkUpload">Final Document Bulk Upload For Reportees</strong>
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-3 mb-0">
-          <label class="info-label"><span class="text-danger">*</span>Month-Year</label>
-          <div class="info-wrapper">
-            <input type="month" class="form-control" [(ngModel)]="timesheetObj.monthYear"
-              [min]="minMonth" [max]="maxMonth" (change)="onMonthYearChange()" />
-          </div>
-        </div>
-        <div class="col-md-3 mb-0">
-          <div class="info-wrapper">
-            <div class="form-group">
-
-              <div class="form-group">
-                <label class="info-label"><span class="text-danger">*</span>Project</label>
-                <app-my-select #filterActiveProjects class="form-control" placeholder="Select Project"
-                    [(ngModel)]="timesheetObj.selectedProjectId" [options]="allProjects"
-                    displayKey="projectName" valueKey="projectId" [multiple]="false"
-                    (selectionChange)="onProjectSelectBulk(timesheetObj.selectedProjectId)">
-                </app-my-select>
-              </div>
-            </div>
+  <div class="col-md-12 ts-enterprise-wrap tm-bulk-upload-wrap">
+    <div class="ts-page-header-card">
+      <div class="ts-page-header-inner">
+        <div class="ts-page-title-block">
+          <i class="fas fa-file-upload ts-page-icon"></i>
+          <div>
+            <h1 class="ts-page-title">Final Document Bulk Upload</h1>
+            <p class="ts-page-subtitle">Upload final approval proof for selected team members</p>
           </div>
         </div>
       </div>
-      <div class="row">
-        <div class="col-md-3 mb-0">
-          <div class="info-wrapper">
-            <div class="form-group">
-              <label class="info-label"><span class="text-danger">*</span>Reportee</label>
+    </div>
+    <div class="ts-status-section tm-bulk-upload-card">
+      <div class="row tm-bulk-fields-row">
+        <div class="col-xl-4 col-md-6 mb-3">
+          <div class="form-group mb-0">
+            <label class="info-label"><span class="text-danger">*</span>Month-Year</label>
+            <div class="info-wrapper">
+              <input type="month" class="form-control" [(ngModel)]="timesheetObj.monthYear"
+                [min]="minMonth" [max]="maxMonth" (change)="onMonthYearChange()" />
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-4 col-md-6 mb-3">
+          <div class="form-group mb-0">
+            <label class="info-label"><span class="text-danger">*</span>Project</label>
+            <app-my-select #filterActiveProjects class="form-control" placeholder="Select Project"
+              [(ngModel)]="timesheetObj.selectedProjectId" [options]="allProjects"
+              displayKey="projectName" valueKey="projectId" [multiple]="false"
+              (selectionChange)="onProjectSelectBulk(timesheetObj.selectedProjectId)">
+            </app-my-select>
+          </div>
+        </div>
+        <div class="col-xl-4 col-md-6 mb-3">
+          <div class="form-group mb-0">
+            <label class="info-label"><span class="text-danger">*</span>Reportee</label>
               <!-- <mat-select ngxMatSelect class="form-control" #filterActiveReportees="ngxMatSelect"
                 [displayMember]="'name'" [valueMember]="'empId'" [source]="reportees" [useInfiniteScroll]="true"
                 (selectionChange)="onReporteeChange($event.value)" [(ngModel)]="timesheetObj.selectedEmpId"
@@ -1794,16 +1813,15 @@
               </mat-select> -->
               <app-my-select #filterActiveReportees class="form-control" placeholder="Select Reportee"
                 [(ngModel)]="timesheetObj.empIds"
-                  [options]="getReporteesFromProjectId()"
-                  displayKey="name" valueKey="empId" [multiple]="true"
-                  (selectionChange)="onReporteeChange($event)">
+                [options]="getReporteesFromProjectId()"
+                displayKey="name" valueKey="empId" [multiple]="true"
+                (selectionChange)="onReporteeChange($event)">
               </app-my-select>
-            </div>
           </div>
         </div>
         <!-- From Date [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"-->
-        <div class="col-md-3 mb-3">
-          <div class="form-group">
+        <div class="col-xl-4 col-md-6 mb-3">
+          <div class="form-group mb-0">
             <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>From
               Date</label>
             <mat-form-field style="display: contents;">
@@ -1816,8 +1834,8 @@
         </div>
 
         <!-- To Date -->
-        <div class="col-md-3 mb-3" >
-          <div class="form-group">
+        <div class="col-xl-4 col-md-6 mb-3">
+          <div class="form-group mb-0">
             <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>To
               Date</label>
             <mat-form-field style="display: contents;">
@@ -1833,8 +1851,8 @@
           </div>
         </div>
 
-        <div class="col-md-3 mb-3" >
-          <div class="form-group">
+        <div class="col-xl-4 col-md-6 mb-3">
+          <div class="form-group mb-0">
             <label class="info-label"><span class="text-danger">*</span>Bulk Approval Proof</label>
             <div class="d-flex align-items-center">
               <input type="file" #fileInput class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
@@ -1859,19 +1877,17 @@
             </div>
           </div>
         </div>
-         <div class="row justify-content-center" >
-                    <div class="col-md-2">
-                        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-                            (click)="bulkFinalDocumentUpload(alert_message)">Upload</button> -->
-                        <button class="btn btn-outline-primary btn-sm mx-1"
-                            (click)="bulkFinalDocumentUpload(alert_message)" [disabled]="!isUploadAllowed"
-                            matTooltip="{{ !isUploadAllowed ? disableUploadTooltip : '' }}" matTooltipPosition="above">
-                            Upload
-                        </button>
-
-
-                    </div>
-                </div>
+      </div>
+      <div class="row tm-upload-action-row">
+        <div class="col-12 text-center">
+          <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+              (click)="bulkFinalDocumentUpload(alert_message)">Upload</button> -->
+          <button class="btn btn-outline-primary btn-sm mx-1 tm-upload-btn"
+            (click)="bulkFinalDocumentUpload(alert_message)" [disabled]="!isUploadAllowed"
+            matTooltip="{{ !isUploadAllowed ? disableUploadTooltip : '' }}" matTooltipPosition="above">
+            Upload
+          </button>
+        </div>
       </div>
 
     </div>

@@ -594,7 +594,7 @@ export class ResourceManagementComponent implements OnInit {
     this.isNewRmgDashboard = this.filterStateService.isNewRmgDashboard;
     if (this.isNewRmgDashboard) {
       this.mapSubFeatureFlag();
-      this.showViewProjects();
+      this.showViewProjects(true);
       return;
     }
 
@@ -689,7 +689,7 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
-  showViewProjects() {
+  showViewProjects(isRouteFromEmployee360: boolean = false) {
     this.isProjectTable = true;
     this.allProjectTable = true;
     this.isSkillMatrix = false;
@@ -708,11 +708,13 @@ export class ResourceManagementComponent implements OnInit {
       this.rmgStatusCardsComponent.onDepartmentSelectionChange(this.selectedDepartmentIds);
     }
 
-    setTimeout(() => {
-      if (this.rmgDashboardComponent) {
-        this.rmgDashboardComponent?.ngOnInit();
-      }
-    }, 1);
+    if (!isRouteFromEmployee360) {
+      setTimeout(() => {
+        if (this.rmgDashboardComponent) {
+          this.rmgDashboardComponent?.ngOnInit();
+        }
+      }, 1);
+    }
   }
 
   showEditProjectForm(project: any) {

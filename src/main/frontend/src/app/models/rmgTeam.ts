@@ -44,4 +44,5 @@ export class RmgTeam {
     createdBy: any;
     updatedBy: any;
 
+    isUpdated?: boolean;
 }

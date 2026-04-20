@@ -75,43 +75,43 @@ export class RmgProjectConfigComponent implements OnInit {
     @Output() openProjectCompletionDatePicker = new EventEmitter<any>();
 
     @ViewChild('project_config_stepper') projectConfigStepper!: MatStepper;
-    @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
-    @ViewChild("migrate_team") migrateTeamTemplateRef: TemplateRef<any>;
-    @ViewChild("delete_team") deleteTeamTemplateRef: TemplateRef<any>;
-    @ViewChild("team_details") teamDetailsTemplateRef: TemplateRef<any>;
-    @ViewChild("remove_members_confirmation") removeMembersConfirmationTemplateRef: TemplateRef<any>;
-    @ViewChild("mark_default_project_completion") markDefaultProjectCompletionTemplateRef: TemplateRef<any>;
-    @ViewChild("mapping_other_project_as_default") mappingToOtherProjectAsDefaultTemplateRef: TemplateRef<any>;
-    @ViewChild("employee_existing_project_details") employeeExistingProjectDetailsTemplateRef: TemplateRef<any>;
-    @ViewChild("delete_employee_from_existing_project") deleteEmployeeFromExistingProjectTemplateRef: TemplateRef<any>;
-    @ViewChild("delete_team_confirmation") deleteTeamConfirmationTemplateRef: TemplateRef<any>;
-    @ViewChild("add_new_member") addNewMemberTemplateRef: TemplateRef<any>;
-    @ViewChild("extend_team_member_end_date") extendTeamMemberEndDateTemplateRef: TemplateRef<any>;
-    @ViewChild("update_project_milestone") updateProjectMilestoneTemplateRef: TemplateRef<any>;
-    @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
-    @ViewChild("mark_complete_fc_project") markCompleteFCProjectTemplateRef: TemplateRef<any>;
-    @ViewChild("team_member_details_preview") teamMemberDetailsPreviewTemplateRef: TemplateRef<any>;
-    @ViewChild("shadow_resource_mapping") shadowResourceMappingTemplateRef: TemplateRef<any>;
+    @ViewChild("alert_message") alertMessageTemplateRef!: TemplateRef<any>;
+    @ViewChild("migrate_team") migrateTeamTemplateRef!: TemplateRef<any>;
+    @ViewChild("delete_team") deleteTeamTemplateRef!: TemplateRef<any>;
+    @ViewChild("team_details") teamDetailsTemplateRef!: TemplateRef<any>;
+    @ViewChild("remove_members_confirmation") removeMembersConfirmationTemplateRef!: TemplateRef<any>;
+    @ViewChild("mark_default_project_completion") markDefaultProjectCompletionTemplateRef!: TemplateRef<any>;
+    @ViewChild("mapping_other_project_as_default") mappingToOtherProjectAsDefaultTemplateRef!: TemplateRef<any>;
+    @ViewChild("employee_existing_project_details") employeeExistingProjectDetailsTemplateRef!: TemplateRef<any>;
+    @ViewChild("delete_employee_from_existing_project") deleteEmployeeFromExistingProjectTemplateRef!: TemplateRef<any>;
+    @ViewChild("delete_team_confirmation") deleteTeamConfirmationTemplateRef!: TemplateRef<any>;
+    @ViewChild("add_new_member") addNewMemberTemplateRef!: TemplateRef<any>;
+    @ViewChild("extend_team_member_end_date") extendTeamMemberEndDateTemplateRef!: TemplateRef<any>;
+    @ViewChild("update_project_milestone") updateProjectMilestoneTemplateRef!: TemplateRef<any>;
+    @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef!: TemplateRef<any>;
+    @ViewChild("mark_complete_fc_project") markCompleteFCProjectTemplateRef!: TemplateRef<any>;
+    @ViewChild("team_member_details_preview") teamMemberDetailsPreviewTemplateRef!: TemplateRef<any>;
+    @ViewChild("shadow_resource_mapping") shadowResourceMappingTemplateRef!: TemplateRef<any>;
 
-    alertMessageModalRef: NgbModalRef;
-    migrateTeamModalRef: NgbModalRef;
-    deleteTeamModalRef: NgbModalRef;
-    teamDetailsModalRef: NgbModalRef;
-    removeMembersConfirmationModalRef: NgbModalRef;
-    markDefaultProjectCompletionModalRef: NgbModalRef;
-    mappingToOtherProjectAsDefaultModalRef: NgbModalRef;
-    employeeExistingProjectDetailsModalRef: NgbModalRef;
-    deleteEmployeeFromExistingProjectModalRef: NgbModalRef;
-    deleteTeamConfirmationModalRef: NgbModalRef;
-    addNewMemberModalRef: NgbModalRef;
-    extendTeamMemberEndDateModalRef: NgbModalRef;
-    updateProjectMilestoneModalRef: NgbModalRef;
-    projectMilestoneDocumentModalRef: NgbModalRef;
-    markCompleteFCProjectModalRef: NgbModalRef;
-    teamMemberDetailsPreviewModalRef: NgbModalRef;
-    shadowResourceMappingModalRef: NgbModalRef;
+    alertMessageModalRef!: NgbModalRef;
+    migrateTeamModalRef!: NgbModalRef;
+    deleteTeamModalRef!: NgbModalRef;
+    teamDetailsModalRef!: NgbModalRef;
+    removeMembersConfirmationModalRef!: NgbModalRef;
+    markDefaultProjectCompletionModalRef!: NgbModalRef;
+    mappingToOtherProjectAsDefaultModalRef!: NgbModalRef;
+    employeeExistingProjectDetailsModalRef!: NgbModalRef;
+    deleteEmployeeFromExistingProjectModalRef!: NgbModalRef;
+    deleteTeamConfirmationModalRef!: NgbModalRef;
+    addNewMemberModalRef!: NgbModalRef;
+    extendTeamMemberEndDateModalRef!: NgbModalRef;
+    updateProjectMilestoneModalRef!: NgbModalRef;
+    projectMilestoneDocumentModalRef!: NgbModalRef;
+    markCompleteFCProjectModalRef!: NgbModalRef;
+    teamMemberDetailsPreviewModalRef!: NgbModalRef;
+    shadowResourceMappingModalRef!: NgbModalRef;
 
-    currentUser: User;
+    currentUser: User = new User();
     userMapping: any = {};
     projectConfigStepperIndex: number = 1;
     alertMessage: string = '';
@@ -119,7 +119,7 @@ export class RmgProjectConfigComponent implements OnInit {
     employeeProjectEndDateType: 'PO' | 'Custom' = 'Custom';
     membersEndDateType: 'PO' | 'Custom' = 'Custom';
     currentTab: 'Project' | 'Milestones' = 'Project';
-    defaultProjectMappingActionType: 'DELETE_TEAM' | 'REMOVE_MEMBERS' | 'PROJECT_COMPLETION' = 'REMOVE_MEMBERS';
+    defaultProjectMappingActionType: 'DELETE_TEAM' | 'REMOVE_MEMBERS' | 'PROJECT_COMPLETION' | 'DEFAULT_REMOVE' = 'REMOVE_MEMBERS';
     todayTimestamp: any;
     employeeExistingProjectEmpName: any;
     employeeExistingProjectEmploymentId: any;
@@ -131,7 +131,7 @@ export class RmgProjectConfigComponent implements OnInit {
     currentTeam: RmgTeam = new RmgTeam();
     defaultProjectObj: SetDefaultProjectObj = new SetDefaultProjectObj();
     teamMembersMigrationObj: MigrateTeams = new MigrateTeams();
-    deleteEmployeeExistingProjectMappingObj: RmgTeamMember;
+    deleteEmployeeExistingProjectMappingObj: RmgTeamMember = new RmgTeamMember();
     deleteTeamsPo: PoDetails = new PoDetails();
     shadowResourceMappingMember: RmgTeamMember = new RmgTeamMember();
 
@@ -165,7 +165,7 @@ export class RmgProjectConfigComponent implements OnInit {
     deletingTeamMembersList: RmgTeamMember[] = [];
     cloneMemberMappingList: RmgTeamMember[] = [];
     existingEmployeeProjectTimesheetEntries: EmployeeProjectTimesheetDto[] = [];
-
+    originalTeamDetailsList: RmgTeam[] = [];
     employeeExistingProjectDetailsPage: any;
 
     // Maps for caching
@@ -173,7 +173,7 @@ export class RmgProjectConfigComponent implements OnInit {
     poIdTeamListMap = new Map<number, RmgTeam[]>();
     teamIdResourceReqListMap = new Map<number, RmgResourceRequirement[]>();
 
-    // Flags 
+    // Flags
     isHOD: boolean = false;
     isInternalProject: boolean = false;
     isMarkDefaultProjectCompletionBulk: boolean = true;
@@ -196,7 +196,7 @@ export class RmgProjectConfigComponent implements OnInit {
     shadowResourceMappingMemberEndDate: any;
     shadowResourceMappingMemberStartDate: any;
 
-    // FC Project Milestone 
+    // FC Project Milestone
     projectMilestonepage = 1;
     file: File | null = null;
     selectedFilePreviewUrl: string | null = null;
@@ -303,6 +303,21 @@ export class RmgProjectConfigComponent implements OnInit {
     allResourceRequirementColumnList: any[] = ['blank', 'poNo', 'blank', 'blank', 'role', 'department', 'experience', 'blank', 'blank', 'count', 'assignedApproved', 'assignedPending', 'difference'];
     allResourceRequirementColumnListForInternal: any[] = ['blank', 'poNo', 'blank', 'blank', 'blank', 'assignedApproved', 'assignedPending', 'difference'];
 
+
+    showManagerTooltip: boolean = false;
+    showOverheadTooltip: boolean = false;
+    showDepartmentTooltip: boolean = false;
+    showTeamDepartmentTooltip: boolean = false;
+    showTeamSpocTooltip: boolean = false;
+
+    hoveredTeamDepartmentKey: any = null;
+    hoveredTeamSpocKey: any = null;
+
+    teamHoverPopupVisible: boolean = false;
+    teamHoverPopupTitle: string = '';
+    teamHoverPopupItems: string[] = [];
+    teamHoverPopupStyle: { [key: string]: string } = {};
+
     constructor(
         public validationService: ValidationService,
         private readonly toastService: ToastService,
@@ -408,9 +423,7 @@ export class RmgProjectConfigComponent implements OnInit {
     openMappingToOtherProjectAsDefaultModal(actionType: any) {
         this.defaultProjectMappingActionType = actionType;
         this.closeMappingToOtherProjectAsDefaultModal();
-        this.drawerService.open(this.mappingToOtherProjectAsDefaultTemplateRef);
-        // this.mappingToOtherProjectAsDefaultModalRef = this.modalService?.open(this.mappingToOtherProjectAsDefaultTemplateRef, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
-    }
+        this.drawerService.open(this.mappingToOtherProjectAsDefaultTemplateRef);    }
 
     closeMappingToOtherProjectAsDefaultModal() {
         if (this.isValidList(this.mappingToOtherProjectAsDefaultList)) {
@@ -714,9 +727,9 @@ export class RmgProjectConfigComponent implements OnInit {
     // Validation Methods End
 
     // Helpers Start
-    // callCloseProjectConfiguration() {
-    //     this.closeProjectConfiguration.emit();
-    // }
+    callCloseProjectConfiguration() {
+        this.closeProjectConfiguration.emit();
+    }
 
     setProjectType(): void {
         if (this.isValidString(this.rmgProjectObj.poProjectType)) {
@@ -860,7 +873,7 @@ export class RmgProjectConfigComponent implements OnInit {
             this.toggleAddNewMember(rmgTeam);
         }
 
-        // Removing all the members from the list that are in the current team 
+        // Removing all the members from the list that are in the current team
         let empIdList = rmgTeam?.rmgCurrentTeamMemberList?.map(emp => emp.empId) || [];
         this.employeeListFilteredByDept = this.employeeListFilteredByDept?.filter(emp => !empIdList.includes(emp?.empId));
 
@@ -981,7 +994,7 @@ export class RmgProjectConfigComponent implements OnInit {
             this.mappingToOtherProjectAsDefaultList = [];
             this.mappingToOtherProjectAsDefaultList.push(member);
             this.mapProjectListToEmployees(this.mappingToOtherProjectAsDefaultList);
-            this.openMappingToOtherProjectAsDefaultModal('REMOVE_MEMBERS');
+            this.openMappingToOtherProjectAsDefaultModal('DEFAULT_REMOVE');
         }
     }
 
@@ -1125,12 +1138,13 @@ export class RmgProjectConfigComponent implements OnInit {
         member.roleId = null;
     }
 
-    navigateToResourceConfig() {
+    async navigateToResourceConfig() {
         this.projectConfigStepperIndex = 1;
-        this.getAllTeamsByProjectId();
+        //this.getAllTeamsByProjectId();
         if (!this.isInternalProject) {
-            this.getResourceRequirementDetailsByProjectId(false);
+            await this.getResourceRequirementDetailsByProjectId(false);
         }
+        await this.getAllTeamsByProjectId();
     }
 
     updateEmployeeList() {
@@ -1157,6 +1171,13 @@ export class RmgProjectConfigComponent implements OnInit {
         });
     }
 
+    get isAnyMemberEndDateChanged(): boolean {
+        return this.currentTeam?.rmgOldTeamMemberList.some(member => { return this.normalizeDate(member.endDate) != this.normalizeDate(member.dbEndDate) });
+    }
+
+    get isNewTeamDetailsFilled(): boolean  {
+        return this.isValidString(this.rmgProjectObj.newTeamObj.teamName) && this.isValidList(this.rmgProjectObj.newTeamObj.deptIds);
+    }
     // Helpers End
 
     // Checkbox Helper Methods Start
@@ -1245,7 +1266,7 @@ export class RmgProjectConfigComponent implements OnInit {
     }
     // Checkbox Helper Methods End
 
-    // Table Pagination & Searching & Sorting Methods Start 
+    // Table Pagination & Searching & Sorting Methods Start
     toggleOldTeamMemberSearch() {
         this.oldTeamMemberPage = 0;
         this.isOldTeamMemberSearchEnabled = !this.isOldTeamMemberSearchEnabled;
@@ -1461,22 +1482,36 @@ export class RmgProjectConfigComponent implements OnInit {
             this.allResourceRequirementSortDirection = sort.direction;
         }
     }
-    // Table Pagination & Searching & Sorting Methods End 
+    // Table Pagination & Searching & Sorting Methods End
 
     // Steppers Method Start
-    onProjectConfigStepChange(event: StepperSelectionEvent) {
+    async onProjectConfigStepChange(event: StepperSelectionEvent) {
         if (!event) {
             return;
         }
         if (event?.selectedIndex === 1) {
-            this.getAllTeamsByProjectId();
+
             if (!this.isInternalProject) {
-                this.getResourceRequirementDetailsByProjectId(false);
+                await this.getResourceRequirementDetailsByProjectId(false);
             }
+            await this.getAllTeamsByProjectId();
         }
     }
     // Steppers Method End
+isTodayWithinPO(startDate: string | Date, endDate: string | Date): boolean {
+  if (!startDate || !endDate) return false;
 
+  const today = new Date();
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  // Remove time part for accurate comparison
+  today.setHours(0, 0, 0, 0);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  return today >= start && today <= end;
+}
     // Team Method & APIs Start
     async getAllTeamsByProjectId() {
         this.rmgProjectObj.teamDetailsList = [];
@@ -1485,6 +1520,9 @@ export class RmgProjectConfigComponent implements OnInit {
             const response: any = await firstValueFrom(this.teamService.getActiveTeamDetailsByProjectId(this.rmgProjectObj?.projectId));
             if (response.serviceStatus === "Success") {
                 this.rmgProjectObj.teamDetailsList = response.serviceResponse || [];
+                 this.originalTeamDetailsList = JSON.parse(
+        JSON.stringify(this.rmgProjectObj.teamDetailsList)
+    );
                 if (!this.isValidList(this.rmgProjectObj.teamDetailsList)) {
                     this.toggleAddNewTeam();
                 }
@@ -1492,9 +1530,22 @@ export class RmgProjectConfigComponent implements OnInit {
                 this.updateAddTeamButton();
                 this.updateTeamActionButton();
             } else {
-                this.openAlertMessageModal(response.serviceResponse || 'Something went wrong!!');
+                const req = this.allRmgProjectResourceRequirementList?.[0];
+
+                const shouldShowPopup = req
+                    ? this.isTodayWithinPO(req.poStartDate, req.poEndDate)
+                    : true;
+
+                if (shouldShowPopup) {
+                    this.openAlertMessageModal(
+                        response.serviceResponse || 'Something went wrong!!'
+                    );
+                }
+
+                 const msg = response?.serviceResponse || 'Something went wrong!!';
+             this.openAlertMessageModal(msg);
             }
-        } catch (error) {
+         } catch (error) {
             console.error(error);
             this.openAlertMessageModal('Something went wrong!!');
         }
@@ -1595,6 +1646,7 @@ export class RmgProjectConfigComponent implements OnInit {
             if (response.serviceStatus == "Success") {
                 const teamList = response.serviceResponse || [];
                 this.defaultProjectObj.teamList = teamList;
+                this.originalTeamDetailsList = JSON.parse(JSON.stringify(teamList));
             } else {
                 this.openAlertMessageModal(response.serviceResponse || "Something went wrong!!");
             }
@@ -1660,6 +1712,48 @@ export class RmgProjectConfigComponent implements OnInit {
         }
     }
 
+//     isAnyTeamUpdated(): boolean {
+//     if (!this.originalTeamDetailsList) return false;
+
+//     return this.rmgProjectObj.teamDetailsList.some((team, index) => {
+//         const original = this.originalTeamDetailsList[index];
+
+//         return (
+//             team.teamName?.trim() !== original?.teamName?.trim() ||
+//             team.spocId !== original?.spocId ||
+//             JSON.stringify(team.deptIds || []) !== JSON.stringify(original?.deptIds || [])
+//         );
+//     });
+// }
+isAnyTeamUpdated(): boolean {
+    if (!this.originalTeamDetailsList?.length) return false;
+
+    const originalMap = new Map(
+        this.originalTeamDetailsList.map(team => [team.teamId, team])
+    );
+
+    return this.rmgProjectObj.teamDetailsList.some(team => {
+        const original = originalMap.get(team.teamId);
+        return this.hasTeamChanged(team, original);
+    });
+}
+hasTeamChanged(team: RmgTeam, original: RmgTeam): boolean {
+    if (!original) return true; // new team case
+
+    return (
+        (team.teamName || '').trim() !== (original.teamName || '').trim() ||
+        team.spocId !== original.spocId ||
+        !this.areArraysEqual(team.deptIds, original.deptIds)
+    );
+}
+areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
+    if (arr1.length !== arr2.length) return false;
+
+    const sorted1 = [...arr1].sort();
+    const sorted2 = [...arr2].sort();
+
+    return sorted1.every((val, index) => val === sorted2[index]);
+}
     addOrUpdateTeamDetails(isUpdate: boolean) {
         let teamList = isUpdate ? this.rmgProjectObj?.teamDetailsList : this.rmgProjectObj?.teamDetailsList.filter(team => team.isNotSaved);
         if (!this.isValidList(teamList)) {
@@ -2090,8 +2184,7 @@ export class RmgProjectConfigComponent implements OnInit {
     }
 
     extendTeamMembersEndDate(currentTeam: RmgTeam) {
-        const isAnyMemberEndDateChanged = currentTeam?.rmgOldTeamMemberList.some(member => { return this.normalizeDate(member.endDate) != this.normalizeDate(member.dbEndDate) });
-        if (!isAnyMemberEndDateChanged) {
+        if (!this.isAnyMemberEndDateChanged) {
             this.openAlertMessageModal("Please change the end date of at least one member before updating the end date!!");
             return false;
         }
@@ -2672,7 +2765,6 @@ export class RmgProjectConfigComponent implements OnInit {
             return;
         }
         employee.selectedProject.updatedBy = this.currentUser.empId;
-
         try {
             const response: any = await firstValueFrom(this.projectService.updateMappingToOtherProjectAsDefault(employee.selectedProject));
             if (response.serviceStatus == "Success") {
@@ -2685,6 +2777,8 @@ export class RmgProjectConfigComponent implements OnInit {
                 } else if (this.defaultProjectMappingActionType === 'REMOVE_MEMBERS') {
                     await this.getTeamDetailsByTeamId(this.currentTeam);
                     await this.validateRemoveMembers(this.currentTeam?.rmgCurrentTeamMemberList);
+                }else if (this.defaultProjectMappingActionType === 'DEFAULT_REMOVE') {
+                   await this.getTeamDetailsByTeamId(this.currentTeam);
                 }
             } else {
                 this.toastService.error(response.serviceResponse || "Something went wrong!");
@@ -3062,4 +3156,126 @@ export class RmgProjectConfigComponent implements OnInit {
         );
     }
     // FC Milestone Method & APIs End
+  get isPreviewStep(): boolean {
+    return this.projectConfigStepperIndex === 2; // 2 = Preview step index
+  }
+
+
+
+  getSelectedManagers(): string[] {
+    if (!this.rmgProjectObj.projectManagerIds || !this.managerList) return [];
+
+    return this.managerList
+      .filter(manager => this.rmgProjectObj.projectManagerIds.includes(manager.empId))
+      .map(manager => manager.name);
+  }
+
+
+  getSelectedOverheads(): string[] {
+    if (!this.rmgProjectObj.projectOverheadIds || !this.overheadList) return [];
+
+    return this.overheadList
+      .filter(overhead => this.rmgProjectObj.projectOverheadIds.includes(overhead.empId))
+      .map(overhead => overhead.name);
+  }
+
+
+  getSelectedDepartments(): string[] {
+    if (!this.rmgProjectObj.departmentIds || !this.departmentsList) return [];
+
+    return this.departmentsList
+      .filter(dept => this.rmgProjectObj.departmentIds.includes(dept.deptId))
+      .map(dept => dept.name);
+  }
+
+
+  getSelectedTeamDepartments(): string[] {
+    if (!this.rmgProjectObj.newTeamObj?.deptIds || !this.departmentsList) return [];
+
+    return this.departmentsList
+      .filter(dept => this.rmgProjectObj.newTeamObj.deptIds.includes(dept.deptId))
+      .map(dept => dept.name);
+  }
+
+  getSelectedTeamSpoc(): string[] {
+    if (!this.rmgProjectObj.newTeamObj?.spocId || !this.spocList) return [];
+
+    // single select so wrap in array for consistent handling
+    return this.spocList
+      .filter(emp => emp.empId === this.rmgProjectObj.newTeamObj.spocId)
+      .map(emp => emp.name);
+  }
+
+  getSelectedDepartmentsForTeam(team: any): string[] {
+    if (!team?.deptIds || !this.departmentsList) return [];
+
+    return this.departmentsList
+      .filter(dept => team.deptIds.includes(dept.deptId))
+      .map(dept => dept.name);
+  }
+
+  getSelectedSpocForTeam(team: any): string[] {
+    if (!team?.spocId || !this.spocList) return [];
+
+    return this.spocList
+      .filter(emp => emp.empId === team.spocId)
+      .map(emp => emp.name);
+  }
+
+  openTeamHoverPopup(event: MouseEvent, type: 'dept' | 'spoc', team: any) {
+    if (!this.isPreviewStep) return;
+
+    const items =
+      type === 'dept'
+        ? this.getSelectedDepartmentsForTeam(team)
+        : this.getSelectedSpocForTeam(team);
+
+    if (!items || items.length === 0) {
+      this.closeTeamHoverPopup();
+      return;
+    }
+
+    this.teamHoverPopupTitle = type === 'dept' ? 'Selected Departments' : 'Selected Employee';
+    this.teamHoverPopupItems = items;
+    this.teamHoverPopupVisible = true;
+
+    const target = event.currentTarget as HTMLElement | null;
+    const rect = target?.getBoundingClientRect();
+    if (!rect) return;
+
+    const popupWidth = 360; // should match CSS max-width
+    const popupHeight = 160; // approximate; body scrolls if needed
+    const padding = 8;
+
+    let left = rect.left;
+    left = Math.max(padding, Math.min(left, window.innerWidth - popupWidth - padding));
+
+    // Prefer above; if not enough space, show below
+    const spaceAbove = rect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const showAbove = spaceAbove >= popupHeight + padding || spaceAbove >= spaceBelow;
+
+    const top = showAbove
+      ? Math.max(padding, rect.top - padding) // we'll translate via CSS (bottom anchored look)
+      : Math.min(window.innerHeight - padding, rect.bottom + padding);
+
+    this.teamHoverPopupStyle = showAbove
+      ? {
+        left: `${left}px`,
+        top: `${Math.max(padding, rect.top - padding)}px`,
+        transform: 'translateY(-100%)',
+      }
+      : {
+        left: `${left}px`,
+        top: `${top}px`,
+        transform: 'none',
+      };
+  }
+
+  closeTeamHoverPopup() {
+    this.teamHoverPopupVisible = false;
+    this.teamHoverPopupItems = [];
+    this.teamHoverPopupTitle = '';
+    this.teamHoverPopupStyle = {};
+  }
 }
