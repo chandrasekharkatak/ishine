@@ -261,6 +261,7 @@ export class RmgModalHostComponent {
     }
     else if (selectedValue === 'Custom') {
       this.employeeProjectEndDate = null;
+
     }
   }
 
