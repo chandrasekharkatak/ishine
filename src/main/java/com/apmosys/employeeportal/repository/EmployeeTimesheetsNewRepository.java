@@ -12733,7 +12733,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "			LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = 3\n"
 			+ "			LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = 3\n"
 			+ "        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
-			+ "        WHERE p.has_client_side_id = 1 \n"
+			+ "        WHERE 1 = 1 \n"
 			+ "			AND (\n"
 			+ "			ae.emp_id IS NOT NULL \n"
 			+ "			OR \n"
