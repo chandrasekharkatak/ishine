@@ -2078,15 +2078,26 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
                 // 1 = pending , 2 = Approved , 3= Rejected
                 if (leaveDTO.getLeaveStatusId() == 2) {
 
-                    if (leaveDTO.getCurrentApprovalLevel() == 2) {
-                        pendingLeaveApplication.setLevel2ApprovalStatus("Approved");
-                        pendingLeaveApplication.setCurrentApprovalLevel(3);
-                    } else if (leaveDTO.getCurrentApprovalLevel() == 3) {
-                        pendingLeaveApplication.setLevel3ApprovalStatus("Approved");
-                    } else {
-                        pendingLeaveApplication.setManagerApprovalStatus("Approved");
-                        pendingLeaveApplication.setCurrentApprovalLevel(2);
-                    }
+                    Integer current = leaveDTO.getCurrentApprovalLevel();
+					Integer finalLevel = leaveDTO.getFinalApprovalLevel();
+
+					if (current == 1) {
+						pendingLeaveApplication.setManagerApprovalStatus("Approved");
+
+						if (!current.equals(finalLevel)) {
+							pendingLeaveApplication.setCurrentApprovalLevel(2);
+						}
+
+					} else if (current == 2) {
+						pendingLeaveApplication.setLevel2ApprovalStatus("Approved");
+
+						if (!current.equals(finalLevel)) {
+							pendingLeaveApplication.setCurrentApprovalLevel(3);
+						}
+
+					} else if (current == 3) {
+						pendingLeaveApplication.setLevel3ApprovalStatus("Approved");
+					}
 
                     // Final Approval
                     if ((leaveDTO.getCurrentApprovalLevel() == null && leaveDTO.getFinalApprovalLevel() == null) ||

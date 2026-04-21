@@ -746,11 +746,23 @@ public ServiceResponse getPendingCompOffRequestsByManagerId(LeaveDTO leaveDTO) {
 						}
 					} else if (leaveDTO.getLeaveStatusId() == 3) {
 						
-						System.err.println(" Anurag find hod    :   "+compOffLeave.getManagerId());
-						compOffLeave.setManagerApprovalStatus("Rejected");
-						compOffLeave.setLevel2ApprovalStatus("Rejected");
+						 if (compOffLeave.getManagerApprovalStatus() != null &&
+							compOffLeave.getManagerApprovalStatus().equalsIgnoreCase("Approved")) {
+
+							compOffLeave.setLevel2ApprovalStatus("Rejected");
+
+						} 
+						// Level 1 rejection
+						else {
+
+							compOffLeave.setManagerApprovalStatus("Rejected");
+							compOffLeave.setLevel2ApprovalStatus("Rejected"); 
+							// or "NA" if preferred
+						}
+
 						compOffLeave.setCompOffStatus("Rejected");
-						compOffLeave.setRejectCompOffReason(leaveDTO.getRejectCompOffReason());					
+						compOffLeave.setRejectCompOffReason(leaveDTO.getRejectCompOffReason());
+
 						response.setServiceResponse("CompOff request application rejected.");
 					}
 					Employee findHOD = employeeRepository.findByEmpId((long) compOffLeave.getManagerId());
