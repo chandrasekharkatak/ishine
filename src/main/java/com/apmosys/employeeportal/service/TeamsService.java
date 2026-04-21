@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import com.apmosys.employeeportal.Exception.BadRequestException;
 import com.apmosys.employeeportal.dto.ActivationCandidateDTO;
@@ -4251,14 +4252,22 @@ public class TeamsService {
 			}
 
 			List<RmgTeamDto> teamDtoList = poDetailsDto.getTeamList();
-			Long currentUserEmpId = teamDtoList.stream().map(RmgTeamDto::getUpdatedBy).filter(Objects::nonNull).findFirst().orElse(null);
+			Long currentUserEmpId = teamDtoList.stream().map(RmgTeamDto::getUpdatedBy).filter(Objects::nonNull)
+					.findFirst().orElse(null);
 			if (currentUserEmpId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Emp Id cannot be null!!");
 				return response;
 			}
 
-			List<Long> selectedTeamIds = teamDtoList.stream().map(RmgTeamDto::getTeamId).collect(Collectors.toList());
+			List<Long> selectedTeamIds = teamDtoList.stream().map(RmgTeamDto::getTeamId).filter(Objects::nonNull)
+					.distinct().collect(Collectors.toList());
+			if (selectedTeamIds.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Team Id cannot be null!!");
+				return response;
+			}
+
 			List<Team> teamList = teamRepository.findActiveTeamsByTeamIds(selectedTeamIds);
 			if (teamList == null || teamList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -4266,57 +4275,136 @@ public class TeamsService {
 				return response;
 			}
 
+			Map<Long, Team> teamById = teamList.stream().filter(t -> t != null && t.getTeamId() != null).collect(
+					Collectors.toMap(Team::getTeamId, Function.identity(), (a, b) -> a));
+
 			List<String> ableToInactiveTeamNames = new ArrayList<>();
 			List<String> unableToInactiveTeamNames = new ArrayList<>();
-			LocalDate today = LocalDate.now();
-			for (RmgTeamDto teamDto : teamDtoList) {
-				Team team = teamList.stream().filter(t -> Objects.equals(t.getTeamId(), teamDto.getTeamId()))
-						.findFirst().orElse(null);
-				if (team != null) {
-					team.setIsActive("N");
-					team.setUpdatedBy(currentUserEmpId);
-					team.setUpdatedOn(LocalDateTime.now());
+			List<Long> deletedTeamIds = new ArrayList<>();
 
-					List<EmployeeTeamMap> employeeTeamMappings = employeeTeamMapRepository
-							.findByTeamIdAndActive(teamDto.getTeamId());
-					employeeTeamMappings.forEach(empTeamMap -> {
+			LocalDate today = LocalDate.now();
+			LocalDateTime now = LocalDateTime.now();
+			LocalDateTime startOfDay = today.atStartOfDay();
+
+			for (RmgTeamDto teamDto : teamDtoList) {
+				if (teamDto == null || teamDto.getTeamId() == null) {
+					unableToInactiveTeamNames.add("Unknown");
+					continue;
+				}
+				Team team = teamById.get(teamDto.getTeamId());
+				if (team == null) {
+					unableToInactiveTeamNames.add(teamDto.getTeamName() != null ? teamDto.getTeamName() : "Unknown");
+					continue;
+				}
+
+				team.setIsActive("N");
+				team.setUpdatedBy(currentUserEmpId);
+				team.setUpdatedOn(now);
+
+				List<EmployeeTeamMap> employeeTeamMappings = employeeTeamMapRepository
+						.findByTeamIdAndActive(teamDto.getTeamId());
+				List<EmployeeTeamMap> toUpdate = new ArrayList<>();
+				if (employeeTeamMappings != null) {
+					for (EmployeeTeamMap empTeamMap : employeeTeamMappings) {
+						if (empTeamMap == null) {
+							continue;
+						}
+						if (Objects.equals(empTeamMap.getActive(), 2L)) {
+							continue;
+						}
 						empTeamMap.setRescRemovedBy(currentUserEmpId);
 						empTeamMap.setUpdatedBy(currentUserEmpId);
-						empTeamMap.setUpdatedOn(LocalDateTime.now());
+						empTeamMap.setUpdatedOn(now);
 						empTeamMap.setEndDate(teamDto.getEndDate());
 						if (teamDto.getEndDate() == null) {
 							empTeamMap.setActive(0L);
-							empTeamMap.setEndDate(LocalDateTime.now());
-						} else if(!teamDto.getEndDate().toLocalDate().isAfter(today)){
+							empTeamMap.setEndDate(now);
+						} else if (!teamDto.getEndDate().toLocalDate().isAfter(today)) {
 							empTeamMap.setActive(0L);
 						}
-					});
-					employeeTeamMapRepository.saveAll(employeeTeamMappings);
-					teamRepository.save(team);
-					ableToInactiveTeamNames.add(team.getTeamName());
-				} else {
-					unableToInactiveTeamNames.add(teamDto.getTeamName());
+						toUpdate.add(empTeamMap);
+					}
 				}
+				if (!toUpdate.isEmpty()) {
+					employeeTeamMapRepository.saveAll(toUpdate);
+				}
+				teamRepository.save(team);
+				ableToInactiveTeamNames.add(team.getTeamName());
+				deletedTeamIds.add(team.getTeamId());
+			}
 
-				if (unableToInactiveTeamNames != null && !unableToInactiveTeamNames.isEmpty()) {
-					String teamNames = unableToInactiveTeamNames.stream().map(String::valueOf)
-							.collect(Collectors.joining(", "));
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Unable to set the following Team and its Resources to inactive : " + teamNames);
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Team and Its Resources are set to inactive successfully!!");
+			if (!unableToInactiveTeamNames.isEmpty()) {
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				String teamNames = unableToInactiveTeamNames.stream().filter(Objects::nonNull)
+						.collect(Collectors.joining(", "));
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(
+						"Unable to set the following Team and its Resources to inactive : " + teamNames);
+				return response;
+			}
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Team and Its Resources are set to inactive successfully!!");
+
+			entityManager.flush();
+
+			if (!deletedTeamIds.isEmpty()) {
+				employeeTeamMapRepository.hardDeletePendingMappingsByTeamIds(deletedTeamIds);
+				entityManager.flush();
+			}
+
+			Integer projectId = existingProject.getProjectId();
+			Long pendingCount = deletedTeamIds.isEmpty()
+					? employeeTeamMapRepository.countPendingTeamsByProjectId(projectId)
+					: employeeTeamMapRepository.countPendingTeamsExcludingDeleted(projectId, deletedTeamIds);
+
+			if (pendingCount != null && pendingCount > 0) {
+				if (!ableToInactiveTeamNames.isEmpty()) {
+					sendTeamDeletedMail(poDetailsDto.getProjectId(), currentUserEmpId, ableToInactiveTeamNames);
+				}
+				return response;
+			}
+
+			String isDraft = existingProject.getIsDraftProject();
+			String projectActive = existingProject.getActive();
+			if (isDraft != null && isDraft.equalsIgnoreCase("true") && projectActive != null
+					&& projectActive.equalsIgnoreCase("true")) {
+				String card = employeeTeamMapRepository.findProjectStatusCardByProjectId(projectId, startOfDay);
+				Long endedCount = employeeTeamMapRepository.countHistoricalEndedMappingsByProjectId(projectId, startOfDay);
+				if ("NOT_STARTED".equalsIgnoreCase(card)
+						&& endedCount != null
+						&& endedCount > 0) {
+					card = "DEBOARDED";
+				}
+				if ("UNKNOWN".equalsIgnoreCase(card)) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Unable to allocate project to a status card!");
+					return response;
+				}
+				switch (card) {
+					case "NOT_STARTED":
+						existingProject.setIsDraftProject(null);
+						existingProject.setProjectStatus("Not Started");
+						projectRepository.save(existingProject);
+						break;
+					case "APPROVED":
+					case "DEBOARDED":
+						existingProject.setIsDraftProject("false");
+						existingProject.setProjectStatus("In Progress");
+						projectRepository.save(existingProject);
+						break;
+					default:
+						break;
 				}
 			}
 
-			if (ableToInactiveTeamNames != null && !ableToInactiveTeamNames.isEmpty()) {
+			if (!ableToInactiveTeamNames.isEmpty()) {
 				sendTeamDeletedMail(poDetailsDto.getProjectId(), currentUserEmpId, ableToInactiveTeamNames);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 			log.error("Error in deleteSelectedTeams : ", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse(e.getMessage());
+			response.setServiceResponse("Something Went Wrong!!");
 			response.setServiceError(e.getMessage());
 		}
 		return response;

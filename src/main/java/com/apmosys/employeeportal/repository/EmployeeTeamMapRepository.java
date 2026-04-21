@@ -1488,5 +1488,52 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	
 	@Query("SELECT etm FROM EmployeeTeamMap etm inner join Team t on t.teamId = etm.teamId WHERE etm.empId = :empId AND etm.teamId =:teamId AND etm.active != 0 AND t.isActive = 'Y' AND DATE(etm.startDate) >= CURDATE() ")
 	List<EmployeeTeamMap> findByEmpIdAndTeamIdAndStartDateGreaterThanCurrentDate(@Param("empId") Long empId, @Param("teamId") Long teamId);
+	
+	@Query("select\n"
+			+ "  case\n"
+			+ "    when count(t.teamId) = 0 then 'NOT_STARTED'\n"
+			+ "    when sum(case when etm.active = 1 then 1 else 0 end) > 0 then 'APPROVED'\n"
+			+ "    when sum(case when etm.active = 0 and etm.endDate < :startOfDay then 1 else 0 end) > 0 then 'DEBOARDED'\n"
+			+ "    when sum(case when etm.employeeTeamMapId is not null then 1 else 0 end) = 0 then 'NOT_STARTED'\n"
+			+ "    else 'UNKNOWN'\n"
+			+ "  end\n"
+			+ "from Team t\n"
+			+ "left join EmployeeTeamMap etm on etm.teamId = t.teamId\n"
+			+ "where t.projectId = :projectId\n"
+			+ "  and t.isActive = 'Y'")
+	String findProjectStatusCardByProjectId(Integer projectId, LocalDateTime startOfDay);
+	
+	@Query("select count(distinct t.teamId)\n"
+			+ "from EmployeeTeamMap etm\n"
+			+ "join Team t on t.teamId = etm.teamId\n"
+			+ "where t.projectId = :projectId\n"
+			+ "  and t.teamId not in :deletedTeamIds\n"
+			+ "  and etm.active = 2\n"
+			+ "  and t.isActive = 'Y'")
+	Long countPendingTeamsExcludingDeleted(@Param("projectId") Integer projectId,
+			@Param("deletedTeamIds") List<Long> deletedTeamIds);
+
+	@Query("select count(distinct t.teamId)\n"
+			+ "from EmployeeTeamMap etm\n"
+			+ "join Team t on t.teamId = etm.teamId\n"
+			+ "where t.projectId = :projectId\n"
+			+ "  and etm.active = 2\n"
+			+ "  and t.isActive = 'Y'")
+	Long countPendingTeamsByProjectId(@Param("projectId") Integer projectId);
+
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("delete from EmployeeTeamMap etm\n"
+			+ "	where etm.teamId in :teamIds\n"
+			+ "	  and etm.active = 2")
+	int hardDeletePendingMappingsByTeamIds(@Param("teamIds") List<Long> teamIds);
+	
+	@Query("select count(etm) from EmployeeTeamMap etm "
+			+ "join Team t on t.teamId = etm.teamId "
+			+ "where t.projectId = :projectId "
+			+ "  and etm.active = 0 "
+			+ "  and etm.endDate <= :startOfDay")
+	Long countHistoricalEndedMappingsByProjectId(
+			@Param("projectId") Integer projectId,
+			@Param("startOfDay") LocalDateTime startOfDay);
 
 }
