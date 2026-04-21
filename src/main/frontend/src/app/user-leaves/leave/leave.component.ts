@@ -163,6 +163,7 @@ export class LeaveComponent implements OnInit {
   tableName: string;
   approvedLeaveLogList: any[];
   isLeaveApprovedByMeTable: boolean = false;
+  currentEmployeeInfo: any;
 
   constructor(
     public validationService: ValidationService,
@@ -214,6 +215,7 @@ export class LeaveComponent implements OnInit {
     this.getAllPortalConfigData();
     // this.dateToday = this.datePipe.transform(this.dateToday,'dd-MM-yyyy');
     this.preventBackButton();
+    this.onGetEmployeeInfo();
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -774,7 +776,7 @@ export class LeaveComponent implements OnInit {
     let BACKDATED_LEAVE_PERIOD = 30;
     let FUTUREDATED_LEAVE_PERIOD = 180;
     const time = d?.getTime();
-
+    console.log(this.currentUser);
     if (this.currentUser.leaveBackdatedLockDays) {
       BACKDATED_LEAVE_PERIOD = this.currentUser.leaveBackdatedLockDays;
     }
@@ -797,19 +799,37 @@ export class LeaveComponent implements OnInit {
         if (this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)) {
           return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
         } else {
-          return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x => x.getTime() == time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+          return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && (this.isTNM() || !this.holidayDates.find(x => x.getTime() == time)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
         }
     } else {
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
       if (this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)) {
         return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
       } else {
-        return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x => x.getTime() == time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
+        return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && (this.isTNM() || !this.holidayDates.find(x => x.getTime() == time)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
       }
     }
 
 
   }
+  async onGetEmployeeInfo() {
+    this.currentEmployeeInfo = new Employee();
+    let currentEmp = new Employee();
+    currentEmp.empId = this.currentUser.empId;
+    currentEmp.isDraft = false;
+    console.log("currentEmp :::::::::::::::::::::::: ", currentEmp);
+
+    const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
+    if (response.serviceStatus == "Success") {
+      this.currentEmployeeInfo = response.serviceResponse;
+      console.log("currrrrrr",this.currentEmployeeInfo);
+    } else {
+      console.error(response.serviceResponse);
+    }
+  }
+  isTNM(): boolean {
+  return this.currentEmployeeInfo?.billableType?.trim()?.toUpperCase() === 'TNM';
+}
 
   holidayHighlight: MatCalendarCellClassFunction<Date> = (cellDate, view) => {
     // //console.log("leaveObj  ::  ",this.leaveObj);
@@ -1975,7 +1995,7 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
         //     state: holiday.state
         // }));
 
-        //console.log("holidayDates : ", this.holidayDates);
+        console.log("holidayDates : ", this.holidayDates);
         //console.log("holidayList : ", this.holidayList);
       } else {
         console.error(response.serviceResponse);
