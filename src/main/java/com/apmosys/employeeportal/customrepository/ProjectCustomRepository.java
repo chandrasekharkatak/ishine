@@ -847,7 +847,7 @@ public class ProjectCustomRepository {
 		StringBuilder notStartedCondition = new StringBuilder();
 		notStartedCondition.append(" AND p.active = 'true' AND p.is_draft_project IS NULL \n")
 				.append(" AND (p.status != 'Completed' or p.status IS NULL) \n")
-				.append(" AND (DATE(ppd.po_end_date) > CURDATE() OR ppd.po_end_date IS NULL ) \n")
+//				.append(" AND (DATE(ppd.po_end_date) > CURDATE() OR ppd.po_end_date IS NULL ) \n")
 				.append(" AND NOT EXISTS (SELECT 1 FROM teams t2 INNER JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE t2.project_id = p.project_id ) \n")
 				;
 		return notStartedCondition.toString();
