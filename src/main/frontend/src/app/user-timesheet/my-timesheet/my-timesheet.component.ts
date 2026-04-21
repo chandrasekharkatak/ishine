@@ -3202,6 +3202,7 @@ get tooltipCta(): string {
         fromDate: this.finalFromDate,
         toDate: this.finalToDate,
         projectId: this.timesheetObj.projectId,
+        isBulkUploadBySelf:true
       }
 
     this.timesheetService.bulkFinalUploadProjectBased(payload, this.selectedFile2).pipe(first()).subscribe((response: any) => {

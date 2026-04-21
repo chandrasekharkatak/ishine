@@ -2052,7 +2052,14 @@ public class TimesheetServiceNew {
 
 			List<EmployeeTimesheetsNew> notFilledTimesheetDocumentDetails = new ArrayList<>();
 
-			notFilledTimesheetDocumentDetails = timesheetDocumentDetailsNewRepository.getDocsByEmpIdsAndDate(empIds, fromDate, toDate, projectId);
+			if(!finalBulkUploadDTO.getIsBulkUploadBySelf()){
+				//this is for upload by manager.
+				notFilledTimesheetDocumentDetails = timesheetDocumentDetailsNewRepository.getDocsByEmpIdsAndDate(empIds, fromDate, toDate, projectId);
+			}
+			else if(finalBulkUploadDTO.getIsBulkUploadBySelf()){
+				//this is for upload by self
+				notFilledTimesheetDocumentDetails = timesheetDocumentDetailsNewRepository.getDocsByEmpIdsAndDateForSelf(empIds, fromDate, toDate, projectId);
+			}
 
 			if(notFilledTimesheetDocumentDetails == null || notFilledTimesheetDocumentDetails.isEmpty()) {
 				throw new IllegalArgumentException("No Eligible timesheet(s) found for the given employee(s) and date range.");
@@ -2109,6 +2116,9 @@ public class TimesheetServiceNew {
 						tdn.setClientApprovalStatusId(2);
 						tdn.setFinalFlag(true);
 						tdn.setBulkApprovedDocId(savedFinalDocumentNew.getFinalDocId());
+						if(!finalBulkUploadDTO.getIsBulkUploadBySelf()){
+							tdn.setUpdatedBy(createdBy);
+						}
 						timesheetDocumentDetailsNewListToSave.add(tdn);
 					}
 				}

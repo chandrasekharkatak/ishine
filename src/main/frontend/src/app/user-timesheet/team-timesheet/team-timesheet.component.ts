@@ -1472,6 +1472,7 @@ sortData(sort: Sort) {
         fromDate: this.finalFromDate,
         toDate: this.finalToDate,
         projectId: this.timesheetObj.projectId,
+        isBulkUploadBySelf:false
       }
       console.log("This payload: ",payload);
 
