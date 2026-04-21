@@ -2068,33 +2068,385 @@
 </div>
 <!-- end :: Timesheet Report table -->
 
-<!-- start :: Custom Query Form -->
-<div class="row" *ngIf="isCustomQueryForm">
-  <div class="col-md-12">
-    <div class="row">
-      <div class="col-md-12 table-header">
-        <h1 class="table-header-title">Custom Query Data</h1>
+<!-- Start : Custom Query Data  -->
+
+  <div class="row" *ngIf="isCustomQueryForm">
+    <!-- Custom Query Model -->
+    <div class="col-md-12 table-header d-flex align-items-center">
+      <h1 class="table-header-title mb-0">Custom Query Data</h1>
+    </div>
+    
+      <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCustomQuery}"
+          (click)="showCustomQuery()">Custom Query</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isSavedQuery}"
+          (click)="showSavedQuery()">Saved Queries</button>
       </div>
+
+    
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-12" *ngIf="isSavedQuery">
+          <div class="d-flex justify-content-center align-items-center mb-2">
+            <h4>Saved Queries</h4>
+          </div>
+          <div *ngIf="savedQueries.length === 0" class="text-muted small">
+            No saved queries
+          </div>
+
+          <div class="table-container">
+            <table class="table" matSort (matSortChange)="onSort($event)">
+              <thead class="thead-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Query Name</th>
+                  <th>Query SQL</th>
+                  <th>Description</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let q of savedQueries">
+                  <td class="clickable fixed-cell">
+                    {{ q.queryId }}
+                  </td>
+                  <td class="clickable fixed-cell">
+                    {{ q.queryName }}
+                  </td>
+                  <td class="clickable fixed-cell">
+                    {{ q.querySql }}
+                  </td>
+                  <td class="clickable fixed-cell">
+                    {{ q.description }}
+                  </td>
+        
+                  <!-- ACTIONS -->
+                  <td class="text-center">
+                    <!-- EXECUTE -->
+                    <i class="fas fa-play action-icon execute"
+                       title="Execute"
+                       (click)="selectQuery(q); $event.stopPropagation()">
+                    </i>
+                    <!-- UPDATE -->
+                    <i class="fas fa-edit action-icon update"
+                       title="Update"
+                       (click)="openQueryModal('update', q); $event.stopPropagation()">
+                    </i>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- <div class="query-item d-flex justify-content-between align-items-center" *ngFor="let q of savedQueries"
+              (click)="selectQuery(q)">
+            
+            <div class="q-name"> {{ q.queryName }} <br> <small>{{ q.description }}</small></div>
+            
+            <button class="btn btn-sm btn-outline-primary edit-btn"
+              (click)="openQueryModal('update', q); $event.stopPropagation()">
+              <i class="fas fa-edit"></i>
+            </button>
+          </div> -->
+        </div>
+        <!-- <div [class.col-md-8]="isSidebarClosed" [class.col-md-12]="!isSidebarClosed"> -->
+        <div class="col-md-12" *ngIf="isCustomQuery">
+
+          <!-- BUTTON ROW -->
+          <div class="row">
+            <div class="col-md-12 d-flex justify-content-end align-items-center mt-1">
+
+              <!-- LEFT SIDE (always present) -->
+              <!-- <div style="width: 40px;">  
+                <i *ngIf="!isSidebarClosed"
+                   class="fas fa-bars cursor-pointer"
+                   (click)="toggleSidebar()"
+                   title="Open Saved Queries"></i>
+              </div> -->
+            
+              <!-- RIGHT SIDE (always right aligned) -->
+              <div class="d-flex gap-2 ">
+                <button class="btn btn-outline-primary btn-sm m-1" *ngIf = "userMapping.custom_query_execute"
+                        [disabled]="!customQuery"
+                        (click)="getCustomQueryData(alert_message)">
+                  Execute
+                </button>
+            
+                <button class="btn btn-outline-primary btn-sm m-1" *ngIf = "userMapping.custom_query_save"
+                        [disabled]="!customQuery"
+                        (click)="openQueryModal('create')">
+                  Save Query
+                </button>
+              </div>
+            
+            </div>
+          </div>
+        
+          <!-- TEXTAREA -->
+          <div class="row">
+            <div class="col-md-12 ">
+              <textarea class="query-box w-100" [(ngModel)]="customQuery"
+                placeholder="Write your SQL query here...">
+              </textarea>
+            </div>
+          </div>
+        
+          <!-- LOADER -->
+          <div class="row" *ngIf="isLoading">
+            <div class="col-md-12 d-flex justify-content-center my-3">
+              <div class="spinner-border text-primary"></div>
+            </div>
+          </div>
+        
+          <!-- RESULT -->
+          <div class="row" *ngIf="showPreview">
+            <div class="col-md-12">
+              <!-- HEADER -->
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>Results ({{ filteredData?.length || 0 }})</span>
+                <button class="btn btn-sm btn-outline-primary"
+                  (click)="downloadPreviewExcel(alert_message)">
+                  <i class="fa fa-download"></i>
+                </button>
+              </div>
+        
+              <!-- TABLE -->
+              <div class="table-container">
+                <table class="table" matSort (matSortChange)="onSort($event)">
+                  <thead class="thead-light">
+                    <tr>
+                      <th *ngFor="let col of columns" [mat-sort-header]="col">
+                        {{ col }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngIf="paginateData.length === 0">
+                      <td [attr.colspan]="columns.length" class="text-center">
+                        No Data to display...
+                      </td>
+                    </tr>
+        
+                    <tr *ngFor="let row of paginateData">
+                      <td *ngFor="let col of columns">
+                        {{ row[col] }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+        
+              <!-- PAGINATION -->
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <div>
+                  <button class="btn btn-sm btn-outline-primary"
+                    (click)="prevPage()" [disabled]="currentPage === 1"><i class="fas fa-angle-double-left"></i></button>
+                  <span class="mx-2">
+                    {{ currentPage }} of {{ totalPages }}
+                  </span>
+                  <button class="btn btn-sm btn-outline-primary"
+                    (click)="nextPage()" [disabled]="currentPage === totalPages"><i class="fas fa-angle-double-right"></i></button>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                  <label class="mb-0 small">Rows:</label>
+                  <select class="form-control form-control-sm w-auto"
+                    style="height: 30px; padding: 2px 6px; font-size: 13px; cursor: pointer;"
+                    [(ngModel)]="pageSize" (change)="changePageSize(pageSize)">
+                    <option *ngFor="let size of pageSizeOptions" [ngValue]="size">
+                      {{ size }}
+                    </option>
+                    <option [ngValue]="-1">All</option>
+                  </select>
+                </div>
+        
+              </div>
+        
+            </div>
+          </div>
+        
+        </div>
+        <!-- Main Row Closed -->
+      </div> 
+    </div>
+</div>
+
+
+
+<div class="row" *ngIf="showQueryModal">
+
+  <!-- BACK BUTTON -->
+  <div class="px-0 mb-2">
+    <button class="btn btn-sm btn-outline-primary"
+      (click)="closeQueryModal()">
+      <i class="fa-solid fa-arrow-left-long"></i>
+    </button>
+  </div>
+
+  <!-- CARD -->
+  <div class="card col-md-12 px-0">
+
+    <!-- HEADER -->
+    <div class="card-header text-center text-uppercase">
+      <strong *ngIf="modalMode === 'create'">Create Query</strong>
+      <strong *ngIf="modalMode === 'update'">Update Query</strong>
     </div>
 
-    <div class="row">
-      <div class="col-md-12">
-        <div class="form-group">
-          <label for="customQuery"><span class="text-danger">*</span>Query</label>
-          <textarea class="form-control" id="customQuery" rows="4" [(ngModel)]="customQuery"></textarea>
+    <!-- BODY -->
+    <div class="card-body">
+
+      <!-- ERROR -->
+      <div *ngIf="duplicateError" class="text-danger small mb-2">
+        {{ duplicateError }}
+      </div>
+
+      <!-- ROW 1 -->
+      <div class="row">
+
+        <!-- QUERY NAME -->
+        <div class="col-md-4 mb-2">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label>
+                <span class="text-danger">*</span> Query Name
+              </label>
+              <input type="text"
+                [(ngModel)]="queryForm.queryName"
+                class="form-control">
+            </div>
+          </div>
+        </div>
+
+        <!-- DESCRIPTION -->
+        <div class="col-md-4 mb-2">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label>Description</label>
+              <input type="text"
+                [(ngModel)]="queryForm.description"
+                class="form-control">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ROW 2 -->
+      <div class="row">
+
+        <!-- QUERY -->
+        <div class="col-md-12 mb-2">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label>
+                <span class="text-danger">*</span> Query
+              </label>
+              <textarea rows="4"
+                [(ngModel)]="queryForm.queryText"
+                class="form-control">
+              </textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ROLES -->
+      <div class="row">
+        <div class="col-md-12">
+
+          <div class="info-wrapper">
+            <div class="form-group">
+
+              <label>
+                <span class="text-danger">*</span> Select Roles
+              </label>
+
+              <div class="role-container">
+
+                <!-- SEARCH -->
+                <input type="text"
+                  class="form-control mb-2"
+                  placeholder="Search roles..."
+                  [(ngModel)]="roleSearchText">
+
+                <!-- GROUP -->
+                <div *ngFor="let emp of filteredGroupedRoles" class="emp-block">
+
+                  <div class="emp-header" (click)="emp.open = !emp.open">
+                    <i class="fas" 
+                       [ngClass]="emp.open ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                
+                    {{ emp.employeeRole }}
+                
+                    <!-- Select All (Employee Level) -->
+                    <input type="checkbox" [checked]="isEmpAllSelected(emp)" 
+                    (change)="toggleEmp(emp)" />
+                  </div>
+                
+                  <div *ngIf="emp.open" class="dept-wrapper">
+                
+                    <div *ngFor="let dept of emp.departments" class="dept-block">
+                
+                      <div class="dept-header">
+                        {{ dept.departmentName }}
+                
+                        <!-- Select All (Department Level) -->
+                        <input type="checkbox" [checked]="isDeptAllSelected(dept)" 
+                        (change)="toggleDept(dept)" />
+                      </div>
+                
+                      <div class="role-list">
+                
+                        <label *ngFor="let role of dept.roles" class="role-chip"> 
+                          <input type="checkbox" [checked]="selectedRoleIds.includes(role.jobRoleId)" (change)="onRoleToggle(role)">
+                          {{ role.name }}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- SELECTED -->
+              <div class="small text-muted mt-2">
+                Selected: {{ getSelectedRoleNames() }}
+              </div>
+
+            </div>
+          </div>
+
         </div>
       </div>
+
+      <!-- FOOTER BUTTONS -->
+      <div class="row mt-3">
+        <div class="col-md-12">
+
+          <button *ngIf="modalMode === 'create'"
+            class="btn btn-primary btn-sm mx-1"
+            [disabled]="!queryForm.queryName || !queryForm.queryText || selectedRoleIds.length === 0"
+            (click)="saveQueryUI(alert_message)">
+            Save
+          </button>
+
+          <button *ngIf="modalMode === 'update'"
+            class="btn btn-primary btn-sm mx-1"
+            (click)="updateQueryUI(alert_message)">
+            Update
+          </button>
+
+        </div>
+      </div>
+
     </div>
 
-    <div class="row">
-      <div class="col-md-12">
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [disabled]="!customQuery"
-          (click)="getCustomQueryData(alert_message)">Execute</button>
-      </div>
-    </div>
   </div>
+
 </div>
-<!-- end :: Custom Query Form -->
+
+<!-- End : Custom Query Modal End -->
 
 <!-- Filter Modal -->
 <ng-template #filter>

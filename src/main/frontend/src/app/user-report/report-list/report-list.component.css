@@ -1108,3 +1108,240 @@ th.sticky-col {
   margin-left: auto !important;
   /* color: red */
 }
+
+
+/* New Changes */
+
+.workspace {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: Arial;
+}
+
+/* TOP BAR */
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* LAYOUT */
+.main-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.query-item {
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.query-item:hover {
+  background: #eef5ff;
+  transform: translateX(3px);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+  font-size: 18px;
+}
+
+/* EDITOR */
+.editor-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+/* TOOLBAR */
+.editor-toolbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+/* QUERY BOX */
+.query-box {
+  height: 120px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+/* RESULT */
+.result-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+
+
+/* BUTTON HOVER */
+button {
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+.action-icon {
+  cursor: pointer;
+  font-size: 15px;
+  margin: 0 6px;
+  transition: all 0.2s ease;
+}
+
+/* EXECUTE ICON */
+.action-icon.execute {
+  color: #28a745;
+}
+
+/* UPDATE ICON */
+.action-icon.update {
+  color: #007bff;
+}
+
+/* HOVER EFFECT */
+.action-icon:hover {
+  transform: scale(1.2);
+  opacity: 0.8;
+}
+
+/* CARD */
+.card {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* HEADER */
+.card-header {
+  background: #f5f5f5;
+  padding: 10px;
+  font-size: 14px;
+}
+
+/* BODY */
+.card-body {
+  padding: 15px;
+  max-height: 70vh;        /* keeps form from stretching too much */
+  overflow-y: auto;        /* scroll only when needed */
+}
+
+/* FORM */
+.form-group {
+  margin-bottom: 10px;
+}
+
+.form-group label {
+  font-size: 13px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* INPUTS */
+.form-control {
+  font-size: 13px;
+  height: 32px;
+  border-radius: 4px;
+}
+
+textarea.form-control {
+  height: auto;
+  resize: vertical;
+}
+
+.fixed-cell {
+  max-width: 200px;      
+  white-space: nowrap;   
+  overflow: hidden;      
+  text-overflow: ellipsis; 
+}
+
+/* REQUIRED STAR */
+.text-danger {
+  margin-right: 3px;
+}
+
+/* WRAPPER */
+.info-wrapper {
+  width: 100%;
+}
+
+/* ROLE SECTION */
+.role-container {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 8px;
+  border-radius: 4px;
+  background: #fff;
+}
+
+/* EMPLOYEE HEADER */
+.emp-header {
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+/* DEPARTMENT */
+.dept-header {
+  font-size: 12px;
+  color: #666;
+  margin: 4px 0;
+}
+
+/* ROLE LIST */
+.role-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* ROLE CHIP */
+.role-chip {
+  font-size: 12px;
+  background: #f1f1f1;
+  border-radius: 10px;
+  padding: 2px 8px;
+  margin: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+/* CHECKBOX */
+.role-chip input {
+  cursor: pointer;
+}
+
+/* SELECTED TEXT */
+.text-muted {
+  font-size: 12px;
+}
+
+/* BUTTONS */
+.btn-sm {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+/* BACK BUTTON */
+.btn-outline-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
