@@ -200,8 +200,24 @@
             <td>{{ project.billableType }}</td>
             <td>{{ project.combinedProjectType }}</td>
             <td>{{ project.poNo ? project.poNo : ' ' }}</td>
-            <td style="white-space: nowrap;">{{ project.startDate | date: 'dd-MM-yyyy'}}</td>
-            <td style="white-space: nowrap;">{{ project.endDate | date: 'dd-MM-yyyy'}}</td>
+           <td style="white-space: nowrap;">
+              {{ project.startDate | date: 'dd-MM-yyyy'}}
+              <a *ngIf="project.startDate"
+                href="javascript:void(0)"
+                (click)="editStartdateModal(edit_startdate_template,project)"
+                title="Edit Start Date">
+                  <i class="fa fa-pen ml-2 text-primary"></i>
+              </a>
+          </td>
+            <td style="white-space: nowrap;">
+              {{ project.endDate | date: 'dd-MM-yyyy'}}
+              <a *ngIf="(project.endDate && (isFutureDate(project.endDate) || currentUser.empId == 3 || currentUser.empId == 2)) || projectObj.isEndDateVisible"
+                href="javascript:void(0)"
+                (click)="editEnddateModal(edit_enddate_template,project)"
+                title="Edit End Date">
+                  <i class="fa fa-pen ml-2 text-primary"></i>
+              </a>
+          </td>
             <td>{{ project.rescRemovedByName || ' ' }}</td>
             <td style="white-space: nowrap;">{{ project.projectStartDate | date: 'dd-MM-yyyy'}}</td>
             <td style="white-space: nowrap;">{{ project.projectEndDate | date: 'dd-MM-yyyy'}}</td>
@@ -221,14 +237,41 @@
 
         <ng-container *ngIf="project.isExpanded">
             <tr *ngFor="let h of project.history" class="history-row animate-in">
-                <td class="accent-border"></td> <td>{{ h.projectName }}</td>
-                <td>{{ h.teamName }}</td>
+                <td class="accent-border"></td>
+                  <td>
+                    <a id="clickablefor360"
+                      (click)="redirecttoProjectTeam(h.projectId)">
+                      {{ h.projectName }}
+                    </a>
+                  </td>
+                <td>
+                  <a id="clickablefor360"
+                    (click)="redirecttoTeam(h.teamId, h.projectId)">
+                    {{ h.teamName }}
+                  </a>
+                </td>
                 <td>{{ h.clientName }}</td>
                 <td>{{ h.billableType }}</td>
                 <td>{{ h.combinedProjectType }}</td>
                 <td>{{ h.poNo || ' ' }}</td>
-                <td>{{ h.startDate | date: 'dd-MM-yyyy' }}</td>
-                <td>{{ h.endDate | date: 'dd-MM-yyyy' }}</td>
+                <td style="white-space: nowrap;">
+                    {{ h.startDate | date: 'dd-MM-yyyy' }}
+                    <a *ngIf="h.startDate"
+                      href="javascript:void(0)"
+                      (click)="editStartdateModal(edit_startdate_template, h)"
+                      title="Edit Start Date">
+                        <i class="fa fa-pen ml-2 text-primary"></i>
+                    </a>
+                </td>
+               <td style="white-space: nowrap;">
+                    {{ h.endDate | date: 'dd-MM-yyyy' }}
+                    <a *ngIf="(h.endDate && (isFutureDate(h.endDate) || currentUser.empId == 3 || currentUser.empId == 2)) || projectObj.isEndDateVisible"
+                      href="javascript:void(0)"
+                      (click)="editEnddateModal(edit_enddate_template, h)"
+                      title="Edit End Date">
+                        <i class="fa fa-pen ml-2 text-primary"></i>
+                    </a>
+                </td>
                 <td>{{ h.rescRemovedByName || ' ' }}</td>
                 <td>{{ h.projectStartDate | date: 'dd-MM-yyyy' }}</td>
                 <td>{{ h.projectEndDate | date: 'dd-MM-yyyy' }}</td>

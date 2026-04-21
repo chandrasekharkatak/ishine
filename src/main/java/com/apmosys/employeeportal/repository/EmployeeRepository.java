@@ -3625,7 +3625,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "INNER JOIN Department d ON jr.deptId = d.deptId \n"
 			+ "LEFT JOIN Employee em ON e.managerId = em.empId \n"
 			+ "WHERE 1=1 \n"
-			+ "AND LOWER(e.billableType) = 'none' \n"
+			+ "AND (e.billableType IS NULL OR LOWER(e.billableType) = 'none') \n"
 			+ "AND e.empId NOT BETWEEN 1 AND 6 \n"
 			+ "AND e.employmentstatus != 'InActive' \n"
 			+ "AND d.deptId IN :deptIds")

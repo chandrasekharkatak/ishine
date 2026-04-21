@@ -1520,11 +1520,13 @@ isTodayWithinPO(startDate: string | Date, endDate: string | Date): boolean {
             const response: any = await firstValueFrom(this.teamService.getActiveTeamDetailsByProjectId(this.rmgProjectObj?.projectId));
             if (response.serviceStatus === "Success") {
                 this.rmgProjectObj.teamDetailsList = response.serviceResponse || [];
-                 this.originalTeamDetailsList = JSON.parse(
-        JSON.stringify(this.rmgProjectObj.teamDetailsList)
-    );
+
                 if (!this.isValidList(this.rmgProjectObj.teamDetailsList)) {
                     this.toggleAddNewTeam();
+                }else{
+                    this.originalTeamDetailsList = JSON.parse(
+                      JSON.stringify(this.rmgProjectObj.teamDetailsList)
+                  );
                 }
                 this.setTeamDepartmentNames(this.rmgProjectObj?.teamDetailsList);
                 this.updateAddTeamButton();
@@ -1542,7 +1544,7 @@ isTodayWithinPO(startDate: string | Date, endDate: string | Date): boolean {
                     );
                 }
 
-                 const msg = response?.serviceResponse || 'Something went wrong!!';
+             const msg = response?.serviceResponse || 'Something went wrong!!';
              this.openAlertMessageModal(msg);
             }
          } catch (error) {

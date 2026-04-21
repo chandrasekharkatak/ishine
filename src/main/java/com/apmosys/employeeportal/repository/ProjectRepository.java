@@ -4707,7 +4707,7 @@ boolean existsByProjectName(String projectName);
 			+ "inner join Department d on d.deptId = jr.deptId  \n"
 			+ "where p.active = 'true' and t.isActive != 'N' and etm.active != 0  \n"
 			+ "and e.employmentstatus != 'InActive'  \n"
-			+ "and e.billableType = 'Bench' and (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') \n"
+			+ "and e.billableType = 'Bench' and ((p.poProjectType IS NOT NULL AND (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%' OR p.poProjectType like '%Monitoring%')) OR (p.poProjectType IS NULL AND p.internalProjectType = 'InternalRNDProducts')) \n"
 			+ "and d.deptId IN :deptIds AND e.empId NOT BETWEEN 1 AND 6")
 	public Long getAllExceptionEmployeeReportCountByDeptIds(List<Long> deptIds);
 

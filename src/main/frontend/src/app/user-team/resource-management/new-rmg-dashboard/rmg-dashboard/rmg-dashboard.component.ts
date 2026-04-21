@@ -885,6 +885,12 @@ getTnmExpiredTooltip(): string[] {
 
   // Charts Start
   renderGaugeChart(chartName: any, chartId: any, value: number, arcColor: any, openMod?: any) {
+    const el = document.getElementById(chartId);
+    if (!el) {
+      // Chart container is not present in DOM (e.g. card removed from template).
+      // Skip rendering to avoid breaking downstream dashboard initialization.
+      return;
+    }
     Highcharts.chart(chartId, {
       credits: { enabled: false },
 
