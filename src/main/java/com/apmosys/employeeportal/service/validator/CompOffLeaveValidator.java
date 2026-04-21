@@ -10,6 +10,7 @@ import org.springframework.util.StringUtils;
 
 import com.apmosys.employeeportal.Exception.CompOffLeaveException;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 
 /**
@@ -24,6 +25,9 @@ public class CompOffLeaveValidator {
 
 	@Autowired
 	private EmployeeRepository employeeRepository;
+
+	@Autowired
+	CompOffLeaveRepository compOffLeaveRepository;
 
 	private static void require(boolean condition, String message) {
 		if (!condition) {
@@ -41,6 +45,15 @@ public class CompOffLeaveValidator {
 		LocalDate currentDate = LocalDate.now();
 		require(!appliedForDate.isBefore(lastSeventhDate) && !appliedForDate.isAfter(currentDate),
 				"Comp Off Date range exceeded !!");
+				boolean pendingExists = compOffLeaveRepository
+            .existsByEmpIdAndFromDateAndCompOffStatus(
+                    leaveDTO.getEmpId(),
+                    appliedForDate,
+                    "Pending"
+            );
+
+    require(!pendingExists,
+            "A pending comp-off request already exists for this date.");
 	}
 
 	public void validateGetPendingCompOffRequestsByManagerId(LeaveDTO leaveDTO) {
@@ -79,7 +92,7 @@ public class CompOffLeaveValidator {
 	public void validateUpdateCompOff(LeaveDTO leaveDTO) {
 		require(leaveDTO != null, "Request body is required.");
 		require(leaveDTO.getCompOffLeaveId() != null, "Comp-off leave id is required.");
-		require(leaveDTO.getEmpId() != null, "Employee id is required.");
+		// require(leaveDTO.getEmpId() != null, "Employee id is required.");
 		require(leaveDTO.getReasonId() != null, "Comp-off reason is required.");
 		require(StringUtils.hasText(leaveDTO.getFromDate()), "From date is required.");
 		parseIsoDateOrThrow(leaveDTO.getFromDate());

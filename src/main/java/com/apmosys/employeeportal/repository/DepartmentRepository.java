@@ -72,7 +72,12 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 		       "AND e.empId = :empId")
 	public Long findHodIdByEmpId(@Param("empId") Long empId);
 
-
+	@Query("SELECT e.empId, d.hodId " +
+       "FROM Department d, JobRole j, Employee e " +
+       "WHERE j.deptId = d.deptId " +
+       "AND e.jobRoleId = j.jobRoleId " +
+       "AND e.empId IN :empIds")
+List<Object[]> findHodIdsByEmpIds(@Param("empIds") List<Long> empIds);
 	
 	@Query(nativeQuery = true,value = "select d.name from department d \n"
 			+ "inner join job_role j on j.dept_id = d.dept_id\n"

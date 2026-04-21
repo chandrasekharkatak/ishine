@@ -5,9 +5,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,18 +29,23 @@ import com.apmosys.employeeportal.Exception.CompOffLeaveException;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.PendingCompOffDTO;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.CompOffMaster;
+import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
+import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
+import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.service.validator.CompOffLeaveValidator;
@@ -53,6 +61,12 @@ public class CompOffLeaveService {
 
 	@Autowired
 	CompOffLeaveRepository compOffLeaveRepository;
+
+	@Autowired
+	JobRoleRepository jobRoleRepository;
+
+	@Autowired
+	DepartmentRepository departmentRepository;
 
 	@Autowired
 	CompOffMasterRepository compOffMasterRepository;
@@ -199,6 +213,29 @@ public class CompOffLeaveService {
 
 	}
 
+	private void refreshLevel2Approver(CompOffLeave compOffLeave) {
+
+    List<Object[]> latestHodData =
+            employeeRepository.findHodByEmpId(compOffLeave.getEmpId());
+
+    if (latestHodData == null || latestHodData.isEmpty()) {
+        throw new RuntimeException("No second level approver found.");
+    }
+
+    Object[] row = latestHodData.get(0);
+
+    Long hodId = row[1] != null
+            ? Long.parseLong(row[1].toString())
+            : null;
+
+    if (hodId == null) {
+        throw new RuntimeException("Invalid second level approver.");
+    }
+
+    compOffLeave.setLevel2ApproverId(hodId);
+    // compOffLeave.setHodId(hodId);
+    compOffLeave.setManagerId(hodId.intValue());
+}
 	public ServiceResponse getPendingCompOffRequestsByManagerId1(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -318,65 +355,156 @@ public class CompOffLeaveService {
 	}
 
 	
-	public ServiceResponse getPendingCompOffRequestsByManagerId(LeaveDTO leaveDTO) {
-	    ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("view_reportee_comp_off_applications ");
-	    apiLogInfo.setApiUrl("/api/getPendingCompOffRequestsByManagerId");
-	    apiLogInfo.setLogLevel("INFO");
-	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append("managerId : " + leaveDTO.getManagerId());
+	// public ServiceResponse getPendingCompOffRequestsByManagerId(LeaveDTO leaveDTO) {
+	//     ServiceResponse response = new ServiceResponse();
+	//     LogDTO apiLogInfo = new LogDTO();
+	//     apiLogInfo.setSubFeatureName("view_reportee_comp_off_applications ");
+	//     apiLogInfo.setApiUrl("/api/getPendingCompOffRequestsByManagerId");
+	//     apiLogInfo.setLogLevel("INFO");
+	//     StringBuilder logBuilder = new StringBuilder();
+	//     logBuilder.append("managerId : " + leaveDTO.getManagerId());
 
-	    try {
-	        compOffLeaveValidator.validateGetPendingCompOffRequestsByManagerId(leaveDTO);
-	        List<LeaveDTO> dtoList;
+	//     try {
+	//         compOffLeaveValidator.validateGetPendingCompOffRequestsByManagerId(leaveDTO);
+	//         List<LeaveDTO> dtoList;
 
-	        if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
-	            // dtoList = getPendingCompOffRecursively(leaveDTO.getManagerId());
-				List<Long> empIds = empCache.getEmployeesUnderAnyLeadingPerson(leaveDTO.getManagerId().longValue());
+	//         if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
+	//             // dtoList = getPendingCompOffRecursively(leaveDTO.getManagerId());
+	// 			List<Long> empIds = empCache.getEmployeesUnderAnyLeadingPerson(leaveDTO.getManagerId().longValue());
 
 
-				List<Object[]> objectList=compOffLeaveRepository.getPendingCompOffRequestsByManagerIdInHirarchy(empIds);
-				dtoList = objectList.stream()
-				.map(this::mapPendingCompOffObjectToDTO)
-				.collect(Collectors.toList());
-	        } else {
-	            List<Object[]> objectList = compOffLeaveRepository
-	                    .getPendingCompOffRequestsByManagerId(leaveDTO.getManagerId());
-	            dtoList = objectList.stream()
-	                                .map(this::mapPendingCompOffObjectToDTO)
-	                                .collect(Collectors.toList());
-	        }
+	// 			List<Object[]> objectList=compOffLeaveRepository.getPendingCompOffRequestsByManagerIdInHirarchy(empIds);
+	// 			dtoList = objectList.stream()
+	// 			.map(this::mapPendingCompOffObjectToDTO)
+	// 			.collect(Collectors.toList());
+	//         } else {
+	//             List<Object[]> objectList = compOffLeaveRepository
+	//                     .getPendingCompOffRequestsByManagerId(leaveDTO.getManagerId());
+	//             dtoList = objectList.stream()
+	//                                 .map(this::mapPendingCompOffObjectToDTO)
+	//                                 .collect(Collectors.toList());
+	//         }
 
-	        if (dtoList.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("No compoff request(s) found.");
-	            apiLogInfo.setApiResponse("No compoff request(s) found.");
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        } else {
-	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            response.setServiceResponse(dtoList);
-	            apiLogInfo.setApiResponse(dtoList.size() + " compoff request(s) found.");
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	        }
+	//         if (dtoList.isEmpty()) {
+	//             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	//             response.setServiceResponse("No compoff request(s) found.");
+	//             apiLogInfo.setApiResponse("No compoff request(s) found.");
+	//             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	//         } else {
+	//             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	//             response.setServiceResponse(dtoList);
+	//             apiLogInfo.setApiResponse(dtoList.size() + " compoff request(s) found.");
+	//             apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	//         }
 
-	    } catch (CompOffLeaveException e) {
-	        throw e;
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something Went Wrong.");
-	        response.setServiceError(e.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setLogLevel("ERROR");
+	//     } catch (CompOffLeaveException e) {
+	//         throw e;
+	//     } catch (Exception e) {
+	//         e.printStackTrace();
+	//         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	//         response.setServiceResponse("Something Went Wrong.");
+	//         response.setServiceError(e.getMessage());
+	//         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	//         apiLogInfo.setLogLevel("ERROR");
+	//     }
+
+	//     apiLogInfo.setApiRequest(logBuilder.toString());
+	//     logService.logMyInfo(httpRequest, apiLogInfo);
+	//     return response;
+	// }
+public ServiceResponse getPendingCompOffRequestsByManagerId(LeaveDTO leaveDTO) {
+
+    ServiceResponse response = new ServiceResponse();
+
+    try {
+        List<PendingCompOffDTO> pendingRequests = getPendingRequests(leaveDTO);
+
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(pendingRequests);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceResponse("Unable to fetch pending comp off requests.");
+        response.setServiceError(e.getMessage());
+    }
+
+    return response;
+}
+	public List<PendingCompOffDTO> getPendingRequests(LeaveDTO leaveDTO) {
+
+    Long loginEmpId = leaveDTO.getManagerId() != null
+            ? leaveDTO.getManagerId().longValue()
+            : null;
+
+    List<PendingCompOffDTO> allPending = compOffLeaveRepository.getAllPendingCompOff();
+
+    if (allPending.isEmpty() || loginEmpId == null) {
+        return Collections.emptyList();
+    }
+
+   List<Long> empIds = allPending.stream()
+            .map(PendingCompOffDTO::getEmpId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .collect(Collectors.toList());
+
+    Map<Long, Employee> employeeMap = employeeRepository
+            .findByEmpIdIn(empIds)
+            .stream()
+            .collect(Collectors.toMap(Employee::getEmpId, e -> e));
+
+    Map<Long, Long> hodMap = departmentRepository.findHodIdsByEmpIds(empIds)
+            .stream()
+            .collect(Collectors.toMap(
+                    row -> ((Number) row[0]).longValue(),
+                    row -> ((Number) row[1]).longValue()
+            ));
+
+    return allPending.stream()
+            .filter(dto -> isVisibleToApprover(dto, loginEmpId, employeeMap, hodMap))
+            .collect(Collectors.toList());
+}
+	private boolean isVisibleToApprover(
+	        PendingCompOffDTO dto,
+	        Long loginEmpId,
+	        Map<Long, Employee> employeeMap,
+	        Map<Long, Long> hodMap) {
+
+		Long empId = dto.getEmpId();
+
+	    String managerApprovalStatus = dto.getManagerApprovalStatus();
+	    String level2ApprovalStatus = dto.getLevel2ApprovalStatus();;
+
+	    Employee emp = employeeMap.get(empId);
+
+	    if (emp == null) {
+	        return false;
 	    }
+    if ("Pending".equals(managerApprovalStatus)
+            && "Pending".equals(level2ApprovalStatus)) {
 
-	    apiLogInfo.setApiRequest(logBuilder.toString());
-	    logService.logMyInfo(httpRequest, apiLogInfo);
-	    return response;
-	}
+        Long approverId =
+                "Reporting Manager".equalsIgnoreCase(emp.getApprovalsTo())
+                && emp.getReportingManagerId() != null
+                        ? emp.getReportingManagerId()
+                        : emp.getManagerId() != null
+                            ? emp.getManagerId().longValue()
+                            : null;
 
+        return loginEmpId.equals(approverId);
+    }
 
+    if ("Approved".equals(managerApprovalStatus)
+            && "Pending".equals(level2ApprovalStatus)) {
+
+        Long hodId = hodMap.get(empId);
+        return loginEmpId.equals(hodId);
+    }
+
+    return false;
+}
 	public ServiceResponse getPendingCompOffRequestsByEmpId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -585,9 +713,10 @@ public class CompOffLeaveService {
 						else {
 							compOffLeave.setManagerApprovalStatus("Approved");
 							compOffLeave.setLevel2ApprovalStatus("Pending");
-							compOffLeave.setManagerId(managerId);
-//							compOffLeave.setManagerId(Math.toIntExact(leaveDTO.getLeaveStatusUpdatedBy()));
-							compOffLeave.setLevel2ApproverId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+// 							compOffLeave.setManagerId(managerId);
+// //							compOffLeave.setManagerId(Math.toIntExact(leaveDTO.getLeaveStatusUpdatedBy()));
+// 							compOffLeave.setLevel2ApproverId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+							refreshLevel2Approver(compOffLeave);
 							compOffLeave.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
 							compOffLeave.setLeaveStatusId((short) 1);
 							System.err.println(" managerId    "+object[1] != null ? Long.parseLong(object[1].toString()) : null);

@@ -249,14 +249,24 @@
               </td>
 
               <td class="ts-actions-cell">
-                <button *ngIf="compOffReq.status == 'Pending'"
+                <button *ngIf="(compOffReq.status == 'Pending' &&
+                                compOffReq.level2ApprovalStatus == 'Pending' &&
+                                compOffReq.managerApprovalStatus == 'Pending')
+                                ||
+                                (compOffReq.level2ApprovalStatus == 'Rejected' &&
+                                compOffReq.managerApprovalStatus == 'Rejected')"
                         class="ts-action-btn ts-action-btn--edit"
                         (click)="showUpdateForm(compOffReq)"
                         title="Edit">
                   <i class="fa fa-edit"></i>
                 </button>
 
-                <button *ngIf="compOffReq.status == 'Pending'"
+                <button *ngIf="(compOffReq.status == 'Pending' &&
+                                compOffReq.level2ApprovalStatus == 'Pending' &&
+                                compOffReq.managerApprovalStatus == 'Pending')
+                                ||
+                                (compOffReq.level2ApprovalStatus == 'Rejected' &&
+                                compOffReq.managerApprovalStatus == 'Rejected')"
                         class="ts-action-btn ts-action-btn--danger"
                         (click)="openDeleteCompOff(delete_compoff_req, compOffReq)"
                         title="Delete">

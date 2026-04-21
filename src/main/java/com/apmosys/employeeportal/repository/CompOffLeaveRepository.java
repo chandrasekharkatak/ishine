@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.apmosys.employeeportal.dto.PendingCompOffDTO;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 
@@ -87,4 +88,52 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
         @Param("empId") Long empId,
         @Param("fromDate") LocalDate fromDate
 );
+
+	public boolean existsByEmpIdAndFromDateAndCompOffStatus(Long empId, LocalDate appliedForDate, String string);
+
+// 	@Query(value = "SELECT cl.* " +
+//         "FROM comp_off_leave cl " +
+//         "INNER JOIN leave_status s ON s.leave_status_id = cl.leave_status_id " +
+//         "WHERE cl.comp_off_status NOT IN ('Approved','Rejected','Expired') " +
+//         "AND s.status = 'Pending' " +
+//         "AND (cl.manager_approval_status = 'Pending' " +
+//         "OR cl.level2approval_status = 'Pending') " +
+//         "ORDER BY cl.created_on DESC",
+//         nativeQuery = true)
+// List<CompOffLeave> getAllPendingCompOff();
+@Query(value = "SELECT " +
+        "el.comp_off_leave_id AS compOffLeaveId, " +
+        "cm.comp_off_reasons AS compOffReasons, " +
+        "el.description AS description, " +
+        "el.created_on AS createdOn, " +
+        "e.name AS createdByName, " +
+        "s.status AS status, " +
+        "el.from_date AS fromDate, " +
+        "el.to_date AS toDate, " +
+        "el.no_of_days AS noOfDays, " +
+        "el.emp_id AS empId, " +
+        "e.email AS email, " +
+        "e.employeement_id AS employeementId, " +
+        "em.emp_id AS managerId, " +
+        "em.email AS managerEmail, " +
+        "cl.final_approval_level AS finalApprovalLevel, " +
+        "cl.level2approver_id AS level2ApproverId, " +
+        "cl.manager_approval_status AS managerApprovalStatus, " +
+        "cl.reporting_manager_id AS reportingManagerId, " +
+        "cl.current_approval_level AS currentApprovalLevel, " +
+        "cl.level2approval_status AS level2ApprovalStatus, " +
+        "e2.name AS level2ApproverName, " +
+        "em.name AS approverName " +
+        "FROM comp_off_leave el " +
+        "INNER JOIN employee e ON e.emp_id = el.emp_id " +
+        "INNER JOIN leave_status s ON s.leave_status_id = el.leave_status_id " +
+        "INNER JOIN comp_off_master cm ON cm.comp_off_id = el.reason " +
+        "INNER JOIN employee em ON em.emp_id = e.manager_id " +
+        "INNER JOIN comp_off_leave cl ON cl.comp_off_leave_id = el.comp_off_leave_id " +
+        "LEFT JOIN employee e2 ON e2.emp_id = cl.level2approver_id " +
+        "WHERE cl.comp_off_status NOT IN ('Approved','Rejected','Expired') " +
+        "AND s.status = 'Pending' " +
+        "ORDER BY el.created_on DESC",
+        nativeQuery = true)
+List<PendingCompOffDTO> getAllPendingCompOff();
 }
