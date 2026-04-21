@@ -176,4 +176,24 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 	void deleteByTimesheetIdAndProjectId(@Param("timesheetId") Long timesheetId, @Param("projectId") Integer projectId);
 
 
+
+	@Query( "SELECT etn \n" +
+				"FROM EmployeeTimesheetsNew etn\n" +
+				"INNER JOIN ProjectTimesheetStatusNew ptsn on etn.timesheetId = ptsn.id.timesheetId \n" +
+				"INNER JOIN Project p on p.projectId = ptsn.id.projectId\n" +
+				"INNER JOIN TimesheetDocumentDetailsNew tdd on tdd.timesheetId = etn.timesheetId AND tdd.projectId = ptsn.id.projectId\n" +
+				"WHERE p.hasClientSideId = 1 \n" +
+				"AND etn.dayTypeId IN (1,3,8) \n" + 
+				"AND (etn.status = 3 \n" +
+				" OR (etn.status = 1 AND tdd.bulkApprovedDocId IS NULL ) ) \n"+
+				"AND ptsn.id.projectId = :projectId \n" + 
+				"AND etn.date BETWEEN :fromDate AND :toDate \n" +
+				"AND etn.empId IN :empIds")
+	List<EmployeeTimesheetsNew> getDocsByEmpIdsAndDateForSelf(
+			@Param("empIds") List<Long> empIds,
+			@Param("fromDate") LocalDate fromDate,
+			@Param("toDate") LocalDate toDate,
+			@Param("projectId") Integer projectId
+		);
+
 }

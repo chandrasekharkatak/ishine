@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -47,13 +48,13 @@ public class TimesheetDocumentDetailsNew {
     private Long createdBy;
 
     @CreationTimestamp
-    @Column(name = "created_on")
+    @Column(name = "created_on", updatable = false)
     private LocalDateTime createdOn;
 
     @Column(name = "updated_by")
     private Long updatedBy;
 
-    @UpdateTimestamp
+
     @Column(name = "updated_on")
     private LocalDateTime updatedOn;
 
@@ -68,4 +69,9 @@ public class TimesheetDocumentDetailsNew {
 
     @Column(name = "bulk_approved_doc_id")
     private Long bulkApprovedDocId;
+
+     @PreUpdate
+    public void onUpdate() {
+        this.updatedOn = LocalDateTime.now();
+    }
 }

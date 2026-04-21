@@ -4383,3 +4383,193 @@ input:checked+.slider:before {
   align-items: center;
   gap: 8px;
 }
+
+/* Modal Styling */
+.modal-header {
+  background: #1e3a5f;
+  color: #fff;
+  border-bottom: none;
+}
+
+.modal-header .close {
+  color: #fff;
+  opacity: 1;
+}
+
+.modal-title {
+  font-weight: 600;
+}
+
+.modal-body {
+  background: #f5f7fb;
+  padding: 16px;
+}
+
+/* Filters Section */
+.row.align-items-end {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 10px 10px 0 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.form-control-sm {
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.btn-primary {
+  background-color: #1e3a5f;
+  border-color: #1e3a5f;
+}
+
+.btn-primary:hover {
+  background-color: #16324d;
+}
+
+/* Table Wrapper */
+.insight-table-wrap {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+}
+
+/* Table */
+.insight-timesheet-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Header */
+.insight-timesheet-table thead {
+  background: #1e3a5f;
+}
+
+.insight-timesheet-table th {
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Rows */
+.insight-table-row {
+  transition: all 0.2s ease;
+}
+
+.insight-table-row td {
+  font-size: 13px;
+  padding: 10px;
+  color: #333;
+  border-bottom: 1px solid #eee;
+}
+
+/* Zebra striping */
+.insight-table-row:nth-child(even) {
+  background: #f9fbfd;
+}
+
+/* Hover effect */
+.insight-table-row:hover {
+  background: #eef4fb;
+}
+
+/* Buttons inside table */
+.insight-doc-btn {
+  border-radius: 20px;
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+/* Empty state */
+.insight-empty {
+  padding: 30px;
+  background: #ffffff;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+/* Paginator */
+.insight-paginator {
+  margin-top: 10px;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 6px;
+}
+
+/* Scrollbar improvement */
+.table-responsive {
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+.table-responsive::-webkit-scrollbar {
+  width: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #c1c9d6;
+  border-radius: 10px;
+}
+/* Better column spacing for long text fields */
+.insight-timesheet-table th,
+.insight-timesheet-table td {
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+
+/* Wider columns for long text */
+.insight-timesheet-table th:nth-child(5),
+.insight-timesheet-table td:nth-child(5) {
+  min-width: 200px;   /* Project Name */
+}
+
+.insight-timesheet-table th:nth-child(6),
+.insight-timesheet-table td:nth-child(6) {
+  min-width: 180px;   /* Team Name */
+}
+
+.insight-timesheet-table th:nth-child(8),
+.insight-timesheet-table td:nth-child(8) {
+  min-width: 300px;   /* Description */
+}
+
+.insight-timesheet-table th:nth-child(10),
+.insight-timesheet-table td:nth-child(10) {
+  min-width: 220px;   /* Manager */
+}
+
+/* Medium width columns */
+.insight-timesheet-table th:nth-child(4),
+.insight-timesheet-table td:nth-child(4) {
+  min-width: 180px;   /* Employee Name */
+}
+
+.insight-timesheet-table th:nth-child(7),
+.insight-timesheet-table td:nth-child(7) {
+  min-width: 180px;   /* Activity */
+}
+
+.insight-timesheet-table td:nth-child(5),
+.insight-timesheet-table td:nth-child(8),
+.insight-timesheet-table td:nth-child(10) {
+  white-space: normal;
+  word-break: break-word;
+}
+/* Optional horizontal scroll */
+.table-responsive {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 500px;
+}
+
+/* Better readability for long content */
+.insight-timesheet-table td {
+  line-height: 1.4;
+}

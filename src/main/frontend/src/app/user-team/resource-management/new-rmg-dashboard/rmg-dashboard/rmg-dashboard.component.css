@@ -15,7 +15,16 @@
     /* font-family: 'Inter', sans-serif; */
 }
 
+.tile-card__tooltip {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+}
 
+.status-card {
+  position: relative;
+}
 .main-content {
     /*  */
 }

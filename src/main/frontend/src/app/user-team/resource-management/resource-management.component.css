@@ -2423,11 +2423,19 @@ input:checked + .slider:hover:before {
 }
 
 .custom-btn-outline-primary:hover {
-  background: 667eea;
+  background: #667eea;
   border-color: #667eea;
   color: white;
   transform: translateY(-2px);
   /* box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); */
+}
+
+.custom-btn-outline-primary:active,
+.custom-btn-outline-primary.active,
+.custom-btn-outline-primary:not(:disabled):not(.disabled).active {
+  background: #667eea;
+  border-color: #667eea;
+  color: #fff;
 }
 
 /* Modal close button */

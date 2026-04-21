@@ -391,7 +391,7 @@ getTotalDocCount(projectId: number): number {
   applyRequestDateRangeAndLoad() {
     const today = new Date();
     this.page1 = 0; // pagination reset
-    this.paginator.firstPage();
+    this.paginator?.firstPage();
     if (this.requestDateRangeType === 'currentMonth') {
       const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
       this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
@@ -1472,6 +1472,7 @@ sortData(sort: Sort) {
         fromDate: this.finalFromDate,
         toDate: this.finalToDate,
         projectId: this.timesheetObj.projectId,
+        isBulkUploadBySelf:false
       }
       console.log("This payload: ",payload);
 
@@ -2595,7 +2596,7 @@ getDocument(type: 'Pending' | 'Approved'): void {
     this.selectedStatus = status;
     console.log("Status changed to:", this.selectedStatus);
     this.page1 = 0; // pagination reset
-    this.paginator.firstPage();
+    this.paginator?.firstPage();
     // this.items = 10;
     this.isSearchEnabled = false;
     this.expandedTimesheetIndex = null;
@@ -2887,7 +2888,7 @@ this.skippedTimesheetList = null
           // this.selectedStatus = 2;
           // this.onStatusChange(2);
           this.page1 = 0;
-          this.paginator.firstPage();
+          this.paginator?.firstPage();
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
           this.clearAllSelections();
