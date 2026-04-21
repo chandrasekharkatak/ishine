@@ -25,6 +25,7 @@ import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectManagersDTO;
 import com.apmosys.employeeportal.dto.ProjectOverheadsDTO;
 import com.apmosys.employeeportal.dto.RMGDashboardProjectRequest;
+import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
 
@@ -1030,38 +1031,118 @@ public class ProjectCustomRepository {
         }
     }
     
+//    private void appendDateCondition(StringBuilder query, String column, String value) {
+//
+//    	 String normalizedValue = value.replace("/", "-").trim();
+//        String formattedDate = convertToYYYYMMDD(normalizedValue);
+//
+//        if (formattedDate != null) {
+//          
+//            query.append(String.format(
+//                " AND DATE(%s) = '%s' \n",
+//                column,
+//                formattedDate
+//            ));
+//        } else {
+//           
+//            query.append(String.format(
+//                " AND DATE_FORMAT(%s, '%%d-%%m-%%Y') LIKE '%%%s%%' \n",
+//                column,
+//                normalizedValue.replace("'", "''")
+//            ));
+//        }
+//    }
+    
+    
     private void appendDateCondition(StringBuilder query, String column, String value) {
 
-    	 String normalizedValue = value.replace("/", "-").trim();
+        if (value == null || value.trim().isEmpty()) {
+            return;
+        }
+
+        String normalizedValue = value.replace("/", "-").trim();
+
+       
+        
+        if (!isValidDateOrPartial(normalizedValue)) {
+            throw new BadRequestException("Invalid date format.Allowed Formats are dd-mm-yyyy / yyyy-mm-dd");
+        }
+        
         String formattedDate = convertToYYYYMMDD(normalizedValue);
 
         if (formattedDate != null) {
-          
+            // Exact full date match
             query.append(String.format(
                 " AND DATE(%s) = '%s' \n",
                 column,
                 formattedDate
             ));
         } else {
-           
+            // Partial / flexible search using LIKE on BOTH formats
             query.append(String.format(
-                " AND DATE_FORMAT(%s, '%%d-%%m-%%Y') LIKE '%%%s%%' \n",
+                " AND ( " +
+                " DATE_FORMAT(%s, '%%d-%%m-%%Y') LIKE '%%%s%%' " +
+                " OR DATE_FORMAT(%s, '%%Y-%%m-%%d') LIKE '%%%s%%' " +
+                " ) \n",
                 column,
-                normalizedValue.replace("'", "''")
+                escape(normalizedValue),
+                column,
+                escape(normalizedValue)
             ));
         }
     }
     
     
     private String convertToYYYYMMDD(String value) {
+
         try {
-        	 value = value.replace("/", "-").trim();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-            LocalDate date = LocalDate.parse(value, formatter);
-            return date.toString(); // yyyy-MM-dd
-        } catch (Exception e) {
-            return null; // not full date
+            value = value.replace("/", "-").trim();
+
+            // Try dd-MM-yyyy
+            DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            return LocalDate.parse(value, formatter1).toString();
+
+        } catch (Exception e1) {
+            try {
+                // Try yyyy-MM-dd
+                DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                return LocalDate.parse(value, formatter2).toString();
+            } catch (Exception e2) {
+                return null;
+            }
         }
+    }
+    
+    private String escape(String input) {
+        return input.replace("'", "''");
+    }
+    
+    private boolean isValidDateOrPartial(String value) {
+
+      
+
+        String v = value.replace("/", "-").trim();
+
+     
+        DateTimeFormatter[] fullFormats = new DateTimeFormatter[]{
+                DateTimeFormatter.ofPattern("dd-MM-yyyy"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        };
+
+        for (DateTimeFormatter formatter : fullFormats) {
+            try {
+                LocalDate.parse(v, formatter);
+                return true; 
+            } catch (Exception ignored) {}
+        }
+
+      
+        if (v.matches("^[0-9\\-]+$")) {
+            return true;
+        }
+
+       
+        return false;
     }
 
 }

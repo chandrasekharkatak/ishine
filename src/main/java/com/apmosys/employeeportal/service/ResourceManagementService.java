@@ -15930,7 +15930,7 @@ public class ResourceManagementService {
 			serviceResponse.setServiceResponse(rmgDashboardProjectResponse);
 		} catch (BadRequestException be) {
 			log.error("Error in fetchProjectDetailsList", be);
-			return failResponse(serviceResponse, apiLogInfo, "Filtering by PO number isn’t available at the moment. Please try again later.");
+			return failResponse(serviceResponse, apiLogInfo, be.getMessage());
 		} catch (Exception e) {
 			log.error("Error in fetchProjectDetailsList", e);
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong");

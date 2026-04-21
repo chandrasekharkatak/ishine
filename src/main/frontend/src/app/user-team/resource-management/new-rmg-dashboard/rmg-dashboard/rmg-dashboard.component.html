@@ -853,19 +853,28 @@
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="projectStartDate|string">
                                 Start Date
+                                <i class="fa fa-info-circle info-icon cursor-pointer ml-2"
+                                title="Allowed Formats dd-mm-yyyy / yyyy-mm-dd can only be searched.">
+                            </i>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="projectEndDate|string">
                                 End Date
+                                <i class="fa fa-info-circle info-icon cursor-pointer ml-2"
+                                title="Allowed Formats dd-mm-yyyy / yyyy-mm-dd can only be searched.">
+                            </i>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="state|string">
                                 State
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="createdOn|datetime">
                                 Created On
+                                <i class="fa fa-info-circle info-icon cursor-pointer ml-2"
+                                title="Allowed Formats dd-mm-yyyy / yyyy-mm-dd can only be searched.">
+                            </i>
                             </th>
-                            <th class="max-width200 min-width200" mat-sort-header="status|string">
+                            <!-- <th class="max-width200 min-width200" mat-sort-header="status|string">
                                 PO Project Status
-                            </th>
+                            </th> -->
                             <th class="max-width200 min-width200" mat-sort-header="projectStatus|string">
                                 Ishine Project Status
                             </th>
@@ -991,9 +1000,9 @@
                                     [title]=" project?.createdOn ? (project?.createdOn | date: 'dd-MM-yyyy') : 'NA'">
                                     {{ project?.createdOn ? (project?.createdOn | date: 'dd-MM-yyyy') : 'NA' }}
                                 </td>
-                                <td class="max-width200 min-width200 truncate" [title]="project?.status || 'NA'">
+                                <!-- <td class="max-width200 min-width200 truncate" [title]="project?.status || 'NA'">
                                     {{ project?.status || 'NA'}}
-                                </td>
+                                </td> -->
                                 <td class="max-width200 min-width200 truncate" [title]="project?.projectStatus || 'NA'">
                                     {{ project?.projectStatus||'NA'}}
                                 </td>
