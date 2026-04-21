@@ -522,6 +522,19 @@ formatDateForSearch(date: any): string {
   return ddmmyyyy + ' ' + yyyymmdd;
 }
 
+formatToLocalDateTime(date: any): string {
+  const d = new Date(date);
+
+  const pad = (n: number) => n.toString().padStart(2, '0');
+
+  return d.getFullYear() + '-' +
+    pad(d.getMonth() + 1) + '-' +
+    pad(d.getDate()) + 'T' +
+    pad(d.getHours()) + ':' +
+    pad(d.getMinutes()) + ':' +
+    pad(d.getSeconds());
+}
+
 
   deleteResourceModal1(template: TemplateRef<any>, projObj, member) {
     const today = new Date();
@@ -771,7 +784,7 @@ formatDateForSearch(date: any): string {
     let projectObj = new Project();
     projectObj.teamId = this.projectObj.teamId;
     projectObj.empId = this.projectObj.empId;
-    projectObj.endDate = this.endDate;
+    projectObj.endDate = this.formatToLocalDateTime(this.endDate);
     projectObj.employeeTeamMapId = this.projectObj.employeeTeamMapId; //added for updating end-date
 
 
