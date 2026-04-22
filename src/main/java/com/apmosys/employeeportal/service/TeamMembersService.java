@@ -34,6 +34,7 @@ import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
 import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MigrateTeam;
 import com.apmosys.employeeportal.dto.PoDepartmentMappingDto;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
@@ -1596,6 +1597,122 @@ public class TeamMembersService {
 			throw e;
 		}
 		return serviceResponse;
+	}
+
+	@Transactional(readOnly = true)
+	public ServiceResponse getMaxEmployeeTeamMapStartDate(Long empId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			if (empId == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("EmpId cannot be null");
+				return serviceResponse;
+			}
+
+			LocalDate newStartDate = employeeTeamMapRepository.findEtmMaxEndDateByEmpId(empId);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(newStartDate);
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error("Error Fetching Max ETM End Date for Employee: ", e);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Something went wrong!!");
+			throw e;
+		}
+		return serviceResponse;
+	}
+
+	@Transactional(readOnly = true)
+	public ServiceResponse getTeamMemberDetailsByEmpIdAndProjectId(Integer projectId, Long empId, Long employeeTeamMapId) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getTeamMemberDetailsByEmpIdAndProjectId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : " + empId);
+		try {
+			if (empId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Emp Id cannot be null!!");
+				return response;
+			}
+			if (employeeTeamMapId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Team Mapping Id cannot be null!!");
+				return response;
+			}
+			if (projectId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id cannot be null!!");
+				return response;
+			}
+
+			Project existingProject = projectRepository.findByProjectId(projectId);
+			if (existingProject == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project not found!!");
+				return response;
+			}
+
+			List<RmgTeamMemberDto> teamMemberDetailsList = teamRepository
+					.getAllTeamMemberDetailsDtoByEmployeeTeamMapId(employeeTeamMapId, projectId.longValue());
+			if (teamMemberDetailsList == null || teamMemberDetailsList.isEmpty()) {
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("Team Members List is Empty!!");
+				response.setServiceResponse(new ArrayList<RmgTeamMemberDto>());
+				return response;
+			}
+
+			List<Long> empIds = teamMemberDetailsList.stream().map(RmgTeamMemberDto::getEmpId)
+					.collect(Collectors.toList());
+
+			Map<Long, List<EmployeeOtherActiveProject>> empIdAndOtherProjectIdsMap = getEmployeeOtherActiveProjectIdMap(
+					empIds, projectId);
+
+			Map<Long, EmployeeInformationDTO> empIdInfoMap = getEmployeeInformationMap(empIds);
+
+			for (RmgTeamMemberDto obj : teamMemberDetailsList) {
+
+				EmployeeInformationDTO dto = empIdInfoMap.getOrDefault(obj.getEmpId(), null);
+				if (dto != null) {
+					obj.setEmpId(dto.getEmpId());
+					obj.setEmployementId(dto.getEmploymentId());
+					obj.setEmpTeamDepartmentId(dto.getDeptId());
+					obj.setMemberDepartment(dto.getDeptName());
+					obj.setJobRoleName(dto.getJobRole());
+					obj.setBillableType(dto.getBillableType());
+					obj.setPrevExp(dto.getPreviousExperience());
+					obj.setCurrentExp(dto.getCurrentExperience());
+					obj.setTotalExp(dto.getTotalExperience());
+					obj.setEmploymentStatus(dto.getEmploymentStatus());
+				}
+				obj.setOtherActiveProjects(empIdAndOtherProjectIdsMap.getOrDefault(obj.getEmpId(), List.of()));
+
+				if (obj.getOtherActiveProjects() != null && !obj.getOtherActiveProjects().isEmpty()) {
+					List<Integer> projectIds = obj.getOtherActiveProjects().stream()
+							.map(e -> e.getProjectId())
+							.collect(Collectors.toList());
+					obj.setOtherActiveProjectIds(projectIds);
+				} else {
+					obj.setOtherActiveProjectIds(List.of());
+				}
+				obj.setDisplayRequirement(getDisplayRequirement(obj));
+			}
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(teamMemberDetailsList);
+			apiLogInfo.setApiResponse("Team Members List fetched successfully!!");
+		} catch (Exception e) {
+			log.error("Error in getTeamDetailsByTeamId : ", e);
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong!!");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		return response;
 	}
 
 	@Transactional(readOnly = true)

@@ -1743,7 +1743,7 @@ getTnmExpiredTooltip(): string[] {
 
   // Projects Table APIs & Methods Start
   onProjectSearch(searchData: any) {
-    this.projectPage = 0;
+    this.projectPage = 1;
     this.projectFilters = searchData;
     this.filterStateService.projectReportFilters = this.projectFilters;
     this.getProjectDetailsList(false);

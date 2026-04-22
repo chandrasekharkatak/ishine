@@ -1761,6 +1761,9 @@ export class ResourceManagementComponent implements OnInit {
           if (this.rmgStatusCardsComponent) {
             this.rmgStatusCardsComponent.onDepartmentSelectionChange(this.selectedDepartmentIds);
           }
+          if (this.rmgDashboardComponent) {
+            this.rmgDashboardComponent?.ngOnInit();
+          }
         } else {
           this.openAlertMessageModal(response.serviceResponse);
         }

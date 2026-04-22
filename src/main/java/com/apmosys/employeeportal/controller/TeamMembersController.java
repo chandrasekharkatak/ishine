@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
 import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto;
 import com.apmosys.employeeportal.dto.MigrateTeam;
@@ -106,4 +107,16 @@ public class TeamMembersController {
 		return teamMembersService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId);
 	}
 
+	// @Encrypted
+	@GetMapping("/getMaxEmployeeTeamMapStartDate")
+	public ServiceResponse getMaxEmployeeTeamMapStartDate(@RequestParam Long empId) {
+		return teamMembersService.getMaxEmployeeTeamMapStartDate(empId);
+	}
+
+	// @Encrypted
+	@GetMapping("/getTeamMemberDetailsByEmpIdAndProjectId")
+	public ServiceResponse getTeamMemberDetailsByEmpIdAndProjectId(@RequestParam Integer projectId, @RequestParam Long empId, @RequestParam Long employeeTeamMapId) {
+		return teamMembersService.getTeamMemberDetailsByEmpIdAndProjectId(projectId, empId, employeeTeamMapId);
+	}
+	
 }

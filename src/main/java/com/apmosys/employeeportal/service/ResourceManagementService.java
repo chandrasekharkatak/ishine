@@ -1901,10 +1901,16 @@ public class ResourceManagementService {
 		List<Activity> newActivityList = new ArrayList<>();
 
 //		{TeamId1={DeptId1=["Employee","TeamLead"],DeptId2=["Employee","TeamLead"]}}
+		// Map<Long, Map<Long, Set<String>>> teamIdAndDeptIdEmpRoleMap = teamMemberMappingList.stream()
+		// 		.collect(Collectors.groupingBy(EmployeeTeamMap::getTeamId,
+		// 				Collectors.groupingBy(EmployeeTeamMap::getEmpTeamDepartmentId, Collectors.flatMapping(
+		// 						obj -> Arrays.stream(obj.getEmployeeRole().split(",")), Collectors.toSet()))));
+
 		Map<Long, Map<Long, Set<String>>> teamIdAndDeptIdEmpRoleMap = teamMemberMappingList.stream()
+				.filter(obj -> obj.getTeamId() != null && obj.getEmpTeamDepartmentId() != null)
 				.collect(Collectors.groupingBy(EmployeeTeamMap::getTeamId,
-						Collectors.groupingBy(EmployeeTeamMap::getEmpTeamDepartmentId, Collectors.flatMapping(
-								obj -> Arrays.stream(obj.getEmployeeRole().split(",")), Collectors.toSet()))));
+						Collectors.groupingBy(EmployeeTeamMap::getEmpTeamDepartmentId,
+								Collectors.flatMapping(obj -> Arrays.stream(obj.getEmployeeRole().split(",")), Collectors.toSet()))));
 
 		Set<Long> deptIds = new HashSet<>();
 		Set<String> deptIdsStr = new HashSet<>();

@@ -1536,4 +1536,6 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			@Param("projectId") Integer projectId,
 			@Param("startOfDay") LocalDateTime startOfDay);
 
+	@Query(value=" SELECT DATE_ADD(MAX(DATE(etm.end_date)), INTERVAL 1 DAY) FROM employee_team_mapping etm WHERE etm.emp_id =:empId AND etm.end_date IS NOT NULL ", nativeQuery = true)
+	LocalDate findEtmMaxEndDateByEmpId(Long empId);
 }

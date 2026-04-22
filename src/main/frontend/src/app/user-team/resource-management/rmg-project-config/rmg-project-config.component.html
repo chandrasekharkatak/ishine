@@ -577,7 +577,7 @@
                                 [(ngModel)]="currentTeam.newRmgTeamMember.empId" [options]="employeeListFilteredByDept"
                                 [displayKey]="employeeDisplayArr" valueKey="empId" [multiple]="false"
                                 displaySeparator=" | "
-                                (change)="getEmployeeExistingProjectDetailsByEmpId(currentTeam.newRmgTeamMember.empId, true, rmgProjectObj.projectId)">
+                                (change)="getEmployeeExistingProjectDetailsByEmpId(currentTeam.newRmgTeamMember, currentTeam.newRmgTeamMember.empId, true, rmgProjectObj.projectId)">
                             </app-my-select>
                         </td>
                         <td class="min-width180 max-width200" *ngIf="!isInternalProject">
@@ -1541,7 +1541,7 @@
                                 <div class="date-input-wrapper">
                                     <input class="form-control date-input" readonly
                                         [matDatepicker]="defaultProjectEmployeeStartDatepicker"
-                                        (dateChange)="validateEmployeeProjectStartDate(employee, employee.selectedProject.projectId, projectType)"
+                                        (dateChange)="validateEmployeeProjectStartDateDefaultMapping(employee, employee.selectedProject.projectId, projectType)"
                                         [(ngModel)]="employee.selectedProject.startDate"
                                         [disabled]="!employee.selectedProject.projectId"
                                         (click)="defaultProjectEmployeeStartDatepicker.open()" />
@@ -1624,7 +1624,7 @@
                             <label>PO</label>
                             <app-my-select class="form-control" placeholder="Select PO"
                                 [(ngModel)]="defaultProjectObj.poId" displayKey="poNo" valueKey="poId"
-                                [options]="defaultProjectObj.poDetailsList" (change)="getActiveTeamDetailsByPoId()">
+                                [options]="defaultProjectObj.poDetailsList" (change)="getResourceRequirementByTeamIdDefaultMapping()">
                             </app-my-select>
                         </div>
                     </div>
@@ -1633,7 +1633,7 @@
                             <label>Team Name</label>
                             <app-my-select class="form-control" placeholder="Select Team" valueKey="teamId"
                                 displayKey="teamName" [(ngModel)]="defaultProjectObj.teamId"
-                                [options]="defaultProjectObj.teamList" (change)="getResourceRequirementByTeamId()">
+                                [options]="defaultProjectObj.teamList">
                             </app-my-select>
                         </div>
                     </div>
@@ -1659,7 +1659,6 @@
                                 <label>Start Date</label>
                                 <input class="form-control date-input" readonly
                                     [matDatepicker]="bulkDefaultProjectMappingStartDatepicker"
-                                    (dateChange)="validateEmployeeProjectStartDateBulk(defaultProjectObj.startDate, defaultProjectObj.projectId, defaultProjectObj.projectStartDate, projectType)"
                                     [(ngModel)]="defaultProjectObj.startDate" [disabled]="!defaultProjectObj.projectId"
                                     (click)="bulkDefaultProjectMappingStartDatepicker.open()" />
                                 <mat-icon class="calendar-icon" style="top:70%"
@@ -1853,15 +1852,14 @@
                                         <app-my-select class="form-control" *ngIf="employee.projectType !== 'Bench'"
                                             placeholder="Select PO" [(ngModel)]="employee.poId" displayKey="poNo"
                                             valueKey="poId" [options]="employee.poDetailsList"
-                                            (change)="getActiveTeamDetailsByPoIdForEmployee(employee)">
+                                            (change)="getResourceRequirementByPoIdForEmployeeDefaultMapping(employee)">
                                         </app-my-select>
                                         <span *ngIf="employee.projectType === 'Bench'">--</span>
                                     </td>
                                     <td class="min-width180 max-width200">
                                         <app-my-select class="form-control" placeholder="Search Team"
                                             [(ngModel)]="employee.teamId" displayKey="teamName" valueKey="teamId"
-                                            [options]="employee.teamList"
-                                            (change)="getResourceRequirementByTeamIdForEmployee(employee)">
+                                            [options]="employee.teamList">
                                         </app-my-select>
                                     </td>
                                     <td class="min-width180 max-width200">

@@ -310,10 +310,14 @@ export class EmployeeProjectService {
       if (response?.serviceStatus === "Success" && response?.serviceResponse === "Employee Existing Project Details Not found!!") {
         result = this.successResult();
         this.handleResult(result);
+        this.appModalService.triggerAction({ actionType: 'GET_ETM_MAX_END_DATE', data: empId });
         return result;
       }
 
       const employeeExistingProjectDetails = this.mapEmployeeProjectDates(response.serviceResponse);
+      employeeExistingProjectDetails.forEach((e)=>{
+        e.currentProjectId = projectId
+      });
       result = this.createResult(true, ResultType.EMPLOYEE_EXISTING_PROJECT_DETAILS, { data: { data: employeeExistingProjectDetails, employmentId: employee.employmentId, name: employee.name } });
     } catch (error) {
       result = this.alertResult("Something went wrong!");
@@ -322,8 +326,7 @@ export class EmployeeProjectService {
     return result;
   }
 
-
-  deleteEmployeeProjectResourceMapping(employee: any, employeeProjectEndDate: any, employeeProjectEndDateType: any) {
+  async deleteEmployeeProjectResourceMapping(employee: any, employeeProjectEndDate: any, employeeProjectEndDateType: any) {
     let result: AppResult;
     if (!employeeProjectEndDate || employeeProjectEndDate == undefined || employeeProjectEndDate == null) {
       result = this.alertResult("Please provide End date!!");
@@ -342,16 +345,19 @@ export class EmployeeProjectService {
     employee.updatedBy = this.currentUser.empId;
     employee.rescRemovedBy = this.currentUser.empId;
 
-    this.projectService.updateEmployeeProjectMappingAsInActive(employee).pipe(first()).subscribe((response: any) => {
+    try {
+      const response: any = await firstValueFrom(this.projectService.updateEmployeeProjectMappingAsInActive(employee));
       if (response.serviceStatus == "Success") {
         this.drawerService?.close();
         this.toastService.success(response.serviceResponse);
         this.appModalService.close('DELETE_EMPLOYEE_FROM_EXISTING_PROJECT');
-        this.getEmployeeExistingProjectDetails(employee.empId, employee.projectId, employee);
+        this.getEmployeeExistingProjectDetails(employee.empId, employee.currentProjectId, employee);
       } else {
         this.toastService.error(response.serviceResponse);
       }
-    });
+    } catch (error) {
+      this.toastService.error('Something went wrong!!');
+    }
   }
 
   // Helpers Start

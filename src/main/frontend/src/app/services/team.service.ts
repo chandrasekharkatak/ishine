@@ -172,4 +172,14 @@ export class TeamService {
     return this.http.post(`${this.baseUrl}` + `api/updateTeamMembersStartDateAndEndDate`, employeeObj);
   }
 
+  getMaxEmployeeTeamMapStartDate(empId: any) {
+    let httpParams = new HttpParams().append("empId", empId);
+    return this.http.get(`${this.baseUrl}` + `api/getMaxEmployeeTeamMapStartDate`, { params: httpParams });
+  }
+
+  getTeamMemberDetailsByEmpIdAndProjectId(projectId: any, empId :any, employeeTeamMapId:any) {
+    let httpParams = new HttpParams().append("projectId", projectId).append("empId", empId).append("employeeTeamMapId", employeeTeamMapId);
+    return this.http.get(`${this.baseUrl}` + `api/getTeamMemberDetailsByEmpIdAndProjectId`, { params: httpParams });
+  }
+  
 }

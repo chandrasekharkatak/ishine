@@ -32,11 +32,37 @@ import { EmployeeProjectTimesheetDto } from 'src/app/models/employeeProjectTimes
 import { RmgProjectConfigComponent } from 'src/app/user-team/resource-management/rmg-project-config/rmg-project-config.component';
 import { EmployeeProjectService } from 'src/app/services/employee-project.service';
 import { AppModalService } from 'src/app/user-team/resource-management/app-modal.service';
+import { GlobalRightDrawerService } from 'src/app/services/global-right-drawer.service';
+import { ValidationService } from 'src/app/services/validation.service';
+import { EmployeeOtherActiveProject } from 'src/app/models/employeeOtherActiveProject';
+import { ToastService } from 'src/app/services/toast.service';
+import { PoDetails } from 'src/app/models/poDetails';
+import { RmgResourceRequirement } from 'src/app/models/rmgResourceRequirement';
+import { RmgTeam } from 'src/app/models/rmgTeam';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
+
+export const MY_DATE_FORMATS = {
+    parse: {
+        dateInput: 'DD-MM-YYYY',
+    },
+    display: {
+        dateInput: 'DD-MM-YYYY',
+        monthYearLabel: 'MMM YYYY',
+        dateA11yLabel: 'DD-MM-YYYY',
+        monthYearA11yLabel: 'MMMM YYYY',
+    },
+};
+
 @Component({
   standalone: false,
   selector: 'app-employee360-project',
   templateUrl: './employee360-project.component.html',
-  styleUrls: ['./employee360-project.component.css']
+  styleUrls: ['./employee360-project.component.css'],
+  providers: [
+      { provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_MOMENT_DATE_ADAPTER_OPTIONS] },
+      { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS },
+  ]
 })
 export class Employee360ProjectComponent implements OnInit {
 
@@ -45,7 +71,9 @@ export class Employee360ProjectComponent implements OnInit {
   @ViewChild("update_project_start_date_confirmation") updateProjStartDateModal :TemplateRef<any>;
   @ViewChild(ResourceManagementComponent) resourceManagementComponent: ResourceManagementComponent;
   @ViewChild(RmgProjectConfigComponent) rmgProjectConfigComponent: RmgProjectConfigComponent;
-
+  @ViewChild("remove_members_confirmation") removeMembersConfirmationTemplateRef!: TemplateRef<any>;
+  @ViewChild("mark_default_project_completion") markDefaultProjectCompletionTemplateRef!: TemplateRef<any>;
+  @ViewChild("mapping_other_project_as_default") mappingToOtherProjectAsDefaultTemplateRef!: TemplateRef<any>;
 
   modalRef: NgbModalRef;
   errModalRef: NgbModalRef;
@@ -54,6 +82,9 @@ export class Employee360ProjectComponent implements OnInit {
   updateProjectStartDateConfirmationModalRef: NgbModalRef;
   existingEmployeeProjectTimesheetInfoModalRef: NgbModalRef;
   projectGapMessageModalRef: NgbModalRef;
+  removeMembersConfirmationModalRef!: NgbModalRef;
+  markDefaultProjectCompletionModalRef!: NgbModalRef;
+  mappingToOtherProjectAsDefaultModalRef!: NgbModalRef;
 
   isEditProject: boolean = false;
   isHideButton: boolean = false;
@@ -99,6 +130,50 @@ export class Employee360ProjectComponent implements OnInit {
   sortColumnType: any;
   abbreviationError: string = '';
 
+  projectType: string = '';
+  employeeProjectEndDateType: 'PO' | 'Custom' = 'Custom';
+  newProjectObj: Project = new Project();
+  fixedCostTypes = ['fixed cost'];
+  allBillableProjectTypes = ['tnm', 'fixed cost', 'monitoring'];
+  allNonBillableProjectTypes = ['internalrndproducts', 'bench', 'internal'];
+  employeeRoles: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
+  projectTypes: any[] = ['Bench', 'Other'];
+
+  defaultProjectObj: SetDefaultProjectObj = new SetDefaultProjectObj();
+  removePermanently: boolean = false;
+  membersEndDate: any;
+  defaultProjectMappingActionType: 'DELETE_TEAM' | 'REMOVE_MEMBERS' | 'PROJECT_COMPLETION' | 'DEFAULT_REMOVE' = 'REMOVE_MEMBERS';
+  projectList: any[] = [];
+  projectsBench: any[] = [];
+  projectsOther: any[] = [];
+  selectedRemoveMembers: RmgTeamMember[] = [];
+  mappingToOtherProjectAsDefaultList: RmgTeamMember[] = [];
+  markDefaultProjectCompletionList: RmgTeamMember[] = [];
+  projectIdPoListMap = new Map<number, PoDetails[]>();
+  poIdTeamListMap = new Map<number, RmgTeam[]>();
+  teamIdResourceReqListMap = new Map<number, RmgResourceRequirement[]>();
+
+  //  Change Employee Default Project Mapping
+  isChangeEmployeeDefaultProjectMappingSearchEnabled: boolean = false;
+  changeEmployeeDefaultProjectMappingPage = 1;
+  changeEmployeeDefaultProjectMappingPageSize = 10;
+  changeEmployeeDefaultProjectMappingSortColumn: string = '';
+  changeEmployeeDefaultProjectMappingSortColumnType: string = '';
+  changeEmployeeDefaultProjectMappingSortDirection: string = 'asc';
+  changeEmployeeDefaultProjectMappingFilters: any = {};
+  changeEmployeeDefaultProjectMappingSearchOnEnter: boolean = true;
+  changeEmployeeDefaultProjectMappingColumnList: any[] = ['employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+
+  // Mark Default Project Completion Individual
+  isMarkDefaultProjectCompletionIndividualSearchEnabled: boolean = false;
+  markDefaultProjectCompletionIndividualPage = 1;
+  markDefaultProjectCompletionIndividualPageSize = 10;
+  markDefaultProjectCompletionIndividualSortColumn: string = '';
+  markDefaultProjectCompletionIndividualSortColumnType: string = '';
+  markDefaultProjectCompletionIndividualSortDirection: string = 'asc';
+  markDefaultProjectCompletionIndividualFilters: any = {};
+  markDefaultProjectCompletionIndividualSearchOnEnter: boolean = true;
+  markDefaultProjectCompletionIndividualColumnList: any[] = ['employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
 
 
   constructor(
@@ -115,7 +190,11 @@ export class Employee360ProjectComponent implements OnInit {
     private encryptionService: EncryptionService,
     private teamService: TeamService,
     private employeeProjectService : EmployeeProjectService,
-    private appModalService : AppModalService
+    private appModalService : AppModalService,
+    private drawerService: GlobalRightDrawerService,
+    public validationService: ValidationService,
+    private readonly toastService: ToastService,
+    
   ) {
 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -171,6 +250,7 @@ export class Employee360ProjectComponent implements OnInit {
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
     this.getExistingProjectsByUser();
+    this.getActiveProjectList();
   }
   clearBreadcrumbs() {
     // this.breadcrumbService.setBreadcrumbSubject(null);
@@ -822,14 +902,13 @@ formatToLocalDateTime(date: any): string {
   employeeTeamMapId:any;
   setDefaultProjectObj: SetDefaultProjectObj = new SetDefaultProjectObj();
 
-
   deleteResourceModal(template: TemplateRef<any>, template1: TemplateRef<any>, template2: TemplateRef<any>, projObj, teamId) {
     console.log("test", projObj);
     const empIds: number[] = [projObj.empId];
     this.EmployessIds = empIds;
     this.projectteamInfo.projectId = projObj.projectId;
 
- console.log("test", projObj.empId);
+   console.log("test", projObj.empId);
     this.resourceManagementService.getTeamListByProjectName(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectObj.teamList = response.serviceResponse;
@@ -925,7 +1004,7 @@ console.log("mapping ID",this.employeeTeamMapId);
     });
 
     this.projectObj = projObj;
- console.log("test",this.projectObj);
+    console.log("test",this.projectObj);
 
     this.lastDate = projObj.poEndDate
       ? moment(projObj.poEndDate).format('YYYY-MM-DD')
@@ -1185,18 +1264,17 @@ console.log("mapping ID",this.employeeTeamMapId);
       });
     }
 
-   normalizeDate(dateInput: any): Date | null {
-		if (!dateInput) {
-			return null;
-		}
-
-		const date = new Date(dateInput);
-		if (isNaN(date.getTime())) {
-			return null;
-		}
-
-		return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-	}
+  normalizeDate(dateInput: any) {
+    if (!dateInput) {
+      return null;
+    }
+    const date = new Date(dateInput);
+    if (isNaN(date.getTime())) {
+      return null;
+    }
+    return moment(dateInput).startOf('day').format('YYYY-MM-DDTHH:mm:ss');
+    // return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
 
   closeUpdateProjectStartDateConfirmationModal() {
 		if (this.updateProjectStartDateConfirmationModalRef) {
@@ -1243,6 +1321,456 @@ console.log("mapping ID",this.employeeTeamMapId);
       this.projectObj.isEndDateVisible = true;
       this.projectObj.memberMaxEndDate = response?.data.memberMaxEndDate;
       this.editEnddateModal(edit_enddate_template, this.projectObj);
+      this.openAlertMessageModal('Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!');
+      return false;
+    } else {
+      return false;
+    }
+  }
+
+  async validateRemoveMembers(project: any) {
+    this.newProjectObj = project;
+    this.projectType = (this.newProjectObj.poProjectType != null && this.newProjectObj.poProjectType.trim() !== '')
+      ? this.newProjectObj.poProjectType : this.newProjectObj.internalProjectType;
+
+    try {
+      const response: any = await firstValueFrom(this.teamService.getTeamMemberDetailsByEmpIdAndProjectId(project?.projectId, project.empId, project.employeeTeamMapId));
+      if (response.serviceStatus === "Success") {
+        const selectedMembers = response.serviceResponse || [];
+        this.markDefaultProjectCompletionList = [];
+        this.mappingToOtherProjectAsDefaultList = [];
+        this.selectedRemoveMembers = selectedMembers;
+
+        // having no other active projects and this is default project
+        let noOtherActiveAndCurrentIsDefaultProjectEmpIds: number[] = selectedMembers
+          .filter(member =>
+            Array.isArray(member.otherActiveProjectIds) &&
+            member.otherActiveProjectIds.length === 0 &&
+            member.defaultProject === true
+          )
+          .map(member => member.empId);
+
+        // having other active projects and this is default project
+        const otherActiveAndCurrentIsDefaultProjectEmpIds: number[] = selectedMembers
+          .filter(member =>
+            Array.isArray(member.otherActiveProjectIds) &&
+            member.otherActiveProjectIds.length > 0 &&
+            member.defaultProject === true
+          )
+          .map(member => member.empId);
+
+        this.markDefaultProjectCompletionList = selectedMembers.filter(member => noOtherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
+        this.mappingToOtherProjectAsDefaultList = selectedMembers.filter(member => otherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
+
+        this.resetDefaultProjectCompletion(this.markDefaultProjectCompletionList);
+        this.mapProjectListToEmployees(this.mappingToOtherProjectAsDefaultList);
+
+        if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
+          this.openMarkDefaultProjectCompletionModal('REMOVE_MEMBERS');
+          this.openMappingToOtherProjectAsDefaultModal('REMOVE_MEMBERS');
+        } else if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length === 0) {
+          this.openMarkDefaultProjectCompletionModal('REMOVE_MEMBERS');
+        } else if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length === 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
+          this.openMappingToOtherProjectAsDefaultModal('REMOVE_MEMBERS');
+        } else {
+          this.openRemoveMembersModal();
+        }
+      } else {
+        this.openAlertMessageModal(response.serviceResponse || 'Something went wrong!!');
+      }
+    } catch (error) {
+      this.openAlertMessageModal('Something went wrong!!');
+    }
+  }
+
+  openRemoveMembersModal() {
+    this.membersEndDate = null;
+    this.removePermanently = false;
+    this.removeMembersConfirmationModalRef = this.modalService?.open(this.removeMembersConfirmationTemplateRef, { modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false });
+  }
+
+  closeRemoveMembersModal() {
+    if (this.removeMembersConfirmationModalRef) {
+      this.removeMembersConfirmationModalRef?.close();
+    }
+  }
+
+  async openMarkDefaultProjectCompletionModal(actionType: any) {
+    this.defaultProjectMappingActionType = actionType;
+    this.defaultProjectObj = new SetDefaultProjectObj();
+    this.defaultProjectObj.projectType = 'Bench'
+    await this.getActiveProjectList();
+    if (this.markDefaultProjectCompletionModalRef) {
+      this.markDefaultProjectCompletionModalRef?.close();
+    }
+    this.markDefaultProjectCompletionModalRef = this.modalService?.open(this.markDefaultProjectCompletionTemplateRef, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
+  }
+
+  closeMarkDefaultProjectCompletionModal() {
+    if (this.markDefaultProjectCompletionModalRef) {
+      this.markDefaultProjectCompletionModalRef?.close();
+    }
+  }
+
+  openMappingToOtherProjectAsDefaultModal(actionType: any) {
+    this.defaultProjectMappingActionType = actionType;
+    this.closeMappingToOtherProjectAsDefaultModal();
+    this.drawerService.open(this.mappingToOtherProjectAsDefaultTemplateRef);
+  }
+
+  closeMappingToOtherProjectAsDefaultModal() {
+    if (this.isValidList(this.mappingToOtherProjectAsDefaultList)) {
+      this.mappingToOtherProjectAsDefaultList.forEach(member => {
+        member.defaultProject = member.dbDefaultProject;
+      });
+    }
+    this.drawerService?.close();
+  }
+
+  mapProjectListToEmployees(mappingToOtherProjectAsDefaultList: any[]) {
+    if (this.isValidList(mappingToOtherProjectAsDefaultList) && this.isValidList(this.projectList)) {
+      for (let emp of mappingToOtherProjectAsDefaultList) {
+        if (this.isValidList(emp.otherActiveProjects) && emp.otherActiveProjects?.length == 1) {
+          emp.selectedProject = emp.otherActiveProjects[0] || new EmployeeOtherActiveProject();
+        } else {
+          emp.selectedProject = new EmployeeOtherActiveProject();
+        }
+        emp.projectList = this.projectList.filter(p => emp?.otherActiveProjectIds?.includes(p.projectId));
+      }
+    }
+  }
+
+  resetDefaultProjectCompletion(markDefaultProjectCompletionList: any[]) {
+    if (this.isValidList(markDefaultProjectCompletionList)) {
+      for (let emp of markDefaultProjectCompletionList) {
+        emp.projectType = null;
+        emp.projectId = null;
+        emp.poId = null;
+        emp.teamId = null;
+        emp.employeeRoles = null;
+        emp.roleId = null;
+        emp.startDate = null;
+      }
+    }
+  }
+
+  isValidList(list: any) {
+    return Array.isArray(list) && this.validationService.validateNullUndefinedEmptyList(list);
+  }
+
+  isValidString(string: any) {
+    return this.validationService.validateNullUndefinedEmptyStringTrim(string);
+  }
+
+  async getActiveProjectList() {
+    this.projectList = [];
+    this.projectsBench = [];
+    this.projectsOther = [];
+    try {
+      const response: any = await firstValueFrom(this.resourceManagementService.getActiveProjectList());
+      if (response.serviceStatus == "Success") {
+        this.projectList = response.serviceResponse;
+        this.projectsBench = this.projectList.filter(project => project.internalProjectType === 'Bench');
+        this.projectsOther = this.projectList.filter(project => project.internalProjectType !== 'Bench');
+      } else {
+        this.openAlertMessageModal(response.serviceResponse);
+      }
+    } catch (error) {
+      this.openAlertMessageModal("Something went wrong!");
+    }
+  }
+
+  toggleChangeEmployeeDefaultProjectMappingSearch() {
+    this.changeEmployeeDefaultProjectMappingPage = 0;
+    this.isChangeEmployeeDefaultProjectMappingSearchEnabled = !this.isChangeEmployeeDefaultProjectMappingSearchEnabled;
+    if (!this.isChangeEmployeeDefaultProjectMappingSearchEnabled) {
+      this.changeEmployeeDefaultProjectMappingFilters = {};
+    }
+  }
+
+  searchChangeEmployeeDefaultProjectMapping(searchData: any) {
+    this.changeEmployeeDefaultProjectMappingPage = 0;
+    this.changeEmployeeDefaultProjectMappingFilters = searchData;
+  }
+
+  changeEmployeeDefaultProjectMappingPageChange(event: any) {
+    this.changeEmployeeDefaultProjectMappingPage = event.pageIndex + 1;
+    this.changeEmployeeDefaultProjectMappingPageSize = event.pageSize;
+  }
+
+  sortChangeEmployeeDefaultProjectMappingData(sort: Sort) {
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
+      this.changeEmployeeDefaultProjectMappingSortColumn = sortParams[0];
+      this.changeEmployeeDefaultProjectMappingSortColumnType = sortParams[0];
+      this.changeEmployeeDefaultProjectMappingSortDirection = sort.direction;
+    }
+  }
+
+  toggleMarkDefaultProjectCompletionIndividualSearch() {
+    this.markDefaultProjectCompletionIndividualPage = 0;
+    this.isMarkDefaultProjectCompletionIndividualSearchEnabled = !this.isMarkDefaultProjectCompletionIndividualSearchEnabled;
+    if (!this.isMarkDefaultProjectCompletionIndividualSearchEnabled) {
+      this.markDefaultProjectCompletionIndividualFilters = {};
+    }
+  }
+
+  searchMarkDefaultProjectCompletionIndividual(searchData: any) {
+    this.markDefaultProjectCompletionIndividualPage = 0;
+    this.markDefaultProjectCompletionIndividualFilters = searchData;
+  }
+
+  markDefaultProjectCompletionIndividualPageChange(event: any) {
+    this.markDefaultProjectCompletionIndividualPage = event.pageIndex + 1;
+    this.markDefaultProjectCompletionIndividualPageSize = event.pageSize;
+  }
+
+  sortMarkDefaultProjectCompletionIndividualData(sort: Sort) {
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
+      this.markDefaultProjectCompletionIndividualSortColumn = sortParams[0];
+      this.markDefaultProjectCompletionIndividualSortColumnType = sortParams[0];
+      this.markDefaultProjectCompletionIndividualSortDirection = sort.direction;
+    }
+  }
+
+  updateDefaultProjectCompletion(employee: RmgTeamMember, isBulk: boolean) {
+    if (!this.isValidString(employee?.projectType)) {
+      this.openAlertMessageModal('Project Type must be selected!!');
+      return;
+    }
+    if (!employee.projectId) {
+      this.openAlertMessageModal('Kindly Select a Project!!');
+      return;
+    }
+    if (!employee.teamId) {
+      this.openAlertMessageModal('Kindly Select a Team!!');
+      return;
+    }
+    if (!this.isValidList(employee.employeeRoles)) {
+      this.openAlertMessageModal('Employee Role must be selected!!');
+      return;
+    }
+    if (!employee.startDate || employee.startDate == undefined || employee.startDate == null) {
+      this.openAlertMessageModal("Kindly Provide Start Date!!");
+      return;
+    }
+
+
+    let tempRmgTeamMember = new RmgTeamMember();
+    tempRmgTeamMember.empId = employee?.empId;
+    tempRmgTeamMember.updatedBy = this.currentUser.empId;
+    tempRmgTeamMember.projectId = employee.projectId;
+    tempRmgTeamMember.teamId = employee.teamId;
+    tempRmgTeamMember.poId = employee?.poId;
+    tempRmgTeamMember.employeeRoles = employee.employeeRoles;
+    tempRmgTeamMember.empTeamDepartmentId = employee.empTeamDepartmentId;
+    tempRmgTeamMember.roleId = employee.roleId;
+    tempRmgTeamMember.poRequirementMappingId = employee.poRequirementMappingId;
+    tempRmgTeamMember.clientName = this.newProjectObj?.clientName;
+    tempRmgTeamMember.selectedEmpIds = isBulk ? this.markDefaultProjectCompletionList?.map(member => member.empId) ?? [] : employee?.empId ? [employee.empId] : [];
+    tempRmgTeamMember.projectType = this.projectType;
+    tempRmgTeamMember.startDate = this.normalizeDate(this.defaultProjectObj.startDate);
+
+    this.teamService.updateDefaultProjectCompletion(tempRmgTeamMember).pipe(first()).subscribe(async (response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.closeMarkDefaultProjectCompletionModal();
+        this.toastService.success(response.serviceResponse);
+      } else {
+        this.toastService.error(response.serviceResponse || "Something went wrong!!");
+      }
+    });
+  }
+
+  async updateMappingToOtherProjectAsDefault(employee: RmgTeamMember) {
+    if (!employee?.selectedProject || !employee?.selectedProject?.projectId) {
+      this.openAlertMessageModal("Please Select Default Project");
+      return;
+    }
+
+    let rmgMember: RmgTeamMember = new RmgTeamMember();
+    rmgMember.empId = employee.empId;
+    rmgMember.startDate = employee.selectedProject.startDate;
+    let projectData = {
+      currentProjectId: employee?.selectedProject?.projectId,
+      projectIds: [employee?.selectedProject?.projectId],
+      projectType: this.projectType
+    };
+    const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(rmgMember, projectData);
+    if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT') {
+      this.openAlertMessageModal('Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!');
+      return false;
+    }
+
+    employee.selectedProject.updatedBy = this.currentUser.empId;
+    try {
+      const response: any = await firstValueFrom(this.projectService.updateMappingToOtherProjectAsDefault(employee.selectedProject));
+      if (response.serviceStatus == "Success") {
+        this.toastService.success(response.serviceResponse);
+        this.closeMappingToOtherProjectAsDefaultModal();
+        this.getExistingProjectsByUser();
+        await this.validateRemoveMembers(this.newProjectObj);
+      } else {
+        this.toastService.error(response.serviceResponse || "Something went wrong!");
+      }
+    } catch (error) { 
+      this.toastService.error("Something went wrong!");
+    }
+  }
+
+  removeTeamMembersFromProject() {
+    if (!this.isValidList(this.selectedRemoveMembers)) {
+      this.openAlertMessageModal("Kindly Select atleast one member to Remove!!");
+      return;
+    }
+
+    if (!this.membersEndDate || this.membersEndDate == undefined || this.membersEndDate == null) {
+      this.openAlertMessageModal("Please provide End date!!");
+      return;
+    }
+
+    const teamMembersEndDate = this.normalizeDate(this.membersEndDate);
+
+    for (let member of this.selectedRemoveMembers) {
+      const memberStartDate = this.normalizeDate(member.startDate);
+      if (memberStartDate > teamMembersEndDate) {
+        this.openAlertMessageModal(`Member End date cannot be less then Member Start date for ${member.employementId}!!`);
+        return;
+      }
+      member.removePermanently = this.removePermanently;
+    }
+
+    let rmgTeam = new RmgTeam();
+    rmgTeam.projectId = this.newProjectObj.projectId;
+    rmgTeam.teamId = this.newProjectObj?.teamId;
+    rmgTeam.updatedBy = this.currentUser?.empId;
+    rmgTeam.clientName = this.newProjectObj?.clientName;
+    rmgTeam.rmgTeamMemberList = this.selectedRemoveMembers;
+    rmgTeam.projectType = this.projectType;
+    rmgTeam.isCustomEndDate = false; //this.customEndDate;
+    rmgTeam.endDate = this.normalizeDate(this.membersEndDate);
+
+    this.teamService.removeTeamMembersFromProject(rmgTeam).pipe(first()).subscribe(async (response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.toastService.success(response.serviceResponse);
+        this.getExistingProjectsByUser();
+      } else {
+        this.toastService.error(response.serviceResponse);
+      }
+    });
+    this.closeRemoveMembersModal();
+  }
+
+  changeProjectTypeForEmployee(employee: RmgTeamMember) {
+    employee.projectId = null;
+    employee.poId = null;
+    employee.poDetailsList = [];
+    employee.teamId = null;
+    employee.teamList = [];
+    employee.employeeRoles = [];
+    employee.poRequirementMappingId = null;
+    employee.resourceRequirementList = [];
+  }
+
+  changeProjectType() {
+    this.defaultProjectObj.projectId = null;
+    this.defaultProjectObj.poId = null;
+    this.defaultProjectObj.poDetailsList = [];
+    this.defaultProjectObj.teamId = null;
+    this.defaultProjectObj.teamList = [];
+    this.defaultProjectObj.employeeRoles = [];
+    this.defaultProjectObj.poRequirementMappingId = null;
+    this.defaultProjectObj.resourceRequirementList = [];
+  }
+
+  getTeamOrPoBasedOnProjectTypeForEmployee(employee: RmgTeamMember) {
+    employee.poId = null;
+    employee.poDetailsList = [];
+    employee.teamId = null;
+    employee.teamList = [];
+    employee.employeeRoles = [];
+    employee.poRequirementMappingId = null;
+    employee.resourceRequirementList = [];
+    employee.projectStartDate = this.projectList?.find(p => p.projectId === this.defaultProjectObj.projectId)?.startDate;
+    employee.calculatedProjectType = this.projectList?.find(p => p.projectId === this.defaultProjectObj.projectId)?.projectType;
+    if (employee.projectType !== 'Bench') {
+      this.getActivePoDetailsByProjectIdForEmployee(employee);
+    }
+    this.getActiveTeamDetailsByProjectIdForEmployee(employee);
+  }
+
+  getActiveTeamDetailsByProjectIdForEmployee(member: RmgTeamMember) {
+    member.teamList = [];
+    this.teamService.getActiveTeamDetailsByProjectId(member.projectId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        const teamList = response.serviceResponse || [];
+        member.teamList = teamList;
+      } else {
+        this.openAlertMessageModal(response.serviceResponse || "Something went wrong!!");
+      }
+    });
+  }
+
+  async getActivePoDetailsByProjectIdForEmployee(member: RmgTeamMember) {
+    member.poDetailsList = [];
+    if (this.projectIdPoListMap.has(member.projectId)) {
+      member.poDetailsList = this.projectIdPoListMap.get(member.projectId);
+      return;
+    }
+    const response = await this.employeeProjectService.getPoDetailsByProjectId(member.projectId);
+    const poDetailsList = response?.data || [];
+    member.poDetailsList = poDetailsList;
+    this.projectIdPoListMap.set(member.projectId, poDetailsList);
+  }
+
+  async getResourceRequirementByPoIdForEmployeeDefaultMapping(member: RmgTeamMember) {
+    if (this.allNonBillableProjectTypes.includes(member.projectType?.toLowerCase())) {
+      return;
+    }
+    member.poRequirementMappingId = null;
+    member.resourceRequirementList = [];
+    const response = await this.employeeProjectService.getResourceRequirementByPoId(member.poId);
+    member.resourceRequirementList = response.data;
+    member.filteredActiveResourceRequirement = [...member.resourceRequirementList];
+  }
+
+  getActiveTeamDetailsByPoIdForEmployee(member: RmgTeamMember) {
+    member.teamList = [];
+    member.employeeRoles = [];
+    member.poRequirementMappingId = null;
+    member.resourceRequirementList = [];
+    if (this.poIdTeamListMap.has(member.poId)) {
+      member.teamList = this.poIdTeamListMap.get(member.poId);
+      return;
+    }
+
+    this.teamService.getActiveTeamDetailsByPoId(member.poId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        const teamList = response.serviceResponse || [];
+        member.teamList = teamList;
+        this.poIdTeamListMap.set(member.poId, teamList);
+      } else {
+        this.openAlertMessageModal(response.serviceResponse || "Something went wrong!!");
+      }
+    });
+  }
+
+  async validateEmployeeProjectStartDateDefaultProjectMapping(employee: any, projectId: any, projectType: any, edit_enddate_template?: any): Promise<boolean> {
+    let rmgMember: RmgTeamMember = new RmgTeamMember();
+    rmgMember.empId = employee.empId;
+    rmgMember.startDate = employee.selectedProject.startDate;
+    let projectData = {
+      currentProjectId: projectId,
+      projectIds: [projectId],
+      projectType: projectType
+    };
+    const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(rmgMember, projectData);
+    if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {
+      return true;
+    } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT') {
+      // this.projectObj.isEndDateVisible = true;
+      // this.projectObj.memberMaxEndDate = response?.data.memberMaxEndDate;
+      // this.editEnddateModal(edit_enddate_template, this.projectObj);
       this.openAlertMessageModal('Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!');
       return false;
     } else {
