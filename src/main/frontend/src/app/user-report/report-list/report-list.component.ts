@@ -1642,7 +1642,8 @@ onSearchClientProject(searchData: any) {
     this.isLeaveTimesheetReportTable = false;
     this.closeQueryModal();
     this.loadQueriesByRole();
-    this.showCustomQuery();
+    this.isSavedQuery = true;
+    this.showSavedQuery();
   }
 
   showDefaultMappingTable() {
@@ -2384,7 +2385,7 @@ onSearchClientProject(searchData: any) {
 isSidebarClosed = false; //for sidebar open close
 savedQueries: any[] = [];
 isSavedQuery = false;
-isCustomQuery = true;
+isCustomQuery = false;
 modalMode: 'create' | 'update' = 'create';
 selectedQuery: any = null;
 
@@ -2434,8 +2435,11 @@ showSavedQuery(){
 /* SELECT QUERY */
 selectQuery(q: any) {
   this.customQuery = q.querySql;
-  this.showCustomQuery();
-  this.showPreview=false;
+  // this.showCustomQuery();
+  if(this.customQuery!=''){
+    this.getCustomQueryData(this.alertMessage);
+  }
+  this.isSavedQuery=false;
 }
 
 /* LOAD SAVED QUERIES BY ROLE ===== */
@@ -2582,9 +2586,10 @@ saveQueryUI(template: TemplateRef<any>) {
     return;
   }
 
-  const roleIds = (this.queryForm.selectedRoles || [])
-  .map(r => r.jobRoleId)
-  .filter(id => id !== undefined && id !== null);
+  // const roleIds = (this.queryForm.selectedRoles || [])
+  // .map(r => r.jobRoleId)
+  // .filter(id => id !== undefined && id !== null);
+  const roleIds = this.selectedRoleIds || [];
 
   const payload = {
     query: {
