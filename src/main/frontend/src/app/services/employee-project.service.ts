@@ -297,10 +297,31 @@ export class EmployeeProjectService {
     return result;
   }
 
-  async getEmployeeExistingProjectDetails(empId: any, projectId: any, employee: any): Promise<any> {
+  async getEmployeeExistingProjectDetails(empId: any, projectId: any, employee: any, enforceCheck: boolean = false): Promise<any> {
     let result: AppResult;
     try {
-      const response: any = await firstValueFrom(this.projectService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId));
+      const response: any = await firstValueFrom(this.projectService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId, enforceCheck));
+      
+
+      const restriction = response?.serviceResponse1;
+
+        if (enforceCheck && restriction?.restricted === true) {
+            const teamNames: string[] = Array.isArray(restriction?.teamNames) ? restriction.teamNames : [];
+            const teamLabel = teamNames.length > 0 ? teamNames.join(', ') : 'an existing team';
+
+            this.toastService.error(
+                `Employee is already mapped to ${teamLabel} in this project.`,
+                'Not allowed'
+            );
+
+            return this.failureResult(
+                ResultType.ALERT,
+                `Employee is already mapped to ${teamLabel} in this project.`,
+                { teamMappingRestricted: true }
+            );
+        }
+
+      
       if (response?.serviceStatus !== "Success") {
         result = this.alertResult(response?.serviceResponse || "Something went wrong!!");
         this.handleResult(result);

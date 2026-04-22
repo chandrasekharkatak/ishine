@@ -34,6 +34,7 @@ import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
 import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto;
+import com.apmosys.employeeportal.dto.EmployeeProjectTeamRestrictionDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MigrateTeam;
 import com.apmosys.employeeportal.dto.PoDepartmentMappingDto;
@@ -118,6 +119,12 @@ public class TeamMembersService {
 
 	@Transactional(readOnly = true)
 	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(Long empId, Integer projectId) {
+		return getEmployeeExistingProjectDetailsByEmpId(empId, projectId, false);
+	}
+
+	@Transactional(readOnly = true)
+	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(Long empId, Integer projectId,
+			boolean enforceSingleTeamPerProject) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
 			if (empId == null) {
@@ -129,6 +136,23 @@ public class TeamMembersService {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("Project Id cannot be null!!");
 				return serviceResponse;
+			}
+
+			if (enforceSingleTeamPerProject) {
+				Project project = projectRepository.findByProjectId(projectId);
+				if (project != null && isClientProjectForUniqueTeamRestriction(project)) {
+					List<String> teamNames = employeeTeamMapRepository.findConflictingTeamNamesForOnboarding(empId,
+							projectId);
+					if (teamNames != null && !teamNames.isEmpty()) {
+						serviceResponse.setServiceResponse1(new EmployeeProjectTeamRestrictionDTO(true, teamNames));
+					} else {
+						serviceResponse.setServiceResponse1(new EmployeeProjectTeamRestrictionDTO(false,
+								Collections.emptyList()));
+					}
+				} else {
+					serviceResponse.setServiceResponse1(new EmployeeProjectTeamRestrictionDTO(false,
+							Collections.emptyList()));
+				}
 			}
 
 			List<PoTeamAndMemberDetailsDto> employeeExistingProjectDetailsList = projectRepository
@@ -149,6 +173,23 @@ public class TeamMembersService {
 			serviceResponse.setServiceResponse("Something went wrong!!");
 		}
 		return serviceResponse;
+	}
+
+	private boolean isClientProjectForUniqueTeamRestriction(Project project) {
+		String poProjectType = project.getPoProjectType();
+		String internalProjectType = project.getInternalProjectType();
+
+		if (poProjectType == null || poProjectType.trim().isEmpty()) {
+			// Internal projects allowed: Bench / InternalRNDproducts (typo-friendly)
+			if (internalProjectType == null) {
+				return false;
+			}
+			String t = internalProjectType.trim().toLowerCase();
+			return !(t.equals("bench") || t.equals("internalrndproducts"));
+		}
+
+		String t = poProjectType.trim().toLowerCase();
+		return t.equals("tnm") || t.equals("fixed cost") || t.equals("fixedcost") || t.equals("monitoring");
 	}
 
 	@Transactional(rollbackFor = Exception.class)

@@ -629,7 +629,7 @@ public class EmployeeCustomRepository {
                 .append("INNER JOIN department d on d.dept_Id = jr.dept_Id  \n")
                 .append("where p.active = 'true' AND t.is_active != 'N' AND etm.active != 0  \n")
                 .append("AND e.employmentstatus != 'InActive'  \n")
-                .append("AND e.billable_type = 'Bench' AND ((p.po_project_type IS NOT NULL AND (p.po_project_type like 'FIXED%COST' OR p.po_project_type like '%TNM%' OR p.po_project_type like '%Monitoring%')) OR (p.po_project_type IS NULL AND p.internal_project_type = 'InternalRNDProducts')) \n")
+                .append("AND e.billable_type = 'Bench' AND ((p.po_project_type IS NOT NULL AND (p.po_project_type like 'FIXED%COST' OR p.po_project_type like '%TNM%' OR p.po_project_type like '%Monitoring%) OR (p.po_project_type IS NULL AND p.internal_project_type = 'InternalRNDProducts')) \n")
                 .append("AND e.emp_id NOT BETWEEN 1 AND 6 \n");
 
 //        if (!isAllAccessEmployee) {

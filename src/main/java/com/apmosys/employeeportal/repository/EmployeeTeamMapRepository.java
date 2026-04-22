@@ -96,6 +96,18 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	
 	@Query("SELECT etm from EmployeeTeamMap etm WHERE etm.empId = :empId AND etm.teamId = :teamId")
 	EmployeeTeamMap findByEmpIdAndTeamId(Long empId, Long teamId);
+
+	@Query("select distinct t.teamName "
+			+ "from EmployeeTeamMap etm "
+			+ "join Team t on etm.teamId = t.teamId "
+			+ "join Project p on t.projectId = p.projectId "
+			+ "where etm.empId = :empId "
+			+ "and p.projectId = :projectId "
+			+ "and t.isActive != 'N' "
+			+ "and p.active != 'false' "
+			+ "and (etm.active in (1,2) or (etm.active = 0 and etm.startDate is not null and FUNCTION('DATE', etm.startDate) > CURRENT_DATE))")
+	List<String> findConflictingTeamNamesForOnboarding(@Param("empId") Long empId,
+			@Param("projectId") Integer projectId);
 		
 //	@Query(nativeQuery = true)
 //	List<EmployeeTeamMap> findByTeamIdAndActive(Long teamId);

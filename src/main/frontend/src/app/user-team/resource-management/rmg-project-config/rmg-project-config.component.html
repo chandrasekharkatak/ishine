@@ -467,7 +467,7 @@
                 (click)="addOrUpdateTeamMembers(currentTeam,true)">
                 Update Member(s)
             </button>
-            <button type="button" class="btn btn-primary btn-sm mr-1" [disabled]="!(cloneMemberMappingList?.length > 0)"
+            <button type="button" class="btn btn-primary btn-sm mr-1" [disabled]="!(cloneMemberMappingList?.length > 0) || isCloneSaveRestricted"
                 (click)="saveClonedMembers()">
                 Save Cloned Member(s)
             </button>
@@ -561,7 +561,7 @@
                         <td [attr.colspan]="teamMembers?.length > 0 ? 2 : 1">
                             <div class="d-flex justify-evenly">
                                 <button class="btn btn-sm btn-outline-primary" title="Save New Member"
-                                    (click)="saveNewTeamMemberDetails()">
+                                    (click)="saveNewTeamMemberDetails()" [disabled]="newMemberTeamMappingRestricted">
                                     <i class="fa fa-floppy-disk"></i>
                                 </button>&nbsp;&nbsp;
                                 <button class="btn btn-sm btn-outline-primary" (click)="toggleAddNewMember(team)">

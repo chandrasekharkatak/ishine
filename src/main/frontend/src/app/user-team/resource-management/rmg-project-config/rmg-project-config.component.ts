@@ -185,6 +185,8 @@ export class RmgProjectConfigComponent implements OnInit {
     isOnboardingAsShadow: boolean = false;
     allResourceRequirement: boolean = true;
     removePermanently: boolean = false;
+    newMemberTeamMappingRestricted: boolean = false;
+    isCloneSaveRestricted: boolean = false;
 
     // Dates
     todaysDate: any
@@ -519,11 +521,13 @@ export class RmgProjectConfigComponent implements OnInit {
 
     openAddNewMemberModal() {
         this.currentTeam.newRmgTeamMember = new RmgTeamMember();
+        this.newMemberTeamMappingRestricted = false;
         this.addNewMemberModalRef = this.modalService.open(this.addNewMemberTemplateRef, { modalDialogClass: 'modal-md', backdrop: 'static', keyboard: false });
     }
 
     closeAddNewMemberModal() {
         this.currentTeam.newRmgTeamMember = new RmgTeamMember();
+        this.newMemberTeamMappingRestricted = false;
         if (this.addNewMemberModalRef) {
             this.addNewMemberModalRef?.close();
         }
@@ -1076,6 +1080,7 @@ export class RmgProjectConfigComponent implements OnInit {
         if (currentTeam.addNewTeamMemberToggle) {
             currentTeam.newRmgTeamMember = new RmgTeamMember();
         }
+        this.newMemberTeamMappingRestricted = false;
     }
 
     async showTeamDetails(team: RmgTeam) {
@@ -2487,6 +2492,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
 
     removeFromCloneMemberMappingList(member: RmgTeamMember, index: number) {
         this.cloneMemberMappingList.splice(index, 1);
+        this.updateCloneRestrictionState();
         if (!this.isValidList(this.cloneMemberMappingList)) {
             this.currentTeam.newRmgTeamMember = new RmgTeamMember();
             this.currentTeam.addNewTeamMemberToggle = false;
@@ -2786,7 +2792,10 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         this.currentTeam.newRmgTeamMember.employementId = employee.employmentId;
         this.currentTeam.newRmgTeamMember.dbDefaultProject = !this.currentTeam.newRmgTeamMember.defaultProject && this.rmgProjectObj.projectId === employee?.defaultProjectId;
         this.currentTeam.newRmgTeamMember.empTeamDepartmentId = employee?.deptId;
-        const response = await this.employeeProjectService.getEmployeeExistingProjectDetails(empId, projectId, employee);
+        const response = await this.employeeProjectService.getEmployeeExistingProjectDetails(empId, projectId, employee,true);
+        if (this.handleRestrictionMultipleTeam(response)) {
+            return false;
+        }
         if (response?.type === 'EMPLOYEE_EXISTING_PROJECT_DETAILS') {
             return false;
         }
@@ -2801,13 +2810,58 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         member.employementId = employee.employmentId;
         member.dbDefaultProject = !member?.defaultProject && this.rmgProjectObj.projectId === employee?.defaultProjectId;
         member.empTeamDepartmentId = employee?.deptId;
-        const response = await this.employeeProjectService.getEmployeeExistingProjectDetails(empId, projectId, employee);
+        const response = await this.employeeProjectService.getEmployeeExistingProjectDetails(empId, projectId, employee,true);
+        if (this.handleRestrictionMultipleTeam(response, member)) {
+            return false;
+        }
+
         if (response?.type === 'EMPLOYEE_EXISTING_PROJECT_DETAILS') {
             return false;
         }
         const dateResponse = await this.getMaxEmployeeTeamMapStartDate(empId);
         member.startDate = dateResponse;
         return true;
+    }
+
+    // handleRestrictionMultipleTeam(response: any, isClone: boolean = false): boolean {
+
+    //     const isRestricted =
+    //         !!(response?.data?.teamMappingRestricted ||
+    //            response?.extraData?.teamMappingRestricted);
+    
+    //     if (isClone) {
+    //         this.cloneMemberTeamMappingRestricted = isRestricted;
+    //     } else {
+    //         this.newMemberTeamMappingRestricted = isRestricted;
+    //     }
+    
+    //     return isRestricted;
+    // }
+
+    handleRestrictionMultipleTeam(response: any, member?: RmgTeamMember): boolean {
+
+        const isRestricted =
+            !!(response?.data?.teamMappingRestricted ||
+               response?.extraData?.teamMappingRestricted);
+    
+        
+        if (!member) {
+            this.newMemberTeamMappingRestricted = isRestricted;
+        }
+    
+       
+        if (member) {
+            member.isRestricted = isRestricted;
+        }
+    
+       
+        this.updateCloneRestrictionState();
+    
+        return isRestricted;
+    }
+
+    updateCloneRestrictionState() {
+        this.isCloneSaveRestricted = this.cloneMemberMappingList?.some(m => m.isRestricted);
     }
 
     async updateMappingToOtherProjectAsDefault(employee: RmgTeamMember) {

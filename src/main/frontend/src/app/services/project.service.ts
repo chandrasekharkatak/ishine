@@ -138,10 +138,19 @@ updateMilestoneExtendedDate(formData: FormData): Observable<any> {
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeProjectCount`,payload);
    }
 
-  getEmployeeExistingProjectDetailsByEmpId(empId: any, projectId:any) {
-    let httpParams = new HttpParams().append("empId", empId).append("projectId", projectId);
+  // getEmployeeExistingProjectDetailsByEmpId(empId: any, projectId:any) {
+  //   let httpParams = new HttpParams().append("empId", empId).append("projectId", projectId);
+  //   return this.http.get(`${this.baseUrl}` + `api/getEmployeeExistingProjectDetailsByEmpId`, { params: httpParams });
+  // }
+
+  getEmployeeExistingProjectDetailsByEmpId(empId: any, projectId: any, enforceSingleTeamPerProject: boolean = false) {
+    let httpParams = new HttpParams()
+      .append("empId", empId)
+      .append("projectId", projectId)
+      .append("enforceSingleTeamPerProject", String(enforceSingleTeamPerProject));
     return this.http.get(`${this.baseUrl}` + `api/getEmployeeExistingProjectDetailsByEmpId`, { params: httpParams });
   }
+
 
   updateEmployeeProjectMappingAsInActive(rmgTeamMember: RmgTeamMember) {
     return this.http.post(`${this.baseUrl}` + `api/updateEmployeeProjectMappingAsInActive`, rmgTeamMember);
