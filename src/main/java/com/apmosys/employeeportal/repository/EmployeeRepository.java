@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -79,7 +80,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "			e.billable,e.total_experience,  jr.name as JobRolename,\n"
 			+ "            e.billable_type,des.designation_name,e.reporting_manager_id, \n"
 			+ "            e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName,\n"
-			+ "            d.name AS hodDepartmentName , e.is_apmosys_product \n"
+			+ "            d.name AS hodDepartmentName , e.is_apmosys_product, e.mobile_no, e.work_location \n"
 			+ "			FROM employee e \n"
 			+ "			INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
 			+ "			INNER JOIN department d ON d.dept_id = jr.dept_id \n"
@@ -126,7 +127,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ " e.billable, e.total_experience, jr.name as JobRolename, e.billable_type, \n"
 			+ " des.designation_name, e.reporting_manager_id, e5.name AS reportingManger, \n"
 			+ " jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName, \n"
-			+ " e.is_apmosys_product \n"
+			+ " e.is_apmosys_product, e.mobile_no, e.work_location \n"
 			+ "FROM employee e \n"
 			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
 			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
@@ -330,12 +331,32 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getHierarchyByEmpId(Long empId);
 
+	/**
+	 * Counts 1 if {@code candidateEmpId} is {@code rootEmpId} or reachable under the same
+	 * manager/reporting-manager rules as {@link #getHierarchyByEmpId(Long)} (direct + indirect reports).
+	 */
+	@Query(value = "WITH RECURSIVE team_tree AS ( "
+			+ "SELECT e.emp_id FROM employee e WHERE e.emp_id = :rootEmpId AND e.employmentstatus NOT LIKE 'InActive' "
+			+ "UNION ALL "
+			+ "SELECT e2.emp_id FROM employee e2 "
+			+ "INNER JOIN team_tree t ON ( "
+			+ "  (e2.manager_id = t.emp_id AND (e2.approvals_to = 'Manager' OR e2.approvals_to IS NULL)) "
+			+ "  OR (e2.reporting_manager_id = t.emp_id AND e2.approvals_to = 'Reporting Manager') "
+			+ ") "
+			+ "WHERE e2.employmentstatus NOT LIKE 'InActive' "
+			+ ") "
+			+ "SELECT COUNT(*) FROM team_tree WHERE emp_id = :candidateEmpId", nativeQuery = true)
+	BigInteger countEmpInManagerReportingSubtree(@Param("rootEmpId") Long rootEmpId, @Param("candidateEmpId") Long candidateEmpId);
+
 	public Long countByEmpId(Long empId);
 
 	public Long countByManagerId(Long managerId);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeData(Long empId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeDataForExp(Long empId);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInProbationAndNotice();
@@ -4015,7 +4036,162 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		        @Param("checkDate") LocalDate checkDate
 		);
 
-// 		@Query(value = "SELECT \n"
+	@Query(value = " WITH total_emp AS ( \n"
+			+ "  SELECT COUNT(*) AS total \n"
+			+ "  FROM employee \n"
+			+ "  WHERE employmentstatus != 'InActive'AND emp_id NOT BETWEEN 1 AND 6 \n"
+			+ " ) \n"
+			+ " SELECT CONCAT(ROUND(COUNT(DISTINCT etm.emp_id) * 100.0 / NULLIF(te.total, 0), 2),'') AS emp_per \n"
+			+ " FROM projects p \n"
+			+ " INNER JOIN teams t ON p.project_id = t.project_id \n"
+			+ " INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+			+ " CROSS JOIN total_emp te \n"
+			+ " WHERE p.po_project_type IS NOT NULL AND p.active = 'true' \n"
+			+ " AND t.is_active = 'Y'  AND (etm.active = 1 OR (etm.active = 2 AND DATE(etm.start_date) <= CURDATE()) )  \n", nativeQuery = true)
+	public String getEmployeeMappedToClientPercent();
+
+
+	@Query(value =
+        "WITH user_teams AS ( " +
+        "    SELECT etm.team_id " +
+        "    FROM employee_team_mapping etm " +
+        "    INNER JOIN teams t ON t.team_id = etm.team_id " +
+        "    WHERE etm.emp_id = :currentUser " +
+        "      AND t.project_id = :projectId " +
+        "      AND etm.active IN (0,1) " +
+        "      AND etm.start_date <= :endOfDay " +
+        "      AND (etm.end_date IS NULL OR etm.end_date >= :startOfDay) " +
+        ") " +
+        "SELECT DISTINCT e.emp_id AS empId, e.name AS name " +
+        "FROM employee e " +
+        "INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id " +
+        "INNER JOIN user_teams ut ON ut.team_id = etm.team_id " +
+        "WHERE etm.emp_id != :currentUser " +
+        "  AND etm.active IN (0,1) " +
+        "  AND etm.start_date <= :endOfDay " +
+        "  AND (etm.end_date IS NULL OR etm.end_date >= :startOfDay)",
+        nativeQuery = true)
+List<Object[]> getEmployeeListByProjectIdForDate(
+        @Param("projectId") Integer projectId,
+        @Param("currentUser") Long currentUser,
+        @Param("startOfDay") LocalDateTime startOfDay,
+        @Param("endOfDay") LocalDateTime endOfDay
+);
+
+@Query(value = "SELECT e.emp_id, e.name, " +
+               "CASE " +
+               "    WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
+               "    ELSE m.name " +
+               "END AS Reporting_Manager, " +
+               "d.name AS department_name, " +
+               "CASE " +
+               "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
+               "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
+               "    ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
+               "END AS prefixed_id, " +
+               "e.employeement_id " +
+               "FROM employee e " +
+               "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id " +
+               "LEFT JOIN employee m ON e.manager_id = m.emp_id " +
+               "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+               "INNER JOIN department d ON jr.dept_id = d.dept_id " +
+               "WHERE ( " +
+               "    REPLACE(CONCAT('A', CAST(e.employeement_id AS CHAR)), '-', '') IN (:biometricCodes) OR " +
+               "    REPLACE(CONCAT('AP', CAST(e.employeement_id AS CHAR)), '-', '') IN (:biometricCodes) OR " +
+               "    REPLACE(CONCAT('CS', CAST(e.employeement_id AS CHAR)), '-', '') IN (:biometricCodes) " +
+               ") " +
+               "AND e.employmentstatus != 'InActive' " +
+               "AND (:employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%'))) " +
+               "AND (:employeeCode IS NULL OR " +
+               "    CASE " +
+               "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP', CAST(e.employeement_id AS CHAR)) " +
+               "        WHEN e.is_consultant = 'true' THEN CONCAT('CS', CAST(e.employeement_id AS CHAR)) " +
+               "        ELSE CONCAT('A', CAST(e.employeement_id AS CHAR)) " +
+               "    END LIKE CONCAT('%', :employeeCode, '%')) " +
+               "AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+               "AND (:managerName IS NULL OR " +
+               "    LOWER(CASE " +
+               "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
+               "        ELSE m.name " +
+               "    END) LIKE LOWER(CONCAT('%', :managerName, '%')))",
+       nativeQuery = true)
+		List<Object[]> findByPrefixedEmployeementIdInWithFilters(
+			@Param("biometricCodes") List<String> biometricCodes,
+			@Param("employeeName") String employeeName,
+			@Param("employeeCode") String employeeCode,
+			@Param("departmentName") String departmentName,
+			@Param("managerName") String managerName
+		);
+
+	@Query(value = "SELECT DISTINCT " +
+               "CASE " +
+               "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
+               "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
+               "    ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
+               "END AS prefixed_id " +
+               "FROM employee e " +
+               "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+               "LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+               "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id " +
+               "LEFT JOIN employee m ON e.manager_id = m.emp_id " +
+               "WHERE e.employmentstatus != 'InActive' " +
+               "AND (:employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%'))) " +
+               "AND (:employeeCode IS NULL OR " +
+               "    CASE " +
+               "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
+               "        WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
+               "        ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
+               "    END LIKE CONCAT('%', :employeeCode, '%')) " +
+               "AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+               "AND (:managerName IS NULL OR " +
+               "    LOWER(CASE " +
+               "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
+               "        ELSE m.name " +
+               "    END) LIKE LOWER(CONCAT('%', :managerName, '%')))",
+       nativeQuery = true)
+		List<String> findEmployeeIdsBySearchCriteria(
+			@Param("employeeName") String employeeName,
+			@Param("employeeCode") String employeeCode,
+			@Param("departmentName") String departmentName,
+			@Param("managerName") String managerName
+		);
+
+	@Query(value = "SELECT DISTINCT " +
+               "CASE " +
+               "    WHEN e.is_apmosys_product = 'true' THEN 'AP' " +
+               "    WHEN e.is_consultant = 'true' THEN 'CS' " +
+               "    ELSE 'A' " +
+               "END, " +
+               "CAST(e.employeement_id AS CHAR) " +
+               "FROM employee e " +
+               "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+               "LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+               "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id " +
+               "LEFT JOIN employee m ON e.manager_id = m.emp_id " +
+               "WHERE e.employmentstatus != 'InActive' " +
+               "AND e.emp_id NOT IN (1, 6) " +
+               "AND (:employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%'))) " +
+               "AND (:employeeCode IS NULL OR " +
+               "    CASE " +
+               "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP', CAST(e.employeement_id AS CHAR)) " +
+               "        WHEN e.is_consultant = 'true' THEN CONCAT('CS', CAST(e.employeement_id AS CHAR)) " +
+               "        ELSE CONCAT('A', CAST(e.employeement_id AS CHAR)) " +
+               "    END LIKE CONCAT('%', :employeeCode, '%')) " +
+               "AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+               "AND (:managerName IS NULL OR " +
+               "    LOWER(CASE " +
+               "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
+               "        ELSE m.name " +
+               "    END) LIKE LOWER(CONCAT('%', :managerName, '%')))",
+       nativeQuery = true)
+		List<Object[]> findRawEmployeementIdsBySearchCriteria(
+			@Param("employeeName") String employeeName,
+			@Param("employeeCode") String employeeCode,
+			@Param("departmentName") String departmentName,
+			@Param("managerName") String managerName
+		);
+
+		// 		@Query(value = "SELECT \n"
 //     " DISTINCT e.emp_id \n"
 //   FROM 
 //     employee e 
@@ -4696,47 +4872,5 @@ public List<Object[]> fetchInActivePOListOfProject(
 			"END) IN (:employeementIds)",
 		nativeQuery = true)
 	List<Object[]> findByPrefixedEmployeementIdIn(@Param("employeementIds") List<String> employeementIds);
-
-	@Query(value = " WITH total_emp AS ( \n"
-			+ "  SELECT COUNT(*) AS total \n"
-			+ "  FROM employee \n"
-			+ "  WHERE employmentstatus != 'InActive'AND emp_id NOT BETWEEN 1 AND 6 \n"
-			+ " ) \n"
-			+ " SELECT CONCAT(ROUND(COUNT(DISTINCT etm.emp_id) * 100.0 / NULLIF(te.total, 0), 2),'') AS emp_per \n"
-			+ " FROM projects p \n"
-			+ " INNER JOIN teams t ON p.project_id = t.project_id \n"
-			+ " INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
-			+ " CROSS JOIN total_emp te \n"
-			+ " WHERE p.po_project_type IS NOT NULL AND p.active = 'true' \n"
-			+ " AND t.is_active = 'Y'  AND (etm.active = 1 OR (etm.active = 2 AND DATE(etm.start_date) <= CURDATE()) )  \n", nativeQuery = true)
-	public String getEmployeeMappedToClientPercent();
-
-
-	@Query(value =
-        "WITH user_teams AS ( " +
-        "    SELECT etm.team_id " +
-        "    FROM employee_team_mapping etm " +
-        "    INNER JOIN teams t ON t.team_id = etm.team_id " +
-        "    WHERE etm.emp_id = :currentUser " +
-        "      AND t.project_id = :projectId " +
-        "      AND etm.active IN (0,1) " +
-        "      AND etm.start_date <= :endOfDay " +
-        "      AND (etm.end_date IS NULL OR etm.end_date >= :startOfDay) " +
-        ") " +
-        "SELECT DISTINCT e.emp_id AS empId, e.name AS name " +
-        "FROM employee e " +
-        "INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id " +
-        "INNER JOIN user_teams ut ON ut.team_id = etm.team_id " +
-        "WHERE etm.emp_id != :currentUser " +
-        "  AND etm.active IN (0,1) " +
-        "  AND etm.start_date <= :endOfDay " +
-        "  AND (etm.end_date IS NULL OR etm.end_date >= :startOfDay)",
-        nativeQuery = true)
-List<Object[]> getEmployeeListByProjectIdForDate(
-        @Param("projectId") Integer projectId,
-        @Param("currentUser") Long currentUser,
-        @Param("startOfDay") LocalDateTime startOfDay,
-        @Param("endOfDay") LocalDateTime endOfDay
-);
 
 }

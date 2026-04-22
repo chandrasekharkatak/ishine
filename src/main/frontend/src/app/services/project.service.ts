@@ -122,9 +122,8 @@ getEmployeeTimesheetsByProject(teamObj: any){
 }
 
 
-updateMilestoneExtendedDate(MilestoneUpdatedLog: MilestoneUpdatedLog): Observable<any> {
-  return this.http.put(`${this.baseUrl}` + `api/updateMilestoneExtendedDate`, MilestoneUpdatedLog);
-
+updateMilestoneExtendedDate(formData: FormData): Observable<any> {
+  return this.http.post(`${this.baseUrl}api/updateMilestoneExtendedDate`, formData);
 }
 
    getClientAndProjectReport(payload){
@@ -164,4 +163,14 @@ updateMilestoneExtendedDate(MilestoneUpdatedLog: MilestoneUpdatedLog): Observabl
     return this.http.post(`${this.baseUrl}` + `api/getProjectStructure`, payload)
   }
   
+
+getExtensionDocumentByName(uniquefile: any) {
+  return this.http.post(`${this.baseUrl}api/getExtensionDocumentByName`, { uniquefile });
+}  
+
+validateDocName(uniquefile: any) {
+  return this.http.post(`${this.baseUrl}api/validateDocName`, { uniquefile });
+}  
+
+ 
 }

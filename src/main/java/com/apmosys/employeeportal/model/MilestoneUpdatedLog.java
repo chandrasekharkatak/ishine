@@ -54,6 +54,10 @@ public class MilestoneUpdatedLog {
     
     @Column(name = "updated_by")
     private Long updatedBy;
+    
+    @Column(name = "custom_reason",length = 255)
+    private String customReason;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "milestone_extension_reason_id", referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_milestone_reason"))

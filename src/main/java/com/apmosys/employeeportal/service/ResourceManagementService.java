@@ -9140,31 +9140,35 @@ public class ResourceManagementService {
 				EmployeeTeamMap empTeamMap = new EmployeeTeamMap();
 
 				if (presentMember.isEmpty()) {
-
-					StringBuilder employeeRole = new StringBuilder("");
-					for (String empRole : newMember.getEmployeeRole()) {
-						employeeRole.append(empRole).append(",");
-					}
-					empTeamMap.setEmpId(newMember.getEmpId());
-					empTeamMap.setEmployeeRole(employeeRole.toString());
-					empTeamMap.setTeamId(dto.getTeamId());
-					empTeamMap.setStartDate(LocalDateTime.now());
-					empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
-
-					// added poRequirementMappingid changes
-					empTeamMap.setPoRequirementMappingId(newMember.getPoRequirementMappingId() != null
+					
+						StringBuilder employeeRole = new StringBuilder("");
+						for (String empRole : newMember.getEmployeeRole()) {
+							employeeRole.append(empRole).append(",");
+						}
+						empTeamMap.setEmpId(newMember.getEmpId());
+						empTeamMap.setEmployeeRole(employeeRole.toString());
+						empTeamMap.setTeamId(dto.getTeamId());
+						empTeamMap.setStartDate(LocalDateTime.now());
+						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
+						empTeamMap.setPoRequirementMappingId(newMember.getPoRequirementMappingId() != null
 							? Long.parseLong(newMember.getPoRequirementMappingId().toString())
 							: null);
-
-					empTeamMap.setUpdatedBy(dto.getCreatedBy() != null ? dto.getCreatedBy() : null);
-
-					if (newMember.getIsDefaultProject() != null) {
-						if (newMember.getIsDefaultProject() == 1) {
-							defaultProjectEmpIds.add(newMember.getEmpId());
+						empTeamMap.setUpdatedBy(dto.getCreatedBy() != null ? dto.getCreatedBy() : null);
+						
+						if(newMember.getIsDefaultProject() != null) {
+							if( newMember.getIsDefaultProject() == 1) {
+								defaultProjectEmpIds.add(newMember.getEmpId());
+							}
 						}
-					}
-
-					mapList.add(empTeamMap);
+						
+						
+						mapList.add(empTeamMap);
+						
+						Project project = projectRepository.findByProjectId(dto.getProjectId());
+						
+						project.setIsDraftProject("true");
+						projectRepository.save(project);
+					
 
 					List<EmployeeTeamMap> teamMapDbResponse = employeeTeamMapRepository.saveAll(mapList);
 

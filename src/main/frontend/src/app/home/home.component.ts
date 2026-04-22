@@ -155,6 +155,16 @@ rejectedCount = 0;
   isOtherReasonSelected: boolean = false;
   milestoneCount: number = 0;
   selectedMilestone: MilestoneToBeExpired | null = null;
+  selectedFileForMileStone: File | null = null;
+  previewUrlForMileStone: any;
+  @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
+  projectMilestoneDocumentModalRef: NgbModalRef;
+  isExtensionEnabled : boolean = false;
+
+  documentName: string = '';
+    documentType: string = '';
+    documentContent: File | null = null;
+
 
 
   fieldTextType: boolean = false;
@@ -2997,35 +3007,33 @@ private roundToTwo(num: number): number {
 
 
       extendedDate: formValues.extendedDate,
-      updatedBy: this.currentUser.empId,
+      updatedBy: this.currentUser.employeementId,
+      updatedByName: this.currentUser.name,
 
       milestoneExtensionReasonId: formValues.extensionReasonId,
       milestoneExtensionReasonText: formValues.customReason
+
     };
+    const formData = new FormData();
+    formData.append("milestoneData",new Blob([JSON.stringify(payload)], { type: "application/json" }));
+  
+    // optional file
+    if (this.documentContent) {
+      const file = this.documentContent
+      this.documentContent = new File([file],this.documentName,{ type: file.type });
+      formData.append("extensionFile", this.documentContent);
+    }
 
     console.log('Payload for milestone extension:', payload);
     this.isLoadingmilestoneDetailModal=true;
-    this.projectService.updateMilestoneExtendedDate(payload).subscribe(
+    this.projectService.updateMilestoneExtendedDate(formData).subscribe(
       (response: any) => {
         console.log('Milestone extension response:', response);
         if (response.serviceStatus === 'Success') {
           this.response1 = response.serviceMessage;
           this.isUpdated=true;
           this.isLoadingmilestoneDetailModal=false;
-          // const initialState = {
-          //   // 'message' should be a public property in your modal component's class
-          //   message: this.response1
-          // };
-          // this.popUpModalResf = this.modalService.open(this.milestoneExpireValidationPupup, {
-          //   class: 'modal-sm',
-          //   initialState: initialState
-          // });
-           this.openUpdateProjectCompletionModal(
-            "milestone extended date updated successfully."
-          );
-
-
-
+           this.openUpdateProjectCompletionModal("Milestone extended date updated successfully.");
           this.fetchMilestones();
            this.milestoneForm.get('extensionReasonId')?.reset();
         } else {
@@ -3034,33 +3042,12 @@ private roundToTwo(num: number): number {
           this.response1 = response.serviceMessage || 'An unexpected error occurred.';
           this.openUpdateProjectCompletionModal(response.serviceResponse);
            this.milestoneForm.get('extensionReasonId')?.reset();
-
-
-
-
-
-
-
-
-
-
         }
       },
       (errorResponse) => {
         console.error('Error updating milestone:', errorResponse);
-
-       this.isLoadingmilestoneDetailModal=false;
-        let errorMessage = 'An unknown error occurred.';
-        if (errorResponse.error && errorResponse.error.message) {
-
-          errorMessage = errorResponse.error.message;
-        }
-
-
-
-
-        this.openAlertMod(this.milestoneExpireValidationPupup, errorMessage);
-
+        this.isLoadingmilestoneDetailModal=false;
+        this.openAlertMod(this.milestoneExpireValidationPupup, "Something went wrong. Kindly try after sometime!!");
       }
     );
 
@@ -3120,7 +3107,7 @@ private roundToTwo(num: number): number {
 
     minExtendedDateformilestone:Date;
    public  minExtendedDate(): void {
-    const endDate=this.milestoneForm.get('endDate').value;;
+    const endDate=this.milestoneForm.get('startDate').value;
     this.minExtendedDateformilestone=new Date(this.convertToISO(endDate));
       this.milestoneForm.get('extensionReasonId')?.reset();
     console.log("minExtendedDateformilestone",this.minExtendedDateformilestone);
@@ -3128,7 +3115,7 @@ private roundToTwo(num: number): number {
   }
   convertToISO(dateString: string): string {
   const [day, month, year] = dateString.split('/');
-  return `${year}-${month}-${day}`;
+  return `${year}-${month}-${Number(day) + 1}`;
 }
 
 public getDaysLeftForExpiry(endDate: string | Date): string {
@@ -3312,34 +3299,6 @@ toggleProject(projectIndex: number): void {
 }
 
 
-
-downloadExcel(base64Data: string, mimeType: string, fileName: string) {
-
-  const byteCharacters = atob(base64Data);
-  const byteNumbers = new Array(byteCharacters.length);
-
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-
-  const blob = new Blob(
-    [new Uint8Array(byteNumbers)],
-    { type: mimeType }
-  );
-
-  const url = window.URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  a.click();
-
-  window.URL.revokeObjectURL(url);
-}
-
-
-
-
 onEmployeeToggle(timesheet: any) {
   timesheet.locations.forEach((loc: any) => {
     loc.projects.forEach((proj: any) => {
@@ -3448,6 +3407,125 @@ resetPreviewState() {
   this.isDragging = false;
 }
 
+downloadExcel(base64Data: string, mimeType: string, fileName: string) {
+
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const blob = new Blob(
+    [new Uint8Array(byteNumbers)],
+    { type: mimeType }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+
+  window.URL.revokeObjectURL(url);
+}
+
+onFileSelected(event: any) {
+  const file: File = event.target.files[0];
+
+  if (!file) {
+    this.resetFileData();
+    return;
+  }
+
+  const allowedTypes = ['application/pdf','image/jpeg','image/jpg','image/png'];
+
+  if (!allowedTypes.includes(file.type)) {
+    this.openUpdateProjectCompletionModal("Only PDF, JPG, JPEG, or PNG files are allowed.");
+    event.target.value = '';
+    this.resetFileData();
+    return;
+  }
+
+  const maxSize = 25 * 1024 * 1024; // 25MB
+  if (file.size > maxSize) {
+    this.openUpdateProjectCompletionModal("File size should be less than 25 MB!!");
+    event.target.value = ''; 
+    this.resetFileData();
+    return;
+  }
+
+  const uniquefile =this.selectedMilestone.id+'_'+file.name
+  this.validateFileName(uniquefile,"extended")
+
+  this.documentName = uniquefile;
+  this.documentType = file.type;
+  this.documentContent = file; 
+  const url = URL.createObjectURL(file);
+  if (file.type === 'application/pdf') {
+    this.previewUrlForMileStone = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  } else {
+    this.previewUrlForMileStone = url;
+  }
+}
+
+validateFileName(uniquefile: any,type:any) {
+  this.projectService.validateDocName(uniquefile).subscribe({
+    next: (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        // No duplicate
+        console.error(response.serviceResponse);
+      } else if (response.serviceStatus === 'Fail') {
+        // Duplicate found
+        this.resetFileData();
+        this.openUpdateProjectCompletionModal(response.serviceResponse);
+        return false;        
+      }
+    },
+    error: (error) => {
+        this.resetFileData();
+        this.openUpdateProjectCompletionModal("Error while validating file. Kindly try after sometime!!");
+        return false;        
+    }
+  });
+}
+
+
+previewExtensionFile() {
+
+  if (!this.documentContent) return;
+  const fileURL = URL.createObjectURL(this.documentContent);
+  this.previewUrlForMileStone = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+  this.projectMilestoneDocumentModalRef = this.modalService.open(
+    this.projectMilestoneDocumentTemplateRef,
+    {
+      modalDialogClass: 'modal-xl',
+      backdrop: 'static',
+      keyboard: false
+    }
+  );
+}
+
+
+closeProjectMilestoneDocumentsModal() {
+    if (this.projectMilestoneDocumentModalRef) {
+        this.projectMilestoneDocumentModalRef?.close();
+        }
+    }
+
+
+resetFileData() {
+  this.documentName = '';
+  this.documentType = '';
+  this.documentContent = null;
+  this.previewUrlForMileStone = null;
+}
+
+onExtendedDateChange(event: any) {
+  if (event.value) { this.isExtensionEnabled = true; }
+}
+
 redirectToViewTeamTimesheet() {
   this.router.navigate(
     ['/user-timesheet/team-timesheet'],
@@ -3493,8 +3571,8 @@ getTimesheetStatusCountsByEmpId() {
 });
 
 }
-}
 
+}
 
 
 // Move compare function outside the class

@@ -17,6 +17,7 @@ import javax.mail.internet.MimeMultipart;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class MailService {
@@ -99,7 +100,6 @@ public class MailService {
 	public boolean sendMailWithCC(String receiver,String cc, String subject, String text) throws AddressException, MessagingException {
 
 		try {
-
 			Session session = mailProperties();
 
 			MimeMessage msg = new MimeMessage(session);
@@ -122,10 +122,11 @@ public class MailService {
 		}
 	}
 	
-	public boolean sendMailWithImage(String receiver, String cc, String subject, String htmlBody ,String imageFileName)
+	public boolean sendMailWithImage(String receiver, List<String> cc, String subject, String htmlBody,String imageFileName)
 			throws AddressException, MessagingException {
 
 		try {
+			String ccString = String.join(",", cc);
 			Session session = mailProperties();
 
 			Message msg = new MimeMessage(session);
@@ -133,7 +134,8 @@ public class MailService {
 			msg.setSubject(subject);
 			msg.setFrom(new InternetAddress(sender));
 			msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(receiver));
-			msg.setRecipients(javax.mail.Message.RecipientType.CC, InternetAddress.parse(cc, true));
+			
+			msg.setRecipients(javax.mail.Message.RecipientType.CC, InternetAddress.parse(ccString, true));
 
 			// creates message part
 			MimeBodyPart messageBodyPart = new MimeBodyPart();
@@ -454,9 +456,89 @@ public class MailService {
 	    }
 	}
 
-	
-	
+	public boolean sendMailToMultipleRecipientsWithFile(List<String> toList,
+                                                     List<String> ccList,
+                                                     String subject,
+                                                     String text,
+                                                     MultipartFile file)
+        throws AddressException, MessagingException {
 
+    try {
+        Session session = mailProperties();
+
+        MimeMessage msg = new MimeMessage(session);
+        msg.setSubject(subject);
+        msg.setFrom(new InternetAddress(sender));
+
+        // Add TO recipients
+        if (toList != null && !toList.isEmpty()) {
+            String toString = String.join(",", toList);
+            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toString, true));
+        }
+
+        // Add CC recipients
+        if (ccList != null && !ccList.isEmpty()) {
+            String ccString = String.join(",", ccList);
+            msg.setRecipients(Message.RecipientType.CC, InternetAddress.parse(ccString, true));
+        }
+
+        // Create multipart email
+        Multipart multipart = new MimeMultipart();
+
+        // Email body
+        MimeBodyPart bodyPart = new MimeBodyPart();
+        bodyPart.setContent(text, "text/html; charset=utf-8");
+        multipart.addBodyPart(bodyPart);
+
+        // Attachment
+        if (file != null && !file.isEmpty()) {
+			MimeBodyPart attachmentPart = new MimeBodyPart();
+
+			attachmentPart.setFileName(file.getOriginalFilename());
+			attachmentPart.setContent(file.getBytes(), file.getContentType());
+			multipart.addBodyPart(attachmentPart);
+
+			multipart.addBodyPart(attachmentPart);
+        }
+
+        // Set content
+        msg.setContent(multipart);
+
+         javax.mail.Transport.send(msg);
+
+        return true;
+
+    } catch (Exception e) {
+	        e.printStackTrace();
+	        return false;
+	    }
+	}
+
+	public boolean sendMailWithManagersCC(String receiver,List<String>cc, String subject, String text) throws AddressException, MessagingException {
+
+		try {
+			String ccString = String.join(",", cc);
+			Session session = mailProperties();
+
+			MimeMessage msg = new MimeMessage(session);
+
+			msg.setSubject(subject);
+			msg.setContent(text, "text/html");
+			msg.setFrom(new InternetAddress(sender));
+
+			msg.setRecipients(javax.mail.Message.RecipientType.TO, InternetAddress.parse(receiver, true));
+			msg.setRecipients(javax.mail.Message.RecipientType.CC, InternetAddress.parse(ccString, true));
+
+			javax.mail.Transport.send(msg);
+
+			return true;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+
+		}
+	}
 
 
 }

@@ -29,10 +29,11 @@ public class EmployeeRatingPerformance {
 	
 	@Column(precision = 3, scale = 1)
     private BigDecimal ratingValue;
+
+	/** Per-criterion comment shown in Final Review (COMMENTS column). */
+	@Column(name = "criteria_remark", columnDefinition = "TEXT")
+	private String criteriaRemark;
 	
 	private Long empId;
-	
-	
-	
 
 }

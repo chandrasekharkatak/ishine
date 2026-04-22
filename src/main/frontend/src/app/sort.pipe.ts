@@ -29,10 +29,23 @@ export class SortPipe implements PipeTransform {
         if (va > vb) return 1 * multiplier;
         return 0;
       } else if (sortFieldType == "date") {
-        if (!a[sortField]) return -1 * multiplier;
-        if (!b[sortField]) return 1 * multiplier;
-        const timeA = moment(a[sortField], "DD-MM-YYYY");
-        const timeB = moment(b[sortField], "DD-MM-YYYY");
+        const parseDate = (row: any): moment.Moment | null => {
+          const v = row[sortField];
+          if (v == null || v === '') return null;
+          if (v instanceof Date) {
+            const m = moment(v);
+            return m.isValid() ? m : null;
+          }
+          const m = moment(v);
+          if (m.isValid()) return m;
+          const strict = moment(v, "DD-MM-YYYY", true);
+          return strict.isValid() ? strict : null;
+        };
+        const timeA = parseDate(a);
+        const timeB = parseDate(b);
+        if (!timeA && !timeB) return 0;
+        if (!timeA) return -1 * multiplier;
+        if (!timeB) return 1 * multiplier;
         if (timeA.isBefore(timeB)) return -1 * multiplier;
         if (timeA.isAfter(timeB)) return 1 * multiplier;
         return 0;
@@ -59,8 +72,18 @@ export class SortPipe implements PipeTransform {
         if (va > vb) return 1 * multiplier;
         return 0;
       } else if (sortFieldType == "number") {
-        const numberA = +a[sortField] || 0;
-        const numberB = +b[sortField] || 0;
+        const pickNum = (row: any): number => {
+          let v = row[sortField];
+          if ((v == null || v === '') && sortField === 'calculatedExperience') {
+            v = row['totalExperience'];
+          }
+          if (v == null || v === '') return 0;
+          if (typeof v === 'number' && Number.isFinite(v)) return v;
+          const n = parseFloat(String(v).replace(/,/g, ''));
+          return Number.isFinite(n) ? n : 0;
+        };
+        const numberA = pickNum(a);
+        const numberB = pickNum(b);
         if (numberA < numberB) return -1 * multiplier;
         if (numberA > numberB) return 1 * multiplier;
         return 0;

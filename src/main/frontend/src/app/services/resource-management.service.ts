@@ -305,5 +305,9 @@ export class ResourceManagementService {
   getEmployeeMappedToClientPercent() {
     return this.http.get(`${this.baseUrl}` + `api/getEmployeeMappedToClientPercent`);
   }
+completeProjectReminder(poProjectId: number) {
+  return this.http.post(`${this.baseUrl}api/completeProjectReminder?poProjectId=${poProjectId}`,{} );
+}
+
 }
 
