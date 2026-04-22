@@ -1290,6 +1290,14 @@ textarea.form-control {
   text-overflow: ellipsis; 
 }
 
+.desc-cell {
+  max-width: 200px;       
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
 /* REQUIRED STAR */
 .text-danger {
   margin-right: 3px;

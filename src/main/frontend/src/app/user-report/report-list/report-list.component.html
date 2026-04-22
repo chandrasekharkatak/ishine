@@ -2087,8 +2087,8 @@
         <div class="col-md-12" *ngIf="isSavedQuery">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h4>Saved Queries</h4>
-            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCustomQuery}"
-          (click)="showCustomQuery()">+New Query</button>
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCustomQuery}" *ngIf="userMapping.custom_query_save"
+          (click)="showCustomQuery()">+ New Query</button>
           </div>
           <div *ngIf="savedQueries.length === 0" class="text-muted small">
             No saved queries
@@ -2112,20 +2112,20 @@
                   <td class="clickable fixed-cell">
                     {{ q.queryName }}
                   </td>
-                  <td class="clickable fixed-cell">
+                  <td class="clickable fixed-cell desc-cell" [title]="q.description">
                     {{ q.description }}
                   </td>
         
                   <!-- ACTIONS -->
                   <td class="text-center">
                     <!-- EXECUTE -->
-                    <i class="fas fa-play action-icon execute"
+                    <i class="fas fa-play action-icon execute" *ngIf="userMapping.custom_query_execute"
                        title="Run Query"
                        (click)="selectQuery(q); $event.stopPropagation()">
                     </i>
                     <!-- UPDATE -->
                     <i class="fas fa-edit action-icon update"
-                       title="Edit Query"
+                       title="Edit Query" *ngIf="userMapping.custom_query_save"
                        (click)="openQueryModal('update', q); $event.stopPropagation()">
                     </i>
                   </td>
@@ -2145,7 +2145,6 @@
             </button>
           </div> -->
         </div>
-        <!-- <div [class.col-md-8]="isSidebarClosed" [class.col-md-12]="!isSidebarClosed"> -->
         <div class="col-md-12" *ngIf="isCustomQuery">
 
           <!-- EDITOR (New Query) -->
@@ -2168,7 +2167,7 @@
 
                   <button
                     class="btn btn-outline-primary btn-sm"
-                    *ngIf="userMapping.custom_query_save"
+                    *ngIf="isSaveEnable"
                     [disabled]="!customQuery"
                     (click)="openQueryModal('create')">
                     Save Query
@@ -2177,7 +2176,11 @@
               </div>
             </div>
           </div>
-        
+
+          <div class="row mt-2" *ngIf="hideCustomQueryEditorOnPreview">
+            <div class="col-md-12">SQL : {{customQuery}}</div>
+            <hr>
+          </div>
           <!-- LOADER -->
           <div class="row" *ngIf="isLoading">
             <div class="col-md-12 d-flex justify-content-center my-3">

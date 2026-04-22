@@ -1644,6 +1644,7 @@ onSearchClientProject(searchData: any) {
     this.loadQueriesByRole();
     this.isSavedQuery = true;
     this.showSavedQuery();
+    this.isSaveEnable = false;
   }
 
   showDefaultMappingTable() {
@@ -2382,7 +2383,7 @@ onSearchClientProject(searchData: any) {
 
 
 /* Custom Query VARIABLES */
-isSidebarClosed = false; //for sidebar open close
+isSaveEnable = false; //for sidebar open close
 savedQueries: any[] = [];
 isSavedQuery = false;
 isCustomQuery = false;
@@ -2439,6 +2440,7 @@ showSavedQuery(){
   this.showPreview = false;
   this.hideCustomQueryEditorOnPreview = false;
   this.roleSearchText = '';
+  this.customQuery = '';
   this.loadQueriesByRole();
 }
 
@@ -2546,6 +2548,7 @@ closeQueryModal() {
     this.showSavedQuery();
   }
   this.selectedQuery = null;
+  this.isSaveEnable = false;
 }
 
 validateQueryForm(): boolean {
@@ -2644,12 +2647,37 @@ saveQueryUI(template: TemplateRef<any>) {
     });
 }
 
+async validateQuery(template: TemplateRef<any>): Promise<boolean> {
+  const queryObj = new Query();
+  queryObj.customQuery = this.selectedQuery;
+
+  try {
+    const response: any = await this.utilityService.getCustomQueryData(queryObj)
+      .pipe(first())
+      .toPromise();
+
+    if (response.serviceStatus === "Success") {
+      return true;
+    } else {
+      this.alertMessage = response.serviceResponse;
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+  } catch (error) {
+    alert('Something went wrong while Updating query : '+error);
+    return false;
+  }
+}
 
 /* UPDATE QUERY */
 updateQueryUI(template: TemplateRef<any>) {
 
   if (!this.selectedQuery?.queryId) return;
   if (!this.validateQueryForm()) return;
+
+  if(!this.validateQuery){
+    return;
+  }
 
   const roleIds = this.selectedRoleIds || [];
 
@@ -2853,7 +2881,7 @@ getCustomQueryData(template: TemplateRef<any>) {
         this.isLoading = false;
 
         if (response.serviceStatus !== "Success") {
-          this.alertMessage = "Something was wrong please try again.";
+          this.alertMessage = response.serviceResponse;
           this.openAlertMod(template, this.alertMessage);
           return;
         }
@@ -2861,7 +2889,7 @@ getCustomQueryData(template: TemplateRef<any>) {
         const data = response.serviceResponse;
 
         if (!data || data.length === 0) {
-          this.alertMessage = "No data available, please check query.";
+          this.alertMessage = "No data available, please verify query.";
           this.openAlertMod(template, this.alertMessage);
           return;
         }
@@ -2889,6 +2917,7 @@ getCustomQueryData(template: TemplateRef<any>) {
 
         this.updatePagination();
         this.showPreview = true;
+        this.isSaveEnable = true;
       },error: () => {
         this.isLoading = false;
       }
