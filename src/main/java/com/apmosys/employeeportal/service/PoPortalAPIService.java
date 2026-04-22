@@ -3099,12 +3099,12 @@ return empId;
 			
 			SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 
-			String endDate = projDetails.getPoEndDate() != null 
-			        ? projDetails.getPoEndDate()
+			String endDate = projDetails.getEndDate() != null 
+			        ? projDetails.getEndDate()
 			        : "";
 
-			String startDate = projDetails.getPoStartDate() != null 
-			        ? projDetails.getPoStartDate()
+			String startDate = projDetails.getStartDate() != null 
+			        ? projDetails.getStartDate()
 			        : "";
 
 			String subject = "Project Milestone Update Notification: " + projDetails.getProjectName();
