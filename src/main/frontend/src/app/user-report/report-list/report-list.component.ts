@@ -2406,6 +2406,12 @@ selectedRoleIds: number[] = [];
 roleSearchText: string = '';
 expandedEmpRoles: Set<string> = new Set();
 expandedDepts: Set<string> = new Set();
+// When true, we hide the editor once results are shown (used for "Run Query" from saved queries list).
+hideCustomQueryEditorOnPreview = false;
+
+clearSelectedRoles(): void {
+  this.selectedRoleIds = [];
+}
 //for create query modules
 showQueryModal = false;
 queryForm: any = {
@@ -2422,6 +2428,8 @@ showCustomQuery(){
   this.isCustomQuery = true;
   this.showQueryModal = false;
   this.showPreview = false;
+  this.hideCustomQueryEditorOnPreview = false;
+  this.roleSearchText = '';
 }
 
 showSavedQuery(){
@@ -2429,17 +2437,25 @@ showSavedQuery(){
   this.isSavedQuery = true;
   this.showQueryModal = false;
   this.showPreview = false;
+  this.hideCustomQueryEditorOnPreview = false;
+  this.roleSearchText = '';
   this.loadQueriesByRole();
 }
 
 /* SELECT QUERY */
 selectQuery(q: any) {
-  this.customQuery = q.querySql;
-  // this.showCustomQuery();
-  if(this.customQuery!=''){
-    this.getCustomQueryData(this.alertMessage);
+  this.customQuery = q?.querySql;
+
+  // Switch UI to query editor + results area (otherwise the screen becomes blank).
+  this.showCustomQuery();
+  // For saved query execution, show results-only view after load.
+  this.hideCustomQueryEditorOnPreview = true;
+
+  if (this.customQuery != '') {
+    // Use the actual alert template ref.
+    this.getCustomQueryData(this.alertModal);
   }
-  this.isSavedQuery=false;
+  this.isSavedQuery = false;
 }
 
 /* LOAD SAVED QUERIES BY ROLE ===== */
@@ -2487,6 +2503,7 @@ openQueryModal(mode: 'create' | 'update', query?: any) {
   this.isCustomQuery=false;
   this.isSavedQuery=false
   this.isCustomQueryForm = false;
+  this.roleSearchText = '';
   this.loadJobRoles();
 
   if (mode === 'update' && query) {
@@ -2522,6 +2539,7 @@ closeQueryModal() {
     selectedRoles: []
   };
   this.isCustomQueryForm = true;
+  this.roleSearchText = '';
   if(this.modalMode == 'create'){
     this.showCustomQuery();
   }else{ 
