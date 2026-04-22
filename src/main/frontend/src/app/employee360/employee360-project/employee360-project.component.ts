@@ -194,7 +194,7 @@ export class Employee360ProjectComponent implements OnInit {
     private drawerService: GlobalRightDrawerService,
     public validationService: ValidationService,
     private readonly toastService: ToastService,
-    
+
   ) {
 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -816,7 +816,7 @@ formatToLocalDateTime(date: any): string {
     let projectObj = new Project();
     projectObj.teamId = this.projectObj.teamId;
     projectObj.empId = this.projectObj.empId;
-    projectObj.startDate = this.startDate;
+    projectObj.startDate = this.formatToLocalDateTime(this.startDate);
 
     if (this.isBefore(this.projectObj.projectStartDate, projectObj.startDate)) {
       this.errModalRef = this.modalService.open(this.updateProjectStartDateErrorModalRef, { modalDialogClass: 'modal-md' });
@@ -1613,7 +1613,7 @@ console.log("mapping ID",this.employeeTeamMapId);
       } else {
         this.toastService.error(response.serviceResponse || "Something went wrong!");
       }
-    } catch (error) { 
+    } catch (error) {
       this.toastService.error("Something went wrong!");
     }
   }
