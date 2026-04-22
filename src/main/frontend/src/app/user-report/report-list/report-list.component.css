@@ -1290,6 +1290,39 @@ textarea.form-control {
   text-overflow: ellipsis; 
 }
 
+.saved-query-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 8px 0 10px;
+}
+
+.saved-query-toolbar__left {
+  flex: 1;
+  min-width: 240px;
+}
+
+.saved-query-toolbar__hint {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.saved-query-toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.saved-query-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
 .desc-cell {
   max-width: 200px;       
   white-space: nowrap;

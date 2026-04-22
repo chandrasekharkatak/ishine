@@ -2410,8 +2410,39 @@ expandedDepts: Set<string> = new Set();
 // When true, we hide the editor once results are shown (used for "Run Query" from saved queries list).
 hideCustomQueryEditorOnPreview = false;
 
+// Saved Queries table: search + pagination (independent from results pagination)
+savedQuerySearchText = '';
+savedQueryPage = 1;
+savedQueryPageSize = 10;
+savedQueryPageSizeOptions: number[] = [5, 10, 20, 30, 50, 100];
+savedQueriesFiltered: any[] = [];
+savedQueriesPaginated: any[] = [];
+
 clearSelectedRoles(): void {
   this.selectedRoleIds = [];
+}
+
+private resetCustomQueryPreview(): void {
+  this.showPreview = false;
+  this.isSaveEnable = false;
+  this.columns = [];
+  this.tableData = [];
+  this.previewData = [];
+  this.filteredData = [];
+  this.paginateData = [];
+}
+
+onCustomQueryTextChange(): void {
+  // If user edits query after a successful test, hide previous results and disable Save.
+  this.resetCustomQueryPreview();
+}
+
+// Query validation state (Update Query screen)
+isQueryValidated = false;
+isValidatingQuery = false;
+
+onQueryTextChange(): void {
+  this.isQueryValidated = false;
 }
 //for create query modules
 showQueryModal = false;
@@ -2441,6 +2472,8 @@ showSavedQuery(){
   this.hideCustomQueryEditorOnPreview = false;
   this.roleSearchText = '';
   this.customQuery = '';
+  this.savedQuerySearchText = '';
+  this.savedQueryPage = 1;
   this.loadQueriesByRole();
 }
 
@@ -2473,11 +2506,71 @@ loadQueriesByRole() {
         } else {
           this.savedQueries = [];
         }
+        this.applySavedQueryFilters();
       },
       error: (err) => {
         console.error('Error loading queries', err);
+        this.savedQueries = [];
+        this.applySavedQueryFilters();
       }
     });
+}
+
+onSavedQuerySearchChange(): void {
+  this.savedQueryPage = 1;
+  this.applySavedQueryFilters();
+}
+
+applySavedQueryFilters(): void {
+  const text = (this.savedQuerySearchText || '').trim().toLowerCase();
+  const base = Array.isArray(this.savedQueries) ? this.savedQueries : [];
+
+  if (!text) {
+    this.savedQueriesFiltered = [...base];
+  } else {
+    this.savedQueriesFiltered = base.filter(q => {
+      const name = (q?.queryName || '').toString().toLowerCase();
+      const desc = (q?.description || '').toString().toLowerCase();
+      const sql = (q?.querySql || '').toString().toLowerCase();
+      return name.includes(text) || desc.includes(text) || sql.includes(text);
+    });
+  }
+
+  this.updateSavedQueryPagination();
+}
+
+changeSavedQueryPageSize(size: number): void {
+  if (size === -1) {
+    this.savedQueryPageSize = this.savedQueriesFiltered.length || 1;
+  } else {
+    this.savedQueryPageSize = size;
+  }
+  this.savedQueryPage = 1;
+  this.updateSavedQueryPagination();
+}
+
+updateSavedQueryPagination(): void {
+  const start = (this.savedQueryPage - 1) * this.savedQueryPageSize;
+  const end = start + this.savedQueryPageSize;
+  this.savedQueriesPaginated = (this.savedQueriesFiltered || []).slice(start, end);
+}
+
+nextSavedQueryPage(): void {
+  if (this.savedQueryPage < this.savedQueryTotalPages) {
+    this.savedQueryPage++;
+    this.updateSavedQueryPagination();
+  }
+}
+
+prevSavedQueryPage(): void {
+  if (this.savedQueryPage > 1) {
+    this.savedQueryPage--;
+    this.updateSavedQueryPagination();
+  }
+}
+
+get savedQueryTotalPages(): number {
+  return Math.ceil((this.savedQueriesFiltered?.length || 0) / this.savedQueryPageSize) || 1;
 }
 
 /* LOAD JOB ROLES=========== */
@@ -2506,6 +2599,8 @@ openQueryModal(mode: 'create' | 'update', query?: any) {
   this.isSavedQuery=false
   this.isCustomQueryForm = false;
   this.roleSearchText = '';
+  this.isQueryValidated = false;
+  this.isValidatingQuery = false;
   this.loadJobRoles();
 
   if (mode === 'update' && query) {
@@ -2542,6 +2637,8 @@ closeQueryModal() {
   };
   this.isCustomQueryForm = true;
   this.roleSearchText = '';
+  this.isQueryValidated = false;
+  this.isValidatingQuery = false;
   if(this.modalMode == 'create'){
     this.showCustomQuery();
   }else{ 
@@ -2647,26 +2744,50 @@ saveQueryUI(template: TemplateRef<any>) {
     });
 }
 
-async validateQuery(template: TemplateRef<any>): Promise<boolean> {
-  const queryObj = new Query();
-  queryObj.customQuery = this.selectedQuery;
+validateQuery(template: TemplateRef<any>): void {
+  const raw = (this.queryForm?.queryText || '').toString();
+  const sql = raw.trim().replace(/\s{2,}/g, ' ');
 
-  try {
-    const response: any = await this.utilityService.getCustomQueryData(queryObj)
-      .pipe(first())
-      .toPromise();
-
-    if (response.serviceStatus === "Success") {
-      return true;
-    } else {
-      this.alertMessage = response.serviceResponse;
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-  } catch (error) {
-    alert('Something went wrong while Updating query : '+error);
-    return false;
+  if (!sql) {
+    this.alertMessage = 'Please enter a query to validate.';
+    this.openAlertMod(template, this.alertMessage);
+    return;
   }
+
+  if (!sql.toLowerCase().startsWith('select')) {
+    this.alertMessage = 'Query validation failed. Only SELECT queries are allowed.';
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+
+  this.isValidatingQuery = true;
+  this.isQueryValidated = false;
+
+  const queryObj = new Query();
+  queryObj.customQuery = sql;
+
+  this.utilityService.getCustomQueryData(queryObj).pipe(first()).subscribe({
+    next: (response: any) => {
+      this.isValidatingQuery = false;
+
+      if (response?.serviceStatus === 'Success') {
+        this.isQueryValidated = true;
+        this.alertMessage = 'Query validated successfully. You can now click Update.';
+        this.openAlertMod(template, this.alertMessage);
+        return;
+      }
+
+      this.alertMessage =
+        'Query validation failed. Please check the SQL syntax and ensure the query returns data.';
+      this.openAlertMod(template, this.alertMessage);
+    },
+    error: () => {
+      this.isValidatingQuery = false;
+      this.alertMessage =
+        'Query validation failed due to a system error. Please try again.';
+      this.openAlertMod(template, this.alertMessage);
+    }
+  });
 }
 
 /* UPDATE QUERY */
@@ -2675,7 +2796,9 @@ updateQueryUI(template: TemplateRef<any>) {
   if (!this.selectedQuery?.queryId) return;
   if (!this.validateQueryForm()) return;
 
-  if(!this.validateQuery){
+  if (!this.isQueryValidated) {
+    this.alertMessage = 'Please validate the query first, then click Update.';
+    this.openAlertMod(template, this.alertMessage);
     return;
   }
 
@@ -2855,6 +2978,8 @@ get filteredGroupedRoles() {
 getCustomQueryData(template: TemplateRef<any>) {
 
   this.customQuery = this.customQuery?.trim().replace(/\s{2,}/g, ' ');
+  // Always clear previous results before re-testing.
+  this.resetCustomQueryPreview();
 
   if (!this.customQuery.toLowerCase().startsWith('select')) {
     this.alertMessage = "Only SELECT queries are allowed";
@@ -2883,6 +3008,7 @@ getCustomQueryData(template: TemplateRef<any>) {
         if (response.serviceStatus !== "Success") {
           this.alertMessage = response.serviceResponse;
           this.openAlertMod(template, this.alertMessage);
+          this.resetCustomQueryPreview();
           return;
         }
 
@@ -2891,6 +3017,7 @@ getCustomQueryData(template: TemplateRef<any>) {
         if (!data || data.length === 0) {
           this.alertMessage = "No data available, please verify query.";
           this.openAlertMod(template, this.alertMessage);
+          this.resetCustomQueryPreview();
           return;
         }
 
@@ -2920,6 +3047,7 @@ getCustomQueryData(template: TemplateRef<any>) {
         this.isSaveEnable = true;
       },error: () => {
         this.isLoading = false;
+        this.resetCustomQueryPreview();
       }
     });
 }

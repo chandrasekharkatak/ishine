@@ -2094,20 +2094,45 @@
             No saved queries
           </div>
 
+          <div class="saved-query-toolbar" *ngIf="savedQueries.length > 0">
+            <div class="saved-query-toolbar__left">
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Search saved queries..."
+                [(ngModel)]="savedQuerySearchText"
+                (ngModelChange)="onSavedQuerySearchChange()">
+              <div class="saved-query-toolbar__hint">
+                Showing {{ savedQueriesFiltered?.length || 0 }} of {{ savedQueries?.length || 0 }}
+              </div>
+            </div>
+
+            <div class="saved-query-toolbar__right">
+              <label class="mb-0 small">Rows:</label>
+              <select
+                class="form-control form-control-sm w-auto"
+                [(ngModel)]="savedQueryPageSize"
+                (change)="changeSavedQueryPageSize(savedQueryPageSize)">
+                <option *ngFor="let size of savedQueryPageSizeOptions" [ngValue]="size">{{ size }}</option>
+                <option [ngValue]="-1">All</option>
+              </select>
+            </div>
+          </div>
+
           <div class="table-container">
-            <table class="table" matSort (matSortChange)="onSort($event)">
+            <table class="table">
               <thead class="thead-light">
                 <tr>
-                  <th>ID</th>
+                  <th>Sr No</th>
                   <th>Query Name</th>
                   <th>Description</th>
                   <th class="text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let q of savedQueries">
+                <tr *ngFor="let q of savedQueriesPaginated; let i = index">
                   <td class="clickable fixed-cell">
-                    {{ q.queryId }}
+                    {{ ((savedQueryPage - 1) * savedQueryPageSize) + i + 1 }}
                   </td>
                   <td class="clickable fixed-cell">
                     {{ q.queryName }}
@@ -2134,6 +2159,20 @@
             </table>
           </div>
 
+          <div class="saved-query-pagination" *ngIf="(savedQueriesFiltered?.length || 0) > 0">
+            <button class="btn btn-sm btn-outline-primary"
+              (click)="prevSavedQueryPage()" [disabled]="savedQueryPage === 1">
+              <i class="fas fa-angle-double-left"></i>
+            </button>
+            <span class="mx-2 small">
+              {{ savedQueryPage }} of {{ savedQueryTotalPages }}
+            </span>
+            <button class="btn btn-sm btn-outline-primary"
+              (click)="nextSavedQueryPage()" [disabled]="savedQueryPage === savedQueryTotalPages">
+              <i class="fas fa-angle-double-right"></i>
+            </button>
+          </div>
+
           <!-- <div class="query-item d-flex justify-content-between align-items-center" *ngFor="let q of savedQueries"
               (click)="selectQuery(q)">
             
@@ -2154,6 +2193,7 @@
                 <textarea
                   class="query-box w-100"
                   [(ngModel)]="customQuery"
+                  (ngModelChange)="onCustomQueryTextChange()"
                   placeholder="Write your SQL query here..."></textarea>
 
                 <div class="custom-query-actions">
@@ -2167,7 +2207,7 @@
 
                   <button
                     class="btn btn-outline-primary btn-sm"
-                    *ngIf="isSaveEnable"
+                    *ngIf="userMapping.custom_query_save && isSaveEnable"
                     [disabled]="!customQuery"
                     (click)="openQueryModal('create')">
                     Save Query
@@ -2333,7 +2373,9 @@
               </label>
               <textarea rows="4"
                 [(ngModel)]="queryForm.queryText"
-                class="form-control">
+                (ngModelChange)="onQueryTextChange()"
+                class="form-control"
+                [disabled]="modalMode === 'create'">
               </textarea>
             </div>
           </div>
@@ -2452,7 +2494,15 @@
           </button>
 
           <button *ngIf="modalMode === 'update'"
+            class="btn btn-outline-primary btn-sm mx-1"
+            [disabled]="!queryForm.queryText || isValidatingQuery"
+            (click)="validateQuery(alert_message)">
+            {{ isValidatingQuery ? 'Validating...' : (isQueryValidated ? 'Validated' : 'Validate Query') }}
+          </button>
+
+          <button *ngIf="modalMode === 'update'"
             class="btn btn-primary btn-sm mx-1"
+            [disabled]="!isQueryValidated"
             (click)="updateQueryUI(alert_message)">
             Update
           </button>
