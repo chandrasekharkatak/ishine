@@ -22,6 +22,13 @@ export class LeaveService {
   updateLeaveStatus(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/updateLeaveStatus`, leaveObj);
   }
+
+  updateLeaveStatusNew(leaveObj: Leave) {
+  return this.http.post(
+    `${this.baseUrl}api/rejectLeaveWithReasons`,
+    leaveObj
+  );
+}
  
   getAllMyLeaveApplicationsByEmpId(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/getAllMyLeaveApplicationsByEmpId`, leaveObj);
@@ -244,6 +251,10 @@ export class LeaveService {
   bulkRejectLeaveRequest(leaveObj: Leave){
     return this.http.post(`${this.baseUrl}`+ `api/bulkRejectLeaveRequest`, leaveObj);
   }
+
+  bulkRejectLeaveRequestNew(leaveObj: Leave){
+    return this.http.post(`${this.baseUrl}`+ `api/bulkRejectLeaveRequestNew`, leaveObj);
+  }
 // bulkCompOffReject
 bulkCompOffReject(compOff: Leave){
   return this.http.post(`${this.baseUrl}`+ `api/bulkCompOffReject`, compOff);
@@ -321,6 +332,12 @@ getLeaveTrendAnalysis(request: any): Observable<any> {
 
 getEmpIdToExcludeIncludeFromLeave(payload:any) {
   return this.http.post(`${this.baseUrl}api/getEmpIdToExcludeIncludeFromLeave`, payload);
+}
+
+getLeaveRejectionReasons() {
+  return this.http.get(
+    `${this.baseUrl}api/leave-rejection-reasons`
+  );
 }
 
 }

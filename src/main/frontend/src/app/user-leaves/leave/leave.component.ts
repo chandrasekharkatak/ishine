@@ -44,6 +44,7 @@ export class LeaveComponent implements OnInit {
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType: any;
+  leaveRejectionReasonList: any[] = [];
 
   //flags
   isCreation: boolean = false;
@@ -216,6 +217,7 @@ export class LeaveComponent implements OnInit {
     // this.dateToday = this.datePipe.transform(this.dateToday,'dd-MM-yyyy');
     this.preventBackButton();
     this.onGetEmployeeInfo();
+    this.getLeaveRejectionReasons();
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -2483,6 +2485,19 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
 
     this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
   }
+
+  getLeaveRejectionReasons() {
+  this.leaveService.getLeaveRejectionReasons()
+    .subscribe({
+      next: (response: any) => {
+        this.leaveRejectionReasonList = response;
+        console.log('Rejection Reasons:', this.leaveRejectionReasonList);
+      },
+      error: (error: any) => {
+        console.error(error);
+      }
+    });
+}
 
 
 }

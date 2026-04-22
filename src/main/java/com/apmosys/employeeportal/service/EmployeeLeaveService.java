@@ -87,6 +87,9 @@ public class EmployeeLeaveService {
 
 	@Autowired
 	private UpdatePendingLeaveValidator updatePendingLeaveValidator;
+	
+	@Autowired 
+	private LeaveRejectionDetailRepository leaveRejectionDetailRepository;
 
 	@Autowired
 	private DeletePendingLeaveValidator deletePendingLeaveValidator;
@@ -984,6 +987,102 @@ public class EmployeeLeaveService {
             }
         // }
     }
+    
+    public ServiceResponse rejectLeaveWithReasons(LeaveDTO leaveDTO) {
+
+        // Reuse old logic
+        leaveDTO.setLeaveStatusId((short) 3);
+
+        ServiceResponse response = updateLeaveStatus(leaveDTO);
+
+        // If old rejection successful, save new details
+        if (ServiceResponse.STATUS_SUCCESS.equals(response.getServiceStatus())) {
+
+            saveLeaveRejectionDetails(leaveDTO);
+        }
+
+        return response;
+    }
+
+    @Transactional
+    public ServiceResponse bulkRejectLeaveRequestNew(LeaveDTO leaveDTO) {
+
+        ServiceResponse response = new ServiceResponse();
+
+        try {
+
+            for (LeaveDTO leave : leaveDTO.getBulkLeaveRejectList()) {
+
+                leave.setLeaveStatusId((short) 3);
+                leave.setLeaveStatusUpdatedBy(
+                        leaveDTO.getLeaveStatusUpdatedBy());
+                leave.setRejectReason(
+                        leaveDTO.getRejectReason());
+
+                // Pass selected reasons
+                leave.setRejectionIds(
+                        leaveDTO.getRejectionIds());
+
+                // Existing rejection logic
+                response = updateLeaveStatus(leave);
+
+                // New table insert
+                if (ServiceResponse.STATUS_SUCCESS
+                        .equals(response.getServiceStatus())) {
+
+                    saveLeaveRejectionDetails(leave);
+                }
+            }
+
+            response.setServiceStatus(
+                    ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(
+                    "All Selected Leaves Rejected Successfully");
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            response.setServiceStatus(
+                    ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse(
+                    "Something Went Wrong.");
+            response.setServiceError(e.getMessage());
+        }
+
+        return response;
+    }
+
+    	private void saveLeaveRejectionDetails(LeaveDTO leaveDTO) {
+
+    		if (leaveDTO.getRejectionIds() == null ||
+    			leaveDTO.getRejectionIds().isEmpty()) {
+    			return;
+    		}
+
+    		leaveRejectionDetailRepository
+    			.deactivateByLeaveId(leaveDTO.getLeaveId());
+    		 LocalDateTime now = LocalDateTime.now();
+    			List<LeaveRejectionDetail> details = new ArrayList<>();
+
+    		for (Long rejectionId : leaveDTO.getRejectionIds()) {
+
+    			LeaveRejectionDetail detail =
+    					new LeaveRejectionDetail();
+
+    			detail.setLeaveId(leaveDTO.getLeaveId());
+    			detail.setRejectionId(rejectionId);
+    			detail.setRemarks(leaveDTO.getRejectReason());
+    			detail.setRejectedBy(
+    					leaveDTO.getLeaveStatusUpdatedBy());
+    			detail.setRejectedOn(now);
+    			detail.setIsActive(true);
+
+    			details.add(detail);
+    		}
+    		leaveRejectionDetailRepository.saveAll(details);
+    	}
+
 
 	private void linkSingleCompOff(EmployeeLeave savedLeave) {
 

@@ -1331,7 +1331,7 @@
         </div>
     </ng-template>
 
-    <ng-template #bulk_reject_leave>
+    <!-- <ng-template #bulk_reject_leave>
         <div class="modal-body text-center">
             <p>Kindly provide reason(s) for rejecting application.</p>
             <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
@@ -1343,7 +1343,96 @@
                 (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">No,
                 Cancel</button>&nbsp;
         </div>
-    </ng-template>
+    </ng-template> -->
+    <ng-template #bulk_reject_leave>
+  <div class="reject-modal-shell">
+
+    <!-- Header -->
+    <div class="reject-modal-header">
+      <div class="reject-header-left">
+        <div class="reject-header-icon">
+          <i class="fa-solid fa-ban"></i>
+        </div>
+
+        <div>
+          <h5 class="reject-modal-title mb-1">Bulk Reject Leave</h5>
+          <p class="reject-modal-subtitle mb-0">
+            Reject selected leave requests with one or more reasons.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="reject-modal-body">
+
+      <div class="reject-info-banner">
+        <i class="bi bi-info-circle me-2"></i>
+        Selected reasons will be applied to all chosen leave requests.
+      </div>
+
+      <div class="row g-4">
+
+        <!-- Multi Select Reasons -->
+        <div class="col-12">
+          <label class="reject-field-label">
+            <span class="required-mark">*</span> Reject Reason(s)
+          </label>
+
+          <app-my-select
+            class="form-control modern-my-select"
+            placeholder="Choose rejection reason(s)"
+            [(ngModel)]="selectedRejectionIds"
+            [options]="leaveRejectionReasonList"
+            displayKey="reason"
+            valueKey="rejectionReasonId"
+            [multiple]="true"
+            (ngModelChange)="onRejectionReasonChange()">
+          </app-my-select>
+        </div>
+
+        <!-- Remarks -->
+        <div class="col-12">
+          <label class="reject-field-label">
+            <span class="required-mark">*</span>
+            Remarks
+          </label>
+
+          <textarea
+            rows="4"
+            class="form-control reject-remark-box"
+            placeholder="Enter remarks"
+            [(ngModel)]="leaveObj.rejectReason">
+          </textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="reject-modal-footer">
+
+      <button
+        type="button"
+        class="btn reject-cancel-btn"
+        (click)="cancelRequest();
+                 openReqMod(LeaveReq);
+                 getAllMyTeamsPendingLeaveApplicationsByManagerId()">
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="btn reject-submit-btn"
+        [disabled]="isRejectDisabled()"
+        (click)="cancelRequest(); bulkRejectLeaveNew(leave_reject)">
+        <i class="bi bi-x-lg me-2"></i>
+        Reject Selected
+      </button>
+
+    </div>
+  </div>
+</ng-template>
 
     <ng-template #bulk_comp_off_reject>
         <div class="modal-body text-center">
@@ -1401,7 +1490,7 @@
     </ng-template>
 
     <!-- for single rection modal -->
-    <ng-template #reject_leave_modal>
+    <!-- <ng-template #reject_leave_modal>
         <div class="modal-body text-center">
             <p>Kindly provide reason(s) for rejecting application.</p>
             <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
@@ -1412,7 +1501,94 @@
             <button type="button" class="btn btn-danger"
                 (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
         </div>
-    </ng-template>
+    </ng-template> -->
+    <ng-template #reject_leave_modal>
+  <div class="reject-modal-shell">
+
+    <!-- Header -->
+    <div class="reject-modal-header">
+      <div class="reject-header-left">
+        <div class="reject-header-icon">
+          <i class="fa-solid fa-ban"></i>
+        </div>
+
+        <div>
+          <h5 class="reject-modal-title mb-1">Reject Leave</h5>
+          <p class="reject-modal-subtitle mb-0">
+            Select one or more rejection reasons before submitting.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="reject-modal-body">
+
+      <div class="reject-info-banner">
+        <i class="bi bi-info-circle me-2"></i>
+        Select applicable reason(s).
+      </div>
+
+      <div class="row g-4">
+
+        <!-- Reasons -->
+        <div class="col-12">
+          <label class="reject-field-label">
+            <span class="required-mark">*</span> Reject Reason(s)
+          </label>
+
+          <app-my-select
+            class="form-control modern-my-select"
+            placeholder="Choose rejection reason(s)"
+            [(ngModel)]="selectedRejectionIds"
+            [options]="leaveRejectionReasonList"
+            displayKey="reason"
+            valueKey="rejectionReasonId"
+            [multiple]="true"
+            (ngModelChange)="onRejectionReasonChange()">
+          </app-my-select>
+        </div>
+
+        <!-- Remarks -->
+        <div class="col-12">
+          <label class="reject-field-label">
+            <span class="required-mark">*</span>
+            Remarks
+          </label>
+
+          <textarea
+            rows="4"
+            class="form-control reject-remark-box"
+            placeholder="Enter remarks"
+            [(ngModel)]="leaveObj.rejectReason">
+          </textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="reject-modal-footer">
+
+      <button
+        type="button"
+        class="btn reject-cancel-btn"
+        (click)="cancelRequest(); getAllMyTeamsPendingLeaveApplicationsByManagerId()">
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="btn reject-submit-btn"
+        [disabled]="isRejectDisabled()"
+        (click)="cancelRequest(); onSingleRejectNew(leave_success)">
+        <i class="bi bi-x-lg me-2"></i>
+        Reject Leave
+      </button>
+
+    </div>
+  </div>
+</ng-template>
 
     <ng-template #change_password>
         <div class="modal-body text-center">
