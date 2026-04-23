@@ -7,6 +7,7 @@ import * as moment from 'moment';
 import { AppComponent } from '../app.component';
 import { SortPipe } from '../sort.pipe';
 import { of } from 'rxjs/internal/observable/of';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -200,4 +201,21 @@ export class UtilityService {
   getAllEmployeesFor360Viewnew(empId:any) {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesFor360View/`+empId);
   }
+
+  getQueriesByEmployeeID(employeeID:any) {
+    return this.http.get(`${this.baseUrl}` + `api/query/getByEmpID/`+employeeID);
+  }
+
+  saveQuery(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/query/create`,payload);
+  }
+
+  updateQuery(queryID:any, payload: any): Observable<any> {
+    return this.http.put(`${this.baseUrl}` + `api/query/update/`+queryID,payload);
+  }
+
+  getJobRoles(): Observable<any> {
+    return this.http.get(`${this.baseUrl}` + `api/getAllJobRole`);
+  }
+
 }

@@ -1640,6 +1640,11 @@ onSearchClientProject(searchData: any) {
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
     this.isLeaveTimesheetReportTable = false;
+    this.closeQueryModal();
+    this.loadQueriesByRole();
+    this.isSavedQuery = true;
+    this.showSavedQuery();
+    this.isSaveEnable = false;
   }
 
   showDefaultMappingTable() {
@@ -2377,45 +2382,793 @@ onSearchClientProject(searchData: any) {
   }
 
 
-  getCustomQueryData(template: TemplateRef<any>) {
-    this.customQuery = this.customQuery?.trim().replace(/\s{2,}/g, ' ');
-    if (!this.validationService.validateNullUndefinedEmptyString(this.customQuery)) {
-      this.alertMessage = "Please enter custom query !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+/* Custom Query VARIABLES */
+isSaveEnable = false; //for sidebar open close
+savedQueries: any[] = [];
+isSavedQuery = false;
+isCustomQuery = false;
+modalMode: 'create' | 'update' = 'create';
+selectedQuery: any = null;
 
-    let queryObj = new Query();
-    queryObj.customQuery = this.customQuery;
+jobRoles: any[] = []; // from API
+currentPage = 1;
+pageSize = 10;
+pageSizeOptions: number[] = [10, 20, 30, 50, 100];
+tableData: any[] = [];
+filteredData: any[] = [];
+showPreview: boolean = false;
+filterText: string = '';
+columnFilters: any = {};
+previewData: any[] = [];
+isLoading = false;
+duplicateError = '';
+groupedRoles: any[] = [];
+selectedRoleIds: number[] = [];
+roleSearchText: string = '';
+expandedEmpRoles: Set<string> = new Set();
+expandedDepts: Set<string> = new Set();
+// When true, we hide the editor once results are shown (used for "Run Query" from saved queries list).
+hideCustomQueryEditorOnPreview = false;
 
-    this.utilityService.getCustomQueryData(queryObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        let responseData = response.serviceResponse;
+// Saved Queries table: search + pagination (independent from results pagination)
+savedQuerySearchText = '';
+savedQueryPage = 1;
+savedQueryPageSize = 10;
+savedQueryPageSizeOptions: number[] = [5, 10, 20, 30, 50, 100];
+savedQueriesFiltered: any[] = [];
+savedQueriesPaginated: any[] = [];
 
-        if (responseData) {
-          let exportData = responseData.map((dataArr) => {
-            let dataObj = {};
-            dataArr.forEach((data, index) => {
-              dataObj[index] = data;
-            });
+clearSelectedRoles(): void {
+  this.selectedRoleIds = [];
+}
 
-            return dataObj
-          });
+private resetCustomQueryPreview(): void {
+  this.showPreview = false;
+  this.isSaveEnable = false;
+  this.columns = [];
+  this.tableData = [];
+  this.previewData = [];
+  this.filteredData = [];
+  this.paginateData = [];
+}
 
-          const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData, { skipHeader: true });
-          const book: XLSX.WorkBook = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
-          XLSX.writeFile(book, "CustomQueryData.xlsx");
+onCustomQueryTextChange(): void {
+  // If user edits query after a successful test, hide previous results and disable Save.
+  this.resetCustomQueryPreview();
+}
+
+// Query validation state (Update Query screen)
+isQueryValidated = false;
+isValidatingQuery = false;
+
+onQueryTextChange(): void {
+  this.isQueryValidated = false;
+}
+//for create query modules
+showQueryModal = false;
+queryForm: any = {
+  queryName: '',
+  queryText: '',
+  description: '',
+  selectedRoles: []
+};
+// UI-only saved queries (NO API)
+
+
+showCustomQuery(){
+  this.isSavedQuery = false;
+  this.isCustomQuery = true;
+  this.showQueryModal = false;
+  this.showPreview = false;
+  this.hideCustomQueryEditorOnPreview = false;
+  this.roleSearchText = '';
+}
+
+showSavedQuery(){
+  this.isCustomQuery=false;
+  this.isSavedQuery = true;
+  this.showQueryModal = false;
+  this.showPreview = false;
+  this.hideCustomQueryEditorOnPreview = false;
+  this.roleSearchText = '';
+  this.customQuery = '';
+  this.savedQuerySearchText = '';
+  this.savedQueryPage = 1;
+  this.loadQueriesByRole();
+}
+
+/* SELECT QUERY */
+selectQuery(q: any) {
+  this.customQuery = q?.querySql;
+
+  // Switch UI to query editor + results area (otherwise the screen becomes blank).
+  this.showCustomQuery();
+  // For saved query execution, show results-only view after load.
+  this.hideCustomQueryEditorOnPreview = true;
+
+  if (this.customQuery != '') {
+    // Use the actual alert template ref.
+    this.getCustomQueryData(this.alertModal);
+  }
+  this.isSavedQuery = false;
+}
+
+/* LOAD SAVED QUERIES BY ROLE ===== */
+loadQueriesByRole() {
+  const employeeID = this.currentUser.empId;
+  this.utilityService.getQueriesByEmployeeID(employeeID)
+    .pipe(first())
+    .subscribe({
+      next: (res: any) => {
+
+        if (res.status === 200) {
+          this.savedQueries = res.data || [];
         } else {
-          this.alertMessage = "Please Enter Valid Query !!";
-          this.openAlertMod(template, this.alertMessage);
+          this.savedQueries = [];
         }
-
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
+        this.applySavedQueryFilters();
+      },
+      error: (err) => {
+        console.error('Error loading queries', err);
+        this.savedQueries = [];
+        this.applySavedQueryFilters();
       }
     });
+}
+
+onSavedQuerySearchChange(): void {
+  this.savedQueryPage = 1;
+  this.applySavedQueryFilters();
+}
+
+applySavedQueryFilters(): void {
+  const text = (this.savedQuerySearchText || '').trim().toLowerCase();
+  const base = Array.isArray(this.savedQueries) ? this.savedQueries : [];
+
+  if (!text) {
+    this.savedQueriesFiltered = [...base];
+  } else {
+    this.savedQueriesFiltered = base.filter(q => {
+      const name = (q?.queryName || '').toString().toLowerCase();
+      const desc = (q?.description || '').toString().toLowerCase();
+      const sql = (q?.querySql || '').toString().toLowerCase();
+      return name.includes(text) || desc.includes(text) || sql.includes(text);
+    });
   }
+
+  this.updateSavedQueryPagination();
+}
+
+changeSavedQueryPageSize(size: number): void {
+  if (size === -1) {
+    this.savedQueryPageSize = this.savedQueriesFiltered.length || 1;
+  } else {
+    this.savedQueryPageSize = size;
+  }
+  this.savedQueryPage = 1;
+  this.updateSavedQueryPagination();
+}
+
+updateSavedQueryPagination(): void {
+  const start = (this.savedQueryPage - 1) * this.savedQueryPageSize;
+  const end = start + this.savedQueryPageSize;
+  this.savedQueriesPaginated = (this.savedQueriesFiltered || []).slice(start, end);
+}
+
+nextSavedQueryPage(): void {
+  if (this.savedQueryPage < this.savedQueryTotalPages) {
+    this.savedQueryPage++;
+    this.updateSavedQueryPagination();
+  }
+}
+
+prevSavedQueryPage(): void {
+  if (this.savedQueryPage > 1) {
+    this.savedQueryPage--;
+    this.updateSavedQueryPagination();
+  }
+}
+
+get savedQueryTotalPages(): number {
+  return Math.ceil((this.savedQueriesFiltered?.length || 0) / this.savedQueryPageSize) || 1;
+}
+
+/* LOAD JOB ROLES=========== */
+loadJobRoles() {
+  this.utilityService.getJobRoles()
+    .pipe(first()).subscribe({
+      next: (res: any) => {
+        if (res.serviceStatus === 'Success') {
+          this.jobRoles = res.serviceResponse || [];
+          this.groupRoles(this.jobRoles);
+        }
+      },
+      error: (err) => {
+        console.error('Error loading roles', err);
+      }
+    });
+}
+
+
+/* OPEN MODAL (CREATE / UPDATE)======== */
+openQueryModal(mode: 'create' | 'update', query?: any) {
+  this.modalMode = mode;
+  this.showQueryModal = true;
+  this.showPreview = false;
+  this.isCustomQuery=false;
+  this.isSavedQuery=false
+  this.isCustomQueryForm = false;
+  this.roleSearchText = '';
+  this.isQueryValidated = false;
+  this.isValidatingQuery = false;
+  this.loadJobRoles();
+
+  if (mode === 'update' && query) {
+    this.selectedQuery = query;
+    // map form fields
+    this.queryForm = {
+      queryName: query.queryName,
+      queryText: query.querySql,
+      description: query.description
+    };
+
+    // IMPORTANT: normalize roles here
+    this.selectedRoleIds = (query.roleIds || []).map((id: any) => Number(id));
+  }else {
+
+    this.queryForm = {
+      queryName: '',
+      queryText: this.customQuery || '',
+      description: ''
+    };
+    this.selectedRoleIds = [];
+  }
+}
+
+
+/* CLOSE MODAL */
+closeQueryModal() {
+  this.showQueryModal = false;
+  this.queryForm = {
+    queryName: '',
+    queryText: '',
+    description: '',
+    selectedRoles: []
+  };
+  this.isCustomQueryForm = true;
+  this.roleSearchText = '';
+  this.isQueryValidated = false;
+  this.isValidatingQuery = false;
+  if(this.modalMode == 'create'){
+    this.showCustomQuery();
+  }else{ 
+    this.showSavedQuery();
+  }
+  this.selectedQuery = null;
+  this.isSaveEnable = false;
+}
+
+validateQueryForm(): boolean {
+  // Query Name
+  if (!this.queryForm.queryName || !this.queryForm.queryName.trim()) {
+    this.duplicateError = 'Query Name is required';
+    return false;
+  }
+  // Query Text
+  if (!this.queryForm.queryText || !this.queryForm.queryText.trim()) {
+    this.duplicateError = 'Query is required';
+    return false;
+  }
+  // Roles
+  if (!this.selectedRoleIds || this.selectedRoleIds.length === 0) {
+    this.duplicateError = 'role is mandatory field';
+    return false;
+  }
+
+  this.duplicateError = '';
+  return true;
+}
+
+/* SAVE QUERY (CREATE) */
+saveQueryUI(template: TemplateRef<any>) {
+  //validate the queryFormData
+  if (!this.validateQueryForm()) return;
+  if (!this.queryForm.queryName || !this.queryForm.queryText) {
+    this.alertMessage("query name and querysql is mandatory.");
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+
+  const newName = this.queryForm.queryName?.trim().toLowerCase();
+  const newQuery = this.queryForm.queryText?.trim().toLowerCase();
+
+  const nameExists = this.savedQueries.some(q =>
+    (q.queryName || '').trim().toLowerCase() === newName
+  );
+  const sqlExists = this.savedQueries.some(q =>
+    (q.querySql || q.queryText || '').trim().toLowerCase() === newQuery
+  );
+  if (nameExists && sqlExists) {
+    this.alertMessage = "Query already exists with same name and same SQL";
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+  if (nameExists) {
+    this.alertMessage = "Query name : "+this.queryForm.queryName+" already exists";
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+  if (sqlExists) {
+    this.alertMessage = "Query SQL of : "+this.queryForm.queryName+" already exists";
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+
+  // const roleIds = (this.queryForm.selectedRoles || [])
+  // .map(r => r.jobRoleId)
+  // .filter(id => id !== undefined && id !== null);
+  const roleIds = this.selectedRoleIds || [];
+
+  const payload = {
+    query: {
+      queryName: this.queryForm.queryName,
+      querySql: this.queryForm.queryText,  
+      description: this.queryForm.description,
+      status: 1,
+      createdBy: this.currentUser.empId
+    },
+    roleIds: roleIds                        
+  };
+
+  this.utilityService.saveQuery(payload)
+    .pipe(first())
+    .subscribe({
+      next: (res: any) => {
+
+        if (res.status === 200) {
+          this.alertMessage = this.queryForm.queryName+" Query Saved Successfully.";
+          this.loadQueriesByRole();
+          this.closeQueryModal();
+          this.openAlertMod(template, this.alertMessage);
+        } else {
+          this.duplicateError = res.message;
+          this.alertMessage = "Unable to save "+this.queryForm.queryName + " : " + res.message;
+          this.openAlertMod(template, this.alertMessage);
+        }
+      },
+      error: (err) => {
+        console.error('Save error', err);
+        this.alertMessage = "Unable to save Query  "+this.queryForm.queryName+" : "+err;
+        this.openAlertMod(template, this.alertMessage);
+      }
+    });
+}
+
+validateQuery(template: TemplateRef<any>): void {
+  const raw = (this.queryForm?.queryText || '').toString();
+  const sql = raw.trim().replace(/\s{2,}/g, ' ');
+
+  if (!sql) {
+    this.alertMessage = 'Please enter a query to validate.';
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+
+  if (!sql.toLowerCase().startsWith('select')) {
+    this.alertMessage = 'Query validation failed. Only SELECT queries are allowed.';
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+
+  this.isValidatingQuery = true;
+  this.isQueryValidated = false;
+
+  const queryObj = new Query();
+  queryObj.customQuery = sql;
+
+  this.utilityService.getCustomQueryData(queryObj).pipe(first()).subscribe({
+    next: (response: any) => {
+      this.isValidatingQuery = false;
+
+      if (response?.serviceStatus === 'Success') {
+        this.isQueryValidated = true;
+        this.alertMessage = 'Query validated successfully. You can now click Update.';
+        this.openAlertMod(template, this.alertMessage);
+        return;
+      }
+
+      this.alertMessage =
+        'Query validation failed. Please check the SQL syntax and ensure the query returns data.';
+      this.openAlertMod(template, this.alertMessage);
+    },
+    error: () => {
+      this.isValidatingQuery = false;
+      this.alertMessage =
+        'Query validation failed due to a system error. Please try again.';
+      this.openAlertMod(template, this.alertMessage);
+    }
+  });
+}
+
+/* UPDATE QUERY */
+updateQueryUI(template: TemplateRef<any>) {
+
+  if (!this.selectedQuery?.queryId) return;
+  if (!this.validateQueryForm()) return;
+
+  if (!this.isQueryValidated) {
+    this.alertMessage = 'Please validate the query first, then click Update.';
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+
+  const roleIds = this.selectedRoleIds || [];
+
+  const payload = {
+    query: {
+      queryId: this.selectedQuery.queryId,
+      queryName: this.queryForm.queryName,
+      querySql: this.queryForm.queryText,
+      description: this.queryForm.description,
+      status: 1,
+      createdBy: this.currentUser.empId
+    },
+    roleIds: roleIds
+  };
+
+  console.log('UPDATE PAYLOAD:', payload); 
+
+  this.utilityService.updateQuery(this.selectedQuery.queryId, payload)
+    .pipe(first())
+    .subscribe({
+      next: (res: any) => {
+        if (res.status === 200) {
+          this.loadQueriesByRole();
+          this.closeQueryModal();
+          this.alertMessage = res.message;
+          this.openAlertMod(template, this.alertMessage);
+        } else {
+          this.duplicateError = res.message;
+          this.alertMessage = res.message;
+          this.openAlertMod(template, this.alertMessage);
+        }
+      },error: (err) => {
+        console.error('Update error', err);
+        this.alertMessage = "Unable to Update Query : "+err;
+        this.openAlertMod(template, this.alertMessage);
+      }
+    });
+}
+
+// Group Roles based on departments and there heads 
+groupRoles(data: any[]) {
+
+  const map = new Map();
+
+  data.forEach(role => {
+    const empRole = role.employeeRole || 'Others';
+    const dept = role.departmentName || 'No Department';
+
+    if (!map.has(empRole)) {
+      map.set(empRole, new Map());
+    }
+
+    const deptMap = map.get(empRole);
+
+    if (!deptMap.has(dept)) {
+      deptMap.set(dept, []);
+    }
+
+    deptMap.get(dept).push(role);
+  });
+
+  this.groupedRoles = Array.from(map.entries()).map(([employeeRole, departments]) => ({
+    employeeRole,
+    departments: Array.from(departments.entries()).map(([departmentName, roles]) => ({
+      departmentName,
+      roles
+    }))
+  }));
+}
+
+toggleEmpRole(emp: any) {
+  if (this.expandedEmpRoles.has(emp.employeeRole)) {
+    this.expandedEmpRoles.delete(emp.employeeRole);
+  } else {
+    this.expandedEmpRoles.add(emp.employeeRole);
+  }
+}
+
+isDeptAllSelected(dept: any): boolean {
+  return dept.roles.every((r: any) =>
+    this.selectedRoleIds.includes(r.jobRoleId)
+  );
+}
+
+isEmpAllSelected(emp: any): boolean {
+  return emp.departments.every((d: any) =>
+    d.roles.every((r: any) =>
+      this.selectedRoleIds.includes(r.jobRoleId)
+    )
+  );
+}
+
+toggleDept(dept: any) {
+  const allSelected = this.isDeptAllSelected(dept);
+
+  dept.roles.forEach((role: any) => {
+    if (allSelected) {
+      this.selectedRoleIds = this.selectedRoleIds.filter(
+        id => id !== role.jobRoleId
+      );
+    } else {
+      if (!this.selectedRoleIds.includes(role.jobRoleId)) {
+        this.selectedRoleIds.push(role.jobRoleId);
+      }
+    }
+  });
+}
+
+toggleEmp(emp: any) {
+  const allSelected = this.isEmpAllSelected(emp);
+
+  emp.departments.forEach((dept: any) => {
+    dept.roles.forEach((role: any) => {
+      if (allSelected) {
+        this.selectedRoleIds = this.selectedRoleIds.filter(
+          id => id !== role.jobRoleId
+        );
+      } else {
+        if (!this.selectedRoleIds.includes(role.jobRoleId)) {
+          this.selectedRoleIds.push(role.jobRoleId);
+        }
+      }
+    });
+  });
+}
+
+onRoleToggle(role: any) {
+
+  const index = this.selectedRoleIds.indexOf(role.jobRoleId);
+
+  if (index > -1) {
+    this.selectedRoleIds.splice(index, 1);
+  } else {
+    this.selectedRoleIds.push(role.jobRoleId);
+  }
+}
+
+getSelectedRoleNames(): string {
+
+  return this.jobRoles
+    .filter(r => this.selectedRoleIds.includes(r.jobRoleId))
+    .map(r => r.name)
+    .join(', ');
+}
+
+// ===== SEARCH FILTER =====
+get filteredGroupedRoles() {
+  if (!this.roleSearchText) return this.groupedRoles;
+
+  const search = this.roleSearchText.toLowerCase();
+
+  return this.groupedRoles.map(emp => {
+
+    const departments = emp.departments.map(dept => {
+
+      const roles = dept.roles.filter(r =>
+        r.name.toLowerCase().includes(search)
+      );
+
+      return { ...dept, roles };
+
+    }).filter(d => d.roles.length > 0);
+
+    return {
+      ...emp,
+      open: true, // auto expand when searching
+      departments
+    };
+
+  }).filter(e => e.departments.length > 0);
+}
+
+
+/* Execute and Get Data  */
+getCustomQueryData(template: TemplateRef<any>) {
+
+  this.customQuery = this.customQuery?.trim().replace(/\s{2,}/g, ' ');
+  // Always clear previous results before re-testing.
+  this.resetCustomQueryPreview();
+
+  if (!this.customQuery.toLowerCase().startsWith('select')) {
+    this.alertMessage = "Only SELECT queries are allowed";
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+
+  if (!this.validationService.validateNullUndefinedEmptyString(this.customQuery)) {
+    this.alertMessage = "Please enter custom query !!";
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+
+  this.isLoading = true;
+
+  const queryObj = new Query();
+  queryObj.customQuery = this.customQuery;
+
+  this.utilityService.getCustomQueryData(queryObj)
+    .pipe(first())
+    .subscribe({
+      next: (response: any) => {
+
+        this.isLoading = false;
+
+        if (response.serviceStatus !== "Success") {
+          this.alertMessage = response.serviceResponse;
+          this.openAlertMod(template, this.alertMessage);
+          this.resetCustomQueryPreview();
+          return;
+        }
+
+        const data = response.serviceResponse;
+
+        if (!data || data.length === 0) {
+          this.alertMessage = "No data available, please verify query.";
+          this.openAlertMod(template, this.alertMessage);
+          this.resetCustomQueryPreview();
+          return;
+        }
+
+        const headers: string[] = data[0];
+
+        this.tableData = [];
+        this.previewData = [];
+
+        for (let i = 1; i < data.length; i++) {
+          const row = data[i];
+          const obj: any = {};
+
+          headers.forEach((header, index) => {
+            obj[header] = row[index] ?? null;
+          });
+
+          this.tableData.push(obj);
+          this.previewData.push({ ...obj });
+        }
+
+        this.columns = [...headers];
+        this.filteredData = [...this.tableData];
+        this.currentPage = 1;
+
+        this.updatePagination();
+        this.showPreview = true;
+        this.isSaveEnable = true;
+      },error: () => {
+        this.isLoading = false;
+        this.resetCustomQueryPreview();
+      }
+    });
+}
+
+
+/* PAGINATION */
+changePageSize(size: number) {
+  if (size === -1) {
+    this.pageSize = this.filteredData.length; // ALL
+  } else {
+    this.pageSize = size;
+  }
+  this.currentPage = 1;
+  this.updatePagination();
+}
+updatePagination() {
+  if (!this.filteredData) {
+    this.filteredData = [];
+  }
+  const start = (this.currentPage - 1) * this.pageSize;
+  const end = start + this.pageSize;
+  this.paginateData = this.filteredData.slice(start, end);
+}
+
+nextPage() {
+  if (this.currentPage < this.totalPages) {
+    this.currentPage++;
+    this.updatePagination();
+  }
+}
+
+prevPage() {
+  if (this.currentPage > 1) {
+    this.currentPage--;
+    this.updatePagination();
+  }
+}
+
+get totalPages(): number {
+  return Math.ceil(this.filteredData.length / this.pageSize) || 1;
+}
+/* Export Excel Data */
+downloadPreviewExcel(template : TemplateRef<any>) {
+
+  if (!this.tableData || this.tableData.length === 0) {
+    this.alertMessage('No data to export');
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+  const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.tableData);
+  const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'AllData');
+  XLSX.writeFile(workbook, 'CustomQueryData.xlsx');
+}
+
+/* sort the filtered data as per asc or  */
+onSort(event: any) {
+  const { active, direction } = event;
+  if (!direction) return;
+
+  this.filteredData.sort((a: any, b: any) => {
+    let valA = a[active];
+    let valB = b[active];
+
+    if (valA == null) return -1;
+    if (valB == null) return 1;
+
+    // Handle numbers
+    if (!isNaN(valA) && !isNaN(valB)) {
+      return direction === 'asc' ? valA - valB : valB - valA;
+    }
+
+    // Handle strings
+    return direction === 'asc'
+      ? valA.toString().localeCompare(valB.toString())
+      : valB.toString().localeCompare(valA.toString());
+  });
+
+  this.updatePagination();
+}
+
+
+  // getCustomQueryData(template: TemplateRef<any>) {
+  //   this.customQuery = this.customQuery?.trim().replace(/\s{2,}/g, ' ');
+  //   if (!this.validationService.validateNullUndefinedEmptyString(this.customQuery)) {
+  //     this.alertMessage = "Please enter custom query !!";
+  //     this.openAlertMod(template, this.alertMessage);
+  //     return false;
+  //   }
+
+  //   let queryObj = new Query();
+  //   queryObj.customQuery = this.customQuery;
+
+  //   this.utilityService.getCustomQueryData(queryObj).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       let responseData = response.serviceResponse;
+
+  //       if (responseData) {
+  //         let exportData = responseData.map((dataArr) => {
+  //           let dataObj = {};
+  //           dataArr.forEach((data, index) => {
+  //             dataObj[index] = data;
+  //           });
+
+  //           return dataObj
+  //         });
+
+  //         const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData, { skipHeader: true });
+  //         const book: XLSX.WorkBook = XLSX.utils.book_new();
+  //         XLSX.utils.book_append_sheet(book, worksheet, 'Sheet1');
+  //         XLSX.writeFile(book, "CustomQueryData.xlsx");
+  //       } else {
+  //         this.alertMessage = "Please Enter Valid Query !!";
+  //         this.openAlertMod(template, this.alertMessage);
+  //       }
+
+  //     } else {
+  //       this.openAlertMod(template, response.serviceResponse);
+  //     }
+  //   });
+  // }
 
   itemsPerPageForClientProject = 10;
 
