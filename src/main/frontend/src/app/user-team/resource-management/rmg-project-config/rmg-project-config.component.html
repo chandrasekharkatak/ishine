@@ -500,7 +500,7 @@
         <table class="new-custom-table" matSort (matSortChange)="sortCurrentTeamMemberData($event)">
             <thead>
                 <tr>
-                    <th class="col-select" *ngIf="projectConfigStepperIndex === 1 && teamMembers?.length !== 0">
+                    <th class="col-select" *ngIf="projectConfigStepperIndex === 1">
                         <mat-checkbox class="custom-checkbox" color="primary" [checked]="team.isAllMemberSelected"
                             (change)="onAllTeamTeamMemberCheckboxChange(team,$event, teamMembers)">
                         </mat-checkbox>
@@ -570,7 +570,7 @@
                 <ng-container *ngIf="currentTeam.addNewTeamMemberToggle && !(cloneMemberMappingList?.length > 0)">
                     <tr *ngIf="projectConfigStepperIndex === 1">
                         <td></td>
-                        <td [attr.colspan]="teamMembers?.length > 0 ? 2 : 1">
+                        <td [attr.colspan]="2">
                             <div class="d-flex justify-evenly">
                                 <button class="btn btn-sm btn-outline-primary" title="Save New Member"
                                     (click)="saveNewTeamMemberDetails()" [disabled]="newMemberTeamMappingRestricted">
@@ -735,7 +735,9 @@
             <tbody>
                 <ng-container *ngIf="!teamMembers || teamMembers?.length === 0">
                     <tr>
-                        <td [attr.colspan]="projectConfigStepperIndex === 1 ? !isInternalProject ? 14 : 11 : !isInternalProject ? 13 : 10"
+                        <td [attr.colspan]="projectConfigStepperIndex === 1
+                            ? (isInternalProject ? 9 : (projectType == 'TNM' ? 12 : 11))
+                            : (isInternalProject ? 7 : (projectType == 'TNM' ? 10 : 9))"
                             class="text-center">No Resources found.</td>
                     </tr>
                 </ng-container>
@@ -944,7 +946,8 @@
             <tbody>
                 <ng-container *ngIf="!teamMembers || teamMembers?.length === 0">
                     <tr>
-                        <td [attr.colspan]="!isInternalProject ? 12 : 9" class="text-center">
+                        <td [attr.colspan]="isInternalProject ? 7 : (projectType == 'TNM' ? 10 : 9)"
+                            class="text-center">
                             No Resources found.
                         </td>
                     </tr>
