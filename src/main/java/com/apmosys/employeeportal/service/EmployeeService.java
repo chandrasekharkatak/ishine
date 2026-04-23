@@ -127,6 +127,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
 import com.apmosys.employeeportal.model.EmployeeCertificates;
+import com.apmosys.employeeportal.model.EmployeeDefaulterConsent;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeNotificationConsent;
@@ -163,6 +164,7 @@ import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificatesRepository;
+import com.apmosys.employeeportal.repository.EmployeeDefaulterConsentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeNotificationConsentRepository;
@@ -237,6 +239,9 @@ public class EmployeeService {
 
 	@Autowired
 	EmployeeRepository employeeRepository;
+
+    @Autowired
+    EmployeeDefaulterConsentRepository employeeDefaulterConsentRepository;
 	
 	@Autowired
 	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
@@ -12692,5 +12697,136 @@ public ServiceResponse getEmployeeBillableType(Long empId){
 	return response;
 }
 
+    public ServiceResponse getDefaulterStatus(Long empId) {
+
+        ServiceResponse response = new ServiceResponse();
+
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/getDefaulterStatus");
+        apiLogInfo.setLogLevel("INFO");
+
+        try {
+
+            //  Validation
+            if (empId == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Employee ID is missing");
+
+                apiLogInfo.setApiResponse("Employee ID is missing");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                return response;
+            }
+
+            //  repository  Call
+            List<Object[]> result = employeeDefaulterConsentRepository.findDefaulterMonths(empId);
+
+            if (result != null && !result.isEmpty()) {
+
+                List<Map<String, Integer>> months = new ArrayList<>();
+
+                for (Object[] row : result) {
+                    Map<String, Integer> m = new HashMap<>();
+                    m.put("year", ((Number) row[0]).intValue());
+                    m.put("month", ((Number) row[1]).intValue());
+                    months.add(m);
+                }
+
+                Map<String, Object> data = new HashMap<>();
+                data.put("isDefaulter", true);
+                data.put("months", months);
+
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(data);
+
+                apiLogInfo.setApiResponse(months.size() + " month(s) found.");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+            } else {
+
+                Map<String, Object> data = new HashMap<>();
+                data.put("isDefaulter", false);
+                data.put("months", new ArrayList<>());
+
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(data);
+
+                apiLogInfo.setApiResponse("No defaulter record found");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Something Went Wrong.");
+            response.setServiceError(e.getMessage());
+
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+        }
+
+        apiLogInfo.setApiRequest("empId: " + empId);
+        logService.logMyInfo(httpRequest, apiLogInfo);
+
+        return response;
+    }
+
+    public ServiceResponse saveDefaulterConsent(Long empId) {
+
+        ServiceResponse response = new ServiceResponse();
+
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/saveDefaulterConsent");
+        apiLogInfo.setLogLevel("INFO");
+
+        try {
+
+            if (empId == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Employee ID is missing");
+
+                apiLogInfo.setApiResponse("Employee ID is missing");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                return response;
+            }
+
+            Optional<EmployeeDefaulterConsent> existingOpt = employeeDefaulterConsentRepository.findByEmpId(empId);
+
+            EmployeeDefaulterConsent entity;
+
+            if (existingOpt.isPresent()) {
+                employeeDefaulterConsentRepository.updateConsent(empId);
+            } else {
+
+                entity = new EmployeeDefaulterConsent();
+                entity.setEmpId(empId);
+                entity.setConsent(true); // first time consent
+
+                employeeDefaulterConsentRepository.save(entity);
+            }
+
+
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse("Consent saved successfully");
+
+            apiLogInfo.setApiResponse("Consent saved for empId: " + empId);
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Something went wrong.");
+            response.setServiceError(e.getMessage());
+
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+        }
+
+        apiLogInfo.setApiRequest("empId: " + empId);
+        logService.logMyInfo(httpRequest, apiLogInfo);
+
+        return response;
+    }
 }
 	

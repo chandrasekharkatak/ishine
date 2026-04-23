@@ -298,8 +298,10 @@ rejectedCount = 0;
     "Ensure all entries are approved for the month to close successfully.",
   ]
 
-
-
+  @ViewChild('attendancePolicyModal') attendancePolicyModalRef!: TemplateRef<any>;
+  summaryText: string = '';
+  defaulterMonths: any[] = [];
+  showAllMonths: boolean = false;
 location: any;
 act: any;
 project: any;
@@ -425,8 +427,9 @@ timesheet: any;
     this.getRejectionReason();
     //console.log('User Mapping', this.userMapping);
     this.getTimesheetStatusCountsByEmpId();
-
-
+    setTimeout(() => {
+      this.loadPolicyNotification();
+    });
   }
 
   //   openProbationNotificationModal(template: TemplateRef<any>) {
@@ -593,7 +596,63 @@ timesheet: any;
       }
     });
   }
+  isSavingConsent = false;
+  loadPolicyNotification(): void {
+    this.employeeService.getDefaulterStatus(this.currentUser.empId)
+      .subscribe((res: any) => {
 
+        const data = res.serviceResponse;
+
+        if (data && data.isDefaulter && data.months?.length) {
+
+          this.defaulterMonths = data.months;
+
+          const latest = this.defaulterMonths[0];
+
+    // Mock API response
+          this.summaryText =
+            `You have been marked as a defaulter.\n\nLatest: ${this.getMonthName(latest.month)
+            } ${latest.year}`;
+          this.showAllMonths = false;
+          // this.detailModalRef?.close();
+          this.openAttendancePolicyModal();
+        }
+
+      }, error => {
+        console.error("Error fetching defaulter status", error);
+      });
+  }
+  openAttendancePolicyModal(): void {
+    this.detailModalRef = this.modalService.open(this.attendancePolicyModalRef, {
+      size: 'md',
+      centered: true,
+      backdrop: 'static',
+      container: 'body'
+    });
+  }
+  closeRepeatedOffendeNoticeModal(): void {
+    this.detailModalRef?.close();
+  }
+  acknowledgeRepeatedOffendeNoticePolicy(): void {
+    if (this.isSavingConsent) return; 
+    this.employeeService.saveDefaulterConsent(this.currentUser.empId)
+      .subscribe((res: any) => {
+
+        console.log("Consent saved", res);
+
+        this.closeRepeatedOffendeNoticeModal();
+
+      }, err => {
+        console.error("Error saving consent", err);
+      });
+  }
+  getMonthName(month: number): string {
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return months[month - 1];
+  }
   // single leave reject modal
   onSingleReject(template: TemplateRef<any>,) {
     this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
@@ -3016,7 +3075,7 @@ private roundToTwo(num: number): number {
     };
     const formData = new FormData();
     formData.append("milestoneData",new Blob([JSON.stringify(payload)], { type: "application/json" }));
-  
+
     // optional file
     if (this.documentContent) {
       const file = this.documentContent
@@ -3451,7 +3510,7 @@ onFileSelected(event: any) {
   const maxSize = 25 * 1024 * 1024; // 25MB
   if (file.size > maxSize) {
     this.openUpdateProjectCompletionModal("File size should be less than 25 MB!!");
-    event.target.value = ''; 
+    event.target.value = '';
     this.resetFileData();
     return;
   }
@@ -3461,7 +3520,7 @@ onFileSelected(event: any) {
 
   this.documentName = uniquefile;
   this.documentType = file.type;
-  this.documentContent = file; 
+  this.documentContent = file;
   const url = URL.createObjectURL(file);
   if (file.type === 'application/pdf') {
     this.previewUrlForMileStone = this.sanitizer.bypassSecurityTrustResourceUrl(url);
@@ -3480,13 +3539,13 @@ validateFileName(uniquefile: any,type:any) {
         // Duplicate found
         this.resetFileData();
         this.openUpdateProjectCompletionModal(response.serviceResponse);
-        return false;        
+        return false;
       }
     },
     error: (error) => {
         this.resetFileData();
         this.openUpdateProjectCompletionModal("Error while validating file. Kindly try after sometime!!");
-        return false;        
+        return false;
     }
   });
 }

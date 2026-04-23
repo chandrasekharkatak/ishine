@@ -205,7 +205,7 @@
     display: flex;
     flex-direction: column;
     align-content: space-around;
-    
+
     text-align: center;
     overflow-x: auto;
     overflow-y: hidden;
@@ -215,7 +215,7 @@
     -ms-overflow-style: none;  /* Internet Explorer 10+ */
     scrollbar-width: none;  /* Firefox */
 }
-.leave-details-body::-webkit-scrollbar { 
+.leave-details-body::-webkit-scrollbar {
     display: none;  /* Safari and Chrome */
 }
 
@@ -244,7 +244,7 @@
     max-height: 104px;
 }
 
-.leave-bucket-headers, 
+.leave-bucket-headers,
 .leave-bucket-item {
     display: flex;
     justify-content: space-around;
@@ -273,11 +273,11 @@
 .releaseNoteText::-webkit-scrollbar {
     width: 10px;
   }
-  
+
   .releaseNoteText::-webkit-scrollbar-track {
     background-color: #eee;
   }
-  
+
   .releaseNoteText::-webkit-scrollbar-thumb {
     box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
   }
@@ -346,8 +346,8 @@
         object-position: center;
     }
 
-    .event-photos-card, 
-    .eventPhotosCarousel, 
+    .event-photos-card,
+    .eventPhotosCarousel,
     .spinner-container{
         height: 100%;
         overflow: hidden;
@@ -385,35 +385,35 @@
 
 .reward-content {
     overflow-y: auto;
-    max-height: calc(100% - 4rem); 
+    max-height: calc(100% - 4rem);
 }
 
 .additional-title {
-    margin-top: auto; 
+    margin-top: auto;
     padding-top: 10px;
-    color: none!important; 
+    color: none!important;
 }
 .current-month-year{
     color: black;
 }
 
 .tabs .nav-pills .nav-link {
-    background-color: #e7eaed; 
-    color: #06135d;           
-    padding: 8px 10px;        
+    background-color: #e7eaed;
+    color: #06135d;
+    padding: 8px 10px;
     transition: background-color 0.3s ease, color 0.3s ease;
     cursor: pointer;
 }
 
 .tabs .nav-pills .nav-link:hover {
-    background-color: #011d3a; 
+    background-color: #011d3a;
     color: #ffffff;
     cursor: pointer;
 }
 
 .tabs .nav-pills .nav-link.active {
-    background-color: #02346a; 
-    color: #ffffff;     
+    background-color: #02346a;
+    color: #ffffff;
 }
 
 
@@ -549,7 +549,7 @@ input[formControlName="extendedDate"]:focus {
   margin-left: 2px;
   font-weight: bold;
   margin-top: -10px;
-  
+
 }
 
 
@@ -572,7 +572,7 @@ notification-badge {
   margin-left: 2px;
   font-weight: bold;
   margin-top: -10px;
-  
+
 }
 
 
@@ -740,7 +740,7 @@ notification-badge {
 .help-button {
   display: flex;
   align-items: center;
-  
+
   padding: 0;
   background: transparent;
   border: none;
@@ -755,7 +755,7 @@ notification-badge {
 }
 
 .help-icon-container {
- 
+
   height: 70px;
   margin-bottom: 3px;
   align-items: center;
@@ -768,12 +768,12 @@ notification-badge {
 .help-icon-gif {
 
   height: 120px;
- 
+
 }
 
 .help-text-container {
   position: relative;
- 
+
   height: 24px;
   display: flex;
   align-items: center;
@@ -834,16 +834,16 @@ notification-badge {
     width: 50px;
     height: 50px;
   }
-  
+
   .help-icon-gif {
     width: 50px;
     height: 50px;
   }
-  
+
   .help-text-container {
     min-width: 140px;
   }
-  
+
   .help-text-primary,
   .help-text-hover {
     font-size: 13px;
@@ -1026,4 +1026,98 @@ notification-badge {
 .milestone-tooltip {
   white-space: pre-line !important;
   max-width: 260px;
+}
+
+/* Summary */
+.summary-wrapper {
+  margin-bottom: 10px;
+}
+
+.main-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.latest-text {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.latest-highlight {
+  font-weight: 600;
+  color: #dc2626;
+}
+
+/* Toggle button */
+.toggle-btn-modern {
+  border: none;
+  background: #eef2ff;
+  color: #3730a3;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.toggle-btn-modern:hover {
+  background: #e0e7ff;
+}
+
+/* Chips container */
+.months-chip-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-height: 130px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+/* Chip */
+.month-chip {
+  background: #f1f5f9;
+  color: #334155;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Highlight latest */
+.active-chip {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-color: #93c5fd;
+  font-weight: 600;
+}
+
+/* Scroll */
+.months-chip-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.months-chip-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+/* Alert (lighter, less aggressive) */
+.modern-alert {
+  font-size: 12px;
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+/* Footer button */
+.modal-footer .btn {
+  padding: 6px 22px;
+  font-weight: 500;
 }
