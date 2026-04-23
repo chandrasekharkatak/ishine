@@ -988,102 +988,363 @@ public class EmployeeLeaveService {
         // }
     }
     
-    public ServiceResponse rejectLeaveWithReasons(LeaveDTO leaveDTO) {
+    // public ServiceResponse rejectLeaveWithReasons(LeaveDTO leaveDTO) {
 
-        // Reuse old logic
+    //     // Reuse old logic
+    //     leaveDTO.setLeaveStatusId((short) 3);
+
+    //     ServiceResponse response = updateLeaveStatus(leaveDTO);
+
+    //     // If old rejection successful, save new details
+    //     if (ServiceResponse.STATUS_SUCCESS.equals(response.getServiceStatus())) {
+
+    //         saveLeaveRejectionDetails(leaveDTO);
+    //     }
+
+    //     return response;
+    // }
+
+    // @Transactional
+    // public ServiceResponse bulkRejectLeaveRequestNew(LeaveDTO leaveDTO) {
+
+    //     ServiceResponse response = new ServiceResponse();
+
+    //     try {
+
+    //         for (LeaveDTO leave : leaveDTO.getBulkLeaveRejectList()) {
+
+    //             leave.setLeaveStatusId((short) 3);
+    //             leave.setLeaveStatusUpdatedBy(
+    //                     leaveDTO.getLeaveStatusUpdatedBy());
+    //             leave.setRejectReason(
+    //                     leaveDTO.getRejectReason());
+
+    //             // Pass selected reasons
+    //             leave.setRejectionIds(
+    //                     leaveDTO.getRejectionIds());
+
+    //             // Existing rejection logic
+    //             response = updateLeaveStatus(leave);
+
+    //             // New table insert
+    //             if (ServiceResponse.STATUS_SUCCESS
+    //                     .equals(response.getServiceStatus())) {
+
+    //                 saveLeaveRejectionDetails(leave);
+    //             }
+    //         }
+
+    //         response.setServiceStatus(
+    //                 ServiceResponse.STATUS_SUCCESS);
+    //         response.setServiceResponse(
+    //                 "All Selected Leaves Rejected Successfully");
+
+    //     } catch (Exception e) {
+
+    //         e.printStackTrace();
+
+    //         response.setServiceStatus(
+    //                 ServiceResponse.SOMETHING_WENT_WRONG);
+    //         response.setServiceResponse(
+    //                 "Something Went Wrong.");
+    //         response.setServiceError(e.getMessage());
+    //     }
+
+    //     return response;
+    // }
+
+    // 	private void saveLeaveRejectionDetails(LeaveDTO leaveDTO) {
+
+    // 		if (leaveDTO.getRejectionIds() == null ||
+    // 			leaveDTO.getRejectionIds().isEmpty()) {
+    // 			return;
+    // 		}
+
+    // 		leaveRejectionDetailRepository
+    // 			.deactivateByLeaveId(leaveDTO.getLeaveId());
+    // 		 LocalDateTime now = LocalDateTime.now();
+    // 			List<LeaveRejectionDetail> details = new ArrayList<>();
+
+    // 		for (Long rejectionId : leaveDTO.getRejectionIds()) {
+
+    // 			LeaveRejectionDetail detail =
+    // 					new LeaveRejectionDetail();
+
+    // 			detail.setLeaveId(leaveDTO.getLeaveId());
+    // 			detail.setRejectionId(rejectionId);
+    // 			detail.setRemarks(leaveDTO.getRejectReason());
+    // 			detail.setRejectedBy(
+    // 					leaveDTO.getLeaveStatusUpdatedBy());
+    // 			detail.setRejectedOn(now);
+    // 			detail.setIsActive(true);
+
+    // 			details.add(detail);
+    // 		}
+    // 		leaveRejectionDetailRepository.saveAll(details);
+    // 	}
+
+	@Transactional
+public ServiceResponse rejectLeaveWithReasons(LeaveDTO leaveDTO) {
+
+    ServiceResponse response = new ServiceResponse();
+
+    try {
+
+        // ---------- Request Validation ----------
+        if (leaveDTO == null) {
+            return failResponse(response, "Invalid request.");
+        }
+
+        if (leaveDTO.getLeaveId() == null) {
+            return failResponse(response, "Leave Id is required.");
+        }
+
+        if (leaveDTO.getLeaveStatusUpdatedBy() == null) {
+            return failResponse(response, "Rejected By is required.");
+        }
+
+        if (leaveDTO.getRejectionIds() == null ||
+            leaveDTO.getRejectionIds().isEmpty()) {
+            return failResponse(response,
+                "At least one rejection reason is required.");
+        }
+
+        String remarks = safeTrim(leaveDTO.getRejectReason());
+
+        if (remarks == null || remarks.isEmpty()) {
+            return failResponse(response,
+                "Remarks are required.");
+        }
+
+        leaveDTO.setRejectReason(remarks);
         leaveDTO.setLeaveStatusId((short) 3);
 
-        ServiceResponse response = updateLeaveStatus(leaveDTO);
+        // ---------- Existing Business Logic ----------
+        response = updateLeaveStatus(leaveDTO);
 
-        // If old rejection successful, save new details
-        if (ServiceResponse.STATUS_SUCCESS.equals(response.getServiceStatus())) {
-
+        // ---------- Save Rejection Details ----------
+        if (isSuccess(response)) {
             saveLeaveRejectionDetails(leaveDTO);
         }
 
         return response;
-    }
 
-    @Transactional
-    public ServiceResponse bulkRejectLeaveRequestNew(LeaveDTO leaveDTO) {
+    } catch (Exception e) {
+        e.printStackTrace();
 
-        ServiceResponse response = new ServiceResponse();
-
-        try {
-
-            for (LeaveDTO leave : leaveDTO.getBulkLeaveRejectList()) {
-
-                leave.setLeaveStatusId((short) 3);
-                leave.setLeaveStatusUpdatedBy(
-                        leaveDTO.getLeaveStatusUpdatedBy());
-                leave.setRejectReason(
-                        leaveDTO.getRejectReason());
-
-                // Pass selected reasons
-                leave.setRejectionIds(
-                        leaveDTO.getRejectionIds());
-
-                // Existing rejection logic
-                response = updateLeaveStatus(leave);
-
-                // New table insert
-                if (ServiceResponse.STATUS_SUCCESS
-                        .equals(response.getServiceStatus())) {
-
-                    saveLeaveRejectionDetails(leave);
-                }
-            }
-
-            response.setServiceStatus(
-                    ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(
-                    "All Selected Leaves Rejected Successfully");
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
-            response.setServiceStatus(
-                    ServiceResponse.SOMETHING_WENT_WRONG);
-            response.setServiceResponse(
-                    "Something Went Wrong.");
-            response.setServiceError(e.getMessage());
-        }
+        response.setServiceStatus(
+            ServiceResponse.SOMETHING_WENT_WRONG);
+        response.setServiceResponse(
+            "Something Went Wrong.");
+        response.setServiceError(e.getMessage());
 
         return response;
     }
+}
 
-    	private void saveLeaveRejectionDetails(LeaveDTO leaveDTO) {
+@Transactional
+public ServiceResponse bulkRejectLeaveRequestNew(LeaveDTO leaveDTO) {
 
-    		if (leaveDTO.getRejectionIds() == null ||
-    			leaveDTO.getRejectionIds().isEmpty()) {
-    			return;
-    		}
+    ServiceResponse response = new ServiceResponse();
 
-    		leaveRejectionDetailRepository
-    			.deactivateByLeaveId(leaveDTO.getLeaveId());
-    		 LocalDateTime now = LocalDateTime.now();
-    			List<LeaveRejectionDetail> details = new ArrayList<>();
+    try {
 
-    		for (Long rejectionId : leaveDTO.getRejectionIds()) {
+        // ---------- Request Validation ----------
+        if (leaveDTO == null) {
+            return failResponse(response, "Invalid request.");
+        }
 
-    			LeaveRejectionDetail detail =
-    					new LeaveRejectionDetail();
+        if (leaveDTO.getLeaveStatusUpdatedBy() == null) {
+            return failResponse(response,
+                "Rejected By is required.");
+        }
 
-    			detail.setLeaveId(leaveDTO.getLeaveId());
-    			detail.setRejectionId(rejectionId);
-    			detail.setRemarks(leaveDTO.getRejectReason());
-    			detail.setRejectedBy(
-    					leaveDTO.getLeaveStatusUpdatedBy());
-    			detail.setRejectedOn(now);
-    			detail.setIsActive(true);
+        if (leaveDTO.getBulkLeaveRejectList() == null ||
+            leaveDTO.getBulkLeaveRejectList().isEmpty()) {
+            return failResponse(response,
+                "No leave records selected.");
+        }
 
-    			details.add(detail);
-    		}
-    		leaveRejectionDetailRepository.saveAll(details);
-    	}
+        if (leaveDTO.getRejectionIds() == null ||
+            leaveDTO.getRejectionIds().isEmpty()) {
+            return failResponse(response,
+                "At least one rejection reason is required.");
+        }
 
+        String remarks = safeTrim(leaveDTO.getRejectReason());
 
+        if (remarks == null || remarks.isEmpty()) {
+            return failResponse(response,
+                "Remarks are required.");
+        }
+
+        leaveDTO.setRejectReason(remarks);
+
+        // Remove duplicate reason ids
+        List<Long> uniqueReasonIds =
+            leaveDTO.getRejectionIds()
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+        if (uniqueReasonIds.isEmpty()) {
+            return failResponse(response,
+                "Invalid rejection reasons.");
+        }
+
+        leaveDTO.setRejectionIds(uniqueReasonIds);
+
+        int successCount = 0;
+
+        for (LeaveDTO leave :
+                leaveDTO.getBulkLeaveRejectList()) {
+
+            if (leave == null ||
+                leave.getLeaveId() == null) {
+                continue;
+            }
+
+            leave.setLeaveStatusId((short) 3);
+            leave.setLeaveStatusUpdatedBy(
+                leaveDTO.getLeaveStatusUpdatedBy());
+            leave.setRejectReason(
+                leaveDTO.getRejectReason());
+            leave.setRejectionIds(
+                leaveDTO.getRejectionIds());
+
+            ServiceResponse rowResponse =
+                updateLeaveStatus(leave);
+
+            if (isSuccess(rowResponse)) {
+                saveLeaveRejectionDetails(leave);
+                successCount++;
+            }
+        }
+
+        if (successCount == 0) {
+            return failResponse(response,
+                "No leave records were rejected.");
+        }
+
+        response.setServiceStatus(
+            ServiceResponse.STATUS_SUCCESS);
+
+        response.setServiceResponse(
+            successCount +
+            " leave request(s) rejected successfully.");
+
+        return response;
+
+    } catch (Exception e) {
+
+        e.printStackTrace();
+
+        response.setServiceStatus(
+            ServiceResponse.SOMETHING_WENT_WRONG);
+
+        response.setServiceResponse(
+            "Something Went Wrong.");
+
+        response.setServiceError(
+            e.getMessage());
+
+        return response;
+    }
+}
+
+private void saveLeaveRejectionDetails(LeaveDTO leaveDTO) {
+
+    if (leaveDTO == null ||
+        leaveDTO.getLeaveId() == null ||
+        leaveDTO.getLeaveStatusUpdatedBy() == null ||
+        leaveDTO.getRejectionIds() == null ||
+        leaveDTO.getRejectionIds().isEmpty()) {
+        return;
+    }
+
+    List<Long> validReasonIds =
+        leaveDTO.getRejectionIds()
+                .stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+    if (validReasonIds.isEmpty()) {
+        return;
+    }
+
+    leaveRejectionDetailRepository
+        .deactivateByLeaveId(
+            leaveDTO.getLeaveId());
+
+    LocalDateTime now =
+        LocalDateTime.now();
+
+    String remarks =
+        safeTrim(leaveDTO.getRejectReason());
+
+    List<LeaveRejectionDetail> details =
+        new ArrayList<>();
+
+    for (Long rejectionId : validReasonIds) {
+
+        LeaveRejectionDetail detail =
+            new LeaveRejectionDetail();
+
+        detail.setLeaveId(
+            leaveDTO.getLeaveId());
+
+        detail.setRejectionId(
+            rejectionId);
+
+        detail.setRemarks(
+            remarks);
+
+        detail.setRejectedBy(
+            leaveDTO.getLeaveStatusUpdatedBy());
+
+        detail.setRejectedOn(now);
+
+        detail.setIsActive(true);
+
+        details.add(detail);
+    }
+
+    if (!details.isEmpty()) {
+        leaveRejectionDetailRepository
+            .saveAll(details);
+    }
+}
+
+private boolean isSuccess(
+        ServiceResponse response) {
+
+    return response != null &&
+           ServiceResponse.STATUS_SUCCESS
+           .equals(
+             response.getServiceStatus());
+}
+
+private String safeTrim(String value) {
+
+    return value == null
+        ? null
+        : value.trim();
+}
+
+private ServiceResponse failResponse(
+        ServiceResponse response,
+        String message) {
+
+    response.setServiceStatus(
+        ServiceResponse.STATUS_FAIL);
+
+    response.setServiceResponse(
+        message);
+
+    return response;
+}
 	private void linkSingleCompOff(EmployeeLeave savedLeave) {
 
     CompOffLeave compOff = compOffLeaveRepository
