@@ -5113,6 +5113,10 @@ input:checked+.slider:before {
    * collapse + multiple sticky thead rows: Chrome/WebKit often paints tbody on top of the search row.
    * separate + border-spacing 0 keeps row geometry while fixing compositing.
    */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
 /* Modal Styling */
 .modal-header {
   background: #1e3a5f;

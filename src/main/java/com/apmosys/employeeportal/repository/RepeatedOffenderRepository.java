@@ -122,7 +122,7 @@ public class RepeatedOffenderRepository {
 		nq.setParameter("threshold", th);
 	}
 
-	/** Date window + client / employment filters for {@link RepeatedOffenderSnapshotKpiSql#SNAPSHOT_PROJECT_MAPPINGS} only. */
+	/** Date window + client / employment / billable chip filters for {@link RepeatedOffenderSnapshotKpiSql#SNAPSHOT_PROJECT_MAPPINGS} only. */
 	private void bindSnapshotProjectMappingParameters(NativeQuery<?> nq, RepeatedOffenderDashboardRequest request) {
 		Date customFrom = Date.valueOf(LocalDate.of(request.getRangeStartYear(), request.getRangeStartMonth(), 1));
 		Date customTo = Date.valueOf(YearMonth.of(request.getRangeEndYear(), request.getRangeEndMonth()).atEndOfMonth());
@@ -131,6 +131,7 @@ public class RepeatedOffenderRepository {
 		nq.setParameter("isClientSide", Boolean.TRUE.equals(request.getClientDashboard()) ? 1 : 0);
 		String empSt = request.getEmployeeActive() != null ? request.getEmployeeActive() : "All";
 		nq.setParameter("employeeStatus", empSt);
+		nq.setParameterList("billableTypes", normalizeBillableTypes(request.getBillableTypes()));
 	}
 
 	/**
@@ -405,7 +406,8 @@ public class RepeatedOffenderRepository {
 				+ " AND (etm.end_date IS NULL OR DATE(etm.end_date) >= drf.drf_s) "
 				+ " AND (:isClientSide = 0 OR COALESCE(p.has_client_side_id, 0) = 1) "
 				+ " AND (:employeeStatus = 'All' OR ex.employmentstatus = :employeeStatus) "
-				+ " AND ex.emp_id NOT BETWEEN 1 AND 6 ";
+				+ " AND ex.emp_id NOT BETWEEN 1 AND 6 "
+				+ " AND ('All' IN (:billableTypes) OR (" + RepeatedOffenderSnapshotKpiSql.PROJECT_BILLABLE_CASE + ") IN (:billableTypes)) ";
 	}
 
 	private static String roMinProjectNameSubquery() {

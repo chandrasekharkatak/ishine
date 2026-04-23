@@ -15,6 +15,19 @@ public final class RepeatedOffenderSnapshotKpiSql {
 	private RepeatedOffenderSnapshotKpiSql() {
 	}
 
+	/**
+	 * Billable label for a team mapping (same as grid / snapshot). Aliases: {@code etm}, {@code p}.
+	 * Use with {@code ('All' IN (:billableTypes) OR (...this...) IN (:billableTypes))} for chip alignment.
+	 */
+	public static final String PROJECT_BILLABLE_CASE = ""
+			+ "CASE\n"
+			+ "  WHEN COALESCE(etm.is_shadow, 0) = 0 AND p.po_project_type IS NOT NULL THEN p.po_project_type\n"
+			+ "  WHEN COALESCE(p.internal_project_type, '') <> '' THEN p.internal_project_type\n"
+			+ "  WHEN p.po_project_type = 'TNM' AND COALESCE(etm.is_shadow, 0) = 1 THEN 'TNM(Shadow)'\n"
+			+ "  WHEN p.po_project_type = 'Fixed Cost' AND COALESCE(etm.is_shadow, 0) = 1 THEN 'Fixed Cost(Shadow)'\n"
+			+ "  ELSE COALESCE(p.po_project_type, '')\n"
+			+ "END";
+
 	/** Shared CTEs: date window, per-emp defaulted month sum, range width. */
 	public static final String SNAPSHOT_CTES = ""
 			+ "WITH Date_Range AS (\n"
@@ -93,19 +106,14 @@ public final class RepeatedOffenderSnapshotKpiSql {
 
 	/**
 	 * Project / team rows overlapping the RO range for the given employees (bind {@code :ids}).
-	 * Employees are already restricted by snapshot KPI filters; this list mirrors Employee Overview by
-	 * returning all overlapping mappings (client dashboard still requires {@code has_client_side_id}).
+	 * Employees are already restricted by snapshot KPI filters; rows respect {@code :billableTypes}
+	 * the same way as {@link #SNAPSHOT_CTES} Period_Stats (client dashboard still requires
+	 * {@code has_client_side_id}).
 	 */
 	public static final String SNAPSHOT_PROJECT_MAPPINGS = ""
 			+ "SELECT etm.emp_id,\n"
 			+ "       p.project_name,\n"
-			+ "       CASE\n"
-			+ "         WHEN COALESCE(etm.is_shadow, 0) = 0 AND p.po_project_type IS NOT NULL THEN p.po_project_type\n"
-			+ "         WHEN COALESCE(p.internal_project_type, '') <> '' THEN p.internal_project_type\n"
-			+ "         WHEN p.po_project_type = 'TNM' AND COALESCE(etm.is_shadow, 0) = 1 THEN 'TNM(Shadow)'\n"
-			+ "         WHEN p.po_project_type = 'Fixed Cost' AND COALESCE(etm.is_shadow, 0) = 1 THEN 'Fixed Cost(Shadow)'\n"
-			+ "         ELSE COALESCE(p.po_project_type, '')\n"
-			+ "       END AS billable_display,\n"
+			+ "       " + PROJECT_BILLABLE_CASE + " AS billable_display,\n"
 			+ "       e.employmentstatus AS employment_status,\n"
 			+ "       COALESCE(pma.pm_names, 'NA') AS manager_names,\n"
 			+ "       t.team_name,\n"
@@ -127,6 +135,7 @@ public final class RepeatedOffenderSnapshotKpiSql {
 			+ "  AND (:isClientSide = 0 OR COALESCE(p.has_client_side_id, 0) = 1)\n"
 			+ "  AND (:employeeStatus = 'All' OR e.employmentstatus = :employeeStatus)\n"
 			+ "  AND e.emp_id NOT BETWEEN 1 AND 6\n"
+			+ "  AND ('All' IN (:billableTypes) OR (" + PROJECT_BILLABLE_CASE + ") IN (:billableTypes))\n"
 			+ "ORDER BY e.name, p.project_name, t.team_name\n";
 
 	/**
@@ -161,14 +170,9 @@ public final class RepeatedOffenderSnapshotKpiSql {
 			+ "       AND (:isClientSide = 0 OR COALESCE(p.has_client_side_id, 0) = 1) "
 			+ "       AND (:employeeStatus = 'All' OR ex.employmentstatus = :employeeStatus) "
 			+ "       AND ex.emp_id NOT BETWEEN 1 AND 6 "
+			+ "       AND ('All' IN (:billableTypes) OR (" + PROJECT_BILLABLE_CASE + ") IN (:billableTypes)) "
 			+ "       AND (:rofUsePn = 0 OR LOCATE(LOWER(:rofPn), LOWER(COALESCE(p.project_name, ''))) > 0) "
-			+ "       AND (:rofUseBt = 0 OR LOCATE(LOWER(:rofBt), LOWER(COALESCE((CASE "
-			+ "               WHEN COALESCE(etm.is_shadow, 0) = 0 AND p.po_project_type IS NOT NULL THEN p.po_project_type "
-			+ "               WHEN COALESCE(p.internal_project_type, '') <> '' THEN p.internal_project_type "
-			+ "               WHEN p.po_project_type = 'TNM' AND COALESCE(etm.is_shadow, 0) = 1 THEN 'TNM(Shadow)' "
-			+ "               WHEN p.po_project_type = 'Fixed Cost' AND COALESCE(etm.is_shadow, 0) = 1 THEN 'Fixed Cost(Shadow)' "
-			+ "               ELSE COALESCE(p.po_project_type, '') "
-			+ "             END), ''))) > 0) "
+			+ "       AND (:rofUseBt = 0 OR LOCATE(LOWER(:rofBt), LOWER(COALESCE((" + PROJECT_BILLABLE_CASE + "), ''))) > 0) "
 			+ "       AND (:rofUseMgr = 0 OR LOCATE(LOWER(:rofMgr), LOWER(COALESCE(pma.pm_names, ''))) > 0) "
 			+ "       AND (:rofUseMap = 0 OR LOCATE(LOWER(:rofMap), LOWER(CONCAT(COALESCE(t.team_name, ''), ' / ', COALESCE(p.project_name, '')))) > 0) "
 			+ "       AND (:rofUseTeam = 0 OR LOCATE(LOWER(:rofTeam), LOWER(COALESCE(t.team_name, ''))) > 0) "
