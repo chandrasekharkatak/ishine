@@ -822,6 +822,7 @@ rows.forEach(row -> {
                 dto.setEmployeeName(row[43] != null ? row[43].toString() : null);
                 dto.setEmploymentId(row[44] != null ? ((Number) row[44]).longValue() : null);
                 dto.setTeamName((String) row[45]);
+             dto.setCompOffForDate(row[49] != null ? ((java.sql.Date) row[49]).toLocalDate() : null);
             dto.setLocationSessions(new ArrayList<>());
             dto.setDocumentData(new ArrayList<>());
             if(isTeam)  {
@@ -1012,7 +1013,7 @@ rows.forEach(row -> {
 
                         dto.setIsNightShift(row[8] != null && ((Boolean) row[8]));
                         dto.setCreatedOn(row[9] != null ? ((Timestamp) row[9]).toLocalDateTime() : null);
-
+                        dto.setCompOffForDate(row[47] != null ? ((java.sql.Date) row[47]).toLocalDate() : null);
                         // Team-specific fields
                         dto.setCreatedBy(row[37] != null ? ((Number) row[37]).longValue() : null);
                         dto.setDayTypeId(row[38] != null ? ((Number) row[38]).intValue() : null);

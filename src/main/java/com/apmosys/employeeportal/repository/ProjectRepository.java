@@ -4280,6 +4280,9 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		 @Query("SELECT DISTINCT e.email FROM Employee e WHERE e.jobRoleId = 53")
 		    List<String> findDirectorEmails();
 
+		@Query(nativeQuery=true,value = "select e.email from employee e join  department d on e.department_id = d.dept_id where d.dept_id = 2")
+		List<String> getAccountsTeamEmails();
+
 	@Query(value="SELECT distinct p.po_project_id\n"
 			+ "	FROM projects p\n"
 			+ " inner JOIN teams t ON p.project_id = t.project_id \n"
@@ -4707,7 +4710,7 @@ boolean existsByProjectName(String projectName);
 			+ "inner join Department d on d.deptId = jr.deptId  \n"
 			+ "where p.active = 'true' and t.isActive != 'N' and etm.active != 0  \n"
 			+ "and e.employmentstatus != 'InActive'  \n"
-			+ "and e.billableType = 'Bench' and (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') \n"
+			+ "and e.billableType = 'Bench' and ((p.poProjectType IS NOT NULL AND (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%' OR p.poProjectType like '%Monitoring%')) OR (p.poProjectType IS NULL AND p.internalProjectType = 'InternalRNDProducts')) \n"
 			+ "and d.deptId IN :deptIds AND e.empId NOT BETWEEN 1 AND 6")
 	public Long getAllExceptionEmployeeReportCountByDeptIds(List<Long> deptIds);
 

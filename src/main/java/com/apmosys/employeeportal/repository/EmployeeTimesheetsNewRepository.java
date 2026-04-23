@@ -57,6 +57,10 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	java.util.Optional<EmployeeTimesheetsNew> findByEmpIdAndDateNew(@Param("empId") Long empId,
 			@Param("date") LocalDate date);
 	
+	@Query("SELECT e FROM EmployeeTimesheetsNew e WHERE e.empId = :empId AND e.compOffForDate = :compOffForDate AND e.date !=:date ")
+	java.util.Optional<EmployeeTimesheetsNew> findByEmpIdAndCompOffFor(@Param("empId") Long empId,
+			@Param("compOffForDate") LocalDate compOffForDate, @Param("date") LocalDate date);
+	
 	
 	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO(" +
 		       "et.timesheetId, " +
@@ -12729,7 +12733,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "			LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = 3\n"
 			+ "			LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = 3\n"
 			+ "        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
-			+ "        WHERE p.has_client_side_id = 1 \n"
+			+ "        WHERE 1 = 1 \n"
 			+ "			AND (\n"
 			+ "			ae.emp_id IS NOT NULL \n"
 			+ "			OR \n"
@@ -17516,7 +17520,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				"    etn.timesheetId, etn.empId, \n" +
 				"    CASE WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId) \n" +
 				"         ELSE CONCAT('A-', e.employeementId) END, \n" +
-				"    e.name, dtmn.dayType, etn.date, etn.isNightShift, etn.workCheckIn, etn.workCheckOut, \n" +
+				"    e.name, dtmn.dayType, etn.date, etn.compOffForDate, etn.isNightShift, etn.workCheckIn, etn.workCheckOut, \n" +
 				"    COUNT(DISTINCT ptsn.id.projectId), COUNT(DISTINCT etlm.locationMappingId), \n" +
 				"    ab.name, etn.createdOn, \n" +
 				"    wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId, \n" +
@@ -18317,7 +18321,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			//         @Param("status") int status
 			// );
 					      
-					    @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName, p.clientFlag, p.hasClientSideId,p.poProjectType)\n"
+					    @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName, p.clientFlag, p.hasClientSideId,p.poProjectType, etm.isShadow)\n"
 							+ "FROM EmployeeTeamMap etm\n"
 							+ "inner join Team t on t.teamId = etm.teamId \n"
 							+ "inner join Project p on p.projectId = t.projectId\n"
@@ -18325,6 +18329,15 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							+ "  AND (etm.endDate IS NULL OR etm.endDate >= :startOfDay) and etm.active != 2 and etm.empId = :emp_id")
 						List<ProjectNameAndPrjoectIdDTO> getProjectListForDateAndEmpId( @Param("emp_id") Long empId, @Param("startOfDay") LocalDateTime startOfDay,
 						        @Param("endOfDay") LocalDateTime endOfDay);	
+					    
+					    @Query(" SELECT etm.isShadow\n"
+								+ "FROM EmployeeTeamMap etm\n"
+								+ "inner join Team t on t.teamId = etm.teamId \n"
+								+ "inner join Project p on p.projectId = t.projectId\n"
+								+ "WHERE DATE(etm.startDate) <= DATE(:date)\n"
+								+ "  AND (etm.endDate IS NULL OR DATE(etm.endDate) >= DATE(:date)) and etm.active != 2 and etm.empId = :emp_id AND p.projectId = :projectId")
+							Integer getShadowStatusForDateAndEmpIdAndProjectId( @Param("emp_id") Long empId, @Param("date") LocalDate date,
+							        @Param("projectId") Integer projectId);	
 					    
 					    @Query(value ="select distinct new com.apmosys.employeeportal.dto.ProjectClientSideIdDTO( p.projectId , p.projectName, ecsm.clientSideId )  \n"+
 								"from Project p  \n"+
@@ -18680,7 +18693,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
         			"INNER JOIN project_timesheet_status_new ptsn " +
         			"ON ptsn.timesheet_id = etn.timesheet_id  and ptsn.location_mapping_id = etlm.location_mapping_id " +
         			"INNER JOIN timesheet_rejection_details_new trdn " +
-        			"ON trdn.timesheet_id = etn.timesheet_id AND trdn.project_id = ptsn.project_id " +
+        			"ON trdn.timesheet_id = etn.timesheet_id AND trdn.project_id = ptsn.project_id and trdn.is_active = 1 " +
         			"INNER JOIN timesheet_rejection_reasons_master trrm " +
         			"ON trrm.rejection_id = trdn.rejection_id " +
         			"INNER JOIN projects p " +
@@ -18688,5 +18701,8 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 					" group by p.project_name, trrm.rejection_reason ",
         				nativeQuery = true)
 					List<Object[]> getTimesheetRejectionRaw(Long timesheetId);
+					
+					@Query("SELECT etn.date FROM EmployeeTimesheetsNew etn WHERE etn.empId =:empId AND etn.dayTypeId IN (1,3) AND etn.date BETWEEN :startdate AND :endDate")
+					List<LocalDate> getLastThreeMonthsWorkingAndWorkingOnNonWorkingDates(@Param("empId")Long empId, @Param("startdate") LocalDate startdate,@Param("endDate") LocalDate endDate );  
 
 }

@@ -2388,6 +2388,7 @@ public class ProjectService {
 						// empDTO.setLastTimesheetFilledPoProjectId(parseLong(object[11]));
 						empDTO.setLastTimesheetFilledProjectName(toStr(object[11]));
 						empDTO.setIsInternal(object[11] != null);
+						empDTO.setEmploymentId(toStr(object[12]));
 						teamDTO.getEmployeesMapped().add(empDTO);
 					}
 				}

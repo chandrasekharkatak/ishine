@@ -240,6 +240,9 @@ public class ResourceManagementService {
 	ProjectRepository projectRepository;
 
 	@Autowired
+	ProjectHierarchyResolverService projectHierarchyResolverService;
+
+	@Autowired
 	PoDepartmentMappingRepository poDepartmentMappingRepository;
 
 	@Autowired
@@ -1901,10 +1904,16 @@ public class ResourceManagementService {
 		List<Activity> newActivityList = new ArrayList<>();
 
 //		{TeamId1={DeptId1=["Employee","TeamLead"],DeptId2=["Employee","TeamLead"]}}
+		// Map<Long, Map<Long, Set<String>>> teamIdAndDeptIdEmpRoleMap = teamMemberMappingList.stream()
+		// 		.collect(Collectors.groupingBy(EmployeeTeamMap::getTeamId,
+		// 				Collectors.groupingBy(EmployeeTeamMap::getEmpTeamDepartmentId, Collectors.flatMapping(
+		// 						obj -> Arrays.stream(obj.getEmployeeRole().split(",")), Collectors.toSet()))));
+
 		Map<Long, Map<Long, Set<String>>> teamIdAndDeptIdEmpRoleMap = teamMemberMappingList.stream()
+				.filter(obj -> obj.getTeamId() != null && obj.getEmpTeamDepartmentId() != null)
 				.collect(Collectors.groupingBy(EmployeeTeamMap::getTeamId,
-						Collectors.groupingBy(EmployeeTeamMap::getEmpTeamDepartmentId, Collectors.flatMapping(
-								obj -> Arrays.stream(obj.getEmployeeRole().split(",")), Collectors.toSet()))));
+						Collectors.groupingBy(EmployeeTeamMap::getEmpTeamDepartmentId,
+								Collectors.flatMapping(obj -> Arrays.stream(obj.getEmployeeRole().split(",")), Collectors.toSet()))));
 
 		Set<Long> deptIds = new HashSet<>();
 		Set<String> deptIdsStr = new HashSet<>();
@@ -2407,8 +2416,12 @@ public class ResourceManagementService {
 			Project projectObj = new Project();
 
 			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
-
-				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getPoProjectId());
+				
+				if(resourceManagementDTO.getProjectId() != null) {
+					projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+				} else {
+					projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getPoProjectId());
+				}
 //				System.err.println(" projectObj   " + projectObj.getPoProjectId());
 				List<PoProjectSyncDTO> projectInfo = new ArrayList<PoProjectSyncDTO>();
 
@@ -3064,6 +3077,10 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/getProjectInfo");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
+		String incomingViewId = resourceManagementDTO.getProjectViewId();
+		String resolvedViewId = projectHierarchyResolverService.resolveProjectViewId(incomingViewId);
+		resourceManagementDTO.setProjectViewId(resolvedViewId);
+		
 		logBuilder.append("projectInfo : " + projectRepository
 				.getProjectInfo(Integer.parseInt(resourceManagementDTO.getProjectViewId().toString())));
 
@@ -3190,6 +3207,12 @@ public class ResourceManagementService {
 		StringBuilder logBuilder = new StringBuilder();
 
 		try {
+			String incomingViewId = resourceManagementDTO.getProjectViewId();
+			String resolvedViewId = projectHierarchyResolverService.resolveProjectViewId(incomingViewId);
+			resourceManagementDTO.setProjectViewId(resolvedViewId != null && resolvedViewId.startsWith("po")
+					? resolvedViewId.substring(2)
+					: resolvedViewId);
+			
 			List<Object[]> projectInfo = projectRepository
 					.getPoProjectInfo(Long.parseLong(resourceManagementDTO.getProjectViewId().toString()));
 			logBuilder.append("projectInfo : " + projectInfo.size());
@@ -3350,6 +3373,7 @@ public class ResourceManagementService {
 //		logBuilder.append("TeamInfo : " + projectRepository.getTeamInfo(projectId).size());
 
 		try {
+			projectId = projectHierarchyResolverService.resolveToPrimaryProjectId(projectId);
 			List<Object[]> teamInfo = projectRepository.getTeamInfo(projectId);
 
 			Map<Long, TeamInfoTeamDTO> teamMap = new LinkedHashMap<>();
@@ -9134,31 +9158,35 @@ public class ResourceManagementService {
 				EmployeeTeamMap empTeamMap = new EmployeeTeamMap();
 
 				if (presentMember.isEmpty()) {
-
-					StringBuilder employeeRole = new StringBuilder("");
-					for (String empRole : newMember.getEmployeeRole()) {
-						employeeRole.append(empRole).append(",");
-					}
-					empTeamMap.setEmpId(newMember.getEmpId());
-					empTeamMap.setEmployeeRole(employeeRole.toString());
-					empTeamMap.setTeamId(dto.getTeamId());
-					empTeamMap.setStartDate(LocalDateTime.now());
-					empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
-
-					// added poRequirementMappingid changes
-					empTeamMap.setPoRequirementMappingId(newMember.getPoRequirementMappingId() != null
+					
+						StringBuilder employeeRole = new StringBuilder("");
+						for (String empRole : newMember.getEmployeeRole()) {
+							employeeRole.append(empRole).append(",");
+						}
+						empTeamMap.setEmpId(newMember.getEmpId());
+						empTeamMap.setEmployeeRole(employeeRole.toString());
+						empTeamMap.setTeamId(dto.getTeamId());
+						empTeamMap.setStartDate(LocalDateTime.now());
+						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
+						empTeamMap.setPoRequirementMappingId(newMember.getPoRequirementMappingId() != null
 							? Long.parseLong(newMember.getPoRequirementMappingId().toString())
 							: null);
-
-					empTeamMap.setUpdatedBy(dto.getCreatedBy() != null ? dto.getCreatedBy() : null);
-
-					if (newMember.getIsDefaultProject() != null) {
-						if (newMember.getIsDefaultProject() == 1) {
-							defaultProjectEmpIds.add(newMember.getEmpId());
+						empTeamMap.setUpdatedBy(dto.getCreatedBy() != null ? dto.getCreatedBy() : null);
+						
+						if(newMember.getIsDefaultProject() != null) {
+							if( newMember.getIsDefaultProject() == 1) {
+								defaultProjectEmpIds.add(newMember.getEmpId());
+							}
 						}
-					}
-
-					mapList.add(empTeamMap);
+						
+						
+						mapList.add(empTeamMap);
+						
+						Project project = projectRepository.findByProjectId(dto.getProjectId());
+						
+						project.setIsDraftProject("true");
+						projectRepository.save(project);
+					
 
 					List<EmployeeTeamMap> teamMapDbResponse = employeeTeamMapRepository.saveAll(mapList);
 
@@ -15930,7 +15958,7 @@ public class ResourceManagementService {
 			serviceResponse.setServiceResponse(rmgDashboardProjectResponse);
 		} catch (BadRequestException be) {
 			log.error("Error in fetchProjectDetailsList", be);
-			return failResponse(serviceResponse, apiLogInfo, "Filtering by PO number isn’t available at the moment. Please try again later.");
+			return failResponse(serviceResponse, apiLogInfo, be.getMessage());
 		} catch (Exception e) {
 			log.error("Error in fetchProjectDetailsList", e);
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong");

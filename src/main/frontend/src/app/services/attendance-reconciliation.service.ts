@@ -11,13 +11,11 @@ export class AttendanceReconciliationService {
 
   constructor(private http: HttpClient) { }
  
+  /**
+   * Same data as search API; backend only exposes POST /api/getBioData (GET is removed).
+   */
   getBiomatricData(startDate: string, endDate: string, pageNumber: number = 1, pageSize: number = 20) {
-    let httpParams = new HttpParams()
-      .append("startDate", startDate)
-      .append("endDate", endDate)
-      .append("pageNumber", pageNumber.toString())
-      .append("pageSize", pageSize.toString());
-    return this.http.get(`${this.baseUrl}` + `api/getBioData`, { params: httpParams });
+    return this.getBiomatricDataWithSearch(startDate, endDate, pageNumber, pageSize, {});
   }
 
   getviewMoreData(id:any,date:string){
@@ -26,4 +24,15 @@ export class AttendanceReconciliationService {
     append("date",date);
     return this.http.get(`${this.baseUrl}` + `api/getBioDataById`, {params: httpParams});
   }
+
+  getBiomatricDataWithSearch(startDate: string, endDate: string, pageNumber: number, pageSize: number, searchParams: any) {
+    const url = `${this.baseUrl}api/getBioData`;
+    return this.http.post(url, {
+        startDate: startDate,
+        endDate: endDate,
+        pageNumber: pageNumber,
+        pageSize: pageSize,
+        searchParams: searchParams
+    });
+}
 }

@@ -18,6 +18,16 @@ public interface TimesheetActivityMapNewRepository extends JpaRepository<Employe
 	@Query(nativeQuery = true)
 	public List<Object[]> activitiesByIdTimesheetId(Long timesheetId);
 
+	@Modifying
+	@Transactional
+	@Query(value = "UPDATE employee_timesheet_activities_mapping_new \n"
+			+ "SET project_id = :primaryProjectId \n"
+			+ "WHERE project_id IN (:deletedProjectIds)", nativeQuery = true)
+	int bulkMoveActivitiesProjectToPrimary(
+			@Param("primaryProjectId") Integer primaryProjectId,
+			@Param("deletedProjectIds") List<Integer> deletedProjectIds
+	);
+
 //@Query(nativeQuery = true, value = "SELECT tim.description, tim.emp_id, tim.created_on, tim.day_type, map.timesheet_id, a.team_id, p.project_name, c1.client_name, " +
 //	     "t.team_name, c.client_location, map.completion_time " +
 //	     "FROM db_emp_portal.employee_timesheet_activities_mapping AS map " +

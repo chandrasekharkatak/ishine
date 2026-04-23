@@ -24,6 +24,7 @@ public class GetReporteesTimesheetReqDTO {
     private String employeeName;
     private String dayType;
     private String date;
+    private String compOffForDate;
     private Boolean isNightShift;
     private String workCheckIn;
     private String workCheckOut;

@@ -54,6 +54,19 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 	@Query("SELECT t.docId FROM TimesheetDocumentDetailsNew t WHERE t.timesheetId = :timesheetId and t.active = true")
 	List<Long> findDocIdsByTimesheetId(@Param("timesheetId") Long timesheetId);
 
+	@Modifying
+	@Transactional
+	@Query(value = "UPDATE timesheet_document_details_new \n"
+			+ "SET project_id = :primaryProjectId, \n"
+			+ "    updated_by = :updatedBy, \n"
+			+ "    updated_on = NOW() \n"
+			+ "WHERE project_id IN (:deletedProjectIds)", nativeQuery = true)
+	int bulkMoveDocumentDetailsProjectToPrimary(
+			@Param("primaryProjectId") Integer primaryProjectId,
+			@Param("deletedProjectIds") List<Integer> deletedProjectIds,
+			@Param("updatedBy") Long updatedBy
+	);
+
 	// ========== BACKUP: Original query renamed with _old suffix ==========
 //	@Query("SELECT tdd FROM TimesheetDocumentDetails tdd \n" +
 //			"INNER JOIN Timesheet et on et.timesheetId = tdd.timesheetId \n" +
@@ -175,5 +188,25 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 	@Query("DELETE FROM TimesheetDocumentDetailsNew tdd WHERE tdd.timesheetId = :timesheetId and tdd.projectId = :projectId")
 	void deleteByTimesheetIdAndProjectId(@Param("timesheetId") Long timesheetId, @Param("projectId") Integer projectId);
 
+
+
+	@Query( "SELECT etn \n" +
+				"FROM EmployeeTimesheetsNew etn\n" +
+				"INNER JOIN ProjectTimesheetStatusNew ptsn on etn.timesheetId = ptsn.id.timesheetId \n" +
+				"INNER JOIN Project p on p.projectId = ptsn.id.projectId\n" +
+				"INNER JOIN TimesheetDocumentDetailsNew tdd on tdd.timesheetId = etn.timesheetId AND tdd.projectId = ptsn.id.projectId\n" +
+				"WHERE p.hasClientSideId = 1 \n" +
+				"AND etn.dayTypeId IN (1,3,8) \n" + 
+				"AND (etn.status = 3 \n" +
+				" OR (etn.status = 1 AND tdd.bulkApprovedDocId IS NULL ) ) \n"+
+				"AND ptsn.id.projectId = :projectId \n" + 
+				"AND etn.date BETWEEN :fromDate AND :toDate \n" +
+				"AND etn.empId IN :empIds")
+	List<EmployeeTimesheetsNew> getDocsByEmpIdsAndDateForSelf(
+			@Param("empIds") List<Long> empIds,
+			@Param("fromDate") LocalDate fromDate,
+			@Param("toDate") LocalDate toDate,
+			@Param("projectId") Integer projectId
+		);
 
 }

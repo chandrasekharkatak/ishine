@@ -75,4 +75,7 @@ public class EmployeeTimesheetsNew {
 
     @Column(name = "is_system_generated")
     private Boolean isSystemGenerated;
+    
+    @Column(name = "comp_off_for")
+    private LocalDate compOffForDate; 
 }

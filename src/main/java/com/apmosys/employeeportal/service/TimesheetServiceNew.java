@@ -317,9 +317,9 @@ public class TimesheetServiceNew {
 	 * 
 	 * @param empDTO Employee timesheet DTO from new contract
 	 */
-	private void normalizeEmployeeTimesheetFromNewContract(EmployeeTimesheetDTO empDTO, LocalDate date) {
-
-	}
+//	private void normalizeEmployeeTimesheetFromNewContract(EmployeeTimesheetDTO empDTO, LocalDate date) {
+//
+//	}
 
 	/**
 	 * API 1.1: Create Timesheet (New Hierarchical Structure) Creates
@@ -367,7 +367,7 @@ public class TimesheetServiceNew {
 		try {
 
 			// Normalize new contract
-			normalizeEmployeeTimesheetFromNewContract(empDTO, empDTO.getDate());
+//			normalizeEmployeeTimesheetFromNewContract(empDTO, empDTO.getDate());
 			
 			Boolean hasClient = anyProjectWithClientSideId(empDTO);
 
@@ -449,6 +449,7 @@ public class TimesheetServiceNew {
 
 			newTimesheet.setEmpId(empDTO.getEmpId());
 			newTimesheet.setDate(empDTO.getDate());
+			newTimesheet.setCompOffForDate(empDTO.getCompOffForDate());
 			newTimesheet.setDayTypeId(empDTO.getDayTypeId());
 			newTimesheet.setIsNightShift(empDTO.getIsNightShift());
 			newTimesheet.setStatus(TimesheetAggregationHelper.STATUS_PENDING);
@@ -1059,7 +1060,7 @@ public class TimesheetServiceNew {
 				.append(documents == null ? 0 : documents.size());
 
 		try {
-			normalizeEmployeeTimesheetFromNewContract(newEmpDTO, newEmpDTO.getDate());
+//			normalizeEmployeeTimesheetFromNewContract(newEmpDTO, newEmpDTO.getDate());
 
 			Boolean hasClient = anyProjectWithClientSideId(newEmpDTO);
 			
@@ -1134,6 +1135,10 @@ public class TimesheetServiceNew {
 			}
 			//  else if (transition == DayTypeTransition.NON_WORKING_TO_NON_WORKING) {
 
+				// timesheetValidationHelper.validateNonWorkingDayTimesheet(newEmpDTO);
+//				timesheetValidationHelper.validateLocationDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
+//				timesheetValidationHelper.validateApprovedProjectImmutableByLocationMapping(timesheetId,
+//						newEmpDTO.getLocationSessions());
 			// 	timesheetValidationHelper.validateLocationDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
 			// 	timesheetValidationHelper.validateApprovedProjectImmutableByLocationMapping(timesheetId,
 			// 			newEmpDTO.getLocationSessions());
@@ -1159,6 +1164,8 @@ public class TimesheetServiceNew {
 			// safety)
 			empTS.setEmpId(newEmpDTO.getEmpId());
 			empTS.setDate(newEmpDTO.getDate());
+			if(newEmpDTO.getDayTypeId() == 9) empTS.setCompOffForDate(newEmpDTO.getCompOffForDate());
+			else empTS.setCompOffForDate(null);
 			empTS.setDayTypeId(newEmpDTO.getDayTypeId());
 			empTS.setIsNightShift(newEmpDTO.getIsNightShift());
 			empTS.setLeaveTypeMasterId(newEmpDTO.getLeaveTypeId());
@@ -2045,7 +2052,14 @@ public class TimesheetServiceNew {
 
 			List<EmployeeTimesheetsNew> notFilledTimesheetDocumentDetails = new ArrayList<>();
 
-			notFilledTimesheetDocumentDetails = timesheetDocumentDetailsNewRepository.getDocsByEmpIdsAndDate(empIds, fromDate, toDate, projectId);
+			if(!finalBulkUploadDTO.getIsBulkUploadBySelf()){
+				//this is for upload by manager.
+				notFilledTimesheetDocumentDetails = timesheetDocumentDetailsNewRepository.getDocsByEmpIdsAndDate(empIds, fromDate, toDate, projectId);
+			}
+			else if(finalBulkUploadDTO.getIsBulkUploadBySelf()){
+				//this is for upload by self
+				notFilledTimesheetDocumentDetails = timesheetDocumentDetailsNewRepository.getDocsByEmpIdsAndDateForSelf(empIds, fromDate, toDate, projectId);
+			}
 
 			if(notFilledTimesheetDocumentDetails == null || notFilledTimesheetDocumentDetails.isEmpty()) {
 				throw new IllegalArgumentException("No Eligible timesheet(s) found for the given employee(s) and date range.");
@@ -2102,6 +2116,9 @@ public class TimesheetServiceNew {
 						tdn.setClientApprovalStatusId(2);
 						tdn.setFinalFlag(true);
 						tdn.setBulkApprovedDocId(savedFinalDocumentNew.getFinalDocId());
+						if(!finalBulkUploadDTO.getIsBulkUploadBySelf()){
+							tdn.setUpdatedBy(createdBy);
+						}
 						timesheetDocumentDetailsNewListToSave.add(tdn);
 					}
 				}
@@ -3251,5 +3268,53 @@ public class TimesheetServiceNew {
 	return response;
 
 }
+		public ServiceResponse getLastThreeMonthsWorkingDates(String date, Long empId) {
+
+    	    ServiceResponse response = new ServiceResponse();
+    	    LogDTO apiLogInfo = new LogDTO();
+    	    apiLogInfo.setSubFeatureName("Create/Update Timesheet");
+    	    apiLogInfo.setApiUrl("/api/v2/timesheet/getLastThreeMonthsWorkingDates");
+    	    apiLogInfo.setLogLevel("INFO");
+    	    
+    	    try {
+    	    	
+    	    	LocalDate selectedDate = LocalDate.parse(date);
+    	    	LocalDate threeMonthsBefore = selectedDate.minusMonths(3);
+
+    	    	List<LocalDate> dateList = employeeTimesheetsNewRepository.getLastThreeMonthsWorkingAndWorkingOnNonWorkingDates(empId,threeMonthsBefore,selectedDate);
+    	        
+    	        if (dateList.isEmpty()) {
+    	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    	            response.setServiceResponse("No working dates found !");
+    	            response.setServiceMessage("No working dates found !");
+    	            
+    	            apiLogInfo.setApiResponse("No working dates found !");
+    	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+    	            logService.logMyInfo(httpRequest, apiLogInfo);
+    	            return response;
+    	        }
+    	        
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(dateList);
+                response.setServiceMessage("dates fetched successfully!");
+
+                apiLogInfo.setApiResponse("dates fetched successfully!");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+    	        
+    	    } catch (Exception e) {
+    	        e.printStackTrace();
+    	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+    	        response.setServiceResponse("Something went wrong.");
+    	        response.setServiceError(e.getMessage());
+
+    	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+    	        apiLogInfo.setApiResponse(e.getMessage()); 
+    	        apiLogInfo.setLogLevel("ERROR");
+    	    }
+
+    	    logService.logMyInfo(httpRequest, apiLogInfo);
+    	    return response;
+    	
+		}
 
 }

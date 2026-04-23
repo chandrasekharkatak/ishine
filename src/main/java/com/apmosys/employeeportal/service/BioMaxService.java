@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -22,8 +23,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -94,6 +100,86 @@ public class BioMaxService {
 	@PersistenceContext
     private EntityManager entityManager;
 
+	private volatile Connection cachedConnection = null;
+	private volatile LocalDateTime lastConnectionUseTime = null;
+	private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+	private static final int CONNECTION_TIMEOUT_MINUTES = 5;
+
+	@PostConstruct
+	public void init() {
+		// Schedule a task to check and close idle connections every minute
+		scheduler.scheduleAtFixedRate(() -> {
+			try {
+				if (cachedConnection != null && lastConnectionUseTime != null) {
+					LocalDateTime now = LocalDateTime.now();
+					if (Duration.between(lastConnectionUseTime, now).toMinutes() >= CONNECTION_TIMEOUT_MINUTES) {
+						closeConnection();
+						System.out.println("Connection closed due to inactivity after " + CONNECTION_TIMEOUT_MINUTES + " minutes");
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}, 1, 1, TimeUnit.MINUTES);
+	}
+
+	@PreDestroy
+	public void destroy() {
+		closeConnection();
+		scheduler.shutdown();
+	}
+
+	private synchronized Connection getCachedConnection() throws SQLException {
+		try {
+			// Check if existing connection is valid
+			if (cachedConnection != null && !cachedConnection.isClosed()) {
+				lastConnectionUseTime = LocalDateTime.now();
+				System.out.println("Reusing existing connection");
+				return cachedConnection;
+			}
+			
+			// Close old connection if exists
+			closeConnection();
+			
+			// Create new connection
+			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+			cachedConnection = DriverManager.getConnection(
+				"jdbc:sqlserver://192.168.0.126:1433;databaseName=SmartOfficedb;encrypt=true;trustServerCertificate=true;",
+				"apmosys",
+				"apmosys@123"
+			);
+			
+			lastConnectionUseTime = LocalDateTime.now();
+			System.out.println("New connection created successfully!");
+			return cachedConnection;
+			
+		} catch (ClassNotFoundException e) {
+			throw new SQLException("SQL Server JDBC Driver not found", e);
+		} catch (SQLException e) {
+			closeConnection();
+			throw e;
+		}
+	}
+
+	private synchronized void closeConnection() {
+		try {
+			if (cachedConnection != null && !cachedConnection.isClosed()) {
+				cachedConnection.close();
+				System.out.println("Connection closed");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			cachedConnection = null;
+			lastConnectionUseTime = null;
+		}
+	}
+
+	// Add this method to manually reset connection if needed
+	public synchronized void resetConnection() {
+		closeConnection();
+	}
+
 // 	public Connection getConnection() {
 		
 		
@@ -121,28 +207,31 @@ public class BioMaxService {
 
 // 		return null;
 // 	}
-
-	public Connection getConnection() {
-		try {
-			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-			
-			con = DriverManager.getConnection(
-				"jdbc:sqlserver://192.168.0.126:1433;databaseName=SmartOfficedb;encrypt=true;trustServerCertificate=true;",
-				"apmosys",
-				"apmosys@123"
-			);
-			
-			if (con != null) {
-				System.out.println("Connection made successfully!");
-			}
-			return con;
-			
-		} catch (Exception e) {
-			System.out.println("Connection failed: " + e.getMessage());
-			e.printStackTrace();
-		}
-		return null;
+	public Connection getConnection() throws SQLException {
+		return getCachedConnection();
 	}
+
+	// public Connection getConnection() {
+	// 	try {
+	// 		Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+			
+	// 		con = DriverManager.getConnection(
+	// 			"jdbc:sqlserver://192.168.0.126:1433;databaseName=SmartOfficedb;encrypt=true;trustServerCertificate=true;",
+	// 			"apmosys",
+	// 			"apmosys@123"
+	// 		);
+			
+	// 		if (con != null) {
+	// 			System.out.println("Connection made successfully!");
+	// 		}
+	// 		return con;
+			
+	// 	} catch (Exception e) {
+	// 		System.out.println("Connection failed: " + e.getMessage());
+	// 		e.printStackTrace();
+	// 	}
+	// 	return null;
+	// }
 
 	 public Connection getConnectionForProject() {
 	        String DB_URL = "jdbc:mysql://localhost:3306/db_emp_portal"; // Replace with your MySQL server info
@@ -196,13 +285,10 @@ public class BioMaxService {
 	        // Properly close the resources in the finally block
 	        try {
 	            if (resultSet != null) {
-	            	resultSet.close();
+	            	statement.close();
 	            }
 	            if (statement != null) {
 	                statement.close();
-	            }
-	            if (con != null) {
-	            	con.close();
 	            }
 	        } catch (SQLException ex) {
 	            ex.printStackTrace();
@@ -216,97 +302,110 @@ public class BioMaxService {
 
 	public ServiceResponse getEmpBioDataFromIshine(String startDate, String endDate, 
                                                 Integer pageNumber, Integer pageSize) throws SQLException {
+		return getEmpBioDataFromIshine(startDate, endDate, pageNumber, pageSize, new HashMap<>());
+	}
+
+	public ServiceResponse getBioDashboardData(String startDate, String endDate) {
 		ServiceResponse serviceResponse = new ServiceResponse();
-		try {
-			if (pageNumber == null || pageNumber < 1) pageNumber = 1;
-			if (pageSize == null || pageSize < 1) pageSize = 100;
-			
-			int offset = (pageNumber - 1) * pageSize;
-			
-			List<BioMaTO> finalEmpBioData = new ArrayList<>();
-			
-			Connection con = getConnection();
-			
-			// First, get total count
-			String countQuery = "SELECT COUNT(*) AS TotalRecords FROM " +
-				"( " +
-				"    SELECT Empcode, EmpName, CAST(Logdatetime AS DATE) AS AttendanceDate " +
-				"    FROM IshineRawdata " +
-				"    WHERE Logdatetime >= ? AND Logdatetime <= ? " +
-				"    GROUP BY Empcode, EmpName, CAST(Logdatetime AS DATE) " +
-				") A";
-			
-			PreparedStatement countStmt = con.prepareStatement(countQuery);
-			countStmt.setString(1, startDate + " 00:00:00");
-			countStmt.setString(2, endDate + " 23:59:59");
-			ResultSet countRs = countStmt.executeQuery();
-			
-			int totalRecords = 0;
-			if (countRs.next()) {
-				totalRecords = countRs.getInt("TotalRecords");
-			}
-			countRs.close();
-			countStmt.close();
-			
-			// Get paginated data - WITHOUT Direction filter
-			String query = "SELECT " +
-				"    Empcode, " +
-				"    EmpName, " +
-				"    FORMAT(AttendanceDate,'dd-MM-yyyy') AS AttendanceDate, " +
-				"    FORMAT(InTime,'hh:mm tt') AS InTime, " +
-				"    FORMAT(OutTime,'hh:mm tt') AS OutTime, " +
-				"    FORMAT(DATEADD(MINUTE, DATEDIFF(MINUTE, InTime, OutTime), 0),'HH:mm') AS TotalWorkingHours " +
-				"FROM " +
-				"( " +
-				"    SELECT " +
-				"        Empcode, " +
-				"        EmpName, " +
-				"        CAST(Logdatetime AS DATE) AS AttendanceDate, " +
-				"        MIN(Logdatetime) AS InTime, " +
-				"        MAX(Logdatetime) AS OutTime " +
-				"    FROM IshineRawdata " +
-				"    WHERE Logdatetime >= ? AND Logdatetime <= ? " +
-				"    GROUP BY Empcode, EmpName, CAST(Logdatetime AS DATE) " +
-				") A " +
-				"ORDER BY Empcode, AttendanceDate " +
-				"OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+		Map<String, Object> responseData = new HashMap<>();
 
-			PreparedStatement statement = con.prepareStatement(query);
-			statement.setString(1, startDate + " 00:00:00");
-			statement.setString(2, endDate + " 23:59:59");
-			statement.setInt(3, offset);
-			statement.setInt(4, pageSize);
+		try (Connection con = getConnection()) {
+			LocalDate startLocalDate = parseDashboardDate(startDate);
+			LocalDate endLocalDate = parseDashboardDate(endDate);
 
-			ResultSet resultSet = statement.executeQuery();
+			long totalEmployees = Optional.ofNullable(employeeRepository.getTotalEmployeeCount()).orElse(0L);
 
-			while (resultSet.next()) {
-				BioMaTO bioMaTO = new BioMaTO();
-				bioMaTO.setEmployeeCode(resultSet.getString("Empcode"));
-				bioMaTO.setEmployeeName(resultSet.getString("EmpName"));
-				bioMaTO.setLogDate(resultSet.getString("AttendanceDate"));
-				bioMaTO.setInTime(resultSet.getString("InTime"));
-				bioMaTO.setOutTime(resultSet.getString("OutTime"));
-				bioMaTO.setTotalDuration(resultSet.getString("TotalWorkingHours"));
-				
-				finalEmpBioData.add(bioMaTO);
+			// Present count for selected end date
+			long presentToday = 0L;
+			String presentTodayQuery = "SELECT COUNT(DISTINCT Empcode) AS presentCount "
+					+ "FROM IshineRawdata "
+					+ "WHERE CAST(Logdatetime AS DATE) = ?";
+			try (PreparedStatement presentStmt = con.prepareStatement(presentTodayQuery)) {
+				presentStmt.setDate(1, java.sql.Date.valueOf(endLocalDate));
+				try (ResultSet rs = presentStmt.executeQuery()) {
+					if (rs.next()) {
+						presentToday = rs.getLong("presentCount");
+					}
+				}
 			}
 
-			finalEmpBioData = mapEmployeeDetails(finalEmpBioData);
+			// Late arrivals on selected day (first punch after 10:00 AM)
+			long lateArrivals = 0L;
+			String lateArrivalsQuery = "SELECT COUNT(*) AS lateCount FROM ( "
+					+ "SELECT Empcode, MIN(Logdatetime) AS InTime "
+					+ "FROM IshineRawdata "
+					+ "WHERE CAST(Logdatetime AS DATE) = ? "
+					+ "GROUP BY Empcode "
+					+ ") A WHERE CAST(A.InTime AS TIME) > '10:00:00'";
+			try (PreparedStatement lateStmt = con.prepareStatement(lateArrivalsQuery)) {
+				lateStmt.setDate(1, java.sql.Date.valueOf(endLocalDate));
+				try (ResultSet rs = lateStmt.executeQuery()) {
+					if (rs.next()) {
+						lateArrivals = rs.getLong("lateCount");
+					}
+				}
+			}
 
-			resultSet.close();
-			statement.close();
-			con.close();
+			// Employees with less than 9 hours on selected day
+			long underNineHours = 0L;
+			String underNineQuery = "SELECT COUNT(*) AS underNineCount FROM ( "
+					+ "SELECT Empcode, DATEDIFF(MINUTE, MIN(Logdatetime), MAX(Logdatetime)) AS workedMinutes "
+					+ "FROM IshineRawdata "
+					+ "WHERE CAST(Logdatetime AS DATE) = ? "
+					+ "GROUP BY Empcode "
+					+ ") A WHERE A.workedMinutes > 0 AND A.workedMinutes < 540";
+			try (PreparedStatement underNineStmt = con.prepareStatement(underNineQuery)) {
+				underNineStmt.setDate(1, java.sql.Date.valueOf(endLocalDate));
+				try (ResultSet rs = underNineStmt.executeQuery()) {
+					if (rs.next()) {
+						underNineHours = rs.getLong("underNineCount");
+					}
+				}
+			}
 
-			Map<String, Object> responseData = new HashMap<>();
-			responseData.put("data", finalEmpBioData);
-			responseData.put("totalRecords", totalRecords);
-			responseData.put("currentPage", pageNumber);
-			responseData.put("pageSize", pageSize);
-			responseData.put("totalPages", (int) Math.ceil((double) totalRecords / pageSize));
+			long absentToday = Math.max(totalEmployees - presentToday, 0L);
+			long onTimeToday = Math.max(presentToday - lateArrivals, 0L);
+
+			Map<String, Object> summary = new HashMap<>();
+			summary.put("totalEmployees", totalEmployees);
+			summary.put("presentToday", presentToday);
+			summary.put("lateArrivals", lateArrivals);
+			summary.put("underNineHours", underNineHours);
+			summary.put("absentToday", absentToday);
+			responseData.put("summary", summary);
+
+			Map<String, Object> statusDistribution = new HashMap<>();
+			statusDistribution.put("onTime", onTimeToday);
+			statusDistribution.put("late", lateArrivals);
+			statusDistribution.put("absent", absentToday);
+			statusDistribution.put("total", totalEmployees);
+			responseData.put("statusDistribution", statusDistribution);
+
+			// Trend across selected range (daily present vs absent)
+			List<Map<String, Object>> weeklyTrend = new ArrayList<>();
+			String trendQuery = "SELECT CAST(Logdatetime AS DATE) AS AttendanceDate, COUNT(DISTINCT Empcode) AS PresentCount "
+					+ "FROM IshineRawdata "
+					+ "WHERE Logdatetime >= ? AND Logdatetime < ? "
+					+ "GROUP BY CAST(Logdatetime AS DATE) "
+					+ "ORDER BY AttendanceDate";
+			try (PreparedStatement trendStmt = con.prepareStatement(trendQuery)) {
+				trendStmt.setTimestamp(1, java.sql.Timestamp.valueOf(startLocalDate.atStartOfDay()));
+				trendStmt.setTimestamp(2, java.sql.Timestamp.valueOf(endLocalDate.plusDays(1).atStartOfDay()));
+				try (ResultSet rs = trendStmt.executeQuery()) {
+					while (rs.next()) {
+						long presentCount = rs.getLong("PresentCount");
+						Map<String, Object> day = new HashMap<>();
+						day.put("date", rs.getString("AttendanceDate"));
+						day.put("presentCount", presentCount);
+						day.put("absentCount", Math.max(totalEmployees - presentCount, 0L));
+						weeklyTrend.add(day);
+					}
+				}
+			}
+			responseData.put("weeklyTrend", weeklyTrend);
 
 			serviceResponse.setServiceResponse(responseData);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			serviceResponse.setServiceResponse("");
@@ -315,6 +414,24 @@ public class BioMaxService {
 		}
 
 		return serviceResponse;
+	}
+
+	private LocalDate parseDashboardDate(String date) {
+		if (date == null) {
+			return LocalDate.now();
+		}
+
+		try {
+			return LocalDate.parse(date, DateTimeFormatter.ofPattern("dd-MMM-yyyy"));
+		} catch (DateTimeParseException ignored) {
+		}
+
+		try {
+			return LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		} catch (DateTimeParseException ignored) {
+		}
+
+		return LocalDate.now();
 	}
 
 	 public ServiceResponse getEmpBioData360(String startDate, String endDate, List<String> employeeId) {
@@ -546,20 +663,13 @@ public class BioMaxService {
 		        statement.setString(1, String.valueOf(2024)); // Set the year
 		        statement.setString(2, String.valueOf(9));    // Set the month
 		        
-		        System.out.println("Executing query: " + statement.toString());
 		        
 		        ResultSet resultSet = statement.executeQuery();
 		        
 		        if (!resultSet.next()) {
-		            System.out.println("No results found.");
 		        } else {
 		        	 while (resultSet.next()){
 		                BioMaTO bioMaTO = new BioMaTO();
-		                
-		                System.out.println(resultSet.getString("EmployeeCode"));
-		                System.out.println(resultSet.getString("ShiftName"));
-		                System.out.println(resultSet.getString("EmployeeName"));
-		                System.out.println(resultSet.getString("TotalDuration"));
 		               
 		                // Populate bioMaTO object
 		                bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
@@ -633,9 +743,6 @@ public class BioMaxService {
 	        stats.put("appreciation_count",  result[2]);
 
 	       
-	        System.out.println("data  --===="+ stats);
-	        
-
 		    try {
 		        // Fetch all employees from the repository
 		        List<Employee> AllEmpList = employeeRepository.findAll();
@@ -688,7 +795,6 @@ public class BioMaxService {
 		                    // Close resources
 		                    resultSet.close();
 		                    statement.close();
-		                    con.close();
 		                } catch (ClassNotFoundException | SQLException e) {
 		                    e.printStackTrace();
 		                }
@@ -697,8 +803,6 @@ public class BioMaxService {
 		            }
 		        });
 		        
-		        System.out.println("data res --===="+ res);
-
 		    } catch (Exception e) {
 		        e.printStackTrace();
 		    }
@@ -812,7 +916,6 @@ public class BioMaxService {
 	 
 	 public List<BioMaTO> listFilter(List<BioMaTO> list1, List<Long> removedId) {
 		    // Handle null inputs
-		 System.out.println("List Size"+list1.size());
 		    if (list1 == null || removedId == null) {
 		        return new ArrayList<>(); // Return an empty list if inputs are null
 		    }
@@ -826,58 +929,562 @@ public class BioMaxService {
 		    // Filter the list
 		    List<BioMaTO> newList = new ArrayList<>();
 		    for (BioMaTO item : list1) {
-		    	System.out.println("EmpId="+item.getEmpId());
 		        if (item != null && !removedIdSet.contains(item.getEmployementId().toString())) {
 		            newList.add(item);
 		        }
 		    	
 		    }
-		    System.out.println("newList Size"+newList.size());
 			
 		    return newList;
 		}
 
-	private List<BioMaTO> mapEmployeeDetails(List<BioMaTO> bioMaxTOList) {
-		List<String> allEmployeeIds = bioMaxTOList.stream().map(e -> e.getEmployeeCode()).collect(Collectors.toList());
-		List<Object[]> employees = employeeRepository.findByPrefixedEmployeementIdIn(allEmployeeIds);
+	// private List<BioMaTO> mapEmployeeDetails(List<BioMaTO> bioMaxTOList) {
+	// 	List<String> allEmployeeIds = bioMaxTOList.stream().map(e -> e.getEmployeeCode()).collect(Collectors.toList());
+	// 	List<Object[]> employees = employeeRepository.findByPrefixedEmployeementIdIn(allEmployeeIds);
+	// 	Map<String, Map<String, String>> employeeMap = new HashMap<>();
+		
+	// 	for(Object[] employee : employees) {
+	// 		String employeeId = employee[4] != null ? employee[4].toString() : null;
+
+	// 		if(employeeId == null ){
+	// 			throw new NullPointerException("Employee Id is Null");
+	// 		}
+
+	// 		Map<String, String> employeeDetails = new HashMap<>();
+
+	// 		String employeeName = employee[1] != null ? employee[1].toString() : "N/A";
+	// 		String reportingManager = employee[2] != null ? employee[2].toString() : "N/A";
+	// 		String departmentName = employee[3] != null ? employee[3].toString() : "N/A";
+
+	// 		employeeDetails.put("reportingManager", reportingManager);
+	// 		employeeDetails.put("employeeName", employeeName);
+	// 		employeeDetails.put("departmentName", departmentName);
+
+	// 		employeeMap.put(employeeId, employeeDetails);
+	// 	}
+
+	// 	for(BioMaTO bioMaTO : bioMaxTOList) {
+	// 		String employeeId = bioMaTO.getEmployeeCode();
+	// 		Map<String, String> employeeDetails = employeeMap.get(employeeId);
+	// 		if(employeeDetails!=null) {
+	// 			String reportingManager = employeeDetails.get("reportingManager");
+	// 			bioMaTO.setReportingManagerName(reportingManager);
+	// 			bioMaTO.setEmployeeName(employeeDetails.get("employeeName"));
+	// 			bioMaTO.setDepartmentName(employeeDetails.get("departmentName"));
+	// 		} else {
+	// 			bioMaTO.setReportingManagerName("N/A");
+	// 			bioMaTO.setEmployeeName("N/A");
+	// 			bioMaTO.setDepartmentName("N/A");
+	// 		}
+	// 	}
+
+	// 	return bioMaxTOList;
+	// }
+
+	private List<BioMaTO> mapEmployeeDetails(List<BioMaTO> bioMaxTOList, Map<String, String> searchParams) {
+		if (bioMaxTOList.isEmpty()) {
+			return bioMaxTOList;
+		}
+		
+		// Extract prefixed codes, ignore numeric-only ones, and remove hyphens (e.g., AP-2134 -> AP2134)
+		List<String> biometricCodes = bioMaxTOList.stream()
+			.map(BioMaTO::getEmployeeCode)
+			.filter(code -> code != null && !code.matches("^[0-9]+$"))
+			.map(code -> code.replace("-", ""))
+			.distinct()
+			.collect(Collectors.toList());
+		
+		// Map of original biometric code to its cleaned version for later lookup
+		Map<String, String> rawToCleanedCodeMap = bioMaxTOList.stream()
+			.filter(e -> e.getEmployeeCode() != null && !e.getEmployeeCode().matches("^[0-9]+$"))
+			.collect(Collectors.toMap(
+				BioMaTO::getEmployeeCode,
+				e -> e.getEmployeeCode().replace("-", ""),
+				(existing, replacement) -> existing
+			));
+		
+		// Extract filter parameters
+		String employeeName = searchParams != null ? searchParams.get("employeeName") : null;
+		String employeeCodeInput = searchParams != null ? searchParams.get("employeeCode") : null;
+		String departmentName = searchParams != null ? searchParams.get("departmentName") : null;
+		String managerName = searchParams != null ? searchParams.get("reportingManagerName") : null;
+		
+		// Query with filters applied using the cleaned prefixed codes 
+		List<Object[]> employees = employeeRepository.findByPrefixedEmployeementIdInWithFilters(
+			biometricCodes,
+			(employeeName != null && !employeeName.trim().isEmpty()) ? employeeName : null,
+			(employeeCodeInput != null && !employeeCodeInput.trim().isEmpty()) ? employeeCodeInput : null,
+			(departmentName != null && !departmentName.trim().isEmpty()) ? departmentName : null,
+			(managerName != null && !managerName.trim().isEmpty()) ? managerName : null
+		);
+		
 		Map<String, Map<String, String>> employeeMap = new HashMap<>();
 		
-		for(Object[] employee : employees) {
-			String employeeId = employee[4] != null ? employee[4].toString() : null;
-
-			if(employeeId == null ){
-				throw new NullPointerException("Employee Id is Null");
-			}
-
+		for (Object[] row : employees) {
 			Map<String, String> employeeDetails = new HashMap<>();
-
-			String employeeName = employee[1] != null ? employee[1].toString() : "N/A";
-			String reportingManager = employee[2] != null ? employee[2].toString() : "N/A";
-			String departmentName = employee[3] != null ? employee[3].toString() : "N/A";
-
+			
+			String empName = row[1] != null ? row[1].toString() : "N/A";
+			String reportingManager = row[2] != null ? row[2].toString() : "N/A";
+			String deptName = row[3] != null ? row[3].toString() : "N/A";
+			String prefixedId = row[4] != null ? row[4].toString() : null; // MySQL returns with hyphen
+			
 			employeeDetails.put("reportingManager", reportingManager);
-			employeeDetails.put("employeeName", employeeName);
-			employeeDetails.put("departmentName", departmentName);
-
-			employeeMap.put(employeeId, employeeDetails);
-		}
-
-		for(BioMaTO bioMaTO : bioMaxTOList) {
-			String employeeId = bioMaTO.getEmployeeCode();
-			Map<String, String> employeeDetails = employeeMap.get(employeeId);
-			if(employeeDetails!=null) {
-				String reportingManager = employeeDetails.get("reportingManager");
-				bioMaTO.setReportingManagerName(reportingManager);
-				bioMaTO.setEmployeeName(employeeDetails.get("employeeName"));
-				bioMaTO.setDepartmentName(employeeDetails.get("departmentName"));
-			} else {
-				bioMaTO.setReportingManagerName("N/A");
-				bioMaTO.setEmployeeName("N/A");
-				bioMaTO.setDepartmentName("N/A");
+			employeeDetails.put("employeeName", empName);
+			employeeDetails.put("departmentName", deptName);
+			if (prefixedId != null) {
+				employeeDetails.put("employeeCode", prefixedId);
+				// Cleaned version for key (e.g., AP-2134 -> AP2134)
+				employeeMap.put(prefixedId.replace("-", ""), employeeDetails);
 			}
 		}
+		
+		// Filter and map details
+		List<BioMaTO> filteredList = new ArrayList<>();
+		for (BioMaTO bioMaTO : bioMaxTOList) {
+			String rawCode = bioMaTO.getEmployeeCode();
+			String cleanedCode = rawToCleanedCodeMap.get(rawCode);
+			
+			if (cleanedCode != null) {
+				Map<String, String> employeeDetails = employeeMap.get(cleanedCode);
+				if (employeeDetails != null) {
+					// Map employee info from MySQL
+					bioMaTO.setReportingManagerName(employeeDetails.get("reportingManager"));
+					bioMaTO.setEmployeeName(employeeDetails.get("employeeName"));
+					bioMaTO.setDepartmentName(employeeDetails.get("departmentName"));
+					if (employeeDetails.containsKey("employeeCode")) {
+						bioMaTO.setEmployeeCode(employeeDetails.get("employeeCode"));
+					}
+					
+					// Apply strict search filters in Java to ensure accuracy
+					boolean matchesFilters = true;
+					if (searchParams != null && !searchParams.isEmpty()) {
+						for (Map.Entry<String, String> entry : searchParams.entrySet()) {
+							String field = entry.getKey();
+							String value = entry.getValue();
+							if (value != null && !value.trim().isEmpty()) {
+								String searchVal = value.toLowerCase();
+								switch (field) {
+									case "employeeName":
+										if (bioMaTO.getEmployeeName() == null || !bioMaTO.getEmployeeName().toLowerCase().contains(searchVal)) matchesFilters = false;
+										break;
+									case "inTime":
+										if (bioMaTO.getInTime() == null || !bioMaTO.getInTime().toLowerCase().contains(searchVal)) matchesFilters = false;
+										break;
+									case "outTime":
+										if (bioMaTO.getOutTime() == null || !bioMaTO.getOutTime().toLowerCase().contains(searchVal)) matchesFilters = false;
+										break;
+									case "totalDuration":
+										if (bioMaTO.getTotalDuration() == null || !bioMaTO.getTotalDuration().toLowerCase().contains(searchVal)) matchesFilters = false;
+										break;
+									case "logDate":
+										if (bioMaTO.getLogDate() == null || !bioMaTO.getLogDate().contains(value)) matchesFilters = false;
+										break;
+								}
+							}
+							if (!matchesFilters) break;
+						}
+					}
+					
+					if (matchesFilters) {
+						filteredList.add(bioMaTO);
+					}
+				}
+			}
+		}
+		
+		return filteredList;
+	}
+	
+	public ServiceResponse getEmpBioDataFromIshine(String startDate, String endDate, 
+                                                Integer pageNumber, Integer pageSize,
+                                                Map<String, String> searchParams) throws SQLException {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			if (pageNumber == null || pageNumber < 1) pageNumber = 1;
+			if (pageSize == null || pageSize < 1) pageSize = 100;
+			
+			int offset = (pageNumber - 1) * pageSize;
+			
+			List<BioMaTO> finalEmpBioData = new ArrayList<>();
+			
+			Connection con = getConnection();
+			
+			boolean searchInMySQL = true;
+			Map<String, String> safeSearchParams = searchParams != null ? searchParams : new HashMap<>();
+			List<String> employeeCodesFromMySQL = searchEmployeesInMySQL(safeSearchParams);
+			
+					if (employeeCodesFromMySQL.isEmpty()) {
+						Map<String, Object> responseData = new HashMap<>();
+						responseData.put("data", finalEmpBioData);
+						responseData.put("totalRecords", 0);
+						responseData.put("currentPage", pageNumber);
+						responseData.put("pageSize", pageSize);
+						responseData.put("totalPages", 0);
+						
+						serviceResponse.setServiceResponse(responseData);
+						serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						return serviceResponse;
+			}
+			
+			// First, get total count with filters
+			String countQuery = buildCountQuery(searchInMySQL, employeeCodesFromMySQL, searchParams);
+			PreparedStatement countStmt = con.prepareStatement(countQuery);
+			setQueryParameters(countStmt, startDate, endDate, searchInMySQL, employeeCodesFromMySQL, searchParams, 1);
+			
+			ResultSet countRs = countStmt.executeQuery();
+			
+			int totalRecords = 0;
+			if (countRs.next()) {
+				totalRecords = countRs.getInt("TotalRecords");
+			}
+			countRs.close();
+			countStmt.close();
+			
+			String query = buildDataQuery(searchInMySQL, employeeCodesFromMySQL, searchParams);
+			PreparedStatement statement = con.prepareStatement(query);
+			int paramIndex = setQueryParameters(statement, startDate, endDate, searchInMySQL, employeeCodesFromMySQL, searchParams, 1);
+			statement.setInt(paramIndex++, offset);
+			statement.setInt(paramIndex, pageSize);
+			
+			ResultSet resultSet = statement.executeQuery();
+			
+			while (resultSet.next()) {
+				BioMaTO bioMaTO = new BioMaTO();
+				bioMaTO.setEmployeeCode(resultSet.getString("Empcode"));
+				bioMaTO.setEmployeeName(resultSet.getString("EmpName"));
+				bioMaTO.setLogDate(resultSet.getString("AttendanceDate"));
+				bioMaTO.setInTime(resultSet.getString("InTime"));
+				bioMaTO.setOutTime(resultSet.getString("OutTime"));
+				bioMaTO.setTotalDuration(resultSet.getString("TotalWorkingHours"));
+				
+				finalEmpBioData.add(bioMaTO);
+			}
+			
+			finalEmpBioData = mapEmployeeDetails(finalEmpBioData, searchParams);
+			
+			resultSet.close();
+			statement.close();
+			
+			Map<String, Object> responseData = new HashMap<>();
+			responseData.put("data", finalEmpBioData);
+			responseData.put("totalRecords", totalRecords);
+			responseData.put("currentPage", pageNumber);
+			responseData.put("pageSize", pageSize);
+			responseData.put("totalPages", (int) Math.ceil((double) totalRecords / pageSize));
+			
+			serviceResponse.setServiceResponse(responseData);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceResponse("");
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceError(e.getMessage());
+		}
+		
+		return serviceResponse;
+	}
 
-		return bioMaxTOList;
+
+	private List<String> searchEmployeesInMySQL(Map<String, String> searchParams) {
+		List<String> employeeCodes = new ArrayList<>();
+		
+		try {
+			String employeeName = searchParams.get("employeeName");
+			String departmentName = searchParams.get("departmentName");
+			String reportingManagerName = searchParams.get("reportingManagerName");
+			String employeeCodeInput = searchParams.get("employeeCode");
+			
+			String numericCodeSearch = null;
+			if (employeeCodeInput != null && !employeeCodeInput.trim().isEmpty()) {
+				numericCodeSearch = employeeCodeInput.replaceAll("[a-zA-Z-]", "").trim();
+				if (numericCodeSearch.isEmpty()) numericCodeSearch = null;
+			}
+			
+			// Get data based on search criteria
+			List<Object[]> rawData = employeeRepository.findRawEmployeementIdsBySearchCriteria(
+				(employeeName != null && !employeeName.trim().isEmpty()) ? employeeName : null,
+				(employeeCodeInput != null && !employeeCodeInput.trim().isEmpty()) ? employeeCodeInput : null,
+				(departmentName != null && !departmentName.trim().isEmpty()) ? departmentName : null,
+				(reportingManagerName != null && !reportingManagerName.trim().isEmpty()) ? reportingManagerName : null
+			);
+			
+			for (Object[] row : rawData) {
+				if (row != null && row.length >= 2) {
+					String type = row[0] != null ? row[0].toString() : "A";
+					String id = row[1] != null ? row[1].toString() : null;
+					
+					if (id != null) {
+						if ("AP".equals(type)) {
+							employeeCodes.add("AP" + id);
+							employeeCodes.add("AP-" + id);
+						} else if ("CS".equals(type)) {
+							employeeCodes.add("CS" + id);
+							employeeCodes.add("CS-" + id);
+						} else {
+							employeeCodes.add("A" + id);
+							employeeCodes.add("A-" + id);
+						}
+					}
+				}
+			}
+			
+			if (employeeCodeInput != null && !employeeCodeInput.trim().isEmpty()) {
+				if (!employeeCodeInput.contains("%")) {
+					employeeCodes.add(employeeCodeInput);
+				}
+			}
+			
+			// Remove duplicates
+			employeeCodes = employeeCodes.stream().distinct().collect(Collectors.toList());
+			
+			// Log for debugging
+			System.out.println("Generated search patterns (exact matches only): " + employeeCodes.size() + " items");
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return employeeCodes;
+	}
+	
+	private void appendEmployeeCodesFilter(StringBuilder query, List<String> employeeCodes) {
+		if (employeeCodes == null || employeeCodes.isEmpty()) return;
+		
+		query.append(" AND (");
+		
+		// Separate exact matches (no %) and pattern matches (with %)
+		List<String> exactMatches = employeeCodes.stream()
+			.filter(code -> !code.contains("%"))
+			.collect(Collectors.toList());
+		
+		List<String> patternMatches = employeeCodes.stream()
+			.filter(code -> code.contains("%"))
+			.collect(Collectors.toList());
+		
+		boolean hasExact = !exactMatches.isEmpty();
+		
+		// Handle exact matches with IN clause
+		if (hasExact) {
+			// Split into batches of 500 if needed (to avoid query length limits)
+			query.append("Empcode IN (");
+			for (int i = 0; i < exactMatches.size(); i++) {
+				if (i > 0) query.append(",");
+				query.append("'").append(exactMatches.get(i).replace("'", "''")).append("'");
+			}
+			query.append(")");
+		}
+		
+		// Handle pattern matches with LIKE
+		if (!patternMatches.isEmpty()) {
+			if (hasExact) {
+				query.append(" OR ");
+			}
+			query.append("(");
+			for (int i = 0; i < patternMatches.size(); i++) {
+				if (i > 0) query.append(" OR ");
+				query.append("Empcode LIKE '").append(patternMatches.get(i).replace("'", "''")).append("'");
+			}
+			query.append(")");
+		}
+		
+		query.append(") ");
+	}
+
+	private String buildCountQuery(boolean searchInMySQL, List<String> employeeCodes, Map<String, String> searchParams) {
+		StringBuilder query = new StringBuilder(
+			"SELECT COUNT(*) AS TotalRecords FROM " +
+			"( " +
+			"    SELECT Empcode, MAX(EmpName) AS EmpName, CAST(Logdatetime AS DATE) AS AttendanceDate " +  // Use MAX() aggregate
+			"    FROM IshineRawdata " +
+			"    WHERE Logdatetime >= ? AND Logdatetime <= ? "
+		);
+		
+		if (searchInMySQL && employeeCodes != null && !employeeCodes.isEmpty()) {
+			appendEmployeeCodesFilter(query, employeeCodes);
+		}
+		
+		boolean hasHavingClause = false;
+		StringBuilder havingClause = new StringBuilder();
+		
+		if (searchParams != null && !searchParams.isEmpty()) {
+			for (Map.Entry<String, String> entry : searchParams.entrySet()) {
+				String field = entry.getKey();
+				String value = entry.getValue();
+				if (value != null && !value.trim().isEmpty()) {
+					switch (field) {
+						case "inTime":
+							if (!hasHavingClause) {
+								havingClause.append(" HAVING ");
+								hasHavingClause = true;
+							} else {
+								havingClause.append(" AND ");
+							}
+							havingClause.append("LTRIM(RIGHT(CONVERT(VARCHAR(20), MIN(CASE WHEN LOWER(TRIM(Direction)) = 'in' THEN Logdatetime END), 100), 7)) LIKE ?");
+							break;
+						case "outTime":
+							if (!hasHavingClause) {
+								havingClause.append(" HAVING ");
+								hasHavingClause = true;
+							} else {
+								havingClause.append(" AND ");
+							}
+							havingClause.append("LTRIM(RIGHT(CONVERT(VARCHAR(20), MAX(CASE WHEN LOWER(TRIM(Direction)) = 'out' THEN Logdatetime END), 100), 7)) LIKE ?");
+							break;
+						case "totalDuration":
+							if (!hasHavingClause) {
+								havingClause.append(" HAVING ");
+								hasHavingClause = true;
+							} else {
+								havingClause.append(" AND ");
+							}
+							havingClause.append("RIGHT('0' + CAST(DATEDIFF(MINUTE, MIN(CASE WHEN LOWER(TRIM(Direction)) = 'in' THEN Logdatetime END), MAX(CASE WHEN LOWER(TRIM(Direction)) = 'out' THEN Logdatetime END)) / 60 AS VARCHAR), 2) + ':' + RIGHT('0' + CAST(DATEDIFF(MINUTE, MIN(CASE WHEN LOWER(TRIM(Direction)) = 'in' THEN Logdatetime END), MAX(CASE WHEN LOWER(TRIM(Direction)) = 'out' THEN Logdatetime END)) % 60 AS VARCHAR), 2) LIKE ?");
+							break;
+						case "logDate":
+							if (!hasHavingClause) {
+								havingClause.append(" HAVING ");
+								hasHavingClause = true;
+							} else {
+								havingClause.append(" AND ");
+							}
+							havingClause.append("CONVERT(VARCHAR(10), CAST(Logdatetime AS DATE), 105) LIKE ?");
+							break;
+					}
+				}
+			}
+		}
+		
+		// GROUP BY Empcode and AttendanceDate only, EmpName is aggregated with MAX()
+		query.append("    GROUP BY Empcode, CAST(Logdatetime AS DATE) ");
+		
+		if (hasHavingClause) {
+			query.append(havingClause);
+		}
+		
+		query.append(") A");
+		
+		return query.toString();
+	}
+	
+	private String buildDataQuery(boolean searchInMySQL, List<String> employeeCodes, Map<String, String> searchParams) {
+		StringBuilder query = new StringBuilder(
+			"SELECT " +
+			"    Empcode, " +
+			"    EmpName, " +
+			"    CONVERT(VARCHAR(10), AttendanceDate, 105) AS AttendanceDate, " +
+			"    LTRIM(RIGHT(CONVERT(VARCHAR(20), InTime, 100), 7)) AS InTime, " +
+			"    LTRIM(RIGHT(CONVERT(VARCHAR(20), OutTime, 100), 7)) AS OutTime, " +
+			"    RIGHT('0' + CAST(DATEDIFF(MINUTE, InTime, OutTime) / 60 AS VARCHAR), 2) + ':' + RIGHT('0' + CAST(DATEDIFF(MINUTE, InTime, OutTime) % 60 AS VARCHAR), 2) AS TotalWorkingHours " +
+			"FROM " +
+			"( " +
+			"    SELECT " +
+			"        Empcode, " +
+			"        MAX(EmpName) AS EmpName, " +  // Use MAX() aggregate
+			"        CAST(Logdatetime AS DATE) AS AttendanceDate, " +
+			"        MIN(CASE WHEN LOWER(TRIM(Direction)) = 'in' THEN Logdatetime END) AS InTime, " +
+			"        MAX(CASE WHEN LOWER(TRIM(Direction)) = 'out' THEN Logdatetime END) AS OutTime " +
+			"    FROM IshineRawdata " +
+			"    WHERE Logdatetime >= ? AND Logdatetime <= ? "
+		);
+		
+		if (searchInMySQL && employeeCodes != null && !employeeCodes.isEmpty()) {
+			appendEmployeeCodesFilter(query, employeeCodes);
+		}
+		
+		boolean hasHavingClause = false;
+		StringBuilder havingClause = new StringBuilder();
+		
+		if (searchParams != null && !searchParams.isEmpty()) {
+			for (Map.Entry<String, String> entry : searchParams.entrySet()) {
+				String field = entry.getKey();
+				String value = entry.getValue();
+				if (value != null && !value.trim().isEmpty()) {
+					switch (field) {
+						case "inTime":
+							if (!hasHavingClause) {
+								havingClause.append(" HAVING ");
+								hasHavingClause = true;
+							} else {
+								havingClause.append(" AND ");
+							}
+							havingClause.append("LTRIM(RIGHT(CONVERT(VARCHAR(20), MIN(CASE WHEN LOWER(TRIM(Direction)) = 'in' THEN Logdatetime END), 100), 7)) LIKE ?");
+							break;
+						case "outTime":
+							if (!hasHavingClause) {
+								havingClause.append(" HAVING ");
+								hasHavingClause = true;
+							} else {
+								havingClause.append(" AND ");
+							}
+							havingClause.append("LTRIM(RIGHT(CONVERT(VARCHAR(20), MAX(CASE WHEN LOWER(TRIM(Direction)) = 'out' THEN Logdatetime END), 100), 7)) LIKE ?");
+							break;
+						case "totalDuration":
+							if (!hasHavingClause) {
+								havingClause.append(" HAVING ");
+								hasHavingClause = true;
+							} else {
+								havingClause.append(" AND ");
+							}
+							havingClause.append("RIGHT('0' + CAST(DATEDIFF(MINUTE, MIN(CASE WHEN LOWER(TRIM(Direction)) = 'in' THEN Logdatetime END), MAX(CASE WHEN LOWER(TRIM(Direction)) = 'out' THEN Logdatetime END)) / 60 AS VARCHAR), 2) + ':' + RIGHT('0' + CAST(DATEDIFF(MINUTE, MIN(CASE WHEN LOWER(TRIM(Direction)) = 'in' THEN Logdatetime END), MAX(CASE WHEN LOWER(TRIM(Direction)) = 'out' THEN Logdatetime END)) % 60 AS VARCHAR), 2) LIKE ?");
+							break;
+						case "logDate":
+							if (!hasHavingClause) {
+								havingClause.append(" HAVING ");
+								hasHavingClause = true;
+							} else {
+								havingClause.append(" AND ");
+							}
+							havingClause.append("CONVERT(VARCHAR(10), CAST(Logdatetime AS DATE), 105) LIKE ?");
+							break;
+					}
+				}
+			}
+		}
+		
+		query.append(" GROUP BY Empcode, CAST(Logdatetime AS DATE) ");  // EmpName is aggregated
+		
+		if (hasHavingClause) {
+			query.append(havingClause);
+		}
+		
+		query.append(") A " +
+					"ORDER BY Empcode, AttendanceDate " +
+					"OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+		
+		return query.toString();
+	}
+	
+	private int setQueryParameters(PreparedStatement stmt, String startDate, String endDate, 
+                                boolean searchInMySQL, List<String> employeeCodes, 
+                                Map<String, String> searchParams, int startIndex) throws SQLException {
+		int index = startIndex;
+		
+		stmt.setString(index++, startDate + " 00:00:00");
+		stmt.setString(index++, endDate + " 23:59:59");
+		
+		if (searchParams != null && !searchParams.isEmpty()) {
+			for (Map.Entry<String, String> entry : searchParams.entrySet()) {
+				String field = entry.getKey();
+				String value = entry.getValue();
+				if (value != null && !value.trim().isEmpty()) {
+					switch (field) {
+						case "inTime":
+						case "outTime":
+						case "totalDuration":
+						case "logDate":
+							stmt.setString(index++, "%" + value + "%");
+							break;
+					}
+				}
+			}
+		}
+		return index;
+	}
+
+	public ServiceResponse getBiomatricDataWithSearch(String startDate, String endDate, 
+                                                   Integer pageNumber, Integer pageSize,
+                                                   Map<String, String> searchParams) throws SQLException {
+		return getEmpBioDataFromIshine(startDate, endDate, pageNumber, pageSize, searchParams);
 	}
 
 } 

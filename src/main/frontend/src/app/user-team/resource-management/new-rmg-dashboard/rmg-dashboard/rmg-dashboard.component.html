@@ -8,7 +8,10 @@
         <div class="row g-3">
             <div class="col-4" *ngFor="let kpi of kpis">
                 <div class="card border rounded">
-                    <div class="card-body d-flex align-items-center p-3">
+                    <div class="card-body d-flex align-items-center p-3 position-relative">
+                        <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false" [iconBgColor]="'#6f85c0'"
+                            [content]="kpi.tooltip" [size]="16">
+                        </app-info-tooltip>
                         <div class="kpi-icon-box rounded ml-1 mr-2 mt-2 mb-2">
                             <i class="text-accent bi" [ngClass]="kpi.icon"></i>
                         </div>
@@ -17,24 +20,16 @@
                                 {{ kpi.label }}
                             </h6>
                             <h6 class="fs-4 fw-bold mb-0">
-                                <span *ngIf="kpi.value != undefined && kpi.value != null; else loading" >{{ kpi.value || 0}}</span>
+                                <span *ngIf="kpi.value != undefined && kpi.value != null; else loading">{{ kpi.value ||
+                                    0}}</span>
                                 <span *ngIf="kpi.suffix" class="fs-6 ms-1">
                                     {{kpi.suffix }}
                                 </span>
                             </h6>
-                            <p *ngIf="kpi.extraValue !== null" 
-                            class="text-muted mb-0"
-                            style="font-size: 11px; line-height: 1;">
-                           ({{ kpi.extraValue }} / {{ workforceOverview[0]?.value || 0 }})
-                         </p>
-                            <!-- <p class="kpi-change text-success small mb-0">
-                                <i
-                                    [ngClass]="{ 'normal fa-solid fa-arrow-trend-up' : kpi.status == 'NORMAL', 'danger fa-solid fa-arrow-trend-down': kpi.status == 'DANGER'}"></i>
-                                {{ kpi.change || 0 }}
-                                <span class="text-muted fw-normal">
-                                    {{ kpi.period }}
-                                </span>
-                            </p> -->
+                            <p *ngIf="kpi.extraValue !== null" class="text-muted mb-0"
+                                style="font-size: 11px; line-height: 1;">
+                                ({{ kpi.extraValue }} / {{ workforceOverview[0]?.value || 0 }})
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -54,8 +49,7 @@
                     [(ngModel)]="selectedDepartmentIds" (dropdownClosed)="onDepartmentSelectionChange()"
                     [options]="filteredDepartmentList" displayKey="name" valueKey="deptId" [multiple]="true"
                     [showFilterAction]="currentUser.employeeRole != 'SuperAdmin'"
-                    [filterActionLabel]="departmentFilterActionLabel"
-                    (filterAction)="filterDepartment()">
+                    [filterActionLabel]="departmentFilterActionLabel" (filterAction)="filterDepartment()">
                 </app-my-select>
             </div>
             <div class="toolbar-divider ml-1 mr-1"></div>
@@ -109,7 +103,8 @@
                     <span class="project-alert-card x-small text-muted mr-1 cursor-pointer"
                         *ngFor="let a of attentionRequiredProjectAlerts"
                         (click)="onProjectStatusSelect(a.subKey, [], true)">
-                        <span *ngIf="a.value != undefined && a.value != null; else loading"  class="fw-bold text-blue">{{ a.value || 0 }}</span> {{ a.label }}
+                        <span *ngIf="a.value != undefined && a.value != null; else loading" class="fw-bold text-blue">{{
+                            a.value || 0 }}</span> {{ a.label }}
                     </span>
                 </div>
             </div>
@@ -118,8 +113,11 @@
             <div class="row g-3 mb-4">
                 <ng-container *ngFor="let card of statusCards">
                     <div class="col-2" *ngIf="card.display">
-                        <div class="status-card border rounded pr-1 p-1"
+                        <div class="status-card border rounded pr-1 p-1 position-relative"
                             (click)="onProjectStatusSelect(card.key, statusCards)">
+                            <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                                [iconBgColor]="card.color" [content]="card.tooltip" [size]="16">
+                            </app-info-tooltip>
                             <div class="d-flex align-items-center">
                                 <div class="col-3 pl-1">
                                     <div class="icon-circle-accent circle d-flex align-items-center justify-content-center"
@@ -130,7 +128,12 @@
                                 <div class="col-9 pl-2 pr-1">
                                     <div class="d-flex align-items-center flex-column gap-2 mb-1">
                                         <span class="kpi-label align-self-start text-muted mb-0">{{ card.label }}</span>
-                                        <h6 *ngIf="card.value != undefined && card.value != null; else loading"  class="fs-4 align-self-start fw-bold mb-0">{{ card.value || 0 }}</h6>
+                                        <h6>
+                                            <span *ngIf="card.value != undefined && card.value != null; else loading"
+                                                class="fs-4 align-self-start fw-bold mb-0">
+                                                {{ card.value || 0 }}
+                                            </span>
+                                        </h6>
                                     </div>
                                 </div>
                             </div>
@@ -165,17 +168,47 @@
                 <p class="kpi-label text-muted text-uppercase mb-3">Project Lifecycle</p>
                 <div class="row g-3">
                     <ng-container *ngFor="let stage of projectLifeCycleStages; let i = index">
-                        <div class="col" (click)="onProjectStatusSelect(stage.key, projectLifeCycleStages)">
-                            <div class="status-card border rounded p-1 text-center position-relative">
-                                <i [ngClass]="[stage.icon, stage.colorClass]" class="mb-1"></i>
-                                <h6 *ngIf="stage.value != undefined && stage.value != null; else loading"  class="fs-4 fw-bold mb-1" [ngClass]="stage.colorClass">{{ stage.value || 0 }}</h6>
-                                <h6 class="x-small fw-semibold mb-1">{{ stage.label }}</h6>
-                                <h6 class="xx-small text-muted mb-1">{{ stage.desc }}</h6>
+                        <ng-container *ngIf="stage.key !== 'SCHEDULED'">
+                            <div class="col" (click)="onProjectStatusSelect(stage.key, projectLifeCycleStages)">
+                                <div class="status-card border rounded p-1 text-center position-relative">
+                                    <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                                        [iconBgColor]="stage.color" [content]="stage.tooltip" [size]="16">
+                                    </app-info-tooltip>
+                                    <i [ngClass]="[stage.icon, stage.colorClass]" class="mb-1"></i>
+                                    <h6>
+                                        <span *ngIf="stage.value != undefined && stage.value != null; else loading"
+                                            class="fs-4 fw-bold mb-1" [ngClass]="stage.colorClass">
+                                            {{ stage.value || 0 }}
+                                        </span>
+                                    </h6>
+                                    <h6 class="x-small fw-semibold mb-1">{{ stage.label }}</h6>
+                                    <h6 class="xx-small text-muted mb-1">{{ stage.desc }}</h6>
+                                </div>
                             </div>
-                        </div>
-                        <div class="d-flex align-items-center" *ngIf="i < projectLifeCycleStages?.length - 1">
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </div>
+                        </ng-container>
+
+                        <!-- Insert Deboarded card where Scheduled was (after Approved, before Rejected) -->
+                        <ng-container *ngIf="stage.key === 'APPROVED'">
+                            <div class="col" (click)="onProjectStatusSelect(resourceCards[2].key, resourceCards)">
+                                <div class="status-card border rounded p-1 text-center position-relative">
+                                    <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                                        [iconBgColor]="resourceCards[2].color" [content]="resourceCards[2].tooltip"
+                                        [size]="16">
+                                    </app-info-tooltip>
+                                    <i [ngClass]="[resourceCards[2].icon, resourceCards[2].colorClass]"
+                                        class="mb-1"></i>
+                                    <h6>
+                                        <span
+                                            *ngIf="resourceCards[2].value != undefined && resourceCards[2].value != null; else loading"
+                                            class="fs-4 fw-bold mb-1" [ngClass]="resourceCards[2].colorClass">
+                                            {{ resourceCards[2].value || 0 }}
+                                        </span>
+                                    </h6>
+                                    <h6 class="x-small fw-semibold mb-1">Deboarded</h6>
+                                    <h6 class="xx-small text-muted mb-1">Resources Removed</h6>
+                                </div>
+                            </div>
+                        </ng-container>
                     </ng-container>
                 </div>
             </div>
@@ -184,28 +217,36 @@
             <div class="row mb-4">
                 <div class="col-8 pr-2">
                     <div class="row">
-                        <!-- Deboarded -->
+
+                        <!-- Scheduled - displayed like Project Lifecycle with centered count -->
                         <div class="col-4 mb-3 pr-1"
-                            (click)="onProjectStatusSelect(resourceCards[2].key, resourceCards)">
+                            (click)="onProjectStatusSelect(projectLifeCycleStages[3].key, projectLifeCycleStages)">
                             <div
-                                class="status-card border rounded p-3 d-flex justify-content-around align-items-center gap-3">
-                                <div id="OFFBOARDED_Chart" style="height: 120px; width: 150px;">
-                                </div>
-                                <div>
-                                    <h5 class="x-small fw-semibold mb-1">Deboarded</h5>
-                                    <p class="x-small text-muted mb-0">
-                                        {{ resourceCards[2].value || 0 }} of {{statusCards[2].value || 0}} TNM</p>
-                                    <p class="x-small text-muted mb-0">{{getPercentage(resourceCards[2].value,
-                                        statusCards[2].value || 0) + ' % of TNM'}} </p>
-                                </div>
+                                class="status-card border rounded p-3 d-flex flex-column justify-content-center align-items-center text-center position-relative">
+                                <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                                    [iconBgColor]="projectLifeCycleStages[3].color"
+                                    [content]="projectLifeCycleStages[3].tooltip" [size]="16">
+                                </app-info-tooltip>
+                                <i [ngClass]="[projectLifeCycleStages[3].icon, projectLifeCycleStages[3].colorClass]"
+                                    class="mb-2" style="font-size: 28px;"></i>
+                                <h5 class="fs-4 fw-bold mb-2" [ngClass]="projectLifeCycleStages[3].colorClass">{{
+                                    projectLifeCycleStages[3].value || 0 }}</h5>
+                                <h6 class="x-small fw-semibold mb-1">{{ projectLifeCycleStages[3].label }}</h6>
+                                <p class="xx-small text-muted mb-0">{{ projectLifeCycleStages[3].desc }}</p>
                             </div>
                         </div>
+
+                        <!-- Deboarded card removed (Scheduled is shown above). -->
 
                         <!-- Underboarded -->
                         <div class="col-4 mb-3 pl-1 pr-1"
                             (click)="onProjectStatusSelect(resourceCards[0].key, resourceCards)">
                             <div
-                                class="status-card border rounded p-3 d-flex justify-content-around align-items-center gap-3">
+                                class="status-card border rounded p-3 d-flex justify-content-around align-items-center gap-3 position-relative">
+                                <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                                    [iconBgColor]="resourceCards[0].color" [content]="resourceCards[0].tooltip"
+                                    [size]="16">
+                                </app-info-tooltip>
                                 <div id="UNDERBOARDED_Chart" style="height: 120px; width: 150px;">
                                 </div>
                                 <div>
@@ -222,7 +263,11 @@
                         <div class="col-4 mb-3 pl-1"
                             (click)="onProjectStatusSelect(resourceCards[1].key, resourceCards)">
                             <div
-                                class="status-card border rounded p-3 d-flex justify-content-around align-items-center gap-3">
+                                class="status-card border rounded p-3 d-flex justify-content-around align-items-center gap-3 position-relative">
+                                <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                                    [iconBgColor]="resourceCards[1].color" [content]="resourceCards[1].tooltip"
+                                    [size]="16">
+                                </app-info-tooltip>
                                 <div id="OVERBOARDED_Chart" style="height: 120px; width: 150px;">
                                 </div>
                                 <div>
@@ -237,7 +282,10 @@
 
                         <!-- TNM Expired -->
                         <div class="col-12">
-                            <div class="status-card border rounded p-3">
+                            <div class="status-card border rounded p-3 position-relative">
+                                <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                                    [iconBgColor]="'#2f467f'" [content]="getTnmExpiredTooltip()" [size]="16">
+                                </app-info-tooltip>
                                 <div class="d-flex align-items-center justify-content-between mb-1">
                                     <p class="kpi-label text-muted text-uppercase mb-0">TNM Expired</p>
                                 </div>
@@ -300,11 +348,15 @@
                 </div>
             </div>
 
+
             <!-- Fixed Cost / No Timesheet / Completed -->
             <div class="row">
                 <!-- Fixed Cost -->
                 <div class="col-4 mb-2 pr-1">
-                    <div class="status-card border rounded p-3">
+                    <div class="status-card border rounded p-3 position-relative">
+                        <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false" [iconBgColor]="'#1B294B'"
+                            [content]="getFixedCostTooltip()" [size]="16">
+                        </app-info-tooltip>
                         <div class="card-body p-2">
                             <p class="kpi-label text-muted text-uppercase mb-1">Fixed Cost</p>
                             <div id="TOTAL_FC_Chart" style="height: 130px"></div>
@@ -330,8 +382,11 @@
                             <p class="kpi-label text-muted text-uppercase mb-1">Completed Projects</p>
                             <div class="row">
                                 <div class="col-6 mb-1 p-1" *ngFor="let item of completedItems">
-                                    <div class="status-card border rounded pr-1 p-1"
+                                    <div class="status-card border rounded pr-1 p-1 position-relative"
                                         (click)="onProjectStatusSelect(item.key, statusCards)">
+                                        <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                                            [content]="item.tooltip" [iconBgColor]="item.color" [size]="16">
+                                        </app-info-tooltip>
                                         <div class="row align-items-center justify-content-start pr-1 pl-1 pt-1">
                                             <div class="col-3">
                                                 <div
@@ -340,8 +395,12 @@
                                                 </div>
                                             </div>
                                             <div class="col-9">
-                                                <h6 *ngIf="item.value != undefined && item.value != null; else loading"  class="fs-4 align-self-start fw-bold mb-0">{{ item.value ||
-                                                    0 }}
+                                                <h6>
+                                                    <span
+                                                        *ngIf="item.value != undefined && item.value != null; else loading"
+                                                        class="fs-4 align-self-start fw-bold mb-0">{{ item.value ||
+                                                        0 }}
+                                                    </span>
                                                 </h6>
                                             </div>
                                         </div>
@@ -395,8 +454,11 @@
                 </p>
                 <div class="row g-3 mb-4">
                     <div class="col-4" *ngFor="let item of workforceOverview">
-                        <div class="status-card border rounded pb-1 pt-2 pl-3 pr-3 "
+                        <div class="status-card border rounded pb-1 pt-2 pl-3 pr-3 position-relative"
                             (click)="openEmployeeDetailsModal(item)">
+                            <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                                [iconBgColor]="item.bgColor" [content]="item.tooltip" [size]="16">
+                            </app-info-tooltip>
                             <div class="d-flex align-items-center gap-2 mb-1">
                                 <div class="icon-circle-accent circle d-flex align-items-center justify-content-center mr-2"
                                     [ngStyle]="{'background-color': item.bgColor}">
@@ -404,7 +466,11 @@
                                 </div>
                                 <div class="d-flex flex-column gap-2 mb-1">
                                     <span class="x-small fw-semibold text-muted">{{ item.label }}</span>
-                                    <h6 *ngIf="item.value != undefined && item.value != null; else loading"  class="fw-bold mb-1">{{ item.value || 0 }}</h6>
+                                    <h6>
+                                        <span *ngIf="item.value != undefined && item.value != null; else loading"
+                                            class="fw-bold mb-1">{{ item.value || 0 }}
+                                        </span>
+                                    </h6>
                                     <h6 class="xx-small text-muted mb-1">
                                         {{ getPercentage(item.value, workforceOverview[0].value) || 0 }} % of total — {{
                                         item.desc }}
@@ -422,8 +488,11 @@
                 </p>
                 <div class="row g-3 mb-4">
                     <div class="col-4" *ngFor="let item of projectDistribution; let i = index">
-                        <div class="status-card border rounded pb-1 pt-2 pl-3 pr-3"
+                        <div class="status-card border rounded pb-1 pt-2 pl-3 pr-3 position-relative"
                             (click)="openEmployeeDetailsModal(item)">
+                            <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                                [iconBgColor]="item.bgColor" [content]="item.tooltip" [size]="16">
+                            </app-info-tooltip>
                             <div class="d-flex align-items-center gap-2 mb-1">
                                 <div class="icon-circle-accent circle d-flex align-items-center justify-content-center mr-2"
                                     [ngStyle]="{'background-color': item.bgColor}">
@@ -431,7 +500,12 @@
                                 </div>
                                 <div class="d-flex flex-column gap-2 mb-1">
                                     <span class="x-small fw-semibold text-muted">{{ item.label }}</span>
-                                    <h6 *ngIf="item.value != undefined && item.value != null; else loading"  class="fw-bold mb-1">{{ item.value || 0 }}</h6>
+                                    <h6>
+                                        <span *ngIf="item.value != undefined && item.value != null; else loading"
+                                            class="fw-bold mb-1">
+                                            {{ item.value || 0 }}
+                                        </span>
+                                    </h6>
                                     <h6 class="xx-small text-muted mb-1">
                                         {{ getPercentage(item.value, workforceOverview[0].value) || 0 }} % of total — {{
                                         item.desc }}
@@ -449,8 +523,11 @@
                 </p>
                 <div class="row g-3 mb-4">
                     <div class="col-4" *ngFor="let item of riskItems; let i = index">
-                        <div class="status-card border rounded pb-1 pt-2 pl-3 pr-3 "
+                        <div class="status-card border rounded pb-1 pt-2 pl-3 pr-3 position-relative"
                             (click)="openEmployeeDetailsModal(item)">
+                            <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                                [iconBgColor]="item.bgColor" [content]="item.tooltip" [size]="16">
+                            </app-info-tooltip>
                             <div class="d-flex align-items-center gap-2 mb-1">
                                 <div class="icon-circle-accent circle d-flex align-items-center justify-content-center mr-2"
                                     [ngStyle]="{'background-color': item.bgColor}">
@@ -458,7 +535,10 @@
                                 </div>
                                 <div class="d-flex flex-column gap-2 mb-1">
                                     <span class="x-small fw-semibold text-muted">{{ item.label }}</span>
-                                    <h6 *ngIf="item.value != undefined && item.value != null; else loading"  class="fw-bold mb-1">{{ item.value || 0 }}</h6>
+                                    <h6>
+                                        <span *ngIf="item.value != undefined && item.value != null; else loading"
+                                            class="fw-bold mb-1">{{ item.value || 0 }}</span>
+                                    </h6>
                                     <h6 class="xx-small text-muted mb-1">
                                         {{ getPercentage(item.value, workforceOverview[0].value) || 0 }} % of total — {{
                                         item.desc }}
@@ -490,8 +570,11 @@
                                     </p>
                                 </div>
                                 <div class="text-end me-3" style="min-width: 60px;">
-                                    <p *ngIf="item.value != undefined && item.value != null; else loading" class="mb-0">
-                                        {{ item.value }}
+                                    <p>
+                                        <span *ngIf="item.value != undefined && item.value != null; else loading"
+                                            class="mb-0">
+                                            {{ item.value }}
+                                        </span>
                                     </p>
                                 </div>
                                 <div class="text-end" style="min-width: 70px;">
@@ -511,8 +594,11 @@
                                     </p>
                                 </div>
                                 <div class="text-end me-3" style="min-width: 60px;">
-                                    <p *ngIf="item.value != undefined && item.value != null; else loading" class="mb-0">
-                                        {{ item.value }}
+                                    <p>
+                                        <span *ngIf="item.value != undefined && item.value != null; else loading"
+                                            class="mb-0">
+                                            {{ item.value }}
+                                        </span>
                                     </p>
                                 </div>
                                 <div class="text-end" style="min-width: 70px;">
@@ -536,8 +622,11 @@
                                     </p>
                                 </div>
                                 <div class="text-end me-3" style="min-width: 60px;">
-                                    <p *ngIf="item.value != undefined && item.value != null; else loading" class="mb-0">
-                                        {{ item.value }}
+                                    <p>
+                                        <span *ngIf="item.value != undefined && item.value != null; else loading"
+                                            class="mb-0">
+                                            {{ item.value }}
+                                        </span>
                                     </p>
                                 </div>
                                 <div class="text-end" style="min-width: 70px;">
@@ -614,15 +703,24 @@
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="projectStartDate|string">
                                 Start Date
+                                <i class="fa fa-info-circle info-icon cursor-pointer ml-2"
+                                    title="Allowed Formats dd-mm-yyyy / yyyy-mm-dd can only be searched.">
+                                </i>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="projectEndDate|string">
                                 End Date
+                                <i class="fa fa-info-circle info-icon cursor-pointer ml-2"
+                                    title="Allowed Formats dd-mm-yyyy / yyyy-mm-dd can only be searched.">
+                                </i>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="state|string">
                                 State
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="createdOn|datetime">
                                 Created On
+                                <i class="fa fa-info-circle info-icon cursor-pointer ml-2"
+                                    title="Allowed Formats dd-mm-yyyy / yyyy-mm-dd can only be searched.">
+                                </i>
                             </th>
                             <!-- <th class="max-width200 min-width200" mat-sort-header="status|string">
                                 PO Project Status
@@ -656,25 +754,27 @@
                                             (click)="onAction('PREVIEW',project)">
                                             <i class="fas fa-eye"></i> Preview
                                         </button>
-                                        <button mat-menu-item (click)="onAction('EDIT_NEW', project);">
+                                        <button mat-menu-item (click)="onAction('EDIT_NEW', project);"
+                                            *ngIf="!(project.active === 'false')">
                                             <i class="fas fa-pen"></i> Edit
                                         </button>
                                         <button mat-menu-item
-                                            *ngIf="(project.draftStatus == 'Approved' || project.isTeamCreated == 'true') && project.projectStatus != 'Completed'"
+                                            *ngIf="(project.draftStatus == 'Approved' || project.isTeamCreated == 'true') && project.projectStatus != 'Completed' && !(project.active === 'false')"
                                             (click)="onAction('MARK_AS_COMPLETE', project)">
                                             <i class="fas fa-check-double"></i> Mark as Complete
                                         </button>
                                         <button mat-menu-item
-                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
+                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !(project.active === 'false')"
                                             (click)="onAction('APPROVE',project);">
                                             <i class="fas fa-square-check"></i> Approve
                                         </button>
                                         <button mat-menu-item
-                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
+                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !(project.active === 'false')"
                                             (click)="onAction('REJECT', project);">
                                             <i class="fas fa-times"></i> Reject
                                         </button>
-                                        <button mat-menu-item *ngIf="project.poProjectType"
+                                        <button mat-menu-item
+                                            *ngIf="project.poProjectType && !(project.active === 'false')"
                                             (click)="onAction('CLIENT_SIDE_ID_STATUS',project);">
                                             <i class="fas fa-id-badge"></i> ClientID Status
                                         </button>
@@ -686,6 +786,20 @@
                                 </td>
                                 <td class="max-width200 min-width200 truncate" [title]="project?.name || 'NA'"
                                     *ngIf="(project?.draftStatus == 'Not Started' || project?.active === 'false')">
+                                    <ng-container
+                                        *ngIf="projectDetailsResolveMap?.[project?.projectId]?.redirected">
+                                        <span class="me-1 rounded-circle text-dark border border-warning-subtle"
+                                            style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
+                                            [title]="'Linked to: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || 'Primary project')">
+                                            <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;"
+                                                aria-hidden="true"></i>
+                                        </span>
+                                        <button type="button" class="btn btn-sm btn-link p-0 me-1"
+                                            [title]="'Copy primary project name: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || '')"
+                                            (click)="$event.stopPropagation(); copyPrimaryProjectName(project?.projectId)">
+                                            <i class="bi bi-clipboard" aria-hidden="true"></i>
+                                        </button>
+                                    </ng-container>
                                     {{ project?.name || 'NA' }}
                                     <span *ngIf="project?.active === 'false'" class="inactive-label">Inactive</span>
                                 </td>
@@ -693,6 +807,20 @@
                                     *ngIf="(project?.draftStatus != 'Not Started' && project?.active !== 'false')">
                                     <span style="cursor: pointer; color: blue;" id="clickablefor360"
                                         [navigateToProjectView]="project?.projectViewId">
+                                        <ng-container
+                                            *ngIf="projectDetailsResolveMap?.[project?.projectId]?.redirected">
+                                            <span class="me-1 rounded-circle text-dark border border-warning-subtle"
+                                                style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
+                                                [title]="'Linked to: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || 'Primary project')">
+                                                <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;"
+                                                    aria-hidden="true"></i>
+                                            </span>
+                                            <button type="button" class="btn btn-sm btn-link p-0 me-1"
+                                                [title]="'Copy primary project name: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || '')"
+                                                (click)="$event.stopPropagation(); copyPrimaryProjectName(project?.projectId)">
+                                                <i class="bi bi-clipboard" aria-hidden="true"></i>
+                                            </button>
+                                        </ng-container>
                                         {{ project?.name || 'NA' }}
                                     </span>
                                 </td>
@@ -824,8 +952,8 @@
             [defaultCellMergeColumn]="'projectName'" [defaultSubTableCellMergeColumn]="">
         </app-my-table>
         <!-- <div class="modal-actions">
-            <button class="btn btn-outline-primary btn-sm ml-2" (click)="closeProjectDetailsModal()">Cancel</button>
-        </div> -->
+              <button class="btn btn-outline-primary btn-sm ml-2" (click)="closeProjectDetailsModal()">Cancel</button>
+          </div> -->
     </div>
 </ng-template>
 

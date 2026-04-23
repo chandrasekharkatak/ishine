@@ -391,7 +391,7 @@ getTotalDocCount(projectId: number): number {
   applyRequestDateRangeAndLoad() {
     const today = new Date();
     this.page1 = 0; // pagination reset
-    this.paginator.firstPage();
+    this.paginator?.firstPage();
     if (this.requestDateRangeType === 'currentMonth') {
       const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
       this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
@@ -568,7 +568,7 @@ totalPages: number = 0;
 
           this.selectedRows = this.allTeamTimesheetRequestsProjectView
           .filter(r => r.selected);
-          if(this.selectedRows.length == this.allTeamTimesheetRequestsProjectView.length){
+          if(this.selectedRows.length == this.allTeamTimesheetRequestsProjectView.length && this.selectedRows.length > 0){
             this.isAllSelected = true;
           }
       }
@@ -1472,6 +1472,7 @@ sortData(sort: Sort) {
         fromDate: this.finalFromDate,
         toDate: this.finalToDate,
         projectId: this.timesheetObj.projectId,
+        isBulkUploadBySelf:false
       }
       console.log("This payload: ",payload);
 
@@ -1860,6 +1861,7 @@ sortData(sort: Sort) {
     this.filteredData().forEach(r => r.selected = false);
     this.selectedRows = [];
     this.selectedTimesheetsAccrossThePages = [];
+    this.toggleAllRows({ target: { checked: false } });
   }
 
   // bulkApprove1(template: TemplateRef<any>) {
@@ -2594,7 +2596,7 @@ getDocument(type: 'Pending' | 'Approved'): void {
     this.selectedStatus = status;
     console.log("Status changed to:", this.selectedStatus);
     this.page1 = 0; // pagination reset
-    this.paginator.firstPage();
+    this.paginator?.firstPage();
     // this.items = 10;
     this.isSearchEnabled = false;
     this.expandedTimesheetIndex = null;
@@ -2883,13 +2885,13 @@ this.skippedTimesheetList = null
               // message += `</tbody></table>`;
             }
 
-          this.clearAllSelections();
           // this.selectedStatus = 2;
           // this.onStatusChange(2);
           this.page1 = 0;
-          this.paginator.firstPage();
+          this.paginator?.firstPage();
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
+          this.clearAllSelections();
           this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
           backdrop: 'static'} );
 
@@ -3362,6 +3364,7 @@ this.skippedTimesheetList = null
           // this.onStatusChange(3);
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
+          this.clearAllSelections();
           this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
           backdrop: 'static'} );
           
@@ -3608,12 +3611,14 @@ executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
           }
 
          
-        this.clearAllSelections();
+        
         this.page1 = 0;
+        this.paginator?.firstPage();
         this.getMyReporteesTimesheetRequests();
         this.getTimesheetStatusCountsByEmpId();
             this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
           backdrop: 'static'} );
+          this.clearAllSelections();
       } else {
           this.modalTitle = 'Error';
           this.modalMessage =
@@ -3715,7 +3720,6 @@ this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this
 
         // message += `</tbody></table>`;
       }
-      this.clearAllSelections();
       // this.onStatusChange(3);
       this.page1 = 0;
       this.paginator?.firstPage();
@@ -3723,6 +3727,7 @@ this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this
           backdrop: 'static'} );
       this.getMyReporteesTimesheetRequests();
       this.getTimesheetStatusCountsByEmpId();
+      this.clearAllSelections();
 
     } else {
 

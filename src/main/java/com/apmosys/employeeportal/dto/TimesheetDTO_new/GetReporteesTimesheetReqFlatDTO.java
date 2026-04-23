@@ -22,6 +22,7 @@ public class GetReporteesTimesheetReqFlatDTO {
     private String employeeName;
     private String dayType;
     private LocalDate date;
+    private LocalDate compOffForDate;
     private Boolean isNightShift;
     private LocalDateTime workCheckIn;
     private LocalDateTime workCheckOut;
@@ -74,7 +75,7 @@ public class GetReporteesTimesheetReqFlatDTO {
 
 
     public GetReporteesTimesheetReqFlatDTO(Long timesheetId, Long empId, String employmentId, String employeeName,
-			String dayType, LocalDate date, Boolean isNightShift, LocalDateTime workCheckIn, LocalDateTime workCheckOut,
+			String dayType, LocalDate date,LocalDate compOffForDate, Boolean isNightShift, LocalDateTime workCheckIn, LocalDateTime workCheckOut,
 			Long projectCount, Long locationCount, String appliedBy, LocalDateTime appliedOn, String workLocationType,
 			LocalDateTime locationInTime, LocalDateTime locationOutTime, Long locationMappingId,Long projectTimesheetId,Long projectLocationMappingId, Integer projectId,
 			String projectName, String clientName, String clientLocation,Integer clientApprovalStatus, String poNo, String shadowEmp,String shadowEmployeementId, Integer status,
@@ -88,6 +89,7 @@ public class GetReporteesTimesheetReqFlatDTO {
 		this.employeeName = employeeName;
 		this.dayType = dayType;
 		this.date = date;
+		this.compOffForDate = compOffForDate;
 		this.isNightShift = isNightShift;
 		this.workCheckIn = workCheckIn;
 		this.workCheckOut = workCheckOut;

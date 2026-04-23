@@ -17,5 +17,6 @@ export class MilestoneToBeExpired {
     updatedBy: number;
     extendedDate: Date; // Date when the milestone was extended
 
+    extensionFile:any;
 
 }

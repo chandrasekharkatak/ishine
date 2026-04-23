@@ -2096,7 +2096,7 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
             if ("APPROVED".equals(status) && Boolean.TRUE.equals(ts.getIsWorkingDay())) {
 
             // Check: client-side project but no docs
-            if (isMissingClientSideDocs(ts.getTimesheetId(),projectIds, docs, projectClientSideMap)) {
+            if (isMissingClientSideDocs(ts.getEmpId(),ts.getTimesheetId(),projectIds, docs, projectClientSideMap)) {
                 skippedTimesheets.add(new SkippedTimesheetDTO(
                         ts.getTimesheetId(),
                         formattedEmpId,
@@ -2252,6 +2252,7 @@ private boolean isClientApprovalBlockedByDbDocuments(List<TimesheetDocumentDetai
     });
 }
 private boolean isMissingClientSideDocs(
+		Long empId,
 		Long timesheetId,
         List<Long> projectIds,
         List<TimesheetDocumentDetailsNew> docs,
@@ -2273,7 +2274,7 @@ private boolean isMissingClientSideDocs(
     	//shoulSkipForShadow
         Integer hasClientSide = projectClientSideMap.get(projectId);
         
-        if (hasClientSide != null && hasClientSide == 1 && !shoulSkipForShadow(timesheetId,projectId.intValue())) {
+        if (hasClientSide != null && hasClientSide == 1 && !shoulSkipForShadow(empId,timesheetId,projectId.intValue())) {
            if (!docProjectIds.contains(projectId)) {
                 return true; //  missing doc
             }
@@ -2282,12 +2283,12 @@ private boolean isMissingClientSideDocs(
 
     return false;
 }
-private boolean shoulSkipForShadow(Long timesheetId,Integer projectId){
+private boolean shoulSkipForShadow(Long empId,Long timesheetId,Integer projectId){
 	boolean skip=false;
 	/*skip doc validation if shadow for self or shadow timesheet and client approval status is null*/
-	List<ProjectTimesheetStatusNew> projList=projectTimesheetStatusNewRepository.findByProjectIdAndTimesheetId(projectId,timesheetId);
+	List<ProjectTimesheetStatusNew> projList = projectTimesheetStatusNewRepository.findByProjectIdAndTimesheetId(projectId,timesheetId);
 	ProjectTimesheetStatusNew proj=projList.get(0);
-	if(proj.getShadowEmpId()!=null && proj.getClientApprovalStatus()==null) {
+	if(proj.getShadowEmpId()!= null && proj.getShadowEmpId().equals(empId) && proj.getClientApprovalStatus()==null) {
 		skip=true;
 	}
 	return skip;

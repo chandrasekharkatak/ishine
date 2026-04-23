@@ -28,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeJobRoleDept;
+import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
@@ -437,6 +438,15 @@ public class TimesheetValidationHelper {
             }
             
             if (isWorkingDay) {
+            	
+            	if (isShadowMandatoryForProjectAndDateForEmp(empDTO.getEmpId(),empDTO.getDate(), project.getProjectId()) && Boolean.FALSE.equals(project.getIsShadowTimesheet()) 
+                        && Boolean.FALSE.equals(project.getIsShadowForSelf()) ) {
+
+                        throw new TimesheetValidationFailedException(
+                            String.format("Shadow/Shadow For Self option is mandatory for the project  "+ project.getProjectName())
+                        );
+                    }
+            	
 
                 if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) 
                     && Boolean.FALSE.equals(project.getIsShadowForSelf()) 
@@ -613,10 +623,10 @@ public class TimesheetValidationHelper {
 					    (status == null || (status != 1 && status != 2))) {
 					    continue;
 					}
-                    if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) &&
-						    (status == null || (status != 1 && status != 2))) {
-						    continue;
-						}
+//                    if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) &&
+//						    (status == null || (status != 1 && status != 2))) {
+//						    continue;
+//						}
 
                     // Check if client-side document is mandatory for this project
                     Boolean isClientSideMandatory =
@@ -691,10 +701,10 @@ public class TimesheetValidationHelper {
 					    continue;
 					}
 					
-					if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) &&
-						    (status == null || (status != 1 && status != 2))) {
-						    continue;
-						}
+//					if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) &&
+//						    (status == null || (status != 1 && status != 2))) {
+//						    continue;
+//						}
 					if (Boolean.TRUE.equals(projectRepository.getClientSideIdMandatory(project.getProjectId()))) {
 						targetProjectIdsWithClientSide.add(project.getProjectId());
 						projectMap.put(project.getProjectId(), project);
@@ -1000,6 +1010,8 @@ public class TimesheetValidationHelper {
                 || "Leave".equalsIgnoreCase(dayType)
                 || "Client Holiday".equalsIgnoreCase(dayType);
         }
+        
+        
 
         /**
          * Check if day type is non-working by dayTypeId (consistent with day_type_master_new).
@@ -1015,6 +1027,16 @@ public class TimesheetValidationHelper {
                 return false;
             }
         }   
+        
+        private boolean  isShadowMandatoryForProjectAndDateForEmp(Long empId,LocalDate date, Integer projectId) {
+        	
+	        Integer isShadow = employeeTimesheetsNewRepository.getShadowStatusForDateAndEmpIdAndProjectId(empId, date, projectId);
+        	if(isShadow != null && isShadow ==1) {
+        		return true;
+        	}else {
+        		return false;
+        	}
+        }
     /**
      * Validate date is not within lock period.
      * 
@@ -1646,6 +1668,49 @@ public class TimesheetValidationHelper {
 	
 	
 	public void validateNonWorkingDayTimesheet(EmployeeTimesheetDTO empDTO) {
+		
+		if (empDTO.getDayTypeId() == 9) {
+		    if (empDTO.getCompOffForDate() != null) {
+
+		        LocalDate maxDate = empDTO.getDate();
+		        LocalDate minDate = maxDate.minusMonths(3);
+
+		        LocalDate compOffDate = empDTO.getCompOffForDate();
+
+		        if (compOffDate.isBefore(minDate) || !compOffDate.isBefore(maxDate)) {
+		            throw new TimesheetValidationFailedException(
+		                "Comp Off for date must be between " + formatDate(minDate) + " (inclusive) and " + formatDate(maxDate) + " (exclusive)"
+		            );
+		        }
+		        EmployeeTimesheetsNew compOffForAlreadyExistTimesheet =
+		        	    employeeTimesheetsNewRepository.findByEmpIdAndCompOffFor(empDTO.getEmpId(), compOffDate, empDTO.getDate())
+	        	        .orElse(null);
+		        if(compOffForAlreadyExistTimesheet != null) {
+		        	throw new TimesheetValidationFailedException(
+			                "You have already applied a comp off timesheet for date: "+formatDate(empDTO.getCompOffForDate())
+			        );
+		        }
+		        EmployeeTimesheetsNew compOffForTimesheet =
+		        	    employeeTimesheetsNewRepository
+		        	        .findByEmpIdAndDateNew(empDTO.getEmpId(), compOffDate)
+		        	        .orElse(null);
+		        if(compOffForTimesheet != null) {
+		        	if(compOffForTimesheet.getDayTypeId() != 1 && compOffForTimesheet.getDayTypeId() != 3) {
+		        		throw new TimesheetValidationFailedException(
+				                "No working day type timesheet found against the Comp-Off date: "+formatDate(empDTO.getCompOffForDate())
+				        );
+		        	}
+		        }else {
+		        	throw new TimesheetValidationFailedException(
+			                "No Timesheet found against the Comp-Off date: "+(empDTO.getCompOffForDate())
+			        );
+		        }
+		    }else {
+		    	throw new TimesheetValidationFailedException(
+		                "Comp Off for date is required Comp Off day type"
+		        );
+		    }
+		}
 
 	    if (empDTO.getLocationSessions() == null ||
 	        empDTO.getLocationSessions().isEmpty()) {
@@ -2024,7 +2089,12 @@ public class TimesheetValidationHelper {
 
 	}
 
+	private String formatDate(LocalDate date) {
+        if (date == null) return null;
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        return date.format(formatter);
+    }
 
     private LocalTime extractTime(String dateTimeStr) {
         if (dateTimeStr.contains(" ")) {

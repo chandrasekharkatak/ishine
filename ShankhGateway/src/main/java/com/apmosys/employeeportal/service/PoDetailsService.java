@@ -23,6 +23,7 @@ import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
+import com.apmosys.employeeportal.dto.ProjectHierarchyResultDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
@@ -31,6 +32,7 @@ import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.PoDepartmentMapping;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.ProjectHierarchyMapping;
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
 import com.apmosys.employeeportal.model.ProjectOverheadMapping;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
@@ -46,6 +48,13 @@ import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
+import com.apmosys.employeeportal.repository.ProjectHierarchyMappingRepository;
+import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
+import com.apmosys.employeeportal.repository.TimesheetActivityMapNewRepository;
+import com.apmosys.employeeportal.repository.TimesheetActionAuditNewRepository;
+import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsNewRepository;
+import com.apmosys.employeeportal.repository.TimesheetRejectionDetailsNewRepository;
+import com.apmosys.employeeportal.repository.FinalDocumentNewRepository;
 import com.apmosys.employeeportal.utility.ExceptionLogContext;
 
 @Service
@@ -87,6 +96,27 @@ public class PoDetailsService {
 	
 	@Autowired
 	ProjectOverheadMappingRepository projectOverheadMappingRepository;
+
+	@Autowired
+	ProjectHierarchyMappingRepository projectHierarchyMappingRepository;
+
+	@Autowired
+	ProjectTimesheetStatusNewRepository projectTimesheetStatusNewRepository;
+	
+	@Autowired
+	TimesheetActivityMapNewRepository timesheetActivityMapNewRepository;
+	
+	@Autowired
+	TimesheetDocumentDetailsNewRepository timesheetDocumentDetailsNewRepository;
+	
+	@Autowired
+	FinalDocumentNewRepository finalDocumentNewRepository;
+	
+	@Autowired
+	TimesheetActionAuditNewRepository timesheetActionAuditNewRepository;
+	
+	@Autowired
+	TimesheetRejectionDetailsNewRepository timesheetRejectionDetailsNewRepository;
 	
 	@Autowired
 	private EmployeeClientSideIdMappingRepository employeeClientSideIdMappingRepository;
@@ -96,6 +126,9 @@ public class PoDetailsService {
 	
 	@Autowired
 	ProjectService projectService;
+	
+	@Autowired
+	TeamsService teamsService;
 	
 	@Value("${rmg.mail}")
 	private String rmgMail;
@@ -950,6 +983,152 @@ public class PoDetailsService {
 	    projectService.deactivateDeletedProjects(payloadDTO.getDeletedProjects());
 	}
 
+	public void migrateTimesheetsAndCreateHierarchyMappings(Project primaryProject, IshineLinkProjectDto payloadDTO) {
+		if (primaryProject == null || primaryProject.getProjectId() == null) {
+			return;
+		}
+		if (payloadDTO == null || payloadDTO.getDeletedProjects() == null || payloadDTO.getDeletedProjects().isEmpty()) {
+			return;
+		}
+
+		Integer primaryProjectId = primaryProject.getProjectId();
+		Long updatedBy = fetchUpdatedBy(payloadDTO);
+
+		Set<Long> deletedPoProjectIds = payloadDTO.getDeletedProjects()
+				.stream()
+				.map(ProjectPoMappingWithResourceDTO::getProjectId)
+				.filter(Objects::nonNull)
+				.collect(Collectors.toSet());
+
+		if (deletedPoProjectIds.isEmpty()) {
+			return;
+		}
+
+		List<Project> deletedProjects = projectRepository.findByPoProjectIdIn(deletedPoProjectIds);
+		if (deletedProjects == null || deletedProjects.isEmpty()) {
+			return;
+		}
+
+		List<Integer> deletedProjectIds = deletedProjects.stream()
+				.map(Project::getProjectId)
+				.filter(Objects::nonNull)
+				.distinct()
+				.collect(Collectors.toList());
+
+		if (deletedProjectIds.isEmpty()) {
+			return;
+		}
+
+		migrateTimesheetsToPrimaryProject(primaryProjectId, deletedProjectIds, updatedBy);
+		createProjectHierarchyMappings(primaryProjectId, deletedProjectIds, updatedBy);
+	}
+
+	public void migrateResourcesAfterPoLink(
+	        Integer projectId,
+	        List<PoDetailsForProjectPoMappingDTO> poList) {
+
+	    if (poList == null || poList.isEmpty()) {
+	        return;
+	    }
+
+	    Long updatedBy = poList.stream()
+	            .map(PoDetailsForProjectPoMappingDTO::getUpdatedByEmpId)
+	            .filter(Objects::nonNull)
+	            .findFirst()
+	            .orElse(null);
+
+	    if (updatedBy == null) {
+	        throw new RuntimeException("UpdatedBy missing for PO migration");
+	    }
+
+	    for (PoDetailsForProjectPoMappingDTO po : poList) {
+
+	        Long renewedPoId = po.getPoId();
+
+	        if (renewedPoId == null) continue;
+
+	        try {
+	        	teamsService.migrateResourcesAfterRenewal(projectId, renewedPoId, updatedBy);
+	        } catch (Exception e) {
+	            ExceptionLogContext.add(
+	                "Resource migration failed for poId=" + renewedPoId + " | " + e.getMessage()
+	            );
+	            throw e; 
+	        }
+	    }
+	}
+	
+	private void migrateTimesheetsToPrimaryProject(
+			Integer primaryProjectId,
+			List<Integer> deletedProjectIds,
+			Long updatedBy
+	) {
+		if (primaryProjectId == null || deletedProjectIds == null || deletedProjectIds.isEmpty()) {
+			return;
+		}
+		// (ii) Option B: direct bulk UPDATE (assumes no PK collision)
+		projectTimesheetStatusNewRepository.bulkMoveProjectTimesheetsToPrimary(
+				primaryProjectId,
+				deletedProjectIds,
+				updatedBy
+		);
+
+		// employee_timesheet_activities_mapping_new
+		timesheetActivityMapNewRepository.bulkMoveActivitiesProjectToPrimary(primaryProjectId, deletedProjectIds);
+
+		// timesheet_document_details_new
+		timesheetDocumentDetailsNewRepository.bulkMoveDocumentDetailsProjectToPrimary(primaryProjectId, deletedProjectIds,
+				updatedBy);
+
+		// final_document_new
+		finalDocumentNewRepository.bulkMoveFinalDocumentsProjectToPrimary(primaryProjectId, deletedProjectIds, updatedBy);
+
+		// timesheet_action_audit
+		timesheetActionAuditNewRepository.bulkMoveActionAuditProjectToPrimary(primaryProjectId, deletedProjectIds);
+
+		// timesheet_rejection_details_new
+		timesheetRejectionDetailsNewRepository.bulkMoveRejectionDetailsProjectToPrimary(primaryProjectId, deletedProjectIds,
+				updatedBy);
+	}
+	
+	private void createProjectHierarchyMappings(
+			Integer primaryProjectId,
+			List<Integer> deletedProjectIds,
+			Long updatedBy
+	) {
+		if (primaryProjectId == null || deletedProjectIds == null || deletedProjectIds.isEmpty()) {
+			return;
+		}
+		
+		// (i) Practical JPA approach: fetch existing mappings, filter, saveAll
+		List<ProjectHierarchyMapping> existing =
+				projectHierarchyMappingRepository.findByParentProjectIdAndChildProjectIdIn(primaryProjectId, deletedProjectIds);
+
+		Set<Integer> existingChildIds = (existing == null || existing.isEmpty())
+				? Collections.emptySet()
+				: existing.stream()
+					.map(ProjectHierarchyMapping::getChildProjectId)
+					.filter(Objects::nonNull)
+					.collect(Collectors.toSet());
+
+		List<ProjectHierarchyMapping> toInsert = new ArrayList<>();
+		for (Integer childId : deletedProjectIds) {
+			if (childId == null) continue;
+			if (existingChildIds.contains(childId)) continue;
+			ProjectHierarchyMapping m = new ProjectHierarchyMapping();
+			m.setParentProjectId(primaryProjectId);
+			m.setChildProjectId(childId);
+			m.setActive(true);
+			m.setCreatedBy(updatedBy);
+			m.setUpdatedBy(updatedBy);
+			toInsert.add(m);
+		}
+
+		if (!toInsert.isEmpty()) {
+			projectHierarchyMappingRepository.saveAll(toInsert);
+		}
+	}
+
 	private Long fetchUpdatedBy(IshineLinkProjectDto payloadDTO) {
 
 		if (payloadDTO.getDeletedProjects().isEmpty()
@@ -1222,6 +1401,97 @@ public class PoDetailsService {
 	    }
 	}
 	
+	public void createProjectHierarchyMapping(IshineLinkProjectDto dto) {
+
+	    List<PoDetailsForProjectPoMappingDTO> poList =
+	            dto.getPrimaryProject().getPoDetailsList();
+
+	    if (poList == null || poList.isEmpty()) {
+	        throw new RuntimeException("Primary project has no PO details!");
+	    }
+
+	    Set<Long> poIds = poList.stream()
+	            .map(PoDetailsForProjectPoMappingDTO::getPoId)
+	            .filter(Objects::nonNull)
+	            .collect(Collectors.toSet());
+
+	    if (poIds.isEmpty()) return;
+
+	    List<Object[]> rawResults = projectPoDetailsRepository.findHierarchyFromAudit(poIds);
+
+	    if (rawResults == null || rawResults.isEmpty()) return;
+
+	    List<ProjectHierarchyResultDTO> results = rawResults.stream().map(row -> {
+
+	        ProjectHierarchyResultDTO r = new ProjectHierarchyResultDTO();
+
+	        r.setCurrPo((Long) row[0]);
+	        r.setCurrProject((Integer) row[1]);
+	        r.setChildPo((Long) row[2]);
+	        r.setChildProjectId((Integer) row[3]);
+	        r.setParentPo((Long) row[4]);
+	        r.setParentProjectId((Integer) row[5]);
+
+	        return r;
+
+	    }).collect(Collectors.toList());
+
+	    Set<String> uniquePairs = new HashSet<>();
+	    List<ProjectHierarchyMapping> mappings = new ArrayList<>();
+
+	    Long empId = poList.get(0).getUpdatedByEmpId();
+
+	    for (ProjectHierarchyResultDTO row : results) {
+
+	        Integer currentProject = row.getCurrProject();
+
+	        if (row.getParentProjectId() != null) {
+
+	            String key = row.getParentProjectId() + "-" + currentProject;
+
+	            if (uniquePairs.add(key)) {
+	                mappings.add(buildMapping(
+	                        row.getParentProjectId(),
+	                        currentProject,
+	                        empId
+	                ));
+	            }
+	        }
+
+	        if (row.getChildProjectId() != null) {
+
+	            String key = currentProject + "-" + row.getChildProjectId();
+
+	            if (uniquePairs.add(key)) {
+	                mappings.add(buildMapping(
+	                        currentProject,
+	                        row.getChildProjectId(),
+	                        empId
+	                ));
+	            }
+	        }
+	    }
+
+	    if (!mappings.isEmpty()) {
+	        projectHierarchyMappingRepository.saveAll(mappings);
+	    }
+	}
 	
+	private ProjectHierarchyMapping buildMapping(Integer parentProjectId,
+            Integer childProjectId,
+            Long empId) {
+
+		ProjectHierarchyMapping mapping = new ProjectHierarchyMapping();
+		
+		mapping.setParentProjectId(parentProjectId);
+		mapping.setChildProjectId(childProjectId);
+	
+		mapping.setActive(true);
+		
+		mapping.setCreatedBy(empId);
+		mapping.setUpdatedBy(empId);
+		
+		return mapping;
+	}
 
 }

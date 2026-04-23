@@ -684,6 +684,8 @@ public class PoSyncOrchestratorService {
 	                    dto
 	            );
 	            
+	            poDetailsService.migrateTimesheetsAndCreateHierarchyMappings(primaryProject, dto);
+	            
 	            poDetailsService.validateAssociatedPosIntegrity(
 	                    primaryProject.getProjectId(),
 	                    dto.getPrimaryProject().getPoDetailsList()

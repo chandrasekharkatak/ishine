@@ -1,5 +1,9 @@
 package com.apmosys.employeeportal.repository;
 
+import java.util.Optional;
+
+import java.util.Optional;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -8,6 +12,7 @@ import java.util.Set;
 import javax.transaction.Transactional;
 
 import org.hibernate.annotations.Where;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -281,4 +286,5 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
     		+ "GROUP BY etm.poId")
     List<RescCountOfPo> getResourceCounts(@Param("poIds") List<Long> poIds);
 
+    Optional<ProjectPoDetails> findByPoProjectId(Long poProjectId);
 }

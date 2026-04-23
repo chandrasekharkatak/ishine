@@ -57,6 +57,16 @@ public interface TimesheetActivityMapNewRepository extends JpaRepository<Employe
 		+ "where et.emp_id IN (?) and DATE_FORMAT(et.date, '%Y-%m-%d')= ? group by etam.timesheet_id, etam.activity_id, etam.project_id")
 	List<Object[]> activitiesByTimesheetIdforBiomax(@Param("emp_id") Long empId, @Param("date") String date);
 
+	@Modifying
+	@Transactional
+	@Query(value = "UPDATE employee_timesheet_activities_mapping_new \n"
+			+ "SET project_id = :primaryProjectId \n"
+			+ "WHERE project_id IN (:deletedProjectIds)", nativeQuery = true)
+	int bulkMoveActivitiesProjectToPrimary(
+			@Param("primaryProjectId") Integer primaryProjectId,
+			@Param("deletedProjectIds") List<Integer> deletedProjectIds
+	);
+
 //	@Transactional
 //	public void deleteByTimesheetId(Long timesheetId);
 	

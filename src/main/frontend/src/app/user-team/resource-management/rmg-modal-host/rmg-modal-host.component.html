@@ -270,7 +270,7 @@
             <br> Do you want to proceed?
         </p>
         <div class="row justify-content-center align-items-center">
-            <label class="info-label">Select End Date</label>
+            <label class="info-label">Select End Date<span *ngIf="!deleteEmployeeExistingProjectMappingObj.removePermanently" class="text-danger">*</span></label>
         </div>
         <div class="row justify-content-center align-items-center"
             *ngIf="!deleteEmployeeExistingProjectMappingObj.isInternalProject">
@@ -283,8 +283,9 @@
         <div class="row justify-content-center align-items-center m-2">
             <div class="date-input-wrapper">
                 <input class="form-control date-input" readonly [matDatepicker]="employeeProjectEndDatePicker"
-                    [(ngModel)]="employeeProjectEndDate" (click)="employeeProjectEndDatePicker.open()" />
-                <mat-icon class="calendar-icon" (click)="employeeProjectEndDatePicker.open()">calendar_today</mat-icon>
+                    [(ngModel)]="employeeProjectEndDate" (click)="employeeProjectEndDatePicker.open()"
+                    [disabled]="employeeProjectEndDateType === 'PO'"/>
+                <mat-icon class="calendar-icon" (click)="employeeProjectEndDatePicker.open()" [class.disabled]="employeeProjectEndDateType === 'PO'">calendar_today</mat-icon>
                 <mat-datepicker #employeeProjectEndDatePicker></mat-datepicker>
             </div>
             <div *ngIf="normalizeDate(employeeProjectEndDate) == normalizeDate(deleteEmployeeExistingProjectMappingObj.startDate)"

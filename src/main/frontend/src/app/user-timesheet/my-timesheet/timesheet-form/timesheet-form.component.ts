@@ -92,12 +92,15 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   alertMessage: string;
   fromDate: any = null;
   toDate: any = null;
+  compOffForDate: any = null;
   disableAdd: boolean = false;
   availableTimesheets: any[] = [];
   serverDate: any; // Server's current date for date range calculation
   minDateForPicker: any; // Minimum selectable date (dd-MM-yyyy format)
   maxDateForPicker: any; // Maximum selectable date (dd-MM-yyyy format)
+  minDateForCompOffPicker: any;
   disabledDatesForPicker: string[] = []; // Dates to disable (dd-MM-yyyy format)
+  enabledDatesForCompOffDate: string[] = [];
   /** Base disabled dates independent of day type (already-filled timesheets, etc.) */
   private disabledDatesBase: string[] = [];
   /** 
@@ -164,6 +167,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   holidayDescription: any;
   noProjectEmployee: any = false;
   employeeObjForDateFetching: User = new User();  
+  disabledDateForCompOffDate: string[];
   constructor(private teamViewService: TeamViewService,
     private timesheetService: TimesheetService,
     private timesheetNewService: TimesheetNewService,
@@ -750,7 +754,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             projectId: p.projectId,
             projectName: p.projectName,
             hasClientSideId: p.hasClientSideId || false,
-            hasClientFlag: p.hasClientFlag || false
+            hasClientFlag: p.hasClientFlag || false,
+            isShadow: p.isShadow
           }
         ])
       ).values()
@@ -1248,6 +1253,12 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     //   this.resetForm();
     // }
 
+    if(this.fromDate != null){
+      if(this.dayType == 9){
+      this.setMinDateForCompOffDate();
+    }
+    }
+
     this.getListToRenderUpload();  
 
     // Update lastDayTypeId after successful change
@@ -1507,7 +1518,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             projectId: p.projectId,
             projectName: p.projectName,
             hasClientSideId: p.hasClientSideId || false,
-            hasClientFlag: p.hasClientFlag || false
+            hasClientFlag: p.hasClientFlag || false,
+            isShadow: p.isShadow
           }
         ])
       ).values()
@@ -1552,7 +1564,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
               projectId: p.projectId,
               projectName: p.projectName,
               hasClientSideId: p.hasClientSideId || false,
-              hasClientFlag: p.hasClientFlag || false
+              hasClientFlag: p.hasClientFlag || false,
+              isShadow: p.isShadow
             }
           ])
         ).values()
@@ -1849,7 +1862,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             projectId: p.projectId,
             projectName: p.projectName,
             hasClientSideId: p.hasClientSideId || false,
-            hasClientFlag: p.hasClientFlag || false
+            hasClientFlag: p.hasClientFlag || false,
+            isShadow: p.isShadow
           }
         ])
       ).values()
@@ -2046,8 +2060,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     hasClientSideId: matchedProject?.hasClientSideId || false,
     hasClientFlag: matchedProject?.hasClientFlag || false,
     shadowEmpId: null,
-    isShadowTimesheet: false,
+    isShadowTimesheet: matchedProject?.isShadow === 1 ? true : false,
     isShadowForSelf: false,
+    isShadowRequired: matchedProject?.isShadow,
     clientSideId: null,
     clientId: null,
     clientLocationId: null,
@@ -2061,7 +2076,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     _lastValidProjectId: projectId,
     _lastValidProjectName: matchedProject?.projectName || ''
   };
-
+  this.onShadowTimesheetChange(updatedProject);
   parentLocation.projects[projectIndex] = updatedProject;
 
   // 🔹 Fetch client details
@@ -2993,12 +3008,85 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       if (!fromDate) return;
       this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
     }
+    if(this.dayType == 9){
+      this.setMinDateForCompOffDate();
+    }
     if(this.halfDayValidation()){
       return;
     };
     this.applyChanges();
   }
 
+  setMinDateForCompOffDate(){
+    if(this.dayType == 9){
+      const fromDate = this.parseDDMMYYYY(this.fromDate);
+      this.minDateForCompOffPicker = this.formatDDMMYYYY(this.subtractOneMonthSafe(fromDate));
+     this.getLastThreeMonthsWorkingDates();
+    }
+  }
+
+  subtractOneMonthSafe(date: Date): Date {
+  const d = new Date(date);
+
+  const originalDate = d.getDate();
+  d.setMonth(d.getMonth() - 3);
+
+  if (d.getDate() < originalDate) {
+    d.setDate(0); // go to last valid day of previous month
+  }
+
+  return d;
+}
+
+getFilteredCompOffDates(): string[] {
+  const start = this.parseDDMMYYYY(this.minDateForCompOffPicker);
+  const end = this.parseDDMMYYYY(this.fromDate);
+
+  const allDates: string[] = [];
+
+  let current = new Date(start);
+
+  while (current <= end) {
+    allDates.push(this.formatYYYYMMDD(current)); // ✅ match API format
+    current.setDate(current.getDate() + 1);
+  }
+
+  // ✅ No conversion needed
+  const enabledSet = new Set(this.enabledDatesForCompOffDate);
+
+  const filteredDates = allDates.filter(date => !enabledSet.has(date));
+  
+  return filteredDates.map((date: any) =>
+    this.formatDDMMYYYY(date)
+  );
+}
+
+formatYYYYMMDD(date: Date): string {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+async getLastThreeMonthsWorkingDates() {
+
+  await this.timesheetNewService.getLastThreeMonthsWorkingDates(this.convertDDMMYYYYToYYYYMMDD(this.fromDate),  this.timesheetFilledForUser?.empId || this.currentUser?.empId)
+    .subscribe({
+      next: (response: any) => {
+        console.log(response,"last three month")
+       if (response?.serviceStatus === "Success" && response?.serviceResponse) {
+      this.enabledDatesForCompOffDate = response.serviceResponse;
+      console.log(this.enabledDatesForCompOffDate,"enabledDatesForCompOffDate")
+      this.disabledDateForCompOffDate = this.getFilteredCompOffDates();
+      console.log(this.disabledDateForCompOffDate,"this.disabledDateForCompOffDate")
+    }
+       else
+       this.openAlertMod(this.alertTemplate, 'Failed to load working dates for comp-off day type. Please try again later.');
+
+      },
+      error: (err) => console.error(err)
+    });
+}
   /** Apply date change: clear date-dependent form state, recalc hours, load projects. */
   applyChanges(): void {
     this.resetDateDependentFormState();
@@ -3094,9 +3182,10 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * Format Date object to DD-MM-YYYY string
    */
   formatDDMMYYYY(date: Date): string {
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const yyyy = date.getFullYear();
+    const intDate = new Date(date);
+    const dd = String(intDate.getDate()).padStart(2, '0');
+    const mm = String(intDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = intDate.getFullYear();
 
     return `${dd}-${mm}-${yyyy}`;
   }
@@ -3845,6 +3934,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       this.fromDate = null;
       this.toDate = null;
     }
+    this.compOffForDate = null;
     this.appelectMember = null;
     this.isNightShift = false;
     this.apmosysInTime = null;
@@ -4046,7 +4136,8 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
           projectId: p.projectId,
           projectName: p.projectName,
           hasClientSideId: p.hasClientSideId || false,
-          hasClientFlag: p.hasClientFlag || false
+          hasClientFlag: p.hasClientFlag || false,
+          isShadow: p.isShadow
         }
       ])
     ).values()
@@ -4161,6 +4252,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       dayType: this.dayType,
       fromDate: this.fromDate,
       toDate: this.toDate,
+      compOffForDate: this.compOffForDate,
       isNightShift: this.isNightShift,
       apmosysInTime: this.apmosysInTime,
       apmosysOutTime: this.apmosysOutTime,
@@ -4227,6 +4319,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       timesheetId: null,
       // date: this.formatDDMMYYYY(new Date(this.fromDate as string)),
       date: convertToYYYYMMDD(this.fromDate),
+      compOffForDate:convertToYYYYMMDD(this.compOffForDate),
       workCheckIn: TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
       workCheckOut: TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate)),
       currentManagerId: this.currentUser.managerId,
@@ -4413,6 +4506,10 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     if (timesheetData.date) {
       this.fromDate = this.convertYYYYMMDDToDDMMYYYY(timesheetData.date);
     }
+    if(this.dayType == 9){
+      this.compOffForDate = this.convertYYYYMMDDToDDMMYYYY(timesheetData.compOffForDate);
+      this.setMinDateForCompOffDate();
+    }
     this.isNightShift = !!timesheetData.isNightShift;
 
     // Handle night shift toDate dynamically based on stored in/out datetimes
@@ -4480,7 +4577,20 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
     // 5. SIMPLE, DIRECT MAPPING: map backend locationSessions -> timesheetLocations in one pass
     const locationSessionsToPopulate = timesheetData.locationSessions || [];
     this.timesheetLocations = [];
-
+    const uniqueProjects = Array.from(
+    new Map(
+      this.activeProjectList.map(p => [
+        p.projectId,
+        {
+          projectId: p.projectId,
+          projectName: p.projectName,
+          hasClientSideId: p.hasClientSideId || false,
+          hasClientFlag: p.hasClientFlag || false,
+          isShadow: p.isShadow
+        }
+      ])
+    ).values()
+  );
     locationSessionsToPopulate.forEach((locationData, lIndex) => {
       const location: LocationEntry = {
         locationMappingId: locationData.locationMappingId,
@@ -4503,6 +4613,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
             shadowEmpId: projectData.shadowEmpId,
             isShadowTimesheet: projectData.isShadowTimesheet || false,
             isShadowForSelf: projectData.isShadowForSelf || false,
+            // isShadowRequired: uniqueProjects.find(project =>{project.projectId = projectData.projectId}).isShadow,
             clientId: projectData.clientId != null ? Number(projectData.clientId) : null,
             clientLocationId: projectData.clientLocationId != null ? Number(projectData.clientLocationId) : null,
             clientApprovalStatus: projectData.clientApprovalStatus,
@@ -4556,6 +4667,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       }
       
       this.timesheetLocations.push(location);
+      console.log(this.activeProjectList,"activeProjectList")
       if(!this.isDayTypeFillable()){
         this.holidayDescription = this.timesheetLocations[0].projects[0].description;
       }else{
@@ -4968,6 +5080,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       dayType: this.dayType,
       fromDate: this.fromDate,
       toDate: this.toDate,
+      compOffForDate: this.compOffForDate,
       isNightShift: this.isNightShift,
       apmosysInTime: this.apmosysInTime,
       apmosysOutTime: this.apmosysOutTime,
@@ -5036,6 +5149,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       isApmosysProduct: this.currentUser.isApmosysProduct,
       isNightShift: this.isNightShift,
       date: convertToYYYYMMDD(this.fromDate),
+      compOffForDate: convertToYYYYMMDD(this.compOffForDate),
       workCheckIn: TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
       workCheckOut: TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate)),
       currentManagerId: this.currentUser.managerId,
@@ -5970,6 +6084,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
   resetTimesheetForm() {
     this.fromDate = null;
     this.toDate = null;
+    this.compOffForDate = null;
   }
 
   /**
@@ -6059,7 +6174,8 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
                         projectId: p.projectId,
                         projectName: p.projectName,
                         hasClientSideId: p.hasClientSideId || false,
-                        hasClientFlag: p.hasClientFlag || false
+                        hasClientFlag: p.hasClientFlag || false,
+                        isShadow: p.isShadow
                       }
                     ])
                   ).values()
@@ -6076,6 +6192,12 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
                           // Ensure ID is set as number for Angular binding
                           proj.projectId = projectIdNum;
                           proj.hasClientSideId=matchedProject.hasClientSideId;
+                          proj.isShadowRequired = matchedProject.isShadow;
+                          if(proj.isShadowRequired != 1){
+                            proj.isShadowForSelf = false;
+                            proj.isShadowTimesheet = false;
+                            proj.shadowEmpId = null;
+                          }
                           if (!proj.projectName && matchedProject.projectName) {
                             proj.projectName = matchedProject.projectName;
                             console.log(`[getProjectListForDateAndEmpId] Updated projectName for projectId ${proj.projectId}: ${proj.projectName}`);

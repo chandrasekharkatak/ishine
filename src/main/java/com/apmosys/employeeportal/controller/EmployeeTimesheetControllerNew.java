@@ -587,6 +587,11 @@ public class EmployeeTimesheetControllerNew {
 			 
 		     return  timesheetServiceNew.getRejectionDetailsWithProjectsByTimesheetId(timesheetId);
 		 }
+		 
+		 @GetMapping("/getLastThreeMonthsWorkingDates")
+		 public ServiceResponse getLastThreeMonthsWorkingDates(@RequestParam String date,@RequestParam Long empId) {
+			 return  timesheetServiceNew.getLastThreeMonthsWorkingDates(date,empId);
+		 }
 
 }
 

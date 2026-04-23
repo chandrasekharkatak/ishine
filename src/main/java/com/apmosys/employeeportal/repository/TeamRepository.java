@@ -290,8 +290,37 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 			+ "    t.updatedBy = :updatedBy\r\n"
 			+ "WHERE t.projectId = :projectId\r\n"
 			+ "AND t.isActive = 'Y'")
-	void deactivateTeamsByProjectId(Integer projectId,
-	                                LocalDateTime updatedOn,
-	                                Long updatedBy);
+	void deactivateTeamsByProjectId(Integer projectId, LocalDateTime updatedOn, Long updatedBy);
 
+	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgTeamMemberDto( \n"
+			+ " etm.employeeTeamMapId, etm.empTeamDepartmentId, etmd.name, t.teamId, t.teamName, ppd.poId, ppd.poNo, prm.poRequirementMappingId, rd.roleId, rd.role, rd.experience, rd.department, prm.lineItemStartDate, prm.lineItemEndDate, ppd.poStartDate ,ppd.poEndDate \n"
+			+ ", e.empId, e.name, etm.employeeRole, etm.active, etm.isShadow, CASE WHEN eppm.id IS NOT NULL THEN true ELSE false END \n"
+			+ ", etm.startDate, etm.endDate)  \n"
+			+ "FROM Team t \n"
+			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId \n"
+			+ "LEFT JOIN Department etmd ON etm.empTeamDepartmentId = etmd.deptId \n"
+			+ "LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId \n"
+			+ "LEFT JOIN PoRequirementMapping prm ON etm.roleId = prm.roleId and etm.poId = prm.poId and prm.active = true \n"
+			+ "AND DATE(prm.lineItemEndDate) = (SELECT MAX(DATE(prm2.lineItemEndDate)) FROM PoRequirementMapping prm2 WHERE prm2.poId = prm.poId AND prm2.active = true AND prm2.roleId = prm.roleId ) \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = etm.poId and ppd.active = true \n"
+			+ "LEFT JOIN Employee e ON e.empId = etm.empId \n"
+			+ "LEFT JOIN EmpPrimaryProjectMapping eppm ON eppm.empId = e.empId AND eppm.isMapped = 'Y' AND eppm.primaryProjectId=:projectId \n"
+			+ "WHERE etm.empId =:empId  \n")
+	List<RmgTeamMemberDto> getAllTeamMemberDetailsDtoByProjectIdAndEmpId(Long projectId, Long empId);
+
+	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgTeamMemberDto( \n"
+			+ " etm.employeeTeamMapId, etm.empTeamDepartmentId, etmd.name, t.teamId, t.teamName, ppd.poId, ppd.poNo, prm.poRequirementMappingId, rd.roleId, rd.role, rd.experience, rd.department, prm.lineItemStartDate, prm.lineItemEndDate, ppd.poStartDate ,ppd.poEndDate \n"
+			+ ", e.empId, e.name, etm.employeeRole, etm.active, etm.isShadow, CASE WHEN eppm.id IS NOT NULL THEN true ELSE false END \n"
+			+ ", etm.startDate, etm.endDate)  \n"
+			+ "FROM Team t \n"
+			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId \n"
+			+ "LEFT JOIN Department etmd ON etm.empTeamDepartmentId = etmd.deptId \n"
+			+ "LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId \n"
+			+ "LEFT JOIN PoRequirementMapping prm ON etm.roleId = prm.roleId and etm.poId = prm.poId and prm.active = true \n"
+			+ "AND DATE(prm.lineItemEndDate) = (SELECT MAX(DATE(prm2.lineItemEndDate)) FROM PoRequirementMapping prm2 WHERE prm2.poId = prm.poId AND prm2.active = true AND prm2.roleId = prm.roleId ) \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = etm.poId and ppd.active = true \n"
+			+ "LEFT JOIN Employee e ON e.empId = etm.empId \n"
+			+ "LEFT JOIN EmpPrimaryProjectMapping eppm ON eppm.empId = e.empId AND eppm.isMapped = 'Y' AND eppm.primaryProjectId=:projectId \n"
+			+ "WHERE etm.employeeTeamMapId =:employeeTeamMapId  \n")
+	List<RmgTeamMemberDto> getAllTeamMemberDetailsDtoByEmployeeTeamMapId(Long employeeTeamMapId, Long projectId);
 }

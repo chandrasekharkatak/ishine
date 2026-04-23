@@ -64,6 +64,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -3646,6 +3648,21 @@ public class EmployeeService {
 				    empDTO.setHodName(object[22] != null ? object[22].toString() : null);
 				    empDTO.setHodDepartmentName(object[23] != null ? object[23].toString() : null);
 				    empDTO.setIsApmosysProduct(object[24] != null ? object[24].toString() : null);
+				    if (object.length > 25 && object[25] != null) {
+				    	try {
+				    		if (object[25] instanceof Number) {
+				    			empDTO.setMobileNo(((Number) object[25]).longValue());
+				    		} else {
+				    			String ms = object[25].toString().trim();
+				    			if (!ms.isEmpty()) {
+				    				empDTO.setMobileNo(Long.parseLong(ms.replaceAll("[^0-9]", "")));
+				    			}
+				    		}
+				    	} catch (Exception ignored) { }
+				    }
+				    if (object.length > 26 && object[26] != null) {
+				    	empDTO.setWorkLocation(object[26].toString().trim());
+				    }
 				    
 				    String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
 //				    String isConsultant = timesheetDto.getIsConsultant();
@@ -5610,6 +5627,73 @@ public class EmployeeService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
+	/** Logged-in employee id from Spring Security (set in {@link com.apmosys.employeeportal.EmployeePortalInterceptor}). */
+	private Long getLoggedInEmpIdFromSecurityContext() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || auth.getPrincipal() == null) {
+			return null;
+		}
+		Object p = auth.getPrincipal();
+		if (p instanceof Long) {
+			return (Long) p;
+		}
+		if (p instanceof String) {
+			try {
+				return Long.parseLong((String) p);
+			} catch (NumberFormatException e) {
+				return null;
+			}
+		}
+		return null;
+	}
+
+	/** HOD, HR-ish departments, or SuperAdmin may use any anchor; others only own reporting subtree. */
+	private boolean hasWideHierarchyAnchorAccess(Long empId) {
+		if (empId == null) {
+			return false;
+		}
+		List<Department> hodDepts = departmentRepository.findByHodId(empId);
+		if (hodDepts != null && !hodDepts.isEmpty()) {
+			return true;
+		}
+		try {
+			String role = employeeRepository.getEmployeeRoleByEmpId(empId);
+			if (role != null && "SuperAdmin".equalsIgnoreCase(role.trim())) {
+				return true;
+			}
+		} catch (Exception ignored) {
+			// ignore
+		}
+		try {
+			String deptName = employeeRepository.getDepartment(empId);
+			if (deptName != null) {
+				String d = deptName.trim();
+				if ("HR".equalsIgnoreCase(d) || "Accounts".equalsIgnoreCase(d)
+						|| "Resource Management Group".equalsIgnoreCase(d)) {
+					return true;
+				}
+			}
+		} catch (Exception ignored) {
+			// ignore
+		}
+		return false;
+	}
+
+	/**
+	 * True if the caller may request direct reports for {@code anchorEmpId}:
+	 * wide org roles (HOD/HR/SuperAdmin), or any anchor in the caller's manager subtree (self + descendants).
+	 */
+	private boolean isHierarchyAnchorAllowedForCaller(Long callerEmpId, Long anchorEmpId) {
+		if (callerEmpId == null || anchorEmpId == null) {
+			return false;
+		}
+		if (hasWideHierarchyAnchorAccess(callerEmpId)) {
+			return true;
+		}
+		BigInteger cnt = employeeRepository.countEmpInManagerReportingSubtree(callerEmpId, anchorEmpId);
+		return cnt != null && cnt.compareTo(BigInteger.ZERO) > 0;
+	}
 	
 	public ServiceResponse getHierarchyByEmpId(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -5621,6 +5705,36 @@ public class EmployeeService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("empId : " + employeedto.getEmpId());
 		try {
+
+			Long callerEmpId = getLoggedInEmpIdFromSecurityContext();
+			Long anchorEmpId = employeedto.getEmpId();
+			if (anchorEmpId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee id is required");
+				apiLogInfo.setApiResponse("Missing anchor empId");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+			if (callerEmpId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Unauthorized");
+				apiLogInfo.setApiResponse("No logged-in employee");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+			if (!isHierarchyAnchorAllowedForCaller(callerEmpId, anchorEmpId)) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Access denied");
+				apiLogInfo.setApiResponse("Hierarchy anchor not allowed for this user");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
 
 			List<Object[]> list = employeeRepository.getHierarchyByEmpId(employeedto.getEmpId());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
