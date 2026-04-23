@@ -394,25 +394,25 @@
                                             (click)="onAction('PREVIEW',project)">
                                             <i class="fas fa-eye"></i> Preview
                                         </button>
-                                        <button mat-menu-item (click)="onAction('EDIT_NEW', project);">
+                                        <button mat-menu-item (click)="onAction('EDIT_NEW', project);" *ngIf="!(project.active === 'false')">
                                             <i class="fas fa-pen"></i> Edit
                                         </button>
                                         <button mat-menu-item
-                                            *ngIf="(project.draftStatus == 'Approved' || project.isTeamCreated == 'true') && project.projectStatus != 'Completed'"
+                                            *ngIf="(project.draftStatus == 'Approved' || project.isTeamCreated == 'true') && project.projectStatus != 'Completed' && !(project.active === 'false')"
                                             (click)="onAction('MARK_AS_COMPLETE', project)">
                                             <i class="fas fa-check-double"></i> Mark as Complete
                                         </button>
                                         <button mat-menu-item
-                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
+                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !(project.active === 'false')"
                                             (click)="onAction('APPROVE',project);">
                                             <i class="fas fa-square-check"></i> Approve
                                         </button>
                                         <button mat-menu-item
-                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
+                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !(project.active === 'false')"
                                             (click)="onAction('REJECT', project);">
                                             <i class="fas fa-times"></i> Reject
                                         </button>
-                                        <button mat-menu-item *ngIf="project.poProjectType"
+                                        <button mat-menu-item *ngIf="project.poProjectType && !(project.active === 'false')"
                                             (click)="onAction('CLIENT_SIDE_ID_STATUS',project);">
                                             <i class="fas fa-id-badge"></i> ClientID Status
                                         </button>

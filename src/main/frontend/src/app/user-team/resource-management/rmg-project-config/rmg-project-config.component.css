@@ -364,7 +364,6 @@
 .new-custom-table th,
 .new-custom-table td {
     padding: 5px;
-    text-align: center;
 }
 
 .new-custom-table thead th {
@@ -378,6 +377,213 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Current team member table: keep all columns visible (no horizontal scroll) */
+.current-team-member-table .new-custom-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.current-team-member-table .new-custom-table th,
+.current-team-member-table .new-custom-table td {
+    padding: 4px 6px;
+    font-size: 13px;
+    line-height: 1.2;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.current-team-member-table .new-custom-table thead th {
+    /* Override global 7vh header height: it causes misalignment */
+    height: unset !important;
+    min-height: 34px;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    font-size: 13px !important;
+    line-height: 1.2;
+    vertical-align: middle !important;
+}
+
+/* Override wide utility widths in this table only */
+.current-team-member-table .min-width180 {
+    min-width: 140px !important;
+}
+
+.current-team-member-table .max-width200 {
+    max-width: 180px !important;
+}
+
+/* Date cells: compact but readable */
+.current-team-member-table .date-input {
+    padding-right: 28px;
+    font-size: 12px;
+}
+
+.current-team-member-table .start-date-input {
+    padding-right: 34px !important;
+    box-sizing: border-box;
+}
+
+.current-team-member-table .calendar-icon {
+    right: 6px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+/* Ensure dd-MM-yyyy fits in Start Date */
+.current-team-member-table th.col-start-date,
+.current-team-member-table td.col-start-date {
+    width: 128px;
+    min-width: 128px;
+    max-width: 128px;
+}
+
+/* Old team member table: keep all columns visible (no horizontal scroll) */
+.old-team-member-table .new-custom-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.old-team-member-table .new-custom-table th,
+.old-team-member-table .new-custom-table td {
+    padding: 4px 6px;
+    font-size: 13px;
+    line-height: 1.2;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.old-team-member-table .new-custom-table thead th {
+    height: unset !important;
+    min-height: 34px;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    font-size: 13px !important;
+    line-height: 1.2;
+    vertical-align: middle !important;
+}
+
+.old-team-member-table .col-info {
+    text-align: left !important;
+}
+
+.old-team-member-table .col-info .chip-container {
+    justify-content: flex-start;
+}
+
+.old-team-member-table th.col-info,
+.old-team-member-table td.col-info {
+    width: 90px;
+    min-width: 90px;
+    max-width: 90px;
+}
+
+.old-team-member-table th.col-start-date,
+.old-team-member-table td.col-start-date {
+    width: 128px;
+    min-width: 128px;
+    max-width: 128px;
+}
+
+.old-team-member-table th.col-end-date,
+.old-team-member-table td.col-end-date {
+    width: 128px;
+    min-width: 128px;
+    max-width: 128px;
+}
+
+.old-team-member-table .col-shadow {
+    width: 42px;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+}
+
+.old-team-member-table .custom-checkbox {
+    transform: scale(0.9);
+}
+
+@media (min-width: 1400px) {
+    .old-team-member-table .new-custom-table th,
+    .old-team-member-table .new-custom-table td {
+        font-size: 14px;
+        padding: 6px 8px;
+    }
+
+    .old-team-member-table .custom-checkbox {
+        transform: scale(1);
+    }
+}
+
+/* Tighten checkbox/action columns to free width for dates */
+.current-team-member-table .col-select,
+.current-team-member-table .col-shadow,
+.current-team-member-table .col-default {
+    width: 42px;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+}
+
+.current-team-member-table .col-action {
+    width: 52px;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+}
+
+.current-team-member-table .col-action .btn {
+    padding: 2px 6px;
+    line-height: 1;
+}
+
+.current-team-member-table .col-info {
+    text-align: left !important;
+}
+
+.current-team-member-table th.col-info,
+.current-team-member-table td.col-info {
+    width: 90px;
+    min-width: 90px;
+    max-width: 90px;
+}
+
+.current-team-member-table .col-info .chip-container {
+    justify-content: flex-start;
+}
+
+.current-team-member-table .custom-checkbox {
+    transform: scale(0.9);
+}
+
+@media (min-width: 1400px) {
+    .current-team-member-table .new-custom-table th,
+    .current-team-member-table .new-custom-table td {
+        font-size: 14px;
+        padding: 6px 8px;
+    }
+
+    .current-team-member-table .col-select,
+    .current-team-member-table .col-shadow,
+    .current-team-member-table .col-default {
+        width: 46px;
+    }
+
+    .current-team-member-table .col-action {
+        width: 58px;
+    }
+
+    .current-team-member-table .custom-checkbox {
+        transform: scale(1);
+    }
+}
+
+@media (min-width: 1800px) {
+    .current-team-member-table .new-custom-table th,
+    .current-team-member-table .new-custom-table td {
+        font-size: 14px;
+    }
 }
 
 .rmg-breadcrumb .breadcrumb {
