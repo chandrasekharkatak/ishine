@@ -240,6 +240,9 @@ public class ResourceManagementService {
 	ProjectRepository projectRepository;
 
 	@Autowired
+	ProjectHierarchyResolverService projectHierarchyResolverService;
+
+	@Autowired
 	PoDepartmentMappingRepository poDepartmentMappingRepository;
 
 	@Autowired
@@ -2413,8 +2416,12 @@ public class ResourceManagementService {
 			Project projectObj = new Project();
 
 			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
-
-				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getPoProjectId());
+				
+				if(resourceManagementDTO.getProjectId() != null) {
+					projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+				} else {
+					projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getPoProjectId());
+				}
 //				System.err.println(" projectObj   " + projectObj.getPoProjectId());
 				List<PoProjectSyncDTO> projectInfo = new ArrayList<PoProjectSyncDTO>();
 
@@ -3070,6 +3077,10 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/getProjectInfo");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
+		String incomingViewId = resourceManagementDTO.getProjectViewId();
+		String resolvedViewId = projectHierarchyResolverService.resolveProjectViewId(incomingViewId);
+		resourceManagementDTO.setProjectViewId(resolvedViewId);
+		
 		logBuilder.append("projectInfo : " + projectRepository
 				.getProjectInfo(Integer.parseInt(resourceManagementDTO.getProjectViewId().toString())));
 
@@ -3196,6 +3207,12 @@ public class ResourceManagementService {
 		StringBuilder logBuilder = new StringBuilder();
 
 		try {
+			String incomingViewId = resourceManagementDTO.getProjectViewId();
+			String resolvedViewId = projectHierarchyResolverService.resolveProjectViewId(incomingViewId);
+			resourceManagementDTO.setProjectViewId(resolvedViewId != null && resolvedViewId.startsWith("po")
+					? resolvedViewId.substring(2)
+					: resolvedViewId);
+			
 			List<Object[]> projectInfo = projectRepository
 					.getPoProjectInfo(Long.parseLong(resourceManagementDTO.getProjectViewId().toString()));
 			logBuilder.append("projectInfo : " + projectInfo.size());
@@ -3356,6 +3373,7 @@ public class ResourceManagementService {
 //		logBuilder.append("TeamInfo : " + projectRepository.getTeamInfo(projectId).size());
 
 		try {
+			projectId = projectHierarchyResolverService.resolveToPrimaryProjectId(projectId);
 			List<Object[]> teamInfo = projectRepository.getTeamInfo(projectId);
 
 			Map<Long, TeamInfoTeamDTO> teamMap = new LinkedHashMap<>();

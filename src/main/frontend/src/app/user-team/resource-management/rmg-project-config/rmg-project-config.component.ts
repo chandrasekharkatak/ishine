@@ -147,6 +147,9 @@ export class RmgProjectConfigComponent implements OnInit {
     projectList: any[] = [];
     projectsBench: any[] = [];
     projectsOther: any[] = [];
+
+    // Linked project indicator (resolved via bulk resolver using numeric projectId)
+    projectConfigResolveMap: Record<string, { resolvedProjectViewId: string; redirected: boolean; resolvedProjectName?: string }> = {};
     employeeListFilteredByDept: any[] = [];
     employeeExistingProjectDetails: any[] = [];
     teamMigrationPoDetailsList: any[] = [];
@@ -346,6 +349,7 @@ export class RmgProjectConfigComponent implements OnInit {
         this.getActiveProjectList();
         this.setProjectType();
         this.initialiseNewTeamObj();
+        this.populateProjectConfigResolveMap();
         if (this.isProjectPreview) {
             this.getResourceRequirementDetailsByProjectId(false);
         }
@@ -371,6 +375,32 @@ export class RmgProjectConfigComponent implements OnInit {
                 }
             }
         });
+    }
+
+    private populateProjectConfigResolveMap() {
+        const projectId = this.rmgProjectObj?.projectId;
+        if (projectId === null || projectId === undefined || String(projectId).trim() === '') {
+            this.projectConfigResolveMap = {};
+            return;
+        }
+
+        this.resourceManagementService.resolveProjectViewIds([String(projectId)]).pipe(first()).subscribe((resp: any) => {
+            if (resp?.serviceStatus === 'Success' && resp?.serviceResponse) {
+                this.projectConfigResolveMap = resp.serviceResponse || {};
+            }
+        });
+    }
+
+    copyPrimaryProjectNameFromConfig() {
+        const key = String(this.rmgProjectObj?.projectId || '');
+        const name = this.projectConfigResolveMap?.[key]?.resolvedProjectName;
+        if (!name) {
+            this.openAlertMessageModal('Primary project name not available.');
+            return;
+        }
+        navigator.clipboard.writeText(name)
+            .then(() => this.openAlertMessageModal('Primary project name copied.'))
+            .catch(() => this.openAlertMessageModal('Unable to copy.'));
     }
 
     // Modals Start

@@ -786,6 +786,20 @@
                                 </td>
                                 <td class="max-width200 min-width200 truncate" [title]="project?.name || 'NA'"
                                     *ngIf="(project?.draftStatus == 'Not Started' || project?.active === 'false')">
+                                    <ng-container
+                                        *ngIf="projectDetailsResolveMap?.[project?.projectId]?.redirected">
+                                        <span class="me-1 rounded-circle text-dark border border-warning-subtle"
+                                            style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
+                                            [title]="'Linked to: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || 'Primary project')">
+                                            <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;"
+                                                aria-hidden="true"></i>
+                                        </span>
+                                        <button type="button" class="btn btn-sm btn-link p-0 me-1"
+                                            [title]="'Copy primary project name: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || '')"
+                                            (click)="$event.stopPropagation(); copyPrimaryProjectName(project?.projectId)">
+                                            <i class="bi bi-clipboard" aria-hidden="true"></i>
+                                        </button>
+                                    </ng-container>
                                     {{ project?.name || 'NA' }}
                                     <span *ngIf="project?.active === 'false'" class="inactive-label">Inactive</span>
                                 </td>
@@ -793,6 +807,20 @@
                                     *ngIf="(project?.draftStatus != 'Not Started' && project?.active !== 'false')">
                                     <span style="cursor: pointer; color: blue;" id="clickablefor360"
                                         [navigateToProjectView]="project?.projectViewId">
+                                        <ng-container
+                                            *ngIf="projectDetailsResolveMap?.[project?.projectId]?.redirected">
+                                            <span class="me-1 rounded-circle text-dark border border-warning-subtle"
+                                                style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
+                                                [title]="'Linked to: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || 'Primary project')">
+                                                <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;"
+                                                    aria-hidden="true"></i>
+                                            </span>
+                                            <button type="button" class="btn btn-sm btn-link p-0 me-1"
+                                                [title]="'Copy primary project name: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || '')"
+                                                (click)="$event.stopPropagation(); copyPrimaryProjectName(project?.projectId)">
+                                                <i class="bi bi-clipboard" aria-hidden="true"></i>
+                                            </button>
+                                        </ng-container>
                                         {{ project?.name || 'NA' }}
                                     </span>
                                 </td>

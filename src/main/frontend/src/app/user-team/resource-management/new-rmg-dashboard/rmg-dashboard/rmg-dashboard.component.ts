@@ -449,6 +449,7 @@ getTnmExpiredTooltip(): string[] {
   departmentList: any[] = [];
   filteredDepartmentList: any[] = [];
   projectDetailsList: any[] = [];
+  projectDetailsResolveMap: Record<string, { resolvedProjectViewId: string; redirected: boolean; resolvedProjectName?: string }> = {};
   projectSummaryData: any[] = [];
 
   // Variables
@@ -1888,6 +1889,7 @@ getTnmExpiredTooltip(): string[] {
         const apiResponse = response?.serviceResponse?.projectList;
         this.totalProjectsCount = apiResponse?.totalElements || 0;
         this.projectDetailsList = [...apiResponse?.content];
+        this.populateProjectDetailsResolveMap(this.projectDetailsList);
         console.log(this.projectDetailsList,"lalallala");
       } else {
         this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
@@ -1900,6 +1902,39 @@ getTnmExpiredTooltip(): string[] {
       (error) => {
         this.openAlertMessageModal('Something went wrong!!');
       });
+  }
+
+  private populateProjectDetailsResolveMap(rows: any[]) {
+    // Use numeric projectId for linked detection/copy-name to avoid ambiguity when
+    // multiple linked projects share the same poProjectId (same "poXXXX" projectViewId).
+    const ids = (rows || [])
+      .map(r => r?.projectId)
+      .filter(v => v !== null && v !== undefined && String(v).trim() !== '')
+      .map(v => String(v));
+
+    const unique = Array.from(new Set(ids));
+    if (unique.length === 0) {
+      this.projectDetailsResolveMap = {};
+      return;
+    }
+
+    this.resourceManagementService.resolveProjectViewIds(unique).pipe(first()).subscribe((resp: any) => {
+      if (resp?.serviceStatus === 'Success' && resp?.serviceResponse) {
+        this.projectDetailsResolveMap = resp.serviceResponse || {};
+      }
+    });
+  }
+
+  copyPrimaryProjectName(projectViewId: any) {
+    const key = String(projectViewId || '');
+    const name = this.projectDetailsResolveMap?.[key]?.resolvedProjectName;
+    if (!name) {
+      this.openAlertMessageModal('Primary project name not available.');
+      return;
+    }
+    navigator.clipboard.writeText(name)
+      .then(() => this.openAlertMessageModal('Primary project name copied.'))
+      .catch(() => this.openAlertMessageModal('Unable to copy.'));
   }
   // Projects Table APIs & Methods End
 

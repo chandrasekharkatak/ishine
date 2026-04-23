@@ -169,6 +169,7 @@ export class HrDashboardComponent implements AfterViewInit {
   mimeType: any;
   projectView: ProjectViewForTimesheet[] = [];
   projectViewForExcel: ProjectViewForTimesheet[] = [];
+  projectViewResolveMap: Record<string, { resolvedProjectViewId: string; redirected: boolean; resolvedProjectName?: string }> = {};
   projectViewColumns: any[] = ['projectName', 'poNo', 'startDate','endDate','totalEmployees', 'projectManagerName', 'projectType', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'totalExpectedFillCount', 'totalClientSideApprovedCount', 'blank', 'totalClientSidePendingCount', 'blank', 'totalClientSideNotFilledCount', 'blank','active'];
   timesheetSummaryColumns: any[] = ['blank', 'employmentId', 'name', 'blank', 'blank', 'blank', 'blank', 'blank'];
   totalClientSideApprovedCount: any;
@@ -1804,12 +1805,46 @@ getCountByStatus(status: string) {
     this.timesheetService.getProjectViewForClientAttendanceStatus(this.projectViewClient).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.projectView = response.serviceResponse;
+        this.populateProjectViewResolveMap(this.projectView);
         this.totalItems = response.totalElements;
         this.dataForExcel = false;
       } else {
         this.openAlertMod1(this.alertTemplate, response.serviceResponse);
       }
     });
+  }
+
+  private populateProjectViewResolveMap(rows: any[]) {
+    // Use numeric projectId for linked detection/copy-name to avoid ambiguity when
+    // multiple linked projects share the same poProjectId (same "poXXXX" projectViewId).
+    const ids = (rows || [])
+      .map(r => r?.projectId)
+      .filter(v => v !== null && v !== undefined && String(v).trim() !== '')
+      .map(v => String(v));
+
+    const unique = Array.from(new Set(ids));
+    if (unique.length === 0) {
+      this.projectViewResolveMap = {};
+      return;
+    }
+
+    this.resourceManagementService.resolveProjectViewIds(unique).pipe(first()).subscribe((resp: any) => {
+      if (resp?.serviceStatus === 'Success' && resp?.serviceResponse) {
+        this.projectViewResolveMap = resp.serviceResponse || {};
+      }
+    });
+  }
+
+  copyPrimaryProjectName(projectViewId: any) {
+    const key = String(projectViewId || '');
+    const name = this.projectViewResolveMap?.[key]?.resolvedProjectName;
+    if (!name) {
+      this.openAlertMod1(this.alertTemplate, 'Primary project name not available.');
+      return;
+    }
+    navigator.clipboard.writeText(name)
+      .then(() => this.openAlertMod1(this.alertTemplate, 'Primary project name copied.'))
+      .catch(() => this.openAlertMod1(this.alertTemplate, 'Unable to copy.'));
   }
 
   getProjectViewForClientAttendanceStatusForExcel(status: any, month: any, year: any): Promise<void> {

@@ -2403,7 +2403,12 @@ public class ResourceManagementService {
 
 			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
 
-				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getPoProjectId());
+				if(resourceManagementDTO.getProjectId() == null){
+					projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getPoProjectId());
+				} else {
+					projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+				}
+				
 //				System.err.println(" projectObj   " + projectObj.getPoProjectId());
 				List<PoProjectSyncDTO> projectInfo = new ArrayList<PoProjectSyncDTO>();
 

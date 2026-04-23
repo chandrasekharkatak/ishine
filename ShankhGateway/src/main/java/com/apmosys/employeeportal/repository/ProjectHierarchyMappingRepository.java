@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.model.ProjectHierarchyMapping;
 
-public interface ProjectHierarchyMappingRepository extends JpaRepository<ProjectHierarchyMapping, Long> {
+@Repository
+public interface ProjectHierarchyMappingRepository extends JpaRepository<ProjectHierarchyMapping, Long>{
 	List<ProjectHierarchyMapping> findByParentProjectIdAndChildProjectIdIn(
 			Integer parentProjectId,
 			List<Integer> childProjectIds

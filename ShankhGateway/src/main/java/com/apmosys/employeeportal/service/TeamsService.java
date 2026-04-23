@@ -4600,6 +4600,11 @@ public class TeamsService {
 	        return;
 	    }
 		
+		Optional<ProjectPoDetails> currentPo = projectPoDetailsRepository.findByPoIdAndProjectIdAndActiveTrue(renewedPoId, projectId)	;	
+		
+		LocalDateTime previousPoEndDate = previousPo.getPoEndDate();
+		LocalDateTime currentPoStartDate = currentPo.get().getPoStartDate();
+		
 		Optional<Project> project = projectRepository.findById(projectId);
 		String projectType = project.get().getPoProjectType();
 		Long previousPoId = previousPo.getPoId();
@@ -4621,11 +4626,11 @@ public class TeamsService {
 					newRow.setCreatedBy(renewedBy);
 //					newRow.setUpdatedBy(renewedBy);
 					newRow.setUpdatedOn(LocalDateTime.now());
-					newRow.setStartDate(LocalDateTime.now());
+					newRow.setStartDate(currentPoStartDate);
 					newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 					employeeTeamMapRepository.save(newRow);
 					oldRow.setActive(0L);
-					oldRow.setEndDate(LocalDateTime.now());
+					oldRow.setEndDate(previousPoEndDate);
 					oldRow.setUpdatedBy(renewedBy);
 					oldRow.setUpdatedOn(LocalDateTime.now());
 					employeeTeamMapRepository.save(oldRow);
@@ -4643,11 +4648,11 @@ public class TeamsService {
 	            newRow.setCreatedBy(renewedBy);
 //	            newRow.setUpdatedBy(renewedBy);
 	            newRow.setUpdatedOn(LocalDateTime.now());
-	            newRow.setStartDate(LocalDateTime.now());
+	            newRow.setStartDate(currentPoStartDate);
 	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 	            employeeTeamMapRepository.save(newRow);
 	            oldRow.setActive(0L);
-	            oldRow.setEndDate(LocalDateTime.now());
+	            oldRow.setEndDate(previousPoEndDate);
 	            oldRow.setUpdatedBy(renewedBy);
 	            oldRow.setUpdatedOn(LocalDateTime.now());
 
@@ -5623,7 +5628,8 @@ public List<AutoMigrationDTO> migrateResourcesAfterRenewalDTO(Integer projectId,
 		
 		Optional<ProjectPoDetails> currentPo = projectPoDetailsRepository.findByPoIdAndProjectIdAndActiveTrue(renewedPoId, projectId)	;	
 				
-				
+		LocalDateTime previousPoEndDate = previousPo.getPoEndDate();
+		LocalDateTime currentPoStartDate = currentPo.get().getPoStartDate();		
 				
 		if (previousPo == null) {
 			return result;
@@ -5664,11 +5670,11 @@ public List<AutoMigrationDTO> migrateResourcesAfterRenewalDTO(Integer projectId,
 					newRow.setCreatedBy(renewedBy);
 //					newRow.setUpdatedBy(renewedBy);
 					newRow.setUpdatedOn(LocalDateTime.now());
-					newRow.setStartDate(LocalDateTime.now());
+					newRow.setStartDate(currentPoStartDate);
 					newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 					employeeTeamMapRepository.save(newRow);
 					oldRow.setActive(0L);
-					oldRow.setEndDate(LocalDateTime.now());
+					oldRow.setEndDate(previousPoEndDate);
 					oldRow.setUpdatedBy(renewedBy);
 					oldRow.setUpdatedOn(LocalDateTime.now());
 					employeeTeamMapRepository.save(oldRow);
@@ -5690,11 +5696,11 @@ public List<AutoMigrationDTO> migrateResourcesAfterRenewalDTO(Integer projectId,
 	            newRow.setCreatedBy(renewedBy);
 //	            newRow.setUpdatedBy(renewedBy);
 	            newRow.setUpdatedOn(LocalDateTime.now());
-	            newRow.setStartDate(LocalDateTime.now());
+	            newRow.setStartDate(currentPoStartDate);
 	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 	            employeeTeamMapRepository.save(newRow);
 	            oldRow.setActive(0L);
-	            oldRow.setEndDate(LocalDateTime.now());
+	            oldRow.setEndDate(previousPoEndDate);
 	            oldRow.setUpdatedBy(renewedBy);
 	            oldRow.setUpdatedOn(LocalDateTime.now());
 
