@@ -13,6 +13,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { AppComponent } from 'src/app/app.component';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { UtilityService } from 'src/app/services/utility.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -61,6 +62,7 @@ export class DesignationConfigComponent implements OnInit {
     private destinationService: DestinationService,
     private exportExcelService: ExportExcelService,
     private utilityService: UtilityService,
+    private router : Router
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -351,4 +353,14 @@ onDropdownOpened(): void {
       this.designationObj?.deptIdList?.length === this.allDeptList.length
     );
   }
+
+
+  goToGrievanceComponent(category: string, subCategory: string)  {
+    this.router.navigate(['/grievance'], {
+    queryParams: {
+      category: category,
+      subcategory: subCategory
+    }
+  });
+}
 }

@@ -22,6 +22,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
 import { ProjectBasedBulkUploadPayload } from './types';
+import { Router } from '@angular/router';
 
 
 @Component({
@@ -169,6 +170,7 @@ export class TeamTimesheetComponent implements OnInit {
     private utilityService: UtilityService,
     private bodyComponent: BodyComponent,
     private sanitizer: DomSanitizer,
+     private router: Router
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -1999,5 +2001,14 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
   private toDateString(d: Date): string {
     return d.toISOString().split('T')[0];
   }
+
+   goToGrievanceComponent(category: string, subCategory: string)  {
+    this.router.navigate(['/grievance'], {
+    queryParams: {
+      category: category,
+      subcategory: subCategory
+    }
+  });
+}
 
 }

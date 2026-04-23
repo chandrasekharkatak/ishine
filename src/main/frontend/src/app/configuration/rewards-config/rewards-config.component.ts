@@ -16,6 +16,7 @@ import { RewardsServiceService } from 'src/app/services/rewards-service.service'
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { FormControl } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
 class Operator{
   name:string;
@@ -94,6 +95,7 @@ export class RewardsConfigComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private utilityService: UtilityService,
     private validationService:ValidationService,
+    private router : Router
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
      this.inputControl.valueChanges
@@ -622,6 +624,15 @@ console.log("Validation passed for customFilterDTOList");
     this.selectedRewardId = reward;
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
+
+  goToGrievanceComponent(category: string, subCategory: string)  {
+	    this.router.navigate(['/grievance'], {
+	    queryParams: {
+	      category: category,
+	      subcategory: subCategory
+	    }
+	  });
+	}
 
 
 }

@@ -107,7 +107,7 @@
         <div class="row grievance-field-row g-3 g-lg-4">
           <div class="col-12 col-lg-6 col-xl-3">
             <label class="grievance-field-label" for="grievanceCategory">Category <span class="text-danger">*</span></label>
-            <select
+            <!-- <select
               id="grievanceCategory"
               class="form-control grievance-select grievance-input"
               [(ngModel)]="grievanceForm.category"
@@ -115,11 +115,20 @@
             >
               <option value="">Select module</option>
               <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+            </select> -->
+
+            <select id="grievanceCategory" class="form-control grievance-select grievance-input"
+              [(ngModel)]="grievanceForm.category" (ngModelChange)="onGrievanceCategoryChange()">
+              <option value="">Select module</option>
+              <option *ngFor="let category of categories" [value]="category">
+                {{ category }}
+              </option>
             </select>
-          </div>
+            
+            </div>
           <div class="col-12 col-lg-6 col-xl-3">
             <label class="grievance-field-label" for="grievanceSubCategory">Sub-category <span class="text-danger">*</span></label>
-            <select
+            <!-- <select
               id="grievanceSubCategory"
               class="form-control grievance-select grievance-input"
               [(ngModel)]="grievanceForm.subCategory"
@@ -128,8 +137,21 @@
             >
               <option value="">{{ loadingSubCategories ? 'Loading…' : subCategories.length ? 'Select sub-feature' : 'Select category first' }}</option>
               <option *ngFor="let sub of subCategories" [value]="sub">{{ sub }}</option>
-            </select>
-            <small class="text-danger d-block mt-1" *ngIf="grievanceForm.category && !loadingSubCategories && subCategories.length === 0">
+            </select> -->
+<select id="grievanceSubCategory" class="form-control grievance-select grievance-input"
+  [(ngModel)]="grievanceForm.subCategory" (ngModelChange)="onGrievanceSubCategoryChange()"
+  [disabled]="!grievanceForm.category || loadingSubCategories">
+  <option value="">
+    {{ loadingSubCategories
+    ? 'Loading…'
+    : (subCategories.length ? 'Select sub-feature' : 'Select category first') }}
+  </option>
+
+  <option *ngFor="let sub of subCategories" [ngValue]="sub">
+    {{ sub }}
+  </option>
+</select>
+<small class="text-danger d-block mt-1" *ngIf="grievanceForm.category && !loadingSubCategories && subCategories.length === 0">
               Sub-category is required. No sub-features are configured for this module—choose another category or contact your administrator.
             </small>
           </div>

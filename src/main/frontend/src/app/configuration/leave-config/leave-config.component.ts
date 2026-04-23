@@ -20,6 +20,7 @@ import { DepartmentService } from 'src/app/services/department.service';
 import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
 import { LeaveExcludeInclude } from 'src/app/models/LeaveExcludeInclude';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -186,6 +187,7 @@ export class LeaveConfigComponent implements OnInit {
     private utilityService: UtilityService,
     private employeeService: EmployeeService,
     private departmentService: DepartmentService,
+    private router : Router
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -1771,6 +1773,15 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
   if (this.selectedDepartments?.length > 0) {
     this.getAllEmployeesByDepartmentIds(departmentSelect);
   }
+}
+
+  goToGrievanceComponent(category: string, subCategory: string)  {
+    this.router.navigate(['/grievance'], {
+    queryParams: {
+      category: category,
+      subcategory: subCategory
+    }
+  });
 }
 
 

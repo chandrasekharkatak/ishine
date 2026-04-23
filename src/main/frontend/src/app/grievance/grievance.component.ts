@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute , Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import Swal from 'sweetalert2';
@@ -95,6 +95,8 @@ export class GrievanceComponent implements OnInit {
   activeSection: 'raise' | 'list' = 'raise';
   /** Primary list is my vs all; assigned is tickets where current user is assignee (HR / Development or RBAC). */
   listMode: 'my' | 'all' | 'assigned' = 'my';
+  selectedCategory: any;
+  selectedSubcategory: any;
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -103,7 +105,8 @@ export class GrievanceComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private router: Router,
     private modalService: NgbModal,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
+    private route: ActivatedRoute
   ) {
     this.authenticationService.currentUser.subscribe((x) => {
       this.currentUser = x;
@@ -119,58 +122,142 @@ export class GrievanceComponent implements OnInit {
     if (!this.canRaiseTicket()) {
       this.activeSection = 'list';
     }
+
+    this.route.queryParams.subscribe(params => {
+    this.selectedCategory = params['category'];
+    this.selectedSubcategory = params['subcategory'];
+
     this.loadCategories();
+  });
+    //this.loadCategories();
     this.loadTickets();
   }
 
+  // loadCategories() {
+  //   this.grievanceService
+  //     .getCategories()
+  //     .pipe(first())
+  //     .subscribe(
+  //       (response: any) => {
+  //         if (response.serviceStatus === 'Success') {
+  //           this.categories = response.serviceResponse || [];
+  //         } else {
+  //           this.categories = [];
+  //         }
+  //       },
+  //       () => {
+  //         this.categories = [];
+  //       }
+  //     );
+  // }
+
   loadCategories() {
-    this.grievanceService
-      .getCategories()
-      .pipe(first())
-      .subscribe(
-        (response: any) => {
-          if (response.serviceStatus === 'Success') {
-            this.categories = response.serviceResponse || [];
-          } else {
-            this.categories = [];
+  this.grievanceService
+    .getCategories()
+    .pipe(first())
+    .subscribe(
+      (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.categories = response.serviceResponse || [];
+
+          //Set selected value AFTER data loads
+          if (this.selectedCategory) {
+            this.grievanceForm.category = this.selectedCategory;
+            this.onGrievanceCategoryChange(); 
           }
-        },
-        () => {
+
+        } else {
           this.categories = [];
         }
-      );
-  }
+      },
+      () => {
+        this.categories = [];
+      }
+    );
+}
+
+  // onGrievanceCategoryChange(): void {
+  //   this.grievanceForm.subCategory = '';
+  //   this.grievanceForm.ticketFeature = '';
+  //   this.grievanceForm.issueScenario = '';
+  //   this.subCategories = [];
+  //   this.ticketFeatureOptions = [];
+  //   this.issueScenarioOptions = [];
+  //   const c = (this.grievanceForm.category || '').trim();
+  //   if (!c) {
+  //     return;
+  //   }
+  //   this.loadingSubCategories = true;
+  //   this.grievanceService
+  //     .getSubCategories(c)
+  //     .pipe(first())
+  //     .subscribe(
+  //        (response: any) => {
+  //       this.loadingSubCategories = false;
+
+  //       if (response.serviceStatus === 'Success') {
+  //         this.subCategories = response.serviceResponse || [];
+
+  //         //  Set subcategory AFTER subcategories load
+  //         if (this.selectedSubcategory) {
+  //           this.grievanceForm.subcategory = this.selectedSubcategory;
+  //         }
+
+  //       } else {
+  //         this.subCategories = [];
+  //       }
+  //     },
+  //       () => {
+  //         this.loadingSubCategories = false;
+  //         this.subCategories = [];
+  //       }
+  //     );
+  // }
 
   onGrievanceCategoryChange(): void {
-    this.grievanceForm.subCategory = '';
-    this.grievanceForm.ticketFeature = '';
-    this.grievanceForm.issueScenario = '';
-    this.subCategories = [];
-    this.ticketFeatureOptions = [];
-    this.issueScenarioOptions = [];
-    const c = (this.grievanceForm.category || '').trim();
-    if (!c) {
-      return;
-    }
-    this.loadingSubCategories = true;
-    this.grievanceService
-      .getSubCategories(c)
-      .pipe(first())
-      .subscribe(
-        (response: any) => {
-          this.loadingSubCategories = false;
-          if (response.serviceStatus === 'Success') {
-            this.subCategories = response.serviceResponse || [];
-          } else {
-            this.subCategories = [];
+  this.grievanceForm.subCategory = '';
+  this.grievanceForm.ticketFeature = '';
+  this.grievanceForm.issueScenario = '';
+  this.subCategories = [];
+  this.ticketFeatureOptions = [];
+  this.issueScenarioOptions = [];
+
+  const c = (this.grievanceForm.category || '').trim();
+  if (!c) {
+    return;
+  }
+
+  this.loadingSubCategories = true;
+
+  this.grievanceService
+    .getSubCategories(c)
+    .pipe(first())
+    .subscribe(
+      (response: any) => {
+        this.loadingSubCategories = false;
+
+        if (response.serviceStatus === 'Success') {
+          this.subCategories = response.serviceResponse || [];
+
+          // ✅ FIX: correct property name + ensure value exists
+          if (
+            this.selectedSubcategory &&
+            this.subCategories.includes(this.selectedSubcategory)
+          ) {
+            this.grievanceForm.subCategory = this.selectedSubcategory;
+            this.onGrievanceSubCategoryChange();
           }
-        },
-        () => {
-          this.loadingSubCategories = false;
+
+        } else {
           this.subCategories = [];
         }
-      );
-  }
+      },
+      () => {
+        this.loadingSubCategories = false;
+        this.subCategories = [];
+      }
+    );
+}
 
   onGrievanceSubCategoryChange(): void {
     this.grievanceForm.ticketFeature = '';

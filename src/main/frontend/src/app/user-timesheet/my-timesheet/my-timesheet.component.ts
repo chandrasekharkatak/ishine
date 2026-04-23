@@ -2,7 +2,6 @@ import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ClipboardService } from 'ngx-clipboard';
@@ -29,6 +28,7 @@ import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ProjectBasedBulkUploadPayload } from '../team-timesheet/types';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -4053,6 +4053,14 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   window.URL.revokeObjectURL(url);
 }
 
+   goToGrievanceComponent(category: string, subCategory: string)  {
+    this.router.navigate(['/grievance'], {
+    queryParams: {
+      category: category,
+      subcategory: subCategory
+    }
+  });
+}
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

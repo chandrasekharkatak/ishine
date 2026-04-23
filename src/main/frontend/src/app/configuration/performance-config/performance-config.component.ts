@@ -22,7 +22,7 @@ import { PerformanceService } from 'src/app/services/performance.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { HrHodMangerApiForPerformnace } from 'src/app/models/hrHodMangerApiForPerformnace';
-
+import { ActivatedRoute, Router } from '@angular/router';
 @Component({
   standalone: false,
   selector: 'app-performance-config',
@@ -96,6 +96,7 @@ export class PerformanceConfigComponent implements OnInit {
     private performanceService:PerformanceService,
     private logService:LogService,
     private utilityService: UtilityService,
+    private router : Router
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
 //for adding a drop down of financial years
@@ -1244,7 +1245,14 @@ pageChangedPreview(event)
   }
 
 
-
+goToGrievanceComponent(category: string, subCategory: string)  {
+	    this.router.navigate(['/grievance'], {
+	    queryParams: {
+	      category: category,
+	      subcategory: subCategory
+	    }
+	  });
+	}
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

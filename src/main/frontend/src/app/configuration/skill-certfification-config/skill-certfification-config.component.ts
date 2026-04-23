@@ -8,6 +8,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DomainService } from 'src/app/services/domain.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -18,7 +19,8 @@ import * as XLSX from 'xlsx';
 export class SkillCertfificationConfigComponent implements OnInit {
 
   constructor(private authenticationService: AuthenticationService,
-    public validationService: ValidationService, private modalService: NgbModal, private domainService: DomainService
+    public validationService: ValidationService, private modalService: NgbModal, private domainService: DomainService , 
+    private router : Router
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   userMapping: any = {};
@@ -292,7 +294,14 @@ export class SkillCertfificationConfigComponent implements OnInit {
       return false;
     }
   }
-
+goToGrievanceComponent(category: string, subCategory: string)  {
+	    this.router.navigate(['/grievance'], {
+	    queryParams: {
+	      category: category,
+	      subcategory: subCategory
+	    }
+	  });
+	}
 
 
 }

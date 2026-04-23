@@ -16,10 +16,23 @@
         <div class="row">
           <div class="col-md-12" *ngIf="isTable">
             <div class="row">
-              <div class="col-md-12 table-header">
+              <!-- <div class="col-md-12 table-header">
                 <h1 class="table-header-title">{{typeNames}}</h1>
+                <i class="fa fa-external-link-alt action-icon" title="Open Grievance Page"
+                  (click)="goToGrievanceComponent('Newsletters', 'HR Policies')">
+                </i>
+              </div> -->
+
+              <div class="col-md-12 table-header d-flex align-items-center justify-content-between">
+              
+                <h1 class="table-header-title mb-0">{{ typeNames }}</h1>
+              
+                <i class="fa fa-external-link-alt action-icon" title="Open Grievance Page"
+                  (click)="goToGrievanceComponent('Newsletters', '')">
+                </i>
+              
               </div>
-            </div>
+              </div>
 
             <div class="row">
               <div class="col-md-12">

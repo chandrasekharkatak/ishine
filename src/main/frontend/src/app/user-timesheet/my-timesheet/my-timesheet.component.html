@@ -21,11 +21,14 @@
         <div class="card-header text-center ">
             <strong class="text-uppercase" *ngIf="isCreation">Create Timesheet</strong>
             <strong class="text-uppercase" *ngIf="isUpdation">Update Timesheet</strong>
-            <app-info-tooltip *ngIf="isCreation && timesheetObj.projectId && projAlertRequireClientId === true"
-                class="me-2" style="margin-left: 8px;" iconBgColor="#A22C29" [size]="19" [content]="tooltipContent"
-                [pdfPath]="tooltipPdf" [pdfCtaText]="tooltipCta">
+            <app-info-tooltip *ngIf="isCreation && timesheetObj.projectId && projAlertRequireClientId === true" class="me-2"
+                style="margin-left: 8px;" iconBgColor="#A22C29" [size]="19" [content]="tooltipContent" [pdfPath]="tooltipPdf"
+                [pdfCtaText]="tooltipCta">
             </app-info-tooltip>
-        </div>
+            <i class="fa fa-external-link-alt action-icon" title="Open Grievance Page" style="font-size: 18px;" (click)="goToGrievanceComponent('Timesheets','Add Timesheet')"></i>
+            </div>
+
+       
         <div class="card-body">
             <div class="card col-md-12 px-3">
                 <div class="row">
@@ -1098,12 +1101,24 @@
 <!-- start :: View Timesheets -->
 <div class="row" *ngIf="isTimesheetTable">
     <div class="col-md-12">
-        <div class="row">
+        <!-- <div class="row">
             <div class="col-md-12 table-header">
-                <h1 class="table-header-title">My Timesheets</h1>
+                <h1 class="table-header-title">My Timesheets.</h1>
             </div>
+             <i class="fa fa-external-link-alt action-icon" style="font-size: 18px;" (click)="goToAnotherComponent()"></i>
 
-        </div>
+        </div> -->
+        <div class="row">
+  <div class="col-md-12 table-header custom-header">
+
+    <h1 class="table-header-title">My Timesheets.</h1>
+
+    <i class="fa fa-external-link-alt action-icon"
+       (click)="goToGrievanceComponent('Timesheets','')">
+    </i>
+
+  </div>
+</div>
         <div class="row">
             <div class="col-md-12">
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1"

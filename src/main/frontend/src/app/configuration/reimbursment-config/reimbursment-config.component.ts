@@ -7,6 +7,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -65,7 +66,8 @@ export class ReimbursmentConfigComponent implements OnInit {
 
   constructor(private modalService: NgbModal, private travelDesk: TravelDeskService,private reimbursementService:ReimbursementService,
     private employeeService: EmployeeService,
-    private authenticationService: AuthenticationService
+    private authenticationService: AuthenticationService,
+    private router : Router
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x) }
 
   ngOnInit(): void {
@@ -507,5 +509,13 @@ resetForm(){
   this.requiresVehicleType = '';
 
 }
+goToGrievanceComponent(category: string, subCategory: string)  {
+	    this.router.navigate(['/grievance'], {
+	    queryParams: {
+	      category: category,
+	      subcategory: subCategory
+	    }
+	  });
+	}
 
 }

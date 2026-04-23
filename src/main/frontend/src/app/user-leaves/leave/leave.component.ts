@@ -25,6 +25,7 @@ import { PortalService } from 'src/app/services/portal.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { Department } from 'src/app/models/department';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -156,6 +157,7 @@ export class LeaveComponent implements OnInit {
     private portalService: PortalService,
     private employeeService: EmployeeService,
     private departmentService: DepartmentService,
+    private router: Router
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -2156,6 +2158,16 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
 
     this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
   }
+
+
+  goToGrievanceComponent(category: string, subCategory: string)  {
+    this.router.navigate(['/grievance'], {
+    queryParams: {
+      category: category,
+      subcategory: subCategory
+    }
+  });
+}
 
 
 }

@@ -33,6 +33,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { Subscription } from 'rxjs';
 import { EmployeeIdService } from 'src/app/services/shared/employee-id.service';
 import { EmployeeIdUtilService } from 'src/app/services/employee-id-util.service';
+import { ActivatedRoute, Router } from '@angular/router';
 class FilterData {
   title: any;
   columns: any;
@@ -295,7 +296,8 @@ export class EmployeeConfigComponent implements OnInit {
     private domainService: DomainService,
     private destinationService: DestinationService,
     private leaveService: LeaveService,
-    private employeeIdUtilService: EmployeeIdUtilService
+    private employeeIdUtilService: EmployeeIdUtilService,
+    private router:Router
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -5210,8 +5212,17 @@ pendingProjects: string[] = [];
       });
   });
 }
-
+   goToGrievanceComponent(category: string, subCategory: string)  {
+    this.router.navigate(['/grievance'], {
+    queryParams: {
+      category: category,
+      subcategory: subCategory
+    }
+  });
 }
+}
+
+
 
 
 

@@ -16,6 +16,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 @Component({
@@ -80,6 +81,7 @@ export class DeptConfigComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private locationStrategy:LocationStrategy,
     private utilityService: UtilityService,
+    private router: Router
 ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -499,6 +501,15 @@ export class DeptConfigComponent implements OnInit {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
+
+     goToGrievanceComponent(category: string, subCategory: string)  {
+    this.router.navigate(['/grievance'], {
+    queryParams: {
+      category: category,
+      subcategory: subCategory
+    }
+  });
+}
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

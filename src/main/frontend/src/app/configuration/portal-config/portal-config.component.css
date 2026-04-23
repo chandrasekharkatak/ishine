@@ -50,3 +50,33 @@
   height: 38px; 
   padding: 0 10px; 
 }
+
+.custom-header {
+  position: relative;
+  text-align: center;
+}
+
+.header-title {
+  display: inline-block;
+}
+
+.action-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  font-size: 16px;
+  color: #0d6efd;
+  background-color: #e7f1ff;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.action-icon:hover {
+  background-color: #0d6efd;
+  color: #fff;
+  transform: translateY(-50%) scale(1.1);
+}

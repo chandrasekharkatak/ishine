@@ -6,6 +6,7 @@ import { NotificationService } from '../services/notification.service';
 import { NotificationMessage } from '../models/notification';
 import { first } from 'rxjs/operators';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -28,7 +29,8 @@ export class UserReleasenotesComponent implements OnInit {
   constructor(
     private authenticationService: AuthenticationService,
     private notificationService: NotificationService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private router : Router
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
@@ -117,6 +119,17 @@ export class UserReleasenotesComponent implements OnInit {
   }
 
   //end..............
+
+
+
+    goToGrievanceComponent(category: string, subCategory: string)  {
+    this.router.navigate(['/grievance'], {
+    queryParams: {
+      category: category,
+      subcategory: subCategory
+    }
+  });
+}
   
 
 }

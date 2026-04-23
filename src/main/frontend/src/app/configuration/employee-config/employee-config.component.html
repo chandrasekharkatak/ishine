@@ -1574,11 +1574,25 @@
 <div class="row" *ngIf="isTable || isDraftTable">
     <div class="col-md-12">
         <div class="row">
-            <div class="col-md-12 table-header">
+            <!-- <div class="col-md-12 table-header">
                 <h1 *ngIf="!isDraftTable" class="table-header-title">Employee(s)</h1>
                 <h1 *ngIf="isDraftTable" class="table-header-title">Employee(s) Draft</h1>
+                <i class="fa fa-external-link-alt action-icon" title="Open Grievance Page"
+                  (click)="goToGrievanceComponent('Configurations', '')">
+                </i>
+            </div> -->
+            <div class="col-md-12 table-header d-flex align-items-center justify-content-between">
+            
+                <h1 class="table-header-title mb-0">
+                    {{ isDraftTable ? 'Employee(s) Draft' : 'Employee(s)' }}
+                </h1>
+            
+                <i class="fa fa-external-link-alt action-icon" title="Open Grievance Page"
+                    (click)="goToGrievanceComponent('Configurations', '')">
+                </i>
+            
             </div>
-        </div>
+            </div>
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-6 ml-auto d-flex justify-content-end align-items-start mb-1 px-0">

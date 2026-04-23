@@ -673,4 +673,12 @@ export class ProjectInsightDetailsComponent implements OnInit {
   }
   // Modals [End]
 
+    goToGrievanceComponent(category: string, subCategory: string)  {
+    this.router.navigate(['/grievance'], {
+    queryParams: {
+      category: category,
+      subcategory: subCategory
+    }
+  });
+}
 }

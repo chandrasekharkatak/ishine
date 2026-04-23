@@ -20,6 +20,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { UtilityService } from 'src/app/services/utility.service';
 import { Editor, Toolbar } from 'ngx-editor';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -108,6 +109,7 @@ export class HomeConfigComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private exportExcelService: ExportExcelService,
     private utilityService: UtilityService,
+    private router : Router
     ) {
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
      }
@@ -828,6 +830,16 @@ onFileSelect(event: any, template: TemplateRef<any>) {
 // Call any other function or perform actions based on the selected value
 
 // Video Upload end
+
+
+goToGrievanceComponent(category: string, subCategory: string)  {
+	    this.router.navigate(['/grievance'], {
+	    queryParams: {
+	      category: category,
+	      subcategory: subCategory
+	    }
+	  });
+	}
 
 
 }  function compare(a: number | string, b: number | string, isAsc: boolean) {

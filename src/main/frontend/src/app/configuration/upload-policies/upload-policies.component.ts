@@ -15,6 +15,7 @@ import { NotificationService } from 'src/app/services/notification.service';
 import { UploadPoliciesService } from 'src/app/services/upload-policies.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 
@@ -76,6 +77,7 @@ export class UploadPoliciesComponent implements OnInit {
     private notificationService: NotificationService,
     private locationStrategy: LocationStrategy,
     private utilityService: UtilityService,
+    private router :Router
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -447,7 +449,21 @@ export class UploadPoliciesComponent implements OnInit {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
+
+goToGrievanceComponent(category: string, subCategory: string)  {
+	    this.router.navigate(['/grievance'], {
+	    queryParams: {
+	      category: category,
+	      subcategory: subCategory
+	    }
+	  });
+	}
+
+
+
 }
+
+
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 

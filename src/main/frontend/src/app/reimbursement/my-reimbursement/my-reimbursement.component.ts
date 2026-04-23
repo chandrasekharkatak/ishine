@@ -6,6 +6,7 @@ import { MyReimbursement } from 'src/app/models/reimbursement';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 
@@ -71,6 +72,7 @@ vehicleTypeList:any[] = [];
     private authenticationService: AuthenticationService,
     private reimbursementService: ReimbursementService,
     private modalService: NgbModal,
+    private router : Router
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -536,6 +538,15 @@ async onGetExpenditureType() {
   console.error(response.serviceResponse);
   }
   }
+
+    goToGrievanceComponent(category: string, subCategory: string)  {
+    this.router.navigate(['/grievance'], {
+    queryParams: {
+      category: category,
+      subcategory: subCategory
+    }
+  });
+}
 
 
 

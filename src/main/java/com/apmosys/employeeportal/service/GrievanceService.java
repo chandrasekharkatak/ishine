@@ -1379,14 +1379,14 @@ public class GrievanceService {
 
 	private void sendEmail(String to, List<String> cc, String subject, String body) {
 		try {
-			mailService.sendMailToMultipleRecipients(
+                mailService.sendMailToMultipleRecipients(
 					Collections.singletonList(to),
 					cc == null ? Collections.emptyList() : cc,
-					subject,
+                        subject,
 					body);
-		} catch (Exception ex) {
-			log.error("Failed to send grievance email to={} cc={} subject={}", to, cc, subject, ex);
-		}
+            } catch (Exception ex) {
+                log.error("Failed to send grievance email to={} cc={} subject={}", to, cc, subject, ex);
+            }
 	}
 
 	@Transactional

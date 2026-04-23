@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { first } from 'rxjs/operators';
 import Swal from 'sweetalert2';
@@ -57,7 +57,7 @@ export class GrievanceIssueScenarioAdminComponent implements OnInit {
   constructor(
     private grievanceService: GrievanceService,
     private router: Router,
-    private exportExcelService: ExportExcelService
+    private exportExcelService: ExportExcelService,
   ) {}
 
   ngOnInit(): void {

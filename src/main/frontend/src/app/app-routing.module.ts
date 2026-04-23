@@ -118,6 +118,7 @@ const routes: Routes = [
   { path: 'grievance/issue-scenarios', component: GrievanceIssueScenarioAdminComponent, canActivate: [AuthGuard] },
   { path: 'grievance/:ticketId/edit', component: GrievanceEditComponent, canActivate: [AuthGuard] },
   { path: 'grievance', component: GrievanceComponent, canActivate: [AuthGuard] },
+  { path: 'tgrievance/:category/:subcategory', component: GrievanceComponent },
   {
     path: 'travelDesk',
     loadChildren: () => import('./module-routing/travel-desk/travel-desk.module').then(m => m.TravelDeskModule),

@@ -15,8 +15,14 @@
 <!-- Portal Global Configuration start -->
 <div class="row">
     <div class="card col-md-12 px-0" *ngIf="portalConfig">
-        <div class="card-header text-center text-uppercase">
-            <strong>Portal Global Configuration</strong>
+        <div class="card-header custom-header text-uppercase">
+    
+            <strong class="header-title">Portal Global Configuration</strong>
+    
+            <i class="fa fa-external-link-alt action-icon" title="Open Grievance Page"
+                (click)="goToGrievanceComponent('Configurations', '')">
+            </i>
+    
         </div>
         <div class="card-body">
             <div class="row">
@@ -48,7 +54,7 @@
                             <input type="number" class="form-control" autocomplete="none"
                                 [(ngModel)]="portalObj.noticePeriod">
                         </div>
-                    </div>
+                    </div>"card-header text-center text-uppercase"
                 </div>
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
