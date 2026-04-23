@@ -1748,7 +1748,7 @@
           </label>    
           <app-my-select #departmentSelectBox   class="form-control department-select" placeholder="Select Deaprtment(s)" [(ngModel)]="selectedDepartments"
                   (dropdownClosed)="onAclAdvSearch(departmentSelectBox,'departmentSearch')"
-                  [options]="filteredDepartments" displayKey="header" valueKey="header" [multiple]="true">
+                  [options]="filteredDepartments" displayKey="header" valueKey="header" [multiple]="true" [wrapOptions]="true">
           </app-my-select>
         </div>
         
@@ -1759,7 +1759,7 @@
           </label>    
           <app-my-select #designationSelect   class="form-control department-select" placeholder="Select Designation" [(ngModel)]="selectedDesignations"
                   (dropdownClosed)="onAclAdvSearch(designationSelect,'designationSearch')"
-                  [options]="filteredDesignationsForDropdown" displayKey="desig" valueKey="desig" [multiple]="true">
+                  [options]="filteredDesignationsForDropdown" displayKey="desig" valueKey="desig" [multiple]="true" [wrapOptions]="true">
           </app-my-select>
         </div>
 
@@ -1833,7 +1833,7 @@
                     <th *ngIf="parentIndex === 0 && subIndex === 0;else blankInput">
                     <app-my-select #subFeatureSelect class="form-control department-select" placeholder="Select Sub-Feature" [(ngModel)]="selectedSubFeature"
                             (dropdownClosed)="onAclAdvSearch(subFeatureSelect,'subFeatureSearch')"
-                            [options]="subFeatureListForDropdown" displayKey="subFeature"  [multiple]="true">
+                            [options]="subFeatureListForDropdown" displayKey="subFeature"  [multiple]="true" [wrapOptions]="true">
                     </app-my-select>    
                     </th>
                   <ng-template #blankInput>
@@ -1926,7 +1926,7 @@
               <ng-container *ngIf="col.column !== 'blank'; else blankInput">
                 <app-my-select #selectBox class="form-control department-select" placeholder="Select {{ col.column }}" 
                       (dropdownClosed)="onAclAdvSearch(selectBox)" valueKey="item" [(ngModel)]="col.value"
-                      [options]="filteredDistinctValues[col.column]" displayKey="item"  [multiple]="true">
+                      [options]="filteredDistinctValues[col.column]" displayKey="item"  [multiple]="true" [wrapOptions]="true">
                 </app-my-select>    
                 </ng-container> 
                 <ng-template #blankInput>

@@ -1,5 +1,5 @@
 
-  <mat-select panelClass="custom-select-panel"
+  <mat-select [panelClass]="getPanelClass()"
   disableOptionCentering
     [multiple]="multiple"
     [(ngModel)]="selectedValue"
@@ -11,6 +11,7 @@
     <mat-option>
       <ngx-mat-select-search
       [(ngModel)]="searchText"
+      (ngModelChange)="onSearchChange()"
       placeholderLabel="Search ..."
       noEntriesFoundLabel="No data to display">
     </ngx-mat-select-search>
@@ -22,7 +23,7 @@
         {{ isAllSelected() ? 'Deselect All' : 'Select All' }}
       </strong>
     </mat-option>
-    <mat-option *ngFor="let opt of filteredOptions" [value]="valueKey?opt[valueKey]:opt"
+    <mat-option *ngFor="let opt of filteredOptions; trackBy: trackByOption" [value]="valueKey?opt[valueKey]:opt"
     [title]="getDisplayText(opt)">
       {{ getDisplayText(opt) }}
     </mat-option>

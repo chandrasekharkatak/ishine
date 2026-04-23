@@ -43,3 +43,19 @@
   text-overflow: ellipsis !important;
   display: block !important;
 }
+
+::ng-deep .wrapped-select-panel .mat-mdc-option {
+  height: auto !important;
+  min-height: 36px !important;
+  line-height: 1.35 !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+::ng-deep .wrapped-select-panel .mdc-list-item__primary-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: break-word !important;
+  line-height: 1.35 !important;
+}
