@@ -104,9 +104,9 @@ export class TimesheetService {
   getAllMyActivitiesByTimesheetId(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/getAllMyActivitiesByTimesheetId`, timesheetObj);
   }
-  getbackdatedTimesheetsByEmpId(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `api/getLast7DaysTimesheetsByEmpId`, timesheetObj);
-  }
+  // getbackdatedTimesheetsByEmpId(timesheetObj: Timesheet) {
+  //   return this.http.post(`${this.baseUrl}` + `api/getLast7DaysTimesheetsByEmpId`, timesheetObj);
+  // }
 
   countMyReporteesTimesheetRequests(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/countMyReporteesTimesheetRequests`, timesheetObj);
@@ -136,9 +136,9 @@ export class TimesheetService {
   }
 
   /* Reports */
-  timesheetReport(){
-    return this.http.get(`${this.baseUrl}` + `api/timesheetReport`);
-  }
+  // timesheetReport(){
+  //   return this.http.get(`${this.baseUrl}` + `api/timesheetReport`);
+  // }
 
   customTimesheetApplicationReport(queryObj: Query) {
     return this.http.post(`${this.baseUrl}` + `api/customTimesheetApplicationReport`, queryObj);

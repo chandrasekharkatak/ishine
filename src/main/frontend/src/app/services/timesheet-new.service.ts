@@ -6,6 +6,29 @@ import { EmployeeTimesheetDTO } from '../models/EmployeeTimesheetDTO';
 import { Timesheet } from '../models/timesheet';
 import { Observable } from 'rxjs';
 
+/**
+ * Payload for approving via bulkApproveTimesheetRequest1.
+ * Client-approval rules are enforced server-side using DB document rows only; do not send documentDetails.
+ */
+export interface BulkApproveTimesheetRequestPayload {
+  timesheetIds: number[];
+  status: string;
+  updatedBy: number;
+  rmId: number;
+  confirmNightShift?: boolean;
+}
+
+/** Bulk reject path (rejectMode BULK) for the same endpoint; distinct from approve payload. */
+export interface BulkProcessRejectPayload {
+  timesheetIds: number[];
+  status: string;
+  updatedBy: number;
+  rmId: number;
+  rejectMode: string;
+  rejectionReasonId: number[];
+  rejectRemark: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -144,11 +167,7 @@ export class TimesheetNewService {
       payload
     );
   }
-  bulkApproveTimesheetsByIds1(payload: {
-    timesheetIds: number[];
-    updatedBy: number;
-    rejectReason?: string | null;
-  }) {
+  bulkApproveTimesheetsByIds1(payload: BulkApproveTimesheetRequestPayload) {
     return this.http.post<any>(
       `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
       payload
@@ -168,28 +187,29 @@ export class TimesheetNewService {
   //     payload
   //   );
   // }
-bulkRejectTimesheetsByIds1(payload: {
-  timesheetIds: number[];
-  status: string;
-  rmId: number;
-  updatedBy: number;
-  projectRejections: {
-    projectIds: number[];
-    rejectionIds: number[];
-    rejectRemark: string;
-  }[];
-}) {
-  return this.http.post<any>(
-    `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
-    payload
-  );
-}
-processBulkTimesheets(payload: any) {
-  return this.http.post<any>(
-    `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
-    payload
-  );
-}
+  bulkRejectTimesheetsByIds1(payload: {
+    timesheetIds: number[];
+    status: string;
+    rmId: number;
+    updatedBy: number;
+    projectRejections: {
+      projectIds: number[];
+      rejectionIds: number[];
+      rejectRemark: string;
+    }[];
+  }) {
+    return this.http.post<any>(
+      `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
+      payload
+    );
+  }
+
+  processBulkTimesheets(payload: BulkProcessRejectPayload) {
+    return this.http.post<any>(
+      `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
+      payload
+    );
+  }
 
 
   approveRejectProjects(payload: {
@@ -241,7 +261,7 @@ processBulkTimesheets(payload: any) {
 
     // Use PUT method with timesheetId as query parameter
     return this.http.put(
-      `${this.baseUrl}api/v2/timesheet/update?timesheetId=${timesheetId}`,
+      `${this.baseUrl}api/v2/timesheet/update`,
       formData
     );
   }
@@ -310,13 +330,14 @@ processBulkTimesheets(payload: any) {
 
   getLastFilledLocationIdForProjectAndEmp(projectId: number, empId: number): Observable<any> {
     
-    const params = new HttpParams()
-      .set('empId', empId)
-      .set('projectId', projectId);
+    // const params = new HttpParams()
+    //   .set('empId', empId)
+    //   .set('projectId', projectId);
+    const body = { empId, projectId };
 
-    return this.http.get(
-      `${this.baseUrl}api/v2/timesheet/getMyLastFilledLocationIdForProjectAndEmp`,
-      { params }
+    return this.http.post(
+      `${this.baseUrl}api/v2/timesheet/getMyLastFilledLocationIdForProjectAndEmp`, body
+     
     );
   }
 
@@ -333,4 +354,20 @@ processBulkTimesheets(payload: any) {
   getProjectListForDateAndEmpId(payload: any): Observable<any> {
       return this.http.post(`${this.baseUrl}api/v2/timesheet/getProjectListForDateAndEmpId`, payload);
 }
+
+getRejectionDetailsWithProjectsByTimesheetId(timesheetId:number):Observable<any> {
+  return this.http.post(`${this.baseUrl}api/v2/timesheet/getRejectionDetailsWithProjectsByTimesheetId`, timesheetId);
+}
+
+getLastThreeMonthsWorkingDates(date: any, empId: number): Observable<any> {
+    
+    const params = new HttpParams()
+      .set('date', date)
+      .set('empId', empId)
+
+    return this.http.get(
+      `${this.baseUrl}api/v2/timesheet/getLastThreeMonthsWorkingDates`,
+      { params }
+    );
+  }
 }

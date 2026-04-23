@@ -3,9 +3,8 @@ package com.apmosys.employeeportal.controller;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
-
+import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
@@ -54,16 +52,18 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 @RestController
 @RequestMapping("/api")
 public class ResourceManagementController {
-	
-	
+
 	@Autowired
 	ResourceManagementService resourceManagementService;
-	
+
 	@Autowired
 	PoSyncOrchestratorService poSyncOrchestratorService;
-	
+
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
+
+
+	
 
 	@Encrypted
 	@JobRoleAccess(featureIds = {34})
@@ -290,7 +290,7 @@ public class ResourceManagementController {
 	@RequestMapping(value = "/completionDateOfProject", method = RequestMethod.POST)
 	public ServiceResponse completionDateOfProject(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
-		ServiceResponse response = resourceManagementService.completionDateOfProject(resourceManagementDTO);
+		ServiceResponse response = poSyncOrchestratorService.completionDateOfProject(resourceManagementDTO);
 		return response;
 	}
 	@Encrypted
@@ -490,14 +490,14 @@ public class ResourceManagementController {
 	 
 	 
 	 @PostMapping("/renewPoInIshineNew")
-	 public ServiceResponse renewPoInIshineNew(HttpServletRequest httpRequest,@RequestBody  RenewedPoSyncDto dto) {
+	 public ServiceResponse renewPoInIshineNew(HttpServletRequest httpRequest, @Valid @RequestBody RenewedPoSyncDto dto) {
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		 return poSyncOrchestratorService.renewPoInIshineNew(dto);
 	 }
 	 
 	 
 	 @PostMapping("/deletePoInIshineNew")
-	 public ServiceResponse deletePoInIshineNew(HttpServletRequest httpRequest,@RequestBody  DeletedPoSyncDTO dto) {
+	 public ServiceResponse deletePoInIshineNew(HttpServletRequest httpRequest,@Valid @RequestBody  DeletedPoSyncDTO dto) {
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		 return poSyncOrchestratorService.deletePoInIshineNew(dto);
 	 }
@@ -517,9 +517,10 @@ public class ResourceManagementController {
 	 
 	 
 	 @PostMapping("/updateAddressInPos")
-	 public ServiceResponse updateClientAddressIdOfPos(HttpServletRequest httpRequest,@RequestBody  PoClientAddressUpdateDTO dto) {
+	 public ServiceResponse updateAddressInPos(HttpServletRequest httpRequest,
+			 @Valid @RequestBody PoClientAddressUpdateDTO dto) {
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		 return poSyncOrchestratorService.updateClientAddressIdOfPos(dto);
+		 return poSyncOrchestratorService.updateAddressInPos(dto);
 	 }
 	 
 	 
@@ -611,7 +612,7 @@ public class ResourceManagementController {
 	
 	@GetMapping("/getAllApprovedPoWithTimesheet")
 	 public ServiceResponse getAllApprovedPoWithTimesheet(HttpServletRequest httpRequest) {
-//		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	 	return resourceManagementService.getAllApprovedPoWithTimesheet();
 	 }
 	
@@ -726,21 +727,6 @@ public class ResourceManagementController {
 	public ServiceResponse oneTimeUpdatePoClientId() {
 		return resourceManagementService.oneTimeUpdatePoClientId("once");
 	}
-	
-	@Scheduled(cron = "0 0 0 * * ?")
-//	@GetMapping("/clientcron")
-	public void cronToUpdateClient() {
-		 resourceManagementService.oneTimeUpdatePoClientId("");
-	}
-
-	
-////	@Scheduled(cron = "0 0 0 * * ?")
-//	@GetMapping("/oneTimeUpdatePoClientId")
-//	public ServiceResponse oneTimeUpdatePoClientId(@RequestParam(value = "mode", required = false) String mode) {
-//		return resourceManagementService.oneTimeUpdatePoClientId(mode);
-//
-//	}
-
 
 	// @Encrypted
 	@PostMapping("/fetchProjectDetailsList")
@@ -794,6 +780,53 @@ public class ResourceManagementController {
 			return null;
 		}
 		return resourceManagementService.getEmployeeTeamDepartment(teamId , empId , date);
-
 	}
+
+	// @Encrypted
+	@PostMapping("/getBillingLossRiskScore")
+	public ServiceResponse getBillingLossRiskScore(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getBillingLossRiskScore(rmgDashboardProjectRequest);
+	}
+	
+	// @Encrypted
+	@PostMapping("/getExpiredTNMFilterWiseProjectStatusCount")
+	public ServiceResponse getExpiredTNMFilterWiseProjectStatusCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getExpiredTNMFilterWiseProjectStatusCount(rmgDashboardProjectRequest);
+	}
+	
+	// @Encrypted
+		@PostMapping("/getFCFilterWiseProjectStatusCount")
+		public ServiceResponse getFCFilterWiseProjectStatusCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+			return resourceManagementService.getFCFilterWiseProjectStatusCount(rmgDashboardProjectRequest);
+		}
+	
+	// @Encrypted
+	@PostMapping("/getAllUnfilledTimesheetProjectDetailsCount")
+	public ServiceResponse getAllUnfilledTimesheetProjectDetailsCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getAllUnfilledTimesheetProjectDetailsCount(rmgDashboardProjectRequest);
+	}
+	
+	@GetMapping("/getEmployeeMappedToClientPercent")
+	public ServiceResponse getEmployeeMappedToClientPercent() {
+		return resourceManagementService.getEmployeeMappedToClientPercent();
+	}
+
+	
+
+//	
+	@GetMapping("/cronClient")
+	public void syncClientsFromPoPortalApi() {
+		System.out.println("cron started");
+		poSyncOrchestratorService.syncClientsFromPoPortalCron();
+		System.out.println("cron ended");
+	}
+	
+	@Scheduled(cron = "${clientSyncFromPoCron.time}")
+	public void syncClientsFromPoPortalCron() {
+		System.out.println("cron started");
+		poSyncOrchestratorService.syncClientsFromPoPortalCron();
+		System.out.println("cron ended");
+	}
+	
+	
 }

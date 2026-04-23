@@ -130,6 +130,10 @@ public class ProjectTimesheetDTO {
      */
     private Long shadowEmpId;
     
+    private String shadowEmployeementId;
+    
+    private String shadowName;
+    
     
     private Boolean isShadowForSelf;
     

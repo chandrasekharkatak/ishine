@@ -78,6 +78,8 @@ public class EmployeeCustomRepository {
 
         String query = getOnBenchForMoreThan30DaysEmployeeDetailsQuery(isAllAccessEmployee,
                 searchFilter, sortBy, sortDirection, deptFlag);
+        
+        System.err.println(query);
 
         CompletableFuture<List<EmployeeDetailsDTO>> listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(isAllAccessEmployee, query, sortBy, sortDirection, deptIds, page,
@@ -362,7 +364,9 @@ public class EmployeeCustomRepository {
                 sortBy);
 
         Map<String, String> searchFilter = pageDTO.getSearchFilter();
-        String baseQuery = getUnfilledTimesheetProjectDetailsQuery(isAllAccessEmployee);
+        String baseQuery = getUnfilledTimesheetProjectDetailsQuery(isAllAccessEmployee, fromDate, toDate);
+        
+        System.err.println(baseQuery);
 
         List<Long> projectIdsTemp = getProjectIdsByBaseQuery(baseQuery, pageDTO.getSortColumn(), sortDirection,
                 pageable, projectIds,
@@ -566,7 +570,7 @@ public class EmployeeCustomRepository {
                 .append("WHERE NOT EXISTS (SELECT 1 FROM EmployeeTeamMap etm \n")
                 .append("                  JOIN Team t ON t.teamId = etm.teamId \n")
                 .append("                  JOIN Project p ON p.projectId = t.projectId \n")
-                .append("                  WHERE etm.empId = e.empId AND etm.active != 0 AND t.isActive = 'Y' AND p.active = 'true') \n")
+                .append("                  WHERE etm.empId = e.empId AND (etm.active = 1 OR (etm.active = 2 AND DATE(etm.startDate) <= CURDATE())) AND t.isActive = 'Y' AND p.active = 'true') \n")
                 .append(" and e.employmentstatus != 'InActive' and e.empId NOT BETWEEN 1 AND 6 \n");
 
 //        if (!isAllAccessEmployee) {
@@ -625,7 +629,7 @@ public class EmployeeCustomRepository {
                 .append("INNER JOIN department d on d.dept_Id = jr.dept_Id  \n")
                 .append("where p.active = 'true' AND t.is_active != 'N' AND etm.active != 0  \n")
                 .append("AND e.employmentstatus != 'InActive'  \n")
-                .append("AND e.billable_type = 'Bench' AND (p.po_project_type like 'FIXED%COST' OR p.po_project_type like '%TNM%') \n")
+                .append("AND e.billable_type = 'Bench' AND ((p.po_project_type IS NOT NULL AND (p.po_project_type like 'FIXED%COST' OR p.po_project_type like '%TNM%' OR p.po_project_type like '%Monitoring%) OR (p.po_project_type IS NULL AND p.internal_project_type = 'InternalRNDProducts')) \n")
                 .append("AND e.emp_id NOT BETWEEN 1 AND 6 \n");
 
 //        if (!isAllAccessEmployee) {
@@ -651,11 +655,12 @@ public class EmployeeCustomRepository {
                 .append("AND e.employmentstatus != 'InActive'  \n")
                 .append("AND e.emp_id NOT BETWEEN 1 AND  6 \n");
 //        if (!isAllAccessEmployee) {
-            query.append(" AND d.dept_Id IN :deptIds ");
+            query.append(" AND d.dept_Id IN :deptIds \n");
 //        }
         if (!projectStatus.equals("COMPLETED_IN_SHANKH")) {
-            query.append("AND etm.active != 0 AND t.is_active = 'Y' \n");
+            query.append(" AND (etm.active = 1 OR (etm.active = 2 AND DATE(etm.start_date) <= CURDATE())) AND t.is_active = 'Y' \n");
         }
+
         if ("COMPLETED_IN_SHANKH".equals(projectStatus)
                 || projectStatus.equals("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
             query.append("AND p.status = 'Completed' \n");
@@ -750,7 +755,7 @@ public class EmployeeCustomRepository {
                 .append("INNER JOIN department d ON d.dept_id = jr.dept_id \n")
                 .append("LEFT JOIN employee em ON e.manager_id = em.emp_id  \n")
                 .append(" WHERE 1=1 \n")
-                .append("AND LOWER(e.billable_type) = 'none' \n")
+                .append("AND (e.billable_type IS NULL OR LOWER(e.billable_type) = 'none')\n")
                 .append("AND e.emp_id NOT BETWEEN 1 AND 6  \n")
                 .append("AND e.employmentstatus != 'InActive' \n");
 
@@ -788,7 +793,7 @@ public class EmployeeCustomRepository {
         return query.toString();
     }
 
-    public String getUnfilledTimesheetProjectDetailsQuery(boolean isAllAccessEmployee) {
+    public String getUnfilledTimesheetProjectDetailsQuery(boolean isAllAccessEmployee, LocalDate fromDate, LocalDate toDate) {
         StringBuilder query = new StringBuilder();
         query
                 .append(" FROM projects p  \n")
@@ -815,7 +820,11 @@ public class EmployeeCustomRepository {
                 .append(" INNER JOIN activities a ON a.activity_id = etam.activity_id  \n")
                 .append(" RIGHT JOIN teams t2 ON t2.team_id = a.team_id  \n")
                 .append(" INNER JOIN projects p2 ON p2.project_id = t2.project_id  \n")
-                .append(" WHERE et.date >= :fromDate AND et.date <= :toDate ) \n");
+                .append(" WHERE 1=1 \n");
+                if (fromDate != null && toDate != null) {
+                    query.append(" AND et.date >= :fromDate AND et.date <= :toDate \n");
+                }
+                query.append(" ) \n");
         return query.toString();
     }
 
@@ -1278,7 +1287,7 @@ public class EmployeeCustomRepository {
 
     public Long getUnfilledTimesheetProjectDetailsCount(boolean isAllAccessEmployee, List<Long> deptIds,
             Set<Integer> projectIds, LocalDate fromDate, LocalDate toDate) {
-        String baseQuery = getUnfilledTimesheetProjectDetailsQuery(isAllAccessEmployee);
+        String baseQuery = getUnfilledTimesheetProjectDetailsQuery(isAllAccessEmployee, fromDate, toDate);
         Long total = 0l;
         try (Session session = entityManager.unwrap(Session.class)) {
             StringBuilder countQuery = new StringBuilder("SELECT COUNT(DISTINCT p.project_id) ").append(baseQuery);

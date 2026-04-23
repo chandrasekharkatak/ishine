@@ -21,6 +21,7 @@ public class ProjectNameAndPrjoectIdDTO {
 	private String poProjectType;
 	private Boolean hasClientFlag;
 	private Boolean hasClientSideId;
+	private Integer isShadow;
 
 	public ProjectNameAndPrjoectIdDTO(Integer projectId, String projectName) {
 		this.projectId = projectId;
@@ -62,11 +63,12 @@ public class ProjectNameAndPrjoectIdDTO {
 	}
 
 	public ProjectNameAndPrjoectIdDTO(Integer projectId, String projectName, Boolean clientFlag,
-			Boolean hasClientSideId, String poProjectType) {
+			Boolean hasClientSideId, String poProjectType, Integer isShadow) {
 		this.projectId = projectId;
 		this.projectName = projectName;
 		this.hasClientFlag = clientFlag;
 		this.hasClientSideId = hasClientSideId;
 		this.poProjectType = poProjectType;
+		this.isShadow = isShadow;
 	}
 }

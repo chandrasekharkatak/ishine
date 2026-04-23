@@ -14,11 +14,14 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
+import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
@@ -47,8 +50,12 @@ import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ExceptionLogContext;
 
+
+
 @Service
 public class PoDetailsService {
+
+	private static final Logger log = LoggerFactory.getLogger(PoDetailsService.class);
 
 	@Autowired
 	ClientService clientService;
@@ -103,6 +110,9 @@ public class PoDetailsService {
 
 	@Value("${finance.mail}")
 	private String financeMail;
+	
+	@Autowired
+	TeamsService teamsService;
 
 	public ProjectPoDetails createPoRTS(Project project, ProjectPoMappingWithResourceDTO dto, Client client) {
 
@@ -475,7 +485,7 @@ public class PoDetailsService {
 	                        + " | projectId=" + projectId
 	                        + " | poId=" + poId
 	                );
-	                return new RuntimeException("Deleted PO does not exist or inactive");
+	                return new DataNotFoundException("Deleted PO does not exist or inactive");
 	            });
 	}
 	
@@ -488,7 +498,7 @@ public class PoDetailsService {
 	        ExceptionLogContext.add(
 	                "PO cannot be deleted due to active teams | poId=" + poId
 	        );
-	        throw new RuntimeException(
+	        throw new IllegalStateException(
 	                "PO cannot be deleted as active teams exist"
 	        );
 	    }
@@ -1116,50 +1126,44 @@ public class PoDetailsService {
 	
 	public void updateClientAddressForPos(PoClientAddressUpdateDTO dto) {
 
-	    List<ProjectPoDetails> pos =
-	            projectPoDetailsRepository.findByPoIdInAndActive(dto.getPoIds());
+		List<ProjectPoDetails> pos = projectPoDetailsRepository.findByPoIdInAndActive(dto.getPoIds());
 
-	    if (pos.size() != dto.getPoIds().size()) {
-	        throw new RuntimeException("Some PO IDs not found");
-	    }
+		if (pos == null || pos.size() != dto.getPoIds().size()) {
+			throw new IllegalArgumentException("Some PO IDs not found or inactive");
+		}
 
-	    // Group by clientId
-	    Map<Integer, List<ProjectPoDetails>> posByClient =
-	            pos.stream().collect(Collectors.groupingBy(po -> {
+		Map<Integer, List<ProjectPoDetails>> posByClient = pos.stream().collect(Collectors.groupingBy(po -> {
 
-	                Project project = projectRepository
-	                        .findByProjectId(po.getProjectId());
+			Project project = projectRepository.findByProjectId(po.getProjectId());
 
-	                if (project == null || !"true".equalsIgnoreCase(project.getActive())) {
-	                    throw new RuntimeException("Inactive or missing project for PO: " + po.getPoId());
-	                }
+			if (project == null || !"true".equalsIgnoreCase(project.getActive())) {
+				throw new IllegalArgumentException("Inactive or missing project for PO: " + po.getPoId());
+			}
 
-	                return project.getClientId();
-	            }));
+			return project.getClientId();
+		}));
 
-	    for (Map.Entry<Integer, List<ProjectPoDetails>> entry : posByClient.entrySet()) {
+		for (Map.Entry<Integer, List<ProjectPoDetails>> entry : posByClient.entrySet()) {
 
-	        Integer clientId = entry.getKey();
+			Integer clientId = entry.getKey();
 
-	        ClientLocation clientLocation =
-	                clientService.resolveClientLocation(
-	                        clientId,
-	                        dto.getClientLocation(),
-	                        dto.getClientState(),
-	                        dto.getClientAddressId()
-	                );
+			ClientLocation clientLocation = clientService.resolveClientLocation(clientId, dto.getClientLocation(),
+					dto.getClientState(), dto.getClientAddressId());
 
-	        for (ProjectPoDetails po : entry.getValue()) {
+			if (clientLocation == null || clientLocation.getClientLocationId() == null) {
+				throw new IllegalStateException("Resolved client location record is missing for clientId=" + clientId);
+			}
 
-	            po.setClientAddressId(dto.getClientAddressId());
-	            po.setClientLocationId(
-	                    Long.valueOf(clientLocation.getClientLocationId()));
-	            po.setUpdatedBy(dto.getUpdatedByEmpId());
-	          
-	        }
-	    }
+			for (ProjectPoDetails po : entry.getValue()) {
 
-	    projectPoDetailsRepository.saveAll(pos);
+				po.setClientAddressId(dto.getClientAddressId());
+				po.setClientLocationId(Long.valueOf(clientLocation.getClientLocationId()));
+				po.setUpdatedBy(dto.getUpdatedByEmpId());
+
+			}
+		}
+
+		projectPoDetailsRepository.saveAll(pos);
 	}
 
 	public void sendPoLinkSuccessMail(Project primaryProject, IshineLinkProjectDto dto) {
@@ -1222,7 +1226,42 @@ public class PoDetailsService {
 	        );
 
 	    } catch (Exception e) {
-	        e.printStackTrace(); 
+	        log.error("sendPoLinkSuccessMail: failed primaryProjectId={}", primaryProject.getProjectId(), e);
+	    }
+	}
+	
+	public void migrateResourcesAfterPoLink(
+	        Integer projectId,
+	        List<PoDetailsForProjectPoMappingDTO> poList) {
+
+	    if (poList == null || poList.isEmpty()) {
+	        return;
+	    }
+
+	    Long updatedBy = poList.stream()
+	            .map(PoDetailsForProjectPoMappingDTO::getUpdatedByEmpId)
+	            .filter(Objects::nonNull)
+	            .findFirst()
+	            .orElse(null);
+
+	    if (updatedBy == null) {
+	        throw new RuntimeException("UpdatedBy missing for PO migration");
+	    }
+
+	    for (PoDetailsForProjectPoMappingDTO po : poList) {
+
+	        Long renewedPoId = po.getPoId();
+
+	        if (renewedPoId == null) continue;
+
+	        try {
+	        	teamsService.migrateResourcesAfterRenewal(projectId, renewedPoId, updatedBy);
+	        } catch (Exception e) {
+	            ExceptionLogContext.add(
+	                "Resource migration failed for poId=" + renewedPoId + " | " + e.getMessage()
+	            );
+	            throw e; 
+	        }
 	    }
 	}
 

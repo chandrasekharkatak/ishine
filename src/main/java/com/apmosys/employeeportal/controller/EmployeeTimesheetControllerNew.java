@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,13 +41,16 @@ import com.apmosys.employeeportal.dto.GetProjectListForDateAndEmpIdPayload;
 import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.FinalDocumentDownloadPayloadDTO;
 import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
+import com.apmosys.employeeportal.dto.LastFilledLocationRequestDTO;
 import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDeleteRequestDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusUpdateRequestDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
+import com.apmosys.employeeportal.service.LogService;
 import com.apmosys.employeeportal.service.TimesheetDocumentServiceNew;
 import com.apmosys.employeeportal.service.TimesheetServiceNew;
 import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
@@ -83,6 +87,12 @@ public class EmployeeTimesheetControllerNew {
 	@Autowired
 	com.apmosys.employeeportal.service.TimesheetService timesheetService;
 
+	@Autowired
+	private LogService logService;
+
+	@Autowired
+	private HttpServletRequest httpRequest;
+
 	
 	
 	@Value("${timesheet.minus.days.for.bulk.upload}")
@@ -118,6 +128,15 @@ public class EmployeeTimesheetControllerNew {
 	        dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
 	    } catch (Exception e) {
 	        log.error("Decryption/parsing failed - error: {}", e.getMessage(), e);
+	        LogDTO apiLogInfo = new LogDTO();
+	        apiLogInfo.setSubFeatureName("createTimesheet");
+	        apiLogInfo.setApiUrl("/api/v2/timesheet/create");
+	        apiLogInfo.setLogLevel("ERROR");
+	        apiLogInfo.setApiRequest("decryptOrParseFailed: stage=controller");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setApiError(e.getMessage());
+	        logService.logMyInfo(httpRequest, apiLogInfo);
 	        throw new TimesheetValidationFailedException("Invalid or corrupted request data. Please try again.");
 	    }
 
@@ -155,13 +174,10 @@ public class EmployeeTimesheetControllerNew {
     @JobRoleAccess(featureIds = {15})
     @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ServiceResponse updateTimesheet(
-            @RequestParam Long timesheetId,
             @RequestPart("dto") String encryptedDto,
             @RequestPart(value = "documents", required = false) List<MultipartFile> documents) {
 
-        if (timesheetId == null) {
-            throw new TimesheetValidationFailedException("Timesheet to update is required.");
-        }
+    	Long timesheetId=null;
 
         if (encryptedDto == null || encryptedDto.trim().isEmpty()) {
             throw new TimesheetValidationFailedException("Request data is required.");
@@ -170,11 +186,24 @@ public class EmployeeTimesheetControllerNew {
         EmployeeTimesheetDTO dto;
         try {
             dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
+			 timesheetId=dto.getTimesheetId();
+			if (timesheetId == null) {
+				throw new TimesheetValidationFailedException("Timesheet to update is required.");
+			}
             log.debug("Decrypted DTO for update - timesheetId: {}, empId: {}, date: {}",
                     timesheetId, dto.getEmpId(), dto.getDate());
         } catch (Exception e) {
             log.error("Decryption/parsing failed for update - timesheetId: {}, error: {}",
-                    timesheetId, e.getMessage(), e);
+                     e.getMessage(), e);
+            LogDTO apiLogInfo = new LogDTO();
+            apiLogInfo.setSubFeatureName("updateTimesheet");
+            apiLogInfo.setApiUrl("/api/v2/timesheet/update");
+            apiLogInfo.setLogLevel("ERROR");
+            apiLogInfo.setApiRequest("decryptOrParseFailed: stage=controller");
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setApiResponse(e.getMessage());
+            apiLogInfo.setApiError(e.getMessage());
+            logService.logMyInfo(httpRequest, apiLogInfo);
             throw new TimesheetValidationFailedException("Invalid or corrupted request data. Please try again.");
         }
 
@@ -238,11 +267,11 @@ public class EmployeeTimesheetControllerNew {
 		return timesheetServiceNew.getTimesheetMetadataByEmpId(timesheetDTO);
 	}
 	
-	@JobRoleAccess(featureIds = {15})
-	 @PostMapping("/getActiveProjectsAndClientSideIdByEmpId")
-	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestBody Long empId) {
-	     return timesheetServiceNew.getActiveProjectsAndClientSideIdByEmpId(empId);
-	 }
+//	@JobRoleAccess(featureIds = {15})
+//	 @PostMapping("/getActiveProjectsAndClientSideIdByEmpId")
+//	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestBody Long empId) {
+//	     return timesheetServiceNew.getActiveProjectsAndClientSideIdByEmpId(empId);
+//	 }
 
 	/**
 	 * API 1.11: Get Document Data by Doc ID, this is for viewing the doc
@@ -386,18 +415,31 @@ public class EmployeeTimesheetControllerNew {
 	@GetMapping("/getPreviousMinusDays")
 	public ServiceResponse getPreviousMinusDays() {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getPreviousMinusDays");
+		apiLogInfo.setApiUrl("/api/v2/timesheet/getPreviousMinusDays");
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setApiRequest("fetch minusDays configuration");
 		try {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			Map<String, Object> map = new HashMap<>();
 			map.put("minusDays", minusDays);
 			map.put("checkMinusDaysForBulkUpload", checkMinusDaysForBulkUpload);
 			response.setServiceResponse(map);
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("minusDays configuration fetched successfully");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceError(ServiceResponse.STATUS_FAIL);
 			response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setApiError(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 		}
 	}
@@ -447,6 +489,8 @@ public class EmployeeTimesheetControllerNew {
 
 		String contentType = "application/octet-stream";
 		String headerValue = "attachment; filename=\"" + resource.getFilename() + "\"";
+		String fileName = resource.getFilename();
+		 contentType = timesheetServiceNew.detectContentType(fileName);
 
 		return ResponseEntity.ok()
 				.contentType(MediaType.parseMediaType(contentType))
@@ -491,20 +535,35 @@ public class EmployeeTimesheetControllerNew {
     public ResponseEntity<FileNameResponse> generateFileName(
             @RequestBody FileNameRequest request
     ) {
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("generateFileName");
+		apiLogInfo.setApiUrl("/api/v2/timesheet/generate-name");
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setApiRequest("projectId: " + (request != null ? request.getProjectId() : null) + ", extension: "
+				+ (request != null ? request.getExtension() : null) + ", docType: "
+				+ (request != null ? request.getDocType() : null));
 		try{
 
 			String fileName = FileNameGenerator.generate(request.getProjectId(), request.getExtension(), request.getDocType());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("File name generated successfully");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return ResponseEntity.ok(new FileNameResponse(fileName));
 		}catch(Exception e){
 			e.printStackTrace();
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setApiError(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+			logService.logMyInfo(httpRequest, apiLogInfo);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
     }
 		
-		@GetMapping("/getMyLastFilledLocationIdForProjectAndEmp")
-		public ServiceResponse getMyLastFilledLocationIdForProjectAndEmp(@RequestParam Long empId, @RequestParam Integer projectId) {
+		@PostMapping("/getMyLastFilledLocationIdForProjectAndEmp")
+		public ServiceResponse getMyLastFilledLocationIdForProjectAndEmp(@RequestBody LastFilledLocationRequestDTO dto ) {
 			ServiceResponse response = new ServiceResponse();
-			response = timesheetServiceNew.getMyLastFilledLocationIdForProjectAndEmp(projectId,empId);
+			response = timesheetServiceNew.getMyLastFilledLocationIdForProjectAndEmp(dto.getProjectId(),dto.getEmpId());
 			return response;
 		}
 		
@@ -522,6 +581,18 @@ public class EmployeeTimesheetControllerNew {
 		 public ServiceResponse getProjectListForDateAndEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
 		     return timesheetServiceNew.getProjectListForDateAndEmpId(payload);
 		 }
+
+		 @PostMapping("/getRejectionDetailsWithProjectsByTimesheetId")
+		 public ServiceResponse getRejectionDetailsWithProjectsByTimesheetId(@RequestBody Long timesheetId) {
+			 
+		     return  timesheetServiceNew.getRejectionDetailsWithProjectsByTimesheetId(timesheetId);
+		 }
+		 
+		 @GetMapping("/getLastThreeMonthsWorkingDates")
+		 public ServiceResponse getLastThreeMonthsWorkingDates(@RequestParam String date,@RequestParam Long empId) {
+			 return  timesheetServiceNew.getLastThreeMonthsWorkingDates(date,empId);
+		 }
+
 }
 
 

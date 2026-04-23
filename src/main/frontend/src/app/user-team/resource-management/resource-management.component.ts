@@ -53,9 +53,13 @@ import { LoaderService } from 'src/app/services/loader.service';
 import { PaginationInstance } from 'ngx-pagination';
 import { merge, of, forkJoin } from 'rxjs';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MilestoneUpdatedLog } from 'src/app/models/MilestoneUpdatedLog'; 
 import { RmgProject } from 'src/app/models/rmgProject';
 import { RmgStatusCardsComponent } from './rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
-import { RmgProjectComponent } from './rmg-project-config/rmg-project-config.component';
+import { RmgProjectConfigComponent } from './rmg-project-config/rmg-project-config.component';
+import { SubfeatureService } from 'src/app/services/subfeature.service';
+import { FeatureUsageLog } from 'src/app/models/featureUsageLog';
+import { RmgDashboardComponent } from './new-rmg-dashboard/rmg-dashboard/rmg-dashboard.component';
 
 class FilterData {
   title: any;
@@ -71,9 +75,10 @@ class FilterData {
 })
 
 export class ResourceManagementComponent implements OnInit {
-
+  
+  @ViewChild('rmgDashboardComponent') rmgDashboardComponent!: RmgDashboardComponent;
   @ViewChild('rmgStatusCards') rmgStatusCardsComponent!: RmgStatusCardsComponent;
-  @ViewChild('rmgProjectConfig') rmgProjectComponent!: RmgProjectComponent;
+  @ViewChild('rmgProjectConfig') rmgProjectComponent!: RmgProjectConfigComponent;
   @ViewChild('chartSection') chartSection!: ElementRef;
   @ViewChild("project_configuration") projectConfigurationTemplateRef: TemplateRef<any>;
   @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
@@ -97,6 +102,7 @@ export class ResourceManagementComponent implements OnInit {
   rejectProjectModalRef: NgbModalRef;
   clientSideIdConfirmationModalRef:NgbModalRef;
 
+  isNewRmgDashboard:boolean = true;
   showProjectConfig: boolean = false;
   rmgProjectObj: RmgProject = new RmgProject();
   projectCompletionObj:Project = new Project();
@@ -201,6 +207,64 @@ export class ResourceManagementComponent implements OnInit {
   expandedIndex: boolean = false;
   isClientSideIdFormatted: Boolean = false;
   employeeRoleList: any = []
+  projectNameForMilestoneUpdate: string;
+  poNameForMilestoneUpdate: string;
+
+  toggleExpand(): void {
+    this.expandedIndex = !this.expandedIndex;
+  }
+
+
+  // new cards changes.....................................................................
+  @ViewChild("alert_message")
+  alertTemplate: TemplateRef<any>;
+
+  @ViewChild("alertTemplateRole")
+  alertTemplateRole: TemplateRef<any>;
+
+
+  @ViewChild('alertTemplate') alertTemplateForMilestone!: TemplateRef<any>;
+  @ViewChild('confirmMilestoneStatusModal') confirmMilestoneStatusModal!: TemplateRef<any>;
+
+  @ViewChild("alert_message")
+  alertModal: TemplateRef<any>;
+
+  @ViewChild("alert_message_sync")
+  alertModalSync: TemplateRef<any>;
+
+  @ViewChild("alert_message_without_reload")
+  alertTemplateWithoutReload: TemplateRef<any>;
+
+  @ViewChild("project_line_item_list_modal")
+  projectLineItemListModal: TemplateRef<any>;
+
+  @ViewChild("update_project_milestone_modal")
+  updateProjectMilestoneModal: TemplateRef<any>;
+
+  @ViewChild("update_project_milestone_success_modal")
+  updateProjectMilestoneSuccessModal: TemplateRef<any>;
+
+  @ViewChild("milestoneDocumentModal")
+  milestoneDocumentModal: TemplateRef<any>;
+  @ViewChild('update_project_completion_modal') updateProjectCompletionModal: TemplateRef<any>;
+  updateProjectCompletionModalRef: NgbModalRef;
+  modalRefWithReloadMilestone: NgbModalRef;
+
+
+  @ViewChild('MarkAsCompleteDefaultProject') MarkAsCompleteDefaultProject1!: TemplateRef<any>;
+  @ViewChild('OtherProjectDefaultMapping') OtherProjectDefaultMapping1!: TemplateRef<any>;
+  @ViewChild('customDatePickerTemplate') customDatePickerTemplate1!: TemplateRef<any>;
+  @ViewChild('confirmCompleteTemplate') confirmCompleteTemplate!: TemplateRef<any>;
+  confirmCompleteTemplateModalRef!: NgbModalRef;
+  @ViewChild('alert_message_without_reload') alert_message_without_reloadTemplate!: TemplateRef<any>;
+  alert_message_without_reloadModalRef!: NgbModalRef;
+  @ViewChild('resource_removal_alert') removeResourceModal: TemplateRef<any>;
+  removeResourceModalRef: NgbModalRef;
+  projectMilestoneDocumentModalRef: NgbModalRef;
+  updateProjectMilestoneModalRef:NgbModalRef;
+   projectLineItemListModalRef:NgbModalRef;
+  @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
+
 
   data: string;
   currentUser: User;
@@ -269,6 +333,23 @@ export class ResourceManagementComponent implements OnInit {
   newMemberInProject: any;
   currentDepartment: any = []
 
+  //milestone
+  milestoneExtendReason:any
+  isOtherReasonSelected: boolean = false;
+  file:any
+  isExtensionEnabled:boolean =false
+  showMilestoneImageModal:boolean =false
+  minExtendDate!: Date;
+  expandedMilestoneId:any
+  selectedLogs: any[] = [];
+  selectedLogType: 'start' | 'end' | 'status' | null = null;
+  logHeader:any;
+  @ViewChild("project_milestone_extended_preview") projectMilestoneExtendedPreviewTemplateRef: TemplateRef<any>;
+  isImageFile: boolean = false;
+  isPdfFile: boolean = false;
+  isStatusChanged: boolean = false;
+  originalStatus:any
+  confirmMilestoneStatus:any;
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   employeeNotInSearchColumns: any[] = ['employeementId', 'employeeName', 'deptName', 'jobRole', 'email', 'skillNames', 'certificateNames'];
@@ -576,6 +657,7 @@ export class ResourceManagementComponent implements OnInit {
     private appComponent: AppComponent,
     private el: ElementRef,
     private loaderService: LoaderService,
+    private subFeatureService : SubfeatureService
   ) {
     this.minDate = new Date(); 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -585,6 +667,13 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    this.isNewRmgDashboard = this.filterStateService.isNewRmgDashboard;
+    if (this.isNewRmgDashboard) {
+      this.mapSubFeatureFlag();
+      this.showViewProjects(true);
+      return;
+    }
+
     this.myDept = true;
     const deptName = String(this.currentUser.departmentName).trim();
     const empRole = String(this.currentUser.employeeRole).trim();
@@ -676,7 +765,7 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
-  showViewProjects() {
+  showViewProjects(isRouteFromEmployee360: boolean = false) {
     this.isProjectTable = true;
     this.allProjectTable = true;
     this.isSkillMatrix = false;
@@ -690,8 +779,17 @@ export class ResourceManagementComponent implements OnInit {
     this.isSearchEnabled = false;
     this.allProjectList = [];
     this.teamCreatedProjectList = [];
+    this.isNewRmgDashboard = this.filterStateService.isNewRmgDashboard;
     if (this.rmgStatusCardsComponent) {
       this.rmgStatusCardsComponent.onDepartmentSelectionChange(this.selectedDepartmentIds);
+    }
+
+    if (!isRouteFromEmployee360) {
+      setTimeout(() => {
+        if (this.rmgDashboardComponent) {
+          this.rmgDashboardComponent?.ngOnInit();
+        }
+      }, 1);
     }
   }
 
@@ -768,6 +866,14 @@ export class ResourceManagementComponent implements OnInit {
         console.error(response.serviceResponse)
       }
     });
+  }
+
+  filterDepartmentsInternal() {
+    const lowerText = (this.searchTextDept || '').toLowerCase();
+  
+    this.filteredDepartmentsInternal = this.allDeptList.filter(dept =>
+      dept.name.toLowerCase().includes(lowerText)
+    );
   }
 
   async getManagerList() {
@@ -1485,6 +1591,20 @@ export class ResourceManagementComponent implements OnInit {
     }
     return true;
   }
+
+  setNewRmgDashboardFlag() {
+    this.filterStateService.isNewRmgDashboard =  this.isNewRmgDashboard;
+    this.ngOnInit();
+    let featureUsageLog = new FeatureUsageLog();
+    featureUsageLog.empId = this.currentUser.empId;
+    featureUsageLog.featureName = 'NEW RMG DASHBOARD';
+    featureUsageLog.logMessage = this.isNewRmgDashboard ? 'SWITCHED FROM OLD RMG DASHBOARD TO NEW RMG DASHBOARD' : 'SWITCHED FROM NEW RMG DASHBOARD TO OLD RMG DASHBOARD';
+    this.subFeatureService.saveFeatureUsageLog(featureUsageLog).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+        this.openAlertMessageModal(response.serviceResponse);
+      }
+    });
+  }
   // Helpers End
 
   // Project Timesheet Summary Modal Start
@@ -1716,6 +1836,9 @@ export class ResourceManagementComponent implements OnInit {
           this.openAlertMessageModal(response.serviceResponse);
           if (this.rmgStatusCardsComponent) {
             this.rmgStatusCardsComponent.onDepartmentSelectionChange(this.selectedDepartmentIds);
+          }
+          if (this.rmgDashboardComponent) {
+            this.rmgDashboardComponent?.ngOnInit();
           }
         } else {
           this.openAlertMessageModal(response.serviceResponse);
@@ -1951,6 +2074,8 @@ export class ResourceManagementComponent implements OnInit {
     this.allProjectTable = false;
     this.isCreateForm = false;
     this.isCreation = false;
+    this.filterStateService.isNewRmgDashboard = this.isNewRmgDashboard;
+    this.isNewRmgDashboard = false;
   }
 
   closeProjectConfiguration() {
@@ -2091,6 +2216,608 @@ export class ResourceManagementComponent implements OnInit {
       case 'RESTORE':
         this.openRestoreProjectModal(project.projectId);
         break;
+    }
+  }
+
+  openProjectLineItemListModal() {
+    this.projectLineItemListModalRef = this.modalService.open(this.projectLineItemListModal, { modalDialogClass: 'modal-xl' });
+  }
+
+  closeProjectLineItemListModal() {
+    this.projectLineItemListModalRef?.close();
+  }
+
+  showProjectMilestones(projectObj: any) {
+    this.fcProjectMilestoneList = [];
+    this.isLoadingMilestones = true;
+
+    let projectObjTemp = new Project();
+    projectObjTemp.poProjectId = projectObj?.id;
+
+    console.log("Fetching milestones for project:", projectObjTemp);
+
+    this.projectService.getAllProjectFCLineItemListByProjectId(projectObjTemp)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            console.log("Milestone data received:", response.serviceResponse);
+            this.fcProjectMilestoneList = response.serviceResponse;
+          } else {
+            console.error("Error fetching milestones:", response.serviceResponse);
+            this.openAlertMod(this.alertTemplate, response.serviceResponse);
+          }
+          this.isLoadingMilestones = false;
+        },
+        error: (err) => {
+          console.error("HTTP error fetching milestones:", err);
+          this.openAlertMod(this.alertTemplate, "An unexpected error occurred while fetching milestones.");
+          this.isLoadingMilestones = false;
+        }
+      });
+  }
+
+  switchModalTab(tabName: 'info' | 'milestone') {
+    this.activeModalTab = tabName;
+
+    // If switching to the milestone tab, fetch the data
+    if (tabName === 'milestone') {
+      this.showProjectMilestones(this.projectObj);
+      //    setTimeout(() => {
+      //   this.openProjectLineItemListModal();
+      // }, 100);
+    }
+  }
+
+  calculatePoStatus(projectDto: any) {
+    let notStarted = 0, completed = 0, hold = 0, inProgress = 0;
+    let lineItemList = this.fcProjectMilestoneList.filter(milestone => milestone.lineItemId == this.projectMilestone.lineItemId);
+    for (let m of lineItemList) {
+      if (m.status == Status.IN_PROGRESS) {
+        inProgress++;
+      } else if (m.status == Status.COMPLETED) {
+        completed++;
+      } else if (m.status == Status.ON_HOLD) {
+        hold++;
+      } else if (m.status == Status.NOT_STARTED) {
+        notStarted++;
+      }
+    }
+    if (inProgress > 0) { this.projectMilestone.lineItemStatus = Status.IN_PROGRESS }
+    else if (hold > 0) { this.projectMilestone.lineItemStatus = Status.ON_HOLD }
+    else if (notStarted > 0 && notStarted < lineItemList?.length) { this.projectMilestone.lineItemStatus = Status.IN_PROGRESS }
+    else if (completed > 0) { this.projectMilestone.lineItemStatus = Status.COMPLETED }
+
+    const allCompleted =
+      this.fcProjectMilestoneList.length > 0 &&
+      this.fcProjectMilestoneList.every(m => m.status === Status.COMPLETED);
+
+    if (allCompleted) {
+      // this.confirmComplete();
+      this.confirmCompleteMailTrigger(projectDto)
+    } else {
+
+      this.updateMilestone();
+      this.closeUpdateProjectMilestoneModal();
+    }
+    return allCompleted
+  }
+
+  confirmCompleteMailTrigger(projectDto: any) {
+    console.log(projectDto.projectId);
+    this.resourceManagementService.completeProjectReminder(projectDto.projectId).pipe(first())
+      .subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          console.log("Completion mail triggered successfully!!");
+        }
+      }, (error) => { console.log(error); }
+      );
+  }
+
+
+
+  handleProjectMilestonePageChange(event) {
+    this.projectMilestonepage = event;
+  }
+
+  openUpdateProjectMilestoneModal(milestone: any) {
+    this.extensionReason()
+    this.projectMilestone = JSON.parse(JSON.stringify(milestone));
+    this.minExtendedDate()
+    this.originalStatus = this.projectMilestone.status
+    this.updateProjectMilestoneModalRef = this.modalService.open(this.updateProjectMilestoneModal, { modalDialogClass: 'modal-xl' });
+  }
+
+  closeUpdateProjectMilestoneModal() {
+    this.updateProjectMilestoneModalRef?.close();
+  }
+
+  updateMilestone(): void {
+    this.modalRef = this.modalService.open(this.updateProjectMilestoneSuccessModal, {
+      modalDialogClass: 'modal-sm'
+    });
+  }
+
+  viewDocument(): void {
+    this.modalRef = this.modalService.open(this.milestoneDocumentModal, {
+      modalDialogClass: 'modal-xm'
+    });
+  }
+  closeModalViewDocument() {
+    this.modalRef?.close();
+  }
+
+  CancelUpdateMilestonePopup() {
+    this.modalRef?.close();
+  }
+
+
+  onFileSelected(event: any, projectMilestone: any): void {
+    const file: File = event.target.files[0];
+    this.selectedFile = null;
+    this.selectedFilePreviewUrl = null;
+
+    if (!file) { return; }
+
+    if (file) {
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+      if (!allowedTypes.includes(file.type)) {
+        this.openAlertMod(this.alertTemplateForMilestone, "Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.");
+        event.target.value = '';
+        this.selectedFile = null;
+        return;
+      }
+
+      const maxSize = 25 * 1024 * 1024; // 25MB
+      if (file.size > maxSize) {
+        this.openAlertMod(this.alertTemplateForMilestone, "File size should be less than 25MB!!");
+        return;
+      }
+      const uniquefile = projectMilestone.id + '_' + file.name
+      this.validateFileName(uniquefile, "status");
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.selectedFilePreviewUrl = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+      this.selectedFile = file;
+      this.selectedFile = new File([file], uniquefile, { type: file.type });
+    }
+  }
+
+  previewSelectedFile(): void {
+    if (!this.selectedFile || !this.selectedFilePreviewUrl) {
+      alert('Please select a file to preview.');
+      return;
+    }
+
+    this.dialog.open(ViewImageComponent, {
+      width: '80%',
+      data: {
+        imageUrl: this.selectedFilePreviewUrl,
+        fileName: this.selectedFile.name
+      }
+    });
+  }
+
+  openAlertModForMilestone(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  private requiresDocument(status: string): boolean {
+    return status?.trim() === Status.COMPLETED || status?.trim() === Status.ON_HOLD;
+  }
+
+
+  openMileStoneStatusModal() {
+    if (!this.projectMilestone.startDate) {
+      this.openAlertMod(this.alertTemplateForMilestone, 'Start date is required for milestone');
+      return;
+    }
+
+    if (!this.projectMilestone.endDate) {
+      this.openAlertMod(this.alertTemplateForMilestone, 'End date is required for milestone');
+      return;
+    }
+
+    if (this.projectMilestone.startDate > this.projectMilestone.endDate) {
+      this.openAlertMod(this.alertTemplateForMilestone, 'End date must be after start date for milestone');
+      return;
+    }
+
+    if (!this.projectMilestone.status || this.projectMilestone.status.trim().length === 0) {
+      this.openAlertMod(this.alertTemplateForMilestone, 'Status is required for milestone');
+      return;
+    }
+
+    if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
+      this.openAlertMod(this.alertTemplateForMilestone, 'Please upload a document when completing/holding a milestone');
+      return;
+    }
+
+    // if(this.projectObj.projectStatus==="Completed"){
+    //   this.openAlertMod(this.alertTemplateForMilestone, 'Project is already completed. You cannot update the milestone.');
+    //   return;
+    // }
+
+    this.modalRef = this.modalService.open(this.confirmMilestoneStatusModal, { modalDialogClass: 'modal-sm' });
+    this.confirmMilestoneStatus = "Are you sure to update the milestone status from " + this.originalStatus + " to " + this.projectMilestone.status + " ?";
+  }
+
+  isLoadingMilestone: boolean = false;
+  async updateMilestoneChanges() {
+    this.projectNameForMilestoneUpdate = this.projectObj.name;
+    this.poNameForMilestoneUpdate = this.projectObj.poNo;
+
+    console.log("before updaed by updated on", this.projectMilestone);
+
+    this.projectMilestone.updatedBy = this.currentUser.employeementId;
+    this.projectMilestone.updatedOn = new Date();
+    this.projectMilestone.updatedByName = this.currentUser.name;
+    this.projectMilestone.projectNameForMilestoneUpdate = this.projectNameForMilestoneUpdate
+    this.projectMilestone.poNameForMilestoneUpdate = this.poNameForMilestoneUpdate
+
+
+    const formData = new FormData();
+    formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
+    formData.append('projectName', this.projectNameForMilestoneUpdate);
+    formData.append('previousStatus', this.originalStatus)
+
+    if (this.selectedFile) {
+      formData.append('file', this.selectedFile);
+    }
+    this.isLoadingMilestone = true;
+
+    this.projectService.updateMilestoneById(formData).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.isLoadingMilestone = false;
+
+        if (response.serviceStatus === "Success") {
+          this.selectedFile = null;
+          this.isStatusChanged = false;
+          const index = this.fcProjectMilestoneList.findIndex(m => m.id === this.projectMilestone.id);
+          if (index > -1) { this.fcProjectMilestoneList[index] = { ...this.projectMilestone }; }
+          this.calculatePoStatus(this.projectMilestone);
+          this.closeUpdateProjectMilestoneModal();
+          this.showProjectMilestones(this.projectObj);
+        } else {
+          this.openAlertMod(this.alertTemplateForMilestone, response.serviceResponse || "Failed to update milestone.");
+          this.showProjectMilestones(this.projectObj);
+        }
+      },
+      error: (err) => {
+        this.isLoadingMilestone = false;
+        this.openAlertMod(this.alertTemplateForMilestone, "Error updating milestone: " + err.message);
+      }
+    });
+    this.closeUpdateProjectMilestoneModal();
+
+  }
+
+  onStatusChange(newStatus: string) {
+    this.isStatusChanged = newStatus !== this.originalStatus;
+  }
+
+  onExtendedDateSelected() {
+    if (!this.projectMilestone.extendedDate) {
+      this.projectMilestone.extensionReason = null;
+      this.projectMilestone.extensionFile = null;
+    }
+  }
+
+  clearExtensionFile(fileInput: HTMLInputElement) {
+    this.projectMilestone.extensionFile = null;
+    fileInput.value = '';
+  }
+
+  onExtensionFileSelected(event: any, projectMilestone: any) {
+
+    const file = event.target.files[0];
+    if (!file) return;
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+
+    if (!allowedTypes.includes(file.type)) {
+      this.openAlertMod(this.alertTemplateForMilestone, "Only PDF, JPG, JPEG, or PNG files are allowed.");
+      event.target.value = '';
+      return;
+    }
+
+    const maxSize = 25 * 1024 * 1024; // 25MB
+    if (file.size > maxSize) {
+      this.openAlertMod(this.alertTemplateForMilestone, "File size should be less than 25MB!!");
+      return;
+    }
+
+    const uniquefile = projectMilestone.id + '_' + file.name
+    this.validateFileName(uniquefile, "extended")
+    this.projectMilestone.extensionFile = file;
+    this.projectMilestone.extensionFile = new File([file], uniquefile, { type: file.type });
+
+
+
+  }
+
+  validateFileName(uniquefile: any, type: any) {
+    this.projectService.validateDocName(uniquefile).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          // No duplicate
+          console.error(response.serviceResponse);
+        } else if (response.serviceStatus === 'Fail') {
+          // Duplicate found
+          type === "extended" ? this.projectMilestone.extensionFile = null : this.selectedFile = null;
+          this.openAlertMod(this.alertTemplateForMilestone, response.serviceResponse);
+          return false;
+        }
+      },
+      error: (error) => {
+        type === "extended" ? this.projectMilestone.extensionFile = null : this.selectedFile = null;
+        this.openAlertMod(this.alertTemplateForMilestone, "Error while validating file. Kindly try after sometime!!");
+        return false;
+      }
+    });
+  }
+
+  previewMilestoneFile(file1: any) {
+    if (!file1) return;
+
+    const file = file1;
+    const fileURL = URL.createObjectURL(file1);
+    this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+    this.isPdfFile = file.type === 'application/pdf';
+    this.isImageFile = file.type.startsWith('image/');
+
+    this.projectMilestoneDocumentModalRef = this.modalService.open(
+      this.projectMilestoneDocumentTemplateRef,
+      {
+        modalDialogClass: 'modal-xl',
+        backdrop: 'static',
+        keyboard: false
+      }
+    );
+  }
+
+
+  extensionReason() {
+    this.projectService.getAllMilestoneExtendReason().subscribe({
+      next: (response) => {
+        if (response.serviceStatus === 'Success') {
+          this.milestoneExtendReason = response.serviceResponse;
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching milestones:', error);
+
+      }
+    });
+  }
+
+  updateMilestoneExtendedDateWithReason(): Promise<boolean> {
+
+    if (!this.isExtensionEnabled) return
+    else if (!this.projectMilestone.extensionReason) {
+      this.openAlertMod(this.alertTemplateForMilestone, "Kindly select the extension reason!!");
+      return Promise.resolve(false);
+    } else if (this.projectMilestone?.extensionReason?.milestoneExtensionReason === 'Other' &&
+      (!this.projectMilestone?.customReason || !this.projectMilestone?.customReason.trim())) {
+      this.openAlertMod(this.alertTemplateForMilestone, "Kindly Enter Custom Reason!!");
+      return Promise.resolve(false);
+    }
+
+    console.log("this.currentUser===>>", this.currentUser);
+    this.projectNameForMilestoneUpdate = this.projectObj.name;
+    this.poNameForMilestoneUpdate = this.projectObj.poNo;
+
+    const payload: MilestoneUpdatedLog = {
+      milestoneId: this.projectMilestone.id,
+      poId: this.projectMilestone.poId,
+      projectId: this.projectMilestone.projectId,
+      milestoneName: this.projectMilestone.name,
+      milestoneStartDate: this.projectMilestone.startDate ? this.projectMilestone.startDate : null,
+      milestoneEndDate: this.projectMilestone.endDate ? this.projectMilestone.endDate : null,
+      description: this.projectMilestone.description,
+      remarks: this.projectMilestone.remarks,
+      milestoneStatus: this.projectMilestone.status,
+      extendedDate: this.projectMilestone.extendedDate,
+      updatedBy: this.currentUser.employeementId,
+      updatedByName: this.currentUser.name,
+      projectName: this.projectNameForMilestoneUpdate,
+      poNumber: this.poNameForMilestoneUpdate,
+      lineItemName: this.projectMilestone.lineItemName,
+      milestoneExtensionReasonId: this.projectMilestone.extensionReason?.id,
+      milestoneExtensionReasonText: this.projectMilestone?.extensionReason?.milestoneExtensionReason === 'Other' ? this.projectMilestone.customReason : ""
+    };
+
+    const formData = new FormData();
+    formData.append("milestoneData", new Blob([JSON.stringify(payload)], { type: "application/json" }));
+
+    // optional file
+    if (this.projectMilestone.extensionFile) {
+      formData.append("extensionFile", this.projectMilestone.extensionFile);
+    }
+
+    return new Promise((resolve) => {
+      this.projectService.updateMilestoneExtendedDate(formData).subscribe({
+        next: (response: any) => {
+          console.log(response);
+          if (response?.serviceStatus === 'Success') {
+            this.openAlertMod(this.alertTemplateForMilestone, "Date Extended successfully!!");
+            this.isExtensionEnabled = false
+            this.showProjectMilestones(this.projectObj);
+            return
+          } else {
+            this.openAlertMod(this.alertTemplateForMilestone, "Something went wrong while updating extended date. Kindly try after sometime!!");
+            resolve(false);
+          }
+        }, error: () => {
+          this.openAlertMod(this.alertTemplateForMilestone, "Something went wrong while updating extended date. Kindly try after sometime!!");
+          resolve(false);
+        }
+      });
+    });
+  }
+
+  onExtendedDateChange(event: any) {
+    if (event.value) { this.isExtensionEnabled = true; }
+  }
+
+  minExtendedDateformilestone: Date;
+  minExtendedDate(): void {
+    const startDate = this.projectMilestone?.startDate;
+    if (!startDate) return;
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + 1);
+    this.minExtendedDateformilestone = date;
+  }
+
+  closeProjectMilestoneDocumentsModal() {
+    if (this.projectMilestoneDocumentModalRef) {
+      this.projectMilestoneDocumentModalRef?.close();
+      this.projectMilestoneDocumentModalRef = null;
+    }
+    this.milestoneDocumentUrl = null;
+  }
+
+  toggleExtensionLogs(milestone: any) {
+    if (!milestone.extendedDate) { return; }
+    this.expandedMilestoneId = this.expandedMilestoneId === milestone.id ? null : milestone.id;
+  }
+
+  toggleLogs(milestone: any, type: 'start' | 'end' | 'status') {
+
+    // If clicking same milestone and same log type → collapse
+    if (this.expandedMilestoneId === milestone.id && this.selectedLogType === type) {
+      this.expandedMilestoneId = null;
+      this.selectedLogs = [];
+      this.selectedLogType = null;
+      this.logHeader = '';
+      return;
+    }
+    // Expand row
+    this.expandedMilestoneId = milestone.id;
+    this.selectedLogType = type;
+    this.selectedLogs = [];
+
+    switch (type) {
+      case 'start':
+        this.selectedLogs = milestone.milestoneExtendedStartDateLogs || [];
+        this.logHeader = 'Start Date';
+        break;
+
+      case 'end':
+        this.selectedLogs = milestone.milestoneExtendedEndDateLogs || [];
+        this.logHeader = 'End Date';
+        break;
+
+      case 'status':
+        this.selectedLogs = milestone.milestoneStatusLogs || [];
+        this.logHeader = 'Status';
+        break;
+    }
+  }
+
+  trackByLog(index: number, log: any) {
+    return log.documentId || index;
+  }
+
+
+  previewDocument(documentId: number, documentName: any) {
+
+    this.projectService.getExtensionDocumentByName(documentName).subscribe((res: any) => {
+      if (!res || !res.documentContent) {
+        this.milestoneDocumentUrl = null;
+        this.openAlertMod(this.alertTemplateForMilestone, "Error fetching document for preview. Kindly try after sometime!!");
+        return;
+      }
+      const byteCharacters = atob(res.documentContent);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: res.documentType });
+      const url = window.URL.createObjectURL(blob);
+
+      this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+      this.isPdfFile = res.documentType === 'application/pdf';
+      this.isImageFile = res.documentType.startsWith('image/');
+
+      this.projectMilestoneDocumentModalRef = this.modalService.open(
+        this.projectMilestoneExtendedPreviewTemplateRef, { modalDialogClass: 'modal-xl', keyboard: false });
+    },
+      (error) => {
+        console.error('Error fetching document:', error);
+        this.openAlertMod(this.alertTemplateForMilestone, "Error fetching document for preview. Kindly try after sometime!!");
+        this.milestoneDocumentUrl = null;
+        return
+      }
+    );
+  }
+
+  closeProjectMilestoneImageModal() {
+    this.showMilestoneImageModal = false;
+    this.milestoneDocumentUrl = null;
+  }
+
+  openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  sortProjectMilestoneData(sort: Sort) {
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
+      this.projectMilestoneSortColumn = sortParams[0];
+      this.projectMilestoneSortColumnType = sortParams[1];
+      this.projectMilestoneSortDirection = sort.direction;
+      this.showProjectMilestones(this.projectObj);
+    }
+  }
+
+  viewFiles(mileStoneId: any) {
+    this.isLoadingMilestone = true;
+    this.projectService.getMilestoneById(mileStoneId).subscribe((res: any) => {
+      this.isLoadingMilestone = false;
+
+
+
+      if (res.documentContent && res.documentName) {
+        const fileType = this.getFileType(res.documentName);
+        const imageDataUrl = `data:${fileType};base64,${res.documentContent}`;
+        console.log("image url" + imageDataUrl)
+        this.dialog.open(ViewImageComponent, {
+          width: '80%',
+          data: {
+            imageUrl: imageDataUrl,
+            fileName: res.documentName
+          }
+        });
+      } else {
+        this.notificationService.showErrorMessage("image is not available")
+      }
+
+
+    },
+      (error) => {
+        this.notificationService.showErrorMessage(error.error.message);
+      }
+    )
+  }
+
+  clearSelectedFile(fileInput: HTMLInputElement) {
+    this.selectedFile = null;
+    fileInput.value = '';
+  }
+
+  getFileType(filename: string): string {
+    const extension = filename.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'png': return 'image/png';
+      case 'jpg':
+      case 'jpeg': return 'image/jpeg';
+      case 'pdf': return 'application/pdf';
+      default: return 'application/octet-stream';
     }
   }
 

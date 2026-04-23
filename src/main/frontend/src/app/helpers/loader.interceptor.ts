@@ -8,7 +8,7 @@ import {
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, finalize, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { LoaderService } from '../services/loader.service';
 
@@ -458,7 +458,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getDocumentsBySelectedEmpId`,
     `${this.baseUrl}` + `api/downloadFinalDocuments`,
     `${this.baseUrl}` + `api/getPreviousMinusDays`,
-    `${this.baseUrl}` + `api/bulkFinalUploadProjectBased`,
+
     `${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`,
     `${this.baseUrl}` + `api/getAllQuarterCycles`,
     `${this.baseUrl}` + `api/isEnable`,
@@ -487,7 +487,12 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/deleteSurvey`,
     `${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`,
     `${this.baseUrl}` + `api/changeSurveyStatus`,
-    `${this.baseUrl}` + `api/training/getAllTrainingTypes`,
+    `${this.baseUrl}` + `api/training/getAllTrainingTypes`,,
+    `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
+    `${this.baseUrl}` + `api/getExtensionDocumentByName`,
+    `${this.baseUrl}` + `api/validateDocName`,
+    `${this.baseUrl}` + `api/getTeamAppreciationDetails`,
+    `${this.baseUrl}` + `api/getMyAppreciationDetails`,
     `${this.baseUrl}` + `api/getAllTeamsByPoId`,
     `${this.baseUrl}` + `api/getTeamDetailsByTeamId`,
     `${this.baseUrl}` + `api/migrateTeam`,
@@ -544,7 +549,15 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/v2/timesheet/update`,
     `${this.baseUrl}` + `api/v2/timesheet/getDocumentDataByDocId`,
     `${this.baseUrl}` + `api/getApprovedLeaveLogsByEmpId`,
-    `${this.baseUrl}` + `api/getTimesheetStatusCountByManager`
+    `${this.baseUrl}` + `api/getTimesheetStatusCountByManager`,
+    `${this.baseUrl}` + `api/getExistingProjectsAndTeamsByEmployee`,
+    `${this.baseUrl}` + `api/v2/timesheet/getMyLastFilledLocationIdForProjectAndEmp`,
+    `${this.baseUrl}` + `api/migrateTeamMembers`,
+    `${this.baseUrl}` + `api/getExistingProjectsAndTeamsByEmployee`,
+    `${this.baseUrl}` + `api/v2/timesheet/getRejectionDetailsWithProjectsByTimesheetId`,
+    `${this.baseUrl}` + `api/v2/timesheet/bulkFinalUploadProjectBased`,
+    `${this.baseUrl}` + `api/v2/timesheet/getLastThreeMonthsWorkingDates`
+
   ];
 
   DYNAMIC_URL_whiteList = [
@@ -639,7 +652,10 @@ export class LoaderInterceptor implements HttpInterceptor {
       }
 
       return throwError(() => error);
-    })
+    }),
+    //  finalize(() => {
+    //   this.loaderService.requestEnded();
+    // })
   );
 }
 

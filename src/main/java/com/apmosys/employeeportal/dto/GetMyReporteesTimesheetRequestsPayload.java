@@ -42,6 +42,7 @@ public class GetMyReporteesTimesheetRequestsPayload {
     private Long projectCount;
     private String appliedBy;
     private String appliedOn;
+    private String isNightShift;
     private int status;
 
     /** Optional date range filter (YYYY-MM-DD). When both set, only timesheets with date in [startDate, endDate] are returned. */

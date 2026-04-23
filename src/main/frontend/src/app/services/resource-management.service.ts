@@ -286,5 +286,28 @@ export class ResourceManagementService {
     return this.http.get(`${this.baseUrl}` + `api/triggerUnmappedEmployeeProjectNotificationJob`);
   }
 
+  getBillingLossRiskScore(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getBillingLossRiskScore`, rmgProjectRequest);
+  }
+
+  getExpiredTNMFilterWiseProjectStatusCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getExpiredTNMFilterWiseProjectStatusCount`, rmgProjectRequest);
+  }
+
+  getAllUnfilledTimesheetProjectDetailsCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllUnfilledTimesheetProjectDetailsCount`, rmgProjectRequest);
+  }
+
+  getFCFilterWiseProjectStatusCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getFCFilterWiseProjectStatusCount`, rmgProjectRequest);
+  }
+
+  getEmployeeMappedToClientPercent() {
+    return this.http.get(`${this.baseUrl}` + `api/getEmployeeMappedToClientPercent`);
+  }
+completeProjectReminder(poProjectId: number) {
+  return this.http.post(`${this.baseUrl}api/completeProjectReminder?poProjectId=${poProjectId}`,{} );
+}
+
 }
 

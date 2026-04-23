@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,6 +40,7 @@ import com.apmosys.employeeportal.service.PoPortalAPIService;
 import com.apmosys.employeeportal.service.ProjectService;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping(path = "/api")
@@ -180,8 +182,11 @@ public class ProjectController {
 	@RequestMapping(value = "/updateMilestoneById", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ServiceResponse> updateMilestoneById(
 			@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
-			@RequestPart(value = "file", required = false) MultipartFile file) {
-		return ResponseEntity.ok(poPortalApiService.updateMilestoneById(fcProjectMilestoneDTO, file));
+			@RequestPart(value = "file", required = false) MultipartFile file,
+			@RequestPart("projectName") String projectNameForMilestoneUpdate,
+			@RequestPart("previousStatus") String previousStatus
+		) {
+		return ResponseEntity.ok(poPortalApiService.updateMilestoneById(fcProjectMilestoneDTO, file , projectNameForMilestoneUpdate , previousStatus));
 	}
 
 	@JobRoleAccess(featureIds = {34})
@@ -209,9 +214,15 @@ public class ProjectController {
 	}
 
 	@JobRoleAccess(featureIds = {24})
-	@PutMapping(value = "/updateMilestoneExtendedDate")
-	public ServiceResponse updateMilestoneExtendedDate(@RequestBody MilestoneUpdatedLogDto milestoneUpdatedLogDto) {
-		return poPortalApiService.updateMilestoneExtendedDate(milestoneUpdatedLogDto);
+	@PostMapping(value = "/updateMilestoneExtendedDate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ServiceResponse updateMilestoneExtendedDate(@RequestPart("milestoneData") String milestoneData,
+	        @RequestPart(value = "extensionFile", required = false) MultipartFile extensionFile) throws Exception {
+
+	    ObjectMapper mapper = new ObjectMapper();
+	    MilestoneUpdatedLogDto milestoneUpdatedLogDto =
+	            mapper.readValue(milestoneData, MilestoneUpdatedLogDto.class);
+
+	    return poPortalApiService.updateMilestoneExtendedDate(milestoneUpdatedLogDto, extensionFile);
 	}
 
 	@JobRoleAccess(featureIds = {24})
@@ -284,13 +295,11 @@ public class ProjectController {
 	}
 	
 	@RequestMapping(value = "/getResourceCountListByPoprojectName", method = RequestMethod.POST)
-	public ServiceResponse getResourceCountListByPoprojectName(HttpServletRequest httpRequest,
-			@RequestBody List<String> projectNames) {
+	public ServiceResponse getResourceListByPoNumbers(HttpServletRequest httpRequest,
+			@RequestBody List<String> poNumbers) {
 
-//	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-
-		ServiceResponse response = poPortalApiService.getResourceCountListByPoprojectName(projectNames);
-		return response;
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return poPortalApiService.getResourceListByPoNumbers(poNumbers);
 	}
 	
 
@@ -300,18 +309,6 @@ public class ProjectController {
 		return response;
 	}
 	
-	// @Encrypted
-	@GetMapping("/getEmployeeExistingProjectDetailsByEmpId")
-	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(@RequestParam Long empId, @RequestParam Integer projectId) {
-		return projectService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId);
-	}
-	
-	// @Encrypted
-	@PostMapping("/updateEmployeeProjectMappingAsInActive")
-	public ServiceResponse updateEmployeeProjectMappingAsInActive(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
-		return projectService.updateEmployeeProjectMappingAsInActive(rmgTeamMemberDto);
-	}
-
 	// @Encrypted
 	@PostMapping("/saveProjectInformation")
 	public ServiceResponse saveProjectInformation(@RequestBody RmgProjectDto rmgProjectDto) {
@@ -325,4 +322,24 @@ public class ProjectController {
 		return projectService.updateProjectStartDate(projectDto);
 	}
 
+	@PostMapping("/getExtensionDocumentByName")
+	public ResponseEntity<FCProjectMilestoneDTO> getExtensionDocumentById(@RequestBody Map<String, String> request) {
+	    String uniquefile = request.get("uniquefile");
+	    return ResponseEntity.ok(projectService.getExtensionDocumentByName(uniquefile));
+	}
+	
+	@PostMapping("/validateDocName")
+	public ServiceResponse validateDocName(@RequestBody Map<String, String> request) {
+	    String uniquefile = request.get("uniquefile");
+		ServiceResponse response = projectService.validateDocName(uniquefile);
+		return response;
+	}
+
+	@PostMapping(value = "/completeProjectReminder")
+	public ResponseEntity<ServiceResponse> completeProjectReminder(@RequestParam("poProjectId") Long poProjectId) {
+		return ResponseEntity.ok(poPortalApiService.completeProjectReminder(poProjectId));
+	}
+
+
+	
 }

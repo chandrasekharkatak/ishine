@@ -31,6 +31,8 @@ public class IshineToPoEmployeeDTO {
 		private Long shadowEmpId;
 	    private Integer isShadow;
 	    private String msg;
+	 	private Long empLeaveCount;
+
 
 	    public IshineToPoEmployeeDTO(Long empId,String empName,String roleName,String experience,String departmentName,
 	            Long departmentId,Long clientRoleId,Integer clientSideId,Long timesheetFilledCount,

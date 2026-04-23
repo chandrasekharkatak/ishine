@@ -56,12 +56,12 @@ public class ClientService {
 
 		 
 		 
-		 Optional<Client> byPoClient =
-	                clientRepository.findByPoClientId(poClientId);
-		 
-		 if (byPoClient.isPresent()) {
+		   Optional<Client> byPoClient = clientRepository.findByPoClientId(poClientId);
 
-	            Client existing = byPoClient.get();
+		
+
+		    if (byPoClient.isPresent()) {
+		        Client existing = byPoClient.get();
 
 	            String existingNormalized =
 	                    existing.getClientName() != null
@@ -239,23 +239,28 @@ public class ClientService {
 		        String state,
 		        Long clientAddressId) {
 
-		 String normalizedLocation = location.trim();
+		if (clientId == null || location == null || state == null || clientAddressId == null) {
+			ExceptionLogContext.add("clientId, location, state, or clientAddressId is null");
+			throw new IllegalArgumentException("Required client location fields are missing");
+		}
+
+		String normalizedLocation = location.trim();
 		    String normalizedLocationLower = normalizedLocation.toLowerCase();
 
 		    String normalizedState = state.trim() ;
 		    String normalizedStateLower = normalizedState.toLowerCase();
 
 		    // Ensure at least one location exists
-		    boolean hasAnyLocation =
-		            clientLocationRepository.existsByClientId(clientId);
+//		    boolean hasAnyLocation =
+//		            clientLocationRepository.existsByClientId(clientId);
 
-		    if (!hasAnyLocation) {
-		        ClientLocation wfh = new ClientLocation();
-		        wfh.setClientId(clientId);
-		        wfh.setClientLocation("WFH");
-		        wfh.setClientState(null);
-		        clientLocationRepository.save(wfh);
-		    }
+//		    if (!hasAnyLocation) {
+//		        ClientLocation wfh = new ClientLocation();
+//		        wfh.setClientId(clientId);
+//		        wfh.setClientLocation("WFH");
+//		        wfh.setClientState(null);
+//		        clientLocationRepository.save(wfh);
+//		    }
 
 		   
 		    List<ClientLocation> addressMatches =
@@ -268,15 +273,26 @@ public class ClientService {
 
 		            boolean changed = false;
 
-		            if (!normalizedLocation.equalsIgnoreCase(cl.getClientLocation().trim())) {
+		            String existingLoc = cl.getClientLocation();
+		            if (existingLoc == null || !normalizedLocation.equalsIgnoreCase(existingLoc.trim())) {
 		                cl.setClientLocation(location);
 		                changed = true;
 		            }
 
-		            if (!normalizedState.equalsIgnoreCase(cl.getClientState().trim())) {
+		            String existingState = cl.getClientState();
+		            if (existingState == null || !normalizedState.equalsIgnoreCase(existingState.trim())) {
 		                cl.setClientState(state);
 		                changed = true;
 		            }
+		            if (cl.getClientId().equals(clientId) && !cl.isActiveInPo()) {
+
+		                cl.setActiveInPo(true);
+
+		                changed = true;
+
+		            }
+
+
 
 		            if (changed) {
 		                clientLocationRepository.save(cl);
@@ -290,32 +306,44 @@ public class ClientService {
 		                        .findFirst();
 
 		        if (clientSpecific.isPresent()) {
-		            return clientSpecific.get();
+		        	   ClientLocation row = clientSpecific.get();
+
+			            if (!row.isActiveInPo()) {
+
+			                row.setActiveInPo(true);
+
+			                return clientLocationRepository.save(row);
+
+			            }
+
+			            return row;
 		        }
 
 		        // 3 If not mapped for this client → fall back to old logic
 		        // (maybe exact match exists without addressId)
 
-		        Optional<ClientLocation> exact =
-		                clientLocationRepository
-		                        .findByClientIdAndNLClientLocationAndClientState(
-		                                clientId, normalizedLocationLower, normalizedStateLower);
-
-		        if (exact.isPresent()) {
-		            ClientLocation cl = exact.get();
-		            cl.setClientAddressId(clientAddressId);
-		            return clientLocationRepository.save(cl);
-		        }
+//		        Optional<ClientLocation> exact =
+//		                clientLocationRepository
+//		                        .findByClientIdAndNLClientLocationAndClientState(
+//		                                clientId, normalizedLocationLower, normalizedStateLower);
+//
+//		        if (exact.isPresent()) {
+//		            ClientLocation cl = exact.get();
+//		            cl.setClientAddressId(clientAddressId);
+//		            cl.set
+//		            return clientLocationRepository.save(cl);
+//		        }
 
 		        Optional<ClientLocation> legacy =
 		                clientLocationRepository
-		                        .findByClientIdAndNLClientLocationAndClientStateNull(
+		                        .findByClientIdAndNLClientLocationAndClientStateNullAndClientAddIdNull(
 		                                clientId, normalizedLocationLower);
 
 		        if (legacy.isPresent()) {
 		            ClientLocation cl = legacy.get();
 		            cl.setClientState(state);
 		            cl.setClientAddressId(clientAddressId);
+		            cl.setActiveInPo(true);		           
 		            return clientLocationRepository.save(cl);
 		        }
 
@@ -325,6 +353,7 @@ public class ClientService {
 		        newLoc.setClientLocation(location);
 		        newLoc.setClientState(state);
 		        newLoc.setClientAddressId(clientAddressId);
+		        newLoc.setActiveInPo(true);	
 
 		        return clientLocationRepository.save(newLoc);
 		    }
@@ -333,26 +362,27 @@ public class ClientService {
 		    // STEP 2: If addressId not found anywhere → full fallback
 		    // =========================
 
-		    Optional<ClientLocation> exact =
-		            clientLocationRepository
-		                    .findByClientIdAndNLClientLocationAndClientState(
-		                            clientId, normalizedLocationLower, normalizedStateLower);
-
-		    if (exact.isPresent()) {
-		        ClientLocation cl = exact.get();
-		        cl.setClientAddressId(clientAddressId);
-		        return clientLocationRepository.save(cl);
-		    }
+//		    Optional<ClientLocation> exact =
+//		            clientLocationRepository
+//		                    .findByClientIdAndNLClientLocationAndClientState(
+//		                            clientId, normalizedLocationLower, normalizedStateLower);
+//
+//		    if (exact.isPresent()) {
+//		        ClientLocation cl = exact.get();
+//		        cl.setClientAddressId(clientAddressId);
+//		        return clientLocationRepository.save(cl);
+//		    }
 
 		    Optional<ClientLocation> legacy =
 		            clientLocationRepository
-		                    .findByClientIdAndNLClientLocationAndClientStateNull(
+		                    .findByClientIdAndNLClientLocationAndClientStateNullAndClientAddIdNull(
 		                            clientId, normalizedLocationLower);
 
 		    if (legacy.isPresent()) {
 		        ClientLocation cl = legacy.get();
 		        cl.setClientState(state);
 		        cl.setClientAddressId(clientAddressId);
+		        cl.setActiveInPo(true);	
 		        return clientLocationRepository.save(cl);
 		    }
 
@@ -361,9 +391,11 @@ public class ClientService {
 		    cl.setClientLocation(location);
 		    cl.setClientState(state);
 		    cl.setClientAddressId(clientAddressId);
-
+		    cl.setActiveInPo(true);	
 		    return clientLocationRepository.save(cl);
 		}
+
+
 
 	 @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
 	 public int[] processSingleClientByName(ClientDetailsSyncDto poDto,Client iShineClient,

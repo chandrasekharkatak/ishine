@@ -28,7 +28,7 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { DateTimePickerComponent } from 'src/app/helpers/date-time-picker/date-time-picker.component';
+import { APP_DATE_FORMATS, AppDateAdapter, DateTimePickerComponent } from 'src/app/helpers/date-time-picker/date-time-picker.component';
 import { ProjectEntry } from 'src/app/models/projectEntry';
 import { ActivityNew } from 'src/app/models/activityNew';
 import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
@@ -37,12 +37,23 @@ import { ProjectBasedBulkUploadPayload } from '../team-timesheet/types';
 import { M } from '@angular/material/ripple.d-BxTUZJt7';
 import { ExcelDownloadService } from 'src/app/services/excel-download-service';
 import { firstValueFrom } from 'rxjs';
+import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 
 @Component({
   standalone: false,
   selector: 'app-my-timesheet',
   templateUrl: './my-timesheet.component.html',
-  styleUrls: ['./my-timesheet.component.css']
+  styleUrls: ['./my-timesheet.component.css'],
+  providers: [         
+    {
+      provide: DateAdapter,
+      useClass: AppDateAdapter
+    },
+    {
+      provide: MAT_DATE_FORMATS,
+      useValue: APP_DATE_FORMATS
+    }
+  ]
 })
 export class MyTimesheetComponent implements OnInit {
 
@@ -173,7 +184,8 @@ popupMessage = '';
   isTimesheetLockCheckEnable: any = "true";
   employeeInTNMProject: boolean = false;
   maxMonth: string;
-
+  minMonth: string;
+  setBulkUploadRange : number;
   // Summary metrics for mini dashboard (EOD-style counts)
   // New mini-dashboard summaries (computed from allMyTimesheets for current date range)
   dayTypeSummary = {
@@ -216,8 +228,8 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
   isSearchEnabled: boolean = false;
   // Simplified columns for card-based accordion view
   // Column order must match table header: expand, Sr No., [Name if team], Date, Day Type, In, Out, Total Hrs, Status, [Applied By if self], Applied On, Shift, Leave Type, Reject Reason, Remarks, Actions
-  selfTimesheetColumns: any[] = ['blank', 'blank', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'totalWorkingMinutes', 'statusDisplay', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason', 'remarks', 'blank'];
-  teamTimesheetColumns: any[] = ['blank', 'blank', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'totalWorkingMinutes', 'statusDisplay', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason', 'remarks', 'blank', 'blank'];
+  selfTimesheetColumns: any[] = ['blank', 'blank', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'totalWorkingHours', 'statusDisplay', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'blank',  'blank'];
+  teamTimesheetColumns: any[] = ['blank', 'blank', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'totalWorkingHours', 'statusDisplay', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'blank', 'blank', 'blank'];
   tableName: string;
   activeProjectList: Project[];
   selectedProjectId: any;
@@ -318,6 +330,7 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
   noOtherShadowResourceTemp: TemplateRef<any>;
   noOtherShadowResourceModalRef:NgbModalRef;
 
+  pickerStartDate : Date | null = null;
 
   //latestProjectId = this.activeProjectList
 
@@ -835,19 +848,25 @@ get tooltipCta(): string {
 
   showBulkUploadForm() {
     this.clientSideIdNotMandatory = true;
-    this.isTimesheetForm = false;
-    this.isCreation = false;
+  this.isTimesheetForm = false;
+  this.isCreation = false;
+  this.isTimesheetTable = false;
+  this.isUpdation = false;
+  this.isTimesheetBulkForm = true;
+    this.setBulkUploadRange = 1;
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth(); // 0-indexed
 
-    this.isTimesheetTable = false;
-    this.isUpdation = false;
+  // Max = current month
+  this.maxMonth = `${year}-${String(month + 1).padStart(2, '0')}`;
 
-    this.isTimesheetBulkForm = true;
-    console.log("Bulk Upload Form",this.isTimesheetBulkForm);
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    this.maxMonth = `${year}-${month}`;
-    this.reset();
+  const prevMonthDate = new Date(year, month - this.setBulkUploadRange, 1);
+  const prevYear = prevMonthDate.getFullYear();
+  const prevMonth = String(prevMonthDate.getMonth() + 1).padStart(2, '0');
+  this.minMonth = `${prevYear}-${prevMonth}`;
+  console.log(today, year, month,'<-month', prevMonth , prevYear,prevMonth, this.maxMonth, this.minMonth,'*-*-*-*-*-*-*-*-*-');
+  this.reset();
   }
 
   showViewMyTimesheets() {
@@ -916,6 +935,7 @@ get tooltipCta(): string {
    */
   applyDateRangeTypeAndLoad() {
     const today = new Date();
+    this.page = 1;
     if (this.dateRangeType === 'currentMonth') {
       const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
       this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
@@ -941,6 +961,7 @@ get tooltipCta(): string {
     this.dateRangeType = 'custom';
     this.startDate = null;
     this.endDate = null;
+    this.page = 1;
   }
 
   showBulkButton(){
@@ -1004,6 +1025,14 @@ get tooltipCta(): string {
 
 
   onMonthYearChange() {
+     if (!this.timesheetObj.monthYear) {
+    this.resetBulkUploadForm('MONTH');
+    return;
+  }
+  
+  const [year, month] = this.timesheetObj.monthYear.split('-').map(Number);
+  this.pickerStartDate = new Date(year, month - 1, 1);
+
   this.resetBulkUploadForm('MONTH');
   this.getMyProjectsInMonthYear();
   }
@@ -1011,6 +1040,7 @@ get tooltipCta(): string {
    getMyProjectsInMonthYear() {
       this.timesheetObj.c
       this.timesheetObj.empId = this.currentUser.empId;
+      console.log("***-*-*-*---*" , this.timesheetObj);
       this.timesheetService.getMyProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.projectsInMonthYear = response.serviceResponse;
@@ -2485,6 +2515,7 @@ get tooltipCta(): string {
       timesheet.leaveType = timesheet.leaveType != null ? String(timesheet.leaveType) : '';
       timesheet.rejectReason = timesheet.rejectReason != null ? String(timesheet.rejectReason) : '';
       timesheet.remarks = timesheet.remarks != null ? String(timesheet.remarks) : '';
+      timesheet.totalWorkingHours = this.getTotalWorkingHours(timesheet.totalWorkingMinutes?? 0, false);
       // Populate from first rejection in nested data if not at top level
       if ((!timesheet.rejectReason || !timesheet.remarks) && timesheet.locationSessions && timesheet.locationSessions.length > 0) {
         for (const loc of timesheet.locationSessions) {
@@ -2738,8 +2769,8 @@ get tooltipCta(): string {
           'Applied On': x.createdOn ?? '',
           'Shift Type': x.isNightShiftDisplay ?? (x.isNightShift === true || x.isNightShift === 'true' ? 'Night Shift' : 'Regular Shift'),
           'Leave Type': x.leaveType ?? '',
-          'Reject Reason': x.rejectReason ?? '',
-          'Remarks': x.remarks ?? ''
+          // 'Reject Reason': x.rejectReason ?? '',
+          // 'Remarks': x.remarks ?? ''
         };
       });
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
@@ -3171,6 +3202,7 @@ get tooltipCta(): string {
         fromDate: this.finalFromDate,
         toDate: this.finalToDate,
         projectId: this.timesheetObj.projectId,
+        isBulkUploadBySelf:true
       }
 
     this.timesheetService.bulkFinalUploadProjectBased(payload, this.selectedFile2).pipe(first()).subscribe((response: any) => {
@@ -3332,12 +3364,16 @@ get tooltipCta(): string {
   //   this.selectedFile2 = file;
   //   this.fileName2 = file.name;
   // }
+
+  fileNameToShow : string = '';
 async onFinalFileSelected(event: any): Promise<void> {
+  this.fileNameToShow = '';
   const file: File = event.target.files[0];
   this.fileError2 = '';
   this.previewUrl2 = null;
   this.fileType2 = null;
-
+  this.fileNameToShow = file.name.toLowerCase() || 'document';
+  console.log(this.fileNameToShow);
   if (!file) return;
 
   const allowedTypes = [
@@ -4467,14 +4503,17 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
         const diffMinutes = outTime.diff(inTime, 'minutes');
         const adjustedDiff = diffMinutes < 0 ? diffMinutes + 1440 : diffMinutes;
         console.log("adjustedDiff",adjustedDiff)
-        return (adjustedDiff / 60).toFixed(2);
+        const hours = Math.floor(adjustedDiff / 60);
+        const minutes = adjustedDiff % 60;
+        return `${hours}:${minutes.toString().padStart(2, '0')}`;
+        // return (adjustedDiff / 60).toFixed(2);
         // return this.getTotalWorkingHours(adjustedDiff);
       }
     }
     // Fallback: sum activity hours when in/out times are null (e.g. non-fillable days)
     console.log("Logging out side")
     const totalActivityHours = this.getTotalLocationActivityHours(location);
-    return totalActivityHours > 0 ? totalActivityHours.toFixed(2) : '0.00';
+    return totalActivityHours > 0 ? totalActivityHours.toFixed(2) : '0:00';
   }
 
   /**
@@ -4526,14 +4565,15 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
    * Get total working hours from minutes
    */
   getTotalWorkingHours(minutes: number,isActivity:boolean): string {
-    if (!minutes) return '0.00';
     if(!isActivity){
+      if (!minutes) return '0:00';
       const time:number = Number((minutes / 60).toFixed(2));
       const hours = Math.floor(time);
       const minute = Math.round((time - hours) * 60);
       return `${hours}:${minute.toString().padStart(2, '0')}`;
     }
     else{
+      if (!minutes) return '0.00';
       return (minutes / 60).toFixed(2);
     }
   }
@@ -4696,6 +4736,49 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
         this.openAlertMod(this.alertTemplate, message);
       }
     }
+
+    rejectiondetails:any[]=[]
+    groupedRejections: any[] = [];
+    fetchRejectionReasonByTimesheet(timesheetId:number,template: TemplateRef<any>){
+    this.timesheetNewService.getRejectionDetailsWithProjectsByTimesheetId(timesheetId).subscribe({
+      next:(res)=>{
+        if(res.serviceStatus=='Success'){
+          this.rejectiondetails=res.serviceResponse
+          this.groupedRejections = this.getGroupedRejections(this.rejectiondetails);
+          this.modalService.open(
+            template,
+            { modalDialogClass: 'modal-lg', backdrop: 'static' }
+          );
+        }
+        else{
+          this.handleError(res,"Fetching rejection details",true,"Unable to fetch rejection details")
+        }
+      },
+      error:(err)=>{
+        this.handleError(err,"Fetching rejection details",true,"Unable to fetch rejection details")
+      }
+    })
+   }
+
+
+   getGroupedRejections(rejections: any[]) {
+    const grouped = [];
+    const seen = new Map();
+  
+    rejections.forEach((r, index) => {
+      const key = r.projectName;
+      if (!seen.has(key)) {
+        seen.set(key, { ...r, rowspan: 1, index: grouped.length });
+        grouped.push({ ...r, rowspan: 1, showRemarks: true });
+      } else {
+        const existing = seen.get(key);
+        grouped[existing.index].rowspan++;
+        grouped.push({ ...r, showRemarks: false });
+      }
+    });
+  
+    return grouped;
+  }
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

@@ -91,12 +91,16 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/employeeportal/api/getAllEmployeeInfo",
 			"/employeeportal/api/getAllDepartmentInfo",
 			"/employeeportal/api/getAllJobRoleInfo",
+			"/api/getAllEmployeeInfo",
+			"/api/getAllDepartmentInfo",
+			"/api/getAllJobRoleInfo",
 			"/employeeportal/api/handleTeamsAsPerLinkedPo",
 			"/employeeportal/api/getProjectStatusByPoProjectId",
 			"/employeeportal/api/getMilestoneById",
 			"/employeeportal/api/syncPoProjectAndTeam",
 			"/employeeportal/api/getResourceCountFromProjectId",
 			"/employeeportal/api/sendTimesheetDetailsToShankh",
+			"/api/sendTimesheetDetailsToShankh",
 			"/employeeportal/api/getActiveTeamAndTimeSheetWithForRm",
 			 "/employeeportal/api/getAllApprovedPoWithTimesheet",
 			 "/employeeportal/api/getDocumentDataByDocIdForPO",
@@ -132,13 +136,18 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/employeeportal/api/runTheHolidayCron",
 			"/api/ishineToPoEmpDetails",
 			"/employeeportal/api/ishineToPoEmpDetails",
-			"/api/getAllEmployeeInfo",
 			"/employeeportal/api/oneTimeUpdatePoClientId",
 			"/api/oneTimeUpdatePoClientId",
 			"/api/healthCheck",
 			"/employeeportal/api/healthCheck",
 			"/api/getResourceCountFromPoId",
-			"/employeeportal/api/getResourceCountFromPoId"
+			"/api/getAllApprovedPoWithTimesheet",
+			"/employeeportal/api/getResourceCountFromPoId",
+			"/api/poCrudOperationsInIshine",
+			"/api/getExtensionDocumentById",
+			"/employeeportal/api/getEmployeesWorkingInProjects",
+			"/api/getEmployeesWorkingInProjects"
+
 			);
 	
 //	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(
@@ -155,7 +164,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
             throws Exception {
 
         // ✅ Skip static or non-API routes
-        if (!request.getRequestURI().contains("/employeeportal/api/") && !request.getRequestURI().contains("/api/") && !request.getRequestURI().contains("/employeeportalapp/api/")) {
+        if (!request.getRequestURI().contains("/employeeportal/api/") && !request.getRequestURI().contains("/api/") && !request.getRequestURI().contains("/employeeportal/api/")) {
             return true;
         }
 

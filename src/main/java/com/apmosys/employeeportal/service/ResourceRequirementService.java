@@ -20,7 +20,7 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
+import com.apmosys.employeeportal.dto.AutoMigrationDTO;
 import com.apmosys.employeeportal.dto.EmployeeImpactDTO;
 import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RequirementChangeDTO;
@@ -637,7 +637,7 @@ Objects.equals(e.getLineItemEndDate(),
 
 	    public void sendRequirementChangeMail(
 	            Long poId,
-	            List<RequirementChangeDTO> changes) throws Exception {
+	            List<RequirementChangeDTO> changes, List<AutoMigrationDTO> autoMigrated) throws Exception {
 	    	 ProjectPoDetails po = projectPoDetailsRepository.findByPoId(poId);
 
 	        List<String> hodEmails =
@@ -650,14 +650,14 @@ Objects.equals(e.getLineItemEndDate(),
 
 	        String subject = "PO Resource Requirement Update - PO NO: " + po.getPoNo();
 
-	        String body = buildHtmlBody(poId, changes);
+	        String body = buildHtmlBody(poId, changes ,autoMigrated);
 
 	        mailService.sendMailWithCC("priyadarshini.singh@apmosys.com", cc, subject, body);
 	    }
 
 	    private String buildHtmlBody(
 	            Long poId,
-	            List<RequirementChangeDTO> changes) {
+	            List<RequirementChangeDTO> changes, List<AutoMigrationDTO> autoMigrated) {
 
 	        StringBuilder sb = new StringBuilder();
 
@@ -768,6 +768,57 @@ Objects.equals(e.getLineItemEndDate(),
 	                renderChangeCard(sb, change, "badge-removed");
 	            }
 	        }
+	        
+	        if (autoMigrated != null && !autoMigrated.isEmpty()) {
+
+	            sb.append("<div class='section-title'>Automatic Resource Onboarding</div>");
+
+	            sb.append("<div style='margin-bottom:15px; font-size:13px; color:#6b4c7a;'>")
+	              .append("Resources have been automatically onboarded as part of PO update because matching roles were found between an expired previous PO and the current PO.")
+	              .append("</div>");
+
+	            for (AutoMigrationDTO migration : autoMigrated) {
+
+	                sb.append("<div class='change-card'>")
+
+	               
+	                  .append("<div style='margin-bottom:10px; font-size:13px;'>")
+	                  .append("<b>Previous PO:</b> ").append(migration.getPreviousPoNumber())
+	                  .append(" &nbsp;&nbsp; ➝ &nbsp;&nbsp; ")
+	                  .append("<b>Current PO:</b> ").append(migration.getCurrentPoNumber())
+	                  .append("</div>")
+
+	                  .append("<div class='card-header'>")
+	                  .append("<div class='role-name'>")
+	                  .append(migration.getRoleName())
+	                  .append("</div>")
+	                  .append("<span class='badge badge-new'>Auto Onboarded</span>")
+	                  .append("</div>");
+
+	                sb.append("<div class='employees-section'>")
+	                  .append("<div class='employees-title'>Onboarded Employees</div>")
+	                  .append("<div class='employees-list'>");
+
+	                for (EmployeeImpactDTO emp : migration.getEmployees()) {
+
+	                    sb.append("<div class='employee-item'>")
+	                      .append("<div class='employee-name'>")
+	                      .append(emp.getEmployeeName())
+	                      .append("</div>")
+	                      .append("<div class='employee-team'>Team: ")
+	                      .append(emp.getTeamName())
+	                      .append("</div>")
+	                      .append("<div class='impact-reason'>")
+	                      .append("Automatically onboarded due to role continuity between expired previous PO and updated PO")
+	                      .append("</div>")
+	                      .append("</div>");
+	                }
+
+	                sb.append("</div></div></div>");
+	            }
+	        }
+
+
 
 	        // Footer
 	        sb.append("<div class='footer'>")

@@ -133,9 +133,6 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/customQueryForEmployeeReport`, queryObj);
   }
 
-  getEmployeeWorkLocationForSummary() {
-    return this.http.get(`${this.baseUrl}` + `api/getEmployeeWorkLocationForSummary`);
-  }
 
   getEmployeeProfileCompletion(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeProfileCompletion`, employeeObj);

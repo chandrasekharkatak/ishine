@@ -39,7 +39,7 @@ public class TimesheetStructureCleanupService {
 	@Autowired
 	private TimesheetDocumentServiceNew timesheetDocumentServiceNew;
 
-	public void cleanupRemovedLocations(Long timesheetId, List<LocationSessionDTO> incomingLocations) {
+	public void cleanupRemovedLocations(Boolean isCreate,Long timesheetId, List<LocationSessionDTO> incomingLocations) {
 
 		List<EmployeeTimesheetLocationMapping> dbLocations = locationRepo.findByTimesheetId(timesheetId);
 
@@ -59,12 +59,12 @@ public class TimesheetStructureCleanupService {
 
 				log.info("Deleting removed locationMappingId={}", locationMappingId);
 
-				deleteLocationCascade(timesheetId, locationMappingId);
+				deleteLocationCascade(isCreate,timesheetId, locationMappingId);
 			}
 		}
 	}
 
-	public void cleanupRemovedProjects(Long timesheetId, LocationSessionDTO locationDTO) {
+	public void cleanupRemovedProjects(Boolean isCreate,Long timesheetId, LocationSessionDTO locationDTO) {
 
 		Long locationMappingId = locationDTO.getLocationMappingId();
 
@@ -86,14 +86,14 @@ public class TimesheetStructureCleanupService {
 			if (!incomingProjectIds.contains(projectId)) {
 
 				log.info("Deleting removed projectId={} from locationMappingId={}", projectId, locationMappingId);
-				deleteProjectCascade(timesheetId, locationMappingId, projectId);
+				deleteProjectCascade(isCreate,timesheetId, locationMappingId, projectId);
 			}
 		}
 	}
 
-	private void deleteProjectCascade(Long timesheetId, Long locationMappingId, Integer projectId) {
+	private void deleteProjectCascade(Boolean isCreate, Long timesheetId, Long locationMappingId, Integer projectId) {
 		
-		if (projectTimesheetService.isProjectApproved(
+		if ( !isCreate &&  projectTimesheetService.isProjectApproved(
 		        timesheetId, locationMappingId, projectId)) {
 		    throw new IllegalStateException(
 		        "Approved project cannot be deleted. "
@@ -108,12 +108,12 @@ public class TimesheetStructureCleanupService {
 				projectId);
 	}
 
-	private void deleteLocationCascade(Long timesheetId, Long locationMappingId) {
+	private void deleteLocationCascade(Boolean isCreate,Long timesheetId, Long locationMappingId) {
 
 		List<ProjectTimesheetDTO> projects = projectTimesheetService.findByLocationMappingId(locationMappingId);
 
 		for (ProjectTimesheetDTO project : projects) {
-			deleteProjectCascade(timesheetId, locationMappingId, project.getProjectId());
+			deleteProjectCascade(isCreate,timesheetId, locationMappingId, project.getProjectId());
 		}
 
 		locationRepo.deleteById(locationMappingId);
@@ -121,17 +121,18 @@ public class TimesheetStructureCleanupService {
 	
 	
 	public void cleanTimesheetStructure(
+			Boolean isCreate,
 	        Long timesheetId,
 	        List<LocationSessionDTO> incomingLocations,
 	        DayTypeTransition transition) {
 
 	    // 1️ Remove deleted locations (only project rows per location; do NOT delete docs yet)
-	    cleanupRemovedLocations(timesheetId, incomingLocations);
+	    cleanupRemovedLocations(isCreate,timesheetId, incomingLocations);
 
 	    // 2️ Remove deleted projects inside remaining locations (only project rows; do NOT delete docs yet)
 	    if (incomingLocations != null) {
 	        for (LocationSessionDTO loc : incomingLocations) {
-	            cleanupRemovedProjects(timesheetId, loc);
+	            cleanupRemovedProjects(isCreate,timesheetId, loc);
 	        }
 	    }
 

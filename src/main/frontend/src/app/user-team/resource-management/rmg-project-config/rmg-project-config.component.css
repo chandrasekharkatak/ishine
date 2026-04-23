@@ -375,6 +375,33 @@
     z-index: 3;
     font-size: 14px;
     height: 7vh;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rmg-breadcrumb .breadcrumb {
+    background: transparent;
+    padding: 0;
+    font-size: 12px;
+}
+
+.rmg-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+}
+
+.rmg-breadcrumb a {
+    color: #193d8a;
+    text-decoration: none;
+}
+
+.rmg-breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.rmg-breadcrumb .rmg-breadcrumb-active a {
+    font-weight: 700;
+    color: #193d8a;
 }
 
 /* New Table End */
@@ -573,3 +600,123 @@
 ::ng-deep .info-popover .popover-body {
     padding: 0;
 }
+
+.remove-permanently ::ng-deep .mat-checkbox {
+    transform: scale(0.8);
+}
+
+.info-icon-danger {
+    color: #b13f32;
+    border-color: #b13f32;
+    background-color: #fff;
+}
+
+.emp_360-span {
+    color: #193d8aff;
+    text-decoration: underline;
+}
+
+.disable-dropdown {
+    pointer-events: none;
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.manager-wrapper {
+    position: relative;
+}
+
+.manager-popup {
+    position: absolute;
+    top: -10px;
+    left: 0;
+    transform: translateY(-100%);
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    min-width: 200px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+}
+
+.manager-popup-title {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 4px;
+    /* Sticky title */
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+}
+
+.manager-popup-body {
+    max-height: 150px;   
+    overflow-y: auto;
+}
+
+.manager-popup-item {
+    font-size: 13px;
+    padding: 4px 0;
+    color: #555;
+}
+
+td .manager-popup {
+    position: absolute;
+    bottom: 100%;   /* show above the td */
+    left: 0;
+    top: auto;
+    transform: none;
+    margin-bottom: 6px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    min-width: 200px;
+    max-width: min(360px, calc(100vw - 32px));
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    min-height: 100px;
+}
+
+/* Overlay popup that is not constrained by scroll containers */
+.manager-popup-fixed {
+    position: fixed !important;
+    z-index: 100000;
+    width: auto;
+    max-width: 360px;
+}
+
+.manager-popup-fixed .manager-popup-body {
+    max-height: 140px;
+    overflow-y: auto;
+}
+
+/* Project configuration stepper: highlight selected step only */
+:host ::ng-deep mat-stepper.custom-stepper.mat-stepper-horizontal .mat-step-header[aria-selected="true"] {
+    background-color: rgba(25, 61, 138, 0.1);
+    border-radius: 8px;
+}
+
+/* @media (max-width: 1366px) {
+
+    .min-width100 {
+        min-width: 80px !important;
+    }
+
+    .min-width150 {
+        min-width: 120px !important;
+    }
+
+    .min-width180 {
+        min-width: 140px !important;
+    }
+
+    .min-width200 {
+        min-width: 160px !important;
+    }
+} */

@@ -27,4 +27,7 @@ public class FinalBulkUploadDTO {
     @NotNull(value = "Created by is required")
     private Long createdBy;
 
+    @NotNull(value = "BulkUploadForSelf flag is required")
+    private Boolean isBulkUploadBySelf;
+
 }

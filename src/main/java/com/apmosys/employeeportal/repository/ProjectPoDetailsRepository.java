@@ -1,5 +1,9 @@
 package com.apmosys.employeeportal.repository;
 
+import java.util.Optional;
+
+import java.util.Optional;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -8,6 +12,7 @@ import java.util.Set;
 import javax.transaction.Transactional;
 
 import org.hibernate.annotations.Where;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -84,7 +89,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
             + "        	    LEFT JOIN EmployeeClientSideIdMapping ecsm ON ecsm.empId = etm.empId "
             + "				LEFT JOIN Project p on p.projectId=ppo.projectId "
             + "              LEFT JOIN ProjectPoDetails ppd on ppd.poId=ppo.poId "
-            + "        	    LEFT JOIN Timesheet ts ON ts.empId = e.empId "
+            + "        	    LEFT JOIN EmployeeTimesheetsNew ts ON ts.empId = e.empId "
             + "        	        AND ts.date BETWEEN :startDate AND :endDate "
             + "        	    WHERE ppo.poId = :poId "
             + "        	      AND ppo.projectId = :projectId "
@@ -201,11 +206,11 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
             + " prm.poRequirementMappingId, ppd.poId, ppd.poNo, ppd.poStartDate, ppd.poEndDate, rd.roleId, rd.role, rd.experience, rd.department,prm.lineItemStartDate , prm.lineItemEndDate, prm.count"
             + " )  \n"
             + "FROM Project p \n"
-            + "INNER JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND ppd.active = true \n"
+            + "INNER JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.active = true \n"
             + "LEFT JOIN PoRequirementMapping prm ON prm.poId = ppd.poId AND prm.active = true \n"
             + "LEFT JOIN RoleDetails rd on rd.roleId = prm.roleId \n"
             + "WHERE p.projectId =:projectId  \n")
-    List<RmgResourceRequirementDto> getResourceRequirementDetailsByProjectId(Integer projectId, boolean currentActivePO);
+    List<RmgResourceRequirementDto> getResourceRequirementDetailsByProjectId(Integer projectId);
 
     Optional<ProjectPoDetails> findByNextPOAndProjectIdAndActiveTrue(Long nextPo, Integer projectId);
 
@@ -241,12 +246,12 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         		+ "		LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId "
         		+ "		LEFT JOIN Employee e on e.empId=etm.empId "
         		+ "		LEFT JOIN Department d ON d.name = prm.department "
-        		+ "		where 1=1 AND et.empId = :empId AND p.clientId = :clientId "
+        		+ "		where 1=1 AND et.empId = :empId "
         		+ "        AND etm.poId = :poId and et.status = 2 "
         		+ "        AND etm.active!= 2 AND et.dayTypeId not in (5 ,9) "
         		+ "        AND et.date BETWEEN :startDate AND :endDate")
         	IshineToPoEmployeeDTO findEmployeesWithTimesheetCount(Long empId,
-        	         LocalDate startDate,LocalDate endDate,Long poId,Integer clientId);
+        	         LocalDate startDate,LocalDate endDate,Long poId);
 	ProjectPoDetails findByPoId(Long poId);
 
 	boolean existsByPoIdAndProjectIdAndActiveTrue(Long poId, Integer projectId);
@@ -281,4 +286,5 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
     		+ "GROUP BY etm.poId")
     List<RescCountOfPo> getResourceCounts(@Param("poIds") List<Long> poIds);
 
+    Optional<ProjectPoDetails> findByPoProjectId(Long poProjectId);
 }

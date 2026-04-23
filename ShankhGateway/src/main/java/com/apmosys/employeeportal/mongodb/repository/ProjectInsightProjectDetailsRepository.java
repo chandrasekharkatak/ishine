@@ -1,0 +1,16 @@
+package com.apmosys.employeeportal.mongodb.repository;
+
+import java.util.List;
+
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectDetails;
+
+public interface ProjectInsightProjectDetailsRepository
+		extends MongoRepository<ProjectInsightProjectDetails, String> {
+
+	boolean existsById(String id);
+
+	List<ProjectInsightProjectDetails> findByIdIn(List<String> ids);
+
+}

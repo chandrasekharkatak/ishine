@@ -1,0 +1,231 @@
+.date-input-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.date-input {
+    padding-right: 36px;
+    cursor: pointer;
+    background-color: white;
+}
+
+.calendar-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #656565;
+}
+
+/* Disable input look */
+.date-input:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Disable calendar icon visually + interaction */
+.calendar-icon.disabled {
+  pointer-events: none;
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Optional: wrapper style when disabled */
+.date-input-wrapper.disabled {
+  opacity: 0.7;
+}
+.project-card-header {
+    background-color: #fff;
+    margin: .5rem !important;
+    margin-bottom: 0 !important;
+}
+
+.card-title {
+    margin: 0;
+    text-align: center;
+    font-weight: 600;
+}
+
+
+/* Table Start */
+.table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 5px;
+}
+
+.custom-table th,
+.custom-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.custom-table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f4f6f8;
+    font-weight: 600;
+    z-index: 3;
+}
+
+.custom-table tbody tr:nth-child(odd) {
+    background: #f5f5f5;
+}
+
+.custom-table tbody tr {
+    background-color: #ffffff;
+}
+
+.color-unset {
+    color: unset !important;
+}
+
+::ng-deep .custom-filter-row .form-group {
+    margin-bottom: 0 !important;
+    padding: 0.25rem !important;
+}
+
+::ng-deep .custom-filter-row td {
+    border: 1px solid #ddd;
+    position: sticky;
+    background-color: #f4f6f8;
+    z-index: 2;
+}
+
+/* Table End */
+
+
+/* New Table Start */
+.new-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.new-custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 5px;
+}
+
+.new-custom-table th,
+.new-custom-table td {
+    padding: 5px;
+    text-align: center;
+}
+
+.new-custom-table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f4f6f8;
+    font-weight: 600;
+    z-index: 3;
+    font-size: 14px;
+    height: 7vh;
+}
+
+/* New Table End */
+
+.truncate {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.min-width50 {
+    min-width: 50px !important;
+}
+
+.min-width100 {
+    min-width: 100px !important;
+}
+
+.min-width150 {
+    min-width: 150px !important;
+}
+
+.min-width180 {
+    min-width: 180px !important;
+}
+
+
+.max-width100 {
+    max-width: 100px !important;
+}
+
+.max-width150 {
+    max-width: 150px !important;
+}
+
+.max-width200 {
+    max-width: 200px !important;
+}
+
+
+.custom-rounded-border {
+    border-radius: 10px;
+}
+
+.custom-table-border th {
+    border-bottom: 1px solid #dde5ed;
+}
+
+.info-icon {
+    color: #193D8A;
+    border-color: #193D8A;
+    background-color: #fff;
+}
+
+.warning-message {
+    background: #fff2f0;
+    border-left: 4px solid #e03e2b;
+    padding: 0.75rem;
+    border-radius: 16px;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.warning-icon {
+    font-size: 1rem;
+}
+
+.warning-text strong {
+    color: #b13f32;
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 1rem;
+}
+
+.warning-text {
+    font-weight: 500;
+    color: #2c3e5c;
+}
+
+.existing-project-details-header {
+    margin-bottom: 1rem;
+    color: #1c3b5e;
+}
+
+.remove-permanently ::ng-deep .mat-checkbox {
+    transform: scale(0.8);
+}
+
+.info-icon-danger {
+    color: #b13f32;
+    border-color: #b13f32;
+    background-color: #fff;
+}

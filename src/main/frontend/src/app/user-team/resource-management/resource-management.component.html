@@ -1,90 +1,140 @@
 <ng-container *ngIf="!showReportList">
-    <!-- Navigation Row Start -->
-    <div class="row m-1" *ngIf="!showProjectConfig">
-        <div class="col-md-6 d-flex justify-content-start align-items-center p-0">
-            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isProjectTable}"
-                *ngIf="userMapping.view_all_rmg_projects" (click)="showViewProjects()">
-                View All Projects
-            </button>
-            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isCreation}"
-                (click)="showCreateInternalProjectForm()">
-                Create Internal Project
-            </button>
-            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isSkillMatrix}"
-                (click)="openShowSkillMatrix()">
-                Search Employee(Skill Matrix)
-            </button>
-        </div>
-        <div class="col-md-6 d-flex justify-content-end align-items-center p-0" *ngIf="isReportTabToggleViewVisible">
-            <label> {{ 'Toggle to Employee View' }}</label>&nbsp;&nbsp;
-            <mat-slide-toggle color="primary" color="primary" [checked]="false" (change)="goToReportList()">
-            </mat-slide-toggle>
-        </div>
-    </div>
-    <!-- Navigation Row End -->
-
-    <!-- Filter & Global Search Row Start -->
-    <ng-container *ngIf="allProjectTable">
-        <div class="row m-1 align-items-center ">
-            <!-- Department Filter -->
-            <div class="col-md-7 d-flex justify-content-start flex-column">
-                <div class="d-flex justify-content-start align-items-center mb-2">
-                    <mat-slide-toggle color="primary" *ngIf="currentUser.employeeRole != 'SuperAdmin'" [(ngModel)]="myDept"
-                        (change)="toggleDepartment()">
-                    </mat-slide-toggle>
-                    <label *ngIf="currentUser.employeeRole !== 'SuperAdmin'">
-                        {{ myDept ? 'My Departments' : 'Departments' }}
-                    </label>
-                    <label *ngIf="currentUser.employeeRole === 'SuperAdmin'">
-                        {{ 'Departments' }}
-                    </label>
+    
+    <ng-container *ngIf="!isNewRmgDashboard">
+        <!-- Navigation Row Start -->
+        <div class="row m-1 mb-2" *ngIf="!showProjectConfig">
+            <div class="col-md-8 d-flex justify-content-start align-items-center p-0">
+                <button type="button" class="btn custom-btn-outline-primary btn-sm mx-1"
+                    [ngClass]="{'active': isProjectTable}" *ngIf="userMapping.view_all_rmg_projects"
+                    (click)="showViewProjects()">
+                    View All Projects
+                </button>
+                <button type="button" class="btn custom-btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isCreation}"
+                    (click)="showCreateInternalProjectForm()">
+                    Create Internal Project
+                </button>
+                <button type="button" class="btn custom-btn-outline-primary btn-sm mx-1"
+                    [ngClass]="{'active': isSkillMatrix}" (click)="openShowSkillMatrix()">
+                    Search Employee(Skill Matrix)
+                </button>
+                <div class="d-flex align-items-center ml-1 mr-1">
+                    <label class="new-rmg-toggle-switch">
+                        <input type="checkbox" [(ngModel)]="isNewRmgDashboard" (ngModelChange)="setNewRmgDashboardFlag()" />
+                        <span class="new-rmg-slider"></span>
+                    </label>&nbsp;
+                    <span class="new-rmg-toggle-label mb-1">NEW RMG DASHBOARD</span>
                 </div>
-            
-                <app-my-select class="form-control department-select app-my-select-dropdown" placeholder="Select Department"
-                    [(ngModel)]="selectedDepartmentIds" (dropdownClosed)="onDepartmentSelectionChange($event)"
-                    [options]="filteredDepartments" displayKey="name" valueKey="deptId" [multiple]="true">
-                </app-my-select>
             </div>
-    
-            <!-- Global Employee Search - Keep original functionality with added margin -->
-            <div class="col-md-3 d-flex flex-column justify-content-end">
-                <label class="employee-search-label mb-1">Global Employee Search:</label>
-                <app-my-autocomplete [(ngModel)]="selectedEmpId" [options]="filteredEmployees" displayKey="name" valueKey="empId"
-                    placeholder="Search employee">
-                </app-my-autocomplete>
-            </div>
-    
-            <!-- Employee Action Buttons -->
-            <div class="col-md-2">
-                <div class="d-flex flex-column">
-                    <button class="rounded-button details-button employee-summary-btn m-1"
-                        [title]="!isValidEmployee ? 'Select a valid employee to Open Employee 360 View' : ''"
-                        [disabled]="!isValidEmployee"
-                        [navigateToEmployee360]="isValidEmployee ? selectedEmpId : null">
-                        Employee 360
-                    </button>
-                    <button class="rounded-button summary-button employee-summary-btn m-1" [disabled]="!selectedEmpId"
-                        (click)="openProjectTimesheetSummaryModal(selectedEmpId)">
-                        Employee Summary
-                    </button>
+            <div class="col-md-4 d-flex justify-content-end align-items-center p-0" *ngIf="isReportTabToggleViewVisible">
+                <div class="d-flex align-items-center ml-1 mr-1">
+                    <label class="new-rmg-toggle-switch">
+                        <input type="checkbox" [checked]="false" (change)="goToReportList()" />
+                        <span class="new-rmg-slider"></span>
+                    </label>&nbsp;
+                    <span class="new-rmg-toggle-label mb-1">EMPLOYEE VIEW</span>
                 </div>
             </div>
         </div>
+        <!-- Navigation Row End -->
+    
+        <!-- Filter & Global Search Row Start -->
+        <ng-container *ngIf="allProjectTable">
+            <div class="row m-1 align-items-center ">
+                <!-- Department Filter -->
+                <div class="col-md-7 d-flex justify-content-start flex-column">
+                    <div class="d-flex justify-content-start align-items-center mb-2">
+                        <mat-slide-toggle color="primary" *ngIf="currentUser.employeeRole != 'SuperAdmin'"
+                            [(ngModel)]="myDept" (change)="toggleDepartment()">
+                        </mat-slide-toggle>
+                        <label *ngIf="currentUser.employeeRole !== 'SuperAdmin'">
+                            {{ myDept ? 'My Departments' : 'Departments' }}
+                        </label>
+                        <label *ngIf="currentUser.employeeRole === 'SuperAdmin'">
+                            {{ 'Departments' }}
+                        </label>
+                    </div>
+    
+                    <app-my-select class="form-control department-select app-my-select-dropdown"
+                        placeholder="Select Department" [(ngModel)]="selectedDepartmentIds"
+                        (dropdownClosed)="onDepartmentSelectionChange($event)" [options]="filteredDepartments"
+                        displayKey="name" valueKey="deptId" [multiple]="true">
+                    </app-my-select>
+                </div>
+    
+                <!-- Global Employee Search - Keep original functionality with added margin -->
+                <div class="col-md-3 d-flex flex-column justify-content-end">
+                    <label class="employee-search-label mb-1">Global Employee Search:</label>
+                    <app-my-autocomplete [(ngModel)]="selectedEmpId" [options]="filteredEmployees" displayKey="name"
+                        valueKey="empId" placeholder="Search employee">
+                    </app-my-autocomplete>
+                </div>
+    
+                <!-- Employee Action Buttons -->
+                <div class="col-md-2">
+                    <div class="d-flex flex-column">
+                        <button class="rounded-button details-button employee-summary-btn m-1"
+                            [title]="!isValidEmployee ? 'Select a valid employee to Open Employee 360 View' : ''"
+                            [disabled]="!isValidEmployee" [navigateToEmployee360]="isValidEmployee ? selectedEmpId : null">
+                            Employee 360
+                        </button>
+                        <button class="rounded-button summary-button employee-summary-btn m-1" [disabled]="!selectedEmpId"
+                            (click)="openProjectTimesheetSummaryModal(selectedEmpId)">
+                            Employee Summary
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+        <!-- Filter & Global Search Row End -->
+    
+        <!-- Project Count & List & Employee Status Card Start -->
+        <ng-container *ngIf="allProjectTable">
+            <app-rmg-status-cards #rmgStatusCards class="mb-4" (actionTriggered)="handleProjectAction($event)"
+                [selectedDepartmentIds]="selectedDepartmentIds">
+            </app-rmg-status-cards>
+        </ng-container>
+        <!-- Project Count & List & Employee Status Card End -->
     </ng-container>
-    <!-- Filter & Global Search Row End -->
-
-    <!-- Project Count & List & Employee Status Card Start -->
-    <ng-container *ngIf="allProjectTable">
-        <app-rmg-status-cards #rmgStatusCards class="mb-4" (actionTriggered)="handleProjectAction($event)" [selectedDepartmentIds]="selectedDepartmentIds">
-        </app-rmg-status-cards>
+    
+    <ng-container *ngIf="isNewRmgDashboard">
+        <div class="row m-1 mb-2" *ngIf="!showProjectConfig">
+            <div class="col-md- d-flex justify-content-start align-items-center p-0">
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
+                    [ngClass]="{'active': isProjectTable}" *ngIf="userMapping.view_all_rmg_projects"
+                    (click)="showViewProjects()">
+                    <i class="bi bi-eye"></i>
+                    View All Projects
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
+                    [ngClass]="{'active': isCreation}" (click)="showCreateInternalProjectForm()">
+                    <i class="bi bi-plus"></i>
+                    Create Internal Project
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
+                    [ngClass]="{'active': isSkillMatrix}" (click)="openShowSkillMatrix()">
+                    <i class="bi bi-person-vcard"></i>
+                    Skill Matrix
+                </button>
+                <div class="d-flex align-items-center ml-1 mr-1">
+                    <label class="new-rmg-toggle-switch">
+                        <input type="checkbox" [(ngModel)]="isNewRmgDashboard" (ngModelChange)="setNewRmgDashboardFlag()" />
+                        <span class="new-rmg-slider"></span>
+                    </label>&nbsp;
+                    <span class="new-rmg-toggle-label mb-1">NEW RMG DASHBOARD</span>
+                </div>
+            </div>
+        </div>
+        <ng-container *ngIf="allProjectTable">
+            <app-rmg-dashboard #rmgDashboardComponent (actionTriggered)="handleProjectAction($event)"></app-rmg-dashboard>
+        </ng-container>
     </ng-container>
-    <!-- Project Count & List & Employee Status Card End -->
-
+    
     <!-- Project Configuration Start -->
     <ng-container *ngIf="showProjectConfig" class="row mb-4">
         <div class="col-md-12">
-            <app-rmg-project-config #rmgProjectConfig [rmgProjectObj]="rmgProjectObj" [managerList]="managerList" [overheadList]="overheadList" [isProjectPreview]="false"
-                [departmentsList]="allDeptList" [spocList]="employeeList" [isAllProjects]="isAllProjects"
+            <app-rmg-project-config #rmgProjectConfig [rmgProjectObj]="rmgProjectObj" [managerList]="managerList"
+                [overheadList]="overheadList" [isProjectPreview]="false" [departmentsList]="allDeptList"
+                [spocList]="employeeList" [isAllProjects]="isAllProjects"
                 (closeProjectConfiguration)="closeProjectConfiguration()">
             </app-rmg-project-config>
         </div>
@@ -130,9 +180,15 @@
             <div class="team-preview-row">
                 <div class="team-preview-field">
                     <label><span class="text-danger">*</span>Department</label>
-                    <app-my-select #departmentSelect class="form-control" placeholder="Select Department"
-                        [(ngModel)]="projectObj.departmentList" (ngModelChange)="filterDepartments($event)"
-                        [options]="filteredDepartments" displayKey="name" valueKey="deptId" [multiple]="true">
+                    <!-- <app-my-select #departmentSelect class="form-control" placeholder="Select Department"
+                        [(ngModel)]="projectObj.departmentList" (ngModelChange)="filterDepartmentsInternal($event)"
+                        [options]="filteredDepartmentsInternal" displayKey="name" valueKey="deptId" [multiple]="true">
+                    </app-my-select> -->
+
+                    <app-my-select class="form-control"
+                        placeholder="Select Department" [(ngModel)]="projectObj.departmentList"
+                        (dropdownClosed)="onDepartmentSelectionChange($event)" [options]="filteredDepartmentsInternal"
+                        displayKey="name" valueKey="deptId" [multiple]="true">
                     </app-my-select>
                 </div>
                 <div class="team-preview-field">
@@ -560,4 +616,357 @@
         [isProjectPreview]="true" [departmentsList]="allDeptList" [spocList]="employeeList"
         [isAllProjects]="isAllProjects" (closeProjectConfigurationModal)="closeProjectConfigurationModal()">
     </app-rmg-project-config>
+</ng-template>
+
+
+<ng-template #update_project_milestone_modal>
+  <div class="ep-milestone-modal">
+    <header class="ep-milestone-modal__header">
+      <div class="ep-milestone-modal__header-accent"></div>
+      <div class="ep-milestone-modal__header-inner">
+        <h2 class="ep-milestone-modal__title">Update Milestone</h2>
+        <p class="ep-milestone-modal__subtitle">Change status, extend dates, or attach documents</p>
+        <button type="button" class="ep-milestone-modal__close" aria-label="Close" (click)="closeUpdateProjectMilestoneModal()">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="ep-milestone-modal__body">
+      <aside class="ep-milestone-modal__aside" aria-label="Milestone context">
+        <div class="ep-milestone-aside__card">
+          <!-- <span class="ep-milestone-aside__badge">Context</span> -->
+          <ul class="ep-milestone-aside__list">
+            <li class="ep-milestone-aside__item">
+              <span class="ep-milestone-aside__key">Line Item</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.lineItemName || '—' }}</span>
+            </li>
+            <li class="ep-milestone-aside__item">
+              <span class="ep-milestone-aside__key">Milestone</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.name || '—' }}</span>
+            </li>
+            <li class="ep-milestone-aside__item">
+              <span class="ep-milestone-aside__key">Start Date</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.startDate ? (projectMilestone.startDate | date:'d MMM yyyy') : '—' }}</span>
+            </li>
+            <li class="ep-milestone-aside__item">
+              <span class="ep-milestone-aside__key">End Date</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.endDate ? (projectMilestone.endDate | date:'d MMM yyyy') : '—' }}</span>
+            </li>
+            <li class="ep-milestone-aside__item ep-milestone-aside__item--full">
+              <span class="ep-milestone-aside__key">Description</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.description || '—' }}</span>
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      <main class="ep-milestone-modal__main">
+        <section class="ep-milestone-form-section">
+          <h3 class="ep-milestone-form-section__title">Date</h3>
+          <div class="ep-milestone-form-row">
+            <mat-form-field appearance="outline" class="ep-milestone-field ep-milestone-field--half ep-datepicker-57px">
+              <mat-label>Extend end date</mat-label>
+              <input matInput
+                [matDatepicker]="extendedDatePicker"
+                [(ngModel)]="projectMilestone.extendedDate"
+                [min]="minExtendedDateformilestone"
+                placeholder="Pick a date"
+                autocomplete="off"
+                (dateChange)="onExtendedDateChange($event)" />
+              <mat-datepicker-toggle matSuffix [for]="extendedDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #extendedDatePicker></mat-datepicker>
+              <mat-icon matSuffix   [matTooltip]="'You may select any date after the Start Date.
+                1. Select a date before the End Date to close the milestone earlier.
+                2. Select a date after the End Date to extend the milestone duration.'"
+                matTooltipClass="milestone-tooltip"
+                matTooltipPosition="above" class="ep-milestone-field__hint">info</mat-icon>
+            </mat-form-field>
+          </div>
+        </section>
+
+        <section class="ep-milestone-form-section ep-milestone-form-section--extension" *ngIf="isExtensionEnabled">
+          <h3 class="ep-milestone-form-section__title ep-milestone-form-section__title--warning">
+            <i class="fa fa-calendar-plus"></i> Extension details
+          </h3>
+          <!-- Row 1: Reason and Extension document on one line -->
+          <div class="ep-milestone-form-row ep-extension-one-line">
+            <div class="ep-milestone-field ep-milestone-field--half ep-extension-reason-cell">
+              <div class="ep-extension-reason-level">
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Reason for extension <span class="ep-required">*</span></mat-label>
+                  <mat-select [(ngModel)]="projectMilestone.extensionReason">
+                    <mat-option *ngFor="let reason of milestoneExtendReason" [value]="reason">
+                      {{ reason.milestoneExtensionReason }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="ep-milestone-field ep-milestone-field--half ep-extension-doc-cell">
+              <div class="ep-extension-doc-level">
+                <label class="ep-label ep-label--inline">Extension document</label>
+                <div class="ep-upload-wrapper">
+                  <div class="ep-upload ep-upload--extension" [class.ep-upload--filled]="projectMilestone.extensionFile">
+                    <label class="ep-upload__zone">
+                      <input type="file" class="ep-upload__input"
+                        (change)="onExtensionFileSelected($event, projectMilestone)"
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        #extensionFileInput />
+                      <ng-container *ngIf="!projectMilestone.extensionFile">
+                        <i class="fa fa-cloud-upload-alt ep-upload__icon"></i>
+                        <span class="ep-upload__text">Drop file or <span class="ep-upload__browse">browse</span></span>
+                        <span class="ep-upload__types">JPG, PNG, PDF</span>
+                      </ng-container>
+                      <ng-container *ngIf="projectMilestone.extensionFile">
+                        <i class="fa fa-file-alt ep-upload__icon ep-upload__icon--file"></i>
+                        <span class="ep-upload__placeholder">File selected</span>
+                      </ng-container>
+                    </label>
+                    <div class="ep-upload__btns">
+                      <button type="button" class="ep-btn ep-btn--ghost" (click)="previewMilestoneFile(projectMilestone.extensionFile)" [disabled]="!projectMilestone.extensionFile">
+                        <i class="fa fa-eye"></i>
+                      </button>
+                      <button type="button" class="ep-btn ep-btn--ghost" (click)="clearExtensionFile(extensionFileInput)" [disabled]="!projectMilestone.extensionFile">
+                        <i class="fa fa-trash-alt"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <p *ngIf="projectMilestone.extensionFile" class="ep-upload-filename">{{ projectMilestone.extensionFile?.name }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Row 2: Custom reason full width (when Other is selected) -->
+          <div *ngIf="projectMilestone?.extensionReason?.milestoneExtensionReason === 'Other'" class="ep-milestone-custom-reason ep-extension-custom-row">
+            <label class="ep-label">Custom reason <span class="ep-required">*</span></label>
+            <textarea class="ep-textarea"
+              [(ngModel)]="projectMilestone.customReason"
+              name="customReason"
+              placeholder="Specify your reason"
+              rows="3"></textarea>
+          </div>
+        </section>
+        <br>
+
+        <!-- Update Milestone Extension Details -->
+        <div class="d-flex justify-content-end" *ngIf="this.isExtensionEnabled && this.projectMilestone.extendedDate">
+        <button type="button" class="ep-btn ep-btn--primary" [disabled]="projectMilestone.status === 'Completed'" 
+        [title]="projectMilestone.status === 'Completed'  ? 'Date cannot be updated after milestone is marked completed': 'Click to update milestone extension details'"
+        (click)="updateMilestoneExtendedDateWithReason()">Update Extension</button>
+      </div>
+
+        <section class="mt-5">
+            <mat-form-field appearance="outline" class="ep-milestone-field ep-milestone-field--half">
+              <mat-label>Status</mat-label>
+              <mat-select [(ngModel)]="projectMilestone.status" (selectionChange)="onStatusChange($event.value)">
+                <mat-option [value]="projectMilestone.status">{{ projectMilestone.status }}</mat-option>
+                <ng-container *ngFor="let status of statusList">
+                  <mat-option *ngIf="status != projectMilestone.status" [value]="status">{{ status }}</mat-option>
+                </ng-container>
+              </mat-select>
+              <mat-hint *ngIf="projectMilestone.status === 'Completed' || projectMilestone.status === 'On Hold'">Document required</mat-hint>
+            </mat-form-field>
+        </section>
+
+        <section class="ep-milestone-form-section mt-3">
+          <h3 class="ep-milestone-form-section__title">Remarks</h3>
+          <mat-form-field appearance="outline" class="ep-milestone-field ep-milestone-field--full">
+            <mat-label>Notes (optional)</mat-label>
+            <textarea matInput rows="3" [(ngModel)]="projectMilestone.remarks" placeholder="Add any notes for this update"></textarea>
+          </mat-form-field>
+        </section>
+
+        <section class="ep-milestone-form-section">
+          <h3 class="ep-milestone-form-section__title">
+            Status document
+            <span class="ep-required" *ngIf="projectMilestone.status === 'Completed' || projectMilestone.status === 'On Hold'">*</span>
+          </h3>
+          <div class="ep-upload-wrapper">
+            <div class="ep-upload" [class.ep-upload--filled]="selectedFile">
+              <label class="ep-upload__zone">
+                <input type="file" class="ep-upload__input" (change)="onFileSelected($event, projectMilestone)"
+                  accept=".jpg,.jpeg,.png" #fileInput />
+                <ng-container *ngIf="!selectedFile">
+                  <i class="fa fa-image ep-upload__icon"></i>
+                  <span class="ep-upload__text">Drop image or <span class="ep-upload__browse">browse</span></span>
+                  <span class="ep-upload__types">JPG, JPEG, PNG, PDF</span>
+                </ng-container>
+                <ng-container *ngIf="selectedFile">
+                  <i class="fa fa-file-image ep-upload__icon ep-upload__icon--file"></i>
+                  <span class="ep-upload__placeholder">File selected</span>
+                </ng-container>
+              </label>
+              <div class="ep-upload__btns">
+                <button type="button" class="ep-btn ep-btn--ghost" (click)="previewMilestoneFile(selectedFile)" [disabled]="!selectedFile">
+                  <i class="fa fa-eye"></i>
+                </button>
+                <button type="button" class="ep-btn ep-btn--ghost" (click)="clearSelectedFile(fileInput)" [disabled]="!selectedFile">
+                  <i class="fa fa-trash-alt"></i>
+                </button>
+              </div>
+            </div>
+            <p *ngIf="selectedFile" class="ep-upload-filename">{{ selectedFile.name }}</p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="ep-milestone-modal__footer">
+      <span class="ep-milestone-modal__footer-note">RM, HOD and directors will be notified.</span>
+      <div class="ep-milestone-modal__footer-actions">
+        <button type="button" class="ep-btn ep-btn--secondary" (click)="closeUpdateProjectMilestoneModal()">Cancel</button>
+        <button type="button" class="ep-btn ep-btn--primary"   
+        [title]="!isStatusChanged ? 'Change milestone status to update' : 'Click to update milestone status'"
+        (click)="openMileStoneStatusModal()">Update status</button>
+      </div>
+    </footer>
+  </div>
+</ng-template>
+
+<ng-template #project_milestone_document>
+  <div class="modal-header">
+    <h5 class="modal-title">Milestone Document Preview</h5>
+        <button type="button" class="close" aria-label="Close" (click)="closeProjectMilestoneDocumentsModal()">
+        <span aria-hidden="true">&times;</span>
+        </button>
+  </div>
+
+  <div class="modal-body text-center">
+
+    <!-- PDF -->
+    <iframe *ngIf="isPdfFile" [src]="milestoneDocumentUrl" width="100%" height="600px" style="border: none;">
+    </iframe>
+
+    <!-- IMAGE -->
+    <img *ngIf="isImageFile" [src]="milestoneDocumentUrl" class="img-fluid" style="max-height: 600px;" />
+    
+    <div *ngIf="!isPdfFile && !isImageFile">
+      <p>Preview not supported for this file type.</p>
+    </div>
+
+  </div>
+
+</ng-template> 
+
+
+<ng-template #project_milestone_extended_preview>
+  <div class="modal fade show milestone-preview-backdrop" style="display:block;">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Milestone Document Preview</h5>
+          <button type="button" class="close" (click)="closeProjectMilestoneDocumentsModal()">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="modal-body text-center">
+          <div *ngIf="milestoneDocumentUrl; else noFile">
+            <!-- Image Preview -->
+            <img *ngIf="isImageFile" [src]="milestoneDocumentUrl" class="img-fluid preview-image"/>
+            <!-- PDF Preview -->
+            <iframe *ngIf="isPdfFile" [src]="milestoneDocumentUrl" width="100%" height="600px" style="border:none;">
+            </iframe>
+          </div>
+          <ng-template #noFile>
+            <p>No document available for this milestone.</p>
+          </ng-template>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop fade show"></div>
+</ng-template>
+
+<ng-template #confirmMilestoneStatusModal let-modal>
+  <div class="modal-body text-center">
+    <p class="mb-3">{{ confirmMilestoneStatus }}</p>
+    <div class="d-flex justify-content-center gap-3">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">
+        No
+      </button>
+      <button type="button" class="btn btn-primary ml-3" (click)="updateMilestoneChanges(); modal.close()">
+        Yes
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+
+<ng-template #project_line_item_list_modal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Project Milestone List</h4>
+        <button type="button" class="close pull-right" aria-label="Close" (click)="closeProjectLineItemListModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="table-scroll-wrapper">
+            <table class="table" id="project-milestone1" matSort (matSortChange)="sortProjectMilestoneData($event)">
+                <thead class="thead-light">
+                    <tr id="projectMilestoneTHeadTr1">
+                        <th scope="col" class="info-label">Sr.No</th>
+                        <th scope="col" class="info-label" mat-sort-header="lineItemName|string">Line Item</th>
+                        <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>
+                        <th scope="col" class="info-label">Description</th>
+                        <th scope="col" class="info-label" mat-sort-header="startDate|string">Start Date</th>
+                        <th scope="col" class="info-label" mat-sort-header="endDate|string">End Date</th>
+                        <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                        <th scope="col" class="info-label">Remarks</th>
+                        <th scope="col" class="info-label">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-container *ngIf="fcProjectMilestoneList.length == 0">
+                        <tr>
+                            <td colspan="7" class="text-center info-label">No details to display...</td>
+                        </tr>
+                    </ng-container>
+                    <ng-container
+                        *ngFor="let milestone of fcProjectMilestoneList | sort : [projectMilestoneSortColumn, projectMilestoneSortColumnType, projectMilestoneSortDirection]| paginate: { itemsPerPage: 10, currentPage: projectMilestonepage }; let j = index">
+                        <tr>
+                            <td>{{j+1}}</td>
+                            <td>{{milestone.lineItemName}}</td>
+                            <td>{{milestone.name}}</td>
+                            <td>{{milestone.description}}</td>
+                            <td>{{milestone.startDate | date:'dd/MM/yyyy'}}</td>
+                            <td>{{milestone.endDate | date:'dd/MM/yyyy'}}</td>
+                            <td>{{milestone.status}}</td>
+                            <td>{{milestone.status}}</td>
+                            <td>{{milestone.remarks}}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" [disabled]="milestone.status === 'Completed'"
+                                    [title]="milestone.status === 'Completed' ? 'Cannot edit completed milestone' : ''"
+                                    (click)="openUpdateProjectMilestoneModal(milestone)">
+                                    <i class="fas fa-edit"></i>
+                                </button>&nbsp;&nbsp;
+
+
+
+                                <button *ngIf="milestone.status === 'Completed'" class="btn btn-sm btn-info"
+                                    title="View Document" (click)="viewFiles(milestone.id)">
+                                    <i class="fas fa-file-alt"></i>
+                                </button>
+
+
+
+
+
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+            <div class="row col-md-12">
+                <pagination-controls class="my-pagination" [hidden]="fcProjectMilestoneList.length == 0"
+                    (pageChange)="handleProjectMilestonePageChange($event)"></pagination-controls>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeProjectLineItemListModal()">Close</button>
+    </div>
 </ng-template>

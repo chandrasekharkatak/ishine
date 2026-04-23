@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
+//import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -172,7 +172,7 @@ public class TimesheetDTO {
 	private Long shadowEmpId;
 	 
 	private List<TimesheetDocumentDetailsDTO> documentData;
-	private TimesheetDocumentDetails documentEntityData;
+//	private TimesheetDocumentDetails documentEntityData;
 	
 	private Long docId;
 	private String fromDate;

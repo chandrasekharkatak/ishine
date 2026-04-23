@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,6 +23,7 @@ import javax.mail.internet.AddressException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,8 +34,12 @@ import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
 import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto;
+import com.apmosys.employeeportal.dto.EmployeeProjectTeamRestrictionDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MigrateTeam;
+import com.apmosys.employeeportal.dto.PoDepartmentMappingDto;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
+import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
 import com.apmosys.employeeportal.dto.RmgMemberEndDateDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
@@ -59,13 +65,13 @@ import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.PoDepartmentMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.RoleDetailsRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.TypeConversionUtil;
 
@@ -103,11 +109,88 @@ public class TeamMembersService {
 	private final PoDepartmentMappingRepository poDepartmentMappingRepository;
 	private final RoleDetailsRepository roleDetailsRepository;
 	private final TeamRepository teamRepository;
-	private final TimesheetsRepository timesheetsRepository;
+//	private final TimesheetsRepository timesheetsRepository;
+	@Autowired
+	private EmployeeTimesheetsNewRepository employeeTimesheetRepoNew;
 
 	private final MailService mailService;
 
 	private static final Logger log = LoggerFactory.getLogger(TeamMembersService.class);
+
+	@Transactional(readOnly = true)
+	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(Long empId, Integer projectId) {
+		return getEmployeeExistingProjectDetailsByEmpId(empId, projectId, false);
+	}
+
+	@Transactional(readOnly = true)
+	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(Long empId, Integer projectId,
+			boolean enforceSingleTeamPerProject) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			if (empId == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Employee Id cannot be null!!");
+				return serviceResponse;
+			}
+			if(projectId == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Project Id cannot be null!!");
+				return serviceResponse;
+			}
+
+			if (enforceSingleTeamPerProject) {
+				Project project = projectRepository.findByProjectId(projectId);
+				if (project != null && isClientProjectForUniqueTeamRestriction(project)) {
+					List<String> teamNames = employeeTeamMapRepository.findConflictingTeamNamesForOnboarding(empId,
+							projectId);
+					if (teamNames != null && !teamNames.isEmpty()) {
+						serviceResponse.setServiceResponse1(new EmployeeProjectTeamRestrictionDTO(true, teamNames));
+					} else {
+						serviceResponse.setServiceResponse1(new EmployeeProjectTeamRestrictionDTO(false,
+								Collections.emptyList()));
+					}
+				} else {
+					serviceResponse.setServiceResponse1(new EmployeeProjectTeamRestrictionDTO(false,
+							Collections.emptyList()));
+				}
+			}
+
+			List<PoTeamAndMemberDetailsDto> employeeExistingProjectDetailsList = projectRepository
+					.getEmployeeExistingProjectDetailsByEmpId(empId, projectId);
+
+			if (employeeExistingProjectDetailsList == null || employeeExistingProjectDetailsList.isEmpty()) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse("Employee Existing Project Details Not found!!");
+				return serviceResponse;
+			}
+
+			serviceResponse.setServiceResponse(employeeExistingProjectDetailsList);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			serviceResponse.setServiceError(e);
+			log.error("Error fetching Employee Existing Project Details by EmpId : ", e);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Something went wrong!!");
+		}
+		return serviceResponse;
+	}
+
+	private boolean isClientProjectForUniqueTeamRestriction(Project project) {
+		String poProjectType = project.getPoProjectType();
+		String internalProjectType = project.getInternalProjectType();
+
+		if (poProjectType == null || poProjectType.trim().isEmpty()) {
+			// Internal projects allowed: Bench / InternalRNDproducts (typo-friendly)
+			if (internalProjectType == null) {
+				return false;
+			}
+			String t = internalProjectType.trim().toLowerCase();
+			return !(t.equals("bench") || t.equals("internalrndproducts"));
+		}
+
+		String t = poProjectType.trim().toLowerCase();
+		return t.equals("tnm") || t.equals("fixed cost") || t.equals("fixedcost") || t.equals("monitoring");
+	}
 
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse addOrUpdateTeamMembers(RmgTeamDto rmgTeamDto) {
@@ -140,6 +223,8 @@ public class TeamMembersService {
 				response.setServiceResponse("Project not found!!");
 				return response;
 			}
+			
+			
 
 			log.info("Adding/updating Team members for ProjectId : {}", rmgTeamDto.getProjectId());
 
@@ -300,6 +385,9 @@ public class TeamMembersService {
 		}
 
 		if (updateProjectFlag) {
+			if ("Not Started".equalsIgnoreCase(project.getProjectStatus())) {
+			    project.setProjectStatus("In Progress");
+			}
 			project.setIsDraftProject("true");
 			projectRepository.save(project);
 		}
@@ -646,8 +734,12 @@ public class TeamMembersService {
 				response.setServiceResponse("Employee Team Mapping not found!!");
 				return response;
 			}
+			Long oldActiveValue = existingMap.getActive();
 
-			existingMap.setActive(0L);
+			LocalDateTime now = LocalDateTime.now();
+			if (!teamMember.getEndDate().toLocalDate().isAfter(now.toLocalDate())) {
+				existingMap.setActive(0L);
+			}
 			existingMap.setEndDate(teamMember.getEndDate());
 			existingMap.setUpdatedBy(currentUserEmpId);
 			employeeTeamMapRepository.save(existingMap);
@@ -658,7 +750,7 @@ public class TeamMembersService {
 			empTeamMap.setTeamId(teamId);
 			empTeamMap
 					.setStartDate(teamMember.getStartDate() != null ? teamMember.getStartDate() : LocalDateTime.now());
-			empTeamMap.setActive(2L);
+			empTeamMap.setActive(oldActiveValue);
 			empTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
 			empTeamMap.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 			empTeamMap.setCreatedBy(currentUserEmpId);
@@ -1050,15 +1142,16 @@ public class TeamMembersService {
 					throw new IllegalArgumentException("End date cannot be less than Start date: " + startDate);
 				}
 
-				boolean startInFuture = startDate.isAfter(today);
+				// boolean startInFuture = startDate.isAfter(today);
 				boolean endInPastOrToday = endDate != null && !endDate.isAfter(today);
 
 				// Case 1: Start date in future → delete mapping
-				if (startInFuture) {
-					employeeTeamMapRepository.deleteById(empTeamMapping.getEmployeeTeamMapId());
-					log.info("Employee Team Mapping deleted for EMP ID : {}", rmgTeamMember.getEmpId());
-					continue;
-				}
+				// if (startInFuture) {
+				// 	employeeTeamMapRepository.deleteById(empTeamMapping.getEmployeeTeamMapId());
+				// 	log.info("Employee Team Mapping deleted for EMP ID : {}", rmgTeamMember.getEmpId());
+				// 	continue;
+				// }
+				
 				// Case 2: End date is past or today → deactivate
 				if (endInPastOrToday) {
 					empTeamMapping.setActive(0L);
@@ -1069,7 +1162,12 @@ public class TeamMembersService {
 					empTeamMapping.setEndDate(LocalDateTime.now());
 				}
 
-				employeeTeamMapRepository.save(empTeamMapping);
+				EmployeeTeamMap newEmployeeTeamMap = employeeTeamMapRepository.save(empTeamMapping);
+				if (newEmployeeTeamMap != null && rmgTeamMember.isRemovePermanently()) {
+					employeeTeamMapRepository.deleteById(newEmployeeTeamMap.getEmployeeTeamMapId());
+					continue;
+				}
+
 				sendResourceRemovalMailToRmg(emp.getName(), project.getProjectName(), team.getTeamName());
 			} catch (Exception e) {
 				log.error("Error in handleRemoveTeamMembers : ", e);
@@ -1077,6 +1175,12 @@ public class TeamMembersService {
 						.append(". Something went wrong. \n");
 				;
 			}
+		}
+
+		String existFlag = projectRepository.employeeExistsInEtmByProjectId(project.getProjectId());
+		if (existFlag != null && !"Yes".equals(existFlag)) {
+			project.setIsDraftProject(null);
+			projectRepository.save(project);
 		}
 		return sb.toString();
 	}
@@ -1348,8 +1452,8 @@ public class TeamMembersService {
 		for (Activity sourceActivity : sourceTeamActivities) {
 			Team newTeam = oldToNewTeamMap.getOrDefault(sourceActivity.getTeamId(), null);
 			if (newTeam != null) {
-				Set<String> existingActivitiesEmployeeRole = teamIdAndEmployeeRoleMap.getOrDefault(newTeam.getTeamId(),
-						Set.of());
+				Set<String> existingActivitiesEmployeeRole = new HashSet<>(teamIdAndEmployeeRoleMap.getOrDefault(newTeam.getTeamId(),
+						Set.of()));
 				if (existingActivitiesEmployeeRole.contains(sourceActivity.getEmployeeRole())) {
 					continue;
 				}
@@ -1436,7 +1540,19 @@ public class TeamMembersService {
 			employeeTeamMap.setEndDate(employeeProjectTimesheetDto.getEmployeeTeamEndDate().atStartOfDay());
 			employeeTeamMap.setUpdatedBy(employeeProjectTimesheetDto.getUpdatedBy());
 			employeeTeamMap.setUpdatedOn(LocalDateTime.now());
-			employeeTeamMapRepository.save(employeeTeamMap);
+			if(employeeProjectTimesheetDto.isRemovePermanently()){
+				employeeTeamMap.setRescRemovedBy(employeeProjectTimesheetDto.getUpdatedBy());
+			}
+			EmployeeTeamMap newEmployeeTeamMap = employeeTeamMapRepository.save(employeeTeamMap);
+			
+			if (newEmployeeTeamMap != null && employeeProjectTimesheetDto.isRemovePermanently()) {
+				employeeTeamMapRepository.deleteById(newEmployeeTeamMap.getEmployeeTeamMapId());
+				String existFlag = projectRepository.employeeExistsInEtmByProjectId(project.getProjectId());
+				if (existFlag != null && !"Yes".equals(existFlag)) {
+					project.setIsDraftProject(null);
+					projectRepository.save(project);
+				}
+			}
 
 			response.setServiceResponse("Team Members Start Date and End Date updated successfully!!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1448,6 +1564,196 @@ public class TeamMembersService {
 			response.setServiceError(e.getMessage());
 			return response;
 		}
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse updateEmployeeProjectMappingAsInActive(RmgTeamMemberDto rmgTeamMemberDto) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			if (rmgTeamMemberDto == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Request cannot be null!!");
+				return serviceResponse;
+			}
+			if (rmgTeamMemberDto.getEtmId() == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Employee Team Mapping Id cannot be null!!");
+				return serviceResponse;
+			}
+			if (rmgTeamMemberDto.getProjectId() == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Project Id cannot be null!!");
+				return serviceResponse;
+			}
+			Project project = projectRepository.findByProjectId(rmgTeamMemberDto.getProjectId());
+			if (project == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Project not found!!");
+				return serviceResponse;
+			}
+
+			Optional<EmployeeTeamMap> empTeamMapOpt = employeeTeamMapRepository.findById(rmgTeamMemberDto.getEtmId());
+			if (empTeamMapOpt.isEmpty()) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Employee Team Mapping not found!!");
+				return serviceResponse;
+			}
+			EmployeeTeamMap empTeamMap = empTeamMapOpt.get();
+
+			if (empTeamMap != null) {
+				empTeamMap.setRescRemovedBy(rmgTeamMemberDto.getRescRemovedBy());
+				empTeamMap.setUpdatedBy(rmgTeamMemberDto.getUpdatedBy());
+				empTeamMap.setUpdatedOn(LocalDateTime.now());
+				empTeamMap.setIsCustomDate(rmgTeamMemberDto.isCustomDate());
+				empTeamMap.setEndDate(rmgTeamMemberDto.getRescEndDate());
+				if (rmgTeamMemberDto.getRescEndDate() == null) {
+					empTeamMap.setEndDate(LocalDateTime.now());
+				}
+				LocalDateTime now = LocalDateTime.now();
+				if (!rmgTeamMemberDto.getRescEndDate().toLocalDate().isAfter(now.toLocalDate())) {
+					empTeamMap.setActive(0l);
+				}
+				if(rmgTeamMemberDto.isRemovePermanently()){
+					empTeamMap.setRescRemovedBy(rmgTeamMemberDto.getUpdatedBy());
+				}
+
+				EmployeeTeamMap newEmployeeTeamMap = employeeTeamMapRepository.save(empTeamMap);
+				if (newEmployeeTeamMap != null && rmgTeamMemberDto.isRemovePermanently()) {
+					employeeTeamMapRepository.deleteById(newEmployeeTeamMap.getEmployeeTeamMapId());
+					String existFlag = projectRepository.employeeExistsInEtmByProjectId(project.getProjectId());
+					if (existFlag != null && !"Yes".equals(existFlag)) {
+						project.setIsDraftProject(null);
+						projectRepository.save(project);
+					}
+				}
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse("Resource removed successfully!!");
+				log.info("Resource Removed Successfully : ETM_ID={}, REMOVED_BY={}",empTeamMap.getEmployeeTeamMapId(), rmgTeamMemberDto.getUpdatedBy());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error("Error updating Employee Project Mapping to Inactive : ", e);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Something went wrong!!");
+			throw e;
+		}
+		return serviceResponse;
+	}
+
+	@Transactional(readOnly = true)
+	public ServiceResponse getMaxEmployeeTeamMapStartDate(Long empId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			if (empId == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("EmpId cannot be null");
+				return serviceResponse;
+			}
+
+			LocalDate newStartDate = employeeTeamMapRepository.findEtmMaxEndDateByEmpId(empId);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(newStartDate);
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error("Error Fetching Max ETM End Date for Employee: ", e);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Something went wrong!!");
+			throw e;
+		}
+		return serviceResponse;
+	}
+
+	@Transactional(readOnly = true)
+	public ServiceResponse getTeamMemberDetailsByEmpIdAndProjectId(Integer projectId, Long empId, Long employeeTeamMapId) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getTeamMemberDetailsByEmpIdAndProjectId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("EmpId : " + empId);
+		try {
+			if (empId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Emp Id cannot be null!!");
+				return response;
+			}
+			if (employeeTeamMapId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Team Mapping Id cannot be null!!");
+				return response;
+			}
+			if (projectId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id cannot be null!!");
+				return response;
+			}
+
+			Project existingProject = projectRepository.findByProjectId(projectId);
+			if (existingProject == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project not found!!");
+				return response;
+			}
+
+			List<RmgTeamMemberDto> teamMemberDetailsList = teamRepository
+					.getAllTeamMemberDetailsDtoByEmployeeTeamMapId(employeeTeamMapId, projectId.longValue());
+			if (teamMemberDetailsList == null || teamMemberDetailsList.isEmpty()) {
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("Team Members List is Empty!!");
+				response.setServiceResponse(new ArrayList<RmgTeamMemberDto>());
+				return response;
+			}
+
+			List<Long> empIds = teamMemberDetailsList.stream().map(RmgTeamMemberDto::getEmpId)
+					.collect(Collectors.toList());
+
+			Map<Long, List<EmployeeOtherActiveProject>> empIdAndOtherProjectIdsMap = getEmployeeOtherActiveProjectIdMap(
+					empIds, projectId);
+
+			Map<Long, EmployeeInformationDTO> empIdInfoMap = getEmployeeInformationMap(empIds);
+
+			for (RmgTeamMemberDto obj : teamMemberDetailsList) {
+
+				EmployeeInformationDTO dto = empIdInfoMap.getOrDefault(obj.getEmpId(), null);
+				if (dto != null) {
+					obj.setEmpId(dto.getEmpId());
+					obj.setEmployementId(dto.getEmploymentId());
+					obj.setEmpTeamDepartmentId(dto.getDeptId());
+					obj.setMemberDepartment(dto.getDeptName());
+					obj.setJobRoleName(dto.getJobRole());
+					obj.setBillableType(dto.getBillableType());
+					obj.setPrevExp(dto.getPreviousExperience());
+					obj.setCurrentExp(dto.getCurrentExperience());
+					obj.setTotalExp(dto.getTotalExperience());
+					obj.setEmploymentStatus(dto.getEmploymentStatus());
+				}
+				obj.setOtherActiveProjects(empIdAndOtherProjectIdsMap.getOrDefault(obj.getEmpId(), List.of()));
+
+				if (obj.getOtherActiveProjects() != null && !obj.getOtherActiveProjects().isEmpty()) {
+					List<Integer> projectIds = obj.getOtherActiveProjects().stream()
+							.map(e -> e.getProjectId())
+							.collect(Collectors.toList());
+					obj.setOtherActiveProjectIds(projectIds);
+				} else {
+					obj.setOtherActiveProjectIds(List.of());
+				}
+				obj.setDisplayRequirement(getDisplayRequirement(obj));
+			}
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(teamMemberDetailsList);
+			apiLogInfo.setApiResponse("Team Members List fetched successfully!!");
+		} catch (Exception e) {
+			log.error("Error in getTeamDetailsByTeamId : ", e);
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong!!");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		return response;
 	}
 
 	@Transactional(readOnly = true)
@@ -1472,15 +1778,32 @@ public class TeamMembersService {
 				response.setServiceResponse("Project not found!!");
 				return response;
 			}
+			if (currentProject.getStartDate() == null || currentProject.getStartDate().trim().isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Start Date is null, Please contact Admin!!");
+				return response;
+			}
+
+			LocalDate date = LocalDate.parse(currentProject.getStartDate().toString());
+			if (rmgTeamMemberDto.getStartDate().toLocalDate().isBefore(date)) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("PROJECT_START_DATE_LESS_THAN_MEMBER_START_DATE");
+				return response;
+			}
+
 			if (rmgTeamMemberDto.getProjectIds() == null || rmgTeamMemberDto.getProjectIds().isEmpty()) {
 				List<Integer> temp = new ArrayList<>();
 				temp.add(currentProject.getProjectId());
 				rmgTeamMemberDto.setProjectIds(temp);
 			}
+			
+			List<Integer> projectIds = rmgTeamMemberDto.getProjectIds().stream().filter(Objects::nonNull).collect(Collectors.toList());
+			if (projectIds.isEmpty()) {
+				projectIds.add(currentProject.getProjectId());
+			}
 
 			response = validateEmployeeExistingProjectOverlapWithStartDate(rmgTeamMemberDto.getEmpId(),
-					rmgTeamMemberDto.getStartDate(), rmgTeamMemberDto.getProjectType(),
-					rmgTeamMemberDto.getProjectIds());
+					rmgTeamMemberDto.getStartDate(), rmgTeamMemberDto.getProjectType(), projectIds);
 			if (response != null && response.getServiceResponse() != null
 					&& (response.getServiceResponse().equals("OTHER_TNM_PROJECT_OVERLAPPING")
 							|| response.getServiceResponse().equals("CURRENT_TNM_PROJECT_OVERLAPPING"))) {
@@ -1488,14 +1811,14 @@ public class TeamMembersService {
 			}
 
 			response = validateExistingEmployeeProjectTimesheet(rmgTeamMemberDto.getEmpId(),
-					rmgTeamMemberDto.getStartDate(), rmgTeamMemberDto.getProjectIds());
+					rmgTeamMemberDto.getStartDate(), projectIds);
 			if (response != null && response.getServiceResponse() != null
 					&& response.getServiceResponse().equals("CONFLICTING_TIMESHEET_RECORDS_FOUND")) {
 				return response;
 			}
 
 			response = validateEmployeeProjectUnmappedCount(rmgTeamMemberDto.getEmpId(),
-					rmgTeamMemberDto.getStartDate(), rmgTeamMemberDto.getProjectIds());
+					rmgTeamMemberDto.getStartDate(), projectIds);
 			if (response != null && response.getServiceResponse() != null
 					&& response.getServiceResponse().equals("GAP_EXISTS")) {
 				return response;
@@ -1548,7 +1871,7 @@ public class TeamMembersService {
 		ServiceResponse response = new ServiceResponse();
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 
-		List<EmployeeProjectTimesheetDto> employeeProjectTimesheetDtoList = timesheetsRepository
+		List<EmployeeProjectTimesheetDto> employeeProjectTimesheetDtoList = employeeTimesheetRepoNew
 				.findByEmpIdAndDate(empId, startDate, projectIds);
 		if (employeeProjectTimesheetDtoList == null || employeeProjectTimesheetDtoList.isEmpty()) {
 			response.setServiceResponse("NO_TIMESHEET_RECORDS_FOUND");
@@ -1559,7 +1882,7 @@ public class TeamMembersService {
 		List<EmployeeProjectTimesheetDto> filteredEmployeeProjectTimesheetDtoList = new ArrayList<EmployeeProjectTimesheetDto>();
 		for (EmployeeProjectTimesheetDto dto : employeeProjectTimesheetDtoList) {
 			if (dto.getProjectStartDate() == null || dto.getTimesheetFilledCount() == null
-					|| dto.getTimesheetFilledCount().equals(0l) || dto.getEmployeeTeamStartDate() == null) {
+					|| dto.getTimesheetFilledCount().equals(0l)) {
 				continue;
 			}
 			if (isStartDateConflict(newStartDate, dto.getProjectStartDate(), dto.getEmployeeTeamStartDate())) {
@@ -1738,11 +2061,11 @@ public class TeamMembersService {
 		Integer tgtProjectId = migrateTeam.getTargetProjectId();
 		List<PoDepartmentMapping> migratedPoDepartmentMapping = new ArrayList<>();
 
-		List<PoDepartmentMapping> sourceDeptMappings = poDepartmentMappingRepository
+		List<PoDepartmentMappingDto> sourceDeptMappings = poDepartmentMappingRepository
 				.findByProjectIdAndActive(srcProjectId);
 		List<Long> targetDeptIds = poDepartmentMappingRepository.findPoDeptIdsByProjectId(tgtProjectId, false);
 
-		for (PoDepartmentMapping s : sourceDeptMappings) {
+		for (PoDepartmentMappingDto s : sourceDeptMappings) {
 			if (!targetDeptIds.contains(s.getDeptId())) {
 				PoDepartmentMapping nm = new PoDepartmentMapping();
 				nm.setPoId(migrateTeam.getTargetPoId());
@@ -2252,8 +2575,21 @@ public class TeamMembersService {
 		return sb.toString();
 	}
 
-	public void appendIfNotNull(StringBuilder sb, String label, Object value) {
+	private void appendIfNotNull(StringBuilder sb, String label, Object value) {
 		if (value != null) {
+			if (("Role Start Date".equals(label) || "Role End Date".equals(label))
+					&& value instanceof LocalDateTime) {
+				try {
+					DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+					value = ((LocalDateTime) value).format(DATE_FORMATTER);
+					sb.append(" | ");
+					sb.append(label).append(" : ").append(value);
+					return;
+				} catch (Exception e) {
+					log.error("Error while appending the " + label);
+					return;
+				}
+			}
 			if (sb.length() > 0) {
 				sb.append(" | ");
 			}

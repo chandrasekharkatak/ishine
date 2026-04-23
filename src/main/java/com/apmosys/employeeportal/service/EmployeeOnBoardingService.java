@@ -53,6 +53,12 @@ public class EmployeeOnBoardingService {
 	@Value("${hr.mail}")
 	private String hrMailAddress;
 	
+	@Value("${snipit.api.token}")
+	private String authToken;
+
+	@Value("${snipit.api.base-url}")
+	private String baseUrl;
+	
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
 	
@@ -378,12 +384,23 @@ public class EmployeeOnBoardingService {
 			String findByUserName =  "username=".concat(userName[1]);
 			
 			OkHttpClient client = new OkHttpClient();
-			Request request = new Request.Builder()
-			  .url("http://192.168.12.54/api/v1/users?limit=50000&offset=0&sort=created_at&"+user+"&order=desc&deleted=false&all=false")
-			  .get()
-			  .addHeader("accept", "application/json")
-			  .addHeader("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiYTk1M2RmMjRmOTBkNGQ3N2RkNTg3NjI3NjkzZWE0ZTc5NDBhMjYwMzcyYTU4NjZkZjIwOTM5NDg5YTAxNGIyODRjMjQzMzA4YTk1OTk1Y2YiLCJpYXQiOjE2Njg4NDY0MDQsIm5iZiI6MTY2ODg0NjQwNCwiZXhwIjoyMTQyMjMyMDAzLCJzdWIiOiIyMTYyIiwic2NvcGVzIjpbXX0.Tnj02njjqoHhHQqHCQmMcirxlj56kiQOz8WMc0RkaWRq8rQEkdItPErtAj5T8xen7cwgT94vYZdF3PDNU-oLAKScGCQ8YfB7L9qKtOfEPCgwEd8A1cd5shsN-XZ37RPCMI57ZdzBqeKbvPbOd0e9qTl5rjFMmo3JbygKlRvdFKEyNb7ZVn_WEi6NgSo0aDO8Ig5BjUW7WNFoss4CZQBc0MZvOJaACPJNERbWK91OdywlLBZ4oX2ygzP6PJ_HcbA5474VYFylNpushiFteoybZxAjklrlDY9q1IxpybYpY7RzQDyfTyyaSZexQgdJPit8KCPvWIQMIF2M-0OEC9XCEyUYpo-E4sDtqxtg8bASj4NWktgSD5jrobKZ-a-F0ijnOchIOxzvogXeP6WuugD7O2o-eOIUjhaHiFMI3mcHTAHYIMVU9VQpOOFRzP-Mg5YkaEYpJ7O5cPXLq86ilalNFNJNJvib-M3iDM4c8e6F_FkMneNcuwpSa2IiHLsWeWSw5WjBwRP0x78zmHML2TWdPS0c8pN3KtEBl39n1yWbgVxWNq5E4uXkNeNqD4fr76aV-PvhEwSSizIumLIYqPepx9qYRgn_zdoaibgY56U8RgHcVVps1RNlACFyffNFeUAjMyUxclqHY1U9Ya0AiRRZSDljOFloAKAIyD52nJzIk1Y")
-			  .build();
+			
+	        String url = baseUrl + "/users?limit=50000&offset=0&sort=created_at&" 
+                    + user + "&order=desc&deleted=false&all=false";
+
+	        Request request = new Request.Builder()
+               .url(url)
+               .get()
+               .addHeader("accept", "application/json")
+               .addHeader("Authorization", authToken)
+               .build();
+			
+//			Request request = new Request.Builder()
+//			  .url("http://192.168.12.54/api/v1/users?limit=50000&offset=0&sort=created_at&"+user+"&order=desc&deleted=false&all=false")
+//			  .get()
+//			  .addHeader("accept", "application/json")
+//			  .addHeader("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMTliNzZiZTg5YWQ0ZGViYTQ1ZDllMTZhYTc2OTEwMDE5YWZkYWIzYWJhYzAyODBhNmY4YmI1MzI1NjAyYzczM2U1MzVjM2Y3NWVhYTQ2NmQiLCJpYXQiOjE3NzYwNjg1NDYsIm5iZiI6MTc3NjA2ODU0NiwiZXhwIjoyMjQ5NDU0MTQ2LCJzdWIiOiIxIiwic2NvcGVzIjpbXX0.I6KfXJHWcmf8-8ajCI4neO3vMk6-mFY5ZZy04unrSAtMsFp1ATA4CX9Hu_wixctzxnYzwpYH6VwcxOLuIl4sVl8ZmBhHVaoee4x0evhvb8xAiajrjxf76B_zBjp3QqtWLAd8MRgACuYXYO7q3vuwzXIDZArBo0WZunNbtIq60GmxDS6PnjMOXh4_6RZPGZPXtfnGj96kaqBBLAkOzy5nf5aDbiqPK0vxqMj1xnlywFzplL7GTs-bkJWkVGUhNOkXNedEHIxX4HEUT-i_nQ2EDWwwmQaf07IOzdbykqGOVutMWHDhBZG8MRTg7ezN6R5OReYyFQpEDiVA-SHa5Uah_620ZbB2kZMuX9ooCAIN54gsZ92zyXC65VUNnSzrHNb5fK7TWQWthbaR8k-PkNMVbyyKUL_LMsId8by1qlNyZ-QBsr9mGF1feJHm3zdFZL_zFjl8sa0EldTGwQ-QAP3rPD6zCI6noyU0imjOmn1RaFRWZM6xWtPrIy0o904SfOCtSmkaMC8wICeQ9479hKgS4AGf67tb0V3U-IyZdpMNK_Lo-gOy7mscXuPSr8pypxYPfRkFIMiLX4niyNEDygeRdJKMJMeu68J1-umAOrjg1ugitjH5ohcif5ZaTSqfe8p-nBAtprOw7SXrarbiHFrlNiuhsAGBeOKDM-1bwwWfz3s")
+//			  .build();
 			Response httpResponse = client.newCall(request).execute();
 			String jsonData = httpResponse.body().string();
 			JSONObject json = new JSONObject(jsonData);
@@ -408,12 +425,22 @@ public class EmployeeOnBoardingService {
 		JSONArray snipitAssetResponse = null;
 		try {
 			OkHttpClient client = new OkHttpClient();
-			Request request = new Request.Builder()
-			  .url("http://192.168.12.54/api/v1/users/"+id+"/assets")
-			  .get()
-			  .addHeader("accept", "application/json")
-			  .addHeader("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiYTk1M2RmMjRmOTBkNGQ3N2RkNTg3NjI3NjkzZWE0ZTc5NDBhMjYwMzcyYTU4NjZkZjIwOTM5NDg5YTAxNGIyODRjMjQzMzA4YTk1OTk1Y2YiLCJpYXQiOjE2Njg4NDY0MDQsIm5iZiI6MTY2ODg0NjQwNCwiZXhwIjoyMTQyMjMyMDAzLCJzdWIiOiIyMTYyIiwic2NvcGVzIjpbXX0.Tnj02njjqoHhHQqHCQmMcirxlj56kiQOz8WMc0RkaWRq8rQEkdItPErtAj5T8xen7cwgT94vYZdF3PDNU-oLAKScGCQ8YfB7L9qKtOfEPCgwEd8A1cd5shsN-XZ37RPCMI57ZdzBqeKbvPbOd0e9qTl5rjFMmo3JbygKlRvdFKEyNb7ZVn_WEi6NgSo0aDO8Ig5BjUW7WNFoss4CZQBc0MZvOJaACPJNERbWK91OdywlLBZ4oX2ygzP6PJ_HcbA5474VYFylNpushiFteoybZxAjklrlDY9q1IxpybYpY7RzQDyfTyyaSZexQgdJPit8KCPvWIQMIF2M-0OEC9XCEyUYpo-E4sDtqxtg8bASj4NWktgSD5jrobKZ-a-F0ijnOchIOxzvogXeP6WuugD7O2o-eOIUjhaHiFMI3mcHTAHYIMVU9VQpOOFRzP-Mg5YkaEYpJ7O5cPXLq86ilalNFNJNJvib-M3iDM4c8e6F_FkMneNcuwpSa2IiHLsWeWSw5WjBwRP0x78zmHML2TWdPS0c8pN3KtEBl39n1yWbgVxWNq5E4uXkNeNqD4fr76aV-PvhEwSSizIumLIYqPepx9qYRgn_zdoaibgY56U8RgHcVVps1RNlACFyffNFeUAjMyUxclqHY1U9Ya0AiRRZSDljOFloAKAIyD52nJzIk1Y")
-			  .build();
+			
+	        String url = baseUrl + "/users/" + id + "/assets";
+
+	        Request request = new Request.Builder()
+	                .url(url)
+	                .get()
+	                .addHeader("accept", "application/json")
+	                .addHeader("Authorization", authToken)
+	                .build();
+			
+//			Request request = new Request.Builder()
+//			  .url("http://192.168.12.54/api/v1/users/"+id+"/assets")
+//			  .get()
+//			  .addHeader("accept", "application/json")
+//			  .addHeader("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMTliNzZiZTg5YWQ0ZGViYTQ1ZDllMTZhYTc2OTEwMDE5YWZkYWIzYWJhYzAyODBhNmY4YmI1MzI1NjAyYzczM2U1MzVjM2Y3NWVhYTQ2NmQiLCJpYXQiOjE3NzYwNjg1NDYsIm5iZiI6MTc3NjA2ODU0NiwiZXhwIjoyMjQ5NDU0MTQ2LCJzdWIiOiIxIiwic2NvcGVzIjpbXX0.I6KfXJHWcmf8-8ajCI4neO3vMk6-mFY5ZZy04unrSAtMsFp1ATA4CX9Hu_wixctzxnYzwpYH6VwcxOLuIl4sVl8ZmBhHVaoee4x0evhvb8xAiajrjxf76B_zBjp3QqtWLAd8MRgACuYXYO7q3vuwzXIDZArBo0WZunNbtIq60GmxDS6PnjMOXh4_6RZPGZPXtfnGj96kaqBBLAkOzy5nf5aDbiqPK0vxqMj1xnlywFzplL7GTs-bkJWkVGUhNOkXNedEHIxX4HEUT-i_nQ2EDWwwmQaf07IOzdbykqGOVutMWHDhBZG8MRTg7ezN6R5OReYyFQpEDiVA-SHa5Uah_620ZbB2kZMuX9ooCAIN54gsZ92zyXC65VUNnSzrHNb5fK7TWQWthbaR8k-PkNMVbyyKUL_LMsId8by1qlNyZ-QBsr9mGF1feJHm3zdFZL_zFjl8sa0EldTGwQ-QAP3rPD6zCI6noyU0imjOmn1RaFRWZM6xWtPrIy0o904SfOCtSmkaMC8wICeQ9479hKgS4AGf67tb0V3U-IyZdpMNK_Lo-gOy7mscXuPSr8pypxYPfRkFIMiLX4niyNEDygeRdJKMJMeu68J1-umAOrjg1ugitjH5ohcif5ZaTSqfe8p-nBAtprOw7SXrarbiHFrlNiuhsAGBeOKDM-1bwwWfz3s")
+//			  .build();
 			Response httpResponse = client.newCall(request).execute();
 			String jsonData = httpResponse.body().string();
 			JSONObject json = new JSONObject(jsonData);
@@ -762,6 +789,9 @@ public class EmployeeOnBoardingService {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
+	
+	
 
-
+	
+	
 }

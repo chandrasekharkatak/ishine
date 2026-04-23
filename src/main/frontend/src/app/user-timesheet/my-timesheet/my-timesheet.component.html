@@ -506,17 +506,17 @@
                 <th mat-sort-header="dayType|string">Day Type</th>
                 <th mat-sort-header="workCheckIn|datetime">In Time</th>
                 <th mat-sort-header="workCheckOut|datetime">Out Time</th>
-                <th mat-sort-header="totalWorkingMinutes|number">Total Hours</th>
+                <th mat-sort-header="totalWorkingHours|number">Total Hours</th>
                 <th mat-sort-header="statusDisplay|string">Status</th>
                 <th *ngIf="isSelfTimesheets" mat-sort-header="createdByName|string">Applied By</th>
                 <th mat-sort-header="createdOn|datetime">Applied On</th>
                 <th mat-sort-header="isNightShiftDisplay|string">Shift</th>
                 <th mat-sort-header="leaveType|string">Leave Type</th>
                 <th mat-sort-header="rejectReason|string">Reject Reason</th>
-                <th mat-sort-header="remarks|string">Remarks</th>
+                <!-- <th mat-sort-header="remarks|string">Remarks</th> -->
                 <th>Actions</th>
               </tr>
-              <tr app-column-filter-bar *ngIf="isTimesheetTable && isSelfTimesheets && isSearchEnabled"
+              <tr  app-column-filter-bar *ngIf="isTimesheetTable && isSelfTimesheets && isSearchEnabled"
                 [columnList]="selfTimesheetColumns" (onSearch)="onSearch($event);page=1"></tr>
               <tr app-column-filter-bar *ngIf="isTimesheetTable && isTeamTimesheets && isSearchEnabled"
                 [columnList]="teamTimesheetColumns" (onSearch)="onSearch($event);page=1"></tr>
@@ -553,7 +553,7 @@
                   <td>{{ timesheet.dayType }}</td>
                   <td>{{ timesheet.workCheckIn || 'NA' }}</td>
                   <td>{{ timesheet.workCheckOut || 'NA' }}</td>
-                  <td><strong>{{ getTotalWorkingHours(timesheet.totalWorkingMinutes, false) }}</strong></td>
+                  <td><strong>{{ timesheet.totalWorkingHours }}</strong></td>
                   <td>
                     <span class="ts-badge" [class.ts-badge--pending]="timesheet.status === 1"
                       [class.ts-badge--approved]="timesheet.status === 2" [class.ts-badge--rejected]="timesheet.status === 3"
@@ -565,13 +565,25 @@
                   <td>{{ timesheet.createdOn }}</td>
                   <td>{{ timesheet.isNightShiftDisplay }}</td>
                   <td>{{ timesheet.leaveType || 'NA' }}</td>
-                  <td>{{ timesheet.rejectReason || 'NA' }}</td>
-                  <td>{{ timesheet.remarks || 'NA' }}</td>
+                  <td>
+                    <!-- {{ timesheet.rejectReason || 'NA' }} -->
+                      @if(timesheet.status === 3){
+                        <button class="ts-reject-info-btn"
+                        (click)="fetchRejectionReasonByTimesheet(timesheet.timesheetId, timesheet_reject_reasons_with_projects)" title="View Rejection Reason(s)">
+                        <i class="fa-solid fa-circle-info fa-bounce"></i>
+                      </button>
+                    }
+                    @else{
+                      NA 
+                    }
+
+                  </td>
+                  <!-- <td>{{ timesheet.remarks || 'NA' }}</td> -->
                   <td class="ts-actions-cell">
-                    <button class="ts-action-btn" type="button" title="Copy"
+                    <!-- <button class="ts-action-btn" type="button" title="Copy"
                       (click)="copyTimesheetDetailsToNotepad(timesheet)">
                       <i class="fa fa-copy"></i>
-                    </button>
+                    </button> -->
                     <button
                       *ngIf="userMapping.update_timesheet && (timesheet.statusDisplay === 'Pending' || timesheet.statusDisplay === 'Rejected' || (timesheet.statusDisplay === 'Approved' && !timesheetFillable))"
                       class="ts-action-btn ts-action-btn--edit" type="button" title="Edit"
@@ -601,6 +613,9 @@
                             <span class="ts-meta">
                               <strong>Presence At Location:</strong> {{ getTotalLocationHours(location) }}
                             </span>
+                            <span class="ts-meta" *ngIf="timesheet.compOffForDate && timesheet.compOffForDate != ''">
+                              <strong>Comp Off For:</strong> {{ timesheet.compOffForDate | date:'dd-MM-yyyy' }}
+                            </span>
                           </div>
                           <i *ngIf="hasProjects(location)" class="fas ts-chevron"
                             [class.fa-chevron-down]="isLocationExpanded(timesheet.timesheetId, location.locationMappingId)"
@@ -622,6 +637,9 @@
                                 </span>
                                 <span *ngIf="project.clientLocation" class="ts-chip ts-chip--grey">
                                   Client Location: {{ project.clientLocation }}
+                                </span>
+                                <span *ngIf="project.shadowEmpId" class="ts-chip ts-chip--grey">
+                                  Shadow For: ({{project.shadowEmployeementId}})-{{ project.shadowName }}
                                 </span>
                                 <span *ngIf="project.clientApprovalStatus" class="ts-chip" title="Client Approval StatusLocation" [class.ts-chip--pending]="project.clientApprovalStatus === 1"
                                   [class.ts-chip--approved]="project.clientApprovalStatus === 2"
@@ -742,7 +760,9 @@
         <label class="bu-label"><span class="bu-required">*</span> Month-Year</label>
         <input type="month" class="bu-input"
           [(ngModel)]="timesheetObj.monthYear"
-          (change)="onMonthYearChange()" />
+          (change)="onMonthYearChange()" 
+          [max]="maxMonth" [min] = "minMonth"
+          />
       </div>
 
       <div class="bu-field">
@@ -765,9 +785,9 @@
   <label class="bu-label"><span class="bu-required">*</span> From Date</label>
   <mat-form-field class="bu-mat-field">
     <input matInput [matDatepicker]="picker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalFromDate"
-      (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required placeholder="Select date" />
+      (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required placeholder="Select date" readonly />
     <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-    <mat-datepicker #picker></mat-datepicker>
+    <mat-datepicker #picker [startAt]="pickerStartDate"></mat-datepicker>
   </mat-form-field>
 </div>
 
@@ -777,7 +797,7 @@
   <mat-form-field class="bu-mat-field">
     <input matInput [matDatepicker]="toPicker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalToDate"
       name="toDate" required #toDateRef="ngModel" [min]="finalFromDate" [max]="maxDate" [disabled]="!finalFromDate"
-      (dateChange)="checkUploadEligibility()" placeholder="Select date" />
+      (dateChange)="checkUploadEligibility()" placeholder="Select date" readonly />
     <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
     <mat-datepicker #toPicker></mat-datepicker>
   </mat-form-field>
@@ -824,7 +844,7 @@
         </div>
         <div class="bu-file-status" *ngIf="fileName2 && !fileError2">
           <i class="fas fa-check-circle"></i>
-          <span>{{ fileName2 }}</span>
+          <span>{{ fileNameToShow }}</span>
         </div>
         <div class="bu-file-error" *ngIf="fileError2">
           <i class="fas fa-exclamation-circle"></i>
@@ -861,9 +881,9 @@
 <ng-template #night_shift_template>
     <div class="modal-body text-center">
         <p>Do you have required permission for night shift from your manager?</p>
-        <button type="button" class="btn btn-success"
+        <button type="button" class="btn btn-success ml-2"
             (click)="cancelRequest();this.timesheetObj.isNightShift = true;onFromDateChange()">Yes,proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger"
+        <button type="button" class="btn btn-danger ml-2"
             (click)="cancelRequest();this.timesheetObj.isNightShift = false;onFromDateChange()">No,
             Cancel</button>&nbsp;
     </div>
@@ -1138,10 +1158,11 @@
 <ng-template #clientSideIdForm>
     <form #clientSideForm="ngForm" novalidate>
          <div class="modal-body text-center position-relative">
-             <div class="info-modal">  <app-info-tooltip class="me-2" style="margin-right: 8px;" pdfPath="assets/pdfFiles/Entering client side id.pdf"
+          <h5>Please provide Client Side ID to continue.</h5>   
+          <div class="info-modal"> 
+              <app-info-tooltip class="me-2" style="margin-right: 8px;" pdfPath="assets/pdfFiles/Entering client side id.pdf"
   pdfCtaText="Client Side ID Entry Guide" iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
             </app-info-tooltip></div>
-            <h5>Please provide Client Side ID to continue.</h5>
 
         </div>
 
@@ -1300,7 +1321,7 @@
         <thead class="thead-light">
           <tr>
             <th style="width: 5%">#</th>
-            <th style="width: 30%">Reason</th>
+            <th style="width: 30%; max-width: 20vw;overflow: auto;">Reason</th>
             <th style="width: 40%">Remarks</th>
             <th style="width: 25%">Rejected On</th>
           </tr>
@@ -1310,8 +1331,8 @@
           <tr *ngFor="let r of rejectionReasons; let j = index">
             <td>{{ j + 1 }}</td>
             <td>{{ r.rejectionReason || '-' }}</td>
-            <td>{{ r.remark || '-' }}</td>
-            <td>{{ r.rejectedOn || '-' }}</td>
+            <td *ngIf="j==0" [attr.rowspan]="rejectionReasons.length" style="padding-left: 15px;">{{ r.remark || '-' }}</td>
+            <td *ngIf="j==0" [attr.rowspan]="rejectionReasons.length" style="padding-left: 15px;">{{ r.rejectedOn || '-' }}</td>
           </tr>
         </tbody>
 
@@ -1371,3 +1392,56 @@
 </ng-template>
 
 
+<ng-template #timesheet_reject_reasons_with_projects let-modal>
+  <div class="modal-header bg-light">
+    <h5 class="modal-title">
+      Rejection Details
+    </h5>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body">
+
+    <!-- No Rejection -->
+    <div *ngIf="!rejectiondetails || rejectiondetails.length === 0" class="text-center text-muted">
+      <i class="fa fa-info-circle"></i>
+      No rejection details available.
+    </div>
+
+    <!-- Rejection List -->
+
+
+      <!-- Rejection Table -->
+      <table class="table table-sm table-bordered mb-0"
+             *ngIf="rejectiondetails && rejectiondetails.length > 0">
+
+        <thead class="thead-light">
+          <tr>
+            <th style="width: 5%">#</th>
+            <th style="width: 25%">Project Name</th>
+            <th style="width: 30%;max-width: 20vw;overflow: auto;">Reason</th>
+            <th style="width: 40%">Remarks</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let r of groupedRejections; let j = index">
+            <td>{{ j + 1 }}</td>
+            <td>{{ r.projectName || '-' }}</td>
+            <td>{{ r.rejectionReason || '-' }}</td>
+            <td  *ngIf="r.showRemarks" [attr.rowspan]="r.rowspan" style="margin-left: 15px;">{{ r.remarks || '-' }}</td>
+          </tr>
+        </tbody>
+
+      </table>
+
+    </div>
+
+  <div class="modal-footer text-center">
+    <button type="button" class="btn btn-primary" (click)="modal.close()">
+      OK
+    </button>
+  </div>
+</ng-template>

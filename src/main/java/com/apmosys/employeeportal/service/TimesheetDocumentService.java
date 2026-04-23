@@ -25,13 +25,11 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.FinalDocument;
-import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.FinalDocumentRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -54,9 +52,8 @@ public class TimesheetDocumentService {
     @Autowired
     private TimesheetDocumentDetailsRepository timesheetDocumentDetailsRepository;
     
-    @Autowired
-    private TimesheetsRepository timesheetsRepository;
-    
+//    @Autowired
+//    private TimesheetsRepository timesheetsRepository;
     @Autowired
     private EmployeeLeaveRepository employeeLeaveRepository;
     
@@ -82,81 +79,81 @@ public class TimesheetDocumentService {
      * @throws IOException if file processing fails
      * @throws IllegalArgumentException if document validation fails
      */
-    public void handleDocumentUpload(com.apmosys.employeeportal.dto.TimesheetDTO timesheetDTO, 
-                                     Timesheet newTimesheetCreated,
-                                     MultipartFile file,
-                                     boolean isFinal) throws IOException {
-        log.debug("Handling document upload: timesheetId={}, isFinal={}", 
-                newTimesheetCreated.getTimesheetId(), isFinal);
-
-        List<TimesheetDocumentDetailsDTO> documentList = timesheetDTO.getDocumentData().stream()
-                .filter(doc -> Boolean.TRUE.equals(doc.getFinalFlag()) == isFinal)
-                .collect(Collectors.toList());
-
-        List<TimesheetDocumentDetailsDTO> documentnotFinalList = timesheetDTO.getDocumentData().stream()
-                .filter(doc -> Boolean.FALSE.equals(doc.getFinalFlag()) == isFinal)
-                .collect(Collectors.toList());
-
-        if (documentList.size() != 1 && documentnotFinalList.size() != 1) {
-            throw new IllegalArgumentException("Expected exactly one " + 
-                    (isFinal ? "approved" : "unapproved") + " document.");
-        }
-        
-        Long finalDocumentId = null;
-        
-        if (isFinal) {
-            // Create FinalDocument and link to existing TimesheetDocumentDetails
-            byte[] fileBytes = file.getBytes();
-            String fileName = file.getOriginalFilename();
-            String contentType = file.getContentType();
-            
-            FinalDocument finalDocument = new FinalDocument();
-            finalDocument.setDocName(fileName);
-            finalDocument.setDocData(fileBytes);
-            finalDocument.setDocMimeType(contentType);
-            finalDocument.setCreatedBy(timesheetDTO.getEmpId());
-            finalDocument.setCreatedOn(LocalDateTime.now());
-            finalDocument.setUpdatedBy(timesheetDTO.getEmpId());
-            finalDocument.setUpdatedOn(LocalDateTime.now());
-
-            finalDocument = finalDocumentRepository.save(finalDocument);
-            finalDocumentId = finalDocument.getDocId();
-            
-            // Update existing TimesheetDocumentDetails to link to FinalDocument
-            TimesheetDocumentDetails existedDocDetails = 
-                    timesheetDocumentDetailsRepository.findByTimesheetId(newTimesheetCreated.getTimesheetId());
-            
-            if (existedDocDetails == null) {
-                throw new RuntimeException("Document was not saved.");
-            }
-            
-            existedDocDetails.setFinalFlag(isFinal);
-            existedDocDetails.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus().toLowerCase());
-            existedDocDetails.setBulkApprovedDocId(finalDocumentId);
-            timesheetDocumentDetailsRepository.save(existedDocDetails);
-        } else {
-            // Create new TimesheetDocumentDetails for non-final document
-            TimesheetDocumentDetailsDTO documentDTO;
-            if (documentList.size() != 1) {
-                documentDTO = documentnotFinalList.get(0);
-            } else {
-                documentDTO = documentList.get(0);
-            }
-            
-            TimesheetDocumentDetails docData = addTimesheetDocument(documentDTO, "Create", file);
-            docData.setTimesheetId(newTimesheetCreated.getTimesheetId());
-            docData.setEmpId(timesheetDTO.getEmpId());
-            docData.setCreatedBy(timesheetDTO.getEmpId());
-
-            TimesheetDocumentDetails savedDoc = timesheetDocumentDetailsRepository.save(docData);
-
-            if (savedDoc == null) {
-                throw new RuntimeException("Document was not saved.");
-            }
-        }
-        
-        log.debug("Document uploaded successfully: isFinal={}, finalDocumentId={}", isFinal, finalDocumentId);
-    }
+//    public void handleDocumentUpload(com.apmosys.employeeportal.dto.TimesheetDTO timesheetDTO, 
+//                                     Timesheet newTimesheetCreated,
+//                                     MultipartFile file,
+//                                     boolean isFinal) throws IOException {
+//        log.debug("Handling document upload: timesheetId={}, isFinal={}", 
+//                newTimesheetCreated.getTimesheetId(), isFinal);
+//
+//        List<TimesheetDocumentDetailsDTO> documentList = timesheetDTO.getDocumentData().stream()
+//                .filter(doc -> Boolean.TRUE.equals(doc.getFinalFlag()) == isFinal)
+//                .collect(Collectors.toList());
+//
+//        List<TimesheetDocumentDetailsDTO> documentnotFinalList = timesheetDTO.getDocumentData().stream()
+//                .filter(doc -> Boolean.FALSE.equals(doc.getFinalFlag()) == isFinal)
+//                .collect(Collectors.toList());
+//
+//        if (documentList.size() != 1 && documentnotFinalList.size() != 1) {
+//            throw new IllegalArgumentException("Expected exactly one " + 
+//                    (isFinal ? "approved" : "unapproved") + " document.");
+//        }
+//        
+//        Long finalDocumentId = null;
+//        
+//        if (isFinal) {
+//            // Create FinalDocument and link to existing TimesheetDocumentDetails
+//            byte[] fileBytes = file.getBytes();
+//            String fileName = file.getOriginalFilename();
+//            String contentType = file.getContentType();
+//            
+//            FinalDocument finalDocument = new FinalDocument();
+//            finalDocument.setDocName(fileName);
+//            finalDocument.setDocData(fileBytes);
+//            finalDocument.setDocMimeType(contentType);
+//            finalDocument.setCreatedBy(timesheetDTO.getEmpId());
+//            finalDocument.setCreatedOn(LocalDateTime.now());
+//            finalDocument.setUpdatedBy(timesheetDTO.getEmpId());
+//            finalDocument.setUpdatedOn(LocalDateTime.now());
+//
+//            finalDocument = finalDocumentRepository.save(finalDocument);
+//            finalDocumentId = finalDocument.getDocId();
+//            
+//            // Update existing TimesheetDocumentDetails to link to FinalDocument
+//            TimesheetDocumentDetails existedDocDetails = 
+//                    timesheetDocumentDetailsRepository.findByTimesheetId(newTimesheetCreated.getTimesheetId());
+//            
+//            if (existedDocDetails == null) {
+//                throw new RuntimeException("Document was not saved.");
+//            }
+//            
+//            existedDocDetails.setFinalFlag(isFinal);
+//            existedDocDetails.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus().toLowerCase());
+//            existedDocDetails.setBulkApprovedDocId(finalDocumentId);
+//            timesheetDocumentDetailsRepository.save(existedDocDetails);
+//        } else {
+//            // Create new TimesheetDocumentDetails for non-final document
+//            TimesheetDocumentDetailsDTO documentDTO;
+//            if (documentList.size() != 1) {
+//                documentDTO = documentnotFinalList.get(0);
+//            } else {
+//                documentDTO = documentList.get(0);
+//            }
+//            
+//            TimesheetDocumentDetails docData = addTimesheetDocument(documentDTO, "Create", file);
+//            docData.setTimesheetId(newTimesheetCreated.getTimesheetId());
+//            docData.setEmpId(timesheetDTO.getEmpId());
+//            docData.setCreatedBy(timesheetDTO.getEmpId());
+//
+//            TimesheetDocumentDetails savedDoc = timesheetDocumentDetailsRepository.save(docData);
+//
+//            if (savedDoc == null) {
+//                throw new RuntimeException("Document was not saved.");
+//            }
+//        }
+//        
+//        log.debug("Document uploaded successfully: isFinal={}, finalDocumentId={}", isFinal, finalDocumentId);
+//    }
 
     /**
      * Creates or updates a timesheet document.
@@ -443,114 +440,114 @@ public class TimesheetDocumentService {
      * @return ServiceResponse
      * @throws Exception if operation fails
      */
-    @Transactional(rollbackFor = Exception.class)
-    public ServiceResponse replaceAllTemporaryFileWithFinalFile(
-            MultipartFile file, LocalDate fromDate, LocalDate toDate, Long empId) throws Exception {
-
-        ServiceResponse response = new ServiceResponse();
-
-        try {
-            /* =======================
-               BASIC VALIDATION
-            ======================= */
-            if (empId == null || fromDate == null || toDate == null || file == null || file.isEmpty()) {
-                throw new IllegalArgumentException("Required input(s) are missing or file is empty.");
-            }
-
-            /* =======================
-               FETCH TEMP DOCUMENTS
-            ======================= */
-            List<TimesheetDocumentDetails> tempDocs =
-                    timesheetDocumentDetailsRepository.getDocsByEmpAndDateRange(empId, fromDate, toDate);
-
-            if (tempDocs == null || tempDocs.isEmpty()) {
-                throw new IllegalStateException("No temporary documents found.");
-            }
-
-            /* =======================
-               CACHE TIMESHEETS
-            ======================= */
-            Set<Long> timesheetIds = tempDocs.stream()
-                    .map(TimesheetDocumentDetails::getTimesheetId)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
-
-            Map<Long, Timesheet> timesheetMap = timesheetIds.stream()
-                    .map(id -> timesheetsRepository.findById(id).orElse(null))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toMap(Timesheet::getTimesheetId, t -> t));
-
-            /* =======================
-               FILTER VALID TEMP DOCS
-            ======================= */
-            List<TimesheetDocumentDetails> validTempDocs =
-                    tempDocs.stream()
-                            .filter(doc -> {
-                                Timesheet ts = timesheetMap.get(doc.getTimesheetId());
-                                return ts != null
-                                        && ts.getDayType() != null
-                                        && ("Working".equalsIgnoreCase(ts.getDayType())
-                                        || "Non-Working".equalsIgnoreCase(ts.getDayType()));
-                            })
-                            .filter(doc ->
-                                    !(Boolean.TRUE.equals(doc.getFinalFlag())
-                                            && !"Rejected".equalsIgnoreCase(doc.getRmApprovalStatus())
-                                            && !"Rejected".equalsIgnoreCase(doc.getHrApprovalStatus()))
-                            )
-                            .collect(Collectors.toList());
-
-            if (validTempDocs.isEmpty()) {
-                throw new IllegalStateException("No eligible temporary documents found.");
-            }
-
-            /* =======================
-               SAVE FINAL DOCUMENT ONCE
-            ======================= */
-            FinalDocument finalDoc = new FinalDocument();
-            finalDoc.setDocName(file.getOriginalFilename());
-            finalDoc.setDocData(file.getBytes());
-            finalDoc.setDocMimeType(file.getContentType());
-            finalDoc.setCreatedOn(LocalDateTime.now());
-            FinalDocument savedFinalDoc = finalDocumentRepository.save(finalDoc);
-            Long finalDocId = savedFinalDoc.getDocId();
-
-            /* =======================
-               UPDATE TEMP DOCS + TIMESHEETS
-            ======================= */
-            for (TimesheetDocumentDetails tempDoc : validTempDocs) {
-                // Update temp document status
-                tempDoc.setClientApprovalStatus("approved");
-                tempDoc.setRmApprovalStatus("Pending");
-                tempDoc.setHrApprovalStatus("Pending");
-                tempDoc.setBulkApprovedDocId(finalDocId);
-                tempDoc.setFinalFlag(true);
-                
-                // Update timesheet status
-                Timesheet ts = timesheetMap.get(tempDoc.getTimesheetId());
-                if (ts != null) {
-                    ts.setStatus("Pending");
-                    ts.setClientApprovalStatus("approved");
-                    timesheetsRepository.save(ts);
-                }
-            }
-
-            /* =======================
-               BULK SAVE TEMP DOCS
-            ======================= */
-            timesheetDocumentDetailsRepository.saveAll(validTempDocs);
-
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse("Final document uploaded and mapped successfully.");
-
-        } catch (Exception e) {
-            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceResponse(e.getMessage());
-            response.setServiceError(e.getMessage());
-            throw e;
-        }
-
-        return response;
-    }
+//    @Transactional(rollbackFor = Exception.class)
+//    public ServiceResponse replaceAllTemporaryFileWithFinalFile(
+//            MultipartFile file, LocalDate fromDate, LocalDate toDate, Long empId) throws Exception {
+//
+//        ServiceResponse response = new ServiceResponse();
+//
+//        try {
+//            /* =======================
+//               BASIC VALIDATION
+//            ======================= */
+//            if (empId == null || fromDate == null || toDate == null || file == null || file.isEmpty()) {
+//                throw new IllegalArgumentException("Required input(s) are missing or file is empty.");
+//            }
+//
+//            /* =======================
+//               FETCH TEMP DOCUMENTS
+//            ======================= */
+//            List<TimesheetDocumentDetails> tempDocs =
+//                    timesheetDocumentDetailsRepository.getDocsByEmpAndDateRange(empId, fromDate, toDate);
+//
+//            if (tempDocs == null || tempDocs.isEmpty()) {
+//                throw new IllegalStateException("No temporary documents found.");
+//            }
+//
+//            /* =======================
+//               CACHE TIMESHEETS
+//            ======================= */
+//            Set<Long> timesheetIds = tempDocs.stream()
+//                    .map(TimesheetDocumentDetails::getTimesheetId)
+//                    .filter(Objects::nonNull)
+//                    .collect(Collectors.toSet());
+//
+//            Map<Long, Timesheet> timesheetMap = timesheetIds.stream()
+//                    .map(id -> timesheetsRepository.findById(id).orElse(null))
+//                    .filter(Objects::nonNull)
+//                    .collect(Collectors.toMap(Timesheet::getTimesheetId, t -> t));
+//
+//            /* =======================
+//               FILTER VALID TEMP DOCS
+//            ======================= */
+//            List<TimesheetDocumentDetails> validTempDocs =
+//                    tempDocs.stream()
+//                            .filter(doc -> {
+//                                Timesheet ts = timesheetMap.get(doc.getTimesheetId());
+//                                return ts != null
+//                                        && ts.getDayType() != null
+//                                        && ("Working".equalsIgnoreCase(ts.getDayType())
+//                                        || "Non-Working".equalsIgnoreCase(ts.getDayType()));
+//                            })
+//                            .filter(doc ->
+//                                    !(Boolean.TRUE.equals(doc.getFinalFlag())
+//                                            && !"Rejected".equalsIgnoreCase(doc.getRmApprovalStatus())
+//                                            && !"Rejected".equalsIgnoreCase(doc.getHrApprovalStatus()))
+//                            )
+//                            .collect(Collectors.toList());
+//
+//            if (validTempDocs.isEmpty()) {
+//                throw new IllegalStateException("No eligible temporary documents found.");
+//            }
+//
+//            /* =======================
+//               SAVE FINAL DOCUMENT ONCE
+//            ======================= */
+//            FinalDocument finalDoc = new FinalDocument();
+//            finalDoc.setDocName(file.getOriginalFilename());
+//            finalDoc.setDocData(file.getBytes());
+//            finalDoc.setDocMimeType(file.getContentType());
+//            finalDoc.setCreatedOn(LocalDateTime.now());
+//            FinalDocument savedFinalDoc = finalDocumentRepository.save(finalDoc);
+//            Long finalDocId = savedFinalDoc.getDocId();
+//
+//            /* =======================
+//               UPDATE TEMP DOCS + TIMESHEETS
+//            ======================= */
+//            for (TimesheetDocumentDetails tempDoc : validTempDocs) {
+//                // Update temp document status
+//                tempDoc.setClientApprovalStatus("approved");
+//                tempDoc.setRmApprovalStatus("Pending");
+//                tempDoc.setHrApprovalStatus("Pending");
+//                tempDoc.setBulkApprovedDocId(finalDocId);
+//                tempDoc.setFinalFlag(true);
+//                
+//                // Update timesheet status
+//                Timesheet ts = timesheetMap.get(tempDoc.getTimesheetId());
+//                if (ts != null) {
+//                    ts.setStatus("Pending");
+//                    ts.setClientApprovalStatus("approved");
+//                    timesheetsRepository.save(ts);
+//                }
+//            }
+//
+//            /* =======================
+//               BULK SAVE TEMP DOCS
+//            ======================= */
+//            timesheetDocumentDetailsRepository.saveAll(validTempDocs);
+//
+//            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//            response.setServiceResponse("Final document uploaded and mapped successfully.");
+//
+//        } catch (Exception e) {
+//            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//            response.setServiceResponse(e.getMessage());
+//            response.setServiceError(e.getMessage());
+//            throw e;
+//        }
+//
+//        return response;
+//    }
 
     /**
      * Gets all disabled dates for bulk document submit.

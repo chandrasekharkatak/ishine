@@ -1265,14 +1265,10 @@
                                             <div class="form-group">
                                                <label class="info-label"><span class="text-danger">*</span>{{
                                                     isUpdation ? 'New Default Project' : 'Default Project' }}</label>
-
-                                                <select class="form-control" aria-hidden="true"
-                                                    [(ngModel)]="employeeObj.defaultProjectId"
-                                                    (change)="onProjectChange($event)">
-                                                    <option selected="selected" value="" disabled>Select</option>
-                                                    <option *ngFor="let project of projectList"
-                                                        value="{{project.projectId}}">{{project.projectName}}</option>
-                                                </select>
+                                                <app-my-select #newDefaultProjectSelect class="form-control" placeholder="Select Project"
+                                                    [(ngModel)]="employeeObj.defaultProjectId" [options]="projectList" displayKey="projectName" valueKey="projectId"
+                                                    [multiple]="false" (change)="onProjectChange($event)">
+                                                </app-my-select>
                                             </div>
                                         </div>
                                     </div>
@@ -1284,16 +1280,11 @@
                                             <div class="form-group">
                                                  <label class="info-label"><span class="text-danger">*</span>{{
                                                     isUpdation ? 'New Default Team' : 'Default Team' }}</label>
-
                                                 <div class="d-flex align-items-center justify-content-between">
-                                                    <select class="form-control me-2" style="width: 75%;"
-                                                        [(ngModel)]="employeeObj.defaultTeamId"
-                                                        (click)="onTeamChange($event)">
-                                                        <option selected value="" disabled>Select</option>
-                                                        <option *ngFor="let team of teamList" [value]="team.teamId">
-                                                            {{ team.teamName }}
-                                                        </option>
-                                                    </select>
+                                                    <app-my-select #newDefaultProjectSelect class="form-control me-2" style="width: 75%;" placeholder="Select Team"
+                                                        [(ngModel)]="employeeObj.defaultTeamId" [options]="teamList" displayKey="teamName" valueKey="teamId"
+                                                        [multiple]="false" (change)="onTeamChange($event)">
+                                                    </app-my-select>
 
                                                     <!-- Shadow Resource Checkbox -->
                                                     <div class="form-check">
@@ -1312,63 +1303,82 @@
                                         </div>
                                     </div>
 
-
-                                    <!-- Resource Requirement Dropdown -->
-                                    <div class="col-md-4 mb-0" *ngIf="showResourceRequirementDropdown && (isCreation || this.employeeObj.isUpdateDefaultProject)">
-                                        <div class="info-wrapper">
-                                            <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Resource
-                                                    Requirement</label>
-                                                <select class="form-control"
-                                                    [(ngModel)]="employeeObj.selectedResourceOverviewId">
-                                                    <option value="" disabled selected>Select</option>
-                                                    <option *ngFor="let requirement of resourceRequirements"
-                                                        [value]="requirement.resourceOverviewId">
-                                                        Role - {{ requirement.role }} || Dept - {{
-                                                        requirement.department }} || Exp - {{ requirement.experience }}
-                                                    </option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                     <!-- added the PO requirement Mapping tab  -->
-                            <div class="col-md-4 mb-0" *ngIf="showTeamDropdown && !isUpdation">
-                                <div class="info-wrapper">
-                                    <div class="form-group">
-                                        <label class="info-label">
-                                            <span class="text-danger">*</span>PO Requirement
-                                        </label>
-                                        <select class="form-control" [(ngModel)]="employeeObj.poRequirementMappingId"
-                                            (change)="onPoRequirementChange()" [disabled]="poRequirementList.length === 0">
-                                            <option value="" disabled>
-                                                {{poRequirementList.length === 0 ? 'No PO Requirements Available' : 'Select PO Requirement'}}
-                                            </option>
-                                            <option *ngFor="let po of poRequirementList" [value]="po.poRequirementMappingId">
-                                                {{po.role}} - {{po.department}} ({{po.experience}})
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-
-
                                     <div class="col-md-4 mb-0" *ngIf="showEmployeeRoleDropdown && (isCreation || this.employeeObj.isUpdateDefaultProject)">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Employee
-                                                    Role</label>
-                                                <mat-select class="form-control" multiple
-                                                    [(ngModel)]="employeeObj.defaultTeamEmployeeRole">
-                                                    <mat-option selected="selected" value=""
-                                                        disabled>Select</mat-option>
-                                                    <mat-option *ngFor="let role of employeeRole"
-                                                        [value]="role">{{role}}</mat-option>
-                                                </mat-select>
+                                                <label class="info-label"><span class="text-danger">*</span>Employee Role</label>
+                                                 <app-my-select #newDefaultProjectEmployeeRoleSelect class="form-control" placeholder="Select Employee Role"
+                                                    [(ngModel)]="employeeObj.defaultTeamEmployeeRole" [options]="employeeRole"
+                                                    [multiple]="true">
+                                                </app-my-select>
                                             </div>
                                         </div>
                                     </div>
 
+                                    <!-- PO -->
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="showPoDropdown && (isCreation || this.employeeObj.isUpdateDefaultProject)">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>PO</label>
+                                                <app-my-select #newMemberPOSelect class="form-control" placeholder="Select PO"
+                                                    [(ngModel)]="employeeObj.poId" [options]="filteredPoDetailsList" displayKey="poNo" valueKey="poId"
+                                                    [multiple]="false" (change)="getResourceRequirementByPoId($event)" [showFilterAction]="true"
+                                                    [filterActionLabel]="poFilterActionLabel" (filterAction)="filterActivePoDetails()">
+                                                </app-my-select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Resource Requirement -->
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="showPoRoleDropdown && (isCreation || this.employeeObj.isUpdateDefaultProject)">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>PO Role</label>
+                                                <app-my-select #newMemberRequirementSelect class="form-control" placeholder="Select PO Role"
+                                                    [(ngModel)]="employeeObj.poRoleId" [options]="filteredActiveResourceRequirement"
+                                                    displayKey="displayRequirement" valueKey="roleId" [multiple]="false" [showFilterAction]="true"
+                                                    [filterActionLabel]="roleFilterActionLabel" (filterAction)="filterActiveResourceRequirement()">
+                                                </app-my-select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Current Project End Date -->
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="this.employeeObj.isUpdateDefaultProject">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger" *ngIf="defaultProjectUpdationProjectType == 'TNM'">*</span>Current Project Mapping End Date</label>
+                                                <div class="date-input-wrapper">
+                                                    <input class="form-control date-input" readonly [matDatepicker]="projectMappingEndDatepicker"
+                                                        [(ngModel)]="employeeObj.oldEtmEndDate"
+                                                        [disabled]="!employeeObj.empId" (click)="projectMappingEndDatepicker.open()" />
+                                                    <mat-icon class="calendar-icon" (click)="projectMappingEndDatepicker.open()">calendar_today</mat-icon>
+                                                    <mat-datepicker #projectMappingEndDatepicker></mat-datepicker>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- New Project Start Date -->
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="(isCreation || this.employeeObj.isUpdateDefaultProject)">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>New Project Mapping Start Date</label>
+                                                <div class="date-input-wrapper">
+                                                    <input class="form-control date-input" readonly [matDatepicker]="projectMappingStartDatepicker"
+                                                        (dateChange)="validateEmployeeProjectStartDate(alert_message)"
+                                                        [(ngModel)]="employeeObj.newEtmStartDate"
+                                                        [disabled]="this.employeeObj.isUpdateDefaultProject && !employeeObj.empId" (click)="projectMappingStartDatepicker.open()" />
+                                                    <mat-icon class="calendar-icon" (click)="projectMappingStartDatepicker.open()">calendar_today</mat-icon>
+                                                    <mat-datepicker #projectMappingStartDatepicker></mat-datepicker>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <div class="col-md-4 mb-0" *ngIf="!isCreation && employeeObj.defaultProjectName ">
                                         <div class="info-wrapper">

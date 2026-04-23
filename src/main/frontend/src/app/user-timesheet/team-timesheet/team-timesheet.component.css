@@ -2830,7 +2830,7 @@ th {
 
 .timesheet-table th:nth-child(4), /* Name */
 .timesheet-table td:nth-child(4) {
-  width: 150px;
+  width: 200px;
   min-width: 150px;
 }
 
@@ -2842,19 +2842,19 @@ th {
 
 .timesheet-table th:nth-child(6), /* Day Type */
 .timesheet-table td:nth-child(6) {
-  width: 100px;
+  width: 150px;
   min-width: 100px;
 }
 
 .timesheet-table th:nth-child(7), /* Work In */
 .timesheet-table td:nth-child(7) {
-  width: 85px;
+  width: 100px;
   min-width: 85px;
 }
 
 .timesheet-table th:nth-child(8), /* Work Out */
 .timesheet-table td:nth-child(8) {
-  width: 85px;
+  width: 100px;
   min-width: 85px;
 }
 
@@ -2874,7 +2874,7 @@ th {
 
 .timesheet-table th:nth-child(11), /* Applied By */
 .timesheet-table td:nth-child(11) {
-  width: 130px;
+  width: 200px;
   min-width: 130px;
 }
 
@@ -2884,8 +2884,15 @@ th {
   min-width: 120px;
 }
 
-.timesheet-table th:nth-child(13), /* Actions */
+.timesheet-table th:nth-child(13), /* Night Shift */
 .timesheet-table td:nth-child(13) {
+  width: 120px;
+  min-width: 100px;
+  white-space: nowrap;
+}
+
+.timesheet-table th:nth-child(14), /* Actions */
+.timesheet-table td:nth-child(14) {
   width: 150px;
   min-width: 150px;
   white-space: nowrap;
@@ -3575,6 +3582,10 @@ tr[app-column-filter-bar] th:nth-child(13) input, /* Actions */
 tr[app-column-filter-bar] td:nth-child(13) input {
   width: 80px;
 }
+tr[app-column-filter-bar] th:nth-child(14) input, /* Actions */
+tr[app-column-filter-bar] td:nth-child(14) input {
+  width: 80px;
+}
 
 /* Search button in actions column - if needed */
 tr[app-column-filter-bar] td:last-child button {
@@ -4109,7 +4120,102 @@ tr[app-column-filter-bar] .clear-filter:hover {
   padding: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   overflow: hidden;
+  margin-bottom: 2.5rem;
 }
+
+/* Team member bulk upload: aligned with request tab shell */
+.tm-bulk-upload-wrap {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.tm-bulk-upload-card {
+  margin-bottom: 2.5rem;
+}
+
+.tm-bulk-upload-card .form-control,
+.tm-bulk-upload-card ::ng-deep .custom-select-button,
+.tm-bulk-upload-card ::ng-deep .my-select-trigger {
+  min-height: 38px;
+}
+
+.tm-bulk-fields-row {
+  align-items: flex-start;
+}
+
+.tm-bulk-upload-card .form-group > .info-label {
+  display: block;
+  min-height: 22px;
+  margin-bottom: 0.4rem;
+}
+
+.tm-bulk-upload-card .info-wrapper {
+  width: 100%;
+}
+
+.tm-upload-action-row {
+  margin-top: 0.5rem;
+}
+
+.tm-upload-btn {
+  min-width: 140px;
+}
+
+/* Stable table spacing across Pending/Approved/Rejected */
+.timesheet-table.ts-data-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.timesheet-table.ts-data-table col.col-select { width: 56px; }
+.timesheet-table.ts-data-table col.col-sr { width: 70px; }
+.timesheet-table.ts-data-table col.col-emp-id { width: 120px; }
+.timesheet-table.ts-data-table col.col-name { width: 170px; }
+.timesheet-table.ts-data-table col.col-date { width: 110px; }
+.timesheet-table.ts-data-table col.col-day-type { width: 120px; }
+.timesheet-table.ts-data-table col.col-work-in,
+.timesheet-table.ts-data-table col.col-work-out { width: 100px; }
+.timesheet-table.ts-data-table col.col-location,
+.timesheet-table.ts-data-table col.col-projects { width: 95px; }
+.timesheet-table.ts-data-table col.col-applied-by { width: 150px; }
+.timesheet-table.ts-data-table col.col-applied-on { width: 135px; }
+.timesheet-table.ts-data-table col.col-night-shift { width: 110px; }
+.timesheet-table.ts-data-table col.col-actions { width: 140px; }
+
+.timesheet-table.ts-data-table thead th,
+.timesheet-table.ts-data-table tbody td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timesheet-table.ts-data-table thead th:first-child,
+.timesheet-table.ts-data-table tbody td:first-child {
+  text-align: center;
+}
+
+.timesheet-table.ts-data-table thead th input[type="checkbox"],
+.timesheet-table.ts-data-table tbody td input[type="checkbox"] {
+  margin: 0;
+  vertical-align: middle;
+}
+
+/* Class-based column sizing for Team Requests table
+   (prevents nth-child conflicts when status hides checkbox column) */
+.timesheet-table.ts-data-table .col-select { width: 56px !important; min-width: 56px !important; max-width: 56px !important; text-align: center !important; }
+.timesheet-table.ts-data-table .col-sr { width: 70px !important; min-width: 70px !important; max-width: 70px !important; text-align: center !important; }
+.timesheet-table.ts-data-table .col-emp-id { width: 120px !important; min-width: 120px !important; }
+.timesheet-table.ts-data-table .col-name { width: 170px !important; min-width: 170px !important; }
+.timesheet-table.ts-data-table .col-date { width: 110px !important; min-width: 110px !important; }
+.timesheet-table.ts-data-table .col-day-type { width: 120px !important; min-width: 120px !important; }
+.timesheet-table.ts-data-table .col-work-in,
+.timesheet-table.ts-data-table .col-work-out { width: 100px !important; min-width: 100px !important; }
+.timesheet-table.ts-data-table .col-location,
+.timesheet-table.ts-data-table .col-projects { width: 95px !important; min-width: 95px !important; text-align: center !important; }
+.timesheet-table.ts-data-table .col-applied-by { width: 150px !important; min-width: 150px !important; }
+.timesheet-table.ts-data-table .col-applied-on { width: 135px !important; min-width: 135px !important; }
+.timesheet-table.ts-data-table .col-night-shift { width: 110px !important; min-width: 110px !important; text-align: center !important; }
+.timesheet-table.ts-data-table .col-actions { width: 140px !important; min-width: 140px !important; max-width: 140px !important; text-align: center !important; white-space: nowrap !important; }
 
 /* Table header – enterprise */
 .timesheet-table.ts-data-table .ts-thead tr:first-child th {
@@ -4778,6 +4884,14 @@ tr[app-column-filter-bar] .clear-filter:hover {
   cursor: grab;
 }
 
+.night-shift-row {
+  background-color: rgba(0, 123, 255, 0.08); /* subtle blue highlight */
+}
+
+.night-shift-row:hover {
+  background-color: rgba(0, 123, 255, 0.15);
+}
+
 
 /* =========================
    Modal Shell
@@ -5266,4 +5380,96 @@ tr[app-column-filter-bar] .clear-filter:hover {
   width: 100%;
   height: 100%;
   border: none;
+}
+
+/* HEADER */
+.enterprise-header {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px 20px;
+}
+
+.header-icon {
+  font-size: 20px;
+  color: #f59e0b;
+  margin-right: 10px;
+}
+
+.custom-close {
+  font-size: 20px;
+  opacity: 0.6;
+}
+
+/* BODY */
+.enterprise-body {
+  padding: 20px;
+  background: #f9fafb;
+}
+
+/* EMPTY STATE */
+.empty-state i {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.empty-state p {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* TABLE CARD */
+.table-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 15px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.table-header h6 {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* TABLE */
+.enterprise-table {
+  margin-bottom: 0;
+  max-height: 500px;
+  overflow: scroll;
+}
+
+.enterprise-table thead {
+  background: #f1f5f9;
+}
+
+.enterprise-table th {
+  font-weight: 600;
+  color: #374151;
+}
+
+.enterprise-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* BADGE */
+.badge-danger-soft {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+/* FOOTER */
+.enterprise-footer {
+  border-top: 1px solid #e5e7eb;
+  padding: 10px 20px;
+  background: #fff;
 }

@@ -44,6 +44,7 @@ export interface TimesheetValidationContext {
   apmosysInTime: string | null;
   apmosysOutTime: string | null;
   totalPresence: number;
+  compOffForDate: string | null; // DD-MM-YYYY format
   
   // Employee Information
   timesheetAppliedFor: string; // 'self' | 'team'
@@ -191,7 +192,15 @@ export class TimesheetValidationService {
       return { isValid: false, errors, warnings };
     }
 
-    // 8. Time validations for fillable day types
+    // 8. Comp off for date validation
+    if(context.dayType == 9){
+      if(context.compOffForDate == null || context.compOffForDate == ''){
+        errors.push({ field: 'compOffForDate', message: 'Comp Off for date is required for Comp Off day type timesheets', scope: 'TIMESHEET' });
+      return { isValid: false, errors, warnings };
+      }
+    }
+
+    // 9. Time validations for fillable day types
     if (isDayTypeFillable) {
       if (!context.apmosysInTime) {
         errors.push({ field: 'apmosysInTime', message: 'Work check in time must be filled', scope: 'TIMESHEET' });
@@ -385,6 +394,26 @@ export class TimesheetValidationService {
             locationId
           }, locationId);
         }
+        if(project.isShadowRequired == 1 && project.isShadowTimesheet== false && project.isShadowForSelf == false){
+          return fail({
+            field: 'projectId',
+            message: `Project ${pIndex + 1} requires Shadow timesheet for ${locLabel}`,
+            scope: 'PROJECT',
+            locationIndex: lIndex,
+            projectIndex: pIndex,
+            locationId
+          }, locationId);
+        }
+        if(project.isShadowTimesheet== true && project.shadowEmpId == null){
+           return fail({
+            field: 'projectId',
+            message: `Project ${pIndex + 1} requires Employee to be selected in case of Shadow timesheet for ${locLabel}`,
+            scope: 'PROJECT',
+            locationIndex: lIndex,
+            projectIndex: pIndex,
+            locationId
+          }, locationId);
+        }
         if (!project.clientId) {
           console.log('clientId value:', project.clientId);
           console.log('clientId type:', typeof project.clientId);
@@ -408,7 +437,7 @@ export class TimesheetValidationService {
             locationId
           }, locationId);
         }
-        if (project.clientSideId && isDayTypeFillable && project.hasClientSideId && !project.isShadowTimesheet && !project.isShadowForSelf && !project.clientApprovalStatus) {
+        if (project.clientSideId && isDayTypeFillable && project.hasClientSideId && !project.isShadowForSelf && !project.clientApprovalStatus) {
           console.log("Project with clientSideId but missing clientApprovalStatus:", project);
           console.log("project.clientSideId:", project.clientSideId, ", isDayTypeFillable:", isDayTypeFillable, ", project.isShadowForSelf:", project.isShadowForSelf, ", project.clientApprovalStatus:", project.clientApprovalStatus);
           return fail({
@@ -639,11 +668,11 @@ export class TimesheetValidationService {
 
     for (const project of context.uniqueProjectsList) {
       // Skip when Shadow for self (client approval status and documents not required)
-      if (project.isShadowForSelf) continue;
+      if (project.isShadowForSelf && project.clientApprovalStatus !== 1 && project.clientApprovalStatus !== 2) continue;
       // Only validate for approved (2) or pending (1) projects
-      if (project.clientApprovalStatus !== 1 && project.clientApprovalStatus !== 2) {
-        continue;
-      }
+      // if (project.isShadowTimesheet && project.clientApprovalStatus !== 1 && project.clientApprovalStatus !== 2) {
+      //   continue;
+      // }
 
       const projectDocs = context.documentData.filter(
         d => d.projectId === project.projectId

@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -28,7 +29,7 @@ public class FinalDocumentNew {
     private Long createdBy;
 
     @CreationTimestamp
-    @Column(name = "created_on")
+    @Column(name = "created_on", updatable = false)
     private LocalDateTime createdOn;
 
     @Column(name = "file_url")
@@ -46,7 +47,7 @@ public class FinalDocumentNew {
     @Column(name = "updated_by")
     private Long updatedBy;
 
-    @UpdateTimestamp
+    
     @Column(name = "updated_on")
     private LocalDateTime updatedOn;
     
@@ -54,4 +55,9 @@ public class FinalDocumentNew {
     @Column(name = "prev_doc_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long prevDocId;
+
+     @PreUpdate
+    public void onUpdate() {
+        this.updatedOn = LocalDateTime.now();
+    }
 }

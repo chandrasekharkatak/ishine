@@ -173,7 +173,17 @@
                                 </app-date-time-picker>
                             </div>
                         </div>
-                
+                        <div class="form-field-v2 field-date" *ngIf="dayType == 9">
+                            <label class="form-label-v2">
+                                <span class="required-mark">*</span> Comp-Off for
+                            </label>
+                            <div class="field-input-wrapper">
+                                <app-date-time-picker mode="date" [required]="true" [(ngModel)]="compOffForDate"
+                                    [disabled]="!dayType"
+                                    [minDate]="minDateForCompOffPicker" [maxDate]="fromDate" [disabledDates]="disabledDateForCompOffDate">
+                                </app-date-time-picker>
+                            </div>
+                        </div>
                         <!-- Night Shift Toggle -->
                         <div class="form-field-v2 field-night-shift" *ngIf="isDayTypeFillable() && fromDate">
                             <label class="form-label-v2">
@@ -449,7 +459,7 @@
                                                 </div>
                                                 <!-- Shadow For (Show when shadow is enabled; in update mode show when project was saved as shadow) -->
                                                 <div class="col-md-3 mb-3"
-                                                    *ngIf="project.isShadowTimesheet && !project.isShadowForSelf && isDayTypeFillable() && project.projectId && project.hasClientSideId">
+                                                    *ngIf="project.isShadowTimesheet && !project.isShadowForSelf && isDayTypeFillable() && project.projectId && project.hasClientSideId && project.isShadowRequired == 1">
                                                     <label class="info-label">
                                                         <span class="text-danger">*</span> Shadow For
                                                     </label>
@@ -462,7 +472,7 @@
                                                 </div>
                                                 <!-- Shadow Timesheet Toggle (show when no clientSideId, or in update mode when project is shadow so choice is visible) -->
                                                 <div class="col-md-3 mb-3"
-                                                    *ngIf="(!project.isShadowForSelf && isDayTypeFillable() && project.projectId && project.hasClientSideId) || (isUpdation && project.isShadowTimesheet && !project.isShadowForSelf && project.hasClientSideId)">
+                                                    *ngIf="((!project.isShadowForSelf && isDayTypeFillable() && project.projectId && project.hasClientSideId) || (isUpdation && project.isShadowTimesheet && !project.isShadowForSelf && project.hasClientSideId)) && project.isShadowRequired == 1">
                                                     <label class="info-label d-block">
                                                         <span class="text-danger">*</span> Shadow Timesheet
                                                     </label>
@@ -490,7 +500,7 @@
 
                                                 <!-- Shadow For Self (show when no clientSideId, or in update mode when project is shadow-for-self so choice is visible) -->
                                                 <div class="col-md-3 mb-3"
-                                                    *ngIf="(!project.isShadowTimesheet && isDayTypeFillable() && project.projectId && project.hasClientSideId)  || (isUpdation && project.isShadowForSelf && project.hasClientSideId)">
+                                                    *ngIf="((!project.isShadowTimesheet && isDayTypeFillable() && project.projectId && project.hasClientSideId)  || (isUpdation && project.isShadowForSelf && project.hasClientSideId)) && project.isShadowRequired == 1">
                                                     <label class="info-label d-block"><span
                                                             class="text-danger">*</span>Shadow For Self</label>
 
@@ -546,7 +556,7 @@
                                                 <div class="col-md-4 mb-3"
                                                     *ngIf="( project.hasClientSideId ?? false) && project.clientId && project.clientLocationId && isDayTypeFillable()">
                                                     <label class="info-label">
-                                                        <span class="text-danger" *ngIf="!project.isShadowTimesheet && !project.isShadowForSelf">*</span> Client DSR Approval Status
+                                                        <span class="text-danger" *ngIf="!project.isShadowForSelf">*</span> Client DSR Approval Status
                                                     </label>
                                                     <app-my-select class="form-control"
                                                         placeholder="Select Approval Status"
@@ -894,10 +904,10 @@
 <ng-template #night_shift_template>
     <div class="modal-body text-center">
         <p>{{ alertMessage }}</p>
-        <button type="button" class="btn btn-success me-2 gap-3" (click)="confirmNightShift()">
+        <button type="button" class="btn btn-success ml-2 gap-3" (click)="confirmNightShift()">
             Yes, proceed
         </button>
-        <button type="button" class="btn btn-danger" (click)="cancelNightShift()">
+        <button type="button" class="btn btn-danger ml-2" (click)="cancelNightShift()">
             No, cancel
         </button>
     </div>
@@ -916,7 +926,7 @@
 <ng-template #alert_message_for_holiday_create>
     <div class="modal-body text-center">
         <p>{{ alertMessage }}</p>
-        <button type="button" class="btn btn-primary ml-2" (click)="closeAlertMessageForHolidayCreate()">
+        <button type="button" class="btn btn-primary ml-2" (click)="alertMessageForHolidayCreateModalRef.close()">
             Cancel
         </button>
         <button type="button" class="btn btn-primary ml-2" (click)="closeAlertMessageForHolidayCreate()">
@@ -1003,7 +1013,7 @@
                             </label>
                             <input class="form-control" autocomplete="none" disabled
                                 [value]="empClientSideObj.projectName" />
-                            <span *ngIf="empClientSideObj.hasClientSideId" class="text-danger small mt-1">**If you do
+                            <span *ngIf="empClientSideObj.hasClientSideId && !empClientSideObj.hasClientSideFlag" class="text-danger small mt-1">**If you do
                                 not have a Client Side ID, please follow the
                                 given format.</span>
                         </div>

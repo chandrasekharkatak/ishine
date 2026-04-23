@@ -2050,100 +2050,156 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
 
 
-    <ng-template #milestoneDetailModal>
-        <div class="modal-header border-bottom">
-            <h5 class="modal-title fw-semibold">Milestone Details</h5>
+<ng-template #milestoneDetailModal>
+  <div class="modal-header" style="background: #1a3d8f; padding: 14px 20px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,0.15);
+           display: flex; align-items: center; justify-content: center;">
+        <i class="fa fa-tasks" style="color: white; font-size: 13px;"></i>
+      </div>
+      <h5 class="modal-title fw-semibold" style="color: white; margin: 0;">Milestone details</h5>
+    </div>
+    <button type="button" class="btn-close btn-close-white"
+      (click)="closeMilestoneDetailModal()"></button>
+  </div>
+
+  <form [formGroup]="milestoneForm" (ngSubmit)="updateMilestoneExtendedDateWithReason()">
+    <div class="modal-body" style="padding: 20px; background: var(--bs-light, #f8f9fa);">
+
+      <!-- Project Info Section -->
+      <div class="milestone-section">
+        <p class="section-tag">Project info</p>
+        <div class="row g-2">
+          <div class="col-md-6">
+            <label class="field-label">Project name</label>
+            <input type="text" class="milestone-readonly" formControlName="projectName" readonly>
+          </div>
+          <div class="col-md-6">
+            <label class="field-label">Line item</label>
+            <input type="text" class="milestone-readonly" formControlName="lineItemName" readonly>
+          </div>
+          <div class="col-md-6">
+            <label class="field-label mt-3">Milestone name</label>
+            <input type="text" class="milestone-readonly" formControlName="name" readonly>
+          </div>
+          <div class="col-md-6">
+            <label class="field-label mt-3">Status</label>
+            <div class="milestone-readonly d-flex align-items-center gap-2">
+              <span class="status-dot mr-2"></span>
+              <span>{{ milestoneForm.get('status')?.value }}</span>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <form [formGroup]="milestoneForm" (ngSubmit)="updateMilestoneExtendedDateWithReason()">
-            <div class="modal-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Project Name</label>
-                        <input type="text" class="form-control form-control-sm border-primary rounded"
-                            formControlName="projectName" readonly>
-                    </div>
+      <!-- Timeline Section -->
+      <div class="milestone-section mt-3">
+        <p class="section-tag">Timeline</p>
+        <div class="row g-2">
+          <div class="col-md-4">
+            <label class="field-label">Start date</label>
+            <input type="text" class="milestone-readonly" formControlName="startDate" readonly>
+          </div>
+          <div class="col-md-4">
+            <label class="field-label">End date</label>
+            <input type="text" class="milestone-readonly" formControlName="endDate" readonly>
+          </div>
+          <div class="col-md-4">
+            <label class="field-label">Extend End Date <span class="text-danger">*</span>
+                <mat-icon matTooltip="You may select any date after the Start Date.
+                1. Select a date before the End Date to close the milestone earlier.
+                2. Select a date after the End Date to extend the milestone duration."
+                  matTooltipPosition="right" matTooltipClass="milestone-tooltip" class="info-icon mr-2"> info 
+                </mat-icon>
+            </label>
+            <mat-form-field appearance="outline" class="w-100 milestone-datepicker">
+              <input matInput [matDatepicker]="extendedDatePicker"
+                formControlName="extendedDate"
+                placeholder="Select date"
+                autocomplete="off"
+                [min]="minExtendedDateformilestone" (dateChange)="onExtendedDateChange($event)"
+                [disabled]="!milestoneForm.get('endDate')?.value" />
+              <mat-datepicker-toggle matSuffix [for]="extendedDatePicker">
+              </mat-datepicker-toggle>
+              <mat-datepicker #extendedDatePicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Line Item</label>
-                        <input type="text" class="form-control form-control-sm border-primary rounded"
-                            formControlName="lineItemName" readonly>
-                    </div>
+      <!-- Extension Details Section -->
+      <div class="milestone-section mt-3" *ngIf="isExtensionEnabled">
+        <p class="section-tag">Extension details</p>
+        <div class="row g-2 align-items-start">
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Milestone Name</label>
-                        <input type="text" class="form-control form-control-sm border-primary rounded"
-                            formControlName="name" readonly>
-                    </div>
+          <!-- Reason + Custom Reason stacked in left col -->
+          <div class="col-md-6">
+            <label class="field-label">
+              Reason <span class="text-danger">*</span>
+            </label>
+            <select class="milestone-select"
+              formControlName="extensionReasonId"
+              (change)="onReasonChange($event)">
+              <option [ngValue]="null" disabled>Select reason</option>
+              <option *ngFor="let reason of milestoneExtendReason" [value]="reason.id">
+                {{ reason.milestoneExtensionReason }}
+              </option>
+            </select>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Start Date</label>
-                        <input type="text" class="form-control form-control-sm border-primary rounded"
-                            formControlName="startDate" readonly>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">End Date</label>
-                        <input type="text" class="form-control form-control-sm border-primary rounded"
-                            formControlName="endDate" readonly>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Status</label>
-                        <input type="text" class="form-control form-control-sm border-primary rounded"
-                            formControlName="status" readonly>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Extended Date<span
-                                class="required-asterisk">*</span></label>
-                        <!-- <input class="form-control form-control-sm border-primary rounded" autocomplete="off"
-                            [formControl]="$any(milestoneForm.get('extendedDate'))"
-                            [owlDateTimeTrigger]="extendedDatePicker" [owlDateTime]="extendedDatePicker" [min]="minExtendedDateformilestone"    [disabled]="!milestoneForm.get('endDate').value"
-                            placeholder="Select Extended Date" />
-                        <owl-date-time #extendedDatePicker [pickerType]="'calendar'"></owl-date-time> -->
-                        <mat-form-field appearance="outline" class="w-100">
-                            <mat-label>Extended Date <span class="required-asterisk">*</span></mat-label>
-                            <input matInput [matDatepicker]="extendedDatePicker" formControlName="extendedDate"
-                                placeholder="Select Extended Date" autocomplete="off"
-                                [min]="minExtendedDateformilestone" [disabled]="!milestoneForm.get('endDate')?.value"
-                                class="form-control-sm border-primary rounded" />
-                            <mat-datepicker-toggle matSuffix [for]="extendedDatePicker"></mat-datepicker-toggle>
-                            <mat-datepicker #extendedDatePicker></mat-datepicker>
-                        </mat-form-field>
-
-                    </div>
-
-
-                    <div class="col-md-6">
-                        <label for="extensionReasonId">Reason<span class="required-asterisk">*</span></label>
-                        <select class="form-control form-control-sm border-primary rounded" id="extensionReasonId"
-                            formControlName="extensionReasonId" (change)="onReasonChange($event)">
-                            <option [ngValue]="null" disabled>Select Reason</option>
-                            <option *ngFor="let reason of milestoneExtendReason" [value]="reason.id">
-                                {{ reason.milestoneExtensionReason }}
-                            </option>
-                        </select>
-                    </div>
-
-
-                    <!-- Conditional Text Field -->
-                    <div class="col-md-12" *ngIf="isOtherReasonSelected">
-                        <label class="form-label fw-semibold">Enter Custom Reason</label>
-                        <textarea class="form-control form-control-sm border-primary rounded"
-                            formControlName="customReason" placeholder="Specify your reason" rows="3"></textarea>
-                    </div>
-
-
-                </div>
+            <div *ngIf="isOtherReasonSelected" class="mt-2">
+              <label class="field-label">
+                Custom reason <span class="text-danger">*</span>
+              </label>
+              <textarea class="milestone-textarea"
+                formControlName="customReason"
+                placeholder="Specify your reason..."
+                rows="3"></textarea>
             </div>
+          </div>
 
-            <div class="modal-footer border-top mt-3">
-                <button type="button" class="btn btn-secondary" (click)="closeMilestoneDetailModal()">Close</button>
-                <button type="submit" class="btn btn-primary">Submit</button>
+          <!-- Upload in right col -->
+          <div class="col-md-6">
+            <label class="field-label">Upload document</label>
+            <label class="milestone-dropzone" [class.has-file]="previewUrlForMileStone">
+              <input type="file" style="position:absolute;inset:0;opacity:0;cursor:pointer;"
+                (change)="onFileSelected($event)" />
+              <div *ngIf="!previewUrlForMileStone" class="dropzone-idle">
+                <i class="fa fa-cloud-upload" style="font-size: 22px; color: #1a3d8f; opacity: 0.6;"></i>
+                <p style="margin: 4px 0 0; font-size: 13px; color: #555;">
+                  Drop file here or <span style="color: #1a3d8f; font-weight: 500;">browse</span>
+                </p>
+                <p style="margin: 2px 0 0; font-size: 11px; color: #999; text-transform: uppercase;">
+                  JPG · PNG · PDF
+                </p>
+              </div>
+              <div *ngIf="previewUrlForMileStone" class="dropzone-selected">
+                <i class="fa fa-file-alt" style="font-size: 18px; color: #1a3d8f;"></i>
+                <span class="dropzone-filename">{{documentName}}</span>
+              </div>
+            </label>
+            <div class="dropzone-actions" *ngIf="previewUrlForMileStone">
+              <button type="button" class="dz-btn dz-preview" (click)="previewExtensionFile()">
+                <i class="fa fa-eye"></i> Preview
+              </button>
+             <button type="button" class="dz-btn dz-clear" (click)="resetFileData()">
+                <i class="fa fa-trash"></i><span>Clear</span>
+            </button>
             </div>
-        </form>
-    </ng-template>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer" style="background: #f8f9fa; border-top: 1px solid #dee2e6;">
+      <button type="button" class="btn btn-outline-secondary btn-sm px-4"
+        (click)="closeMilestoneDetailModal()">Cancel</button>
+      <button type="submit" class="btn btn-sm px-4"
+        style="background: #1a3d8f; color: white; border: none;">Submit</button>
+    </div>
+  </form>
+</ng-template>
 
 
 
@@ -2261,4 +2317,29 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
             </div>
         </div>
     </ng-template>
+
+<ng-template #project_milestone_document>
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"> Document Preview</h5>
+                    <button type="button" class="close" aria-label="Close"
+                            (click)="closeProjectMilestoneDocumentsModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div *ngIf="previewUrlForMileStone">
+                        <iframe [src]="previewUrlForMileStone" width="100%" height="600px"></iframe>
+                    </div>
+                    <div *ngIf="!previewUrlForMileStone">
+                        <p>No document available for this milestone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
 

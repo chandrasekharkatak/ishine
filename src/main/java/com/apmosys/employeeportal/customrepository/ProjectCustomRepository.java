@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.customrepository;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectManagersDTO;
 import com.apmosys.employeeportal.dto.ProjectOverheadsDTO;
 import com.apmosys.employeeportal.dto.RMGDashboardProjectRequest;
+import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
 
@@ -81,6 +83,8 @@ public class ProjectCustomRepository {
 
         String query = getQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
                 projectStatus, false, projectNames);
+        
+        System.err.println(query);
 
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page,
@@ -110,6 +114,8 @@ public class ProjectCustomRepository {
 
         String query = getAllProjectsQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
                 projectNames);
+        
+        System.err.println(query.toString());
 
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
@@ -140,6 +146,8 @@ public class ProjectCustomRepository {
 
         String query = getFCProjectQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
                 rmgDashboardProjectRequest.getFixedCostFilter(), projectNames);
+        
+        System.err.println(query);
 
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
@@ -170,6 +178,8 @@ public class ProjectCustomRepository {
 
         String query = getOverboardedAndUnderboardedProjectQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy,
                 sortDirection, projectNames, projectStatus);
+        
+        System.err.println(query);
 
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
@@ -219,6 +229,8 @@ public class ProjectCustomRepository {
 
         String query = getQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy,
                 sortDirection, projectStatus, addStartAndEndDate, projectNames);
+        
+        System.err.println(query);
 
         final String sDate = startDate;
         final String eDate = endDate;
@@ -251,6 +263,8 @@ public class ProjectCustomRepository {
         boolean isProjectId = !"ADMIN".equals(req.getCurrentUserType());
         String dbProjectStatus = getDBProjectStatus(projectStatus);
         String query = buildQueryForMode(req, sortBy, sortDirection, projectStatus, projectNames);
+        
+        System.err.println(query);
 
         CompletableFuture<Long> countFuture;
         CompletableFuture<List<ProjectFetchDTO>> listFuture;
@@ -522,8 +536,8 @@ public class ProjectCustomRepository {
         StringBuilder query = new StringBuilder(projectDetailsStartQuery);
         StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" ) as T1");
 
-        query.append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
-                .append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n")
+        query.append(" LEFT JOIN teams t ON p.project_id = t.project_id AND t.is_active != 'N' \n")
+                .append(" LEFT JOIN employee_team_mapping etm ON t.team_id = etm.team_id AND ((etm.active = 0 AND DATE(etm.start_date) > CURDATE()) OR etm.active != 0) \n")
                 .append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
                 .append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds \n")
                 .append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id \n")
@@ -531,11 +545,13 @@ public class ProjectCustomRepository {
                 .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
                 .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1  \n")
                 .append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n")
-                .append(" WHERE 1=1 \n")
-                .append(" AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' \n");
-
+                .append(" WHERE 1=1 \n");
+        
+        if(!projectStatus.equals("ALL_TNM") ){
+            query.append("  AND p.active != 'false' \n");
+        }
         if (projectStatus.equals("TOTAL_ACTIVE_TNM") || projectStatus.equals("TOTAL_EXPIRED_TNM")
-                || projectStatus.equals("TOTAL_TNM")) {
+                || projectStatus.equals("TOTAL_TNM") || projectStatus.equals("ALL_TNM")) {
             query.append(" AND po_project_type = 'TNM' \n");
         }
         
@@ -568,8 +584,8 @@ public class ProjectCustomRepository {
 		StringBuilder query1 = new StringBuilder(projectDetailsStartQuery); // Pending for Approval
 		StringBuilder query2 = new StringBuilder(projectDetailsStartQuery); // Not Started
 		StringBuilder query3 = new StringBuilder(projectDetailsStartQuery); // Rejected
-		StringBuilder query4 = new StringBuilder(projectDetailsStartQuery); // Offboarded 
-		StringBuilder query5 = new StringBuilder(projectDetailsStartQuery); // Scheduled
+		StringBuilder query4 = new StringBuilder(projectDetailsStartQuery); // OffBoarded
+//		StringBuilder query5 = new StringBuilder(projectDetailsStartQuery); // Scheduled
 		StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" )");
 
 		StringBuilder queryJoins = new StringBuilder();
@@ -603,11 +619,12 @@ public class ProjectCustomRepository {
 			  .append(" WHERE 1=1 \n")
 			  .append(getOffBoardedProjectsCondition());
 		
-		query5.append(" INNER JOIN teams t ON p.project_id = t.project_id  \n")
-			  .append(" INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id  \n")
-			  .append(queryJoins)
-			  .append(" WHERE 1=1 \n")
-		      .append(getScheduledProjectsCondition());
+		
+//		query5.append(" INNER JOIN teams t ON p.project_id = t.project_id  \n")
+//			  .append(" INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id  \n")
+//			  .append(queryJoins)
+//			  .append(" WHERE 1=1 \n")
+//		      .append(getScheduledProjectsCondition());
 		
 		if (projectNames != null && !projectNames.isEmpty()) {
 			query.append(" AND p.project_name IN (:projectNames) \n");
@@ -615,14 +632,14 @@ public class ProjectCustomRepository {
 			query2.append(" AND p.project_name IN (:projectNames) \n");
 			query3.append(" AND p.project_name IN (:projectNames) \n");
 			query4.append(" AND p.project_name IN (:projectNames) \n");
-			query5.append(" AND p.project_name IN (:projectNames) \n");
+//			query5.append(" AND p.project_name IN (:projectNames) \n");
 		}
 		query.append(groupQuery);
 		query1.append(groupQuery);
 		query2.append(groupQuery);
 		query3.append(groupQuery);
 		query4.append(groupQuery);
-		query5.append(groupQuery);
+//		query5.append(groupQuery);
 
 		query.append(" UNION ALL \n")
 			 .append(query1)
@@ -632,8 +649,8 @@ public class ProjectCustomRepository {
 			 .append(query3)
 			 .append(" UNION ALL \n")
 			 .append(query4)
-			 .append(" UNION ALL \n")
-			 .append(query5)
+//			 .append(" UNION ALL \n")
+//			 .append(query5)
 			 .append(" ) as T1");
 
 		appenCustomSearchToQuery(projectFilter, query);
@@ -679,6 +696,7 @@ public class ProjectCustomRepository {
 				.append("INNER JOIN project_po_details ppd3 ON ppd3.project_id = p3.project_id AND DATE(ppd3.po_start_date) <= CURDATE() AND (ppd3.po_end_date IS NULL OR DATE(ppd3.po_end_date) >= CURDATE()) AND ppd3.active  = 1 \n")
 				.append("INNER JOIN employee e3 ON etm2.emp_id = e3.emp_id  \n")
 				.append("WHERE 1=1 \n")
+                .append("AND DATE(etm2.start_date) <= CURDATE() \n")
 				.append("AND etm2.active != 0 AND e3.employmentstatus != 'InActive' \n")
 				.append("AND t3.is_active != 'N' AND p3.po_project_type = 'TNM'  \n")
 				.append("AND p3.active != 'false' \n")
@@ -792,46 +810,44 @@ public class ProjectCustomRepository {
     }
     
     private String getFCProjectQuery(Map<String, String> projectFilter, String sortBy,
-            String sortDirection, String fixedCostFilter, List<String> projectNames) {
-        StringBuilder query = new StringBuilder(projectDetailsStartQuery);
-        StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" ) as T1");
-		query.append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
-				.append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n")
-				.append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
-				.append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds \n")
+			String sortDirection, String fixedCostFilter, List<String> projectNames) {
+		StringBuilder query = new StringBuilder(projectDetailsStartQuery);
+		StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" ) as T1");
+
+		query.append(" INNER JOIN project_po_details ppd ON ppd.project_id = p.project_id AND ppd.active  = 1 \n");
+		query.append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds \n")
+				.append(" LEFT JOIN teams t ON p.project_id = t.project_id AND t.is_active != 'N' \n")
+				.append(" LEFT JOIN employee_team_mapping etm ON t.team_id = etm.team_id AND ((etm.active = 0 AND DATE(etm.start_date) > CURDATE()) OR etm.active != 0) \n")
 				.append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1 \n")
 				.append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n")
 				.append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id \n")
 				.append(" LEFT JOIN clients c ON p.client_id = c.client_id \n")
-				.append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n") 
-				.append(" WHERE 1=1 \n")
-                .append(" AND po_project_type = 'Fixed Cost' \n")
-                .append(" AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' \n");
+				.append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
+				.append(" WHERE 1=1 \n").append(" AND po_project_type = 'Fixed Cost' AND p.active = 'true' \n");
 
-        if (fixedCostFilter != null) {
-			if (fixedCostFilter.equals("defaulter")) {
-				query.append(" AND EXISTS (SELECT 1 FROM employee_team_mapping etm2 INNER JOIN teams t2 ON t2.team_id = etm2.team_id WHERE ppd.po_id = etm2.po_id AND etm2.active != 0 AND ((etm2.end_date IS NULL AND DATE(ppd.po_end_date) < CURDATE()) OR DATE(ppd.po_end_date) < DATE(etm2.end_date)) AND t2.is_active = 'Y' ) \n");
+		if (fixedCostFilter != null) {
+			if (fixedCostFilter.equals("ontime")) {
+				query.append(" AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURDATE()) \n");
+			} else if (fixedCostFilter.equals("defaulter")) {
+				query.append(" AND DATE(ppd.po_end_date) < CURDATE() \n");
 			}
-			else if (fixedCostFilter.equals("ontime")) {
-				query.append(" AND EXISTS (SELECT 1 FROM employee_team_mapping etm2 INNER JOIN teams t2 ON t2.team_id = etm2.team_id WHERE ppd.po_id = etm2.po_id AND ((etm2.end_date IS NULL AND DATE(ppd.po_end_date) >= CURDATE()) OR DATE(etm2.end_date) BETWEEN DATE(ppd.po_start_date) AND DATE(ppd.po_end_date)) AND t2.is_active = 'Y' ) \n");
-			}
-        }
+		}
 
-        if (projectNames != null && !projectNames.isEmpty()) {
-            query.append(" AND p.project_name IN (:projectNames)\n");
-        }
+		if (projectNames != null && !projectNames.isEmpty()) {
+			query.append(" AND p.project_name IN (:projectNames)\n");
+		}
 
-        query.append(groupQuery);
-        appenCustomSearchToQuery(projectFilter, query);
-        query.append(String.format(" ORDER BY %s %s ", sortBy, sortDirection));
-        return query.toString();
-    }
+		query.append(groupQuery);
+		appenCustomSearchToQuery(projectFilter, query);
+		query.append(String.format(" ORDER BY %s %s ", sortBy, sortDirection));
+		return query.toString();
+	}
     
 	private String getNotStartedProjectsCondition() {
 		StringBuilder notStartedCondition = new StringBuilder();
 		notStartedCondition.append(" AND p.active = 'true' AND p.is_draft_project IS NULL \n")
 				.append(" AND (p.status != 'Completed' or p.status IS NULL) \n")
-				.append(" AND (DATE(ppd.po_end_date) > CURDATE() OR ppd.po_end_date IS NULL ) \n")
+//				.append(" AND (DATE(ppd.po_end_date) > CURDATE() OR ppd.po_end_date IS NULL ) \n")
 				.append(" AND NOT EXISTS (SELECT 1 FROM teams t2 INNER JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE t2.project_id = p.project_id ) \n")
 				;
 		return notStartedCondition.toString();
@@ -860,19 +876,21 @@ public class ProjectCustomRepository {
 	private String getOffBoardedProjectsCondition() {
 		StringBuilder offBoardedCondition = new StringBuilder();
 		offBoardedCondition.append(" AND p.active= 'true' AND (p.is_draft_project IS NOT NULL OR UPPER(p.is_draft_project) != 'REJECTED') \n")
-		.append(" AND EXISTS (SELECT 1 FROM teams t3 WHERE t3.project_id = p.project_id ) \n")
-		.append(" AND p.project_id IN (SELECT t2.project_id FROM teams t2 INNER JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE (etm2.active = 0 AND DATE(etm2.end_date) < CURDATE()))  \n")
-		.append(" AND p.project_id NOT IN (SELECT t2.project_id FROM teams t2 INNER JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE 1 = 1 AND (etm2.active = 1 OR (etm2.active = 0 AND DATE(etm2.start_date) > CURDATE()))) \n");
+		.append(" AND EXISTS (SELECT 1 FROM teams t3 WHERE t3.project_id = p.project_id AND t3.is_active  = 'Y' ) \n")
+		// .append(" AND p.project_id IN (SELECT t2.project_id FROM teams t2 INNER JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE (etm2.active = 0 AND DATE(etm2.end_date) < CURDATE()))  \n")
+		.append(" AND p.project_id NOT IN (SELECT t2.project_id FROM teams t2 LEFT JOIN employee_team_mapping etm2 ON (t2.team_id = etm2.team_id OR etm2.team_id IS NULL) WHERE 1 = 1 AND (etm2.active != 0 OR (etm2.active = 0 AND DATE(etm2.start_date) > CURDATE()))) \n");
 		return offBoardedCondition.toString();
 	}
 
 	private String getScheduledProjectsCondition() {
 		StringBuilder offBoardedCondition = new StringBuilder();
-		offBoardedCondition.append(" AND p.active= 'true' AND t.is_active = 'Y' AND p.is_draft_project = 'false' \n")
-		.append("AND etm.active = 0 AND DATE(etm.start_date) > CURDATE() \n ")
-		.append(" AND NOT EXISTS ( SELECT 1 FROM teams t2 JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE t2.project_id = p.project_id AND etm2.active != 0) \n");
+		offBoardedCondition.append(" AND p.active= 'true' AND t.is_active = 'Y' \n")
+		.append("AND etm.active = 0 AND DATE(etm.start_date) > CURDATE() \n ");
+//		.append(" AND NOT EXISTS ( SELECT 1 FROM teams t2 JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE t2.project_id = p.project_id AND (etm2.active = 1 OR (etm2.active = 0 AND DATE(etm.start_date) <= CURDATE())) ) \n");
 		return offBoardedCondition.toString();
 	}
+	
+	
 	
     private void populateProjectManagersAndOverheads(List<ProjectFetchDTO> allProjects) {
         List<Long> projectIds = allProjects.stream()
@@ -933,6 +951,7 @@ public class ProjectCustomRepository {
                 "expiredProjects2To3Months", List.of(currentDate.minusDays(90), currentDate.minusDays(61)),
                 "expiredProjects3To6Months", List.of(currentDate.minusDays(180), currentDate.minusDays(91)),
                 "expiredProjects6To9Months", List.of(currentDate.minusDays(270), currentDate.minusDays(181)),
+                "expiredProjects6To12Months", List.of(currentDate.minusDays(365), currentDate.minusDays(181)),
                 "expiredProjects9To12Months", List.of(currentDate.minusDays(365), currentDate.minusDays(271)),
                 "expiredProjectsAbove12Months", List.of(currentDate.minusYears(10), currentDate.minusDays(366)));
         return dateRanges.getOrDefault(key, List.of());
@@ -992,6 +1011,14 @@ public class ProjectCustomRepository {
                 String column = getSortBy(entry.getKey(), false);
                 String value = entry.getValue();
                 if (column != null && !column.trim().isEmpty() && value != null && !value.trim().isEmpty()) {
+               	   if (column.equalsIgnoreCase("start_date") 
+                    || column.equalsIgnoreCase("end_date") 
+                    || column.equalsIgnoreCase("created_on")) {
+
+                    appendDateCondition(query, column, value);
+                    continue;
+                }
+
                     if(column.equals("poNo") || column.equals("po_no")){
                         continue;
                     }
@@ -1000,7 +1027,122 @@ public class ProjectCustomRepository {
                 }
             }
             query.append(" ");
+            System.err.println(query.toString());
         }
+    }
+    
+//    private void appendDateCondition(StringBuilder query, String column, String value) {
+//
+//    	 String normalizedValue = value.replace("/", "-").trim();
+//        String formattedDate = convertToYYYYMMDD(normalizedValue);
+//
+//        if (formattedDate != null) {
+//          
+//            query.append(String.format(
+//                " AND DATE(%s) = '%s' \n",
+//                column,
+//                formattedDate
+//            ));
+//        } else {
+//           
+//            query.append(String.format(
+//                " AND DATE_FORMAT(%s, '%%d-%%m-%%Y') LIKE '%%%s%%' \n",
+//                column,
+//                normalizedValue.replace("'", "''")
+//            ));
+//        }
+//    }
+    
+    
+    private void appendDateCondition(StringBuilder query, String column, String value) {
+
+        if (value == null || value.trim().isEmpty()) {
+            return;
+        }
+
+        String normalizedValue = value.replace("/", "-").trim();
+
+       
+        
+        if (!isValidDateOrPartial(normalizedValue)) {
+            throw new BadRequestException("Invalid date format.Allowed Formats are dd-mm-yyyy / yyyy-mm-dd");
+        }
+        
+        String formattedDate = convertToYYYYMMDD(normalizedValue);
+
+        if (formattedDate != null) {
+            // Exact full date match
+            query.append(String.format(
+                " AND DATE(%s) = '%s' \n",
+                column,
+                formattedDate
+            ));
+        } else {
+            // Partial / flexible search using LIKE on BOTH formats
+            query.append(String.format(
+                " AND ( " +
+                " DATE_FORMAT(%s, '%%d-%%m-%%Y') LIKE '%%%s%%' " +
+                " OR DATE_FORMAT(%s, '%%Y-%%m-%%d') LIKE '%%%s%%' " +
+                " ) \n",
+                column,
+                escape(normalizedValue),
+                column,
+                escape(normalizedValue)
+            ));
+        }
+    }
+    
+    
+    private String convertToYYYYMMDD(String value) {
+
+        try {
+            value = value.replace("/", "-").trim();
+
+            // Try dd-MM-yyyy
+            DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            return LocalDate.parse(value, formatter1).toString();
+
+        } catch (Exception e1) {
+            try {
+                // Try yyyy-MM-dd
+                DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                return LocalDate.parse(value, formatter2).toString();
+            } catch (Exception e2) {
+                return null;
+            }
+        }
+    }
+    
+    private String escape(String input) {
+        return input.replace("'", "''");
+    }
+    
+    private boolean isValidDateOrPartial(String value) {
+
+      
+
+        String v = value.replace("/", "-").trim();
+
+     
+        DateTimeFormatter[] fullFormats = new DateTimeFormatter[]{
+                DateTimeFormatter.ofPattern("dd-MM-yyyy"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        };
+
+        for (DateTimeFormatter formatter : fullFormats) {
+            try {
+                LocalDate.parse(v, formatter);
+                return true; 
+            } catch (Exception ignored) {}
+        }
+
+      
+        if (v.matches("^[0-9\\-]+$")) {
+            return true;
+        }
+
+       
+        return false;
     }
 
 }

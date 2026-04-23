@@ -38,17 +38,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import com.apmosys.employeeportal.Exception.BadRequestException;
 import com.apmosys.employeeportal.dto.ActivationCandidateDTO;
 import com.apmosys.employeeportal.dto.ActiveProjectDTO;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.ActivityTemplateDTO;
+import com.apmosys.employeeportal.dto.AutoMigrationDTO;
 import com.apmosys.employeeportal.dto.BillableInfo;
 import com.apmosys.employeeportal.dto.DeactivationCandidateDTO;
 import com.apmosys.employeeportal.dto.EmployeeBillableUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
+import com.apmosys.employeeportal.dto.EmployeeImpactDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeJobRoleDept;
 import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
@@ -58,6 +61,7 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MigrateTeam;
 import com.apmosys.employeeportal.dto.MultiProjectEmployeeDTO;
+import com.apmosys.employeeportal.dto.PoDepartmentMappingDto;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectEmpInfoDTO;
@@ -118,7 +122,6 @@ import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.RoleDetailsRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.EmailTrigger;
 import com.apmosys.employeeportal.utility.EmployeeHirarchyCache;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
@@ -180,8 +183,8 @@ public class TeamsService {
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
 
-	@Autowired
-	TimesheetsRepository timesheetsRepository;
+//	@Autowired
+//	TimesheetsRepository timesheetsRepository;
 
 	@Autowired
 	EmployeeTimesheetsNewRepository timesheetsRepositoryNew;
@@ -1345,7 +1348,7 @@ public class TeamsService {
 				Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
 
 				// Get Filled EOD Count for Team Members
-				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(firstOfMonth, end, employeedto.getEmpId());
+				List<Object[]> timesheetList = timesheetsRepositoryNew.getMyTeamsFilledEodCountByManagerId(firstOfMonth, end, employeedto.getEmpId());
 				System.err.println(timesheetList.size());
 
 				list.forEach((object) -> {
@@ -1462,7 +1465,7 @@ public class TeamsService {
 
 				// Get filled EOD counts for team members
 	            List<Object[]> timesheetList =
-	                timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(
+	                timesheetsRepositoryNew.getMyTeamsFilledEodCountByManagerId(
 	                    firstOfMonth, end, employeedto.getEmpId()
 	                );
 
@@ -1516,10 +1519,9 @@ public class TeamsService {
 
 		// Fetch timesheet status for this manager's direct reportees
 	    List<Object[]> timesheetList =
-	        timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(
+	        timesheetsRepositoryNew.getMyTeamsFilledEodCountByManagerId(
 	            firstOfMonth, end, manager.getEmpId()
-	        );
-	    
+	        );	    
 
 		for (Object[] obj : subList) {
 			EmployeeDTO child = mapObjectToDTO(obj, period, timesheetList);
@@ -3747,12 +3749,12 @@ public class TeamsService {
 		Integer tgtProjectId = migrateTeam.getTargetProjectId();
 		List<PoDepartmentMapping> migratedPoDepartmentMapping = new ArrayList<>();
 
-		List<PoDepartmentMapping> sourceDeptMappings = poDepartmentMappingRepository
+		List<PoDepartmentMappingDto> sourceDeptMappings = poDepartmentMappingRepository
 				.findByProjectIdAndActive(srcProjectId);
 		List<Long> targetDeptIds = poDepartmentMappingRepository
 				.findPoDeptIdsByProjectId(tgtProjectId, false);
 
-		for (PoDepartmentMapping s : sourceDeptMappings) {
+		for (PoDepartmentMappingDto s : sourceDeptMappings) {
 			if (!targetDeptIds.contains(s.getDeptId())) {
 				PoDepartmentMapping nm = new PoDepartmentMapping();
 				nm.setPoId(migrateTeam.getTargetPoId());
@@ -4250,14 +4252,22 @@ public class TeamsService {
 			}
 
 			List<RmgTeamDto> teamDtoList = poDetailsDto.getTeamList();
-			Long currentUserEmpId = teamDtoList.stream().map(RmgTeamDto::getUpdatedBy).filter(Objects::nonNull).findFirst().orElse(null);
+			Long currentUserEmpId = teamDtoList.stream().map(RmgTeamDto::getUpdatedBy).filter(Objects::nonNull)
+					.findFirst().orElse(null);
 			if (currentUserEmpId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Emp Id cannot be null!!");
 				return response;
 			}
 
-			List<Long> selectedTeamIds = teamDtoList.stream().map(RmgTeamDto::getTeamId).collect(Collectors.toList());
+			List<Long> selectedTeamIds = teamDtoList.stream().map(RmgTeamDto::getTeamId).filter(Objects::nonNull)
+					.distinct().collect(Collectors.toList());
+			if (selectedTeamIds.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Team Id cannot be null!!");
+				return response;
+			}
+
 			List<Team> teamList = teamRepository.findActiveTeamsByTeamIds(selectedTeamIds);
 			if (teamList == null || teamList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -4265,57 +4275,136 @@ public class TeamsService {
 				return response;
 			}
 
+			Map<Long, Team> teamById = teamList.stream().filter(t -> t != null && t.getTeamId() != null).collect(
+					Collectors.toMap(Team::getTeamId, Function.identity(), (a, b) -> a));
+
 			List<String> ableToInactiveTeamNames = new ArrayList<>();
 			List<String> unableToInactiveTeamNames = new ArrayList<>();
-			LocalDate today = LocalDate.now();
-			for (RmgTeamDto teamDto : teamDtoList) {
-				Team team = teamList.stream().filter(t -> Objects.equals(t.getTeamId(), teamDto.getTeamId()))
-						.findFirst().orElse(null);
-				if (team != null) {
-					team.setIsActive("N");
-					team.setUpdatedBy(currentUserEmpId);
-					team.setUpdatedOn(LocalDateTime.now());
+			List<Long> deletedTeamIds = new ArrayList<>();
 
-					List<EmployeeTeamMap> employeeTeamMappings = employeeTeamMapRepository
-							.findByTeamIdAndActive(teamDto.getTeamId());
-					employeeTeamMappings.forEach(empTeamMap -> {
+			LocalDate today = LocalDate.now();
+			LocalDateTime now = LocalDateTime.now();
+			LocalDateTime startOfDay = today.atStartOfDay();
+
+			for (RmgTeamDto teamDto : teamDtoList) {
+				if (teamDto == null || teamDto.getTeamId() == null) {
+					unableToInactiveTeamNames.add("Unknown");
+					continue;
+				}
+				Team team = teamById.get(teamDto.getTeamId());
+				if (team == null) {
+					unableToInactiveTeamNames.add(teamDto.getTeamName() != null ? teamDto.getTeamName() : "Unknown");
+					continue;
+				}
+
+				team.setIsActive("N");
+				team.setUpdatedBy(currentUserEmpId);
+				team.setUpdatedOn(now);
+
+				List<EmployeeTeamMap> employeeTeamMappings = employeeTeamMapRepository
+						.findByTeamIdAndActive(teamDto.getTeamId());
+				List<EmployeeTeamMap> toUpdate = new ArrayList<>();
+				if (employeeTeamMappings != null) {
+					for (EmployeeTeamMap empTeamMap : employeeTeamMappings) {
+						if (empTeamMap == null) {
+							continue;
+						}
+						if (Objects.equals(empTeamMap.getActive(), 2L)) {
+							continue;
+						}
 						empTeamMap.setRescRemovedBy(currentUserEmpId);
 						empTeamMap.setUpdatedBy(currentUserEmpId);
-						empTeamMap.setUpdatedOn(LocalDateTime.now());
+						empTeamMap.setUpdatedOn(now);
 						empTeamMap.setEndDate(teamDto.getEndDate());
 						if (teamDto.getEndDate() == null) {
 							empTeamMap.setActive(0L);
-							empTeamMap.setEndDate(LocalDateTime.now());
-						} else if(!teamDto.getEndDate().toLocalDate().isAfter(today)){
+							empTeamMap.setEndDate(now);
+						} else if (!teamDto.getEndDate().toLocalDate().isAfter(today)) {
 							empTeamMap.setActive(0L);
 						}
-					});
-					employeeTeamMapRepository.saveAll(employeeTeamMappings);
-					teamRepository.save(team);
-					ableToInactiveTeamNames.add(team.getTeamName());
-				} else {
-					unableToInactiveTeamNames.add(teamDto.getTeamName());
+						toUpdate.add(empTeamMap);
+					}
 				}
+				if (!toUpdate.isEmpty()) {
+					employeeTeamMapRepository.saveAll(toUpdate);
+				}
+				teamRepository.save(team);
+				ableToInactiveTeamNames.add(team.getTeamName());
+				deletedTeamIds.add(team.getTeamId());
+			}
 
-				if (unableToInactiveTeamNames != null && !unableToInactiveTeamNames.isEmpty()) {
-					String teamNames = unableToInactiveTeamNames.stream().map(String::valueOf)
-							.collect(Collectors.joining(", "));
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Unable to set the following Team and its Resources to inactive : " + teamNames);
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Team and Its Resources are set to inactive successfully!!");
+			if (!unableToInactiveTeamNames.isEmpty()) {
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				String teamNames = unableToInactiveTeamNames.stream().filter(Objects::nonNull)
+						.collect(Collectors.joining(", "));
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(
+						"Unable to set the following Team and its Resources to inactive : " + teamNames);
+				return response;
+			}
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Team and Its Resources are set to inactive successfully!!");
+
+			entityManager.flush();
+
+			if (!deletedTeamIds.isEmpty()) {
+				employeeTeamMapRepository.hardDeletePendingMappingsByTeamIds(deletedTeamIds);
+				entityManager.flush();
+			}
+
+			Integer projectId = existingProject.getProjectId();
+			Long pendingCount = deletedTeamIds.isEmpty()
+					? employeeTeamMapRepository.countPendingTeamsByProjectId(projectId)
+					: employeeTeamMapRepository.countPendingTeamsExcludingDeleted(projectId, deletedTeamIds);
+
+			if (pendingCount != null && pendingCount > 0) {
+				if (!ableToInactiveTeamNames.isEmpty()) {
+					sendTeamDeletedMail(poDetailsDto.getProjectId(), currentUserEmpId, ableToInactiveTeamNames);
+				}
+				return response;
+			}
+
+			String isDraft = existingProject.getIsDraftProject();
+			String projectActive = existingProject.getActive();
+			if (isDraft != null && isDraft.equalsIgnoreCase("true") && projectActive != null
+					&& projectActive.equalsIgnoreCase("true")) {
+				String card = employeeTeamMapRepository.findProjectStatusCardByProjectId(projectId, startOfDay);
+				Long endedCount = employeeTeamMapRepository.countHistoricalEndedMappingsByProjectId(projectId, startOfDay);
+				if ("NOT_STARTED".equalsIgnoreCase(card)
+						&& endedCount != null
+						&& endedCount > 0) {
+					card = "DEBOARDED";
+				}
+				if ("UNKNOWN".equalsIgnoreCase(card)) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Unable to allocate project to a status card!");
+					return response;
+				}
+				switch (card) {
+					case "NOT_STARTED":
+						existingProject.setIsDraftProject(null);
+						existingProject.setProjectStatus("Not Started");
+						projectRepository.save(existingProject);
+						break;
+					case "APPROVED":
+					case "DEBOARDED":
+						existingProject.setIsDraftProject("false");
+						existingProject.setProjectStatus("In Progress");
+						projectRepository.save(existingProject);
+						break;
+					default:
+						break;
 				}
 			}
 
-			if (ableToInactiveTeamNames != null && !ableToInactiveTeamNames.isEmpty()) {
+			if (!ableToInactiveTeamNames.isEmpty()) {
 				sendTeamDeletedMail(poDetailsDto.getProjectId(), currentUserEmpId, ableToInactiveTeamNames);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 			log.error("Error in deleteSelectedTeams : ", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse(e.getMessage());
+			response.setServiceResponse("Something Went Wrong!!");
 			response.setServiceError(e.getMessage());
 		}
 		return response;
@@ -4476,8 +4565,13 @@ public class TeamsService {
 
 		Map<Long, Set<Long>> existingDeptIdsByTeam = allExistingActivities.stream()
 				.filter(activity -> activity.getDeptIds() != null && !activity.getDeptIds().trim().isEmpty())
-				.collect(Collectors.groupingBy(Activity::getTeamId,
-						Collectors.mapping(activity -> Long.parseLong(activity.getDeptIds().trim()), Collectors.toSet())));
+				.collect(Collectors.groupingBy(
+						Activity::getTeamId,
+						Collectors.flatMapping(activity -> Arrays.stream(activity.getDeptIds().split(","))
+								.map(String::trim)
+								.filter(s -> !s.isEmpty())
+								.map(Long::parseLong),
+								Collectors.toSet())));
 
 		Map<Long, Set<Long>> missingDeptIdsByTeam = new HashMap<>();
 		Set<Long> allMissingDeptIds = new HashSet<>();
@@ -4547,9 +4641,16 @@ public class TeamsService {
 				response.setServiceResponse("Project Id cannot be null!!");
 				return response;
 			}
-
+			
 			List<RmgTeamDto> rmgTeamDtoList = teamRepository.getActiveTeamDetailsByProjectId(projectId);
-			if (rmgTeamDtoList.isEmpty()) {
+			String projectStatus = projectRepository.findLatestProjectStatus(projectId); 
+			if(projectStatus.equalsIgnoreCase("not started") && rmgTeamDtoList.isEmpty()) {
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("Project Status : "+projectStatus);
+				response.setServiceResponse(Collections.emptyList());
+				return response;
+			}else if (rmgTeamDtoList.isEmpty()) {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				apiLogInfo.setApiResponse("No active teams found!!");
@@ -4588,9 +4689,10 @@ public class TeamsService {
 		
 		Optional<Project> project = projectRepository.findById(projectId);
 		String projectType = project.get().getPoProjectType();
+		Long previousPoId = previousPo.getPoId();
 
 		if ("TNM".equalsIgnoreCase(projectType)) {
-		Long previousPoId = previousPo.getPoId();
+		
 		List<Long> oldRoles = poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
 		List<Long> newRoles = poRequirementMappingRepository.findRoleIdsByPoId(renewedPoId);
 		Set<Long> carryForwardRoles = oldRoles.stream().filter(newRoles::contains).collect(Collectors.toSet());
@@ -4604,7 +4706,7 @@ public class TeamsService {
 					newRow.setPoId(renewedPoId);
 					newRow.setEndDate(null);
 					newRow.setCreatedBy(renewedBy);
-					newRow.setUpdatedBy(renewedBy);
+//					newRow.setUpdatedBy(renewedBy);
 					newRow.setUpdatedOn(LocalDateTime.now());
 					newRow.setStartDate(LocalDateTime.now());
 					newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
@@ -4626,7 +4728,7 @@ public class TeamsService {
 	            newRow.setPoId(renewedPoId);
 	            newRow.setEndDate(null);
 	            newRow.setCreatedBy(renewedBy);
-	            newRow.setUpdatedBy(renewedBy);
+//	            newRow.setUpdatedBy(renewedBy);
 	            newRow.setUpdatedOn(LocalDateTime.now());
 	            newRow.setStartDate(LocalDateTime.now());
 	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
@@ -4641,6 +4743,162 @@ public class TeamsService {
 		}
 		}
 	}
+	
+	
+		
+	private EmployeeImpactDTO buildEmployeeImpactDTO(
+	        EmployeeTeamMap oldRow,
+	        EmployeeTeamMap newRow,
+	        ProjectPoDetails previousPo,
+	        Optional<ProjectPoDetails> currentPo,
+	        String projectType) {
+
+	    EmployeeImpactDTO emp = new EmployeeImpactDTO();
+
+	    Employee empEntity = employeeRepository.findById(oldRow.getEmpId()).orElse(null);
+	    Team oldTeam = teamRepository.findById(oldRow.getTeamId()).orElse(null);
+	    Team newTeam = teamRepository.findById(newRow.getTeamId()).orElse(null);
+	    RoleDetails role = roleDetailsRepository.findById(oldRow.getRoleId()).orElse(null);
+
+	    emp.setEmployeeName(empEntity != null ? empEntity.getName() : "Unknown");
+	    emp.setRoleName(role != null ? role.getRole() : "Unknown Role");
+
+	    emp.setPreviousTeamName(oldTeam != null ? oldTeam.getTeamName() : "Unknown");
+	    emp.setNewTeamName(newTeam != null ? newTeam.getTeamName() : "Same Team");
+
+	    emp.setPreviousPoNumber(previousPo.getPoNo());
+	    emp.setCurrentPoNumber(currentPo.get().getPoNo());
+
+	    if ("TNM".equalsIgnoreCase(projectType)) {
+	        emp.setReason("Auto onboarded due to PO renewal and role continuity (TNM)");
+	    } else {
+	        emp.setReason("Auto onboarded due to PO renewal for uninterrupted monitoring");
+	    }
+
+	    return emp;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public List<AutoMigrationDTO> migrateFromPreviousPOOnUpdate(
+	        Integer projectId,
+	        Long currentPoId,
+	        Long updatedBy) {
+
+	    List<AutoMigrationDTO> result = new ArrayList<>();
+
+	    ProjectPoDetails previousPo = projectPoDetailsRepository
+	            .findByNextPOAndProjectIdAndActiveTrue(currentPoId, projectId)
+	            .orElse(null);
+	    
+	    ProjectPoDetails currentPo =
+	            projectPoDetailsRepository.findByPoId(currentPoId);
+
+	    if (previousPo == null) return result;
+
+	  
+	    if (previousPo.getPoEndDate() == null ||
+	        !previousPo.getPoEndDate().isBefore(LocalDateTime.now())) {
+	        return result;
+	    }
+
+	    Long previousPoId = previousPo.getPoId();
+	    
+
+	    List<Long> oldRoles =
+	            poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
+
+	    List<Long> newRoles =
+	            poRequirementMappingRepository.findRoleIdsByPoId(currentPoId);
+
+	    Set<Long> matchingRoles = oldRoles.stream()
+	            .filter(newRoles::contains)
+	            .collect(Collectors.toSet());
+
+	    for (Long roleId : matchingRoles) {
+
+	        List<EmployeeTeamMap> employees =
+	                employeeTeamMapRepository
+	                        .findActiveEmployeesForRole(previousPoId, roleId);
+
+	        if (employees.isEmpty()) continue;
+
+	        RoleDetails roleDetails =
+	                roleDetailsRepository.findById(roleId).orElse(null);
+
+	        AutoMigrationDTO dto = new AutoMigrationDTO();
+	        dto.setRoleId(roleId);
+	        dto.setRoleName(roleDetails != null ? roleDetails.getRole() : "Role-" + roleId);
+	        
+	        dto.setPreviousPoNumber(previousPo.getPoNo());
+	        dto.setCurrentPoNumber(currentPo.getPoNo());
+
+	        List<EmployeeImpactDTO> migrated = new ArrayList<>();
+
+	        for (EmployeeTeamMap oldRow : employees) {
+
+//	            boolean exists =
+//	                    employeeTeamMapRepository.existsActiveEmployeeInPo(
+//	                            oldRow.getEmpId(),
+//	                            currentPoId);
+//
+//	            if (exists) continue;
+
+	       
+	            EmployeeTeamMap newRow = new EmployeeTeamMap();
+	            BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+
+	            newRow.setPoId(currentPoId);
+	            newRow.setStartDate(LocalDateTime.now());
+	            newRow.setEndDate(null);
+	            newRow.setCreatedBy(updatedBy);
+//	            newRow.setUpdatedBy(updatedBy);
+	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+	            newRow.setUpdatedOn(LocalDateTime.now());
+
+	            employeeTeamMapRepository.save(newRow);
+
+	          
+	            oldRow.setActive(0L);
+	            oldRow.setEndDate(LocalDateTime.now());
+	            oldRow.setUpdatedBy(updatedBy);
+	            oldRow.setUpdatedOn(LocalDateTime.now());
+
+	            employeeTeamMapRepository.save(oldRow);
+
+	         
+	            Employee empEntity = employeeRepository
+	                    .findById(oldRow.getEmpId())
+	                    .orElse(null);
+
+	            Team teamEntity = teamRepository
+	                    .findById(oldRow.getTeamId())
+	                    .orElse(null);
+
+	            EmployeeImpactDTO emp = new EmployeeImpactDTO();
+
+	            emp.setEmployeeName(empEntity != null ? empEntity.getName() : "Unknown Employee");
+	            emp.setTeamName(teamEntity.getTeamId() != null ? teamEntity.getTeamName() : "Unknown Team");
+
+	            migrated.add(emp);
+	        }
+
+	        if (!migrated.isEmpty()) {
+	            dto.setEmployees(migrated);
+	            result.add(dto);
+	        }
+	    }
+
+	    return result;
+	}
+
 
 	/*
      * -------------------------------------------------------
@@ -4733,7 +4991,7 @@ public class TeamsService {
         List<ActivationCandidateDTO> candidates =
                 employeeTeamMapRepository
                         .findActivationCandidates(todayStart, tomorrowStart);
-
+ 
         if (candidates.isEmpty()) return;
 
         Set<Long> empIds =
@@ -5485,5 +5743,161 @@ public class TeamsService {
 		}
 		return response;
 	}
+	
+	public void disableActiveTeamsAndMembers(Project project, Long currentUserEmpId, StringBuilder logBuilder) {
+		List<Team> teams = teamRepository.findByProjectIdAndIsActive(project.getProjectId(), "Y");
+		if (teams.isEmpty()) {
+			logBuilder.append("\n Empty teamlist found in database for method findByProjectIdAndIsActive for project : "
+					+ project.getProjectName());
+			return;
+		}
+		try {
+			List<Long> teamIds = teams.stream().map(Team::getTeamId).collect(Collectors.toList());
+            
+			employeeTeamMapRepository.deleteFutureMappings(teamIds);
+			List<EmployeeTeamMap> allTeamsMemberMappings = employeeTeamMapRepository.findActiveByTeamIds(teamIds);
+			Map<Long, List<EmployeeTeamMap>> teamIdAndMemberMap = new HashMap<Long, List<EmployeeTeamMap>>();
+			if (allTeamsMemberMappings != null && !allTeamsMemberMappings.isEmpty()) {
+				teamIdAndMemberMap = allTeamsMemberMappings.stream()
+						.collect(Collectors.groupingBy(EmployeeTeamMap::getTeamId));
+			}
+
+			List<EmployeeTeamMap> updatedEmployeeTeamMappingList = new ArrayList<EmployeeTeamMap>();
+			for (Team team : teams) {
+				team.setIsActive("N");
+				team.setUpdatedBy(currentUserEmpId);
+				team.setUpdatedOn(LocalDateTime.now());
+
+				List<EmployeeTeamMap> allMappedEmp = teamIdAndMemberMap.getOrDefault(team.getTeamId(), List.of());
+				for (EmployeeTeamMap etm : allMappedEmp) {
+					etm.setActive(0L);
+					etm.setRescRemovedBy(currentUserEmpId);
+					etm.setUpdatedBy(currentUserEmpId);
+					etm.setUpdatedOn(LocalDateTime.now());
+					if (etm.getEndDate() != null) {
+						if (etm.getStartDate() != null && !etm.getStartDate().isAfter(etm.getEndDate())) {
+							throw new IllegalArgumentException(
+									"End cannot be less than start date For Emp Id : " + etm.getEmpId());
+						}
+					} else {
+						etm.setEndDate(LocalDateTime.now());
+					}
+					updatedEmployeeTeamMappingList.add(etm);
+				}
+			}
+
+			teamRepository.saveAll(teams);
+			if (!updatedEmployeeTeamMappingList.isEmpty()) {
+				employeeTeamMapRepository.saveAll(updatedEmployeeTeamMappingList);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+public List<AutoMigrationDTO> migrateResourcesAfterRenewalDTO(Integer projectId, Long renewedPoId, Long renewedBy) {
+		
+		List<AutoMigrationDTO> result = new ArrayList<>();
+		ProjectPoDetails previousPo = projectPoDetailsRepository
+				.findByNextPOAndProjectIdAndActiveTrue(renewedPoId, projectId).orElse(null);
+		
+		Optional<ProjectPoDetails> currentPo = projectPoDetailsRepository.findByPoIdAndProjectIdAndActiveTrue(renewedPoId, projectId)	;	
+				
+		LocalDateTime previousPoEndDate = previousPo.getPoEndDate();
+		LocalDateTime currentPoStartDate = currentPo.get().getPoStartDate();			
+				
+		if (previousPo == null) {
+			return result;
+		}
+		
+		if (previousPo.getPoEndDate() != null &&
+	            previousPo.getPoEndDate().isAfter(LocalDateTime.now())) {
+
+	        return result;
+	    }
+		
+		Optional<Project> project = projectRepository.findById(projectId);
+		String projectType = project.get().getPoProjectType();
+		Long previousPoId = previousPo.getPoId();
+		
+		AutoMigrationDTO dto = new AutoMigrationDTO();
+	    dto.setProjectName(project.get().getProjectName());
+	    dto.setProjectType(projectType);
+	    dto.setPreviousPoNumber(previousPo.getPoNo());
+	    dto.setCurrentPoNumber(currentPo.get().getPoNo());
+
+	    List<EmployeeImpactDTO> migratedEmployees = new ArrayList<>();
+
+		if ("TNM".equalsIgnoreCase(projectType)) {
+		
+		List<Long> oldRoles = poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
+		List<Long> newRoles = poRequirementMappingRepository.findRoleIdsByPoId(renewedPoId);
+		Set<Long> carryForwardRoles = oldRoles.stream().filter(newRoles::contains).collect(Collectors.toSet());
+		if (!carryForwardRoles.isEmpty()) {
+			for (Long roleId : carryForwardRoles) {
+				List<EmployeeTeamMap> employees = employeeTeamMapRepository.findActiveEmployeesForRole(previousPoId,
+						roleId);
+				for (EmployeeTeamMap oldRow : employees) {
+					EmployeeTeamMap newRow = new EmployeeTeamMap();
+					BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+					newRow.setPoId(renewedPoId);
+					newRow.setEndDate(null);
+					newRow.setCreatedBy(renewedBy);
+//					newRow.setUpdatedBy(renewedBy);
+					newRow.setUpdatedOn(LocalDateTime.now());
+					newRow.setStartDate(currentPoStartDate);
+					newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+					employeeTeamMapRepository.save(newRow);
+					oldRow.setActive(0L);
+					oldRow.setEndDate(previousPoEndDate);
+					oldRow.setUpdatedBy(renewedBy);
+					oldRow.setUpdatedOn(LocalDateTime.now());
+					employeeTeamMapRepository.save(oldRow);
+					
+					  migratedEmployees.add(buildEmployeeImpactDTO(
+		                        oldRow, newRow, previousPo, currentPo, projectType));
+				}
+			}
+		}
+		}else if  ("Monitoring".equalsIgnoreCase(projectType)) {
+			List<EmployeeTeamMap> employees =
+	                employeeTeamMapRepository.findActiveEmployeesByPoId(previousPoId);
+			 for (EmployeeTeamMap oldRow : employees) {
+			  EmployeeTeamMap newRow = new EmployeeTeamMap();
+	            BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+
+	            newRow.setPoId(renewedPoId);
+	            newRow.setEndDate(null);
+	            newRow.setCreatedBy(renewedBy);
+//	            newRow.setUpdatedBy(renewedBy);
+	            newRow.setUpdatedOn(LocalDateTime.now());
+	            newRow.setStartDate(currentPoStartDate);
+	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+	            employeeTeamMapRepository.save(newRow);
+	            oldRow.setActive(0L);
+	            oldRow.setEndDate(previousPoEndDate);
+	            oldRow.setUpdatedBy(renewedBy);
+	            oldRow.setUpdatedOn(LocalDateTime.now());
+
+	            employeeTeamMapRepository.save(oldRow);
+	            migratedEmployees.add(buildEmployeeImpactDTO(
+	                    oldRow, newRow, previousPo, currentPo, projectType));
+		}
+		}
+		   if (!migratedEmployees.isEmpty()) {
+		        dto.setEmployees(migratedEmployees);
+		        result.add(dto);
+		    }
+
+		    return result;
+		
+	}
+
+
+
+
+	
+	
 	
 }

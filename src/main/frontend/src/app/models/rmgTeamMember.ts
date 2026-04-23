@@ -22,6 +22,7 @@ export class RmgTeamMember {
     isCustomDate: any;
     rescEndDate: any;
     rescRemovedBy: any;
+    removePermanently: boolean = false;
 
     poId: any;
     poNo: any;
@@ -30,7 +31,7 @@ export class RmgTeamMember {
     poRequirementMappingId: any;
     lineItemStartDate: any;
     lineItemEndDate: any;
-    
+
     roleId: any;
     role: any;
     experience: any;
@@ -76,6 +77,10 @@ export class RmgTeamMember {
     isOverboardedRole: boolean = false;
     isNotSaved: boolean = false;
     isMemberSelected: boolean = false;
+    isEndDateVisible: boolean = false;
+    memberMinStartDate: any;
+    memberMaxEndDate: any;
+    memberList:any[] = [];
     projectList: any[] = [];
     teamList: any[] = [];
     poDetailsList: any[] = [];
@@ -86,6 +91,8 @@ export class RmgTeamMember {
     roleFilterActionLabel: 'Show Active PO Roles' | 'Show All PO Roles' = 'Show Active PO Roles';
     poFilterActionLabel: 'Show Active PO' | 'Show All PO' = 'Show Active PO';
 
-    requiredCount:any;
-    actualAssigned:any;
+    requiredCount: any;
+    actualAssigned: any;
+    projectNewStartDate: any;
+    isRestricted: any;
 }

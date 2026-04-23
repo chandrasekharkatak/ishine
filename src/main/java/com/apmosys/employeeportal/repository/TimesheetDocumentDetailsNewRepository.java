@@ -55,14 +55,14 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 	List<Long> findDocIdsByTimesheetId(@Param("timesheetId") Long timesheetId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
-	@Query("SELECT tdd FROM TimesheetDocumentDetails tdd \n" +
-			"INNER JOIN Timesheet et on et.timesheetId = tdd.timesheetId \n" +
-			"WHERE et.empId = :empId \n" +
-			"AND et.date BETWEEN :fromDate AND :toDate and tdd.active = true")
-	List<TimesheetDocumentDetailsNew> getDocsByEmpAndDateRange_old(
-			@Param("empId") Long empId,
-			@Param("fromDate") LocalDate fromDate,
-			@Param("toDate") LocalDate toDate);
+//	@Query("SELECT tdd FROM TimesheetDocumentDetails tdd \n" +
+//			"INNER JOIN Timesheet et on et.timesheetId = tdd.timesheetId \n" +
+//			"WHERE et.empId = :empId \n" +
+//			"AND et.date BETWEEN :fromDate AND :toDate and tdd.active = true")
+//	List<TimesheetDocumentDetailsNew> getDocsByEmpAndDateRange_old(
+//			@Param("empId") Long empId,
+//			@Param("fromDate") LocalDate fromDate,
+//			@Param("toDate") LocalDate toDate);
 
 	// ========== UPDATED: New query using _new entities ==========
 	@Query("SELECT tdd FROM TimesheetDocumentDetailsNew tdd \n" +
@@ -114,6 +114,10 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 
 	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO(tdd) FROM TimesheetDocumentDetailsNew tdd WHERE tdd.timesheetId = :timesheetId and tdd.projectId in :projectIds and tdd.active = true")
 	List<TimesheetDocumentDataDTO> getTimesheetDocumentDataByTimesheetIdAndProjectIds(@Param("timesheetId") Long timesheetId, @Param("projectIds") List<Long> projectIds);
+
+	@Query("SELECT tdd FROM TimesheetDocumentDetailsNew tdd " +
+			"WHERE tdd.timesheetId IN :timesheetIds and tdd.active = true")
+	List<TimesheetDocumentDetailsNew> findActiveByTimesheetIds(@Param("timesheetIds") List<Long> timesheetIds);
 
 	@Query("SELECT t FROM TimesheetDocumentDetailsNew t WHERE t.timesheetId = :timesheetId")
 	List<TimesheetDocumentDetailsNew> findAllByTimesheetId(Long timesheetId);
@@ -171,5 +175,25 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 	@Query("DELETE FROM TimesheetDocumentDetailsNew tdd WHERE tdd.timesheetId = :timesheetId and tdd.projectId = :projectId")
 	void deleteByTimesheetIdAndProjectId(@Param("timesheetId") Long timesheetId, @Param("projectId") Integer projectId);
 
+
+
+	@Query( "SELECT etn \n" +
+				"FROM EmployeeTimesheetsNew etn\n" +
+				"INNER JOIN ProjectTimesheetStatusNew ptsn on etn.timesheetId = ptsn.id.timesheetId \n" +
+				"INNER JOIN Project p on p.projectId = ptsn.id.projectId\n" +
+				"INNER JOIN TimesheetDocumentDetailsNew tdd on tdd.timesheetId = etn.timesheetId AND tdd.projectId = ptsn.id.projectId\n" +
+				"WHERE p.hasClientSideId = 1 \n" +
+				"AND etn.dayTypeId IN (1,3,8) \n" + 
+				"AND (etn.status = 3 \n" +
+				" OR (etn.status = 1 AND tdd.bulkApprovedDocId IS NULL ) ) \n"+
+				"AND ptsn.id.projectId = :projectId \n" + 
+				"AND etn.date BETWEEN :fromDate AND :toDate \n" +
+				"AND etn.empId IN :empIds")
+	List<EmployeeTimesheetsNew> getDocsByEmpIdsAndDateForSelf(
+			@Param("empIds") List<Long> empIds,
+			@Param("fromDate") LocalDate fromDate,
+			@Param("toDate") LocalDate toDate,
+			@Param("projectId") Integer projectId
+		);
 
 }

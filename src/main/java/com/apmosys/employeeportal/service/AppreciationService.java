@@ -979,26 +979,36 @@ public class AppreciationService {
                     response.setServiceResponse("No appreciation details found.");
                     apiLogInfo.setApiResponse("No appreciation details found. The list is empty.");
                     apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-                } else {
+                }
+                else {
                     List<AppreciationDTO> dtoList = new ArrayList<>();
+
                     list.forEach((object) -> {
+                    	
+//                        System.out.println("Row length: " + object.length);
+//                        for (int i = 0; i < object.length; i++) {
+//                            System.out.println("object[" + i + "] = " + object[i]);
+//                        }
+                    	
                         AppreciationDTO dto = new AppreciationDTO();
                         dto.setAppreciationDate(object[0] != null ? object[0].toString() : null);
                         dto.setAppreciationEventName(object[1] != null ? object[1].toString() : null);
-                        dto.setAppreciationBy(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+                        dto.setAppreciationBy(safeParseLong(object[2]));         // was Long.parseLong
                         dto.setAppreciationByName(object[3] != null ? object[3].toString() : null);
-                        dto.setAppreciationTo(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+                        dto.setAppreciationTo(safeParseLong(object[4]));         // was Long.parseLong
                         dto.setAppreciationToName(object[5] != null ? object[5].toString() : null);
                         dto.setAppreciateType(object[6] != null ? object[6].toString() : null);
                         dto.setComment(object[7] != null ? object[7].toString() : null);
-                        dto.setAppreciationByByEmpId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
-                        dto.setAppreciationToByEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+                        dto.setAppreciationByByEmpId(safeParseLong(object[8])); // was Long.parseLong
+                        dto.setAppreciationToByEmpId(safeParseLong(object[9])); // was Long.parseLong
                         dtoList.add(dto);
                     });
                     response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                     response.setServiceResponse(dtoList);
                     apiLogInfo.setApiResponse("Fetched " + dtoList.size() + " appreciation details for the team.");
                 }
+                
+             
             }, () -> {
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
                 response.setServiceResponse("No appreciation details found.");
@@ -1016,6 +1026,20 @@ public class AppreciationService {
         logService.logMyInfo(httpRequest, apiLogInfo); 
         return response;
     }
+    
+    
+    private Long safeParseLong(Object value) {
+        if (value == null) return null;
+        try {
+            return Long.parseLong(value.toString());
+        } catch (NumberFormatException e) {
+            return null; // or log a warning here
+        }
+    }
+    
+
+    
+    
 
     }
 	

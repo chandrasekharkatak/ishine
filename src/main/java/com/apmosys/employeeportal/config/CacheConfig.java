@@ -79,7 +79,7 @@ public class CacheConfig {
                         .newCacheConfigurationBuilder(
                                 Object.class,
                                 Object.class,
-                                ResourcePoolsBuilder.newResourcePoolsBuilder().heap(30, MemoryUnit.MB).build())
+                                ResourcePoolsBuilder.heap(500).build())
                         .withExpiry(
                                 ExpiryPolicyBuilder.timeToLiveExpiration(java.time.Duration.ofMinutes(5)))
                         .build();

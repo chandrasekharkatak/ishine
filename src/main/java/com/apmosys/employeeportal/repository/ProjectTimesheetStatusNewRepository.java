@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -126,6 +127,15 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
     	List<Object[]> findProjectsForTimesheetIds(
     	        @Param("timesheetIds") List<Long> timesheetIds);
 
+    /**
+     * Distinct (timesheet, project) pairs that exist for bulk validation of single/bulk reject flows.
+     */
+    @Query("SELECT DISTINCT p.id.timesheetId, p.id.projectId FROM ProjectTimesheetStatusNew p "
+            + "WHERE p.id.timesheetId IN :timesheetIds AND p.id.projectId IN :projectIds")
+    List<Object[]> findDistinctTimesheetProjectPairs(
+            @Param("timesheetIds") List<Long> timesheetIds,
+            @Param("projectIds") Collection<Integer> projectIds);
+
         @Query(
                 "SELECT p FROM ProjectTimesheetStatusNew p \n" +
                 "WHERE p.id.timesheetId IN :timesheetIds \n" +
@@ -162,5 +172,16 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
         		+ "and p.active = 'true'\n"
         		+ "AND pdm.active is true order by cl.created_on desc limit 1", nativeQuery = true)
         List<Object[]> getDeptBaseProjectAndClientDataFromEmpId(@Param("empId") Long empId);
+        
+        @Query("SELECT p FROM ProjectTimesheetStatusNew p WHERE p.shadowEmpId = p.createdBy and p.id.projectId = :projectId")
+        List<ProjectTimesheetStatusNew> findShadowForSelf(@Param("projectId") Integer projectId);
+        @Query(
+                "SELECT p FROM ProjectTimesheetStatusNew p \n" +
+                "WHERE p.id.timesheetId = :timesheetId \n" +
+                "AND p.id.projectId = :projectId"
+        )
+         List<ProjectTimesheetStatusNew> findByProjectIdAndTimesheetId(Integer projectId,Long timesheetId);
+        
+        
 }
 

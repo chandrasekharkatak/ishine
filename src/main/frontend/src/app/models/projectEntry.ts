@@ -6,6 +6,7 @@ export class ProjectEntry {
   hasClientSideId?: boolean;
   hasClientFlag?: boolean;
   shadowEmpId?: number;
+  isShadowRequired?: number;
   isShadowTimesheet?: boolean;
   isShadowForSelf?: boolean;
   clientSideId?: string | null;
