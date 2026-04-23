@@ -927,7 +927,7 @@
             <div class="col-md-8">
                 <div class="info-wrapper">
                     <div class="form-group">
-                        <label class="info-label ml-1">Select End Date</label>
+                        <label class="info-label ml-1">Select End Date<span *ngIf="!removePermanently" class="text-danger">*</span></label>
                         <div class="date-input-wrapper">
                             <input class="form-control date-input" readonly [matDatepicker]="membersEndDatePicker"
                                 [(ngModel)]="membersEndDate" (click)="membersEndDatePicker.open()" />

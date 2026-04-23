@@ -504,7 +504,7 @@ getTnmExpiredTooltip(): string[] {
 
   async ngOnInit() {
     this.updateDepartmentLabel();
-    this.projectStatus = 'TOTAL';
+    this.projectStatus = this.filterStateService?.selectedProjectStatus ? this.filterStateService?.selectedProjectStatus :  'TOTAL';
     this.expiredTNMProjectFilter = 'allExpiredTNMProjectsCount';
     this.fixedCostProjectFilter = 'all';
     this.projectPageSize = this.filterStateService?.projectPageSize ? this.filterStateService.projectPageSize : 10;

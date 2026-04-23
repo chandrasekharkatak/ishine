@@ -5710,7 +5710,7 @@ public class TeamsService {
 					.findByEmpIdAndTeamIdAndActiveStatus(teamMember.getEmpId(), teamId);
 			if (existingMap == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee Team Mapping not found!!");
+				response.setServiceResponse("No Active Employee Team Mapping not found for this Team!!");
 				return response;
 			}
 

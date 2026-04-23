@@ -270,7 +270,7 @@
             <br> Do you want to proceed?
         </p>
         <div class="row justify-content-center align-items-center">
-            <label class="info-label">Select End Date</label>
+            <label class="info-label">Select End Date<span *ngIf="!deleteEmployeeExistingProjectMappingObj.removePermanently" class="text-danger">*</span></label>
         </div>
         <div class="row justify-content-center align-items-center"
             *ngIf="!deleteEmployeeExistingProjectMappingObj.isInternalProject">

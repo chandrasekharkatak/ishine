@@ -1624,7 +1624,7 @@ console.log("mapping ID",this.employeeTeamMapId);
       return;
     }
 
-    if (!this.membersEndDate || this.membersEndDate == undefined || this.membersEndDate == null) {
+    if (!this.removePermanently && (!this.membersEndDate || this.membersEndDate == undefined || this.membersEndDate == null)) {
       this.openAlertMessageModal("Please provide End date!!");
       return;
     }
@@ -1633,7 +1633,7 @@ console.log("mapping ID",this.employeeTeamMapId);
 
     for (let member of this.selectedRemoveMembers) {
       const memberStartDate = this.normalizeDate(member.startDate);
-      if (memberStartDate > teamMembersEndDate) {
+      if (!this.removePermanently && (memberStartDate > teamMembersEndDate)) {
         this.openAlertMessageModal(`Member End date cannot be less then Member Start date for ${member.employementId}!!`);
         return;
       }

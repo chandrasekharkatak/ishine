@@ -220,7 +220,7 @@ export class RmgProjectConfigComponent implements OnInit {
     oldTeamMemberSearchOnEnter: boolean = true;
     rmgOldTeamMemberColumnList: any[] = ['blank', 'employementId', 'memberName', 'memberDepartment', 'poNo', 'employeeRole', 'blank', 'blank', 'blank', 'blank'];
     rmgOldTeamMemberColumnListForTNM: any[] = ['blank', 'employementId', 'memberName', 'memberDepartment', 'poNo', 'displayRequirement', 'employeeRole', 'blank', 'blank', 'blank', 'blank'];
-    rmgOldTeamMemberColumnListForInternal = ['blank', 'employementId', 'memberName', 'memberDepartment', 'employeeRole', 'blank', 'blank', 'blank', 'blank'];
+    rmgOldTeamMemberColumnListForInternal = ['blank', 'employementId', 'memberName', 'memberDepartment', 'employeeRole', 'blank', 'blank', 'blank'];
 
     // Current Team Member
     isCurrentTeamMemberSearchEnabled: boolean = false;
@@ -233,10 +233,10 @@ export class RmgProjectConfigComponent implements OnInit {
     currentTeamMemberSearchOnEnter: boolean = true;
     rmgCurrentTeamMemberColumnListForTNM: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
     rmgCurrentTeamMemberColumnList: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'poNo', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnListForInternal: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListForInternal: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank'];
     rmgCurrentTeamMemberColumnListForTNMPreview: any[] = ['blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
     rmgCurrentTeamMemberColumnListPreview: any[] = ['blank', 'employementId', 'memberName', 'poNo', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnListForInternalPreview: any[] = ['blank', 'employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListForInternalPreview: any[] = ['blank', 'employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank'];
 
 
     // Migrate Team Member
@@ -2103,6 +2103,12 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
                 this.openAlertMessageModal(`End Date cannot be less than Start Date for Member # ${i + 1}`);
                 return;
             }
+            if (member.endDate && member.endDate != undefined && member.endDate != null && this.normalizeDate(member.startDate) > this.normalizeDate(member.endDate)) {
+                member.startDate = member.dbStartDate || null;
+                this.openAlertMessageModal(`Start Date cannot be greater than the End Date  for Member # ${i + 1}!!`);
+                return false;
+            }
+
             member.startDate = member.startDate ? moment(member.startDate).format('YYYY-MM-DDTHH:mm:ss') : null;
             member.endDate = member.endDate ? moment(member.endDate).format('YYYY-MM-DDTHH:mm:ss') : null;
             member.isShadow = team?.rmgCurrentTeamMemberList[i].isShadow != null && team?.rmgCurrentTeamMemberList[i].isShadow ? 1 : 0;
@@ -2150,7 +2156,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
             return;
         }
 
-        if (!this.membersEndDate || this.membersEndDate == undefined || this.membersEndDate == null) {
+        if (!this.removePermanently && (!this.membersEndDate || this.membersEndDate == undefined || this.membersEndDate == null)) {
             this.openAlertMessageModal("Please provide End date!!");
             return;
         }
@@ -2326,6 +2332,10 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
     async validateEmployeeProjectStartDate(member: RmgTeamMember, projectId: any, projectType: any): Promise<boolean> {
         member.isEndDateVisible = false;
         member.memberMaxEndDate = null;
+        if (member.endDate && member.endDate != undefined && member.endDate != null && this.normalizeDate(member.startDate) > this.normalizeDate(member.endDate)) {
+            this.openAlertMessageModal(`Start Date cannot be greater than the End Date!!`);
+            return false;
+        }
         let projectData = {
             currentProjectId: this.rmgProjectObj?.projectId,
             projectIds: [this.rmgProjectObj?.projectId, projectId],
@@ -2698,6 +2708,9 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
     }
 
     async getResourceRequirementDetailsByProjectId(currentActivePOs: boolean) {
+        if (this.allNonBillableProjectTypes.includes(this.projectType?.toLowerCase())) {
+            return;
+        }
         this.allRmgProjectResourceRequirementList = [];
         this.currentRmgProjectResourceRequirementList = [];
         try {
@@ -2870,7 +2883,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
             return;
         }
         employee.startDate = employee?.selectedProject.startDate;
-        const flag: boolean = await this.validateEmployeeProjectStartDate(employee, employee?.selectedProject?.projectId, this.projectType);
+        const flag: boolean = await this.validateEmployeeProjectStartDateDefaultMapping(employee, employee?.selectedProject?.projectId, this.projectType);
         if (!flag) {
             return;
         }

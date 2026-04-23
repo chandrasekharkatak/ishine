@@ -517,7 +517,7 @@
                     <th class="min-width100 max-width150">
                         End Date
                     </th>
-                    <th>
+                    <th *ngIf="!isInternalProject">
                         Shadow
                     </th>
                     <th>
@@ -628,7 +628,7 @@
                         <td class="min-width100 max-width150" *ngIf="!currentTeam.newRmgTeamMember.isEndDateVisible">
                             {{'--'}}
                         </td>
-                        <td>
+                        <td *ngIf="!isInternalProject">
                             <mat-checkbox class="custom-checkbox" color="primary"
                                 [(ngModel)]="currentTeam.newRmgTeamMember.isShadow"></mat-checkbox>
                         </td>
@@ -708,7 +708,7 @@
                         <td class="min-width100 max-width150" *ngIf="!member.isEndDateVisible">
                             {{'--'}}
                         </td>
-                        <td>
+                        <td *ngIf="!isInternalProject">
                             <mat-checkbox class="custom-checkbox" color="primary" [(ngModel)]="member.isShadow">
                             </mat-checkbox>
                         </td>
@@ -723,7 +723,7 @@
             <tbody>
                 <ng-container *ngIf="!teamMembers || teamMembers?.length === 0">
                     <tr>
-                        <td [attr.colspan]="projectConfigStepperIndex === 1 ? !isInternalProject ? 14 : 12 : !isInternalProject ? 13 : 11"
+                        <td [attr.colspan]="projectConfigStepperIndex === 1 ? !isInternalProject ? 14 : 11 : !isInternalProject ? 13 : 10"
                             class="text-center">No Resources found.</td>
                     </tr>
                 </ng-container>
@@ -830,7 +830,7 @@
                             [title]="member.endDate ? ( member.endDate | date:'dd-MM-yyyy'): 'NA'">
                             {{ member.endDate ? ( member.endDate | date:'dd-MM-yyyy'): 'NA' }}
                         </td>
-                        <td>
+                        <td *ngIf="!isInternalProject">
                             <mat-checkbox class="custom-checkbox" color="primary"
                                 (change)="onShadowCheckBoxChanged($event,member)"
                                 [disabled]="projectConfigStepperIndex !== 1 || isProjectPreview"
@@ -849,13 +849,18 @@
             </tbody>
         </table>
     </div>
-    <div class="row mt-2" *ngIf="teamMembers?.length > 0">
-        <div class="col-md-12 d-flex justify-content-start">
-            <mat-paginator class="compact-paginator " [length]="teamMembers.length"
+    <div class="row mt-2">
+        <div class="col-md-6 d-flex justify-content-start">
+            <mat-paginator class="compact-paginator " [length]="teamMembers.length"  *ngIf="teamMembers?.length > 0"
                 [pageIndex]="currentTeamMemberPage-1" [pageSize]="currentTeamMemberPageSize"
                 [pageSizeOptions]="[5, 10, 20, 50]" (page)="currentTeamMemberPageChange($event)"
                 style="background-color: unset;">
             </mat-paginator>
+        </div>
+        <div class="col-md-6 d-flex justify-content-end">
+            <button class="btn btn-outline-primary btn-sm" (click)="callCloseProjectConfiguration()">
+                Go to Resource Management
+            </button>
         </div>
     </div>
 </ng-template>
@@ -906,7 +911,7 @@
                     <th class="min-width180 max-width200">
                         End Date
                     </th>
-                    <th>
+                    <th *ngIf="!isInternalProject">
                         Shadow
                     </th>
                 </tr>
@@ -927,7 +932,7 @@
             <tbody>
                 <ng-container *ngIf="!teamMembers || teamMembers?.length === 0">
                     <tr>
-                        <td [attr.colspan]="!isInternalProject ? 12 : 10" class="text-center">
+                        <td [attr.colspan]="!isInternalProject ? 12 : 9" class="text-center">
                             No Resources found.
                         </td>
                     </tr>
@@ -986,7 +991,7 @@
                                 <mat-datepicker #endDatepicker></mat-datepicker>
                             </div>
                         </td>
-                        <td>
+                        <td *ngIf="!isInternalProject">
                             <mat-checkbox class="custom-checkbox" color="primary" disabled="true"
                                 [(ngModel)]="member.isShadow">
                             </mat-checkbox>
@@ -996,12 +1001,17 @@
             </tbody>
         </table>
     </div>
-    <div class="row mt-2" *ngIf="teamMembers?.length > 0">
-        <div class="col-md-12 d-flex justify-content-start">
-            <mat-paginator class="compact-paginator " [length]="teamMembers.length" [pageIndex]="oldTeamMemberPage-1"
+    <div class="row mt-2">
+        <div class="col-md-6 d-flex justify-content-start">
+            <mat-paginator class="compact-paginator " [length]="teamMembers.length" [pageIndex]="oldTeamMemberPage-1"  *ngIf="teamMembers?.length > 0"
                 [pageSize]="oldTeamMemberPageSize" [pageSizeOptions]="[5, 10, 20, 50]"
                 (page)="oldTeamMemberPageChange($event)" style="background-color: unset;">
             </mat-paginator>
+        </div>
+        <div class="col-md-6 d-flex justify-content-end">
+            <button class="btn btn-outline-primary btn-sm" (click)="callCloseProjectConfiguration()">
+                Go to Resource Management
+            </button>
         </div>
     </div>
 </ng-template>
@@ -1549,8 +1559,6 @@
                                         (click)="defaultProjectEmployeeStartDatepicker.open()">calendar_today</mat-icon>
                                     <mat-datepicker #defaultProjectEmployeeStartDatepicker></mat-datepicker>
                                 </div>
-                                <!-- (dateChange)="validateEmployeeProjectStartDate(employee, employee.selectedProject.projectId, employee.selectedProject.projectStartDate, employee.selectedProject.projectType)" -->
-                                <!-- {{ employee.selectedProject?.startDate ? ( employee.selectedProject?.startDate | date: 'dd-MM-yyyy') : 'NA'}} -->
                             </td>
                             <td class="min-width100 max-width150 truncate"
                                 [title]="employee.selectedProject?.poNo || 'NA'">
@@ -1880,7 +1888,7 @@
                                         <div class="date-input-wrapper">
                                             <input class="form-control date-input" readonly
                                                 [matDatepicker]="defaultProjectMappingStartDatepicker"
-                                                (dateChange)="validateEmployeeProjectStartDate(employee, employee.projectId , projectType)"
+                                                (dateChange)="validateEmployeeProjectStartDateDefaultMapping(employee, employee.projectId , projectType)"
                                                 [(ngModel)]="employee.startDate" [disabled]="!employee.projectId"
                                                 (click)="defaultProjectMappingStartDatepicker.open()" />
                                             <mat-icon class="calendar-icon"
@@ -1915,7 +1923,7 @@
             <div class="col-md-8">
                 <div class="info-wrapper">
                     <div class="form-group">
-                        <label class="info-label ml-1">Select End Date</label>
+                        <label class="info-label ml-1">Select End Date<span *ngIf="!removePermanently" class="text-danger">*</span></label>
                         <div class="date-input-wrapper">
                             <input class="form-control date-input" readonly [matDatepicker]="membersEndDatePicker"
                                 [(ngModel)]="membersEndDate" (click)="membersEndDatePicker.open()" />
