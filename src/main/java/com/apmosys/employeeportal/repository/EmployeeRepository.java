@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,51 +46,102 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("SELECT e.empId, e.name FROM Employee e WHERE e.empId IN :ids")
 	List<Object[]> getEmployeeNamesByEmpIds(@Param("ids") Set<Long> ids);
 	
-	@Query(nativeQuery = true, value = "SELECT e.employeement_id, \n"
-			+ " e.date_of_joining, e.email, \n"
-			+ " e.employmentstatus, \n"
-			+ " e.job_role_id, e.manager_id, e.name, \n"
-			+ " jr.dept_id, jr.name as jobrolename, \n"
-			+ " d.name as departmentname,e.emp_id, e2.name as manager, e.experience, \n"
-			+ "e.billable,e.total_experience,  jr.name as JobRolename,e.billable_type,des.designation_name,e.reporting_manager_id, e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName , e.is_apmosys_product \n"
-			+ "FROM employee e \n"
-			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
-			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
-			+ "LEFT JOIN employee e3 on e.updated_by = e3.emp_id \n"
-			+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
-			+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
-			+ "INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
-			+ "LEFT JOIN employee e5 ON e.reporting_manager_id = e5.emp_id \n"
-			+ "LEFT JOIN designation des ON des.designation_id = e.designation_id \n"
-			+ " where e.employmentstatus!='InActive'  \n"
-			+ "order by e.name")
+	
+	@Query("Select e.empId from Employee e where e.employeementId = :employeementId and name = :employeeName ")
+	Optional<Long> findByEmploymentIdAndEmployeeName(@Param("employeementId") Long employeementId,@Param("employeeName") String employeeName );
+	
+//	@Query(nativeQuery = true, value = "SELECT e.employeement_id, \n"
+//			+ " e.date_of_joining, e.email, \n"
+//			+ " e.employmentstatus, \n"
+//			+ " e.job_role_id, e.manager_id, e.name, \n"
+//			+ " jr.dept_id, jr.name as jobrolename, \n"
+//			+ " d.name as departmentname,e.emp_id, e2.name as manager, e.experience, \n"
+//			+ "e.billable,e.total_experience,  jr.name as JobRolename,e.billable_type,des.designation_name,e.reporting_manager_id, e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName , e.is_apmosys_product \n"
+//			+ "FROM employee e \n"
+//			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+//			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+//			+ "LEFT JOIN employee e3 on e.updated_by = e3.emp_id \n"
+//			+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
+//			+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
+//			+ "INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
+//			+ "LEFT JOIN employee e5 ON e.reporting_manager_id = e5.emp_id \n"
+//			+ "LEFT JOIN designation des ON des.designation_id = e.designation_id \n"
+//			+ " where e.employmentstatus!='InActive'  \n"
+//			+ "order by e.name")
+	
+	@Query(nativeQuery = true , value= " SELECT e.employeement_id, \n"
+			+ "			 e.date_of_joining, e.email, \n"
+			+ "			 e.employmentstatus, \n"
+			+ "			 e.job_role_id, e.manager_id, e.name, \n"
+			+ "			 jr.dept_id, jr.name as jobrolename, \n"
+			+ "			 d.name as departmentname,e.emp_id, e2.name as manager, e.experience, \n"
+			+ "			e.billable,e.total_experience,  jr.name as JobRolename,\n"
+			+ "            e.billable_type,des.designation_name,e.reporting_manager_id, \n"
+			+ "            e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName,\n"
+			+ "            d.name AS hodDepartmentName , e.is_apmosys_product, e.mobile_no, e.work_location \n"
+			+ "			FROM employee e \n"
+			+ "			INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+			+ "			INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+			+ "			INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
+			+ "			INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
+			+ "			LEFT JOIN employee e5 ON e.reporting_manager_id = e5.emp_id \n"
+			+ "			LEFT JOIN designation des ON des.designation_id = e.designation_id \n"
+			+ "			 where e.employmentstatus!='InActive'  \n"
+			+ "             and year(e.date_of_joining) <=year(current_date())\n"
+			+ "			order by e.name")
 	public List<Object[]> getAllEmployeesForPerformanceForHr();
 
+//	@Query(nativeQuery = true, value = "SELECT e.employeement_id, \n"
+//			+ " e.date_of_joining, e.email, \n"
+//			+ " e.employmentstatus, \n"
+//			+ " e.job_role_id, e.manager_id, e.name, \n"
+//			+ " jr.dept_id, jr.name as jobrolename, \n"
+//			+ " d.name as departmentname,e.emp_id, e2.name as manager, e.experience, \n"
+//			+ "e.billable,e.total_experience,  jr.name as JobRolename,e.billable_type,des.designation_name,e.reporting_manager_id, e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName,e.is_apmosys_product  \n"
+//			+ "FROM employee e \n"
+//			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+//			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+//			+ "LEFT JOIN employee e3 on e.updated_by = e3.emp_id \n"
+//			+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
+//			+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
+//			+ "INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
+//			+ "LEFT JOIN employee e5 ON e.reporting_manager_id = e5.emp_id \n"
+//			+ "LEFT JOIN designation des ON des.designation_id = e.designation_id \n"
+//			+ " where e.employmentstatus!='InActive' AND  d.hod_id=:empId  \n"
+//			+ "or (\n"
+//			+ "    CASE \n"
+//			+ "        WHEN e.approvals_to = 'Manager' THEN e.manager_id = :empId \n"
+//			+ "  WHEN e.approvals_to = 'Reporting Manager' THEN e.reporting_manager_id = :empId \n"
+//			+ "        ELSE (d.hod_id = :empId)\n"
+//			+ "    END\n"
+//			+ ")"
+//			+ "order by e.name")
 	@Query(nativeQuery = true, value = "SELECT e.employeement_id, \n"
 			+ " e.date_of_joining, e.email, \n"
 			+ " e.employmentstatus, \n"
 			+ " e.job_role_id, e.manager_id, e.name, \n"
 			+ " jr.dept_id, jr.name as jobrolename, \n"
-			+ " d.name as departmentname,e.emp_id, e2.name as manager, e.experience, \n"
-			+ "e.billable,e.total_experience,  jr.name as JobRolename,e.billable_type,des.designation_name,e.reporting_manager_id, e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName,e.is_apmosys_product  \n"
+			+ " d.name as departmentname, e.emp_id, e2.name as manager, e.experience, \n"
+			+ " e.billable, e.total_experience, jr.name as JobRolename, e.billable_type, \n"
+			+ " des.designation_name, e.reporting_manager_id, e5.name AS reportingManger, \n"
+			+ " jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName, \n"
+			+ " e.is_apmosys_product, e.mobile_no, e.work_location \n"
 			+ "FROM employee e \n"
 			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
 			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
-			+ "LEFT JOIN employee e3 on e.updated_by = e3.emp_id \n"
-			+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id \n"
+			+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id \n"
+			+ "LEFT JOIN employee e4 ON e.created_by = e4.emp_id \n"
 			+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id \n"
 			+ "INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
 			+ "LEFT JOIN employee e5 ON e.reporting_manager_id = e5.emp_id \n"
 			+ "LEFT JOIN designation des ON des.designation_id = e.designation_id \n"
-			+ " where e.employmentstatus!='InActive' AND  d.hod_id=:empId  \n"
-			+ "or (\n"
-			+ "    CASE \n"
-			+ "        WHEN e.approvals_to = 'Manager' THEN e.manager_id = :empId \n"
-			+ "  WHEN e.approvals_to = 'Reporting Manager' THEN e.reporting_manager_id = :empId \n"
-			+ "        ELSE (d.hod_id = :empId)\n"
-			+ "    END\n"
-			+ ")"
-			+ "order by e.name")
+			+ "WHERE e.employmentstatus != 'InActive' \n"
+			+ "AND ( \n"
+			+ "     d.hod_id = :empId \n"
+			+ "     OR (e.approvals_to = 'Manager' AND e.manager_id = :empId) \n"
+			+ "     OR (e.approvals_to = 'Reporting Manager' AND e.reporting_manager_id = :empId) \n"
+			+ ") \n"
+			+ "ORDER BY e.name")
 	public List<Object[]> getAllEmployeesForPerformance(Long empId);
 
 	// @Query(nativeQuery = true)
@@ -226,12 +278,32 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getHierarchyByEmpId(Long empId);
 
+	/**
+	 * Counts 1 if {@code candidateEmpId} is {@code rootEmpId} or reachable under the same
+	 * manager/reporting-manager rules as {@link #getHierarchyByEmpId(Long)} (direct + indirect reports).
+	 */
+	@Query(value = "WITH RECURSIVE team_tree AS ( "
+			+ "SELECT e.emp_id FROM employee e WHERE e.emp_id = :rootEmpId AND e.employmentstatus NOT LIKE 'InActive' "
+			+ "UNION ALL "
+			+ "SELECT e2.emp_id FROM employee e2 "
+			+ "INNER JOIN team_tree t ON ( "
+			+ "  (e2.manager_id = t.emp_id AND (e2.approvals_to = 'Manager' OR e2.approvals_to IS NULL)) "
+			+ "  OR (e2.reporting_manager_id = t.emp_id AND e2.approvals_to = 'Reporting Manager') "
+			+ ") "
+			+ "WHERE e2.employmentstatus NOT LIKE 'InActive' "
+			+ ") "
+			+ "SELECT COUNT(*) FROM team_tree WHERE emp_id = :candidateEmpId", nativeQuery = true)
+	BigInteger countEmpInManagerReportingSubtree(@Param("rootEmpId") Long rootEmpId, @Param("candidateEmpId") Long candidateEmpId);
+
 	public Long countByEmpId(Long empId);
 
 	public Long countByManagerId(Long managerId);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeData(Long empId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeDataForExp(Long empId);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInProbationAndNotice();
@@ -281,12 +353,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	public List<Employee> findByManagerId(Long empId);
 	
-	@Query(nativeQuery = true , value="SELECT e.employeement_id,e.name AS employname,d.name AS departmentName,"
-			+ "e.is_apprenticeship,e.is_consultant "
-			+ "FROM employee e "
-			+ "JOIN job_role jr ON e.job_role_id = jr.job_role_id "
-			+ "JOIN department d ON jr.dept_id = d.dept_id "
-			+ "where e.manager_id= :managerId AND e.employmentstatus!='InActive'")
+	@Query(nativeQuery = true , value= " SELECT e.employeement_id,e.name AS employname,d.name AS departmentName,\n"
+			+ "			e.is_apprenticeship,e.is_consultant, e.is_apmosys_product\n"
+			+ "			FROM employee e \n"
+			+ "			JOIN job_role jr ON e.job_role_id = jr.job_role_id \n"
+			+ "			JOIN department d ON jr.dept_id = d.dept_id \n"
+			+ "			where e.manager_id= :managerId AND e.employmentstatus!='InActive'")
 	public List<Object[]> findReporteesOfManager(Long managerId);
 	
 	public Employee findByEmpId(Long empid);	
@@ -308,6 +380,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getDepartmentByEmployeementId(long employeementId);
+	
+	@Query(nativeQuery = true,value ="SELECT d.name as department FROM employee e \n"
+			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
+			+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+			+ "WHERE e.emp_id =:empId")
+	public String getDepartmentByEmpId(long empId);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeByDateOfRelieving();
@@ -713,11 +791,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			"where e.empId =:empId " )
 	public List<EmployeeDetailsForTeamMemberDTO> getEmployeeDetailsForTeam(Long empId );
 
-    @Query(nativeQuery = true,value = "SELECT \n"
-    		+ "    (SELECT COUNT(*) FROM employee_rewards WHERE rewarded_to = e.emp_id) AS rewardCount,\n"
-    		+ "    (SELECT COUNT(*) FROM appreciation WHERE appreciation_to = e.emp_id) AS appreciationCount\n"
-    		+ "FROM employee e\n"
-    		+ "WHERE e.emp_id = :employeeId")
+	@Query(value = "SELECT " +
+		    "(SELECT COUNT(*) FROM employee_rewards WHERE rewarded_to = e.emp_id) AS rewardCount, " +
+		    "(SELECT COUNT(*) FROM appreciation WHERE appreciation_to = e.emp_id) AS appreciationCount, " +
+		    "(SELECT ROUND(AVG(CAST(ep.final_rating AS DECIMAL(5,2))), 2) FROM employee_performance ep WHERE ep.emp_id = e.emp_id " +
+		    "AND ep.quarter_id IN (SELECT quarter_id FROM quater_cycle WHERE is_enable = 1 AND is_active = 1) AND ep.final_rating IS NOT NULL AND ep.final_rating != '') AS averageRating " +
+		    "FROM employee e " +
+		    "WHERE e.emp_id = :employeeId", 
+		    nativeQuery = true)
     List<Object[]> getRewardsAndAppreciationCount(@Param("employeeId") Long employeeId);
 	
 //    @Query(nativeQuery = true)
@@ -1774,7 +1855,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	Employee findByEmployeementIdForApmosysProduct(@Param("empId") Long empId);
 	
 	
-	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') ")
+	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') AND (e.isConsultant IS NULL OR e.isConsultant = 'false') ")
 	Employee findByEmployeementIdForOthers(@Param("empId") Long empId);
 	
 	@Query("Select e from Employee e where e.employeementId = :empId AND e.isConsultant = 'true'")
@@ -3016,7 +3097,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "							COUNT(DISTINCT\n"
 			+ "								CASE\n"
 			+ "									WHEN ets.day_type_upper IN ('WORKING', 'NON-WORKING', 'LEAVE') AND ets.activity_team_id = bpe.team_id THEN ets.date\n"
-			+ "									WHEN ets.day_type_upper IN ('WEEK OFF', 'PUBLIC HOLIDAY', 'HOLIDAY', 'CLIENT HOLIDAY') THEN ets.date\n"
+			+ "									WHEN ets.day_type_upper IN ('WEEK OFF','COMP OFF', 'PUBLIC HOLIDAY', 'HOLIDAY', 'CLIENT HOLIDAY') THEN ets.date\n"
 			+ "									ELSE NULL\n"
 			+ "								END\n"
 			+ "							) AS filled_ishine_days,\n"
@@ -3028,7 +3109,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "							(\n"
 			+ "								(ets.day_type_upper IN ('WORKING', 'NON-WORKING', 'LEAVE') AND ets.activity_team_id = bpe.team_id)\n"
 			+ "								OR\n"
-			+ "								ets.day_type_upper IN ('WEEK OFF', 'PUBLIC HOLIDAY', 'HOLIDAY', 'CLIENT HOLIDAY')\n"
+			+ "								ets.day_type_upper IN ('WEEK OFF','COMP OFF', 'PUBLIC HOLIDAY', 'HOLIDAY', 'CLIENT HOLIDAY')\n"
 			+ "							)\n"
 			+ "						GROUP BY bpe.emp_id, bpe.project_id\n"
 			+ "    ),\n"
@@ -3288,6 +3369,240 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true , value = " select count(*) from employee e where (e.manager_id = :empId) and e.employmentstatus != 'InActive' And e.emp_id NOT BETWEEN 1 AND 6")
 	public Long countReportiesByManagerId1(Long empId);
+	
+//	  @Query(
+//		        value =
+//		            "SELECT DISTINCT " +
+//		            "    e.employeement_id, " +
+//		            "    e.date_of_joining, " +
+//		            "    e.email, " +
+//		            "    e.employmentstatus, " +
+//		            "    e.name, " +
+//		            "    d.name AS departmentname, " +
+//		            "    e2.name AS manager, " +
+//		            "    e5.name AS reportingManager, " +
+//		            "    e7.name AS hodName, " +
+//		            "    qc.financial_year, " +
+//		            "    ep.final_rating " +
+//		            "FROM employee e " +
+//		            "INNER JOIN job_role jr " +
+//		            "    ON jr.job_role_id = e.job_role_id " +
+//		            "INNER JOIN department d " +
+//		            "    ON d.dept_id = jr.dept_id " +
+//		            "INNER JOIN employee e2 " +
+//		            "    ON e.manager_id = e2.emp_id " +
+//		            "INNER JOIN employee e7 " +
+//		            "    ON d.hod_id = e7.emp_id " +
+//		            "LEFT JOIN employee e5 " +
+//		            "    ON e.reporting_manager_id = e5.emp_id " +
+//		            "LEFT JOIN designation des " +
+//		            "    ON des.designation_id = e.designation_id " +
+//		            "LEFT JOIN employee_performance ep " +
+//		            "    ON e.emp_id = ep.emp_id " +
+//		            "LEFT JOIN employee_rating_performance erp " +
+//		            "    ON ep.quarter_id = erp.quarter_id " +
+//		            "   AND ep.emp_id = erp.emp_id " +
+//		            "LEFT JOIN quater_cycle qc " +
+//		            "    ON ep.quarter_id = qc.quarter_id " +
+//		            "WHERE e.employmentstatus <> 'InActive' " +
+//		            "  AND YEAR(e.date_of_joining) <= :fyStartYear " +
+//		            "AND e.emp_id > 6 " +
+//		            "AND ( " +
+//		            " erp.quarter_id = :quarterId "+
+//		            " or "+
+//		            " erp.quarter_id is null "+
+//		            " ) " +
+//		            "  AND ( " +
+//		            "        d.hod_id = :empId " +
+//		            "        OR ( " +
+//		            "            CASE " +
+//		            "                WHEN e.approvals_to = 'Manager' " +
+//		            "                    THEN e.manager_id " +
+//		            "                WHEN e.approvals_to = 'Reporting Manager' " +
+//		            "                    THEN e.reporting_manager_id " +
+//		            "                ELSE d.hod_id " +
+//		            "            END " +
+//		            "        ) = :empId " +
+//		            "      ) " +
+//		            "ORDER BY e.name , ep.final_rating ",
+//
+//		        countQuery =
+//		            "SELECT COUNT(DISTINCT e.emp_id) " +
+//		            "FROM employee e " +
+//		            "INNER JOIN job_role jr " +
+//		            "    ON jr.job_role_id = e.job_role_id " +
+//		            "INNER JOIN department d " +
+//		            "    ON d.dept_id = jr.dept_id " +
+//		            "LEFT JOIN employee_performance ep " +
+//		            "    ON e.emp_id = ep.emp_id " +
+//		            "LEFT JOIN quater_cycle qc " +
+//		            "    ON ep.quarter_id = :quarterId " +
+//		            "WHERE e.employmentstatus <> 'InActive' " +
+//		            "  AND YEAR(e.date_of_joining) <= :fyStartYear " +
+//		            "  AND ( " +
+//		            "        d.hod_id = :empId " +
+//		            "        OR ( " +
+//		            "            CASE " +
+//		            "                WHEN e.approvals_to = 'Manager' " +
+//		            "                    THEN e.manager_id " +
+//		            "                WHEN e.approvals_to = 'Reporting Manager' " +
+//		            "                    THEN e.reporting_manager_id " +
+//		            "                ELSE d.hod_id " +
+//		            "            END " +
+//		            "        ) = :empId " +
+//		            "      ) ",
+//		        nativeQuery = true
+//		    )
+	
+	@Query(
+		    value = 
+		        "SELECT DISTINCT " +
+		        "  e.employeement_id, " +
+		        "  e.date_of_joining, " +
+		        "  e.email, " +
+		        "  e.employmentstatus, " +
+		        "  e.name, " +
+		        "  d.name AS departmentname, " +
+		        "  e2.name AS manager, " +
+		        "  e5.name AS reportingManager, " +
+		        "  e7.name AS hodName, " +
+		        "  qc.financial_year, " +
+		        "  ep.final_rating " +
+		        "FROM employee e " +
+		        "INNER JOIN job_role jr " +
+		        "  ON jr.job_role_id = e.job_role_id " +
+		        "INNER JOIN department d " +
+		        "  ON d.dept_id = jr.dept_id " +
+		        "INNER JOIN employee e2 " +
+		        "  ON e.manager_id = e2.emp_id " +
+		        "INNER JOIN employee e7 " +
+		        "  ON d.hod_id = e7.emp_id " +
+		        "LEFT JOIN employee e5 " +
+		        "  ON e.reporting_manager_id = e5.emp_id " +
+		        "LEFT JOIN designation des " +
+		        "  ON des.designation_id = e.designation_id " +
+		        "LEFT JOIN employee_performance ep " +
+		        "  ON e.emp_id = ep.emp_id " +
+		        "LEFT JOIN employee_rating_performance erp " +
+		        "  ON ep.quarter_id = erp.quarter_id " +
+		        "  AND ep.emp_id = erp.emp_id " +
+		        "LEFT JOIN quater_cycle qc " +
+		        "  ON ep.quarter_id = qc.quarter_id " +
+		        "WHERE e.employmentstatus <> 'InActive' " +
+		        "  AND YEAR(e.date_of_joining) <= :fyStartYear " +
+		        "  AND e.emp_id > 6 " +
+		        "  AND ( " +
+		        "    erp.quarter_id = :quarterId " +
+		        "    OR erp.quarter_id IS NULL " +
+		        "  ) " +
+		        "  AND ( " +
+		        "    d.hod_id = :empId " +
+		        "    OR ( " +
+		        "      CASE " +
+		        "        WHEN e.approvals_to = 'Manager' " +
+		        "          THEN e.manager_id " +
+		        "        WHEN e.approvals_to = 'Reporting Manager' " +
+		        "          THEN e.reporting_manager_id " +
+		        "        ELSE d.hod_id " +
+		        "      END " +
+		        "    ) = :empId " +
+		        "  ) " +
+		        "ORDER BY e.name, ep.final_rating ",
+
+		    countQuery = 
+		        "SELECT COUNT(DISTINCT e.emp_id) " +
+		        "FROM employee e " +
+		        "INNER JOIN job_role jr " +
+		        "  ON jr.job_role_id = e.job_role_id " +
+		        "INNER JOIN department d " +
+		        "  ON d.dept_id = jr.dept_id " +
+		        "LEFT JOIN employee_performance ep " +
+		        "  ON e.emp_id = ep.emp_id " +
+		        "LEFT JOIN employee_rating_performance erp " +
+		        "  ON ep.quarter_id = erp.quarter_id " +
+		        "  AND ep.emp_id = erp.emp_id " +
+		        "WHERE e.employmentstatus <> 'InActive' " +
+		        "  AND YEAR(e.date_of_joining) <= :fyStartYear " +
+		        "  AND e.emp_id > 6 " +
+		        "  AND ( " +
+		        "    erp.quarter_id = :quarterId " +
+		        "    OR erp.quarter_id IS NULL " +
+		        "  ) " +
+		        "  AND ( " +
+		        "    d.hod_id = :empId " +
+		        "    OR ( " +
+		        "      CASE " +
+		        "        WHEN e.approvals_to = 'Manager' " +
+		        "          THEN e.manager_id " +
+		        "        WHEN e.approvals_to = 'Reporting Manager' " +
+		        "          THEN e.reporting_manager_id " +
+		        "        ELSE d.hod_id " +
+		        "      END " +
+		        "    ) = :empId " +
+		        "  ) ",
+		    nativeQuery = true
+		)
+		    Page<Object[]> findEligibleEmployeesByFY(
+		            @Param("fyStartYear") Integer fyStartYear,
+		            @Param("quarterId") Long quarterId,
+		            @Param("empId") Long empId,
+		            Pageable pageable
+		    );
+		    @Query(
+			        value =
+			            "SELECT DISTINCT " +
+			            "    e.employeement_id, " +
+			            "    e.date_of_joining, " +
+			            "    e.email, " +
+			            "    e.employmentstatus, " +
+			            "    e.name, " +
+			            "    d.name AS departmentname, " +
+			            "    e2.name AS manager, " +
+			            "    e5.name AS reportingManager, " +
+			            "    e7.name AS hodName, " +
+			            "    qc.financial_year, " +
+			            "    ep.final_rating " +
+			            "FROM employee e " +
+			            "INNER JOIN job_role jr " +
+			            "    ON jr.job_role_id = e.job_role_id " +
+			            "INNER JOIN department d " +
+			            "    ON d.dept_id = jr.dept_id " +
+			            "INNER JOIN employee e2 " +
+			            "    ON e.manager_id = e2.emp_id " +
+			            "INNER JOIN employee e7 " +
+			            "    ON d.hod_id = e7.emp_id " +
+			            "LEFT JOIN employee e5 " +
+			            "    ON e.reporting_manager_id = e5.emp_id " +
+			            "LEFT JOIN designation des " +
+			            "    ON des.designation_id = e.designation_id " +
+			            "LEFT JOIN employee_performance ep " +
+			            "    ON e.emp_id = ep.emp_id " +
+			            "LEFT JOIN employee_rating_performance erp " +
+			            "    ON ep.quarter_id = erp.quarter_id " +
+			            "   AND ep.emp_id = erp.emp_id " +
+			            "LEFT JOIN quater_cycle qc " +
+			            "    ON ep.quarter_id = qc.quarter_id " +
+			            "WHERE e.employmentstatus <> 'InActive' " +
+			            "  AND YEAR(e.date_of_joining) <= :fYear " +
+			            "AND e.emp_id > 6" +
+			            "  AND ( " +
+			            "        d.hod_id = :empId " +
+			            "        OR ( " +
+			            "            CASE " +
+			            "                WHEN e.approvals_to = 'Manager' " +
+			            "                    THEN e.manager_id " +
+			            "                WHEN e.approvals_to = 'Reporting Manager' " +
+			            "                    THEN e.reporting_manager_id " +
+			            "                ELSE d.hod_id " +
+			            "            END " +
+			            "        ) = :empId " +
+			            "      ) " +
+			            "ORDER BY e.name , ep.final_rating   ",
+			            nativeQuery = true
+			            )
+		    
+		    List<Object[]> exportEligibleEmployeesByFY(@Param("fYear")Integer fYear , @Param("empId")Long empId );
+	
 
 	
 	@Query(value = "SELECT count(*)\n"
@@ -3324,6 +3639,119 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		List<String> findPendingTimesheetProjectNames(
 		        @Param("empId") Long empId,
 		        @Param("checkDate") LocalDate checkDate
+		);
+
+		@Query(value = "SELECT e.emp_id, e.name, " +
+               "CASE " +
+               "    WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
+               "    ELSE m.name " +
+               "END AS Reporting_Manager, " +
+               "d.name AS department_name, " +
+               "CASE " +
+               "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
+               "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
+               "    ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
+               "END AS prefixed_id, " +
+               "e.employeement_id " +
+               "FROM employee e " +
+               "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id " +
+               "LEFT JOIN employee m ON e.manager_id = m.emp_id " +
+               "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+               "INNER JOIN department d ON jr.dept_id = d.dept_id " +
+               "WHERE ( " +
+               "    REPLACE(CONCAT('A', CAST(e.employeement_id AS CHAR)), '-', '') IN (:biometricCodes) OR " +
+               "    REPLACE(CONCAT('AP', CAST(e.employeement_id AS CHAR)), '-', '') IN (:biometricCodes) OR " +
+               "    REPLACE(CONCAT('CS', CAST(e.employeement_id AS CHAR)), '-', '') IN (:biometricCodes) " +
+               ") " +
+               "AND e.employmentstatus != 'InActive' " +
+               "AND (:employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%'))) " +
+               "AND (:employeeCode IS NULL OR " +
+               "    CASE " +
+               "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP', CAST(e.employeement_id AS CHAR)) " +
+               "        WHEN e.is_consultant = 'true' THEN CONCAT('CS', CAST(e.employeement_id AS CHAR)) " +
+               "        ELSE CONCAT('A', CAST(e.employeement_id AS CHAR)) " +
+               "    END LIKE CONCAT('%', :employeeCode, '%')) " +
+               "AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+               "AND (:managerName IS NULL OR " +
+               "    LOWER(CASE " +
+               "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
+               "        ELSE m.name " +
+               "    END) LIKE LOWER(CONCAT('%', :managerName, '%')))",
+       nativeQuery = true)
+		List<Object[]> findByPrefixedEmployeementIdInWithFilters(
+			@Param("biometricCodes") List<String> biometricCodes,
+			@Param("employeeName") String employeeName,
+			@Param("employeeCode") String employeeCode,
+			@Param("departmentName") String departmentName,
+			@Param("managerName") String managerName
+		);
+
+	@Query(value = "SELECT DISTINCT " +
+               "CASE " +
+               "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
+               "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
+               "    ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
+               "END AS prefixed_id " +
+               "FROM employee e " +
+               "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+               "LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+               "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id " +
+               "LEFT JOIN employee m ON e.manager_id = m.emp_id " +
+               "WHERE e.employmentstatus != 'InActive' " +
+               "AND (:employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%'))) " +
+               "AND (:employeeCode IS NULL OR " +
+               "    CASE " +
+               "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
+               "        WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
+               "        ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
+               "    END LIKE CONCAT('%', :employeeCode, '%')) " +
+               "AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+               "AND (:managerName IS NULL OR " +
+               "    LOWER(CASE " +
+               "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
+               "        ELSE m.name " +
+               "    END) LIKE LOWER(CONCAT('%', :managerName, '%')))",
+       nativeQuery = true)
+		List<String> findEmployeeIdsBySearchCriteria(
+			@Param("employeeName") String employeeName,
+			@Param("employeeCode") String employeeCode,
+			@Param("departmentName") String departmentName,
+			@Param("managerName") String managerName
+		);
+
+	@Query(value = "SELECT DISTINCT " +
+               "CASE " +
+               "    WHEN e.is_apmosys_product = 'true' THEN 'AP' " +
+               "    WHEN e.is_consultant = 'true' THEN 'CS' " +
+               "    ELSE 'A' " +
+               "END, " +
+               "CAST(e.employeement_id AS CHAR) " +
+               "FROM employee e " +
+               "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+               "LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+               "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id " +
+               "LEFT JOIN employee m ON e.manager_id = m.emp_id " +
+               "WHERE e.employmentstatus != 'InActive' " +
+               "AND e.emp_id NOT IN (1, 6) " +
+               "AND (:employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%'))) " +
+               "AND (:employeeCode IS NULL OR " +
+               "    CASE " +
+               "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP', CAST(e.employeement_id AS CHAR)) " +
+               "        WHEN e.is_consultant = 'true' THEN CONCAT('CS', CAST(e.employeement_id AS CHAR)) " +
+               "        ELSE CONCAT('A', CAST(e.employeement_id AS CHAR)) " +
+               "    END LIKE CONCAT('%', :employeeCode, '%')) " +
+               "AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+               "AND (:managerName IS NULL OR " +
+               "    LOWER(CASE " +
+               "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
+               "        ELSE m.name " +
+               "    END) LIKE LOWER(CONCAT('%', :managerName, '%')))",
+       nativeQuery = true)
+		List<Object[]> findRawEmployeementIdsBySearchCriteria(
+			@Param("employeeName") String employeeName,
+			@Param("employeeCode") String employeeCode,
+			@Param("departmentName") String departmentName,
+			@Param("managerName") String managerName
 		);
 
 }

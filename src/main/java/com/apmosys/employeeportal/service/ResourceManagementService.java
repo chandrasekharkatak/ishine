@@ -519,7 +519,7 @@ public class ResourceManagementService {
 								if ((teamMember.getIsTeamLead() != null)
 										&& (teamMember.getIsTeamLead().equals("true"))) {
 									newEmpTeamMap.setEmpId(teamMember.getEmpId());
-									newEmpTeamMap.setActive(1l);
+									newEmpTeamMap.setActive(2l);
 									newEmpTeamMap.setEmployeeRole("TeamLead");
 									newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
 									newEmpTeamMap.setStartDate(LocalDateTime.now()); 
@@ -721,9 +721,9 @@ public class ResourceManagementService {
 					}
 
 					teamMapDbResponse.forEach((newAddedMember) -> {
-						if (resourceManagementDTO.getIsHOD().equals("true"))
-							newAddedMember.setActive(1L);
-						else
+						// if (resourceManagementDTO.getIsHOD().equals("true"))
+						// 	newAddedMember.setActive(1L);
+						// else
 							newAddedMember.setActive(2L);
 
 						System.out.println(" newTeamMember   " + newAddedMember);
@@ -2275,7 +2275,8 @@ public class ResourceManagementService {
 			dto.setPoProjectType(obj[13] != null ? obj[13].toString() : null);
 			dto.setInternalProjectType(obj[14] != null ? obj[14].toString() : null);
 			dto.setRescRemovedBy(obj[16] != null ? Long.parseLong(obj[16].toString()) : null);		
-			dto.setRescRemovedByName(obj[17] != null ? obj[17].toString() : null);		
+			dto.setRescRemovedByName(obj[17] != null ? obj[17].toString() : null);
+			dto.setEmployeeTeamMapId(obj[18] != null ? Long.parseLong(obj[18].toString()) : null);
 			allData.add(dto);
 		});
 
@@ -2306,9 +2307,14 @@ public class ResourceManagementService {
 				resourceManagementDTO.getEmpId(), resourceManagementDTO.getTeamId());
 		Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
 		System.out.println("findResource  " + findResource);
+		System.out.println("getres removed by :"+resourceManagementDTO.getRescRemovedBy());
+		System.out.println("getres updated by :"+resourceManagementDTO.getUpdatedBy());
+			System.out.println("getres udpatedon :"+LocalDateTime.now());
 		if (findResource != null) {
 			findResource.setActive(0l);
-			findResource.setRescRemovedBy(resourceManagementDTO.getRescRemovedBy());	
+			findResource.setRescRemovedBy(resourceManagementDTO.getRescRemovedBy());
+			findResource.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
+			findResource.setUpdatedOn(LocalDateTime.now());
 			// added flag for thea date stating its po / custom end date
 			findResource.setIsCustomDate(resourceManagementDTO.getIsCustomDate());		
 			if (resourceManagementDTO.getEndDate() != null) {
@@ -4057,14 +4063,24 @@ public class ResourceManagementService {
 		try {
 			Long empid = resourceManagementDTO.getEmpId();
 			Long teamid = resourceManagementDTO.getTeamId();
-			EmployeeTeamMap findResource = employeeTeamMapRepository.findByEmpIdAndTeamId(empid, teamid);
+			Long employeeTeamMapId = resourceManagementDTO.getEmployeeTeamMapId();
+			EmployeeTeamMap findResource = null;
+//			findResource = employeeTeamMapRepository.findByEmpIdAndTeamId(empid, teamid);
+			if (employeeTeamMapId != null) {
+				findResource = employeeTeamMapRepository.findByEmployeeTeamMapId(employeeTeamMapId);
+			}
+
+			if (findResource == null) {
+				findResource = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActive(empid, teamid, 1L);
+			}
 			Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
 
 			System.out.println("findResource: " + findResource);
 
 			if (findResource != null) {
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
+				System.out.println("resource start date : "+resourceManagementDTO.getStartDate());
+				System.out.println("resource end date : "+resourceManagementDTO.getEndDate());
 				if (resourceManagementDTO.getEndDate() != null) {
 					// String str = resourceManagementDTO.getEndDate();
 					// LocalDate date = LocalDate.parse(str, formatter);
@@ -4080,8 +4096,18 @@ public class ResourceManagementService {
 						endDateTime = date.atTime(LocalTime.now().getHour(), LocalTime.now().getMinute(),
 								LocalTime.now().getSecond());
 					}
-					findResource.setEndDate(endDateTime);
-				} else if (resourceManagementDTO.getStartDate() != null) {
+					// adding validation before setting the custom end date previously it was setting without validation thats why even efter error it was setting end-date 
+					if (findResource.getStartDate() != null &&
+	                        findResource.getStartDate().isAfter(endDateTime)) {
+
+	                    throw new IllegalArgumentException(
+	                            "End date cannot be less than start date..!"
+	                    );
+	                }
+	                findResource.setEndDate(endDateTime);
+
+				}
+				if (resourceManagementDTO.getStartDate() != null) {
 
 					String str = resourceManagementDTO.getStartDate();
 					LocalDateTime startDateTime;
@@ -4099,23 +4125,28 @@ public class ResourceManagementService {
 					// LocalDate date = LocalDate.parse(str, formatter);
 					// LocalDateTime startDateTime = date.atStartOfDay();
 					// findResource.setStartDate(Timestamp.valueOf(startDateTime));
-				} else {
-					findResource.setEndDate(LocalDateTime.now());
-				}
+				} 
+//				else {
+//					findResource.setEndDate(LocalDateTime.now());
+//				}
 				if(findResource.getEndDate() != null && findResource.getStartDate().isAfter(findResource.getEndDate())) {
 					throw new IllegalArgumentException("End date cannot be less than start date..!");
 				}
 				findResource.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
 				findResource.setUpdatedOn(LocalDateTime.now());
-
+				
 				employeeTeamMapRepository.save(findResource);
+				
+				System.out.println("Picked startDate = " + findResource.getStartDate());
+				System.out.println("Picked endDate = " + findResource.getEndDate());
+
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(
 						"Project StartDate/EndDate updated successfully, from Team Name - " + findTeam.getTeamName());
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Resource not found for given empId and teamId.");
+				response.setServiceResponse("Resource not found for given employeeTeamMapId");
 			}
 
 		} catch (Exception e) {
@@ -4272,11 +4303,8 @@ public class ResourceManagementService {
 		}
 		return response;
 	}
-	
 
-	
-	
-	
+
 	public ServiceResponse nEWgetAllInternalProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
 		ServiceResponse response = new ServiceResponse();
 		if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
@@ -4386,19 +4414,20 @@ public class ResourceManagementService {
 					newDto.setIsConsultant(row.getIsConsultant());
 					newDto.setIsApprenticeship(row.getIsApprenticeship());
 					newDto.setIsApmosysProduct(row.getIsApmosysProduct());	
-					
-					
-					 
-				    String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
-				    String isConsultant = newDto.getIsConsultant();
-				    String isApmosysProduct = newDto.getIsApmosysProduct();
+				    
+				    String employmentId = newDto.getEmployeementId().toString();
 
 				    if (employmentId != null) {
-				         if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
-				        } else {
-				        	newDto.setEmployeementIdAccToET("A-" + employmentId);
+
+				        String prefix = "A-"; // default
+
+				        if ("true".equalsIgnoreCase(newDto.getIsApmosysProduct())) {
+				            prefix = "AP-";
+				        } else if ("true".equalsIgnoreCase(newDto.getIsConsultant())) {
+				            prefix = "CS-";
 				        }
+
+				        newDto.setEmployeementIdAccToET(prefix + employmentId);
 				    }
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
@@ -4574,18 +4603,19 @@ public class ResourceManagementService {
 					newDto.setIsApprenticeship(row.getIsApprenticeship());
 					newDto.setIsApmosysProduct(row.getIsApmosysProduct());	
 					
-					
-					 
-				    String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
-				    String isConsultant = newDto.getIsConsultant();
-				    String isApmosysProduct = newDto.getIsApmosysProduct();
+					String employmentId = newDto.getEmployeementId().toString();
 
 				    if (employmentId != null) {
-				         if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
-				        } else {
-				        	newDto.setEmployeementIdAccToET("A-" + employmentId);
+
+				        String prefix = "A-"; // default
+
+				        if ("true".equalsIgnoreCase(newDto.getIsApmosysProduct())) {
+				            prefix = "AP-";
+				        } else if ("true".equalsIgnoreCase(newDto.getIsConsultant())) {
+				            prefix = "CS-";
 				        }
+
+				        newDto.setEmployeementIdAccToET(prefix + employmentId);
 				    }
 					
 					newDto.setRmgprojects(new ArrayList<>());
@@ -4926,19 +4956,20 @@ public class ResourceManagementService {
 					newDto.setIsConsultant(row.getIsConsultant());
 					newDto.setIsApprenticeship(row.getIsApprenticeship());
 					newDto.setIsApmosysProduct(row.getIsApmosysProduct());	
-					
-					
 					 
-				    String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
-				    String isConsultant = newDto.getIsConsultant();
-				    String isApmosysProduct = newDto.getIsApmosysProduct();
+					String employmentId = newDto.getEmployeementId().toString();
 
 				    if (employmentId != null) {
-				         if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
-				        } else {
-				        	newDto.setEmployeementIdAccToET("A-" + employmentId);
+
+				        String prefix = "A-"; // default
+
+				        if ("true".equalsIgnoreCase(newDto.getIsApmosysProduct())) {
+				            prefix = "AP-";
+				        } else if ("true".equalsIgnoreCase(newDto.getIsConsultant())) {
+				            prefix = "CS-";
 				        }
+
+				        newDto.setEmployeementIdAccToET(prefix + employmentId);
 				    }
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
@@ -5054,18 +5085,21 @@ public class ResourceManagementService {
 					newDto.setBillable(billable);
 					newDto.setBillableType(billableType);
 					newDto.setIsApmosysProduct(isApmosysProductt);
-					   String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
-					    String isConsultant = newDto.getIsConsultant();
-					    String isApmosysProduct = newDto.getIsApmosysProduct();
-
-					    if (employmentId != null) {
-					         if ("true".equalsIgnoreCase(isApmosysProduct)) {
-					        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
-					        } else {
-					        	newDto.setEmployeementIdAccToET("A-" + employmentId);
-					        }
-					    }
 					
+					String employmentId = newDto.getEmployeementId().toString();
+
+				    if (employmentId != null) {
+
+				        String prefix = "A-"; // default
+
+				        if ("true".equalsIgnoreCase(newDto.getIsApmosysProduct())) {
+				            prefix = "AP-";
+				        } else if ("true".equalsIgnoreCase(newDto.getIsConsultant())) {
+				            prefix = "CS-";
+				        }
+
+				        newDto.setEmployeementIdAccToET(prefix + employmentId);
+				    }
 					
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
@@ -5235,20 +5269,22 @@ public class ResourceManagementService {
 					newDto.setIsConsultant(row.getIsConsultant());
 					newDto.setIsApprenticeship(row.getIsApprenticeship());
 					newDto.setIsApmosysProduct(row.getIsApmosysProduct());	
-					
-					
 					 
-				    String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
-				    String isConsultant = newDto.getIsConsultant();
-				    String isApmosysProduct = newDto.getIsApmosysProduct();
+					String employmentId = newDto.getEmployeementId().toString();
 
 				    if (employmentId != null) {
-				         if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
-				        } else {
-				        	newDto.setEmployeementIdAccToET("A-" + employmentId);
+
+				        String prefix = "A-"; // default
+
+				        if ("true".equalsIgnoreCase(newDto.getIsApmosysProduct())) {
+				            prefix = "AP-";
+				        } else if ("true".equalsIgnoreCase(newDto.getIsConsultant())) {
+				            prefix = "CS-";
 				        }
+
+				        newDto.setEmployeementIdAccToET(prefix + employmentId);
 				    }
+				    
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
 				});
@@ -6482,17 +6518,27 @@ public class ResourceManagementService {
 				 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Invalid Emp Id");
 		        }
-			 
-			  Map<Long, EmpPrimaryProjectMapping> existingMappings = empPrimaryProjectMappingRepository
-		                .findByEmpIdIn(empIds)
-		                .stream()
-		                .collect(Collectors.toMap(EmpPrimaryProjectMapping::getEmpId, Function.identity()));
-			  
-			  Project project = projectRepository.findByProjectId(projectId);
-			  if (project == null) {
-				  response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+
+		        List<EmpPrimaryProjectMapping> mappingsToUpdate = new ArrayList<>();
+
+				Project project = projectRepository.findByProjectId(projectId);
+				if (project == null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Invalid Project");
 		        }
+							
+				
+			  	LocalDateTime now = LocalDateTime.now();
+
+				List<EmpPrimaryProjectMapping> existingMappingProjectWithSingleEmployee = empPrimaryProjectMappingRepository
+				.findByEmpIdInAndIsMapped(empIds);
+
+				for(EmpPrimaryProjectMapping emp : existingMappingProjectWithSingleEmployee){
+						emp.setIsMapped("N");
+						emp.setUpdatedBy(updatedBy);
+						emp.setUpdatedOn(now);
+						mappingsToUpdate.add(emp);
+				}
 			  
 			 
 			  Map<Long, Employee> employeeMap = employeeRepository.findByEmpIdIn(empIds).stream()
@@ -6525,35 +6571,21 @@ public class ResourceManagementService {
 		        }
 			  
 			  
-			  LocalDateTime now = LocalDateTime.now();
-		        List<EmpPrimaryProjectMapping> mappingsToUpdate = new ArrayList<>();
 		        List<Long> empIdsToUpdateBillable = new ArrayList<>();
 		        Map<Long, String> empIdToBillable = new HashMap<>();
 		        Map<Long, String> empIdToBillableType = new HashMap<>();
 
 		        for (Long empId : empIds) {
-		            EmpPrimaryProjectMapping existing = existingMappings.get(empId);
-		            boolean isNewMapping = false;
-		            Long projectIdLong = Long.valueOf(projectId);
+		        	Long projectIdLong = Long.valueOf(projectId);
 
-		            if (existing != null && !existing.getPrimaryProjectId().equals(projectId)) {
-		                existing.setPrimaryProjectId(projectIdLong);
-		                existing.setPrimaryProjectName(project.getProjectName());
-		                existing.setIsMapped("Y");
-		                existing.setUpdatedBy(updatedBy);
-		                existing.setUpdatedOn(now);
-		                mappingsToUpdate.add(existing);
-		            } else if (existing == null) {
-		                EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
-		                newMapping.setEmpId(empId);
-		                newMapping.setPrimaryProjectId(projectIdLong);
-		                newMapping.setPrimaryProjectName(project.getProjectName());
-		                newMapping.setIsMapped("Y");
-		                newMapping.setUpdatedBy(updatedBy);
-		                newMapping.setUpdatedOn(now);
-		                mappingsToUpdate.add(newMapping);
-		            }
-
+					EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
+					newMapping.setEmpId(empId);
+					newMapping.setPrimaryProjectId(projectIdLong);
+					newMapping.setPrimaryProjectName(project.getProjectName());
+					newMapping.setIsMapped("Y");
+					newMapping.setUpdatedBy(updatedBy);
+					newMapping.setUpdatedOn(now);
+					mappingsToUpdate.add(newMapping);
 		           
 		            String finalBillableType = shadowEmpIds.contains(empId) ? "Shadow" : billableType;
 		            String finalBillable = "Shadow".equals(finalBillableType) ? "No" : billable;
@@ -7244,1035 +7276,1109 @@ public class ResourceManagementService {
 
 	
 	public ServiceResponse combinedDataList(ProjectFilterDTO projectFilterDTO) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setLogLevel("INFO");
+        ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setLogLevel("INFO");
 
-		try {
-			if (projectFilterDTO == null) {
-				return failResponse(response, apiLogInfo, "Invalid input: ProjectFilterDTO is null.");
-			}
+        try {
+            if (projectFilterDTO == null) {
+                return failResponse(response, apiLogInfo, "Invalid input: ProjectFilterDTO is null.");
+            }
 
-			if (Boolean.FALSE.equals(projectFilterDTO.getIsHod()) && Boolean.FALSE.equals(projectFilterDTO.getIsAdmin())
-					&& Boolean.FALSE.equals(projectFilterDTO.getIsOther())) {
-				return failResponse(response, apiLogInfo, "Invalid input: All role flags are false.");
-			}
-			if((Boolean.TRUE.equals(projectFilterDTO.getIsHod())&&Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) ||
-					Boolean.TRUE.equals(projectFilterDTO.getIsAdmin()) && Boolean.TRUE.equals(projectFilterDTO.getIsOther())||
-					Boolean.TRUE.equals(projectFilterDTO.getIsHod())&&Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
-				return failResponse(response, apiLogInfo, "Invalid input: More than one flag is true");
-			}
+            if (Boolean.FALSE.equals(projectFilterDTO.getIsHod()) && Boolean.FALSE.equals(projectFilterDTO.getIsAdmin())
+                    && Boolean.FALSE.equals(projectFilterDTO.getIsOther())) {
+                return failResponse(response, apiLogInfo, "Invalid input: All role flags are false.");
+            }
+            if ((Boolean.TRUE.equals(projectFilterDTO.getIsHod()) && Boolean.TRUE.equals(projectFilterDTO.getIsAdmin()))
+                    ||
+                    Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())
+                            && Boolean.TRUE.equals(projectFilterDTO.getIsOther())
+                    ||
+                    Boolean.TRUE.equals(projectFilterDTO.getIsHod())
+                            && Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
+                return failResponse(response, apiLogInfo, "Invalid input: More than one flag is true");
+            }
 
-			List<Long> deptIdList = new ArrayList<>();
-			Set<Integer> projectIdSet = new HashSet<>();
-			List<Integer> projectIdListTemp;
-			String approvalStatus = null;
-			Boolean approvalCheck = null;
-			String status = null;
-			String projectStatus = null;
-			List<ProjectFetchDTO> finalDataList = new ArrayList<>();
-			List<ProjectFetchDTO> expiredTNMList = new ArrayList<>();
-			List<ProjectFetchDTO> activeTNMList = new ArrayList<>();
-			
-			CombinedPOInternalProjectResponse responseData = new CombinedPOInternalProjectResponse();
-			
-			if("expiredTNM".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-	            Map<String, List<ProjectFetchDTO>> expiredProjectsMap = new HashMap<>();
-	            
-	            if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
-	                if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-	                    List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-	                    expiredProjectsMap = getExpiredProjectListsByDateRanges(selectedDeptList);
-	                } else {
-	                    List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
-	                    expiredProjectsMap = getExpiredProjectListsByDateRanges(deptIdsAccToRole);
-	                }
-	            }
-	            else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
-	                List<Department> deptData = departmentRepository.findByHodId(projectFilterDTO.getCurrentUserEmpId());
-	                if (deptData != null) {
-	                    for (Department data : deptData) {
-	                        if (data != null && data.getDeptId() != null) {
-	                            deptIdList.add(data.getDeptId());
-	                        }
-	                    }
-	                }
-	                
-	                if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-	                    List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-	                    expiredProjectsMap = getExpiredProjectListsByDateRanges(selectedDeptList);
-	                } else {
-	                    expiredProjectsMap = getExpiredProjectListsByDateRanges(deptIdList);
-	                }
-	            }
-	            else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
-	                if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-	                    List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-	                    expiredProjectsMap = getExpiredProjectListsByDateRanges(selectedDeptList);
-	                } else {
-	                    Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
-	                    List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
-	                    expiredProjectsMap = getExpiredProjectListsByDateRanges(deptIdOfOther);
-	                }
-	            }
-	            
-	            responseData.setExpiredTNMProjectsWithin1Month(expiredProjectsMap.get("expiredProjectsWithin1Month"));
-	            responseData.setExpiredTNMProjects1To2Months(expiredProjectsMap.get("expiredProjects1To2Months"));
-	            responseData.setExpiredTNMProjects2To3Months(expiredProjectsMap.get("expiredProjects2To3Months"));
-	            responseData.setExpiredTNMProjects3To6Months(expiredProjectsMap.get("expiredProjects3To6Months"));
-	            responseData.setExpiredTNMProjects6To9Months(expiredProjectsMap.get("expiredProjects6To9Months"));
-	            responseData.setExpiredTNMProjects9To12Months(expiredProjectsMap.get("expiredProjects9To12Months"));
-	            responseData.setExpiredTNMProjectsAbove12Months(expiredProjectsMap.get("expiredProjectsAbove12Months"));
-	            responseData.setAllExpiredTNMProjects(expiredProjectsMap.get("allExpiredTNMProjects"));
-	            
-	            if (!expiredProjectsMap.get("allExpiredTNMProjects").isEmpty()) {
-	                response.setServiceResponse(responseData);
-	                response.setServiceStatus(response.STATUS_SUCCESS);
-	            } else {
-	                response.setServiceResponse("No projects found...!!");
-	                response.setServiceStatus(response.STATUS_FAIL);
-	            }
-	            return response;
-	        }
-             
-             if("activeTNM".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-                 
-                 if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
-                     
-                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                         List<Object[]> activeTNMResults = projectRepository.getAllActiveTNMProjectsList(selectedDeptList);
-                         
-                         activeTNMList = activeTNMResults.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     } else {
-                         List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
-                         List<Object[]> activeTNMResults = projectRepository.getAllActiveTNMProjectsList(deptIdsAccToRole);
-                         
-                         activeTNMList = activeTNMResults.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     }
-                 }
-                 else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
-                   
-                     List<Department> deptData = departmentRepository.findByHodId(projectFilterDTO.getCurrentUserEmpId());
-                     if (deptData != null) {
-                         for (Department data : deptData) {
-                             if (data != null && data.getDeptId() != null) {
-                                 deptIdList.add(data.getDeptId());
-                             }
-                         }
-                     }
-                     
-                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                         List<Object[]> activeTNMResults = projectRepository.getAllActiveTNMProjectsList(selectedDeptList);
-                         
-                         activeTNMList = activeTNMResults.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     } else {
-                         List<Object[]> activeTNMResults = projectRepository.getAllActiveTNMProjectsList(deptIdList);
-                         activeTNMList = activeTNMResults.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     }
-                 }
-                 else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
-                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                         
-                         List<Object[]> activeTNMResults = projectRepository.getAllActiveTNMProjectsList(selectedDeptList);
-                         activeTNMList = activeTNMResults.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     } else {
-                         Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
-                         List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
-                         
-                         List<Object[]> activeTNMResults = projectRepository.getAllActiveTNMProjectsList(deptIdOfOther);
-                         activeTNMList = activeTNMResults.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     }
-                 }
-                 
-                 responseData.setActiveTNMProjects(activeTNMList);
-                 
-                 if (!activeTNMList.isEmpty()) {
-                     response.setServiceResponse(responseData);
-                     response.setServiceStatus(response.STATUS_SUCCESS);
-                
-                 } else {
-                     response.setServiceResponse("No projects found...!!");
-                     response.setServiceStatus(response.STATUS_FAIL);
-                    
-                 }
-                 return response;
-             }
-             List<ProjectFetchDTO> internal = new ArrayList<ProjectFetchDTO>();
- if("internal".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-                 
-                 if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
-                     
-                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                         List<Object[]> internalResults = projectRepository.getAllInternalList(selectedDeptList);
-                         
-                         internal = internalResults.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     } else {
-                         List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
-                         List<Object[]> internalResults = projectRepository.getAllInternalList(deptIdsAccToRole);
-                         
-                         internal = internalResults.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     }
-                 }
-                 else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
-                   
-                     List<Department> deptData = departmentRepository.findByHodId(projectFilterDTO.getCurrentUserEmpId());
-                     if (deptData != null) {
-                         for (Department data : deptData) {
-                             if (data != null && data.getDeptId() != null) {
-                                 deptIdList.add(data.getDeptId());
-                             }
-                         }
-                     }
-                     
-                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                         List<Object[]> internalResults = projectRepository.getAllInternalList(selectedDeptList);
-                         
-                         internal = internalResults.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     } else {
-                         List<Object[]> internalResults = projectRepository.getAllInternalList(deptIdList);
-                         internal = internalResults.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     }
-                 }
-                 else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
-                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                         
-                         List<Object[]> internalResults = projectRepository.getAllInternalList(selectedDeptList);
-                         internal = internalResults.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     } else {
-                         Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
-                         List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
-                         
-                         List<Object[]> internalResults = projectRepository.getAllInternalList(deptIdOfOther);
-                         internal = internalResults.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     }
-                 }
-                 
-                 responseData.setInternalProjects(internal);
-                 
-                 if (!internal.isEmpty()) {
-                     response.setServiceResponse(responseData);
-                     response.setServiceStatus(response.STATUS_SUCCESS);
-                
-                 } else {
-                     response.setServiceResponse("No projects found...!!");
-                     response.setServiceStatus(response.STATUS_FAIL);
-                    
-                 }
-                 return response;
-             }
+            List<Long> deptIdList = new ArrayList<>();
+            Set<Integer> projectIdSet = new HashSet<>();
+            List<Integer> projectIdListTemp;
+            String approvalStatus = null;
+            Boolean approvalCheck = null;
+            String status = null;
+            String projectStatus = null;
+            List<ProjectFetchDTO> finalDataList = new ArrayList<>();
+            List<ProjectFetchDTO> expiredTNMList = new ArrayList<>();
+            List<ProjectFetchDTO> activeTNMList = new ArrayList<>();
 
- //unfilled positions
- List<ProjectFetchDTO> unfilledPositions = new ArrayList<ProjectFetchDTO>();
- if("unfilledPositions".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-                  
- 	
-                  if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
-                      
-                      if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                          List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(selectedDeptList);
-                          
-                          unfilledPositions = results.stream()
-                              .map(ProjectFetchDTO::new)
-                              .collect(Collectors.toList());
-                      } else {
-                          List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
-                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(deptIdsAccToRole);
-                          
-                          unfilledPositions = results.stream()
-                              .map(ProjectFetchDTO::new)
-                              .collect(Collectors.toList());
-                      }
-                  }
-                  else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
-                    
-                      List<Department> deptData = departmentRepository.findByHodId(projectFilterDTO.getCurrentUserEmpId());
-                      if (deptData != null) {
-                          for (Department data : deptData) {
-                              if (data != null && data.getDeptId() != null) {
-                                  deptIdList.add(data.getDeptId());
-                              }
-                          }
-                      }
-                      
-                      if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                          List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(selectedDeptList);
-                          
-                          unfilledPositions = results.stream()
-                              .map(ProjectFetchDTO::new)
-                              .collect(Collectors.toList());
-                      } else {
-                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(deptIdList);
-                          unfilledPositions = results.stream()
-                              .map(ProjectFetchDTO::new)
-                              .collect(Collectors.toList());
-                      }
-                  }
-                  else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
-                      if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                          List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                          
-                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(selectedDeptList);
-                          unfilledPositions = results.stream()
-                              .map(ProjectFetchDTO::new)
-                              .collect(Collectors.toList());
-                      } else {
-                          Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
-                          List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
-                          
-                          List<Object[]> Results = projectRepository.getAllUnfilledPositionList(deptIdOfOther);
-                          unfilledPositions = Results.stream()
-                              .map(ProjectFetchDTO::new)
-                              .collect(Collectors.toList());
-                      }
-                  }
-                  
-                  responseData.setUnfilledPositions(unfilledPositions);                  
-                  if (!unfilledPositions.isEmpty()) {
-                      response.setServiceResponse(responseData);
-                      response.setServiceStatus(response.STATUS_SUCCESS);
-                 
-                  } else {
-                      response.setServiceResponse("No unfilled positions...!!");
-                      response.setServiceStatus(response.STATUS_FAIL);
-                     
-                  }
-                  return response;
-              }
+            CombinedPOInternalProjectResponse responseData = new CombinedPOInternalProjectResponse();
 
- 
-             List<ProjectFetchDTO> monitoring = new ArrayList<ProjectFetchDTO>();
-if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-                 
-	
-                 if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
-                     
-                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                         List<Object[]> results = projectRepository.getAllMonitoringList(selectedDeptList);
-                         
-                         monitoring = results.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     } else {
-                         List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
-                         List<Object[]> results = projectRepository.getAllMonitoringList(deptIdsAccToRole);
-                         
-                         monitoring = results.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     }
-                 }
-                 else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
-                   
-                     List<Department> deptData = departmentRepository.findByHodId(projectFilterDTO.getCurrentUserEmpId());
-                     if (deptData != null) {
-                         for (Department data : deptData) {
-                             if (data != null && data.getDeptId() != null) {
-                                 deptIdList.add(data.getDeptId());
-                             }
-                         }
-                     }
-                     
-                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                         List<Object[]> results = projectRepository.getAllMonitoringList(selectedDeptList);
-                         
-                         monitoring = results.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     } else {
-                         List<Object[]> results = projectRepository.getAllMonitoringList(deptIdList);
-                         monitoring = results.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     }
-                 }
-                 else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
-                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                         
-                         List<Object[]> results = projectRepository.getAllMonitoringList(selectedDeptList);
-                         monitoring = results.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     } else {
-                         Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
-                         List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
-                         
-                         List<Object[]> Results = projectRepository.getAllMonitoringList(deptIdOfOther);
-                         monitoring = Results.stream()
-                             .map(ProjectFetchDTO::new)
-                             .collect(Collectors.toList());
-                     }
-                 }
-                 
-                 responseData.setMonitoringProjects(monitoring);
-                 
-                 if (!monitoring.isEmpty()) {
-                     response.setServiceResponse(responseData);
-                     response.setServiceStatus(response.STATUS_SUCCESS);
-                
-                 } else {
-                     response.setServiceResponse("No projects found...!!");
-                     response.setServiceStatus(response.STATUS_FAIL);
-                    
-                 }
-                 return response;
-             }
-List<ProjectFetchDTO> totalProjects = new ArrayList<ProjectFetchDTO>();
-if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-                 
-	
-                 if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
-                     
-                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                         List<Object[]> results = projectRepository.getAllTotalProjectList(selectedDeptList);
-                         
-                         totalProjects = results.stream()
-                             .map(ProjectFetchDTO::createFromTotalProject)
-                             .collect(Collectors.toList());
-                     } else {
-                         List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
-                         List<Object[]> results = projectRepository.getAllTotalProjectList(deptIdsAccToRole);
-                         
-                         totalProjects = results.stream()
-                             .map(ProjectFetchDTO::createFromTotalProject)
-                             .collect(Collectors.toList());
-                     }
-                 }
-                 else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
-                   
-                     List<Department> deptData = departmentRepository.findByHodId(projectFilterDTO.getCurrentUserEmpId());
-                     if (deptData != null) {
-                         for (Department data : deptData) {
-                             if (data != null && data.getDeptId() != null) {
-                                 deptIdList.add(data.getDeptId());
-                             }
-                         }
-                     }
-                     
-                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                         List<Object[]> results = projectRepository.getAllTotalProjectList(selectedDeptList);
-                         
-                         totalProjects = results.stream()
-                             .map(ProjectFetchDTO::createFromTotalProject)
-                             .collect(Collectors.toList());
-                     } else {
-                         List<Object[]> results = projectRepository.getAllTotalProjectList(deptIdList);
-                         totalProjects = results.stream()
-                             .map(ProjectFetchDTO::createFromTotalProject)
-                             .collect(Collectors.toList());
-                     }
-                 }
-                 else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
-                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
-                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                         
-                         List<Object[]> results = projectRepository.getAllTotalProjectList(selectedDeptList);
-                         totalProjects = results.stream()
-                             .map(ProjectFetchDTO::createFromTotalProject)
-                             .collect(Collectors.toList());
-                     } else {
-                         Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
-                         List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
-                         
-                         List<Object[]> Results = projectRepository.getAllTotalProjectList(deptIdOfOther);
-                         totalProjects = Results.stream()
-                             .map(ProjectFetchDTO::createFromTotalProject)
-                             .collect(Collectors.toList());
-                     }
-                 }
-                 List<Long> projectIds = totalProjects.stream()
-     				    .peek(data -> data.setActive(null))
-     				    
-     				    .map(ProjectFetchDTO::getProjectId)
-     				    .filter(Objects::nonNull)
-     				    .map(Integer::longValue)
-     				    .collect(Collectors.toList());
+            if ("expiredTNM".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                Map<String, List<ProjectFetchDTO>> expiredProjectsMap = new HashMap<>();
 
-     				// Fetch PM and Overhead data
-     				List<ProjectManagersDTO> pmData = projectManagerMappingRepository
-     				    .getAllProjectManagerListWithNameThroughPids(projectIds);
-     				List<ProjectOverheadsDTO> overHeadData = projectOverheadMappingRepository
-     				    .findProjectOverheadsPerProjectThroughPidList(projectIds);
+                if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                        expiredProjectsMap = getExpiredProjectListsByDateRanges(selectedDeptList);
+                    } else {
+                        List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                        expiredProjectsMap = getExpiredProjectListsByDateRanges(deptIdsAccToRole);
+                    }
+                } else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
+                    List<Department> deptData = departmentRepository
+                            .findByHodId(projectFilterDTO.getCurrentUserEmpId());
+                    if (deptData != null) {
+                        for (Department data : deptData) {
+                            if (data != null && data.getDeptId() != null) {
+                                deptIdList.add(data.getDeptId());
+                            }
+                        }
+                    }
 
-     				// Loop over final data list and populate PM and OH info
-     				totalProjects.forEach(data -> {
-     				    Long currentProjectId = data.getProjectId() != null 
-     				        ? data.getProjectId().longValue() 
-     				        : null;
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                        expiredProjectsMap = getExpiredProjectListsByDateRanges(selectedDeptList);
+                    } else {
+                        expiredProjectsMap = getExpiredProjectListsByDateRanges(deptIdList);
+                    }
+                } else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                        expiredProjectsMap = getExpiredProjectListsByDateRanges(selectedDeptList);
+                    } else {
+                        Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+                        List<Long> deptIdOfOther = departmentRepository
+                                .findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
+                        expiredProjectsMap = getExpiredProjectListsByDateRanges(deptIdOfOther);
+                    }
+                }
 
-     				    if (currentProjectId != null) {
-     				        // Filter PM data
-     				        List<ProjectManagersDTO> selectedPmData = pmData.stream()
-     				            .filter(pm -> Objects.equals(pm.getProjectId(), currentProjectId))
-     				            .collect(Collectors.toList());
+                responseData.setExpiredTNMProjectsWithin1Month(expiredProjectsMap.get("expiredProjectsWithin1Month"));
+                responseData.setExpiredTNMProjects1To2Months(expiredProjectsMap.get("expiredProjects1To2Months"));
+                responseData.setExpiredTNMProjects2To3Months(expiredProjectsMap.get("expiredProjects2To3Months"));
+                responseData.setExpiredTNMProjects3To6Months(expiredProjectsMap.get("expiredProjects3To6Months"));
+                responseData.setExpiredTNMProjects6To9Months(expiredProjectsMap.get("expiredProjects6To9Months"));
+                responseData.setExpiredTNMProjects9To12Months(expiredProjectsMap.get("expiredProjects9To12Months"));
+                responseData.setExpiredTNMProjectsAbove12Months(expiredProjectsMap.get("expiredProjectsAbove12Months"));
+                responseData.setAllExpiredTNMProjects(expiredProjectsMap.get("allExpiredTNMProjects"));
 
-     				        data.setProjectManagers(selectedPmData);
-     				        if (!selectedPmData.isEmpty()) {
-     				            List<Long> pmIdList = selectedPmData.stream()
-     				                .map(ProjectManagersDTO::getProjectManagerId)
-     				                .filter(Objects::nonNull)
-     				                .collect(Collectors.toList());
-     				            data.setProjectManagerId(pmIdList);
-     				        }
+                if (!expiredProjectsMap.get("allExpiredTNMProjects").isEmpty()) {
+                    response.setServiceResponse(responseData);
+                    response.setServiceStatus(response.STATUS_SUCCESS);
+                } else {
+                    response.setServiceResponse("No projects found...!!");
+                    response.setServiceStatus(response.STATUS_FAIL);
+                }
+                return response;
+            }
 
-     				        // Filter Overhead data
-     				        List<ProjectOverheadsDTO> selectedOverHeadData = overHeadData.stream()
-     				            .filter(oh -> Objects.equals(oh.getProjectId(), currentProjectId))
-     				            .collect(Collectors.toList());
+            if ("activeTNM".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
-     				        data.setProjectOverheads(selectedOverHeadData);
-     				        if (!selectedOverHeadData.isEmpty()) {
-     				            List<Long> ohIdList = selectedOverHeadData.stream()
-     				                .map(ProjectOverheadsDTO::getProjectOverheadId)
-     				                .filter(Objects::nonNull)
-     				                .collect(Collectors.toList());
-     				            data.setProjectOverheadId(ohIdList);
-     				        }
-     				    }
-     				});
-                 
-                 responseData.setTotalProjects(totalProjects);
-                 
-                 if (!totalProjects.isEmpty()) {
-                     response.setServiceResponse(responseData);
-                     response.setServiceStatus(response.STATUS_SUCCESS);
-                
-                 } else {
-                     response.setServiceResponse("No projects found...!!");
-                     response.setServiceStatus(response.STATUS_FAIL);
-                    
-                 }
-                 return response;
-             }
+                if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
 
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                        List<Object[]> activeTNMResults = projectRepository
+                                .getAllActiveTNMProjectsList(selectedDeptList);
 
-			if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-				approvalStatus = "All";
-				approvalCheck = false;
-			}
-			else {
-				
-				 if("Pending for approval".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-					approvalStatus = "true";
-					approvalCheck = true;
-				}else if("Approved".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-					approvalStatus = "false";
-					approvalCheck = true;
-				}else if("Rejected".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-					approvalStatus = "Rejected";
-					approvalCheck = true;
-				}
-				
-			}
-			
-			if("Completed".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-				status = "Completed";
-			}else if("completedInIshine".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-				projectStatus = "Completed";
-			}
-			else if("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-				status = "Completed";
-			}else if("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-				status = "Completed";
-			}
-			else {
-				projectStatus = null;
-				status = null;
-			}
-			//for admin
-			if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
-				if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() != null ) {
-					List<Long> selectedDeptList= projectFilterDTO.getDepartmentsids();
-					Set<Integer> matchingProjectIds = teamRepository.findAll().stream()
-						    .filter(team -> {
-						        if (team.getDeptIds() == null) return false;
-						        List<String> teamDeptIds = Arrays.asList(team.getDeptIds().split(","));
-						        return selectedDeptList.stream()
-						                .map(String::valueOf)
-						                .anyMatch(teamDeptIds::contains);
-						    })
-						    .map(Team::getProjectId)
-						    .filter(Objects::nonNull)
-						    .collect(Collectors.toSet());
-					projectIdSet = matchingProjectIds;
-					if("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) && projectFilterDTO.getCompletionStatus() == null) {
-						finalDataList=projectRepository.getAllProjectList(selectedDeptList);
-					}else if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-//						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
-						finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
-						
-					}else if("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllCompletedProjectListInIshine(selectedDeptList);
-					}
-					else if("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllApprovedProjectList(selectedDeptList);
-					}
-					else if("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllPendingProjectList(selectedDeptList);
-					}
-					else if("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllRejectedProjectList(selectedDeptList);
-					}
-					else if("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-						finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,projectIdSet,false,approvalCheck);
-						}
-					else if("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-						finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
-						}
-					else if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-						
-	                         List<Object[]> results = projectRepository.getAllTotalProjectList(selectedDeptList);
-	                         finalDataList = results.stream()
-	                             .map(ProjectFetchDTO::createFromTotalProject)
-	                             .collect(Collectors.toList());
-	                   
-						}
-					else {
-							finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
-						}
-				}else {
-					if("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())&& projectFilterDTO.getCompletionStatus() == null) {
-						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
-						finalDataList=projectRepository.getAllProjectList(deptIdsAccToRole);
-					}else if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
-						finalDataList = projectRepository.getAllNotStartedProjects(deptIdsAccToRole);
-						
-					}
-					else if("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
-						finalDataList=projectRepository.getAllApprovedProjectList(deptIdsAccToRole);
-					}
-					else if("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
-						finalDataList=projectRepository.getAllPendingProjectList(deptIdsAccToRole);
-					}
-					else if("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
-						finalDataList=projectRepository.getAllRejectedProjectList(deptIdsAccToRole);
-					}
-					else if("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
-						finalDataList=projectRepository.getAllCompletedProjectListInIshine(deptIdsAccToRole);
-					}
-					else if("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-						finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,null,false,approvalCheck);
-					}
-					else if("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-						finalDataList = projectRepository.completedInSankhButTeamMappedList(null,false);
-					}
-					else if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
-						   List<Object[]> results = projectRepository.getAllTotalProjectList(deptIdsAccToRole);
-						   finalDataList = results.stream()
-	                             .map(ProjectFetchDTO::createFromTotalProject)
-	                             .collect(Collectors.toList());
-					}else {
-						finalDataList = projectRepository.completedInSankhButTeamMappedList(null,false);
-					}
-				}
-				
-			}
-//for hod
-			else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
-				List<Department> deptData = departmentRepository.findByHodId(projectFilterDTO.getCurrentUserEmpId());
-				if (deptData != null) {
-					for (Department data : deptData) {
-						if (data != null && data.getDeptId() != null) {
-							deptIdList.add(data.getDeptId());
-						}
-					}
-				}
-				
-				Set<Integer> matchingProjectIds = teamRepository.findAll().stream()
-					    .filter(team -> {
-					        if (team.getDeptIds() == null) return false;
-					        List<String> teamDeptIds = Arrays.asList(team.getDeptIds().split(","));
-					        return deptIdList.stream()
-					                .map(String::valueOf)
-					                .anyMatch(teamDeptIds::contains);
-					    })
-					    .map(Team::getProjectId)
-					    .filter(Objects::nonNull)
-					    .collect(Collectors.toSet());
-				
-				if (projectManagerMappingRepository.isUserProjectManagerOfAnyActiveInternalAndExternalProject(
-						projectFilterDTO.getCurrentUserEmpId())) {
-					projectIdListTemp = projectManagerMappingRepository
-							.isUserProjectManagerOfAnyActiveInternalProjectList(projectFilterDTO.getCurrentUserEmpId());
-					if (projectIdListTemp != null)
-						projectIdSet.addAll(projectIdListTemp);
-				}
+                        activeTNMList = activeTNMResults.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    } else {
+                        List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                        List<Object[]> activeTNMResults = projectRepository
+                                .getAllActiveTNMProjectsList(deptIdsAccToRole);
 
-				if (projectOverheadMappingRepository.isUserProjectOverheadOfAnyActiveInternalAndExternalProject(
-						projectFilterDTO.getCurrentUserEmpId())) {
-					projectIdListTemp = projectOverheadMappingRepository
-							.isUserProjectOverheadOfAnyActiveInternalAndExternalProjectList(
-									projectFilterDTO.getCurrentUserEmpId());
-					if (projectIdListTemp != null)
-						projectIdSet.addAll(projectIdListTemp);
-					
-				}
+                        activeTNMList = activeTNMResults.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    }
+                } else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
 
-				if (teamRepository.existsBySpocId(projectFilterDTO.getCurrentUserEmpId())) {
-					projectIdListTemp = teamRepository
-							.findActiveShankhInternalProjectIdsBySpocIdList(projectFilterDTO.getCurrentUserEmpId());
-					if (projectIdListTemp != null)
-						projectIdSet.addAll(projectIdListTemp);
-						
-				}
-				
-				projectIdSet.addAll(matchingProjectIds);
-				
-				if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() != null ) {
-					List<Long> selectedDeptList= projectFilterDTO.getDepartmentsids();
-					Set<Integer> matchingProjIds = teamRepository.findAll().stream()
-						    .filter(team -> {
-						        if (team.getDeptIds() == null) return false;
-						        List<String> teamDeptIds = Arrays.asList(team.getDeptIds().split(","));
-						        return selectedDeptList.stream()
-						                .map(String::valueOf)
-						                .anyMatch(teamDeptIds::contains);
-						    })
-						    .map(Team::getProjectId)
-						    .filter(Objects::nonNull)
-						    .collect(Collectors.toSet());
-					
-					projectIdSet.retainAll(matchingProjIds);
-					
-					if("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) && projectFilterDTO.getCompletionStatus() == null ) {
-						finalDataList=projectRepository.getAllProjectList(selectedDeptList);
-					}else if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-//						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
-						finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
-						
-					}else if("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllCompletedProjectListInIshine(selectedDeptList);
-					}
-					else if("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllApprovedProjectList(selectedDeptList);
-					}
-					else if("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllRejectedProjectList(selectedDeptList);
-					}
-					else if("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllPendingProjectList(selectedDeptList);
-					}
-					else if("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-						finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,projectIdSet,true,approvalCheck);
-						}
-					else if("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-						finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
-						}
-					else if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) 
-							&& !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) 
-							&& !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
-						&& !"PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
-						&& !"ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
-						&& !"RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()))
-						{
-						 List<Object[]> results = projectRepository.getAllTotalProjectList(selectedDeptList);
-						   finalDataList = results.stream()
-		                         .map(ProjectFetchDTO::createFromTotalProject)
-		                         .collect(Collectors.toList());
-					}
-					
-					}else {
-						if("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) && projectFilterDTO.getCompletionStatus() == null ) {
-							finalDataList=projectRepository.getAllProjectList(deptIdList);
-						}else if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-//							List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
-							finalDataList = projectRepository.getAllNotStartedProjects(deptIdList);
-							
-						}else if("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-							finalDataList=projectRepository.getAllCompletedProjectListInIshine(deptIdList);
-						}
-						else if("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-							finalDataList=projectRepository.getAllApprovedProjectList(deptIdList);
-						}
-						else if("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-							finalDataList=projectRepository.getAllPendingProjectList(deptIdList);
-						}
-						
-						else if("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-							finalDataList=projectRepository.getAllRejectedProjectList(deptIdList);
-						}
-						else if("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-							finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,projectIdSet,true,approvalCheck);
-						}
-						else if("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-							finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,false);
-						}
-						else if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) 
-								&& !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) 
-								&& !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
-							&& !"PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
-							&& !"ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
-							&& !"RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()))
-							{
-							 List<Object[]> results = projectRepository.getAllTotalProjectList(deptIdList);
-							   finalDataList = results.stream()
-			                         .map(ProjectFetchDTO::createFromTotalProject)
-			                         .collect(Collectors.toList());
-						}
-						
-					}
-				
-//				 if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus()) && !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) && !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                    List<Department> deptData = departmentRepository
+                            .findByHodId(projectFilterDTO.getCurrentUserEmpId());
+                    if (deptData != null) {
+                        for (Department data : deptData) {
+                            if (data != null && data.getDeptId() != null) {
+                                deptIdList.add(data.getDeptId());
+                            }
+                        }
+                    }
+
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                        List<Object[]> activeTNMResults = projectRepository
+                                .getAllActiveTNMProjectsList(selectedDeptList);
+
+                        activeTNMList = activeTNMResults.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    } else {
+                        List<Object[]> activeTNMResults = projectRepository.getAllActiveTNMProjectsList(deptIdList);
+                        activeTNMList = activeTNMResults.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    }
+                } else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+
+                        List<Object[]> activeTNMResults = projectRepository
+                                .getAllActiveTNMProjectsList(selectedDeptList);
+                        activeTNMList = activeTNMResults.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    } else {
+                        Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+                        List<Long> deptIdOfOther = departmentRepository
+                                .findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
+
+                        List<Object[]> activeTNMResults = projectRepository.getAllActiveTNMProjectsList(deptIdOfOther);
+                        activeTNMList = activeTNMResults.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    }
+                }
+				populateProjectDetails(activeTNMList);
+
+                responseData.setActiveTNMProjects(activeTNMList);
+
+                if (!activeTNMList.isEmpty()) {
+                    response.setServiceResponse(responseData);
+                    response.setServiceStatus(response.STATUS_SUCCESS);
+
+                } else {
+                    response.setServiceResponse("No projects found...!!");
+                    response.setServiceStatus(response.STATUS_FAIL);
+
+                }
+                return response;
+            }
+
+			List<ProjectFetchDTO> internal = new ArrayList<ProjectFetchDTO>();
+
+			if ("internal".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+
+                if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
+
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                        List<Object[]> internalResults = projectRepository.getAllInternalList(selectedDeptList);
+
+                        internal = internalResults.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    } else {
+                        List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                        List<Object[]> internalResults = projectRepository.getAllInternalList(deptIdsAccToRole);
+
+                        internal = internalResults.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    }
+                } else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
+
+                    List<Department> deptData = departmentRepository
+                            .findByHodId(projectFilterDTO.getCurrentUserEmpId());
+                    if (deptData != null) {
+                        for (Department data : deptData) {
+                            if (data != null && data.getDeptId() != null) {
+                                deptIdList.add(data.getDeptId());
+                            }
+                        }
+                    }
+
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                        List<Object[]> internalResults = projectRepository.getAllInternalList(selectedDeptList);
+
+                        internal = internalResults.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    } else {
+                        List<Object[]> internalResults = projectRepository.getAllInternalList(deptIdList);
+                        internal = internalResults.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    }
+                } else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+
+                        List<Object[]> internalResults = projectRepository.getAllInternalList(selectedDeptList);
+                        internal = internalResults.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    } else {
+                        Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+                        List<Long> deptIdOfOther = departmentRepository
+                                .findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
+
+                        List<Object[]> internalResults = projectRepository.getAllInternalList(deptIdOfOther);
+                        internal = internalResults.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    }
+                }
+
+				populateProjectDetails(internal);
+
+                responseData.setInternalProjects(internal);
+
+                if (!internal.isEmpty()) {
+                    response.setServiceResponse(responseData);
+                    response.setServiceStatus(response.STATUS_SUCCESS);
+
+                } else {
+                    response.setServiceResponse("No projects found...!!");
+                    response.setServiceStatus(response.STATUS_FAIL);
+
+                }
+                return response;
+            }
+
+            // unfilled positions
+            List<ProjectFetchDTO> unfilledPositions = new ArrayList<ProjectFetchDTO>();
+            if ("unfilledPositions".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+
+                if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
+
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                        List<Object[]> results = projectRepository.getAllUnfilledPositionList(selectedDeptList);
+
+                        unfilledPositions = results.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    } else {
+                        List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                        List<Object[]> results = projectRepository.getAllUnfilledPositionList(deptIdsAccToRole);
+
+                        unfilledPositions = results.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    }
+                } else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
+
+                    List<Department> deptData = departmentRepository
+                            .findByHodId(projectFilterDTO.getCurrentUserEmpId());
+                    if (deptData != null) {
+                        for (Department data : deptData) {
+                            if (data != null && data.getDeptId() != null) {
+                                deptIdList.add(data.getDeptId());
+                            }
+                        }
+                    }
+
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                        List<Object[]> results = projectRepository.getAllUnfilledPositionList(selectedDeptList);
+
+                        unfilledPositions = results.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    } else {
+                        List<Object[]> results = projectRepository.getAllUnfilledPositionList(deptIdList);
+                        unfilledPositions = results.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    }
+                } else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+
+                        List<Object[]> results = projectRepository.getAllUnfilledPositionList(selectedDeptList);
+                        unfilledPositions = results.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    } else {
+                        Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+                        List<Long> deptIdOfOther = departmentRepository
+                                .findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
+
+                        List<Object[]> Results = projectRepository.getAllUnfilledPositionList(deptIdOfOther);
+                        unfilledPositions = Results.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    }
+                }
+				populateProjectDetails(unfilledPositions);
+
+                responseData.setUnfilledPositions(unfilledPositions);
+                if (!unfilledPositions.isEmpty()) {
+                    response.setServiceResponse(responseData);
+                    response.setServiceStatus(response.STATUS_SUCCESS);
+
+                } else {
+                    response.setServiceResponse("No unfilled positions...!!");
+                    response.setServiceStatus(response.STATUS_FAIL);
+
+                }
+                return response;
+            }
+
+            List<ProjectFetchDTO> monitoring = new ArrayList<ProjectFetchDTO>();
+            if ("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+
+                if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
+
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                        List<Object[]> results = projectRepository.getAllMonitoringList(selectedDeptList);
+
+                        monitoring = results.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    } else {
+                        List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                        List<Object[]> results = projectRepository.getAllMonitoringList(deptIdsAccToRole);
+
+                        monitoring = results.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    }
+                } else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
+
+                    List<Department> deptData = departmentRepository
+                            .findByHodId(projectFilterDTO.getCurrentUserEmpId());
+                    if (deptData != null) {
+                        for (Department data : deptData) {
+                            if (data != null && data.getDeptId() != null) {
+                                deptIdList.add(data.getDeptId());
+                            }
+                        }
+                    }
+
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                        List<Object[]> results = projectRepository.getAllMonitoringList(selectedDeptList);
+
+                        monitoring = results.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    } else {
+                        List<Object[]> results = projectRepository.getAllMonitoringList(deptIdList);
+                        monitoring = results.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    }
+                } else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+
+                        List<Object[]> results = projectRepository.getAllMonitoringList(selectedDeptList);
+                        monitoring = results.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    } else {
+                        Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+                        List<Long> deptIdOfOther = departmentRepository
+                                .findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
+
+                        List<Object[]> Results = projectRepository.getAllMonitoringList(deptIdOfOther);
+                        monitoring = Results.stream()
+                                .map(ProjectFetchDTO::new)
+                                .collect(Collectors.toList());
+                    }
+                }
+
+				populateProjectDetails(monitoring);
+
+                responseData.setMonitoringProjects(monitoring);
+
+                if (!monitoring.isEmpty()) {
+                    response.setServiceResponse(responseData);
+                    response.setServiceStatus(response.STATUS_SUCCESS);
+
+                } else {
+                    response.setServiceResponse("No projects found...!!");
+                    response.setServiceStatus(response.STATUS_FAIL);
+
+                }
+                return response;
+            }
+
+			List<ProjectFetchDTO> totalProjects = new ArrayList<ProjectFetchDTO>();
+            if ("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+
+                if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
+
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                        List<Object[]> results = projectRepository.getAllTotalProjectList(selectedDeptList);
+
+                        totalProjects = results.stream()
+                                .map(ProjectFetchDTO::createFromTotalProject)
+                                .collect(Collectors.toList());
+                    } else {
+                        List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                        List<Object[]> results = projectRepository.getAllTotalProjectList(deptIdsAccToRole);
+
+                        totalProjects = results.stream()
+                                .map(ProjectFetchDTO::createFromTotalProject)
+                                .collect(Collectors.toList());
+                    }
+                } else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
+
+                    List<Department> deptData = departmentRepository
+                            .findByHodId(projectFilterDTO.getCurrentUserEmpId());
+                    if (deptData != null) {
+                        for (Department data : deptData) {
+                            if (data != null && data.getDeptId() != null) {
+                                deptIdList.add(data.getDeptId());
+                            }
+                        }
+                    }
+
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                        List<Object[]> results = projectRepository.getAllTotalProjectList(selectedDeptList);
+
+                        totalProjects = results.stream()
+                                .map(ProjectFetchDTO::createFromTotalProject)
+                                .collect(Collectors.toList());
+                    } else {
+                        List<Object[]> results = projectRepository.getAllTotalProjectList(deptIdList);
+                        totalProjects = results.stream()
+                                .map(ProjectFetchDTO::createFromTotalProject)
+                                .collect(Collectors.toList());
+                    }
+                } else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
+                    if (projectFilterDTO.getDepartmentsids() != null
+                            && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+
+                        List<Object[]> results = projectRepository.getAllTotalProjectList(selectedDeptList);
+                        totalProjects = results.stream()
+                                .map(ProjectFetchDTO::createFromTotalProject)
+                                .collect(Collectors.toList());
+                    } else {
+                        Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+                        List<Long> deptIdOfOther = departmentRepository
+                                .findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
+
+                        List<Object[]> Results = projectRepository.getAllTotalProjectList(deptIdOfOther);
+                        totalProjects = Results.stream()
+                                .map(ProjectFetchDTO::createFromTotalProject)
+                                .collect(Collectors.toList());
+                    }
+                }
+//                List<Long> projectIds = totalProjects.stream()
+//                        .peek(data -> data.setActive(null))
 //
-//					   List<Object[]> results = projectRepository.getAllTotalProjectList(deptIdList);
-//					   finalDataList = results.stream()
-//	                         .map(ProjectFetchDTO::createFromTotalProject)
-//	                         .collect(Collectors.toList());
-//					}else if(!"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())&& !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-//						finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
-//					}
-			}
-			
+//                        .map(ProjectFetchDTO::getProjectId)
+//                        .filter(Objects::nonNull)
+//                        .map(Integer::longValue)
+//                        .collect(Collectors.toList());
+//
+//                // Fetch PM and Overhead data
+//                List<ProjectManagersDTO> pmData = projectManagerMappingRepository
+//                        .getAllProjectManagerListWithNameThroughPids(projectIds);
+//                List<ProjectOverheadsDTO> overHeadData = projectOverheadMappingRepository
+//                        .findProjectOverheadsPerProjectThroughPidList(projectIds);
+//
+//                // Loop over final data list and populate PM and OH info
+//                totalProjects.forEach(data -> {
+//                    Long currentProjectId = data.getProjectId() != null
+//                            ? data.getProjectId().longValue()
+//                            : null;
+//
+//                    if (currentProjectId != null) {
+//                        // Filter PM data
+//                        List<ProjectManagersDTO> selectedPmData = pmData.stream()
+//                                .filter(pm -> Objects.equals(pm.getProjectId(), currentProjectId))
+//                                .collect(Collectors.toList());
+//
+//                        data.setProjectManagers(selectedPmData);
+//                        if (!selectedPmData.isEmpty()) {
+//                            List<Long> pmIdList = selectedPmData.stream()
+//                                    .map(ProjectManagersDTO::getProjectManagerId)
+//                                    .filter(Objects::nonNull)
+//                                    .collect(Collectors.toList());
+//                            data.setProjectManagerId(pmIdList);
+//                        }
+//
+//                        // Filter Overhead data
+//                        List<ProjectOverheadsDTO> selectedOverHeadData = overHeadData.stream()
+//                                .filter(oh -> Objects.equals(oh.getProjectId(), currentProjectId))
+//                                .collect(Collectors.toList());
+//
+//                        data.setProjectOverheads(selectedOverHeadData);
+//                        if (!selectedOverHeadData.isEmpty()) {
+//                            List<Long> ohIdList = selectedOverHeadData.stream()
+//                                    .map(ProjectOverheadsDTO::getProjectOverheadId)
+//                                    .filter(Objects::nonNull)
+//                                    .collect(Collectors.toList());
+//                            data.setProjectOverheadId(ohIdList);
+//                        }
+//                    }
+//                });
 
-			else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
+				populateProjectDetails(totalProjects);
 
-				if (projectManagerMappingRepository.isUserProjectManagerOfAnyActiveInternalAndExternalProject(
-						projectFilterDTO.getCurrentUserEmpId())) {
-					projectIdListTemp = projectManagerMappingRepository
-							.isUserProjectManagerOfAnyActiveInternalProjectList(projectFilterDTO.getCurrentUserEmpId());
-					if (projectIdListTemp != null)
-						projectIdSet.addAll(projectIdListTemp);
-				}
+                responseData.setTotalProjects(totalProjects);
 
-				if (projectOverheadMappingRepository.isUserProjectOverheadOfAnyActiveInternalAndExternalProject(
-						projectFilterDTO.getCurrentUserEmpId())) {
-					projectIdListTemp = projectOverheadMappingRepository
-							.isUserProjectOverheadOfAnyActiveInternalAndExternalProjectList(
-									projectFilterDTO.getCurrentUserEmpId());
-					if (projectIdListTemp != null)
-						projectIdSet.addAll(projectIdListTemp);
-				}
+                if (!totalProjects.isEmpty()) {
+                    response.setServiceResponse(responseData);
+                    response.setServiceStatus(response.STATUS_SUCCESS);
 
-				if (teamRepository.existsBySpocId(projectFilterDTO.getCurrentUserEmpId())) {
-					projectIdListTemp = teamRepository
-							.findActiveShankhInternalProjectIdsBySpocIdList(projectFilterDTO.getCurrentUserEmpId());
-					if (projectIdListTemp != null)
-						projectIdSet.addAll(projectIdListTemp);
-				}
+                } else {
+                    response.setServiceResponse("No projects found...!!");
+                    response.setServiceStatus(response.STATUS_FAIL);
 
-				
-				if (projectIdSet != null && !projectIdSet.isEmpty()){
-					
-					if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() != null ) {
-					List<Long> selectedDeptList= projectFilterDTO.getDepartmentsids();
-					Set<Integer> matchingProjectIds = teamRepository.findAll().stream()
-						    .filter(team -> {
-						        if (team.getDeptIds() == null) return false;
-						        List<String> teamDeptIds = Arrays.asList(team.getDeptIds().split(","));
-						        return selectedDeptList.stream()
-						                .map(String::valueOf)
-						                .anyMatch(teamDeptIds::contains);
-						    })
-						    .map(Team::getProjectId)
-						    .filter(Objects::nonNull)
-						    .collect(Collectors.toSet());
-					
-					projectIdSet.retainAll(matchingProjectIds);
-					
-					if("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) && projectFilterDTO.getCompletionStatus() == null) {
-						finalDataList=projectRepository.getAllProjectList(selectedDeptList);
-					}else if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-//						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
-						finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
-						
-					}else if("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllCompletedProjectListInIshine(selectedDeptList);
-					}
-					else if("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllApprovedProjectList(selectedDeptList);
-					}
-					else if("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllPendingProjectList(selectedDeptList);
-					}
-					else if("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllRejectedProjectList(selectedDeptList);
-					}
-					else if("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-						finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,projectIdSet,true,approvalCheck);
-					}
-					else if("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-						finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,false);
-					}
-					else if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) 
-							&& !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) 
-							&& !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
-						&& !"PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
-						&& !"ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
-						&& !"RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()))
-						{
-						 List<Object[]> results = projectRepository.getAllTotalProjectList(deptIdList);
-						   finalDataList = results.stream()
-		                         .map(ProjectFetchDTO::createFromTotalProject)
-		                         .collect(Collectors.toList());
-					}
-					
-					
-				}else {
-					Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
-					List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
-					if("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) && projectFilterDTO.getCompletionStatus() == null ) {
-						finalDataList=projectRepository.getAllProjectList(deptIdOfOther);
-					}else if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-//						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
-						finalDataList = projectRepository.getAllNotStartedProjects(deptIdOfOther);
-						
-					}else if("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllCompletedProjectListInIshine(deptIdOfOther);
-					}
-					else if("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllApprovedProjectList(deptIdOfOther);
-					}
-					else if("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllPendingProjectList(deptIdOfOther);
-					}
-					else if("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-						finalDataList=projectRepository.getAllRejectedProjectList(deptIdOfOther);
-					}
-					else if("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-						finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,projectIdSet,true,approvalCheck);
-					}
-					else if("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
-						finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,false);
-					}
-					else if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) 
-							&& !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) 
-							&& !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
-						&& !"PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
-						&& !"ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
-						&& !"RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()))
-						{
-						 List<Object[]> results = projectRepository.getAllTotalProjectList(deptIdList);
-						   finalDataList = results.stream()
-		                         .map(ProjectFetchDTO::createFromTotalProject)
-		                         .collect(Collectors.toList());
-					}
-					
-				}
-					
-//					if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus()) && !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) && !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-//						finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,projectIdSet,true,approvalCheck);
-//						}else if(!"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) && !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-//							finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
-//						}
+                }
+                return response;
+            }
 
-				} 
-			}
-			else {
-				finalDataList = null;
-			}	
-			if(!finalDataList.isEmpty() && finalDataList != null) {List<Long> projectIds = finalDataList.stream()
-//				    .peek(data -> data.setActive(null))
-				    
-				    .map(ProjectFetchDTO::getProjectId)
-				    .filter(Objects::nonNull)
-				    .map(Integer::longValue)
-				    .collect(Collectors.toList());
+            if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                approvalStatus = "All";
+                approvalCheck = false;
+            } else {
 
-				// Fetch PM and Overhead data
-				List<ProjectManagersDTO> pmData = projectManagerMappingRepository
-				    .getAllProjectManagerListWithNameThroughPids(projectIds);
-				List<ProjectOverheadsDTO> overHeadData = projectOverheadMappingRepository
-				    .findProjectOverheadsPerProjectThroughPidList(projectIds);
+                if ("Pending for approval".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                    approvalStatus = "true";
+                    approvalCheck = true;
+                } else if ("Approved".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                    approvalStatus = "false";
+                    approvalCheck = true;
+                } else if ("Rejected".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                    approvalStatus = "Rejected";
+                    approvalCheck = true;
+                }
 
-				// Loop over final data list and populate PM and OH info
-				finalDataList.forEach(data -> {
-				    Long currentProjectId = data.getProjectId() != null 
-				        ? data.getProjectId().longValue() 
-				        : null;
+            }
 
-				    if (currentProjectId != null) {
-				        // Filter PM data
-				        List<ProjectManagersDTO> selectedPmData = pmData.stream()
-				            .filter(pm -> Objects.equals(pm.getProjectId(), currentProjectId))
-				            .collect(Collectors.toList());
+            if ("Completed".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                status = "Completed";
+            } else if ("completedInIshine".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                projectStatus = "Completed";
+            } else if ("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                status = "Completed";
+            } else if ("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                status = "Completed";
+            } else {
+                projectStatus = null;
+                status = null;
+            }
+            // for admin
+            if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
+                if (!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() != null) {
+                    List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                    Set<Integer> matchingProjectIds = teamRepository.findAll().stream()
+                            .filter(team -> {
+                                if (team.getDeptIds() == null)
+                                    return false;
+                                List<String> teamDeptIds = Arrays.asList(team.getDeptIds().split(","));
+                                return selectedDeptList.stream()
+                                        .map(String::valueOf)
+                                        .anyMatch(teamDeptIds::contains);
+                            })
+                            .map(Team::getProjectId)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toSet());
+                    projectIdSet = matchingProjectIds;
+                    if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                            && projectFilterDTO.getCompletionStatus() == null) {
+                        finalDataList = projectRepository.getAllProjectList(selectedDeptList);
+                    } else if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        // List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
+                        finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
 
-				        data.setProjectManagers(selectedPmData);
-				        if (!selectedPmData.isEmpty()) {
-				            List<Long> pmIdList = selectedPmData.stream()
-				                .map(ProjectManagersDTO::getProjectManagerId)
-				                .filter(Objects::nonNull)
-				                .collect(Collectors.toList());
-				            data.setProjectManagerId(pmIdList);
-				        }
+                    } else if ("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        finalDataList = projectRepository.getAllCompletedProjectListInIshine(selectedDeptList);
+                    } else if ("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        finalDataList = projectRepository.getAllApprovedProjectList(selectedDeptList);
+                    } else if ("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        finalDataList = projectRepository.getAllPendingProjectList(selectedDeptList);
+                    } else if ("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        finalDataList = projectRepository.getAllRejectedProjectList(selectedDeptList);
+                    } else if ("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                        finalDataList = projectRepository.getAllActiveProjectList(projectStatus, status, approvalStatus,
+                                projectIdSet, false, approvalCheck);
+                    } else if ("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                        finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet, true);
+                    } else if (!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 
-				        // Filter Overhead data
-				        List<ProjectOverheadsDTO> selectedOverHeadData = overHeadData.stream()
-				            .filter(oh -> Objects.equals(oh.getProjectId(), currentProjectId))
-				            .collect(Collectors.toList());
+                        List<Object[]> results = projectRepository.getAllTotalProjectList(selectedDeptList);
+                        finalDataList = results.stream()
+                                .map(ProjectFetchDTO::createFromTotalProject)
+                                .collect(Collectors.toList());
 
-				        data.setProjectOverheads(selectedOverHeadData);
-				        if (!selectedOverHeadData.isEmpty()) {
-				            List<Long> ohIdList = selectedOverHeadData.stream()
-				                .map(ProjectOverheadsDTO::getProjectOverheadId)
-				                .filter(Objects::nonNull)
-				                .collect(Collectors.toList());
-				            data.setProjectOverheadId(ohIdList);
-				        }
-				    }
-				});
+                    } else {
+                        finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet, true);
+                    }
+                } else {
+                    if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                            && projectFilterDTO.getCompletionStatus() == null) {
+                        List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                        finalDataList = projectRepository.getAllProjectList(deptIdsAccToRole);
+                    } else if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                        finalDataList = projectRepository.getAllNotStartedProjects(deptIdsAccToRole);
 
-				responseData.setCombinedNewProjects(finalDataList);
-}
-			
-			 if ((responseData.getCombinedNewProjects() != null && !responseData.getCombinedNewProjects().isEmpty()) ||
-	            (responseData.getExpiredTNMProjects() != null && !responseData.getExpiredTNMProjects().isEmpty())) {
-	            response.setServiceResponse(responseData);
-	            response.setServiceStatus(response.STATUS_SUCCESS);
-	            response.setServiceResponse1(finalDataList.size());
-	        } else {
-				response.setServiceResponse("No projects found...!!");
-				response.setServiceStatus(response.STATUS_FAIL);
-			}
-			return response;
+                    } else if ("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                        finalDataList = projectRepository.getAllApprovedProjectList(deptIdsAccToRole);
+                    } else if ("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                        finalDataList = projectRepository.getAllPendingProjectList(deptIdsAccToRole);
+                    } else if ("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                        finalDataList = projectRepository.getAllRejectedProjectList(deptIdsAccToRole);
+                    } else if ("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                        finalDataList = projectRepository.getAllCompletedProjectListInIshine(deptIdsAccToRole);
+                    } else if ("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                        finalDataList = projectRepository.getAllActiveProjectList(projectStatus, status, approvalStatus,
+                                null, false, approvalCheck);
+                    } else if ("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                        finalDataList = projectRepository.completedInSankhButTeamMappedList(null, false);
+                    } else if (!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                        List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                        List<Object[]> results = projectRepository.getAllTotalProjectList(deptIdsAccToRole);
+                        finalDataList = results.stream()
+                                .map(ProjectFetchDTO::createFromTotalProject)
+                                .collect(Collectors.toList());
+                    } else {
+                        finalDataList = projectRepository.completedInSankhButTeamMappedList(null, false);
+                    }
+                }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			return failResponse(response, apiLogInfo, "Internal Server Error: " + e.getMessage());
+            }
+            // for hod
+            else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
+                List<Department> deptData = departmentRepository.findByHodId(projectFilterDTO.getCurrentUserEmpId());
+                if (deptData != null) {
+                    for (Department data : deptData) {
+                        if (data != null && data.getDeptId() != null) {
+                            deptIdList.add(data.getDeptId());
+                        }
+                    }
+                }
+
+                Set<Integer> matchingProjectIds = teamRepository.findAll().stream()
+                        .filter(team -> {
+                            if (team.getDeptIds() == null)
+                                return false;
+                            List<String> teamDeptIds = Arrays.asList(team.getDeptIds().split(","));
+                            return deptIdList.stream()
+                                    .map(String::valueOf)
+                                    .anyMatch(teamDeptIds::contains);
+                        })
+                        .map(Team::getProjectId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+
+                if (projectManagerMappingRepository.isUserProjectManagerOfAnyActiveInternalAndExternalProject(
+                        projectFilterDTO.getCurrentUserEmpId())) {
+                    projectIdListTemp = projectManagerMappingRepository
+                            .isUserProjectManagerOfAnyActiveInternalProjectList(projectFilterDTO.getCurrentUserEmpId());
+                    if (projectIdListTemp != null)
+                        projectIdSet.addAll(projectIdListTemp);
+                }
+
+                if (projectOverheadMappingRepository.isUserProjectOverheadOfAnyActiveInternalAndExternalProject(
+                        projectFilterDTO.getCurrentUserEmpId())) {
+                    projectIdListTemp = projectOverheadMappingRepository
+                            .isUserProjectOverheadOfAnyActiveInternalAndExternalProjectList(
+                                    projectFilterDTO.getCurrentUserEmpId());
+                    if (projectIdListTemp != null)
+                        projectIdSet.addAll(projectIdListTemp);
+
+                }
+
+                if (teamRepository.existsBySpocId(projectFilterDTO.getCurrentUserEmpId())) {
+                    projectIdListTemp = teamRepository
+                            .findActiveShankhInternalProjectIdsBySpocIdList(projectFilterDTO.getCurrentUserEmpId());
+                    if (projectIdListTemp != null)
+                        projectIdSet.addAll(projectIdListTemp);
+
+                }
+
+                projectIdSet.addAll(matchingProjectIds);
+
+                if (!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() != null) {
+                    List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                    Set<Integer> matchingProjIds = teamRepository.findAll().stream()
+                            .filter(team -> {
+                                if (team.getDeptIds() == null)
+                                    return false;
+                                List<String> teamDeptIds = Arrays.asList(team.getDeptIds().split(","));
+                                return selectedDeptList.stream()
+                                        .map(String::valueOf)
+                                        .anyMatch(teamDeptIds::contains);
+                            })
+                            .map(Team::getProjectId)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toSet());
+
+                    projectIdSet.retainAll(matchingProjIds);
+
+                    if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                            && projectFilterDTO.getCompletionStatus() == null) {
+                        finalDataList = projectRepository.getAllProjectList(selectedDeptList);
+                    } else if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        // List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
+                        finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
+
+                    } else if ("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        finalDataList = projectRepository.getAllCompletedProjectListInIshine(selectedDeptList);
+                    } else if ("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        finalDataList = projectRepository.getAllApprovedProjectList(selectedDeptList);
+                    } else if ("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        finalDataList = projectRepository.getAllRejectedProjectList(selectedDeptList);
+                    } else if ("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        finalDataList = projectRepository.getAllPendingProjectList(selectedDeptList);
+                    } else if ("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                        finalDataList = projectRepository.getAllActiveProjectList(projectStatus, status, approvalStatus,
+                                projectIdSet, true, approvalCheck);
+                    } else if ("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                        finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet, true);
+                    } else if (!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                            && !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                            && !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                            && !"PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                            && !"ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                            && !"RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        List<Object[]> results = projectRepository.getAllTotalProjectList(selectedDeptList);
+                        finalDataList = results.stream()
+                                .map(ProjectFetchDTO::createFromTotalProject)
+                                .collect(Collectors.toList());
+                    }
+
+                } else {
+                    if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                            && projectFilterDTO.getCompletionStatus() == null) {
+                        finalDataList = projectRepository.getAllProjectList(deptIdList);
+                    } else if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        // List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
+                        finalDataList = projectRepository.getAllNotStartedProjects(deptIdList);
+
+                    } else if ("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        finalDataList = projectRepository.getAllCompletedProjectListInIshine(deptIdList);
+                    } else if ("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        finalDataList = projectRepository.getAllApprovedProjectList(deptIdList);
+                    } else if ("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        finalDataList = projectRepository.getAllPendingProjectList(deptIdList);
+                    }
+
+                    else if ("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        finalDataList = projectRepository.getAllRejectedProjectList(deptIdList);
+                    } else if ("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                        finalDataList = projectRepository.getAllActiveProjectList(projectStatus, status, approvalStatus,
+                                projectIdSet, true, approvalCheck);
+                    } else if ("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                        finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet, false);
+                    } else if (!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                            && !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                            && !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                            && !"PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                            && !"ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                            && !"RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                        List<Object[]> results = projectRepository.getAllTotalProjectList(deptIdList);
+                        finalDataList = results.stream()
+                                .map(ProjectFetchDTO::createFromTotalProject)
+                                .collect(Collectors.toList());
+                    }
+
+                }
+
+                // if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())
+                // && !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) &&
+                // !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()))
+                // {
+                //
+                // List<Object[]> results =
+                // projectRepository.getAllTotalProjectList(deptIdList);
+                // finalDataList = results.stream()
+                // .map(ProjectFetchDTO::createFromTotalProject)
+                // .collect(Collectors.toList());
+                // }else if(!"Not
+                // Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())&&
+                // !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()))
+                // {
+                // finalDataList =
+                // projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
+                // }
+            }
+
+            else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
+
+                if (projectManagerMappingRepository.isUserProjectManagerOfAnyActiveInternalAndExternalProject(
+                        projectFilterDTO.getCurrentUserEmpId())) {
+                    projectIdListTemp = projectManagerMappingRepository
+                            .isUserProjectManagerOfAnyActiveInternalProjectList(projectFilterDTO.getCurrentUserEmpId());
+                    if (projectIdListTemp != null)
+                        projectIdSet.addAll(projectIdListTemp);
+                }
+
+                if (projectOverheadMappingRepository.isUserProjectOverheadOfAnyActiveInternalAndExternalProject(
+                        projectFilterDTO.getCurrentUserEmpId())) {
+                    projectIdListTemp = projectOverheadMappingRepository
+                            .isUserProjectOverheadOfAnyActiveInternalAndExternalProjectList(
+                                    projectFilterDTO.getCurrentUserEmpId());
+                    if (projectIdListTemp != null)
+                        projectIdSet.addAll(projectIdListTemp);
+                }
+
+                if (teamRepository.existsBySpocId(projectFilterDTO.getCurrentUserEmpId())) {
+                    projectIdListTemp = teamRepository
+                            .findActiveShankhInternalProjectIdsBySpocIdList(projectFilterDTO.getCurrentUserEmpId());
+                    if (projectIdListTemp != null)
+                        projectIdSet.addAll(projectIdListTemp);
+                }
+
+                if (projectIdSet != null && !projectIdSet.isEmpty()) {
+
+                    if (!projectFilterDTO.getDepartmentsids().isEmpty()
+                            && projectFilterDTO.getDepartmentsids() != null) {
+                        List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                        Set<Integer> matchingProjectIds = teamRepository.findAll().stream()
+                                .filter(team -> {
+                                    if (team.getDeptIds() == null)
+                                        return false;
+                                    List<String> teamDeptIds = Arrays.asList(team.getDeptIds().split(","));
+                                    return selectedDeptList.stream()
+                                            .map(String::valueOf)
+                                            .anyMatch(teamDeptIds::contains);
+                                })
+                                .map(Team::getProjectId)
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toSet());
+
+                        projectIdSet.retainAll(matchingProjectIds);
+
+                        if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                                && projectFilterDTO.getCompletionStatus() == null) {
+                            finalDataList = projectRepository.getAllProjectList(selectedDeptList);
+                        } else if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                            // List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
+                            finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
+
+                        } else if ("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                            finalDataList = projectRepository.getAllCompletedProjectListInIshine(selectedDeptList);
+                        } else if ("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                            finalDataList = projectRepository.getAllApprovedProjectList(selectedDeptList);
+                        } else if ("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                            finalDataList = projectRepository.getAllPendingProjectList(selectedDeptList);
+                        } else if ("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                            finalDataList = projectRepository.getAllRejectedProjectList(selectedDeptList);
+                        } else if ("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                            finalDataList = projectRepository.getAllActiveProjectList(projectStatus, status,
+                                    approvalStatus, projectIdSet, true, approvalCheck);
+                        } else if ("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                            finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet, false);
+                        } else if (!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                                && !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                                && !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                                && !"PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                                && !"ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                                && !"RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                            List<Object[]> results = projectRepository.getAllTotalProjectList(deptIdList);
+                            finalDataList = results.stream()
+                                    .map(ProjectFetchDTO::createFromTotalProject)
+                                    .collect(Collectors.toList());
+                        }
+
+                    } else {
+                        Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+                        List<Long> deptIdOfOther = departmentRepository
+                                .findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
+                        if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                                && projectFilterDTO.getCompletionStatus() == null) {
+                            finalDataList = projectRepository.getAllProjectList(deptIdOfOther);
+                        } else if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                            // List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
+                            finalDataList = projectRepository.getAllNotStartedProjects(deptIdOfOther);
+
+                        } else if ("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                            finalDataList = projectRepository.getAllCompletedProjectListInIshine(deptIdOfOther);
+                        } else if ("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                            finalDataList = projectRepository.getAllApprovedProjectList(deptIdOfOther);
+                        } else if ("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                            finalDataList = projectRepository.getAllPendingProjectList(deptIdOfOther);
+                        } else if ("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                            finalDataList = projectRepository.getAllRejectedProjectList(deptIdOfOther);
+                        } else if ("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                            finalDataList = projectRepository.getAllActiveProjectList(projectStatus, status,
+                                    approvalStatus, projectIdSet, true, approvalCheck);
+                        } else if ("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+                            finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet, false);
+                        } else if (!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                                && !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                                && !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                                && !"PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                                && !"ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
+                                && !"RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                            List<Object[]> results = projectRepository.getAllTotalProjectList(deptIdList);
+                            finalDataList = results.stream()
+                                    .map(ProjectFetchDTO::createFromTotalProject)
+                                    .collect(Collectors.toList());
+                        }
+
+                    }
+
+                    // if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())
+                    // && !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) &&
+                    // !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()))
+                    // {
+                    // finalDataList =
+                    // projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,projectIdSet,true,approvalCheck);
+                    // }else if(!"Not
+                    // Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) &&
+                    // !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()))
+                    // {
+                    // finalDataList =
+                    // projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
+                    // }
+
+                }
+            } else {
+                finalDataList = null;
+            }
+            if (finalDataList != null && !finalDataList.isEmpty()) {
+//                List<Long> projectIds = finalDataList.stream()
+//                        // .peek(data -> data.setActive(null))
+//
+//                        .map(ProjectFetchDTO::getProjectId)
+//                        .filter(Objects::nonNull)
+//                        .map(id -> ((Number) id).longValue())
+//                        .collect(Collectors.toList());
+//
+//                // Fetch PM and Overhead data
+//                List<ProjectManagersDTO> pmData = projectManagerMappingRepository
+//                        .getAllProjectManagerListWithNameThroughPids(projectIds);
+//                List<ProjectOverheadsDTO> overHeadData = projectOverheadMappingRepository
+//                        .findProjectOverheadsPerProjectThroughPidList(projectIds);
+//
+//                // Loop over final data list and populate PM and OH info
+//                finalDataList.forEach(data -> {
+//                    Long currentProjectId = data.getProjectId() != null
+//                            ? data.getProjectId().longValue()
+//                            : null;
+//
+//                    if (currentProjectId != null) {
+//                        // Filter PM data
+//                        List<ProjectManagersDTO> selectedPmData = pmData.stream()
+//                                .filter(pm -> Objects.equals(pm.getProjectId(), currentProjectId))
+//                                .collect(Collectors.toList());
+//
+//                        data.setProjectManagers(selectedPmData);
+//                        if (!selectedPmData.isEmpty()) {
+//                            List<Long> pmIdList = selectedPmData.stream()
+//                                    .map(ProjectManagersDTO::getProjectManagerId)
+//                                    .filter(Objects::nonNull)
+//                                    .collect(Collectors.toList());
+//                            data.setProjectManagerId(pmIdList);
+//                        }
+//
+//                        // Filter Overhead data
+//                        List<ProjectOverheadsDTO> selectedOverHeadData = overHeadData.stream()
+//                                .filter(oh -> Objects.equals(oh.getProjectId(), currentProjectId))
+//                                .collect(Collectors.toList());
+//
+//                        data.setProjectOverheads(selectedOverHeadData);
+//                        if (!selectedOverHeadData.isEmpty()) {
+//                            List<Long> ohIdList = selectedOverHeadData.stream()
+//                                    .map(ProjectOverheadsDTO::getProjectOverheadId)
+//                                    .filter(Objects::nonNull)
+//                                    .collect(Collectors.toList());
+//                            data.setProjectOverheadId(ohIdList);
+//                        }
+//                    }
+//                });
+
+				populateProjectDetails(finalDataList);
+
+                responseData.setCombinedNewProjects(finalDataList);
+            }
+
+            if ((responseData.getCombinedNewProjects() != null && !responseData.getCombinedNewProjects().isEmpty()) ||
+                    (responseData.getExpiredTNMProjects() != null && !responseData.getExpiredTNMProjects().isEmpty())) {
+                response.setServiceResponse(responseData);
+                response.setServiceStatus(response.STATUS_SUCCESS);
+                response.setServiceResponse1(finalDataList.size());
+            } else {
+                response.setServiceResponse("No projects found...!!");
+                response.setServiceStatus(response.STATUS_FAIL);
+            }
+            return response;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return failResponse(response, apiLogInfo, "Internal Server Error: " + e.getMessage());
+        }
+    }
+
+
+	private void populateProjectDetails(List<ProjectFetchDTO> projectList) {
+		if (projectList == null || projectList.isEmpty()) {
+			return;
 		}
-	}
 
+		List<Long> projectIds = projectList.stream()
+				.map(ProjectFetchDTO::getProjectId)
+				.filter(Objects::nonNull)
+				.map(id -> ((Number) id).longValue())
+				.collect(Collectors.toList());
+
+		if (projectIds.isEmpty()) return;
+
+		List<ProjectManagersDTO> pmData = projectManagerMappingRepository
+				.getAllProjectManagerListWithNameThroughPids(projectIds);
+		List<ProjectOverheadsDTO> overHeadData = projectOverheadMappingRepository
+				.findProjectOverheadsPerProjectThroughPidList(projectIds);
+
+		projectList.forEach(data -> {
+			Long currentProjectId = data.getProjectId() != null
+					? ((Number) data.getProjectId()).longValue()
+					: null;
+
+			if (currentProjectId != null) {
+				List<ProjectManagersDTO> selectedPmData = pmData.stream()
+						.filter(pm -> Objects.equals(pm.getProjectId(), currentProjectId))
+						.collect(Collectors.toList());
+
+				data.setProjectManagers(selectedPmData);
+				if (!selectedPmData.isEmpty()) {
+					List<Long> pmIdList = selectedPmData.stream()
+							.map(ProjectManagersDTO::getProjectManagerId)
+							.filter(Objects::nonNull)
+							.collect(Collectors.toList());
+					data.setProjectManagerId(pmIdList);
+				}
+
+				List<ProjectOverheadsDTO> selectedOverHeadData = overHeadData.stream()
+						.filter(oh -> Objects.equals(oh.getProjectId(), currentProjectId))
+						.collect(Collectors.toList());
+
+				data.setProjectOverheads(selectedOverHeadData);
+				if (!selectedOverHeadData.isEmpty()) {
+					List<Long> ohIdList = selectedOverHeadData.stream()
+							.map(ProjectOverheadsDTO::getProjectOverheadId)
+							.filter(Objects::nonNull)
+							.collect(Collectors.toList());
+					data.setProjectOverheadId(ohIdList);
+				}
+			}
+		});
+	}
 	
 	public ServiceResponse getAllResourceRequirementForProject(ProjectFetchDTO projectFetchDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -8621,6 +8727,11 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						
 						
 						mapList.add(empTeamMap);
+						
+						Project project = projectRepository.findByProjectId(dto.getProjectId());
+						
+						project.setIsDraftProject("true");
+						projectRepository.save(project);
 					
 
 					List<EmployeeTeamMap> teamMapDbResponse = employeeTeamMapRepository.saveAll(mapList);

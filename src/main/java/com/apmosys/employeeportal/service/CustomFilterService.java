@@ -2871,7 +2871,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			}
 			case "Day Type": {
 				String[] status = new String[] { "Working", "Holiday", "Non-working", "Public Holiday", "Leave",
-						"Week Off" };
+						"Week Off","Comp Off" };
 				for (String object : status) {
 					EmployeeDTO dto = new EmployeeDTO();
 					dto.setName(object);
@@ -3201,7 +3201,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				}
 				case "Day Type": {
 					String[] status = new String[] { "Working", "Holiday", "Non-working", "Public Holiday", "Leave",
-							"Week Off" };
+							"Week Off","Comp Off" };
 					for (String object : status) {
 						EmployeeDTO dto = new EmployeeDTO();
 						dto.setName(object);
@@ -3969,7 +3969,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 	        // Call getEmpBioData to fetch biometric data
 	        BioMaxService bioMaxService = new BioMaxService();
-	        ServiceResponse bioDataResponse = bioMaxService.getEmpBioData(sDate, eDate);
+	        ServiceResponse bioDataResponse = bioMaxService.getEmpBioDataFromIshine(sDate, eDate, null, null);
 	        List<BioMaTO> bioDataList = bioDataResponse.getServiceResponse() != null
 	            ? (List<BioMaTO>) bioDataResponse.getServiceResponse()
 	            : new ArrayList<>();

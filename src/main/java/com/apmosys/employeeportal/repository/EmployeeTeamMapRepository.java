@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
+import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
+import com.apmosys.employeeportal.dto.ProjectEmployeeTeamReportDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -71,9 +74,9 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	                                                          @Param("teamId") Long teamId);
 
 	
-	@Query(nativeQuery = true)
+	@Query("SELECT etm from EmployeeTeamMap etm WHERE etm.empId = :empId AND etm.teamId = :teamId")
 	EmployeeTeamMap findByEmpIdAndTeamId(Long empId, Long teamId);
-	
+		
 //	@Query(nativeQuery = true)
 //	List<EmployeeTeamMap> findByTeamIdAndActive(Long teamId);
 	
@@ -588,4 +591,40 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 			+ "WHERE tms.projectId=:projectId AND etm.empId=:employeeId AND etm.active=1")
 	List<EmployeeTeamMap> getAllTeamMembersForProject(Long employeeId,Integer projectId);
 	
+		@Query(value = "SELECT distinct new com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO( c.clientId, "
+				+ "c.clientName, cl.clientLocationId, cl.clientLocation, t.projectId, p.projectName, t.teamName, t.teamId )\n"
+				+ "FROM Team t \n"
+				+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
+				+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
+				+ "INNER JOIN ClientLocation cl ON cl.clientId = c.clientId \n"
+				+ "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
+				+ "where p.projectId = :project_id AND etm.empId = :empId \n"
+				+ "AND date(etm.startDate) <= :date \n"
+				+ "AND (date(etm.endDate) IS NULL OR date(etm.endDate) >= :date)")
+		public List<GetClientDetailsByProjectIdAndEmpIdDTO> getClientDetailsByProjectIdAndEmpId(@Param("project_id")Integer projectId, 
+				@Param("empId")Long empId, @Param("date") Date date);
+		
+		@Query(value="SELECT etm \n"
+				+ "FROM EmployeeTeamMap etm \n"
+				+ "WHERE etm.empId=:empId AND etm.active!=0")
+		List<EmployeeTeamMap> findByEmpIdAndActiveStatus(Long empId);
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectEmployeeTeamReportDTO("
+			+ "p.projectId, p.projectName, d.deptId, d.name, e.employeementId, e.name, etm.startDate, etm.endDate, etm.resourceOverviewId, etm.isShadow) "
+			+ "FROM EmployeeTeamMap etm "
+			+ "INNER JOIN Team t ON t.teamId = etm.teamId "
+			+ "INNER JOIN Project p ON p.projectId = t.projectId "
+			+ "INNER JOIN Employee e ON e.empId = etm.empId "
+			+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId "
+			+ "INNER JOIN Department d ON d.deptId = jr.deptId "
+			+ "WHERE p.projectName IN :projectNames "
+			+ "AND e.empId NOT BETWEEN 1 AND 6 "
+			+ "AND etm.startDate <= :rangeEnd "
+			+ "AND (etm.endDate IS NULL OR etm.endDate >= :rangeStart) "
+			+ "ORDER BY p.projectId, e.name")
+	List<ProjectEmployeeTeamReportDTO> findEmployeesInProjectsByProjectNames(
+			@Param("projectNames") List<String> projectNames,
+			@Param("rangeStart") LocalDateTime rangeStart,
+			@Param("rangeEnd") LocalDateTime rangeEnd);
+
 	}

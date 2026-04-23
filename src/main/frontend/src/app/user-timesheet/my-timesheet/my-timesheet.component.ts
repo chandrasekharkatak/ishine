@@ -28,6 +28,7 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ProjectBasedBulkUploadPayload } from '../team-timesheet/types';
 
 @Component({
   standalone: false,
@@ -71,6 +72,7 @@ export class MyTimesheetComponent implements OnInit {
   //flags
   isCreation: boolean = false;
   isUpdation: boolean = false;
+  withVms: boolean = false;
 
   isTimesheetForm: boolean = false;
   isTimesheetBulkForm: boolean = false;
@@ -120,6 +122,7 @@ export class MyTimesheetComponent implements OnInit {
   teamMemberList: any[] = [];
   errorMsg: any;
   serverDate: any;
+  showBulkButtonFlag: boolean = false;;
 
   leaveHistoryList: any[] = [];
   maxOutTimeDate: any;
@@ -129,6 +132,21 @@ export class MyTimesheetComponent implements OnInit {
 
   isTimesheetLockCheckEnable: any = "true";
   employeeInTNMProject: boolean = false;
+  maxMonth: string;
+
+  withVmsbullet:string[] = ["Applicable to resources working on projects with a client-side VMS system.",
+"Daily timesheets must be filled directly in the client’s VMS system.",
+"Ensure entries are accurate and complete for the entire month.",
+"At month-end, submit the VMS timesheet for client-side manager approval.",
+"After approval, download the approved VMS timesheet (PDF) or capture a screenshot.",
+"Upload the approved document via Bulk Upload as proof of attendance and client approval."];
+
+withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS system.",
+"Maintain the daily timesheet in the prescribed Excel format.",
+"Capture screenshots of the filled Excel timesheet as supporting evidence.",
+"At month-end, email the timesheet to the client-side manager for approval.",
+"Obtain email approval from the client-side manager (as per the defined email structure).",
+"Upload the approval email screenshot/PDF file via Bulk Upload as proof of attendance and client approval."];
 
 
 
@@ -138,8 +156,8 @@ export class MyTimesheetComponent implements OnInit {
 
   filters: any = {};
   isSearchEnabled: boolean = false;
-  selfTimesheetColumns: any[] = ['blank', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType','rejectReason' ,'remarks'];
-  teamTimesheetColumns: any[] = ['blank', 'employeeName', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason','remarks'];
+  selfTimesheetColumns: any[] = ['blank', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours','projectName', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType','rejectReason' ,'remarks'];
+  teamTimesheetColumns: any[] = ['blank', 'employeeName', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours','projectName', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason','remarks'];
   tableName: string;
   activeProjectList: Project[];
   selectedProjectId: any;
@@ -159,8 +177,8 @@ export class MyTimesheetComponent implements OnInit {
   previewUrl2: SafeResourceUrl | null = null;
   rawObjectUrl1: string | null = null;
   rawObjectUrl2: string | null = null;
-  fileType1: '' | 'pdf' | 'image' | null = null;
-  fileType2: '' | 'pdf' | 'image' | null = null;
+fileType1: '' | 'pdf' | 'image' | 'excel' | null = null;
+fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
   fileError1: string = '';
   fileError2: string = '';
   fileName1: any = null;
@@ -171,6 +189,7 @@ export class MyTimesheetComponent implements OnInit {
   activeFileType: string | null = null;
   mimeType: any;
   projectRequiresClientId: Boolean = false;
+  projAlertRequireClientId: Boolean = false;
   fromDate: any = null;
   toDate: any = null;
   finalFromDate: any = null;
@@ -217,10 +236,24 @@ export class MyTimesheetComponent implements OnInit {
 
   isUploadAllowed: boolean = false;
   disableUploadTooltip = "Bulk upload is permitted only for the complete previous month or on the last day of the current month . Please select a date range that falls entirely within the allowed period to enable uploading. ";
+  clientDetails: any;
+  clientDropdownList: any[] = [];
+  projectsInMonthYear: any[] = [];
+  clientIdEntryBulletPoints: string[] = ["Mandatory field for all resources while filling the timesheet.",
+"Enter the client-side ID if already available.",
+"If the client-side ID is not yet assigned, enter “NA (ApMoSys Employee ID)”.",
+"Once the client-side ID is received, update the ID while filling subsequent timesheets."]
+  zoomScale = 1;
+  zoomLevel = 100;
+  isDragging = false;
+  startX = 0;
+  startY = 0;
+  translateX = 0;
+  translateY = 0;
+  @ViewChild("noOtherShadowResource")
+  noOtherShadowResourceTemp: TemplateRef<any>;
+  noOtherShadowResourceModalRef:NgbModalRef;
 
-
-
- 
   //latestProjectId = this.activeProjectList
 
   constructor(
@@ -246,7 +279,7 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    
+
     //this.getProjectClientSideStatus();
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -280,8 +313,8 @@ export class MyTimesheetComponent implements OnInit {
     this.sectionViewInit();
     this.preventBackButton();
     this.isEmployeeInTNMProject();
-    this.getActiveProjectsByEmpId();
     this.thisMonthValidation();
+    this.showBulkButton();
     // this.setStartDateMinMax();
     this.timeReset();
     this.timesheetFillable = true;
@@ -316,6 +349,24 @@ export class MyTimesheetComponent implements OnInit {
 openUserManualPdf(): void {
   const pdfPath = 'assets/pdfFiles/Ishine_Timesheet_TNM.pdf';
   window.open(pdfPath, '_blank');
+}
+
+get tooltipContent(): string[] {
+  return this.withVms
+    ? this.withVmsbullet
+    : this.withoutVmsbullet ;
+}
+
+get tooltipPdf(): string {
+  return this.withVms
+    ? 'assets/pdfFiles/Client side VMS.pdf'
+    : 'assets/pdfFiles/No Client side VMS .pdf';
+}
+
+get tooltipCta(): string {
+  return this.withVms
+    ? 'View VMS Guide'
+    : 'View Non-VMS Guide';
 }
 
 
@@ -392,7 +443,7 @@ openUserManualPdf(): void {
     this.selectedInPeriod = null;
     this.timesheetObj.officeInTime = null;
 
-    
+
   }
 }
 
@@ -554,16 +605,20 @@ openUserManualPdf(): void {
     if(this.fromDate && this.timesheetObj.isNightShift){
       const nextDate = new Date(this.fromDate);
     nextDate.setDate(nextDate.getDate() + 1);
+    nextDate.setHours(0, 0, 0, 0);
     this.maxToDate = nextDate;
     this.toDate = nextDate;
     }else if(!this.timesheetObj.isNightShift){
       this.maxToDate = null;
       this.toDate = null;
     }
+    this.timesheetToDateFilter = this.timesheetToDateFilter.bind(this);
     this.makeApmosysInTime();
     this.makeApmosysOutTime();
     this.makeClientInTime();
-    this.makeClientOutTime()
+    this.makeClientOutTime();
+    this.getProjectListForDateAndEmpId();
+    this.resetTimesheetFormOnDateChange('isNightShiftModal');
   }
 
 
@@ -592,7 +647,7 @@ openUserManualPdf(): void {
 
     this.reset();
     this.getEmployeeBasicInfo();
-    this.getAllProjectsByEmpId(this.currentUser);
+    // this.getAllProjectsByEmpId(this.currentUser);
   }
 
   showBulkUploadForm() {
@@ -604,6 +659,10 @@ openUserManualPdf(): void {
     this.isUpdation = false;
 
     this.isTimesheetBulkForm = true;
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    this.maxMonth = `${year}-${month}`;
     this.reset();
   }
 
@@ -617,7 +676,7 @@ openUserManualPdf(): void {
 
     this.showSelfTimesheets();
   }
-
+ 
   showSelfTimesheets() {
     this.isSelfTimesheets = true;
     this.isTeamTimesheets = false;
@@ -665,6 +724,19 @@ openUserManualPdf(): void {
     });
   }
 
+
+  showBulkButton(){
+     this.timesheetService.wasEmployeeInClientProjCurrAndPrevMon(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.showBulkButtonFlag = response.serviceResponse;
+        this.clientIdNeeded = this.showBulkButtonFlag;
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+
+  }
+
   openInActiveUpdateConfimationModal(template: TemplateRef<any>, timesheetObj: Timesheet,) {
     this.selectedTimesheet = null;
     this.selectedTimesheet = Object.assign({}, timesheetObj);
@@ -692,6 +764,67 @@ openUserManualPdf(): void {
     this.showUpdateTimesheetForm(this.selectedTimesheet);
   }
 
+
+  onMonthYearChange() {
+  this.resetBulkUploadForm('MONTH');
+  this.getMyProjectsInMonthYear();
+  }
+
+   getMyProjectsInMonthYear() {
+
+      this.timesheetObj.empId = this.currentUser.empId;
+      this.timesheetService.getMyProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.projectsInMonthYear = response.serviceResponse;
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+
+    }
+
+
+    resetBulkUploadForm(level: 'MONTH' | 'EMP' | 'PROJECT' | 'UPLOAD') {
+
+
+    this.finalFromDate = null;
+    this.finalToDate = null;
+    this.disableList = [];
+    this.disableListFormatted = [];
+    this.isUploadAllowed = false;
+
+
+    this.selectedFile2 = null;
+    this.fileName2 = '';
+    this.fileType2 = '';
+    this.previewUrl2 = '';
+    this.fileError2 = '';
+
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
+
+
+    if (level === 'MONTH') {
+      this.timesheetObj.projectId = null;
+      this.projectsInMonthYear = [];
+    }
+
+
+    if (level === 'PROJECT') {
+
+
+    }
+
+    if (level === 'UPLOAD') {
+      this.timesheetObj.monthYear = null;
+      this.timesheetObj.projectId = null;
+      this.projectsInMonthYear = [];
+    }
+  }
+
+
+
   showUpdateTimesheetForm(timesheetObj: Timesheet) {
     this.isTimesheetForm = true;
     this.isUpdation = true;
@@ -703,7 +836,6 @@ openUserManualPdf(): void {
 
 
     this.timesheetObj = Object.assign({}, timesheetObj);
-
 
     this.timesheetObj.updatedTimesheetActivities = [];
     this.timesheetObj.date = (this.timesheetObj.date) ? moment(timesheetObj.date, "DD-MM-YYYY").toDate() : '';
@@ -719,7 +851,7 @@ openUserManualPdf(): void {
       this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
     }
 
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave") {
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" ||this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
       this.__tempDescription = this.timesheetObj.description;
     }
 
@@ -749,7 +881,23 @@ openUserManualPdf(): void {
     if (this.timesheetObj.officeOutTime) {
       this.setTimeDropdowns(this.timesheetObj.officeOutTime, 'Out');
     }
+    const status = (this.timesheetObj.clientApprovalStatus || '').toLowerCase();
+    this.clientSideIdNotMandatory = !(status === 'pending' || status === 'approved');
+
     if (!this.clientSideIdNotMandatory) {
+      const officeIn = this.timesheetObj.officeInTime;
+      const officeOut = this.timesheetObj.officeOutTime;
+      const clientIn = this.timesheetObj.clientInTime;
+      const clientOut = this.timesheetObj.clientOutTime;
+
+      if (officeIn && officeOut && clientIn && clientOut) {
+
+        const isInSame = moment(officeIn).isSame(moment(clientIn), 'minute');
+        const isOutSame = moment(officeOut).isSame(moment(clientOut), 'minute');
+
+        this.syncTimes = isInSame && isOutSame;
+
+      }
       if (this.timesheetObj.clientInTime) {
         this.setTimeDropdowns(this.timesheetObj.clientInTime, 'ClientIn');
       }
@@ -757,12 +905,15 @@ openUserManualPdf(): void {
         this.setTimeDropdowns(this.timesheetObj.clientOutTime, 'ClientOut');
       }
     }
-    this.onProjectSelect(timesheetObj.projectId);
-    this.getAllProjectsByEmpId(userObj);
-    this.getAllAvailableTimesheetByEmpId(userObj);
-    setTimeout(() => {
-      this.getAllMyActivitiesByTimesheetId(timesheetObj);
-    }, 500)
+    this.getProjectListForDateAndEmpId();
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
+      return;
+    }
+      this.getClientDetailsByProjectIdAndEmpId();
+
+      this.getAllAvailableTimesheetByEmpId(this.timesheetObj.empId);
+      this.onProjectSelect(timesheetObj.projectId);
+
   }
 
 
@@ -1021,7 +1172,7 @@ openUserManualPdf(): void {
 
 
 
-  //Manage the weekoff and holidays 
+  //Manage the weekoff and holidays
   customDateFilter: (date: Date) => boolean = (date: Date): boolean => {
 
     const dayType = this.timesheetObj.dayType;
@@ -1189,6 +1340,64 @@ openUserManualPdf(): void {
     }
   }
 
+    timesheetToDateFilter = (checkDate: Date) => {
+
+    if (this.timesheetObj?.isNightShift && this.fromDate) {
+        if (this.isNextDay(this.fromDate, checkDate)) {
+            return true;
+        }
+    }
+
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+    const time = checkDate?.getTime();
+
+
+    let currentDate = new Date();
+    const dateFormat = 'YYYY-MM-DD';
+    let OPEN_BACKDATED_DAYS = 30;
+    const CURRENT_DAY = 1;
+
+    let dateOfJoining = moment(this.currentUser.dateOfJoining, dateFormat);
+
+    let daysDifference = moment(currentDate, dateFormat).diff(dateOfJoining, 'days');
+
+
+    if (this.currentUser.timesheetBackDatedDays > daysDifference) {
+
+      OPEN_BACKDATED_DAYS = daysDifference;
+
+    } else {
+      OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays;
+    }
+
+
+    const dateObj = new Date(this.serverDate + 'T23:59:59');
+    let serverDate = dateObj;
+
+    let endDate = serverDate;
+    let startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + CURRENT_DAY) * DAY_IN_MS));
+
+    if (this.isTimesheetForm && this.isUpdation) {
+      this.availableTimesheets = this.availableTimesheets.filter(timesheet => this.datePipe.transform(timesheet.date, "yyyy-MM-dd") != this.datePipe.transform(this.timesheetObj.date, "yyyy-MM-dd"));
+    }
+
+    if (this.isTimesheetLockCheckEnable == "false") {
+      startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "yyyy-MM-dd"))) ? true : false;
+    } else {
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "yyyy-MM-dd"))) ? true : false;
+    }
+  }
+
+  private isNextDay(date1: Date, date2: Date): boolean {
+  const DAY_IN_MS = 24 * 60 * 60 * 1000;
+  return (
+    new Date(date2).setHours(0, 0, 0, 0) -
+    new Date(date1).setHours(0, 0, 0, 0)
+  ) === DAY_IN_MS;
+}
+
+
   outTimeFilter = (checkDate: Date) => {
     const dateFormat = 'YYYY-MM-DD';
 
@@ -1209,7 +1418,7 @@ openUserManualPdf(): void {
   setMaxInTimeDate(timesheetDate: any) {
     //console.log("timesheetDate : ", moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL));
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off"&& this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       let inTimeDate = document.getElementById('officeInTime');
       // //console.log("InTimeDate: ", inTimeDate);
       let officeOutTime = document.getElementById('officeOutTime');
@@ -1285,7 +1494,7 @@ openUserManualPdf(): void {
   resetTimeonDayTypeChange() {
     this.fromDate = null;
     this.toDate = null;
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" ||this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
       this.timesheetObj.totalWorkingOfficeHours = '';
@@ -1377,12 +1586,20 @@ openUserManualPdf(): void {
 
   /* Timesheet */
   validateTimesheetObj(timesheetObj: Timesheet, template: TemplateRef<any>) {
-    
+
     if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.date)) {
       this.alertMessage = "Please enter Date !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+
+    if(this.timesheetObj.isNightShift &&
+      (!this.validationService.validateNullUndefinedEmptyString(this.toDate))) {
+      this.alertMessage = "Please enter to Date !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
 
     if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.dayType)) {
       this.alertMessage = "Please select Day Type !!"
@@ -1390,7 +1607,7 @@ openUserManualPdf(): void {
       return false;
     }
 
-    if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off" && timesheetObj.dayType != "Leave" && this.timesheetFillable) {
+    if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off"&& timesheetObj.dayType != "Comp Off" && timesheetObj.dayType != "Leave" && this.timesheetFillable) {
       let flag = true;
       let totalActivityTime = 0;
       let totalWorkingHoursInSeconds = 0;
@@ -1410,11 +1627,17 @@ openUserManualPdf(): void {
       //   } else {
       //     this.timesheetObj.selectedFile = this.selectedFile;
       //   }
-      // 
+      //
       // this.timesheetObj.clientInTime = this.timesheetObj.clientInTime ? moment(this.timesheetObj.clientInTime).isValid() ? moment(this.timesheetObj.clientInTime).format(dateTimeFormat) : null : null;
       //   this.timesheetObj.clientOutTime}
       if (!this.clientSideIdNotMandatory){
-        
+
+        if(this.timesheetObj.clientApprovalStatus == null || this.timesheetObj.clientApprovalStatus == ''){
+          this.alertMessage = "Please select client approval status !!"
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+
         if(this.timesheetObj.clientSideId == null || this.timesheetObj.clientSideId == ''){
           this.alertMessage = "Please enter client side id !!"
           this.openAlertMod(template, this.alertMessage);
@@ -1434,19 +1657,19 @@ openUserManualPdf(): void {
       }
 
       if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeInTime)) {
-        this.alertMessage = "Please enter In Date-Time !!"
+        this.alertMessage = "Please enter In Time !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
 
       if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeOutTime)) {
-        this.alertMessage = "Please select Out Date-Time !!"
+        this.alertMessage = "Please select Out Time !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
 
       if (totalWorkingHoursInSeconds <= 0) {
-        this.alertMessage = "Please select Valid IN-OUT Date-Time !!"
+        this.alertMessage = "Please select Valid IN-OUT Time !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -1562,7 +1785,7 @@ openUserManualPdf(): void {
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off"&& this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       //console.log("allTimesheetActivities :", this.allTimesheetActivities, this.allTimesheetActivities[0]);
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
     } else {
@@ -1599,7 +1822,7 @@ openUserManualPdf(): void {
     //   this.shadowForSelf = false;
     // }
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
@@ -1653,7 +1876,6 @@ openUserManualPdf(): void {
           sessionStorage.setItem('autoFillTimesheet', 'true');
         }
 
-        this.resetTimesheetForm();
         this.openAlertMod(template, response.serviceResponse);
         this.showViewMyTimesheets();
         if (this.timesheetObj.timesheetAppliedFor == "self") {
@@ -1665,6 +1887,7 @@ openUserManualPdf(): void {
           this.getMyTeamTimesheets();
         }
         this.clearPreviousSelections();
+        this.resetTimesheetForm();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -1679,7 +1902,7 @@ openUserManualPdf(): void {
     if (!inputValidated) return;
 
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
@@ -1764,7 +1987,7 @@ openUserManualPdf(): void {
       this.timesheetObj.documentData.push(newDoc2);
 
     }
-    
+
 
     this.timesheetService.updateTimesheetWithClient(this.timesheetObj, this.selectedFile, this.selectedFile2).pipe(first()).subscribe({
     next:(response: any) => {
@@ -1787,17 +2010,17 @@ openUserManualPdf(): void {
     error: (error: any) => {
       if (error.status === 500 && error.error?.message?.includes('Malicious content in request body')) {
         this.openAlertMod(template, 'Request blocked: Malicious content detected in the request body.');
-      } 
+      }
       else if (error.status === 500) {
         this.openAlertMod(template, 'Internal server error occurred. Please try again later.');
-      } 
+      }
       else if (error.status === 403) {
         this.openAlertMod(template, 'You are not authorized to perform this action.');
-      } 
+      }
       else if (error.status === 401) {
         this.openAlertMod(template, 'Your session has expired. Please log in again.');
         // Example: this.authService.logout();
-      } 
+      }
       else {
         this.openAlertMod(template, `Unexpected error (${error.status}): ${error.message || 'Unknown error'}`);
       }
@@ -1809,7 +2032,7 @@ openUserManualPdf(): void {
   onTimesheetDescriptionChange() {
     console.log("onTimesheetDescriptionChange called");
     if (this.isUpdation) {
-      if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave") {
+      if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" ||this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
         this.timesheetObj.description = (this.__tempDescription != null) ? this.__tempDescription : '';
         if (this.timesheetObj.description) {
           this.__tempDescription = this.timesheetObj.description;
@@ -1867,8 +2090,8 @@ openUserManualPdf(): void {
 
     //console.log("preset Timesheet : ", this.timesheetObj);
 
-    this.getAllProjectsByEmpId(userObj);
-    this.getAllAvailableTimesheetByEmpId(userObj);
+    // this.getAllProjectsByEmpId(userObj);
+    // this.getAllAvailableTimesheetByEmpId(this.timesheetObj.empId);
   }
 
   getAllTeamMemberList() {
@@ -1933,16 +2156,21 @@ openUserManualPdf(): void {
   getProjectList(activityObj: Activity) {
     this.projectList = [];
 
-    const key = "teamId";
-    this.projectList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
-      if (project.clientId == activityObj.clientId) {
-        project['displayTeam'] = `${project.projectName} | ${project.teamName}`;
-        return { teamId: project.teamId, teamName: project.teamName, projectName: project.projectName, displayTeam: project.displayTeam }
-      }
-    });
-    //console.log("projectList with displayTeam:", this.projectList);
+    if (!this.clientDetails?.project?.teams?.length) {
+            return;
+    }
+
+    this.projectList = this.clientDetails.project.teams.map(team => ({
+      teamId: team.teamId,
+      teamName: team.teamName,
+      projectId: this.clientDetails.project.projectId,
+      projectName: this.clientDetails.project.projectName,
+      displayTeam: `${this.clientDetails.project.projectName} | ${team.teamName}`
+    }));
+
     this.setAllProjects(activityObj, this.projectList);
   }
+
 
   // getTeamList(activityObj: Activity){
   //   this.teamList = []
@@ -1974,29 +2202,21 @@ openUserManualPdf(): void {
     }
   }
 
-  getClientLocationList(activityObj: any, clientId?: any) {
-    if (!activityObj?.clientId || this.validationService.validateNullUndefinedEmptyString(clientId)) {
-      const activityObjTemp = new Activity();
-      activityObjTemp.clientId = clientId;
-      activityObjTemp.clientLocationId = "";
-      activityObjTemp.clientLocationList = [];
-      const index = this.allTimesheetActivities.indexOf(activityObj);
-      if (index !== -1) {
-        this.allTimesheetActivities[index] = activityObjTemp;
-      } else {
-        this.allTimesheetActivities.push(activityObjTemp);
-      }
-      activityObj = activityObjTemp;
+  getClientLocationList(activityObj: any) {
+    activityObj.clientLocationList = [];
+
+    if (!this.clientDetails?.clientLocations?.length) {
+      return;
     }
 
-    this.clientLocationList = [];
-    const key = "clientLocationId";
-    this.clientLocationList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
-      if (project.clientId == activityObj.clientId) {
-        return { clientLocationId: project.clientLocationId, clientLocation: project.clientLocation }
-      }
-    });
-    this.setAllClientLocations(activityObj, this.clientLocationList)
+    activityObj.clientLocationList = this.clientDetails.clientLocations.map(loc => ({
+      clientLocationId: loc.clientLocationId,
+      clientLocation: loc.clientLocation
+    }));
+
+    // reset dependent fields
+    activityObj.clientLocationId = null;
+    activityObj.teamId = null;
   }
 
   setAllClientLocations(activityObj, clientLocationList: any) {
@@ -2007,80 +2227,35 @@ openUserManualPdf(): void {
     }
   }
 
-  getAllActivitiesByProjectIdandEmpId(activityObj: any, teamId?:any) {
-    let allActivityList = [];
-    let timesheetObj = new Timesheet();
-    timesheetObj.empId = this.timesheetObj.empId;
-    timesheetObj.teamId = !activityObj?.teamId || this.validationService.validateNullUndefinedEmptyString(teamId) ? teamId : activityObj.teamId  ;
-    
-    let projectTimesheet = this.allProjectsList.find(project => project.teamId == timesheetObj.teamId);
-    timesheetObj.projectId = projectTimesheet.projectId;
-    timesheetObj.clientId = this.timesheetObj.clientId;
-    timesheetObj.clientLocationId = this.timesheetObj.clientLocationId;
-    this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        allActivityList = response.serviceResponse;
-        // console.log('getAllActivitiesByProjectIdandEmpId',allActivityList)
-        allActivityList = allActivityList.sort((a, b) => a.activity.localeCompare(b.activity));
-        // console.log('after sorting',allActivityList)
-        // console.log("Team name :  ", timesheetObj.teamId);
-        // console.log("allActivityList :", allActivityList);
-        if (this.timesheetObj.timesheetAppliedFor == "team") {
-          let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
-          allActivityList = allActivityList.filter(x => x.departmentList?.map(x => +x).includes(teamMember.departmentId));
-          // console.log('if',allActivityList)
-        } else {
+  getAllActivitiesByProjectIdandEmpId(activityObj: any) {
+    if (!activityObj?.teamId || !this.clientDetails?.project) {
+      return;
+    }
 
-          allActivityList = allActivityList.filter(x => x.departmentList?.map(x => +x).includes(this.currentUser.departmentId));
-          if (allActivityList.length === 0) {
-            this.openAlertMod(this.alertModalWithoutReload, "No activity found for your department!");
-          }
-          // console.log('else',allActivityList)
+    const payload = {
+      empId: this.timesheetObj.empId,
+      teamId: activityObj.teamId,
+      projectId: this.clientDetails.project.projectId,
+      clientId: this.timesheetObj.clientId,
+      clientLocationId: this.timesheetObj.clientLocationId
+    };
+
+    this.timesheetService.getAllActivitiesByProjectIdandEmpId(payload).pipe(first()).subscribe((response: any) => {
+
+        if (response.serviceStatus !== 'Success') {
+          console.error(response.serviceResponse);
+          return;
         }
 
-        //added by priyadarshini for debugging purpose
-        // }else {
-        //   allActivityList = allActivityList.filter((x) => {
-        //     console.log("Processing Activity:", x);
-
-        //     const departmentList = x.departmentList?.map((dep) => +dep);
-        //     console.log("Mapped departmentList to numbers:", departmentList);
-
-        //     const isIncluded = departmentList?.includes(this.currentUser.departmentId);
-        //     console.log("Does it include currentUser.departmentId:", this.currentUser.departmentId, "=>", isIncluded);
-
-        //     return isIncluded;
-        //   });
-
-        //   console.log("Filtered allActivityList:", allActivityList);
-        // }
-
-      } else {
-        console.error(response.serviceResponse)
-      }
-      this.setAllProjectActivities(activityObj, allActivityList);
-      // console.log("getAllActivitiesByProjectIdandEmpId",allActivityList);
-    });
+        let activityList = [...response.serviceResponse];
+        activityList.sort((a, b) => a.activity.localeCompare(b.activity));
+        activityList = this.filterActivitiesByDepartment(activityList);
+        this.setAllProjectActivities(activityObj, activityList);
+      });
   }
 
-  // getAllAvailableTimesheetByEmpId(employeeObj: User) {
-  //   this.availableTimesheets = [];
-  //   //console.log(" -- logged availableTimesheets -- ");
-
-  //   let timesheetObj = new Timesheet();
-  //   timesheetObj.empId = employeeObj.empId;
-  //   this.timesheetService.getbackdatedTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus == "Success") {
-  //       this.availableTimesheets = response.serviceResponse;
-  //       //console.log("availableTimesheets :", this.availableTimesheets);
-  //     } else {
-  //       console.error(response.serviceResponse)
-  //     }
-  //   });
-  // }
-
   empIdForTeamMember:any='';
-  getAllAvailableTimesheetByEmpId(employeeObj: User) {
+  getAllAvailableTimesheetByEmpId(empId:any) {
     this.availableTimesheets = [];
     const DAY_IN_MS = 24 * 60 * 60 * 1000;
     let currentDate = new Date();
@@ -2104,7 +2279,7 @@ openUserManualPdf(): void {
     }
 
     let timesheetObj = new Timesheet();
-    timesheetObj.empId = employeeObj.empId;
+    timesheetObj.empId = empId;
     timesheetObj.startDate = moment(startDate).format(AppComponent.DB_DATE_FORMAT);
     timesheetObj.endDate = moment(endDate).format(AppComponent.DB_DATE_FORMAT);
 
@@ -2306,7 +2481,7 @@ openUserManualPdf(): void {
         let userObj: User = new User();
         userObj.empId = this.currentUser.empId;
         userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-        this.getAllAvailableTimesheetByEmpId(userObj);
+        this.getAllAvailableTimesheetByEmpId(this.currentUser.empId);
       } else {
         console.error(response.serviceResponse)
       }
@@ -2362,6 +2537,7 @@ openUserManualPdf(): void {
           "In Time": x.officeInTime,
           "Out Time": x.officeOutTime,
           "Total Working Hours": x.totalWorkingOfficeHours,
+          "Project Name" :x.projectName,
           "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
           "Total Activity Time": x.totalTime,
           "Status": x.status,
@@ -2409,7 +2585,7 @@ openUserManualPdf(): void {
   }
 
   openNightShiftTemplate(template: TemplateRef<any>, event) {
-    
+
     if (event.target.checked) {
       this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     }
@@ -2425,8 +2601,19 @@ openUserManualPdf(): void {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
+
+  confirmNightShift(value:Boolean) {
+    this.timesheetObj.isNightShift=value;
+    if (value && this.timesheetObj.date) {
+      this.fromDate = new Date(this.timesheetObj.date);
+      this.fromDate.setHours(0, 0, 0, 0);
+    }
+    this.timesheetToDateFilter = this.timesheetToDateFilter.bind(this);
+    this.modalRef?.close();
+  }
+
 
   openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj: Timesheet) {
     this.timesheetObj = new Timesheet();
@@ -2468,7 +2655,7 @@ openUserManualPdf(): void {
     activityObj.description = sanitizedValue;
     event.target.value = sanitizedValue; // reflect the change in the UI
   }
-  
+
   validateTime(event, data: any) {
 
     if (!this.validationService.validateTimesheetCompletionTime(data)) {
@@ -2612,19 +2799,21 @@ openUserManualPdf(): void {
     //console.log("Updated Filter : ", this.filters);
   }
 
-  getActiveProjectsByEmpId() {
-    this.timesheetService.getActiveProjectsByEmpId(this.currentUser.empId).pipe(first()).subscribe(async(response: any) => {
+  getProjectListForDateAndEmpId() {
+    //employeeTeamMapping has startDate and endDate as localDateTime
+    const d = new Date(this.fromDate);
+    const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
+
+    const payload = {
+      empId: this.timesheetObj.empId,
+      date: localDateTime
+    };
+
+    this.timesheetService.getProjectListForDateAndEmpId(payload).pipe(first()).subscribe(async(response: any) => {
       if (response.serviceStatus == "Success") {
         this.activeProjectList = response.serviceResponse;
-        // console.log("Active Project List :::::::::", this.activeProjectList);
+        console.log("Active Project List :::::::::", this.activeProjectList);
 
-       this.activeProjectList.forEach(project => {
-          if (project.projectId) {
-            this.onProjectSelect(project.projectId);
-           
-          }
-        });
-     
       } else {
         console.error("Service Response for this.activeProjectList :::::::", response.serviceResponse);
       }
@@ -2659,15 +2848,31 @@ openUserManualPdf(): void {
 
 
 
-  getDoscForPreview(docId: any) {
-    this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
+getDoscForPreview(docId: any) {
+  this.timesheetService.getDocumentDataByDocId(docId)
+    .pipe(first())
+    .subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+
         this.docData2 = response.serviceResponse.docData;
-        this.mimeType = response.serviceResponse.docMimeType
-        this.showPreview(this.docData2, this.mimeType)
+        this.mimeType = response.serviceResponse.docMimeType;
+
+        // Excel → Download
+        if (
+          this.mimeType === 'application/vnd.ms-excel' ||
+          this.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ) {
+          const fileName = response.serviceResponse.docName || 'document.xlsx';
+          this.downloadExcel(this.docData2, this.mimeType, fileName);
+        }
+        // PDF / Image → Preview
+        else {
+          this.showPreview(this.docData2, this.mimeType);
+        }
       }
     });
-  }
+}
+
   formatDateToLocalYMD(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // month is 0-based
@@ -2683,24 +2888,37 @@ openUserManualPdf(): void {
       : this.finalFromDate;
 
     if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
-      this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus === "Success") {
-          this.timesheetObj.projectId = null;
-          this.selectedFile2 = null;
-          this.finalFromDate = null;
-          this.finalToDate = null;
-          this.fileName2 = '';
-          this.fileType2 = '';
-          this.previewUrl2 = '';
-          if (this.fileInput) {
-            this.fileInput.nativeElement.value = '';
-          }
+    //   this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+    //     if (response.serviceStatus === "Success") {
+    //      this.resetBulkUploadForm('UPLOAD');
 
+    //       this.openAlertMod(template, response.serviceResponse);
+    //     } else {
+    //       this.openAlertMod(template, response.serviceResponse);
+    //     }
+    //   });
+
+    const payload: ProjectBasedBulkUploadPayload = {
+        createdBy: this.currentUser.empId,
+        empIds: [this.currentUser.empId],
+        fromDate: this.finalFromDate,
+        toDate: this.finalToDate,
+        projectId: this.timesheetObj.projectId,
+      }
+
+    this.timesheetService.bulkFinalUploadProjectBased(payload, this.selectedFile2).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.resetBulkUploadForm('UPLOAD');
+          this.alertMessage = "Success";
           this.openAlertMod(template, response.serviceResponse);
+          this.showBulkUploadForm();
+
         } else {
-          this.openAlertMod(template, response.serviceResponse);
+          this.alertMessage = response.serviceResponse || "Error while bulk final upload";
+          this.openAlertMod(template, this.alertMessage);
         }
       });
+
     } else {
 
       if (this.finalFromDate == null) {
@@ -2815,38 +3033,93 @@ openUserManualPdf(): void {
     }
   }
 
-  onFinalFileSelected(event: any): void {
-    const file: File = event.target.files[0];
-    this.fileError2 = '';
-    this.previewUrl2 = null;
-    this.fileType2 = null;
+  // onFinalFileSelected(event: any): void {
+  //   const file: File = event.target.files[0];
+  //   this.fileError2 = '';
+  //   this.previewUrl2 = null;
+  //   this.fileType2 = null;
 
-    if (!file) return;
+  //   if (!file) return;
 
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    const maxSize = 500 * 1024;
+  //   const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+  //   const maxSize = 500 * 1024;
 
-    if (!allowedTypes.includes(file.type)) {
-      this.fileError2 = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
-      return;
-    }
+  //   if (!allowedTypes.includes(file.type)) {
+  //     this.fileError2 = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
+  //     return;
+  //   }
 
-    if (file.size > maxSize) {
-      this.fileError2 = 'File size must be 500Kb or less.';
-      return;
-    }
+  //   if (file.size > maxSize) {
+  //     this.fileError2 = 'File size must be 500Kb or less.';
+  //     return;
+  //   }
 
-    if (this.rawObjectUrl2) {
-      URL.revokeObjectURL(this.rawObjectUrl2);
-    }
+  //   if (this.rawObjectUrl2) {
+  //     URL.revokeObjectURL(this.rawObjectUrl2);
+  //   }
 
-    const objectUrl = URL.createObjectURL(file);
-    this.rawObjectUrl2 = objectUrl;
-    this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
-    this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
-    this.selectedFile2 = file;
-    this.fileName2 = file.name;
+  //   const objectUrl = URL.createObjectURL(file);
+  //   this.rawObjectUrl2 = objectUrl;
+  //   this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+  //   this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
+  //   this.selectedFile2 = file;
+  //   this.fileName2 = file.name;
+  // }
+onFinalFileSelected(event: any): void {
+  const file: File = event.target.files[0];
+  this.fileError2 = '';
+  this.previewUrl2 = null;
+  this.fileType2 = null;
+
+  if (!file) return;
+
+  const allowedTypes = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ];
+
+  const maxSize = 500 * 1024;
+
+  if (!allowedTypes.includes(file.type)) {
+    this.fileError2 =
+      'Only PDF, JPG, JPEG, PNG, XLS, and XLSX files are allowed.';
+    return;
   }
+
+  if (file.size > maxSize) {
+    this.fileError2 = 'File size must be 500Kb or less.';
+    return;
+  }
+
+  // Cleanup old URL
+  if (this.rawObjectUrl2) {
+    URL.revokeObjectURL(this.rawObjectUrl2);
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  this.rawObjectUrl2 = objectUrl;
+
+  if (file.type === 'application/pdf') {
+    this.previewUrl2 =
+      this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    this.fileType2 = 'pdf';
+  }
+  else if (file.type.startsWith('image/')) {
+    this.previewUrl2 =
+      this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    this.fileType2 = 'image';
+  }
+  else {
+    // Excel
+    this.fileType2 = 'excel';
+  }
+
+  this.selectedFile2 = file;
+  this.fileName2 = file.name;
+}
 
 
   clearPreviousSelections() {
@@ -2862,7 +3135,7 @@ openUserManualPdf(): void {
 
   hideSelfModal3(): void {
     if (this.updateClientIdModalRef) {
-      this.updateClientIdModalRef.close();
+      this.updateClientIdModalRef?.close();
     }
   }
 
@@ -2877,12 +3150,21 @@ openUserManualPdf(): void {
   }
 
   getEmployeeListByProjectId(projectId) {
-    this.timesheetService.getEmployeeListByProjectId(projectId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+    const d = new Date(this.fromDate);
+    const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
+
+    const payload = {
+      empId: this.timesheetObj.empId,
+      date: localDateTime,
+      projectId: projectId
+    };
+
+    this.timesheetService.getOtherTeamMembersByDateAndProjectId(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.employeeList = response.serviceResponse;
         this.getTimesheetMetadata();
       } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+        this.openNoOtherShadowResource(response.serviceResponse);
       }
     });
   }
@@ -2940,7 +3222,17 @@ openUserManualPdf(): void {
     } else {
       empId = this.currentUser.empId
     }
-    this.timesheetService.getActiveProjectsAndClientSideIdByEmpId(empId).pipe(first()).subscribe((response: any) => {
+    //employeeTeamMapping has startDate and endDate as localDateTime
+    const d = new Date(this.fromDate);
+    const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
+
+    const payload = {
+      empId: empId,
+      date: localDateTime,
+      projectId: this.timesheetObj.projectId
+    };
+
+    this.timesheetService.getActiveProjectsAndClientSideIdByEmpId(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectClientIdList = response.serviceResponse;
         if (this.projectClientIdList) {
@@ -2953,7 +3245,6 @@ openUserManualPdf(): void {
         console.error(response.serviceResponse);
       }
     });
-    this.resetTimeonDayTypeChange();
   }
 
   payloadForFileUpload() {
@@ -3005,7 +3296,7 @@ openUserManualPdf(): void {
 
   hideNoNotAppliedYet(): void {
     if (this.noNotAppliedYetModalRef) {
-      this.noNotAppliedYetModalRef.close();
+      this.noNotAppliedYetModalRef?.close();
       this.resetTimesheetForm();
     }
   }
@@ -3036,7 +3327,7 @@ openUserManualPdf(): void {
 
   hideclientSideIdNotMandatoryFound(): void {
     if (this.clientSideIdNotMandatoryFoundModalRef) {
-      this.clientSideIdNotMandatoryFoundModalRef.close();
+      this.clientSideIdNotMandatoryFoundModalRef?.close();
     }
   }
 
@@ -3067,13 +3358,15 @@ openUserManualPdf(): void {
     } else {
       this.checkIfProjectRequiresClientId(projectId);
     }
-    this.filterClients(projectId);
+    this.getClientDetailsByProjectIdAndEmpId();
   }
 
   onProjectSelectBulk(projectId: any) {
+    this.timesheetObj.projectId = projectId;
+    this.resetBulkUploadForm('PROJECT');
     this.checkIfProjectRequiresClientId(projectId);
     this.getAllDisabledDateListForBulkDocSubmit(projectId);
-    this.filterClients(projectId);
+    // this.filterClients(projectId);
   }
 
   getAllDisabledDateListForBulkDocSubmit(projectId: any) {
@@ -3109,6 +3402,7 @@ openUserManualPdf(): void {
     this.timesheetService.checkIfProjectRequiresClientId(projectId).pipe(first()).subscribe(async(response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectRequiresClientId = response.serviceResponse;
+        this.projAlertRequireClientId = response.serviceResponse;
         if (this.projectRequiresClientId) {
           //is client id mandetory api call.
           // this.timesheetService.isClientMandetory(+projectId).pipe(first()).subscribe((response: any) => {
@@ -3118,7 +3412,8 @@ openUserManualPdf(): void {
           // });
           response = await this.timesheetService.isClientMandetory(+projectId).pipe(first()).toPromise();
           this.clientSideIdMandetoryFromBackend = response.serviceResponse;
-          
+           this.withVms = this.projectRequiresClientId && this.clientSideIdMandetoryFromBackend;
+
           this.clientSideIdNotMandatory = false;
           this.timesheetObj.clientSideId = null;
           this.timesheetObj.hasClientSideId = true;
@@ -3144,9 +3439,9 @@ openUserManualPdf(): void {
 
     this.timesheetObj.clientSideId == null;
     if (this.timesheetObj.timesheetAppliedFor == 'team') {
-      
+
       await this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId, this.timesheetObj.empId);
-     
+
       if (this.empClientSideObj.clientSideId == null && this.projectRequiresClientId) {
         this.getActiveProjectsAndClientSideIdByEmpId();
         this.empClientSideObj.projectId = projectId;
@@ -3164,19 +3459,19 @@ openUserManualPdf(): void {
           console.error(response.serviceResponse);
           this.empClientSideObj.clientSideId=null;
           this.timesheetObj.clientSideId=null;
-          
+
         }
         if (this.timesheetObj.clientSideId == null && this.projectRequiresClientId) {
           this.getActiveProjectsAndClientSideIdByEmpId();
           this.empClientSideObj.projectId = projectId;
-        
+
             this.openClientSideIdForm();
-         
-         
+
+
         }
       });
     }
-    
+
   }
 
   openClientSideIdForm() {
@@ -3317,7 +3612,7 @@ openUserManualPdf(): void {
   }
 
   cancelRequest2() {
-    this.alertWithResetModRef.close();
+    this.alertWithResetModRef?.close();
     this.resetTimesheetForm();
   }
 
@@ -3343,12 +3638,12 @@ openUserManualPdf(): void {
     this.timesheetObj.timesheetAppliedFor = 'self';
     this.timesheetObj.dayType = 'Working';
     this.fromDate = this.selectedDate;
+    this.onFromDateChange();
+    this.getProjectListForDateAndEmpId();
     this.makeApmosysInTime();
     this.makeApmosysOutTime();
     this.makeClientInTime();
     this.makeClientOutTime();
-    this.getAllProjectsByEmpId(this.currentUser);
-    this.getActiveProjectsByEmpId();
 
     let timesheet: Partial<Timesheet> = { empId: this.currentUser.empId };
 
@@ -3378,21 +3673,21 @@ openUserManualPdf(): void {
           }
 
 
-
           if (this.activeProjectList?.some(p => p.projectId === autoData.projectId)) {
             this.timesheetObj.projectId = autoData.projectId;
             this.checkIfProjectRequiresClientId(this.timesheetObj.projectId);
+            this.getClientDetailsByProjectIdAndEmpId();
           }
           this.timesheetObj.clientApprovalStatus = autoData.clientApprovalStatus;
 
 
           setTimeout(() => {
-            const defaultClient = this.clientList?.find(c => c.clientId === autoData.clientId);
+            const defaultClient = this.clientDropdownList?.find(c => c.clientId === autoData.clientId);
             if (!defaultClient) {
               console.error("Client not found in list");
                 this.openAlertWithResetMod(
               this.alertModalWithoutReload,
-              "Client not found in list " 
+              "Client not found in list "
             );
               return;
             }
@@ -3487,7 +3782,7 @@ onSyncToggle() {
       placeholder = `NA (A-${this.currentUser.employeementId})`
     }
     return placeholder;
-  }  
+  }
 
   filterClients(projectId: any) {
     this.filteredClients = [];
@@ -3557,12 +3852,209 @@ checkUploadEligibility() {
     : "Bulk upload is permitted only for dates in the previous month or on the last day of the current month. Please select a valid date range.";
 }
 
+  onDayTypeChange(){
+    this.getActiveProjectsAndClientSideIdByEmpId();
+    this.onTimesheetDescriptionChange();
+    this.resetTimesheetFormOnDateChange();
+  }
+
+  resetTimesheetFormOnDateChange(value?:any){
+    this.timeReset();
+    // this.toDate = null;
+    this.timesheetObj.projectId = null;
+    this.timesheetObj.clientSideId = null;
+    this.timesheetObj.hasClientSideId = false;
+    this.timesheetObj.shadowEmpId = null;
+    this.timesheetObj.clientApprovalStatus = null;
+    this.timesheetObj.description = null;
+    this.timesheetObj.officeInTime = null;
+    this.timesheetObj.officeOutTime = null;
+    this.timesheetObj.totalWorkingOfficeHours = null;
+    if(value!=='isNightShiftModal'){    this.timesheetObj.isNightShift = null;}
+    this.timesheetObj.clientInTime = null;
+    this.timesheetObj.clientOutTime = null;
+    this.timesheetObj.totalClientWorkingHours = null;
+    this.timesheetObj.docId = null;
+    this.selectedFile2 = null;
+    this.fileName2 = '';
+    this.fileType2 = '';
+    this.previewUrl2 = '';
+    this.selectedFile = null;
+    this.fileName1 = '';
+    this.fileType1 = '';
+    this.previewUrl1 = '';
+    this.shadowForSelf = false;
+    this.finalFromDate = null;
+    this.finalFromDate = null ;
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday" || this.timesheetObj.dayType == "Comp Off") {
+      this.timesheetFillable = false
+    }
+    else {
+      this.timesheetFillable = true;
+    }
+    this.allTimesheetActivities = [];
+    this.addInputActivityField();
+    this.syncTimes = false;
+  }
+
+  getClientDetailsByProjectIdAndEmpId() {
+    if(!this.timesheetObj.dayType || this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday" || this.timesheetObj.dayType == "Comp Off"){
+      return;
+    }
+    this.clientDetails = '';
+    this.projectList = [];
+
+    const payload = {
+      empId: this.timesheetObj.empId,
+      projectId: this.timesheetObj.projectId,
+      date: this.timesheetObj.date = new Date(this.timesheetObj.date).toLocaleDateString('en-CA') // gives YYYY-MM-DD
+    };
+    this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.clientDetails = response.serviceResponse;
+        this.clientDropdownList = [this.clientDetails];
+      } else {
+        console.error(response.serviceResponse)
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      }
+    });
+  }
+
+  onClientChange(activityObj: any) {
+    activityObj.clientLocationList = this.clientDetails.clientLocations || [];
+    activityObj.clientLocationId = null;
+    activityObj.teamId = null;
+  }
+
+  private filterActivitiesByDepartment(activityList: any[]): any[] {
+
+    if (!activityList?.length) {
+      return [];
+    }
+
+    if (this.timesheetObj.timesheetAppliedFor === 'team') {
+      const teamMember = this.teamMemberList.find(
+        emp => emp.empId === this.timesheetObj.empId
+      );
+
+      return activityList.filter(activity =>
+        activity.departmentList?.map(Number).includes(teamMember?.departmentId)
+      );
+    }
+
+    const filteredList = activityList.filter(activity =>
+      activity.departmentList?.map(Number).includes(this.currentUser.departmentId)
+    );
+
+    if (filteredList.length === 0) {
+      this.openAlertMod(
+        this.alertModalWithoutReload,
+        'No activity found for your department!'
+      );
+    }
+
+    return filteredList;
+  }
+
+  zoomIn() {
+    if (this.zoomScale < 2.5) {
+      this.zoomScale += 0.1;
+      this.zoomLevel = Math.round(this.zoomScale * 100);
+    }
+  }
+
+  zoomOut() {
+    if (this.zoomScale > 0.5) {
+      this.zoomScale -= 0.1;
+      this.zoomLevel = Math.round(this.zoomScale * 100);
+    }
+  }
+
+  get transformStyle() {
+    return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
+  }
+
+  startDrag(event: MouseEvent) {
+    if (this.zoomScale <= 1) return; // drag only when zoomed
+
+    this.isDragging = true;
+    this.startX = event.clientX - this.translateX;
+    this.startY = event.clientY - this.translateY;
+    event.preventDefault();
+  }
+
+  onDrag(event: MouseEvent) {
+    if (!this.isDragging) return;
+
+    this.translateX = event.clientX - this.startX;
+    this.translateY = event.clientY - this.startY;
+  }
+
+  endDrag() {
+    this.isDragging = false;
+  }
+
+  resetPreviewState() {
+    this.zoomScale = 1;
+    this.zoomLevel = 100;
+    this.translateX = 0;
+    this.translateY = 0;
+    this.isDragging = false;
+  }
+
+  openNoOtherShadowResource(message: any) {
+    this.alertMessage = message;
+    this.noOtherShadowResourceModalRef = this.modalService.open(this.noOtherShadowResourceTemp, { modalDialogClass: 'modal-md' });
+  }
+
+  hideNoOtherShadowResource(): void {
+    if (this.noOtherShadowResourceModalRef) {
+      this.noOtherShadowResourceModalRef?.close();
+      this.resetTimesheetForm();
+    }
+  }
+
+  downloadSelectedFile(): void {
+  if (!this.rawObjectUrl2 || !this.selectedFile2) return;
+
+  const a = document.createElement('a');
+  a.href = this.rawObjectUrl2;
+  a.download = this.fileName2;
+  a.click();
+}
+
+isExcelMimeType(mimeType: string): boolean {
+  return mimeType === 'application/vnd.ms-excel'
+    || mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+}
 
 
+downloadExcel(base64Data: string, mimeType: string, fileName: string) {
+
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const blob = new Blob(
+    [new Uint8Array(byteNumbers)],
+    { type: mimeType }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+
+  window.URL.revokeObjectURL(url);
+}
 
 
 }
-
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

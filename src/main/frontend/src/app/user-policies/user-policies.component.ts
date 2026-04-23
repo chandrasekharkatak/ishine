@@ -39,12 +39,19 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   src:any;
   fileName:any
 
+  // policyModalConfiguration = {
+  //   backdrop: true,
+  //   ignoreBackdropClick: true,
+  //   keyboard: false,
+  //   class : 'modal-xl'
+  // }
+
   policyModalConfiguration = {
-    backdrop: true,
-    ignoreBackdropClick: true,
-    keyboard: false,
-    class : 'modal-xl'
-  }
+  size: 'lg',
+  backdrop: true,
+  centered: true,
+  windowClass: 'a4-modal'
+};
 
   readEnambleModalConfig = {
     backdrop: true,
@@ -55,24 +62,24 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   userMapping: any = {};
   feature = 'HR Policies';
 
-  
+
 
   constructor(private policiesService : PoliciesService,
     private authenticationService: AuthenticationService,
     private modalService: NgbModal,
     private locationStrategy: LocationStrategy,
         private utilityService: UtilityService,
-  ) { 
+  ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
     //console.log(this.currentUser, " : current USer");
-    
+
 
   }
   document:any[] = [];
   data:string;
   modalRef:NgbModalRef;
-  fileObj:UploadPolicy = new UploadPolicy();  
+  fileObj:UploadPolicy = new UploadPolicy();
   alertMessage: any;
   allReadPoliciesList:any[] = [];
 
@@ -82,7 +89,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   isDocumentScrolledToBottom:boolean = false;
 
   async ngOnInit(): Promise<void> {
-   
+
     // this.getAllNewsletters();
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
           featureMap.subFeatures?.forEach(sub => {
@@ -132,14 +139,14 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
        this.allReadPoliciesList.forEach((readPolicies:UploadPolicy) => {
           let fileObj = this.document.find((policy:UploadPolicy) => readPolicies.policyID == policy.policyID);
           if(fileObj) fileObj.isRead = true;
-        }); 
+        });
       }else{
         console.error(response.serviceResponse);
       }
     });
 
   }
-  
+
   downloadFile(doc: any) {
     this.policiesService.downloadDocument( doc.policyID).subscribe(blob => saveAs(blob,doc.fileName));
   }
@@ -174,8 +181,8 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
 
   previewPolicyDocument(template: TemplateRef<any>,doc: any,event?: MouseEvent) {
     // disable button on click
-    if(event) (event.target as HTMLButtonElement).disabled = true; 
-      
+    if(event) (event.target as HTMLButtonElement).disabled = true;
+
 
     this.src = null;
     this.fileName = doc.policyName;
@@ -205,7 +212,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   }
 
   openPreviewDocument(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.open(template, this.policyModalConfiguration);
+    this.modalRef = this.modalService.open(template, this.policyModalConfiguration );
     setTimeout(() => {
       if (this.currentDoc.readEnabled == 'false') {
         this.isDocumentScrolledToBottom = true;
@@ -227,7 +234,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   openReadEnabledMod(template: TemplateRef<any>, fileObj:UploadPolicy) {
@@ -239,7 +246,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   openPreviewPolicyModal(){
     if(this.currentUser.policyReadConsent != null){
       //console.log("this.currentUser.policyReadConsent ", this.currentUser.policyReadConsent, " ---");
-      
+
       this.previewPolicyDocument(this.previewDocument,this.currentUser.policyReadConsent);
     }else{
       this.getAllDocuments();
@@ -251,16 +258,16 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
     this.page = event;
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
-  
+
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
     if(!this.isSearchEnabled){
@@ -274,7 +281,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   }
 
 }
-function compare(a: number | string, b: number | string, isAsc: boolean) {	
+function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 
 }

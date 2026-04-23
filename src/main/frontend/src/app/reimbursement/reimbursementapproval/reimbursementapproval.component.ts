@@ -53,15 +53,15 @@ export class ReimbursementapprovalComponent implements OnInit {
       let reimbursementData = new MyReimbursement();
 
       console.log('currentEmployeeInfo ::::::::::::::::',this.currentEmployeeInfo);
-      reimbursementData.empId = this.currentUser.empId;  
+      reimbursementData.empId = this.currentUser.empId;
 
       console.log('reimbursementData Data  ::::::::::::::::', reimbursementData);
 
       const response: any = await this.reimbursementService.fetchReimbursementDataforApproval(reimbursementData).toPromise();
-      
+
       if (response.serviceStatus === "Success") {
         this.reimbursementRequests = response.serviceResponse.sort((a, b) => b.requestId - a.requestId);
-        // this.reimbursementRequests = response.serviceResponse;  
+        // this.reimbursementRequests = response.serviceResponse;
         console.log('Fetched Reimbursement Requests:', this.reimbursementRequests);
         this.selectedReimbursementRequest = this.reimbursementRequests;
       } else {
@@ -71,7 +71,7 @@ export class ReimbursementapprovalComponent implements OnInit {
   }
 
   isValidForm() {
-    return true; 
+    return true;
   }
 
   shouldShowAction(row: any): boolean {
@@ -110,7 +110,7 @@ export class ReimbursementapprovalComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
     //this.onGetReimbursementInfo();
     location.reload();
   }
@@ -144,48 +144,48 @@ export class ReimbursementapprovalComponent implements OnInit {
     // console.log('Approver Status ', newtravelData.approverStatus);
 
     // console.log('newtravelData :::::::::::::::::::::::::::::', newtravelData);
-    
+
 
     try {
       const response: any = await this.reimbursementService.approveOrRejectReimbursement(newtreimbursementData).toPromise();
 
       console.log('AResponse Data :::::::::::::::::', response);
-   
+
       console.log('Service Response data ::::::::',response.serviceResponse) ;
 
       if (response.serviceStatus === "Success") {
 
         if(this.selectedReimbursementRequest.approverStatus === "Rejected"){
-          this.modalRef.close();
+          this.modalRef?.close();
           this.alertMessage = `Success! This request is Rejected successfully ..!!!!`;
           this.openAlertMod(template, this.alertMessage);
         }else{
-          this.modalRef.close();
+          this.modalRef?.close();
         this.alertMessage = `Success! This request is approved successfully ..!!!!`;
         this.openAlertMod(template, this.alertMessage);
 
         console.log('Updated Travel Request:', this.selectedReimbursementRequest);
-        
+
         }
-        
+
       } else {
         console.error('Error updating travel request:', response.serviceResponse);
         alert('There was an issue updating the data.');
       }
-      this.modalRef.close();
-      
+      this.modalRef?.close();
+
     } catch (error) {
       console.error('Error during API call:', error);
       alert('An error occurred while updating the data. Please try again later.');
     }
-  
+
 
 
 
  // }
 }
 closeModal() {
-  this.modalRef.close();
+  this.modalRef?.close();
   this.onGetReimbursementInfo();
 }
 
@@ -203,14 +203,14 @@ docUrl: string | null = null;
 preview(template:TemplateRef<any>){
   const payload = { "docId": 297 };
   this.travelDesk.previewDocument(payload).pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {  
+    if (response.serviceStatus == "Success") {
       this.docUrl = 'data:image/png;base64,' + response.serviceResponse.documentBytes;
     }
     else{
       this.openAlertMod(template, "Image not present");
     }
   });
- 
+
 }
 
 cancelRequest2() {

@@ -92,7 +92,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
   @ViewChild('alert_messageForInActiveEmployee') alertNoTimesheetTemplateForInActive: TemplateRef<any>;
 
- 
+
 
 
 
@@ -101,7 +101,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
   @Input() autofillData: any;
 
   @Output() timesheetSubmitted = new EventEmitter<void>();
- 
+
 
 
 
@@ -130,7 +130,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
 
   patchFormFromLastData(): void {
-    
+
     const data = this.autofillData;
     console.log("lalalala data",data);
 
@@ -203,7 +203,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
       dayType: data?.dayType || '',
       date: data?.date || '',
       officeInTime: data?.officeInTime ? new Date(data.officeInTime.replace(' ', 'T')) : null,
-      
+
       officeOutTime: data?.officeOutTime ? new Date(data.officeOutTime.replace(' ', 'T')) : null,
       totalWorkingOfficeHours: data?.totalWorkingOfficeHours || '00:00',
       isNightShift: data?.isNightShift || false,
@@ -253,7 +253,8 @@ export class TimesheetCreateSelfComponent implements OnInit {
       selectedFile: data?.selectedFile ?? null,
       documentData: data?.documentData ?? null,
       docId: data?.docId ?? null,
-      empIds: []
+      empIds:[],
+      monthYear: ''
     };
 
     console.log("clientLocationId" + activity.clientLocationId);
@@ -565,7 +566,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
       this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
     }
 
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave") {
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off"|| this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
       this.__tempDescription = this.timesheetObj.description;
     }
 
@@ -820,7 +821,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
 
 
-  //Manage the weekoff and holidays 
+  //Manage the weekoff and holidays
   customDateFilter: (date: Date) => boolean = (date: Date): boolean => {
 
     const dayType = this.timesheetObj.dayType;
@@ -1009,7 +1010,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
   setMaxInTimeDate(timesheetDate: any) {
     //console.log("timesheetDate : ", moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL));
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off"&& this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave") {
       let inTimeDate = document.getElementById('officeInTime');
       // //console.log("InTimeDate: ", inTimeDate);
       let officeOutTime = document.getElementById('officeOutTime');
@@ -1058,7 +1059,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
 
   resetTimeonDayTypeChange() {
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave") {
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
       this.timesheetObj.totalWorkingOfficeHours = '';
@@ -1126,7 +1127,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
       return false;
     }
 
-    if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off" && timesheetObj.dayType != "Leave") {
+    if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off"&& timesheetObj.dayType != "Comp Off" && timesheetObj.dayType != "Leave") {
       let flag = true;
       let totalActivityTime = 0;
       let totalWorkingHoursInSeconds = 0;
@@ -1252,14 +1253,14 @@ export class TimesheetCreateSelfComponent implements OnInit {
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template);
     if (!inputValidated) return;
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off"&& this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave") {
       this.timesheetObj.allTimesheetActivities =
         (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
     } else {
       this.timesheetObj.allTimesheetActivities = null;
     }
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off"&& this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       // this.timesheetObj.officeInTime = "wow";
@@ -1314,7 +1315,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
@@ -1375,7 +1376,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
   onTimesheetDescriptionChange() {
     if (this.isUpdation) {
-      if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave") {
+      if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off"|| this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
         this.timesheetObj.description = (this.__tempDescription != null) ? this.__tempDescription : '';
         if (this.timesheetObj.description) {
           this.__tempDescription = this.timesheetObj.description;
@@ -2093,9 +2094,16 @@ export class TimesheetCreateSelfComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
-   
+    this.modalRef?.close();
+
   }
+
+  confirmNightShift(value:Boolean) {
+    this.timesheetObj.isNightShift=value;
+    this.modalRef?.close();
+
+  }
+
 
   openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj: Timesheet) {
     this.timesheetObj = new Timesheet();

@@ -103,7 +103,7 @@ export class TotalTravelrequestComponent implements OnInit {
     const response: any = await this.travelDesk.getAllDocumentsThroughRequestId(requestId).toPromise()
     if (response.serviceStatus === "Success") {
       this.docList = response.serviceResponse;
-      
+
     }
     else {
       this.docList = null;
@@ -142,12 +142,12 @@ export class TotalTravelrequestComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
     this.onGetTravelInfo();
   }
 
   closeModal() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   viewSelectedDocument(doc: any) {
@@ -217,7 +217,7 @@ export class TotalTravelrequestComponent implements OnInit {
       this.openAlertMod(template, `File upload failed: ${uploadResponse.serviceResponse}`);
       return;
     } else {
-      this.modalRef.close();
+      this.modalRef?.close();
       // this.openAlertMod(template, `File upload failed: ${uploadResponse.serviceResponse}`);
     }
   }
@@ -301,23 +301,23 @@ export class TotalTravelrequestComponent implements OnInit {
 
 
   selectedDocument1: any;
-  
+
     async preview(template: TemplateRef<any>, id: any) {
       console.log(template, "template");
-  
+
       this.selectedDocument1 = null;
-  
-  
+
+
       const payload = { docId: id };
-  
-  
-  
+
+
+
       const response: any = await this.travelDesk.previewDocument(payload).toPromise();
-  
+
       if (response.serviceStatus === 'Success' && response.serviceResponse?.documentBytes) {
         const base64Data = response.serviceResponse.documentBytes;
         const mimeType = this.getMimeTypeFromBase64(base64Data);
-  
+
         if (mimeType === 'application/pdf') {
           const pdfUrl = `data:application/pdf;base64,${base64Data}`;
           this.selectedDocument1 = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
@@ -341,6 +341,6 @@ export class TotalTravelrequestComponent implements OnInit {
       else {
         this.openAlertMod(template, "No Document to dipslay");
       }
-  
+
     }
 }

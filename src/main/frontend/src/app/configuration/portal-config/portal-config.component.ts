@@ -122,7 +122,7 @@ export class PortalConfigComponent implements OnInit {
   appreciationTableColumns:any[] = ['appreciateType', 'appreciationToName', 'appreciationByName','appreciationDate', 'managerName', 'reason'];
   documentsColumns:any[] = ['blank','fileName','helpDocumentName','createdByName','createdOn','blank'];
 
-  
+
 
   constructor(
     private portalService: PortalService,
@@ -142,7 +142,7 @@ export class PortalConfigComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
- 
+
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -573,11 +573,11 @@ export class PortalConfigComponent implements OnInit {
     // }
 
 
-  
+
     let tempArray = JSON.parse(JSON.stringify(this.portalConfigList));
-   
+
     tempArray.forEach((portalConfig, index) => {
-     
+
       if (index == 0) {
         portalConfig.configPeriod = portalObj.probationPeriod;
         portalConfig.mailTrigger = portalObj.probationMailTrigger;
@@ -612,8 +612,8 @@ export class PortalConfigComponent implements OnInit {
         portalConfig.configValue = portalObj.empIdList;
         portalObj.empId=portalObj.empIdList;
       }
-      
-     
+
+
 
     })
     portalObj.allPortalConfigData = tempArray;
@@ -1098,7 +1098,7 @@ export class PortalConfigComponent implements OnInit {
       }
     });
   }
-   
+
   filterEmployeeList() {
   const search = this.searchText.toLowerCase();
   this.filteredEmployeeList = this.employeeListForLeave.filter(emp =>
@@ -1119,7 +1119,7 @@ onDropdownOpen(isOpen: boolean) {
     let _employeeList = [];
     const excludedIds = [1, 2, 3, 4, 5, 6];
 
-  
+
     //console.log("Skip employee : ", employee)
 
     this.portalService.getAllEmployeeForPortalConfig().pipe(first()).subscribe((response: any) => {
@@ -1165,7 +1165,7 @@ onDropdownOpen(isOpen: boolean) {
 
    if(isSizeInRange){
     this.files = [];
-   
+
     //console.log("maxfilesize: " + this.maxFileSize);
     if (uploadedFiles.length != 0) {
       for (let i = 0; i < uploadedFiles.length; i++) {
@@ -1310,7 +1310,7 @@ onDropdownOpen(isOpen: boolean) {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   page = 1;

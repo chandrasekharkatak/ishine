@@ -90,10 +90,11 @@ export class  PerformanceManagementSystemComponent implements OnInit {
   eligibleEmployeesColumns: any[] = ['employeementId', 'name', 'designationName', 'departmentName','totalExperience', 'employmentstatus', 'dateOfJoining','completionStatus'];
   finalRating: number;
   hodRemarks: any;
+  hrRemarks: any;
   quarterId: any;
   rewardsCount:any;
-  appreciationCount:any; 
-  
+  appreciationCount:any;
+
   appreciationAndRewardsCount:AppreciationAndRewardsCount=new AppreciationAndRewardsCount();
   feature = "Performance";
   currentUser: User;
@@ -157,7 +158,7 @@ isfileUpload: any;
 
 
       // Then call other methods
-    
+
       this.getAllReviveType();
       this.getAllQauterCycle();
 
@@ -174,7 +175,7 @@ isfileUpload: any;
        this.getAllDepartments();
        this.getAllEmployeesCurrentStatus();
         this.getAllEmployee1();
-     
+
     } catch (error) {
       console.error("Error in ngOnInit", error);
     }
@@ -222,21 +223,21 @@ isfileUpload: any;
         //console.log("columns : ", columns);
         this.queryList = [];
         let dateFormat = 'DD-MM-YYYY';
-  
+
         this.filterData.title  = title;
         this.filterData.columns = columns;
-  
+
         if(this.filterData.title == 'Filter Timesheet Summary' || this.filterData.title == 'Filter Leave Trend Chart'){
-  
+
           let fromDate = moment().subtract(8, 'd').format(dateFormat);
           let toDate = moment().format(dateFormat);
-  
+
           this.queryList = [
             { column: "From Date", operator: ">=", value: fromDate, conjunction: "AND" },
             { column: "To Date", operator: "<=", value: toDate, conjunction: "" }
           ];
         }
-  
+
         this.storedDataList.forEach((data) => {
           if(data.filterName == title){
             data.queryList.forEach((queryObj) => {
@@ -259,45 +260,45 @@ isfileUpload: any;
             this.queryList = data.queryList;
           }
         });
-  
+
         this.filterData.queryList = JSON.stringify(this.queryList);
-  
+
         //console.log("filterData : ", this.filterData);
         this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
       }
-  
+
       onFilterSubmit1(emittedArray:any , template:TemplateRef<any>){
         if (emittedArray[0].length != 0) {
           //console.log("queryList : ", emittedArray[0]);
           this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
           this.cancelRequest();
-  
+
           emittedArray[1].forEach((object) => {
             if (Object.keys(object).length !== 0) {
               this.storedDataList.push(object);
             }
           });
-  
+
           emittedArray[0].forEach(query => {
             if (query.column == 'From Date' || query.column == 'To Date' || query.column == 'Date' || query.column == 'Date Of Joining') {
               query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD') : '';
             } else if (query.column == 'Created On' || query.column == 'Updated On') {
               query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD HH:mm:ss') : '';
             }
-  
+
             if (query.column == 'Employee Id') {
               query.value = query.value.split("-")[1];
             }
           });
-  
+
           //console.log("updated queryList : ", emittedArray[0]);
 
             this.getCustomEmployeesList(emittedArray[0], template);
-          
-          
+
+
         }
       }
-  
+
   updateSlide(index: number, newRating: number) {
 
     this.myList[index].silde = newRating;
@@ -346,9 +347,14 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
             // Append employee ID using utility service
             employee.employeementId = this.utilityService.appendEmployeementid(employee.isConsultant, employee.employeementId);
 
+            // Calculate experience from date_of_joining
+            if (employee.dateOfJoining) {
+              employee.calculatedExperience = this.calculateExperienceFromDOJ(employee.dateOfJoining);
+            }
+
             const joiningDate = new Date(employee.dateOfJoining);
    return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
-           
+
             // if (this.currentUser.employeeRole !== 'HR') {
             //   alert('You are not authorized..!!');
             // }
@@ -357,12 +363,12 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
             return false;
           });
           this.eligibleEmployees.forEach(eligibleEmp => {
-           
+
             eligibleEmp.emp360 = eligibleEmp.empId;
 
           });
 
-         
+
         } else {
           console.error(response.serviceResponse);
         }
@@ -383,7 +389,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
 
@@ -426,7 +432,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   selectedDepartment: string = 'All';
   departments:any[] =[];
   onDepartmentChange(event: any) {
-  
+
 
     // if(this.selectedDepartment === 'all'){
     //   this.filteredEmployees=this.allEmployee;
@@ -439,10 +445,10 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
       this.userDetailsForPerformanceView.deptId = this.selectedDepartment;
     }
     console.log("hbhgsvchsgdv",this.userDetailsForPerformanceView.deptId,this.selectedDepartment)
-    // this.userDetailsForPerformanceView.deptId = 
+    // this.userDetailsForPerformanceView.deptId =
     // this.selectedDepartment === 'All' ? null : this.selectedDepartment;
-  
-     this.getALLdepartmentByEmployee1(); 
+
+     this.getALLdepartmentByEmployee1();
   }
 
   selectedQuarter:String = 'All'
@@ -494,7 +500,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
       this.file = uploadedFiles[0];
       const formData = new FormData();
       formData.append('file', this.file);
-    
+
       this.domainService.billableFile(formData).pipe(first()).subscribe(
         (response: any) => {
           if (response.serviceStatus == "Success") {
@@ -645,7 +651,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           // "Date of Relieving": (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
           "Department Name": x.departmentName,
           "Billable Type": x.billableType,
-          "Experience" :x.totalExperience,
+          "Experience" :x.calculatedExperience ?? x.totalExperience,
           "quarter Cycle":x.quarterycle || 'NULL',
           "financial Year": x.financialYear || 'NULL' ,
           "Current Status":x.completionStatus,
@@ -655,7 +661,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           "Hod Remarks":x.hrRemarks || 'NULL',
           "Hod Review Status":x.hrReviewStatus || 'NULL'
 
- 
+
 
         })
       )
@@ -1045,14 +1051,35 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
 
   currentStatus:any;
   rejectStatus:any;
+
+  private applyPerformanceReviewHeaderFromFirstRow(rows: any[]): void {
+    if (!rows?.length) return;
+    const row = rows[0];
+    this.finalRating = row.finalRating;
+    this.hrRemarks = row.hrRemark != null ? row.hrRemark : '';
+    this.hrReviewStatus = row.hrReviewStatus;
+    this.acceptReason = row.hrRemark;
+    this.rejectStatus = row.rejectStatus;
+    if (this.userMapping?.performance_action_by_hr) {
+      return;
+    }
+    if (this.userMapping?.performance_action_by_hod) {
+      this.hodRemarks = row.hodRemarks != null ? String(row.hodRemarks) : '';
+      return;
+    }
+    const mgr = row.managerRemarks != null ? String(row.managerRemarks).trim() : '';
+    const hod = row.hodRemarks != null ? String(row.hodRemarks).trim() : '';
+    this.hodRemarks = mgr || hod || '';
+  }
+
   HrAndHodView(performance:any){
     this.performanceSerive.hrAndHodEmpoyeePerformanceView(performance).pipe(first()).subscribe((response: any) => {
       this.enableDisableSubmit=false;
       if (response.serviceStatus == "Success") {
         this.performnace1 = response.serviceResponse;
-        
+
         console.log("given by hod",this.performnace1);
-       
+
 
         this.currentStatus = this.performnace1[0].completionStatus;
         this.enableDisableSubmit = !this.enableDisableSubmit;
@@ -1060,22 +1087,13 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
         this.filterCriteria = this.performnace1.filter(item => item.deptId == this.selectedEmployee.departmentId && item.reviewFieldType === 'Slider' && item.empId == this.selectedEmployee.empId && item.quarterId == this.performnace.quarterId);
         this.filterCriteria.forEach(value => {
           this.myList.push({ reviewLabel: value.reviewLabel, silde: value.ratingValue,performanceRatingId:value.performanceRatingId });
-          this.finalRating=value.finalRating;
-          this.hodRemarks = value.hodRemarks;
-          this.hrReviewStatus=value.hrReviewStatus;
-          this.acceptReason = value.hrRemark;
-          this.rejectStatus =value.rejectStatus;
         });
         this.filterRatingCriteria.forEach(value => {
           this.myRateList.push({ reviewLabel: value.reviewLabel, rate: value.ratingValue,performanceRatingId:value.performanceRatingId });
-          this.finalRating=value.finalRating;
-          this.hodRemarks = value.hodRemarks;
-          this.hrReviewStatus=value.hrReviewStatus;
-           this.acceptReason = value.hrRemark;
-           this.rejectStatus =value.rejectStatus;
-          
         });
-     
+        const headerRows = this.filterCriteria.length > 0 ? this.filterCriteria : this.filterRatingCriteria;
+        this.applyPerformanceReviewHeaderFromFirstRow(headerRows);
+
 
       } else {
         this.currentStatus = 'Not Started';
@@ -1093,9 +1111,9 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           this.finalRating = null;
           this.hodRemarks = null;
         });
-        
+
       }
-     
+
     });
   }
 
@@ -1108,6 +1126,10 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
         return '#04724D';
       case 'Rejected':
         return '#931621';
+      case 'Pending HOD':
+        return '#E67E22';
+      case 'Pending':
+        return '#d97706';
       default:
         return '#A8A8A8';
     }
@@ -1137,13 +1159,13 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   acceptReason: any;
   rejectReason: any;
   submitRemarksByHR(quarter: any,template: TemplateRef<any>, index: any) {
-     
+
     if (this.isAcceptSelected && !this.validationService.validateNullUndefinedEmptyString(this.acceptReason)) {
       this.alertMessage = "Please enter Comments!";
       this.openAlertMod(template, this.alertMessage);
       return;
     }
-  
+
     if (this.isRejectSelected && !this.validationService.validateNullUndefinedEmptyString(this.rejectReason)) {
       this.alertMessage = "Please enter Reject Reason!";
       this.openAlertMod(template, this.alertMessage);
@@ -1151,7 +1173,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     }
     this.submitRemarkHr.empId = this.selectedEmployee.empId;
     this.submitRemarkHr.quarterId = quarter.quarterId;
-    
+
     this.submitRemarkHr.performanceRatings = [];
     this.filterCriteria.forEach((item, index) => {
       this.submitRemarkHr.employeePerformanceId = item.employeePerformanceId;
@@ -1252,7 +1274,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     });
 
   }
-  
+
   getCountOfRewardsAndAppreciation(){
     this.appreciationCount='';
     this.rewardsCount='';
@@ -1276,7 +1298,7 @@ static:any[] = [];
     this.performanceService.getAllEmployeesCurrentStatus().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
          this.static = response.serviceResponse
-         
+
       } else {
         console.error(response.serviceResponse);
       }
@@ -1285,14 +1307,43 @@ static:any[] = [];
     console.log("testing",this.static);
     console.log("testing2",this.eligibleEmployees);
   }
+
+  /**
+   * Calculate experience in years from date of joining to current date
+   * Formula: current_date - date_of_joining
+   * @param dateOfJoining - Date of joining in string format (YYYY-MM-DD)
+   * @returns Experience in years (rounded to 1 decimal place)
+   */
+  calculateExperienceFromDOJ(dateOfJoining: string): number {
+    if (!dateOfJoining) {
+      return 0;
+    }
+
+    try {
+      const doj = new Date(dateOfJoining);
+      const today = new Date();
+      
+      // Calculate difference in milliseconds
+      const diff = today.getTime() - doj.getTime();
+      
+      // Convert to years (considering leap years: 365.25 days per year)
+      const experienceInYears = diff / (1000 * 60 * 60 * 24 * 365.25);
+      
+      // Round to 1 decimal place
+      return Number(experienceInYears.toFixed(1));
+    } catch (error) {
+      console.error('Error calculating experience:', error);
+      return 0;
+    }
+  }
   openMultiGoalModal(employee: any) {
     console.log('Setting up to assign multiple goals to employee:', employee);
     this.selectedEmployee = employee;
-    this.selectedGoalData = []; 
-    
+    this.selectedGoalData = [];
+
     this.loadGoalTemplates();
-    this.addNewGoalSelection(); 
-    
+    this.addNewGoalSelection();
+
     this.modalRef = this.modalService.open(this.multiGoalTemplate, {
       modalDialogClass: 'modal-lg',
     });
@@ -1330,7 +1381,7 @@ static:any[] = [];
     }
 
     getEmployeePerformance(eligiemployee: any) {
-      this.performanceService.setPreviousRoute(this.router.url); 
+      this.performanceService.setPreviousRoute(this.router.url);
       this.router.navigate(['/user-performance/view-performance', eligiemployee.empId]);
     }
 }

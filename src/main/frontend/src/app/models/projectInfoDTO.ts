@@ -12,7 +12,7 @@ export interface ProjectInfoDTO {
   clientSideNotFilledCount: number | null;
   clientSidePendingCount: number | null;
   clientSideApprovedCount: number | null;
-
+  billableType:any;
   // days
   timesheetData: {
     [day: string]: TimesheetData;

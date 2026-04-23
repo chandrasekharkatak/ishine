@@ -57,6 +57,10 @@ export class User{
     notificationConsent:any;
     policyReadConsent:any;
     releaseNoteNotification:any;
+    linkedinPageNotification:any;
+    
+    // Training lock status
+    trainingLockStatus:any;
     
     poPortalAllProjectApi:any;
 

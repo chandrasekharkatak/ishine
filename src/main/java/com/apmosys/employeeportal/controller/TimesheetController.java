@@ -1,14 +1,16 @@
 package com.apmosys.employeeportal.controller;
 
+import java.security.Provider.Service;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.data.domain.Sort;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.query.Param;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,12 +23,13 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
+import com.apmosys.employeeportal.dto.FinalDocumentDownloadDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdDTO;
+import com.apmosys.employeeportal.dto.GetProjectListForDateAndEmpIdPayload;
 import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -37,6 +40,7 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
 
 @RestController
 @RequestMapping(path = "/api")
@@ -44,6 +48,12 @@ public class TimesheetController {
 	
 	@Autowired
 	TimesheetService timesheetService;
+
+	@Value("${timesheet.minus.days.for.bulk.upload}")
+	private Integer minusDays;
+
+	@Value("${check.minus.days.for.bulk.upload}")
+	private Boolean checkMinusDaysForBulkUpload;
 	
 	
 	@JobRoleAccess(featureIds = {7,15,16})
@@ -258,10 +268,11 @@ public class TimesheetController {
 //            
 //    }
 	@JobRoleAccess(featureIds = {15})
-	 @PostMapping("/getActiveProjectsByEmpId")
-	 public ServiceResponse getActiveProjectsByEmpId(@RequestParam Long empId) {
-	     return timesheetService.getActiveProjectsByEmpId(empId);
+	 @PostMapping("/getProjectListForDateAndEmpId")
+	 public ServiceResponse getProjectListForDateAndEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
+	     return timesheetService.getProjectListForDateAndEmpId(payload);
 	 }
+
 	@JobRoleAccess(featureIds = {15,16})
 	 @PostMapping("/getClientSideIdByProjectId")
 	 public ServiceResponse getClientSideIdByProjectId(@RequestParam Long projectId) {
@@ -279,9 +290,10 @@ public class TimesheetController {
 	 }
 	@JobRoleAccess(featureIds = {15})
 	 @PostMapping("/getActiveProjectsAndClientSideIdByEmpId")
-	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestParam Long empId) {
-	     return timesheetService.getActiveProjectsAndClientSideIdByEmpId(empId);
+	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
+	     return timesheetService.getActiveProjectsAndClientSideIdByEmpId(payload);
 	 }
+	 
 	@JobRoleAccess(featureIds = {15})
 	 @GetMapping("/getEmployeeListByProjectId")
 	 public ServiceResponse getEmployeeListByProjectId(@RequestParam Integer projectId,@RequestParam Long currentUser) {
@@ -344,13 +356,13 @@ public class TimesheetController {
 	         @RequestPart("finalFile") MultipartFile file,
 	         @RequestParam("fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
 	         @RequestParam("toDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
-	         @RequestParam("empId") Long empId) {
+	         @RequestParam("empId") Long empId,@RequestParam("createdBy") Long createdBy) {
 	     
 	     System.out.println("Received file: " + file.getOriginalFilename());
 	     System.out.println("From Date: " + fromDate);
 	     System.out.println("To Date: " + toDate);
 	     
-	     ServiceResponse reponse= timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId);
+	     ServiceResponse reponse= timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId,createdBy);
 	     // TODO: Add your processing logic here
 	     
 	     return reponse;
@@ -469,7 +481,7 @@ public class TimesheetController {
 //			String billableType=String.valueOf(payload.getSelectedBillableType());
 		    List<String> billableTypes = payload.getSelectedBillableTypes(); // use the list
 			String employeeActive = String.valueOf(payload.getSelectedEmployeeStatus());
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableTypes,employeeActive,payload.getClientSideFilter());
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableTypes,employeeActive,payload.getClientSideFilter(),payload.getMultiPOs());
 		  return reponse;
 	 }
 	 
@@ -509,6 +521,11 @@ public class TimesheetController {
 		public ServiceResponse employeeInTNMProject(@RequestParam Long empId) {
 			return timesheetService.isEmployeeInTNMProject(empId);
 		}
+		
+		@PostMapping("/wasEmployeeInClientProjCurrAndPrevMon")
+		public ServiceResponse wasEmployeeInClientProjCurrAndPrevMon(@RequestParam Long empId) {
+			return timesheetService.wasEmployeeInClientProjCurrAndPrevMon(empId);
+		}
    
 		@PostMapping("/isClientIdMandetory")
 		public ServiceResponse isClientMandetory(@RequestBody int projectId) {
@@ -520,5 +537,102 @@ public class TimesheetController {
 		 ServiceResponse reponse= timesheetService.getProjectByMonthRangeAndEmpId(object);
 		 return reponse;
 	}
+	
+	@JobRoleAccess(featureIds = {7,15,16})
+	@PostMapping(value = "/getClientDetailsByProjectIdAndEmpId")
+	public ServiceResponse getClientDetailsByProjectIdAndEmpId(@RequestBody GetEmployeeSummaryOnExportDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getClientDetailsByProjectIdAndEmpId(timesheetDTO);
+		return response;
+	}
+	
+	@JobRoleAccess(featureIds = {15})
+	 @PostMapping("/getOtherTeamMembersByDateAndProjectId")
+	 public ServiceResponse getOtherTeamMembersByDateAndProjectId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
+	     return timesheetService.getOtherTeamMembersByDateAndProjectId(payload);
+	 }
+	
+	@PostMapping(value = "/getMyReporteesAndClientSideProjectsInMonthYear")
+	public ServiceResponse getMyReporteesAndClientSideProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
+		 ServiceResponse reponse= timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(timesheetDTO);
+		 return reponse;
+	}
+	
+	
+	@PostMapping(value = "/getMyProjectsInMonthYear")
+	public ServiceResponse getMyProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
+		 ServiceResponse reponse= timesheetService.getMyProjectsInMonthYear(timesheetDTO);
+		 return reponse;
+	}
+	
+	@PostMapping("/downloadFinalDocuments")
+	public ResponseEntity<byte[]> downloadFinalDocuments(
+	        @RequestBody FinalDocumentDownloadDTO dto) {
+
+	    byte[] zipBytes = timesheetService
+	        .downloadFinalDocumentsZip(
+	            dto.getProjectId(),
+	            dto.getMonth(),
+	            dto.getYear(),
+	            dto.getEmpId()
+	        );
+
+	    String zipName =
+	        dto.getProjectName() + "_" +
+	        dto.getMonth() + "_" +
+	        dto.getYear() + ".zip";
+
+	    return ResponseEntity.ok()
+	        .header(HttpHeaders.CONTENT_DISPOSITION,
+	            "attachment; filename=" + zipName)
+	        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+	        .body(zipBytes);
+	}
+	
+	@PostMapping("/getDocumentsBySelectedEmpId")
+	public ServiceResponse getDocumentsBySelectedEmpId(@RequestBody FinalDocumentDownloadDTO dto) {
+		ServiceResponse response = timesheetService.getDocumentsBySelectedEmpId(dto);
+		return response;
+	}
+	
+	@PostMapping("/getDepartmentStatusSummary")
+	public ServiceResponse getDepartmentStatusSummary(
+	        @RequestBody GetEmployeeSummaryOnExportDTO requestDTO) {
+
+	    ServiceResponse response =
+	    		timesheetService.getDepartmentStatusSummary(requestDTO);
+
+	    return response;
+	}
+
+	@JobRoleAccess(featureIds = {15,16})
+	@PostMapping(value = "/bulkFinalUploadProjectBased", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ServiceResponse bulkFinalUploadProjectBased(
+			@RequestPart("finalFile") MultipartFile file, @RequestPart("finalBulkUploadDTO") FinalBulkUploadDTO finalBulkUploadDTO ) {
+
+		ServiceResponse reponse= timesheetService.bulkFinalUploadProjectBased(finalBulkUploadDTO, file);
+		return reponse;
+	}
+
+	@JobRoleAccess(featureIds = {15,16})
+	@GetMapping("/getPreviousMinusDays")
+	public ServiceResponse getPreviousMinusDays() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			Map<String, Object> map = new HashMap<>();
+			map.put("minusDays", minusDays);
+			map.put("checkMinusDaysForBulkUpload", checkMinusDaysForBulkUpload);
+			response.setServiceResponse(map);
+			return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceError(ServiceResponse.STATUS_FAIL);
+			response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+			return response;
+		}
+	}
+
 		 
 }

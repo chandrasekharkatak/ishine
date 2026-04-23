@@ -5,7 +5,7 @@
             (click)="resetTimesheetForm();showCreateTimesheetForm()">Create New
             Timesheet</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-            *ngIf="userMapping.add_timesheet  && clientIdNeeded" [ngClass]="{'active' : isTimesheetBulkForm}"
+            *ngIf="userMapping.add_timesheet  && showBulkButtonFlag" [ngClass]="{'active' : isTimesheetBulkForm}"
             (click)="resetTimesheetForm();showBulkUploadForm()">Bulk Final Document
             Upload</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1"
@@ -18,9 +18,13 @@
 <!-- start :: Create & Update Team -->
 <div class="row" *ngIf="isTimesheetForm">
     <div class="card col-md-12 px-0">
-        <div class="card-header text-center text-uppercase">
-            <strong *ngIf="isCreation">Create Timesheet</strong>
-            <strong *ngIf="isUpdation">Update Timesheet</strong>
+        <div class="card-header text-center ">
+            <strong class="text-uppercase" *ngIf="isCreation">Create Timesheet</strong>
+            <strong class="text-uppercase" *ngIf="isUpdation">Update Timesheet</strong>
+            <app-info-tooltip *ngIf="isCreation && timesheetObj.projectId && projAlertRequireClientId === true"
+                class="me-2" style="margin-left: 8px;" iconBgColor="#A22C29" [size]="19" [content]="tooltipContent"
+                [pdfPath]="tooltipPdf" [pdfCtaText]="tooltipCta">
+            </app-info-tooltip>
         </div>
         <div class="card-body">
             <div class="card col-md-12 px-3">
@@ -79,13 +83,13 @@
                             <div class="form-group">
                                 <label class="info-label"><span class="text-danger">*</span>Day Type</label>
                                 <select class="form-control" id="dayTypeCursor" aria-hidden="true"
-                                    [(ngModel)]="timesheetObj.dayType"
-                                    (change)="getActiveProjectsAndClientSideIdByEmpId();onTimesheetDescriptionChange()">
+                                    [(ngModel)]="timesheetObj.dayType" (change)="onDayTypeChange()">
                                     <option selected="selected" value="" disabled>Select</option>
                                     <option value="Working">Working</option>
                                     <option value="Public Holiday">Public Holiday</option>
                                     <option value="Client Holiday">Client Holiday</option>
                                     <option value="Week Off">Week Off</option>
+                                    <option value="Comp Off">Comp Off</option>
                                     <!-- <option value="Leave">Leave</option> -->
                                     <option value="Non-working">Working on non-working day</option>
                                 </select>
@@ -101,9 +105,7 @@
                             <mat-form-field style="display: contents;">
                                 <input matInput [matDatepicker]="picker"
                                     [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
-                                    [(ngModel)]="fromDate"
-                                    readonly
-                                    (dateChange)="makeApmosysInTime();makeApmosysOutTime();makeClientInTime();makeClientOutTime();onFromDateChange()"
+                                    [(ngModel)]="fromDate" readonly (dateChange)="onFromDateChange()"
                                     [disabled]="!timesheetObj.dayType" required />
                                 <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                                 <mat-datepicker #picker></mat-datepicker>
@@ -116,7 +118,7 @@
                                 Date</label>
                             <mat-form-field style="display: contents;">
                                 <input matInput [matDatepicker]="picker"
-                                    [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
+                                    [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetToDateFilter"
                                     [(ngModel)]="toDate" readonly [min]="fromDate" [max]="maxToDate"
                                     (dateChange)="makeApmosysInTime();makeApmosysOutTime();makeClientInTime();makeClientOutTime()"
                                     [disabled]="!fromDate" required />
@@ -126,7 +128,7 @@
                         </div>
                     </div>
                     <div class="col-md-1 mb-0"
-                        *ngIf="timesheetObj.dayType !== 'Public Holiday' && timesheetObj.dayType !== 'Client Holiday'">
+                        *ngIf="timesheetObj.dayType !== 'Public Holiday' && timesheetObj.dayType !== 'Client Holiday' && timesheetObj.dayType !== 'Week Off' && timesheetObj.dayType !== 'Comp Off'">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Night Shift</label>
@@ -136,14 +138,16 @@
                         </div>
                     </div>
                 </div>
-                <div class="row" *ngIf="timesheetObj.timesheetAppliedFor && fromDate">
+                <div class="row"
+                    *ngIf="timesheetObj.timesheetAppliedFor && timesheetObj.date && (timesheetObj.dayType == 'Working'  || timesheetObj.dayType == 'Non-working')">
                     <div class="col-md-3 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label"><span class="text-danger">*</span>Project</label>
                                 <app-my-select #filterActiveProjects placeholder="Select Project" class="form-control"
-                                    [(ngModel)]="timesheetObj.projectId" [options]="activeProjectList" displayKey="projectName" valueKey="projectId"
-                                    [multiple]="false" (selectionChange)="onProjectSelect($event)">
+                                    [(ngModel)]="timesheetObj.projectId" [options]="activeProjectList"
+                                    displayKey="projectName" valueKey="projectId" [multiple]="false"
+                                    (selectionChange)="onProjectSelect(timesheetObj.projectId)">
                                 </app-my-select>
                                 <!-- <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
                                     [displayMember]="'projectName'" [valueMember]="'projectId'"
@@ -164,8 +168,8 @@
                             <div class="form-group">
                                 <label class="info-label"><span class="text-danger">*</span>Shadow For</label>
                                 <app-my-select #filterShadowFor class="form-control" placeholder="Select Shadow For"
-                                    [(ngModel)]="timesheetObj.shadowEmpId" [options]="employeeList" displayKey="name" valueKey="empId"
-                                    [multiple]="false"
+                                    [(ngModel)]="timesheetObj.shadowEmpId" [options]="employeeList" displayKey="name"
+                                    valueKey="empId" [multiple]="false"
                                     (selectionChange)="getClientSideIdByProjectIdAndEmpId(timesheetObj.projectId,timesheetObj.shadowEmpId)">
                                 </app-my-select>
                                 <!-- <mat-select ngxMatSelect class="form-control" #filterShadowFor="ngxMatSelect"
@@ -184,15 +188,15 @@
                         *ngIf="(timesheetObj.projectId && !clientSideIdNotMandatory) || (isUpdation && timesheetObj.projectId && !clientSideIdNotMandatory)">
                         <div class="info-wrapper">
                             <div class="form-group">
-                                <label class="info-label">Client Side ID <span *ngIf="!clientSideIdNotMandatory"
+                                <label class="info-label">Client Side ID<span *ngIf="!clientSideIdNotMandatory"
                                         class="clickable-icon" title="Update Client Side ID"
                                         (click)="openSelfModal3(update_clientId)"><i
                                             class="fa-solid fa-user-pen"></i></span></label>
-                                
-                                <input *ngIf="timesheetObj.timesheetAppliedFor != 'team'" class="form-control" autocomplete="none" disabled
-                                    [(ngModel)]="timesheetObj.clientSideId">
-                                    <input  *ngIf="timesheetObj.timesheetAppliedFor == 'team'" class="form-control" autocomplete="none" disabled
-                                    [(ngModel)]="empClientSideObj.clientSideId">
+
+                                <input *ngIf="timesheetObj.timesheetAppliedFor != 'team'" class="form-control"
+                                    autocomplete="none" disabled [(ngModel)]="timesheetObj.clientSideId">
+                                <input *ngIf="timesheetObj.timesheetAppliedFor == 'team'" class="form-control"
+                                    autocomplete="none" disabled [(ngModel)]="empClientSideObj.clientSideId">
                             </div>
                         </div>
                     </div>
@@ -234,7 +238,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label"><span class="text-danger">*</span>Date</label>
-                                
+
                                 <div class="d-flex">
                                     <input class="form-control" #input (focus)="timesheetDate.open()" matInput
                                         id="timesheetDate" [matDatepicker]="timesheetDate"
@@ -422,7 +426,7 @@
                         <div class="info-wrapper">
                             <label class="info-label">Total Working Hours</label>
                             <mat-form-field appearance="fill">
-                            <input matInput [(ngModel)]="timesheetObj.totalWorkingOfficeHours" disabled />
+                                <input matInput [(ngModel)]="timesheetObj.totalWorkingOfficeHours" disabled />
                             </mat-form-field>
                         </div>
                     </div>
@@ -530,7 +534,7 @@
                             <div class="info-wrapper">
                                 <label class="info-label">Total Working Hours</label>
                                 <mat-form-field appearance="fill">
-                                <input matInput [(ngModel)]="timesheetObj.totalClientWorkingHours" disabled />
+                                    <input matInput [(ngModel)]="timesheetObj.totalClientWorkingHours" disabled />
                                 </mat-form-field>
                             </div>
                         </div>
@@ -546,7 +550,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label"><span class="text-danger">*</span>Date</label>
-                                
+
                                 <div class="d-flex">
                                     <input class="form-control" #input (focus)="timesheetDate.open()" matInput
                                         id="timesheetDate" [matDatepicker]="timesheetDate"
@@ -574,7 +578,7 @@
             </div> -->
 
             <div class="card col-md-12 px-3"
-                *ngIf="timesheetObj.projectId  && ((timesheetObj.clientApprovalStatus !== 'no' || (!timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null)) || clientSideIdNotMandatory || timesheetObj.isShadowTimesheet)">
+                *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' || (!timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null)) || clientSideIdNotMandatory || timesheetObj.isShadowTimesheet)">
                 <!-- Add & Update Activities -->
                 <div class="container-fluid px-0"
                     *ngIf="timesheetObj.projectId  && timesheetFillable && ((timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || timesheetObj.isShadowTimesheet || clientSideIdNotMandatory)">
@@ -587,10 +591,25 @@
                                 <div class="col-md-3 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Client Name</label>
-                                            <app-my-select #clientName class="form-control" placeholder="Select Client" [(ngModel)]="activityObj.clientId"
-                                                [options]="filteredClients" displayKey="clientName" valueKey="clientId" [multiple]="false"
-                                                (selectionChange)="getClientLocationList(activityObj,$event)" (closed)="validateClientName($event,activityObj.clientId)">
+                                            <label class="info-label"><span class="text-danger">*</span>Client
+                                                Name</label>
+                                            <!-- <mat-select ngxMatSelect class="form-control" #clientDetails="ngxMatSelect"
+                                                [displayMember]="'clientDetails'" [valueMember]="'clientId'"
+                                                [source]="clientDropdownList" [(ngModel)]="activityObj.clientId"
+                                                (selectionChange)="onClientChange(activityObj)" [multiple]="false">
+
+                                                <mat-option *ngFor="let client of clientDetails.filteredSource"
+                                                    [value]="client.clientId">
+                                                    {{ client.clientName }}
+                                                </mat-option>
+
+                                            </mat-select> -->
+                                            <app-my-select #clientDetails class="form-control"
+                                                placeholder="Select Client" [(ngModel)]="activityObj.clientId"
+                                                [options]="clientDropdownList" displayKey="clientName"
+                                                valueKey="clientId" [multiple]="false"
+                                                (selectionChange)="onClientChange(activityObj)"
+                                                (closed)="validateClientName($event,activityObj.clientId)">
                                             </app-my-select>
                                             <!-- <mat-select ngxMatSelect class="form-control" #clientName="ngxMatSelect" [displayMember]="'clientName'"
                                                 [valueMember]="'clientId'" [source]="clientList"
@@ -614,9 +633,6 @@
                                                                                                 {{client.clientName}}</option>
                                                                                         </select> -->
                                             <small class="errorMsg text-danger"></small>
-                                            <!-- (selectionChange)="getClientLocationList(activityObj)"
-                                                                                            (closed)="validateClientName($event,activityObj.clientId)"
-                                                                                            [(ngModel)]="activityObj.clientId" -->
                                         </div>
                                     </div>
                                 </div>
@@ -625,21 +641,27 @@
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Client
                                                 Location</label>
-                                                <app-my-select #clientLocation class="form-control" placeholder="Select Client Location"
-                                                    [(ngModel)]="activityObj.clientLocationId" [options]="activityObj.clientLocationList" displayKey="clientLocation"
-                                                    valueKey="clientLocationId" [multiple]="false" (selectionChange)="getProjectList(activityObj)"
-                                                    (closed)="validateClientLocation($event,activityObj.clientLocationId)">
-                                                </app-my-select>
+                                            <app-my-select #clientLocation class="form-control"
+                                                placeholder="Select Client Location"
+                                                [(ngModel)]="activityObj.clientLocationId"
+                                                [options]="activityObj.clientLocationList" displayKey="clientLocation"
+                                                valueKey="clientLocationId" [multiple]="false"
+                                                (selectionChange)="getProjectList(activityObj)"
+                                                (closed)="validateClientLocation($event,activityObj.clientLocationId)">
+                                            </app-my-select>
                                             <!-- <mat-select ngxMatSelect class="form-control" #clientLocation="ngxMatSelect"
                                                 [displayMember]="'clientLocation'" [valueMember]="'clientLocationId'"
-                                                [source]="activityObj.clientLocationList" [useInfiniteScroll]="true"
-                                                (selectionChange)="getProjectList(activityObj)"
-                                                (closed)="validateClientLocation($event,activityObj.clientLocationId)"
-                                                [multiple]="false" [(ngModel)]="activityObj.clientLocationId">
-                                                <mat-option [value]="clientLocation.clientLocationId"
-                                                    *ngFor="let clientLocation of clientLocation.filteredSource">
-                                                    {{clientLocation.clientLocation}}
+                                                [source]="activityObj.clientLocationList"
+                                                [(ngModel)]="activityObj.clientLocationId"
+                                                (selectionChange)="getProjectList(activityObj)" [multiple]="false">
+
+                                                <mat-option *ngFor="let loc of clientLocation.filteredSource"
+                                                    [value]="loc.clientLocationId">
+                                                    {{ loc.clientLocation }}
                                                 </mat-option>
+
+                                            </mat-select>
+
                                             </mat-select> -->
                                             <!-- <select class="form-control" aria-hidden="true"
                                                 [(ngModel)]="activityObj.clientLocationId" (blur)="validateClientLocation($event,activityObj.clientLocationId)"
@@ -656,16 +678,18 @@
                                 <div class="col-md-5 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Team Name</label>
-                                            <app-my-select #teamName class="form-control" placeholder="Select Team" [(ngModel)]="activityObj.teamId"
-                                                [options]="activityObj.projectList" displayKey="displayTeam" valueKey="teamId" [multiple]="false"
-                                                (selectionChange)="getAllActivitiesByProjectIdandEmpId(activityObj, $event)">
+                                            <label class="info-label"><span class="text-danger">*</span>Team
+                                                Name</label>
+                                            <app-my-select #teamName class="form-control" placeholder="Select Team"
+                                                [(ngModel)]="activityObj.teamId" [options]="activityObj.projectList"
+                                                displayKey="displayTeam" valueKey="teamId" [multiple]="false"
+                                                (selectionChange)="getAllActivitiesByProjectIdandEmpId(activityObj)">
                                             </app-my-select>
                                             <!-- <mat-select ngxMatSelect class="form-control" id="dayTypeCursor"
                                                 #teamName="ngxMatSelect" [displayMember]="'c'"
                                                 [valueMember]="'teamId'" [source]="activityObj.projectList"
                                                 [useInfiniteScroll]="true"
-                                                (selectionChange)="getAllActivitiesByProjectIdandEmpId(activityObj)"
+                                                (selectionChange)="getAllActivitiesByProjectIdandEmpId(activityObj, $event)
                                                 [multiple]="false" [(ngModel)]="activityObj.teamId">
                                                 <mat-option [value]="project.teamId"
                                                     *ngFor="let project of teamName.filteredSource">
@@ -673,7 +697,7 @@
                                                 </mat-option>
                                             </mat-select> -->
                                             <!-- <select class="form-control" aria-hidden="true"
-                                                [(ngModel)]="activityObj.teamId" 
+                                                [(ngModel)]="activityObj.teamId"
                                                 (change)="getAllActivitiesByProjectIdandEmpId(activityObj);">
                                                 <option selected="selected" value="" disabled>Select</option>
                                                 <option *ngFor="let project of activityObj.projectList"
@@ -744,7 +768,22 @@
                         </div>
                     </div>
                 </div>
-                <div *ngIf="!timesheetFillable" class="row">
+                <!-- end :: Add & Update Activities -->
+                <div class="row mt-3">
+                    <div class="col-md-12" style="padding-bottom: 1.5rem;">
+                        <button *ngIf="isCreation && userMapping.add_timesheet && timesheetObj.dayType" type="submit"
+                            class="btn btn-primary btn-sm mx-1" [disabled]="disableCreateUpdateTimesheet"
+                            (click)="onCreateTimesheet(alert_message)">Create
+                            Timesheet</button>
+                        <button *ngIf="isUpdation && userMapping.update_timesheet && timesheetObj.dayType" type="submit"
+                            class="btn btn-primary btn-sm mx-1"
+                            (click)="openUpdateConfimationModal(update_timesheet_template)">Update Timesheet</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card col-md-12 px-3" *ngIf="!timesheetFillable">
+                <div class="row">
                     <div class="col-md-4 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
@@ -781,9 +820,9 @@
                 <span class="rules-label">
                     <<<< Click To View Rules </span>
             </button>
-           
+
             <div class="help-manual-wrapper">
-               
+
                 <span><img src="assets/Images/eye25.gif" /></span>
                 <span class="help-manual-text"> Need help filling the form?</span>
                 <button type="button" (click)="openUserManualPdf()" class="help-manual-btn" title="View User Manual">
@@ -798,34 +837,35 @@
         </div>
     </div> -->
 
-    
-<div *ngIf="employeeInTNMProject">
-  <div class="tnm-rules-wrapper">
 
-    <button type="button" (click)="openPolicySidebar()" class="tnm-rules" title="View Rules">
-      <div class="tnm-rules-inner">
-        <img src="assets/Images/transcDragRules.gif" />
-      </div>
-      <span class="rules-label"><<< Click To View Rules</span>
-    </button>
+    <div *ngIf="employeeInTNMProject">
+        <div class="tnm-rules-wrapper">
 
-    <div class="help-manual-wrapper" *ngIf="!isPolicySidebarOpen">
-  <img src="assets/Images/eye25.gif" />
-  <span class="help-manual-text">Need help filling the form?</span>
+            <button type="button" (click)="openPolicySidebar()" class="tnm-rules" title="View Rules">
+                <div class="tnm-rules-inner">
+                    <img src="assets/Images/transcDragRules.gif" />
+                </div>
+                <span class="rules-label">
+                    <<< Click To View Rules</span>
+            </button>
 
-  <button type="button" (click)="openUserManualPdf()" class="help-manual-btn" title="View User Manual">
-    <svg class="document-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-      <polyline points="14 2 14 8 20 8"></polyline>
-      <line x1="12" y1="11" x2="12" y2="17"></line>
-      <line x1="9" y1="14" x2="15" y2="14"></line>
-    </svg>
-  </button>
-</div>
+            <!-- <div class="help-manual-wrapper" *ngIf="!isPolicySidebarOpen">
+                <img src="assets/Images/eye25.gif" />
+                <span class="help-manual-text">Need help filling the form?</span>
+
+                <button type="button" (click)="openUserManualPdf()" class="help-manual-btn" title="View User Manual">
+                    <svg class="document-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="11" x2="12" y2="17"></line>
+                        <line x1="9" y1="14" x2="15" y2="14"></line>
+                    </svg>
+                </button>
+            </div> -->
 
 
-  </div>
-</div>
+        </div>
+    </div>
 
 
     <div class="policy-sidebar" [class.open]="isPolicySidebarOpen">
@@ -1154,6 +1194,8 @@
                                 <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">
                                     Total Working Hours</th>
                                 <th scope="col" style="min-width: 250px;" class="info-label column-md"
+                                    mat-sort-header="projectName|string">Project Name</th>
+                                <th scope="col" style="min-width: 250px;" class="info-label column-md"
                                     mat-sort-header="description|string">Activity</th>
                                 <th scope="col" colspan="info-label" class="info-label"
                                     mat-sort-header="totalTime|number">Total Activity Time</th>
@@ -1187,7 +1229,7 @@
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type
                                 </th>
-                                  <th scope="col" class="info-label column-md" mat-sort-header="rejectReason|string">
+                                <th scope="col" class="info-label column-md" mat-sort-header="rejectReason|string">
                                     Reject Reason
                                 </th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="remarks|string">
@@ -1214,6 +1256,7 @@
                                 <td>{{timesheet.officeInTime}}</td>
                                 <td>{{timesheet.officeOutTime}}</td>
                                 <td>{{timesheet.totalWorkingOfficeHours}}</td>
+                                <td>{{timesheet.projectName || "NA"}}</td>
                                 <td style="min-width: 250px;" [innerHTML]="timesheet.description | safeHtml"></td>
                                 <td>{{timesheet.totalTime}}</td>
                                 <td>{{timesheet.clientInTime || "NA"}}</td>
@@ -1221,19 +1264,21 @@
                                 <td>{{timesheet.totalClientWorkingHours || "NA"}}</td>
                                 <td class="text-capitalize">{{timesheet.clientApprovalStatus ||"NA"}}</td>
                                 <td *ngIf="timesheet.filledDocument">
-                                    <button *ngIf="timesheet.filledDocument" class="btn btn-sm btn-outline-primary mb3"
-                                        type="submit" title="copy timesheet"
-                                        (click)="getDoscForPreview(timesheet.filledDocument)"><em>View
-                                            Doc</em></button>&nbsp;
+                                    <button class="btn btn-sm btn-outline-primary mb3" type="button"
+                                        title="Open document" (click)="getDoscForPreview(timesheet.filledDocument)">
+                                        <em>Open</em>
+                                    </button>
                                 </td>
+
                                 <td *ngIf="!timesheet.filledDocument">
-                                    {{timesheet.filledDocument || "NA"}}
+                                    {{ timesheet.filledDocument || 'NA' }}
                                 </td>
+
                                 <td *ngIf="timesheet.approvedDocument">
-                                    <button *ngIf="timesheet.approvedDocument"
-                                        class="btn btn-sm btn-outline-primary mb3" type="submit" title="copy timesheet"
-                                        (click)="getDoscForPreview(timesheet.approvedDocument)"><em>View
-                                            Doc</em></button>&nbsp;
+                                <button class="btn btn-sm btn-outline-primary mb3" type="button" title="Open document"
+                                    (click)="getDoscForPreview(timesheet.approvedDocument)">
+                                    <em>Open</em>
+                                </button>
                                 </td>
                                 <td *ngIf="!timesheet.approvedDocument">
                                     {{timesheet.approvedDocument || "NA"}}
@@ -1277,18 +1322,34 @@
 <!-- Start :: showBulkUploadForm -->
 <div class="row" *ngIf="isTimesheetBulkForm">
     <div class="card col-md-12 px-0">
-        <div class="card-header text-center text-uppercase">
-            <strong *ngIf="isTimesheetBulkForm">Final Document Bulk Upload</strong>
+        <div class="card-header text-center ">
+            <strong class="text-uppercase" style="margin-right: 4px;" *ngIf="isTimesheetBulkForm">Final Document Bulk
+                Upload</strong>
+            <app-info-tooltip class="ms-2" iconBgColor="#127475" [size]="20"
+                [content]="withVmsbullet"></app-info-tooltip>
         </div>
         <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-0">
+                    <label class="info-label"><span class="text-danger">*</span>Month-Year</label>
+                    <div class="info-wrapper">
+                        <input type="month" class="form-control" [(ngModel)]="timesheetObj.monthYear"
+                            (change)="onMonthYearChange()" [max]="maxMonth" />
+                    </div>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Project</label>
+                            <!-- <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
+                                [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="projectsInMonthYear" -->
+
                             <app-my-select #filterActiveProjects class="form-control" placeholder="Select Project"
-                                [(ngModel)]="timesheetObj.projectId" [options]="activeProjectList" displayKey="projectName" valueKey="projectId"
-                                [multiple]="false" (selectionChange)="onProjectSelectBulk($event)">
+                                [(ngModel)]="timesheetObj.projectId" [options]="projectsInMonthYear"
+                                displayKey="projectName" valueKey="projectId" [multiple]="false"
+                                (selectionChange)="onProjectSelectBulk($event)">
                             </app-my-select>
                             <!-- <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
                                 [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="activeProjectList"
@@ -1310,7 +1371,8 @@
                             Date</label>
                         <mat-form-field style="display: contents;">
                             <input matInput [matDatepicker]="picker" [matDatepickerFilter]="disableDates"
-                                [(ngModel)]="finalFromDate" (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required />
+                                [(ngModel)]="finalFromDate" (dateChange)="checkUploadEligibility()" [min]="minDate"
+                                [max]="maxDate" required />
                             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                             <mat-datepicker #picker></mat-datepicker>
                         </mat-form-field>
@@ -1325,7 +1387,8 @@
                         <mat-form-field style="display: contents;">
                             <input matInput [matDatepicker]="toPicker" [matDatepickerFilter]="disableDates"
                                 [(ngModel)]="finalToDate" name="toDate" required #toDateRef="ngModel"
-                                [min]="finalFromDate" [max]="maxDate" [disabled]="!finalFromDate" (dateChange)="checkUploadEligibility()"/>
+                                [min]="finalFromDate" [max]="maxDate" [disabled]="!finalFromDate"
+                                (dateChange)="checkUploadEligibility()" />
                             <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
                             <mat-datepicker #toPicker></mat-datepicker>
                         </mat-form-field>
@@ -1340,11 +1403,27 @@
                         <label class="info-label"><span class="text-danger">*</span>Bulk Approval Proof</label>
                         <div class="d-flex align-items-center">
                             <input type="file" #fileInput class="form-control form-control-sm"
-                                accept=".pdf,.jpg,.jpeg,.png" (change)="onFinalFileSelected($event)">
-                            <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
+                                accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls" (change)="onFinalFileSelected($event)">
+
+                            <!-- <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
                                 [disabled]="!previewUrl2" (click)="openPreviewModalForTwo('doc2')">
                                 <i class="fa fa-eye fa-lg text-primary"></i>
+                            </button> -->
+
+                            <!-- Preview button (PDF & Image only) -->
+                            <button *ngIf="fileType2 === 'pdf' || fileType2 === 'image'"
+                                class="btn btn-outline-primary btn-sm ms-2" title="Preview" [disabled]="!previewUrl2"
+                                (click)="openPreviewModalForTwo('doc2')">
+                                <i class="fa fa-eye fa-lg text-primary"></i>
                             </button>
+
+                            <!-- Download button (Excel only) -->
+                            <button *ngIf="fileType2 === 'excel'" class="btn btn-outline-success btn-sm ms-2"
+                                title="Download Excel" (click)="downloadSelectedFile()">
+                                <i class="fa fa-download fa-lg text-success"></i>
+                            </button>
+
+
                         </div>
                         <div class="text" *ngIf="fileName2">
                             {{fileName2}}
@@ -1358,7 +1437,7 @@
                     <div class="col-md-2">
                         <button type="button" class="btn btn-outline-primary btn-sm mx-1"
                             (click)="bulkFinalDocumentUpload(alert_message)">Upload</button>
-                           <!-- <button
+                        <!-- <button
   class="btn btn-outline-primary btn-sm mx-1"
   (click)="bulkFinalDocumentUpload(alert_message)"
   [disabled]="!isUploadAllowed"
@@ -1428,9 +1507,9 @@
     <div class="modal-body text-center">
         <p>Do you have required permission for night shift from your manager?</p>
         <button type="button" class="btn btn-success"
-            (click)="cancelRequest();this.timesheetObj.isNightShift = true;onFromDateChange()">Yes,proceed</button>&nbsp;
+            (click)="confirmNightShift(true);onFromDateChange()">Yes,proceed</button>&nbsp;
         <button type="button" class="btn btn-danger"
-            (click)="cancelRequest();this.timesheetObj.isNightShift = false;onFromDateChange()">No,
+            (click)="confirmNightShift(false);onFromDateChange()">No,
             Cancel</button>&nbsp;
     </div>
 </ng-template>
@@ -1530,22 +1609,28 @@
 
 <ng-template #update_clientId>
     <form #clientForm="ngForm" (ngSubmit)="hideSelfModal3();updateClientSideIdMapping(alert_message)">
-        <div class="modal-body text-center">
+        <div class="modal-body text-center position-relative">
+            <div class="info-modal"> <app-info-tooltip class="me-2" style="margin-right: 8px;"
+                    pdfPath="assets/pdfFiles/Entering client side id.pdf" pdfCtaText="Client Side ID Entry Guide"
+                    iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
+                </app-info-tooltip></div>
+
             <h5>Update Client Side ID Form</h5>
         </div>
 
-    <div class="modal-body">
-      <div class="row">
-        <!-- ===== Project Dropdown ===== -->
-        <div class="col-md-6 mb-0">
-          <div class="info-wrapper">
-            <div class="form-group">
-              <label class="info-label"><span class="text-danger">*</span>Project</label>
-            <app-my-select #filterActiveProjects class="form-control" placeholder="Select Project"
-                [(ngModel)]="empClientSideObj.projectId" [options]="projectClientIdList" displayKey="projectName" valueKey="projectId"
-                [multiple]="false" (selectionChange)="onProjectChange($event)">
-            </app-my-select>
-              <!-- <mat-select
+        <div class="modal-body">
+            <div class="row">
+                <!-- ===== Project Dropdown ===== -->
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Project</label>
+                            <app-my-select #filterActiveProjects class="form-control" placeholder="Select Project"
+                                [(ngModel)]="empClientSideObj.projectId" [options]="projectClientIdList"
+                                displayKey="projectName" valueKey="projectId" [multiple]="false"
+                                (selectionChange)="onProjectChange($event)">
+                            </app-my-select>
+                            <!-- <mat-select
                 ngxMatSelect
                 class="form-control"
                 #filterActiveProject="ngxMatSelect"
@@ -1566,10 +1651,12 @@
                   {{ project.projectName }}
                 </mat-option>
               </mat-select> -->
-            </div>
-            <span *ngIf="projectRequiresClientId && !clientSideIdMandetoryFromBackend" class="text-danger small mt-1">**If you do not have a Client Side ID, please follow the given format.</span>
-          </div>
-        </div>
+                        </div>
+                        <span *ngIf="projectRequiresClientId && !clientSideIdMandetoryFromBackend"
+                            class="text-danger small mt-1">**If you do not have a Client Side ID, please follow the
+                            given format.</span>
+                    </div>
+                </div>
 
                 <!-- ===== Client Side ID ===== -->
                 <div class="col-md-6 mb-0">
@@ -1578,7 +1665,8 @@
                             <label class="info-label">Client Side ID</label>
                             <input class="form-control" name="clientSideId" autocomplete="off" required minlength="3"
                                 maxlength="20" [(ngModel)]="empClientSideObj.clientSideId" #clientSideId="ngModel"
-                                (keypress)="omit_special_char($event)" [placeholder]="(projectRequiresClientId && !clientSideIdMandetoryFromBackend)?formattedEmployeeId:''" />
+                                (keypress)="omit_special_char($event)"
+                                [placeholder]="(projectRequiresClientId && !clientSideIdMandetoryFromBackend)?formattedEmployeeId:''" />
 
                             <!-- Validation messages -->
                             <div *ngIf="clientSideId.invalid && clientSideId.touched" class="text-danger mt-1">
@@ -1608,21 +1696,56 @@
 
 
 <!-- Preview Modal Template -->
-<ng-template #previewTemplate>
+<!-- <ng-template #previewTemplate>
     <div class="modal-header">
         <h5 class="modal-title">Document Preview</h5>
         <button type="button" class="close" aria-label="Close" (click)="modalRef?.close()">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-    <div class="modal-body text-center">
-        <!-- PDF Preview -->
-        <iframe *ngIf="activeFileType === 'pdf'" [src]="activePreviewUrl" width="100%" height="400px"
-            style="border: none;"></iframe>
+    <div class="modal-body text-center"> -->
+<!-- PDF Preview -->
+<!-- <iframe *ngIf="activeFileType === 'pdf'" [src]="activePreviewUrl" width="100%" height="400px"
+            style="border: none;"></iframe> -->
 
-        <!-- Image Preview -->
-        <img *ngIf="activeFileType === 'image'" [src]="activePreviewUrl" class="img-fluid" alt="Preview"
+<!-- Image Preview -->
+<!-- <img *ngIf="activeFileType === 'image'" [src]="activePreviewUrl" class="img-fluid" alt="Preview"
             style="max-height: 400px;">
+    </div>
+</ng-template> -->
+
+<ng-template #previewTemplate>
+    <div class="modal-header">
+        <h5 class="modal-title">Document Preview</h5>
+        <div *ngIf="activeFileType === 'image'" class="ml-auto d-flex align-items-center zoom-controls">
+            <button class="zoom-btn" title="Zoom Out" (click)="zoomOut()">
+                <i class="fa fa-search-minus" aria-hidden="true"></i>
+            </button>
+
+            <span class="mx-2 zoom-percent">{{ zoomLevel }}%</span>
+
+            <button class="zoom-btn" title="Zoom In" (click)="zoomIn()">
+                <i class="fa fa-search-plus" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <button type="button" class="close" aria-label="Close" (click)="modalRef?.close()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div class="modal-body text-center">
+        <iframe *ngIf="activeFileType === 'pdf'" [src]="activePreviewUrl" width="100%" height="400px"
+            style="border: none;">
+        </iframe>
+        <div *ngIf="activeFileType === 'image'" class="preview-container">
+            <div class="preview-content" [style.transform]="transformStyle" (mousedown)="startDrag($event)"
+                (mousemove)="onDrag($event)" (mouseup)="endDrag()" (mouseleave)="endDrag()">
+
+                <img [src]="activePreviewUrl" class="preview-image" alt="Preview">
+            </div>
+        </div>
+
     </div>
 </ng-template>
 
@@ -1647,8 +1770,13 @@
 
 <ng-template #clientSideIdForm>
     <form #clientSideForm="ngForm" novalidate>
-        <div class="modal-body text-center">
+        <div class="modal-body text-center position-relative">
+            <div class="info-modal"> <app-info-tooltip class="me-2" style="margin-right: 8px;"
+                    pdfPath="assets/pdfFiles/Entering client side id.pdf" pdfCtaText="Client Side ID Entry Guide"
+                    iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
+                </app-info-tooltip></div>
             <h5>Please provide Client Side ID to continue.</h5>
+
         </div>
 
         <div class="modal-body">
@@ -1661,7 +1789,9 @@
                             </label>
                             <input class="form-control" autocomplete="none" disabled
                                 [value]="getProjectName(empClientSideObj.projectId)" />
-                                <span *ngIf="projectRequiresClientId && !clientSideIdMandetoryFromBackend" class="text-danger small mt-1">**If you do not have a Client Side ID, please follow the given format.</span>
+                            <span *ngIf="projectRequiresClientId && !clientSideIdMandetoryFromBackend"
+                                class="text-danger small mt-1">**If you do not have a Client Side ID, please follow the
+                                given format.</span>
                         </div>
                     </div>
                 </div>
@@ -1674,7 +1804,8 @@
                             </label>
                             <input class="form-control" autocomplete="none" name="clientSideId"
                                 [(ngModel)]="empClientSideObj.clientSideId" #clientSideId="ngModel" required
-                                minlength="3" maxlength="20" [placeholder]="(projectRequiresClientId && !clientSideIdMandetoryFromBackend)?formattedEmployeeId:''" />
+                                minlength="3" maxlength="20"
+                                [placeholder]="(projectRequiresClientId && !clientSideIdMandetoryFromBackend)?formattedEmployeeId:''" />
 
                             <!-- Validation error message -->
                             <div *ngIf="clientSideId.invalid && clientSideId.touched" class="text-danger small mt-1">
@@ -1745,5 +1876,12 @@
         <div *ngIf="rulesfileType === 'pdf'" class="file-preview-pdf">
             <iframe [src]="rulespreviewUrl" class="preview-iframe"></iframe>
         </div>
+    </div>
+</ng-template>
+
+<ng-template #noOtherShadowResource>
+    <div class="modal-body text-center">
+        <h6>{{alertMessage}}</h6>
+        <button type="button" class="btn-yes-alert" (click)="hideNoOtherShadowResource()">OK</button>&nbsp;
     </div>
 </ng-template>

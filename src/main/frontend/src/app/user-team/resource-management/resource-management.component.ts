@@ -52,9 +52,8 @@ import { RestoreProjectPayload } from 'src/app/models/restoreProjectPayload';
 import { LoaderService } from 'src/app/services/loader.service';
 import { PaginationInstance } from 'ngx-pagination';
 import { merge } from 'rxjs';
-
-
-
+import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MilestoneUpdatedLog } from 'src/app/models/MilestoneUpdatedLog'; 
 
 
 class FilterData {
@@ -159,9 +158,11 @@ export class ResourceManagementComponent implements OnInit {
 allEmployeeSkillSummary: { email: string; skillCount: number }[] = [];
 topSkillCounts: number[] = [];
 
-expandedIndex: boolean = false; 
+expandedIndex: boolean = false;
 isClientSideIdFormatted:Boolean = false;
 employeeRoleList:any =[]
+projectNameForMilestoneUpdate : string ;
+poNameForMilestoneUpdate : string;
 
 toggleExpand(): void {
   this.expandedIndex = !this.expandedIndex;
@@ -171,12 +172,13 @@ toggleExpand(): void {
   // new cards changes.....................................................................
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
-  
+
   @ViewChild("alertTemplateRole")
   alertTemplateRole: TemplateRef<any>;
 
 
   @ViewChild('alertTemplate') alertTemplateForMilestone!: TemplateRef<any>;
+  @ViewChild('confirmMilestoneStatusModal') confirmMilestoneStatusModal!: TemplateRef<any>;
 
   @ViewChild("alert_message")
   alertModal: TemplateRef<any>;
@@ -202,7 +204,7 @@ toggleExpand(): void {
   updateProjectCompletionModalRef: NgbModalRef;
   modalRefWithReloadMilestone:NgbModalRef;
 
-  @ViewChild('chartSection') 
+  @ViewChild('chartSection')
   chartSection!: ElementRef;
 
   @ViewChild('MarkAsCompleteDefaultProject') MarkAsCompleteDefaultProject1!: TemplateRef<any>;
@@ -226,7 +228,7 @@ toggleExpand(): void {
 
   alertMessage: any;
   alert_Message: any;
- 
+
 
 expiredProjects1To2Months: any;
 expiredProjects2To3Months:any;
@@ -307,6 +309,25 @@ expiredProjectsWithin1Month:any;
   newMemberInProject: any;
   currentDepartment: any = []
 
+  //milestone
+  milestoneExtendReason:any
+  isOtherReasonSelected: boolean = false;
+  file:any
+  isExtensionEnabled:boolean =false
+  showMilestoneImageModal:boolean =false
+  minExtendDate!: Date;
+  projectMilestoneDocumentModalRef: NgbModalRef;
+  @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
+  expandedMilestoneId:any
+  selectedLogs: any[] = [];
+  selectedLogType: 'start' | 'end' | 'status' | null = null;
+  logHeader:any;
+  @ViewChild("project_milestone_extended_preview") projectMilestoneExtendedPreviewTemplateRef: TemplateRef<any>;
+  isImageFile: boolean = false;
+  isPdfFile: boolean = false;
+  isStatusChanged: boolean = false;
+  originalStatus:any
+  confirmMilestoneStatus:any;
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   employeeNotInSearchColumns: any[] = ['employeementId','employeeName','deptName','jobRole','email','skillNames','certificateNames'];
@@ -847,7 +868,7 @@ toggleDepartments() {
   @ViewChild("alert_message_lift_shift")
   modalRefWithReloadTemp: TemplateRef<any>;
   hasClientSideIdFlag:Boolean=false;
-  fetchClientSideIdObj:updateHasClientSideId = new updateHasClientSideId(); 
+  fetchClientSideIdObj:updateHasClientSideId = new updateHasClientSideId();
   @ViewChild("fcResourceMappedToTNMProject")
   fcResourceMappedToTNMProjectTemp: TemplateRef<any>;
   fcResourceMappedToTNMProjectRef:NgbModalRef;
@@ -871,6 +892,9 @@ toggleDepartments() {
   poResourceRequirementFetchTemp:TemplateRef<any>;
   poResourceRequirementFetchRef:NgbModalRef;
   defaultImagePath = 'assets/Images/default-user-image.jpeg';
+
+  @ViewChild('teamMemberAuto', { read: MatAutocompleteTrigger }) teamMemberAutoTrigger!: MatAutocompleteTrigger;
+
 
   constructor(
     private filterStateService: FilterStateService,
@@ -916,7 +940,7 @@ toggleDepartments() {
       // this.projectFilterDTO.approvalStatus = "TotalProjects";
       this.projectFilterDTO.approvalStatus = this.projectFilterDTO.approvalStatus || "TotalProjects";
     });
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       console.log(sub,"sub")
@@ -981,7 +1005,7 @@ toggleDepartments() {
 
     if (deptName === "Accounts") {
       this.isAccounts = true;
-    } 
+    }
     // this.toggleSelectAllDept();
     console.log("testtyuijnbnml" , this.projectFilterDTO.approvalStatus)
     this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
@@ -993,7 +1017,7 @@ toggleDepartments() {
     await this.getEmployeesWithoutBillability(this.projectFilterDTO);
 
     await this.fetchTimesheetMissingCount();
-   
+
     await this.initializeExpiredProjectFilters();
      this.selectedExpiredProjectFilter = this.expiredProjectFilters[0];
 
@@ -1007,7 +1031,7 @@ toggleDepartments() {
 
 
 //     this.fetchTimesheetMissingCount();
-    
+
 // this.initializeExpiredProjectFilters();
 
   // this.loadExpiredProjectCounts(null).then(() => {
@@ -1023,7 +1047,7 @@ toggleDepartments() {
 
     // const deptName = String(this.currentUser.departmentName).trim();
     // const empRole = String(this.currentUser.employeeRole).trim();
-    // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
+    // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") &&
     // !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
     //   await this.onDepartmentToggle();
     // }
@@ -1268,7 +1292,7 @@ toggleDepartments() {
   }
 
   clearSelection(event: Event) {
-    
+
     console.log(this.skipSelectionChange,"this.skipSelectionChange")
     console.log(this.isAllSelected, "this.isAllSelected");
     // this.skipSelectionChange = true;
@@ -1303,9 +1327,9 @@ toggleDepartments() {
       dept.name.toLowerCase().includes(lowerText)
     );
   }
- 
-  onDepartmentSelectionChange(deptIds?:any) { 
-    this.skipSelectionChange = false 
+
+  onDepartmentSelectionChange(deptIds?:any) {
+    this.skipSelectionChange = false
     console.log(this.skipSelectionChange,"this.skipSelectionChange")
     if (this.skipSelectionChange) {
       return;
@@ -1333,7 +1357,7 @@ toggleDepartments() {
       this.projectFilterDTO.departments = [];
       this.filterStateService.deptIdList = this.deptIdList;
       this.rbacApiCalls();
-    } 
+    }
   }
 
   //   onDepartmentSelectionChange1() {
@@ -1358,12 +1382,12 @@ toggleDepartments() {
   //     }
   // }
 
-  
+
   // toggleSelectAllDept() {
   //   console.log(this.skipSelectionChange,"this.skipSelectionChange")
   //   // this.skipSelectionChange = true
   //   console.log(this.isAllSelected, "this.isAllSelected")
-    
+
   //   if (this.isAllSelected) {
   //     this.deptIdList = [];
   //     this.skipSelectionChange = false;
@@ -1393,10 +1417,10 @@ toggleDepartments() {
     } else {
       this.deptIdList = [...this.filteredDepartments.map(dept => dept.deptId), 'all'];
     }
-   
+
     this.isAllSelected = !this.isAllSelected;
 
-    this.applyFilters(); 
+    this.applyFilters();
 }
 
 
@@ -1406,18 +1430,18 @@ onDeptSelectionChange2() {
 
   const selectAllWasClicked = this.deptIdList.includes('all');
 
- 
+
   const allItemsSelected = this.filteredDepartments.length > 0 &&
     this.deptIdList.filter(id => id !== 'all').length === this.filteredDepartments.length;
 
   if (selectAllWasClicked && !this.isAllSelected) {
-    
+
     this.deptIdList = [...this.filteredDepartments.map(dept => dept.deptId), 'all'];
     this.isAllSelected = true;
       console.log(this.deptIdList)
 
   } else if (!selectAllWasClicked && this.isAllSelected) {
-  
+
     this.deptIdList = [];
     this.isAllSelected = false;
   } else if (!this.isAllSelected && allItemsSelected) {
@@ -1425,7 +1449,7 @@ onDeptSelectionChange2() {
     this.isAllSelected = true;
     this.deptIdList.push('all');
   } else if (this.isAllSelected && !allItemsSelected) {
-   
+
     this.isAllSelected = false;
     this.deptIdList = this.deptIdList.filter(id => id !== 'all');
   }
@@ -1604,11 +1628,11 @@ onDeptSelectionChange1() {
         this.projectFilterDTO.approvalStatus = "All";
     }
     else if(this.selectedStatusTab == "ApprovedProjects"){
- this.projectFilterDTO.completionStatus = null; 
+ this.projectFilterDTO.completionStatus = null;
         this.projectFilterDTO.approvalStatus = "ApprovedProjects";
     }
     else if(this.selectedStatusTab == "PendingProjects"){
- this.projectFilterDTO.completionStatus = null; 
+ this.projectFilterDTO.completionStatus = null;
         this.projectFilterDTO.approvalStatus = "PendingProjects";
     }
     else if(this.selectedStatusTab == "CompletedWithShankh"){
@@ -1616,43 +1640,43 @@ onDeptSelectionChange1() {
         this.projectFilterDTO.approvalStatus = "All";
     }
      else if(this.selectedStatusTab == "RejectedProjects"){
- this.projectFilterDTO.completionStatus = null; 
+ this.projectFilterDTO.completionStatus = null;
         this.projectFilterDTO.approvalStatus = "RejectedProjects";
     }
      else if(this.selectedStatusTab == "TotalProjects"){
- this.projectFilterDTO.completionStatus = null; 
+ this.projectFilterDTO.completionStatus = null;
         this.projectFilterDTO.approvalStatus = "TotalProjects";
     }
     else if (this.selectedStatusTab == "activeTNMProjects") {
-        this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.completionStatus = null;
         this.projectFilterDTO.approvalStatus = "activeTNM";
     }
     else if (this.selectedStatusTab == "allMonitoringProject") {
-        this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.completionStatus = null;
         this.projectFilterDTO.approvalStatus = "monitoring";
     }
     else if (this.selectedStatusTab == "allInternalProject") {
-        this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.completionStatus = null;
         this.projectFilterDTO.approvalStatus = "internal";
     }
      else if (this.selectedStatusTab == "unfilledPositions") {
-        this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.completionStatus = null;
         this.projectFilterDTO.approvalStatus = "unfilledPositions";
     }
     else if (this.selectedStatusTab == "expiredTNM") {
         if (!this.selectedExpiredProjectFilter) {
-            this.selectedExpiredProjectFilter = this.expiredProjectFilters.find(f => f.key === 'allExpiredTNMProjectsCount') || this.expiredProjectFilters[0]; 
+            this.selectedExpiredProjectFilter = this.expiredProjectFilters.find(f => f.key === 'allExpiredTNMProjectsCount') || this.expiredProjectFilters[0];
         }
-        
+
         this.projectFilterDTO.approvalStatus = "expiredTNM";
         this.projectFilterDTO.completionStatus = null;
         this.projectFilterDTO.expiredProjectFilter = this.selectedExpiredProjectFilter.key;
-        
+
         console.log('ExpiredTNM selected - Filter:', this.selectedExpiredProjectFilter);
         console.log('ExpiredTNM selected - Filter Key:', this.projectFilterDTO.expiredProjectFilter);
         console.log('ExpiredTNM selected - DepartmentIds:', this.projectFilterDTO.departmentsids);
     }
-    
+
 else if (this.selectedStatusTab == "fixedCost") {
         this.selectedRange1 = this.ranges1[0]; // Default to "Active" (all)
         console.log('Fixed Cost selected - Department IDs:', this.projectFilterDTO.departmentsids);
@@ -1679,41 +1703,41 @@ else if (this.selectedStatusTab == "fixedCost") {
     this.page = 1;
     this.selectedStatusTab = status;
 
-    
+
     if (this.scroller) {
       const documentHeight = document.body.scrollHeight;
       this.scroller.scrollToPosition([0, documentHeight]);
     }
-  
+
     this.getFixedCostProjectList(status,this.projectFilterDTO);
   }
 
 getFixedCostCount(projectFilterDTO: any) {
     this.resourceManagementService.getFixedCostCount(projectFilterDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success" && response.serviceResponse) {
-        
+
         this.totalProjectCount = response.serviceResponse.totalFixedCostcount;
         this.defaulterCount = response.serviceResponse.expiredCount;
         this.delayedCount = response.serviceResponse.delayedCount;
         this.ontTimeCount = response.serviceResponse.ontimeCount;
-        
-        
+
+
         const allRange = this.ranges1.find(range => range.value === 'all');
         if (allRange) {
-          allRange.count = this.totalProjectCount; 
+          allRange.count = this.totalProjectCount;
         }
 
         const defaulterRange = this.ranges1.find(range => range.value === 'defaulter');
         if (defaulterRange) {
-          defaulterRange.count = this.defaulterCount; 
+          defaulterRange.count = this.defaulterCount;
         }
         const delayedRange = this.ranges1.find(range => range.value === 'delays');
         if (delayedRange) {
-          delayedRange.count = this.delayedCount; 
+          delayedRange.count = this.delayedCount;
         }
         const ontimeRange = this.ranges1.find(range => range.value === 'ontime');
         if (ontimeRange) {
-          ontimeRange.count = this.ontTimeCount; 
+          ontimeRange.count = this.ontTimeCount;
         }
 
         console.log("Total Fixed Cost Project Count:", this.totalProjectCount);
@@ -1740,7 +1764,7 @@ getFixedCostCount(projectFilterDTO: any) {
       tabName: this.selectedRange1.value}
     this.resourceManagementService.getFixedCostProjectList(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        const receivedProjects = response.serviceResponse;  
+        const receivedProjects = response.serviceResponse;
         if (tabName === 'all') {
           this.allProject_Po_Internal = receivedProjects;
           console.log("All Projects Updated:", this.allProject_Po_Internal);
@@ -1760,13 +1784,13 @@ getFixedCostCount(projectFilterDTO: any) {
           this.fcProjectList = receivedProjects.sort((a, b) => a.projectName.localeCompare(b.projectName));
           console.log("Displayed List Updated:", this.fcProjectList);
         }
-        this.isCountLoading = false; 
+        this.isCountLoading = false;
 
       } else {
         if (tabName === this.selectedStatusTab) {
           this.fcProjectList = [];
         }
-        this.isCountLoading = false; 
+        this.isCountLoading = false;
         console.error(`Failed to get list for ${tabName}:`, response.serviceResponse);
 
       }
@@ -1785,21 +1809,21 @@ getFixedCostCount(projectFilterDTO: any) {
     {label:'Default', value: "defaulter",count:this.defaulterCount},
     { label: 'Ontime', value: "ontime",count:this.ontTimeCount},
     { label: 'Delays', value: "delays",count:this.delayedCount},
-    
-    
+
+
   ];
 
 
  selectedRange1 = this.ranges1[0];
 
-   
+
  selectRange1(range: any): void {
     const documentHeight = document.body.scrollHeight;
     this.scroller.scrollToPosition([0, documentHeight]);
     if (this.selectedRange1 === range) {
-      return; 
+      return;
     }
-    
+
     this.selectedRange1 = range;
     this.getFixedCostProjectList(range.value, this.projectFilterDTO);
   }
@@ -1809,7 +1833,7 @@ getFixedCostCount(projectFilterDTO: any) {
 }
 
   // fetchCompletedProjectsCount(timeRange: string): void {
-  //   this.isCountLoading = true; 
+  //   this.isCountLoading = true;
 
   //   this.resourceManagementService.getFixedCostProjectList(timeRange).pipe(first()).subscribe({
   //     next: (response: any) => {
@@ -1822,11 +1846,11 @@ getFixedCostCount(projectFilterDTO: any) {
   //         this.completedProjectsCount = 0;
   //         console.error('API Error:', response.serviceResponse);
   //       }
-  //       this.isCountLoading = false; 
+  //       this.isCountLoading = false;
   //     },
   //     error: (err) => {
   //       this.completedProjectsCount = 0;
-  //       this.isCountLoading = false; 
+  //       this.isCountLoading = false;
   //       console.error('Failed to fetch completed projects count', err);
   //     }
   //   });
@@ -1865,7 +1889,7 @@ getFixedCostCount(projectFilterDTO: any) {
   GetAllResourceRequirementForProject(project: Project) {
     this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-       
+
         this.projectObj.resourceRequirements = response.serviceResponse
       }
     });
@@ -1923,9 +1947,9 @@ getFixedCostCount(projectFilterDTO: any) {
 //     this.employeeListByDept = [];
 
 //     let empObj = new Employee();
-    
+
 //     // empObj.departmentList = departmentList?.map(deptId => {
-//     //     return { deptId: Number(deptId) }; 
+//     //     return { deptId: Number(deptId) };
 //     // });
 
 //     empObj.departmentIds = departmentList?.map(id => Number(id));
@@ -1935,7 +1959,7 @@ getFixedCostCount(projectFilterDTO: any) {
 //         .subscribe((response: any) => {
 //             if (response.serviceStatus == "Success") {
 //                 this.employeeListByDept = response.serviceResponse;
-//                 this.employeeListByDept = this.employeeListByDept.sort((a, b) => 
+//                 this.employeeListByDept = this.employeeListByDept.sort((a, b) =>
 //                     a.name.localeCompare(b.name)
 //                 );
 //                 console.log("employeeList By Department : ", this.employeeListByDept);
@@ -2130,7 +2154,7 @@ getFixedCostCount(projectFilterDTO: any) {
   }
 
   createDraftProjectInfo(template: TemplateRef<any>, template2: TemplateRef<any>) {
-   
+
     console.log(this.allTeamList, "this.allTeamList");
     if (this.allTeamList != null && this.allTeamList.length != 0) {
 
@@ -2156,7 +2180,7 @@ getFixedCostCount(projectFilterDTO: any) {
       this.projectObj.teamList = this.allTeamList;
       this.projectObj.createdBy = this.currentUser.empId;
 
-      if (this.projectObj.poProjectType == null) {
+    if ([null, undefined, ''].includes(this.projectObj.poProjectType)) {
         this.projectObj.projectType = "Internal";
       } else {
         this.projectObj.projectType = this.projectObj.poProjectType;
@@ -2234,7 +2258,7 @@ getFixedCostCount(projectFilterDTO: any) {
 
         this.projectCompletionDate = this.projectObj.poEndDate ? moment(this.projectObj.poEndDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
         console.log(this.projectCompletionDate, " this.projectObj.endDtae");
-        this.projectObj.teamList.forEach((obj) => { 
+        this.projectObj.teamList.forEach((obj) => {
           obj.departmentList = obj.departmentList?.map(x => +x);
           this.copyDepartment = obj.departmentList;
           // this.getAllEmployeesByRole(this.copyDepartment);
@@ -2246,6 +2270,9 @@ getFixedCostCount(projectFilterDTO: any) {
                 member.startDate = member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
                 member.emp360 = member.empId;
                 member.shadowControl = new FormControl(member.shadow || null);
+                if(!member.otherActiveProjects || member.otherActiveProjects.length === 0){
+                  member.isDefaultProject = 1;
+                }
               }
             });
           } else {
@@ -2398,28 +2425,51 @@ getFixedCostCount(projectFilterDTO: any) {
 
   async getManagerList() {
     this.managerList = [];
+    this.filteredManagerList = [];
 
+    // 2. Create a COPY of the request object (Do not touch this.employeeObj)
+    let reqObj = { ...this.employeeObj };
+    reqObj.role = "Manager";
+
+    if (reqObj.employeementId) {
+      reqObj.employeementId = reqObj.employeementId.substring(2);
+    }
     this.employeeObj.role = "Manager";
     // if( this.employeeObj.isConsultant == 'true' ){
     //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(5)
     // }else{
     //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
     // }
+
     this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
     try {
-      const response: any = await this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).toPromise();
+      const response: any = await this.employeeService.getAllEmployeesByRole(reqObj).pipe(first()).toPromise();
       if (response.serviceStatus === "Success") {
-        this.managerList = response.serviceResponse;
-        this.overheadList = response.serviceResponse;
+        this.managerList = JSON.parse(JSON.stringify(response.serviceResponse));
+        this.overheadList = JSON.parse(JSON.stringify(response.serviceResponse));
 
         this.managerList.forEach((emp) => {
-          emp.employeementId = "A-".concat(emp.employeementId);
+         if (emp.employeementId) {
+              let idStr = String(emp.employeementId); // Force convert to String
+              if (!idStr.startsWith("A-")) {
+                  emp.employeementId = "A-" + idStr;
+              } else {
+                  emp.employeementId = idStr;
+              }
+          }
         });
         this.overheadList.forEach((emp) => {
-          emp.employeementId = "A-".concat(emp.employeementId);
+          if (emp.employeementId) {
+              let idStr = String(emp.employeementId);
+              if (!idStr.startsWith("A-")) {
+                  emp.employeementId = "A-" + idStr;
+              } else {
+                  emp.employeementId = idStr;
+              }
+          }
         });
-        this.filteredManagerList = this.managerList;
-        this.filteredOverheadList = this.overheadList;
+        this.filteredManagerList = [...this.managerList];
+        this.filteredOverheadList = [...this.overheadList];
       } else {
         console.error(response.serviceResponse);
       }
@@ -2782,7 +2832,7 @@ getFixedCostCount(projectFilterDTO: any) {
     if (!this.newteamMember || !this.newteamMember.empId) {
       // You can add a user-friendly message here (e.g., using a toast service)
       console.error("No employee selected.");
-      return; 
+      return;
     }
 
     // 2. Uniqueness Check: Verify if the employee is already in the 'allTeamMembers' list.
@@ -2812,17 +2862,17 @@ getFixedCostCount(projectFilterDTO: any) {
       // Add resourceOverviewId only if a requirement was selected
       resourceOverviewId: this.selectedRequirement ? this.selectedRequirement.resourceOverviewId : null,
     };
-    
+
     // 5. Add the new member to the array.
     this.allTeamMembers.push(memberToAdd);
     this.hasNewTeamMembers = true;
 
     // 6. Reset form controls for the next entry.
-    this.newteamMember = new TeamMember(); 
+    this.newteamMember = new TeamMember();
     this.addMemberCtrl.reset();
     this.selectedRequirement = null;
     this.teamMemberCtrl.reset();
-    
+
     // This is a crucial step to update the UI list (see Step 2 below)
     this.updateEmployeeListAccordingToTeamMembers();
   }
@@ -2841,7 +2891,7 @@ getFixedCostCount(projectFilterDTO: any) {
   isEmployeeAllocated(employeeId: number): boolean {
     // Check if the employee is in the "New Team Members" list being built
     const isinNewMembers = this.allTeamMembers.some(member => member.empId === employeeId);
-    
+
     // Check if the employee is already in the "Existing Team Members" list for this team
     const isinExistingMembers = this.teamObj?.allTeamMemberList?.some(member => member.empId === employeeId);
 
@@ -2886,13 +2936,13 @@ isAddButtonDisabled(): boolean {
   // console.log("this.projectObj.resourceRequirements=================", this.projectObj);
   // Step 1: Check requirement selection first (if requirements exist)
     console.log("Selected requirement:", this.selectedRequirement);
-  // if (this.projectObj.resourceRequirements?.length > 0 && 
+  // if (this.projectObj.resourceRequirements?.length > 0 &&
   //     (this.selectedRequirement == null || this.selectedRequirement == undefined)
   //   ) {
   //     console.log("I am here");
   //     return true;
   //   }
-  // The upper part is not required any more because resource requirements are not selected any more. 
+  // The upper part is not required any more because resource requirements are not selected any more.
 
     // Step 2: Check employee selection (only after requirement is selected)
     if (!this.newteamMember.empId) {
@@ -2915,7 +2965,7 @@ isAddButtonDisabled(): boolean {
     return false;
   }
 
- 
+
   getValidationErrorMessage(): string {
     // Step 1: Check requirement selection first (if requirements exist)
     // if (this.projectObj.resourceRequirements?.length > 0 && (!this.selectedRequirement || this.selectedRequirement === '' || this.selectedRequirement === null || this.selectedRequirement === undefined)) {
@@ -2951,7 +3001,7 @@ isAddButtonDisabled(): boolean {
     } else {
       this.addTeamMember();
       this.updateEmployeeListAccordingToTeamMembers();
-      
+
       // this.resetTeamMemberForm();
 
     }
@@ -3011,7 +3061,7 @@ isAddButtonDisabled(): boolean {
     this.modalRefRole = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
-  
+
 
   openAlertMod3(template: TemplateRef<any>, message: any) {
     this.modalRef3 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
@@ -3042,7 +3092,7 @@ isAddButtonDisabled(): boolean {
     this.hideTeamMemberModal();
   }
   cancelRequestRole(){
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   cancelRequest5() {
@@ -3052,7 +3102,7 @@ isAddButtonDisabled(): boolean {
     cancelRequest10() {
     this.modalRef5.close();
   }
-  
+
   cancelRequest1() {
     console.log("cancel call ");
 
@@ -3067,23 +3117,24 @@ isAddButtonDisabled(): boolean {
 
   cancelRequest3() {
     console.log("cancel call 3");
-    
+
     this.modalRef3.close();
   }
   cancelRequest6() {
 
     console.log("cancel call 3");
-     this.alert_message_without_reloadModalRef.close(); 
+     this.alert_message_without_reloadModalRef?.close();
     // this.modalRef6.close();
     this.cancelRequestWithoutReload();
   }
 cancelRequest7() {
     //  this.modalRef6.close();
     //  this.alert_message_without_reloadModalRef?.close();
-    this.modalRef.close();
+    this.modalRef?.close();
+    this.modalRef6?.close();
     //  this.cancelRequestWithoutReload();
   }
-  
+
   openAlertMod6(template: TemplateRef<any>, message: any) {
     this.modalRef6 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
@@ -3133,7 +3184,7 @@ cancelRequest7() {
   }
   else if (project.status === 'Pending') {
     return 'Not Started';
-  } 
+  }
   return project.projectStatus ? project.projectStatus : 'NA';
 }
 
@@ -3142,7 +3193,7 @@ cancelRequest7() {
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
-  //pagination 
+  //pagination
 
   page = 1;
   handlePageChange(event) {
@@ -3331,10 +3382,15 @@ dateType: string = 'po';
 
 
  deleteResourceFromProject2(template: TemplateRef<any>) {
+    const isCustomDate = this.dateType === 'custom';
     let projectObj = new Project();
     projectObj.teamId = this.projectObj2.teamId;
     projectObj.empId = this.projectObj2.empId;
-    projectObj.endDate = this.lastDate1;
+    projectObj.endDate = this.lastDate1 || null;
+    projectObj.createdBy = this.currentUser.empId;
+    projectObj.isCustomDate = isCustomDate;
+    projectObj.updatedBy = this.currentUser.empId;
+    projectObj.rescRemovedBy = this.currentUser.empId;
 
     console.log("team details ", projectObj)
     this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
@@ -3376,7 +3432,7 @@ dateType: string = 'po';
     });
   }
 
-  
+
 
   changeDepartment(event: any): void {
     const selectedDepartmentIds = event.value;
@@ -3465,6 +3521,10 @@ dateType: string = 'po';
 
 
   deleteResourceModal(template: TemplateRef<any>, teamId) {
+    if(this.dateType!=='custom')
+    {
+      this.lastDate1 = teamId.poEndDate;
+    }
     // let projectObj = Object.assign({},this.projectObj); for copy object
     this.deleteResourceModalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.projectObj2 = teamId;
@@ -3472,7 +3532,8 @@ dateType: string = 'po';
   }
 
   hideDeleteResourceModalRef(){
-    this.deleteResourceModalRef.close();
+    this.deleteResourceModalRef?.close();
+    this.dateType='po';
   }
 
 
@@ -3489,7 +3550,7 @@ dateType: string = 'po';
     this.fetchTimesheetMissingCount();
   }
 
-  
+
 
   unfilledTimesheetProjectList: any[] = [];
   unfilledTimesheetProjectListCount: any;
@@ -3567,7 +3628,7 @@ dateType: string = 'po';
 
   // closeProjectModal(){
   //   console.log("again called after deleted ");
-  //   this.modalRef.close();
+  //   this.modalRef?.close();
   // }
 
   getRefreshPage() {
@@ -3696,13 +3757,13 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
     this.resourceManagementService.combinedPOINTERNALDataList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
             console.log(response.serviceResponse);
-            
+
             if (this.selectedStatusTab === 'expiredTNM' && response.serviceResponse) {
                 let expiredProjects = [];
-                
+
                 if (this.selectedExpiredProjectFilter && this.selectedExpiredProjectFilter.key) {
                     const filterKey = this.selectedExpiredProjectFilter.key;
-                    
+
                     const dataKeyMapping = {
                         'expiredProjectsWithin1Month': 'expiredTNMProjectsWithin1Month',
                         'expiredProjects1To2Months': 'expiredTNMProjects1To2Months',
@@ -3713,28 +3774,28 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                         'expiredProjectsAbove12Months': 'expiredTNMProjectsAbove12Months',
                         'allExpiredTNMProjectsCount': 'allExpiredTNMProjects'
                     };
-                    
+
                     const dataKey = dataKeyMapping[filterKey] || 'allExpiredTNMProjects';
                     expiredProjects = response.serviceResponse[dataKey] || [];
                 } else {
                     expiredProjects = response.serviceResponse.allExpiredTNMProjects || [];
                 }
-                
+
                 if (expiredProjects && expiredProjects.length > 0) {
                     this.allProject_Po_Internal = expiredProjects.map((project: any) => {
                         project.combinedProjectType = this.getProjectType(project);
-                        
+
                         if (project.projectManager && project.projectManager.trim() !== '') {
                             project.projectManagerName = project.projectManager;
                         } else {
-                            project.projectManagerName = ''; 
+                            project.projectManagerName = '';
                         }
                         return this.setDefaultProjectValues(project);
                     });
-                    
+
                     console.log(`Loaded ${expiredProjects.length} expired TNM projects for filter: ${this.selectedExpiredProjectFilter?.title}`);
                 }
-            } 
+            }
             else if (this.selectedStatusTab === 'allMonitoringProject' && response.serviceResponse.monitoringProjects && response.serviceResponse.monitoringProjects.length > 0) {
                 this.allProject_Po_Internal = response.serviceResponse.monitoringProjects.map((project: any) => {
                     project.combinedProjectType = this.getProjectType(project);
@@ -3747,7 +3808,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else if (project.projectManager && project.projectManager.trim() !== '') {
                         project.projectManagerName = project.projectManager;
                     } else {
-                        project.projectManagerName = ''; 
+                        project.projectManagerName = '';
                     }
                     return this.setDefaultProjectValues(project);
                 });
@@ -3765,7 +3826,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else if (project.projectManager && project.projectManager.trim() !== '') {
                         project.projectManagerName = project.projectManager;
                     } else {
-                        project.projectManagerName = ''; 
+                        project.projectManagerName = '';
                     }
                     return this.setDefaultProjectValues(project);
                 });
@@ -3783,7 +3844,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else if (project.projectManager && project.projectManager.trim() !== '') {
                         project.projectManagerName = project.projectManager;
                     } else {
-                        project.projectManagerName = ''; 
+                        project.projectManagerName = '';
                     }
                     return this.setDefaultProjectValues(project);
                 });
@@ -3803,7 +3864,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                         } else if (project.projectManager && project.projectManager.trim() !== '') {
                             project.projectManagerName = project.projectManager;
                         } else {
-                            project.projectManagerName = ''; 
+                            project.projectManagerName = '';
                         }
                         return this.setDefaultProjectValues(project);
                     });
@@ -3822,7 +3883,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else if (project.projectManager && project.projectManager.trim() !== '') {
                         project.projectManagerName = project.projectManager;
                     } else {
-                        project.projectManagerName = ''; 
+                        project.projectManagerName = '';
                     }
                     return this.setDefaultProjectValues(project);
                 });
@@ -3837,9 +3898,9 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                             .join(', ');
                         project.projectManagerName = managerNamesString;
                     } else {
-                        project.projectManagerName = ''; 
+                        project.projectManagerName = '';
                     }
-                   
+
                     return this.setDefaultProjectValues(project);
                 });
             }
@@ -4008,7 +4069,7 @@ setDefaultProjectValues(project: any) {
   return this.employeeList.filter(emp => {
     const name = emp?.name?.toString() || '';
     const employmentId = emp?.employmentId?.toString() || '';
-    
+
     return name.toLowerCase().includes(lowerText) ||
            employmentId.toLowerCase().includes(lowerText);
   });
@@ -4085,7 +4146,7 @@ setDefaultProjectValues(project: any) {
 
 
   closeSummaryModal() {
-    this.summaryModalRef.close();
+    this.summaryModalRef?.close();
   }
 
   getProjectTimesheetSummaryData() {
@@ -4164,38 +4225,38 @@ setDefaultProjectValues(project: any) {
 
 getExpiredTNMProjectGraph() {
   const categories = ['1M', '1-2M', '2-3M', '3-6M', '6-9M', '9-12M', '12M+'];
-  
+
   const data = [
     {
       y: this.expiredProjectsWithin1Month || 0,
-      color: '#28a745' 
+      color: '#28a745'
     },
     {
       y: this.expiredProjects1To2Months || 0,
-      color: '#17a2b8' 
+      color: '#17a2b8'
     },
     {
       y: this.expiredProjects2To3Months || 0,
-      color: '#ffc107' 
+      color: '#ffc107'
     },
     {
       y: this.expiredProjects3To6Months || 0,
-      color: '#fd7e14' 
+      color: '#fd7e14'
     },
     {
       y: this.expiredProjects6To9Months || 0,
-      color: '#dc3545' 
+      color: '#dc3545'
     },
     {
       y: this.expiredProjects9To12Months || 0,
-      color: '#6f42c1' 
+      color: '#6f42c1'
     },
     {
       y: this.expiredProjectsAbove12Months || 0,
-      color: '#e83e8c' 
+      color: '#e83e8c'
     }
   ];
-  
+
   const chartData = [{
     name: 'Expired TNM Projects',
     data: data
@@ -4219,18 +4280,18 @@ getfixedCostProjectGraph(){
     },
     {
       y: this.defaulterCount,
-      color: '#d9534f' 
+      color: '#d9534f'
     },
     {
       y: this.delayedCount,
-      color: '#f0ad4e' 
+      color: '#f0ad4e'
     },
     {
       y: this.ontTimeCount,
-      color: '#5bc0de' 
+      color: '#5bc0de'
     }
   ];
-  
+
   const chartData = [{
     name: 'Fixed Cost Projects',
     data: data
@@ -4298,7 +4359,7 @@ getfixedCostProjectGraph(){
         enabled: false,
       },
       legend: {
-        enabled: false 
+        enabled: false
       },
       series: chartData
     });
@@ -4327,27 +4388,37 @@ getfixedCostProjectGraph(){
     this.getTeamListByProjectName(project);
     await this.getManagerList();
     this.getEmployeeByNameAndEmpld();
-    this.activeModalTab = 'info'; 
-    // this.isModalFullscreen = false;    
-    
+    this.activeModalTab = 'info';
+    // this.isModalFullscreen = false;
+
     this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
 
-    this.projectObj.projectManagerId = (
-    this.projectObj.projectManager?.includes(",")
-      ? this.projectObj.projectManager?.split(",")
-      : [this.projectObj.projectManager]
-    )
-    .map((manager) => manager.trim().toLowerCase())
-    .map(
-      (manager) =>
-        this.filteredManagerList.find((m) => m.name.toLowerCase() == manager)
-      ?.empId,
-    )
-    .filter((empId) => empId != undefined);    
+    const isStringId = this.filteredManagerList?.length > 0 && typeof this.filteredManagerList[0].empId === 'string';
+
+    if (this.projectObj.projectManagerId && this.projectObj.projectManagerId.length > 0) {
+        this.projectObj.projectManagerId = this.projectObj.projectManagerId.map(id =>
+            isStringId ? String(id) : Number(id)
+        );
+    }
+    else if (this.projectObj.projectManagers && this.projectObj.projectManagers.length > 0) {
+        this.projectObj.projectManagerId = this.projectObj.projectManagers.map(pm =>
+            isStringId ? String(pm.projectManagerId) : Number(pm.projectManagerId)
+        );
+    }
+    else if (this.projectObj.projectManager) {
+        this.projectObj.projectManagerId = (
+            this.projectObj.projectManager.includes(",")
+            ? this.projectObj.projectManager.split(",")
+            : [this.projectObj.projectManager]
+        )
+        .map((manager) => manager?.trim().toLowerCase())
+        .map((manager) => this.filteredManagerList.find((m) => m?.name?.toLowerCase() == manager)?.empId)
+        .filter((empId) => empId != undefined);
+    }
   }
 
   async openTeamMembersModal(template: any, projectObj, currentTeam) {
-    this.teamMemberCtrl.reset(); 
+    this.teamMemberCtrl.reset();
     this.selectedMembers = [];
     this.hasSelectedMembers = false;
     this.selectedTeamEntries = [];
@@ -4356,7 +4427,7 @@ getfixedCostProjectGraph(){
        if (m.selected) {
         m.selected = false;
     }});
-    
+
     this.modalRefTeamMember = this.modalService.open(template, { modalDialogClass: 'custom-modal' });
     this.currentPoProjectType = projectObj.poProjectType;
     console.log("The project object is",projectObj);
@@ -4394,7 +4465,7 @@ getfixedCostProjectGraph(){
     this.newteamMember.employeeRole = null;
     // this.newteamMember.departmentId = null;
     this.newteamMember.name = null;
-  
+
     // this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     // this.getAllEmployeesByRole(currentTeam.departmentList);
     console.log("this.copyDepartment ", this.copyDepartment);
@@ -4717,7 +4788,7 @@ getfixedCostProjectGraph(){
     this.modalRef5.close();
   }
   closeModal() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
   // getResourceRequirementByPoProjectId(id) {
   //   this.loadingRequirements = true;
@@ -4744,7 +4815,7 @@ getfixedCostProjectGraph(){
 
     try{
       const response:any  = await this.resourceManagementService.getResourceRequirementByPoProjectId(id,type).pipe(first()).toPromise();
-    
+
     // this.resourceManagementService.getResourceRequirementByPoProjectId(id,type).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectRequirementsList = response.serviceResponse.resourceRequirements;
@@ -4772,7 +4843,7 @@ getfixedCostProjectGraph(){
       console.log(error);
       this.poResourceRequirementAlert(error.message);
       this.loadingRequirements = true;
-      
+
     }
   }
 
@@ -4791,8 +4862,9 @@ getfixedCostProjectGraph(){
     member.shadowControl.setValue(selectedName);
   }
 
-  onTeamMemberSelected(event: MatAutocompleteSelectedEvent): void {
-    const selectedEmployee = event.option.value;
+  onTeamMemberSelected(event: any): void {
+    const selectedEmployee =event?.option?.value || event?.value || event;
+    this.newteamMember = { ...selectedEmployee };
     this.newteamMember.empId = selectedEmployee.empId;
     this.newteamMember.name = selectedEmployee.name;
   }
@@ -4845,7 +4917,7 @@ getfixedCostProjectGraph(){
     // if (!this.teamObj.departmentList || this.teamObj.departmentList.length === 0) {
     //     this.isAllDeptSelected = false;
     // } else if (this.filteredDepartmentsTeam.length > 0) {
-    //     const allFilteredSelected = this.filteredDepartmentsTeam.every(dept => 
+    //     const allFilteredSelected = this.filteredDepartmentsTeam.every(dept =>
     //         this.teamObj.departmentList.includes(dept.deptId)
     //     );
     //     this.isAllDeptSelected = allFilteredSelected;
@@ -4932,7 +5004,8 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     this.isAllManagersSelected = selectedManagers.length === this.filteredManagerList.length;
   }
 
-  filterOverhead() {
+  filterOverhead(overhead:any) {
+    this.projectObj.projectOverheadId = overhead;
     const lowerText = this.searchOverheadText.trim().toLowerCase();
 
     const filtered = this.overheadList.filter(overhead =>
@@ -5291,8 +5364,8 @@ toggleSelectAllTeams(event: any, teamObj: any) {
       endDate: this.lastDate1 || null,
       createdBy: this.currentUser.empId,
       isCustomDate: isCustomDate
-    
-      
+
+
     }));
     console.log("Selected members", this.selectedMembers);
     console.log("Employee Selection History",this.employeeSelectionHistory)
@@ -5314,17 +5387,17 @@ toggleSelectAllTeams(event: any, teamObj: any) {
          //  the teamobj is the current team which is opend and allTeammember list contains the list of all the team members.
          //and after deleting it we are calling the api for getting the assigned count because this would also be changed , but why we need to call the api for the assigned count is
          //we doesnot have any idea about a team member if he is approved or not so we need to call the api to get data from backend
-         
+
            this.teamObj.allTeamMemberList = this.teamObj.allTeamMemberList.filter(member => !this.employeeSelectionHistory.some(entry => +entry.empId == +member.empId));
           //  let totalRequirement = this.projectRequirementsList.totalRequirements;
            console.log("Project obj id is",this.projectObj.id)
            this.getResourceRequirementByPoProjectId(this.projectObj.projectId,this.projectObj.poProjectType,0);
            let currentTeam = this.allTeamList.filter(team => team.teamId == this.teamObj.teamId);
-           
+
            let currentTeamIndex = this.allTeamList.findIndex(team => team.teamId == this.teamObj.teamId);
            currentTeam = currentTeam[0].teamMemberList.filter(member => !this.employeeSelectionHistory.some(entry => +entry.empId == +member.empId));
            this.allTeamList[currentTeamIndex].teamMemberList = currentTeam;
-          
+
            this.RbacShankhProjects(this.projectFilterDTO);
            this.RbacInternalProjects(this.projectFilterDTO);
            this.RbacBothShankhInternal(this.projectFilterDTO);
@@ -5333,12 +5406,12 @@ toggleSelectAllTeams(event: any, teamObj: any) {
            this.ExceptionEmployeeReport(this.projectFilterDTO);
            this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
            this.getEmployeesWithoutBillability(this.projectFilterDTO);
-           this.updateProjectCompletionModalRef.close();
+           this.updateProjectCompletionModalRef?.close();
            this.openremoveResourceModal(response.serviceResponse);
 
         }
         else{
-          this.updateProjectCompletionModalRef.close();
+          this.updateProjectCompletionModalRef?.close();
           this.openremoveResourceModal("Unable to delete. Something went wrong.");
         }
         this.selectedMembers = [];
@@ -5367,7 +5440,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
       member.isDefaultProject = 0;
       if (member.otherActiveProjects && member.otherActiveProjects.length > 0) {
         this.otherProjectList = member.otherActiveProjects;
-        this.filteredOtherProjectList = this.otherProjectList;  
+        this.filteredOtherProjectList = this.otherProjectList;
         this.defaultProjectUpdateEmpId = member.empId;
         this.modalRef = this.modalService.open(this.otherProjectMappings, { modalDialogClass: 'custom-modal' });
       }
@@ -5552,7 +5625,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
       endDate: this.lastDate1 || null
     }));
     console.log("After deletion:", this.selectedTeamEntries);
-    
+
     this.projectService.updateProjectResourcesAsInActiveBulk(this.selectedTeamEntries)
       .pipe(first())
       .subscribe((response: any) => {
@@ -5560,7 +5633,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
           // this.openAlertMod6(template, response.serviceResponse);
 
 
-         
+
           this.employeeSelectionHistory = [];
 
 
@@ -5575,21 +5648,21 @@ toggleSelectAllTeams(event: any, teamObj: any) {
         //  the teamobj is the current team which is opend and allTeammember list contains the list of all the team members.
         //and after deleting it we are calling the api for getting the assigned count because this would also be changed , but why we need to call the api for the assigned count is
         //we doesnot have any idea about a team member if he is approved or not so we need to call the api to get data from backend
-        
+
           this.teamObj.allTeamMemberList = this.teamObj.allTeamMemberList.filter(member => !this.selectedTeamEntries.some(entry => +entry.empId == +member.empId));
           let totalRequirement = this.projectRequirementsList.totalRequirements;
           console.log("Project obj id is",this.projectObj.id)
           this.getProjectAssignedDataByProjectIdfunc(this.projectObj.id,1,totalRequirement);
-          // after removing the members what we are doing in here is we are getting all the team list that is in the project then getting the exact team fromwhich we have deletaed the 
+          // after removing the members what we are doing in here is we are getting all the team list that is in the project then getting the exact team fromwhich we have deletaed the
           //members then after getting it we are updating the members here so the count value will look perfect without hitting any api.and will be updated simultaneously.
           let currentTeam = this.allTeamList.filter(team => team.teamId == this.teamObj.teamId);
-         
+
           let currentTeamIndex = this.allTeamList.findIndex(team => team.teamId == this.teamObj.teamId);
           // console.log("before removing team members from current team",currentTeam);
           currentTeam = currentTeam[0].teamMemberList.filter(member => !this.selectedTeamEntries.some(entry => +entry.empId == +member.empId));
           // console.log("After removing it",currentTeam);
           this.allTeamList[currentTeamIndex].teamMemberList = currentTeam;
-          
+
           //This are for to update the counts in the page.
           this.RbacShankhProjects(this.projectFilterDTO);
           this.RbacInternalProjects(this.projectFilterDTO);
@@ -5600,24 +5673,24 @@ toggleSelectAllTeams(event: any, teamObj: any) {
           this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
           this.getEmployeesWithoutBillability(this.projectFilterDTO);
           //  this.fetchTimesheetMissingCount();
-         
+
           //  this.initializeExpiredProjectFilters();
           //  this.selectedExpiredProjectFilter = this.expiredProjectFilters[0];
-      
+
           //  this.RbacShankhProjects(this.projectFilterDTO);
-      
+
           //  this.ExceptionEmployeeReport(this.projectFilterDTO);
-          this.updateProjectCompletionModalRef.close();
+          this.updateProjectCompletionModalRef?.close();
           this.openremoveResourceModal(response.serviceResponse);
         }
         else{
-          this.updateProjectCompletionModalRef.close();
+          this.updateProjectCompletionModalRef?.close();
           this.openremoveResourceModal("Unable to delete. Something went wrong.");
-          
+
         }
         this.selectedTeamEntries = [];
       });
-      
+
   }
 
   filterMappedProjects() {
@@ -5677,11 +5750,11 @@ toggleSelectAllTeams(event: any, teamObj: any) {
         const alertModalSub = merge(this.modalRef.closed, this.modalRef.dismissed)?.subscribe(() => {
           alertModalSub.unsubscribe();
           if (this.EmployessIds.length === 0 && this.activeProjects.length === 0) {
-            this.modalRef.close();
+            this.modalRef?.close();
             this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
           }
           if (this.EmployessIds.length !== 0 && this.activeProjects.length === 0) {
-            this.modalRef.close();
+            this.modalRef?.close();
             this.openAlertMod6(this.alertTemplateWithoutReload, "Please update the default project of employees who are not mapped to other active projects.");
           }
         });
@@ -5754,7 +5827,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
 
 //     const projectList = emp.projectType === 'bench' ? this.benchProjectListBulk : this.otherProjectListBulk;
 //     this.teamListBulk = projectList.find(p => p.projectId === selectedProjectId);
-    
+
 //     if (this.teamListBulk) {
 //         this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
 //         this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
@@ -5772,7 +5845,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
 
 //     const projectList = emp.projectType === 'bench' ? this.benchProjectListBulk : this.otherProjectListBulk;
 //     this.teamListBulk = projectList.find(p => p.projectId === selectedProjectId);
-    
+
 //     if (this.teamListBulk && this.teamListBulk.teamList) {
 //         this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
 //         this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
@@ -5797,14 +5870,14 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     this.teamListBulk = projectList.find(p => p.projectId === selectedProjectId);
 
     if (this.teamListBulk) {
-      // this is hanlding teams 
+      // this is hanlding teams
       if (this.teamListBulk.teamList) {
         this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
       } else {
         this.filteredTeamsForDefaultBulk = [];
       }
 
-      // this is handling requiremnts 
+      // this is handling requiremnts
       if (this.teamListBulk.resourceRequirement) {
         this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
         this.filteredResourceRequirementListBulk = this.teamListBulk.resourceRequirement;
@@ -5828,7 +5901,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList.filter(team =>
       team.teamName.toLowerCase().includes(lowerSearch)
     );
-  }  
+  }
 filteredResourceRequirementListBulk:any;
 searchTermRequirement:any;
 
@@ -5855,25 +5928,25 @@ filteredProjects: any[] = [];
     const lowerText = this.searchTextProject.toLowerCase();
 
     if (lowerText.trim() === '') {
-       
+
         this.filteredProjectsForDefaultBulkBench = [...this.benchProjectListBulk];
         this.filteredProjectsForDefaultBulkOther = [...this.otherProjectListBulk];
     } else {
-      
+
         if (emp.projectType === 'other') {
-           
+
             this.filteredProjectsForDefaultBulkOther = this.otherProjectListBulk.filter(project =>
                 project.projectName.toLowerCase().includes(lowerText)
-                
+
             );
         } else if (emp.projectType === 'bench') {
-         
+
             this.filteredProjectsForDefaultBulkBench = this.benchProjectListBulk.filter(project =>
                 project.projectName.toLowerCase().includes(lowerText)
             );
         }
     }
-    this.searchTextProject = '';   
+    this.searchTextProject = '';
 }
 
   getEmployeeInformationBulk(empIds) {
@@ -5916,7 +5989,7 @@ filteredProjects: any[] = [];
           console.log("The Response is",response.serviceResponse);
           // this.modalRef4.close();
           // this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
-          
+
           this.openremoveResourceModal(response.serviceResponse);
           this.EmployessIds = this.EmployessIds.filter(id => id !== emp.empId);
           this.getEmployeeInformationBulk(this.EmployessIds);
@@ -6018,7 +6091,7 @@ filteredProjects: any[] = [];
   // navigateToOtherPage() {
   //   const reportPageUrl = `${environment.baseUrl360}#/user-reports/report-list`;
   //   window.open(reportPageUrl, '_blank');
-  //   //this.router.navigate(['/your-target-route']); 
+  //   //this.router.navigate(['/your-target-route']);
   // }
   toggleReportView() {
     this.showReportList = !this.showReportList;
@@ -6098,7 +6171,7 @@ filteredProjects: any[] = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.rbacApiCalls();
       // this.getEmployeeReportData();
-      
+
     }else {
       this.projectFilterDTO = this.deptList2;
       this.projectFilterDTO.approvalStatus = "TotalProjects";
@@ -6107,9 +6180,9 @@ filteredProjects: any[] = [];
       this.projectFilterDTO.departments = [];
       this.filterStateService.deptIdList = this.deptIdList;
       this.rbacApiCalls();
-     
-    
-    } 
+
+
+    }
   }
 
   filterDepartmentsByUser() {
@@ -6152,7 +6225,7 @@ filteredProjects: any[] = [];
       this.filterStateService.deptIdListByUser = this.deptIdListByUser;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.rbacApiCalls();
-      
+
     } else {
       // Select all departments
       this.deptIdListByUser = this.filteredDepartmentsByUser.map(dept => dept.deptId);
@@ -6164,14 +6237,14 @@ filteredProjects: any[] = [];
       this.filterStateService.deptIdListByUser = this.deptIdListByUser;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.rbacApiCalls();
-      
+
     }
 
   }
 
 
 
-  
+
   combinedPOINTERNALCountList(projectFilterDTO): Promise<any> {
     return new Promise((resolve, reject) => {
       this.resourceManagementService.combinedPOINTERNALCountList(projectFilterDTO).pipe(first()).subscribe({
@@ -6210,7 +6283,7 @@ filteredProjects: any[] = [];
   }
 
  getStatusGraphData() {
-  const { data, categories } = this.showMoreCards 
+  const { data, categories } = this.showMoreCards
     ? {
         data: [
           { y: this.completedInIshineCount, color: '#5cb85c' },
@@ -6248,7 +6321,7 @@ filteredProjects: any[] = [];
       const deptIds: number[] = this.deptIdList.map(dept => dept.deptId);
       this.projectFilterDTO.departmentsids = deptIds;
       this.combinedPOINTERNALCountList(projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, projectFilterDTO);     
+      this.CombinedPOInternalList(this.alertTemplate, projectFilterDTO);
     }
     else {
       this.projectFilterDTO.departments = this.deptIdListByUser;
@@ -6323,7 +6396,7 @@ filteredProjects: any[] = [];
     this.ProjectLessEmployees(this.projectFilterDTO);
     this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
     this.getFixedCostCount(this.projectFilterDTO);
-    this.isRestoreSuccess = false; 
+    this.isRestoreSuccess = false;
   }
 
   clearField() {
@@ -6339,13 +6412,13 @@ filteredProjects: any[] = [];
   }
 
   closeProjectLineItemListModal() {
-    this.projectLineItemListModalRef.close();
+    this.projectLineItemListModalRef?.close();
   }
 
 showProjectMilestones(projectObj: any) {
     this.fcProjectMilestoneList = [];
-     this.isLoadingMilestones = true; 
-    
+     this.isLoadingMilestones = true;
+
     let projectObjTemp = new Project();
     projectObjTemp.poProjectId = projectObj?.id;
 
@@ -6362,12 +6435,12 @@ showProjectMilestones(projectObj: any) {
             console.error("Error fetching milestones:", response.serviceResponse);
             this.openAlertMod(this.alertTemplate, response.serviceResponse);
           }
-           this.isLoadingMilestones = false; 
+           this.isLoadingMilestones = false;
         },
         error: (err) => {
             console.error("HTTP error fetching milestones:", err);
             this.openAlertMod(this.alertTemplate, "An unexpected error occurred while fetching milestones.");
-             this.isLoadingMilestones = false; 
+             this.isLoadingMilestones = false;
         }
     });
 }
@@ -6384,14 +6457,7 @@ showProjectMilestones(projectObj: any) {
     }
   }
 
-
-
-
-
-
-
-
-  calculatePoStatus() {
+  calculatePoStatus(projectDto:any) {
     let notStarted = 0, completed = 0, hold = 0, inProgress = 0;
     let lineItemList = this.fcProjectMilestoneList.filter(milestone => milestone.lineItemId == this.projectMilestone.lineItemId);
     for (let m of lineItemList) {
@@ -6415,14 +6481,29 @@ showProjectMilestones(projectObj: any) {
     this.fcProjectMilestoneList.every(m => m.status === Status.COMPLETED);
 
   if (allCompleted) {
-    this.confirmComplete();
+    // this.confirmComplete();
+    this.confirmCompleteMailTrigger(projectDto)
   } else {
-   
+
     this.updateMilestone();
     this.closeUpdateProjectMilestoneModal();
   }
-
+   return allCompleted
   }
+
+  confirmCompleteMailTrigger(projectDto:any) {
+  console.log(projectDto.projectId);
+  this.resourceManagementService.completeProjectReminder(projectDto.projectId).pipe(first())
+    .subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          console.log("Completion mail triggered successfully!!");
+        } 
+      }, (error) => {console.log(error);}
+    );
+}
+
+
+
 shouldReload: boolean = false;
 confirmComplete() {
 
@@ -6440,7 +6521,7 @@ confirmComplete() {
         if (response.serviceStatus === "Success") {
           console.log('Selected Date:', response.serviceResponse);
           this.openUpdateProjectCompletionModal(
-            "Since all milestones are completed, the project is marked as complete.", 
+            "Since all milestones are completed, the project is marked as complete.",
             true
           );
         } else {
@@ -6455,7 +6536,7 @@ confirmComplete() {
 }
 
 cancelComplete() {
-  this.confirmCompleteTemplateModalRef.close(); 
+  this.confirmCompleteTemplateModalRef?.close();
 }
 
 
@@ -6474,14 +6555,15 @@ cancelComplete() {
   }
 
   openUpdateProjectMilestoneModal(milestone: any) {
-    // this.projectMilestone = new ProjectM  ;
-    // this.projectMilestone = milestone;
+    this.extensionReason()
     this.projectMilestone = JSON.parse(JSON.stringify(milestone));
+    this.minExtendedDate()
+    this.originalStatus=this.projectMilestone.status
     this.updateProjectMilestoneModalRef = this.modalService.open(this.updateProjectMilestoneModal, { modalDialogClass: 'modal-xl' });
   }
 
   closeUpdateProjectMilestoneModal() {
-    this.updateProjectMilestoneModalRef.close();
+    this.updateProjectMilestoneModalRef?.close();
   }
 
   updateMilestone(): void {
@@ -6496,42 +6578,46 @@ cancelComplete() {
     });
   }
   closeModalViewDocument() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   CancelUpdateMilestonePopup() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
 
-  onFileSelected(event: any): void {
+  onFileSelected(event: any,projectMilestone:any): void {
     const file: File = event.target.files[0];
-
     this.selectedFile = null;
     this.selectedFilePreviewUrl = null;
-
-
+    
     if(!file){return ;}
 
     if (file) {
-      const allowedTypes = ['image/jpeg', 'image/png'];
-
+      const allowedTypes = ['application/pdf','image/jpeg','image/png','image/jpg'];
       if (!allowedTypes.includes(file.type)) {
-        alert('Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.');
+        this.openAlertMod(this.alertTemplateForMilestone, "Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.");
         event.target.value = '';
         this.selectedFile = null;
         return;
       }
 
+    const maxSize = 25 * 1024 * 1024; // 25MB
+    if (file.size > maxSize) {
+      this.openAlertMod(this.alertTemplateForMilestone, "File size should be less than 25MB!!");
+      return;
+    }
+      const uniquefile =projectMilestone.id+'_'+file.name
+      this.validateFileName(uniquefile,"status");
       const reader = new FileReader();
       reader.onload = () => {
-      this.selectedFilePreviewUrl = reader.result as string;};    
+      this.selectedFilePreviewUrl = reader.result as string;};
       reader.readAsDataURL(file);
-
       this.selectedFile = file;
-
+      this.selectedFile = new File([file],uniquefile,{ type: file.type });
     }
   }
+
     previewSelectedFile(): void {
     if (!this.selectedFile || !this.selectedFilePreviewUrl) {
       alert('Please select a file to preview.');
@@ -6552,24 +6638,15 @@ cancelComplete() {
     this.alertMessage = message;
   }
 
-
-
-
  private requiresDocument(status: string): boolean {
   return status?.trim() === Status.COMPLETED || status?.trim() === Status.ON_HOLD;
 }
 
 
-  isLoadingMilestone:boolean=false;
-  updateMilestoneChanges() {
-    // Validate required fields
-
-    let isValid = true;
-    let errors: any;
+openMileStoneStatusModal(){
     if (!this.projectMilestone.startDate) {
     this.openAlertMod(this.alertTemplateForMilestone, 'Start date is required for milestone');
-    return;
-  }
+    return;}
 
   if (!this.projectMilestone.endDate) {
     this.openAlertMod(this.alertTemplateForMilestone, 'End date is required for milestone');
@@ -6585,46 +6662,55 @@ cancelComplete() {
     this.openAlertMod(this.alertTemplateForMilestone, 'Status is required for milestone');
     return;
   }
-if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
+  
+  if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
   this.openAlertMod(this.alertTemplateForMilestone, 'Please upload a document when completing/holding a milestone');
   return;
+  }
+
+  // if(this.projectObj.projectStatus==="Completed"){
+  //   this.openAlertMod(this.alertTemplateForMilestone, 'Project is already completed. You cannot update the milestone.');
+  //   return;
+  // }
+
+    this.modalRef = this.modalService.open(this.confirmMilestoneStatusModal, { modalDialogClass: 'modal-sm' });
+    this.confirmMilestoneStatus = "Are you sure to update the milestone status from "+ this.originalStatus +" to "+this.projectMilestone.status +" ?";
 }
 
+  isLoadingMilestone:boolean=false;
+  async updateMilestoneChanges() {
+    this.projectNameForMilestoneUpdate = this.projectObj.name;
+    this.poNameForMilestoneUpdate = this.projectObj.poNo;
 
-  if(this.projectObj.projectStatus==="Completed"){
-    this.openAlertMod(this.alertTemplateForMilestone, 'Project is already completed. You cannot update the milestone.');
-    return;
-  }
     console.log("before updaed by updated on", this.projectMilestone);
 
-    this.projectMilestone.updatedBy = this.currentUser.empId;
+    this.projectMilestone.updatedBy = this.currentUser.employeementId;
     this.projectMilestone.updatedOn = new Date();
+    this.projectMilestone.updatedByName = this.currentUser.name;
+    this.projectMilestone.projectNameForMilestoneUpdate = this.projectNameForMilestoneUpdate
+    this.projectMilestone.poNameForMilestoneUpdate = this.poNameForMilestoneUpdate
+
 
     const formData = new FormData();
     formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
+    formData.append('projectName', this.projectNameForMilestoneUpdate);
+    formData.append('previousStatus' , this.originalStatus)
 
     if (this.selectedFile) {
       formData.append('file', this.selectedFile);
     }
-    console.log("after updaed by updated on", this.projectMilestone);
-
-
     this.isLoadingMilestone=true;
 
-
-   
-    this.projectService.updateMilestoneById(formData).pipe(first()).subscribe({
-  next: (response: any) => {
+    this.projectService.updateMilestoneById(formData).pipe(first()).subscribe({next: (response: any) => {
     this.isLoadingMilestone = false;
 
     if (response.serviceStatus === "Success") {
         this.selectedFile = null;
+        this.isStatusChanged=false;
        const index = this.fcProjectMilestoneList.findIndex(m => m.id === this.projectMilestone.id);
-    if (index > -1) {
-      this.fcProjectMilestoneList[index] = { ...this.projectMilestone };
-    }
-      this.calculatePoStatus();
-      this.closeUpdateProjectMilestoneModal(); 
+    if (index > -1) {this.fcProjectMilestoneList[index] = { ...this.projectMilestone };}
+        this.calculatePoStatus(this.projectMilestone);
+      this.closeUpdateProjectMilestoneModal();
       this.showProjectMilestones(this.projectObj);
     } else {
       this.openAlertMod(this.alertTemplateForMilestone, response.serviceResponse || "Failed to update milestone.");
@@ -6636,11 +6722,13 @@ if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
     this.openAlertMod(this.alertTemplateForMilestone, "Error updating milestone: " + err.message);
   }
 });
-      this.closeUpdateProjectMilestoneModal(); 
+  this.closeUpdateProjectMilestoneModal();
 
   }
 
-
+onStatusChange(newStatus: string) {
+  this.isStatusChanged = newStatus !== this.originalStatus;
+}
 
 
   // viewMilestoneFile(milestoneId: number): void {
@@ -6683,15 +6771,15 @@ if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
 
 clearSelectedFile(fileInput: HTMLInputElement) {
   this.selectedFile = null;
-  fileInput.value = ''; 
+  fileInput.value = '';
 }
 
   viewFiles(mileStoneId: any) {
     this.isLoadingMilestone = true;
     this.projectService.getMilestoneById(mileStoneId).subscribe((res: any) => {
        this.isLoadingMilestone = false;
-      
-       
+
+
 
         if (res.documentContent && res.documentName) {
           const fileType = this.getFileType(res.documentName);
@@ -6707,7 +6795,7 @@ clearSelectedFile(fileInput: HTMLInputElement) {
         } else {
           this.notificationService.showErrorMessage("image is not available")
         }
-      
+
 
     },
       (error) => {
@@ -6737,13 +6825,13 @@ clearSelectedFile(fileInput: HTMLInputElement) {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
-        const deptIds = project.deptId
+        const deptIds = project?.deptId
           ?.split(",")
           .map(id => Number(id.trim()))
           .filter(id => !isNaN(id));
 
         const departmentNames = this.allDeptList
-          .filter(x => deptIds.includes(x.deptId))
+          .filter(x => deptIds?.includes(x.deptId))
           .map(x => x.name);
 
 
@@ -6842,7 +6930,7 @@ expiredProjectDisplayCount: number | null = null;
   }
 
   hideLiftAndShiftTeamsMod() {
-    this.liftAndShiftRef.close();
+    this.liftAndShiftRef?.close();
   }
   hasClientSideIdFlagHistory:Boolean = false;
   isClientSideIdFormattedHistory:Boolean = false;
@@ -6871,28 +6959,28 @@ expiredProjectDisplayCount: number | null = null;
 
 //  initializeActiveProjectFilters() {
 //     this.activeProjectFilters = [
-//       { 
-//         label: 'Total', 
-//         key: 'allTotalActiveProjectCount', 
-//         title: 'All Active Projects' 
+//       {
+//         label: 'Total',
+//         key: 'allTotalActiveProjectCount',
+//         title: 'All Active Projects'
 //       },
-//       { 
-//         label: '<31', 
-//         key: 'allActiveProjectsUpToMarch31Count', 
-//         title: 'Projects Active Up To March 31' 
+//       {
+//         label: '<31',
+//         key: 'allActiveProjectsUpToMarch31Count',
+//         title: 'Projects Active Up To March 31'
 //       },
-//       { 
-//         label: '>31', 
-//         key: 'activeProjectGreaterThan31MarchCount', 
-//         title: 'Projects Active After March 31' 
+//       {
+//         label: '>31',
+//         key: 'activeProjectGreaterThan31MarchCount',
+//         title: 'Projects Active After March 31'
 //       },
-//       { 
-//         label: 'Int', 
-//         key: 'allInternalActiveProjectsCounts', 
-//         title: 'Internal Active Projects' 
+//       {
+//         label: 'Int',
+//         key: 'allInternalActiveProjectsCounts',
+//         title: 'Internal Active Projects'
 //       }
 //     ];
-   
+
 //     this.selectedActiveProjectFilter = this.activeProjectFilters[0];
 //   }
 
@@ -6919,10 +7007,10 @@ initializeExpiredProjectFilters() {
 selectExpiredProjectFilter(filter: any) {
     this.selectedExpiredProjectFilter = filter;
     this.projectFilterDTO.expiredProjectFilter = filter.key;
-    
+
     console.log('Selected expired project filter:', filter);
     console.log('Filter key set to:', this.projectFilterDTO.expiredProjectFilter);
-    
+
     this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
 }
 
@@ -7150,7 +7238,7 @@ processDataForOrgChart() {
 
   this.orgChartData = Array.from(departmentMap.entries()).map(([deptAb, clientMap]) => {
     return {
-      name: deptAb, 
+      name: deptAb,
       cssClass: 'department-node',
       childs: Array.from(clientMap.entries()).map(([clientName, projects]) => {
         return {
@@ -7165,8 +7253,8 @@ processDataForOrgChart() {
 }
 
 
-expandedProjects: Set<string> = new Set(); 
-projectFullText: Map<string, string> = new Map(); 
+expandedProjects: Set<string> = new Set();
+projectFullText: Map<string, string> = new Map();
 
   getChartsByDepartment() {
     let charts = this.orgChartData;
@@ -7177,7 +7265,7 @@ projectFullText: Map<string, string> = new Map();
         deptNode.name.toLowerCase().includes(lowerCaseSearchTerm)
       );
     }
-    
+
     return charts.map(deptNode => [deptNode]);
   }
 
@@ -7194,12 +7282,12 @@ toggleAllDepartments(selectAll: boolean) {
 
 getColumnHeaders(): string[] {
   if (this.tableData.length === 0) return [];
-  return this.tableData[0]; 
+  return this.tableData[0];
 }
 
 isDepartmentOrProjectHeader(rowIndex: number, colIndex: number): boolean {
   if (rowIndex !== 0) return false;
-  
+
   const currentCell = this.tableData[rowIndex][colIndex];
   return currentCell === 'Projects' || (currentCell !== '' && colIndex % 2 === 0);
 }
@@ -7221,16 +7309,16 @@ isProjectExpanded(projectName: string): boolean {
   return this.expandedProjects.has(projectName);
 }
 
-expandedColumns: Set<string> = new Set(); 
+expandedColumns: Set<string> = new Set();
 expandAllProjects: boolean = false;
 
 processDataForTable() {
   this.expandedProjects.clear();
   this.projectFullText.clear();
-  
+
   const departmentMap = new Map<string, Map<string, any[]>>();
   const dataToProcess = this.serviceResponse;
-  
+
   dataToProcess.forEach(item => {
     const { deptAb, clientName, projectName } = item;
 
@@ -7250,13 +7338,13 @@ processDataForTable() {
   const tableColumns: any[][] = [];
   departments.forEach(dept => {
     const clientMap = departmentMap.get(dept)!;
-    const deptColumn: any[] = [dept]; 
+    const deptColumn: any[] = [dept];
 
     Array.from(clientMap.entries()).forEach(([clientName, projects]) => {
-      deptColumn.push({ type: 'client', name: clientName }); 
-      
+      deptColumn.push({ type: 'client', name: clientName });
+
       projects.forEach(project => {
-        deptColumn.push({ type: 'project', name: project }); 
+        deptColumn.push({ type: 'project', name: project });
       });
     });
 
@@ -7335,7 +7423,7 @@ truncateText1(text: string, charLimit: number = 15): string {
 truncateText(text: string, charLimit: number = 15): string {
   if (!text || text.length <= charLimit) return text;
 
-  const startIndex = text.length - charLimit + 3; 
+  const startIndex = text.length - charLimit + 3;
   return '...' + text.substring(startIndex);
 }
 
@@ -7345,31 +7433,31 @@ isTextTruncated(text: string): boolean {
 
 getDisplayProjectName(projectName: string, departmentName?: string): string {
   if (!projectName) return '';
-  
+
   this.projectFullText.set(projectName, projectName);
-  
+
   const isColumnExpanded = departmentName && this.expandedColumns.has(departmentName);
   const isIndividualExpanded = this.isProjectExpanded(projectName);
-  
+
   if (isColumnExpanded || isIndividualExpanded) {
     return projectName;
   }
-  
+
   return this.truncateText(projectName, 15);
 }
 
 getDisplayClientName(clientName: string, departmentName?: string): string {
   if (!clientName) return '';
-  
+
   this.projectFullText.set(clientName, clientName);
-  
+
   const isColumnExpanded = departmentName && this.expandedColumns.has(departmentName);
-  const isIndividualExpanded = this.isProjectExpanded(clientName); 
-  
+  const isIndividualExpanded = this.isProjectExpanded(clientName);
+
   if (isColumnExpanded || isIndividualExpanded) {
     return clientName;
   }
-  
+
   return this.truncateText1(clientName, 15);
 }
 
@@ -7412,7 +7500,7 @@ updateSelectedDepartments(department: string, event: any): void {
   this.getClientDepartmentChart();
 }
 
-modalMessage: string = ''; 
+modalMessage: string = '';
 openUpdateProjectCompletionModal(message: string, reload: boolean = false): void {
   this.modalMessage = message;
   this.shouldReload = reload;
@@ -7432,7 +7520,7 @@ onModalOkClick(): void {
     window.location.reload();
   } else {
     if (this.updateProjectCompletionModalRef) {
-      this.updateProjectCompletionModalRef.close();
+      this.updateProjectCompletionModalRef?.close();
     }
   }
 }
@@ -7440,7 +7528,7 @@ onModalOkClick(): void {
 // Close modal
 closeUpdateProjectCompletionModal(): void {
   if (this.updateProjectCompletionModalRef) {
-    this.updateProjectCompletionModalRef.close();
+    this.updateProjectCompletionModalRef?.close();
   }
 }
 
@@ -7456,36 +7544,36 @@ openremoveResourceModal(message: string): void {
 
 closeremoveResourceModal(): void {
   if (this.updateProjectCompletionModalRef) {
-    this.updateProjectCompletionModalRef.close();
+    this.updateProjectCompletionModalRef?.close();
   }
 }
  closeAlert(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
     if (this.modalRef) {
-      this.modalRef.close();
+      this.modalRef?.close();
     }
   }
 
- 
+
 openFcResourceMappedToTNMProjectTemp() {
   this.fcResourceMappedToTNMProjectRef = this.modalService.open(this.fcResourceMappedToTNMProjectTemp, { modalDialogClass: 'modal-sm' });
 }
 
 hideFcResourceMappedToTNMProjectTemp() {
-  this.fcResourceMappedToTNMProjectRef.close();
+  this.fcResourceMappedToTNMProjectRef?.close();
 }
 
 openFcResourceMapped_noTemp() {
-  // this.removeInputTeamMemberField(teamMember); 
+  // this.removeInputTeamMemberField(teamMember);
   this.updateEmployeeListAccordingToTeamMembers()
   this.fcResourceMapped_noRef = this.modalService.open(this.fcResourceMappedToTNMProjectTemp, { modalDialogClass: 'modal-sm' });
 }
 
 hideFcResourceMapped_noTemp() {
-  this.fcResourceMapped_noRef.close();
+  this.fcResourceMapped_noRef?.close();
 }
- 
+
   async GetAllResourceRequirementForProject1(project: Project) {
     try{
 
@@ -7494,7 +7582,7 @@ hideFcResourceMapped_noTemp() {
         if (response.serviceStatus == "Success") {
           this.projectObj.oldresourceRequirements = response.serviceResponse;
           this.projectObj.oldresourceRequirements = this.projectObj.oldresourceRequirements.filter((item: any) => !this.resourceOverViewIdList.includes(item.resourceOverviewId));
-          
+
           console.log("Old resource requirements ", this.projectObj.oldresourceRequirements);
         }
       }
@@ -7510,7 +7598,7 @@ openRestoreInfoTemp(projectId:any) {
 }
 
 hideRestoreInfoTemp() {
-  this.restoreInfoRef.close();
+  this.restoreInfoRef?.close();
 }
 
 restorePreviousStateOfProject(projectId:any){
@@ -7519,16 +7607,16 @@ restorePreviousStateOfProject(projectId:any){
   this.restoreProjectPayload.currentUserEmpId = this.currentUser.empId;
   this.resourceManagementService.restorePreviousStateOfProject(this.restoreProjectPayload).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.isRestoreSuccess = true; 
+      this.isRestoreSuccess = true;
       this.openRestoreModal(response.serviceResponse);
     } else {
-      this.isRestoreSuccess = false; 
+      this.isRestoreSuccess = false;
       this.openRestoreModal(response.serviceResponse);
     }
   }, (error:any) => {
     this.loaderService.requestEnded();
     // console.log(" restorePreviousStateOfProject ",JSON.stringify(error));
-    this.isRestoreSuccess = false; 
+    this.isRestoreSuccess = false;
     this.openRestoreModal(error.message);
   });
 }
@@ -7539,7 +7627,7 @@ openRestoreModal(message: any) {
 }
 
 hideRestoreModal() {
-  this.restoreAlertRef.close();
+  this.restoreAlertRef?.close();
   if(this.isRestoreSuccess){
     this.page = 1;
     this.projectFilterDTO.approvalStatus = "ApprovedProjects";
@@ -7553,7 +7641,7 @@ openAlertMessageMarkAsCompleteTemp(message: any) {
 }
 
 hideAlertMessageMarkAsCompleteTemp() {
-  this.alertMessageMarkAsCompleteRef.close();
+  this.alertMessageMarkAsCompleteRef?.close();
   if(this.isCompletionSuccess){
     this.page = 1;
     this.projectFilterDTO.approvalStatus = "ApprovedProjects";
@@ -7569,12 +7657,12 @@ poResourceRequirementAlert(message) {
 
 closePOResourceRequirementAlert(){
   if (this.poResourceRequirementFetchRef) {
-    this.poResourceRequirementFetchRef.close();
+    this.poResourceRequirementFetchRef?.close();
   }
- 
+
 }
 
- 
+
 
 
 
@@ -7807,11 +7895,11 @@ getAllPredefinedSkills() {
     this.resourceManagementService.getEmployeeCountSDeptwise(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.seempCountDeptSelected = response.serviceResponse;
-     
+
       } else {
         console.error(response.serviceResponse);
       }
-       
+
     });
 
   }
@@ -7992,20 +8080,20 @@ apiResponsesCount:any;
   this.apiResponsesCount++;
   if (this.apiResponsesCount === 3) {
     this.resetFilters();
-    this.apiResponsesCount = 0; 
+    this.apiResponsesCount = 0;
   }
 }
 
 resetFilters() {
-  
+
   this.filtersSkillMatrix.certificateIds = [];
 
- 
+
   this.filtersSkillMatrix.skillIds = this.skillList?.map(s => s.skillId) || [];
 
    this.filtersSkillMatrix.skillNames = this.skillList?.map(s => s.skillName) || [];
 
-  
+
   this.filtersSkillMatrix.deptIds = this.departmentList?.map(d => d.deptId) || [];
 
 
@@ -8019,9 +8107,9 @@ resetFilters() {
   this.isAllCertificatesSelected = false;
   this.isAllDepartmentsSelected = true;
   this.isAllCertificationDepartmentsSelected = false;
-  this.isAllSkillsSelected = true; 
+  this.isAllSkillsSelected = true;
 
- 
+
   this.applySearchFilter();
 }
 
@@ -8039,7 +8127,7 @@ handleEmployeePageChange(event: number) {
  this.employeeMatrixPageNo = event;
   this.paginationConfig.currentPage = event;
   this.getAllFilterBasedSearchEmployee();
-  
+
 }
 
 getVisibleSkills(emp: any) {
@@ -8071,11 +8159,11 @@ assignWings() {
     const count = emp.skillsEmp.length;
 
     if (count === this.topSkillCounts[0]) {
-      this.employeeWings.set(emp.email, this.wingImages[0]); 
+      this.employeeWings.set(emp.email, this.wingImages[0]);
     } else if (count === this.topSkillCounts[1]) {
-      this.employeeWings.set(emp.email, this.wingImages[1]); 
+      this.employeeWings.set(emp.email, this.wingImages[1]);
     } else if (count === this.topSkillCounts[2]) {
-      this.employeeWings.set(emp.email, this.wingImages[2]); 
+      this.employeeWings.set(emp.email, this.wingImages[2]);
     } else {
       this.employeeWings.set(emp.email, null);
     }
@@ -8108,7 +8196,7 @@ getAllFilterBasedSearchEmployee(){
         this.filteredEmployeesSkillMatrix = this.employeesSkillMatrix;
         this.paginationConfig.totalItems = result.totalElements;
         this.paginationConfig.itemsPerPage = result.pageSize;
-       
+
        this.employeesSkillMatrix.forEach(emp => {
           const exists = this.allEmployeeSkillSummary.some(e => e.email === emp.email);
           if (!exists) {
@@ -8151,7 +8239,7 @@ getAllEmployyesNotInSearch(){
             .filter((name: string) => name && name.trim() !== '')
             .join(', ') || 'NA';
 
-        
+
           emp.skillNames = skillNames;
           emp.certificateNames = certificateNames;
         });
@@ -8169,7 +8257,7 @@ toggleMetricView(view: string): void {
     //   this.getAllEmployyesNotInSearch();
     // }
   }
-  
+
 
 
 
@@ -8188,11 +8276,11 @@ exportSkillsCertifications() {
       if (response.serviceStatus === "Success") {
         const allEmployees = response.serviceResponse.content;
 
-        
+
         const excelData = allEmployees.map(emp => {
           const skillNames = emp.skillsEmp
-              ?.map(skill => skill.skillName || skill.additionalSkill || '') 
-              .filter(name => name.trim() !== '')                         
+              ?.map(skill => skill.skillName || skill.additionalSkill || '')
+              .filter(name => name.trim() !== '')
               .join(', ') || '';
           const certificateNames = emp.certificatesEmp?.map(cert => cert.certificationName)?.join(', ') || '';
 
@@ -8207,7 +8295,7 @@ exportSkillsCertifications() {
           };
         });
 
-        
+
         this.exportExcelService.exportTableDataToExcel(excelData, this.name);
       }
     });
@@ -8215,7 +8303,7 @@ exportSkillsCertifications() {
 
 exportUnmatchedEmployees() {
 
- 
+
   const excelData = this.employeeListNotInSearch.map((emp: any) => {
     return {
       "Employee ID": emp.employeementId ,
@@ -8228,7 +8316,7 @@ exportUnmatchedEmployees() {
     };
   });
 
- 
+
   this.exportExcelService.exportTableDataToExcel(excelData, 'Unmatched_Employees.xlsx');
 }
 
@@ -8239,7 +8327,7 @@ async getProjectAssignedDataByProjectIdfunc(id:number,flagForPOProject,totalRequ
   this.loadingRequirements = true;
     console.log("getResourceRequirementByPoProjectId called")
     console.log("type of id",typeof id);
-    
+
 
   let response:any = await this.resourceManagementService.getProjectAssignedDataByProjectId(id,totalRequirements).pipe(first()).toPromise();
   console.log("the response is",response);
@@ -8298,7 +8386,7 @@ catch(error){
   });
 }
 
-   
+
 
     toggleSESearch(){
     this.isSESearchEnabled = !this.isSESearchEnabled;
@@ -8317,11 +8405,11 @@ catch(error){
     if(this.newteamMember?.isDefaultProject){
       const event = { target: { checked: false } } as unknown as Event;
       this.onDefaultProjectCheckboxChange(event, this.newteamMember);
-    } 
+    }
     return false;
   }
 
-  
+
   }
   getValidateResponse(){
         console.log("this.hasClientSideIdFlag",this.hasClientSideIdFlag);
@@ -8347,7 +8435,7 @@ catch(error){
   }
 
   getAddButtonTitle(): string | null {
-   
+
     // Case 0: Resource not selected
     if (!this.newteamMember.empId) {
       return 'Please select a resource.';
@@ -8363,9 +8451,271 @@ catch(error){
     if (!this.userAdditionEnabled) {
       return 'The selected resource is already allocated to an existing project and is not eligible for assignment to a TNM project. Please remove the resource from the existing project and try again.';
     }
-  
+
     // No tooltip when enabled
     return null;
   }
+
+  onExtendedDateSelected() {  
+  if (!this.projectMilestone.extendedDate) {
+    this.projectMilestone.extensionReason = null;
+    this.projectMilestone.extensionFile = null;
+  }
+}
+
+clearExtensionFile(fileInput: HTMLInputElement) {
+  this.projectMilestone.extensionFile = null;
+  fileInput.value = '';
+}
+
+onExtensionFileSelected(event: any,projectMilestone:any) {
+
+  const file = event.target.files[0];
+  if (!file) return;
+  const allowedTypes = ['application/pdf','image/jpeg','image/jpg','image/png'];
+
+  if (!allowedTypes.includes(file.type)) {
+    this.openAlertMod(this.alertTemplateForMilestone, "Only PDF, JPG, JPEG, or PNG files are allowed.");
+    event.target.value = '';
+    return;
+  }
+
+  const maxSize = 25 * 1024 * 1024; // 25MB
+  if (file.size > maxSize) {
+    this.openAlertMod(this.alertTemplateForMilestone, "File size should be less than 25MB!!");
+    return;
+  }
+  
+  const uniquefile =projectMilestone.id+'_'+file.name 
+  this.validateFileName(uniquefile,"extended")
+  this.projectMilestone.extensionFile = file;
+  this.projectMilestone.extensionFile = new File([file],uniquefile,{ type: file.type });
+
+  
+  
+}
+
+validateFileName(uniquefile: any,type:any) {
+  this.projectService.validateDocName(uniquefile).subscribe({
+    next: (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        // No duplicate
+        console.error(response.serviceResponse);
+      } else if (response.serviceStatus === 'Fail') {
+        // Duplicate found
+        type==="extended"?this.projectMilestone.extensionFile = null:this.selectedFile = null;
+        this.openAlertMod(this.alertTemplateForMilestone, response.serviceResponse);
+        return false;        
+      }
+    },
+    error: (error) => {
+        type==="extended"?this.projectMilestone.extensionFile = null:this.selectedFile = null;
+        this.openAlertMod(this.alertTemplateForMilestone,"Error while validating file. Kindly try after sometime!!");
+        return false;        
+    }
+  });
+}
+
+previewMilestoneFile(file1:any) {
+  if (!file1) return;
+
+  const file = file1;
+  const fileURL = URL.createObjectURL(file1);
+  this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+  this.isPdfFile = file.type === 'application/pdf';
+  this.isImageFile = file.type.startsWith('image/');
+
+  this.projectMilestoneDocumentModalRef = this.modalService.open(
+    this.projectMilestoneDocumentTemplateRef,
+    {
+      modalDialogClass: 'modal-xl',
+      backdrop: 'static',
+      keyboard: false
+    }
+  );
+}
+
+
+extensionReason() {
+    this.projectService.getAllMilestoneExtendReason().subscribe({
+      next: (response) => {
+        if (response.serviceStatus === 'Success') {
+          this.milestoneExtendReason = response.serviceResponse;
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching milestones:', error);
+
+      }
+    });
+  }
+
+updateMilestoneExtendedDateWithReason():Promise<boolean> {
+
+  if(!this.isExtensionEnabled) return
+    else if(!this.projectMilestone.extensionReason){ 
+        this.openAlertMod(this.alertTemplateForMilestone, "Kindly select the extension reason!!");
+        return Promise.resolve(false);
+    }else if(this.projectMilestone?.extensionReason?.milestoneExtensionReason==='Other' &&
+        (!this.projectMilestone?.customReason || !this.projectMilestone?.customReason.trim())){
+        this.openAlertMod(this.alertTemplateForMilestone, "Kindly Enter Custom Reason!!");
+        return Promise.resolve(false);        
+    }  
+  
+   console.log("this.currentUser===>>",this.currentUser);
+  this.projectNameForMilestoneUpdate = this.projectObj.name;
+  this.poNameForMilestoneUpdate = this.projectObj.poNo;
+    
+  const payload: MilestoneUpdatedLog = {
+    milestoneId: this.projectMilestone.id,
+    poId: this.projectMilestone.poId,
+    projectId: this.projectMilestone.projectId,
+    milestoneName: this.projectMilestone.name,
+    milestoneStartDate: this.projectMilestone.startDate ? this.projectMilestone.startDate : null,
+    milestoneEndDate: this.projectMilestone.endDate ? this.projectMilestone.endDate : null, 
+    description: this.projectMilestone.description,
+    remarks: this.projectMilestone.remarks,
+    milestoneStatus: this.projectMilestone.status,
+    extendedDate: this.projectMilestone.extendedDate,
+    updatedBy: this.currentUser.employeementId,
+    updatedByName: this.currentUser.name,
+    projectName : this.projectNameForMilestoneUpdate,
+    poNumber : this.poNameForMilestoneUpdate,
+    lineItemName : this.projectMilestone.lineItemName,
+    milestoneExtensionReasonId: this.projectMilestone.extensionReason?.id,
+    milestoneExtensionReasonText: this.projectMilestone?.extensionReason?.milestoneExtensionReason==='Other'? this.projectMilestone.customReason : ""  };
+
+  const formData = new FormData();
+  formData.append("milestoneData",new Blob([JSON.stringify(payload)], { type: "application/json" }));
+
+  // optional file
+  if (this.projectMilestone.extensionFile) {
+    formData.append("extensionFile", this.projectMilestone.extensionFile);
+  }
+
+  return new Promise((resolve) => {
+    this.projectService.updateMilestoneExtendedDate(formData).subscribe({
+      next: (response: any) => {
+        console.log(response);
+        if (response?.serviceStatus === 'Success') {
+          this.openAlertMod(this.alertTemplateForMilestone,"Date Extended successfully!!");
+          this.isExtensionEnabled = false
+          this.showProjectMilestones(this.projectObj);
+          return
+        } else {
+          this.openAlertMod(this.alertTemplateForMilestone,"Something went wrong while updating extended date. Kindly try after sometime!!");
+          resolve(false);
+        }
+      },error: () => {
+        this.openAlertMod(this.alertTemplateForMilestone,"Something went wrong while updating extended date. Kindly try after sometime!!");
+        resolve(false);
+      }
+    });
+  });
+}   
+
+onExtendedDateChange(event: any) {
+  if (event.value) { this.isExtensionEnabled = true; }
+}
+
+minExtendedDateformilestone:Date;
+minExtendedDate(): void {
+  const startDate = this.projectMilestone?.startDate;
+  if (!startDate) return;
+  const date = new Date(startDate);
+  date.setDate(date.getDate() + 1);
+  this.minExtendedDateformilestone = date;
+}
+
+closeProjectMilestoneDocumentsModal() {
+  if (this.projectMilestoneDocumentModalRef) {
+    this.projectMilestoneDocumentModalRef?.close();
+    this.projectMilestoneDocumentModalRef = null;
+  }
+  this.milestoneDocumentUrl = null;
+ }
+
+toggleExtensionLogs(milestone: any) {
+  if (!milestone.extendedDate) {return;}
+  this.expandedMilestoneId = this.expandedMilestoneId === milestone.id ? null : milestone.id;
+}
+
+toggleLogs(milestone: any, type: 'start' | 'end' | 'status') {
+
+  // If clicking same milestone and same log type → collapse
+  if (this.expandedMilestoneId === milestone.id && this.selectedLogType === type) {
+    this.expandedMilestoneId = null;
+    this.selectedLogs = [];
+    this.selectedLogType = null;
+    this.logHeader = '';
+    return;
+  }
+  // Expand row
+  this.expandedMilestoneId = milestone.id;
+  this.selectedLogType = type;
+  this.selectedLogs = [];
+
+  switch (type) {
+    case 'start':
+      this.selectedLogs = milestone.milestoneExtendedStartDateLogs || [];
+      this.logHeader = 'Start Date';
+      break;
+
+    case 'end':
+      this.selectedLogs = milestone.milestoneExtendedEndDateLogs || [];
+      this.logHeader = 'End Date';
+      break;
+
+    case 'status':
+      this.selectedLogs = milestone.milestoneStatusLogs || [];
+      this.logHeader = 'Status';
+      break;
+  }
+}
+
+trackByLog(index: number, log: any) {
+  return log.documentId || index;
+}
+
+
+previewDocument(documentId: number,documentName:any) {
+
+  this.projectService.getExtensionDocumentByName(documentName).subscribe((res: any) => {
+      if (!res || !res.documentContent) {
+        this.milestoneDocumentUrl = null;
+        this.openAlertMod(this.alertTemplateForMilestone, "Error fetching document for preview. Kindly try after sometime!!");
+        return;
+      }
+      const byteCharacters = atob(res.documentContent);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: res.documentType });
+      const url = window.URL.createObjectURL(blob);
+
+      this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+      this.isPdfFile = res.documentType === 'application/pdf';
+      this.isImageFile = res.documentType.startsWith('image/');
+      
+      this.projectMilestoneDocumentModalRef = this.modalService.open(
+      this.projectMilestoneExtendedPreviewTemplateRef,{modalDialogClass: 'modal-xl',keyboard: false});
+    },
+    (error) => {
+      console.error('Error fetching document:', error);
+      this.openAlertMod(this.alertTemplateForMilestone, "Error fetching document for preview. Kindly try after sometime!!");
+      this.milestoneDocumentUrl = null;
+      return
+    }
+  );
+}
+
+closeProjectMilestoneImageModal() {
+  this.showMilestoneImageModal = false;
+  this.milestoneDocumentUrl = null;
+}
+
+  
 
 }

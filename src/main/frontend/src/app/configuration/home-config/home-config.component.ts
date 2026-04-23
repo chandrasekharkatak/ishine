@@ -235,7 +235,7 @@ export class HomeConfigComponent implements OnInit {
 
   showPhotosOrderpage() {
     this.isPhotosOrderPage=true;
-    
+
     this.isTable = false;
     this.isPhotoForm = false;
     this.isNotificationForm = false;
@@ -256,13 +256,13 @@ export class HomeConfigComponent implements OnInit {
 
   isValidHttpUrl(string:string) {
     let url;
-    
+
     try {
       url = new URL(string);
     } catch (_) {
-      return false;  
+      return false;
     }
-  
+
     return url.protocol === "http:" || url.protocol === "https:";
   }
 
@@ -343,7 +343,7 @@ export class HomeConfigComponent implements OnInit {
     updatedPhotoDetails.updatedBy = this.currentUser.empId;
 
     //console.log("onUpdateEventDetails : ", updatedPhotoDetails);
-    
+
     this.imageService.updatePhotoDetails(updatedPhotoDetails).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);
@@ -354,7 +354,7 @@ export class HomeConfigComponent implements OnInit {
       }
     });
   }
-  
+
 
   onImageSelect(event:any,template: TemplateRef<any>){
     const extensionRE = /(?:\.([^.]+))?$/;
@@ -372,7 +372,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
   event.target.value = ''; // Clear the input
   return;
 }
-    
+
     if(event.target.files[0].size > maxSizeInBytes){
       this.openAlertMod(template, "File size is more than 10MB");
       event.target.value = null;
@@ -384,7 +384,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
    if(isSizeInRange){
     this.files = [];
 
-   
+
     //console.log("uploadedFiles : ", uploadedFiles);
 
     if (uploadedFiles.length != 0) {
@@ -514,9 +514,9 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
         this.eventImages.forEach(img => {
           img.createdOn = (img.createdOn)? moment(img.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           img.emp360CreatedBy = img.createdBy;
-         
+
         })
-       
+
         // console.log("eventImages : ", this.eventImages);
       } else {
         console.error(response.serviceResponse);
@@ -649,9 +649,9 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
           notification.updatedOn = (notification.updatedOn)? moment(notification.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           notification.emp360CreatedBy = notification.createdBy;
           notification.emp360UpdatedBy = notification.updatedBy;
-        
+
         });
-        
+
         //console.log("notificationList : ", this.allNotification);
       } else {
         console.error(response.serviceResponse);
@@ -668,7 +668,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
         this.consentNotificationResponse = response.serviceResponse;
 
         this.consentNotificationResponse.forEach((object) => {
-          object.employeementId = ("A-").concat(object.employeementId);
+          object.employeementId = object.employeementIdAccToET;
           object.consentOn = (object.consentOn)? moment(object.consentOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 
@@ -739,7 +739,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   page = 1;
@@ -810,7 +810,7 @@ onFileSelect(event: any, template: TemplateRef<any>) {
 
   if (!['video/mp4', 'video/webm'].includes(uploadedFile.type)) {
     this.openAlertMod(template, 'Please select a valid file (.mp4 or .webm).');
-    event.target.value = ''; 
+    event.target.value = '';
     return;
   }
 

@@ -47,7 +47,7 @@ public class PoPortalAPIAuthenticationJWTUtility {
 	public DecodedJWT validateToken(String token) {
 		try {
 			Algorithm algorithm = Algorithm.HMAC512(JWT_TOKEN_ENCODER);
-			JWTVerifier verifier = JWT.require(algorithm).withIssuer(JWT_ISSUER).build();
+			JWTVerifier verifier = JWT.require(algorithm).withIssuer(JWT_ISSUER).acceptLeeway(1800).build();
 			return verifier.verify(token);
 		} catch (TokenExpiredException e) {
 			throw new InvalidTokenException("Token has expired", e);

@@ -94,7 +94,7 @@ export class QuestionRendererComponent implements OnInit {
     this.editor = new Editor();
     this.getAllEmployeeList();
   }
-  
+
   ngOnDestroy(): void {
     this.editor.destroy();
   }
@@ -160,7 +160,7 @@ export class QuestionRendererComponent implements OnInit {
       }
     });
   }
-  
+
   checkIfUserIdIsPresentInDisplayResponseUserId(response: any): boolean {
     return this.displayedResponseUserId?.includes(response?.responseBy);
   }
@@ -239,7 +239,7 @@ export class QuestionRendererComponent implements OnInit {
   closeContextMenu() {
     this.showContextMenu = false;
   }
-  
+
   onCheckboxChangeForQuestionSection(event: any, value: string, question: any, option: any, response: any) {
     if (response.responseList == null || response.responseList == undefined) {
       response.responseList = [];
@@ -454,11 +454,11 @@ export class QuestionRendererComponent implements OnInit {
       question.projectResponseList = [];
     }
     const selectedEmpIds = question.toAssignEmployeeList || [];
-  
+
     question.projectResponseList = question.projectResponseList.filter(
       (resp: ProjectResponse) => selectedEmpIds.includes(resp.responseBy)
     );
-  
+
     selectedEmpIds.forEach((empId: number) => {
       if (!question.projectResponseList.some((resp: ProjectResponse) => resp.responseBy === empId)) {
         const emp = this.allEmployeeList.find((e: any) => e.empId === empId);
@@ -476,7 +476,7 @@ export class QuestionRendererComponent implements OnInit {
 
     // Future : make changes for the reviewer logic
     const isReviewer = this.currentUser.employeeRole === 'Reviewer';
-  
+
     if (isReviewer) {
       // Reviewer: show all responses if all are submitted (isDraft == "N")
       if (question.projectResponseList.every(r => r.isDraft === "N")) {
@@ -501,7 +501,7 @@ export class QuestionRendererComponent implements OnInit {
       }
     }
   }
-  
+
   canEditResponse(response: any): boolean {
     const currentUserId = this.currentUser.empId;
     const isReviewer = this.currentUser.employeeRole === 'Reviewer'; // adjust as per your logic
@@ -516,10 +516,10 @@ export class QuestionRendererComponent implements OnInit {
   }
 
   closeDocumentPreviewTemplate() {
-    this.documentPreviewModalRef.close();
+    this.documentPreviewModalRef?.close();
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 }

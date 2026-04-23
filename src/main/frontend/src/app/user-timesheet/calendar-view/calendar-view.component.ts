@@ -34,11 +34,11 @@ export class CalendarViewComponent implements OnInit {
   @ViewChild("previewModal")
   previewModal: TemplateRef<any>;
   empId: number;
-  previewUrl: SafeResourceUrl | null = null;    
-  fileType: string = '';                       
-  mimeType: string = '';                       
-  previewFileName: string = '';                 
-  docData: string = '';                       
+  previewUrl: SafeResourceUrl | null = null;
+  fileType: string = '';
+  mimeType: string = '';
+  previewFileName: string = '';
+  docData: string = '';
   selectedProjectId!: any;
   selectedEmpId!: any;
   clientSideFilter: any;
@@ -58,10 +58,20 @@ export class CalendarViewComponent implements OnInit {
     NW: { label: 'Non-Working Day',     color: '#8E8E8E' },   // Muted gray
     AH: { label: 'ApMoSys Holiday',     color: '#0275D8' },   // Corporate blue
     WO: { label: 'Week Off',            color: '#795548' },   // Brownish neutral
+    CO: { label: 'Comp Off',            color: '#295748' },   // Brownish neutral
     H:  { label: 'Holiday',             color: '#FFC107' },   // Golden yellow
     CH: { label: 'Client Holiday',      color: '#FF9800' },   // Orange
     CA: { label: 'Client Approved',   color: '#006400' },   // Dark green
     CN: { label: 'Client Not-Approved',    color: '#F0AD4E' },   // Amber
+    // 🔴 Rejected by RM (improved differentiation)
+    CA_R: {
+      label: 'Client Approved But Rejected By RM',
+      color: '#B71C1C' // Dark red (high-impact rejection)
+    },
+    CN_R: {
+      label: 'Client Not-Approved But Rejected By RM',
+      color: '#E57373' // Soft red (lower severity rejection)
+    },
     P:  { label: 'Present',             color: '#28A745' },   // Bright green
     NA: { label: 'Not Applicable',      color: '#9E9E9E' },   // Light gray
     L:  { label: 'Leave',               color: '#C21807' },   // Deep red
@@ -77,6 +87,17 @@ export class CalendarViewComponent implements OnInit {
   projectDropDownAlert: TemplateRef<any>;
   projectDropDownAlertRef: NgbModalRef;
 
+  zoomScale = 1;
+  zoomLevel = 100;
+  isDragging = false;
+  startX = 0;
+  startY = 0;
+  translateX = 0;
+  translateY = 0;
+  previewBase64!: string;
+  previewMimeType!: string;
+  dateObj:any;
+
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: NgbModal,
@@ -88,8 +109,8 @@ export class CalendarViewComponent implements OnInit {
 
   ngOnInit(): void {
   const currentYear = this.currentDate.getFullYear();
-  this.minYear = new Date(currentYear - 1, 0, 1); 
-  this.maxYear = new Date(currentYear, 11, 31); 
+  this.minYear = new Date(currentYear - 1, 0, 1);
+  this.maxYear = new Date(currentYear, 11, 31);
     this.route.queryParams.subscribe(params => {
       const projectId = +params['projectId'];
       const empId = +params['empId'];
@@ -166,17 +187,17 @@ monthSelected(event: Date, datepicker: any) {
   datepicker.close();
 }
 
-  
+
   changeMonth(date: Date) {
     if (!date) return;
     this.selectedMonth = new Date(date.getFullYear(), date.getMonth(), 1);
     this.updateFormattedMonthLabel();
-  
+
     if (this.selectedProjectId && this.selectedEmpId) {
       this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
     }
   }
-  
+
   updateFormattedMonthLabel() {
     this.formattedMonthLabel = this.selectedMonth.toLocaleString('default', {
       month: 'short',
@@ -204,7 +225,7 @@ monthSelected(event: Date, datepicker: any) {
   // const year = this.selectedMonth.getFullYear();
 
   // console.log('Using month/year for API:', month, year);
-  
+
   //   this.timesheetService.getEmployeeTimesheetAsCalender(empId, month, year)
   //     .pipe(first())
   //     .subscribe({
@@ -264,13 +285,13 @@ monthSelected(event: Date, datepicker: any) {
         }
       });
   }
-  
+
    cancelRequest1() {
    if (this.modalRef3) {
       this.modalRef3.close();
     }
 }
-  
+
 
   buildCalendarGrid(timesheetData: { [key: string]: any }): void {
     const year = this.selectedMonth.getFullYear();
@@ -335,6 +356,8 @@ monthSelected(event: Date, datepicker: any) {
       return;
     }
 
+    this.dateObj = dateObj;
+
     const payload = {
       empId: this.empId,
       date: this.formatDate(dateObj.date)
@@ -377,18 +400,32 @@ monthSelected(event: Date, datepicker: any) {
 
   showPreview(base64Data: string, mimeType: string, fileName?: string): void {
     const dataUrl = `data:${mimeType};base64,${base64Data}`;
+    this.resetPreviewState();
+    this.previewBase64 = base64Data;
+    this.previewMimeType = mimeType;
     this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
 
     if (mimeType === 'application/pdf') {
       this.fileType = 'pdf';
     } else if (mimeType.startsWith('image/')) {
       this.fileType = 'image';
-    } else {
+    } else if (
+      mimeType === 'application/vnd.ms-excel' ||
+      mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ) {
+      this.fileType = 'excel';
+    }else {
       this.fileType = 'other';
     }
 
-    this.previewFileName = fileName || 'Document';
-    this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xl modal-dialog-centered' });
+    // this.previewFileName = fileName || 'Document Preview';
+    // this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xxl modal-dialog-centered',scrollable: true });
+
+    this.modalRef = this.modalService.open(this.previewModal, {
+    modalDialogClass: 'modal-xl modal-dialog-centered',
+    scrollable: false
+    });
+
   }
 
   getProjectByMonthRangeAndEmpId(fromMonthChange: boolean = false){
@@ -436,7 +473,163 @@ monthSelected(event: Date, datepicker: any) {
   }
 
   hideProjectDropDownAlert() {
-    this.projectDropDownAlertRef.close();
+    this.projectDropDownAlertRef?.close();
   }
+
+
+zoomIn() {
+  if (this.zoomScale < 2.5) {
+    this.zoomScale += 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
+}
+
+zoomOut() {
+  if (this.zoomScale > 0.5) {
+    this.zoomScale -= 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
+}
+
+
+get transformStyle() {
+  return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
+}
+
+startDrag(event: MouseEvent) {
+  if (this.zoomScale <= 1) return; // drag only when zoomed
+
+  this.isDragging = true;
+  this.startX = event.clientX - this.translateX;
+  this.startY = event.clientY - this.translateY;
+  event.preventDefault();
+}
+
+onDrag(event: MouseEvent) {
+  if (!this.isDragging) return;
+
+  this.translateX = event.clientX - this.startX;
+  this.translateY = event.clientY - this.startY;
+}
+
+endDrag() {
+  this.isDragging = false;
+}
+
+resetPreviewState() {
+  this.zoomScale = 1;
+  this.zoomLevel = 100;
+  this.translateX = 0;
+  this.translateY = 0;
+  this.isDragging = false;
+}
+
+  downloadFile(): void {
+    if (!this.previewBase64 || !this.previewMimeType) {
+      return;
+    }
+
+    const byteCharacters = atob(this.previewBase64);
+    const byteNumbers = new Array(byteCharacters.length);
+
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: this.previewMimeType });
+
+    const blobUrl = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = this.buildFileName();
+    link.click();
+
+    URL.revokeObjectURL(blobUrl);
+  }
+
+  private buildFileName(): string {
+    const userName = this.userName || 'User';
+    const day = this.dateObj?.day || 'Date';
+    const month = this.formattedMonthLabel;
+    const project = this.projectList.find(p => p.projectId === this.projectIdForDropDown);
+    const projectName = project?.projectName || 'Project';
+    // const extension = this.fileType;
+    const extension = this.getExtensionFromMime(this.previewMimeType);
+
+    return `${userName} | ${day} ${month} | ${projectName}.${extension}`;
+  }
+
+  private getExtensionFromMime(mimeType: string): string {
+    switch (mimeType) {
+      case 'application/pdf':
+        return 'pdf';
+      case 'image/jpeg':
+        return 'jpeg';
+      case 'image/jpg':
+        return 'jpeg';
+      case 'image/png':
+        return 'jpeg';
+      case 'image/webp':
+        return 'jpeg';
+      case 'application/vnd.ms-excel':
+      return 'xls';
+      case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+      return 'xlsx';
+      default:
+        return 'file';
+    }
+  }
+
+  getDocsForPreview(docId: any) {
+  this.timesheetService.getDocumentDataByDocId(docId)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+
+        this.docData = response.serviceResponse.docData;
+        this.mimeType = response.serviceResponse.docMimeType;
+
+        // Excel → Download
+        if (
+          this.mimeType === 'application/vnd.ms-excel' ||
+          this.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ) {
+          const fileName = response.serviceResponse.docName || 'document.xlsx';
+          this.downloadExcel(this.docData, this.mimeType, fileName);
+        }
+        // PDF / Image → Preview
+        else {
+          this.showPreview(this.docData, this.mimeType);
+        }
+      }
+    });
+}
+
+
+  downloadExcel(base64Data: string, mimeType: string, fileName: string) {
+
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const blob = new Blob(
+    [new Uint8Array(byteNumbers)],
+    { type: mimeType }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+
+  window.URL.revokeObjectURL(url);
+}
 
 }

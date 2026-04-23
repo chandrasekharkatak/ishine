@@ -336,14 +336,23 @@ public class NewsletterService {
 				return response;
 			}
 			
-			NewsletterReadResponse newsletterReadResponse = new NewsletterReadResponse();
-			newsletterReadResponse.setEmpId(newsletterDTO.getEmpId());
-			newsletterReadResponse.setDocumentId(newsletterDTO.getDocumentId());
 			
-			NewsletterReadResponse dbResponse = newsletterReadResponseRepository.save(newsletterReadResponse);
-			
-			if (dbResponse != null) {
+			NewsletterReadResponse dbResponse=null;
+			boolean alreadyRead =
+		            newsletterReadResponseRepository.existsByEmpIdAndDocumentId(
+		                    newsletterDTO.getEmpId(),
+		                    newsletterDTO.getDocumentId()
+		            );
+
+		    if (!alreadyRead) {
+		    	NewsletterReadResponse newsletterReadResponse = new NewsletterReadResponse();
+				newsletterReadResponse.setEmpId(newsletterDTO.getEmpId());
+				newsletterReadResponse.setDocumentId(newsletterDTO.getDocumentId());
 				
+			     dbResponse = newsletterReadResponseRepository.saveAndFlush(newsletterReadResponse);
+		    }
+		    
+							
 				EmployeeDTO dto = new EmployeeDTO();
 				
 				List<Newsletter> allNewsletters = newsletterRepository.findAll();
@@ -351,7 +360,7 @@ public class NewsletterService {
 				if (!allNewsletters.isEmpty()) {
 					for (Newsletter object : allNewsletters) {
 						NewsletterReadResponse readResponse = newsletterReadResponseRepository
-									.findByEmpIdAndDocumentId(dbResponse.getEmpId(), object.getDocumentId());
+									.findByEmpIdAndDocumentId(newsletterDTO.getEmpId(), object.getDocumentId());
 						
 						if (readResponse == null) {
 							dto.setNewsletterReadCheck(object);
@@ -365,13 +374,7 @@ public class NewsletterService {
 				
 				apiLogInfo.setApiResponse("Your response has been submitted");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Response not submitted.");
-
-				apiLogInfo.setApiResponse("Response not submitted.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

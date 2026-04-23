@@ -25,11 +25,11 @@ export class NewsletterConfigComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
-  // Sorting 
+  // Sorting
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
-  
+
   isUploadForm: boolean = false;
   isTable: boolean = false;
 
@@ -38,7 +38,7 @@ export class NewsletterConfigComponent implements OnInit {
   newsletters:any[] = [];
   newsletterObj:Newsletter = new Newsletter();
 
-  // Preview 
+  // Preview
   fileName: any;
   src:any
 
@@ -47,12 +47,12 @@ export class NewsletterConfigComponent implements OnInit {
 	maxRequestSize:any;
   fileSize: number = 0;
 
-  // modal 
+  // modal
   alertMessage: any;
   modalRef:NgbModalRef;
-  
 
-  // Filter 
+
+  // Filter
   filters:any = {};
   isSearchEnabled:boolean = false;
   documentsColumns:any[] = ['blank','displayName','fileName','createdByName','createdOn'];
@@ -94,9 +94,9 @@ export class NewsletterConfigComponent implements OnInit {
     this.isUploadForm = true;
     this.maxFileSize = parseInt(sessionStorage.maxFileSize);
     this.maxRequestSize = parseInt(sessionStorage.maxRequestSize);
-    
+
     this.isTable = false;
-    
+
     this.reset();
   }
 
@@ -141,7 +141,7 @@ export class NewsletterConfigComponent implements OnInit {
     this.fileSize = this.fileSize + document.size / 1024 /1024;
 
     //console.log("file size : ", this.fileSize);
-        
+
     this.file = {document : document,fileName : fileName};
   }
 
@@ -159,7 +159,7 @@ export class NewsletterConfigComponent implements OnInit {
     }
 
     //console.log("this.file : ", this.file);
-    
+
     if (!this.file){
       this.alertMessage = "Kindly Select Newsletter !!"
       this.openAlertMod(template, this.alertMessage);
@@ -188,7 +188,7 @@ export class NewsletterConfigComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
-  
+
   }
 
   spaceTrimNewsletterName(){
@@ -199,7 +199,7 @@ export class NewsletterConfigComponent implements OnInit {
 
   getAllNewsletters(){
     this.newsletters = [];
-    
+
     this.newsletterService.getAllNewsletters().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         this.newsletters =  response.serviceResponse;
@@ -249,7 +249,7 @@ export class NewsletterConfigComponent implements OnInit {
     });
   }
 
-   
+
   downloadFile(doc: any) {
     this.newsletterService.downloadDocument(doc.documentId).subscribe(blob => saveAs(blob,doc.fileName));
   }
@@ -267,7 +267,7 @@ export class NewsletterConfigComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   // Pagination
@@ -276,19 +276,19 @@ export class NewsletterConfigComponent implements OnInit {
     this.page = event;
   }
 
-  // Sorting 
-  sortData(sort: Sort){	
+  // Sorting
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 
 
-  // Filter 
+  // Filter
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
     if(!this.isSearchEnabled){

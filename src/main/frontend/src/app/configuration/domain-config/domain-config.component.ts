@@ -66,7 +66,7 @@ export class DomainConfigComponent implements OnInit {
 
   //excel
   domainDataForExcel: any[];
- 
+
 
   employeesFor360: any[] = [];
   excelName: string;
@@ -82,7 +82,7 @@ export class DomainConfigComponent implements OnInit {
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x);}
 
   async ngOnInit(): Promise<void> {
-   
+
      // Dynamic Subfeature Flags
      let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
      featureMap.subFeatures?.forEach(sub => {
@@ -128,12 +128,12 @@ export class DomainConfigComponent implements OnInit {
 
     this.isfileUpload = true;
     this.isDomainTable = false;
-    
-  
+
+
     this.isDomain = false;
     this.isDomainForm = false;
-  
-  
+
+
   }
 
 
@@ -208,7 +208,7 @@ onConfirmationDateUpload(event: any, template: TemplateRef<any>){
         this.openAlertMod(template, response.serviceResponse);
       }
     });
-}   
+}
 
 onFileSelect(event: any, template: TemplateRef<any>){
   const uploadedFiles = event.target.files;
@@ -340,11 +340,11 @@ downloadConfirmationDateUpload(): void {
           domain.createdOn = (domain.createdOn)? moment(domain.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           domain.emp360CreatedBy = domain.createdBy;
           domain.emp360UpdatedBy = domain.updatedBy;
-      
-        
+
+
         });
 
-     
+
 
         // console.log(this.allDomainList, " : this.allDomainList");
       } else {
@@ -464,11 +464,11 @@ downloadConfirmationDateUpload(): void {
   }
 
   checkDomainName(domainName:any, template: TemplateRef<any>){
-    
+
     let domainObj = new Domain();
     domainObj.domainName = domainName;
     domainObj.domainId = this.domainObj.domainId;
-    
+
     this.domainService.checkDomainName(domainObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.domainObj.domainName = '';
@@ -488,7 +488,7 @@ downloadConfirmationDateUpload(): void {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   openDeleteDomainMod(template: TemplateRef<any> , domain: any){

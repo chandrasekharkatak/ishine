@@ -104,7 +104,7 @@ export class KnowledgeHubComponent implements OnInit {
   closeProjectInsightStaticFormModal() {
     this.projectId = null;
     this.type = null;
-    this.projectStaticFormModalRef.close();
+    this.projectStaticFormModalRef?.close();
   }
 
   clearSearch() {

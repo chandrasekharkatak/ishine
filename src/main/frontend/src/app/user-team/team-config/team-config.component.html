@@ -499,7 +499,7 @@
                         <label class="info-label"><span class="text-danger">*</span>Project Name</label>
                         <app-my-select #createTeamProjects class="form-control" placeholder="Select Project"
                             [(ngModel)]="selectedProject" [options]="allProjectListByManagerId" displayKey="projectName"
-                            valueKey="projectId" [multiple]="false" (selectionChange)="getAllTeamsByProjectId(selectedProject); isDisabled = true">
+                            valueKey="projectId" [multiple]="false" (selectionChange)="getAllTeamsByProjectId($event); isDisabled = true">
                         </app-my-select>
                         <!-- <mat-select ngxMatSelect class="form-control"
                                   #createTeamProjects="ngxMatSelect"

@@ -171,6 +171,8 @@ import { MessageModalComponent } from './user-profile/message-modal/message-moda
 import { ConfirmationModalComponent } from './user-profile/confirmation-modal/confirmation-modal.component';
 import { CertificateModalComponent } from './user-profile/certificate-modal/certificate-modal.component';
 import { SkillCertfificationConfigComponent } from './configuration/skill-certfification-config/skill-certfification-config.component';
+import { TrainingConfigComponent } from './configuration/training-config/training-config.component';
+import { TrainingComponent } from './training/training.component';
 import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { HomeComponent } from './home/home.component';
@@ -214,6 +216,8 @@ import { FloatingScrollWrapperComponent } from './helpers/floating-scroll-wrappe
 import {MatTimepickerModule} from '@angular/material/timepicker';
 import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomplete.component';
 import { NgxEditorModule } from 'ngx-editor';
+import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
+import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
 
 registerLocaleData(localeGb);
 
@@ -350,6 +354,8 @@ registerLocaleData(localeGb);
     ConfirmationModalComponent,
     CertificateModalComponent,
     SkillCertfificationConfigComponent,
+    TrainingConfigComponent,
+    TrainingComponent,
     ViewImageComponent,
     SafeHtmlPipe,
     ConnectionLostComponent,
@@ -397,7 +403,9 @@ registerLocaleData(localeGb);
     MySelectComponent,
     FloatingScrollWrapperComponent,
     ProjectColumnFilterPipe,
-    MyAutocompleteComponent
+    MyAutocompleteComponent,
+    InfoTooltipComponent,
+    QuizSubmit
   ],
   imports: [
     BrowserModule,

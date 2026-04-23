@@ -45,14 +45,14 @@ export class DocumentComponent implements OnInit {
   documents :any = [];
 
   isSearchEnabled:boolean= false;
-   // Sorting 
+   // Sorting
    sortDirection = 'asc';
    sortColumn: any;
    sortColumnType:any;
   src: any;
   userMapping: any = {};
   feature:any = "Newsletter Config";
-    // Filter 
+    // Filter
     filters:any = {};
     typeNames:any;
     allTypeListColumns:any[]=['blank','typeName','createdOn','name','blank','blank','blank'];
@@ -71,7 +71,7 @@ export class DocumentComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     try {
       // this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-     
+
     } catch (error) {
       console.error("Error fetching employee details for 360 view", error);
     }
@@ -122,7 +122,7 @@ export class DocumentComponent implements OnInit {
 
   }
 
- 
+
     RestrictFullName(event) {
       var k;
       k = event.charCode;
@@ -138,8 +138,8 @@ export class DocumentComponent implements OnInit {
         return (false);
       }
       return (true);
-  
-  
+
+
     }
 
   showTable(){
@@ -160,14 +160,14 @@ export class DocumentComponent implements OnInit {
     this.getAllTypeName();
   }
 
-    // Sorting 
-    sortData(sort: Sort){	
+    // Sorting
+    sortData(sort: Sort){
       //console.log(sort);
       if(sort.active){
         let sortParams:any[] = sort.active?.split("|");
         this.sortColumn = sortParams[0];
         this.sortColumnType = sortParams[1];
-        this.sortDirection = sort.direction;      
+        this.sortDirection = sort.direction;
       }
     }
 
@@ -213,7 +213,7 @@ export class DocumentComponent implements OnInit {
     //console.log("Updated Filter : ", this.filters);
   }
   updateType(document : any,template:TemplateRef<any>){
-   
+
     let doc = new Document();
     doc.typeId = this.documentObj.typeId;
     doc.typeName = document.typeName;
@@ -297,7 +297,7 @@ export class DocumentComponent implements OnInit {
     this.fileSize = this.fileSize + document.size / 1024 /1024;
 
     //console.log("file size : ", this.fileSize);
-        
+
     this.file = {document : document,fileName : fileName};
   }
 
@@ -319,7 +319,7 @@ export class DocumentComponent implements OnInit {
       this.openAlertMod(template, "Please select publish mode !!");
       return false;
     }
-    
+
     //console.log(" get file ",this.file);
     if(!this.file){
       this.openAlertMod(template, "Kindly select Document !! ");
@@ -354,7 +354,7 @@ export class DocumentComponent implements OnInit {
 
   getAllDocuments(){
     this.documents = [];
-    
+
     this.newsletterService.getAllNewsletters().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         this.documents =  response.serviceResponse;
@@ -397,15 +397,21 @@ export class DocumentComponent implements OnInit {
     });
   }
 
-   
+
   downloadFile(doc: any) {
     this.newsletterService.downloadDocument(doc.documentId).subscribe(blob => saveAs(blob,doc.fileName));
   }
 
 
-  openPreviewDocument(template: TemplateRef<any>){
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
-  }
+  // openPreviewDocument(template: TemplateRef<any>){
+  //   this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
+  // }
+ 
+openPreviewDocument(template: TemplateRef<any>) {
+  this.modalRef = this.modalService.open(template, {
+    size: 'lg'  
+  });
+}
 
   spaceTrimDocumentName(){
     if(this.documentName != null || this.documentName != ''){
@@ -420,7 +426,7 @@ export class DocumentComponent implements OnInit {
     this.document=false;
     this.type = false;
     this.upload=false;
-    
+
     this.getTypeById(type)
 
   }
@@ -436,7 +442,7 @@ export class DocumentComponent implements OnInit {
     })
   }
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
 

@@ -184,7 +184,7 @@ export class ProjectConfigComponent implements OnInit {
   showTable(){
     this.isTable = true;
     this.page = 1;
-    
+
     this.isUpdateForm = false;
     this.isCreateForm = false;
     this.isCreation = false;
@@ -213,7 +213,7 @@ export class ProjectConfigComponent implements OnInit {
   //   let newProjectObj = new Project();
   //   this.allClientLocationList.push(newProjectObj);
   //   //console.log(this.allClientLocationList, " : this.allClientLocation");
-    
+
   // }
 
   // removeInputClientLocationField(clientLocationObj) {
@@ -241,16 +241,16 @@ export class ProjectConfigComponent implements OnInit {
   getManagerList() {
     this.managerList = [];
 
-    this.employeeObj.role = "Manager";	
+    this.employeeObj.role = "Manager";
     this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
-    this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {	
-      if (response.serviceStatus == "Success") {	
+    this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
         this.managerList = response.serviceResponse;
         //console.log("managerList : ", this.managerList);
-      } else {	
-        console.error(response.serviceResponse)	
-      }	
-    });	
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
   }
 
   getAllClientList() {
@@ -382,7 +382,7 @@ export class ProjectConfigComponent implements OnInit {
     this.projectObj.projectName = this.projectObj.projectName?.trim();
     this.projectObj.createdBy = this.currentUser.empId;
     //console.log("     :   ",this.projectObj);
-    
+
     this.projectService.checkProjectName(this.projectObj).pipe(first()).subscribe((response :any)=>{
       if(response.serviceStatus == "Fail"){
         this.projectObj.departmentName = this.projectObj.departmentList;
@@ -399,7 +399,7 @@ export class ProjectConfigComponent implements OnInit {
       }
     })
 
-   
+
   }
 
   updateProject(template: TemplateRef<any>){
@@ -464,16 +464,16 @@ export class ProjectConfigComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 

@@ -39,7 +39,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     'Values 1',
     'Values 2'
   ];
-  //flags 
+  //flags
   isLoginForm: boolean = true;
   isOtpForm: boolean = false;
   isForgotPassOtpForm: boolean = false;
@@ -66,7 +66,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   featureList: any[] = [];
   allMappedSubfeatures: any[] = [];
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef:NgbModalRef;
   enableAppreciation: enableAppreciation = new enableAppreciation();
@@ -231,7 +231,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (this.userName && !this.userName.includes('@')) {
       this.userName += '@apmosys.com';
     }
-    
+
     if (!this.validationService.validateNullUndefinedEmptyString(this.userName)) {
       this.isError = true;
       this.errorMsg = 'Please enter username !!';
@@ -305,6 +305,7 @@ this.user.otp = encryptedOtp;
       const responseObj = response.serviceResponse;
       let user = responseObj[0];
       this.allMappedSubfeatures = responseObj[1];
+      console.log("allMappedSubfeatures =>  ",this.allMappedSubfeatures);
       this.authenticationService.sessionString = responseObj[2];
       this.authenticationService.sessionTimeout = responseObj[3];
 
@@ -364,11 +365,13 @@ this.user.otp = encryptedOtp;
         this.user.poPortalAllProjectApi = user.poPortalAllProjectApi;
         this.user.probationPeriod = user.probationPeriod;
         this.user.releaseNoteNotification = user.releaseNoteNotification;
+        this.user.linkedinPageNotification = user.linkedinPageNotification;
         this.user.newsletterReadCheck = user.newsletterReadCheck;
         this.user.workLocation = user.workLocation;
         this.user.maritalStatus = user.maritalStatus;
         this.user.jobRoleName = user.jobRoleName;
         this.user.isApmosysProduct = user.isApmosysProduct;
+        this.user.trainingLockStatus = user.trainingLockStatus; // Set training lock status from backend
 
         if (user.isNew == "true") {
           sessionStorage.setItem('FirstTimeLogin', "true");
@@ -383,6 +386,35 @@ this.user.otp = encryptedOtp;
         this.logService.updateLogInfo(log);
         this.timeSession();
 
+        this.authenticationService.startUserSessionCheck();
+        
+        // Check training lock status and route accordingly
+        // Priority 1: If hard lock (deadline crossed) - user is frozen, must route to training page
+        
+        if (this.user.trainingLockStatus && 
+            this.user.trainingLockStatus.isHardLock === true) {
+          // Hard lock: deadline crossed (regardless of lock enabled) - user is frozen on training screen
+          this.router.navigate(['/training']);
+          return;
+        }
+        
+        // Priority 2: If user is frozen (mandatory + lock enabled) OR (mandatory + deadline crossed) - route to training page
+        if (this.user.trainingLockStatus && 
+            this.user.trainingLockStatus.isLocked === true) {
+          // User is frozen: (mandatory + lock enabled) OR (mandatory + deadline crossed) - route to training page
+          this.router.navigate(['/training']);
+          return;
+        }
+        
+        // Priority 3: If mandatory training exists (but not frozen) - route to training page for completion
+        if (this.user.trainingLockStatus && 
+            this.user.trainingLockStatus.hasMandatoryTrainingPending === true) {
+          // Mandatory training pending (but not frozen) - route to training page for completion
+          this.router.navigate(['/training']);
+          return;
+        }
+        
+        // Proceed with normal navigation - LinkedIn notification will be handled globally in App component
         if (this.authGaurd.id != null) {
           let url = this.authGaurd.currentUrl;
           if (url.includes("user-survey")) {
@@ -413,7 +445,12 @@ this.user.otp = encryptedOtp;
           }
         }
 
-        this.authenticationService.startUserSessionCheck();
+          if (this.user.tabList.find(e => e.tabName === 'Training')) {
+          if (this.currentUser.newsletterReadCheck != null) {
+            this.router.navigate(['/newsletters']);
+          }
+        }
+        
       }
     } else {
       this.isError = true;
@@ -425,10 +462,8 @@ this.user.otp = encryptedOtp;
   }
 }
 
-
-
   timeSession() {
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -652,7 +687,7 @@ this.user.otp = encryptedOtp;
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
 

@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -34,6 +36,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 	
 	@Autowired
 	RoleFeatureMapRepository roleFeatureMapRepository;
+
 	
 	private final List<String> WHITELISTED_APIS = Arrays.asList(
 			"/api/authenticateUser",
@@ -92,7 +95,28 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			    "/api/getResourceCountByPoprojectId",
 			    "/api/getResourceCountListByPoprojectName",
 			    "/employeeportal/api/getResourceCountListByPoprojectName",
-				"/employeeportal/api/runTheHolidayCron"
+				"/employeeportal/api/runTheHolidayCron",
+				
+			// Training APIs - Always allowed even when locked
+			"/api/training/getPendingTraining",
+			"/api/training/getUserTrainings",
+			"/api/training/submitConsent",
+			"/api/training/skipTraining",
+			"/api/training/getLockStatus",
+			"/api/training/downloadContent",
+			"/api/training/checkTrainingFrequency",
+			"/employeeportal/api/training/getPendingTraining",
+			"/employeeportal/api/training/getUserTrainings",
+			"/employeeportal/api/training/submitConsent",
+			"/employeeportal/api/training/skipTraining",
+			"/employeeportal/api/training/getLockStatus",
+			"/employeeportal/api/training/downloadContent",
+			"/employeeportal/api/training/checkTrainingFrequency",
+			"/api/poCrudOperationsInIshine",
+			"/api/getExtensionDocumentById",
+			"/employeeportal/api/getEmployeesWorkingInProjects",
+			"/api/getEmployeesWorkingInProjects"
+
 			);
 	
 //	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(
@@ -109,7 +133,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
             throws Exception {
 
         // ✅ Skip static or non-API routes
-        if (!request.getRequestURI().contains("/employeeportal/api/") && !request.getRequestURI().contains("/api/") && !request.getRequestURI().contains("/employeeportalapp/api/")) {
+        if (!request.getRequestURI().contains("/employeeportal/api/") && !request.getRequestURI().contains("/api/") && !request.getRequestURI().contains("/employeeportal/api/")) {
             return true;
         }
 
@@ -119,10 +143,16 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
         }
 
         // ✅ Allow whitelisted APIs
+        boolean isWhitelisted = false;
         for (String api : WHITELISTED_APIS) {
-            if (api.equals(request.getRequestURI())) {
-                return true;
+            if (api.equals(request.getRequestURI()) || request.getRequestURI().startsWith(api.replace("*", ""))) {
+                isWhitelisted = true;
+                break;
             }
+        }
+        
+        if (isWhitelisted) {
+            return true;
         }
 
         // ✅ Get Authorization header
@@ -155,6 +185,8 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 	            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
 	            return false;
         	}
+        	UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(empId, null, List.of());
+            SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
 

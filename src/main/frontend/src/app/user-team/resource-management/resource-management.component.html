@@ -47,7 +47,7 @@
                 <div class="d-flex align-items-center gap-2" style="max-width: 900px; margin-left:30px;">
                     <!-- Departments Section - Keep original functionality -->
                     <div *ngIf="!myDept || currentUser.employeeRole == 'SuperAdmin'" class="department-section">
-                        <div class="flex-column d-flex justify-content-end">
+                        <div class="flex-column d-flex justify-content-end" style="margin-top:15px;">
                             <label style="font-size: 12px; margin-bottom: 4px; font-weight: 500;"
                                 title="As Per Resource - Project Mapping">
                                 <span class="text-danger" *ngIf="currentUser.employeeRole != 'SuperAdmin'">
@@ -789,7 +789,7 @@
                     </div>
 
                     <div class="table-container">
-                        <app-floating-scroll-wrapper>  
+                        <app-floating-scroll-wrapper>
                         <table class="table" id="project-info" matSort (matSortChange)="sortData($event)">
                             <thead class="thead-light">
                                 <tr id="projectInfoTHeadTr">
@@ -1234,8 +1234,8 @@
                             <!-- table body for internal projects  -->
 
                         </table>
-                    </app-floating-scroll-wrapper>            
-    
+                    </app-floating-scroll-wrapper>
+
                         <div class="row col-md-12">
                             <pagination-controls class="my-pagination" [hidden]="allProject_Po_Internal.length == 0"
                                 (pageChange)="handlePageChange($event)"></pagination-controls>
@@ -1279,8 +1279,8 @@
             <div class="team-preview-row">
                 <div class="team-preview-field">
                     <label><span class="text-danger">*</span>Department</label>
-                    <app-my-select #departmentSelect class="form-control" placeholder="Select Department" 
-                            [(ngModel)]="projectObj.departmentList" (ngModelChange)="filterDepartments($event)"       
+                    <app-my-select #departmentSelect class="form-control" placeholder="Select Department"
+                            [(ngModel)]="projectObj.departmentList" (ngModelChange)="filterDepartments($event)"
                              [options]="filteredDepartments" displayKey="name" valueKey="deptId" [multiple]="true">
                     </app-my-select>
                     <!-- <mat-select class="form-control" multiple [(ngModel)]="projectObj.departmentList">
@@ -1787,7 +1787,7 @@
                                 <h5 class="info-label">Team Lead</h5>
                                 <app-my-select #selectTeamLead class="form-control" placeholder="Select Team Lead" [(ngModel)]="teamObj.teamLeadId"
                                     [options]="teamLeadsList" displayKey="name" valueKey="empId" [multiple]="false"
-                                    (selectionChange)="setTeamLead(teamObj.teamLeadId)">
+                                    (selectionChange)="setTeamLead($event)">
                                 </app-my-select>
                                 <!-- <mat-select ngxMatSelect class="form-control" #selectTeamLead="ngxMatSelect"
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="teamLeadsList"
@@ -1934,12 +1934,14 @@
         </div>
     </ng-template>
 
-    <ng-template #projectTemplate>
-        <div class="modal-header">
-            <h1 class="table-header-title">Employee's Projects Details</h1>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest2()">
-                <span aria-hidden="true">×</span>
-            </button>
+    <ng-template #projectTemplate let-modal>
+        <div class="modal-header d-flex justify-content-between align-items-center">
+          <h5 class="table-header-title mb-0">
+            Employee's Projects Details
+          </h5>
+          <button type="button" class="icon-close-btn" (click)="modal.close()">
+            <i class="fa-sharp-duotone fa-solid fa-square-xmark"></i>
+          </button>
         </div>
         <div class="table-container">
         <app-floating-scroll-wrapper>
@@ -1996,6 +1998,30 @@
     <ng-template #delete_modal_template>
         <div class="modal-body text-center">
             <p>Are you sure you want to delete Resource from team and project ?</p>
+             <div class="col-md-12">
+            <div class="info-wrapper">
+                <div class="form-group" style="display: flex;">
+                    <label class="info-label ml-1">Select End Date</label>
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 0rem; align-items: flex-start; margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 8px;">
+                        <input type="radio" name="dateType" value="po"
+                               [(ngModel)]="dateType"
+                               style="margin-right: 8px;">
+                        PO End Date
+                    </label>
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="radio" name="dateType" value="custom"
+                               [(ngModel)]="dateType"
+                               style="margin-right: 8px;">
+                        Custom End Date
+                    </label>
+                </div>
+                    <input id="occasionDate" OnClick="this.showPicker()" type="date" class="form-control"
+                        autocomplete="none" [(ngModel)]="this.lastDate1">
+                </div>
+
+            </div>
+        </div>
             <button type="button" class="btn btn-success"
                 (click)="deleteResourceFromProject2(alert_message2);hideDeleteResourceModalRef()">Yes,
                 proceed</button>&nbsp;
@@ -2180,7 +2206,7 @@
                 <!-- ===== CONTENT PANE 1: Project & Team Info ===== -->
                 <!-- This content pane is shown only when activeModalTab is 'info' -->
                 <div *ngIf="activeModalTab === 'info'">
-                    
+
                     <div class="p-3">
                         <h3>Project Information</h3>
                         <!-- Project Info Fields -->
@@ -2211,16 +2237,15 @@
                                     <mat-option *ngFor="let dept of projectObj.department" disabled
                                         [value]="dept">{{dept}}</mat-option>
                                 </mat-select> -->
-                                <app-my-select class="form-control app-my-select-dropdown" placeholder="Search Department" 		 
-                                    [(ngModel)]="projectObj.department"        
-                                    [options]="projectObj.department" displayKey="dept" valueKey="dept" [multiple]="true">
+                                <app-my-select class="form-control app-my-select-dropdown" placeholder="Search Department"
+                                    [(ngModel)]="projectObj.department" [options]="projectObj.department" [multiple]="true">
                                 </app-my-select>
 
                             </div>
                             <div class="form-field">
                                 <label><span class="text-danger">*</span> Project Manager</label>
-                                <app-my-select #managerSelect  class="form-control app-my-select-dropdown" placeholder="Search Project Manager" 		 
-                                    [(ngModel)]="projectObj.projectManagerId" (ngModelChange)="filterManagers($event)"       
+                                <app-my-select #managerSelect  class="form-control app-my-select-dropdown" placeholder="Search Project Manager"
+                                    [(ngModel)]="projectObj.projectManagerId" (ngModelChange)="filterManagers($event)"
                                     [options]="filteredManagerList" displayKey="name" valueKey="empId" [multiple]="true">
                                 </app-my-select>
                                 <!-- <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectManagerId"
@@ -2247,8 +2272,9 @@
                             </div>
                             <div class="form-field">
                                 <label>Project Overhead</label>
-                                <app-my-select #projectOverheadSelect  class="form-control app-my-select-dropdown" placeholder="Search Project Overhead" 		 [(ngModel)]="projectObj.projectOverheadId" (ngModelChange)="filterOverhead()"                                 
-                                    [options]="filteredOverheadList" displayKey="name" valueKey="empId" [multiple]="true">
+                                <app-my-select #projectOverheadSelect class="form-control app-my-select-dropdown" placeholder="Search Project Overhead"
+                                    [(ngModel)]="projectObj.projectOverheadId" (ngModelChange)="filterOverhead($event)" [options]="filteredOverheadList"
+                                    displayKey="name" valueKey="empId" [multiple]="true">
                                 </app-my-select>
                                 <!-- <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectOverheadId"
                                     panelClass="custom-select-panel">
@@ -2347,8 +2373,8 @@
                                     </div>
                                     <div class="form-field">
                                         <label><span class="text-danger">*</span>Department</label>
-                                        <app-my-select #teamDepartmentSelect class="form-control name-field app-my-select-dropdown" placeholder="Select Department" 
-                                            [(ngModel)]="teamObj.departmentList" (ngModelChange)="filterDepartmentsTeamForm($event)"                                 
+                                        <app-my-select #teamDepartmentSelect class="form-control name-field app-my-select-dropdown" placeholder="Select Department"
+                                            [(ngModel)]="teamObj.departmentList" (ngModelChange)="filterDepartmentsTeamForm($event)"
                                             [options]="filteredDepartmentsTeam" displayKey="name" valueKey="deptId" [multiple]="true"
                                                  style="width: 200px !important ">
                                         </app-my-select>
@@ -2460,7 +2486,8 @@
                                                         Default Project</label>
                                                 </div>
                                                 <div class="action-buttons">
-                                                    <button type="button" class="btn btn-outline-primary"
+                                                    <button type="button"   class="btn"
+                                                        [ngClass]="teamMember.isSelected ? 'btn-active' : 'btn-outline-primary'"
                                                         (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
                                                         <i class="fa fa-trash"></i>
                                                     </button>
@@ -2479,16 +2506,13 @@
                 </div>
 
                 <!-- ===== CONTENT PANE 2: Milestones ===== -->
-                <!-- This content pane is shown only when activeModalTab is 'milestone' AND projectObj.poProjectType is 'fixed cost' -->
-                <div *ngIf="activeModalTab === 'milestone' && projectObj?.poProjectType?.toLowerCase() == 'fixed cost'">
-                    <div class="p-3">
-                        <h3>Project Milestone List</h3>
-
+                <div *ngIf="activeModalTab === 'milestone' && projectObj?.poProjectType?.toLowerCase() == 'fixed cost'"
+                    class="milestone-list-pane">
+                    <div class="milestone-list-pane__inner">
+                        <h3 class="milestone-list-pane__title">Project Milestone List</h3>
 
                         <div *ngIf="isLoadingMilestones" class="milestone-loader-container">
-                            <div class="spinner-grow text-primary" role="status" style="width: 3rem; height: 3rem;">
-                                <!-- <span class="visually-hidden">Loading...</span> -->
-                            </div>
+                            <div class="spinner-grow text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
                             <p class="loader-text mt-3">Fetching Project Milestones...</p>
                             <p class="loader-subtext">Please wait a moment while we load the data.</p>
                         </div>
@@ -2498,64 +2522,150 @@
                             </div>
                         </div>
 
-                        <!-- Milestone Table -->
-                        <div *ngIf="!isLoadingMilestones" class="table-container">
-                            <table class="table" id="project-milestone" matSort
-                                (matSortChange)="sortProjectMilestoneData($event)">
-                                <thead class="thead-light">
-                                    <tr id="projectMilestoneTHeadTr">
-                                        <th scope="col" class="info-label">Sr.No</th>
-                                        <th scope="col" class="info-label" mat-sort-header="lineItemName|string">Line
-                                            Item
-                                        </th>
-                                        <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>
-                                        <th scope="col" class="info-label">Description</th>
-                                        <th scope="col" class="info-label" mat-sort-header="startDate|string">Start Date
-                                        </th>
-                                        <th scope="col" class="info-label" mat-sort-header="endDate|string">End Date
-                                        </th>
-                                        <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
-                                        <th scope="col" class="info-label">Remarks</th>
-                                        <th scope="col" class="info-label">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <ng-container *ngIf="fcProjectMilestoneList.length == 0">
+                        <div *ngIf="!isLoadingMilestones" class="milestone-table-wrap">
+                            <div class="table-container">
+                                <table class="table milestone-table" id="project-milestone" matSort
+                                    (matSortChange)="sortProjectMilestoneData($event)">
+                                    <thead class="milestone-table__head">
                                         <tr>
-                                            <td colspan="9" class="text-center info-label">No details to display...</td>
+                                            <th scope="col" class="milestone-table__th">#</th>
+                                            <th scope="col" class="milestone-table__th" mat-sort-header="lineItemName|string">Line Item</th>
+                                            <th scope="col" class="milestone-table__th" mat-sort-header="name|string">Name</th>
+                                            <th scope="col" class="milestone-table__th">Description</th>
+                                            <th scope="col" class="milestone-table__th" mat-sort-header="startDate|string">Start Date</th>
+                                            <th scope="col" class="milestone-table__th" mat-sort-header="endDate|string">End Date</th>
+                                            <th scope="col" class="milestone-table__th" mat-sort-header="status|string">Status</th>
+                                            <th scope="col" class="milestone-table__th">Remarks</th>
+                                            <th scope="col" class="milestone-table__th milestone-table__th--actions">Actions</th>
                                         </tr>
-                                    </ng-container>
-                                    <ng-container
-                                        *ngFor="let milestone of fcProjectMilestoneList | sort : [projectMilestoneSortColumn, projectMilestoneSortColumnType, projectMilestoneSortDirection]| paginate: { itemsPerPage: 10, currentPage: projectMilestonepage }; let j = index">
-                                        <tr>
-                                            <td>{{j+1}}</td>
-                                            <td>{{milestone.lineItemName}}</td>
-                                            <td>{{milestone.name}}</td>
-                                            <td>{{milestone.description}}</td>
-                                            <td>{{milestone.startDate | date:'dd/MM/yyyy'}}</td>
-                                            <td>{{milestone.endDate | date:'dd/MM/yyyy'}}</td>
-                                            <td>{{milestone.status}}</td>
-                                            <td>{{milestone.remarks}}</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-primary"
-                                                    [disabled]="milestone.status === 'Completed'"
-                                                    [title]="milestone.status === 'Completed' ? 'Cannot edit completed milestone' : ''"
-                                                    (click)="openUpdateProjectMilestoneModal(milestone)">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>&nbsp;&nbsp;
-
-                                                <button *ngIf="milestone.status === 'Completed'"
-                                                    class="btn btn-sm btn-info" title="View Document"
-                                                    (click)="viewFiles(milestone.id)">
-                                                    <i class="fas fa-file-alt"></i>
-                                                </button>
-                                            </td>
+                                    </thead>
+                                    <tbody class="milestone-table__body">
+                                        <tr *ngIf="fcProjectMilestoneList.length === 0" class="milestone-table__empty">
+                                            <td colspan="9" class="text-center">No milestones to display.</td>
                                         </tr>
-                                    </ng-container>
-                                </tbody>
-                            </table>
-                            <div class="row col-md-12">
-                                <pagination-controls class="my-pagination" [hidden]="fcProjectMilestoneList.length == 0"
+                                        <ng-container
+                                            *ngFor="let milestone of fcProjectMilestoneList | sort : [projectMilestoneSortColumn, projectMilestoneSortColumnType, projectMilestoneSortDirection] | paginate: { itemsPerPage: 10, currentPage: projectMilestonepage }; let j = index">
+                                            <tr class="milestone-table__row">
+                                                <td class="milestone-table__cell">{{ (projectMilestonepage - 1) * 10 + j + 1 }}</td>
+                                                <td class="milestone-table__cell">{{ milestone.lineItemName }}</td>
+                                                <td class="milestone-table__cell">{{ milestone.name }}</td>
+                                                <td class="milestone-table__cell milestone-table__cell--desc">{{ milestone.description }}</td>
+                                                <td class="milestone-table__cell">
+                                                    <span *ngIf="milestone.milestoneExtendedStartDateLogs?.length > 0"
+                                                        class="milestone-table__link"
+                                                        (click)="toggleLogs(milestone,'start')">
+                                                        {{ milestone.startDate | date:'dd/MM/yyyy' }}
+                                                        <i class="fas fa-chevron-down ml-1"></i>
+                                                    </span>
+                                                    <span *ngIf="!milestone.milestoneExtendedStartDateLogs?.length">
+                                                        {{ milestone.startDate | date:'dd/MM/yyyy' }}
+                                                    </span>
+                                                </td>
+                                                <td class="milestone-table__cell">
+                                                    <span *ngIf="milestone.milestoneExtendedEndDateLogs?.length > 0"
+                                                        class="milestone-table__link"
+                                                        (click)="toggleLogs(milestone,'end')">
+                                                        {{ milestone.endDate | date:'dd/MM/yyyy' }}
+                                                        <i class="fas fa-chevron-down ml-1"></i>
+                                                    </span>
+                                                    <span *ngIf="!milestone.milestoneExtendedEndDateLogs?.length">
+                                                        {{ milestone.endDate | date:'dd/MM/yyyy' }}
+                                                    </span>
+                                                </td>
+                                                <td class="milestone-table__cell">
+                                                    <span *ngIf="milestone.milestoneStatusLogs?.length > 0"
+                                                        class="milestone-table__link"
+                                                        (click)="toggleLogs(milestone,'status')">
+                                                        {{ milestone.status }}
+                                                        <i class="fas fa-chevron-down ml-1"></i>
+                                                    </span>
+                                                    <span *ngIf="!milestone.milestoneStatusLogs?.length">{{ milestone.status }}</span>
+                                                </td>
+                                                <td class="milestone-table__cell milestone-table__cell--desc">{{ milestone.remarks }}</td>
+                                                <td class="milestone-table__cell milestone-table__cell--actions">
+                                                    <button type="button" class="milestone-table__btn milestone-table__btn--edit"
+                                                        [title]="milestone.status === 'Completed' ? 'Cannot edit completed milestone' : 'Edit'"
+                                                        (click)="openUpdateProjectMilestoneModal(milestone)">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button *ngIf="milestone.status === 'Completed'" type="button"
+                                                        class="milestone-table__btn milestone-table__btn--doc"
+                                                        title="View Document"
+                                                        (click)="previewDocument(milestone.id, milestone.documentName)">
+                                                        <i class="fas fa-file-alt"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr *ngIf="expandedMilestoneId === milestone.id" class="milestone-table__expand-row">
+                                                <td colspan="9" class="milestone-table__expand-cell">
+                                                    <div class="milestone-accordion">
+                                                        <div class="milestone-accordion__header">
+                                                            <span class="milestone-accordion__title">
+                                                                <i class="fas fa-history"></i>
+                                                                Milestone {{ logHeader }} Logs
+                                                                <span class="milestone-accordion__count">({{ selectedLogs.length }})</span>
+                                                            </span>
+                                                            <button type="button" class="milestone-accordion__close"
+                                                                aria-label="Close logs"
+                                                                (click)="toggleLogs(milestone, selectedLogType!)">
+                                                                <i class="fas fa-times"></i> Close
+                                                            </button>
+                                                        </div>
+                                                        <div class="milestone-accordion__body">
+                                                            <div *ngIf="selectedLogs.length === 0" class="milestone-logs-empty">
+                                                                No logs available.
+                                                            </div>
+                                                            <div *ngIf="selectedLogs.length > 0" class="milestone-logs">
+                                                                <div *ngFor="let log of selectedLogs; let k = index; trackBy: trackByLog"
+                                                                    class="milestone-log-card">
+                                                                    <div class="milestone-log-card__row">
+                                                                        <div class="milestone-log-card__meta">
+                                                                            <span class="milestone-log-card__num">{{ k + 1 }}</span>
+                                                                            <span class="milestone-log-card__by">{{ log.updatedByName }}</span>
+                                                                            <span class="milestone-log-card__on">{{ log.updatedOn | date:'dd/MM/yyyy HH:mm' }}</span>
+                                                                        </div>
+                                                                        <div class="milestone-log-card__values" *ngIf="logHeader !== 'Status'">
+                                                                            <span class="milestone-log-card__old">{{ log.oldValue | date:'dd/MM/yyyy' }}</span>
+                                                                            <i class="fas fa-arrow-right milestone-log-card__arrow"></i>
+                                                                            <span class="milestone-log-card__new">{{ log.newValue | date:'dd/MM/yyyy' }}</span>
+                                                                        </div>
+                                                                        <div class="milestone-log-card__values" *ngIf="logHeader === 'Status'">
+                                                                            <span class="milestone-log-card__old">{{ log.oldValue }}</span>
+                                                                            <i class="fas fa-arrow-right milestone-log-card__arrow"></i>
+                                                                            <span class="milestone-log-card__new">{{ log.newValue }}</span>
+                                                                        </div>
+                                                                        <div class="milestone-log-card__reasons" *ngIf="logHeader !== 'Status'">
+                                                                            <span class="milestone-log-card__reason" *ngIf="log.extentionReason">
+                                                                                {{ log.extentionReason }}
+                                                                            </span>
+                                                                            <span class="milestone-log-card__reason milestone-log-card__reason--custom" *ngIf="log.othersReason || log.otherReason">
+                                                                                {{ log.othersReason || log.otherReason }}
+                                                                            </span>
+                                                                            <span class="milestone-log-card__na" *ngIf="!log.extentionReason && !log.othersReason && !log.otherReason">—</span>
+                                                                        </div>
+                                                                        <div class="milestone-log-card__doc">
+                                                                            <button *ngIf="log.documentName" type="button"
+                                                                                class="milestone-log-card__doc-btn"
+                                                                                (click)="previewDocument(milestone.id, log.documentName)">
+                                                                                <i class="fas fa-eye"></i> View
+                                                                            </button>
+                                                                            <span *ngIf="!log.documentName" class="milestone-log-card__doc-na" title="Document not present">
+                                                                                <i class="fas fa-eye-slash"></i>
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </ng-container>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="milestone-pagination" [hidden]="fcProjectMilestoneList.length === 0">
+                                <pagination-controls class="my-pagination"
                                     (pageChange)="handleProjectMilestonePageChange($event)"></pagination-controls>
                             </div>
                         </div>
@@ -2582,7 +2692,7 @@
                                 ℹ️
                                 <span class="tooltip">{{infoTitle}}</span>
                             </span>
-                            
+
                             </div>
                             <h4>
                                 <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
@@ -2666,14 +2776,14 @@
                                 <span class="arrow" [class.up]="expandedIndex">&#9662;</span>
                             </button>
                         </div>
-                        
+
                     </div>
                 <div class="requirement-dropdown" [class.open]="expandedIndex">
                     <div class="requirement-list" >
                         <div
                           class="requirement-card"
                           *ngFor="let requirement of projectObj.resourceRequirements"
-                          [title]="'Role - ' + requirement.role + ' | Dept - ' + requirement.department + 
+                          [title]="'Role - ' + requirement.role + ' | Dept - ' + requirement.department +
                           ' | Exp - ' + requirement.experience + ' yrs | Required Resource Count - ' + requirement.count"
                           >
                           <div class="requirement-header">
@@ -2687,17 +2797,21 @@
                         </div>
                     </div>
                 </div>
-                      
+
                 </div>
 
                 <div class="add-team-row mt-2 d-flex flex-wrap align-items-center gap-2">
 
                     <!-- Employee Search Input -->
                     <div class="add-team-field flex-grow-1" title="add team member">
-                        <input type="text" class="form-control w-100" placeholder="Search by Emp ID or Name"
+                        <app-my-select #empNameSelect class="form-control app-round-border" placeholder="Search by Emp ID or Name"
+                             (selectionChange)="onTeamMemberSelected($event);openProjectTemplateModal(projectTemplate, newteamMember)"
+                             [options]="employeeListByDept" displayKey="name" >
+                        </app-my-select>
+                        <!-- <input type="text" class="form-control w-100" placeholder="Search by Emp ID or Name"
                             aria-label="Search employee" [formControl]="teamMemberCtrl"
                             [matAutocomplete]="teamMemberAuto" />
-                        <mat-autocomplete #teamMemberAuto="matAutocomplete" (optionSelected)="onTeamMemberSelected($event); 
+                        <mat-autocomplete #teamMemberAuto="matAutocomplete" (optionSelected)="onTeamMemberSelected($event);
                             openProjectTemplateModal(projectTemplate, newteamMember)" [displayWith]="displayEmployee">
                             <mat-option
                                 *ngFor="let newteamMember of employeeListByDept | filterEmployee: teamMemberCtrl.value"
@@ -2705,14 +2819,14 @@
                                 [disabled]="newteamMember.isSelected || isEmployeeInTeam(newteamMember)">
                                 {{ newteamMember.name }}
                             </mat-option>
-                        </mat-autocomplete>
+                        </mat-autocomplete> -->
                     </div>
 
                     <!-- Role Selection -->
                     <div class="add-team-field">
-                        <app-my-select #roleSelect class="form-control app-round-border" placeholder="Select Role" [(ngModel)]="newteamMember.employeeRole"                                  
+                        <app-my-select #roleSelect class="form-control app-round-border" placeholder="Select Role" [(ngModel)]="newteamMember.employeeRole"
                              [options]="employeeRoleList" displayKey="role" valueKey="role" [multiple]="true">
-                            </app-my-select>                        
+                            </app-my-select>
                             <!-- <mat-select class="form-control" multiple [(ngModel)]="newteamMember.employeeRole">
                             <mat-option value="" disabled>Select</mat-option>
                             <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role }}</mat-option>
@@ -2891,8 +3005,8 @@
                                                         (ngModelChange)="member.isDefaultProject = $event ? 1 : 0"
                                                         (change)="onDefaultProjectCheckboxChange($event, member)"
                                                         [disabled]="!member.otherActiveProjects || member.otherActiveProjects.length === 0"
-                                                        [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0 
-                                                            ? 'Only mapped to one project, cannot unset default to prevent null billability.' 
+                                                        [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0
+                                                            ? 'Only mapped to one project, cannot unset default to prevent null billability.'
                                                             : null" />
                                                     Default Project
                                                 </label>
@@ -2966,7 +3080,7 @@
 
                             <!-- <div class="accordion-body" *ngIf="requirement.expanded"
                                 style="overflow-y: auto; max-height: 200px;"> -->
-                                <div class="accordion-body" 
+                                <div class="accordion-body"
                                 >
                                 <div class="accordion-content">
                                     <div class="team-member-col">
@@ -3031,7 +3145,7 @@
 
                                             <!-- <button type="button" class="btn btn-outline-primary mx-1"
                                             (click)="removeTeamMember1(member)">
-                                            <i class="fa fa-trash" aria-hidden="true"></i> 
+                                            <i class="fa fa-trash" aria-hidden="true"></i>
                                         </button> -->
 
                                             <!-- Shadow and Default Project checkboxes -->
@@ -3047,8 +3161,8 @@
                                                     (ngModelChange)="member.isDefaultProject = $event ? 1 : 0"
                                                     (change)="onDefaultProjectCheckboxChange($event, member)"
                                                     [disabled]="!member.otherActiveProjects || member.otherActiveProjects.length === 0"
-                                                    [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0 
-                                                            ? 'Only mapped to one project, cannot unset default to prevent null billability.' 
+                                                    [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0
+                                                            ? 'Only mapped to one project, cannot unset default to prevent null billability.'
                                                             : null" />
                                                 Default Project
                                             </label>
@@ -3219,8 +3333,8 @@
                                                         (ngModelChange)="member.isDefaultProject = $event ? 1 : 0"
                                                         (change)="onDefaultProjectCheckboxChange($event, member)"
                                                         [disabled]="!member.otherActiveProjects || member.otherActiveProjects.length === 0"
-                                                        [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0 
-                                                            ? 'Only mapped to one project, cannot unset default to prevent null billability.' 
+                                                        [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0
+                                                            ? 'Only mapped to one project, cannot unset default to prevent null billability.'
                                                             : null" />
                                                     Default Project
                                                 </label>
@@ -3549,13 +3663,13 @@
                     <label class="info-label ml-1">Select End Date</label>
                 <div class="form-group" style="display: flex; flex-direction: column; gap: 0rem; align-items: flex-start; margin-bottom: 15px;">
                     <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 8px;">
-                        <input type="radio" name="dateType" value="po" 
+                        <input type="radio" name="dateType" value="po"
                                [(ngModel)]="dateType"
                                style="margin-right: 8px;">
                         PO End Date
                     </label>
                     <label style="display: flex; align-items: center; cursor: pointer;">
-                        <input type="radio" name="dateType" value="custom" 
+                        <input type="radio" name="dateType" value="custom"
                                [(ngModel)]="dateType"
                                style="margin-right: 8px;">
                         Custom End Date
@@ -3564,7 +3678,7 @@
                     <input id="occasionDate" OnClick="this.showPicker()" type="date" class="form-control"
                         autocomplete="none" [(ngModel)]="this.lastDate1">
                 </div>
-               
+
             </div>
         </div>
         <button type="button" class="btn btn-success" *ngIf="selectedMembers.length > 0"
@@ -3601,7 +3715,7 @@
             <div class="mb-3 p-2 border rounded">
                 <div class="form-group">
                     <label>Project Name</label>
-                    <app-my-select #projectIdSelect class="form-control" placeholder="Search project..." [(ngModel)]="selectedOtherProjectId" (ngModelChange)="filterOtherProjects($event)"                                 
+                    <app-my-select #projectIdSelect class="form-control" placeholder="Search project..." [(ngModel)]="selectedOtherProjectId" (ngModelChange)="filterOtherProjects($event)"
                              [options]="filteredOtherProjectList" displayKey="projectName" valueKey="projectId" >
                     </app-my-select>
                     <!-- <mat-select [(ngModel)]="selectedOtherProjectId" disableOptionCentering>
@@ -3930,8 +4044,8 @@
                                     <div class="form-group" style="display: flex; align-items: center;">
                                         <app-my-select class="department-select"
                                             [(ngModel)]="emp.projectId"  displayKey="projectName" valueKey="projectId"
-                                            [options]="emp.projectType === 'bench' ? filteredProjectsForDefaultBulkBench : filteredProjectsForDefaultBulkOther"  
-                                            placeholder="Select Project" 
+                                            [options]="emp.projectType === 'bench' ? filteredProjectsForDefaultBulkBench : filteredProjectsForDefaultBulkOther"
+                                            placeholder="Select Project"
                                             (selectionChange)="getTeamListForSelectedProject1(emp)">
                                         </app-my-select>
 
@@ -3955,7 +4069,7 @@
                                 </td>
                                 <td>
                                     <div class="form-group" style="display: flex; align-items: center;">
-                                        <app-my-select class="department-select" placeholder="Search Team" [(ngModel)]="emp.teamId" (ngModelChange)="filterTeamsForDefaultBulk($event)"                                 
+                                        <app-my-select class="department-select" placeholder="Search Team" [(ngModel)]="emp.teamId" (ngModelChange)="filterTeamsForDefaultBulk($event)"
                                              [options]="filteredTeamsForDefaultBulk" displayKey="teamName" valueKey="teamId" >
                                         </app-my-select>
                                         <!-- <mat-select [(ngModel)]="emp.teamId" disableOptionCentering>
@@ -3975,7 +4089,7 @@
                                 </td>
 
                                 <td>
-                                <app-my-select class="department-select"  placeholder="Select Role..." [(ngModel)]="emp.employeeRole"                                  
+                                <app-my-select class="department-select"  placeholder="Select Role..." [(ngModel)]="emp.employeeRole"
                                      [options]="employeeRoleList" displayKey="role" valueKey="role" [multiple]="true">
                                 </app-my-select>
                                     <!-- <mat-select multiple [(ngModel)]="emp.employeeRole">
@@ -3997,7 +4111,7 @@
                                         </mat-option>
                                     </mat-select>
                                 </div>
- 
+
                                 </td> -->
                                 <td>
                                     <div class="form-group" style="display: flex; align-items: center;">
@@ -4198,10 +4312,10 @@
         </button>
     </div>
     <div class="modal-body">
-        <div class="table-container">
-            <table class="table" id="project-milestone" matSort (matSortChange)="sortProjectMilestoneData($event)">
+        <div class="table-scroll-wrapper">
+            <table class="table" id="project-milestone1" matSort (matSortChange)="sortProjectMilestoneData($event)">
                 <thead class="thead-light">
-                    <tr id="projectMilestoneTHeadTr">
+                    <tr id="projectMilestoneTHeadTr1">
                         <th scope="col" class="info-label">Sr.No</th>
                         <th scope="col" class="info-label" mat-sort-header="lineItemName|string">Line Item</th>
                         <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>
@@ -4228,6 +4342,7 @@
                             <td>{{milestone.description}}</td>
                             <td>{{milestone.startDate | date:'dd/MM/yyyy'}}</td>
                             <td>{{milestone.endDate | date:'dd/MM/yyyy'}}</td>
+                            <td>{{milestone.status}}</td>
                             <td>{{milestone.status}}</td>
                             <td>{{milestone.remarks}}</td>
                             <td>
@@ -4304,134 +4419,235 @@
 
 
 <ng-template #update_project_milestone_modal>
-    <div class="modal-header">
-        <h4 class="modal-title pull-left">Update Project Milestone</h4>
-        <button type="button" class="close pull-right" aria-label="Close" (click)="closeUpdateProjectMilestoneModal()">
-            <span aria-hidden="true">&times;</span>
+  <div class="ep-milestone-modal">
+    <header class="ep-milestone-modal__header">
+      <div class="ep-milestone-modal__header-accent"></div>
+      <div class="ep-milestone-modal__header-inner">
+        <h2 class="ep-milestone-modal__title">Update Milestone</h2>
+        <p class="ep-milestone-modal__subtitle">Change status, extend dates, or attach documents</p>
+        <button type="button" class="ep-milestone-modal__close" aria-label="Close" (click)="closeUpdateProjectMilestoneModal()">
+          <i class="fa fa-times"></i>
         </button>
+      </div>
+    </header>
 
-
-    </div>
-    <div class="modal-body">
-
-        <div *ngIf="isLoadingMilestone" class="loader-overlay">
-            <div class="spinner-border text-primary" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
+    <div class="ep-milestone-modal__body">
+      <aside class="ep-milestone-modal__aside" aria-label="Milestone context">
+        <div class="ep-milestone-aside__card">
+          <!-- <span class="ep-milestone-aside__badge">Context</span> -->
+          <ul class="ep-milestone-aside__list">
+            <li class="ep-milestone-aside__item">
+              <span class="ep-milestone-aside__key">Line Item</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.lineItemName || '—' }}</span>
+            </li>
+            <li class="ep-milestone-aside__item">
+              <span class="ep-milestone-aside__key">Milestone</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.name || '—' }}</span>
+            </li>
+            <li class="ep-milestone-aside__item">
+              <span class="ep-milestone-aside__key">Start Date</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.startDate ? (projectMilestone.startDate | date:'d MMM yyyy') : '—' }}</span>
+            </li>
+            <li class="ep-milestone-aside__item">
+              <span class="ep-milestone-aside__key">End Date</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.endDate ? (projectMilestone.endDate | date:'d MMM yyyy') : '—' }}</span>
+            </li>
+            <li class="ep-milestone-aside__item ep-milestone-aside__item--full">
+              <span class="ep-milestone-aside__key">Description</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.description || '—' }}</span>
+            </li>
+          </ul>
         </div>
+      </aside>
 
-        <div class="form-group">
-            <div class="form-field">
-                <label>Line Item Name</label>
-                <input type="text" disabled [(ngModel)]="projectMilestone.lineItemName" />
-            </div>
-            <div class="form-field">
-                <label>Milestone Name</label>
-                <input type="text" disabled [(ngModel)]="projectMilestone.name" />
-            </div>
-
-
-
-            <!-- <div class="form-field">
-                <label>Start Date</label>
-                <input id="startDate" class="form-control static-input" autocomplete="off"
-                    [(ngModel)]="projectMilestone.startDate" [owlDateTimeTrigger]="startDatePicker"
-                    [owlDateTime]="startDatePicker" placeholder="Select Start Date" [disabled]="true">
-                <owl-date-time #startDatePicker></owl-date-time>
-            </div> -->
-
-            <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Start Date</mat-label>
-                <input matInput [matDatepicker]="startDatePicker" [(ngModel)]="projectMilestone.startDate"
-                    placeholder="Select Start Date" [disabled]="true" autocomplete="off" />
-                <!-- Datepicker icon -->
-                <mat-datepicker-toggle matSuffix [for]="startDatePicker">
-                </mat-datepicker-toggle>
-                <mat-datepicker #startDatePicker></mat-datepicker>
+      <main class="ep-milestone-modal__main">
+        <section class="ep-milestone-form-section">
+          <h3 class="ep-milestone-form-section__title">Date</h3>
+          <div class="ep-milestone-form-row">
+            <mat-form-field appearance="outline" class="ep-milestone-field ep-milestone-field--half ep-datepicker-57px">
+              <mat-label>Extend end date</mat-label>
+              <input matInput
+                [matDatepicker]="extendedDatePicker"
+                [(ngModel)]="projectMilestone.extendedDate"
+                [min]="minExtendedDateformilestone"
+                placeholder="Pick a date"
+                autocomplete="off"
+                (dateChange)="onExtendedDateChange($event)" />
+              <mat-datepicker-toggle matSuffix [for]="extendedDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #extendedDatePicker></mat-datepicker>
+              <mat-icon matSuffix   [matTooltip]="'You may select any date after the Start Date.
+                1. Select a date before the End Date to close the milestone earlier.
+                2. Select a date after the End Date to extend the milestone duration.'"
+                matTooltipClass="milestone-tooltip"
+                matTooltipPosition="above" class="ep-milestone-field__hint">info</mat-icon>
             </mat-form-field>
+          </div>
+        </section>
 
+        <section class="ep-milestone-form-section ep-milestone-form-section--extension" *ngIf="isExtensionEnabled">
+          <h3 class="ep-milestone-form-section__title ep-milestone-form-section__title--warning">
+            <i class="fa fa-calendar-plus"></i> Extension details
+          </h3>
+          <!-- Row 1: Reason and Extension document on one line -->
+          <div class="ep-milestone-form-row ep-extension-one-line">
+            <div class="ep-milestone-field ep-milestone-field--half ep-extension-reason-cell">
+              <div class="ep-extension-reason-level">
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Reason for extension <span class="ep-required">*</span></mat-label>
+                  <mat-select [(ngModel)]="projectMilestone.extensionReason">
+                    <mat-option *ngFor="let reason of milestoneExtendReason" [value]="reason">
+                      {{ reason.milestoneExtensionReason }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="ep-milestone-field ep-milestone-field--half ep-extension-doc-cell">
+              <div class="ep-extension-doc-level">
+                <label class="ep-label ep-label--inline">Extension document</label>
+                <div class="ep-upload-wrapper">
+                  <div class="ep-upload ep-upload--extension" [class.ep-upload--filled]="projectMilestone.extensionFile">
+                    <label class="ep-upload__zone">
+                      <input type="file" class="ep-upload__input"
+                        (change)="onExtensionFileSelected($event, projectMilestone)"
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        #extensionFileInput />
+                      <ng-container *ngIf="!projectMilestone.extensionFile">
+                        <i class="fa fa-cloud-upload-alt ep-upload__icon"></i>
+                        <span class="ep-upload__text">Drop file or <span class="ep-upload__browse">browse</span></span>
+                        <span class="ep-upload__types">JPG, PNG, PDF</span>
+                      </ng-container>
+                      <ng-container *ngIf="projectMilestone.extensionFile">
+                        <i class="fa fa-file-alt ep-upload__icon ep-upload__icon--file"></i>
+                        <span class="ep-upload__placeholder">File selected</span>
+                      </ng-container>
+                    </label>
+                    <div class="ep-upload__btns">
+                      <button type="button" class="ep-btn ep-btn--ghost" (click)="previewMilestoneFile(projectMilestone.extensionFile)" [disabled]="!projectMilestone.extensionFile">
+                        <i class="fa fa-eye"></i>
+                      </button>
+                      <button type="button" class="ep-btn ep-btn--ghost" (click)="clearExtensionFile(extensionFileInput)" [disabled]="!projectMilestone.extensionFile">
+                        <i class="fa fa-trash-alt"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <p *ngIf="projectMilestone.extensionFile" class="ep-upload-filename">{{ projectMilestone.extensionFile?.name }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Row 2: Custom reason full width (when Other is selected) -->
+          <div *ngIf="projectMilestone?.extensionReason?.milestoneExtensionReason === 'Other'" class="ep-milestone-custom-reason ep-extension-custom-row">
+            <label class="ep-label">Custom reason <span class="ep-required">*</span></label>
+            <textarea class="ep-textarea"
+              [(ngModel)]="projectMilestone.customReason"
+              name="customReason"
+              placeholder="Specify your reason"
+              rows="3"></textarea>
+          </div>
+        </section>
+        <br>
 
-            <!-- <div class="form-field">
-                <label>End Date</label>
-                <input id="endDate" class="form-control static-input" autocomplete="off"
-                    [(ngModel)]="projectMilestone.endDate" [owlDateTimeTrigger]="endDatePicker"
-                    [owlDateTime]="endDatePicker" placeholder="Select End Date" [disabled]="true">
-                <owl-date-time #endDatePicker></owl-date-time>
-            </div> -->
+        <!-- Update Milestone Extension Details -->
+        <div class="d-flex justify-content-end" *ngIf="this.isExtensionEnabled && this.projectMilestone.extendedDate">
+        <button type="button" class="ep-btn ep-btn--primary" [disabled]="projectMilestone.status === 'Completed'" 
+        [title]="projectMilestone.status === 'Completed'  ? 'Date cannot be updated after milestone is marked completed': 'Click to update milestone extension details'"
+        (click)="updateMilestoneExtendedDateWithReason()">Update Extension</button>
+      </div>
 
-            <mat-form-field appearance="outline" class="form-field">
-                <mat-label>End Date</mat-label>
-                <input matInput [matDatepicker]="endDatePicker" [(ngModel)]="projectMilestone.endDate" placeholder="Select End Date"
-                    autocomplete="off" [disabled]="true" />
-                <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
-                <mat-datepicker #endDatePicker></mat-datepicker>
+        <section class="mt-5">
+            <mat-form-field appearance="outline" class="ep-milestone-field ep-milestone-field--half">
+              <mat-label>Status</mat-label>
+              <mat-select [(ngModel)]="projectMilestone.status" (selectionChange)="onStatusChange($event.value)">
+                <mat-option [value]="projectMilestone.status">{{ projectMilestone.status }}</mat-option>
+                <ng-container *ngFor="let status of statusList">
+                  <mat-option *ngIf="status != projectMilestone.status" [value]="status">{{ status }}</mat-option>
+                </ng-container>
+              </mat-select>
+              <mat-hint *ngIf="projectMilestone.status === 'Completed' || projectMilestone.status === 'On Hold'">Document required</mat-hint>
             </mat-form-field>
+        </section>
 
+        <section class="ep-milestone-form-section mt-3">
+          <h3 class="ep-milestone-form-section__title">Remarks</h3>
+          <mat-form-field appearance="outline" class="ep-milestone-field ep-milestone-field--full">
+            <mat-label>Notes (optional)</mat-label>
+            <textarea matInput rows="3" [(ngModel)]="projectMilestone.remarks" placeholder="Add any notes for this update"></textarea>
+          </mat-form-field>
+        </section>
 
-            <div class="form-field">
-                <label>Description</label>
-                <input type="text" disabled [(ngModel)]="projectMilestone.description" />
+        <section class="ep-milestone-form-section">
+          <h3 class="ep-milestone-form-section__title">
+            Status document
+            <span class="ep-required" *ngIf="projectMilestone.status === 'Completed' || projectMilestone.status === 'On Hold'">*</span>
+          </h3>
+          <div class="ep-upload-wrapper">
+            <div class="ep-upload" [class.ep-upload--filled]="selectedFile">
+              <label class="ep-upload__zone">
+                <input type="file" class="ep-upload__input" (change)="onFileSelected($event, projectMilestone)"
+                  accept=".jpg,.jpeg,.png" #fileInput />
+                <ng-container *ngIf="!selectedFile">
+                  <i class="fa fa-image ep-upload__icon"></i>
+                  <span class="ep-upload__text">Drop image or <span class="ep-upload__browse">browse</span></span>
+                  <span class="ep-upload__types">JPG, JPEG, PNG, PDF</span>
+                </ng-container>
+                <ng-container *ngIf="selectedFile">
+                  <i class="fa fa-file-image ep-upload__icon ep-upload__icon--file"></i>
+                  <span class="ep-upload__placeholder">File selected</span>
+                </ng-container>
+              </label>
+              <div class="ep-upload__btns">
+                <button type="button" class="ep-btn ep-btn--ghost" (click)="previewMilestoneFile(selectedFile)" [disabled]="!selectedFile">
+                  <i class="fa fa-eye"></i>
+                </button>
+                <button type="button" class="ep-btn ep-btn--ghost" (click)="clearSelectedFile(fileInput)" [disabled]="!selectedFile">
+                  <i class="fa fa-trash-alt"></i>
+                </button>
+              </div>
             </div>
-
-
-            <div class="form-field">
-
-                <label>Status</label>
-                <mat-select [(ngModel)]="projectMilestone.status">
-                    <mat-option [value]="projectMilestone.status">{{projectMilestone.status}}</mat-option>
-                    <ng-container *ngFor="let status of statusList; let i=index;">
-                        <mat-option *ngIf="status!=projectMilestone.status" [value]="status">
-                            {{status}}
-                        </mat-option>
-                    </ng-container>
-                </mat-select>
-            </div>
-
-            <div class="form-field full-width">
-                <label>Remarks</label>
-                <textarea class="form-control" [(ngModel)]="projectMilestone.remarks" rows="3"></textarea>
-            </div>
-
-
-            <div class="form-field full-width">
-                <label> <span class="text-danger"
-                        *ngIf="projectMilestone.status==='Completed' || projectMilestone.status==='On Hold'">*</span>
-                    Upload Document</label>
-
-                <!-- Group the input and button together for better layout -->
-                <div class="file-input-group">
-
-                    <!-- Your existing file input -->
-                    <input type="file" class="plain-file-input" (change)="onFileSelected($event)"
-                        accept=".jpg,.jpeg,.png" #fileInput />
-
-                    <!-- The new Preview Button -->
-                    <button type="button" class="btn btn-sm btn-outline-secondary ml-2" (click)="previewSelectedFile()"
-                        [disabled]="!selectedFile"> <!-- Button is disabled until a file is chosen -->
-                        <i class="fa fa-eye"></i> Preview
-                    </button>
-
-                    <button type="button" class="btn btn-sm btn-outline-danger ml-2"
-                        (click)="clearSelectedFile(fileInput)" [disabled]="!selectedFile">
-                        <i class="fa fa-times"></i> Clear
-                    </button>
-
-
-                </div>
-                <!-- Optional: Display the selected file name -->
-                <div *ngIf="selectedFile" class="file-name-display">
-                    Selected: {{ selectedFile.name }}
-                </div>
-            </div>
-
-        </div>
+            <p *ngIf="selectedFile" class="ep-upload-filename">{{ selectedFile.name }}</p>
+          </div>
+        </section>
+      </main>
     </div>
 
-    <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeUpdateProjectMilestoneModal()">Close</button>
-        <button type="button" class="btn btn-primary" (click)="updateMilestoneChanges()">Update</button>
-    </div>
+    <footer class="ep-milestone-modal__footer">
+      <span class="ep-milestone-modal__footer-note">RM, HOD and directors will be notified.</span>
+      <div class="ep-milestone-modal__footer-actions">
+        <button type="button" class="ep-btn ep-btn--secondary" (click)="closeUpdateProjectMilestoneModal()">Cancel</button>
+        <button type="button" class="ep-btn ep-btn--primary"   
+        [title]="!isStatusChanged ? 'Change milestone status to update' : 'Click to update milestone status'"
+        (click)="openMileStoneStatusModal()">Update status</button>
+      </div>
+    </footer>
+  </div>
 </ng-template>
+
+<ng-template #project_milestone_document>
+  <div class="modal-header">
+    <h5 class="modal-title">Milestone Document Preview</h5>
+        <button type="button" class="close" aria-label="Close" (click)="closeProjectMilestoneDocumentsModal()">
+        <span aria-hidden="true">&times;</span>
+        </button>
+  </div>
+
+  <div class="modal-body text-center">
+
+    <!-- PDF -->
+    <iframe *ngIf="isPdfFile" [src]="milestoneDocumentUrl" width="100%" height="600px" style="border: none;">
+    </iframe>
+
+    <!-- IMAGE -->
+    <img *ngIf="isImageFile" [src]="milestoneDocumentUrl" class="img-fluid" style="max-height: 600px;" />
+    
+    <div *ngIf="!isPdfFile && !isImageFile">
+      <p>Preview not supported for this file type.</p>
+    </div>
+
+  </div>
+
+</ng-template> 
+
 <ng-template #update_project_completion_modal>
     <div class="modal-body text-center">
         <p>{{ modalMessage }}</p>
@@ -4621,4 +4837,49 @@
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="closePOResourceRequirementAlert()">OK</button>&nbsp;
     </div>
+</ng-template>
+
+<ng-template #project_milestone_extended_preview>
+  <div class="modal fade show milestone-preview-backdrop" style="display:block;">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Milestone Document Preview</h5>
+          <button type="button" class="close" (click)="closeProjectMilestoneDocumentsModal()">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="modal-body text-center">
+          <div *ngIf="milestoneDocumentUrl; else noFile">
+            <!-- Image Preview -->
+            <img *ngIf="isImageFile" [src]="milestoneDocumentUrl" class="img-fluid preview-image"/>
+            <!-- PDF Preview -->
+            <iframe *ngIf="isPdfFile" [src]="milestoneDocumentUrl" width="100%" height="600px" style="border:none;">
+            </iframe>
+          </div>
+          <ng-template #noFile>
+            <p>No document available for this milestone.</p>
+          </ng-template>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop fade show"></div>
+</ng-template>
+
+<ng-template #confirmMilestoneStatusModal let-modal>
+  <div class="modal-body text-center">
+    <p class="mb-3">{{ confirmMilestoneStatus }}</p>
+    <div class="d-flex justify-content-center gap-3">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">
+        No
+      </button>
+      <button type="button" class="btn btn-primary ml-3" (click)="updateMilestoneChanges(); modal.close()">
+        Yes
+      </button>
+    </div>
+  </div>
 </ng-template>

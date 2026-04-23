@@ -186,6 +186,44 @@ body.modal-open {
     width: 100%;
 }
 
+/* Approval details popup: remove default modal chrome so custom header is edge-to-edge */
+.pms-approval-modal-window .modal-content {
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(25, 61, 138, 0.15);
+}
+
+/* Status detail popup (performance summary): same as above */
+.pms-status-detail-modal-window .modal-content {
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(25, 61, 138, 0.15);
+}
+
+/* Performance table: center EMP ID, FULL NAME, POSITION headers (override Material sort header) */
+app-user-performance .pms-section .pms-table thead tr:first-child th.pms-th:nth-child(3),
+app-user-performance .pms-section .pms-table thead tr:first-child th.pms-th:nth-child(4),
+app-user-performance .pms-section .pms-table thead tr:first-child th.pms-th:nth-child(5) {
+    text-align: center !important;
+}
+app-user-performance .pms-section .pms-table thead tr:first-child th.pms-th:nth-child(3) .mat-sort-header-container,
+app-user-performance .pms-section .pms-table thead tr:first-child th.pms-th:nth-child(4) .mat-sort-header-container,
+app-user-performance .pms-section .pms-table thead tr:first-child th.pms-th:nth-child(5) .mat-sort-header-container {
+    display: flex !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+app-user-performance .pms-section .pms-table thead tr:first-child th.pms-th:nth-child(3) .mat-sort-header-content,
+app-user-performance .pms-section .pms-table thead tr:first-child th.pms-th:nth-child(4) .mat-sort-header-content,
+app-user-performance .pms-section .pms-table thead tr:first-child th.pms-th:nth-child(5) .mat-sort-header-content {
+    justify-content: center !important;
+    text-align: center !important;
+}
+
 body.viewport-lg {
     position: absolute;
 }
@@ -307,4 +345,9 @@ ngb-modal-window {
   background: transparent !important;
   font-weight: 600 !important;
   color: #222 !important;
+}
+
+.milestone-tooltip {
+  white-space: pre-line !important;
+  max-width: 260px !important;
 }

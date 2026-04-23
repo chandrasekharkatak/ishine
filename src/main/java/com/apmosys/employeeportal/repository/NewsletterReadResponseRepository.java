@@ -18,5 +18,10 @@ public interface NewsletterReadResponseRepository extends JpaRepository<Newslett
 
 	NewsletterReadResponse findByEmpIdAndDocumentId(Long empId, Long documentId);
 
+	List<NewsletterReadResponse> findAllByEmpIdAndDocumentId(Long empId, Long documentId);
+
 	List<NewsletterReadResponse> findByDocumentId(Long documentId);
+	
+	
+	 boolean existsByEmpIdAndDocumentId(Long empId, Long documentId);
 }
