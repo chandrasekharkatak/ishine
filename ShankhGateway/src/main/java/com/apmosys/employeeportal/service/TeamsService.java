@@ -3534,16 +3534,31 @@ public class TeamsService {
 		return response;
 	}
 
-	private String getDisplayRequirement(RmgTeamMemberDto obj) {
+	private String getDisplayRequirement(RmgResourceRequirementDto obj) {
 		StringBuilder sb = new StringBuilder();
 		appendIfNotNull(sb, "Role", obj.getRole());
 		appendIfNotNull(sb, "Experience", obj.getExperience());
 		appendIfNotNull(sb, "Department", obj.getDepartment());
+		appendIfNotNull(sb, "Role Start Date", obj.getRequirementStartDate());
+		appendIfNotNull(sb, "Role End Date", obj.getRequirementEndDate());
 		return sb.toString();
 	}
 
 	private void appendIfNotNull(StringBuilder sb, String label, Object value) {
 		if (value != null) {
+			if (("Role Start Date".equals(label) || "Role End Date".equals(label))
+					&& value instanceof LocalDateTime) {
+				try {
+					DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+					value = ((LocalDateTime) value).format(DATE_FORMATTER);
+					sb.append(" | ");
+					sb.append(label).append(" : ").append(value);
+					return;
+				} catch (Exception e) {
+					log.error("Error while appending the " + label);
+					return;
+				}
+			}
 			if (sb.length() > 0) {
 				sb.append(" | ");
 			}
