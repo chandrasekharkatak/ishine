@@ -61,6 +61,7 @@ import { SubfeatureService } from 'src/app/services/subfeature.service';
 import { FeatureUsageLog } from 'src/app/models/featureUsageLog';
 import { RmgDashboardComponent } from './new-rmg-dashboard/rmg-dashboard/rmg-dashboard.component';
 
+
 class FilterData {
   title: any;
   columns: any;
@@ -2452,12 +2453,12 @@ export class ResourceManagementComponent implements OnInit {
 
     console.log("before updaed by updated on", this.projectMilestone);
 
-    this.projectMilestone.updatedBy = this.currentUser.employeementId;
+    this.projectMilestone.updatedBy = this.currentUser.empId;
     this.projectMilestone.updatedOn = new Date();
     this.projectMilestone.updatedByName = this.currentUser.name;
     this.projectMilestone.projectNameForMilestoneUpdate = this.projectNameForMilestoneUpdate
     this.projectMilestone.poNameForMilestoneUpdate = this.poNameForMilestoneUpdate
-
+    this.projectMilestone.poProjectId=this.projectObj.poProjectId
 
     const formData = new FormData();
     formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
@@ -2620,7 +2621,7 @@ export class ResourceManagementComponent implements OnInit {
       remarks: this.projectMilestone.remarks,
       milestoneStatus: this.projectMilestone.status,
       extendedDate: this.projectMilestone.extendedDate,
-      updatedBy: this.currentUser.employeementId,
+      updatedBy: this.currentUser.empId,
       updatedByName: this.currentUser.name,
       projectName: this.projectNameForMilestoneUpdate,
       poNumber: this.poNameForMilestoneUpdate,
@@ -2663,12 +2664,28 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   minExtendedDateformilestone: Date;
+
+  /** Earliest selectable new end date: calendar day after milestone start (no max). */
   minExtendedDate(): void {
     const startDate = this.projectMilestone?.startDate;
     if (!startDate) return;
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + 1);
-    this.minExtendedDateformilestone = date;
+    this.minExtendedDateformilestone = moment(startDate).startOf('day').add(1, 'day').toDate();
+  }
+
+  get milestoneExtendEndDateTooltip(): string {
+    const sd = this.projectMilestone?.startDate;
+    if (!sd) {
+      return (
+        'Choose any date from the day after the milestone start date onward.\n' +
+        'There is no latest date limit.'
+      );
+    }
+    const formatted = moment(sd).format('D MMM YYYY');
+    return (
+      `Milestone start date is ${formatted}.\n` +
+      'You may select any date after that day.\n' +
+      'Pick a date before the current end date to finish earlier, or after it to extend.'
+    );
   }
 
   closeProjectMilestoneDocumentsModal() {

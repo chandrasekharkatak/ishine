@@ -450,6 +450,10 @@ getTnmExpiredTooltip(): string[] {
   filteredDepartmentList: any[] = [];
   projectDetailsList: any[] = [];
   projectDetailsResolveMap: Record<string, { resolvedProjectViewId: string; redirected: boolean; resolvedProjectName?: string }> = {};
+  /** Link-aware project name search (same contract as HR project view: serviceResponse1 / serviceResponse2). */
+  rmgLinkedProjectSearchInfo: string | null = null;
+  rmgLinkedPrimaryProjectIdsFromSearch: number[] = [];
+  rmgLinkedSearchRowTooltipByProjectId: Record<number, string> = {};
   projectSummaryData: any[] = [];
 
   // Variables
@@ -469,6 +473,11 @@ getTnmExpiredTooltip(): string[] {
   // Project Details Table
   searchOnEnter: boolean = true;
   isProjectSearchEnabled: boolean = false;
+  /** Project Name column header (app-info-tooltip): linked / partial name search + PO filter hint. */
+  projectNameSearchInfoTooltip: string[] = [
+    'Search includes projects whose names were later linked to another project.',
+    'Linked results are shown as the current primary project with a link icon.',
+  ];
   totalProjectsCount: number = 0;
   projectPage: number = 1;
   projectPageSize: number = 10;
@@ -478,6 +487,13 @@ getTnmExpiredTooltip(): string[] {
   projectSortColumnType: string;
   projectFilters: any = {};
   projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "projectStartDate", "projectEndDate", "state", "createdOn", "projectStatus", "draftStatus"];
+  poSearchTooltip: string[] = [
+    'Shows only active POs.',
+    'Search includes both active and expired PO numbers.'
+  ];
+  dateSearchTooltip: string[] = [
+    'Search supports dd-mm-yyyy or yyyy-mm-dd date formats only.',
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -1882,6 +1898,9 @@ getTnmExpiredTooltip(): string[] {
   getProjectDetailsList(scrollToBottom: any) {
     this.totalProjectsCount = 0;
     this.projectDetailsList = [];
+    this.rmgLinkedProjectSearchInfo = null;
+    this.rmgLinkedPrimaryProjectIdsFromSearch = [];
+    this.rmgLinkedSearchRowTooltipByProjectId = {};
     let rmgProjectRequest = this.getRMGRequestObject();
     rmgProjectRequest.page = rmgProjectRequest.page ? (rmgProjectRequest.page - 1) || 0 : 0
     this.resourceManagementService.fetchProjectDetailsList(rmgProjectRequest).pipe(first()).subscribe((response: any) => {
@@ -1889,9 +1908,13 @@ getTnmExpiredTooltip(): string[] {
         const apiResponse = response?.serviceResponse?.projectList;
         this.totalProjectsCount = apiResponse?.totalElements || 0;
         this.projectDetailsList = [...apiResponse?.content];
+        this.rmgLinkedProjectSearchInfo = response?.serviceResponse1 || null;
+        this.absorbRmgServiceResponse2LinkedMeta(response?.serviceResponse2);
         this.populateProjectDetailsResolveMap(this.projectDetailsList);
         console.log(this.projectDetailsList,"lalallala");
       } else {
+        this.rmgLinkedPrimaryProjectIdsFromSearch = [];
+        this.rmgLinkedSearchRowTooltipByProjectId = {};
         this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
       }
 
@@ -1900,8 +1923,113 @@ getTnmExpiredTooltip(): string[] {
       }
     },
       (error) => {
+        this.rmgLinkedPrimaryProjectIdsFromSearch = [];
+        this.rmgLinkedSearchRowTooltipByProjectId = {};
         this.openAlertMessageModal('Something went wrong!!');
       });
+  }
+
+  isRmgLinkedSearchPrimaryRow(project: any): boolean {
+    if (!this.rmgLinkedPrimaryProjectIdsFromSearch?.length) {
+      return false;
+    }
+    const pid = Number(project?.projectId);
+    if (!Number.isFinite(pid)) {
+      return false;
+    }
+    return this.rmgLinkedPrimaryProjectIdsFromSearch.some(v => Number(v) === pid);
+  }
+
+  getRmgLinkedSearchRowTooltip(project: any): string {
+    const pid = Number(project?.projectId);
+    if (Number.isFinite(pid) && this.rmgLinkedSearchRowTooltipByProjectId[pid]) {
+      return this.rmgLinkedSearchRowTooltipByProjectId[pid];
+    }
+    return this.rmgLinkedProjectSearchInfo || '';
+  }
+
+  private absorbRmgServiceResponse2LinkedMeta(raw: any): void {
+    this.rmgLinkedPrimaryProjectIdsFromSearch = [];
+    this.rmgLinkedSearchRowTooltipByProjectId = {};
+    if (raw == null) {
+      return;
+    }
+    if (typeof raw === 'string') {
+      const s = raw.trim();
+      if (!s) {
+        return;
+      }
+      try {
+        this.absorbRmgServiceResponse2LinkedMeta(JSON.parse(s));
+        return;
+      } catch {
+        this.rmgLinkedPrimaryProjectIdsFromSearch = s.split(/[,;\s]+/g)
+          .map(t => Number(t.trim()))
+          .filter(v => Number.isFinite(v));
+        return;
+      }
+    }
+    if (Array.isArray(raw)) {
+      this.rmgLinkedPrimaryProjectIdsFromSearch = raw
+        .map(v => Number(v))
+        .filter(v => Number.isFinite(v));
+      return;
+    }
+    if (typeof raw === 'object') {
+      const idsRaw = (raw as any).linkedPrimaryIds ?? (raw as any).linked_primary_ids;
+      if (idsRaw != null && Array.isArray(idsRaw)) {
+        this.rmgLinkedPrimaryProjectIdsFromSearch = idsRaw
+          .map((v: any) => Number(v))
+          .filter((v: number) => Number.isFinite(v));
+      }
+      const mapRaw = (raw as any).matchedLinkedNamesByPrimaryId
+        ?? (raw as any).matched_linked_names_by_primary_id;
+      if (mapRaw != null && typeof mapRaw === 'object' && !Array.isArray(mapRaw)) {
+        for (const k of Object.keys(mapRaw)) {
+          const pid = Number(k);
+          const arr = (mapRaw as any)[k];
+          const names = Array.isArray(arr)
+            ? arr.map((x: any) => String(x == null ? '' : x).trim()).filter((t: string) => t.length > 0)
+            : [];
+          if (Number.isFinite(pid) && names.length > 0) {
+            this.rmgLinkedSearchRowTooltipByProjectId[pid] = this.buildRmgLinkedSearchRowTooltipText(names);
+          }
+        }
+        if (this.rmgLinkedPrimaryProjectIdsFromSearch.length === 0) {
+          this.rmgLinkedPrimaryProjectIdsFromSearch = Object.keys(mapRaw)
+            .map(k => Number(k))
+            .filter(v => Number.isFinite(v));
+        }
+      }
+    }
+  }
+
+  private buildRmgLinkedSearchRowTooltipText(names: string[]): string {
+    const list = this.formatRmgEnglishNameList(names);
+    return `Included via linked project whose name matches your search. Project :  ${list}.`;
+  }
+
+  private formatRmgEnglishNameList(parts: string[]): string {
+    const seen = new Set<string>();
+    const p: string[] = [];
+    for (const x of parts) {
+      const t = String(x || '').trim();
+      if (!t || seen.has(t)) {
+        continue;
+      }
+      seen.add(t);
+      p.push(t);
+    }
+    if (p.length === 0) {
+      return '';
+    }
+    if (p.length === 1) {
+      return p[0];
+    }
+    if (p.length === 2) {
+      return `${p[0]} and ${p[1]}`;
+    }
+    return `${p.slice(0, -1).join(', ')}, and ${p[p.length - 1]}`;
   }
 
   private populateProjectDetailsResolveMap(rows: any[]) {

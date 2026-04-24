@@ -67,6 +67,12 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<Object[]> getAllInternalProject();
 
 	public Project findByProjectId(Integer projectId);
+
+	@Query("select p.projectId from Project p where lower(p.projectName) like concat('%', lower(:projectName), '%')")
+	List<Integer> findProjectIdsByProjectNameLike(@Param("projectName") String projectName);
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectIdAndNameDTO(p.projectId, p.projectName) FROM Project p WHERE p.projectId IN :ids")
+	List<ProjectIdAndNameDTO> findProjectIdAndNameByProjectIdIn(@Param("ids") Set<Integer> ids);
 	
 	public Optional<Project> findOptionalByProjectId(Integer projectId);
 

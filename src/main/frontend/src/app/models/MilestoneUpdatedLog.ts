@@ -22,6 +22,7 @@ export interface MilestoneUpdatedLog {
   updatedBy?: number;
   updatedByName?:string
 
+
   milestoneExtensionReasonId?: number;
   milestoneExtensionReasonText?: string;
 }

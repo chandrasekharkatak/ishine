@@ -65,5 +65,7 @@ public class MilestoneUpdatedLog {
     
     @Column(name = "updated_on")
     private Date updatedOn;
+    
+
 }
 

@@ -117,6 +117,7 @@ import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
+import com.apmosys.employeeportal.dto.ProjectIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.ProjectManagersDTO;
@@ -228,6 +229,9 @@ import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class ResourceManagementService {
+	
+	@Autowired
+    private ProjectHierarchyResolverService projectHierarchyResolverService;
 
 	@Autowired
 	ProjectService projectService;
@@ -15842,19 +15846,66 @@ public class ResourceManagementService {
 				}
 			}
 
-			Slice<ProjectFetchDTO> projectDetailsList = getProjectDetailsList(rmgDashboardProjectRequest,
-					projectStatus, deptIds, projectNames, projectIds);
+			Map<String, String> savedProjectFilter = rmgDashboardProjectRequest.getProjectFilter();
+			List<Integer> savedLinkSearchIds = rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds();
+			String savedLinkSearchNameLike = rmgDashboardProjectRequest.getLinkSearchNameLikeParameter();
+			String linkedSearchBanner = null;
+			Object linkedSearchMeta = null;
+			boolean mutatedRequestForLinkSearch = false;
+			try {
+				if (savedProjectFilter != null && savedProjectFilter.containsKey("name")) {
+					String nameSearch = savedProjectFilter.get("name");
+					if (nameSearch != null && !nameSearch.trim().isEmpty()) {
+						List<Integer> matchedByName = projectRepository
+								.findProjectIdsByProjectNameLike(nameSearch.trim());
+						List<Integer> primaryIds = resolvePrimaryProjectIdsByProjectNameContainsForRmg(nameSearch.trim());
+						if (primaryIds.isEmpty()) {
+							return failResponse(serviceResponse, apiLogInfo, "No Projects Found!!");
+						}
+						boolean linkedHit = matchedByName != null && matchedByName.stream()
+								.filter(Objects::nonNull)
+								.anyMatch(id -> !Objects.equals(id,
+										projectHierarchyResolverService.resolveToPrimaryProjectId(id)));
+						if (linkedHit) {
+							linkedSearchBanner = "Your search matched a linked project name. Rows marked with the link icon are the primary project(s) for those matches. Search text: "
+									+ nameSearch.trim();
+							linkedSearchMeta = buildLinkedProjectSearchMetadataForRmg(matchedByName);
+						}
+						Map<String, String> effective = new HashMap<>(savedProjectFilter);
+						effective.remove("name");
+						rmgDashboardProjectRequest.setProjectFilter(effective.isEmpty() ? null : effective);
+						rmgDashboardProjectRequest.setLinkSearchPrimaryProjectIds(primaryIds);
+						rmgDashboardProjectRequest.setLinkSearchNameLikeParameter(
+								"%" + nameSearch.trim().toLowerCase() + "%");
+						mutatedRequestForLinkSearch = true;
+					}
+				}
 
-			if (projectDetailsList == null || projectDetailsList.isEmpty()) {
-				return failResponse(serviceResponse, apiLogInfo, "No Projects Found!!");
+				Slice<ProjectFetchDTO> projectDetailsList = getProjectDetailsList(rmgDashboardProjectRequest,
+						projectStatus, deptIds, projectNames, projectIds);
+
+				if (projectDetailsList == null || projectDetailsList.isEmpty()) {
+					return failResponse(serviceResponse, apiLogInfo, "No Projects Found!!");
+				}
+
+				linkProjectDataWithManagersAndOverheads(projectDetailsList);
+				rmgDashboardProjectResponse.setProjectList(projectDetailsList);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(rmgDashboardProjectResponse);
+				if (linkedSearchBanner != null) {
+					serviceResponse.setServiceResponse1(linkedSearchBanner);
+				}
+				if (linkedSearchMeta != null) {
+					serviceResponse.setServiceResponse2(linkedSearchMeta);
+				}
+			} finally {
+				if (mutatedRequestForLinkSearch) {
+					rmgDashboardProjectRequest.setProjectFilter(savedProjectFilter);
+					rmgDashboardProjectRequest.setLinkSearchPrimaryProjectIds(savedLinkSearchIds);
+					rmgDashboardProjectRequest.setLinkSearchNameLikeParameter(savedLinkSearchNameLike);
+				}
 			}
-
-			linkProjectDataWithManagersAndOverheads(projectDetailsList);
-			// mapPoNoToProjectDetails(projectDetailsList);
-			rmgDashboardProjectResponse.setProjectList(projectDetailsList);
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			serviceResponse.setServiceResponse(rmgDashboardProjectResponse);
 		} catch (BadRequestException be) {
 			log.error("Error in fetchProjectDetailsList", be);
 			return failResponse(serviceResponse, apiLogInfo, "Filtering by PO number isn’t available at the moment. Please try again later.");
@@ -16046,6 +16097,76 @@ public class ResourceManagementService {
 				data.setProjectOverheadId(ohIdList);
 			}
 		}
+	}
+
+	private List<Integer> resolvePrimaryProjectIdsByProjectNameContainsForRmg(String projectName) {
+		if (projectName == null || projectName.trim().isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<Integer> matched = projectRepository.findProjectIdsByProjectNameLike(projectName.trim());
+		if (matched == null || matched.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return matched.stream()
+				.filter(Objects::nonNull)
+				.map(projectHierarchyResolverService::resolveToPrimaryProjectId)
+				.filter(Objects::nonNull)
+				.distinct()
+				.collect(Collectors.toList());
+	}
+
+	private Map<String, Object> buildLinkedProjectSearchMetadataForRmg(List<Integer> matchedByName) {
+		LinkedHashSet<Integer> linkedPrimaryIds = new LinkedHashSet<>();
+		LinkedHashSet<Integer> contributorIds = new LinkedHashSet<>();
+		if (matchedByName != null) {
+			for (Integer mid : matchedByName) {
+				if (mid == null) {
+					continue;
+				}
+				Integer pid = projectHierarchyResolverService.resolveToPrimaryProjectId(mid);
+				if (pid != null && !Objects.equals(mid, pid)) {
+					linkedPrimaryIds.add(pid);
+					contributorIds.add(mid);
+				}
+			}
+		}
+		Map<Integer, String> idToName = new HashMap<>();
+		if (!contributorIds.isEmpty()) {
+			List<ProjectIdAndNameDTO> rows = projectRepository
+					.findProjectIdAndNameByProjectIdIn(new HashSet<>(contributorIds));
+			if (rows != null) {
+				for (ProjectIdAndNameDTO row : rows) {
+					if (row != null && row.getProjectId() != null) {
+						idToName.put(row.getProjectId(), row.getProjectName());
+					}
+				}
+			}
+		}
+		LinkedHashMap<Integer, LinkedHashSet<String>> namesByPrimary = new LinkedHashMap<>();
+		if (matchedByName != null) {
+			for (Integer mid : matchedByName) {
+				if (mid == null) {
+					continue;
+				}
+				Integer pid = projectHierarchyResolverService.resolveToPrimaryProjectId(mid);
+				if (pid == null || Objects.equals(mid, pid)) {
+					continue;
+				}
+				String nm = idToName.get(mid);
+				if (nm == null || nm.isBlank()) {
+					nm = "Project #" + mid;
+				}
+				namesByPrimary.computeIfAbsent(pid, k -> new LinkedHashSet<>()).add(nm);
+			}
+		}
+		Map<String, List<String>> matchedLinkedNamesByPrimaryId = new LinkedHashMap<>();
+		for (Map.Entry<Integer, LinkedHashSet<String>> e : namesByPrimary.entrySet()) {
+			matchedLinkedNamesByPrimaryId.put(String.valueOf(e.getKey()), new ArrayList<>(e.getValue()));
+		}
+		Map<String, Object> meta = new LinkedHashMap<>();
+		meta.put("linkedPrimaryIds", new ArrayList<>(linkedPrimaryIds));
+		meta.put("matchedLinkedNamesByPrimaryId", matchedLinkedNamesByPrimaryId);
+		return meta;
 	}
 
 	private List<String> getAllProjectNamesByPoNo(Map<String, String> projectFilter) {

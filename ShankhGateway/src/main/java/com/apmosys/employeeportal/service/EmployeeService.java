@@ -8744,6 +8744,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
                                         ? convertToLocalDateTime(obj[14])
                                         : null
                         );
+                        
+                        dto.setDepartment(obj[15] != null ? obj[15].toString() : null); 
 
                         teamTimesheetDetailsResponseList.add(dto);
                     }
