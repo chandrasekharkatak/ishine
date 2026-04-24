@@ -116,6 +116,23 @@ export class UtilityService {
   getCustomQueryData(query: Query) {
     return this.http.post(`${this.baseUrl}` + `api/getCustomQueryData`, query);
   }
+  // Get CustomQuery Filtered Data
+  getFilteredQueryData(payload: any):Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/getFilteredQueryData`, payload);
+  }
+
+  // ===== Custom Query: server-side =====
+  getCustomQueryDataPaged(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/getCustomQueryDataPaged`, payload);
+  }
+
+  getFilteredQueryDataPaged(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/getFilteredQueryDataPaged`, payload);
+  }
+
+  getCustomQueryDistinctValues(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/getCustomQueryDistinctValues`, payload);
+  }
 
   setEmployee360ViewAccess(hasAccess: boolean): void {
     this.employee360ViewUser = hasAccess;
@@ -217,5 +234,7 @@ export class UtilityService {
   getJobRoles(): Observable<any> {
     return this.http.get(`${this.baseUrl}` + `api/getAllJobRole`);
   }
+
+
 
 }
