@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Feature } from '../models/feature';
@@ -77,12 +77,14 @@ export class LoginComponent implements OnInit, OnDestroy {
   feature = "Profile";
   userMapping: any = {};
   currentUser: User;
+  redirectUrl: string | null = null;
 
   constructor(
     private validationService: ValidationService,
     private datePipe: DatePipe,
     private modalService: NgbModal,
     private router: Router,
+    private route: ActivatedRoute,
     private authenticationService: AuthenticationService,
     private subfeatureService: SubfeatureService,
     private employeeService: EmployeeService,
@@ -102,6 +104,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   timer: any;
 
   ngOnInit() {
+    this.route.queryParamMap.subscribe(params => {
+      this.redirectUrl = params.get('redirect') || params.get('returnUrl') || sessionStorage.getItem('postLoginRedirect');
+    });
     this.intervalId = setInterval(() => {
       this.nextSlide();
     }, 6000);
@@ -388,6 +393,11 @@ this.user.otp = encryptedOtp;
         this.timeSession();
 
         this.authenticationService.startUserSessionCheck();
+
+        // If login came with Team Attendance redirect, skip all default routing.
+        if (this.handleTeamAttendanceRedirect()) {
+          return;
+        }
         
         // Check training lock status and route accordingly
         // Priority 1: If hard lock (deadline crossed) - user is frozen, must route to training page
@@ -689,6 +699,57 @@ this.user.otp = encryptedOtp;
 
   cancelRequest() {
     this.modalRef?.close();
+  }
+
+  private handleTeamAttendanceRedirect(): boolean {
+    const target = this.normalizeRedirectTarget(this.redirectUrl || sessionStorage.getItem('postLoginRedirect'));
+    if (!target || !target.startsWith('/team-employee-timesheet')) {
+      return false;
+    }
+
+    let finalTarget = target;
+    if (!finalTarget.includes('explicitLoginDone=')) {
+      finalTarget += finalTarget.includes('?') ? '&explicitLoginDone=true' : '?explicitLoginDone=true';
+    }
+
+    sessionStorage.removeItem('postLoginRedirect');
+    this.redirectUrl = null;
+    this.router.navigateByUrl(finalTarget);
+    return true;
+  }
+
+  private normalizeRedirectTarget(rawTarget: string | null): string | null {
+    if (!rawTarget) return null;
+    let target = rawTarget.trim();
+    if (!target) return null;
+
+    try {
+      target = decodeURIComponent(target);
+    } catch {
+      // keep original string if decoding fails
+    }
+
+    if (target.startsWith('http://') || target.startsWith('https://')) {
+      try {
+        const parsed = new URL(target);
+        target = parsed.hash?.startsWith('#/') ? parsed.hash.substring(1) : `${parsed.pathname}${parsed.search}`;
+      } catch {
+        // keep target as-is
+      }
+    } else {
+      const hashIndex = target.indexOf('#');
+      if (hashIndex >= 0) {
+        target = target.substring(hashIndex + 1);
+      }
+    }
+
+    if (target.startsWith('./')) {
+      target = target.substring(1);
+    }
+    if (!target.startsWith('/')) {
+      target = `/${target}`;
+    }
+    return target;
   }
 
 

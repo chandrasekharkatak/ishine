@@ -25,6 +25,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 export class TeamEmployeeTimesheetViewComponent implements OnInit {
 
   projectId: any;
+  poId: any;
   timesheetData: GetEmployeeTimesheetAsCalender[] = [];
   page = 1;
   sortDirection = 'asc';
@@ -122,6 +123,7 @@ alertMessageOfDoc: any;
   this.maxYear = new Date(currentYear, 11, 31);
     this.route.queryParams.subscribe(params => {
       this.projectId = params['projectId'];
+      this.poId = params['poId'];
       this.formattedMonthLabel = params['formattedMonthLabel'];
       this.isClientDashboard = params['isClientDashboard'] === 'true';
       if (this.projectId) {
@@ -145,6 +147,7 @@ alertMessageOfDoc: any;
         console.warn("projectId is missing in query params.");
       }
       console.log('Received projectId from query param:', this.projectId);
+      console.log('Received poId from query param:', this.poId);
       console.log('Received month from query param:', this.formattedMonthLabel);
     });
     this.legendEntries = Object.entries(this.legend).map(([code, value]) => ({

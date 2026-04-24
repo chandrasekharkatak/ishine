@@ -12,6 +12,7 @@ export class NavigateToTeamEmployeeTimesheetDirective {
   projectId: any; 
   @Input() formattedMonthLabel!: string;
   @Input() isClientDashboard!: boolean;
+  @Input() poId: any;
   private baseUrl: any = environment.baseUrl;
   private baseUrl360: any = environment.baseUrl360;
 
@@ -24,7 +25,8 @@ onClick() {
   console.log('Directive triggered with values:', {
     projectId: this.projectId,
     formattedMonthLabel: this.formattedMonthLabel,
-    isClientDashboard: this.isClientDashboard
+    isClientDashboard: this.isClientDashboard,
+    poId: this.poId
   });
 
   if (this.projectId) {
@@ -36,6 +38,10 @@ onClick() {
 
     if (this.isClientDashboard !== undefined) {
       queryParams.isClientDashboard = this.isClientDashboard;
+    }
+
+    if (this.poId !== undefined && this.poId !== null && this.poId !== '') {
+      queryParams.poId = this.poId;
     }
 
     const urlTree = this.router.createUrlTree(['/team-employee-timesheet'], { queryParams });
