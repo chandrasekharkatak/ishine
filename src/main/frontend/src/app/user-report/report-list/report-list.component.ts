@@ -28,6 +28,7 @@ import { ResourceManagementService } from "src/app/services/resource-management.
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { LoaderService } from 'src/app/services/loader.service';
 import * as XLSX from 'xlsx';
 
 class FilterData {
@@ -355,7 +356,7 @@ dateRange: string; type: string; count: string;
   copyFinalColumns: any[] = [];
   subFeatureListForDropdown: any[] = [];
   selectedSubFeature: any []=[];
-  subFeatureListForDropdownCopy: string[] = [];
+  subFeatureListForDropdownCopy: any[] = [];
   paginateDataCopy:any=[]
   subFeatureSearch:boolean=false
   disableUpdateButton:boolean =true;
@@ -386,7 +387,8 @@ dateRange: string; type: string; count: string;
     private departmentService: DepartmentService,
     private location: Location, private router: Router,
     private resourceManagementService: ResourceManagementService,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private loaderService: LoaderService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     const navigation = this.router.getCurrentNavigation();
@@ -5064,9 +5066,17 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
   }
 
   onAclAdvSearch(selectBox?: any,type?:any){ 
-    // if (selectBox) {
-    //  selectBox.close();
-    // }
+    this.loaderService.requestStarted();
+    setTimeout(() => {
+      try {
+        this.performAclAdvSearch(selectBox, type);
+      } finally {
+        this.loaderService.requestEnded();
+      }
+    }, 0);
+  }
+
+  private performAclAdvSearch(selectBox?: any,type?:any){
     if(type=='departmentSearch'){
 
     if(this.selectedDepartments.length>0) {
@@ -5098,7 +5108,6 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
       this.getDefaultMapping(this.alertModal);
     }
     this.updateSelectAllCheckbox();
-
 }
 
 updateAclData(){
@@ -5181,8 +5190,49 @@ clearDepartmentSelection(event: Event,type:string) {
   }else {
     this.subFeatureSearch=false
     this.selectedSubFeature=[];
+    this.paginateData = JSON.parse(JSON.stringify(this.paginateDataCopy));
+    this.subFeatureListForDropdown = JSON.parse(JSON.stringify(this.subFeatureListForDropdownCopy));
   }
   this.searchText = '';
+}
+
+applyAclDropdownFilter(selectBox: any, type: string): void {
+  this.onAclAdvSearch(selectBox, type);
+}
+
+clearAclDropdownFilter(type: string): void {
+  this.loaderService.requestStarted();
+  setTimeout(() => {
+    try {
+      if (type === 'Dept') {
+        this.selectedDepartments = [];
+        this.selectedDesignations = [];
+        this.designationDropdown = false;
+        this.filteredDesignationsForDropdown = [];
+        this.finalColumns = this.copyFinalColumns;
+      } else if (type === 'Desig') {
+        this.selectedDesignations = [];
+      } else {
+        this.selectedSubFeature = [];
+        this.subFeatureSearch = false;
+        this.paginateData = JSON.parse(JSON.stringify(this.paginateDataCopy));
+        this.subFeatureListForDropdown = JSON.parse(JSON.stringify(this.subFeatureListForDropdownCopy));
+      }
+      this.updateAclData();
+      this.updateSelectAllCheckbox();
+    } finally {
+      this.loaderService.requestEnded();
+    }
+  }, 0);
+}
+
+confirmAndUpdateACL(template: TemplateRef<any>): void {
+  this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
+}
+
+proceedAclUpdate(template: TemplateRef<any>): void {
+  this.cancelRequest();
+  this.updateJobRoleSubFeatureMapping(template);
 }
 
 compareSubFeature(a: any, b: any): boolean {

@@ -25,6 +25,7 @@ export class MySelectComponent implements ControlValueAccessor, OnInit, OnChange
   @Input() displaySeparator: string = ' ';
   @Input() valueKey;
   @Input() wrapOptions = false;
+  @Input() showSelectAll = true;
   @Output() selectionChange = new EventEmitter<any>();
   @Output() change = new EventEmitter<any>();
   @Output() dropdownClosed = new EventEmitter<void>();

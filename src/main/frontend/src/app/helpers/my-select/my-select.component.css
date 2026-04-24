@@ -1,6 +1,7 @@
-::ng-deep .mat-select-panel {
+::ng-deep .custom-select-panel.mat-mdc-select-panel {
   min-width: 100% !important;
-  width: 100% !important;
+  width: auto !important;
+  margin-top: 2px !important;
 }
 
 ::ng-deep .mat-mdc-option {

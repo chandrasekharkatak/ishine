@@ -1742,46 +1742,75 @@
       </div>
 
     </div>
-      <!-- Department Dropdown -->
-        <div *ngIf="employeeRole"  class="flex-column d-flex justify-content-start">
-          <label class="dropdown">
-            Select Department(s)
-          </label>    
-          <app-my-select #departmentSelectBox   class="form-control department-select" placeholder="Select Deaprtment(s)" [(ngModel)]="selectedDepartments"
-                  (dropdownClosed)="onAclAdvSearch(departmentSelectBox,'departmentSearch')"
-                  [options]="filteredDepartments" displayKey="header" valueKey="header" [multiple]="true" [wrapOptions]="true">
-          </app-my-select>
-        </div>
-        
-        <!-- Designation Dropdown -->
-        <div *ngIf="employeeRole && designationDropdown" class="flex-column d-flex justify-content-start mt-2">
-          <label class="dropdown">
-            Select Designation(s)
-          </label>    
-          <app-my-select #designationSelect   class="form-control department-select" placeholder="Select Designation" [(ngModel)]="selectedDesignations"
-                  (dropdownClosed)="onAclAdvSearch(designationSelect,'designationSearch')"
-                  [options]="filteredDesignationsForDropdown" displayKey="desig" valueKey="desig" [multiple]="true" [wrapOptions]="true">
-          </app-my-select>
+      <div class="acl-filter-panel" *ngIf="employeeRole">
+      <div class="acl-filter-panel__title">
+        Refine Access View
+        <span class="acl-filter-panel__subtitle">Filter by department and designation</span>
+      </div>
+      <div class="acl-filter-row">
+        <!-- Department Dropdown -->
+        <div class="acl-filter-item">
+          <label class="dropdown">Select Department(s)
+            <span class="acl-filter-count" *ngIf="selectedDepartments?.length">{{selectedDepartments.length}} selected</span>
+          </label>
+          <div class="acl-filter-input-group">
+            <app-my-select #departmentSelectBox class="form-control department-select"
+              placeholder="Select Department(s)" [(ngModel)]="selectedDepartments"
+              (dropdownClosed)="onAclAdvSearch(departmentSelectBox,'departmentSearch')"
+              [options]="filteredDepartments" displayKey="header" valueKey="header" [multiple]="true" [wrapOptions]="true">
+            </app-my-select>
+            <button type="button" class="acl-filter-icon-btn acl-filter-icon-btn--apply" title="Apply Department Filter"
+              (click)="applyAclDropdownFilter(departmentSelectBox,'departmentSearch')">
+              <i class="fa fa-check"></i>
+            </button>
+            <button *ngIf="selectedDepartments?.length" type="button" class="acl-filter-icon-btn acl-filter-icon-btn--clear" title="Clear Department Selection"
+              (click)="clearAclDropdownFilter('Dept')">
+              <i class="fa fa-eraser"></i>
+            </button>
+          </div>
         </div>
 
-    <div class="col-md-12 mt-5">
-      <div class="d-flex align-items-center justify-content-between mt-2">     
-      <div class="selector-toggle mb-2" [hidden]="paginateData.length == 0" (click)="toggleSearch()">
-          <a href="javascript:void(0)" class="text-decoration-none">
-            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-          </a>
-      </div>  
-      <div class="row" [hidden]="paginateData.length == 0">
-        <div class="col-md-12 d-flex justiy-content-center mt-2 mb-2">
-          <button type="button" class="btn btn-sm btn-primary  custom-hover-btn" [disabled]="disableUpdateButton"
-            (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
+        <!-- Designation Dropdown -->
+        <div *ngIf="designationDropdown" class="acl-filter-item">
+          <label class="dropdown">Select Designation(s)
+            <span class="acl-filter-count" *ngIf="selectedDesignations?.length">{{selectedDesignations.length}} selected</span>
+          </label>
+          <div class="acl-filter-input-group">
+            <app-my-select #designationSelect class="form-control department-select"
+              placeholder="Select Designation(s)" [(ngModel)]="selectedDesignations"
+              (dropdownClosed)="onAclAdvSearch(designationSelect,'designationSearch')"
+              [options]="filteredDesignationsForDropdown" displayKey="desig" valueKey="desig" [multiple]="true" [wrapOptions]="true">
+            </app-my-select>
+            <button type="button" class="acl-filter-icon-btn acl-filter-icon-btn--apply" title="Apply Designation Filter"
+              (click)="applyAclDropdownFilter(designationSelect,'designationSearch')">
+              <i class="fa fa-check"></i>
+            </button>
+            <button *ngIf="selectedDesignations?.length" type="button" class="acl-filter-icon-btn acl-filter-icon-btn--clear" title="Clear Designation Selection"
+              (click)="clearAclDropdownFilter('Desig')">
+              <i class="fa fa-eraser"></i>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+      </div>
+
+    <div class="col-md-12 mt-4">
+      <div class="acl-action-bar" [hidden]="paginateData.length == 0">
+        <button type="button" class="acl-toolbar-icon-btn" [title]="isSearchEnabled ? 'Hide Sub-Feature Filter' : 'Show Sub-Feature Filter'" (click)="toggleSearch()">
+          <i class="fa" [ngClass]="isSearchEnabled ? 'fa-xmark' : 'fa-search'"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-primary custom-hover-btn acl-update-btn"
+          [disabled]="disableUpdateButton" (click)="confirmAndUpdateACL(acl_update_confirm_template)">
+          Update
+        </button>
+      </div>
 
 
-      <div class="overflow-auto" bassHorizontalScroll>
+      <div class="acl-select-all-hint" *ngIf="paginateData.length > 0">
+        <i class="fa fa-circle-info mr-1"></i> The first checkbox in each row selects all roles for that sub-feature. You can also drag & drop columns and rows to rearrange the ACL view.
+      </div>
+      <div class="acl-table-container">
+      <div class="overflow-auto acl-table-wrap" bassHorizontalScroll>
         <table class="table table-bordered table-hover table-sticky acl-table" id="aclReportInfo">
           <thead class="acl-header" id="aclReportInfoTHead">
             <tr id="aclReportInfoTHeadTr" cdkDropList cdkDropListOrientation="horizontal"
@@ -1832,10 +1861,20 @@
                 <ng-container *ngIf="column.department?.length > 0">
                   <ng-container *ngFor="let sub of column.department; let subIndex = index">
                     <th *ngIf="parentIndex === 0 && subIndex === 0;else blankInput">
-                    <app-my-select #subFeatureSelect class="form-control department-select" placeholder="Select Sub-Feature" [(ngModel)]="selectedSubFeature"
+                    <div class="acl-filter-input-group acl-subfeature-filter-group">
+                    <app-my-select #subFeatureSelect class="form-control department-select acl-subfeature-select" placeholder="Select Sub-Feature" [(ngModel)]="selectedSubFeature"
                             (dropdownClosed)="onAclAdvSearch(subFeatureSelect,'subFeatureSearch')"
-                            [options]="subFeatureListForDropdown" displayKey="subFeature"  [multiple]="true" [wrapOptions]="true">
-                    </app-my-select>    
+                            [options]="subFeatureListForDropdown" displayKey="subFeature"  [multiple]="true" [showSelectAll]="false" [wrapOptions]="true">
+                    </app-my-select>
+                    <button type="button" class="acl-filter-icon-btn acl-filter-icon-btn--apply" title="Apply Sub-Feature Filter"
+                      (click)="applyAclDropdownFilter(subFeatureSelect,'subFeatureSearch')">
+                      <i class="fa fa-check"></i>
+                    </button>
+                    <button *ngIf="selectedSubFeature?.length" type="button" class="acl-filter-icon-btn acl-filter-icon-btn--clear" title="Clear Sub-Feature Selection"
+                      (click)="clearAclDropdownFilter('Sub')">
+                      <i class="fa fa-eraser"></i>
+                    </button>
+                    </div>
                     </th>
                   <ng-template #blankInput>
                     <th></th>
@@ -1883,6 +1922,7 @@
             </tr>
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   </div>
@@ -2598,6 +2638,14 @@
   <div class="modal-body text-center">
     <p>{{alertMessage}}</p>
     <button type="button" class="btn btn-primary" (click)="cancelRequest();getEmployeeReportData()">OK</button>
+  </div>
+</ng-template>
+
+<ng-template #acl_update_confirm_template>
+  <div class="modal-body text-center">
+    <p>Are you sure you want to update Access Control List permissions?</p>
+    <button type="button" class="btn btn-success mr-2 mt-2" (click)="proceedAclUpdate(alert_message)">Yes, Proceed</button>
+    <button type="button" class="btn btn-danger mt-2" (click)="cancelRequest()">No, Cancel</button>
   </div>
 </ng-template>
 

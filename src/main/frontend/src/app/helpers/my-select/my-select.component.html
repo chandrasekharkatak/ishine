@@ -18,7 +18,7 @@
     </mat-option>
 
 
-    <mat-option class="mat-option" *ngIf="multiple && filteredOptions.length > 0" (click)="toggleSelectAll($event)">
+    <mat-option class="mat-option" *ngIf="multiple && showSelectAll && filteredOptions.length > 0" (click)="toggleSelectAll($event)">
       <strong>
         {{ isAllSelected() ? 'Deselect All' : 'Select All' }}
       </strong>
