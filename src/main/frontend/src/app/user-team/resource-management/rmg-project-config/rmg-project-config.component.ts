@@ -3794,7 +3794,7 @@ previewDocument(documentId: number,documentName:any) {
       this.isImageFile = res.documentType.startsWith('image/');
       
       this.projectMilestoneDocumentModalRef = this.modalService.open(
-      this.projectMilestoneExtendedPreviewTemplateRef,{modalDialogClass: 'modal-xl',keyboard: false});
+      this.projectMilestoneDocumentTemplateRef,{modalDialogClass: 'modal-xl',keyboard: false});
     },
     (error) => {
       console.error('Error fetching document:', error);
