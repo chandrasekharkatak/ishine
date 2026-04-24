@@ -515,7 +515,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ "    p.project_name        AS projectName,\n"
 				+ "    etpm.projectManagerName,  \n"
 				+ "    tm.start_date         AS startDate,\n"
-				+ "    tm.end_date           AS endDate\n"
+				+ "    tm.end_date           AS endDate,d.name  AS department\n"
 				+ "\n"
 				+ "FROM employee_team_mapping tm\n"
 				+ "\n"
@@ -526,7 +526,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ "    ON te.team_lead_id = etl.emp_id\n"
 				+ "\n"
 				+ "LEFT JOIN employee ete \n"
-				+ "    ON tm.emp_id = ete.emp_id\n"
+				+ "    ON tm.emp_id = ete.emp_id LEFT JOIN job_role jr ON ete.job_role_id = jr.job_role_id LEFT JOIN department d  ON jr.dept_id = d.dept_id\n"
 				+ "\n"
 				+ "LEFT JOIN employee etm \n"
 				+ "    ON ete.manager_id = etm.emp_id\n"
@@ -1181,12 +1181,12 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails(Long poId,Long poProjectId,LocalDateTime startDate,LocalDateTime endDate);
 
 	@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
-	"ete.name, te.deptIds, prm.role, te.teamName, te.teamId, " +
+	"ete.name, te.deptIds, rd.role, te.teamName, te.teamId, " +
 	"etl.name, etm.name, " +
 	"p.projectId, p.projectName, etpm.name, tm.active,ppd.poId,ete.isConsultant,ete.isApprenticeship,ete.isApmosysProduct) " +
 	"FROM EmployeeTeamMap tm " +
 	"LEFT JOIN Team te ON tm.teamId = te.teamId " + 
-	"LEFT JOIN PoRequirementMapping prm on prm.roleId = tm.roleId and prm.poId = tm.poId " +
+	"LEFT JOIN PoRequirementMapping prm on prm.roleId = tm.roleId and prm.poId = tm.poId  JOIN RoleDetails rd on  rd.roleId = prm.roleId" +
 	"LEFT JOIN Employee etl ON te.teamLeadId = etl.empId " +
 	"LEFT JOIN Employee ete ON tm.empId = ete.empId " +
 	"LEFT JOIN JobRole jr ON ete.jobRoleId = jr.jobRoleId " +
