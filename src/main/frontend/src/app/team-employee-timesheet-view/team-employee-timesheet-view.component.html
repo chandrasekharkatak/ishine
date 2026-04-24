@@ -37,11 +37,9 @@
             <div class="tav-range-input tav-month-select-shell">
               <mat-select
                 class="tav-month-select"
-                [(ngModel)]="selectedMonthValues"
-                multiple
-                (selectionChange)="onMonthFilterSelectionChange($event)">
+                [(ngModel)]="selectedMonthValue"
+                (selectionChange)="onMonthFilterSelectionChange()">
                 <mat-select-trigger>{{ monthDisplayLabel }}</mat-select-trigger>
-                <mat-option [value]="allMonthOptionValue">All</mat-option>
                 <mat-option *ngFor="let option of monthOptions" [value]="option.value">
                   {{ option.label }}
                 </mat-option>
@@ -50,13 +48,26 @@
           </div>
 
           <div class="tav-range-item">
-            <label class="tav-range-label">PO ID</label>
-            <select class="tav-range-input" [(ngModel)]="selectedPoIdFilter" (change)="onPoIdFilterChange()">
-              <option value="">All PO IDs</option>
-              <option *ngFor="let option of poIdOptions" [value]="option.value">
-                {{ option.label }}
-              </option>
-            </select>
+            <label class="tav-range-label">PO No</label>
+            <div class="tav-range-input tav-month-select-shell">
+              <mat-select
+                class="tav-month-select"
+                [(ngModel)]="selectedPoIdFilters"
+                multiple
+                (selectionChange)="onPoIdFilterChange($event)">
+                <mat-select-trigger>{{ poDisplayLabel }}</mat-select-trigger>
+                <mat-option [value]="allPoOptionValue">All</mat-option>
+                <mat-option *ngFor="let option of poIdOptions" [value]="option.value">
+                  {{ option.label }}
+                </mat-option>
+              </mat-select>
+            </div>
+          </div>
+
+          <div class="tav-range-item tav-range-item--apply">
+            <button class="tav-apply-btn" type="button" (click)="applyClientDashboardFilters()">
+              Apply
+            </button>
           </div>
         </div>
         <ng-template #normalMonthFilter>

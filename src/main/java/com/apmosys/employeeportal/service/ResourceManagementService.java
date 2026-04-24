@@ -14589,6 +14589,40 @@ public class ResourceManagementService {
 		return serviceResponse;
 	}
 
+	@Transactional(readOnly = true)
+	public ServiceResponse getAllPosForProjectAndDate(Integer projectId, LocalDate fromDate, LocalDate toDate) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (projectId == null || fromDate == null || toDate == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("projectId, fromDate and toDate are required.");
+				return response;
+			}
+			if (fromDate.isAfter(toDate)) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("fromDate cannot be after toDate.");
+				return response;
+			}
+
+			List<ProjectPoDetails> activePos = poDetailsRepository
+					.findAllActivePosForProjectAndDateRange(projectId, fromDate, toDate);
+			if (activePos == null || activePos.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No active POs found for the given project and date range.");
+				return response;
+			}
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(activePos);
+		} catch (Exception e) {
+			log.error("Error while fetching active POs for current date: ", e);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Something went wrong while fetching active POs.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
 	public ServiceResponse getResourceRequirementByTeamId(Long teamId) {
 		ServiceResponse response = new ServiceResponse();
 		try {

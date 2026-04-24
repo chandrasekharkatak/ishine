@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -856,7 +857,13 @@ public class ResourceManagementController {
 		return resourceManagementService.getEmployeeMappedToClientPercent();
 	}
 
-	
+	@GetMapping("/getAllPosForProjectAndDate")
+	public ServiceResponse getAllPosForProjectAndDate(
+			@RequestParam Integer projectId,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
+		return resourceManagementService.getAllPosForProjectAndDate(projectId, fromDate, toDate);
+	}
 
 //	
 	@GetMapping("/cronClient")

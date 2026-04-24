@@ -10,6 +10,7 @@ import { ExportExcelService } from '../services/export-excel.service';
 import { getEmployeeTimesheetAsCalenderByProjectId } from '../models/getEmployeeTimesheetAsCalenderByProjectId';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
+import { ResourceManagementService } from '../services/resource-management.service';
 // import * as XLSX from 'xlsx';
 import * as XLSX from 'xlsx-js-style';
 import { ColorAxis } from 'highcharts';
@@ -56,12 +57,13 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   toDateFilter: string = '';
   originalFromDateFilter: string = '';
   originalToDateFilter: string = '';
-  readonly allMonthOptionValue = '__ALL__';
   monthOptions: { value: string; label: string; month: number; year: number; startDate: Date; endDate: Date }[] = [];
-  selectedMonthValues: string[] = [];
-  wasAllSelected: boolean = false;
-  selectedPoIdFilter: string = '';
+  selectedMonthValue: string = '';
+  readonly allPoOptionValue = '__ALL_PO__';
+  selectedPoIdFilters: string[] = [];
+  wasAllPoSelected: boolean = false;
   poIdOptions: { value: string; label: string }[] = [];
+  poOptionsLoadedFromApi: boolean = false;
 minYear!: Date;
 maxYear!: Date;
   legend: { [key: string]: { label: string; color: string } } = {
@@ -124,6 +126,7 @@ alertMessageOfDoc: any;
     private exportExcelService: ExportExcelService,
     private timesheetService: TimesheetService,
     private authenticationService: AuthenticationService,
+    private resourceManagementService: ResourceManagementService,
     private sanitizer: DomSanitizer,
   ){
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -155,6 +158,12 @@ alertMessageOfDoc: any;
           this.year = today.getFullYear();
           this.monthName = today.toLocaleString('default', { month: 'long' });
         }
+        this.selectedMonth = new Date(this.year, this.month - 1, 1);
+        this.generateDaysForMonth(this.selectedMonth);
+        if (this.isClientDashboard) {
+          this.initializeDateRange();
+          this.loadPoOptionsFromApi();
+        }
         this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
       } else {
         console.warn("projectId is missing in query params.");
@@ -168,10 +177,12 @@ alertMessageOfDoc: any;
       label: value.label,
       color: value.color
     }));
-    this.selectedMonth = new Date(this.year, this.month - 1, 1);
-    this.generateDaysForMonth(this.selectedMonth);
-    if (this.isClientDashboard) {
-      this.initializeDateRange();
+    if (this.year && this.month) {
+      this.selectedMonth = new Date(this.year, this.month - 1, 1);
+      this.generateDaysForMonth(this.selectedMonth);
+      if (this.isClientDashboard) {
+        this.initializeDateRange();
+      }
     }
   }
 
@@ -210,7 +221,9 @@ alertMessageOfDoc: any;
           timesheetData: this.fillTimesheetDays(item.timesheetData),
         }));
 
-        this.buildPoIdOptions();
+        if (!this.poOptionsLoadedFromApi) {
+          this.buildPoIdOptions();
+        }
         this.filteredTimesheetData = [...this.timesheetData];
         this.applyFilters();
       } else {
@@ -220,18 +233,77 @@ alertMessageOfDoc: any;
   }
 
   private buildPoIdOptions(): void {
-    const uniquePoIds = Array.from(
-      new Set(
-        this.timesheetData
-          .map(item => (((item as any)?.poId) ?? '').toString().trim())
-          .filter((value: string) => !!value && value !== 'NA')
-      )
-    ).sort();
+    const poMap = new Map<string, string>();
+    this.timesheetData.forEach(item => {
+      const poId = (((item as any)?.poId) ?? '').toString().trim();
+      if (!poId || poId === 'NA') return;
+      const poNo = (((item as any)?.poNo) ?? poId).toString().trim();
+      if (!poMap.has(poId)) {
+        poMap.set(poId, poNo || poId);
+      }
+    });
 
-    this.poIdOptions = uniquePoIds.map(value => ({ value, label: value }));
-    if (this.selectedPoIdFilter && !uniquePoIds.includes(this.selectedPoIdFilter)) {
-      this.selectedPoIdFilter = '';
+    this.poIdOptions = Array.from(poMap.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+
+    if (!this.poIdOptions.length) {
+      this.selectedPoIdFilters = [];
+      this.wasAllPoSelected = false;
+      return;
     }
+
+    const validPoIds = new Set(this.poIdOptions.map(opt => opt.value));
+    const kept = this.selectedPoIdFilters.filter(v => v === this.allPoOptionValue || validPoIds.has(v));
+    this.selectedPoIdFilters = kept.length ? kept : [this.allPoOptionValue, ...this.poIdOptions.map(opt => opt.value)];
+    this.wasAllPoSelected = this.selectedPoIdFilters.includes(this.allPoOptionValue);
+  }
+
+  private loadPoOptionsFromApi(): void {
+    if (!this.projectId || !this.originalFromDateFilter || !this.originalToDateFilter) {
+      return;
+    }
+
+    this.resourceManagementService
+      .getAllPosForProjectAndDate(this.projectId, this.originalFromDateFilter, this.originalToDateFilter)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response?.serviceStatus === 'Success' && Array.isArray(response?.serviceResponse)) {
+            const poMap = new Map<string, string>();
+            response.serviceResponse.forEach((item: any) => {
+              const poId = (item?.poId ?? '').toString().trim();
+              if (!poId) return;
+              const poNo = (item?.poNo ?? poId).toString().trim();
+              if (!poMap.has(poId)) {
+                poMap.set(poId, poNo || poId);
+              }
+            });
+
+            this.poIdOptions = Array.from(poMap.entries())
+              .map(([value, label]) => ({ value, label }))
+              .sort((a, b) => a.label.localeCompare(b.label));
+
+            this.poOptionsLoadedFromApi = this.poIdOptions.length > 0;
+            if (this.poIdOptions.length > 0) {
+              this.selectedPoIdFilters = [this.allPoOptionValue, ...this.poIdOptions.map(opt => opt.value)];
+              this.wasAllPoSelected = true;
+            } else {
+              this.selectedPoIdFilters = [];
+              this.wasAllPoSelected = false;
+            }
+          } else {
+            this.openAlertMod(response?.serviceResponse || response?.serviceMessage || 'Unable to fetch PO details.');
+            this.poOptionsLoadedFromApi = false;
+            this.buildPoIdOptions();
+          }
+        },
+        error: (err: any) => {
+          this.openAlertMod(err?.error || 'Error while fetching PO details.');
+          this.poOptionsLoadedFromApi = false;
+          this.buildPoIdOptions();
+        }
+      });
   }
 
   fillTimesheetDays(timesheetData: any = {}): any {
@@ -313,17 +385,43 @@ applyFilters(): void {
         });
       });
 
-  if (!this.selectedPoIdFilter) {
+  const selectedPoIds = this.selectedPoIdFilters.filter(v => v !== this.allPoOptionValue);
+  const hasAllPoSelected = this.selectedPoIdFilters.includes(this.allPoOptionValue);
+  if (!selectedPoIds.length || hasAllPoSelected) {
     this.filteredTimesheetData = baseFiltered;
     return;
   }
 
   this.filteredTimesheetData = baseFiltered.filter(item =>
-    (((item as any)?.poId) ?? '').toString() === this.selectedPoIdFilter
+    selectedPoIds.includes((((item as any)?.poId) ?? '').toString())
   );
 }
 
-onPoIdFilterChange(): void {
+onPoIdFilterChange(event: MatSelectChange): void {
+  let values = Array.isArray(event.value) ? [...event.value] : [];
+  const poValues = this.poIdOptions.map(opt => opt.value);
+  const hasAll = values.includes(this.allPoOptionValue);
+
+  if (hasAll && !this.wasAllPoSelected) {
+    values = [this.allPoOptionValue, ...poValues];
+  } else if (hasAll && this.wasAllPoSelected) {
+    const individual = values.filter(v => v !== this.allPoOptionValue);
+    if (individual.length !== poValues.length) {
+      values = individual;
+    }
+  }
+
+  const selectedIndividuals = values.filter(v => v !== this.allPoOptionValue);
+  if (selectedIndividuals.length === poValues.length && poValues.length > 0) {
+    values = [this.allPoOptionValue, ...poValues];
+  }
+
+  if (values.length === 0 && poValues.length > 0) {
+    values = [this.allPoOptionValue, ...poValues];
+  }
+
+  this.selectedPoIdFilters = values;
+  this.wasAllPoSelected = this.selectedPoIdFilters.includes(this.allPoOptionValue);
   this.applyFilters();
   this.page = 1;
 }
@@ -530,35 +628,10 @@ onDateRangeChange(): void {
   this.originalFromDateFilter = this.fromDateFilter;
   this.originalToDateFilter = this.toDateFilter;
   this.buildMonthOptionsFromRange();
-  this.selectAllMonths();
   this.updateEffectiveDateRangeFromSelectedMonths();
 }
 
-onMonthFilterSelectionChange(event: MatSelectChange): void {
-  let values = Array.isArray(event.value) ? [...event.value] : [];
-  const monthValues = this.monthOptions.map(opt => opt.value);
-  const hasAll = values.includes(this.allMonthOptionValue);
-
-  if (hasAll && !this.wasAllSelected) {
-    values = [this.allMonthOptionValue, ...monthValues];
-  } else if (hasAll && this.wasAllSelected) {
-    const individual = values.filter(v => v !== this.allMonthOptionValue);
-    if (individual.length !== monthValues.length) {
-      values = individual;
-    }
-  }
-
-  const selectedIndividuals = values.filter(v => v !== this.allMonthOptionValue);
-  if (selectedIndividuals.length === monthValues.length && monthValues.length > 0) {
-    values = [this.allMonthOptionValue, ...monthValues];
-  }
-
-  if (values.length === 0 && monthValues.length > 0) {
-    values = [this.allMonthOptionValue, ...monthValues];
-  }
-
-  this.selectedMonthValues = values;
-  this.wasAllSelected = this.selectedMonthValues.includes(this.allMonthOptionValue);
+onMonthFilterSelectionChange(): void {
   this.updateEffectiveDateRangeFromSelectedMonths();
 }
 
@@ -579,7 +652,9 @@ monthSelected(event: Date, datepicker: any) {
   this.monthName = event.toLocaleString('default', { month: 'long' });
   this.year = event.getFullYear();
 
-  this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
+  if (!this.isClientDashboard) {
+    this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
+  }
   this.updateFormattedMonthLabel();
   this.generateDaysForMonth(this.selectedMonth);
   if (this.isClientDashboard) {
@@ -632,7 +707,7 @@ monthSelected(event: Date, datepicker: any) {
     this.fromDateFilter = this.originalFromDateFilter;
     this.toDateFilter = this.originalToDateFilter;
     this.buildMonthOptionsFromRange();
-    this.selectAllMonths();
+    this.selectedMonthValue = this.monthOptions[0]?.value || '';
     this.updateEffectiveDateRangeFromSelectedMonths(false);
   }
 
@@ -660,30 +735,20 @@ monthSelected(event: Date, datepicker: any) {
     }
   }
 
-  private selectAllMonths(): void {
-    const monthValues = this.monthOptions.map(opt => opt.value);
-    this.selectedMonthValues = [this.allMonthOptionValue, ...monthValues];
-    this.wasAllSelected = true;
-  }
-
-  private updateEffectiveDateRangeFromSelectedMonths(fetchData: boolean = true): void {
-    const selected = this.selectedMonthValues.filter(v => v !== this.allMonthOptionValue);
-    if (!selected.length || this.selectedMonthValues.includes(this.allMonthOptionValue)) {
+  private updateEffectiveDateRangeFromSelectedMonths(fetchData: boolean = false): void {
+    if (!this.selectedMonthValue) {
       this.fromDateFilter = this.originalFromDateFilter;
       this.toDateFilter = this.originalToDateFilter;
     } else {
-      const selectedOptions = this.monthOptions.filter(opt => selected.includes(opt.value));
-      if (!selectedOptions.length) {
+      const selectedOption = this.monthOptions.find(opt => opt.value === this.selectedMonthValue);
+      if (!selectedOption) {
         this.fromDateFilter = this.originalFromDateFilter;
         this.toDateFilter = this.originalToDateFilter;
       } else {
-        const sorted = [...selectedOptions].sort((a, b) =>
-          a.year === b.year ? a.month - b.month : a.year - b.year
-        );
         const lowerBound = new Date(this.originalFromDateFilter);
         const upperBound = new Date(this.originalToDateFilter);
-        const rangeStart = sorted[0].startDate > lowerBound ? sorted[0].startDate : lowerBound;
-        const rangeEnd = sorted[sorted.length - 1].endDate < upperBound ? sorted[sorted.length - 1].endDate : upperBound;
+        const rangeStart = selectedOption.startDate > lowerBound ? selectedOption.startDate : lowerBound;
+        const rangeEnd = selectedOption.endDate < upperBound ? selectedOption.endDate : upperBound;
         this.fromDateFilter = this.formatDateForInput(rangeStart);
         this.toDateFilter = this.formatDateForInput(rangeEnd);
       }
@@ -714,14 +779,26 @@ monthSelected(event: Date, datepicker: any) {
     }
   }
 
+  applyClientDashboardFilters(): void {
+    if (!this.projectId) {
+      return;
+    }
+    this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
+  }
+
   get monthDisplayLabel(): string {
-    if (!this.selectedMonthValues?.length || this.selectedMonthValues.includes(this.allMonthOptionValue)) {
+    const selectedOption = this.monthOptions.find(opt => opt.value === this.selectedMonthValue);
+    return selectedOption?.label || 'Select Month';
+  }
+
+  get poDisplayLabel(): string {
+    if (!this.selectedPoIdFilters?.length || this.selectedPoIdFilters.includes(this.allPoOptionValue)) {
       return 'All';
     }
-    const labels = this.monthOptions
-      .filter(opt => this.selectedMonthValues.includes(opt.value))
+    const labels = this.poIdOptions
+      .filter(opt => this.selectedPoIdFilters.includes(opt.value))
       .map(opt => opt.label);
-    return labels.length ? labels.join(', ') : 'Select Month';
+    return labels.length ? labels.join(', ') : 'Select PO No';
   }
 
   private formatDateForInput(date: Date): string {
