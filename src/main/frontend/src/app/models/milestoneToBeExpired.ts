@@ -16,7 +16,6 @@ export class MilestoneToBeExpired {
     poNo: string;
     updatedBy: number;
     extendedDate: Date; // Date when the milestone was extended
-
     extensionFile:any;
 
 }

@@ -19,17 +19,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 //import org.hibernate.Query;
 //import org.hibernate.Session;
 import javax.servlet.http.HttpServletRequest;
 
-import org.hibernate.Session;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,13 +55,14 @@ import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForEmployeeDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForTeamDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.MilestoneAuditDTO;
+import com.apmosys.employeeportal.dto.MilestoneExtendedDate;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.MilestoneAuditDTO;
 import com.apmosys.employeeportal.dto.MilestoneExtendedDate;
 import com.apmosys.employeeportal.dto.PoEmployeeTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoProjectTimesheetSyncDTO;
-import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.PoTeamTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -75,10 +73,8 @@ import com.apmosys.employeeportal.dto.ProjectIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
-import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RmgProjectDto;
-import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.SyncableProjectDTO;
 import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.exception.ConflictException;
@@ -124,7 +120,6 @@ import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TechStackRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.request.ProjectRequest;
-import com.apmosys.employeeportal.service.helper.TimesheetStructureCleanupService;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.ExceptionLogContext;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
@@ -132,9 +127,6 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 import lombok.extern.slf4j.Slf4j;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 @Service
 @Slf4j
 public class ProjectService {
@@ -3156,23 +3148,24 @@ public class ProjectService {
 		apiLogInfo.setApiUrl("/api/getAllProjectFCLineItemListByProjectId");
 		apiLogInfo.setLogLevel("INFO");
 		try {
-			if (projectDto == null || projectDto.getPoProjectId() == null) {
+			if (projectDto == null || projectDto.getProjectId() == null) {
 				serviceResponse.setServiceResponse("Project Id cannot be null!");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				apiLogInfo.setApiResponse("Project Id cannot be null!");
 				return serviceResponse;
 			} else {
-				Project project = projectRepository.findByProjectId(projectDto.getPoProjectId().intValue());
+				Project project = projectRepository.findByProjectId(projectDto.getProjectId().intValue());
 				if (project == null) {
 					apiLogInfo.setApiResponse("Project not found!");
 					serviceResponse.setServiceResponse("Project not found!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					return serviceResponse;
-				} else {
+				}
+				else {
 					ServiceResponse serviceResponseTemp = poPortalAPIService
-							.callGetFCLineItemDetails(projectDto.getPoProjectId());
+							.callGetFCLineItemDetails(project.getPoProjectId());
 					if (!serviceResponseTemp.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
 						apiLogInfo.setApiResponse(serviceResponseTemp.getServiceResponse().toString());
 						serviceResponse.setServiceResponse(serviceResponseTemp.getServiceResponse());
@@ -3180,8 +3173,7 @@ public class ProjectService {
 						serviceResponse.setServiceStatus(serviceResponseTemp.getServiceStatus());
 						return serviceResponse;
 					}
-					List<FCLineItemDTO> fCLineItemDTO = (List<FCLineItemDTO>) serviceResponseTemp.getServiceResponse();
-
+					List<FCLineItemDTO> fCLineItemDTO = (List<FCLineItemDTO>) serviceResponseTemp.getServiceResponse();					
 					List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = mapLineItemToMilestone(fCLineItemDTO);
 					if (fcProjectMilestoneDTOList.isEmpty()) {
 						serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);

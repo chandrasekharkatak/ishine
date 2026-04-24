@@ -3174,7 +3174,72 @@ public class ProjectService {
 						serviceResponse.setServiceStatus(serviceResponseTemp.getServiceStatus());
 						return serviceResponse;
 					}
-					List<FCLineItemDTO> fCLineItemDTO = (List<FCLineItemDTO>) serviceResponseTemp.getServiceResponse();
+					FCProjectMilestoneDTO milestone1 = new FCProjectMilestoneDTO();
+					milestone1.setId(2344L);
+					milestone1.setPoId(3693L);
+					milestone1.setProjectId(9415L);
+					milestone1.setName("M-1");
+					milestone1.setStartDate(Timestamp.valueOf("2026-03-01 00:00:00"));
+					milestone1.setEndDate(Timestamp.valueOf("2026-03-15 00:00:00"));
+					milestone1.setDescription("");
+					milestone1.setRemarks("");
+					milestone1.setStatus("Not Started");
+					milestone1.setLineItemId(1708L);
+					milestone1.setMilestoneExtendedEndDateLogs(Collections.emptyList());
+					milestone1.setMilestoneExtendedStartDateLogs(Collections.emptyList());
+					milestone1.setMilestoneStatusLogs(Collections.emptyList());
+
+					FCProjectMilestoneDTO milestone2 = new FCProjectMilestoneDTO();
+					milestone2.setId(2345L);
+					milestone2.setPoId(3693L);
+					milestone2.setProjectId(9415L);
+					milestone2.setName("M-2");
+					milestone2.setStartDate(Timestamp.valueOf("2026-03-01 00:00:00"));
+					milestone2.setEndDate(Timestamp.valueOf("2026-03-31 00:00:00"));
+					milestone2.setDescription("");
+					milestone2.setRemarks("");
+					milestone2.setStatus("Not Started");
+					milestone2.setLineItemId(1708L);
+					MilestoneAuditDTO endDateLog = new MilestoneAuditDTO();
+					endDateLog.setOldValue("2026-03-25 00:00:00");
+					endDateLog.setNewValue("2026-03-31 00:00:00");
+					endDateLog.setExtentionReason("Client requested extension");
+					endDateLog.setOthersReason("Pending API integration sign-off");
+					endDateLog.setUpdatedBy(101L);
+					endDateLog.setUpdatedByName("Demo User");
+					endDateLog.setUpdatedOn(Timestamp.valueOf("2026-03-20 10:30:00"));
+					endDateLog.setDocumentId(9001L);
+					endDateLog.setDocumentName("end-date-extension-proof.pdf");
+
+					MilestoneAuditDTO startDateLog = new MilestoneAuditDTO();
+					startDateLog.setOldValue("2026-02-27 00:00:00");
+					startDateLog.setNewValue("2026-03-01 00:00:00");
+					startDateLog.setExtentionReason("Dependency delay");
+					startDateLog.setOthersReason("Environment setup was delayed");
+					startDateLog.setUpdatedBy(102L);
+					startDateLog.setUpdatedByName("Test Admin");
+					startDateLog.setUpdatedOn(Timestamp.valueOf("2026-02-28 11:15:00"));
+
+					MilestoneAuditDTO statusLog = new MilestoneAuditDTO();
+					statusLog.setOldValue("Not Started");
+					statusLog.setNewValue("In Progress");
+					statusLog.setUpdatedBy(103L);
+					statusLog.setUpdatedByName("Project Manager");
+					statusLog.setUpdatedOn(Timestamp.valueOf("2026-03-05 09:45:00"));
+
+					milestone2.setMilestoneExtendedEndDateLogs(Arrays.asList(endDateLog));
+					milestone2.setMilestoneExtendedStartDateLogs(Arrays.asList(startDateLog));
+					milestone2.setMilestoneStatusLogs(Arrays.asList(statusLog));
+
+					FCLineItemDTO lineItem = new FCLineItemDTO();
+					lineItem.setId(1708L);
+					lineItem.setPoId(3693L);
+					lineItem.setProjectId(null);
+					lineItem.setName("L-1");
+					lineItem.setStatus("Not Started");
+					lineItem.setMilestones(Arrays.asList(milestone1, milestone2));
+
+					List<FCLineItemDTO> fCLineItemDTO = Collections.singletonList(lineItem);
 
 					List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = mapLineItemToMilestone(fCLineItemDTO);
 					if (fcProjectMilestoneDTOList.isEmpty()) {

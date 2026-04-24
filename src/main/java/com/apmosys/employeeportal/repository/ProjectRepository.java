@@ -4286,8 +4286,6 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		 @Query("SELECT DISTINCT e.email FROM Employee e WHERE e.jobRoleId = 53")
 		    List<String> findDirectorEmails();
 
-		@Query(nativeQuery=true,value = "select e.email from employee e join  department d on e.department_id = d.dept_id where d.dept_id = 2")
-		List<String> getAccountsTeamEmails();
 
 	@Query(value="SELECT distinct p.po_project_id\n"
 			+ "	FROM projects p\n"
@@ -9050,5 +9048,9 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 			+ " FROM projects p \n"
 			+ "WHERE p.project_id = :projectId \n", nativeQuery = true)
 	public String employeeExistsInEtmByProjectId(Integer projectId);
+	
+	@Query(nativeQuery=true,value = "select e.email from employee e join  department d on e.department_id = d.dept_id where d.dept_id = 2")
+	List<String> getAccountsTeamEmails();
+
 
 }

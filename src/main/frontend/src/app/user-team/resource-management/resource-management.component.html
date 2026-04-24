@@ -676,9 +676,7 @@
                 (dateChange)="onExtendedDateChange($event)" />
               <mat-datepicker-toggle matSuffix [for]="extendedDatePicker"></mat-datepicker-toggle>
               <mat-datepicker #extendedDatePicker></mat-datepicker>
-              <mat-icon matSuffix   [matTooltip]="'You may select any date after the Start Date.
-                1. Select a date before the End Date to close the milestone earlier.
-                2. Select a date after the End Date to extend the milestone duration.'"
+              <mat-icon matSuffix [matTooltip]="milestoneExtendEndDateTooltip"
                 matTooltipClass="milestone-tooltip"
                 matTooltipPosition="above" class="ep-milestone-field__hint">info</mat-icon>
             </mat-form-field>
@@ -860,16 +858,16 @@
             <span>&times;</span>
           </button>
         </div>
-        <div class="modal-body text-center">
-          <div *ngIf="milestoneDocumentUrl; else noFile">
+        <div class="modal-body milestone-preview-body">
+          <div *ngIf="milestoneDocumentUrl; else noFile" class="milestone-preview-content">
             <!-- Image Preview -->
-            <img *ngIf="isImageFile" [src]="milestoneDocumentUrl" class="img-fluid preview-image"/>
+            <img *ngIf="isImageFile" [src]="milestoneDocumentUrl" class="preview-image"/>
             <!-- PDF Preview -->
-            <iframe *ngIf="isPdfFile" [src]="milestoneDocumentUrl" width="100%" height="600px" style="border:none;">
+            <iframe *ngIf="isPdfFile" [src]="milestoneDocumentUrl" class="preview-pdf" height="600px">
             </iframe>
           </div>
           <ng-template #noFile>
-            <p>No document available for this milestone.</p>
+            <p class="milestone-preview-empty">No document available for this milestone.</p>
           </ng-template>
 
         </div>
@@ -929,14 +927,13 @@
                         *ngFor="let milestone of fcProjectMilestoneList | sort : [projectMilestoneSortColumn, projectMilestoneSortColumnType, projectMilestoneSortDirection]| paginate: { itemsPerPage: 10, currentPage: projectMilestonepage }; let j = index">
                         <tr>
                             <td>{{j+1}}</td>
-                            <td>{{milestone.lineItemName}}</td>
-                            <td>{{milestone.name}}</td>
-                            <td>{{milestone.description}}</td>
-                            <td>{{milestone.startDate | date:'dd/MM/yyyy'}}</td>
-                            <td>{{milestone.endDate | date:'dd/MM/yyyy'}}</td>
-                            <td>{{milestone.status}}</td>
-                            <td>{{milestone.status}}</td>
-                            <td>{{milestone.remarks}}</td>
+                            <td>{{ milestone.lineItemName || '-' }}</td>
+                            <td>{{ milestone.name || '-' }}</td>
+                            <td>{{ milestone.description || '-' }}</td>
+                            <td>{{ milestone.startDate ? (milestone.startDate | date:'dd/MM/yyyy') : '-' }}</td>
+                            <td>{{ milestone.endDate ? (milestone.endDate | date:'dd/MM/yyyy') : '-' }}</td>
+                            <td>{{ milestone.status || '-' }}</td>
+                            <td>{{ milestone.remarks || '-' }}</td>
                             <td>
                                 <button class="btn btn-sm btn-primary" [disabled]="milestone.status === 'Completed'"
                                     [title]="milestone.status === 'Completed' ? 'Cannot edit completed milestone' : ''"
