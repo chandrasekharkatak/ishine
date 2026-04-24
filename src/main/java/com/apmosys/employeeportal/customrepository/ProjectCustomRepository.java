@@ -77,22 +77,51 @@ public class ProjectCustomRepository {
             .append(" ,p.active, p.status , p.project_status, p.sync_project, p.created_by, p.updated_by, approval_status \n")
             .append(" ,project_overview_id, p.created_on, p.updated_on, p.project_completion_date \n");
 
+    private void appendLinkSearchPrimaryProjectIdFilter(RMGDashboardProjectRequest req, StringBuilder... builders) {
+        if (req == null) {
+            return;
+        }
+        List<Integer> ids = req.getLinkSearchPrimaryProjectIds();
+        String like = req.getLinkSearchNameLikeParameter();
+        boolean hasIds = ids != null && !ids.isEmpty();
+        boolean hasLike = like != null && !like.isEmpty();
+        if (!hasIds && !hasLike) {
+            return;
+        }
+        String frag;
+        if (hasIds && hasLike) {
+            frag = " AND ( p.project_id IN (:linkSearchPrimaryProjectIds) OR LOWER(p.project_name) LIKE :linkSearchNameLike ) \n";
+        } else if (hasIds) {
+            frag = " AND p.project_id IN (:linkSearchPrimaryProjectIds) \n";
+        } else {
+            frag = " AND LOWER(p.project_name) LIKE :linkSearchNameLike \n";
+        }
+        for (StringBuilder b : builders) {
+            if (b != null) {
+                b.append(frag);
+            }
+        }
+    }
+
     public Slice<ProjectFetchDTO> handleProjectsByType(RMGDashboardProjectRequest rmgDashboardProjectRequest,
             List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection,
             Pageable page) {
 
-        String query = getQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
+        String query = getQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
                 projectStatus, false, projectNames);
         
         System.err.println(query);
 
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page,
-                        projectStatus, "", "", projectNames, null, "", false, false));
+                        projectStatus, "", "", projectNames, null, "", false, false,
+                        rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture<Long> countFuture = CompletableFuture
                 .supplyAsync(
                         () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
-                                false));
+                                false, rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture.allOf(listFuture, countFuture).join();
 
         Long count = null;
@@ -112,18 +141,21 @@ public class ProjectCustomRepository {
             List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection,
             Pageable page) {
 
-        String query = getAllProjectsQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
+        String query = getAllProjectsQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
                 projectNames);
         
         System.err.println(query.toString());
 
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
-                        projectNames, null, "", false, false));
+                        projectNames, null, "", false, false,
+                        rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture<Long> countFuture = CompletableFuture
                 .supplyAsync(
                         () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
-                                false));
+                                false, rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture.allOf(listFuture, countFuture).join();
 
         Long count = null;
@@ -144,18 +176,21 @@ public class ProjectCustomRepository {
             List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection,
             Pageable page) {
 
-        String query = getFCProjectQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
+        String query = getFCProjectQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
                 rmgDashboardProjectRequest.getFixedCostFilter(), projectNames);
         
         System.err.println(query);
 
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
-                        projectNames, null, "", false, false));
+                        projectNames, null, "", false, false,
+                        rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture<Long> countFuture = CompletableFuture
                 .supplyAsync(
                         () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
-                                false));
+                                false, rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture.allOf(listFuture, countFuture).join();
 
         Long count = null;
@@ -176,18 +211,21 @@ public class ProjectCustomRepository {
             List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection,
             Pageable page) {
 
-        String query = getOverboardedAndUnderboardedProjectQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy,
+        String query = getOverboardedAndUnderboardedProjectQuery(rmgDashboardProjectRequest, sortBy,
                 sortDirection, projectNames, projectStatus);
         
         System.err.println(query);
 
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
-                        projectNames, null, "", false, false));
+                        projectNames, null, "", false, false,
+                        rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture<Long> countFuture = CompletableFuture
                 .supplyAsync(
                         () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
-                                false));
+                                false, rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture.allOf(listFuture, countFuture).join();
 
         List<ProjectFetchDTO> list = null;
@@ -227,7 +265,7 @@ public class ProjectCustomRepository {
             addStartAndEndDate = false;
         }
 
-        String query = getQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy,
+        String query = getQuery(rmgDashboardProjectRequest, sortBy,
                 sortDirection, projectStatus, addStartAndEndDate, projectNames);
         
         System.err.println(query);
@@ -237,10 +275,13 @@ public class ProjectCustomRepository {
         final boolean faddStartAndEndDate = addStartAndEndDate;
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, sDate,
-                        eDate, projectNames, null, "", false, faddStartAndEndDate));
+                        eDate, projectNames, null, "", false, faddStartAndEndDate,
+                        rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture<Long> countFuture = CompletableFuture
                 .supplyAsync(() -> getResultCount(query, deptIds, projectStatus, sDate, eDate, projectNames, null, "",
-                        false, faddStartAndEndDate));
+                        false, faddStartAndEndDate, rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture.allOf(listFuture, countFuture).join();
 
         List<ProjectFetchDTO> list = null;
@@ -271,11 +312,12 @@ public class ProjectCustomRepository {
 
         listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
-                        projectNames, projectIds, dbProjectStatus, isProjectId, false));
+                        projectNames, projectIds, dbProjectStatus, isProjectId, false,
+                        req.getLinkSearchPrimaryProjectIds(), req.getLinkSearchNameLikeParameter()));
         countFuture = CompletableFuture
                 .supplyAsync(
                         () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, projectIds,
-                                dbProjectStatus, isProjectId, false));
+                                dbProjectStatus, isProjectId, false, req.getLinkSearchPrimaryProjectIds(), req.getLinkSearchNameLikeParameter()));
         try {
             CompletableFuture.allOf(listFuture, countFuture).join();
             List<ProjectFetchDTO> list = listFuture.get();
@@ -290,13 +332,14 @@ public class ProjectCustomRepository {
     public Long handleAllProjectsCount(RMGDashboardProjectRequest rmgDashboardProjectRequest,
             List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection) {
 
-        String query = getAllProjectsQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
+        String query = getAllProjectsQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
                 projectNames);
 
         CompletableFuture<Long> countFuture = CompletableFuture
                 .supplyAsync(
                         () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
-                                false));
+                                false, rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture.allOf(countFuture).join();
 
         Long count = 0l;
@@ -313,13 +356,14 @@ public class ProjectCustomRepository {
     public Long handleFCProjectsCount(RMGDashboardProjectRequest rmgDashboardProjectRequest,
             List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection) {
 
-        String query = getFCProjectQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
+        String query = getFCProjectQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
                 rmgDashboardProjectRequest.getFixedCostFilter(), projectNames);
 
         CompletableFuture<Long> countFuture = CompletableFuture
                 .supplyAsync(
                         () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
-                                false));
+                                false, rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture.allOf(countFuture).join();
 
         Long count = 0l;
@@ -346,7 +390,7 @@ public class ProjectCustomRepository {
         countFuture = CompletableFuture
                 .supplyAsync(
                         () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, projectIds,
-                                dbProjectStatus, isProjectId, false));
+                                dbProjectStatus, isProjectId, false, req.getLinkSearchPrimaryProjectIds(), req.getLinkSearchNameLikeParameter()));
         Long count = 0l;
         try {
             CompletableFuture.allOf(countFuture).join();
@@ -361,13 +405,14 @@ public class ProjectCustomRepository {
     public Long handleOverboardedAndUnderboardedProjectsCount(RMGDashboardProjectRequest rmgDashboardProjectRequest,
             List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection) {
 
-        String query = getOverboardedAndUnderboardedProjectQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy,
+        String query = getOverboardedAndUnderboardedProjectQuery(rmgDashboardProjectRequest, sortBy,
                 sortDirection, projectNames, projectStatus);
 
         CompletableFuture<Long> countFuture = CompletableFuture
                 .supplyAsync(
                         () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
-                                false));
+                                false, rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture.allOf(countFuture).join();
 
         Long count = 0l;
@@ -384,13 +429,14 @@ public class ProjectCustomRepository {
     public Long handleProjectsByTypeCount(RMGDashboardProjectRequest rmgDashboardProjectRequest,
             List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection) {
 
-        String query = getQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
+        String query = getQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
                 projectStatus, false, projectNames);
 
         CompletableFuture<Long> countFuture = CompletableFuture
                 .supplyAsync(
                         () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
-                                false));
+                                false, rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture.allOf(countFuture).join();
 
         Long count = 0l;
@@ -427,7 +473,7 @@ public class ProjectCustomRepository {
             addStartAndEndDate = false;
         }
 
-        String query = getQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy,
+        String query = getQuery(rmgDashboardProjectRequest, sortBy,
                 sortDirection, projectStatus, addStartAndEndDate, projectNames);
 
         final String sDate = startDate;
@@ -436,7 +482,8 @@ public class ProjectCustomRepository {
 
         CompletableFuture<Long> countFuture = CompletableFuture
                 .supplyAsync(() -> getResultCount(query, deptIds, projectStatus, sDate, eDate, projectNames, null, "",
-                        false, faddStartAndEndDate));
+                        false, faddStartAndEndDate, rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
         CompletableFuture.allOf(countFuture).join();
 
         Long count = 0l;
@@ -452,7 +499,8 @@ public class ProjectCustomRepository {
 
     private List<ProjectFetchDTO> getResultList(String query, String sortBy, String sortDirection, List<Long> deptIds,
             Pageable page, String projectStatus, String startDate, String endDate, List<String> projectNames,
-            Set<Integer> projectIds, String dbProjectStatus, boolean isProjectId, boolean addStartAndEndDate) {
+            Set<Integer> projectIds, String dbProjectStatus, boolean isProjectId, boolean addStartAndEndDate,
+            List<Integer> linkSearchPrimaryProjectIds, String linkSearchNameLikeParameter) {
 
         query = "SELECT * FROM " + query;
         System.out.println(projectStatus + " : ================================= query");
@@ -474,6 +522,12 @@ public class ProjectCustomRepository {
             if (projectNames != null && !projectNames.isEmpty()) {
                 nativeQuery.setParameter("projectNames", projectNames);
             }
+            if (linkSearchPrimaryProjectIds != null && !linkSearchPrimaryProjectIds.isEmpty()) {
+                nativeQuery.setParameter("linkSearchPrimaryProjectIds", linkSearchPrimaryProjectIds);
+            }
+            if (linkSearchNameLikeParameter != null && !linkSearchNameLikeParameter.isEmpty()) {
+                nativeQuery.setParameter("linkSearchNameLike", linkSearchNameLikeParameter);
+            }
             // Set pagination offsets
             int offset = page.getPageNumber() * page.getPageSize();
             nativeQuery.setFirstResult(offset);
@@ -491,7 +545,8 @@ public class ProjectCustomRepository {
 
     private Long getResultCount(String query, List<Long> deptIds, String projectStatus, String startDate,
             String endDate, List<String> projectNames, Set<Integer> projectIds, String dbProjectStatus,
-            boolean isProjectId, boolean addStartAndEndDate) {
+            boolean isProjectId, boolean addStartAndEndDate, List<Integer> linkSearchPrimaryProjectIds,
+            String linkSearchNameLikeParameter) {
         query = "SELECT count(*) FROM " + query;
         System.out.println(projectStatus + " : ================================= query");
         System.out.println(query);
@@ -511,6 +566,12 @@ public class ProjectCustomRepository {
             if (projectNames != null && !projectNames.isEmpty()) {
                 nativeQuery.setParameter("projectNames", projectNames);
             }
+            if (linkSearchPrimaryProjectIds != null && !linkSearchPrimaryProjectIds.isEmpty()) {
+                nativeQuery.setParameter("linkSearchPrimaryProjectIds", linkSearchPrimaryProjectIds);
+            }
+            if (linkSearchNameLikeParameter != null && !linkSearchNameLikeParameter.isEmpty()) {
+                nativeQuery.setParameter("linkSearchNameLike", linkSearchNameLikeParameter);
+            }
             Object count = nativeQuery.getSingleResult();
             return count == null ? 0 : Long.parseLong(count.toString());
 
@@ -525,14 +586,15 @@ public class ProjectCustomRepository {
                 "APPROVED", "PENDING_FOR_APPROVAL", "REJECTED", "COMPLETED_IN_SHANKH",
                 "COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE","OFFBOARDED","SCHEDULED");
         if (projectStatus != null && approvalStatusSet.contains(projectStatus)) {
-            return getGeneralProjectFilterQuery(req.getProjectFilter(), sortBy, sortDirection, projectStatus,
+            return getGeneralProjectFilterQuery(req, sortBy, sortDirection, projectStatus,
                     projectNames);
         }
-        return getAllProjectsQuery(req.getProjectFilter(), sortBy, sortDirection, projectNames);
+        return getAllProjectsQuery(req, sortBy, sortDirection, projectNames);
     }
 
-    private String getQuery(Map<String, String> projectFilter, String sortBy,
+    private String getQuery(RMGDashboardProjectRequest rmgReq, String sortBy,
             String sortDirection, String projectStatus, boolean addStartAndEndDate, List<String> projectNames) {
+        Map<String, String> projectFilter = rmgReq != null ? rmgReq.getProjectFilter() : null;
         StringBuilder query = new StringBuilder(projectDetailsStartQuery);
         StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" ) as T1");
 
@@ -546,6 +608,7 @@ public class ProjectCustomRepository {
                 .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1  \n")
                 .append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n")
                 .append(" WHERE 1=1 \n");
+        appendLinkSearchPrimaryProjectIdFilter(rmgReq, query);
         
         if(!projectStatus.equals("ALL_TNM") ){
             query.append("  AND p.active != 'false' \n");
@@ -578,8 +641,9 @@ public class ProjectCustomRepository {
         return query.toString();
     }
 
-    private String getAllProjectsQuery(Map<String, String> projectFilter, String sortBy,
+    private String getAllProjectsQuery(RMGDashboardProjectRequest rmgReq, String sortBy,
 			String sortDirection, List<String> projectNames) {
+		Map<String, String> projectFilter = rmgReq != null ? rmgReq.getProjectFilter() : null;
 		StringBuilder query = new StringBuilder(" ( " + projectDetailsStartQuery); // Approved
 		StringBuilder query1 = new StringBuilder(projectDetailsStartQuery); // Pending for Approval
 		StringBuilder query2 = new StringBuilder(projectDetailsStartQuery); // Not Started
@@ -618,6 +682,8 @@ public class ProjectCustomRepository {
 		query4.append(queryJoins)
 			  .append(" WHERE 1=1 \n")
 			  .append(getOffBoardedProjectsCondition());
+
+		appendLinkSearchPrimaryProjectIdFilter(rmgReq, query, query1, query2, query3, query4);
 		
 		
 //		query5.append(" INNER JOIN teams t ON p.project_id = t.project_id  \n")
@@ -658,8 +724,9 @@ public class ProjectCustomRepository {
 		return query.toString();
 	}
 
-    private String getOverboardedAndUnderboardedProjectQuery(Map<String, String> projectFilter, String sortBy,
+    private String getOverboardedAndUnderboardedProjectQuery(RMGDashboardProjectRequest rmgReq, String sortBy,
 			String sortDirection, List<String> projectNames, String projectStatus) {
+		Map<String, String> projectFilter = rmgReq != null ? rmgReq.getProjectFilter() : null;
 
 		StringBuilder query2 = new StringBuilder(projectDetailsStartQuery.toString()
 				.replace(" FROM projects p \n"," ,d.dept_id \n FROM projects p \n"));
@@ -677,8 +744,9 @@ public class ProjectCustomRepository {
 				.append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
 				.append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1 \n")
 				.append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n")
-				.append(" WHERE 1=1 \n")
-				.append(" AND p.po_project_type = 'TNM' AND p.active != 'false' AND t.is_active != 'N' \n")
+				.append(" WHERE 1=1 \n");
+		appendLinkSearchPrimaryProjectIdFilter(rmgReq, query);
+		query.append(" AND p.po_project_type = 'TNM' AND p.active != 'false' AND t.is_active != 'N' \n")
 				.append(" AND EXISTS ( \n")
 				.append("WITH ROLE_WISE_REQUIREMENT_COUNT AS ( \n")
 				.append("SELECT p2.project_id, prm2.po_id, prm2.role_id, prm2.count required_count \n")
@@ -724,8 +792,9 @@ public class ProjectCustomRepository {
 		return query.toString();
 	}
 
-    private String getGeneralProjectFilterQuery(Map<String, String> projectFilter, String sortBy,
+    private String getGeneralProjectFilterQuery(RMGDashboardProjectRequest rmgReq, String sortBy,
             String sortDirection, String projectStatus, List<String> projectNames) {
+        Map<String, String> projectFilter = rmgReq != null ? rmgReq.getProjectFilter() : null;
         StringBuilder query = new StringBuilder(projectDetailsStartQuery);
         StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" ) as T1");
         
@@ -765,6 +834,7 @@ public class ProjectCustomRepository {
 		}
         
         query.append(" WHERE 1=1 \n");
+        appendLinkSearchPrimaryProjectIdFilter(rmgReq, query);
 
 		if (projectStatus.equalsIgnoreCase("NOT_STARTED")) {
 			query.append(getNotStartedProjectsCondition());
@@ -809,8 +879,9 @@ public class ProjectCustomRepository {
         return query.toString();
     }
     
-    private String getFCProjectQuery(Map<String, String> projectFilter, String sortBy,
+    private String getFCProjectQuery(RMGDashboardProjectRequest rmgReq, String sortBy,
 			String sortDirection, String fixedCostFilter, List<String> projectNames) {
+		Map<String, String> projectFilter = rmgReq != null ? rmgReq.getProjectFilter() : null;
 		StringBuilder query = new StringBuilder(projectDetailsStartQuery);
 		StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" ) as T1");
 
@@ -823,7 +894,9 @@ public class ProjectCustomRepository {
 				.append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id \n")
 				.append(" LEFT JOIN clients c ON p.client_id = c.client_id \n")
 				.append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
-				.append(" WHERE 1=1 \n").append(" AND po_project_type = 'Fixed Cost' AND p.active = 'true' \n");
+				.append(" WHERE 1=1 \n");
+		appendLinkSearchPrimaryProjectIdFilter(rmgReq, query);
+		query.append(" AND po_project_type = 'Fixed Cost' AND p.active = 'true' \n");
 
 		if (fixedCostFilter != null) {
 			if (fixedCostFilter.equals("ontime")) {
@@ -959,6 +1032,8 @@ public class ProjectCustomRepository {
 
     public String getSortBy(String sortColumn, boolean defaultFlag) {
         switch (sortColumn) {
+            case "projectName":
+                return "project_name";
             case "name":
                 return "project_name";
             case "poNo":

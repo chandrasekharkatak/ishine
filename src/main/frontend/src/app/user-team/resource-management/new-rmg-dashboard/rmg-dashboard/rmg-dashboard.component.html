@@ -672,13 +672,22 @@
                     </mat-select>
                 </div>
             </div>
+            <div *ngIf="rmgLinkedProjectSearchInfo" class="alert alert-warning py-2 px-3 small mb-2" role="status">
+                {{ rmgLinkedProjectSearchInfo }}
+            </div>
             <div class="table-container">
                 <table class="custom-table" matSort (matSortChange)="sortProjectData($event)">
                     <thead>
                         <tr>
                             <th>Actions</th>
                             <th class="max-width200 min-width200" mat-sort-header="name|string">
-                                Project Name
+                                <span class="d-inline-flex align-items-center flex-wrap gap-1">
+                                    Project Name
+                                    <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip"
+                                        [shouldShine]="false" [iconBgColor]="'#ca8a04'"
+                                        [content]="projectNameSearchInfoTooltip" [size]="16">
+                                    </app-info-tooltip>
+                                </span>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="poNo|string">
                                 PO No.
@@ -784,24 +793,43 @@
                                         </button>
                                     </mat-menu>
                                 </td>
-                                <td class="max-width200 min-width200 truncate" [title]="project?.name || 'NA'"
+                                <td class="max-width200 min-width200 text-break"
+                                    [title]="project?.name || 'NA'"
                                     *ngIf="(project?.draftStatus == 'Not Started' || project?.active === 'false')">
-                                    <ng-container
-                                        *ngIf="projectDetailsResolveMap?.[project?.projectId]?.redirected">
-                                        <span class="me-1 rounded-circle text-dark border border-warning-subtle"
-                                            style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
-                                            [title]="'Linked to: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || 'Primary project')">
-                                            <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;"
-                                                aria-hidden="true"></i>
-                                        </span>
-                                        <button type="button" class="btn btn-sm btn-link p-0 me-1"
-                                            [title]="'Copy primary project name: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || '')"
-                                            (click)="$event.stopPropagation(); copyPrimaryProjectName(project?.projectId)">
-                                            <i class="bi bi-clipboard" aria-hidden="true"></i>
-                                        </button>
-                                    </ng-container>
+
+                                <span class="rmg-inactive-project-name-text">
                                     {{ project?.name || 'NA' }}
-                                    <span *ngIf="project?.active === 'false'" class="inactive-label">Inactive</span>
+                                </span>
+
+                                <span class="d-inline-flex align-items-center flex-wrap gap-1 ms-1 align-middle">
+
+                                    <ng-container *ngIf="projectDetailsResolveMap?.[project?.projectId]?.redirected">
+                                    <span class="icon-btn warning"
+                                            [title]="'Linked to: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || 'Primary project')">
+                                        <i class="bi bi-link-45deg"></i>
+                                    </span>
+
+                                    <button type="button"
+                                            class="icon-btn ghost"
+                                            [title]="'Click to copy primary project name: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || '')"
+                                            (click)="$event.stopPropagation(); copyPrimaryProjectName(project?.projectId)">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                    </ng-container>
+
+                                    <span *ngIf="rmgLinkedProjectSearchInfo && isRmgLinkedSearchPrimaryRow(project)"
+                                        class="icon-btn warning"
+                                        [title]="getRmgLinkedSearchRowTooltip(project)">
+                                    <i class="bi bi-link-45deg"></i>
+                                    </span>
+
+                                    <span *ngIf="project?.active === 'false'"
+                                        class="inactive-label">
+                                    Inactive
+                                    </span>
+
+                                </span>
+
                                 </td>
                                 <td class="max-width200 min-width200" title="Click to view Project Details"
                                     *ngIf="(project?.draftStatus != 'Not Started' && project?.active !== 'false')">
@@ -809,19 +837,22 @@
                                         [navigateToProjectView]="project?.projectViewId">
                                         <ng-container
                                             *ngIf="projectDetailsResolveMap?.[project?.projectId]?.redirected">
-                                            <span class="me-1 rounded-circle text-dark border border-warning-subtle"
-                                                style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
+                                            <span class="icon-btn warning"
                                                 [title]="'Linked to: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || 'Primary project')">
-                                                <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;"
-                                                    aria-hidden="true"></i>
+                                                <i class="bi bi-link-45deg"></i>
                                             </span>
-                                            <button type="button" class="btn btn-sm btn-link p-0 me-1"
-                                                [title]="'Copy primary project name: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || '')"
+                                            <button type="button" class="icon-btn ghost"
+                                                [title]="'Click to copy primary project name: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || '')"
                                                 (click)="$event.stopPropagation(); copyPrimaryProjectName(project?.projectId)">
-                                                <i class="bi bi-clipboard" aria-hidden="true"></i>
+                                                <i class="bi bi-clipboard"></i>
                                             </button>
                                         </ng-container>
                                         {{ project?.name || 'NA' }}
+                                        <span *ngIf="rmgLinkedProjectSearchInfo && isRmgLinkedSearchPrimaryRow(project)"
+                                            class="icon-btn warning"
+                                            [title]="getRmgLinkedSearchRowTooltip(project)">
+                                            <i class="bi bi-link-45deg"></i>
+                                        </span>
                                     </span>
                                 </td>
                                 <td class="max-width200 min-width200 truncate" [title]="project?.poNo || 'NA'">

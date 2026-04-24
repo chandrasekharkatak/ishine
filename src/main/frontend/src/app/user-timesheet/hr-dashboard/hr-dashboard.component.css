@@ -3442,6 +3442,13 @@ input:checked+.slider:before {
    z-index: 1000;
 }
 
+/* Inline info next to table header label (not absolute like tile-card tooltips) */
+.table-header-info-tooltip {
+  display: inline-flex;
+  vertical-align: middle;
+  line-height: 1;
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .tile-group {

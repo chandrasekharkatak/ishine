@@ -965,7 +965,16 @@
                                 <thead class="thead-light">
                                     <tr id="projectInfoTHeadTr">
                                         <th scope="col" class="info-label" style="max-width: fit-content;min-width: 300px;"
-                                            mat-sort-header="name|string">Project Name</th>
+                                            mat-sort-header="name|string">
+                                            <span class="d-inline-flex align-items-center flex-wrap gap-1">
+                                                Project Name
+                                                <app-info-tooltip *ngIf="allProjectTable && isSearchEnabled"
+                                                    class="table-header-info-tooltip" [shouldShine]="false"
+                                                    [iconBgColor]="'#ca8a04'" [content]="projectNameSearchInfoTooltip"
+                                                    [size]="16">
+                                                </app-info-tooltip>
+                                            </span>
+                                        </th>
                                         <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
                                             mat-sort-header="poNo|string">PO Number</th>
                                         <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
@@ -1282,7 +1291,14 @@
         <table class="po-table" id="project-view-table" matSort (matSortChange)="sortData($event)">
           <thead class="po-thead">
             <tr>
-              <th mat-sort-header="projectName|string">Project</th>
+              <th mat-sort-header="projectName|string">
+                <span class="d-inline-flex align-items-center flex-wrap gap-1">
+                  Project
+                  <app-info-tooltip *ngIf="isSearchEnabled" class="table-header-info-tooltip" [shouldShine]="false"
+                    [iconBgColor]="'#ca8a04'" [content]="projectNameSearchInfoTooltip" [size]="16">
+                  </app-info-tooltip>
+                </span>
+              </th>
               <th mat-sort-header="po_No|string">PO No</th>
               <th mat-sort-header="project_start_date|string">Start Date</th>
               <th mat-sort-header="project_end_date|string">End Date</th>
@@ -1338,6 +1354,11 @@
                   <span class="po-project-name" (mouseenter)="showProjectPopup(project.projectId)"
                     (mouseleave)="scheduleHideProjectPopup()">
                     {{ project.projectName || 'NA' }}
+                  </span>
+                  <span *ngIf="linkedProjectSearchInfo && isLinkedSearchPrimaryRow(project)" class="ms-2 rounded-circle text-dark border border-warning-subtle"
+                    style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
+                    [title]="getLinkedSearchRowTooltip(project)">
+                    <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;" aria-hidden="true"></i>
                   </span>
 
                   <div class="po-hover-popup" *ngIf="hoveredProjectId === project.projectId"

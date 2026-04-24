@@ -313,6 +313,9 @@
                     </mat-paginator>
                 </div>
             </div>
+            <div *ngIf="rmgLinkedProjectSearchInfo" class="alert alert-warning py-2 px-3 small mb-2 mx-2" role="status">
+                {{ rmgLinkedProjectSearchInfo }}
+            </div>
             <div class="table-container">
                 <table class="custom-table" matSort (matSortChange)="sortProjectData($event)">
                     <thead>
@@ -320,6 +323,11 @@
                             <th>Actions</th>
                             <th class="max-width200 min-width200" mat-sort-header="name|string">
                                 Project Name
+                                <span *ngIf="isProjectSearchEnabled" class="ms-2 rounded-circle text-dark border border-warning-subtle"
+                                    style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
+                                    title="You can search linked projects by their old name. When the search matches a linked project name, the link icon appears only on the primary project row(s) for those matches; other similarly named projects are not linked matches.">
+                                    <i class="bi bi-info" style="font-size:14px;line-height:1;" aria-hidden="true"></i>
+                                </span>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="poNo|string">
                                 PO No.
@@ -422,16 +430,30 @@
                                         </button>
                                     </mat-menu>
                                 </td>
-                                <td class="max-width200 min-width200 truncate" [title]="project?.name || 'NA'"
+                                <td class="max-width200 min-width200 text-break" [title]="project?.name || 'NA'"
                                     *ngIf="(project?.draftStatus == 'Not Started' || project?.active === 'false')">
-                                    {{ project?.name || 'NA' }}
-                                    <span *ngIf="project?.active === 'false'" class="inactive-label">Inactive</span>
+                                    <span class="rmg-inactive-project-name-text">{{ project?.name || 'NA' }}</span>
+                                    <span class="d-inline-flex align-items-center flex-wrap gap-1 ms-1 align-middle">
+                                        <span *ngIf="rmgLinkedProjectSearchInfo && isRmgLinkedSearchPrimaryRow(project)"
+                                            class="rounded-circle text-dark border border-warning-subtle"
+                                            style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;flex-shrink:0;"
+                                            [title]="getRmgLinkedSearchRowTooltip(project)">
+                                            <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;" aria-hidden="true"></i>
+                                        </span>
+                                        <span *ngIf="project?.active === 'false'" class="inactive-label text-nowrap">Inactive</span>
+                                    </span>
                                 </td>
                                 <td class="max-width200 min-width200" title="Click to view Project Details"
                                     *ngIf="(project?.draftStatus != 'Not Started' && project?.active !== 'false')">
                                     <span style="cursor: pointer; color: blue;" id="clickablefor360"
                                         [navigateToProjectView]="project?.projectViewId">
                                         {{ project?.name || 'NA' }}
+                                        <span *ngIf="rmgLinkedProjectSearchInfo && isRmgLinkedSearchPrimaryRow(project)"
+                                            class="ms-1 rounded-circle text-dark border border-warning-subtle"
+                                            style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
+                                            [title]="getRmgLinkedSearchRowTooltip(project)">
+                                            <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;" aria-hidden="true"></i>
+                                        </span>
                                     </span>
                                 </td>
                                 <td class="max-width200 min-width200 truncate" [title]="project?.poNo || 'NA'">

@@ -200,6 +200,11 @@ export class HrDashboardComponent implements AfterViewInit {
 
   filters: any = {};
   isSearchEnabled: boolean = false;
+  /** Project column header (app-info-tooltip): linked / partial name search + PO filter hint. */
+  projectNameSearchInfoTooltip: string[] = [
+    'Project name search: if the searched project matches a linked (historical) project name, the list shows the current primary project; a link icon appears only on those rows.',
+    'Other projects whose primary name simply contains the same text may also appear—they are not necessarily linked matches.',
+  ];
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType: any;
@@ -212,6 +217,12 @@ export class HrDashboardComponent implements AfterViewInit {
   projectView: ProjectViewForTimesheet[] = [];
   projectViewForExcel: ProjectViewForTimesheet[] = [];
   projectViewResolveMap: Record<string, { resolvedProjectViewId: string; redirected: boolean; resolvedProjectName?: string }> = {};
+  linkedProjectSearchInfo: string | null = null;
+  /** Primary project ids that matched the search via a linked (non-primary) project name. */
+  linkedPrimaryProjectIdsFromSearch: number[] = [];
+  /** Per primary project id: tooltip explaining which linked project names matched the search. */
+  linkedSearchRowTooltipByProjectId: Record<number, string> = {};
+  linkedProjectSearchPrimaryNames: string[] = [];
   projectViewColumns: any[] = ['projectName', 'poNo', 'startDate','endDate','totalEmployees', 'projectManagerName', 'projectType', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'totalExpectedFillCount', 'totalClientSideApprovedCount', 'blank', 'totalClientSidePendingCount', 'blank', 'totalClientSideNotFilledCount', 'blank','active'];
   timesheetSummaryColumns: any[] = ['blank', 'employmentId', 'name', 'blank', 'blank', 'blank', 'blank', 'blank'];
   totalClientSideApprovedCount: any;
@@ -2902,16 +2913,134 @@ getCountByStatus(status: string) {
 
     console.log("test empId ", this.projectViewClient);
     this.projectView = [];
+    this.linkedProjectSearchInfo = null;
+    this.linkedPrimaryProjectIdsFromSearch = [];
+    this.linkedSearchRowTooltipByProjectId = {};
+    this.linkedProjectSearchPrimaryNames = [];
     this.timesheetService.getProjectViewForClientAttendanceStatus(this.projectViewClient).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.projectView = response.serviceResponse;
+        this.linkedProjectSearchInfo = response?.serviceResponse1 || null;
+        this.absorbServiceResponse2LinkedMeta(response?.serviceResponse2);
+        // When backend resolves a linked/deleted project name to a primary project row,
+        // the primary row's name may not contain the searched text. Clear the client-side
+        // projectName filter so the resolved row isn't hidden by local filtering.
+        if (this.linkedProjectSearchInfo || this.linkedPrimaryProjectIdsFromSearch.length > 0) {
+          this.filters = { ...(this.filters || {}), projectName: '' };
+        }
         this.populateProjectViewResolveMap(this.projectView);
         this.totalItems = response.totalElements;
         this.dataForExcel = false;
       } else {
+        this.linkedPrimaryProjectIdsFromSearch = [];
+        this.linkedSearchRowTooltipByProjectId = {};
         this.openAlertMod1(this.alertTemplate, response.serviceResponse);
       }
     });
+  }
+
+  isLinkedSearchPrimaryRow(project: any): boolean {
+    if (!this.linkedPrimaryProjectIdsFromSearch?.length) {
+      return false;
+    }
+    const pid = Number(project?.projectId);
+    if (!Number.isFinite(pid)) {
+      return false;
+    }
+    return this.linkedPrimaryProjectIdsFromSearch.some(v => Number(v) === pid);
+  }
+
+  getLinkedSearchRowTooltip(project: any): string {
+    const pid = Number(project?.projectId);
+    if (Number.isFinite(pid) && this.linkedSearchRowTooltipByProjectId[pid]) {
+      return this.linkedSearchRowTooltipByProjectId[pid];
+    }
+    return this.linkedProjectSearchInfo || '';
+  }
+
+  private absorbServiceResponse2LinkedMeta(raw: any): void {
+    this.linkedPrimaryProjectIdsFromSearch = [];
+    this.linkedSearchRowTooltipByProjectId = {};
+    if (raw == null) {
+      return;
+    }
+    if (typeof raw === 'string') {
+      const s = raw.trim();
+      if (!s) {
+        return;
+      }
+      try {
+        this.absorbServiceResponse2LinkedMeta(JSON.parse(s));
+        return;
+      } catch {
+        this.linkedPrimaryProjectIdsFromSearch = s.split(/[,;\s]+/g)
+          .map(t => Number(t.trim()))
+          .filter(v => Number.isFinite(v));
+        return;
+      }
+    }
+    if (Array.isArray(raw)) {
+      this.linkedPrimaryProjectIdsFromSearch = raw
+        .map(v => Number(v))
+        .filter(v => Number.isFinite(v));
+      return;
+    }
+    if (typeof raw === 'object') {
+      const idsRaw = (raw as any).linkedPrimaryIds ?? (raw as any).linked_primary_ids;
+      if (idsRaw != null && Array.isArray(idsRaw)) {
+        this.linkedPrimaryProjectIdsFromSearch = idsRaw
+          .map((v: any) => Number(v))
+          .filter((v: number) => Number.isFinite(v));
+      }
+      const mapRaw = (raw as any).matchedLinkedNamesByPrimaryId
+        ?? (raw as any).matched_linked_names_by_primary_id;
+      if (mapRaw != null && typeof mapRaw === 'object' && !Array.isArray(mapRaw)) {
+        for (const k of Object.keys(mapRaw)) {
+          const pid = Number(k);
+          const arr = (mapRaw as any)[k];
+          const names = Array.isArray(arr)
+            ? arr.map((x: any) => String(x == null ? '' : x).trim()).filter((t: string) => t.length > 0)
+            : [];
+          if (Number.isFinite(pid) && names.length > 0) {
+            this.linkedSearchRowTooltipByProjectId[pid] = this.buildLinkedSearchRowTooltipText(names);
+          }
+        }
+        if (this.linkedPrimaryProjectIdsFromSearch.length === 0) {
+          this.linkedPrimaryProjectIdsFromSearch = Object.keys(mapRaw)
+            .map(k => Number(k))
+            .filter(v => Number.isFinite(v));
+        }
+      }
+    }
+  }
+
+  private buildLinkedSearchRowTooltipText(names: string[]): string {
+    const list = this.formatEnglishNameList(names);
+    return `Returned because the search matched linked project name(s): ${list}.`;
+  }
+
+  /** Order-preserving unique names, then "a and b" / "a, b, and c". */
+  private formatEnglishNameList(parts: string[]): string {
+    const seen = new Set<string>();
+    const p: string[] = [];
+    for (const x of parts) {
+      const t = String(x || '').trim();
+      if (!t || seen.has(t)) {
+        continue;
+      }
+      seen.add(t);
+      p.push(t);
+    }
+    if (p.length === 0) {
+      return '';
+    }
+    if (p.length === 1) {
+      return p[0];
+    }
+    if (p.length === 2) {
+      return `${p[0]} and ${p[1]}`;
+    }
+    return `${p.slice(0, -1).join(', ')}, and ${p[p.length - 1]}`;
   }
 
   private populateProjectViewResolveMap(rows: any[]) {
@@ -2931,6 +3060,13 @@ getCountByStatus(status: string) {
     this.resourceManagementService.resolveProjectViewIds(unique).pipe(first()).subscribe((resp: any) => {
       if (resp?.serviceStatus === 'Success' && resp?.serviceResponse) {
         this.projectViewResolveMap = resp.serviceResponse || {};
+
+        if (this.linkedProjectSearchInfo || this.linkedPrimaryProjectIdsFromSearch.length > 0) {
+          const names = Object.values(this.projectViewResolveMap || {})
+            .filter(v => v?.redirected === true && !!v?.resolvedProjectName)
+            .map(v => String(v.resolvedProjectName));
+          this.linkedProjectSearchPrimaryNames = Array.from(new Set(names));
+        }
       }
     });
   }
@@ -3453,6 +3589,9 @@ getTileInfo(status: string): string[] {
     ) {
       return;
     }
+    // Keep local table filtering in sync with the search inputs.
+    // Otherwise a stale `filters.projectName` can hide the resolved parent project row.
+    this.filters = { ...(this.currentColumnFilter || {}) };
     this.page = 1;
     this.page1 = 1;
     this.pageSize = 20;

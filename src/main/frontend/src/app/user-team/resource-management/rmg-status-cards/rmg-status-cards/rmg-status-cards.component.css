@@ -571,3 +571,9 @@
         padding: 1px 4px !important;
     }
 }
+
+/* Not-started / inactive project name: show full text (wrap); icons sit after the name */
+.rmg-inactive-project-name-text {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
