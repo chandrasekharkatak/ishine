@@ -3385,6 +3385,7 @@ resetCustomQueryFilterForm(event?: MouseEvent): void {
   // Dismiss validation/info modal so it cannot swallow clicks or mask a stale form state.
   this.modalRef?.close();
   this.filterRequest = [this.createRow()];
+  this.submit(this.alertModal);
 }
 
 cancel() {
