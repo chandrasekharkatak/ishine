@@ -2189,7 +2189,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
     <!-- Summary -->
     <div class="summary-wrapper">
       <div class="main-text">
-        You have been marked as a defaulter for :
+        {{popupHeading}}
       </div>
 
       <div class="latest-text" *ngIf="defaulterMonths?.length">
@@ -2216,8 +2216,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
     <!-- Warning -->
     <div class="alert modern-alert mt-3">
-      Please note that repeated policy violations may lead to leave or salary
-      deductions and further disciplinary action as per the company policy.
+            {{popupDescription}}
     </div>
 
   </div>

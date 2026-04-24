@@ -82,6 +82,7 @@ import com.apmosys.employeeportal.dto.CertificateDTO;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
 import com.apmosys.employeeportal.dto.DefaultProjectEmployeeConfig;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
+import com.apmosys.employeeportal.dto.DefaulterResponseDTO;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
@@ -143,6 +144,7 @@ import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.NewsletterReadResponse;
 import com.apmosys.employeeportal.model.Notification;
 import com.apmosys.employeeportal.model.PolicyReadResponse;
+import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.PredefinedSkills;
 import com.apmosys.employeeportal.model.PreviousEmployment;
 import com.apmosys.employeeportal.model.Proficiency;
@@ -187,6 +189,7 @@ import com.apmosys.employeeportal.repository.NotificationRepository;
 import com.apmosys.employeeportal.repository.PIPRepository;
 import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
 import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
+import com.apmosys.employeeportal.repository.PortalConfigRepository;
 import com.apmosys.employeeportal.repository.PredefinedSkillsRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.repository.ProficiencyRepository;
@@ -305,7 +308,9 @@ public class EmployeeService {
 	
 	@Autowired
 	PredefinedSkillsRepository predefinedSkillsRepository;
-	
+
+    @Autowired
+    PortalConfigRepository portalConfigRepository;
 
 	@Value("${default.password}")
 	String defaultPaswword;
@@ -12717,9 +12722,28 @@ public ServiceResponse getEmployeeBillableType(Long empId){
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
                 return response;
             }
+            List<PortalConfig> configList = portalConfigRepository.findAll();
+
+                    Map<String, String> configMap = configList.stream()
+                    .collect(Collectors.toMap(
+                            PortalConfig::getConfigName,
+                            pc -> pc.getConfigValue() != null ? pc.getConfigValue() : ""));
+
+                    
+                    String heading = configMap.get("DEF_POPUP_HEADING");
+                    String description = configMap.get("DEF_POPUP_DESCRIPTION");
+
+                    int cutoffYear = configMap.get("DEF_CUTOFF_YEAR") != null
+                            ? Integer.parseInt(configMap.get("DEF_CUTOFF_YEAR"))
+                            : 2025;
+
+                    int cutoffMonth = configMap.get("DEF_CUTOFF_MONTH") != null
+                            ? Integer.parseInt(configMap.get("DEF_CUTOFF_MONTH"))
+                            : 10;
 
             //  repository  Call
-            List<Object[]> result = employeeDefaulterConsentRepository.findDefaulterMonths(empId);
+            List<Object[]> result = employeeDefaulterConsentRepository.findDefaulterMonths(empId, cutoffYear,
+                    cutoffMonth);
 
             if (result != null && !result.isEmpty()) {
 
@@ -12732,9 +12756,12 @@ public ServiceResponse getEmployeeBillableType(Long empId){
                     months.add(m);
                 }
 
-                Map<String, Object> data = new HashMap<>();
-                data.put("isDefaulter", true);
-                data.put("months", months);
+                DefaulterResponseDTO data = new DefaulterResponseDTO(
+                        true,
+                        months,
+                        heading,
+                        description
+                );
 
                 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                 response.setServiceResponse(data);

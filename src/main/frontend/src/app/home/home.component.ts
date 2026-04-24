@@ -595,6 +595,8 @@ timesheet: any;
     });
   }
   isSavingConsent = false;
+  popupHeading: string = '';
+  popupDescription: string = '';
   loadPolicyNotification(): void {
     this.employeeService.getDefaulterStatus(this.currentUser.empId)
       .subscribe((res: any) => {
@@ -604,7 +606,8 @@ timesheet: any;
         if (data && data.isDefaulter && data.months?.length) {
 
           this.defaulterMonths = data.months;
-
+          this.popupHeading = data.heading || 'Attendance Policy Notification';
+          this.popupDescription = data.description || '';
           const latest = this.defaulterMonths[0];
 
     // Mock API response
