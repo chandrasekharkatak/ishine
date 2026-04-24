@@ -871,7 +871,7 @@
                 style="background-color: unset;">
             </mat-paginator>
         </div>
-        <div class="col-md-6 d-flex justify-content-end">
+        <div class="col-md-6 d-flex justify-content-end" *ngIf="!isProjectPreview">
             <button class="btn btn-outline-primary btn-sm" (click)="callCloseProjectConfiguration()">
                 Go to Resource Management
             </button>
@@ -1023,7 +1023,7 @@
                 (page)="oldTeamMemberPageChange($event)" style="background-color: unset;">
             </mat-paginator>
         </div>
-        <div class="col-md-6 d-flex justify-content-end">
+        <div class="col-md-6 d-flex justify-content-end" *ngIf="!isProjectPreview">
             <button class="btn btn-outline-primary btn-sm" (click)="callCloseProjectConfiguration()">
                 Go to Resource Management
             </button>
@@ -1314,7 +1314,7 @@
 <ng-template #team_details_new>
     <div class="card shadow project-config-card">
         <div class="card-header project-card-header">
-            <nav class="rmg-breadcrumb" aria-label="breadcrumb">
+            <nav class="rmg-breadcrumb" aria-label="breadcrumb" *ngIf="!isProjectPreview">
                 <ol class="breadcrumb mb-1">
                     <li class="breadcrumb-item">
                         <a href="javascript:void(0)" title="Back to Resource Management"
