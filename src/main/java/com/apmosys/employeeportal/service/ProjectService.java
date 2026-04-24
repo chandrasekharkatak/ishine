@@ -2456,7 +2456,7 @@ public class ProjectService {
                  		+ "				and leave_type_master_id = 5 \n"
                  		+ "				and curdate() between date(el.from_date) and date(el.to_date) \n"
                  		+ "		) eld on eld.emp_id = e.emp_id \n")
-                 .append("WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6  ")
+                 .append("WHERE ((etm.active = 0 AND DATE(etm.start_date) > CURDATE()) OR etm.active != 0 ) AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6  ")
                  .append(buildInnerWhereClause(poProjectType, flag))
                  .append(buildOuterWhereClause(billableType, deptIds, hideMaternityLeaveEmps))
 				 .append(
@@ -2990,6 +2990,9 @@ public class ProjectService {
 		try {
 //			Session session = entityManager.unwrap(Session.class);
 			String queryStr = buildDynamicQuery(dto);
+			System.err.println(queryStr);
+			
+			
 //			Query query = session.createSQLQuery(queryStr);
 			List<Object[]> resultList = entityManager.createNativeQuery(queryStr).getResultList();
 
@@ -3020,6 +3023,8 @@ public class ProjectService {
 	public GetEmployeeProjectReportDTO getProjectReport(GetEmployeeProjectReportPayloadDTO dto) {
 		try {
 			String queryStr = buildDynamicQuery(dto);
+			
+			System.err.println(queryStr);
 
 			List<Object[]> resultList = entityManager.createNativeQuery(queryStr).getResultList();
 

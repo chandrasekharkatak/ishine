@@ -4605,7 +4605,7 @@ boolean existsByProjectName(String projectName);
     				+ "WHERE p.active = 'true'\n"
     				+ "    AND t.is_active = 'Y'\n"
     				+ "    AND e.employmentstatus != 'InActive'\n"
-    				+ "    AND etm.active != 0\n"
+    				+ "    AND ((etm.active = 0 AND DATE(etm.start_date) > CURDATE()) OR etm.active != 0)\n"
     				+ "    AND (d.dept_id IN (:deptIds)) \n"
     				+ "    AND e.emp_id NOT BETWEEN 1 AND 6\n"
     				+ "    AND ((:leave_filter = TRUE)\n"
