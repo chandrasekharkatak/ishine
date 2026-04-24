@@ -29,10 +29,14 @@ export interface RepeatedOffenderDashboardRequest {
   filterDepartment?: string;
   filterEmploymentStatus?: string;
   filterProjectName?: string;
+  filterPoName?: string;
   filterBillableType?: string;
   filterManagerName?: string;
   filterProjectMapping?: string;
   filterTeamName?: string;
+  filterTeamStartDate?: string;
+  filterTeamEndDate?: string;
+  filterDefaultedInPeriod?: string;
 }
 
 /** Mirrors {@code RepeatedOffenderSummaryPayload} (Java). */
