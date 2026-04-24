@@ -553,7 +553,7 @@ preview-container {
 
 .tav-card__body { padding: 16px 20px; }
 
-/* ── Top bar: month picker + legend ── */
+/* ── Top bar: filters + legend ── */
 .tav-top-bar {
   display: flex;
   flex-direction: column;
@@ -561,9 +561,50 @@ preview-container {
   margin-bottom: 14px;
 }
 
+.tav-range-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.tav-range-item {
+  min-width: 180px;
+}
+
+.tav-range-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 4px;
+}
+
+.tav-range-input {
+  height: 36px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: #334155;
+  background: #ffffff;
+}
+
 .tav-month-picker {
-  min-width: 200px;
-  max-width: 200px;
+  min-width: 220px;
+  max-width: 280px;
+}
+
+.tav-month-select-shell {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.tav-month-select {
+  width: 100%;
+  font-size: 12px;
+  color: #334155;
 }
 
 .tav-legend {

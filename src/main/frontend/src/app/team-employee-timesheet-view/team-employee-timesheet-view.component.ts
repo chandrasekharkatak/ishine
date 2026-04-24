@@ -1,6 +1,7 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Sort } from '@angular/material/sort';
+import { MatSelectChange } from '@angular/material/select';
 import { GetEmployeeTimesheetAsCalender } from '../models/getEmployeeTimesheetAsCalender';
 import { TimesheetService } from '../services/timesheet.service';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
@@ -50,6 +51,17 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   year:any;
   monthName:any;
   currentDate = new Date();
+  maxDateValue: string = '';
+  fromDateFilter: string = '';
+  toDateFilter: string = '';
+  originalFromDateFilter: string = '';
+  originalToDateFilter: string = '';
+  readonly allMonthOptionValue = '__ALL__';
+  monthOptions: { value: string; label: string; month: number; year: number; startDate: Date; endDate: Date }[] = [];
+  selectedMonthValues: string[] = [];
+  wasAllSelected: boolean = false;
+  selectedPoIdFilter: string = '';
+  poIdOptions: { value: string; label: string }[] = [];
 minYear!: Date;
 maxYear!: Date;
   legend: { [key: string]: { label: string; color: string } } = {
@@ -119,6 +131,7 @@ alertMessageOfDoc: any;
 
   ngOnInit(): void {
      const currentYear = this.currentDate.getFullYear();
+  this.maxDateValue = this.formatDateForInput(this.currentDate);
   this.minYear = new Date(currentYear - 1, 0, 1);
   this.maxYear = new Date(currentYear, 11, 31);
     this.route.queryParams.subscribe(params => {
@@ -157,6 +170,9 @@ alertMessageOfDoc: any;
     }));
     this.selectedMonth = new Date(this.year, this.month - 1, 1);
     this.generateDaysForMonth(this.selectedMonth);
+    if (this.isClientDashboard) {
+      this.initializeDateRange();
+    }
   }
 
   getEmployeeTimesheetAsCalenderByProjectId(projectId:any,month:any,year:any): void {
@@ -184,6 +200,7 @@ alertMessageOfDoc: any;
           department: item.department ?? 'NA',
           billableType: item.billableType ?? 'NA',
           clientName: item.clientName ?? 'NA',
+          poId: item.poId ?? item.poNo ?? 'NA',
           poNo: item.poNo ?? 'NA',
           projectName: item.projectName ?? 'NA',
           projectManagerName: item.projectManagerName ?? 'NA',
@@ -193,11 +210,28 @@ alertMessageOfDoc: any;
           timesheetData: this.fillTimesheetDays(item.timesheetData),
         }));
 
+        this.buildPoIdOptions();
         this.filteredTimesheetData = [...this.timesheetData];
+        this.applyFilters();
       } else {
         this.openAlertMod(response.serviceResponse);
       }
     });
+  }
+
+  private buildPoIdOptions(): void {
+    const uniquePoIds = Array.from(
+      new Set(
+        this.timesheetData
+          .map(item => (((item as any)?.poId) ?? '').toString().trim())
+          .filter((value: string) => !!value && value !== 'NA')
+      )
+    ).sort();
+
+    this.poIdOptions = uniquePoIds.map(value => ({ value, label: value }));
+    if (this.selectedPoIdFilter && !uniquePoIds.includes(this.selectedPoIdFilter)) {
+      this.selectedPoIdFilter = '';
+    }
   }
 
   fillTimesheetDays(timesheetData: any = {}): any {
@@ -258,34 +292,40 @@ onSearch(searchData: any): void {
 }
 
 applyFilters(): void {
-  if (!this.filters || Object.keys(this.filters).length === 0) {
-    this.filteredTimesheetData = [...this.timesheetData];
+  const hasColumnFilters = !!this.filters && Object.keys(this.filters).length > 0;
+  const baseFiltered = !hasColumnFilters
+    ? [...this.timesheetData]
+    : this.timesheetData.filter(item => {
+        return Object.entries(this.filters).every(([key, value]) => {
+          if (!value) return true;
+          const filterValue = value.toString().toLowerCase().trim();
+          const lowerKey = key.toLowerCase();
+
+          if (lowerKey.startsWith('d')) {
+            return true;
+          }
+
+          const matchedKey = Object.keys(item).find(k => k.toLowerCase() === lowerKey);
+          if (!matchedKey) return false;
+
+          const itemValue = (item[matchedKey] ?? '').toString().toLowerCase().trim();
+          return itemValue.includes(filterValue);
+        });
+      });
+
+  if (!this.selectedPoIdFilter) {
+    this.filteredTimesheetData = baseFiltered;
     return;
   }
 
-console.log('Filter keys:', Object.keys(this.filters));
-console.log('Data keys:', Object.keys(this.timesheetData[0]));
+  this.filteredTimesheetData = baseFiltered.filter(item =>
+    (((item as any)?.poId) ?? '').toString() === this.selectedPoIdFilter
+  );
+}
 
-  this.filteredTimesheetData = this.timesheetData.filter(item => {
-    return Object.entries(this.filters).every(([key, value]) => {
-      if (!value) return true;
-      const filterValue = value.toString().toLowerCase().trim();
-
-      const lowerKey = key.toLowerCase();
-
-      if (lowerKey.startsWith('d')) {
-        // const dayStatus = (item.timesheetData?.[key]?.status ?? '').toString().toLowerCase();
-        // return dayStatus.includes(filterValue);
-      }
-
-      // Match against any key ignoring case (e.g., "Department" or "department")
-      const matchedKey = Object.keys(item).find(k => k.toLowerCase() === lowerKey);
-      if (!matchedKey) return false;
-
-      const itemValue = (item[matchedKey] ?? '').toString().toLowerCase().trim();
-      return itemValue.includes(filterValue);
-    });
-  });
+onPoIdFilterChange(): void {
+  this.applyFilters();
+  this.page = 1;
 }
 
   exportToExcel(): void {
@@ -466,6 +506,62 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
     this.alertMessage = message;
   }
 
+onDateRangeChange(): void {
+  if (!this.fromDateFilter || !this.toDateFilter) {
+    return;
+  }
+
+  const fromDate = new Date(this.fromDateFilter);
+  const toDate = new Date(this.toDateFilter);
+  const now = new Date(this.maxDateValue);
+
+  if (fromDate > now) {
+    this.fromDateFilter = this.maxDateValue;
+  }
+
+  if (new Date(this.toDateFilter) > now) {
+    this.toDateFilter = this.maxDateValue;
+  }
+
+  if (new Date(this.fromDateFilter) > new Date(this.toDateFilter)) {
+    this.toDateFilter = this.fromDateFilter;
+  }
+
+  this.originalFromDateFilter = this.fromDateFilter;
+  this.originalToDateFilter = this.toDateFilter;
+  this.buildMonthOptionsFromRange();
+  this.selectAllMonths();
+  this.updateEffectiveDateRangeFromSelectedMonths();
+}
+
+onMonthFilterSelectionChange(event: MatSelectChange): void {
+  let values = Array.isArray(event.value) ? [...event.value] : [];
+  const monthValues = this.monthOptions.map(opt => opt.value);
+  const hasAll = values.includes(this.allMonthOptionValue);
+
+  if (hasAll && !this.wasAllSelected) {
+    values = [this.allMonthOptionValue, ...monthValues];
+  } else if (hasAll && this.wasAllSelected) {
+    const individual = values.filter(v => v !== this.allMonthOptionValue);
+    if (individual.length !== monthValues.length) {
+      values = individual;
+    }
+  }
+
+  const selectedIndividuals = values.filter(v => v !== this.allMonthOptionValue);
+  if (selectedIndividuals.length === monthValues.length && monthValues.length > 0) {
+    values = [this.allMonthOptionValue, ...monthValues];
+  }
+
+  if (values.length === 0 && monthValues.length > 0) {
+    values = [this.allMonthOptionValue, ...monthValues];
+  }
+
+  this.selectedMonthValues = values;
+  this.wasAllSelected = this.selectedMonthValues.includes(this.allMonthOptionValue);
+  this.updateEffectiveDateRangeFromSelectedMonths();
+}
+
 monthSelected(event: Date, datepicker: any) {
   const now = new Date();
 
@@ -486,6 +582,9 @@ monthSelected(event: Date, datepicker: any) {
   this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
   this.updateFormattedMonthLabel();
   this.generateDaysForMonth(this.selectedMonth);
+  if (this.isClientDashboard) {
+    this.initializeDateRange();
+  }
 
   datepicker.close();
 }
@@ -521,6 +620,114 @@ monthSelected(event: Date, datepicker: any) {
       const weekday = new Date(year, month, day).toLocaleDateString('en-US', { weekday: 'short' }); // Mon, Tue...
       return { dayNumber: day, dayName: weekday };
     });
+  }
+
+  private initializeDateRange(): void {
+    const firstDay = new Date(this.selectedMonth.getFullYear(), this.selectedMonth.getMonth(), 1);
+    const lastDay = new Date(this.selectedMonth.getFullYear(), this.selectedMonth.getMonth() + 1, 0);
+    this.originalFromDateFilter = this.formatDateForInput(firstDay);
+    this.originalToDateFilter = this.formatDateForInput(
+      lastDay > this.currentDate ? this.currentDate : lastDay
+    );
+    this.fromDateFilter = this.originalFromDateFilter;
+    this.toDateFilter = this.originalToDateFilter;
+    this.buildMonthOptionsFromRange();
+    this.selectAllMonths();
+    this.updateEffectiveDateRangeFromSelectedMonths(false);
+  }
+
+  private buildMonthOptionsFromRange(): void {
+    const start = new Date(this.originalFromDateFilter);
+    const end = new Date(this.originalToDateFilter);
+    this.monthOptions = [];
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
+      return;
+    }
+
+    let pointer = new Date(start.getFullYear(), start.getMonth(), 1);
+    const endMarker = new Date(end.getFullYear(), end.getMonth(), 1);
+
+    while (pointer <= endMarker) {
+      const month = pointer.getMonth() + 1;
+      const year = pointer.getFullYear();
+      const value = `${year}-${String(month).padStart(2, '0')}`;
+      const label = pointer.toLocaleString('default', { month: 'long', year: 'numeric' });
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0);
+      this.monthOptions.push({ value, label, month, year, startDate, endDate });
+      pointer = new Date(year, month, 1);
+    }
+  }
+
+  private selectAllMonths(): void {
+    const monthValues = this.monthOptions.map(opt => opt.value);
+    this.selectedMonthValues = [this.allMonthOptionValue, ...monthValues];
+    this.wasAllSelected = true;
+  }
+
+  private updateEffectiveDateRangeFromSelectedMonths(fetchData: boolean = true): void {
+    const selected = this.selectedMonthValues.filter(v => v !== this.allMonthOptionValue);
+    if (!selected.length || this.selectedMonthValues.includes(this.allMonthOptionValue)) {
+      this.fromDateFilter = this.originalFromDateFilter;
+      this.toDateFilter = this.originalToDateFilter;
+    } else {
+      const selectedOptions = this.monthOptions.filter(opt => selected.includes(opt.value));
+      if (!selectedOptions.length) {
+        this.fromDateFilter = this.originalFromDateFilter;
+        this.toDateFilter = this.originalToDateFilter;
+      } else {
+        const sorted = [...selectedOptions].sort((a, b) =>
+          a.year === b.year ? a.month - b.month : a.year - b.year
+        );
+        const lowerBound = new Date(this.originalFromDateFilter);
+        const upperBound = new Date(this.originalToDateFilter);
+        const rangeStart = sorted[0].startDate > lowerBound ? sorted[0].startDate : lowerBound;
+        const rangeEnd = sorted[sorted.length - 1].endDate < upperBound ? sorted[sorted.length - 1].endDate : upperBound;
+        this.fromDateFilter = this.formatDateForInput(rangeStart);
+        this.toDateFilter = this.formatDateForInput(rangeEnd);
+      }
+    }
+
+    this.syncSelectedMonthFromRange(fetchData);
+  }
+
+  private syncSelectedMonthFromRange(fetchData: boolean): void {
+    const effectiveFrom = new Date(this.fromDateFilter);
+    if (isNaN(effectiveFrom.getTime())) {
+      return;
+    }
+
+    const nextMonth = effectiveFrom.getMonth() + 1;
+    const nextYear = effectiveFrom.getFullYear();
+    const monthChanged = nextMonth !== this.month || nextYear !== this.year;
+
+    this.month = nextMonth;
+    this.year = nextYear;
+    this.selectedMonth = new Date(nextYear, nextMonth - 1, 1);
+    this.monthName = this.selectedMonth.toLocaleString('default', { month: 'long' });
+    this.updateFormattedMonthLabel();
+    this.generateDaysForMonth(this.selectedMonth);
+
+    if (fetchData && monthChanged && this.projectId) {
+      this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
+    }
+  }
+
+  get monthDisplayLabel(): string {
+    if (!this.selectedMonthValues?.length || this.selectedMonthValues.includes(this.allMonthOptionValue)) {
+      return 'All';
+    }
+    const labels = this.monthOptions
+      .filter(opt => this.selectedMonthValues.includes(opt.value))
+      .map(opt => opt.label);
+    return labels.length ? labels.join(', ') : 'Select Month';
+  }
+
+  private formatDateForInput(date: Date): string {
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${date.getFullYear()}-${month}-${day}`;
   }
 
   downloadFinalDocuments() {
