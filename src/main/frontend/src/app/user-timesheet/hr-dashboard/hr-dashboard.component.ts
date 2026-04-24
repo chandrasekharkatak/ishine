@@ -202,8 +202,8 @@ export class HrDashboardComponent implements AfterViewInit {
   isSearchEnabled: boolean = false;
   /** Project column header (app-info-tooltip): linked / partial name search + PO filter hint. */
   projectNameSearchInfoTooltip: string[] = [
-    'Project name search: if the searched project matches a linked (historical) project name, the list shows the current primary project; a link icon appears only on those rows.',
-    'Other projects whose primary name simply contains the same text may also appear—they are not necessarily linked matches.',
+    'Search includes projects whose names were later linked to another project.',
+    'Linked results are shown as the current primary project with a link icon.',
   ];
   sortDirection = 'asc';
   sortColumn: any;
@@ -3016,7 +3016,7 @@ getCountByStatus(status: string) {
 
   private buildLinkedSearchRowTooltipText(names: string[]): string {
     const list = this.formatEnglishNameList(names);
-    return `Returned because the search matched linked project name(s): ${list}.`;
+    return `Included via linked project whose name matches your search. Project :  ${list}.`;
   }
 
   /** Order-preserving unique names, then "a and b" / "a, b, and c". */
