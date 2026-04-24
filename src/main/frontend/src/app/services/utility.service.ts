@@ -116,6 +116,10 @@ export class UtilityService {
   getCustomQueryData(query: Query) {
     return this.http.post(`${this.baseUrl}` + `api/getCustomQueryData`, query);
   }
+  // Get CustomQuery Filtered Data
+  getFilteredQueryData(payload: any):Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/getFilteredQueryData`, payload);
+  }
 
   setEmployee360ViewAccess(hasAccess: boolean): void {
     this.employee360ViewUser = hasAccess;
@@ -217,5 +221,7 @@ export class UtilityService {
   getJobRoles(): Observable<any> {
     return this.http.get(`${this.baseUrl}` + `api/getAllJobRole`);
   }
+
+
 
 }

@@ -34,6 +34,8 @@ class FilterData {
   title: any;
   columns: any;
   queryList: any;
+  useCustomQuery: true;      
+  customQuery: any; 
 }
 interface Project {
   projectId: string;
@@ -49,6 +51,9 @@ export class ReportListComponent implements OnInit {
 
   @ViewChild("alert_message")
   alertModal: TemplateRef<any>;
+
+  @ViewChild("filter")
+  filterModal: TemplateRef<any>;
 
   @ViewChild("alert_message_sync")
   alertModalSync: TemplateRef<any>;
@@ -395,6 +400,8 @@ dateRange: string; type: string; count: string;
 
     console.log("On ngOnInIt Toggle ",this.employeeReportObj);
   }
+
+  
 
   private refreshReportData(): void {
     console.log("Refreshing data with dept IDs:", this.employeeReportObj);
@@ -3128,6 +3135,176 @@ onSort(event: any) {
 
   this.updatePagination();
 }
+
+
+//Custom Query Filter Start
+// ===== UI CONTROL =====
+showFilter = false;
+operatorList = [
+  { name: 'Equals', symbol: 'equals' },
+  { name: 'Not Equals', symbol: 'not_equals' },
+  { name: 'Contains', symbol: 'contains' },
+  { name: 'Not Contains', symbol: 'not_contains' },
+  { name: 'Starts With', symbol: 'starts_with' },
+  { name: 'Ends With', symbol: 'ends_with' },
+
+  { name: 'Greater Than', symbol: 'gt' },
+  { name: 'Greater Than Equals', symbol: 'gte' },
+  { name: 'Less Than', symbol: 'lt' },
+  { name: 'Less Than Equals', symbol: 'lte' },
+
+  { name: 'Between', symbol: 'between' },
+
+  { name: 'In', symbol: 'in' },
+  { name: 'Not In', symbol: 'not_in' },
+
+  { name: 'Is Null', symbol: 'is_null' },
+  { name: 'Is Not Null', symbol: 'is_not_null' }
+];
+filterRequest: any[] = [this.createRow()];
+createRow() {
+  return {
+    column: '',
+    operator: '',
+    value: '',
+    valueOptionList: []
+  };
+}
+
+openFilter() {
+  this.showFilter = true;
+}
+cancel() {
+  this.showFilter = false;
+}
+
+// ===== ADD / REMOVE =====
+addFilter(index: number) {
+  this.filterRequest.splice(index + 1, 0, this.createRow());
+}
+
+removeFilter(index: number) {
+  this.filterRequest.splice(index, 1);
+}
+
+// ===== COLUMN CHANGE (MOCK API) =====
+onColumnChange(query: any) {
+
+  if (!query.column) return;
+
+  const payload = {
+    customQuery: this.customQuery,
+    selectedColumns: query.column,
+    customQueryFilters: [
+      {
+        column: query.column,
+        operator: "group",
+        value: "",
+        valueTo: ""
+      },
+      {
+        column: query.column,
+        operator: "order",
+        value: "",
+        valueTo: "ASC"
+      }
+    ]
+  };
+
+  query.valueOptionList = [];
+  query.value = '';
+
+  this.utilityService.getFilteredQueryData(payload).subscribe({
+    next: (res: any) => {
+
+      if (res && res.serviceStatus === "Success") {
+        //remove first index
+        query.valueOptionList = res.serviceResponse?.slice(1) || [];
+      } else {
+        query.valueOptionList = [];
+      }
+    },
+    error: (err) => {
+      console.error('Error fetching values:', err);
+      query.valueOptionList = [];
+    }
+  });
+}
+
+// ===== SUBMIT =====
+submit(template: TemplateRef<any>) {
+
+  const payload = {
+    customQuery: this.customQuery,
+    selectedColumns: "",
+    customQueryFilters: this.filterRequest.map(q => ({
+      column: q.column,
+      operator: q.operator,
+      value: q.value,
+      valueTo: ''
+    }))
+  };
+
+  console.log('Payload:', payload);
+  this.isLoading = true;
+
+  this.utilityService.getFilteredQueryData(payload)
+    .pipe(first())
+    .subscribe({
+      next: (response: any) => {
+
+        this.isLoading = false;
+
+        if (response.serviceStatus !== "Success") {
+          this.alertMessage = response.serviceResponse;
+          this.openAlertMod(template, this.alertMessage);
+          this.resetCustomQueryPreview();
+          return;
+        }
+
+        const data = response.serviceResponse;
+
+        if (!data || data.length === 0) {
+          this.alertMessage = "No data available, please verify query.";
+          this.openAlertMod(template, this.alertMessage);
+          this.resetCustomQueryPreview();
+          return;
+        }
+
+        const headers: string[] = data[0];
+
+        this.tableData = [];
+        this.previewData = [];
+
+        for (let i = 1; i < data.length; i++) {
+          const row = data[i];
+          const obj: any = {};
+
+          headers.forEach((header, index) => {
+            obj[header] = row[index] ?? null;
+          });
+
+          this.tableData.push(obj);
+          this.previewData.push({ ...obj });
+        }
+
+        this.columns = [...headers];
+        this.filteredData = [...this.tableData];
+        this.currentPage = 1;
+
+        this.updatePagination();
+        this.showPreview = true;
+        this.isSaveEnable = true;
+      },error: () => {
+        this.isLoading = false;
+        this.resetCustomQueryPreview();
+      }
+    });
+
+  this.showFilter = false;
+}
+
+
 
 
   // getCustomQueryData(template: TemplateRef<any>) {

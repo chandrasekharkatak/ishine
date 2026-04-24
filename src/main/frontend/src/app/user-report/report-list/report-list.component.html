@@ -2234,12 +2234,22 @@
               <!-- HEADER -->
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <span>Results ({{ filteredData?.length || 0 }})</span>
-                <button class="btn btn-sm btn-outline-primary"
-                  (click)="downloadPreviewExcel(alert_message)">
-                  <i class="fa fa-download"></i>
-                </button>
+              
+                <div class="d-flex gap-2">
+                  <!-- FILTER BUTTON -->
+                  <button type="button" id="buttonPosition" class="btn btn-sm btn-outline-primary mt-1"
+                    (click)="openFilterModal(alert_message,columns,'Custom Query Filter')">
+                    <i class="fa-solid fa-filter"></i>
+                  </button>
+              
+                  <!-- DOWNLOAD -->
+                  <button class="btn btn-sm btn-outline-primary"
+                    (click)="downloadPreviewExcel(alert_message)" title="Export Excel">
+                    <i class="fa fa-download"></i>
+                  </button>
+                </div>
               </div>
-        
+
               <!-- TABLE -->
               <div class="table-container">
                 <table class="table" matSort (matSortChange)="onSort($event)">
@@ -2301,6 +2311,103 @@
     </div>
 </div>
 
+
+<!-- Open Custom Query Filter Module -->
+
+<div class="filter-overlay" *ngIf="showFilter" (click)="cancel()">
+  <div class="filter-modal container" (click)="$event.stopPropagation()">
+
+    <!-- HEADER -->
+    <div class="filter-header d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">Filter Leave Report</h5>
+      <button class="close-btn" (click)="cancel()">×</button>
+    </div>
+
+    <!-- COLUMN HEADER -->
+    <div class="row fw-bold mb-2 filter-table-header">
+      <div class="col-md-3">Field</div>
+      <div class="col-md-2">Operator</div>
+      <div class="col-md-3">Value</div>
+      <div class="col-md-2">Conjunction</div>
+      <div class="col-md-2 text-center">Actions</div>
+    </div>
+
+    <!-- ROWS -->
+    <div *ngFor="let query of filterRequest; let i = index" class="row align-items-center mb-3">
+
+      <!-- FIELD -->
+      <div class="col-md-3">
+        <select class="form-control"
+                [(ngModel)]="query.column"
+                (change)="onColumnChange(query)">
+          <option value="" disabled>Select</option>
+          <option *ngFor="let col of columns" [value]="col">{{col}}</option>
+        </select>
+      </div>
+
+      <!-- OPERATOR -->
+      <div class="col-md-2">
+        <select class="form-control"
+                [(ngModel)]="query.operator">
+          <option value="" disabled>Select</option>
+          <option *ngFor="let op of operatorList" [value]="op.symbol">
+            {{op.name}}
+          </option>
+        </select>
+      </div>
+
+      <!-- VALUE -->
+      <div class="col-md-3">
+        <select *ngIf="query.valueOptionList?.length"
+                class="form-control"
+                [(ngModel)]="query.value">
+          <option value="" disabled>Select</option>
+          <option *ngFor="let v of query.valueOptionList" [value]="v">
+            {{v}}
+          </option>
+        </select>
+
+        <input *ngIf="!query.valueOptionList?.length"
+               type="text"
+               class="form-control"
+               [(ngModel)]="query.value"
+               placeholder="Enter value">
+      </div>
+
+      <!-- CONJUNCTION -->
+      <div class="col-md-2">
+        <select class="form-control"
+                [(ngModel)]="query.conjunction">
+          <option value="" disabled>Select</option>
+          <option value="AND">AND</option>
+          <option value="OR">OR</option>
+        </select>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="col-md-2 text-center">
+        <button class="btn btn-outline-primary btn-sm me-2"
+                (click)="addFilter(i)">
+          <i class="fas fa-plus"></i>
+        </button>
+
+        <button *ngIf="filterRequest.length > 1"
+                class="btn btn-outline-danger btn-sm"
+                (click)="removeFilter(i)">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="d-flex gap-2 mt-3">
+      <button class="btn btn-primary" (click)="submit(alert_message)">Submit</button>
+      <button class="btn btn-outline-secondary" (click)="cancel()">Clear</button>
+    </div>
+
+  </div>
+</div>
 
 
 <div class="row" *ngIf="showQueryModal">

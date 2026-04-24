@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,11 +22,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 
+import com.apmosys.employeeportal.dto.*;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.exception.SQLGrammarException;
 import org.hibernate.query.NativeQuery;
-import org.hibernate.transform.AliasToBeanResultTransformer;
 import org.hibernate.transform.Transformers;
 import org.hibernate.type.StandardBasicTypes;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,18 +40,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.apmosys.employeeportal.dto.BioMaTO;
-import com.apmosys.employeeportal.dto.CustomFilterDTO;
-import com.apmosys.employeeportal.dto.CustomTimesheetReportDTO;
-import com.apmosys.employeeportal.dto.EmployeeDTO;
-import com.apmosys.employeeportal.dto.EmployeeProjection;
-import com.apmosys.employeeportal.dto.LeaveDTO;
-import com.apmosys.employeeportal.dto.LogDTO;
-import com.apmosys.employeeportal.dto.NewsletterDTO;
-import com.apmosys.employeeportal.dto.PieParamDTO;
-import com.apmosys.employeeportal.dto.ProjectDTO;
-import com.apmosys.employeeportal.dto.ReportsQueryDTO;
-import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Designation;
@@ -3430,6 +3417,179 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
+	//get Filtered Query Data
+	public ServiceResponse getFilteredQueryData(QueryRequestDTO requestDTO) {
+
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getFilteredQueryData");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+
+		try {
+			String baseQuery = requestDTO.getCustomQuery();
+
+			// Validate (only SELECT allowed)
+			if (baseQuery == null || !baseQuery.trim().toLowerCase().startsWith("select")) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Only SELECT query allowed.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				return response;
+			}
+
+			// Wrap query
+			StringBuilder finalQuery = new StringBuilder();
+			if (requestDTO.getSelectedColumns()!=null && !requestDTO.getSelectedColumns().isEmpty()){
+				finalQuery.append("SELECT "+requestDTO.getSelectedColumns()+" FROM (");
+			}else {
+				finalQuery.append("SELECT * FROM (");
+			}
+			finalQuery.append(baseQuery);
+			finalQuery.append(") AS temp WHERE 1=1 ");
+
+			// Apply filters
+			if (requestDTO.getCustomQueryFilters() != null) {
+
+				for (QueryFilterDTO filter : requestDTO.getCustomQueryFilters()) {
+
+					if (filter.getColumn() == null || !filter.getColumn().matches("^[a-zA-Z0-9_]+$")) {
+						continue;
+					}
+
+					String val = filter.getValue();
+
+					switch (filter.getOperator()) {
+
+						case "equals":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" = '").append(val).append("'");
+							break;
+
+						case "not_equals":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" != '").append(val).append("'");
+							break;
+
+						case "contains":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" LIKE '%").append(val).append("%'");
+							break;
+
+						case "not_contains":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" NOT LIKE '%").append(val).append("%'");
+							break;
+
+						case "starts_with":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" LIKE '").append(val).append("%'");
+							break;
+
+						case "ends_with":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" LIKE '%").append(val).append("'");
+							break;
+
+						case "gt":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" > '").append(val).append("'");
+							break;
+
+						case "gte":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" >= '").append(val).append("'");
+							break;
+
+						case "lt":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" < '").append(val).append("'");
+							break;
+
+						case "lte":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" <= '").append(val).append("'");
+							break;
+
+						case "between":
+							if (filter.getValue() != null && filter.getValueTo() != null) {
+								finalQuery.append(" AND temp.").append(filter.getColumn())
+										.append(" BETWEEN '")
+										.append(filter.getValue())
+										.append("' AND '")
+										.append(filter.getValueTo())
+										.append("'");
+							}
+							break;
+
+						case "in":
+							finalQuery.append(" AND temp.").append(filter.getColumn())
+									.append(" IN (").append(formatInClause(val)).append(")");
+							break;
+
+						case "not_in":
+							finalQuery.append(" AND temp.").append(filter.getColumn())
+									.append(" NOT IN (").append(formatInClause(val)).append(")");
+							break;
+
+						case "is_null":
+							finalQuery.append(" AND temp.").append(filter.getColumn())
+									.append(" IS NULL");
+							break;
+
+						case "is_not_null":
+							finalQuery.append(" AND temp.").append(filter.getColumn())
+									.append(" IS NOT NULL");
+							break;
+						case "group":
+							finalQuery.append(" GROUP BY temp.").append(filter.getColumn());
+							break;
+						case "order":
+							finalQuery.append(" ORDER BY temp.").append(filter.getColumn())
+									.append(" ").append(filter.getValue());
+							break;
+						default:
+							break;
+					}
+				}
+			}
+
+			String finalSql = finalQuery.toString();
+			logBuilder.append("Final Query: ").append(finalSql);
+
+			// use your existing method to execute query
+			CustomFilterDTO customDTO = new CustomFilterDTO();
+			//pass the final SQL Query to get filtered data
+			customDTO.setCustomQuery(finalSql);
+			response = getCustomQueryData(customDTO);
+
+			apiLogInfo.setApiStatus(response.getServiceStatus());
+			apiLogInfo.setApiResponse("Filtered query executed");
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong while filtering data.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	private String formatInClause(String value) {
+		if (value == null || value.isEmpty()) return "";
+
+		String[] values = value.split(",");
+
+		return Arrays.stream(values)
+				.map(v -> "'" + v.trim() + "'")
+				.collect(Collectors.joining(","));
+	}
+
+
 
 	public ServiceResponse customQueryForDocument(NewsletterDTO newsletterDto) {
 
