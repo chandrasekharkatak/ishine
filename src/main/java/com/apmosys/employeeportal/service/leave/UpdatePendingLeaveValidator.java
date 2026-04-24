@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service.leave;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,7 +68,7 @@ public class UpdatePendingLeaveValidator {
             throw new LeaveApplicationException("Leave balance not configured for this employee and leave type.");
         }
 
-        int difference = computeDifference(leaveDTO, leaveToBeUpdated);
+        double difference = computeDifference(leaveDTO, leaveToBeUpdated);
         validateCompOffAndBalance(leaveDTO, leaveType, employeeLeavesMap, difference);
         leaveApplicationValidator.validateCasualLeaveRulesForUpdate(leaveDTO);
         return new UpdatePendingLeaveValidationResult(
@@ -107,23 +108,60 @@ public class UpdatePendingLeaveValidator {
         return empDto;
     }
 
-    private int computeDifference(LeaveDTO leaveDTO, EmployeeLeave leaveToBeUpdated) {
-        if (leaveDTO.getFromDate().equals(leaveToBeUpdated.getFromDate().toString())
-                && leaveDTO.getToDate().equals(leaveToBeUpdated.getToDate().toString())) {
-            return 0;
+    // private int computeDifference(LeaveDTO leaveDTO, EmployeeLeave leaveToBeUpdated) {
+    //     if (leaveDTO.getFromDate().equals(leaveToBeUpdated.getFromDate().toString())
+    //             && leaveDTO.getToDate().equals(leaveToBeUpdated.getToDate().toString())) {
+    //         return 0;
+    //     }
+    //     Period dbDateDifference = Period.between(leaveToBeUpdated.getFromDate(), leaveToBeUpdated.getToDate());
+    //     LocalDate fromDate = stringToDateTimeParser.getDate(leaveDTO.getFromDate(), "yyyy-MM-dd");
+    //     LocalDate toDate = stringToDateTimeParser.getDate(leaveDTO.getToDate(), "yyyy-MM-dd");
+    //     Period newDateDifference = Period.between(fromDate, toDate);
+    //     return newDateDifference.getDays() - dbDateDifference.getDays();
+    // }
+    private double computeDifference(LeaveDTO leaveDTO, EmployeeLeave leaveToBeUpdated) {
+
+        // Old values
+        LocalDate oldFrom = leaveToBeUpdated.getFromDate();
+        LocalDate oldTo = leaveToBeUpdated.getToDate();
+
+        double oldFromDayType = leaveToBeUpdated.getFromDateDayType(); // 0 or 0.5
+        double oldToDayType = leaveToBeUpdated.getToDateDayType();     // 0 or 0.5
+
+        // New values
+        LocalDate newFrom = stringToDateTimeParser.getDate(leaveDTO.getFromDate(), "yyyy-MM-dd");
+        LocalDate newTo = stringToDateTimeParser.getDate(leaveDTO.getToDate(), "yyyy-MM-dd");
+
+        double newFromDayType = leaveDTO.getFromDateDayType(); // 0 or 0.5
+        double newToDayType = leaveDTO.getToDateDayType();     // 0 or 0.5
+
+        long oldDays = ChronoUnit.DAYS.between(oldFrom, oldTo) + 1;
+        long newDays = ChronoUnit.DAYS.between(newFrom, newTo) + 1;
+
+        double oldTotal;
+        double newTotal;
+
+        //  SAME DAY CASE
+        if (oldFrom.equals(oldTo)) {
+            oldTotal = 1 - Math.max(oldFromDayType, oldToDayType);
+        } else {
+            oldTotal = oldDays - oldFromDayType - oldToDayType;
         }
-        Period dbDateDifference = Period.between(leaveToBeUpdated.getFromDate(), leaveToBeUpdated.getToDate());
-        LocalDate fromDate = stringToDateTimeParser.getDate(leaveDTO.getFromDate(), "yyyy-MM-dd");
-        LocalDate toDate = stringToDateTimeParser.getDate(leaveDTO.getToDate(), "yyyy-MM-dd");
-        Period newDateDifference = Period.between(fromDate, toDate);
-        return newDateDifference.getDays() - dbDateDifference.getDays();
+
+        if (newFrom.equals(newTo)) {
+            newTotal = 1 - Math.max(newFromDayType, newToDayType);
+        } else {
+            newTotal = newDays - newFromDayType - newToDayType;
+        }
+
+        return  newTotal-oldTotal;
     }
 
     private void validateCompOffAndBalance(
             LeaveDTO leaveDTO,
             LeaveTypeMaster leaveType,
             EmployeeLeavesMap employeeLeavesMap,
-            int difference) {
+            double difference) {
         float availableCompOffBalance = 0.0F;
         if ("CO".equalsIgnoreCase(leaveType.getLeaveTypeCode())) {
             ServiceResponse compOffResponse = compOffLeaveService.getCompOffBalanceDetailsByEmpIdAndFromDate(leaveDTO);

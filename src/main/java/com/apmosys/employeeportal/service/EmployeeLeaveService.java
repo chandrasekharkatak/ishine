@@ -1217,19 +1217,19 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 			LeaveTypeMaster leaveType = validated.leaveType();
 			EmployeeLeavesMap employeeLeavesMap = validated.employeeLeavesMap();
 			EmployeeDTO empDto = validated.employeeContext();
-			Integer difference = validated.difference();
+			Double difference = validated.difference();
 			LocalDate oldFromDate = validated.oldFromDate();
 			LocalDate oldToDate = validated.oldToDate();
 
 			Float balance = employeeLeavesMap.getBalance();
 			Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
 			if (!"LWP".equalsIgnoreCase(leaveType.getLeaveTypeCode()) && difference != null) {
-				if (difference > 0) {
-					balance = balance - difference;
-					pendingForApproval = pendingForApproval + difference;
-				} else if (difference < 0) {
-					balance = balance + Math.abs(difference);
-					pendingForApproval = pendingForApproval - Math.abs(difference);
+				if (difference < 0) {
+					balance = (float) (balance - difference);
+					pendingForApproval = (float) (pendingForApproval + difference);
+				} else if (difference > 0) {
+					balance = (float) (balance - Math.abs(difference));
+					pendingForApproval = (float) (pendingForApproval - Math.abs(difference));
 				}
 			}
 			employeeLeavesMap.setBalance(balance);
@@ -1245,7 +1245,8 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 			leaveToBeUpdated.setCurrentApprovalLevel(1);
 			leaveToBeUpdated.setManagerId(leaveDTO.getManagerId());
 			leaveToBeUpdated.setManagerApprovalStatus("Pending");
-
+			leaveToBeUpdated.setFromDateDayType(leaveDTO.getFromDateDayType());
+			leaveToBeUpdated.setToDateDayType(leaveDTO.getToDateDayType());
 			if(leaveToBeUpdated.getFinalApprovalLevel() == 2) {
 				leaveToBeUpdated.setLevel2ApproverId(leaveDTO.getLevel2ApproverId());
 				leaveToBeUpdated.setLevel2ApprovalStatus("Pending");
@@ -1309,7 +1310,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 		return response;
 	}
 
-	private void writeUpdateLeaveBalanceLogIfNeeded(Integer difference, Float balance, EmployeeLeave leaveToBeUpdated) {
+	private void writeUpdateLeaveBalanceLogIfNeeded(Double difference, Float balance, EmployeeLeave leaveToBeUpdated) {
 		if (difference == null || difference == 0) {
 			return;
 		}

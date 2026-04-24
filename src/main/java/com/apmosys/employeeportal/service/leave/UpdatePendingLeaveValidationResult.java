@@ -16,7 +16,7 @@ public final class UpdatePendingLeaveValidationResult {
     private final LeaveTypeMaster leaveType;
     private final EmployeeLeavesMap employeeLeavesMap;
     private final EmployeeDTO employeeContext;
-    private final int difference;
+    private final double difference;
     private final LocalDate oldFromDate;
     private final LocalDate oldToDate;
 
@@ -25,7 +25,7 @@ public final class UpdatePendingLeaveValidationResult {
             LeaveTypeMaster leaveType,
             EmployeeLeavesMap employeeLeavesMap,
             EmployeeDTO employeeContext,
-            int difference,
+            double difference,
             LocalDate oldFromDate,
             LocalDate oldToDate) {
         this.leaveToBeUpdated = leaveToBeUpdated;
@@ -53,7 +53,7 @@ public final class UpdatePendingLeaveValidationResult {
         return employeeContext;
     }
 
-    public int difference() {
+    public double difference() {
         return difference;
     }
 
