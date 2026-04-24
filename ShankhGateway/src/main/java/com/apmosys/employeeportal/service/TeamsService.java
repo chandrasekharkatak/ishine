@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,6 +66,7 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectEmpInfoDTO;
 import com.apmosys.employeeportal.dto.ProjectManagerEmailDTO;
 import com.apmosys.employeeportal.dto.RmgMemberEndDateDto;
+import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.TNMConflictDTO;
@@ -3515,7 +3517,7 @@ public class TeamsService {
 				} else {
 					obj.setOtherActiveProjectIds(List.of());
 				}
-				obj.setDisplayRequirement(getDisplayRequirement(obj));
+//				obj.setDisplayRequirement(getDisplayRequirement(obj));
 			}
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -4226,7 +4228,7 @@ public class TeamsService {
 				} else {
 					obj.setOtherActiveProjectIds(List.of());
 				}
-				obj.setDisplayRequirement(getDisplayRequirement(obj));
+//				obj.setDisplayRequirement(getDisplayRequirement(obj));
 			}
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(teamMemberDetailsList);
@@ -5511,7 +5513,7 @@ public class TeamsService {
 				} else {
 					obj.setOtherActiveProjectIds(List.of());
 				}
-				obj.setDisplayRequirement(getDisplayRequirement(obj));
+//				obj.setDisplayRequirement(getDisplayRequirement(obj));
 			}
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(teamMemberDetailsList);
