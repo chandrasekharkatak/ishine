@@ -12,4 +12,6 @@ public class QueryFilterDTO {
     private String operator;
     private String value;      // main value
     private String valueTo;    // for BETWEEN
+    /** AND / OR (optional, applies between rows; default AND). */
+    private String conjunction;
 }

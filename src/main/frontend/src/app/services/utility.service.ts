@@ -121,6 +121,19 @@ export class UtilityService {
     return this.http.post(`${this.baseUrl}` + `api/getFilteredQueryData`, payload);
   }
 
+  // ===== Custom Query: server-side =====
+  getCustomQueryDataPaged(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/getCustomQueryDataPaged`, payload);
+  }
+
+  getFilteredQueryDataPaged(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/getFilteredQueryDataPaged`, payload);
+  }
+
+  getCustomQueryDistinctValues(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/getCustomQueryDistinctValues`, payload);
+  }
+
   setEmployee360ViewAccess(hasAccess: boolean): void {
     this.employee360ViewUser = hasAccess;
   }

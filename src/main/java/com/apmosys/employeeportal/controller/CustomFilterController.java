@@ -157,6 +157,64 @@ public class CustomFilterController {
 
 		return response;
 	}
+
+	// ===== Custom Query: server-side paging/sort/search =====
+	@PostMapping("/getCustomQueryDataPaged")
+	public ServiceResponse getCustomQueryDataPaged(@RequestBody QueryRequestDTO requestDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (requestDTO == null || requestDTO.getCustomQuery() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request or query cannot be null");
+				return response;
+			}
+			return customFilterService.getCustomQueryDataPaged(requestDTO);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong while processing request.");
+			response.setServiceError(e.getMessage());
+			return response;
+		}
+	}
+
+	@PostMapping("/getFilteredQueryDataPaged")
+	public ServiceResponse getFilteredQueryDataPaged(@RequestBody QueryRequestDTO requestDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (requestDTO == null || requestDTO.getCustomQuery() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request or query cannot be null");
+				return response;
+			}
+			return customFilterService.getFilteredQueryDataPaged(requestDTO);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong while processing request.");
+			response.setServiceError(e.getMessage());
+			return response;
+		}
+	}
+
+	@PostMapping("/getCustomQueryDistinctValues")
+	public ServiceResponse getCustomQueryDistinctValues(@RequestBody QueryDistinctValuesRequestDTO requestDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (requestDTO == null || requestDTO.getCustomQuery() == null || requestDTO.getColumn() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request, query and column cannot be null");
+				return response;
+			}
+			return customFilterService.getCustomQueryDistinctValues(requestDTO);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong while processing request.");
+			response.setServiceError(e.getMessage());
+			return response;
+		}
+	}
 	
 	
 }
