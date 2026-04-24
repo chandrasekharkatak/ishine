@@ -10,6 +10,7 @@ import org.springframework.util.StringUtils;
 
 import com.apmosys.employeeportal.Exception.CompOffLeaveException;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
@@ -53,6 +54,26 @@ public class CompOffLeaveValidator {
                     appliedForDate,
                     "Pending"
             );
+			Employee employee =
+        employeeRepository
+            .findByEmpId(
+                leaveDTO.getEmpId());
+
+    require(
+        employee != null,
+        "Employee not found."
+    );
+
+    require(
+        employee.getDateOfJoining() != null,
+        "Employee joining date not available."
+    );
+
+    require(
+        !appliedForDate.isBefore(
+            employee.getDateOfJoining()),
+        "Comp-off cannot be applied for dates before joining date."
+    );
 			boolean isHoliday =holidayRepository.existsByDateOfHoliday(appliedForDate);
 
     require(
@@ -106,6 +127,47 @@ public class CompOffLeaveValidator {
 		parseIsoDateOrThrow(leaveDTO.getFromDate());
 		require(leaveDTO.getReportingManagerId() != null, "Reporting manager id is required.");
 		require(leaveDTO.getUpdatedBy() != null, "Updated by is required.");
+		require(!appliedForDate.isBefore(lastSeventhDate) && !appliedForDate.isAfter(currentDate),
+				"Comp Off Date range exceeded !!");
+				boolean pendingExists = compOffLeaveRepository
+            .existsByEmpIdAndFromDateAndCompOffStatus(
+                    leaveDTO.getEmpId(),
+                    appliedForDate,
+                    "Pending"
+            );
+		LocalDate appliedForDate = parseIsoDateOrThrow(leaveDTO.getFromDate());
+		LocalDate lastSeventhDate = LocalDate.now().minusDays(compOffApplyWithIn);
+		LocalDate currentDate = LocalDate.now();
+		Employee employee =
+        employeeRepository
+            .findByEmpId(
+                leaveDTO.getEmpId());
+
+    require(
+        employee != null,
+        "Employee not found."
+    );
+
+    require(
+        employee.getDateOfJoining() != null,
+        "Employee joining date not available."
+    );
+
+    require(
+        !appliedForDate.isBefore(
+            employee.getDateOfJoining()),
+        "Comp-off cannot be applied for dates before joining date."
+    );
+	boolean isHoliday =holidayRepository.existsByDateOfHoliday(appliedForDate);
+
+    require(
+        isHoliday,
+        "Selected date is not a valid holiday."
+    );
+
+    require(!pendingExists,
+            "A pending comp-off request already exists for this date.");
+	
 	}
 
 	public void validateDeleteCompOff(LeaveDTO leaveDTO) {
