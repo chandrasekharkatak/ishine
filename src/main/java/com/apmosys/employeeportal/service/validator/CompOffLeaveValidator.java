@@ -12,6 +12,7 @@ import com.apmosys.employeeportal.Exception.CompOffLeaveException;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.HolidayRepository;
 
 /**
  * Single entry point for comp-off request validation (CRUD-related APIs). Throws
@@ -25,7 +26,8 @@ public class CompOffLeaveValidator {
 
 	@Autowired
 	private EmployeeRepository employeeRepository;
-
+	@Autowired
+	private HolidayRepository holidayRepository;
 	@Autowired
 	CompOffLeaveRepository compOffLeaveRepository;
 
@@ -51,6 +53,12 @@ public class CompOffLeaveValidator {
                     appliedForDate,
                     "Pending"
             );
+			boolean isHoliday =holidayRepository.existsByDateOfHoliday(appliedForDate);
+
+    require(
+        isHoliday,
+        "Selected date is not a valid holiday."
+    );
 
     require(!pendingExists,
             "A pending comp-off request already exists for this date.");

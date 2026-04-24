@@ -556,7 +556,9 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getExistingProjectsAndTeamsByEmployee`,
     `${this.baseUrl}` + `api/v2/timesheet/getRejectionDetailsWithProjectsByTimesheetId`,
     `${this.baseUrl}` + `api/v2/timesheet/bulkFinalUploadProjectBased`,
-    `${this.baseUrl}` + `api/v2/timesheet/getLastThreeMonthsWorkingDates`
+    `${this.baseUrl}` + `api/v2/timesheet/getLastThreeMonthsWorkingDates`,
+    `${this.baseUrl}` + `api/getAllMyTeamLeaveRevokeApplicationsByEmpId`,
+    `${this.baseUrl}` + `api/getRevokeLeaveApplicationByEmpId`
 
   ];
 

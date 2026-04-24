@@ -396,7 +396,7 @@ public class EmployeeLeaveService {
 
         apiLogInfo.setApiResponse("Leave application submitted.");
         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-		if(leaveDayType.getDayTypeId()!=5){
+		if (!"Compensatory Off".equals(leavetype.getLeaveType())){
 			leaveAppliedTimesheetWriter.syncTimesheetsAfterLeaveApplication(
 					leaveDTO, dates.fromDate, dates.toDate, leaveDayType);
 		}
@@ -2197,7 +2197,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 
                     if (empTimeSheet != null && !empTimeSheet.isEmpty()) {
                         for (EmployeeTimesheetsNew ts : empTimeSheet) {
-							if (Boolean.TRUE.equals(ts.getIsSystemGenerated())) {
+							if (!Boolean.TRUE.equals(ts.getIsSystemGenerated())) {
                             	employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
 							}
                         }
