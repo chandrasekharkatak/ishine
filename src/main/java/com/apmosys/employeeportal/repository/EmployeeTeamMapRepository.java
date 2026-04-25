@@ -1226,7 +1226,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	"p.projectId, p.projectName, etpm.name, tm.active,ppd.poId, ete.isConsultant,ete.isApprenticeship,ete.isApmosysProduct) " +
 	"FROM EmployeeTeamMap tm " +
 	"LEFT JOIN Team te ON tm.teamId = te.teamId " + 
-	"LEFT JOIN PoRequirementMapping prm on prm.roleId = tm.roleId and prm.poId = tm.poId JOIN RoleDetails rd on  rd.roleId = prm.roleId" +
+	"LEFT JOIN PoRequirementMapping prm on prm.roleId = tm.roleId and prm.poId = tm.poId JOIN RoleDetails rd on  rd.roleId = prm.roleId " +
 	"LEFT JOIN Employee etl ON te.teamLeadId = etl.empId " +
 	"LEFT JOIN Employee ete ON tm.empId = ete.empId " +
 	"LEFT JOIN JobRole jr ON ete.jobRoleId = jr.jobRoleId " +
