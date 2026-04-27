@@ -82,7 +82,7 @@ export class PortalConfigComponent implements OnInit {
   isHelpTable: boolean = false;
   isUploadForm: boolean = false;
   isAppreciationInfo : boolean = false;
-
+  isDefaulterConfigForm: boolean = true;
   alertMessage: any;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
   modalRef:NgbModalRef;
@@ -405,6 +405,27 @@ export class PortalConfigComponent implements OnInit {
           if (portal.configName == 'Leave deduction relaxation in the employee') {
             this.portalObj.empIdList = JSON.parse(portal.configValue);
           }
+          if (portal.configName == 'DEF_POPUP_HEADING') {
+            this.portalObj.defPopupHeading = portal.configValue;
+          }
+
+          if (portal.configName == 'DEF_POPUP_DESCRIPTION') {
+            this.portalObj.defPopupDescription = portal.configValue;
+          }
+
+          if (portal.configName == 'DEF_CUTOFF_YEAR') {
+            this.portalObj.defCutoffYear = Number(portal.configValue);
+          }
+
+          if (portal.configName == 'DEF_CUTOFF_MONTH') {
+            this.portalObj.defCutoffMonth = Number(portal.configValue);
+          }
+        }
+        if (this.portalObj.defCutoffYear && this.portalObj.defCutoffMonth) {
+          this.selectedMonth = new Date(
+            this.portalObj.defCutoffYear,
+            this.portalObj.defCutoffMonth - 1
+          );
         }
       } else {
         console.error(response.serviceResponse);
@@ -412,6 +433,29 @@ export class PortalConfigComponent implements OnInit {
     });
   }
 
+  selectedMonth: Date | null = null;
+  selectedYear: number | null = null;
+
+  chosenYearHandler(normalizedYear: Date) {
+    this.selectedYear = normalizedYear.getFullYear();
+  }
+
+  chosenMonthHandler(normalizedMonth: Date, datepicker: any) {
+
+    const month = normalizedMonth.getMonth() + 1;
+
+    // fallback if year not captured
+    const year = this.selectedYear || normalizedMonth.getFullYear();
+
+    this.portalObj.defCutoffYear = year;
+    this.portalObj.defCutoffMonth = month;
+
+    this.selectedMonth = new Date(year, month - 1);
+
+    console.log("FINAL PICK:", year, month);
+
+    datepicker.close();
+  }
   enableAppreciationOnclick() {
     this.appreciationObj.fromDate = ''
     this.appreciationObj.toDate = ''
@@ -612,10 +656,28 @@ export class PortalConfigComponent implements OnInit {
         portalConfig.configValue = portalObj.empIdList;
         portalObj.empId=portalObj.empIdList;
       }
+      if (portalConfig.configName === 'DEF_POPUP_HEADING') {
+        portalConfig.configValue = portalObj.defPopupHeading || "";
+      }
+      if (portalConfig.configName === 'DEF_POPUP_DESCRIPTION') {
+        portalConfig.configValue = portalObj.defPopupDescription || "";
+      }
+      if (portalConfig.configName === 'DEF_CUTOFF_YEAR') {
+        portalConfig.configValue = portalObj.defCutoffYear
+          ? String(portalObj.defCutoffYear)
+          : "";
+      }
+      if (portalConfig.configName === 'DEF_CUTOFF_MONTH') {
+        portalConfig.configValue = portalObj.defCutoffMonth
+          ? String(portalObj.defCutoffMonth)
+          : "";
+      }
+
 
 
 
     })
+
     portalObj.allPortalConfigData = tempArray;
 
     this.portalService.updatePortalConfig(portalObj).pipe(first()).subscribe((response: any) => {

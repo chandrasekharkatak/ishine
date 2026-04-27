@@ -229,6 +229,9 @@ import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class ResourceManagementService {
+	
+	@Autowired
+    private ProjectHierarchyResolverService projectHierarchyResolverService;
 
 	@Autowired
 	ProjectService projectService;

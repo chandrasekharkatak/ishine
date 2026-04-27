@@ -36,6 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 @Repository
 public class RepeatedOffenderRepository {
 
+	private static final DateTimeFormatter RO_MAPPING_DATE_FMT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -316,6 +318,8 @@ public class RepeatedOffenderRepository {
 			return "ro_list.defaulted_months_count";
 		case "projectName":
 			return "COALESCE(" + roMinProjectNameSubquery() + ", '')";
+		case "poName":
+			return "COALESCE(" + roMinPoNameSubquery() + ", '')";
 		case "billableType":
 			return "COALESCE(" + roMinBillableSubquery() + ", '')";
 		case "managerName":
@@ -324,6 +328,12 @@ public class RepeatedOffenderRepository {
 			return "COALESCE(" + roMinMappingSubquery() + ", '')";
 		case "teamName":
 			return "COALESCE(" + roMinTeamNameSubquery() + ", '')";
+		case "teamStartDate":
+			return "COALESCE(" + roMinTeamStartDateSubquery() + ", DATE('1970-01-01'))";
+		case "teamEndDate":
+			return "COALESCE(" + roMinTeamEndDateSortSubquery() + ", DATE('1970-01-01'))";
+		case "defaultedInPeriod":
+			return "COALESCE(" + roMinDefaultedFirstMonthSubquery() + ", DATE('1970-01-01'))";
 		case "employeeName":
 		default:
 			return "ro_list.employee_name";
@@ -372,6 +382,10 @@ public class RepeatedOffenderRepository {
 		nq.setParameter("rofUsePn", Integer.valueOf(pn != null ? 1 : 0));
 		nq.setParameter("rofPn", pn != null ? pn : "");
 
+		String po = normalizeRoFilterNeedle(request.getFilterPoName());
+		nq.setParameter("rofUsePo", Integer.valueOf(po != null ? 1 : 0));
+		nq.setParameter("rofPo", po != null ? po : "");
+
 		String bt = normalizeRoFilterNeedle(request.getFilterBillableType());
 		nq.setParameter("rofUseBt", Integer.valueOf(bt != null ? 1 : 0));
 		nq.setParameter("rofBt", bt != null ? bt : "");
@@ -387,6 +401,18 @@ public class RepeatedOffenderRepository {
 		String team = normalizeRoFilterNeedle(request.getFilterTeamName());
 		nq.setParameter("rofUseTeam", Integer.valueOf(team != null ? 1 : 0));
 		nq.setParameter("rofTeam", team != null ? team : "");
+
+		String fts = normalizeRoFilterNeedle(request.getFilterTeamStartDate());
+		nq.setParameter("rofUseTs", Integer.valueOf(fts != null ? 1 : 0));
+		nq.setParameter("rofTs", fts != null ? fts : "");
+
+		String fte = normalizeRoFilterNeedle(request.getFilterTeamEndDate());
+		nq.setParameter("rofUseTe", Integer.valueOf(fte != null ? 1 : 0));
+		nq.setParameter("rofTe", fte != null ? fte : "");
+
+		String fdp = normalizeRoFilterNeedle(request.getFilterDefaultedInPeriod());
+		nq.setParameter("rofUseDp", Integer.valueOf(fdp != null ? 1 : 0));
+		nq.setParameter("rofDp", fdp != null ? fdp : "");
 	}
 
 	private static String roMappingOverlapSql() {
@@ -394,12 +420,6 @@ public class RepeatedOffenderRepository {
 				+ " INNER JOIN teams t ON t.team_id = etm.team_id "
 				+ " INNER JOIN projects p ON p.project_id = t.project_id "
 				+ " INNER JOIN employee ex ON ex.emp_id = etm.emp_id "
-				+ " LEFT JOIN ( "
-				+ "   SELECT pm.project_id, GROUP_CONCAT(DISTINCT e2.name ORDER BY e2.name SEPARATOR ', ') AS pm_names "
-				+ "   FROM project_manager_mapping pm "
-				+ "   INNER JOIN employee e2 ON e2.emp_id = pm.project_manager_id "
-				+ "   GROUP BY pm.project_id "
-				+ " ) pma ON pma.project_id = p.project_id "
 				+ " CROSS JOIN (SELECT :customFrom AS drf_s, :customTo AS drf_e) drf "
 				+ " WHERE etm.emp_id = ro_list.emp_id "
 				+ " AND DATE(etm.start_date) <= drf.drf_e "
@@ -414,6 +434,10 @@ public class RepeatedOffenderRepository {
 		return "(SELECT MIN(p.project_name) " + roMappingOverlapSql() + ")";
 	}
 
+	private static String roMinPoNameSubquery() {
+		return "(SELECT MIN(COALESCE(NULLIF(TRIM(p.po_no), ''), '')) " + roMappingOverlapSql() + ")";
+	}
+
 	private static String roMinBillableSubquery() {
 		return "(SELECT MIN(CASE "
 				+ " WHEN COALESCE(etm.is_shadow, 0) = 0 AND p.po_project_type IS NOT NULL THEN p.po_project_type "
@@ -424,7 +448,7 @@ public class RepeatedOffenderRepository {
 	}
 
 	private static String roMinManagerSubquery() {
-		return "(SELECT MIN(pma.pm_names) " + roMappingOverlapSql() + ")";
+		return "(SELECT MIN(COALESCE(p.apmosysrm, '')) " + roMappingOverlapSql() + ")";
 	}
 
 	private static String roMinMappingSubquery() {
@@ -434,6 +458,36 @@ public class RepeatedOffenderRepository {
 
 	private static String roMinTeamNameSubquery() {
 		return "(SELECT MIN(COALESCE(t.team_name, '')) " + roMappingOverlapSql() + ")";
+	}
+
+	private static String roMinTeamStartDateSubquery() {
+		return "(SELECT MIN(DATE(etm.start_date)) " + roMappingOverlapSql() + ")";
+	}
+
+	/** Sort key for end date: null ends sort last in ascending order. */
+	private static String roMinTeamEndDateSortSubquery() {
+		return "(SELECT MIN(IF(etm.end_date IS NULL, DATE('2099-12-31'), DATE(etm.end_date))) " + roMappingOverlapSql() + ")";
+	}
+
+	/** Earliest defaulted snapshot month in range (per visible mapping filters). */
+	private static String roMinDefaultedFirstMonthSubquery() {
+		return "(SELECT MIN(s.month_start_date) "
+				+ "FROM employee_team_mapping etm "
+				+ "INNER JOIN teams t ON t.team_id = etm.team_id "
+				+ "INNER JOIN projects p ON p.project_id = t.project_id "
+				+ "INNER JOIN employee ex ON ex.emp_id = etm.emp_id "
+				+ "INNER JOIN employee_monthly_snapshot s ON s.emp_id = etm.emp_id AND s.employee_team_map_id = etm.employee_team_map_id "
+				+ "CROSS JOIN (SELECT :customFrom AS drf_s, :customTo AS drf_e) drf "
+				+ "WHERE etm.emp_id = ro_list.emp_id "
+				+ "AND DATE(etm.start_date) <= drf.drf_e "
+				+ "AND (etm.end_date IS NULL OR DATE(etm.end_date) >= drf.drf_s) "
+				+ "AND (:isClientSide = 0 OR COALESCE(p.has_client_side_id, 0) = 1) "
+				+ "AND (:employeeStatus = 'All' OR ex.employmentstatus = :employeeStatus) "
+				+ "AND ex.emp_id NOT BETWEEN 1 AND 6 "
+				+ "AND ('All' IN (:billableTypes) OR (" + RepeatedOffenderSnapshotKpiSql.PROJECT_BILLABLE_CASE + ") IN (:billableTypes)) "
+				+ "AND s.month_start_date >= drf.drf_s AND s.month_start_date <= drf.drf_e "
+				+ "AND IF(:isClientSide = 1, s.is_defaulter_client, s.is_defaulter_overall) = 1 "
+				+ "AND (s.billable_type IN (:billableTypes) OR 'All' IN (:billableTypes))) ";
 	}
 
 	private void bindSnapshotListParameters(NativeQuery<?> nq, RepeatedOffenderDashboardRequest request) {
@@ -493,7 +547,7 @@ public class RepeatedOffenderRepository {
 				}
 			}
 			for (Object[] r : detailRows) {
-				if (r.length < 7 || r[0] == null) {
+				if (r.length < 11 || r[0] == null) {
 					continue;
 				}
 				long empId = ((Number) r[0]).longValue();
@@ -503,11 +557,15 @@ public class RepeatedOffenderRepository {
 				}
 				RepeatedOffenderProjectMappingPayload m = new RepeatedOffenderProjectMappingPayload();
 				m.setProjectName(r[1] != null ? r[1].toString() : "");
-				m.setBillableType(r[2] != null ? r[2].toString() : "");
-				m.setEmploymentStatus(r[3] != null ? r[3].toString() : "");
-				m.setManagerName(r[4] != null ? r[4].toString() : "");
-				m.setTeamName(r[5] != null ? r[5].toString() : "");
-				m.setProjectMapping(r[6] != null ? r[6].toString() : "");
+				m.setPoName(r[2] != null ? r[2].toString() : "");
+				m.setBillableType(r[3] != null ? r[3].toString() : "");
+				m.setEmploymentStatus(r[4] != null ? r[4].toString() : "");
+				m.setManagerName(r[5] != null ? r[5].toString() : "");
+				m.setTeamName(r[6] != null ? r[6].toString() : "");
+				m.setProjectMapping(r[7] != null ? r[7].toString() : "");
+				m.setTeamStartDate(formatRoTeamMappingDate(r[8]));
+				m.setTeamEndDate(formatRoTeamMappingDate(r[9]));
+				m.setDefaultedPeriodDisplay(r[10] != null ? r[10].toString() : "");
 				list.add(m);
 			}
 			for (RepeatedOffenderEmployeeRowPayload p : rows) {
@@ -538,6 +596,25 @@ public class RepeatedOffenderRepository {
 			return raw;
 		}
 		return raw;
+	}
+
+	/** Formats {@code employee_team_mapping} dates for RO project rows (dd-MM-yyyy; empty when null). */
+	private static String formatRoTeamMappingDate(Object o) {
+		if (o == null) {
+			return "";
+		}
+		LocalDate ld = null;
+		if (o instanceof java.sql.Timestamp) {
+			ld = ((java.sql.Timestamp) o).toLocalDateTime().toLocalDate();
+		} else if (o instanceof Date) {
+			ld = ((Date) o).toLocalDate();
+		} else if (o instanceof java.util.Date) {
+			ld = new Date(((java.util.Date) o).getTime()).toLocalDate();
+		}
+		if (ld != null) {
+			return ld.format(RO_MAPPING_DATE_FMT);
+		}
+		return o.toString().trim();
 	}
 
 	private static List<String> normalizeBillableTypes(List<String> billableTypes) {

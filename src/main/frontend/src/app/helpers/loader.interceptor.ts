@@ -335,7 +335,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/updateHasClientSideId?flag`,
     `${this.baseUrl}` + `api/addTimesheetWithClient`,
      `${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`,
-     `${this.baseUrl}` + `updateMilestoneById`,
+     `${this.baseUrl}` + `api/updateMilestoneById`,
     `${this.baseUrl}` + `api/getWorkLocationSummaryDetails`,
     `${this.baseUrl}` + `api/getFixedCostCount`,
     // `${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`
@@ -489,7 +489,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/deleteSurvey`,
     `${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`,
     `${this.baseUrl}` + `api/changeSurveyStatus`,
-    `${this.baseUrl}` + `api/training/getAllTrainingTypes`,,
+    `${this.baseUrl}` + `api/training/getAllTrainingTypes`,
     `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
     `${this.baseUrl}` + `api/getExtensionDocumentByName`,
     `${this.baseUrl}` + `api/validateDocName`,
@@ -558,7 +558,12 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getExistingProjectsAndTeamsByEmployee`,
     `${this.baseUrl}` + `api/v2/timesheet/getRejectionDetailsWithProjectsByTimesheetId`,
     `${this.baseUrl}` + `api/v2/timesheet/bulkFinalUploadProjectBased`,
-    `${this.baseUrl}` + `api/v2/timesheet/getLastThreeMonthsWorkingDates`
+    `${this.baseUrl}` + `api/v2/timesheet/getLastThreeMonthsWorkingDates`,
+
+    `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
+    `${this.baseUrl}` + `api/getExtensionDocumentByName`,
+    `${this.baseUrl}` + `api/validateDocName`,
+
 
   ];
 

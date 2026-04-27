@@ -5717,6 +5717,41 @@ display: inline-block;
   white-space: nowrap;
 }
 
+.milestone-preview-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 620px;
+}
+
+.milestone-preview-content {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.preview-image {
+  max-width: min(100%, 1000px);
+  max-height: 600px;
+  width: auto;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.preview-pdf {
+  width: min(100%, 1000px);
+  border: none;
+  display: block;
+  margin: 0 auto;
+}
+
+.milestone-preview-empty {
+  width: 100%;
+  text-align: center;
+}
+
 ::ng-deep .modal-dialog.modal-lg.no-modal-content .modal-content {
   background: transparent !important;
   border: none !important;

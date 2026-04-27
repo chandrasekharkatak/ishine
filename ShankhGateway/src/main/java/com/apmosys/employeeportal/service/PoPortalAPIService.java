@@ -103,7 +103,7 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
 public class PoPortalAPIService {
-	
+
 	@Value("${poPortal.api.getFCLineItemDetails}")
 	private String getFCLineItemDetailsURL;
 	
@@ -1349,7 +1349,6 @@ public class PoPortalAPIService {
 					.filter(e -> e != null && !e.trim().isEmpty())
 					.distinct()
 					.collect(Collectors.toList());
-
 			if (toRecipients.isEmpty()) {
 				logger.warn("Skipping milestone email due to empty RM/HOD emails: {}", dto.getMilestoneName());
 				return false;

@@ -25,4 +25,8 @@ export class Portal {
     weekOffExcludedDepartmentList:any;
     departmentIdList:any;
     empIdList:any;
+    defPopupHeading: any;
+    defPopupDescription: any;
+    defCutoffYear: any;
+    defCutoffMonth: any;
 }

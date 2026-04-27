@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +36,7 @@ import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto;
 import com.apmosys.employeeportal.dto.MigrateTeam;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.RmgMemberEndDateDto;
+import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.UnmappedEmployeeProjectDto;
@@ -740,7 +742,7 @@ public class TeamMembersService {
 				} else {
 					obj.setOtherActiveProjectIds(List.of());
 				}
-				obj.setDisplayRequirement(getDisplayRequirement(obj));
+//				obj.setDisplayRequirement(getDisplayRequirement(obj));
 			}
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(teamMemberDetailsList);

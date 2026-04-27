@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.dto;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.List;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -42,9 +43,7 @@ public class FCProjectMilestoneDTO {
 	private LocalDateTime updatedOn;
 	
 	private String documentName;
-	
 	private String documentPath;
-    
 	private String documentBase64;
 	private String documentType;
 

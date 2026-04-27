@@ -388,6 +388,8 @@ export class RmgStatusCardsComponent {
   rmgProjectFilterDTO: RMGDashboardProjectRequest = new RMGDashboardProjectRequest();
 
   projectDetailsList: any[] = [];
+  /** Linked (redirected) project resolve map for name indicators/copy. */
+  projectDetailsResolveMap: Record<string, { resolvedProjectViewId: string; redirected: boolean; resolvedProjectName?: string }> = {};
   rmgLinkedProjectSearchInfo: string | null = null;
   rmgLinkedPrimaryProjectIdsFromSearch: number[] = [];
   rmgLinkedSearchRowTooltipByProjectId: Record<number, string> = {};
@@ -653,6 +655,18 @@ export class RmgStatusCardsComponent {
       "deptab": "DIR, FT, PT",
       "name": "Director, Functional Testing, Performance Testing"
     }
+  ];
+
+  poSearchTooltip: string[] = [
+    'Shows only active POs.',
+    'Search includes both active and expired PO numbers.'
+  ];
+  dateSearchTooltip: string[] = [
+    'Search supports dd-mm-yyyy or yyyy-mm-dd date formats only.',
+  ];
+  projectNameSearchInfoTooltip: string[] = [
+    'Search includes projects whose names were later linked to another project.',
+    'Linked results are shown as the current primary project with a link icon.',
   ];
 
   constructor(
@@ -1107,6 +1121,7 @@ export class RmgStatusCardsComponent {
   fetchProjectDetailsList(rmgDashboardProjectRequest: any, scrollToBottom:any) {
     this.totalProjectsCount = 0;
     this.projectDetailsList = [];
+    this.projectDetailsResolveMap = {};
     this.rmgLinkedProjectSearchInfo = null;
     this.rmgLinkedPrimaryProjectIdsFromSearch = [];
     this.rmgLinkedSearchRowTooltipByProjectId = {};
@@ -1118,6 +1133,7 @@ export class RmgStatusCardsComponent {
         this.projectDetailsList = [...apiResponse?.content];
         this.rmgLinkedProjectSearchInfo = response?.serviceResponse1 || null;
         this.absorbRmgServiceResponse2LinkedMeta(response?.serviceResponse2);
+        this.populateProjectDetailsResolveMap(this.projectDetailsList);
       } else {
         this.rmgLinkedPrimaryProjectIdsFromSearch = [];
         this.rmgLinkedSearchRowTooltipByProjectId = {};
@@ -1133,6 +1149,37 @@ export class RmgStatusCardsComponent {
         this.rmgLinkedSearchRowTooltipByProjectId = {};
         this.openAlertMessageModal('Something went wrong!!');
       });
+  }
+
+  private populateProjectDetailsResolveMap(rows: any[]) {
+    const ids = (rows || [])
+      .map(r => r?.projectId)
+      .filter(v => v !== null && v !== undefined && String(v).trim() !== '')
+      .map(v => String(v));
+
+    const unique = Array.from(new Set(ids));
+    if (unique.length === 0) {
+      this.projectDetailsResolveMap = {};
+      return;
+    }
+
+    this.resourceManagementService.resolveProjectViewIds(unique).pipe(first()).subscribe((resp: any) => {
+      if (resp?.serviceStatus === 'Success' && resp?.serviceResponse) {
+        this.projectDetailsResolveMap = resp.serviceResponse || {};
+      }
+    });
+  }
+
+  copyPrimaryProjectName(projectId: any) {
+    const key = String(projectId || '');
+    const name = this.projectDetailsResolveMap?.[key]?.resolvedProjectName;
+    if (!name) {
+      this.openAlertMessageModal('Primary project name not available.');
+      return;
+    }
+    navigator.clipboard.writeText(name)
+      .then(() => this.openAlertMessageModal('Primary project name copied.'))
+      .catch(() => this.openAlertMessageModal('Unable to copy.'));
   }
 
   isRmgLinkedSearchPrimaryRow(project: any): boolean {
@@ -1212,7 +1259,7 @@ export class RmgStatusCardsComponent {
 
   private buildRmgLinkedSearchRowTooltipText(names: string[]): string {
     const list = this.formatRmgEnglishNameList(names);
-    return `Returned because the search matched linked project name(s): ${list}.`;
+    return `Included via linked project whose name matches your search. Project :  ${list}.`;
   }
 
   private formatRmgEnglishNameList(parts: string[]): string {

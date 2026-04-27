@@ -103,7 +103,7 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
 public class PoPortalAPIService {
-	
+
 	@Value("${poPortal.api.getFCLineItemDetails}")
 	private String getFCLineItemDetailsURL;
 	
@@ -367,10 +367,6 @@ public class PoPortalAPIService {
 			HttpHeaders jsonHeaders = new HttpHeaders();
 			jsonHeaders.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<FCProjectMilestoneDTO> jsonPart = new HttpEntity<>(dto, jsonHeaders);
-
-			
-		
-
 			
 			MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 			body.add("dto", jsonPart);
@@ -1215,7 +1211,12 @@ public class PoPortalAPIService {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 				return response;
 			}
-
+			
+			Optional<ProjectPoDetails> projectDetails = projectPoDetailsRepository.findByPoProjectId(dto.getProjectId());
+			if(projectDetails.isPresent()) {
+				dto.setPoNumber(projectDetails.get().getPoNo());
+			}
+			
 			MilestoneUpdatedLog log = MilestoneUpdatedLog.builder()
 					.milestoneId(dto.getMilestoneId())
 					.poId(dto.getPoId())
@@ -1245,7 +1246,8 @@ public class PoPortalAPIService {
 
 			MilestoneExpireDto updateRequest = new MilestoneExpireDto();
 			updateRequest.setId(dto.getMilestoneId());
-			updateRequest.setEndDate(dto.getExtendedDate());
+			updateRequest.setEndDate(dto.getExtendedDate()!=null?dto.getExtendedDate():dto.getMilestoneEndDate());
+			updateRequest.setStartDate(dto.getMilestoneStartDate());
 			updateRequest.setUpdatedBy(dto.getUpdatedBy());
 			updateRequest.setUpdatedByName(dto.getUpdatedByName());
 
@@ -1358,31 +1360,31 @@ public class PoPortalAPIService {
 			
 			
 			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
-			if (optionalEmails.isEmpty()) {
-				logger.error("No email addresses found for project: {}", dto.getProjectId());
-				return false;
+			List<String> rmEmails = Collections.emptyList();
+			List<String> hodEmails = Collections.emptyList();
+			List<String> missingRecipients = new ArrayList<>();
+			if (optionalEmails.isPresent()) {
+				RmAndHodEmailDto emailDto = optionalEmails.get();
+				rmEmails = emailDto.getRmEmails() != null ? emailDto.getRmEmails() : Collections.emptyList();
+				hodEmails = emailDto.getHodEmails() != null ? emailDto.getHodEmails() : Collections.emptyList();
+			} else {
+				missingRecipients.add("RM/HOD mapping not found for projectId=" + dto.getProjectId());
 			}
-
-			RmAndHodEmailDto emailDto = optionalEmails.get();
-			List<String> rmEmails = emailDto.getRmEmails() != null ? emailDto.getRmEmails() : Collections.emptyList();
-			List<String> hodEmails = emailDto.getHodEmails() != null ? emailDto.getHodEmails()
-					: Collections.emptyList();
 
 		    List<String> directorEmails = projectRepository.findDirectorEmails();
 
 			List <String> accountsEmails = projectRepository.getAccountsTeamEmails();
 
-			List<String> toRecipients = Stream.concat(
-					Stream.concat(
-							Stream.concat(rmEmails.stream(), hodEmails.stream()),
-							accountsEmails.stream()),
-					RmEmailsFromPO != null ? RmEmailsFromPO.stream() : Stream.empty())
-					.filter(e -> e != null && !e.trim().isEmpty())
-					.distinct()
-					.collect(Collectors.toList());
+			List<String> toCandidates = new ArrayList<>();
+			addEmailsWithAudit(rmEmails, "RM", toCandidates, missingRecipients);
+			addEmailsWithAudit(hodEmails, "HOD", toCandidates, missingRecipients);
+			addEmailsWithAudit(accountsEmails, "Accounts", toCandidates, missingRecipients);
+			addEmailsWithAudit(RmEmailsFromPO, "PO RM", toCandidates, missingRecipients);
+			List<String> toRecipients = toCandidates.stream().distinct().collect(Collectors.toList());
 
 			if (toRecipients.isEmpty()) {
-				logger.warn("Skipping milestone email due to empty RM/HOD emails: {}", dto.getMilestoneName());
+				logger.warn("Skipping milestone extension mail for '{}' due to no valid recipients. Missing/invalid: {}",
+						dto.getMilestoneName(), missingRecipients);
 				return false;
 			}
 
@@ -1395,12 +1397,18 @@ public class PoPortalAPIService {
 			String extendedDate = formatter.format(dto.getExtendedDate());
 			String endDate = formatter.format(dto.getMilestoneEndDate());
 			String startDate = formatter.format(dto.getMilestoneStartDate());
+			String extensionReason = log.getMilestoneExtensionReason() != null
+					? log.getMilestoneExtensionReason().getMilestoneExtensionReason()
+					: null;
+			boolean isOtherReasonSelected = extensionReason != null
+					&& "Other".equalsIgnoreCase(extensionReason.trim());
+			String customReason = dto.getMilestoneExtensionReasonText();
 
 			String subject = "Project Milestone Extend Notification: " + dto.getProjectName();
 			String body = "<html><body>"
 					+ "<p>Dear Team,</p>"
 					+ "<p>The following project milestone end date has been extended from " + endDate + " to "
-					+ extendedDate + ".</p>"
+					+ extendedDate + " by "+ dto.getUpdatedByName()+ ".</p>"
 					+ "<table border='1' style='border-collapse: collapse;'>"
 					+ "<tr><th>PO Number</th><td>" + dto.getPoNumber() + "</td></tr>"
 					+ "<tr><th>Project Name</th><td>" + dto.getProjectName() + "</td></tr>"
@@ -1410,13 +1418,21 @@ public class PoPortalAPIService {
 					+ "<tr><th>Milestone End Date</th><td>" + endDate + "</td></tr>"
 					+ "<tr><th>Milestone Extended Date</th><td>" + extendedDate + "</td></tr>"
 					+ "<tr><th>Status</th><td>" + dto.getMilestoneStatus() + "</td></tr>"
+					+ (extensionReason != null && !extensionReason.trim().isEmpty()
+						? "<tr><th>Extension Reason</th><td>" + extensionReason + "</td></tr>"
+						: "")
+					+ (isOtherReasonSelected && customReason != null && !customReason.trim().isEmpty()
+						? "<tr><th>Custom Reason</th><td>" + customReason + "</td></tr>"
+						: "")
 					+ "</table>"
 					+ "<p>Please take the necessary actions.</p>"
 					+ "<p>Regards,<br>ApMoSys Technologies</p>"
 					+ "</body></html>";
 
 			mailService.sendMailToMultipleRecipientsWithFile(toRecipients, ccRecipients, subject, body , extensionFile);
-			logger.info("Email sent successfully for milestone: {}", dto.getMilestoneName());
+			logger.info(
+					"Milestone extension mail sent for '{}'. To: {}, CC: {}, Missing/invalid recipients: {}",
+					dto.getMilestoneName(), toRecipients, ccRecipients, missingRecipients);
 			return true;
 
 		} catch (Exception e) {
@@ -1424,25 +1440,6 @@ public class PoPortalAPIService {
 			return false;
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 		
 	public ServiceResponse getAllMilestoneExtendReason() {
@@ -2924,34 +2921,32 @@ return empId;
 			int finalHttpStatusCode = apiResponse.getStatusCodeValue();
 
 			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
-			if (optionalEmails.isEmpty()) {
-				logger.warn("No email addresses found for project: {}", dto.getProjectId());
-				return false;
+			List<String> rmEmails = Collections.emptyList();
+			List<String> hodEmails = Collections.emptyList();
+			List<String> missingRecipients = new ArrayList<>();
+			if (optionalEmails.isPresent()) {
+				RmAndHodEmailDto emailDto = optionalEmails.get();
+				rmEmails = emailDto.getRmEmails() != null ? emailDto.getRmEmails() : Collections.emptyList();
+				hodEmails = emailDto.getHodEmails() != null ? emailDto.getHodEmails() : Collections.emptyList();
+			} else {
+				missingRecipients.add("RM/HOD mapping not found for projectId=" + dto.getProjectId());
 			}
-
-			RmAndHodEmailDto emailDto = optionalEmails.get();
-			List<String> rmEmails = emailDto.getRmEmails() != null ? emailDto.getRmEmails() : Collections.emptyList();
-			List<String> hodEmails = emailDto.getHodEmails() != null ? emailDto.getHodEmails()
-					: Collections.emptyList();
 
 		    List <String> accountsEmails = projectRepository.getAccountsTeamEmails();
 			
 			List<String> directorEmails = projectRepository.findDirectorEmails();
 
 
-			List<String> toRecipients = Stream.concat(
-			        Stream.concat(
-			            Stream.concat(rmEmails.stream(), hodEmails.stream()),
-			            accountsEmails.stream()
-			        ),
-			        RmEmailsFormPO.stream()
-			)
-			.filter(e -> e != null && !e.trim().isEmpty())
-			.distinct()
-			.collect(Collectors.toList());
+			List<String> toCandidates = new ArrayList<>();
+			addEmailsWithAudit(rmEmails, "RM", toCandidates, missingRecipients);
+			addEmailsWithAudit(hodEmails, "HOD", toCandidates, missingRecipients);
+			addEmailsWithAudit(accountsEmails, "Accounts", toCandidates, missingRecipients);
+			addEmailsWithAudit(RmEmailsFormPO, "PO RM", toCandidates, missingRecipients);
+			List<String> toRecipients = toCandidates.stream().distinct().collect(Collectors.toList());
 
 			if (toRecipients.isEmpty()) {
-				logger.warn("Skipping milestone email due to empty RM/HOD emails: {}", dto.getName());
+				logger.warn("Skipping milestone status mail for '{}' due to no valid recipients. Missing/invalid: {}",
+						dto.getName(), missingRecipients);
 				return false;
 			}
 
@@ -2964,13 +2959,18 @@ return empId;
 			//String extendedDate = formatter.format(dto.getExtendedDate());
 			String endDate = formatter.format(dto.getEndDate());
 			String startDate = formatter.format(dto.getStartDate());
+			Optional<ProjectPoDetails> projDetails =projectPoDetailsRepository.findByPoProjectId(dto.getPoProjectId());
+			String poNo="";
+			if(projDetails.isPresent()) {
+				 poNo=projDetails.get().getPoNo();
+			}
 
 			String subject = "Project Milestone Update Notification: " + projectName;
 			String body = "<html><body>"
 					+ "<p>Dear Team,</p>"
-					+ "<p>The following project milestone status has been Updated From <strong>"+ previousStatus + "</strong> to <strong>"  + dto.getStatus() +"</strong></p>"
+					+ "<p>The following project milestone status has been Updated From <strong>"+ previousStatus + "</strong> to <strong>"  + dto.getStatus() +"</strong> by "+dto.getUpdatedByName()+".</p>"
 					+ "<table border='1' style='border-collapse: collapse;'>"
-					+ "<tr><th>PO Number</th><td>" + dto.getPoId() + "</td></tr>"
+					+ "<tr><th>PO Number</th><td>" + poNo + "</td></tr>"
 					+ "<tr><th>Project Name</th><td>" + projectName + "</td></tr>"
 					+ "<tr><th>Milestone Name</th><td>" + dto.getName() + "</td></tr>"
 					+ "<tr><th>Line Item</th><td>" + dto.getLineItemName() + "</td></tr>"
@@ -2978,17 +2978,39 @@ return empId;
 					+ "<tr><th>Milestone End Date</th><td>" + endDate + "</td></tr>"
 					+ "<tr><th>Previous Status</th><td>" + previousStatus + "</td></tr>"
 					+ "<tr><th>Status</th><td>" + dto.getStatus() + "</td></tr>"
+					+ (dto.getRemarks() != null && !dto.getRemarks().trim().isEmpty()
+						? "<tr><th>Remarks</th><td>" + dto.getRemarks() + "</td></tr>"
+						: "")
 					+ "</table>"
 					+ "<p>Regards,<br>ApMoSys Technologies</p>"
 					+ "</body></html>";
 
 			mailService.sendMailToMultipleRecipientsWithFile(toRecipients, ccRecipients, subject, body ,file);
-			logger.info("Email sent successfully for milestone: {}", dto.getName());
+			logger.info("Milestone status mail sent for '{}'. To: {}, CC: {}, Missing/invalid recipients: {}",
+					dto.getName(), toRecipients, ccRecipients, missingRecipients);
 			return true;
 
 		} catch (Exception e) {
 			logger.error("Failed to send email for milestone {}: {}", dto.getName(), e.getMessage());
 			return false;
+		}
+	}
+
+	private void addEmailsWithAudit(List<String> sourceEmails, String sourceLabel, List<String> validRecipients,
+			List<String> missingRecipients) {
+		if (sourceEmails == null || sourceEmails.isEmpty()) {
+			missingRecipients.add(sourceLabel + ": no email found");
+			return;
+		}
+
+		int index = 0;
+		for (String email : sourceEmails) {
+			index++;
+			if (email == null || email.trim().isEmpty()) {
+				missingRecipients.add(sourceLabel + "[" + index + "]: missing/blank");
+				continue;
+			}
+			validRecipients.add(email.trim());
 		}
 	}
 	
@@ -3085,7 +3107,6 @@ return empId;
 			.filter(e -> e != null && !e.trim().isEmpty())
 			.distinct()
 			.collect(Collectors.toList());
-
 			if (toRecipients.isEmpty()) {
 				logger.warn("Skipping project email due to empty RM/HOD emails: {}", projDetails.getProjectName());
 				return false;
