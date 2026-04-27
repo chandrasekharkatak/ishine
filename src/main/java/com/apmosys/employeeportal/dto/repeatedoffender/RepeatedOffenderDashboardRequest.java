@@ -84,6 +84,8 @@ public class RepeatedOffenderDashboardRequest {
 	private String filterEmploymentStatus;
 	@JsonAlias({ "filter_project_name" })
 	private String filterProjectName;
+	@JsonAlias({ "filter_po_name" })
+	private String filterPoName;
 	@JsonProperty("filterBillableType")
 	@JsonAlias({ "filter_billable_type", "billableType" })
 	private String filterBillableType;
@@ -94,6 +96,13 @@ public class RepeatedOffenderDashboardRequest {
 	@JsonProperty("filterTeamName")
 	@JsonAlias({ "filter_team_name", "teamName" })
 	private String filterTeamName;
+
+	@JsonAlias({ "filter_team_start_date" })
+	private String filterTeamStartDate;
+	@JsonAlias({ "filter_team_end_date" })
+	private String filterTeamEndDate;
+	@JsonAlias({ "filter_defaulted_in_period" })
+	private String filterDefaultedInPeriod;
 
 	public String getRepeatedOffenderPeriod() {
 		return repeatedOffenderPeriod;

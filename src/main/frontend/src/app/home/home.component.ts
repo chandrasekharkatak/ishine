@@ -162,10 +162,8 @@ rejectedCount = 0;
   isExtensionEnabled : boolean = false;
 
   documentName: string = '';
-    documentType: string = '';
-    documentContent: File | null = null;
-
-
+  documentType: string = '';
+  documentContent: File | null = null;
 
   fieldTextType: boolean = false;
   fieldTextTypePassword: boolean = false;
@@ -597,6 +595,8 @@ timesheet: any;
     });
   }
   isSavingConsent = false;
+  popupHeading: string = '';
+  popupDescription: string = '';
   loadPolicyNotification(): void {
     this.employeeService.getDefaulterStatus(this.currentUser.empId)
       .subscribe((res: any) => {
@@ -606,7 +606,8 @@ timesheet: any;
         if (data && data.isDefaulter && data.months?.length) {
 
           this.defaulterMonths = data.months;
-
+          this.popupHeading = data.heading || 'Attendance Policy Notification';
+          this.popupDescription = data.description || '';
           const latest = this.defaulterMonths[0];
 
     // Mock API response
@@ -2949,8 +2950,12 @@ private roundToTwo(num: number): number {
   }
   //opne model
   openMilestoneExpiredListModal(): void {
+    // Close notification popup before opening milestone list.
+    this.modalRef?.close();
     this.detailModalRef = this.modalService.open(this.milestoneExpiredListModalRef, {
-      modalDialogClass: 'modal-xl'
+      modalDialogClass: 'milestone-list-modal-shell milestone-list-modal-top modal-xl',
+      backdropClass: 'milestone-list-backdrop',
+      keyboard: false
     });
   }
 
@@ -2990,6 +2995,9 @@ private roundToTwo(num: number): number {
 
   updateMilestoneDetails(milestone: MilestoneToBeExpired): void {
 
+    // Prevent stacked modals: close milestone list before opening update modal.
+    this.closeMilestoneExpiredListModal();
+
     this.selectedMilestone = milestone;
     this.milestoneForm.patchValue({
       projectName: milestone.projectName,
@@ -3002,7 +3010,9 @@ private roundToTwo(num: number): number {
 
     });
 
-    this.milestoneDetailModalRefView = this.modalService.open(this.milestoneDetailModalRef, { modalDialogClass:'modal-lg' });
+    this.milestoneDetailModalRefView = this.modalService.open(this.milestoneDetailModalRef, {
+      modalDialogClass: 'ep-milestone-modal-shell modal-xl'
+    });
     this.minExtendedDate();
   }
 
@@ -3042,6 +3052,10 @@ private roundToTwo(num: number): number {
     }
 
     const formValues = this.milestoneForm.value;
+    if (this.isSameDay(formValues.extendedDate, this.selectedMilestone?.endDate)) {
+      this.openUpdateProjectCompletionModal("Updated End Date cannot be the same as the current Milestone End Date. Please select a different date.");
+      return;
+    }
 
     console.log("selectedMilestone" + this.selectedMilestone);
 
@@ -3066,9 +3080,8 @@ private roundToTwo(num: number): number {
 
 
       extendedDate: formValues.extendedDate,
-      updatedBy: this.currentUser.employeementId,
+      updatedBy: this.currentUser.empId,
       updatedByName: this.currentUser.name,
-
       milestoneExtensionReasonId: formValues.extensionReasonId,
       milestoneExtensionReasonText: formValues.customReason
 
@@ -3083,7 +3096,6 @@ private roundToTwo(num: number): number {
       formData.append("extensionFile", this.documentContent);
     }
 
-    console.log('Payload for milestone extension:', payload);
     this.isLoadingmilestoneDetailModal=true;
     this.projectService.updateMilestoneExtendedDate(formData).subscribe(
       (response: any) => {
@@ -3107,6 +3119,8 @@ private roundToTwo(num: number): number {
         console.error('Error updating milestone:', errorResponse);
         this.isLoadingmilestoneDetailModal=false;
         this.openAlertMod(this.milestoneExpireValidationPupup, "Something went wrong. Kindly try after sometime!!");
+        this.isLoadingmilestoneDetailModal=false;
+        this.openAlertMod(this.milestoneExpireValidationPupup, "Something went wrong. Kindly try after sometime!!");
       }
     );
 
@@ -3114,8 +3128,8 @@ private roundToTwo(num: number): number {
 
 
   //onchamges in form
-  onReasonChange(event: Event): void {
-    const selectedValue = (event.target as HTMLSelectElement).value;
+  onReasonChange(event: any): void {
+    const selectedValue = event?.value ?? (event?.target as HTMLSelectElement)?.value;
     const selectedReason = this.milestoneExtendReason.find(
       r => r.id === +selectedValue
     );
@@ -3164,18 +3178,39 @@ private roundToTwo(num: number): number {
 
 
 
-    minExtendedDateformilestone:Date;
-   public  minExtendedDate(): void {
-    const endDate=this.milestoneForm.get('startDate').value;
-    this.minExtendedDateformilestone=new Date(this.convertToISO(endDate));
-      this.milestoneForm.get('extensionReasonId')?.reset();
-    console.log("minExtendedDateformilestone",this.minExtendedDateformilestone);
+    minExtendedDateformilestone: Date;
 
+   public minExtendedDate(): void {
+    const startDateStr = this.milestoneForm.get('startDate')?.value;
+    if (!startDateStr) return;
+    const parts = String(startDateStr).split('/');
+    let m: moment.Moment;
+    if (parts.length === 3) {
+      const d = Number(parts[0]);
+      const mo = Number(parts[1]);
+      const y = Number(parts[2]);
+      m = moment({ year: y, month: mo - 1, day: d }).startOf('day').add(1, 'day');
+    } else {
+      m = moment(startDateStr).startOf('day').add(1, 'day');
+    }
+    this.minExtendedDateformilestone = m.toDate();
+    this.milestoneForm.get('extensionReasonId')?.reset();
   }
-  convertToISO(dateString: string): string {
-  const [day, month, year] = dateString.split('/');
-  return `${year}-${month}-${Number(day) + 1}`;
-}
+
+  get milestoneExtendEndDateTooltip(): string {
+    const sd = this.milestoneForm?.get('startDate')?.value;
+    if (!sd) {
+      return (
+        'You may select any date after the milestone start date.\n' +
+        'There is no upper limit on the selected date.'
+      );
+    }
+    return (
+      `Milestone start date is ${sd}.\n` +
+      'You may select any date after that day.\n' +
+      'Pick a date before the current end date to finish earlier, or after it to extend.'
+    );
+  }
 
 public getDaysLeftForExpiry(endDate: string | Date): string {
     if (!endDate) {
@@ -3490,6 +3525,77 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   window.URL.revokeObjectURL(url);
 }
 
+onExtendedDateChange(event: any) {
+  if (event.value) {
+    if (this.isSameDay(event.value, this.selectedMilestone?.endDate)) {
+      this.milestoneForm.get('extendedDate')?.setValue(null);
+      this.isExtensionEnabled = false;
+      this.openUpdateProjectCompletionModal("Updated End Date cannot be the same as the current Milestone End Date. Please select a different date.");
+      return;
+    }
+    this.isExtensionEnabled = true;
+  }
+}
+
+private isSameDay(firstDate: any, secondDate: any): boolean {
+  if (!firstDate || !secondDate) {
+    return false;
+  }
+  const first = new Date(firstDate);
+  const second = new Date(secondDate);
+  return !isNaN(first.getTime()) && !isNaN(second.getTime()) &&
+    first.getFullYear() === second.getFullYear() &&
+    first.getMonth() === second.getMonth() &&
+    first.getDate() === second.getDate();
+}
+
+redirectToViewTeamTimesheet() {
+  this.router.navigate(
+    ['/user-timesheet/team-timesheet'],
+    { queryParams: { tab: 'team-timesheet', view: 'requests' } }
+  );
+}
+
+
+getTimesheetStatusCountsByEmpId() {
+  const payload : any = {
+    managerId: this.currentUser.empId,
+  };
+  this.timesheetNewService
+.getMyReporteesTimesheetRequestsCount(payload)
+.subscribe({
+  next: (res: any) => {
+    console.log("Status Count Response", res);
+    if (res && res.serviceResponse) {
+      this.pendingCount = 0;
+      this.approvedCount = 0;
+      this.rejectedCount = 0;
+
+      res.serviceResponse.forEach((item: any) => {
+
+        const status = item[0]?.toLowerCase();
+        const count = Number(item[1]) || 0;
+
+        if (status === 'pending') {
+          this.pendingCount = count;
+        }
+        else if (status === 'approved') {
+          this.approvedCount = count;
+        }
+        else if (status === 'rejected') {
+          this.rejectedCount = count;
+        }
+
+      });
+
+
+    }
+  }
+});
+
+}
+
+
 onFileSelected(event: any) {
   const file: File = event.target.files[0];
 
@@ -3579,56 +3685,6 @@ resetFileData() {
   this.documentType = '';
   this.documentContent = null;
   this.previewUrlForMileStone = null;
-}
-
-onExtendedDateChange(event: any) {
-  if (event.value) { this.isExtensionEnabled = true; }
-}
-
-redirectToViewTeamTimesheet() {
-  this.router.navigate(
-    ['/user-timesheet/team-timesheet'],
-    { queryParams: { tab: 'team-timesheet', view: 'requests' } }
-  );
-}
-
-
-getTimesheetStatusCountsByEmpId() {
-  const payload : any = {
-    managerId: this.currentUser.empId,
-  };
-  this.timesheetNewService
-.getMyReporteesTimesheetRequestsCount(payload)
-.subscribe({
-  next: (res: any) => {
-    console.log("Status Count Response", res);
-    if (res && res.serviceResponse) {
-      this.pendingCount = 0;
-      this.approvedCount = 0;
-      this.rejectedCount = 0;
-
-      res.serviceResponse.forEach((item: any) => {
-
-        const status = item[0]?.toLowerCase();
-        const count = Number(item[1]) || 0;
-
-        if (status === 'pending') {
-          this.pendingCount = count;
-        }
-        else if (status === 'approved') {
-          this.approvedCount = count;
-        }
-        else if (status === 'rejected') {
-          this.rejectedCount = count;
-        }
-
-      });
-
-
-    }
-  }
-});
-
 }
 
 }

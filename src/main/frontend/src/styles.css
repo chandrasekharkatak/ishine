@@ -477,8 +477,5 @@ ngb-modal-window {
 .doc-modal-enterprise .no-doc-icon { font-size: 2.5rem; color: #cbd5e1; }
 .doc-modal-enterprise .no-doc-title { margin: 0; font-weight: 600; color: #475569; font-size: 1rem; }
 .doc-modal-enterprise .no-doc-hint { margin: 0; font-size: 0.8125rem; color: #94a3b8; }
+.milestone-tooltip { white-space: pre-line !important;  max-width: 260px !important;}
 
-.milestone-tooltip {
-  white-space: pre-line !important;
-  max-width: 260px !important;
-}

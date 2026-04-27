@@ -105,6 +105,27 @@ public final class RepeatedOffenderSnapshotKpiSql {
 			+ "SELECT COUNT(*) FROM Filtered fe\n";
 
 	/**
+	 * {@code employee_monthly_snapshot} rows for this team mapping: in RO range, defaulter flag matches
+	 * dashboard mode, billable chips match. Used for per-mapping month/year lists.
+	 */
+	private static final String SNAPSHOT_MAPPING_EMS_WHERE = ""
+			+ "s.emp_id = etm.emp_id "
+			+ "AND s.employee_team_map_id = etm.employee_team_map_id "
+			+ "AND s.month_start_date >= dr.range_start "
+			+ "AND s.month_start_date <= dr.range_end "
+			+ "AND IF(:isClientSide = 1, s.is_defaulter_client, s.is_defaulter_overall) = 1 "
+			+ "AND (s.billable_type IN (:billableTypes) OR 'All' IN (:billableTypes)) ";
+
+	/** Same snapshot filter as {@link #SNAPSHOT_MAPPING_EMS_WHERE} using {@code drf} aliases (RO grid EXISTS). */
+	private static final String SNAPSHOT_MAPPING_EMS_WHERE_DRF = ""
+			+ "s.emp_id = etm.emp_id "
+			+ "AND s.employee_team_map_id = etm.employee_team_map_id "
+			+ "AND s.month_start_date >= drf.drf_s "
+			+ "AND s.month_start_date <= drf.drf_e "
+			+ "AND IF(:isClientSide = 1, s.is_defaulter_client, s.is_defaulter_overall) = 1 "
+			+ "AND (s.billable_type IN (:billableTypes) OR 'All' IN (:billableTypes)) ";
+
+	/**
 	 * Project / team rows overlapping the RO range for the given employees (bind {@code :ids}).
 	 * Employees are already restricted by snapshot KPI filters; rows respect {@code :billableTypes}
 	 * the same way as {@link #SNAPSHOT_CTES} Period_Stats (client dashboard still requires
@@ -113,21 +134,26 @@ public final class RepeatedOffenderSnapshotKpiSql {
 	public static final String SNAPSHOT_PROJECT_MAPPINGS = ""
 			+ "SELECT etm.emp_id,\n"
 			+ "       p.project_name,\n"
+			+ "       COALESCE(NULLIF(TRIM(p.po_no), ''), ppo.po_names, '') AS po_name,\n"
 			+ "       " + PROJECT_BILLABLE_CASE + " AS billable_display,\n"
 			+ "       e.employmentstatus AS employment_status,\n"
-			+ "       COALESCE(pma.pm_names, 'NA') AS manager_names,\n"
+			+ "       COALESCE(p.apmosysrm, 'NA') AS manager_names,\n"
 			+ "       t.team_name,\n"
-			+ "       CONCAT(COALESCE(t.team_name, ''), ' / ', COALESCE(p.project_name, '')) AS mapping_label\n"
+			+ "       CONCAT(COALESCE(t.team_name, ''), ' / ', COALESCE(p.project_name, '')) AS mapping_label,\n"
+			+ "       DATE(etm.start_date) AS team_start_date,\n"
+			+ "       DATE(etm.end_date) AS team_end_date,\n"
+			+ "       (SELECT GROUP_CONCAT(DATE_FORMAT(s.month_start_date, '%M %Y') ORDER BY s.month_start_date SEPARATOR ', ')\n"
+			+ "          FROM employee_monthly_snapshot s WHERE " + SNAPSHOT_MAPPING_EMS_WHERE + ") AS defaulted_period_display\n"
 			+ "FROM employee_team_mapping etm\n"
 			+ "INNER JOIN teams t ON t.team_id = etm.team_id\n"
 			+ "INNER JOIN projects p ON p.project_id = t.project_id\n"
 			+ "INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
 			+ "LEFT JOIN (\n"
-			+ "    SELECT pm.project_id, GROUP_CONCAT(DISTINCT e2.name ORDER BY e2.name SEPARATOR ', ') AS pm_names\n"
-			+ "    FROM project_manager_mapping pm\n"
-			+ "    INNER JOIN employee e2 ON e2.emp_id = pm.project_manager_id\n"
-			+ "    GROUP BY pm.project_id\n"
-			+ ") pma ON pma.project_id = p.project_id\n"
+			+ "    SELECT ppd.project_id, GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY ppd.po_no SEPARATOR ', ') AS po_names\n"
+			+ "    FROM project_po_details ppd\n"
+			+ "    WHERE ppd.active = TRUE\n"
+			+ "    GROUP BY ppd.project_id\n"
+			+ ") ppo ON ppo.project_id = p.project_id\n"
 			+ "CROSS JOIN (SELECT :customFrom AS range_start, :customTo AS range_end) dr\n"
 			+ "WHERE etm.emp_id IN (:ids)\n"
 			+ "  AND DATE(etm.start_date) <= dr.range_end\n"
@@ -152,7 +178,8 @@ public final class RepeatedOffenderSnapshotKpiSql {
 			+ " AND (:rofUseDept = 0 OR LOCATE(LOWER(:rofDept), LOWER(COALESCE(ro_list.department, ''))) > 0) "
 			+ " AND (:rofUseEmpSt = 0 OR LOCATE(LOWER(:rofEmpSt), LOWER(COALESCE(ro_list.employment_status, ''))) > 0) "
 			+ " AND ( "
-			+ "   (:rofUsePn = 0 AND :rofUseBt = 0 AND :rofUseMgr = 0 AND :rofUseMap = 0 AND :rofUseTeam = 0) OR EXISTS ( "
+			+ "   (:rofUsePn = 0 AND :rofUsePo = 0 AND :rofUseBt = 0 AND :rofUseMgr = 0 AND :rofUseMap = 0 AND :rofUseTeam = 0 "
+			+ "    AND :rofUseTs = 0 AND :rofUseTe = 0 AND :rofUseDp = 0) OR EXISTS ( "
 			+ "     SELECT 1 FROM employee_team_mapping etm "
 			+ "     INNER JOIN teams t ON t.team_id = etm.team_id "
 			+ "     INNER JOIN projects p ON p.project_id = t.project_id "
@@ -172,10 +199,15 @@ public final class RepeatedOffenderSnapshotKpiSql {
 			+ "       AND ex.emp_id NOT BETWEEN 1 AND 6 "
 			+ "       AND ('All' IN (:billableTypes) OR (" + PROJECT_BILLABLE_CASE + ") IN (:billableTypes)) "
 			+ "       AND (:rofUsePn = 0 OR LOCATE(LOWER(:rofPn), LOWER(COALESCE(p.project_name, ''))) > 0) "
+			+ "       AND (:rofUsePo = 0 OR LOCATE(LOWER(:rofPo), LOWER(COALESCE(NULLIF(TRIM(p.po_no), ''), ''))) > 0) "
 			+ "       AND (:rofUseBt = 0 OR LOCATE(LOWER(:rofBt), LOWER(COALESCE((" + PROJECT_BILLABLE_CASE + "), ''))) > 0) "
-			+ "       AND (:rofUseMgr = 0 OR LOCATE(LOWER(:rofMgr), LOWER(COALESCE(pma.pm_names, ''))) > 0) "
+			+ "       AND (:rofUseMgr = 0 OR LOCATE(LOWER(:rofMgr), LOWER(COALESCE(p.apmosysrm, ''))) > 0) "
 			+ "       AND (:rofUseMap = 0 OR LOCATE(LOWER(:rofMap), LOWER(CONCAT(COALESCE(t.team_name, ''), ' / ', COALESCE(p.project_name, '')))) > 0) "
 			+ "       AND (:rofUseTeam = 0 OR LOCATE(LOWER(:rofTeam), LOWER(COALESCE(t.team_name, ''))) > 0) "
+			+ "       AND (:rofUseTs = 0 OR LOCATE(LOWER(:rofTs), LOWER(DATE_FORMAT(DATE(etm.start_date), '%d-%m-%Y'))) > 0) "
+			+ "       AND (:rofUseTe = 0 OR LOCATE(LOWER(:rofTe), LOWER(COALESCE(DATE_FORMAT(DATE(etm.end_date), '%d-%m-%Y'), ''))) > 0) "
+			+ "       AND (:rofUseDp = 0 OR LOCATE(LOWER(:rofDp), LOWER(COALESCE((SELECT GROUP_CONCAT(DATE_FORMAT(s.month_start_date, '%M %Y') ORDER BY s.month_start_date SEPARATOR ', ') "
+			+ "            FROM employee_monthly_snapshot s WHERE " + SNAPSHOT_MAPPING_EMS_WHERE_DRF + "), ''))) > 0) "
 			+ "   ) "
 			+ " ) ";
 }

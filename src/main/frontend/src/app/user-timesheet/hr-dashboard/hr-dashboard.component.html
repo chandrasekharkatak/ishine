@@ -31,13 +31,13 @@
         </h5>
       </div>
 
-      <ng-container *ngIf="isClientDashboard">
+      <ng-container *ngIf="isClientDashboard && !toggleValue">
         <div class="db-top-bar-divider"></div>
 
         <div class="db-toggle-group db-toggle-group--ro">
           <i class="fas fa-exclamation-triangle db-dashboard-icon db-dashboard-icon--ro"></i>
           <label class="switch mb-0 switch--ro" [class.switch--ro-active]="repeatedOffenderMode"
-            title="Repeated offender view (client-side dashboard only)">
+            title="Repeated offender view (Employee View + client-side dashboard only)">
             <input type="checkbox" [(ngModel)]="repeatedOffenderMode" (ngModelChange)="onRepeatedOffenderModeChange()">
             <span class="slider round"></span>
           </label>
@@ -386,11 +386,16 @@
               <th mat-sort-header="employeeName" class="ro-sort-th">Employee name</th>
               <th mat-sort-header="department" class="ro-sort-th">Department</th>
               <th mat-sort-header="projectName" class="ro-sort-th">Project Name</th>
+              <th mat-sort-header="poName" class="ro-sort-th">PO Name</th>
               <th mat-sort-header="teamName" class="ro-sort-th">Team name</th>
               <th mat-sort-header="billableType" class="ro-sort-th">Billable Type</th>
               <th mat-sort-header="employmentStatus" class="ro-sort-th">Employment status</th>
-              <th mat-sort-header="managerName" class="ro-sort-th">Manager Name</th>
+              <th mat-sort-header="managerName" class="ro-sort-th">RM Name</th>
               <th mat-sort-header="projectMapping" class="ro-sort-th">Project mapping</th>
+              <th mat-sort-header="teamStartDate" class="ro-sort-th">Start date</th>
+              <th mat-sort-header="teamEndDate" class="ro-sort-th">End date</th>
+              <th mat-sort-header="defaultedInPeriod" class="ro-sort-th"
+                title="Months in the selected range where this mapping was a defaulter (full month names)">Defaulted in period</th>
             </tr>
             <tr class="eo-search-row" *ngIf="isRoSearchEnabled">
               <td class="eo-search-row__sl" aria-hidden="true"></td>
@@ -428,6 +433,15 @@
                     (keydown.enter)="onRoGridSearch('projectName')">
                   <i class="fa fa-search eo-search-icon" title="Search Project name only"
                     (click)="onRoGridSearch('projectName')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.poName"
+                    (keydown.enter)="onRoGridSearch('poName')">
+                  <i class="fa fa-search eo-search-icon" title="Search PO name only"
+                    (click)="onRoGridSearch('poName')"></i>
                 </div>
               </td>
               <td>
@@ -475,16 +489,43 @@
                     (click)="onRoGridSearch('projectMapping')"></i>
                 </div>
               </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.teamStartDate"
+                    (keydown.enter)="onRoGridSearch('teamStartDate')">
+                  <i class="fa fa-search eo-search-icon" title="Search Start date (dd-mm-yyyy)"
+                    (click)="onRoGridSearch('teamStartDate')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.teamEndDate"
+                    (keydown.enter)="onRoGridSearch('teamEndDate')">
+                  <i class="fa fa-search eo-search-icon" title="Search End date (dd-mm-yyyy)"
+                    (click)="onRoGridSearch('teamEndDate')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.defaultedInPeriod"
+                    (keydown.enter)="onRoGridSearch('defaultedInPeriod')">
+                  <i class="fa fa-search eo-search-icon" title="Search Defaulted in period"
+                    (click)="onRoGridSearch('defaultedInPeriod')"></i>
+                </div>
+              </td>
             </tr>
           </thead>
           <tbody>
             <tr *ngIf="!roLoading && roEmployeeTotalCount === 0">
-              <td colspan="10" class="text-muted text-center py-4">
+              <td colspan="14" class="text-muted text-center py-4">
                 No Records Found
               </td>
             </tr>
             <tr *ngIf="!roLoading && roEmployeeTotalCount > 0 && roAllRows.length === 0">
-              <td colspan="10" class="text-muted text-center py-4">
+              <td colspan="14" class="text-muted text-center py-4">
                 No employees match this metric for the current period.
               </td>
             </tr>
@@ -513,11 +554,15 @@
                   </td>
                   <td [class.eo-td--hidden]="pi > 0">{{ row.department }}</td>
                   <td>{{ proj.projectName }}</td>
+                  <td>{{ proj.poName || '—' }}</td>
                   <td>{{ proj.teamName }}</td>
                   <td>{{ proj.billableType }}</td>
                   <td>{{ proj.employmentStatus }}</td>
                   <td>{{ proj.managerName }}</td>
                   <td>{{ proj.projectMapping }}</td>
+                  <td>{{ proj.teamStartDate || '—' }}</td>
+                  <td>{{ proj.teamEndDate || '—' }}</td>
+                  <td>{{ proj.defaultedPeriodDisplay || '—' }}</td>
                 </tr>
               </ng-container>
             </ng-container>
@@ -1015,7 +1060,7 @@
                                                         *ngIf="projectViewResolveMap?.[project.projectId]?.redirected">
                                                         <span class="me-1 rounded-circle text-dark border border-warning-subtle"
                                                             style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
-                                                            [title]="'Linked to: ' + (projectViewResolveMap?.[project.projectId]?.resolvedProjectName || 'Primary project')">
+                                                            [title]="'Linked to project: ' + (projectViewResolveMap?.[project.projectId]?.resolvedProjectName || 'Primary project')">
                                                             <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;"
                                                                 aria-hidden="true"></i>
                                                         </span>

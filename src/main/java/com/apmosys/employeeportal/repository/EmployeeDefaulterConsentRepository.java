@@ -22,9 +22,11 @@ public interface EmployeeDefaulterConsentRepository extends JpaRepository<Employ
             "WHERE emp_id = :empId " +
             "AND is_defaulter_client = 1 " +
             "AND is_month_closed = 1 " +
-            "AND (snapshot_year > 2025 OR (snapshot_year = 2025 AND snapshot_month >= 10)) " +
+            "AND (snapshot_year > :cutoffYear OR (snapshot_year = :cutoffYear AND snapshot_month >= :cutoffMonth)) " +
             "ORDER BY snapshot_year DESC, snapshot_month DESC", nativeQuery = true)
-    List<Object[]> findDefaulterMonths(@Param("empId") Long empId);
+    List<Object[]> findDefaulterMonths(  @Param("empId") Long empId,
+         @Param("cutoffYear") int cutoffYear,
+        @Param("cutoffMonth") int cutoffMonth);
     //in above query we have hardcoded for no months earlier than oct 2025
 
     @Modifying

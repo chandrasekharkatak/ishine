@@ -81,11 +81,18 @@ export interface EmployeeTimesheet {
 /** One project/team line under a Repeated Offender employee (matches API projectMappings). */
 export interface RoProjectMappingRow {
   projectName: string;
+  poName: string;
   billableType: string;
   employmentStatus: string;
   managerName: string;
   teamName: string;
   projectMapping: string;
+  /** Team mapping start (dd-MM-yyyy). */
+  teamStartDate: string;
+  /** Team mapping end; empty if active. */
+  teamEndDate: string;
+  /** Defaulted months in range, e.g. "January 2026, February 2026". */
+  defaultedPeriodDisplay: string;
 }
 
 /** RO search-row field keys — must match {@link HrDashboardComponent#roColumnFilter} and API filter fields. */
@@ -94,11 +101,15 @@ export type RoGridSearchColumnKey =
   | 'employeeName'
   | 'department'
   | 'projectName'
+  | 'poName'
   | 'teamName'
   | 'billableType'
   | 'employmentStatus'
   | 'managerName'
-  | 'projectMapping';
+  | 'projectMapping'
+  | 'teamStartDate'
+  | 'teamEndDate'
+  | 'defaultedInPeriod';
 
 /** Row for Repeated Offender dashboard (snapshot list + legacy applicable). */
 export interface RepeatedOffenderRow {
@@ -202,8 +213,8 @@ export class HrDashboardComponent implements AfterViewInit {
   isSearchEnabled: boolean = false;
   /** Project column header (app-info-tooltip): linked / partial name search + PO filter hint. */
   projectNameSearchInfoTooltip: string[] = [
-    'Project name search: if the searched project matches a linked (historical) project name, the list shows the current primary project; a link icon appears only on those rows.',
-    'Other projects whose primary name simply contains the same text may also appear—they are not necessarily linked matches.',
+    'Search includes projects whose names were later linked to another project.',
+    'Linked results are shown as the current primary project with a link icon.',
   ];
   sortDirection = 'asc';
   sortColumn: any;
@@ -440,11 +451,15 @@ showAllBillableTypes = false;
     employeeName: '',
     department: '',
     projectName: '',
+    poName: '',
     teamName: '',
     billableType: '',
     employmentStatus: '',
     managerName: '',
     projectMapping: '',
+    teamStartDate: '',
+    teamEndDate: '',
+    defaultedInPeriod: '',
   };
   isRoSearchEnabled = false;
   /** Mat sort id + API sortBy (separate from main dashboard sortColumn). */
@@ -959,10 +974,10 @@ toggleBillableTypes() {
     return this.roDraftPeriodKey === 'custom';
   }
 
-  /** Last day of current month — caps RO month pickers (Material `max` on the input). */
+  /** Last day of previous month — RO period excludes current in-progress month. */
   get roPickerMaxDate(): Date {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return new Date(now.getFullYear(), now.getMonth(), 0);
   }
 
   /** First day of October 2025 — floor for RO custom month pickers. */
@@ -971,11 +986,11 @@ toggleBillableTypes() {
   }
 
   /**
-   * Threshold N options: 1 .. (inclusive months in range − 1). Single-month range allows only 1.
+   * Threshold N options: 1 .. inclusive months in the selected period (Last 3 → 1..3, Last 6 → 1..6, custom → span).
    */
   get roDraftThresholdOptions(): number[] {
     const months = this.countRoDraftMonthsSpan();
-    const maxT = Math.max(1, months - 1);
+    const maxT = Math.max(1, months);
     return Array.from({ length: maxT }, (_, i) => i + 1);
   }
 
@@ -997,8 +1012,12 @@ toggleBillableTypes() {
     const minT = this.roEarliestSelectableMonth.getTime();
     const sh = new Date(this.roDraftStartDate.getFullYear(), this.roDraftStartDate.getMonth(), 1).getTime();
     const eh = new Date(this.roDraftEndDate.getFullYear(), this.roDraftEndDate.getMonth(), 1).getTime();
+    const maxT = new Date(this.roPickerMaxDate.getFullYear(), this.roPickerMaxDate.getMonth(), 1).getTime();
     if (sh < minT || eh < minT) {
       return 'Months before October 2025 cannot be selected.';
+    }
+    if (sh > maxT || eh > maxT) {
+      return 'Current month is not allowed. Select completed months only.';
     }
     if (sh > eh) {
       return 'From month cannot be after To month.';
@@ -1039,7 +1058,7 @@ toggleBillableTypes() {
     }
     const now = new Date();
     const y = now.getFullYear();
-    const m = now.getMonth();
+    const m = now.getMonth() - 1; // anchor at previous (completed) month
     const monthsBack = this.roDraftPeriodKey === '6m' ? 5 : 2;
     let start = new Date(y, m - monthsBack, 1);
     const end = new Date(y, m + 1, 0);
@@ -1059,7 +1078,7 @@ toggleBillableTypes() {
       return;
     }
     if (this.isRoFutureMonthHead(picked)) {
-      this.openAlertMod1(this.alertTemplate, 'Future months are not allowed!');
+      this.openAlertMod1(this.alertTemplate, 'Current and future months are not allowed!');
       return;
     }
     this.roDraftStartDate = picked;
@@ -1080,7 +1099,7 @@ toggleBillableTypes() {
       return;
     }
     if (this.isRoFutureMonthHead(last)) {
-      this.openAlertMod1(this.alertTemplate, 'Future months are not allowed!');
+      this.openAlertMod1(this.alertTemplate, 'Current and future months are not allowed!');
       return;
     }
     const y = last.getFullYear();
@@ -1098,7 +1117,7 @@ toggleBillableTypes() {
     const now = new Date();
     const curHead = new Date(now.getFullYear(), now.getMonth(), 1);
     const head = new Date(d.getFullYear(), d.getMonth(), 1);
-    return head.getTime() > curHead.getTime();
+    return head.getTime() >= curHead.getTime();
   }
 
   onRoPeriodKeyChange(): void {
@@ -1132,7 +1151,7 @@ toggleBillableTypes() {
   }
 
   onRepeatedOffenderModeChange(): void {
-    if (this.repeatedOffenderMode && !this.isClientDashboard) {
+    if (this.repeatedOffenderMode && (!this.isClientDashboard || this.toggleValue)) {
       this.repeatedOffenderMode = false;
       this.clearRepeatedOffenderLocalData();
       this.setLastUpdatedTime();
@@ -1195,11 +1214,15 @@ toggleBillableTypes() {
       employeeName: '',
       department: '',
       projectName: '',
+      poName: '',
       teamName: '',
       billableType: '',
       employmentStatus: '',
       managerName: '',
       projectMapping: '',
+      teamStartDate: '',
+      teamEndDate: '',
+      defaultedInPeriod: '',
     };
     this.roGridSearchScope = { kind: 'allFilled' };
     this.computeRoMonthLabels();
@@ -1224,11 +1247,15 @@ toggleBillableTypes() {
       employeeName: '',
       department: '',
       projectName: '',
+      poName: '',
       teamName: '',
       billableType: '',
       employmentStatus: '',
       managerName: '',
       projectMapping: '',
+      teamStartDate: '',
+      teamEndDate: '',
+      defaultedInPeriod: '',
     };
     this.roGridSearchScope = { kind: 'allFilled' };
     this.roSummary = {
@@ -1367,10 +1394,14 @@ toggleBillableTypes() {
       | 'filterDepartment'
       | 'filterEmploymentStatus'
       | 'filterProjectName'
+      | 'filterPoName'
       | 'filterTeamName'
       | 'filterBillableType'
       | 'filterManagerName'
       | 'filterProjectMapping'
+      | 'filterTeamStartDate'
+      | 'filterTeamEndDate'
+      | 'filterDefaultedInPeriod'
     >;
     const allFilledFilters: RoGridTextFilters = {
       filterEmploymentId: pick(f.employmentId),
@@ -1378,10 +1409,14 @@ toggleBillableTypes() {
       filterDepartment: pick(f.department),
       filterEmploymentStatus: pick(f.employmentStatus),
       filterProjectName: pick(f.projectName),
+      filterPoName: pick(f.poName),
       filterTeamName: pick(f.teamName),
       filterBillableType: pick(f.billableType),
       filterManagerName: pick(f.managerName),
       filterProjectMapping: pick(f.projectMapping),
+      filterTeamStartDate: pick(f.teamStartDate),
+      filterTeamEndDate: pick(f.teamEndDate),
+      filterDefaultedInPeriod: pick(f.defaultedInPeriod),
     };
     let gridTextFilters: RoGridTextFilters;
     if (this.roGridSearchScope.kind === 'singleColumn') {
@@ -1392,10 +1427,14 @@ toggleBillableTypes() {
         filterDepartment: col === 'department' ? pick(f.department) : undefined,
         filterEmploymentStatus: col === 'employmentStatus' ? pick(f.employmentStatus) : undefined,
         filterProjectName: col === 'projectName' ? pick(f.projectName) : undefined,
+        filterPoName: col === 'poName' ? pick(f.poName) : undefined,
         filterTeamName: col === 'teamName' ? pick(f.teamName) : undefined,
         filterBillableType: col === 'billableType' ? pick(f.billableType) : undefined,
         filterManagerName: col === 'managerName' ? pick(f.managerName) : undefined,
         filterProjectMapping: col === 'projectMapping' ? pick(f.projectMapping) : undefined,
+        filterTeamStartDate: col === 'teamStartDate' ? pick(f.teamStartDate) : undefined,
+        filterTeamEndDate: col === 'teamEndDate' ? pick(f.teamEndDate) : undefined,
+        filterDefaultedInPeriod: col === 'defaultedInPeriod' ? pick(f.defaultedInPeriod) : undefined,
       };
     } else {
       gridTextFilters = allFilledFilters;
@@ -1455,11 +1494,16 @@ toggleBillableTypes() {
     const projectMappings: RoProjectMappingRow[] = Array.isArray(rawPm)
       ? rawPm.map((x: any) => ({
           projectName: (x.projectName ?? x.project_name ?? '').toString() || '—',
+          poName: (x.poName ?? x.po_name ?? '').toString() || '—',
           billableType: (x.billableType ?? x.billable_type ?? '').toString() || '—',
           employmentStatus: (x.employmentStatus ?? x.employment_status ?? '').toString() || '—',
           managerName: (x.managerName ?? x.manager_name ?? '').toString() || '—',
           teamName: (x.teamName ?? x.team_name ?? '').toString() || '—',
           projectMapping: (x.projectMapping ?? x.project_mapping ?? '').toString() || '—',
+          teamStartDate: (x.teamStartDate ?? x.team_start_date ?? '').toString() || '—',
+          teamEndDate: (x.teamEndDate ?? x.team_end_date ?? '').toString() || '—',
+          defaultedPeriodDisplay:
+            (x.defaultedPeriodDisplay ?? x.defaulted_period_display ?? '').toString() || '—',
         }))
       : [];
     const employmentLabel = String(raw.employmentId ?? raw.employment_id ?? '').trim();
@@ -1485,11 +1529,15 @@ toggleBillableTypes() {
     return [
       {
         projectName: '—',
+        poName: '—',
         billableType: '—',
         employmentStatus: row.employmentStatus !== 'NA' ? row.employmentStatus : '—',
         managerName: '—',
         teamName: '—',
         projectMapping: '—',
+        teamStartDate: '—',
+        teamEndDate: '—',
+        defaultedPeriodDisplay: '—',
       },
     ];
   }
@@ -1534,30 +1582,115 @@ toggleBillableTypes() {
     return `${sm} ${sy} - ${em} ${ey}`;
   }
 
-  exportRepeatedOffenderList(): void {
-    const flat: Record<string, string | number>[] = [];
-    let sl = (this.roPage - 1) * this.roPageSize;
-    for (const row of this.roAllRows) {
+  /** Excel columns — same order and labels as the Repeated Offender grid. */
+  private readonly roExportExcelHeaders: string[] = [
+    'Sl. No.',
+    'Emp Id',
+    'Employee name',
+    'Department',
+    'Project Name',
+    'PO Name',
+    'Team name',
+    'Billable Type',
+    'Employment status',
+    'RM Name',
+    'Project mapping',
+    'Start date',
+    'End date',
+    'Defaulted in period',
+  ];
+
+  /** Mirrors grid display for export cells (trim; empty → em dash). */
+  private roExportDisplayCell(value: string | undefined | null): string {
+    const t = (value ?? '').toString().trim();
+    return t.length > 0 ? t : '—';
+  }
+
+  /**
+   * Builds one sheet row per grid line (employee + mapping), with Sl./Emp/name/dept repeated only on the first mapping line.
+   */
+  private buildRoExportFlatRows(mapped: RepeatedOffenderRow[]): Record<string, string>[] {
+    const flat: Record<string, string>[] = [];
+    let sl = 0;
+    for (const row of mapped) {
       sl += 1;
       const lines = this.roProjectRowsForEmployee(row);
       for (let i = 0; i < lines.length; i++) {
         const proj = lines[i];
-        const o: Record<string, string | number> = {
-          'Sl. No.': i === 0 ? sl : '',
-          'Emp Id': i === 0 ? row.empId : '',
-          'Employee name': i === 0 ? row.employeeName : '',
-          Department: i === 0 ? row.department : '',
-          'Project Name': proj.projectName,
-          'Team name': proj.teamName,
-          'Billable Type': proj.billableType,
-          'Employment status': proj.employmentStatus,
-          'Manager Name': proj.managerName,
-          'Project mapping': proj.projectMapping,
-        };
-        flat.push(o);
+        flat.push({
+          'Sl. No.': i === 0 ? String(sl) : '',
+          'Emp Id': i === 0 ? this.roExportDisplayCell(row.empId != null ? String(row.empId) : '') : '',
+          'Employee name': i === 0 ? this.roExportDisplayCell(row.employeeName) : '',
+          Department: i === 0 ? this.roExportDisplayCell(row.department) : '',
+          'Project Name': this.roExportDisplayCell(proj.projectName),
+          'PO Name': this.roExportDisplayCell(proj.poName),
+          'Team name': this.roExportDisplayCell(proj.teamName),
+          'Billable Type': this.roExportDisplayCell(proj.billableType),
+          'Employment status': this.roExportDisplayCell(proj.employmentStatus),
+          'RM Name': this.roExportDisplayCell(proj.managerName),
+          'Project mapping': this.roExportDisplayCell(proj.projectMapping),
+          'Start date': this.roExportDisplayCell(proj.teamStartDate),
+          'End date': this.roExportDisplayCell(proj.teamEndDate),
+          'Defaulted in period': this.roExportDisplayCell(proj.defaultedPeriodDisplay),
+        });
       }
     }
-    this.exportExcelService.exportTableDataToExcel(flat, 'repeated-offenders.xlsx');
+    return flat;
+  }
+
+  /**
+   * Exports the **full** Repeated Offender list for the current filters/metric (not only the current page),
+   * with the same columns as the on-screen table.
+   */
+  exportRepeatedOffenderList(): void {
+    if (!this.repeatedOffenderMode || !this.currentUser?.empId || !this.isClientDashboard || this.toggleValue) {
+      return;
+    }
+    const total = Math.max(0, Number(this.roEmployeeTotalCount ?? 0));
+    if (total === 0) {
+      this.openAlertMod1(this.alertTemplate, 'No repeated offender rows to export for the current filters.');
+      return;
+    }
+    const maxExport = 100_000;
+    const exportSize = Math.min(total, maxExport);
+    const truncated = total > maxExport;
+    const body = this.buildRepeatedOffenderDashboardRequest({
+      tableSegment: this.mapRoTableSegmentToApi(this.roTableSegment),
+      page: 1,
+      size: exportSize,
+      sortBy: this.roSortBy ?? 'employeeName',
+      sortDirection: this.roSortDirection ?? 'asc',
+    });
+    this.repeatedOffenderService
+      .getEmployeeGrid(body)
+      .pipe(first())
+      .subscribe({
+        next: (employees: any) => {
+          if (!this.roServiceSucceeded(employees)) {
+            this.openAlertMod1(this.alertTemplate, 'Export failed: could not load repeated offender data.');
+            return;
+          }
+          const rawRows = Array.isArray(employees.serviceResponse) ? employees.serviceResponse : [];
+          const mapped = rawRows.map((r: any) => this.mapRoApiRowToRepeatedOffenderRow(r));
+          const sorted = this.sortRoDatasetRows(mapped);
+          const flat = this.buildRoExportFlatRows(sorted);
+          if (flat.length === 0) {
+            this.openAlertMod1(this.alertTemplate, 'No rows to export.');
+            return;
+          }
+          this.exportExcelService.exportDynamicMultiExcelSheetWithDynamicHeaders(
+            [{ sheetName: 'Repeated offenders', headers: this.roExportExcelHeaders, data: flat }],
+            'repeated-offenders.xlsx'
+          );
+          if (truncated) {
+            this.openAlertMod1(
+              this.alertTemplate,
+              `Only the first ${maxExport} of ${total} employees were exported. Narrow filters to reduce the set.`
+            );
+          }
+        },
+        error: () => this.openAlertMod1(this.alertTemplate, 'Export failed: network or server error.'),
+      });
   }
 
   roPrevPage(): void {
@@ -1672,11 +1805,15 @@ toggleBillableTypes() {
         employeeName: '',
         department: '',
         projectName: '',
+        poName: '',
         teamName: '',
         billableType: '',
         employmentStatus: '',
         managerName: '',
         projectMapping: '',
+        teamStartDate: '',
+        teamEndDate: '',
+        defaultedInPeriod: '',
       };
       this.roGridSearchScope = { kind: 'allFilled' };
       this.roPage = 1;
@@ -1756,6 +1893,9 @@ toggleBillableTypes() {
         case 'projectName':
           c = cmpStr(this.roMinAcrossMappings(r1, m => m.projectName), this.roMinAcrossMappings(r2, m => m.projectName));
           break;
+        case 'poName':
+          c = cmpStr(this.roMinAcrossMappings(r1, m => m.poName), this.roMinAcrossMappings(r2, m => m.poName));
+          break;
         case 'teamName':
           c = cmpStr(this.roMinAcrossMappings(r1, m => m.teamName), this.roMinAcrossMappings(r2, m => m.teamName));
           break;
@@ -1769,6 +1909,24 @@ toggleBillableTypes() {
           c = cmpStr(
             this.roMinAcrossMappings(r1, m => m.projectMapping),
             this.roMinAcrossMappings(r2, m => m.projectMapping)
+          );
+          break;
+        case 'teamStartDate':
+          c = cmpStr(
+            this.roMinAcrossMappings(r1, m => m.teamStartDate),
+            this.roMinAcrossMappings(r2, m => m.teamStartDate)
+          );
+          break;
+        case 'teamEndDate':
+          c = cmpStr(
+            this.roMinAcrossMappings(r1, m => m.teamEndDate),
+            this.roMinAcrossMappings(r2, m => m.teamEndDate)
+          );
+          break;
+        case 'defaultedInPeriod':
+          c = cmpStr(
+            this.roMinAcrossMappings(r1, m => m.defaultedPeriodDisplay),
+            this.roMinAcrossMappings(r2, m => m.defaultedPeriodDisplay)
           );
           break;
         case 'streak':
@@ -1792,7 +1950,7 @@ toggleBillableTypes() {
 
   /** Reload employee grid only (same applied filters; {@code roTableSegment} selects metric). */
   private loadRepeatedOffenderEmployeeGrid(): void {
-    if (!this.repeatedOffenderMode || !this.currentUser?.empId) {
+    if (!this.repeatedOffenderMode || !this.currentUser?.empId || !this.isClientDashboard || this.toggleValue) {
       return;
     }
     if (this.roMonthLabels.length === 0) {
@@ -1842,7 +2000,7 @@ toggleBillableTypes() {
   }
 
   loadRepeatedOffenderData(): void {
-    if (!this.repeatedOffenderMode || !this.currentUser?.empId) {
+    if (!this.repeatedOffenderMode || !this.currentUser?.empId || !this.isClientDashboard || this.toggleValue) {
       return;
     }
     if (this.roMonthLabels.length === 0) {
@@ -2108,6 +2266,10 @@ updateBillableTypes() {
   console.log('Toggle is now:', isChecked);
 
   this.toggleValue = !this.toggleValue;
+  if (this.toggleValue && this.repeatedOffenderMode) {
+    this.repeatedOffenderMode = false;
+    this.clearRepeatedOffenderLocalData();
+  }
   this.page1 = 1;
   this.totalItems = 0;
   this.pageSize = 20;
@@ -3016,7 +3178,7 @@ getCountByStatus(status: string) {
 
   private buildLinkedSearchRowTooltipText(names: string[]): string {
     const list = this.formatEnglishNameList(names);
-    return `Returned because the search matched linked project name(s): ${list}.`;
+    return `Included via linked project whose name matches your search. Project :  ${list}.`;
   }
 
   /** Order-preserving unique names, then "a and b" / "a, b, and c". */

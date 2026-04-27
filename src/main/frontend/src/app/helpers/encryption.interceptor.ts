@@ -145,6 +145,7 @@ export class EncryptionInterceptor implements HttpInterceptor {
     '/api/handleTeamsAsPerLinkedPo',
     '/api/sendTimesheetDetailsToShankh',
     '/api/getEmployeeProjectCount',
+    '/api/saveDefaulterConsent',
     // '/api/getProjectConfigurationDetailsByProjectId'
   ];
 

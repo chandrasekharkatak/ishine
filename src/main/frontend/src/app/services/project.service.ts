@@ -171,15 +171,16 @@ updateMilestoneExtendedDate(formData: FormData): Observable<any> {
   getProjectStructure(payload) {
     return this.http.post(`${this.baseUrl}` + `api/getProjectStructure`, payload)
   }
-  
 
 getExtensionDocumentByName(uniquefile: any) {
   return this.http.post(`${this.baseUrl}api/getExtensionDocumentByName`, { uniquefile });
-}  
+} 
 
 validateDocName(uniquefile: any) {
   return this.http.post(`${this.baseUrl}api/validateDocName`, { uniquefile });
-}  
+} 
+
+
 
  
 }

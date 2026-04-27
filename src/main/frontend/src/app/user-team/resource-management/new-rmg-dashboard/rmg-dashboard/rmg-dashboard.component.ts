@@ -475,8 +475,8 @@ getTnmExpiredTooltip(): string[] {
   isProjectSearchEnabled: boolean = false;
   /** Project Name column header (app-info-tooltip): linked / partial name search + PO filter hint. */
   projectNameSearchInfoTooltip: string[] = [
-    'Project name search: if the searched project matches a linked (historical) project name, the list shows the current primary project; a link icon appears only on those rows.',
-    'Other projects whose primary name simply contains the same text may also appear—they are not necessarily linked matches.',
+    'Search includes projects whose names were later linked to another project.',
+    'Linked results are shown as the current primary project with a link icon.',
   ];
   totalProjectsCount: number = 0;
   projectPage: number = 1;
@@ -487,6 +487,13 @@ getTnmExpiredTooltip(): string[] {
   projectSortColumnType: string;
   projectFilters: any = {};
   projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "projectStartDate", "projectEndDate", "state", "createdOn", "projectStatus", "draftStatus"];
+  poSearchTooltip: string[] = [
+    'Shows only active POs.',
+    'Search includes both active and expired PO numbers.'
+  ];
+  dateSearchTooltip: string[] = [
+    'Search supports dd-mm-yyyy or yyyy-mm-dd date formats only.',
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -1999,7 +2006,7 @@ getTnmExpiredTooltip(): string[] {
 
   private buildRmgLinkedSearchRowTooltipText(names: string[]): string {
     const list = this.formatRmgEnglishNameList(names);
-    return `Returned because the search matched linked project name(s): ${list}.`;
+    return `Included via linked project whose name matches your search. Project :  ${list}.`;
   }
 
   private formatRmgEnglishNameList(parts: string[]): string {
