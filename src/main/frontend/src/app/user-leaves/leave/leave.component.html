@@ -10,192 +10,255 @@
 </div>
 
 <!-- start :: Create & Update Form -->
-<div class="row">
-    <div class="card col-md-12 px-0" *ngIf="isForm">
-        <div class="card-header leave-section-header text-center">
-            <span *ngIf="isCreation">
-                <i class="fa fa-paper-plane me-2"></i> Apply for Leave
-            </span>
-            <span *ngIf="isUpdation">
-                <i class="fa fa-pen-to-square me-2"></i> Update Leave
-            </span>
+<div class="row" *ngIf="isForm">
+    <div class="col-md-12 leave-apply-wrap">
+        <div class="ts-page-header-card leave-apply-header-card">
+            <div class="ts-page-header-inner">
+                <div class="ts-page-title-block">
+                    <i class="fa fa-paper-plane ts-page-icon" *ngIf="isCreation"></i>
+                    <i class="fa fa-pen-to-square ts-page-icon" *ngIf="isUpdation"></i>
+                    <div>
+                        <h1 class="ts-page-title mb-1" *ngIf="isCreation">Apply for Leave</h1>
+                        <h1 class="ts-page-title mb-1" *ngIf="isUpdation">Update Leave</h1>
+                        <p class="ts-page-subtitle mb-0">Enter leave details and review before submit</p>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 col-sm-6 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="d-block info-label"><span class="text-danger">*</span>Leave Application For</label>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="leaveFor" id="forSelf" value="self" [(ngModel)]="leaveObj.leaveAppliedFor" [disabled]="isUpdation" (change)="getAllTeamMemberList();getLeaveMetadata();resetLeaveObj()">
-                                <label class="form-check-label" for="forSelf">Self</label>
+        <div class="ts-status-section leave-apply-form-card">
+            <div class="info-card-v2 leave-section-card">
+                <div class="card-header-v2">
+                    <div class="card-header-left-v2">
+                        <div class="card-icon-wrapper-v2">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="card-header-text-v2">
+                            <h6 class="card-title-v2">Applicant Details</h6>
+                            <span class="card-subtitle-v2">Choose self or team member for leave request</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body-v2">
+                    <div class="row">
+                        <div class="col-md-4 col-sm-6 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="d-block info-label"><span class="text-danger">*</span>Leave Application For</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="leaveFor" id="forSelf" value="self" [(ngModel)]="leaveObj.leaveAppliedFor" [disabled]="isUpdation" (change)="getAllTeamMemberList();getLeaveMetadata();resetLeaveObj()">
+                                        <label class="form-check-label" for="forSelf">Self</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="leaveFor" id="forTeamMember" value="team" [(ngModel)]="leaveObj.leaveAppliedFor" [disabled]="isUpdation" (change)="getAllTeamMemberList();resetLeaveObj()">
+                                        <label class="form-check-label" for="forTeamMember">Team member</label>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="leaveFor" id="forTeamMember" value="team" [(ngModel)]="leaveObj.leaveAppliedFor" [disabled]="isUpdation" (change)="getAllTeamMemberList();resetLeaveObj()">
-                                <label class="form-check-label" for="forTeamMember">Team member</label>
+                        </div>
+                    </div>
+                    <div *ngIf="this.leaveObj.leaveAppliedFor == 'team'" class="row">
+                        <div class="col-md-4 col-sm-6 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label"><span class="text-danger">*</span>Team Member</label>
+                                    <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.empId" [disabled]="isUpdation" (change)="getLeaveMetadata();resetLeaveObj();">
+                                        <option selected="selected" value="" disabled>Select</option>
+                                        <option *ngFor="let teamMember of teamMemberList" [value]="teamMember.empId">
+                                           {{teamMember.name}} - {{teamMember.employmentId}}
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div *ngIf="this.leaveObj.leaveAppliedFor == 'team'" class="row">
-                <div class="col-md-4 col-sm-6 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Team Member</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.empId" [disabled]="isUpdation" (change)="getLeaveMetadata();resetLeaveObj();">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option *ngFor="let teamMember of teamMemberList" [value]="teamMember.empId">
-                                   {{teamMember.name}} - {{teamMember.employmentId}}
-                                </option>
-                            </select>
+            <div class="info-card-v2 leave-section-card">
+                <div class="card-header-v2">
+                    <div class="card-header-left-v2">
+                        <div class="card-icon-wrapper-v2">
+                            <i class="fas fa-suitcase-medical"></i>
+                        </div>
+                        <div class="card-header-text-v2">
+                            <h6 class="card-title-v2">Leave Configuration</h6>
+                            <span class="card-subtitle-v2">Select leave type and available balance details</span>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-4 col-sm-6 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Leave Type</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.leaveTypeMasterId" [disabled]="isUpdation" (change)="setLeaveTypeCode(leaveObj.leaveTypeMasterId);setPolicyObj(leaveObj.leaveTypeMasterId);getAllLeaveBalanceByEmpId(leaveObj);isCompOffSelected(leaveObj.leaveTypeMasterId)">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">{{leave.leaveType}}</option>
-                            </select>
-                            <small *ngIf="leaveObj.leaveTypeMasterId == 4">(Another Comp-Off will be applicable after 15 days)</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-0" *ngIf="leaveObj.leaveTypeMasterId == 5 ">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label><span class="text-danger">*</span>Maternity Type</label>
-                            <select (change)="findLeaveDaysOnMaternitySelect(leaveObj)" [disabled]="isUpdation" class="form-control" aria-hidden="true"
-                            [(ngModel)]="leaveObj.maternityType">
-                            <option selected="selected" value="" disabled>Select</option>
-                            <option value="miscarriage">Miscarriage</option>
-                            <option value="adoption">Adoption</option>
-                            <option value="fullMaternity">Full Maternity</option>
-                        </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div  class="row">
-                <div class="col-md-4 col-sm-4 mb-3" *ngIf="leaveDetails.length !== 0">
-                    <div class="card border-primary">
-                        <div class="card-body" style="max-width: 27rem; max-height: 4rem;" >
-                            <h6>
-                                <span style="color: #193d8a;">Available Balance : </span>
-                                <span *ngIf="leaveObj.leaveTypeMasterId !== 5 && leaveObj.maternityType === ''" style="color: #193d8a;">{{ leaveDetails }}</span>
-                                <span *ngIf="leaveObj.leaveTypeMasterId === 5 || leaveObj.maternityType !== ''" style="color: #193d8a;">Maternity Leave : {{ allowedLeaveDays }}</span>
-                            </h6>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-4 col-sm-6 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>From Date</label>
-                            <div class="d-flex">
-                                <input class="form-control" matInput id="fromDate" #input (focus)="fromDatePicker.open()" [matDatepicker]="fromDatePicker" [matDatepickerFilter]="fromDateFilter"
-                                 placeholder="Choose a from date" [(ngModel)]="leaveObj.fromDate" (dateChange)="resetToDate();getAvailableCompOffDetails(leaveObj,alert_message)" (keydown)="disableMannualDateInput()" autocomplete="off">
-                                <mat-datepicker-toggle matSuffix [for]="fromDatePicker" [disabled]="(isUpdation && leaveObj.leaveType == 'Complimentry Off') || (leaveObj.leaveTypeMasterId == null || leaveObj.leaveTypeMasterId == '')" style="margin-left: -40px;"></mat-datepicker-toggle>
+                <div class="card-body-v2">
+                    <div class="row">
+                        <div class="col-md-4 col-sm-6 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label"><span class="text-danger">*</span>Leave Type</label>
+                                    <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.leaveTypeMasterId" [disabled]="isUpdation" (change)="setLeaveTypeCode(leaveObj.leaveTypeMasterId);setPolicyObj(leaveObj.leaveTypeMasterId);getAllLeaveBalanceByEmpId(leaveObj);isCompOffSelected(leaveObj.leaveTypeMasterId)">
+                                        <option selected="selected" value="" disabled>Select</option>
+                                        <option *ngFor="let leave of leaveTypes" value="{{leave.leaveTypeMasterId}}">{{leave.leaveType}}</option>
+                                    </select>
+                                    <small *ngIf="leaveObj.leaveTypeMasterId == 4">(Another Comp-Off will be applicable after 15 days)</small>
+                                </div>
                             </div>
-                            <mat-datepicker [dateClass]="holidayHighlight" #fromDatePicker (closed)="input.blur()" [disabled]="(isUpdation && leaveObj.leaveType == 'Complimentry Off') || (leaveObj.leaveTypeMasterId == null || leaveObj.leaveTypeMasterId == '')" disabled="false"></mat-datepicker>
                         </div>
-                    </div>
-                </div>
-                <div class="offset-md-2 col-md-4 col-sm-6 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group" >
-                            <label class="info-label"><span class="text-danger">*</span>Day Type</label>
-                            <select  class="form-control"  aria-hidden="true" #fromDateInput [(ngModel)]="leaveObj.fromDateDayType" (change)="setNoOfDays(alert_message);syncDayTypeIfSameDate('from')">
-                                <option *ngIf="leaveObj.leaveTypeCode != 'ML'" selected="selected" value="" disabled>Select</option>
-                                <option *ngIf="!isCompOffLeave && leaveObj.leaveTypeCode != 'ML'" value=0.5>Half Day</option>
-                                <option *ngIf="leaveObj.leaveTypeCode != 'ML'" value=0 selected>Full Day</option>
-                                <option *ngIf="leaveObj.leaveTypeCode == 'ML'" selected value=0 >Full Day</option>
-                            </select>
-
-
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row" >
-                <div class="col-md-4 col-sm-6 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>To Date</label>
-                            <div class="d-flex">
-                                <input class="form-control" matInput id="toDate" #input (focus)="toDatePicker.open()" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter"
-                                 placeholder="Choose a to date" #toDateInput [(ngModel)]="leaveObj.toDate" (dateChange)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" [disabled]="leaveObj.leaveTypeCode == 'ML'" autocomplete="off">
-                                <mat-datepicker-toggle matSuffix [for]="toDatePicker" style="margin-left: -40px;" [disabled]="(isCreation && leaveObj.fromDate == '' || leaveObj.fromDate == null) || (isUpdation && leaveObj.leaveType == 'Complimentry Off') || leaveObj.leaveTypeCode == 'ML'"></mat-datepicker-toggle>
+                        <div class="col-md-4 mb-0" *ngIf="leaveObj.leaveTypeMasterId == 5 ">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label><span class="text-danger">*</span>Maternity Type</label>
+                                    <select (change)="findLeaveDaysOnMaternitySelect(leaveObj)" [disabled]="isUpdation" class="form-control" aria-hidden="true"
+                                    [(ngModel)]="leaveObj.maternityType">
+                                    <option selected="selected" value="" disabled>Select</option>
+                                    <option value="miscarriage">Miscarriage</option>
+                                    <option value="adoption">Adoption</option>
+                                    <option value="fullMaternity">Full Maternity</option>
+                                </select>
+                                </div>
                             </div>
-                            <mat-datepicker [dateClass]="holidayHighlight" #toDatePicker (closed)="input.blur()" [disabled]="(isCreation && (leaveObj.fromDate == '' || leaveObj.fromDate == null)) || (isUpdation && leaveObj.leaveType == 'Complimentry Off')" disabled="false" [startAt]="leaveObj.fromDate"></mat-datepicker>
                         </div>
                     </div>
-                </div>
-                <div class="offset-md-2 col-md-4 col-sm-6 mb-0" >
-                    <div class="info-wrapper">
-                        <div class="form-group" >
-                            <label class="info-label"><span class="text-danger">*</span>Day Type</label>
-                            <select  class="form-control"  aria-hidden="true" [(ngModel)]="leaveObj.toDateDayType"  (change)="setNoOfDays(alert_message);syncDayTypeIfSameDate('to')">
-                                <option *ngIf="leaveObj.leaveTypeCode != 'ML'" selected="selected" value="" disabled>Select</option>
-                                <option *ngIf="!isCompOffLeave && leaveObj.leaveTypeCode != 'ML'" value=0.5>Half Day</option>
-                                <option *ngIf="leaveObj.leaveTypeCode != 'ML'" value=0 selected>Full Day</option>
-                                <option *ngIf="leaveObj.leaveTypeCode == 'ML'" selected value=0 >Full Day</option>
-                            </select>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row" *ngIf="overLappingTeamMemberList.length != 0">
-                <div class="col-md-4 col-sm-6 mb-3">
-                    <div class="card border-primary">
-                        <div class="card-body" style="max-height: 4rem;">
-                            <h6 style=" color: #193d8a;">Your Leave is overlapping with {{overLappingTeamMemberList.length}} other Leave Application.&nbsp;
-                                <span style="text-decoration: underline; cursor: pointer;" (click)="getOverlappedTeamMemberLeave(overlap_team_member_leave_template)">
-                                    <em>view</em>
-                                </span>
-                            </h6>
+                    <div class="row">
+                        <div class="col-md-4 col-sm-4 mb-3" *ngIf="leaveDetails.length !== 0">
+                            <div class="card border-primary leave-stat-card">
+                                <div class="card-body">
+                                    <h6>
+                                        <span style="color: #193d8a;">Available Balance : </span>
+                                        <span *ngIf="leaveObj.leaveTypeMasterId !== 5 && leaveObj.maternityType === ''" style="color: #193d8a;">{{ leaveDetails }}</span>
+                                        <span *ngIf="leaveObj.leaveTypeMasterId === 5 || leaveObj.maternityType !== ''" style="color: #193d8a;">Maternity Leave : {{ allowedLeaveDays }}</span>
+                                    </h6>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-4 col-sm-6 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label">No.of Days</label>
-                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="leaveObj.noOfDays">
+            <div class="info-card-v2 leave-section-card">
+                <div class="card-header-v2">
+                    <div class="card-header-left-v2">
+                        <div class="card-icon-wrapper-v2">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <div class="card-header-text-v2">
+                            <h6 class="card-title-v2">Date & Duration</h6>
+                            <span class="card-subtitle-v2">Choose leave dates and day types</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body-v2">
+                    <div class="row">
+                        <div class="col-md-4 col-sm-6 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label"><span class="text-danger">*</span>From Date</label>
+                                    <div class="d-flex leave-date-input-group">
+                                        <input class="form-control leave-date-input" matInput id="fromDate" #input (focus)="fromDatePicker.open()" [matDatepicker]="fromDatePicker" [matDatepickerFilter]="fromDateFilter"
+                                         placeholder="Choose a from date" [(ngModel)]="leaveObj.fromDate" (dateChange)="resetToDate();getAvailableCompOffDetails(leaveObj,alert_message)" (keydown)="disableMannualDateInput()" autocomplete="off">
+                                        <mat-datepicker-toggle class="leave-datepicker-toggle" matSuffix [for]="fromDatePicker" [disabled]="(isUpdation && leaveObj.leaveType == 'Complimentry Off') || (leaveObj.leaveTypeMasterId == null || leaveObj.leaveTypeMasterId == '')" style="margin-left: -40px;"></mat-datepicker-toggle>
+                                    </div>
+                                    <mat-datepicker [dateClass]="holidayHighlight" #fromDatePicker (closed)="input.blur()" [disabled]="(isUpdation && leaveObj.leaveType == 'Complimentry Off') || (leaveObj.leaveTypeMasterId == null || leaveObj.leaveTypeMasterId == '')" disabled="false"></mat-datepicker>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="offset-md-2 col-md-4 col-sm-6 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group" >
+                                    <label class="info-label"><span class="text-danger">*</span>Day Type</label>
+                                    <select  class="form-control"  aria-hidden="true" #fromDateInput [(ngModel)]="leaveObj.fromDateDayType" (change)="setNoOfDays(alert_message);syncDayTypeIfSameDate('from')">
+                                        <option *ngIf="leaveObj.leaveTypeCode != 'ML'" selected="selected" value="" disabled>Select</option>
+                                        <option *ngIf="!isCompOffLeave && leaveObj.leaveTypeCode != 'ML'" value=0.5>Half Day</option>
+                                        <option *ngIf="leaveObj.leaveTypeCode != 'ML'" value=0 selected>Full Day</option>
+                                        <option *ngIf="leaveObj.leaveTypeCode == 'ML'" selected value=0 >Full Day</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" >
+                        <div class="col-md-4 col-sm-6 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label"><span class="text-danger">*</span>To Date</label>
+                                    <div class="d-flex leave-date-input-group">
+                                        <input class="form-control leave-date-input" matInput id="toDate" #input (focus)="toDatePicker.open()" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter"
+                                         placeholder="Choose a to date" #toDateInput [(ngModel)]="leaveObj.toDate" (dateChange)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" [disabled]="leaveObj.leaveTypeCode == 'ML'" autocomplete="off">
+                                        <mat-datepicker-toggle class="leave-datepicker-toggle" matSuffix [for]="toDatePicker" style="margin-left: -40px;" [disabled]="(isCreation && leaveObj.fromDate == '' || leaveObj.fromDate == null) || (isUpdation && leaveObj.leaveType == 'Complimentry Off') || leaveObj.leaveTypeCode == 'ML'"></mat-datepicker-toggle>
+                                    </div>
+                                    <mat-datepicker [dateClass]="holidayHighlight" #toDatePicker (closed)="input.blur()" [disabled]="(isCreation && (leaveObj.fromDate == '' || leaveObj.fromDate == null)) || (isUpdation && leaveObj.leaveType == 'Complimentry Off')" disabled="false" [startAt]="leaveObj.fromDate"></mat-datepicker>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="offset-md-2 col-md-4 col-sm-6 mb-0" >
+                            <div class="info-wrapper">
+                                <div class="form-group" >
+                                    <label class="info-label"><span class="text-danger">*</span>Day Type</label>
+                                    <select  class="form-control"  aria-hidden="true" [(ngModel)]="leaveObj.toDateDayType"  (change)="setNoOfDays(alert_message);syncDayTypeIfSameDate('to')">
+                                        <option *ngIf="leaveObj.leaveTypeCode != 'ML'" selected="selected" value="" disabled>Select</option>
+                                        <option *ngIf="!isCompOffLeave && leaveObj.leaveTypeCode != 'ML'" value=0.5>Half Day</option>
+                                        <option *ngIf="leaveObj.leaveTypeCode != 'ML'" value=0 selected>Full Day</option>
+                                        <option *ngIf="leaveObj.leaveTypeCode == 'ML'" selected value=0 >Full Day</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" *ngIf="overLappingTeamMemberList.length != 0">
+                        <div class="col-md-4 col-sm-6 mb-3">
+                            <div class="card border-primary leave-stat-card">
+                                <div class="card-body">
+                                    <h6 style=" color: #193d8a;">Your Leave is overlapping with {{overLappingTeamMemberList.length}} other Leave Application.&nbsp;
+                                        <span style="text-decoration: underline; cursor: pointer;" (click)="getOverlappedTeamMemberLeave(overlap_team_member_leave_template)">
+                                            <em>view</em>
+                                        </span>
+                                    </h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 col-sm-6 mb-0">
+                            <div class="presence-display-card leave-presence-card">
+                                <div class="presence-icon-wrapper leave-presence-icon-wrapper">
+                                    <i class="fas fa-clock presence-icon"></i>
+                                </div>
+                                <div class="presence-content">
+                                    <div class="presence-label">No. of Days</div>
+                                    <div class="presence-value">{{ leaveObj.noOfDays || '0' }}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-6 col-sm-6">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Reason</label>
-                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.reason">
+            <div class="info-card-v2 leave-section-card">
+                <div class="card-header-v2">
+                    <div class="card-header-left-v2">
+                        <div class="card-icon-wrapper-v2">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <div class="card-header-text-v2">
+                            <h6 class="card-title-v2">Additional Details</h6>
+                            <span class="card-subtitle-v2">Add reason and submit the leave request</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body-v2">
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label"><span class="text-danger">*</span>Reason</label>
+                                    <input type="text" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.reason">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3 leave-form-actions">
+                        <div class="col-md-12">
+                            <button *ngIf="isCreation && userMapping.apply_for_leave" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onApplyLeave(alert_message)">Apply Leave</button>
+                            <button *ngIf="isUpdation && userMapping.apply_for_leave" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateLeave(alert_message)">Update Leave</button>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row mt-3">
-                <div class="col-md-12">
-                    <button *ngIf="isCreation && userMapping.apply_for_leave" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onApplyLeave(alert_message)">Apply Leave</button>
-                    <button *ngIf="isUpdation && userMapping.apply_for_leave" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateLeave(alert_message)">Update Leave</button>
-                </div>
-            </div>
+        </div>
     </div>
-</div>
 </div>
 <!-- end :: create & update form -->
 

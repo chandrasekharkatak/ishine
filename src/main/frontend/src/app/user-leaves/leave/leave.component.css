@@ -14,6 +14,304 @@
       margin-top: 1.75rem;
   }
 
+/* Apply Leave form: align with Teams Timesheets Requests visual language */
+.leave-apply-wrap {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.ts-page-header-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.ts-page-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ts-page-title-block {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ts-page-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%);
+  color: #fff;
+  font-size: 1.25rem;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.ts-page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.ts-page-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.leave-apply-header-card {
+  margin-bottom: 16px;
+}
+
+.leave-apply-header-card .ts-page-header-card {
+  margin-bottom: 0;
+}
+
+.leave-apply-form-card {
+  border-radius: 10px;
+  /* padding-top: 18px;
+  padding-bottom: 18px; */
+  border: 1px solid #dbe4ee;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+  background: #f8fafc;
+}
+
+.leave-apply-form-card .row {
+  margin-bottom: 6px;
+}
+
+.leave-section-card {
+  background: #ffffff;
+  border: 1px solid #dbe4ee;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.leave-section-card .card-header-v2 {
+  padding: 14px 18px;
+  border-bottom: 1px solid #eef2f7;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.leave-section-card .card-header-left-v2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.leave-section-card .card-icon-wrapper-v2 {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1e3a5f;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.leave-section-card .card-header-text-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.leave-section-card .card-title-v2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.leave-section-card .card-subtitle-v2 {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.leave-section-card .card-body-v2 {
+  padding: 10px 6px 16px;
+}
+
+.leave-apply-form-card .info-wrapper {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 20px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.leave-apply-form-card .form-group {
+  margin-bottom: 0;
+}
+
+.leave-apply-form-card .form-control,
+.leave-apply-form-card .form-select,
+.leave-apply-form-card select {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  min-height: 38px;
+  box-shadow: none;
+}
+
+.leave-apply-form-card .form-control:focus,
+.leave-apply-form-card .form-select:focus,
+.leave-apply-form-card select:focus {
+  border-color: #1e3a5f;
+  box-shadow: 0 0 0 0.12rem rgba(30, 58, 95, 0.18);
+}
+
+.leave-apply-form-card .form-check {
+  margin-right: 12px;
+}
+
+.leave-apply-form-card .form-check-input:checked {
+  background-color: #1e3a5f;
+  border-color: #1e3a5f;
+}
+
+.leave-apply-form-card .info-label {
+  color: #334155;
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.leave-date-input-group {
+  position: relative;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.leave-date-input-group:focus-within {
+  border-color: #1e3a5f;
+  box-shadow: 0 0 0 0.12rem rgba(30, 58, 95, 0.16);
+}
+
+.leave-date-input {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding-right: 42px;
+}
+
+.leave-datepicker-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 38px;
+  border-left: 1px solid #dbe4ee;
+  background: #f8fafc;
+  color: #1e3a5f;
+}
+
+.presence-display-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.presence-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.presence-icon {
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.presence-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.leave-presence-card {
+  min-height: 72px;
+  border: 1px solid #d2f5e7;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 20px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+.leave-presence-icon-wrapper {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: #0f766e;
+}
+
+.leave-presence-card .presence-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.leave-presence-card .presence-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f766e;
+}
+
+.leave-stat-card {
+  border-color: #bfdbfe !important;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+}
+
+.leave-stat-card .card-body {
+  max-width: 27rem;
+  min-height: 4rem;
+}
+
+.leave-form-actions .btn-primary {
+  min-width: 160px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.6rem 1.35rem;
+  background: #1e3a5f;
+  border-color: #1e3a5f;
+}
+
+.leave-form-actions .btn-primary:hover {
+  background: #16314f;
+  border-color: #16314f;
+}
+
+.leave-form-actions .col-md-12 {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.leave-apply-form-card ::ng-deep .mat-datepicker-toggle-default-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.leave-section-card .leave-form-actions {
+  margin-top: 10px !important;
+}
+
   /* Section titles: match my-timesheet .timesheet-header (centered card bar) */
   .leave-section-header {
     background: linear-gradient(90deg, #f8f9fa, #ffffff);
@@ -607,6 +905,20 @@
   }
 
   @media (max-width: 768px) {
+    .leave-apply-form-card {
+      padding: 14px 12px;
+    }
+
+    .leave-apply-header-card .ts-page-title {
+      font-size: 1.2rem;
+    }
+
+    .leave-apply-header-card .ts-page-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 1rem;
+    }
+
     .summary-dashboard {
       padding: 10px 12px;
     }
