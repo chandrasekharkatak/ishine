@@ -1356,6 +1356,9 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
 
       this.leaveObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)
       this.leaveObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)
+      this.leaveObj.gender = this.currentUser.gender;
+      this.leaveObj.maritalStatus = this.currentUser.maritalStatus;
+      this.leaveObj.employmentStatus = this.currentUser.employmentstatus;
 
       //console.log("Apply Leave : ", this.leaveObj);
       if (this.leaveObj.leaveTypeCode == 'ML') {
