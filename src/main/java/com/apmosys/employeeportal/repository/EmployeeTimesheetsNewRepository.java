@@ -18705,4 +18705,10 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 					@Query("SELECT etn.date FROM EmployeeTimesheetsNew etn WHERE etn.empId =:empId AND etn.dayTypeId IN (1,3) AND etn.date BETWEEN :startdate AND :endDate")
 					List<LocalDate> getLastThreeMonthsWorkingAndWorkingOnNonWorkingDates(@Param("empId")Long empId, @Param("startdate") LocalDate startdate,@Param("endDate") LocalDate endDate );  
 
+					@Query(value = " SELECT t.timesheet_id" +
+    						" FROM employee_timesheets t inner join timesheet_document_details tdd on tdd.timesheet_id = t.timesheet_id " +
+    						" WHERE DATE_FORMAT(t.date, '%Y-%m') IN (:months) "
+							, nativeQuery = true)
+					List<Long> findTimesheetIdsByMonths(@Param("months") List<String> months);
+
 }

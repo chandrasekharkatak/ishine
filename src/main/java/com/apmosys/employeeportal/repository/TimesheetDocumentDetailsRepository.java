@@ -262,8 +262,8 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
        "t.docId, t.timesheetId, t.docName, t.docMimeType, t.finalFlag, " +
        "t.active, t.clientApprovalStatus, t.createdBy, t.createdOn, " +
        "t.updatedBy, t.updatedOn, t.empId) " +
-       "FROM TimesheetDocumentDetails t")
-		List<TimesheetDocumentMetaDto> findAllMetaOnly();
+       "FROM TimesheetDocumentDetails t where t.timesheetId in (:timesheetIds)")
+		List<TimesheetDocumentMetaDto> findAllMetaOnly(@Param("timesheetIds") List<Long> timesheetIds);
 	 
 	 @Query("SELECT t.docData FROM TimesheetDocumentDetails t WHERE t.docId = :docId")
 	 byte[] findDocDataByDocId(@Param("docId") Long docId);
@@ -274,10 +274,16 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 		// @Query("SELECT pts.id.projectId FROM ProjectTimesheetStatusNew pts WHERE pts.id.timesheetId in (:timesheetIds)" )
 		// List<Object[]> findProjectIdsByTimesheetIds(@Param("timesheetIds") List<Long> timesheetIds);
 
-		@Query(value = "select et.timesheet_id,et.project_id from employee_timesheets et where et.timesheet_id in (:timesheetIds)", nativeQuery=true )
-		List<Object[]> findProjectIdsByTimesheetIds(@Param("timesheetIds") List<Long> timesheetIds);
+		// @Query(value = "select et.timesheet_id,et.project_id from employee_timesheets et where et.timesheet_id in (:timesheetIds)", nativeQuery=true )
+		// List<Object[]> findProjectIdsByTimesheetIds(@Param("timesheetIds") List<Long> timesheetIds);
 
 	// 	@Query("SELECT pts.id.projectId FROM ProjectTimesheetStatusNew pts WHERE pts.id.timesheetId = :timesheetId")
 	// Integer findProjectIdByTimesheetId(@Param("timesheetId") Long timesheetId);
+
+		@Query(value = "select distinct etam.timesheet_id,t.project_id from employee_timesheet_activities_mapping etam " +
+				" inner join activities a on a.activity_id = etam.activity_id " +
+				" inner join teams t on t.team_id = a.team_id " +
+				"where etam.timesheet_id in (:timesheetIds)",nativeQuery = true)
+		List<Object[]> findProjectIdsByTimesheetIds(@Param("timesheetIds") List<Long> timesheetIds);
 
 }

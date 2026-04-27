@@ -7,8 +7,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -31,11 +33,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.FinalDocument;
 import com.apmosys.employeeportal.model.FinalDocumentNew;
+import com.apmosys.employeeportal.model.MigratedDoc;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.FinalDocumentNewRepository;
 import com.apmosys.employeeportal.repository.FinalDocumentRepository;
+import com.apmosys.employeeportal.repository.MigratedDocRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.service.TimesheetDocumentService;
@@ -84,6 +88,9 @@ public class TimesheetUploadTestController {
 
     @Autowired
     private MigrationTransactionService migrationTransactionService;
+
+    @Autowired
+    private MigratedDocRepository migratedDocRepository;
     
     /**
      * Bulk migrate all documents from TimesheetDocumentDetails to
@@ -460,7 +467,8 @@ public class TimesheetUploadTestController {
 
     @Transactional
     @PutMapping("/bulk-migrate2")
-    public ResponseEntity<?> bulkMigrateAllDocumentsNew() {
+    public ResponseEntity<?> bulkMigrateAllDocumentsNew(@RequestBody List<String> months) {
+    
         try {
             Path storageDir = Paths.get(storagePath);
             if (!Files.exists(storageDir)) {
@@ -468,10 +476,18 @@ public class TimesheetUploadTestController {
             }
     
             long startTime = System.currentTimeMillis();
-            int BATCH_SIZE = 150; 
+            int BATCH_SIZE = 150;
             int FETCH_SIZE = 20;
     
-            List<TimesheetDocumentMetaDto> allMeta = timesheetDocumentDetailsRepository.findAllMetaOnly();
+            // Set<Long> alreadyMigratedDocIds = migratedDocRepository.findAllMigratedDocIds();
+            // System.out.println("Already migrated: " + alreadyMigratedDocIds.size() + " docs — will skip these.");
+
+            validateMonths(months);
+            
+            List<Long> timesheetIdstoBeProcessed = new ArrayList<>();
+            timesheetIdstoBeProcessed = employeeTimesheetsNewRepository.findTimesheetIdsByMonths(months);
+    
+            List<TimesheetDocumentMetaDto> allMeta = timesheetDocumentDetailsRepository.findAllMetaOnly(timesheetIdstoBeProcessed);
     
             if (allMeta == null || allMeta.isEmpty()) {
                 return ResponseEntity.ok(Map.of("status", "SUCCESS", "message", "No documents to migrate"));
@@ -502,13 +518,15 @@ public class TimesheetUploadTestController {
     
             int totalProcessed = 0;
             int totalFailed = 0;
+            int totalSkipped = 0;
             List<Map<String, Object>> failedRecords = new ArrayList<>();
             List<TempFailedDoc> failedDocsBatch = new ArrayList<>();
+            Set<Long> addedToFailed = new HashSet<>();
     
             List<TimesheetDocumentDetailsNew> batchToSave = new ArrayList<>();
             List<TimesheetDocumentDetailsNew> singleGlobalBatch = new ArrayList<>();
             Map<Long, String> singleDocIdToFileName = new HashMap<>();
-            
+            List<MigratedDoc> singleMigratedDocsBatch = new ArrayList<>();
     
 
             // this is for sigle entry docs
@@ -522,6 +540,7 @@ public class TimesheetUploadTestController {
                     .map(TimesheetDocumentMetaDto::getDocId).collect(Collectors.toList());
                 List<Long> timesheetIds = chunk.stream()
                     .map(TimesheetDocumentMetaDto::getTimesheetId).collect(Collectors.toList());
+                    
 
                     Map<Long, byte[]> docDataMap;
                     Map<Long, Integer> projectIdMap;
@@ -552,9 +571,11 @@ public class TimesheetUploadTestController {
                                 "type", "SINGLE_ENTRY",
                                 "reason", "Batch fetch failed: " + e.getMessage()
                         ));
-                         failedDocsBatch.add(buildFailedDoc(
-                            doc.getDocId(), doc.getDocName(),
-                            doc.getTimesheetId(), "SINGLE_ENTRY", e.getMessage()));
+                        if(addedToFailed.add(doc.getDocId())){
+                            failedDocsBatch.add(buildFailedDoc(
+                                doc.getDocId(), doc.getDocName(),
+                                doc.getTimesheetId(), "SINGLE_ENTRY", e.getMessage()));
+                            }
                     }
                     continue;
                     
@@ -582,6 +603,8 @@ public class TimesheetUploadTestController {
                             doc, projectId, uniqueFileName, null, false));
                         singleDocIdToFileName.put(doc.getDocId(), uniqueFileName);
                         
+                        singleMigratedDocsBatch.add(
+                            new MigratedDoc(doc.getDocId(), doc.getTimesheetId(), doc.getDocName(), projectId));
     
                     } catch (Exception e) {
                         totalFailed++;
@@ -594,10 +617,11 @@ public class TimesheetUploadTestController {
                                 "type", "SINGLE_ENTRY",
                                 "reason", e.getMessage()
                         ));
-
+                        if(addedToFailed.add(doc.getDocId())){
                         failedDocsBatch.add(buildFailedDoc(
                             doc.getDocId(), doc.getDocName(),
                             doc.getTimesheetId(), "SINGLE_ENTRY", e.getMessage() ));
+                        }
                     }
 
                 }
@@ -606,13 +630,13 @@ public class TimesheetUploadTestController {
                 if (singleGlobalBatch.size() >= BATCH_SIZE || isLastChunk) {
                     if (!singleGlobalBatch.isEmpty()) {
                         try {
-                            migrationTransactionService.saveTimesheetDocBatch(singleGlobalBatch);
+                            migrationTransactionService.saveTimesheetDocBatch(singleGlobalBatch,singleMigratedDocsBatch);
                             totalProcessed += singleGlobalBatch.size();
                         } catch (Exception e) {
                             // DB batch save failed — clean up all files written in this batch
                             totalFailed += singleGlobalBatch.size();
                             for (TimesheetDocumentDetailsNew failed : singleGlobalBatch) {
-                                cleanupFile(storageDir, singleDocIdToFileName.get(failed.getDocId()));
+                                cleanupFile(storageDir, failed.getFileUrl());
                                 failedRecords.add(Map.of(
                                         "docId", failed.getDocId(),
                                         "timesheetId", failed.getTimesheetId(),
@@ -620,15 +644,17 @@ public class TimesheetUploadTestController {
                                         "type", "SINGLE_ENTRY",
                                         "reason", "DB batch save failed: " + e.getMessage()
                                 ));
-
+                                if(addedToFailed.add(failed.getDocId())){
                                 failedDocsBatch.add(buildFailedDoc(
                                     failed.getDocId(), failed.getDocName(),
                                     failed.getTimesheetId(), "SINGLE_ENTRY", e.getMessage()));
+                                }
 
                             }
                         } finally {
                             singleGlobalBatch.clear();
                             singleDocIdToFileName.clear();
+                            singleMigratedDocsBatch.clear();
                         }
                     }
                 }
@@ -643,6 +669,7 @@ public class TimesheetUploadTestController {
             List<TimesheetDocumentDetailsNew> pendingGlobalBatch = new ArrayList<>();
             
             Map<Long, String[]> pendingTimesheetIdToFileNames = new HashMap<>();
+            List<MigratedDoc> MigratedDocsBatch_docTypePending = new ArrayList<>();
 
             for (int i = 0; i < timesheetIdList.size(); i += FETCH_SIZE) {
                 int end = Math.min(i + FETCH_SIZE, timesheetIdList.size());
@@ -711,25 +738,16 @@ public class TimesheetUploadTestController {
     
                     try {
                         Integer projectId = projectIdMap.get(timesheetId);
-                        byte[] finalDocData = docDataMap.get(finalDoc.getDocId());
+                        byte[] finalDocData = finalDoc!= null ?  docDataMap.get(finalDoc.getDocId()): null;
                         byte[] pendingDocData = pendingDoc != null ? docDataMap.get(pendingDoc.getDocId()) : null;
     
                         if (projectId == null) throw new RuntimeException("projectId not found for timesheetId: " + timesheetId);
                         if (finalDocData == null) throw new RuntimeException("docData not found for final docId: " + finalDoc.getDocId());
-    
-                        // Both final + pending saved in ONE transaction
-                        // If pending DB save fails → final DB save also rolls back automatically
-
-
-                        // finalFileName = projectId + "_" + flagToInt(finalDoc.getFinalFlag()) + "_" + finalDoc.getDocName();
-                        // pendingFileName = pendingDoc != null
-                        //     ? projectId + "_" + flagToInt(pendingDoc.getFinalFlag()) + "_" + pendingDoc.getDocName()
-                        //     : null;
 
                         String extPending = pendingDoc.getDocName().substring(pendingDoc.getDocName().lastIndexOf('.'));
                         pendingFileName = FileNameGenerator.generate(projectId, extPending, "filled");
                         // finalFileName = FileUtils.generate(storageDir, finalDoc.getDocName());
-                        String extFinal = pendingDoc.getDocName().substring(pendingDoc.getDocName().lastIndexOf('.'));
+                        String extFinal = finalDoc.getDocName().substring(finalDoc.getDocName().lastIndexOf('.'));
                         finalFileName = FileNameGenerator.generate(projectId, extFinal, "approved");
                       
                             Files.write(
@@ -741,7 +759,9 @@ public class TimesheetUploadTestController {
 
                         FinalDocumentNew savedFinalDoc = migrationTransactionService.saveFinalDoc(
                             migrationTransactionService.buildFinalDocumentNewFromDto(
-                                    finalDoc, projectId, finalFileName));
+                                    finalDoc, projectId, finalFileName),
+                                    new MigratedDoc(finalDoc.getDocId(), timesheetId,
+                                    finalDoc.getDocName(), projectId));
 
 
                         // migrationTransactionService.migrateMultiEntry(
@@ -761,6 +781,10 @@ public class TimesheetUploadTestController {
     
                             pendingTimesheetIdToFileNames.put(timesheetId,
                                     new String[]{finalFileName, pendingFileName});
+
+                                    MigratedDocsBatch_docTypePending.add(
+                                        new MigratedDoc(pendingDoc.getDocId(), timesheetId,
+                                                pendingDoc.getDocName(), projectId));
                         }
 
                         totalProcessed++;
@@ -778,17 +802,18 @@ public class TimesheetUploadTestController {
                                 "type", "MULTI_ENTRY",
                                 "reason", e.getMessage()
                         ));
-
+                         if(addedToFailed.add(finalDoc.getDocId())){
                         failedDocsBatch.add(buildFailedDoc(
                             finalDoc.getDocId(), finalDoc.getDocName(),
-                            timesheetId, "MULTI_ENTRY", reason));
+                            timesheetId, "MULTI_ENTRY_FINAL_DOC", reason));
+                        }
                     }
                 }
                 boolean isLastChunk = (end == timesheetIdList.size());
                 if (pendingGlobalBatch.size() >= BATCH_SIZE || isLastChunk) {
                     if (!pendingGlobalBatch.isEmpty()) {
                         try {
-                            migrationTransactionService.saveTimesheetDocBatch(pendingGlobalBatch);
+                            migrationTransactionService.saveTimesheetDocBatch(pendingGlobalBatch,MigratedDocsBatch_docTypePending);
                         } catch (Exception e) {
                             
                             for (TimesheetDocumentDetailsNew failed : pendingGlobalBatch) {
@@ -805,15 +830,17 @@ public class TimesheetUploadTestController {
                                         "type", "MULTI_ENTRY_PENDING",
                                         "reason", "DB batch save failed: " + e.getMessage()
                                 ));
-
+                                 if(addedToFailed.add(failed.getDocId())){
                                 failedDocsBatch.add(buildFailedDoc(
                                     failed.getDocId(), failed.getDocName(),
                                     failed.getTimesheetId(), "MULTI_ENTRY_PENDING", e.getMessage()));
+                                }
 
                             }
                         } finally {
                             pendingGlobalBatch.clear();
                             pendingTimesheetIdToFileNames.clear();
+                            MigratedDocsBatch_docTypePending.clear();
                         }
                     }
                 }
@@ -850,6 +877,8 @@ public class TimesheetUploadTestController {
     }
 
 
+
+
 }
 
 private void cleanupFile(Path storageDir, String fileName) {
@@ -868,6 +897,571 @@ private TempFailedDoc buildFailedDoc(Long docId, String docName, Long timesheetI
                                       String type, String reason) {
     return new TempFailedDoc(docId, docName, timesheetId, type, reason);
 
+}
+
+
+public List<String> validateMonths(List<String> months) {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+    Pattern pattern = Pattern.compile("^[0-9]{4}-(0[1-9]|1[0-2])$");
+
+    return months.stream().map(m -> {
+
+        // Step 1: Regex check (format)
+        if (!pattern.matcher(m).matches()) {
+            throw new IllegalArgumentException(
+                "Invalid format: " + m + ". Expected yyyy-MM (e.g., 2026-03)"
+            );
+        }
+
+        // Step 2: Logical validation (extra safety)
+        try {
+            YearMonth.parse(m, formatter);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(
+                "Invalid month/year value: " + m
+            );
+        }
+
+        return m;
+
+    }).toList();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@Transactional
+@PutMapping("/bulk-migrate3")
+public ResponseEntity<?> bulkMigrateAllDocumentsSkipMigrated(@RequestBody List<String> months) {
+    try {
+        Path storageDir = Paths.get(storagePath);
+        if (!Files.exists(storageDir)) {
+            Files.createDirectories(storageDir);
+        }
+
+        long startTime = System.currentTimeMillis();
+        int BATCH_SIZE = 150;
+        int FETCH_SIZE = 20;
+
+        validateMonths(months);
+
+        List<Long> timesheetIdstoBeProcessed = employeeTimesheetsNewRepository.findTimesheetIdsByMonths(months);
+
+        List<TimesheetDocumentMetaDto> allMeta = timesheetDocumentDetailsRepository.findAllMetaOnly(timesheetIdstoBeProcessed);
+
+        if (allMeta == null || allMeta.isEmpty()) {
+            return ResponseEntity.ok(Map.of("status", "SUCCESS", "message", "No documents to migrate"));
+        }
+
+        // Fetch all already-migrated doc_ids from migrated_doc_tracking
+        Set<Long> alreadyMigratedDocIds = migratedDocRepository.findAllMigratedDocIds();
+        System.out.println("Already migrated: " + alreadyMigratedDocIds.size() + " docs — will skip these.");
+
+        Map<Long, List<TimesheetDocumentMetaDto>> grouped = allMeta.stream()
+                .collect(Collectors.groupingBy(TimesheetDocumentMetaDto::getTimesheetId));
+
+        List<TimesheetDocumentMetaDto> singleEntryDocs = new ArrayList<>();
+        Map<Long, TimesheetDocumentMetaDto> multiFinalDocs = new LinkedHashMap<>();
+        Map<Long, TimesheetDocumentMetaDto> multiPendingDocs = new LinkedHashMap<>();
+
+        for (Map.Entry<Long, List<TimesheetDocumentMetaDto>> entry : grouped.entrySet()) {
+            List<TimesheetDocumentMetaDto> docs = entry.getValue();
+            if (docs.size() == 1) {
+                singleEntryDocs.add(docs.get(0));
+            } else {
+                for (TimesheetDocumentMetaDto doc : docs) {
+                    if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+                        multiFinalDocs.put(entry.getKey(), doc);
+                    } else {
+                        multiPendingDocs.put(entry.getKey(), doc);
+                    }
+                }
+            }
+        }
+
+        int totalProcessed = 0;
+        int totalFailed = 0;
+        int totalSkipped = 0;
+        List<Map<String, Object>> failedRecords = new ArrayList<>();
+        List<TempFailedDoc> failedDocsBatch = new ArrayList<>();
+
+        List<TimesheetDocumentDetailsNew> singleGlobalBatch = new ArrayList<>();
+        Map<Long, String> singleDocIdToFileName = new HashMap<>();
+        List<MigratedDoc> singleMigratedDocsBatch = new ArrayList<>();
+
+        // ─── SINGLE ENTRY DOCS ───────────────────────────────────────────────────
+
+        // Filter out already-migrated singles before processing
+        List<TimesheetDocumentMetaDto> filteredSingleEntryDocs = singleEntryDocs.stream()
+                .filter(doc -> {
+                    if (alreadyMigratedDocIds.contains(doc.getDocId())) {
+                        return false; // will be counted as skipped below
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+
+        totalSkipped += (singleEntryDocs.size() - filteredSingleEntryDocs.size());
+
+        for (int i = 0; i < filteredSingleEntryDocs.size(); i += FETCH_SIZE) {
+            int end = Math.min(i + FETCH_SIZE, filteredSingleEntryDocs.size());
+            List<TimesheetDocumentMetaDto> chunk = filteredSingleEntryDocs.subList(i, end);
+
+            List<Long> docIds = chunk.stream()
+                    .map(TimesheetDocumentMetaDto::getDocId).collect(Collectors.toList());
+            List<Long> timesheetIds = chunk.stream()
+                    .map(TimesheetDocumentMetaDto::getTimesheetId).collect(Collectors.toList());
+
+            Map<Long, byte[]> docDataMap;
+            Map<Long, Integer> projectIdMap;
+
+            try {
+                docDataMap = timesheetDocumentDetailsRepository
+                        .findDocDataByDocIds1(docIds).stream()
+                        .collect(Collectors.toMap(row -> (Long) row[0], row -> (byte[]) row[1]));
+
+                projectIdMap = timesheetDocumentDetailsRepository
+                        .findProjectIdsByTimesheetIds(timesheetIds)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                row -> ((Number) row[0]).longValue(),
+                                row -> ((Number) row[1]).intValue()
+                        ));
+
+            } catch (Exception e) {
+                for (TimesheetDocumentMetaDto doc : chunk) {
+                    totalFailed++;
+                    failedRecords.add(Map.of(
+                            "docId", doc.getDocId(),
+                            "timesheetId", doc.getTimesheetId(),
+                            "docName", doc.getDocName(),
+                            "type", "SINGLE_ENTRY",
+                            "reason", "Batch fetch failed: " + e.getMessage()
+                    ));
+                    failedDocsBatch.add(buildFailedDoc(
+                            doc.getDocId(), doc.getDocName(),
+                            doc.getTimesheetId(), "SINGLE_ENTRY", e.getMessage()));
+                }
+                continue;
+            }
+
+            for (TimesheetDocumentMetaDto doc : chunk) {
+                String uniqueFileName = null;
+                try {
+                    Integer projectId = projectIdMap.get(doc.getTimesheetId());
+                    byte[] docData = docDataMap.get(doc.getDocId());
+
+                    if (projectId == null) throw new RuntimeException("projectId not found for timesheetId: " + doc.getTimesheetId());
+                    if (docData == null) throw new RuntimeException("docData not found for docId: " + doc.getDocId());
+
+                    String ext = doc.getDocName().substring(doc.getDocName().lastIndexOf('.'));
+                    uniqueFileName = FileNameGenerator.generate(projectId, ext, "filled");
+                    Path filePath = storageDir.resolve(uniqueFileName);
+                    Files.write(filePath, docData, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+
+                    singleGlobalBatch.add(migrationTransactionService.buildTimesheetDocumentDetailsNewFromDto(
+                            doc, projectId, uniqueFileName, null, false));
+                    singleDocIdToFileName.put(doc.getDocId(), uniqueFileName);
+                    singleMigratedDocsBatch.add(
+                            new MigratedDoc(doc.getDocId(), doc.getTimesheetId(), doc.getDocName(), projectId));
+
+                } catch (Exception e) {
+                    totalFailed++;
+                    cleanupFile(storageDir, uniqueFileName);
+                    failedRecords.add(Map.of(
+                            "docId", doc.getDocId(),
+                            "timesheetId", doc.getTimesheetId(),
+                            "docName", doc.getDocName(),
+                            "type", "SINGLE_ENTRY",
+                            "reason", e.getMessage()
+                    ));
+                    failedDocsBatch.add(buildFailedDoc(
+                            doc.getDocId(), doc.getDocName(),
+                            doc.getTimesheetId(), "SINGLE_ENTRY", e.getMessage()));
+                }
+            }
+
+            boolean isLastChunk = (end == filteredSingleEntryDocs.size());
+            if (singleGlobalBatch.size() >= BATCH_SIZE || isLastChunk) {
+                if (!singleGlobalBatch.isEmpty()) {
+                    try {
+                        migrationTransactionService.saveTimesheetDocBatch(singleGlobalBatch, singleMigratedDocsBatch);
+                        totalProcessed += singleGlobalBatch.size();
+                    } catch (Exception e) {
+                        totalFailed += singleGlobalBatch.size();
+                        for (TimesheetDocumentDetailsNew failed : singleGlobalBatch) {
+                            cleanupFile(storageDir, singleDocIdToFileName.get(failed.getDocId()));
+                            failedRecords.add(Map.of(
+                                    "docId", failed.getDocId(),
+                                    "timesheetId", failed.getTimesheetId(),
+                                    "docName", failed.getDocName(),
+                                    "type", "SINGLE_ENTRY",
+                                    "reason", "DB batch save failed: " + e.getMessage()
+                            ));
+                            failedDocsBatch.add(buildFailedDoc(
+                                    failed.getDocId(), failed.getDocName(),
+                                    failed.getTimesheetId(), "SINGLE_ENTRY", e.getMessage()));
+                        }
+                    } finally {
+                        singleGlobalBatch.clear();
+                        singleDocIdToFileName.clear();
+                        singleMigratedDocsBatch.clear();
+                    }
+                }
+            }
+        }
+
+        // ─── MULTI ENTRY DOCS ────────────────────────────────────────────────────
+
+        List<TimesheetDocumentDetailsNew> pendingGlobalBatch = new ArrayList<>();
+        Map<Long, String[]> pendingTimesheetIdToFileNames = new HashMap<>();
+        List<MigratedDoc> migratedDocsBatch_docTypePending = new ArrayList<>();
+
+        List<Long> timesheetIdList = new ArrayList<>(multiFinalDocs.keySet());
+
+        for (int i = 0; i < timesheetIdList.size(); i += FETCH_SIZE) {
+            int end = Math.min(i + FETCH_SIZE, timesheetIdList.size());
+            List<Long> chunkTimesheetIds = timesheetIdList.subList(i, end);
+
+            // Categorize each timesheetId by migration state of its final + pending docs
+            List<Long> timesheetIdsNeitherMigrated = new ArrayList<>();     // both need migration
+            List<Long> timesheetIdsOnlyPendingLeft = new ArrayList<>();     // final already done, pending not yet
+
+            for (Long tid : chunkTimesheetIds) {
+                TimesheetDocumentMetaDto finalDoc = multiFinalDocs.get(tid);
+                TimesheetDocumentMetaDto pendingDoc = multiPendingDocs.get(tid);
+
+                boolean finalMigrated = finalDoc != null && alreadyMigratedDocIds.contains(finalDoc.getDocId());
+                boolean pendingMigrated = pendingDoc == null || alreadyMigratedDocIds.contains(pendingDoc.getDocId());
+
+                if (finalMigrated && pendingMigrated) {
+                    // Both already done — skip entirely
+                    totalSkipped++;
+                } else if (finalMigrated && !pendingMigrated) {
+                    // Final is done but pending still needs migration
+                    timesheetIdsOnlyPendingLeft.add(tid);
+                } else {
+                    // Final not yet migrated (migrate both)
+                    timesheetIdsNeitherMigrated.add(tid);
+                }
+            }
+
+            // ── Case A: Neither migrated — same flow as original ─────────────────
+            if (!timesheetIdsNeitherMigrated.isEmpty()) {
+                List<Long> finalDocIds = timesheetIdsNeitherMigrated.stream()
+                        .map(tid -> multiFinalDocs.get(tid).getDocId()).collect(Collectors.toList());
+
+                List<Long> pendingDocIds = timesheetIdsNeitherMigrated.stream()
+                        .filter(tid -> multiPendingDocs.get(tid) != null)
+                        .map(tid -> multiPendingDocs.get(tid).getDocId()).collect(Collectors.toList());
+
+                List<Long> allDocIds = new ArrayList<>();
+                allDocIds.addAll(finalDocIds);
+                allDocIds.addAll(pendingDocIds);
+
+                Map<Long, byte[]> docDataMap = null;
+                Map<Long, Integer> projectIdMap = null;
+
+                try {
+                    docDataMap = timesheetDocumentDetailsRepository
+                            .findDocDataByDocIds1(allDocIds).stream()
+                            .collect(Collectors.toMap(row -> (Long) row[0], row -> (byte[]) row[1]));
+
+                    projectIdMap = timesheetDocumentDetailsRepository
+                            .findProjectIdsByTimesheetIds(timesheetIdsNeitherMigrated)
+                            .stream()
+                            .collect(Collectors.toMap(
+                                    row -> ((Number) row[0]).longValue(),
+                                    row -> ((Number) row[1]).intValue()
+                            ));
+
+                } catch (Exception e) {
+                    for (Long timesheetId : timesheetIdsNeitherMigrated) {
+                        totalFailed++;
+                        TimesheetDocumentMetaDto finalDoc = multiFinalDocs.get(timesheetId);
+                        TimesheetDocumentMetaDto pendingDoc = multiPendingDocs.get(timesheetId);
+                        failedRecords.add(Map.of(
+                                "timesheetId", timesheetId,
+                                "type", "MULTI_ENTRY",
+                                "reason", "Batch fetch failed: " + e.getMessage()
+                        ));
+                        if (finalDoc != null)
+                            failedDocsBatch.add(buildFailedDoc(finalDoc.getDocId(), finalDoc.getDocName(), timesheetId, "MULTI_ENTRY", e.getMessage()));
+                        if (pendingDoc != null)
+                            failedDocsBatch.add(buildFailedDoc(pendingDoc.getDocId(), pendingDoc.getDocName(), timesheetId, "MULTI_ENTRY", e.getMessage()));
+                    }
+                    // fall through to Case B below
+                    timesheetIdsNeitherMigrated.clear();
+                }
+
+                for (Long timesheetId : timesheetIdsNeitherMigrated) {
+                    TimesheetDocumentMetaDto finalDoc = multiFinalDocs.get(timesheetId);
+                    TimesheetDocumentMetaDto pendingDoc = multiPendingDocs.get(timesheetId);
+                    String finalFileName = null;
+                    String pendingFileName = null;
+
+                    try {
+                        Integer projectId = projectIdMap.get(timesheetId);
+                        byte[] finalDocData = docDataMap.get(finalDoc.getDocId());
+                        byte[] pendingDocData = pendingDoc != null ? docDataMap.get(pendingDoc.getDocId()) : null;
+
+                        if (projectId == null) throw new RuntimeException("projectId not found for timesheetId: " + timesheetId);
+                        if (finalDocData == null) throw new RuntimeException("docData not found for final docId: " + finalDoc.getDocId());
+
+                        String extFinal = finalDoc.getDocName().substring(finalDoc.getDocName().lastIndexOf('.'));
+                        finalFileName = FileNameGenerator.generate(projectId, extFinal, "approved");
+
+                        Files.write(storageDir.resolve(finalFileName), finalDocData,
+                                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+
+                        FinalDocumentNew savedFinalDoc = migrationTransactionService.saveFinalDoc(
+                                migrationTransactionService.buildFinalDocumentNewFromDto(finalDoc, projectId, finalFileName),
+                                new MigratedDoc(finalDoc.getDocId(), timesheetId, finalDoc.getDocName(), projectId));
+
+                        if (pendingDoc != null && pendingDocData != null) {
+                            String extPending = pendingDoc.getDocName().substring(pendingDoc.getDocName().lastIndexOf('.'));
+                            pendingFileName = FileNameGenerator.generate(projectId, extPending, "filled");
+
+                            Files.write(storageDir.resolve(pendingFileName), pendingDocData,
+                                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+
+                            pendingGlobalBatch.add(migrationTransactionService.buildTimesheetDocumentDetailsNewFromDto(
+                                    pendingDoc, projectId, pendingFileName, savedFinalDoc.getFinalDocId(), true));
+
+                            pendingTimesheetIdToFileNames.put(timesheetId, new String[]{finalFileName, pendingFileName});
+                            migratedDocsBatch_docTypePending.add(
+                                    new MigratedDoc(pendingDoc.getDocId(), timesheetId, pendingDoc.getDocName(), projectId));
+                        }
+
+                        totalProcessed++;
+
+                    } catch (Exception e) {
+                        totalFailed++;
+                        cleanupFile(storageDir, finalFileName);
+                        cleanupFile(storageDir, pendingFileName);
+                        failedRecords.add(Map.of(
+                                "docId", finalDoc.getDocId(),
+                                "timesheetId", timesheetId,
+                                "docName", finalDoc.getDocName(),
+                                "type", "MULTI_ENTRY",
+                                "reason", e.getMessage()
+                        ));
+                        failedDocsBatch.add(buildFailedDoc(finalDoc.getDocId(), finalDoc.getDocName(), timesheetId, "MULTI_ENTRY", e.getMessage()));
+                    }
+                }
+            }
+
+            // ── Case B: Final already migrated, only pending needs migration ──────
+            // We look up the already-saved FinalDocumentNew by timesheetId to get its PK,
+            // then use that as the bulk_approved_doc_id for the pending doc.
+            if (!timesheetIdsOnlyPendingLeft.isEmpty()) {
+                List<Long> pendingDocIds = timesheetIdsOnlyPendingLeft.stream()
+                        .filter(tid -> multiPendingDocs.get(tid) != null)
+                        .map(tid -> multiPendingDocs.get(tid).getDocId())
+                        .collect(Collectors.toList());
+                
+                List<Long> finalDocIds = timesheetIdsOnlyPendingLeft.stream()
+                        .filter(tid -> multiFinalDocs.get(tid) != null)
+                        .map(tid -> multiFinalDocs.get(tid).getDocId())
+                        .collect(Collectors.toList());
+
+                Map<Long, byte[]> pendingDocDataMap = null;
+                Map<Long, Integer> projectIdMap = null;
+                // Look up the already-migrated FinalDocumentNew rows so we can reuse their PKs
+                Map<Long, Long> prevToFinalDocId = null;
+
+                try {
+                    pendingDocDataMap = timesheetDocumentDetailsRepository
+                            .findDocDataByDocIds1(pendingDocIds).stream()
+                            .collect(Collectors.toMap(row -> (Long) row[0], row -> (byte[]) row[1]));
+
+                    projectIdMap = timesheetDocumentDetailsRepository
+                            .findProjectIdsByTimesheetIds(pendingDocIds)
+                            .stream()
+                            .collect(Collectors.toMap(
+                                    row -> ((Number) row[0]).longValue(),
+                                    row -> ((Number) row[1]).intValue()
+                            ));
+
+                    // Fetch the existing FinalDocumentNew PKs for these timesheetIds
+                    // so the pending doc can reference the correct bulk_approved_doc_id
+                    prevToFinalDocId =
+                            findExistingFinalDocIdsByTimesheetIds(finalDocIds);
+
+                } catch (Exception e) {
+                    for (Long timesheetId : timesheetIdsOnlyPendingLeft) {
+                        totalFailed++;
+                        TimesheetDocumentMetaDto pendingDoc = multiPendingDocs.get(timesheetId);
+                        failedRecords.add(Map.of(
+                                "timesheetId", timesheetId,
+                                "type", "MULTI_ENTRY_PENDING_ONLY",
+                                "reason", "Batch fetch failed: " + e.getMessage()
+                        ));
+                        if (pendingDoc != null)
+                            failedDocsBatch.add(buildFailedDoc(pendingDoc.getDocId(), pendingDoc.getDocName(), timesheetId, "MULTI_ENTRY_PENDING_ONLY", e.getMessage()));
+                    }
+                    // skip further processing for this sub-batch
+                    timesheetIdsOnlyPendingLeft.clear();
+                }
+
+                for (Long timesheetId : timesheetIdsOnlyPendingLeft) {
+                    TimesheetDocumentMetaDto pendingDoc = multiPendingDocs.get(timesheetId);
+                    String pendingFileName = null;
+
+                    try {
+                        if (pendingDoc == null) {
+                            totalSkipped++;
+                            continue;
+                        }
+
+                        Integer projectId = projectIdMap.get(timesheetId);
+                        byte[] pendingDocData = pendingDocDataMap.get(pendingDoc.getDocId());
+                        TimesheetDocumentMetaDto finalDoc = multiFinalDocs.get(timesheetId);
+                        Long existingFinalDocId = prevToFinalDocId.get(finalDoc.getDocId());
+
+                        if (projectId == null) throw new RuntimeException("projectId not found for timesheetId: " + timesheetId);
+                        if (pendingDocData == null) throw new RuntimeException("docData not found for pending docId: " + pendingDoc.getDocId());
+                        if (existingFinalDocId == null) throw new RuntimeException("No existing FinalDocumentNew found for timesheetId: " + timesheetId);
+
+                        String extPending = pendingDoc.getDocName().substring(pendingDoc.getDocName().lastIndexOf('.'));
+                        pendingFileName = FileNameGenerator.generate(projectId, extPending, "filled");
+
+                        Files.write(storageDir.resolve(pendingFileName), pendingDocData,
+                                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+
+                        // Reuse the already-persisted final doc's PK as bulk_approved_doc_id
+                        pendingGlobalBatch.add(migrationTransactionService.buildTimesheetDocumentDetailsNewFromDto(
+                                pendingDoc, projectId, pendingFileName, existingFinalDocId, true));
+
+                        pendingTimesheetIdToFileNames.put(timesheetId, new String[]{null, pendingFileName});
+                        migratedDocsBatch_docTypePending.add(
+                                new MigratedDoc(pendingDoc.getDocId(), timesheetId, pendingDoc.getDocName(), projectId));
+
+                        totalProcessed++;
+
+                    } catch (Exception e) {
+                        totalFailed++;
+                        cleanupFile(storageDir, pendingFileName);
+                        failedRecords.add(Map.of(
+                                "docId", pendingDoc != null ? pendingDoc.getDocId() : "N/A",
+                                "timesheetId", timesheetId,
+                                "docName", pendingDoc != null ? pendingDoc.getDocName() : "N/A",
+                                "type", "MULTI_ENTRY_PENDING_ONLY",
+                                "reason", e.getMessage()
+                        ));
+                        if (pendingDoc != null)
+                            failedDocsBatch.add(buildFailedDoc(pendingDoc.getDocId(), pendingDoc.getDocName(), timesheetId, "MULTI_ENTRY_PENDING_ONLY", e.getMessage()));
+                    }
+                }
+            }
+
+            // ── Flush pending batch ───────────────────────────────────────────────
+            boolean isLastChunk = (end == timesheetIdList.size());
+            if (pendingGlobalBatch.size() >= BATCH_SIZE || isLastChunk) {
+                if (!pendingGlobalBatch.isEmpty()) {
+                    try {
+                        migrationTransactionService.saveTimesheetDocBatch(pendingGlobalBatch, migratedDocsBatch_docTypePending);
+                    } catch (Exception e) {
+                        for (TimesheetDocumentDetailsNew failed : pendingGlobalBatch) {
+                            Long tid = failed.getTimesheetId();
+                            String[] fileNames = pendingTimesheetIdToFileNames.get(tid);
+                            if (fileNames != null && fileNames[1] != null) {
+                                cleanupFile(storageDir, fileNames[1]);
+                            }
+                            failedRecords.add(Map.of(
+                                    "docId", failed.getDocId(),
+                                    "timesheetId", failed.getTimesheetId(),
+                                    "docName", failed.getDocName(),
+                                    "type", "MULTI_ENTRY_PENDING",
+                                    "reason", "DB batch save failed: " + e.getMessage()
+                            ));
+                            failedDocsBatch.add(buildFailedDoc(
+                                    failed.getDocId(), failed.getDocName(),
+                                    failed.getTimesheetId(), "MULTI_ENTRY_PENDING", e.getMessage()));
+                        }
+                    } finally {
+                        pendingGlobalBatch.clear();
+                        pendingTimesheetIdToFileNames.clear();
+                        migratedDocsBatch_docTypePending.clear();
+                    }
+                }
+            }
+        }
+
+        if (!failedDocsBatch.isEmpty()) {
+            try {
+                migrationTransactionService.saveFailedRecords(failedDocsBatch);
+            } catch (Exception e) {
+                System.err.println("Warning: Could not save failed records to temp table: " + e.getMessage());
+            }
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "status", "SUCCESS",
+                "message", "Bulk migration completed (skipped already-migrated docs)",
+                "totalProcessed", totalProcessed,
+                "totalFailed", totalFailed,
+                "totalSkipped", totalSkipped,
+                "timeTaken", (System.currentTimeMillis() - startTime) / 1000.0 + "s",
+                "failedRecords", failedRecords
+        ));
+
+    } catch (Exception e) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "ERROR");
+        errorResponse.put("message", "Bulk migration failed: " + e.getMessage());
+        errorResponse.put("timestamp", LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+}
+
+public Map<Long, Long> findExistingFinalDocIdsByTimesheetIds(List<Long> finalDocIds) {
+    // Returns Map<timesheetId, finalDocId (PK of FinalDocumentNew)>
+    return finalDocumentNewRepository.findByPrevDocIdIn(finalDocIds)
+            .stream()
+            .collect(Collectors.toMap(
+            		 FinalDocumentNew::getPrevDocId,
+                     FinalDocumentNew::getFinalDocId
+            ));
 }
 
 }

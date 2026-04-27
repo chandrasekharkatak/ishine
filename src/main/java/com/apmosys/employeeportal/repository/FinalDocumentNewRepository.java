@@ -56,6 +56,8 @@ List<FinalDocumentNew> getDocsByTimesheetIdAndFinalFlag(
     //     "WHERE tdd.timesheetId = :timesheetId and tdd.projectId = :projectId")
     // void deleteByTimesheetIdAndProjectId(@Param("timesheetId") Long timesheetId, @Param("projectId") Integer projectId);
 
+    @Query("SELECT f FROM FinalDocumentNew f WHERE f.prevDocId IN (:prevDocIds) ")
+    List<FinalDocumentNew> findByPrevDocIdIn(@Param("prevDocIds") List<Long> prevDocIds);
 
 	
  }

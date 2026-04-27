@@ -15,9 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.TimesheetDocumentMetaDto;
 import com.apmosys.employeeportal.model.FinalDocumentNew;
+import com.apmosys.employeeportal.model.MigratedDoc;
 import com.apmosys.employeeportal.model.TempFailedDoc;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.repository.FinalDocumentNewRepository;
+import com.apmosys.employeeportal.repository.MigratedDocRepository;
 import com.apmosys.employeeportal.repository.TempFailedDocRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsNewRepository;
 
@@ -38,6 +40,9 @@ public class MigrationTransactionService {
 
     @Autowired
     private TempFailedDocRepository tempFailedDocRepository;
+   
+    @Autowired
+    private MigratedDocRepository migratedDocRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void migrateSingleEntry(
@@ -104,7 +109,7 @@ public class MigrationTransactionService {
 
     TimesheetDocumentDetailsNew newDoc = new TimesheetDocumentDetailsNew();
 
-    newDoc.setDocId(doc.getDocId());
+    // newDoc.setDocId(doc.getDocId());
     newDoc.setTimesheetId(doc.getTimesheetId());
     newDoc.setProjectId(projectId);
     newDoc.setFileUrl(uniqueFileName);
@@ -113,8 +118,13 @@ public class MigrationTransactionService {
     newDoc.setFinalFlag(FinalFlag); 
     newDoc.setMimeTypeId(
             timesheetDocumentServiceNew.getMimeTypeId(doc.getDocMimeType(), doc.getDocName()));
-    newDoc.setClientApprovalStatusId(
-            timesheetDocumentServiceNew.getClientApprovalStatusId(doc.getClientApprovalStatus()));
+    if(FinalFlag){
+        newDoc.setClientApprovalStatusId(2);
+
+    }
+    else{
+        newDoc.setClientApprovalStatusId(1);
+    }
    newDoc.setCreatedOn(doc.getCreatedOn() != null ? doc.getCreatedOn() : null);
     // newDoc.setCreatedOn(LocalDateTime.now());
     newDoc.setCreatedBy(doc.getCreatedBy() != null ? doc.getCreatedBy() : doc.getEmpId());
@@ -148,15 +158,18 @@ public FinalDocumentNew buildFinalDocumentNewFromDto(
 
 
 @Transactional(propagation = Propagation.REQUIRES_NEW)
-public FinalDocumentNew saveFinalDoc(FinalDocumentNew finalDoc) throws Exception {
+public FinalDocumentNew saveFinalDoc(FinalDocumentNew finalDoc,MigratedDoc migratedDoc) throws Exception {
     FinalDocumentNew saved = finalDocumentNewRepository.save(finalDoc);
     entityManager.flush();
+    migratedDocRepository.save(migratedDoc);
     return saved;
 }
 
 @Transactional(propagation = Propagation.REQUIRES_NEW)
-public void saveTimesheetDocBatch(List<TimesheetDocumentDetailsNew> batch) throws Exception {
+public void saveTimesheetDocBatch(List<TimesheetDocumentDetailsNew> batch,List<MigratedDoc> migratedDocs) throws Exception {
     timesheetDocumentDetailsNewRepository.saveAll(batch);
+    migratedDocRepository.saveAll(migratedDocs);
+
 }
 
 @Transactional(propagation = Propagation.REQUIRES_NEW)
