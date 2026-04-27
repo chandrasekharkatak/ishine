@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service.validator;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,10 +50,10 @@ public class CompOffLeaveValidator {
 		require(!appliedForDate.isBefore(lastSeventhDate) && !appliedForDate.isAfter(currentDate),
 				"Comp Off Date range exceeded !!");
 				boolean pendingExists = compOffLeaveRepository
-            .existsByEmpIdAndFromDateAndCompOffStatus(
+            .existsByEmpIdAndFromDateAndCompOffStatusIn(
                     leaveDTO.getEmpId(),
                     appliedForDate,
-                    "Pending"
+                   List.of("Pending", "Pending For Approval", "Approved")
             );
 			Employee employee =
         employeeRepository
@@ -121,7 +122,7 @@ public class CompOffLeaveValidator {
 	public void validateUpdateCompOff(LeaveDTO leaveDTO) {
 		require(leaveDTO != null, "Request body is required.");
 		require(leaveDTO.getCompOffLeaveId() != null, "Comp-off leave id is required.");
-		// require(leaveDTO.getEmpId() != null, "Employee id is required.");
+		 require(leaveDTO.getEmpId() != null, "Employee id is required.");
 		require(leaveDTO.getReasonId() != null, "Comp-off reason is required.");
 		require(StringUtils.hasText(leaveDTO.getFromDate()), "From date is required.");
 		parseIsoDateOrThrow(leaveDTO.getFromDate());
@@ -130,14 +131,14 @@ public class CompOffLeaveValidator {
 		LocalDate appliedForDate = parseIsoDateOrThrow(leaveDTO.getFromDate());
 		LocalDate lastSeventhDate = LocalDate.now().minusDays(compOffApplyWithIn);
 		LocalDate currentDate = LocalDate.now();
-		require(!appliedForDate.isBefore(lastSeventhDate) && !appliedForDate.isAfter(currentDate),
-				"Comp Off Date range exceeded !!");
-				boolean pendingExists = compOffLeaveRepository
-            .existsByEmpIdAndFromDateAndCompOffStatus(
-                    leaveDTO.getEmpId(),
-                    appliedForDate,
-                    "Pending"
-            );
+		// require(!appliedForDate.isBefore(lastSeventhDate) && !appliedForDate.isAfter(currentDate),
+				// "Comp Off Date range exceeded !!");
+			// 	boolean pendingExists = compOffLeaveRepository
+            // .existsByEmpIdAndFromDateAndCompOffStatusIn(
+            //         leaveDTO.getEmpId(),
+            //         appliedForDate,
+            //         List.of("Pending", "Pending For Approval", "Approved")
+            // );
 		Employee employee =
         employeeRepository
             .findByEmpId(
@@ -165,8 +166,8 @@ public class CompOffLeaveValidator {
         "Selected date is not a valid holiday."
     );
 
-    require(!pendingExists,
-            "A pending comp-off request already exists for this date.");
+    // require(!pendingExists,
+    //         "A pending comp-off request already exists for this date.");
 	
 	}
 

@@ -365,23 +365,45 @@ export class CompOffComponent implements OnInit {
         compOff.managerEmail = this.currentUser.reportingManagerEmail;
         compOff.managerId = this.currentUser.reportingManagerId;
         compOff.managerName = this.currentUser.reportingManagerName;
+        compOff.empId=this.currentUser.empId;
       }else{
         compOff.reportingManagerId = this.currentUser.managerId;
         compOff.managerId = this.currentUser.managerId;
         compOff.managerEmail = this.currentUser.managerEmail;
         compOff.managerName = this.currentUser.managerName;
+        compOff.empId=this.currentUser.empId;
       }
 
 
       //console.log("Update comp off : ", compOff);
-      this.leaveService.updateCompOff(compOff).pipe(first()).subscribe((response: any) => {
+      // this.leaveService.updateCompOff(compOff).pipe(first()).subscribe((response: any) => {
+      //   if (response.serviceStatus == "Success") {
+      //     this.openAlertMod(template, response.serviceResponse);
+      //     this.showCompOffRequestTable();
+      //   } else {
+      //     this.openAlertMod(template, response.serviceResponse);
+      //   }
+      // });
+        this.leaveService.updateCompOff(compOff)
+    .pipe(first())
+    .subscribe({
+      next: (response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
           this.showCompOffRequestTable();
         } else {
           this.openAlertMod(template, response.serviceResponse);
         }
-      });
+      },
+      error: (error) => {
+        const msg =
+          error?.error?.serviceResponse ||
+          error?.error?.message ||
+          "Something went wrong!";
+
+        this.openAlertMod(template, msg);
+      }
+    });
     }
 
     deleteCompOff(template: TemplateRef<any>) {
