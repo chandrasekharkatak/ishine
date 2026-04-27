@@ -464,7 +464,9 @@ export class GrievanceComponent implements OnInit {
       this.userMapping.view_all_tickets === true ||
       this.currentUser?.employeeRole?.toLowerCase()?.includes('admin') ||
       this.currentUser?.employeeRole?.toLowerCase()?.includes('vp') ||
-      this.currentUser?.employeeRole?.toLowerCase()?.includes('project manager')
+      this.currentUser?.employeeRole?.toLowerCase()?.includes('project manager')||
+      this.currentUser?.employeeRole?.toLowerCase()?.includes('hr') ||
+      this.currentUser?.employeeRole?.toLowerCase()?.includes('manager')
     );
   }
 
@@ -860,7 +862,7 @@ export class GrievanceComponent implements OnInit {
       return;
     }
     this.viewTicketDetail = null;
-    this.viewDetailLoading = true;
+    this.viewDetailLoading = true;  
     this.ticketViewModalRef = this.modalService.open(this.ticketViewModal, {
       modalDialogClass: 'modal-lg grievance-ticket-modal-dialog',
       scrollable: true,

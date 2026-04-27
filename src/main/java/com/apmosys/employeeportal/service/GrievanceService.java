@@ -129,7 +129,7 @@ public class GrievanceService {
 	@Value("${file.location.documents.grievance}")
 	private String grievanceDocumentLocation;
 
-	@Value("${grievance.default.assignee.email:pratikshya.routray@apmosys.com}")
+	@Value("${grievance.default.assignee.email}")
 	private String grievanceDefaultAssigneeEmail;
 
 	@Value("${app.mail.default-cc:}")
@@ -343,7 +343,7 @@ public class GrievanceService {
 	private Employee resolveDefaultAssignee() {
 		Employee configuredAssignee = null;
 		if (!isBlank(grievanceDefaultAssigneeEmail)) {
-			configuredAssignee = employeeRepository.findByEmail(grievanceDefaultAssigneeEmail.trim());
+			configuredAssignee = employeeRepository.findByEmail(grievanceDefaultAssigneeEmail);
 		}
 		if (configuredAssignee != null && configuredAssignee.getEmpId() != null) {
 			return configuredAssignee;
@@ -898,7 +898,7 @@ public class GrievanceService {
 			return true;
 		}
 		return dept.contains("development")
-				&& (roleBlob.contains("vp") || roleBlob.contains("project manager"));
+				&& (roleBlob.contains("vp") || roleBlob.contains("project manager") || roleBlob.contains("hr manager"));
 	}
 
 	private String buildJobRoleTextForAccess(Employee employee) {
@@ -1662,7 +1662,7 @@ public class GrievanceService {
 		}
 
 		String normalized = roleText == null ? "" : roleText.toLowerCase(Locale.ROOT);
-		return normalized.contains("admin") || normalized.contains("vp") || normalized.contains("project manager");
+		return normalized.contains("admin") || normalized.contains("vp") || normalized.contains("project manager") || normalized.contains("hr manager") || normalized.contains("manager") ;
 	}
 
 	private boolean hasViewAllTicketsSubfeature(Long jobRoleId) {

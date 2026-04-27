@@ -169,7 +169,9 @@ export class GrievanceEditComponent implements OnInit, OnDestroy {
       this.userMapping.view_all_tickets === true ||
       this.currentUser?.employeeRole?.toLowerCase()?.includes('admin') ||
       this.currentUser?.employeeRole?.toLowerCase()?.includes('vp') ||
-      this.currentUser?.employeeRole?.toLowerCase()?.includes('project manager')
+      this.currentUser?.employeeRole?.toLowerCase()?.includes('project manager') ||
+      this.currentUser?.employeeRole?.toLowerCase()?.includes('hr manager') ||
+      this.currentUser?.employeeRole?.toLowerCase()?.includes('manager') 
     );
   }
 
