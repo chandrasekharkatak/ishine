@@ -1749,7 +1749,7 @@ export class RmgStatusCardsComponent {
       'Project Type': x.poProjectType || 'NA',
       'Project Manager': x.projectManagers && x.projectManagers.length > 0 ? x.projectManagers[0].projectManagerName : 'NA',
       'Client': x.clientName || 'NA',
-      'Apmosys RM': x.apmosysRM || 'NA',
+      'ApMoSys RM': x.apmosysRM || 'NA',
       'Client RM': x.clientRM || 'NA',
       'Start Date': this.normalizeDate(x.projectStartDate) || 'NA',
       'End Date': this.normalizeDate(x.projectEndDate) || 'NA',

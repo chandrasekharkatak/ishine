@@ -245,7 +245,7 @@ getTnmExpiredTooltip(): string[] {
     , { field: 'billable', header: 'Is Billable', sortable: true, searchable: true }
     , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
     , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'ApMSys RM', sortable: true, searchable: true }
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
@@ -296,7 +296,7 @@ getTnmExpiredTooltip(): string[] {
     , { field: 'billableType', header: 'User Billable Type', sortable: true, searchable: true }
     , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
     , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'ApMSys RM', sortable: true, searchable: true }
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
@@ -310,7 +310,7 @@ getTnmExpiredTooltip(): string[] {
   onBenchEmployeeDetailsSubTableColumnConfig = [
     { field: 'projectName', header: 'Project Name', sortable: false, searchable: false }
     , { field: 'clientName', header: 'Client Name', sortable: false, searchable: false }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: false, searchable: false }
+    , { field: 'apmosysRM', header: 'ApMSys RM', sortable: false, searchable: false }
     , { field: 'clientRM', header: 'Client RM', sortable: false, searchable: false }
     , { field: 'poNo', header: 'PO No.', sortable: false, searchable: false }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: false, searchable: false }
@@ -321,7 +321,7 @@ getTnmExpiredTooltip(): string[] {
   mappedEmployeeDetailsSubTableColumnConfig = [
     { field: 'projectName', header: 'Project Name', sortable: false, searchable: false }
     , { field: 'clientName', header: 'Client Name', sortable: false, searchable: false }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: false, searchable: false }
+    , { field: 'apmosysRM', header: 'ApMSys RM', sortable: false, searchable: false }
     , { field: 'clientRM', header: 'Client RM', sortable: false, searchable: false }
     , { field: 'poNo', header: 'PO No.', sortable: false, searchable: false }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: false, searchable: false }
@@ -339,7 +339,7 @@ getTnmExpiredTooltip(): string[] {
     , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
     , { field: 'teamName', header: 'Team Name', sortable: true, searchable: true }
     , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'ApMSys RM', sortable: true, searchable: true }
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
@@ -352,7 +352,7 @@ getTnmExpiredTooltip(): string[] {
   unfilledTimesheetProjectColumnConfig = [
     { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
     , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'ApMSys RM', sortable: true, searchable: true }
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false }
@@ -372,8 +372,8 @@ getTnmExpiredTooltip(): string[] {
   timesheetNonCompliance = { key: 'TIMESHEET_NON_COMPLIANCE', label: 'Timesheet Non-Compliance Projects', value: 'timesheet_non_compliance', count: null, style: 'color: #EC4899', bgstyle: 'background-color: #EC4899;color: #fff;', leftstyle: 'border-left:4px solid;color: #EC4899', i_class: 'fa-solid fa-calendar-xmark fa-beat-fade', columnConfig: this.unfilledTimesheetProjectColumnConfig, defaultSortColumn: 'projectName', subTableColumnConfig: [], color: '', infoLabel: '' };
 
   workforceOverview = [
-    { key: 'TOTAL', icon: 'bi-people', label: 'Active Employees In Apmosys', value: null, desc: 'Full organization headcount', colorClass: 'text-info', columnConfig: [], defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#1B294B', tooltip: [
-      'Total active employees in Apmosys including all categories.'
+    { key: 'TOTAL', icon: 'bi-people', label: 'Active Employees In ApMoSys', value: null, desc: 'Full organization headcount', colorClass: 'text-info', columnConfig: [], defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#1B294B', tooltip: [
+      'Total active employees in ApMoSys including all categories.'
     ] },
     { key: 'MAPPED_TO_PROJECT', icon: 'bi-person-check', label: 'Assigned to Projects', value: null, desc: 'Mapped to ≥ 1 project', colorClass: 'text-success', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#64B497',  tooltip: [
       'Employees currently assigned to one or more active projects.'
@@ -1865,7 +1865,7 @@ getTnmExpiredTooltip(): string[] {
       'Project Type': x.poProjectType || 'NA',
       'Project Manager': x.projectManagers && x.projectManagers.length > 0 ? x.projectManagers[0].projectManagerName : 'NA',
       'Client': x.clientName || 'NA',
-      'Apmosys RM': x.apmosysRM || 'NA',
+      'ApMSys RM': x.apmosysRM || 'NA',
       'Client RM': x.clientRM || 'NA',
       'Start Date': this.normalizeDate(x.projectStartDate) || 'NA',
       'End Date': this.normalizeDate(x.projectEndDate) || 'NA',
