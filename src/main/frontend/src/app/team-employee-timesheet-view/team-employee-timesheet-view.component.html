@@ -49,13 +49,14 @@
 
           <div class="tav-range-item">
             <label class="tav-range-label">PO No</label>
-            <div class="tav-range-input tav-month-select-shell">
+            <div class="tav-range-input tav-month-select-shell tav-po-select-shell">
               <mat-select
-                class="tav-month-select"
+                class="tav-month-select tav-po-select"
                 [(ngModel)]="selectedPoIdFilters"
                 multiple
+                [panelClass]="'tav-po-panel'"
                 (selectionChange)="onPoIdFilterChange($event)">
-                <mat-select-trigger>{{ poDisplayLabel }}</mat-select-trigger>
+                <mat-select-trigger [matTooltip]="poDisplayLabel">{{ poDisplayLabel }}</mat-select-trigger>
                 <mat-option [value]="allPoOptionValue">All</mat-option>
                 <mat-option *ngFor="let option of poIdOptions" [value]="option.value">
                   {{ option.label }}

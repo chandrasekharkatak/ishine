@@ -27,7 +27,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 export class TeamEmployeeTimesheetViewComponent implements OnInit {
 
   projectId: any;
-  poId: any;
+  poProjectId: any;
   timesheetData: GetEmployeeTimesheetAsCalender[] = [];
   page = 1;
   sortDirection = 'asc';
@@ -141,7 +141,7 @@ alertMessageOfDoc: any;
   this.maxYear = new Date(currentYear, 11, 31);
     this.route.queryParams.subscribe(params => {
       this.projectId = params['projectId'];
-      this.poId = params['poId'];
+      this.poProjectId = params['poProjectId'];
       this.formattedMonthLabel = params['formattedMonthLabel'];
       this.isClientDashboard = params['isClientDashboard'] === 'true';
       this.queryFromDate = this.normalizeIncomingDate(params['fromDate']);
@@ -177,7 +177,7 @@ alertMessageOfDoc: any;
         console.warn("projectId is missing in query params.");
       }
       console.log('Received projectId from query param:', this.projectId);
-      console.log('Received poId from query param:', this.poId);
+      console.log('Received poProjectId from query param:', this.poProjectId);
       console.log('Received month from query param:', this.formattedMonthLabel);
     });
     this.legendEntries = Object.entries(this.legend).map(([code, value]) => ({
@@ -195,14 +195,26 @@ alertMessageOfDoc: any;
   }
 
   getEmployeeTimesheetAsCalenderByProjectId(projectId:any,month:any,year:any): void {
-    this.timesheetAsCalenderByProjectId.projectId = projectId;
+    const resolvedProjectId = this.resolveProjectIdFromParams();
+    const resolvedPoProjectId = this.resolvePoProjectIdFromParams();
+
+    if (resolvedProjectId === null && resolvedPoProjectId === null) {
+      this.openAlertMod('No project is selected.');
+      return;
+    }
+
+    this.timesheetAsCalenderByProjectId.projectId = resolvedProjectId;
     this.timesheetAsCalenderByProjectId.month = month;
     this.timesheetAsCalenderByProjectId.year = year;
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
     this.timesheetAsCalenderByProjectId.fromDate = this.fromDateFilter || undefined;
     this.timesheetAsCalenderByProjectId.toDate = this.toDateFilter || undefined;
     this.timesheetAsCalenderByProjectId.poNo = this.resolveSelectedPoNo();
-    this.timesheetAsCalenderByProjectId.poProjectId = this.resolveSelectedPoProjectId();
+    this.timesheetAsCalenderByProjectId.poProjectId = resolvedPoProjectId;
+    // Always refresh list from latest API response.
+    this.timesheetData = [];
+    this.filteredTimesheetData = [];
+    this.page = 1;
     if(this.isClientDashboard){
       this.timesheetAsCalenderByProjectId.allEmp = !this.isClientDashboard;
     console.log("this.timesheetAsCalenderByProjectId.allEmp - if -",this.timesheetAsCalenderByProjectId.allEmp)
@@ -223,6 +235,7 @@ alertMessageOfDoc: any;
           department: item.department ?? 'NA',
           billableType: item.billableType ?? 'NA',
           clientName: item.clientName ?? 'NA',
+          poProjectId: item.poProjectId ?? null,
           poId: item.poId ?? item.poNo ?? 'NA',
           poNo: item.poNo ?? 'NA',
           projectName: item.projectName ?? 'NA',
@@ -244,39 +257,51 @@ alertMessageOfDoc: any;
     });
   }
 
-  private resolveSelectedPoProjectId(): number | null {
-    if (this.selectedPoIdFilters?.length) {
-      const validSelectedPos = this.selectedPoIdFilters
-        .filter(value => value && value !== this.allPoOptionValue);
-      if (validSelectedPos.length === 1) {
-        const parsed = Number(validSelectedPos[0]);
-        return Number.isFinite(parsed) ? parsed : null;
-      }
-      return null;
-    }
-
-    const parsedQueryPoId = Number(this.poId);
-    return Number.isFinite(parsedQueryPoId) ? parsedQueryPoId : null;
+  private resolvePoProjectIdFromParams(): number | null {
+    const parsedQueryPoProjectId = Number(this.poProjectId);
+    return Number.isFinite(parsedQueryPoProjectId) ? parsedQueryPoProjectId : null;
   }
 
-  private resolveSelectedPoNo(): string | null {
-    const poProjectId = this.resolveSelectedPoProjectId();
+  private resolveProjectIdFromParams(): number | null {
+    const parsedProjectId = Number(this.projectId);
+    return Number.isFinite(parsedProjectId) ? parsedProjectId : null;
+  }
+
+  private resolveSelectedPoNo(): string | string[] | null {
+    const hasAllSelected = this.selectedPoIdFilters?.includes(this.allPoOptionValue);
+    if (hasAllSelected) {
+      return 'All';
+    }
+
+    const selectedPoNos = (this.selectedPoIdFilters || [])
+      .filter(value => value && value !== this.allPoOptionValue)
+      .map(value => value.toString().trim())
+      .filter(value => value.length > 0);
+
+    if (selectedPoNos.length > 1) {
+      return selectedPoNos;
+    }
+
+    if (selectedPoNos.length === 1) {
+      return [selectedPoNos[0]];
+    }
+
+    const poProjectId = this.resolvePoProjectIdFromParams();
     if (poProjectId === null) {
       return null;
     }
 
     const selectedOption = this.poIdOptions.find(option => Number(option.value) === poProjectId);
-    return selectedOption?.label || null;
+    return selectedOption?.label ? [selectedOption.label] : null;
   }
 
   private buildPoIdOptions(): void {
     const poMap = new Map<string, string>();
     this.timesheetData.forEach(item => {
-      const poId = (((item as any)?.poId) ?? '').toString().trim();
-      if (!poId || poId === 'NA') return;
-      const poNo = (((item as any)?.poNo) ?? poId).toString().trim();
-      if (!poMap.has(poId)) {
-        poMap.set(poId, poNo || poId);
+      const poNo = (((item as any)?.poNo) ?? '').toString().trim();
+      if (!poNo || poNo === 'NA') return;
+      if (!poMap.has(poNo)) {
+        poMap.set(poNo, poNo);
       }
     });
 
@@ -310,11 +335,10 @@ alertMessageOfDoc: any;
           if (response?.serviceStatus === 'Success' && Array.isArray(response?.serviceResponse)) {
             const poMap = new Map<string, string>();
             response.serviceResponse.forEach((item: any) => {
-              const poId = (item?.poId ?? '').toString().trim();
-              if (!poId) return;
-              const poNo = (item?.poNo ?? poId).toString().trim();
-              if (!poMap.has(poId)) {
-                poMap.set(poId, poNo || poId);
+              const poNo = (item?.poNo ?? '').toString().trim();
+              if (!poNo) return;
+              if (!poMap.has(poNo)) {
+                poMap.set(poNo, poNo);
               }
             });
 
@@ -424,17 +448,7 @@ applyFilters(): void {
           return itemValue.includes(filterValue);
         });
       });
-
-  const selectedPoIds = this.selectedPoIdFilters.filter(v => v !== this.allPoOptionValue);
-  const hasAllPoSelected = this.selectedPoIdFilters.includes(this.allPoOptionValue);
-  if (!selectedPoIds.length || hasAllPoSelected) {
-    this.filteredTimesheetData = baseFiltered;
-    return;
-  }
-
-  this.filteredTimesheetData = baseFiltered.filter(item =>
-    selectedPoIds.includes((((item as any)?.poId) ?? '').toString())
-  );
+  this.filteredTimesheetData = baseFiltered;
 }
 
 onPoIdFilterChange(event: MatSelectChange): void {
@@ -462,8 +476,6 @@ onPoIdFilterChange(event: MatSelectChange): void {
 
   this.selectedPoIdFilters = values;
   this.wasAllPoSelected = this.selectedPoIdFilters.includes(this.allPoOptionValue);
-  this.applyFilters();
-  this.page = 1;
 }
 
   exportToExcel(): void {
@@ -829,9 +841,7 @@ monthSelected(event: Date, datepicker: any) {
     if (!this.projectId) {
       return;
     }
-    this.loadPoOptionsFromApi(() => {
-      this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
-    });
+    this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
   }
 
   get monthDisplayLabel(): string {

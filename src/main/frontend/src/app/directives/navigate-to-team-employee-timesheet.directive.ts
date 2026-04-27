@@ -12,7 +12,7 @@ export class NavigateToTeamEmployeeTimesheetDirective {
   projectId: any; 
   @Input() formattedMonthLabel!: string;
   @Input() isClientDashboard!: boolean;
-  @Input() poId: any;
+  @Input() poProjectId: any;
   private baseUrl: any = environment.baseUrl;
   private baseUrl360: any = environment.baseUrl360;
 
@@ -26,7 +26,7 @@ onClick() {
     projectId: this.projectId,
     formattedMonthLabel: this.formattedMonthLabel,
     isClientDashboard: this.isClientDashboard,
-    poId: this.poId
+    poProjectId: this.poProjectId
   });
 
   if (this.projectId) {
@@ -40,8 +40,8 @@ onClick() {
       queryParams.isClientDashboard = this.isClientDashboard;
     }
 
-    if (this.poId !== undefined && this.poId !== null && this.poId !== '') {
-      queryParams.poId = this.poId;
+    if (this.poProjectId !== undefined && this.poProjectId !== null && this.poProjectId !== '') {
+      queryParams.poProjectId = this.poProjectId;
     }
 
     const urlTree = this.router.createUrlTree(['/team-employee-timesheet'], { queryParams });

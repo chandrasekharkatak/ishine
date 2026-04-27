@@ -1669,6 +1669,7 @@ public class TimesheetDashboardService {
 		    logBuilder.append("getEmployeeTimesheetAsCalenderByProjectId");
 		    try {
 		    	List<Object[]> empTimesheet;
+		    	List<String> poNoFilters = normalizePoNoFilters(object.getPoNo());
 		    	LocalDate resolvedFromDate = object.getFromDate();
 		    	LocalDate resolvedToDate = object.getToDate();
 		    	if (resolvedFromDate == null || resolvedToDate == null) {
@@ -1694,7 +1695,7 @@ public class TimesheetDashboardService {
 			    			object.getMonth(),object.getYear(),object.getEmpId());
 		    	} else {
 		    		empTimesheet= timesheetsNewRepository.getEmployeeTimesheetAsCalenderByProjectId(object.getProjectId(),
-		    				resolvedFromDate,resolvedToDate,object.getEmpId(),object.getPoNo(),object.getPoProjectId());
+		    				resolvedFromDate,resolvedToDate,object.getEmpId(),poNoFilters,object.getPoProjectId());
 		    	}
  			
 		    	List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
@@ -1825,6 +1826,28 @@ public class TimesheetDashboardService {
 			    
 		    return response;
 		}
+
+	@SuppressWarnings("unchecked")
+	private List<String> normalizePoNoFilters(Object poNoPayload) {
+		if (poNoPayload == null) {
+			return null;
+		}
+		if (poNoPayload instanceof String) {
+			String value = ((String) poNoPayload).trim();
+			return value.isEmpty() ? null : Collections.singletonList(value);
+		}
+		if (poNoPayload instanceof List<?>) {
+			List<String> values = ((List<?>) poNoPayload).stream()
+					.filter(Objects::nonNull)
+					.map(String::valueOf)
+					.map(String::trim)
+					.filter(v -> !v.isEmpty())
+					.collect(Collectors.toList());
+			return values.isEmpty() ? null : values;
+		}
+		String fallback = String.valueOf(poNoPayload).trim();
+		return fallback.isEmpty() ? null : Collections.singletonList(fallback);
+	}
     
 }
 

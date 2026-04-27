@@ -18781,7 +18781,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							+ "			        AND DATE(etm.start_date) <= DATE(:to_date) \n"
 							+ "			        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= DATE(:from_date) )\n"
 							+ "			 AND (:po_project_id IS NULL OR ppd.po_project_id IN (:po_project_id))\n"
-							+ "             AND (:po_no = 'All' OR ppd.po_no IN (:po_no))  -- AND (:po_id is NULL or ppd.po_id = :po_id) \n"
+							+ "             AND (:po_no IS NULL OR 'All' IN (:po_no) OR ppd.po_no IN (:po_no))  -- AND (:po_id is NULL or ppd.po_id = :po_id) \n"
 							+ "             )   \n"
 							+ "                ,\n"
 							+ "			        Timesheet_Base_Data AS (\n"
@@ -18977,7 +18977,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							@Param("from_date") LocalDate toDate,
 							@Param("to_date") LocalDate fromDate,
 							@Param("emp_id") Long empId , 
-							@Param("po_no") String poNO , 
+							@Param("po_no") List<String> poNO , 
 //							@Param("po_id") Long poId ,
 							@Param("po_project_id") Long poProjectId 
 							);

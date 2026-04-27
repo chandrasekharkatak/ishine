@@ -627,6 +627,40 @@ preview-container {
   color: #334155;
 }
 
+.tav-po-select-shell {
+  min-width: 280px;
+  max-width: 360px;
+}
+
+.tav-po-select {
+  max-width: 100%;
+}
+
+.tav-po-select::ng-deep .mat-select-value,
+.tav-po-select::ng-deep .mat-select-value-text,
+.tav-po-select::ng-deep .mat-select-trigger {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tav-po-select::ng-deep .mat-select-arrow-wrapper {
+  flex-shrink: 0;
+}
+
+::ng-deep .tav-po-panel {
+  min-width: 320px !important;
+  max-width: 460px !important;
+}
+
+::ng-deep .tav-po-panel .mat-option-text {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .tav-legend {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

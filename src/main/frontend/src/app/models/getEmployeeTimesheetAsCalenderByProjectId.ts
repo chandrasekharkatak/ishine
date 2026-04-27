@@ -6,7 +6,7 @@ export class getEmployeeTimesheetAsCalenderByProjectId{
 	fromDate?: string;
 	toDate?: string;
 	empId : any;
-	poNo?: string;
+	poNo?: string | string[] | null;
 	poProjectId?: number | null;
 	// billableType : any;
 	billableType: string[];
