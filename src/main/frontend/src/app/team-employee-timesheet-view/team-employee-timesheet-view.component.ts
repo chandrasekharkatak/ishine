@@ -753,9 +753,11 @@ onDateRangeChange(): void {
   this.updateEffectiveDateRangeFromSelectedMonths();
 }
 
-onMonthFilterSelectionChange(): void {
-  this.updateEffectiveDateRangeFromSelectedMonths();
-}
+// onMonthFilterSelectionChange(): void {
+//   // Intentionally left blank:
+//   // month dropdown changes are staged and should only be applied
+//   // when user clicks the Apply button.
+// }
 
 monthSelected(event: Date, datepicker: any) {
   const now = new Date();
@@ -918,6 +920,7 @@ monthSelected(event: Date, datepicker: any) {
     if (!this.projectId) {
       return;
     }
+    this.updateEffectiveDateRangeFromSelectedMonths(false);
     this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
   }
 

@@ -37,8 +37,7 @@
             <div class="tav-range-input tav-month-select-shell">
               <mat-select
                 class="tav-month-select"
-                [(ngModel)]="selectedMonthValue"
-                (selectionChange)="onMonthFilterSelectionChange()">
+                [(ngModel)]="selectedMonthValue">
                 <mat-select-trigger>{{ monthDisplayLabel }}</mat-select-trigger>
                 <mat-option *ngFor="let option of monthOptions" [value]="option.value">
                   {{ option.label }}
