@@ -255,6 +255,11 @@ export class ResourceManagementService {
     return this.http.get(`${this.baseUrl}` + `api/getAllPosForProjectAndDate`, { params: httpParams });
   }
 
+  getProjectIdByPoNo(poNo: string) {
+    let httpParams = new HttpParams().append("poNo", poNo);
+    return this.http.get(`${this.baseUrl}` + `api/getProjectIdByPoNo`, { params: httpParams });
+  }
+
   getResourceRequirementByTeamId(teamId: any) {
     let httpParams = new HttpParams().append("teamId", teamId);
     return this.http.get(`${this.baseUrl}` + `api/getResourceRequirementByTeamId`, { params: httpParams });

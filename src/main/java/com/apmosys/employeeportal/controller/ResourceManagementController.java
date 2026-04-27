@@ -865,6 +865,11 @@ public class ResourceManagementController {
 		return resourceManagementService.getAllPosForProjectAndDate(projectId, fromDate, toDate);
 	}
 
+	@GetMapping("/getProjectIdByPoNo")
+	public ServiceResponse getProjectIdByPoNo(@RequestParam String poNo) {
+		return resourceManagementService.getProjectIdByPoNo(poNo);
+	}
+
 //	
 	@GetMapping("/cronClient")
 	public void syncClientsFromPoPortalApi() {

@@ -924,7 +924,7 @@ public List<String> validateMonths(List<String> months) {
 
         return m;
 
-    }).toList();
+    }).collect(Collectors.toList());
 }
 
 

@@ -14623,6 +14623,38 @@ public class ResourceManagementService {
 		return response;
 	}
 
+	@Transactional(readOnly = true)
+	public ServiceResponse getProjectIdByPoNo(String poNo) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (poNo == null || poNo.trim().isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("poNo is required.");
+				return response;
+			}
+
+				Integer projectId = poDetailsRepository
+					.findProjectIdByPoNo(poNo);
+
+			if (projectId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project details not found for the provided PO No.");
+				return response;
+			}
+
+			
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(projectId);
+		} catch (Exception e) {
+			log.error("Error while fetching projectId by poNo: {}", poNo, e);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Something went wrong while fetching project details for PO No.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
 	public ServiceResponse getResourceRequirementByTeamId(Long teamId) {
 		ServiceResponse response = new ServiceResponse();
 		try {

@@ -296,4 +296,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
     List<RescCountOfPo> getResourceCounts(@Param("poIds") List<Long> poIds);
     
     Optional<ProjectPoDetails> findByPoProjectId(Long poProjectId);
+
+    @Query("SELECT ppd.projectId FROM ProjectPoDetails ppd where ppd.poNo = :poNo and ppd.active is true")
+	Integer findProjectIdByPoNo(String poNo);
 }

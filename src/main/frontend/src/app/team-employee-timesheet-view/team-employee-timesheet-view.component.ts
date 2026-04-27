@@ -150,36 +150,7 @@ alertMessageOfDoc: any;
       this.isClientDashboard = params['isClientDashboard'] === 'true';
       this.queryFromDate = this.normalizeIncomingDate(params['fromDate']);
       this.queryToDate = this.normalizeIncomingDate(params['toDate']);
-      if (this.projectId) {
-        if (this.formattedMonthLabel) {
-          const [monthName, yearStr] = this.formattedMonthLabel.split(' ');
-          const date = new Date(`${monthName} 1, ${yearStr}`);
-
-          this.month = date.getMonth() + 1;
-          this.year = date.getFullYear();
-          this.monthName = monthName;
-
-          console.log(`Parsed from formattedMonthLabel → Month: ${this.month}, Year: ${this.year}`);
-        } else {
-          const today = new Date();
-          this.month = today.getMonth() + 1;
-          this.year = today.getFullYear();
-          this.monthName = today.toLocaleString('default', { month: 'long' });
-        }
-        this.selectedMonth = new Date(this.year, this.month - 1, 1);
-        this.generateDaysForMonth(this.selectedMonth);
-        if (this.isClientDashboard) {
-          this.applyIncomingDateRangeToMonthContext();
-          this.initializeDateRange();
-          this.loadPoOptionsFromApi(() => {
-            this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
-          });
-        } else {
-          this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
-        }
-      } else {
-        console.warn("projectId is missing in query params.");
-      }
+      this.loadTimesheetFromQueryParams();
       console.log('Received projectId from query param:', this.projectId);
       console.log('Received poProjectId from query param:', this.poProjectId);
       console.log('Received poNo from query param:', this.queryPoNo);
@@ -196,6 +167,95 @@ alertMessageOfDoc: any;
       if (this.isClientDashboard) {
         this.initializeDateRange();
       }
+    }
+  }
+
+  private loadTimesheetFromQueryParams(): void {
+    const parsedProjectId = this.resolveProjectIdFromParams();
+    if (parsedProjectId !== null) {
+      this.projectId = parsedProjectId;
+      this.continueTimesheetLoadFlow();
+      return;
+    }
+
+    if (this.queryPoNo) {
+      this.resolveProjectIdUsingPoNoAndContinue(this.queryPoNo);
+      return;
+    }
+
+    console.warn("projectId is missing in query params.");
+  }
+
+  private resolveProjectIdUsingPoNoAndContinue(poNo: string): void {
+    this.resourceManagementService.getProjectIdByPoNo(poNo)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          const resolvedProjectId = this.extractProjectIdFromPoLookupResponse(response);
+          if (response?.serviceStatus === 'Success' && resolvedProjectId !== null) {
+            this.projectId = resolvedProjectId;
+            const poProjectId = response?.serviceResponse?.poProjectId;
+            if (!this.poProjectId && poProjectId !== undefined && poProjectId !== null && poProjectId !== '') {
+              this.poProjectId = poProjectId;
+            }
+            this.continueTimesheetLoadFlow();
+          } else {
+            this.openAlertMod(response?.serviceResponse || 'Project not found for provided PO No.');
+          }
+        },
+        error: (err: any) => {
+          this.openAlertMod(err?.error || 'Unable to resolve project from PO No.');
+        }
+      });
+  }
+
+  private extractProjectIdFromPoLookupResponse(response: any): number | null {
+    const payload = response?.serviceResponse;
+
+    // New contract: serviceResponse is a plain projectId number
+    if (Number.isFinite(Number(payload))) {
+      return Number(payload);
+    }
+
+    // Backward compatibility: serviceResponse is an object with projectId field
+    if (payload && Number.isFinite(Number(payload.projectId))) {
+      return Number(payload.projectId);
+    }
+
+    return null;
+  }
+
+  private continueTimesheetLoadFlow(): void {
+    if (!this.projectId) {
+      return;
+    }
+
+    if (this.formattedMonthLabel) {
+      const [monthName, yearStr] = this.formattedMonthLabel.split(' ');
+      const date = new Date(`${monthName} 1, ${yearStr}`);
+
+      this.month = date.getMonth() + 1;
+      this.year = date.getFullYear();
+      this.monthName = monthName;
+
+      console.log(`Parsed from formattedMonthLabel → Month: ${this.month}, Year: ${this.year}`);
+    } else {
+      const today = new Date();
+      this.month = today.getMonth() + 1;
+      this.year = today.getFullYear();
+      this.monthName = today.toLocaleString('default', { month: 'long' });
+    }
+
+    this.selectedMonth = new Date(this.year, this.month - 1, 1);
+    this.generateDaysForMonth(this.selectedMonth);
+    if (this.isClientDashboard) {
+      this.applyIncomingDateRangeToMonthContext();
+      this.initializeDateRange();
+      this.loadPoOptionsFromApi(() => {
+        this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
+      });
+    } else {
+      this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
     }
   }
 
