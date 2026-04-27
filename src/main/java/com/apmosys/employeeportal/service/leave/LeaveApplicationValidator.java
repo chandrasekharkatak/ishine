@@ -98,7 +98,27 @@ public class LeaveApplicationValidator {
         }
         return new ParsedLeaveDates(fromDate, toDate);
     }
+    public void validateLeaveTypeAllowedByPolicy(LeaveDTO dto) {
 
+    List<Object[]> allowedLeaveTypes =
+            leaveTypeMasterRepository.getAllLeaveTypesByLeavePolicies(
+                    dto.getEmploymentStatus(),
+                    dto.getGender(),
+                    dto.getMaritalStatus()
+            );
+
+    boolean allowed = allowedLeaveTypes.stream()
+            .anyMatch(row ->
+                    row[0] != null &&
+                    row[0].toString().equals(dto.getLeaveTypeMasterId().toString())
+            );
+
+    if (!allowed) {
+        throw new LeaveApplicationException(
+                "Selected leave type is not available"
+        );
+    }
+}
     public void validateAuthorizedToApply(LeaveDTO dto, String logPayload) {
         boolean isSelfApply = Objects.equals(dto.getCreatedBy(), dto.getEmpId());
         if (isSelfApply) {

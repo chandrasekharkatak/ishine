@@ -127,6 +127,9 @@ public class CompOffLeaveValidator {
 		parseIsoDateOrThrow(leaveDTO.getFromDate());
 		require(leaveDTO.getReportingManagerId() != null, "Reporting manager id is required.");
 		require(leaveDTO.getUpdatedBy() != null, "Updated by is required.");
+		LocalDate appliedForDate = parseIsoDateOrThrow(leaveDTO.getFromDate());
+		LocalDate lastSeventhDate = LocalDate.now().minusDays(compOffApplyWithIn);
+		LocalDate currentDate = LocalDate.now();
 		require(!appliedForDate.isBefore(lastSeventhDate) && !appliedForDate.isAfter(currentDate),
 				"Comp Off Date range exceeded !!");
 				boolean pendingExists = compOffLeaveRepository
@@ -135,9 +138,6 @@ public class CompOffLeaveValidator {
                     appliedForDate,
                     "Pending"
             );
-		LocalDate appliedForDate = parseIsoDateOrThrow(leaveDTO.getFromDate());
-		LocalDate lastSeventhDate = LocalDate.now().minusDays(compOffApplyWithIn);
-		LocalDate currentDate = LocalDate.now();
 		Employee employee =
         employeeRepository
             .findByEmpId(

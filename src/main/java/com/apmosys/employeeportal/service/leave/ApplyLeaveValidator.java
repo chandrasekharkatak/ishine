@@ -23,6 +23,7 @@ public class ApplyLeaveValidator {
         String logPayload = buildApplyLeaveLogPayload(dto);
         ParsedLeaveDates dates = leaveApplicationValidator.parseAndValidateDates(dto);
         leaveApplicationValidator.validateAuthorizedToApply(dto, logPayload);
+        leaveApplicationValidator.validateLeaveTypeAllowedByPolicy(dto);
         leaveApplicationValidator.validateNoOverlappingLeave(
                 dto.getEmpId(), dates.fromDate, dates.toDate, logPayload);
         LeaveMapAndType leaveMapAndType = leaveApplicationValidator.loadLeaveMapAndType(dto);
