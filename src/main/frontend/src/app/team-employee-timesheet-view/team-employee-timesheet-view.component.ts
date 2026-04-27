@@ -57,6 +57,8 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   toDateFilter: string = '';
   originalFromDateFilter: string = '';
   originalToDateFilter: string = '';
+  effectiveFromDateFilter: string = '';
+  effectiveToDateFilter: string = '';
   queryFromDate: string | null = null;
   queryToDate: string | null = null;
   monthOptions: { value: string; label: string; month: number; year: number; startDate: Date; endDate: Date }[] = [];
@@ -207,8 +209,8 @@ alertMessageOfDoc: any;
     this.timesheetAsCalenderByProjectId.month = month;
     this.timesheetAsCalenderByProjectId.year = year;
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
-    this.timesheetAsCalenderByProjectId.fromDate = this.fromDateFilter || undefined;
-    this.timesheetAsCalenderByProjectId.toDate = this.toDateFilter || undefined;
+    this.timesheetAsCalenderByProjectId.fromDate = this.effectiveFromDateFilter || this.fromDateFilter || undefined;
+    this.timesheetAsCalenderByProjectId.toDate = this.effectiveToDateFilter || this.toDateFilter || undefined;
     this.timesheetAsCalenderByProjectId.poNo = this.resolveSelectedPoNo();
     this.timesheetAsCalenderByProjectId.poProjectId = resolvedPoProjectId;
     // Always refresh list from latest API response.
@@ -764,6 +766,8 @@ monthSelected(event: Date, datepicker: any) {
     this.originalToDateFilter = normalizedRange.toDate;
     this.fromDateFilter = this.originalFromDateFilter;
     this.toDateFilter = this.originalToDateFilter;
+    this.effectiveFromDateFilter = this.fromDateFilter;
+    this.effectiveToDateFilter = this.toDateFilter;
     this.buildMonthOptionsFromRange();
     this.selectedMonthValue = this.monthOptions[0]?.value || '';
     this.updateEffectiveDateRangeFromSelectedMonths(false);
@@ -794,29 +798,34 @@ monthSelected(event: Date, datepicker: any) {
   }
 
   private updateEffectiveDateRangeFromSelectedMonths(fetchData: boolean = false): void {
+    let nextEffectiveFrom = this.originalFromDateFilter;
+    let nextEffectiveTo = this.originalToDateFilter;
+
     if (!this.selectedMonthValue) {
-      this.fromDateFilter = this.originalFromDateFilter;
-      this.toDateFilter = this.originalToDateFilter;
+      nextEffectiveFrom = this.originalFromDateFilter;
+      nextEffectiveTo = this.originalToDateFilter;
     } else {
       const selectedOption = this.monthOptions.find(opt => opt.value === this.selectedMonthValue);
       if (!selectedOption) {
-        this.fromDateFilter = this.originalFromDateFilter;
-        this.toDateFilter = this.originalToDateFilter;
+        nextEffectiveFrom = this.originalFromDateFilter;
+        nextEffectiveTo = this.originalToDateFilter;
       } else {
         const lowerBound = new Date(this.originalFromDateFilter);
         const upperBound = new Date(this.originalToDateFilter);
         const rangeStart = selectedOption.startDate > lowerBound ? selectedOption.startDate : lowerBound;
         const rangeEnd = selectedOption.endDate < upperBound ? selectedOption.endDate : upperBound;
-        this.fromDateFilter = this.formatDateForInput(rangeStart);
-        this.toDateFilter = this.formatDateForInput(rangeEnd);
+        nextEffectiveFrom = this.formatDateForInput(rangeStart);
+        nextEffectiveTo = this.formatDateForInput(rangeEnd);
       }
     }
 
+    this.effectiveFromDateFilter = nextEffectiveFrom;
+    this.effectiveToDateFilter = nextEffectiveTo;
     this.syncSelectedMonthFromRange(fetchData);
   }
 
   private syncSelectedMonthFromRange(fetchData: boolean): void {
-    const effectiveFrom = new Date(this.fromDateFilter);
+    const effectiveFrom = new Date(this.effectiveFromDateFilter || this.fromDateFilter);
     if (isNaN(effectiveFrom.getTime())) {
       return;
     }
