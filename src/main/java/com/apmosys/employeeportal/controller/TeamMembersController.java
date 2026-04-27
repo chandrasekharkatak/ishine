@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
 import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto;
 import com.apmosys.employeeportal.dto.MigrateTeam;
@@ -102,8 +103,22 @@ public class TeamMembersController {
 		
 	// @Encrypted
 	@GetMapping("/getEmployeeExistingProjectDetailsByEmpId")
-	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(@RequestParam Long empId, @RequestParam Integer projectId) {
-		return teamMembersService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId);
+	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(@RequestParam Long empId,
+			@RequestParam Integer projectId,
+			@RequestParam(required = false, defaultValue = "false") boolean enforceSingleTeamPerProject) {
+		return teamMembersService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId, enforceSingleTeamPerProject);
 	}
 
+	// @Encrypted
+	@GetMapping("/getMaxEmployeeTeamMapStartDate")
+	public ServiceResponse getMaxEmployeeTeamMapStartDate(@RequestParam Long empId) {
+		return teamMembersService.getMaxEmployeeTeamMapStartDate(empId);
+	}
+
+	// @Encrypted
+	@GetMapping("/getTeamMemberDetailsByEmpIdAndProjectId")
+	public ServiceResponse getTeamMemberDetailsByEmpIdAndProjectId(@RequestParam Integer projectId, @RequestParam Long empId, @RequestParam Long employeeTeamMapId) {
+		return teamMembersService.getTeamMemberDetailsByEmpIdAndProjectId(projectId, empId, employeeTeamMapId);
+	}
+	
 }

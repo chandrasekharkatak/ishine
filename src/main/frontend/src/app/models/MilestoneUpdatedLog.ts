@@ -17,8 +17,11 @@ export interface MilestoneUpdatedLog {
   poNumber?: string;
 
   extendedDate?: Date;  // Can also use string if needed
+  extendedStartDate?: Date;
 
   updatedBy?: number;
+  updatedByName?:string
+
 
   milestoneExtensionReasonId?: number;
   milestoneExtensionReasonText?: string;

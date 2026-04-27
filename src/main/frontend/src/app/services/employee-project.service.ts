@@ -159,7 +159,7 @@ export class EmployeeProjectService {
       this.handleResult(result);
       return result;
     }
-    if (!employeeObj.employeeTeamEndDate || employeeObj.employeeTeamEndDate == undefined || employeeObj.employeeTeamEndDate == null) {
+    if (!employeeObj.removePermanently && (!employeeObj.employeeTeamEndDate || employeeObj.employeeTeamEndDate == undefined || employeeObj.employeeTeamEndDate == null)) {
       result = this.alertResult(`Kindly provide a valid End date!!`);
       this.handleResult(result);
       return result;
@@ -175,7 +175,7 @@ export class EmployeeProjectService {
       return result;
     }
 
-    if (selectedStartDate > selectedEndDate) {
+    if (!employeeObj.removePermanently && (selectedStartDate > selectedEndDate)) {
       result = this.alertResult("Member End Date must be after Member Start Date!!");
       this.handleResult(result);
       return result;
@@ -297,10 +297,31 @@ export class EmployeeProjectService {
     return result;
   }
 
-  async getEmployeeExistingProjectDetails(empId: any, projectId: any, employee: any): Promise<any> {
+  async getEmployeeExistingProjectDetails(empId: any, projectId: any, employee: any, enforceCheck: boolean = false): Promise<any> {
     let result: AppResult;
     try {
-      const response: any = await firstValueFrom(this.projectService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId));
+      const response: any = await firstValueFrom(this.projectService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId, enforceCheck));
+      
+
+      const restriction = response?.serviceResponse1;
+
+        if (enforceCheck && restriction?.restricted === true) {
+            const teamNames: string[] = Array.isArray(restriction?.teamNames) ? restriction.teamNames : [];
+            const teamLabel = teamNames.length > 0 ? teamNames.join(', ') : 'an existing team';
+
+            this.toastService.error(
+                `Employee is already mapped to ${teamLabel} in this project.`,
+                'Not allowed'
+            );
+
+            return this.failureResult(
+                ResultType.ALERT,
+                `Employee is already mapped to ${teamLabel} in this project.`,
+                { teamMappingRestricted: true }
+            );
+        }
+
+      
       if (response?.serviceStatus !== "Success") {
         result = this.alertResult(response?.serviceResponse || "Something went wrong!!");
         this.handleResult(result);
@@ -310,10 +331,14 @@ export class EmployeeProjectService {
       if (response?.serviceStatus === "Success" && response?.serviceResponse === "Employee Existing Project Details Not found!!") {
         result = this.successResult();
         this.handleResult(result);
+        this.appModalService.triggerAction({ actionType: 'GET_ETM_MAX_END_DATE', data: empId });
         return result;
       }
 
       const employeeExistingProjectDetails = this.mapEmployeeProjectDates(response.serviceResponse);
+      employeeExistingProjectDetails.forEach((e)=>{
+        e.currentProjectId = projectId
+      });
       result = this.createResult(true, ResultType.EMPLOYEE_EXISTING_PROJECT_DETAILS, { data: { data: employeeExistingProjectDetails, employmentId: employee.employmentId, name: employee.name } });
     } catch (error) {
       result = this.alertResult("Something went wrong!");
@@ -322,16 +347,15 @@ export class EmployeeProjectService {
     return result;
   }
 
-
-  deleteEmployeeProjectResourceMapping(employee: any, employeeProjectEndDate: any, employeeProjectEndDateType: any) {
+  async deleteEmployeeProjectResourceMapping(employee: any, employeeProjectEndDate: any, employeeProjectEndDateType: any) {
     let result: AppResult;
-    if (!employeeProjectEndDate || employeeProjectEndDate == undefined || employeeProjectEndDate == null) {
+    if (!employee.removePermanently && (!employeeProjectEndDate || employeeProjectEndDate == undefined || employeeProjectEndDate == null)) {
       result = this.alertResult("Please provide End date!!");
       this.handleResult(result);
       return result;
     }
 
-    if (this.normalizeDate(employee.startDate) > this.normalizeDate(employeeProjectEndDate)) {
+    if (!employee.removePermanently && this.normalizeDate(employee.startDate) > this.normalizeDate(employeeProjectEndDate)) {
       result = this.alertResult("Member End date cannot be less then Member Start date!!");
       this.handleResult(result);
       return result;
@@ -342,16 +366,19 @@ export class EmployeeProjectService {
     employee.updatedBy = this.currentUser.empId;
     employee.rescRemovedBy = this.currentUser.empId;
 
-    this.projectService.updateEmployeeProjectMappingAsInActive(employee).pipe(first()).subscribe((response: any) => {
+    try {
+      const response: any = await firstValueFrom(this.projectService.updateEmployeeProjectMappingAsInActive(employee));
       if (response.serviceStatus == "Success") {
         this.drawerService?.close();
         this.toastService.success(response.serviceResponse);
         this.appModalService.close('DELETE_EMPLOYEE_FROM_EXISTING_PROJECT');
-        this.getEmployeeExistingProjectDetails(employee.empId, employee.projectId, employee);
+        this.getEmployeeExistingProjectDetails(employee.empId, employee.currentProjectId, employee);
       } else {
         this.toastService.error(response.serviceResponse);
       }
-    });
+    } catch (error) {
+      this.toastService.error('Something went wrong!!');
+    }
   }
 
   // Helpers Start

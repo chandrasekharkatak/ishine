@@ -1,5 +1,9 @@
 package com.apmosys.employeeportal.repository;
 
+import java.util.Optional;
+
+import java.util.Optional;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -8,6 +12,7 @@ import java.util.Set;
 import javax.transaction.Transactional;
 
 import org.hibernate.annotations.Where;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -101,6 +106,15 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 
     @Query("Select po.poId from ProjectPoDetails po where po.projectId= :projectId and active = true")
     List<Long> findActivePoIdsByProjectId(@Param("projectId") Integer projectId);
+
+    @Query("SELECT ppd FROM ProjectPoDetails ppd "
+            + "WHERE ppd.active = true "
+            + "AND ppd.projectId = :projectId "
+            + "AND DATE(ppd.poStartDate) <= DATE(:toDate) "
+            + "AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= DATE(:fromDate)) "
+            + "ORDER BY ppd.poNo ASC")
+    List<ProjectPoDetails> findAllActivePosForProjectAndDateRange(@Param("projectId") Integer projectId,
+            @Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate);
 
     List<ProjectPoDetails> findByProjectIdAndActiveTrue(Integer projectId);
 
@@ -280,5 +294,6 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
     		+ "AND etm.poId IN :poIds\n"
     		+ "GROUP BY etm.poId")
     List<RescCountOfPo> getResourceCounts(@Param("poIds") List<Long> poIds);
-
+    
+    Optional<ProjectPoDetails> findByPoProjectId(Long poProjectId);
 }

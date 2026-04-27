@@ -142,7 +142,12 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/employeeportal/api/healthCheck",
 			"/api/getResourceCountFromPoId",
 			"/api/getAllApprovedPoWithTimesheet",
-			"/employeeportal/api/getResourceCountFromPoId"
+			"/employeeportal/api/getResourceCountFromPoId",
+			"/api/poCrudOperationsInIshine",
+			"/api/getExtensionDocumentById",
+			"/employeeportal/api/getEmployeesWorkingInProjects",
+			"/api/getEmployeesWorkingInProjects"
+
 			);
 	
 //	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(
@@ -159,7 +164,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
             throws Exception {
 
         // ✅ Skip static or non-API routes
-        if (!request.getRequestURI().contains("/employeeportal/api/") && !request.getRequestURI().contains("/api/") && !request.getRequestURI().contains("/employeeportalapp/api/")) {
+        if (!request.getRequestURI().contains("/employeeportal/api/") && !request.getRequestURI().contains("/api/") && !request.getRequestURI().contains("/employeeportal/api/")) {
             return true;
         }
 

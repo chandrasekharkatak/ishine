@@ -64,6 +64,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -80,6 +82,7 @@ import com.apmosys.employeeportal.dto.CertificateDTO;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
 import com.apmosys.employeeportal.dto.DefaultProjectEmployeeConfig;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
+import com.apmosys.employeeportal.dto.DefaulterResponseDTO;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
@@ -125,6 +128,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
 import com.apmosys.employeeportal.model.EmployeeCertificates;
+import com.apmosys.employeeportal.model.EmployeeDefaulterConsent;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeNotificationConsent;
@@ -140,6 +144,7 @@ import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.NewsletterReadResponse;
 import com.apmosys.employeeportal.model.Notification;
 import com.apmosys.employeeportal.model.PolicyReadResponse;
+import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.PredefinedSkills;
 import com.apmosys.employeeportal.model.PreviousEmployment;
 import com.apmosys.employeeportal.model.Proficiency;
@@ -161,6 +166,7 @@ import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificatesRepository;
+import com.apmosys.employeeportal.repository.EmployeeDefaulterConsentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeNotificationConsentRepository;
@@ -183,6 +189,7 @@ import com.apmosys.employeeportal.repository.NotificationRepository;
 import com.apmosys.employeeportal.repository.PIPRepository;
 import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
 import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
+import com.apmosys.employeeportal.repository.PortalConfigRepository;
 import com.apmosys.employeeportal.repository.PredefinedSkillsRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.repository.ProficiencyRepository;
@@ -235,6 +242,9 @@ public class EmployeeService {
 
 	@Autowired
 	EmployeeRepository employeeRepository;
+
+    @Autowired
+    EmployeeDefaulterConsentRepository employeeDefaulterConsentRepository;
 	
 	@Autowired
 	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
@@ -298,7 +308,9 @@ public class EmployeeService {
 	
 	@Autowired
 	PredefinedSkillsRepository predefinedSkillsRepository;
-	
+
+    @Autowired
+    PortalConfigRepository portalConfigRepository;
 
 	@Value("${default.password}")
 	String defaultPaswword;
@@ -3646,6 +3658,21 @@ public class EmployeeService {
 				    empDTO.setHodName(object[22] != null ? object[22].toString() : null);
 				    empDTO.setHodDepartmentName(object[23] != null ? object[23].toString() : null);
 				    empDTO.setIsApmosysProduct(object[24] != null ? object[24].toString() : null);
+				    if (object.length > 25 && object[25] != null) {
+				    	try {
+				    		if (object[25] instanceof Number) {
+				    			empDTO.setMobileNo(((Number) object[25]).longValue());
+				    		} else {
+				    			String ms = object[25].toString().trim();
+				    			if (!ms.isEmpty()) {
+				    				empDTO.setMobileNo(Long.parseLong(ms.replaceAll("[^0-9]", "")));
+				    			}
+				    		}
+				    	} catch (Exception ignored) { }
+				    }
+				    if (object.length > 26 && object[26] != null) {
+				    	empDTO.setWorkLocation(object[26].toString().trim());
+				    }
 				    
 				    String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
 //				    String isConsultant = timesheetDto.getIsConsultant();
@@ -5610,6 +5637,73 @@ public class EmployeeService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
+	/** Logged-in employee id from Spring Security (set in {@link com.apmosys.employeeportal.EmployeePortalInterceptor}). */
+	private Long getLoggedInEmpIdFromSecurityContext() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || auth.getPrincipal() == null) {
+			return null;
+		}
+		Object p = auth.getPrincipal();
+		if (p instanceof Long) {
+			return (Long) p;
+		}
+		if (p instanceof String) {
+			try {
+				return Long.parseLong((String) p);
+			} catch (NumberFormatException e) {
+				return null;
+			}
+		}
+		return null;
+	}
+
+	/** HOD, HR-ish departments, or SuperAdmin may use any anchor; others only own reporting subtree. */
+	private boolean hasWideHierarchyAnchorAccess(Long empId) {
+		if (empId == null) {
+			return false;
+		}
+		List<Department> hodDepts = departmentRepository.findByHodId(empId);
+		if (hodDepts != null && !hodDepts.isEmpty()) {
+			return true;
+		}
+		try {
+			String role = employeeRepository.getEmployeeRoleByEmpId(empId);
+			if (role != null && "SuperAdmin".equalsIgnoreCase(role.trim())) {
+				return true;
+			}
+		} catch (Exception ignored) {
+			// ignore
+		}
+		try {
+			String deptName = employeeRepository.getDepartment(empId);
+			if (deptName != null) {
+				String d = deptName.trim();
+				if ("HR".equalsIgnoreCase(d) || "Accounts".equalsIgnoreCase(d)
+						|| "Resource Management Group".equalsIgnoreCase(d)) {
+					return true;
+				}
+			}
+		} catch (Exception ignored) {
+			// ignore
+		}
+		return false;
+	}
+
+	/**
+	 * True if the caller may request direct reports for {@code anchorEmpId}:
+	 * wide org roles (HOD/HR/SuperAdmin), or any anchor in the caller's manager subtree (self + descendants).
+	 */
+	private boolean isHierarchyAnchorAllowedForCaller(Long callerEmpId, Long anchorEmpId) {
+		if (callerEmpId == null || anchorEmpId == null) {
+			return false;
+		}
+		if (hasWideHierarchyAnchorAccess(callerEmpId)) {
+			return true;
+		}
+		BigInteger cnt = employeeRepository.countEmpInManagerReportingSubtree(callerEmpId, anchorEmpId);
+		return cnt != null && cnt.compareTo(BigInteger.ZERO) > 0;
+	}
 	
 	public ServiceResponse getHierarchyByEmpId(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -5621,6 +5715,36 @@ public class EmployeeService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("empId : " + employeedto.getEmpId());
 		try {
+
+			Long callerEmpId = getLoggedInEmpIdFromSecurityContext();
+			Long anchorEmpId = employeedto.getEmpId();
+			if (anchorEmpId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee id is required");
+				apiLogInfo.setApiResponse("Missing anchor empId");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+			if (callerEmpId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Unauthorized");
+				apiLogInfo.setApiResponse("No logged-in employee");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+			if (!isHierarchyAnchorAllowedForCaller(callerEmpId, anchorEmpId)) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Access denied");
+				apiLogInfo.setApiResponse("Hierarchy anchor not allowed for this user");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
 
 			List<Object[]> list = employeeRepository.getHierarchyByEmpId(employeedto.getEmpId());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
@@ -8694,7 +8818,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
                                         ? convertToLocalDateTime(obj[14])
                                         : null
                         );
-
+                        
+                        dto.setDepartment(obj[15] != null ? obj[15].toString() : null);                        
                         teamTimesheetDetailsResponseList.add(dto);
                     }
 
@@ -12578,5 +12703,158 @@ public ServiceResponse getEmployeeBillableType(Long empId){
 	return response;
 }
 
+    public ServiceResponse getDefaulterStatus(Long empId) {
+
+        ServiceResponse response = new ServiceResponse();
+
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/getDefaulterStatus");
+        apiLogInfo.setLogLevel("INFO");
+
+        try {
+
+            //  Validation
+            if (empId == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Employee ID is missing");
+
+                apiLogInfo.setApiResponse("Employee ID is missing");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                return response;
+            }
+            List<PortalConfig> configList = portalConfigRepository.findAll();
+
+                    Map<String, String> configMap = configList.stream()
+                    .collect(Collectors.toMap(
+                            PortalConfig::getConfigName,
+                            pc -> pc.getConfigValue() != null ? pc.getConfigValue() : ""));
+
+                    
+                    String heading = configMap.get("DEF_POPUP_HEADING");
+                    String description = configMap.get("DEF_POPUP_DESCRIPTION");
+
+                    int cutoffYear = configMap.get("DEF_CUTOFF_YEAR") != null
+                            ? Integer.parseInt(configMap.get("DEF_CUTOFF_YEAR"))
+                            : 2025;
+
+                    int cutoffMonth = configMap.get("DEF_CUTOFF_MONTH") != null
+                            ? Integer.parseInt(configMap.get("DEF_CUTOFF_MONTH"))
+                            : 10;
+
+            //  repository  Call
+            List<Object[]> result = employeeDefaulterConsentRepository.findDefaulterMonths(empId, cutoffYear,
+                    cutoffMonth);
+
+            if (result != null && !result.isEmpty()) {
+
+                List<Map<String, Integer>> months = new ArrayList<>();
+
+                for (Object[] row : result) {
+                    Map<String, Integer> m = new HashMap<>();
+                    m.put("year", ((Number) row[0]).intValue());
+                    m.put("month", ((Number) row[1]).intValue());
+                    months.add(m);
+                }
+
+                DefaulterResponseDTO data = new DefaulterResponseDTO(
+                        true,
+                        months,
+                        heading,
+                        description
+                );
+
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(data);
+
+                apiLogInfo.setApiResponse(months.size() + " month(s) found.");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+            } else {
+
+                Map<String, Object> data = new HashMap<>();
+                data.put("isDefaulter", false);
+                data.put("months", new ArrayList<>());
+
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(data);
+
+                apiLogInfo.setApiResponse("No defaulter record found");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Something Went Wrong.");
+            response.setServiceError(e.getMessage());
+
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+        }
+
+        apiLogInfo.setApiRequest("empId: " + empId);
+        logService.logMyInfo(httpRequest, apiLogInfo);
+
+        return response;
+    }
+
+    public ServiceResponse saveDefaulterConsent(Long empId) {
+
+        ServiceResponse response = new ServiceResponse();
+
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/saveDefaulterConsent");
+        apiLogInfo.setLogLevel("INFO");
+
+        try {
+
+            if (empId == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Employee ID is missing");
+
+                apiLogInfo.setApiResponse("Employee ID is missing");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                return response;
+            }
+
+            Optional<EmployeeDefaulterConsent> existingOpt = employeeDefaulterConsentRepository.findByEmpId(empId);
+
+            EmployeeDefaulterConsent entity;
+
+            if (existingOpt.isPresent()) {
+                employeeDefaulterConsentRepository.updateConsent(empId);
+            } else {
+
+                entity = new EmployeeDefaulterConsent();
+                entity.setEmpId(empId);
+                entity.setConsent(true); // first time consent
+
+                employeeDefaulterConsentRepository.save(entity);
+            }
+
+
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse("Consent saved successfully");
+
+            apiLogInfo.setApiResponse("Consent saved for empId: " + empId);
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Something went wrong.");
+            response.setServiceError(e.getMessage());
+
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+        }
+
+        apiLogInfo.setApiRequest("empId: " + empId);
+        logService.logMyInfo(httpRequest, apiLogInfo);
+
+        return response;
+    }
 }
 	

@@ -247,6 +247,14 @@ export class ResourceManagementService {
     return this.http.get(`${this.baseUrl}` + `api/getActivePoDetailsByProjectId`, { params: httpParams });
   }
 
+  getAllPosForProjectAndDate(projectId: any, fromDate: string, toDate: string) {
+    let httpParams = new HttpParams()
+      .append("projectId", projectId)
+      .append("fromDate", fromDate)
+      .append("toDate", toDate);
+    return this.http.get(`${this.baseUrl}` + `api/getAllPosForProjectAndDate`, { params: httpParams });
+  }
+
   getResourceRequirementByTeamId(teamId: any) {
     let httpParams = new HttpParams().append("teamId", teamId);
     return this.http.get(`${this.baseUrl}` + `api/getResourceRequirementByTeamId`, { params: httpParams });
@@ -304,6 +312,13 @@ export class ResourceManagementService {
 
   getEmployeeMappedToClientPercent() {
     return this.http.get(`${this.baseUrl}` + `api/getEmployeeMappedToClientPercent`);
+  }
+completeProjectReminder(poProjectId: number) {
+  return this.http.post(`${this.baseUrl}api/completeProjectReminder?poProjectId=${poProjectId}`,{} );
+}
+
+  resolveProjectViewIds(projectViewIds: string[]) {
+    return this.http.post(`${this.baseUrl}` + `api/resolveProjectViewIds`, { projectViewIds });
   }
 }
 

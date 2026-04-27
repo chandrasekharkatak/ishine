@@ -388,6 +388,11 @@ export class RmgStatusCardsComponent {
   rmgProjectFilterDTO: RMGDashboardProjectRequest = new RMGDashboardProjectRequest();
 
   projectDetailsList: any[] = [];
+  /** Linked (redirected) project resolve map for name indicators/copy. */
+  projectDetailsResolveMap: Record<string, { resolvedProjectViewId: string; redirected: boolean; resolvedProjectName?: string }> = {};
+  rmgLinkedProjectSearchInfo: string | null = null;
+  rmgLinkedPrimaryProjectIdsFromSearch: number[] = [];
+  rmgLinkedSearchRowTooltipByProjectId: Record<number, string> = {};
   projectSummaryData: any[] = [];
   employeeList: Employee[] = [];
   teamLeadsList: Employee[] = [];
@@ -650,6 +655,18 @@ export class RmgStatusCardsComponent {
       "deptab": "DIR, FT, PT",
       "name": "Director, Functional Testing, Performance Testing"
     }
+  ];
+
+  poSearchTooltip: string[] = [
+    'Shows only active POs.',
+    'Search includes both active and expired PO numbers.'
+  ];
+  dateSearchTooltip: string[] = [
+    'Search supports dd-mm-yyyy or yyyy-mm-dd date formats only.',
+  ];
+  projectNameSearchInfoTooltip: string[] = [
+    'Search includes projects whose names were later linked to another project.',
+    'Linked results are shown as the current primary project with a link icon.',
   ];
 
   constructor(
@@ -1104,13 +1121,22 @@ export class RmgStatusCardsComponent {
   fetchProjectDetailsList(rmgDashboardProjectRequest: any, scrollToBottom:any) {
     this.totalProjectsCount = 0;
     this.projectDetailsList = [];
+    this.projectDetailsResolveMap = {};
+    this.rmgLinkedProjectSearchInfo = null;
+    this.rmgLinkedPrimaryProjectIdsFromSearch = [];
+    this.rmgLinkedSearchRowTooltipByProjectId = {};
     let rmgProjectRequest = this.mapToRMGRequest(rmgDashboardProjectRequest);
     this.resourceManagementService.fetchProjectDetailsList(rmgProjectRequest).pipe(first()).subscribe((response: any) => {
       if (response?.serviceStatus == "Success" && response?.serviceResponse != null && this.validationService.validateNullUndefinedEmptyList(response?.serviceResponse?.projectList?.content)) {
         const apiResponse = response?.serviceResponse?.projectList;
         this.totalProjectsCount = apiResponse?.totalElements || 0;
         this.projectDetailsList = [...apiResponse?.content];
+        this.rmgLinkedProjectSearchInfo = response?.serviceResponse1 || null;
+        this.absorbRmgServiceResponse2LinkedMeta(response?.serviceResponse2);
+        this.populateProjectDetailsResolveMap(this.projectDetailsList);
       } else {
+        this.rmgLinkedPrimaryProjectIdsFromSearch = [];
+        this.rmgLinkedSearchRowTooltipByProjectId = {};
         this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
       }
 
@@ -1119,8 +1145,144 @@ export class RmgStatusCardsComponent {
       }
     },
       (error) => {
+        this.rmgLinkedPrimaryProjectIdsFromSearch = [];
+        this.rmgLinkedSearchRowTooltipByProjectId = {};
         this.openAlertMessageModal('Something went wrong!!');
       });
+  }
+
+  private populateProjectDetailsResolveMap(rows: any[]) {
+    const ids = (rows || [])
+      .map(r => r?.projectId)
+      .filter(v => v !== null && v !== undefined && String(v).trim() !== '')
+      .map(v => String(v));
+
+    const unique = Array.from(new Set(ids));
+    if (unique.length === 0) {
+      this.projectDetailsResolveMap = {};
+      return;
+    }
+
+    this.resourceManagementService.resolveProjectViewIds(unique).pipe(first()).subscribe((resp: any) => {
+      if (resp?.serviceStatus === 'Success' && resp?.serviceResponse) {
+        this.projectDetailsResolveMap = resp.serviceResponse || {};
+      }
+    });
+  }
+
+  copyPrimaryProjectName(projectId: any) {
+    const key = String(projectId || '');
+    const name = this.projectDetailsResolveMap?.[key]?.resolvedProjectName;
+    if (!name) {
+      this.openAlertMessageModal('Primary project name not available.');
+      return;
+    }
+    navigator.clipboard.writeText(name)
+      .then(() => this.openAlertMessageModal('Primary project name copied.'))
+      .catch(() => this.openAlertMessageModal('Unable to copy.'));
+  }
+
+  isRmgLinkedSearchPrimaryRow(project: any): boolean {
+    if (!this.rmgLinkedPrimaryProjectIdsFromSearch?.length) {
+      return false;
+    }
+    const pid = Number(project?.projectId);
+    if (!Number.isFinite(pid)) {
+      return false;
+    }
+    return this.rmgLinkedPrimaryProjectIdsFromSearch.some(v => Number(v) === pid);
+  }
+
+  getRmgLinkedSearchRowTooltip(project: any): string {
+    const pid = Number(project?.projectId);
+    if (Number.isFinite(pid) && this.rmgLinkedSearchRowTooltipByProjectId[pid]) {
+      return this.rmgLinkedSearchRowTooltipByProjectId[pid];
+    }
+    return this.rmgLinkedProjectSearchInfo || '';
+  }
+
+  private absorbRmgServiceResponse2LinkedMeta(raw: any): void {
+    this.rmgLinkedPrimaryProjectIdsFromSearch = [];
+    this.rmgLinkedSearchRowTooltipByProjectId = {};
+    if (raw == null) {
+      return;
+    }
+    if (typeof raw === 'string') {
+      const s = raw.trim();
+      if (!s) {
+        return;
+      }
+      try {
+        this.absorbRmgServiceResponse2LinkedMeta(JSON.parse(s));
+        return;
+      } catch {
+        this.rmgLinkedPrimaryProjectIdsFromSearch = s.split(/[,;\s]+/g)
+          .map(t => Number(t.trim()))
+          .filter(v => Number.isFinite(v));
+        return;
+      }
+    }
+    if (Array.isArray(raw)) {
+      this.rmgLinkedPrimaryProjectIdsFromSearch = raw
+        .map(v => Number(v))
+        .filter(v => Number.isFinite(v));
+      return;
+    }
+    if (typeof raw === 'object') {
+      const idsRaw = (raw as any).linkedPrimaryIds ?? (raw as any).linked_primary_ids;
+      if (idsRaw != null && Array.isArray(idsRaw)) {
+        this.rmgLinkedPrimaryProjectIdsFromSearch = idsRaw
+          .map((v: any) => Number(v))
+          .filter((v: number) => Number.isFinite(v));
+      }
+      const mapRaw = (raw as any).matchedLinkedNamesByPrimaryId
+        ?? (raw as any).matched_linked_names_by_primary_id;
+      if (mapRaw != null && typeof mapRaw === 'object' && !Array.isArray(mapRaw)) {
+        for (const k of Object.keys(mapRaw)) {
+          const pid = Number(k);
+          const arr = (mapRaw as any)[k];
+          const names = Array.isArray(arr)
+            ? arr.map((x: any) => String(x == null ? '' : x).trim()).filter((t: string) => t.length > 0)
+            : [];
+          if (Number.isFinite(pid) && names.length > 0) {
+            this.rmgLinkedSearchRowTooltipByProjectId[pid] = this.buildRmgLinkedSearchRowTooltipText(names);
+          }
+        }
+        if (this.rmgLinkedPrimaryProjectIdsFromSearch.length === 0) {
+          this.rmgLinkedPrimaryProjectIdsFromSearch = Object.keys(mapRaw)
+            .map(k => Number(k))
+            .filter(v => Number.isFinite(v));
+        }
+      }
+    }
+  }
+
+  private buildRmgLinkedSearchRowTooltipText(names: string[]): string {
+    const list = this.formatRmgEnglishNameList(names);
+    return `Included via linked project whose name matches your search. Project :  ${list}.`;
+  }
+
+  private formatRmgEnglishNameList(parts: string[]): string {
+    const seen = new Set<string>();
+    const p: string[] = [];
+    for (const x of parts) {
+      const t = String(x || '').trim();
+      if (!t || seen.has(t)) {
+        continue;
+      }
+      seen.add(t);
+      p.push(t);
+    }
+    if (p.length === 0) {
+      return '';
+    }
+    if (p.length === 1) {
+      return p[0];
+    }
+    if (p.length === 2) {
+      return `${p[0]} and ${p[1]}`;
+    }
+    return `${p.slice(0, -1).join(', ')}, and ${p[p.length - 1]}`;
   }
 
   selectExpiredTNMProjectFilter(expiredTNMProjectStatusObj: any, filter: any) {

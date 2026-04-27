@@ -8,17 +8,80 @@
     </div>
     <div class="tav-card__body">
 
-      <!-- Month picker + Legend -->
+      <!-- Date/Month filters + Legend -->
       <div class="tav-top-bar">
-        <mat-form-field appearance="outline" class="tav-month-picker">
-          <input matInput [matDatepicker]="monthPicker"
-            [value]="formattedMonthLabel" placeholder="Select month">
-          <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
-          <mat-datepicker #monthPicker startView="year" [startAt]="currentDate"
-            (monthSelected)="monthSelected($event, monthPicker)"
-            panelClass="month-picker">
-          </mat-datepicker>
-        </mat-form-field>
+        <div class="tav-range-controls" *ngIf="isClientDashboard; else normalMonthFilter">
+          <div class="tav-range-item">
+            <label class="tav-range-label">From Date</label>
+            <input
+              class="tav-range-input"
+              type="date"
+              [(ngModel)]="fromDateFilter"
+              [max]="maxDateValue"
+              (change)="onDateRangeChange()">
+          </div>
+
+          <div class="tav-range-item">
+            <label class="tav-range-label">To Date</label>
+            <input
+              class="tav-range-input"
+              type="date"
+              [(ngModel)]="toDateFilter"
+              [min]="fromDateFilter"
+              [max]="maxDateValue"
+              (change)="onDateRangeChange()">
+          </div>
+
+          <div class="tav-range-item tav-range-item--month">
+            <label class="tav-range-label">Month</label>
+            <div class="tav-range-input tav-month-select-shell">
+              <mat-select
+                class="tav-month-select"
+                [(ngModel)]="selectedMonthValue"
+                (selectionChange)="onMonthFilterSelectionChange()">
+                <mat-select-trigger>{{ monthDisplayLabel }}</mat-select-trigger>
+                <mat-option *ngFor="let option of monthOptions" [value]="option.value">
+                  {{ option.label }}
+                </mat-option>
+              </mat-select>
+            </div>
+          </div>
+
+          <div class="tav-range-item">
+            <label class="tav-range-label">PO No</label>
+            <div class="tav-range-input tav-month-select-shell tav-po-select-shell">
+              <mat-select
+                class="tav-month-select tav-po-select"
+                [(ngModel)]="selectedPoIdFilters"
+                multiple
+                [panelClass]="'tav-po-panel'"
+                (selectionChange)="onPoIdFilterChange($event)">
+                <mat-select-trigger [matTooltip]="poDisplayLabel">{{ poDisplayLabel }}</mat-select-trigger>
+                <mat-option [value]="allPoOptionValue">All</mat-option>
+                <mat-option *ngFor="let option of poIdOptions" [value]="option.value">
+                  {{ option.label }}
+                </mat-option>
+              </mat-select>
+            </div>
+          </div>
+
+          <div class="tav-range-item tav-range-item--apply">
+            <button class="tav-apply-btn" type="button" (click)="applyClientDashboardFilters()">
+              Apply
+            </button>
+          </div>
+        </div>
+        <ng-template #normalMonthFilter>
+          <mat-form-field appearance="outline" class="tav-month-picker">
+            <input matInput [matDatepicker]="monthPicker"
+              [value]="formattedMonthLabel" placeholder="Select month">
+            <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+            <mat-datepicker #monthPicker startView="year" [startAt]="currentDate"
+              (monthSelected)="monthSelected($event, monthPicker)"
+              panelClass="month-picker">
+            </mat-datepicker>
+          </mat-form-field>
+        </ng-template>
 
         <div class="tav-legend">
           <div *ngFor="let code of legendEntries" class="tav-legend__item">

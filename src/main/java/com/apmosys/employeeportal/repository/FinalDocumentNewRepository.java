@@ -51,6 +51,19 @@ List<FinalDocumentNew> getDocsByTimesheetIdAndFinalFlag(
             @Param("projectId") Integer projectId
         );
 
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE final_document_new \n"
+    		+ "SET project_id = :primaryProjectId, \n"
+    		+ "    updated_by = :updatedBy, \n"
+    		+ "    updated_on = NOW() \n"
+    		+ "WHERE project_id IN (:deletedProjectIds)", nativeQuery = true)
+    int bulkMoveFinalDocumentsProjectToPrimary(
+    		@Param("primaryProjectId") Integer primaryProjectId,
+    		@Param("deletedProjectIds") List<Integer> deletedProjectIds,
+    		@Param("updatedBy") Long updatedBy
+    );
+
     //     @Query("DELETE FROM FinalDocumentNew fdn \n"+
     //     "INNER JOIN TimesheetDocumentDetailsNew tdd on tdd.bulkApprovedDocId = fdn.finalDocId \n"+
     //     "WHERE tdd.timesheetId = :timesheetId and tdd.projectId = :projectId")

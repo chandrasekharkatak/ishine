@@ -69,6 +69,12 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<Object[]> getAllInternalProject();
 
 	public Project findByProjectId(Integer projectId);
+
+	@Query("select p.projectId from Project p where lower(p.projectName) like concat('%', lower(:projectName), '%')")
+	List<Integer> findProjectIdsByProjectNameLike(@Param("projectName") String projectName);
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectIdAndNameDTO(p.projectId, p.projectName) FROM Project p WHERE p.projectId IN :ids")
+	List<ProjectIdAndNameDTO> findProjectIdAndNameByProjectIdIn(@Param("ids") Set<Integer> ids);
 	
 	public Optional<Project> findOptionalByProjectId(Integer projectId);
 
@@ -4280,6 +4286,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		 @Query("SELECT DISTINCT e.email FROM Employee e WHERE e.jobRoleId = 53")
 		    List<String> findDirectorEmails();
 
+
 	@Query(value="SELECT distinct p.po_project_id\n"
 			+ "	FROM projects p\n"
 			+ " inner JOIN teams t ON p.project_id = t.project_id \n"
@@ -4596,7 +4603,7 @@ boolean existsByProjectName(String projectName);
     				+ "WHERE p.active = 'true'\n"
     				+ "    AND t.is_active = 'Y'\n"
     				+ "    AND e.employmentstatus != 'InActive'\n"
-    				+ "    AND etm.active != 0\n"
+    				+ "    AND ((etm.active = 0 AND DATE(etm.start_date) > CURDATE()) OR etm.active != 0)\n"
     				+ "    AND (d.dept_id IN (:deptIds)) \n"
     				+ "    AND e.emp_id NOT BETWEEN 1 AND 6\n"
     				+ "    AND ((:leave_filter = TRUE)\n"
@@ -4707,7 +4714,7 @@ boolean existsByProjectName(String projectName);
 			+ "inner join Department d on d.deptId = jr.deptId  \n"
 			+ "where p.active = 'true' and t.isActive != 'N' and etm.active != 0  \n"
 			+ "and e.employmentstatus != 'InActive'  \n"
-			+ "and e.billableType = 'Bench' and (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') \n"
+			+ "and e.billableType = 'Bench' and ((p.poProjectType IS NOT NULL AND (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%' OR p.poProjectType like '%Monitoring%')) OR (p.poProjectType IS NULL AND p.internalProjectType = 'InternalRNDProducts')) \n"
 			+ "and d.deptId IN :deptIds AND e.empId NOT BETWEEN 1 AND 6")
 	public Long getAllExceptionEmployeeReportCountByDeptIds(List<Long> deptIds);
 
@@ -9041,5 +9048,9 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 			+ " FROM projects p \n"
 			+ "WHERE p.project_id = :projectId \n", nativeQuery = true)
 	public String employeeExistsInEtmByProjectId(Integer projectId);
+	
+	@Query(nativeQuery=true,value = "select e.email from employee e join  department d on e.department_id = d.dept_id where d.dept_id = 2")
+	List<String> getAccountsTeamEmails();
+
 
 }

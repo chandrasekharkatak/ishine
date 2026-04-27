@@ -5370,7 +5370,7 @@ resetDefaultProjectFields() {
     if (this.normalizeDate(this.employeeObj.newEtmStartDate) < this.normalizeDate(this.employeeObj.oldEtmEndDate)) {
       this.alertMessage = "Employee Current Project End date cannot be greater then New Project Start date!!";
       this.openAlertMod(alertMessageTemplate, this.alertMessage);
-      return;
+      return false;
     }
     let member = { empId: this.employeeObj.empId, startDate: this.employeeObj.newEtmStartDate };
     let projectData = {

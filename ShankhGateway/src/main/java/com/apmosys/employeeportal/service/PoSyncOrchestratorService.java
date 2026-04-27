@@ -665,6 +665,8 @@ public class PoSyncOrchestratorService {
 	                    dto
 	            );
 	            
+	            poDetailsService.migrateTimesheetsAndCreateHierarchyMappings(primaryProject, dto);
+	            
 	            poDetailsService.validateAssociatedPosIntegrity(
 	                    primaryProject.getProjectId(),
 	                    dto.getPrimaryProject().getPoDetailsList()
@@ -678,6 +680,11 @@ public class PoSyncOrchestratorService {
 	            );
 
 		        projectService.recalculateProjectDates(primaryProject.getProjectId(),false);
+		        
+		        poDetailsService.migrateResourcesAfterPoLink(
+	                    primaryProject.getProjectId(),
+	                    dto.getPrimaryProject().getPoDetailsList()
+	            );
 	            
 	           ishineStatus = resourceManagementService.ishineStatusReturn( dto.getDeletedProjects(),primaryProject);
 	           

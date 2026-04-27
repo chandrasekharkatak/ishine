@@ -122,9 +122,8 @@ getEmployeeTimesheetsByProject(teamObj: any){
 }
 
 
-updateMilestoneExtendedDate(MilestoneUpdatedLog: MilestoneUpdatedLog): Observable<any> {
-  return this.http.put(`${this.baseUrl}` + `api/updateMilestoneExtendedDate`, MilestoneUpdatedLog);
-
+updateMilestoneExtendedDate(formData: FormData): Observable<any> {
+  return this.http.post(`${this.baseUrl}api/updateMilestoneExtendedDate`, formData);
 }
 
    getClientAndProjectReport(payload){
@@ -139,10 +138,19 @@ updateMilestoneExtendedDate(MilestoneUpdatedLog: MilestoneUpdatedLog): Observabl
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeProjectCount`,payload);
    }
 
-  getEmployeeExistingProjectDetailsByEmpId(empId: any, projectId:any) {
-    let httpParams = new HttpParams().append("empId", empId).append("projectId", projectId);
+  // getEmployeeExistingProjectDetailsByEmpId(empId: any, projectId:any) {
+  //   let httpParams = new HttpParams().append("empId", empId).append("projectId", projectId);
+  //   return this.http.get(`${this.baseUrl}` + `api/getEmployeeExistingProjectDetailsByEmpId`, { params: httpParams });
+  // }
+
+  getEmployeeExistingProjectDetailsByEmpId(empId: any, projectId: any, enforceSingleTeamPerProject: boolean = false) {
+    let httpParams = new HttpParams()
+      .append("empId", empId)
+      .append("projectId", projectId)
+      .append("enforceSingleTeamPerProject", String(enforceSingleTeamPerProject));
     return this.http.get(`${this.baseUrl}` + `api/getEmployeeExistingProjectDetailsByEmpId`, { params: httpParams });
   }
+
 
   updateEmployeeProjectMappingAsInActive(rmgTeamMember: RmgTeamMember) {
     return this.http.post(`${this.baseUrl}` + `api/updateEmployeeProjectMappingAsInActive`, rmgTeamMember);
@@ -163,5 +171,16 @@ updateMilestoneExtendedDate(MilestoneUpdatedLog: MilestoneUpdatedLog): Observabl
   getProjectStructure(payload) {
     return this.http.post(`${this.baseUrl}` + `api/getProjectStructure`, payload)
   }
-  
+
+getExtensionDocumentByName(uniquefile: any) {
+  return this.http.post(`${this.baseUrl}api/getExtensionDocumentByName`, { uniquefile });
+} 
+
+validateDocName(uniquefile: any) {
+  return this.http.post(`${this.baseUrl}api/validateDocName`, { uniquefile });
+} 
+
+
+
+ 
 }

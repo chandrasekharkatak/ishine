@@ -1,6 +1,9 @@
 package com.apmosys.employeeportal.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -10,16 +13,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
+import com.apmosys.employeeportal.dto.ProjectViewResolveBulkItemDTO;
+import com.apmosys.employeeportal.dto.ProjectViewResolveBulkRequestDTO;
+import com.apmosys.employeeportal.dto.ProjectViewResolveResponseDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.RmUpdateSyncDto;
 import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
 import com.apmosys.employeeportal.service.PoSyncOrchestratorService;
+import com.apmosys.employeeportal.service.ProjectHierarchyResolverService;
 import com.apmosys.employeeportal.service.ResourceManagementService;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -36,6 +44,9 @@ public class ResourceManagementController {
 
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
+	
+	@Autowired
+	ProjectHierarchyResolverService projectHierarchyResolverService;
 
 	@PostMapping("/poCrudOperationsInIshineNew")
 	public ServiceResponse poCrudOperationsInIshineNew(HttpServletRequest httpRequest,
@@ -66,6 +77,40 @@ public class ResourceManagementController {
 	public ServiceResponse updateRmDetailsInPo(HttpServletRequest httpRequest, @RequestBody RmUpdateSyncDto dto) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return poSyncOrchestratorService.updateRmOdPos(dto);
+	}
+	
+	@GetMapping("/resolveProjectViewId")
+	public ServiceResponse resolveProjectViewId(@RequestParam String projectViewId) {
+		ServiceResponse response = new ServiceResponse();
+		String resolved = projectHierarchyResolverService.resolveProjectViewId(projectViewId);
+		String resolvedName = projectHierarchyResolverService.resolveProjectNameFromProjectViewId(projectViewId);
+		ProjectViewResolveResponseDTO dto = new ProjectViewResolveResponseDTO(projectViewId, resolved,
+				resolved != null && !resolved.equals(projectViewId), resolvedName);
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(dto);
+		return response;
+	}
+	
+	@PostMapping("/resolveProjectViewIds")
+	public ServiceResponse resolveProjectViewIds(@RequestBody ProjectViewResolveBulkRequestDTO request) {
+		ServiceResponse response = new ServiceResponse();
+		Map<String, ProjectViewResolveBulkItemDTO> out = new HashMap<>();
+		
+		if (request != null && request.getProjectViewIds() != null) {
+			for (String original : request.getProjectViewIds()) {
+				if (original == null || original.trim().isEmpty()) {
+					continue;
+				}
+				String resolved = projectHierarchyResolverService.resolveProjectViewId(original);
+				boolean redirected = resolved != null && !Objects.equals(resolved, original);
+				String resolvedName = projectHierarchyResolverService.resolveProjectNameFromProjectViewId(original);
+				out.put(original, new ProjectViewResolveBulkItemDTO(resolved, redirected, resolvedName));
+			}
+		}
+		
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(out);
+		return response;
 	}
 
 	@PostMapping("/updateAddressInPos")

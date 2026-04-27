@@ -25,6 +25,19 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
     Optional<ProjectTimesheetStatusNew> findByTimesheetIdAndProjectIdAndLocationMappingId(@Param("timesheetId") Long timesheetId, @Param("projectId") Integer projectId, @Param("locationMappingId") Long locationMappingId);
     
     List<ProjectTimesheetStatusNew> findAllByIdTimesheetIdIn(Set<Long> timesheetIds);
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE project_timesheet_status_new \n"
+    		+ "SET project_id = :primaryProjectId, \n"
+    		+ "    updated_by = :updatedBy, \n"
+    		+ "    updated_on = NOW() \n"
+    		+ "WHERE project_id IN (:deletedProjectIds)", nativeQuery = true)
+    int bulkMoveProjectTimesheetsToPrimary(
+    		@Param("primaryProjectId") Integer primaryProjectId,
+    		@Param("deletedProjectIds") List<Integer> deletedProjectIds,
+    		@Param("updatedBy") Long updatedBy
+    );
     
     @Query("SELECT pts.id.locationMappingId " +
     	       "FROM ProjectTimesheetStatusNew pts " +

@@ -20,6 +20,7 @@ export class ColumnFilterBarComponent implements OnInit {
   currentBreadcrumbList: any[] = [];
   projectManagement: any;
 
+
   @Output()
   onSearch:EventEmitter<any> = new EventEmitter();
 

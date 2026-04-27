@@ -30,5 +30,18 @@ public class RMGDashboardProjectRequest {
     private Map<String, String> projectFilter;
     private Map<String, String> subKeyKeyMap;
 
+    /**
+     * Server-side only: when the project name column filter is resolved through linked projects,
+     * native queries restrict rows to these primary project ids. Not intended for client JSON.
+     */
+    private List<Integer> linkSearchPrimaryProjectIds;
+
+    /**
+     * Server-side only: bound value for {@code LOWER(p.project_name) LIKE :linkSearchNameLike} (e.g. {@code %term%}),
+     * combined with {@link #linkSearchPrimaryProjectIds} so partial matches on the primary row still appear alongside
+     * linked-name resolution. Not intended for client JSON.
+     */
+    private String linkSearchNameLikeParameter;
+
 }
 

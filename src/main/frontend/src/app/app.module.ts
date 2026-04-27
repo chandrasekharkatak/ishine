@@ -154,6 +154,7 @@ import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax
 import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
 import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
+import { RoMonthYearFieldComponent } from './user-timesheet/hr-dashboard/ro-month-year-field/ro-month-year-field.component';
 import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
 import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-view/team-employee-timesheet-view.component';
 import { NavigateToTeamEmployeeTimesheetDirective } from './directives/navigate-to-team-employee-timesheet.directive';
@@ -474,6 +475,7 @@ registerLocaleData(localeGb);
     PortalModule,
     CalendarLegendComponent,
     DateTimePickerComponent,
+    RoMonthYearFieldComponent,
     ToastrModule.forRoot({
       positionClass: 'toast-top-right',
       timeOut: 4000,
