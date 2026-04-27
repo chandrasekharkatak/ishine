@@ -1799,7 +1799,7 @@ public class TimesheetDashboardService {
 
 		    	if(dtoList.isEmpty()){
 		    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	                response.setServiceResponse("Unable to fetch the timesheet Data !!!");
+	                response.setServiceResponse("No data Found for the selected date range/Month");
 	                apiLogInfo.setApiResponse("Failed to set the data in dto \n");
 	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	                
