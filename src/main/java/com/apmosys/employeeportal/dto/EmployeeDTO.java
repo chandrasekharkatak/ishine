@@ -399,6 +399,8 @@ this.isApmosysProduct = isApmosysProduct;
     private List<EmployeeSkillProficiencyDTO>  employeeSkills;
     private List<CertificateDTO> employeeCertificates;
     private Boolean  hideMaternityLeaveEmps;
+    private List<Long> jobRoleIds;
+
 
     
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
