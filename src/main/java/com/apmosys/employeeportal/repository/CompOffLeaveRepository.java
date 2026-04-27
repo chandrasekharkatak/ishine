@@ -91,6 +91,12 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
 
 	public boolean existsByEmpIdAndFromDateAndCompOffStatusIn(Long empId, LocalDate appliedForDate, List<String> statuses);
 
+	public CompOffLeave findByEmpIdAndFromDateAndCompOffStatusIn(
+		Long empId,
+		LocalDate fromDate,
+		List<String> statuses
+	);
+
 // 	@Query(value = "SELECT cl.* " +
 //         "FROM comp_off_leave cl " +
 //         "INNER JOIN leave_status s ON s.leave_status_id = cl.leave_status_id " +

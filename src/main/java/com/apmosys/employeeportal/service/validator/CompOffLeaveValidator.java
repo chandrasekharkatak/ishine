@@ -11,6 +11,7 @@ import org.springframework.util.StringUtils;
 
 import com.apmosys.employeeportal.Exception.CompOffLeaveException;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -133,12 +134,17 @@ public class CompOffLeaveValidator {
 		LocalDate currentDate = LocalDate.now();
 		// require(!appliedForDate.isBefore(lastSeventhDate) && !appliedForDate.isAfter(currentDate),
 				// "Comp Off Date range exceeded !!");
-			// 	boolean pendingExists = compOffLeaveRepository
-            // .existsByEmpIdAndFromDateAndCompOffStatusIn(
-            //         leaveDTO.getEmpId(),
-            //         appliedForDate,
-            //         List.of("Pending", "Pending For Approval", "Approved")
-            // );
+			CompOffLeave existing = compOffLeaveRepository
+    .findByEmpIdAndFromDateAndCompOffStatusIn(
+        leaveDTO.getEmpId(),
+        appliedForDate,
+        List.of("Pending", "Pending For Approval", "Approved")
+    );
+
+		if (existing != null &&
+			!existing.getCompOffLeaveId().equals(leaveDTO.getCompOffLeaveId())) {
+			throw new RuntimeException("A comp-off request already exists for this date.");
+		}
 		Employee employee =
         employeeRepository
             .findByEmpId(
@@ -166,9 +172,6 @@ public class CompOffLeaveValidator {
         "Selected date is not a valid holiday."
     );
 
-    // require(!pendingExists,
-    //         "A pending comp-off request already exists for this date.");
-	
 	}
 
 	public void validateDeleteCompOff(LeaveDTO leaveDTO) {
