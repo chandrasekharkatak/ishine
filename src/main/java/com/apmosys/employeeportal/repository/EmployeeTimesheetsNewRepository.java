@@ -18982,4 +18982,10 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							@Param("po_project_id") Long poProjectId 
 							);
 
+					@Query(value = " SELECT t.timesheet_id" +
+    						" FROM employee_timesheets t inner join timesheet_document_details tdd on tdd.timesheet_id = t.timesheet_id " +
+    						" WHERE DATE_FORMAT(t.date, '%Y-%m') IN (:months) "
+							, nativeQuery = true)
+					List<Long> findTimesheetIdsByMonths(@Param("months") List<String> months);
+
 }
