@@ -398,6 +398,10 @@ this.user.otp = encryptedOtp;
         if (this.handleTeamAttendanceRedirect()) {
           return;
         }
+        // If login came with All Timesheets redirect, skip all default routing.
+        if (this.handleAllTimesheetsRedirect()) {
+          return;
+        }
         
         // Check training lock status and route accordingly
         // Priority 1: If hard lock (deadline crossed) - user is frozen, must route to training page
@@ -715,6 +719,18 @@ this.user.otp = encryptedOtp;
     sessionStorage.removeItem('postLoginRedirect');
     this.redirectUrl = null;
     this.router.navigateByUrl(finalTarget);
+    return true;
+  }
+
+  private handleAllTimesheetsRedirect(): boolean {
+    const target = this.normalizeRedirectTarget(this.redirectUrl || sessionStorage.getItem('postLoginRedirect'));
+    if (!target || !target.startsWith('/user-timesheet/hr-dashboard')) {
+      return false;
+    }
+
+    sessionStorage.removeItem('postLoginRedirect');
+    this.redirectUrl = null;
+    this.router.navigateByUrl(target);
     return true;
   }
 

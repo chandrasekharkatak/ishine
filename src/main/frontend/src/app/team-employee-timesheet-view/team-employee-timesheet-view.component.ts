@@ -61,6 +61,7 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   effectiveToDateFilter: string = '';
   queryFromDate: string | null = null;
   queryToDate: string | null = null;
+  queryPoNo: string | null = null;
   monthOptions: { value: string; label: string; month: number; year: number; startDate: Date; endDate: Date }[] = [];
   selectedMonthValue: string = '';
   readonly allPoOptionValue = '__ALL_PO__';
@@ -144,6 +145,7 @@ alertMessageOfDoc: any;
     this.route.queryParams.subscribe(params => {
       this.projectId = params['projectId'];
       this.poProjectId = params['poProjectId'];
+      this.queryPoNo = (params['poNo'] ?? '').toString().trim() || null;
       this.formattedMonthLabel = params['formattedMonthLabel'];
       this.isClientDashboard = params['isClientDashboard'] === 'true';
       this.queryFromDate = this.normalizeIncomingDate(params['fromDate']);
@@ -180,6 +182,7 @@ alertMessageOfDoc: any;
       }
       console.log('Received projectId from query param:', this.projectId);
       console.log('Received poProjectId from query param:', this.poProjectId);
+      console.log('Received poNo from query param:', this.queryPoNo);
       console.log('Received month from query param:', this.formattedMonthLabel);
     });
     this.legendEntries = Object.entries(this.legend).map(([code, value]) => ({
@@ -288,13 +291,11 @@ alertMessageOfDoc: any;
       return [selectedPoNos[0]];
     }
 
-    const poProjectId = this.resolvePoProjectIdFromParams();
-    if (poProjectId === null) {
-      return null;
+    if (this.queryPoNo && this.poIdOptions.some(option => option.value === this.queryPoNo)) {
+      return [this.queryPoNo];
     }
 
-    const selectedOption = this.poIdOptions.find(option => Number(option.value) === poProjectId);
-    return selectedOption?.label ? [selectedOption.label] : null;
+    return null;
   }
 
   private buildPoIdOptions(): void {
@@ -350,8 +351,15 @@ alertMessageOfDoc: any;
 
             this.poOptionsLoadedFromApi = this.poIdOptions.length > 0;
             if (this.poIdOptions.length > 0) {
-              this.selectedPoIdFilters = [this.allPoOptionValue, ...this.poIdOptions.map(opt => opt.value)];
-              this.wasAllPoSelected = true;
+              const hasQueryPoNo =
+                !!this.queryPoNo && this.poIdOptions.some(opt => opt.value === this.queryPoNo);
+              if (hasQueryPoNo) {
+                this.selectedPoIdFilters = [this.queryPoNo as string];
+                this.wasAllPoSelected = false;
+              } else {
+                this.selectedPoIdFilters = [this.allPoOptionValue, ...this.poIdOptions.map(opt => opt.value)];
+                this.wasAllPoSelected = true;
+              }
             } else {
               this.selectedPoIdFilters = [];
               this.wasAllPoSelected = false;
