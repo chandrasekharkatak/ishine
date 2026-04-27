@@ -57,6 +57,8 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   toDateFilter: string = '';
   originalFromDateFilter: string = '';
   originalToDateFilter: string = '';
+  queryFromDate: string | null = null;
+  queryToDate: string | null = null;
   monthOptions: { value: string; label: string; month: number; year: number; startDate: Date; endDate: Date }[] = [];
   selectedMonthValue: string = '';
   readonly allPoOptionValue = '__ALL_PO__';
@@ -142,6 +144,8 @@ alertMessageOfDoc: any;
       this.poId = params['poId'];
       this.formattedMonthLabel = params['formattedMonthLabel'];
       this.isClientDashboard = params['isClientDashboard'] === 'true';
+      this.queryFromDate = this.normalizeIncomingDate(params['fromDate']);
+      this.queryToDate = this.normalizeIncomingDate(params['toDate']);
       if (this.projectId) {
         if (this.formattedMonthLabel) {
           const [monthName, yearStr] = this.formattedMonthLabel.split(' ');
@@ -161,10 +165,14 @@ alertMessageOfDoc: any;
         this.selectedMonth = new Date(this.year, this.month - 1, 1);
         this.generateDaysForMonth(this.selectedMonth);
         if (this.isClientDashboard) {
+          this.applyIncomingDateRangeToMonthContext();
           this.initializeDateRange();
-          this.loadPoOptionsFromApi();
+          this.loadPoOptionsFromApi(() => {
+            this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
+          });
+        } else {
+          this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
         }
-        this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
       } else {
         console.warn("projectId is missing in query params.");
       }
@@ -191,6 +199,10 @@ alertMessageOfDoc: any;
     this.timesheetAsCalenderByProjectId.month = month;
     this.timesheetAsCalenderByProjectId.year = year;
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
+    this.timesheetAsCalenderByProjectId.fromDate = this.fromDateFilter || undefined;
+    this.timesheetAsCalenderByProjectId.toDate = this.toDateFilter || undefined;
+    this.timesheetAsCalenderByProjectId.poNo = this.resolveSelectedPoNo();
+    this.timesheetAsCalenderByProjectId.poProjectId = this.resolveSelectedPoProjectId();
     if(this.isClientDashboard){
       this.timesheetAsCalenderByProjectId.allEmp = !this.isClientDashboard;
     console.log("this.timesheetAsCalenderByProjectId.allEmp - if -",this.timesheetAsCalenderByProjectId.allEmp)
@@ -232,6 +244,31 @@ alertMessageOfDoc: any;
     });
   }
 
+  private resolveSelectedPoProjectId(): number | null {
+    if (this.selectedPoIdFilters?.length) {
+      const validSelectedPos = this.selectedPoIdFilters
+        .filter(value => value && value !== this.allPoOptionValue);
+      if (validSelectedPos.length === 1) {
+        const parsed = Number(validSelectedPos[0]);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+      return null;
+    }
+
+    const parsedQueryPoId = Number(this.poId);
+    return Number.isFinite(parsedQueryPoId) ? parsedQueryPoId : null;
+  }
+
+  private resolveSelectedPoNo(): string | null {
+    const poProjectId = this.resolveSelectedPoProjectId();
+    if (poProjectId === null) {
+      return null;
+    }
+
+    const selectedOption = this.poIdOptions.find(option => Number(option.value) === poProjectId);
+    return selectedOption?.label || null;
+  }
+
   private buildPoIdOptions(): void {
     const poMap = new Map<string, string>();
     this.timesheetData.forEach(item => {
@@ -259,8 +296,9 @@ alertMessageOfDoc: any;
     this.wasAllPoSelected = this.selectedPoIdFilters.includes(this.allPoOptionValue);
   }
 
-  private loadPoOptionsFromApi(): void {
+  private loadPoOptionsFromApi(onComplete?: () => void): void {
     if (!this.projectId || !this.originalFromDateFilter || !this.originalToDateFilter) {
+      onComplete?.();
       return;
     }
 
@@ -297,11 +335,13 @@ alertMessageOfDoc: any;
             this.poOptionsLoadedFromApi = false;
             this.buildPoIdOptions();
           }
+          onComplete?.();
         },
         error: (err: any) => {
           this.openAlertMod(err?.error || 'Error while fetching PO details.');
           this.poOptionsLoadedFromApi = false;
           this.buildPoIdOptions();
+          onComplete?.();
         }
       });
   }
@@ -700,10 +740,16 @@ monthSelected(event: Date, datepicker: any) {
   private initializeDateRange(): void {
     const firstDay = new Date(this.selectedMonth.getFullYear(), this.selectedMonth.getMonth(), 1);
     const lastDay = new Date(this.selectedMonth.getFullYear(), this.selectedMonth.getMonth() + 1, 0);
-    this.originalFromDateFilter = this.formatDateForInput(firstDay);
-    this.originalToDateFilter = this.formatDateForInput(
-      lastDay > this.currentDate ? this.currentDate : lastDay
-    );
+
+    const defaultFrom = this.formatDateForInput(firstDay);
+    const defaultTo = this.formatDateForInput(lastDay > this.currentDate ? this.currentDate : lastDay);
+
+    const incomingFrom = this.queryFromDate || defaultFrom;
+    const incomingTo = this.queryToDate || defaultTo;
+    const normalizedRange = this.normalizeDateRange(incomingFrom, incomingTo);
+
+    this.originalFromDateFilter = normalizedRange.fromDate;
+    this.originalToDateFilter = normalizedRange.toDate;
     this.fromDateFilter = this.originalFromDateFilter;
     this.toDateFilter = this.originalToDateFilter;
     this.buildMonthOptionsFromRange();
@@ -783,7 +829,9 @@ monthSelected(event: Date, datepicker: any) {
     if (!this.projectId) {
       return;
     }
-    this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
+    this.loadPoOptionsFromApi(() => {
+      this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
+    });
   }
 
   get monthDisplayLabel(): string {
@@ -805,6 +853,44 @@ monthSelected(event: Date, datepicker: any) {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${date.getFullYear()}-${month}-${day}`;
+  }
+
+  private normalizeIncomingDate(value: any): string | null {
+    if (!value) return null;
+    const parsed = new Date(value);
+    if (isNaN(parsed.getTime())) return null;
+    return this.formatDateForInput(parsed);
+  }
+
+  private normalizeDateRange(fromDate: string, toDate: string): { fromDate: string; toDate: string } {
+    const maxDate = new Date(this.maxDateValue);
+    let from = new Date(fromDate);
+    let to = new Date(toDate);
+
+    if (isNaN(from.getTime())) from = new Date(this.maxDateValue);
+    if (isNaN(to.getTime())) to = new Date(this.maxDateValue);
+
+    if (from > maxDate) from = maxDate;
+    if (to > maxDate) to = maxDate;
+    if (from > to) {
+      to = new Date(from);
+    }
+
+    return {
+      fromDate: this.formatDateForInput(from),
+      toDate: this.formatDateForInput(to)
+    };
+  }
+
+  private applyIncomingDateRangeToMonthContext(): void {
+    if (!this.queryFromDate) return;
+    const from = new Date(this.queryFromDate);
+    if (isNaN(from.getTime())) return;
+    this.month = from.getMonth() + 1;
+    this.year = from.getFullYear();
+    this.monthName = from.toLocaleString('default', { month: 'long' });
+    this.selectedMonth = new Date(this.year, this.month - 1, 1);
+    this.updateFormattedMonthLabel();
   }
 
   downloadFinalDocuments() {

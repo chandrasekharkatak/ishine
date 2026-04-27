@@ -1,6 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
-import org.springframework.data.repository.query.Param;
+import java.time.LocalDate;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,5 +16,9 @@ public class GetEmployeeTimesheetAsCalenderByProjectIdDTO {
 	private Integer year;
 	private Long empId;
 	private Boolean allEmp;
+	private LocalDate fromDate;
+	private LocalDate toDate;
+	private String poNo;
+	private Long poProjectId;
 
 }

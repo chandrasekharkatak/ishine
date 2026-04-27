@@ -1,7 +1,9 @@
 package com.apmosys.employeeportal.service;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1667,12 +1669,32 @@ public class TimesheetDashboardService {
 		    logBuilder.append("getEmployeeTimesheetAsCalenderByProjectId");
 		    try {
 		    	List<Object[]> empTimesheet;
+		    	LocalDate resolvedFromDate = object.getFromDate();
+		    	LocalDate resolvedToDate = object.getToDate();
+		    	if (resolvedFromDate == null || resolvedToDate == null) {
+		    		if (object.getYear() != null && object.getMonth() != null) {
+		    			YearMonth yearMonth = YearMonth.of(object.getYear(), object.getMonth());
+		    			resolvedFromDate = yearMonth.atDay(1);
+		    			LocalDate lastDay = yearMonth.atEndOfMonth();
+		    			LocalDate today = LocalDate.now();
+		    			resolvedToDate = lastDay.isAfter(today) ? today : lastDay;
+		    		} else {
+		    			LocalDate today = LocalDate.now();
+		    			resolvedFromDate = today.withDayOfMonth(1);
+		    			resolvedToDate = today;
+		    		}
+		    	}
+		    	if (resolvedFromDate.isAfter(resolvedToDate)) {
+		    		LocalDate temp = resolvedFromDate;
+		    		resolvedFromDate = resolvedToDate;
+		    		resolvedToDate = temp;
+		    	}
 		    	if(object.getAllEmp()) {
 		    		empTimesheet= timesheetsNewRepository.getEmployeeTimesheetAsCalenderByProjectIdForAllEmp(object.getProjectId(),
 			    			object.getMonth(),object.getYear(),object.getEmpId());
 		    	} else {
 		    		empTimesheet= timesheetsNewRepository.getEmployeeTimesheetAsCalenderByProjectId(object.getProjectId(),
-			    			object.getMonth(),object.getYear(),object.getEmpId());
+		    				resolvedFromDate,resolvedToDate,object.getEmpId(),object.getPoNo(),object.getPoProjectId());
 		    	}
  			
 		    	List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
