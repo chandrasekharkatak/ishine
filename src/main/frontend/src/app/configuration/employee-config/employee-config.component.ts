@@ -2187,6 +2187,7 @@ storePreviousStatus(){
     // transform date formats to YYYY-MM-DD
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat);
     this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
+    if (this.employeeObj.newEtmStartDate) this.employeeObj.newEtmStartDate = this.normalizeDate(this.employeeObj.newEtmStartDate);
 
 
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
