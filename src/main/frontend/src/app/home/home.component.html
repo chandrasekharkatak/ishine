@@ -1331,7 +1331,7 @@
         </div>
     </ng-template>
 
-    <ng-template #bulk_reject_leave>
+    <!-- <ng-template #bulk_reject_leave>
         <div class="modal-body text-center">
             <p>Kindly provide reason(s) for rejecting application.</p>
             <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
@@ -1343,7 +1343,96 @@
                 (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">No,
                 Cancel</button>&nbsp;
         </div>
-    </ng-template>
+    </ng-template> -->
+    <ng-template #bulk_reject_leave>
+  <div class="reject-modal-shell">
+
+    <!-- Header -->
+    <div class="reject-modal-header">
+      <div class="reject-header-left">
+        <div class="reject-header-icon">
+          <i class="fa-solid fa-ban"></i>
+        </div>
+
+        <div>
+          <h5 class="reject-modal-title mb-1">Bulk Reject Leave</h5>
+          <p class="reject-modal-subtitle mb-0">
+            Reject selected leave requests with one or more reasons.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="reject-modal-body">
+
+      <div class="reject-info-banner">
+        <i class="bi bi-info-circle me-2"></i>
+        Selected reasons will be applied to all chosen leave requests.
+      </div>
+
+      <div class="row g-4">
+
+        <!-- Multi Select Reasons -->
+        <div class="col-12">
+          <label class="reject-field-label">
+            <span class="required-mark">*</span> Reject Reason(s)
+          </label>
+
+          <app-my-select
+            class="form-control modern-my-select"
+            placeholder="Choose rejection reason(s)"
+            [(ngModel)]="selectedRejectionIds"
+            [options]="leaveRejectionReasonList"
+            displayKey="reason"
+            valueKey="rejectionReasonId"
+            [multiple]="true"
+            (ngModelChange)="onRejectionReasonChange()">
+          </app-my-select>
+        </div>
+
+        <!-- Remarks -->
+        <div class="col-12">
+          <label class="reject-field-label">
+            <span class="required-mark">*</span>
+            Remarks
+          </label>
+
+          <textarea
+            rows="4"
+            class="form-control reject-remark-box"
+            placeholder="Enter remarks"
+            [(ngModel)]="leaveObj.rejectReason">
+          </textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="reject-modal-footer">
+
+      <button
+        type="button"
+        class="btn reject-cancel-btn"
+        (click)="cancelRequest();
+                 openReqMod(LeaveReq);
+                 getAllMyTeamsPendingLeaveApplicationsByManagerId()">
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="btn reject-submit-btn"
+        [disabled]="isRejectDisabled()"
+        (click)="cancelRequest(); bulkRejectLeaveNew(leave_reject)">
+        <i class="bi bi-x-lg me-2"></i>
+        Reject Selected
+      </button>
+
+    </div>
+  </div>
+</ng-template>
 
     <ng-template #bulk_comp_off_reject>
         <div class="modal-body text-center">
@@ -1401,7 +1490,7 @@
     </ng-template>
 
     <!-- for single rection modal -->
-    <ng-template #reject_leave_modal>
+    <!-- <ng-template #reject_leave_modal>
         <div class="modal-body text-center">
             <p>Kindly provide reason(s) for rejecting application.</p>
             <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
@@ -1412,7 +1501,94 @@
             <button type="button" class="btn btn-danger"
                 (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
         </div>
-    </ng-template>
+    </ng-template> -->
+    <ng-template #reject_leave_modal>
+  <div class="reject-modal-shell">
+
+    <!-- Header -->
+    <div class="reject-modal-header">
+      <div class="reject-header-left">
+        <div class="reject-header-icon">
+          <i class="fa-solid fa-ban"></i>
+        </div>
+
+        <div>
+          <h5 class="reject-modal-title mb-1">Reject Leave</h5>
+          <p class="reject-modal-subtitle mb-0">
+            Select one or more rejection reasons before submitting.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="reject-modal-body">
+
+      <div class="reject-info-banner">
+        <i class="bi bi-info-circle me-2"></i>
+        Select applicable reason(s).
+      </div>
+
+      <div class="row g-4">
+
+        <!-- Reasons -->
+        <div class="col-12">
+          <label class="reject-field-label">
+            <span class="required-mark">*</span> Reject Reason(s)
+          </label>
+
+          <app-my-select
+            class="form-control modern-my-select"
+            placeholder="Choose rejection reason(s)"
+            [(ngModel)]="selectedRejectionIds"
+            [options]="leaveRejectionReasonList"
+            displayKey="reason"
+            valueKey="rejectionReasonId"
+            [multiple]="true"
+            (ngModelChange)="onRejectionReasonChange()">
+          </app-my-select>
+        </div>
+
+        <!-- Remarks -->
+        <div class="col-12">
+          <label class="reject-field-label">
+            <span class="required-mark">*</span>
+            Remarks
+          </label>
+
+          <textarea
+            rows="4"
+            class="form-control reject-remark-box"
+            placeholder="Enter remarks"
+            [(ngModel)]="leaveObj.rejectReason">
+          </textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="reject-modal-footer">
+
+      <button
+        type="button"
+        class="btn reject-cancel-btn"
+        (click)="cancelRequest(); getAllMyTeamsPendingLeaveApplicationsByManagerId()">
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="btn reject-submit-btn"
+        [disabled]="isRejectDisabled()"
+        (click)="cancelRequest(); onSingleRejectNew(leave_success)">
+        <i class="bi bi-x-lg me-2"></i>
+        Reject Leave
+      </button>
+
+    </div>
+  </div>
+</ng-template>
 
     <ng-template #change_password>
         <div class="modal-body text-center">
@@ -2176,6 +2352,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
 
 <ng-template #attendancePolicyModal>
+<!-- <<<<<<< HEAD
   <div class="modal-header border-0 pb-0">
     <h5 class="modal-title text-danger d-flex align-items-center gap-2">
       <i class="fa fa-exclamation-triangle mr-3"></i>
@@ -2186,7 +2363,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
   <div class="modal-body text-center px-4">
 
-    <!-- Summary -->
+   
     <div class="summary-wrapper">
       <div class="main-text">
         {{popupHeading}}
@@ -2200,21 +2377,21 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
       </div>
     </div>
 
-    <!-- Toggle -->
+    
     <div class="mb-3">
       <button class="toggle-btn-modern" (click)="showAllMonths = !showAllMonths">
         {{ showAllMonths ? 'Hide history ▲' : 'View history ▼' }}
       </button>
     </div>
 
-    <!-- Months Chips -->
+    
     <div *ngIf="showAllMonths" class="months-chip-container">
       <span class="month-chip" *ngFor="let m of defaulterMonths; let i = index" [class.active-chip]="i === 0">
         {{ getMonthName(m.month) }} {{ m.year }}
       </span>
     </div>
 
-    <!-- Warning -->
+    
     <div class="alert modern-alert mt-3">
             {{popupDescription}}
     </div>
@@ -2229,5 +2406,67 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
       <span *ngIf="isSavingConsent">Saving...</span>
 
     </button>
+======= -->
+  <div class="corporate-modal">
+    <!-- Header -->
+    <div class="modal-header-corp">
+      <div class="header-content">
+        <div class="alert-icon-wrap">
+          <i class="fa fa-exclamation-triangle"></i>
+        </div>
+        <div class="header-text">
+          <h2 class="corp-title">Attendance Policy Notification</h2>
+          <p class="corp-subtitle">{{popupHeading}}</p>
+        </div>
+      </div>
+      <button type="button" class="close-btn-corp" (click)="closeRepeatedOffendeNoticeModal()">&times;</button>
+    </div>
+
+    <div class="modal-body-corp">
+      <!-- Latest Status Section -->
+      <div class="latest-status-section" *ngIf="defaulterMonths?.length">
+        <span class="label-caps mb-2 d-block">Latest Default Month</span>
+        <div class="d-flex align-items-center gap-3 justify-content-between">
+          <span class="month-display">{{ getMonthName(defaulterMonths[0].month) }} {{ defaulterMonths[0].year }}</span>
+          <span class="badge-critical">Critical</span>
+        </div>
+      </div>
+
+      <!-- History Section -->
+      <div class="history-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="label-caps">Incident History</span>
+          <button class="btn-text-toggle" (click)="showAllMonths = !showAllMonths">
+            {{ showAllMonths ? 'Hide details' : 'View all months' }}
+            <i class="fa ml-1" [ngClass]="showAllMonths ? 'fa-angle-up' : 'fa-angle-down'"></i>
+          </button>
+        </div>
+
+        <!-- 3-Column Structured Grid -->
+        <div *ngIf="showAllMonths" class="corp-history-grid mb-4">
+          <div class="history-card" *ngFor="let m of defaulterMonths; let i = index" [class.active-item]="i === 0">
+            <span class="history-month">{{ getMonthName(m.month) }}</span>
+            <span class="history-year">{{ m.year }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Warning Banner -->
+      <div class="corp-warning-banner">
+        <i class="fa fa-info-circle warning-icon-corp"></i>
+        <p class="warning-text-corp">
+          {{popupDescription}}
+        </p>
+      </div>
+    </div>
+
+    <!-- Footer Action -->
+    <div class="modal-footer-corp">
+      <button class="btn-corp-primary w-100" [disabled]="isSavingConsent"
+        (click)="acknowledgeRepeatedOffendeNoticePolicy()">
+        <span *ngIf="!isSavingConsent">I Understand & Acknowledge</span>
+        <span *ngIf="isSavingConsent">Processing...</span>
+      </button>
+    </div>
   </div>
 </ng-template>

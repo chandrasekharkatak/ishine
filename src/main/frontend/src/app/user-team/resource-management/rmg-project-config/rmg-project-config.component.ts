@@ -1069,40 +1069,39 @@ closeProjectMilestoneDocumentsModal() {
         fileInput.value = '';
     }
 
-  onFileSelected(event: any,projectMilestone?:any): void {
+    onFileSelected(event: any, projectMilestone: any): void {
         const file: File = event.target.files[0];
         this.file = null;
         this.selectedFilePreviewUrl = null;
-        if (!file) {
-            return;
-        }
-
+    
+        if (!file) { return; }
+    
         if (file) {
-        const allowedTypes = ['application/pdf','image/jpeg','image/png','image/jpg'];
-            if (!allowedTypes.includes(file.type)) {
-                this.openAlertMessageModal('Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.');
-                event.target.value = '';
-                this.file = null;
-                return;
-            }
-        const maxSize = 25 * 1024 * 1024; // 25MB
-        if (file.size > maxSize) {
-          this.openAlertMessageModal( "File size should be less than 25MB!!");
-          return;
+          const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+          if (!allowedTypes.includes(file.type)) {
+            this.openAlertMessageModal("Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.");
+            event.target.value = '';
+            this.file = null;
+            return;
+          }
+    
+          const maxSize = 25 * 1024 * 1024; // 25MB
+          if (file.size > maxSize) {
+            this.openAlertMessageModal("File size should be less than 25MB!!");
+            return;
+          }
+          const uniquefile = projectMilestone.id + '_' + file.name
+          this.validateFileName(uniquefile, "status");
+          const reader = new FileReader();
+          reader.onload = () => {
+            this.selectedFilePreviewUrl = reader.result as string;
+          };
+          reader.readAsDataURL(file);
+          this.file = new File([file], uniquefile, { type: file.type });
+          this.selectedFile = this.file;
         }
-
-        const uniquefile =projectMilestone.id+'_'+file.name
-        this.validateFileName(uniquefile,"status");
-        const reader = new FileReader();
-            reader.onload = () => {
-                this.selectedFilePreviewUrl = reader.result as string;
-            };
-            reader.readAsDataURL(file);
-            this.file = file;
-            this.selectedFile = file;
-        }
-    }
-
+      }
+    
     previewSelectedFile(): void {
         if (!this.file || !this.selectedFilePreviewUrl) {
             this.openAlertMessageModal('Please select a file to preview!!');

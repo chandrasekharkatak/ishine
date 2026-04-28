@@ -3496,7 +3496,7 @@ cancelHidePopup() {
       'Manager': project.projectManagerName || 'NA',
       'Type': project.projectType || 'NA',
       'Client': project.clientName || 'NA',
-      'Apmosys RM': project.apmosysRM || 'NA',
+      'ApMoSys RM': project.apmosysRM || 'NA',
       'RM Email': project.apmosysRMEmail || 'NA',
       'Client RM': project.clientRM || 'NA',
       'Expected DSR': project.totalExpectedFillCount ?? 0,
@@ -3742,7 +3742,7 @@ getTileInfo(status: string): string[] {
       !this.validateField(this.currentColumnFilter.endDate, /^\d{4}-\d{2}-\d{2}$/, "Please fill a proper date for end date.") ||
       !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
-      !this.validateField(this.currentColumnFilter.apmosysRm, /^[A-Za-z][A-Za-z.\s]*$/, "Apmosys RM must only contain characters.") ||
+      !this.validateField(this.currentColumnFilter.apmosysRm, /^[A-Za-z][A-Za-z.\s]*$/, "ApMoSys RM must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.clientRm, /^[A-Za-z][A-Za-z.\s]*$/, "Client RM must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.totalExpectedFillCount, /^\d+$/, "Expected DSR must be a number.") ||
       !this.validateField(this.currentColumnFilter.totalClientSideApprovedCount, /^\d+$/, "Client Approved must be a number.") ||
@@ -3959,8 +3959,8 @@ onBillableTypeChangeManual() {
       'Project Type': project.projectType || 'NA',
       'Project Manager': project.projectManagerName || 'NA',
       'Client': project.clientName || 'NA',
-      'Apmosys RM': project.apmosysRM || 'NA',
-      'Apmosys RM Email': project.apmosysRMEmail || 'NA',
+      'ApMoSys RM': project.apmosysRM || 'NA',
+      'ApMoSys RM Email': project.apmosysRMEmail || 'NA',
       'Client RM': project.clientRM || 'NA',
       'Expected Fill Count': project.totalExpectedFillCount ?? 0,
       // 'iShine Filled Count': project.totalIshineFilledCount ?? 0,
