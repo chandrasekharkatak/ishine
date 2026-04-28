@@ -82,6 +82,7 @@ import com.apmosys.employeeportal.dto.CertificateDTO;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
 import com.apmosys.employeeportal.dto.DefaultProjectEmployeeConfig;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
+import com.apmosys.employeeportal.dto.DefaulterResponseDTO;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
@@ -127,6 +128,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
 import com.apmosys.employeeportal.model.EmployeeCertificates;
+import com.apmosys.employeeportal.model.EmployeeDefaulterConsent;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeNotificationConsent;
@@ -142,6 +144,7 @@ import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.NewsletterReadResponse;
 import com.apmosys.employeeportal.model.Notification;
 import com.apmosys.employeeportal.model.PolicyReadResponse;
+import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.PredefinedSkills;
 import com.apmosys.employeeportal.model.PreviousEmployment;
 import com.apmosys.employeeportal.model.Proficiency;
@@ -163,6 +166,7 @@ import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificatesRepository;
+import com.apmosys.employeeportal.repository.EmployeeDefaulterConsentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeNotificationConsentRepository;
@@ -185,6 +189,7 @@ import com.apmosys.employeeportal.repository.NotificationRepository;
 import com.apmosys.employeeportal.repository.PIPRepository;
 import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
 import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
+import com.apmosys.employeeportal.repository.PortalConfigRepository;
 import com.apmosys.employeeportal.repository.PredefinedSkillsRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.repository.ProficiencyRepository;
@@ -237,6 +242,9 @@ public class EmployeeService {
 
 	@Autowired
 	EmployeeRepository employeeRepository;
+
+    @Autowired
+    EmployeeDefaulterConsentRepository employeeDefaulterConsentRepository;
 	
 	@Autowired
 	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
@@ -300,7 +308,9 @@ public class EmployeeService {
 	
 	@Autowired
 	PredefinedSkillsRepository predefinedSkillsRepository;
-	
+
+    @Autowired
+    PortalConfigRepository portalConfigRepository;
 
 	@Value("${default.password}")
 	String defaultPaswword;
@@ -8808,7 +8818,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
                                         ? convertToLocalDateTime(obj[14])
                                         : null
                         );
-
+                        
+                        dto.setDepartment(obj[15] != null ? obj[15].toString() : null);                        
                         teamTimesheetDetailsResponseList.add(dto);
                     }
 
@@ -12692,5 +12703,158 @@ public ServiceResponse getEmployeeBillableType(Long empId){
 	return response;
 }
 
+    public ServiceResponse getDefaulterStatus(Long empId) {
+
+        ServiceResponse response = new ServiceResponse();
+
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/getDefaulterStatus");
+        apiLogInfo.setLogLevel("INFO");
+
+        try {
+
+            //  Validation
+            if (empId == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Employee ID is missing");
+
+                apiLogInfo.setApiResponse("Employee ID is missing");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                return response;
+            }
+            List<PortalConfig> configList = portalConfigRepository.findAll();
+
+                    Map<String, String> configMap = configList.stream()
+                    .collect(Collectors.toMap(
+                            PortalConfig::getConfigName,
+                            pc -> pc.getConfigValue() != null ? pc.getConfigValue() : ""));
+
+                    
+                    String heading = configMap.get("DEF_POPUP_HEADING");
+                    String description = configMap.get("DEF_POPUP_DESCRIPTION");
+
+                    int cutoffYear = configMap.get("DEF_CUTOFF_YEAR") != null
+                            ? Integer.parseInt(configMap.get("DEF_CUTOFF_YEAR"))
+                            : 2025;
+
+                    int cutoffMonth = configMap.get("DEF_CUTOFF_MONTH") != null
+                            ? Integer.parseInt(configMap.get("DEF_CUTOFF_MONTH"))
+                            : 10;
+
+            //  repository  Call
+            List<Object[]> result = employeeDefaulterConsentRepository.findDefaulterMonths(empId, cutoffYear,
+                    cutoffMonth);
+
+            if (result != null && !result.isEmpty()) {
+
+                List<Map<String, Integer>> months = new ArrayList<>();
+
+                for (Object[] row : result) {
+                    Map<String, Integer> m = new HashMap<>();
+                    m.put("year", ((Number) row[0]).intValue());
+                    m.put("month", ((Number) row[1]).intValue());
+                    months.add(m);
+                }
+
+                DefaulterResponseDTO data = new DefaulterResponseDTO(
+                        true,
+                        months,
+                        heading,
+                        description
+                );
+
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(data);
+
+                apiLogInfo.setApiResponse(months.size() + " month(s) found.");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+            } else {
+
+                Map<String, Object> data = new HashMap<>();
+                data.put("isDefaulter", false);
+                data.put("months", new ArrayList<>());
+
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(data);
+
+                apiLogInfo.setApiResponse("No defaulter record found");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Something Went Wrong.");
+            response.setServiceError(e.getMessage());
+
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+        }
+
+        apiLogInfo.setApiRequest("empId: " + empId);
+        logService.logMyInfo(httpRequest, apiLogInfo);
+
+        return response;
+    }
+
+    public ServiceResponse saveDefaulterConsent(Long empId) {
+
+        ServiceResponse response = new ServiceResponse();
+
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/saveDefaulterConsent");
+        apiLogInfo.setLogLevel("INFO");
+
+        try {
+
+            if (empId == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Employee ID is missing");
+
+                apiLogInfo.setApiResponse("Employee ID is missing");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                return response;
+            }
+
+            Optional<EmployeeDefaulterConsent> existingOpt = employeeDefaulterConsentRepository.findByEmpId(empId);
+
+            EmployeeDefaulterConsent entity;
+
+            if (existingOpt.isPresent()) {
+                employeeDefaulterConsentRepository.updateConsent(empId);
+            } else {
+
+                entity = new EmployeeDefaulterConsent();
+                entity.setEmpId(empId);
+                entity.setConsent(true); // first time consent
+
+                employeeDefaulterConsentRepository.save(entity);
+            }
+
+
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse("Consent saved successfully");
+
+            apiLogInfo.setApiResponse("Consent saved for empId: " + empId);
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Something went wrong.");
+            response.setServiceError(e.getMessage());
+
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+        }
+
+        apiLogInfo.setApiRequest("empId: " + empId);
+        logService.logMyInfo(httpRequest, apiLogInfo);
+
+        return response;
+    }
 }
 	

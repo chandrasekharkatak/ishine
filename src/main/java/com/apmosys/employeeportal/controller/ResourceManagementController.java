@@ -34,6 +34,9 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
+import com.apmosys.employeeportal.dto.ProjectViewResolveBulkItemDTO;
+import com.apmosys.employeeportal.dto.ProjectViewResolveBulkRequestDTO;
+import com.apmosys.employeeportal.dto.ProjectViewResolveResponseDTO;
 import com.apmosys.employeeportal.dto.RMGDashboardProjectRequest;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
@@ -45,9 +48,14 @@ import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
 import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
 import com.apmosys.employeeportal.service.CronJobService;
 import com.apmosys.employeeportal.service.PoSyncOrchestratorService;
+import com.apmosys.employeeportal.service.ProjectHierarchyResolverService;
 import com.apmosys.employeeportal.service.ResourceManagementService;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api")
@@ -58,6 +66,9 @@ public class ResourceManagementController {
 
 	@Autowired
 	PoSyncOrchestratorService poSyncOrchestratorService;
+	
+	@Autowired
+	ProjectHierarchyResolverService projectHierarchyResolverService;
 
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
@@ -198,6 +209,40 @@ public class ResourceManagementController {
 	public ServiceResponse getTeamInfo(@RequestParam Integer projectId) {
 		
 		ServiceResponse response = resourceManagementService.getTeamInfo(projectId);
+		return response;
+	}
+	
+	@GetMapping("/resolveProjectViewId")
+	public ServiceResponse resolveProjectViewId(@RequestParam String projectViewId) {
+		ServiceResponse response = new ServiceResponse();
+		String resolved = projectHierarchyResolverService.resolveProjectViewId(projectViewId);
+		String resolvedName = projectHierarchyResolverService.resolveProjectNameFromProjectViewId(projectViewId);
+		ProjectViewResolveResponseDTO dto = new ProjectViewResolveResponseDTO(projectViewId, resolved,
+				resolved != null && !resolved.equals(projectViewId), resolvedName);
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(dto);
+		return response;
+	}
+	
+	@PostMapping("/resolveProjectViewIds")
+	public ServiceResponse resolveProjectViewIds(@RequestBody ProjectViewResolveBulkRequestDTO request) {
+		ServiceResponse response = new ServiceResponse();
+		Map<String, ProjectViewResolveBulkItemDTO> out = new HashMap<>();
+		
+		if (request != null && request.getProjectViewIds() != null) {
+			for (String original : request.getProjectViewIds()) {
+				if (original == null || original.trim().isEmpty()) {
+					continue;
+				}
+				String resolved = projectHierarchyResolverService.resolveProjectViewId(original);
+				boolean redirected = resolved != null && !Objects.equals(resolved, original);
+				String resolvedName = projectHierarchyResolverService.resolveProjectNameFromProjectViewId(original);
+				out.put(original, new ProjectViewResolveBulkItemDTO(resolved, redirected, resolvedName));
+			}
+		}
+		
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(out);
 		return response;
 	}
 	@JobRoleAccess(featureIds = {3})

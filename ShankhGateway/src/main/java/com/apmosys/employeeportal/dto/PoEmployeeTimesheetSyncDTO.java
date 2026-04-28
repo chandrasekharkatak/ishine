@@ -19,5 +19,6 @@ public class PoEmployeeTimesheetSyncDTO {
     private Long lastTimesheetFilledPoProjectId; 
     private String lastTimesheetFilledProjectName; 
     private Boolean isInternal;
+    private String employmentId;
     
 }

@@ -2388,6 +2388,7 @@ public class ProjectService {
 						// empDTO.setLastTimesheetFilledPoProjectId(parseLong(object[11]));
 						empDTO.setLastTimesheetFilledProjectName(toStr(object[11]));
 						empDTO.setIsInternal(object[11] != null);
+						empDTO.setEmploymentId(toStr(object[12]));
 						teamDTO.getEmployeesMapped().add(empDTO);
 					}
 				}
@@ -3149,23 +3150,24 @@ public class ProjectService {
 		apiLogInfo.setApiUrl("/api/getAllProjectFCLineItemListByProjectId");
 		apiLogInfo.setLogLevel("INFO");
 		try {
-			if (projectDto == null || projectDto.getPoProjectId() == null) {
+			if (projectDto == null || projectDto.getProjectId() == null) {
 				serviceResponse.setServiceResponse("Project Id cannot be null!");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				apiLogInfo.setApiResponse("Project Id cannot be null!");
 				return serviceResponse;
 			} else {
-				Project project = projectRepository.findByProjectId(projectDto.getPoProjectId().intValue());
+				Project project = projectRepository.findByProjectId(projectDto.getProjectId().intValue());
 				if (project == null) {
 					apiLogInfo.setApiResponse("Project not found!");
 					serviceResponse.setServiceResponse("Project not found!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					return serviceResponse;
-				} else {
+				}
+				else {
 					ServiceResponse serviceResponseTemp = poPortalAPIService
-							.callGetFCLineItemDetails(projectDto.getPoProjectId());
+							.callGetFCLineItemDetails(project.getPoProjectId());
 					if (!serviceResponseTemp.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
 						apiLogInfo.setApiResponse(serviceResponseTemp.getServiceResponse().toString());
 						serviceResponse.setServiceResponse(serviceResponseTemp.getServiceResponse());
@@ -3173,8 +3175,7 @@ public class ProjectService {
 						serviceResponse.setServiceStatus(serviceResponseTemp.getServiceStatus());
 						return serviceResponse;
 					}
-					List<FCLineItemDTO> fCLineItemDTO = (List<FCLineItemDTO>) serviceResponseTemp.getServiceResponse();
-
+					List<FCLineItemDTO> fCLineItemDTO = (List<FCLineItemDTO>) serviceResponseTemp.getServiceResponse();					
 					List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = mapLineItemToMilestone(fCLineItemDTO);
 					if (fcProjectMilestoneDTOList.isEmpty()) {
 						serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);

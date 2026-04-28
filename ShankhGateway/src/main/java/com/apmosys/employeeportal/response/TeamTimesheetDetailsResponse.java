@@ -102,7 +102,7 @@ public class TeamTimesheetDetailsResponse {
 		this.projectManagerName = projectManagerName;
 		this.isEmployeeActive = isEmployeeActive;
 		this.poId = poId;
-		this.employementIdStr = employmentId != null ? getPrefix(isConsultant, isApprenticeship, isApmosysProduct)+ "-" + employmentId: null;		
+		this.employementIdStr = employementId != null ? getPrefix(isConsultant, isApprenticeship, isApmosysProduct)+ "-" + employementId: null;		
 		}
 
 	

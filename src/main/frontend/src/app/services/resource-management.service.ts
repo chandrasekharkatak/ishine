@@ -309,5 +309,8 @@ completeProjectReminder(poProjectId: number) {
   return this.http.post(`${this.baseUrl}api/completeProjectReminder?poProjectId=${poProjectId}`,{} );
 }
 
+  resolveProjectViewIds(projectViewIds: string[]) {
+    return this.http.post(`${this.baseUrl}` + `api/resolveProjectViewIds`, { projectViewIds });
+  }
 }
 

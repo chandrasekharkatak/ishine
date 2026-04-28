@@ -285,6 +285,6 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
     		+ "AND etm.poId IN :poIds\n"
     		+ "GROUP BY etm.poId")
     List<RescCountOfPo> getResourceCounts(@Param("poIds") List<Long> poIds);
-
+    
     Optional<ProjectPoDetails> findByPoProjectId(Long poProjectId);
 }

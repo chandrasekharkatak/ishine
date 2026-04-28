@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,6 +66,7 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectEmpInfoDTO;
 import com.apmosys.employeeportal.dto.ProjectManagerEmailDTO;
 import com.apmosys.employeeportal.dto.RmgMemberEndDateDto;
+import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.TNMConflictDTO;
@@ -3515,7 +3517,7 @@ public class TeamsService {
 				} else {
 					obj.setOtherActiveProjectIds(List.of());
 				}
-				obj.setDisplayRequirement(getDisplayRequirement(obj));
+//				obj.setDisplayRequirement(getDisplayRequirement(obj));
 			}
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -3534,16 +3536,31 @@ public class TeamsService {
 		return response;
 	}
 
-	private String getDisplayRequirement(RmgTeamMemberDto obj) {
+	private String getDisplayRequirement(RmgResourceRequirementDto obj) {
 		StringBuilder sb = new StringBuilder();
 		appendIfNotNull(sb, "Role", obj.getRole());
 		appendIfNotNull(sb, "Experience", obj.getExperience());
 		appendIfNotNull(sb, "Department", obj.getDepartment());
+		appendIfNotNull(sb, "Role Start Date", obj.getRequirementStartDate());
+		appendIfNotNull(sb, "Role End Date", obj.getRequirementEndDate());
 		return sb.toString();
 	}
 
 	private void appendIfNotNull(StringBuilder sb, String label, Object value) {
 		if (value != null) {
+			if (("Role Start Date".equals(label) || "Role End Date".equals(label))
+					&& value instanceof LocalDateTime) {
+				try {
+					DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+					value = ((LocalDateTime) value).format(DATE_FORMATTER);
+					sb.append(" | ");
+					sb.append(label).append(" : ").append(value);
+					return;
+				} catch (Exception e) {
+					log.error("Error while appending the " + label);
+					return;
+				}
+			}
 			if (sb.length() > 0) {
 				sb.append(" | ");
 			}
@@ -4211,7 +4228,7 @@ public class TeamsService {
 				} else {
 					obj.setOtherActiveProjectIds(List.of());
 				}
-				obj.setDisplayRequirement(getDisplayRequirement(obj));
+//				obj.setDisplayRequirement(getDisplayRequirement(obj));
 			}
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(teamMemberDetailsList);
@@ -4585,6 +4602,11 @@ public class TeamsService {
 	        return;
 	    }
 		
+		Optional<ProjectPoDetails> currentPo = projectPoDetailsRepository.findByPoIdAndProjectIdAndActiveTrue(renewedPoId, projectId)	;	
+		
+		LocalDateTime previousPoEndDate = previousPo.getPoEndDate();
+		LocalDateTime currentPoStartDate = currentPo.get().getPoStartDate();
+		
 		Optional<Project> project = projectRepository.findById(projectId);
 		String projectType = project.get().getPoProjectType();
 		Long previousPoId = previousPo.getPoId();
@@ -4606,11 +4628,11 @@ public class TeamsService {
 					newRow.setCreatedBy(renewedBy);
 //					newRow.setUpdatedBy(renewedBy);
 					newRow.setUpdatedOn(LocalDateTime.now());
-					newRow.setStartDate(LocalDateTime.now());
+					newRow.setStartDate(currentPoStartDate);
 					newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 					employeeTeamMapRepository.save(newRow);
 					oldRow.setActive(0L);
-					oldRow.setEndDate(LocalDateTime.now());
+					oldRow.setEndDate(previousPoEndDate);
 					oldRow.setUpdatedBy(renewedBy);
 					oldRow.setUpdatedOn(LocalDateTime.now());
 					employeeTeamMapRepository.save(oldRow);
@@ -4628,11 +4650,11 @@ public class TeamsService {
 	            newRow.setCreatedBy(renewedBy);
 //	            newRow.setUpdatedBy(renewedBy);
 	            newRow.setUpdatedOn(LocalDateTime.now());
-	            newRow.setStartDate(LocalDateTime.now());
+	            newRow.setStartDate(currentPoStartDate);
 	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 	            employeeTeamMapRepository.save(newRow);
 	            oldRow.setActive(0L);
-	            oldRow.setEndDate(LocalDateTime.now());
+	            oldRow.setEndDate(previousPoEndDate);
 	            oldRow.setUpdatedBy(renewedBy);
 	            oldRow.setUpdatedOn(LocalDateTime.now());
 
@@ -4649,14 +4671,19 @@ public class TeamsService {
 	        Long updatedBy) {
 
 	    List<AutoMigrationDTO> result = new ArrayList<>();
+	    AutoMigrationDTO dto = new AutoMigrationDTO();
 
 	    ProjectPoDetails previousPo = projectPoDetailsRepository
 	            .findByNextPOAndProjectIdAndActiveTrue(currentPoId, projectId)
 	            .orElse(null);
 	    
-	    ProjectPoDetails currentPo =
-	            projectPoDetailsRepository.findByPoId(currentPoId);
+	    
+	    Optional<ProjectPoDetails> currentPo =
+	            projectPoDetailsRepository.findByPoIdAndProjectIdAndActiveTrue(currentPoId, projectId);
 
+	    
+	    LocalDateTime previousPoEndDate = previousPo.getPoEndDate();
+		LocalDateTime currentPoStartDate = currentPo.get().getPoStartDate();
 	    if (previousPo == null) return result;
 
 	  
@@ -4664,96 +4691,147 @@ public class TeamsService {
 	        !previousPo.getPoEndDate().isBefore(LocalDateTime.now())) {
 	        return result;
 	    }
+	    
+	   
 
-	    Long previousPoId = previousPo.getPoId();
+	   
+	    Optional<Project> projectOpt = projectRepository.findById(projectId);
+	    String projectType = projectOpt.get().getPoProjectType();
+         Long previousPoId = previousPo.getPoId();
 	    
 
-	    List<Long> oldRoles =
-	            poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
+         if ("TNM".equalsIgnoreCase(projectType)) {
 
-	    List<Long> newRoles =
-	            poRequirementMappingRepository.findRoleIdsByPoId(currentPoId);
+             List<Long> oldRoles =
+                     poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
 
-	    Set<Long> matchingRoles = oldRoles.stream()
-	            .filter(newRoles::contains)
-	            .collect(Collectors.toSet());
+             List<Long> newRoles =
+                     poRequirementMappingRepository.findRoleIdsByPoId(currentPoId);
 
-	    for (Long roleId : matchingRoles) {
+             Set<Long> matchingRoles = oldRoles.stream()
+                     .filter(newRoles::contains)
+                     .collect(Collectors.toSet());
 
-	        List<EmployeeTeamMap> employees =
-	                employeeTeamMapRepository
-	                        .findActiveEmployeesForRole(previousPoId, roleId);
+             for (Long roleId : matchingRoles) {
 
-	        if (employees.isEmpty()) continue;
+                 List<EmployeeTeamMap> employees =
+                         employeeTeamMapRepository
+                                 .findActiveEmployeesForRole(previousPoId, roleId);
 
-	        RoleDetails roleDetails =
-	                roleDetailsRepository.findById(roleId).orElse(null);
+                 if (employees.isEmpty()) continue;
 
-	        AutoMigrationDTO dto = new AutoMigrationDTO();
-	        dto.setRoleId(roleId);
-	        dto.setRoleName(roleDetails != null ? roleDetails.getRole() : "Role-" + roleId);
-	        
-	        dto.setPreviousPoNumber(previousPo.getPoNo());
-	        dto.setCurrentPoNumber(currentPo.getPoNo());
+                 RoleDetails roleDetails =
+                         roleDetailsRepository.findById(roleId).orElse(null);
 
-	        List<EmployeeImpactDTO> migrated = new ArrayList<>();
+                 dto.setRoleId(roleId);
+                 dto.setRoleName(roleDetails != null ? roleDetails.getRole() : "Role-" + roleId);
+                 dto.setPreviousPoNumber(previousPo.getPoNo());
+                 dto.setCurrentPoNumber(currentPo.get().getPoNo());
 
-	        for (EmployeeTeamMap oldRow : employees) {
+                 List<EmployeeImpactDTO> migrated = new ArrayList<>();
 
-//	            boolean exists =
-//	                    employeeTeamMapRepository.existsActiveEmployeeInPo(
-//	                            oldRow.getEmpId(),
-//	                            currentPoId);
-//
-//	            if (exists) continue;
+                 for (EmployeeTeamMap oldRow : employees) {
 
-	       
-	            EmployeeTeamMap newRow = new EmployeeTeamMap();
-	            BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+                     EmployeeTeamMap newRow = new EmployeeTeamMap();
+                     BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
 
-	            newRow.setPoId(currentPoId);
-	            newRow.setStartDate(LocalDateTime.now());
-	            newRow.setEndDate(null);
-	            newRow.setCreatedBy(updatedBy);
-//	            newRow.setUpdatedBy(updatedBy);
-	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
-	            newRow.setUpdatedOn(LocalDateTime.now());
+                     newRow.setPoId(currentPoId);
+                     newRow.setStartDate(currentPoStartDate);
+                     newRow.setEndDate(null);
+                     newRow.setCreatedBy(updatedBy);
+                     newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+                     newRow.setUpdatedOn(LocalDateTime.now());
 
-	            employeeTeamMapRepository.save(newRow);
+                     employeeTeamMapRepository.save(newRow);
 
-	          
-	            oldRow.setActive(0L);
-	            oldRow.setEndDate(LocalDateTime.now());
-	            oldRow.setUpdatedBy(updatedBy);
-	            oldRow.setUpdatedOn(LocalDateTime.now());
+                     oldRow.setActive(0L);
+                     oldRow.setEndDate(previousPoEndDate);
+                     oldRow.setUpdatedBy(updatedBy);
+                     oldRow.setUpdatedOn(LocalDateTime.now());
 
-	            employeeTeamMapRepository.save(oldRow);
+                     employeeTeamMapRepository.save(oldRow);
 
-	         
-	            Employee empEntity = employeeRepository
-	                    .findById(oldRow.getEmpId())
-	                    .orElse(null);
+                     Employee empEntity = employeeRepository
+                             .findById(oldRow.getEmpId())
+                             .orElse(null);
 
-	            Team teamEntity = teamRepository
-	                    .findById(oldRow.getTeamId())
-	                    .orElse(null);
+                     Team teamEntity = teamRepository
+                             .findById(oldRow.getTeamId())
+                             .orElse(null);
 
-	            EmployeeImpactDTO emp = new EmployeeImpactDTO();
+                     EmployeeImpactDTO emp = new EmployeeImpactDTO();
+                     emp.setEmployeeName(empEntity != null ? empEntity.getName() : "Unknown Employee");
+                     emp.setTeamName(teamEntity != null ? teamEntity.getTeamName() : "Unknown Team");
 
-	            emp.setEmployeeName(empEntity != null ? empEntity.getName() : "Unknown Employee");
-	            emp.setTeamName(teamEntity.getTeamId() != null ? teamEntity.getTeamName() : "Unknown Team");
+                     migrated.add(emp);
+                 }
 
-	            migrated.add(emp);
-	        }
+                 if (!migrated.isEmpty()) {
+                     dto.setEmployees(migrated);
+                     result.add(dto);
+                 }
+             }
+         }
 
-	        if (!migrated.isEmpty()) {
-	            dto.setEmployees(migrated);
-	            result.add(dto);
-	        }
-	    }
+         // ================= MONITORING =================
+         else if ("Monitoring".equalsIgnoreCase(projectType)) {
 
-	    return result;
-	}
+             List<EmployeeTeamMap> employees =
+                     employeeTeamMapRepository.findActiveEmployeesByPoId(previousPoId);
+
+             if (!employees.isEmpty()) {
+
+                 dto.setPreviousPoNumber(previousPo.getPoNo());
+                 dto.setCurrentPoNumber(currentPo.get().getPoNo());
+
+                 List<EmployeeImpactDTO> migrated = new ArrayList<>();
+
+                 for (EmployeeTeamMap oldRow : employees) {
+
+                     EmployeeTeamMap newRow = new EmployeeTeamMap();
+                     BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+
+                     newRow.setPoId(currentPoId);
+                     newRow.setStartDate(currentPoStartDate);
+                     newRow.setEndDate(null);
+                     newRow.setCreatedBy(updatedBy);
+                     newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+                     newRow.setUpdatedOn(LocalDateTime.now());
+
+                     employeeTeamMapRepository.save(newRow);
+
+                     oldRow.setActive(0L);
+                     oldRow.setEndDate(previousPoEndDate);
+                     oldRow.setUpdatedBy(updatedBy);
+                     oldRow.setUpdatedOn(LocalDateTime.now());
+
+                     employeeTeamMapRepository.save(oldRow);
+
+                     Employee empEntity = employeeRepository
+                             .findById(oldRow.getEmpId())
+                             .orElse(null);
+
+                     Team teamEntity = teamRepository
+                             .findById(oldRow.getTeamId())
+                             .orElse(null);
+
+                     EmployeeImpactDTO emp = new EmployeeImpactDTO();
+                     emp.setEmployeeName(empEntity != null ? empEntity.getName() : "Unknown Employee");
+                     emp.setTeamName(teamEntity != null ? teamEntity.getTeamName() : "Unknown Team");
+
+                     migrated.add(emp);
+                 }
+
+                 if (!migrated.isEmpty()) {
+                     dto.setEmployees(migrated);
+                     result.add(dto);
+                 }
+             }
+         }
+
+         return result;
+     }
+
 
 	/*
      * -------------------------------------------------------
@@ -5491,7 +5569,7 @@ public class TeamsService {
 				} else {
 					obj.setOtherActiveProjectIds(List.of());
 				}
-				obj.setDisplayRequirement(getDisplayRequirement(obj));
+//				obj.setDisplayRequirement(getDisplayRequirement(obj));
 			}
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(teamMemberDetailsList);
@@ -5608,7 +5686,8 @@ public List<AutoMigrationDTO> migrateResourcesAfterRenewalDTO(Integer projectId,
 		
 		Optional<ProjectPoDetails> currentPo = projectPoDetailsRepository.findByPoIdAndProjectIdAndActiveTrue(renewedPoId, projectId)	;	
 				
-				
+		LocalDateTime previousPoEndDate = previousPo.getPoEndDate();
+		LocalDateTime currentPoStartDate = currentPo.get().getPoStartDate();		
 				
 		if (previousPo == null) {
 			return result;
@@ -5649,11 +5728,11 @@ public List<AutoMigrationDTO> migrateResourcesAfterRenewalDTO(Integer projectId,
 					newRow.setCreatedBy(renewedBy);
 //					newRow.setUpdatedBy(renewedBy);
 					newRow.setUpdatedOn(LocalDateTime.now());
-					newRow.setStartDate(LocalDateTime.now());
+					newRow.setStartDate(currentPoStartDate);
 					newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 					employeeTeamMapRepository.save(newRow);
 					oldRow.setActive(0L);
-					oldRow.setEndDate(LocalDateTime.now());
+					oldRow.setEndDate(previousPoEndDate);
 					oldRow.setUpdatedBy(renewedBy);
 					oldRow.setUpdatedOn(LocalDateTime.now());
 					employeeTeamMapRepository.save(oldRow);
@@ -5675,11 +5754,11 @@ public List<AutoMigrationDTO> migrateResourcesAfterRenewalDTO(Integer projectId,
 	            newRow.setCreatedBy(renewedBy);
 //	            newRow.setUpdatedBy(renewedBy);
 	            newRow.setUpdatedOn(LocalDateTime.now());
-	            newRow.setStartDate(LocalDateTime.now());
+	            newRow.setStartDate(currentPoStartDate);
 	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 	            employeeTeamMapRepository.save(newRow);
 	            oldRow.setActive(0L);
-	            oldRow.setEndDate(LocalDateTime.now());
+	            oldRow.setEndDate(previousPoEndDate);
 	            oldRow.setUpdatedBy(renewedBy);
 	            oldRow.setUpdatedOn(LocalDateTime.now());
 

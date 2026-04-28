@@ -933,6 +933,19 @@ public class EmployeeController {
 	//     return employeeService.getEmployeeBillableType(empId);
 	// }
 	
-	
+	@Encrypted
+    @GetMapping("/getDefaulterStatus")
+    public ServiceResponse getDefaulterStatus(@RequestParam("empId") Long empId) {
+
+        ServiceResponse response = employeeService.getDefaulterStatus(empId);
+
+        return response;
+    }
+    
+    @Encrypted
+    @PostMapping("/saveDefaulterConsent")
+    public ServiceResponse saveDefaulterConsent(@RequestBody Map<String, Long> payload) {
+        return employeeService.saveDefaulterConsent(payload.get("empId"));
+    }
 
 }

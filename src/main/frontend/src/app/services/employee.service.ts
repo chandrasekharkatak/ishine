@@ -12,11 +12,11 @@ import { Certificate } from '../models/certificate';
 })
 export class EmployeeService {
 
-  
+
   private baseUrl:any = environment.baseUrl;
   private employeeSubject = new BehaviorSubject<Employee | null>(null);
   employee$: Observable<Employee | null> = this.employeeSubject.asObservable();
-  
+
   constructor(private http: HttpClient) { }
 
   setEmployee(employee: Employee) {
@@ -47,7 +47,7 @@ export class EmployeeService {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }
 
-  
+
   getAllEmployeesFor360View() {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesFor360View`);
   }
@@ -65,7 +65,7 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}api/getEmployeeAppreciationByEmpId`, requestPayload, {
       headers: { 'Content-Type': 'application/json' },
     });
-  } 
+  }
   getDateRangesForDropdown(currentEmp:any){
     return this.http.post(`${this.baseUrl}` + `api/getDateRangesForDropdown`,currentEmp,{
       headers: { 'Content-Type': 'application/json' },
@@ -80,12 +80,12 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/updateEmployeeProfileByEmpId`, employeeObj);
   }
 
-  getAllEmployeesByRole(employeeObj: Employee) {	
-    return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesByRole`, employeeObj);	
+  getAllEmployeesByRole(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesByRole`, employeeObj);
   }
   //added for manager role
-  getAllEmployeesByRoleForManager(employeeObj: Partial<Employee>) {	
-  return this.http.post(`${this.baseUrl}api/getAllEmployeesByRole`, employeeObj);	
+  getAllEmployeesByRoleForManager(employeeObj: Partial<Employee>) {
+  return this.http.post(`${this.baseUrl}api/getAllEmployeesByRole`, employeeObj);
 }
 
 
@@ -141,7 +141,7 @@ export class EmployeeService {
   updateTimesheetLockCheck(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/updateTimesheetLockCheck`, employeeObj);
   }
-  
+
   getEmployeeBasicInfo(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeBasicInfo`, employeeObj);
   }
@@ -218,7 +218,7 @@ export class EmployeeService {
 
    checkEmployeeOldPassword(user: User){
     return this.http.post(`${this.baseUrl}` + `api/checkEmployeeOldPassword`, user);
-   }	
+   }
 
    revokeAccount(employeeObj:Employee){
     return this.http.post(`${this.baseUrl}` + `api/revokeAccount` , employeeObj);
@@ -248,7 +248,7 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}`+`api/getProjectsByDepartmentName`,department);
    }
 
-  //  getTeamByProjectName 
+  //  getTeamByProjectName
   getTeamByProjectName(project : any){
     return this.http.post(`${this.baseUrl}`+`api/getTeamByProjectName/`+project,project);
    }
@@ -424,7 +424,7 @@ updateDefaultProject(newemployeeObj : any){
  employeesMappedProjectsDepartmentWise(employeeReport:any){
   return this.http.post(`${this.baseUrl}` + `api/employeesMappedProjectsDepartmentWise`,employeeReport);
  }
- 
+
  getAllPieGraphListSummary(params: any){
   return this.http.post(`${this.baseUrl}`+`api/getAllPieGraphListSummary`, params)
 }
@@ -463,16 +463,16 @@ fetchInactivePOCounts(employeeReport:any){
   fetchactivePOListOfEmployee(employeeReport:any){
   return this.http.post(`${this.baseUrl}` + `api/fetchActivePOListOfEmployee`,employeeReport);
  }
- 
+
    revokeConfirmation(payload:any): Observable<any> {
-  
+
     return this.http.put(`${this.baseUrl}api/revoke`, payload);
   }
 
 //  getEmployeeByNameAndEmpidForTimesheet(employeeDetails:any){
 //   return this.http.post(`${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`,employeeDetails);
 //  }
- 
+
   getProbationReminders(payload:any): Observable<any> {
     return this.http.post(`${this.baseUrl}api/probation-reminders`,payload);
 }
@@ -540,21 +540,21 @@ duplicateCertificate(certificateobj:any){
 
   calculateTotalExperience(totalExperience:any,dateOfJoining:any) {
       const previousExp = Number(totalExperience ?? 0);
-      
+
       let apmosysExp = 0;
       if (dateOfJoining) {
         const doj = new Date(dateOfJoining);
         const today = new Date();
-      
+
         const diff = today.getTime() - doj.getTime();
-        apmosysExp = diff / (1000 * 60 * 60 * 24 * 365.25); 
+        apmosysExp = diff / (1000 * 60 * 60 * 24 * 365.25);
       }
-    
+
       // Total = previous exp + apmosys exp
       let totalExp = previousExp + apmosysExp;
       let totalCurrentExperience = Number(totalExp.toFixed(1));
       return totalCurrentExperience;
-    
+
     }
 
   getPendingTimesheetProjects(empId: number, relievingDate: string | null) {
@@ -583,4 +583,14 @@ getEmployeeBillableType(empId:number){
   return this.http.post(`${this.baseUrl}`+`api/getEmployeeBillableType`,empId);
 }
 
+  getDefaulterStatus(empId: number) {
+    return this.http.get(`${this.baseUrl}` + `api/getDefaulterStatus?empId=${empId}`);
+  }
+
+  saveDefaulterConsent(empId: number) {
+    return this.http.post(
+      `${this.baseUrl}` + `api/saveDefaulterConsent`,
+      {empId}
+    );
+  }
 }

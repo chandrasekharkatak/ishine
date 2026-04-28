@@ -1136,7 +1136,7 @@ public class TeamMembersService {
 				LocalDate today = LocalDate.now();
 				LocalDate startDate = empTeamMapping.getStartDate().toLocalDate();
 				LocalDate endDate = empTeamMapping.getEndDate() != null ? empTeamMapping.getEndDate().toLocalDate()
-						: null;
+						: LocalDate.now();
 
 				if (endDate != null && startDate.isAfter(endDate)) {
 					throw new IllegalArgumentException("End date cannot be less than Start date: " + startDate);
@@ -1516,7 +1516,7 @@ public class TeamMembersService {
 				response.setServiceResponse("Employee Team Start Date cannot be null!!");
 				return response;
 			}
-			if (employeeProjectTimesheetDto.getEmployeeTeamEndDate() == null) {
+			if (!employeeProjectTimesheetDto.isRemovePermanently() && employeeProjectTimesheetDto.getEmployeeTeamEndDate() == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Team End Date cannot be null!!");
 				return response;
@@ -1534,6 +1534,11 @@ public class TeamMembersService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Team Mapping not found!!");
 				return response;
+			}
+
+			if (employeeProjectTimesheetDto.isRemovePermanently()
+					&& employeeProjectTimesheetDto.getEmployeeTeamEndDate() == null) {
+				employeeProjectTimesheetDto.setEmployeeTeamEndDate(LocalDate.now());
 			}
 
 			employeeTeamMap.setStartDate(employeeProjectTimesheetDto.getEmployeeTeamStartDate().atStartOfDay());

@@ -162,10 +162,8 @@ rejectedCount = 0;
   isExtensionEnabled : boolean = false;
 
   documentName: string = '';
-    documentType: string = '';
-    documentContent: File | null = null;
-
-
+  documentType: string = '';
+  documentContent: File | null = null;
 
   fieldTextType: boolean = false;
   fieldTextTypePassword: boolean = false;
@@ -301,6 +299,12 @@ showOtherRemarks = false;
     "Ensure all entries are approved for the month to close successfully.",
   ]
 
+
+  @ViewChild('attendancePolicyModal') attendancePolicyModalRef!: TemplateRef<any>;
+  summaryText: string = '';
+  defaulterMonths: any[] = [];
+  showAllMonths: boolean = false;
+
 location: any;
 act: any;
 project: any;
@@ -426,7 +430,12 @@ timesheet: any;
     this.getRejectionReason();
     //console.log('User Mapping', this.userMapping);
     this.getTimesheetStatusCountsByEmpId();
+
     this.getLeaveRejectionReasons();
+
+    setTimeout(() => {
+      this.loadPolicyNotification();
+    });
 
   }
 
@@ -657,7 +666,66 @@ resetRejectModalData() {
       }
     });
   }
+  isSavingConsent = false;
+  popupHeading: string = '';
+  popupDescription: string = '';
+  loadPolicyNotification(): void {
+    this.employeeService.getDefaulterStatus(this.currentUser.empId)
+      .subscribe((res: any) => {
 
+        const data = res.serviceResponse;
+
+        if (data && data.isDefaulter && data.months?.length) {
+
+          this.defaulterMonths = data.months;
+          this.popupHeading = data.heading || 'Attendance Policy Notification';
+          this.popupDescription = data.description || '';
+          const latest = this.defaulterMonths[0];
+
+    // Mock API response
+          this.summaryText =
+            `You have been marked as a defaulter.\n\nLatest: ${this.getMonthName(latest.month)
+            } ${latest.year}`;
+          this.showAllMonths = false;
+          // this.detailModalRef?.close();
+          this.openAttendancePolicyModal();
+        }
+
+      }, error => {
+        console.error("Error fetching defaulter status", error);
+      });
+  }
+  openAttendancePolicyModal(): void {
+    this.detailModalRef = this.modalService.open(this.attendancePolicyModalRef, {
+      size: 'md',
+      centered: true,
+      backdrop: 'static',
+      container: 'body'
+    });
+  }
+  closeRepeatedOffendeNoticeModal(): void {
+    this.detailModalRef?.close();
+  }
+  acknowledgeRepeatedOffendeNoticePolicy(): void {
+    if (this.isSavingConsent) return; 
+    this.employeeService.saveDefaulterConsent(this.currentUser.empId)
+      .subscribe((res: any) => {
+
+        console.log("Consent saved", res);
+
+        this.closeRepeatedOffendeNoticeModal();
+
+      }, err => {
+        console.error("Error saving consent", err);
+      });
+  }
+  getMonthName(month: number): string {
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return months[month - 1];
+  }
   // single leave reject modal
   onSingleReject(template: TemplateRef<any>,) {
     this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
@@ -3021,8 +3089,12 @@ private roundToTwo(num: number): number {
   }
   //opne model
   openMilestoneExpiredListModal(): void {
+    // Close notification popup before opening milestone list.
+    this.modalRef?.close();
     this.detailModalRef = this.modalService.open(this.milestoneExpiredListModalRef, {
-      modalDialogClass: 'modal-xl'
+      modalDialogClass: 'milestone-list-modal-shell milestone-list-modal-top modal-xl',
+      backdropClass: 'milestone-list-backdrop',
+      keyboard: false
     });
   }
 
@@ -3062,6 +3134,9 @@ private roundToTwo(num: number): number {
 
   updateMilestoneDetails(milestone: MilestoneToBeExpired): void {
 
+    // Prevent stacked modals: close milestone list before opening update modal.
+    this.closeMilestoneExpiredListModal();
+
     this.selectedMilestone = milestone;
     this.milestoneForm.patchValue({
       projectName: milestone.projectName,
@@ -3074,7 +3149,9 @@ private roundToTwo(num: number): number {
 
     });
 
-    this.milestoneDetailModalRefView = this.modalService.open(this.milestoneDetailModalRef, { modalDialogClass:'modal-lg' });
+    this.milestoneDetailModalRefView = this.modalService.open(this.milestoneDetailModalRef, {
+      modalDialogClass: 'ep-milestone-modal-shell modal-xl'
+    });
     this.minExtendedDate();
   }
 
@@ -3114,6 +3191,10 @@ private roundToTwo(num: number): number {
     }
 
     const formValues = this.milestoneForm.value;
+    if (this.isSameDay(formValues.extendedDate, this.selectedMilestone?.endDate)) {
+      this.openUpdateProjectCompletionModal("Updated End Date cannot be the same as the current Milestone End Date. Please select a different date.");
+      return;
+    }
 
     console.log("selectedMilestone" + this.selectedMilestone);
 
@@ -3138,16 +3219,15 @@ private roundToTwo(num: number): number {
 
 
       extendedDate: formValues.extendedDate,
-      updatedBy: this.currentUser.employeementId,
+      updatedBy: this.currentUser.empId,
       updatedByName: this.currentUser.name,
-
       milestoneExtensionReasonId: formValues.extensionReasonId,
       milestoneExtensionReasonText: formValues.customReason
 
     };
     const formData = new FormData();
     formData.append("milestoneData",new Blob([JSON.stringify(payload)], { type: "application/json" }));
-  
+
     // optional file
     if (this.documentContent) {
       const file = this.documentContent
@@ -3155,7 +3235,6 @@ private roundToTwo(num: number): number {
       formData.append("extensionFile", this.documentContent);
     }
 
-    console.log('Payload for milestone extension:', payload);
     this.isLoadingmilestoneDetailModal=true;
     this.projectService.updateMilestoneExtendedDate(formData).subscribe(
       (response: any) => {
@@ -3179,6 +3258,8 @@ private roundToTwo(num: number): number {
         console.error('Error updating milestone:', errorResponse);
         this.isLoadingmilestoneDetailModal=false;
         this.openAlertMod(this.milestoneExpireValidationPupup, "Something went wrong. Kindly try after sometime!!");
+        this.isLoadingmilestoneDetailModal=false;
+        this.openAlertMod(this.milestoneExpireValidationPupup, "Something went wrong. Kindly try after sometime!!");
       }
     );
 
@@ -3186,8 +3267,8 @@ private roundToTwo(num: number): number {
 
 
   //onchamges in form
-  onReasonChange(event: Event): void {
-    const selectedValue = (event.target as HTMLSelectElement).value;
+  onReasonChange(event: any): void {
+    const selectedValue = event?.value ?? (event?.target as HTMLSelectElement)?.value;
     const selectedReason = this.milestoneExtendReason.find(
       r => r.id === +selectedValue
     );
@@ -3236,18 +3317,39 @@ private roundToTwo(num: number): number {
 
 
 
-    minExtendedDateformilestone:Date;
-   public  minExtendedDate(): void {
-    const endDate=this.milestoneForm.get('startDate').value;
-    this.minExtendedDateformilestone=new Date(this.convertToISO(endDate));
-      this.milestoneForm.get('extensionReasonId')?.reset();
-    console.log("minExtendedDateformilestone",this.minExtendedDateformilestone);
+    minExtendedDateformilestone: Date;
 
+   public minExtendedDate(): void {
+    const startDateStr = this.milestoneForm.get('startDate')?.value;
+    if (!startDateStr) return;
+    const parts = String(startDateStr).split('/');
+    let m: moment.Moment;
+    if (parts.length === 3) {
+      const d = Number(parts[0]);
+      const mo = Number(parts[1]);
+      const y = Number(parts[2]);
+      m = moment({ year: y, month: mo - 1, day: d }).startOf('day').add(1, 'day');
+    } else {
+      m = moment(startDateStr).startOf('day').add(1, 'day');
+    }
+    this.minExtendedDateformilestone = m.toDate();
+    this.milestoneForm.get('extensionReasonId')?.reset();
   }
-  convertToISO(dateString: string): string {
-  const [day, month, year] = dateString.split('/');
-  return `${year}-${month}-${Number(day) + 1}`;
-}
+
+  get milestoneExtendEndDateTooltip(): string {
+    const sd = this.milestoneForm?.get('startDate')?.value;
+    if (!sd) {
+      return (
+        'You may select any date after the milestone start date.\n' +
+        'There is no upper limit on the selected date.'
+      );
+    }
+    return (
+      `Milestone start date is ${sd}.\n` +
+      'You may select any date after that day.\n' +
+      'Pick a date before the current end date to finish earlier, or after it to extend.'
+    );
+  }
 
 public getDaysLeftForExpiry(endDate: string | Date): string {
     if (!endDate) {
@@ -3562,99 +3664,28 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   window.URL.revokeObjectURL(url);
 }
 
-onFileSelected(event: any) {
-  const file: File = event.target.files[0];
-
-  if (!file) {
-    this.resetFileData();
-    return;
-  }
-
-  const allowedTypes = ['application/pdf','image/jpeg','image/jpg','image/png'];
-
-  if (!allowedTypes.includes(file.type)) {
-    this.openUpdateProjectCompletionModal("Only PDF, JPG, JPEG, or PNG files are allowed.");
-    event.target.value = '';
-    this.resetFileData();
-    return;
-  }
-
-  const maxSize = 25 * 1024 * 1024; // 25MB
-  if (file.size > maxSize) {
-    this.openUpdateProjectCompletionModal("File size should be less than 25 MB!!");
-    event.target.value = ''; 
-    this.resetFileData();
-    return;
-  }
-
-  const uniquefile =this.selectedMilestone.id+'_'+file.name
-  this.validateFileName(uniquefile,"extended")
-
-  this.documentName = uniquefile;
-  this.documentType = file.type;
-  this.documentContent = file; 
-  const url = URL.createObjectURL(file);
-  if (file.type === 'application/pdf') {
-    this.previewUrlForMileStone = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-  } else {
-    this.previewUrlForMileStone = url;
-  }
-}
-
-validateFileName(uniquefile: any,type:any) {
-  this.projectService.validateDocName(uniquefile).subscribe({
-    next: (response: any) => {
-      if (response.serviceStatus === 'Success') {
-        // No duplicate
-        console.error(response.serviceResponse);
-      } else if (response.serviceStatus === 'Fail') {
-        // Duplicate found
-        this.resetFileData();
-        this.openUpdateProjectCompletionModal(response.serviceResponse);
-        return false;        
-      }
-    },
-    error: (error) => {
-        this.resetFileData();
-        this.openUpdateProjectCompletionModal("Error while validating file. Kindly try after sometime!!");
-        return false;        
-    }
-  });
-}
-
-
-previewExtensionFile() {
-
-  if (!this.documentContent) return;
-  const fileURL = URL.createObjectURL(this.documentContent);
-  this.previewUrlForMileStone = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
-  this.projectMilestoneDocumentModalRef = this.modalService.open(
-    this.projectMilestoneDocumentTemplateRef,
-    {
-      modalDialogClass: 'modal-xl',
-      backdrop: 'static',
-      keyboard: false
-    }
-  );
-}
-
-
-closeProjectMilestoneDocumentsModal() {
-    if (this.projectMilestoneDocumentModalRef) {
-        this.projectMilestoneDocumentModalRef?.close();
-        }
-    }
-
-
-resetFileData() {
-  this.documentName = '';
-  this.documentType = '';
-  this.documentContent = null;
-  this.previewUrlForMileStone = null;
-}
-
 onExtendedDateChange(event: any) {
-  if (event.value) { this.isExtensionEnabled = true; }
+  if (event.value) {
+    if (this.isSameDay(event.value, this.selectedMilestone?.endDate)) {
+      this.milestoneForm.get('extendedDate')?.setValue(null);
+      this.isExtensionEnabled = false;
+      this.openUpdateProjectCompletionModal("Updated End Date cannot be the same as the current Milestone End Date. Please select a different date.");
+      return;
+    }
+    this.isExtensionEnabled = true;
+  }
+}
+
+private isSameDay(firstDate: any, secondDate: any): boolean {
+  if (!firstDate || !secondDate) {
+    return false;
+  }
+  const first = new Date(firstDate);
+  const second = new Date(secondDate);
+  return !isNaN(first.getTime()) && !isNaN(second.getTime()) &&
+    first.getFullYear() === second.getFullYear() &&
+    first.getMonth() === second.getMonth() &&
+    first.getDate() === second.getDate();
 }
 
 redirectToViewTeamTimesheet() {
@@ -3701,6 +3732,98 @@ getTimesheetStatusCountsByEmpId() {
   }
 });
 
+}
+
+
+onFileSelected(event: any) {
+  const file: File = event.target.files[0];
+
+  if (!file) {
+    this.resetFileData();
+    return;
+  }
+
+  const allowedTypes = ['application/pdf','image/jpeg','image/jpg','image/png'];
+
+  if (!allowedTypes.includes(file.type)) {
+    this.openUpdateProjectCompletionModal("Only PDF, JPG, JPEG, or PNG files are allowed.");
+    event.target.value = '';
+    this.resetFileData();
+    return;
+  }
+
+  const maxSize = 25 * 1024 * 1024; // 25MB
+  if (file.size > maxSize) {
+    this.openUpdateProjectCompletionModal("File size should be less than 25 MB!!");
+    event.target.value = '';
+    this.resetFileData();
+    return;
+  }
+
+  const uniquefile =this.selectedMilestone.id+'_'+file.name
+  this.validateFileName(uniquefile,"extended")
+
+  this.documentName = uniquefile;
+  this.documentType = file.type;
+  this.documentContent = file;
+  const url = URL.createObjectURL(file);
+  if (file.type === 'application/pdf') {
+    this.previewUrlForMileStone = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  } else {
+    this.previewUrlForMileStone = url;
+  }
+}
+
+validateFileName(uniquefile: any,type:any) {
+  this.projectService.validateDocName(uniquefile).subscribe({
+    next: (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        // No duplicate
+        console.error(response.serviceResponse);
+      } else if (response.serviceStatus === 'Fail') {
+        // Duplicate found
+        this.resetFileData();
+        this.openUpdateProjectCompletionModal(response.serviceResponse);
+        return false;
+      }
+    },
+    error: (error) => {
+        this.resetFileData();
+        this.openUpdateProjectCompletionModal("Error while validating file. Kindly try after sometime!!");
+        return false;
+    }
+  });
+}
+
+
+previewExtensionFile() {
+
+  if (!this.documentContent) return;
+  const fileURL = URL.createObjectURL(this.documentContent);
+  this.previewUrlForMileStone = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+  this.projectMilestoneDocumentModalRef = this.modalService.open(
+    this.projectMilestoneDocumentTemplateRef,
+    {
+      modalDialogClass: 'modal-xl',
+      backdrop: 'static',
+      keyboard: false
+    }
+  );
+}
+
+
+closeProjectMilestoneDocumentsModal() {
+    if (this.projectMilestoneDocumentModalRef) {
+        this.projectMilestoneDocumentModalRef?.close();
+        }
+    }
+
+
+resetFileData() {
+  this.documentName = '';
+  this.documentType = '';
+  this.documentContent = null;
+  this.previewUrlForMileStone = null;
 }
 
 }

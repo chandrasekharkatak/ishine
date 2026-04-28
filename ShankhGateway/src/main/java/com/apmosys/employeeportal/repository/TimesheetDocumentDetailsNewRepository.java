@@ -54,6 +54,19 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 	@Query("SELECT t.docId FROM TimesheetDocumentDetailsNew t WHERE t.timesheetId = :timesheetId and t.active = true")
 	List<Long> findDocIdsByTimesheetId(@Param("timesheetId") Long timesheetId);
 
+	@Modifying
+	@Transactional
+	@Query(value = "UPDATE timesheet_document_details_new \n"
+			+ "SET project_id = :primaryProjectId, \n"
+			+ "    updated_by = :updatedBy, \n"
+			+ "    updated_on = NOW() \n"
+			+ "WHERE project_id IN (:deletedProjectIds)", nativeQuery = true)
+	int bulkMoveDocumentDetailsProjectToPrimary(
+			@Param("primaryProjectId") Integer primaryProjectId,
+			@Param("deletedProjectIds") List<Integer> deletedProjectIds,
+			@Param("updatedBy") Long updatedBy
+	);
+
 	// ========== BACKUP: Original query renamed with _old suffix ==========
 	@Query("SELECT tdd FROM TimesheetDocumentDetails tdd \n" +
 			"INNER JOIN Timesheet et on et.timesheetId = tdd.timesheetId \n" +

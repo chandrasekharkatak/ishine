@@ -6,7 +6,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -33,6 +35,7 @@ import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdD
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderDTO;
 import com.apmosys.employeeportal.dto.GetProjectByMonthRangeAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.GetProjectViewForClientAttendanceStatusDTO;
+import com.apmosys.employeeportal.dto.ProjectIdAndNameDTO;
 import com.apmosys.employeeportal.dto.LastTimesheetFieldDto;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -46,6 +49,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.model.TimesheetDataDTO;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -69,6 +73,12 @@ public class TimesheetDashboardService {
     
     @Autowired
     private EmployeeTimesheetsNewRepository timesheetsNewRepository;
+
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private ProjectHierarchyResolverService projectHierarchyResolverService;
     
     @Autowired
     private EmployeeRepository employeeRepository;
@@ -1194,10 +1204,42 @@ public class TimesheetDashboardService {
 	         String sortBy=timesheetDTO.getSortBy();
 	         String sortDirection=timesheetDTO.getSortDirection();
 
+	         // Link-aware project name search:
+	         // If user searches by a linked/deleted project name, resolve it to primary project ids and
+	         // filter by ids (so aggregation remains by primary project and counts/cards stay consistent).
+	         List<Integer> primaryProjectIdsForSearch = null;
+	         String originalProjectNameSearch = projectName;
+	         if (projectName != null && !projectName.trim().isEmpty()) {
+	        	 List<Integer> matchedByName = projectRepository.findProjectIdsByProjectNameLike(projectName.trim());
+	        	 boolean linkedHit = matchedByName != null && matchedByName.stream()
+	        			 .filter(Objects::nonNull)
+	        			 .anyMatch(id -> !Objects.equals(id, projectHierarchyResolverService.resolveToPrimaryProjectId(id)));
+
+	        	 primaryProjectIdsForSearch = resolvePrimaryProjectIdsByProjectNameContains(projectName);
+	        	 if (primaryProjectIdsForSearch.isEmpty()) {
+	        		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        		 response.setServiceResponse("No data found from database");
+	        		 return response;
+	        	 }
+	        	 if (linkedHit) {
+	        		 response.setServiceResponse1("Your search matched a linked project name. Rows marked with the link icon are the primary project(s) for those matches. Search text: "
+	        				 + originalProjectNameSearch);
+	        		 response.setServiceResponse2(buildLinkedProjectSearchMetadata(matchedByName));
+	        	 } else {
+	        		 response.setServiceResponse2(null);
+	        	 }
+	        	 // Avoid filtering by primary project's name; ids are authoritative
+	        	 projectName = null;
+	         }
+
  				if (timesheetDTO.getDataForExcel()) {
  					if (timesheetDTO.getIsClientDashboard()) {
  						resultList = timesheetsNewRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),
- 								timesheetDTO.getYear(), timesheetDTO.getStatus(), timesheetDTO.getEmpId(), projectName,
+ 								timesheetDTO.getYear(), timesheetDTO.getStatus(), timesheetDTO.getEmpId(),
+ 								(primaryProjectIdsForSearch != null && !primaryProjectIdsForSearch.isEmpty()) ? 1 : 0,
+ 								(primaryProjectIdsForSearch != null && !primaryProjectIdsForSearch.isEmpty()) ? primaryProjectIdsForSearch
+ 										: Collections.singletonList(-1),
+ 								projectName,
  								poNo,startDate,endDate, projectManagerName, projectType, clientName, apmosysRM, apmosysRMEmail, clientRM,
  								totalExpectedFillCount, totalClientSideApprovedCount, totalClientSidePendingCount,
  								totalClientSideNotFilledCou, totalEmployees, active, sortBy, sortDirection, 0,
@@ -1214,7 +1256,11 @@ public class TimesheetDashboardService {
  					if (timesheetDTO.getIsClientDashboard()) {
  						System.out.println("inside iffffffff");
  						resultList = timesheetsNewRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),
- 								timesheetDTO.getYear(), timesheetDTO.getStatus(), timesheetDTO.getEmpId(), projectName,
+ 								timesheetDTO.getYear(), timesheetDTO.getStatus(), timesheetDTO.getEmpId(),
+ 								(primaryProjectIdsForSearch != null && !primaryProjectIdsForSearch.isEmpty()) ? 1 : 0,
+ 								(primaryProjectIdsForSearch != null && !primaryProjectIdsForSearch.isEmpty()) ? primaryProjectIdsForSearch
+ 										: Collections.singletonList(-1),
+ 								projectName,
  								poNo,startDate,endDate, projectManagerName, projectType, clientName, apmosysRM, apmosysRMEmail, clientRM,
  								totalExpectedFillCount, totalClientSideApprovedCount, totalClientSidePendingCount,
  								totalClientSideNotFilledCou, totalEmployees, active, sortBy, sortDirection, offset,
@@ -1296,6 +1342,80 @@ public class TimesheetDashboardService {
 		    }
 		 logService.logMyInfo(httpRequest, apiLogInfo);
 		 return response;
+	}
+
+	private List<Integer> resolvePrimaryProjectIdsByProjectNameContains(String projectName) {
+		if (projectName == null || projectName.trim().isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<Integer> matched = projectRepository.findProjectIdsByProjectNameLike(projectName.trim());
+		if (matched == null || matched.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return matched.stream()
+				.filter(Objects::nonNull)
+				.map(projectHierarchyResolverService::resolveToPrimaryProjectId)
+				.filter(Objects::nonNull)
+				.distinct()
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Metadata for linked-name search: primary ids for row markers, plus matched non-primary project names
+	 * grouped by resolved primary (supports chains P1→…→Pn).
+	 */
+	private Map<String, Object> buildLinkedProjectSearchMetadata(List<Integer> matchedByName) {
+		LinkedHashSet<Integer> linkedPrimaryIds = new LinkedHashSet<>();
+		LinkedHashSet<Integer> contributorIds = new LinkedHashSet<>();
+		if (matchedByName != null) {
+			for (Integer mid : matchedByName) {
+				if (mid == null) {
+					continue;
+				}
+				Integer pid = projectHierarchyResolverService.resolveToPrimaryProjectId(mid);
+				if (pid != null && !Objects.equals(mid, pid)) {
+					linkedPrimaryIds.add(pid);
+					contributorIds.add(mid);
+				}
+			}
+		}
+		Map<Integer, String> idToName = new HashMap<>();
+		if (!contributorIds.isEmpty()) {
+			List<ProjectIdAndNameDTO> rows = projectRepository
+					.findProjectIdAndNameByProjectIdIn(new HashSet<>(contributorIds));
+			if (rows != null) {
+				for (ProjectIdAndNameDTO row : rows) {
+					if (row != null && row.getProjectId() != null) {
+						idToName.put(row.getProjectId(), row.getProjectName());
+					}
+				}
+			}
+		}
+		LinkedHashMap<Integer, LinkedHashSet<String>> namesByPrimary = new LinkedHashMap<>();
+		if (matchedByName != null) {
+			for (Integer mid : matchedByName) {
+				if (mid == null) {
+					continue;
+				}
+				Integer pid = projectHierarchyResolverService.resolveToPrimaryProjectId(mid);
+				if (pid == null || Objects.equals(mid, pid)) {
+					continue;
+				}
+				String nm = idToName.get(mid);
+				if (nm == null || nm.isBlank()) {
+					nm = "Project #" + mid;
+				}
+				namesByPrimary.computeIfAbsent(pid, k -> new LinkedHashSet<>()).add(nm);
+			}
+		}
+		Map<String, List<String>> matchedLinkedNamesByPrimaryId = new LinkedHashMap<>();
+		for (Map.Entry<Integer, LinkedHashSet<String>> e : namesByPrimary.entrySet()) {
+			matchedLinkedNamesByPrimaryId.put(String.valueOf(e.getKey()), new ArrayList<>(e.getValue()));
+		}
+		Map<String, Object> meta = new LinkedHashMap<>();
+		meta.put("linkedPrimaryIds", new ArrayList<>(linkedPrimaryIds));
+		meta.put("matchedLinkedNamesByPrimaryId", matchedLinkedNamesByPrimaryId);
+		return meta;
 	}
     private String getStringColumnFilterValue(String columnValue) {
 		if(columnValue == null || columnValue.isBlank()) {

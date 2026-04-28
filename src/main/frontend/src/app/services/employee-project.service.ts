@@ -159,7 +159,7 @@ export class EmployeeProjectService {
       this.handleResult(result);
       return result;
     }
-    if (!employeeObj.employeeTeamEndDate || employeeObj.employeeTeamEndDate == undefined || employeeObj.employeeTeamEndDate == null) {
+    if (!employeeObj.removePermanently && (!employeeObj.employeeTeamEndDate || employeeObj.employeeTeamEndDate == undefined || employeeObj.employeeTeamEndDate == null)) {
       result = this.alertResult(`Kindly provide a valid End date!!`);
       this.handleResult(result);
       return result;
@@ -175,7 +175,7 @@ export class EmployeeProjectService {
       return result;
     }
 
-    if (selectedStartDate > selectedEndDate) {
+    if (!employeeObj.removePermanently && (selectedStartDate > selectedEndDate)) {
       result = this.alertResult("Member End Date must be after Member Start Date!!");
       this.handleResult(result);
       return result;
@@ -349,13 +349,13 @@ export class EmployeeProjectService {
 
   async deleteEmployeeProjectResourceMapping(employee: any, employeeProjectEndDate: any, employeeProjectEndDateType: any) {
     let result: AppResult;
-    if (!employeeProjectEndDate || employeeProjectEndDate == undefined || employeeProjectEndDate == null) {
+    if (!employee.removePermanently && (!employeeProjectEndDate || employeeProjectEndDate == undefined || employeeProjectEndDate == null)) {
       result = this.alertResult("Please provide End date!!");
       this.handleResult(result);
       return result;
     }
 
-    if (this.normalizeDate(employee.startDate) > this.normalizeDate(employeeProjectEndDate)) {
+    if (!employee.removePermanently && this.normalizeDate(employee.startDate) > this.normalizeDate(employeeProjectEndDate)) {
       result = this.alertResult("Member End date cannot be less then Member Start date!!");
       this.handleResult(result);
       return result;

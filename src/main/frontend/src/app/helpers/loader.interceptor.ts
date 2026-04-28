@@ -327,13 +327,15 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/approveTimesheetRequest`,
     `${this.baseUrl}`+`api/getTimesheetDashboardCountForProject`,
     `${this.baseUrl}`+`api/getTimesheetDashboardCountForEmployee`,
+    `${this.baseUrl}` + `api/repeated-offender/summary`,
+    `${this.baseUrl}` + `api/repeated-offender/employees`,
     `${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`,
     `${this.baseUrl}`+`api/getProjectViewForClientAttendanceStatus`,
     `${this.baseUrl}` + `api/liftAndShiftTeams`,
     `${this.baseUrl}` + `api/updateHasClientSideId?flag`,
     `${this.baseUrl}` + `api/addTimesheetWithClient`,
      `${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`,
-     `${this.baseUrl}` + `updateMilestoneById`,
+     `${this.baseUrl}` + `api/updateMilestoneById`,
     `${this.baseUrl}` + `api/getWorkLocationSummaryDetails`,
     `${this.baseUrl}` + `api/getFixedCostCount`,
     // `${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`
@@ -487,7 +489,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/deleteSurvey`,
     `${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`,
     `${this.baseUrl}` + `api/changeSurveyStatus`,
-    `${this.baseUrl}` + `api/training/getAllTrainingTypes`,,
+    `${this.baseUrl}` + `api/training/getAllTrainingTypes`,
     `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
     `${this.baseUrl}` + `api/getExtensionDocumentByName`,
     `${this.baseUrl}` + `api/validateDocName`,
@@ -557,8 +559,12 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/v2/timesheet/getRejectionDetailsWithProjectsByTimesheetId`,
     `${this.baseUrl}` + `api/v2/timesheet/bulkFinalUploadProjectBased`,
     `${this.baseUrl}` + `api/v2/timesheet/getLastThreeMonthsWorkingDates`,
+
     `${this.baseUrl}` + `api/getAllMyTeamLeaveRevokeApplicationsByEmpId`,
-    `${this.baseUrl}` + `api/getRevokeLeaveApplicationByEmpId`
+    `${this.baseUrl}` + `api/getRevokeLeaveApplicationByEmpId`,
+    `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
+    `${this.baseUrl}` + `api/getExtensionDocumentByName`,
+    `${this.baseUrl}` + `api/validateDocName`,
 
   ];
 

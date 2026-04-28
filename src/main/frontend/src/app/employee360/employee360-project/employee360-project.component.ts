@@ -138,7 +138,9 @@ export class Employee360ProjectComponent implements OnInit {
   allNonBillableProjectTypes = ['internalrndproducts', 'bench', 'internal'];
   employeeRoles: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   projectTypes: any[] = ['Bench', 'Other'];
-
+  projectPage = 1;
+teamPage = 1;
+teamMemberPage = 1;
   defaultProjectObj: SetDefaultProjectObj = new SetDefaultProjectObj();
   removePermanently: boolean = false;
   membersEndDate: any;
@@ -280,79 +282,116 @@ export class Employee360ProjectComponent implements OnInit {
     }
 
   }
-  redirecttoProjectTeam(id: any) {
-    this.isProjectVisible = true;
-    this.isProjectTeamVisible = false;
-    this.isProjectTeamMemberVisible = false;
-    this.flag = true;
-
-    this.filterProjects(id);
-  }
-  redirecttoTeam(id: any, projectId: any) {
-    this.isProjectTeamMemberVisible = true;
-    this.isProjectVisible = false;
-    this.isProjectTeamVisible = false;
-    this.getTeamEmployeeByTeamId(id);
-    this.filterProjects(projectId);
+    redirecttoProjectTeam(projectId: any) {
+      this.isProjectVisible = false;
+      this.isProjectTeamVisible = true;
+      this.isProjectTeamMemberVisible = false;
+      this.flag = true;
+      this.page = 1;
+      this.getTeamByProjectId(projectId);
+      //this.filterProjects(projectId);
+    }
+    redirecttoTeam(id: any, projectId: any) {
+      this.isProjectTeamMemberVisible = true;
+      this.page = 1;
+      this.isProjectVisible = false;
+      this.isProjectTeamVisible = false;
+      this.getTeamEmployeeByTeamId(id);
+      //this.filterProjects(projectId);
 
 
   }
 
   projectteamInfo: Project = new Project();
 
+  // getTeamByProjectId(projectId: any) {
+
+  //   console.log("Clicked Project ID 👉", projectId);
+  //   this.projectteamInfo.projectId = projectId;
+
+  //   this.emp360Service.getTeamInfo(this.projectteamInfo.projectId).subscribe({
+  //     next: (response: any) => {
+  //       if (response.serviceStatus === "Success") {
+  //         this.filterProjectByProjectId = response.serviceResponse;
+  //          console.log("getTeamInfo ", this.filterProjectByProjectId);
+
+  //         const groupedData = {};
+
+  //         this.filterProjectByProjectId.forEach((member) => {
+  //           const teamKey = member.teamId;
+
+  //           if (!groupedData[teamKey]) {
+  //             groupedData[teamKey] = {
+  //               teamId: member.teamId,
+  //               teamName: member.teamName,
+  //               employees: [],
+  //               projectId: member.projectId,
+  //               projectName: member.projectName
+  //             };
+  //           }
+
+  //           groupedData[teamKey].employees.push({
+  //             empId: member.empId,
+  //             employeeName: member.employeeName,
+  //             employeeRole: member.employeeRole ? member.employeeRole.split(',').filter(role => role.trim() !== '').join(', ') : "",
+  //             startDate: member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null,
+  //             billableType: member.billableType,
+  //             active: member.active,
+  //             employeeTeamMapId:member.employeeTeamMapId,
+  //             emp360: {}
+  //           });
+
+  //           groupedData[teamKey].employees = groupedData[teamKey].employees || [];
+  //         });
+
+  //         this.filterProjectByProjectId = Object.values(groupedData);
+
+  //         this.filterProjectByProjectId.forEach((team) => {
+  //           team.employees.forEach((employee) => {
+  //             employee.emp360 = employee.empId;
+  //           });
+  //         });
+  //         // console.log("Formatted Team Data: ", this.teamMemberList);
+  //       } else {
+  //         console.warn("Failed to fetch team info");
+  //       }
+  //     }
+  //   });
+
+  // }
+
   getTeamByProjectId(projectId: any) {
+  this.emp360Service.getTeamInfo(projectId).subscribe({
+    next: (response: any) => {
+      if (response.serviceStatus === "Success") {
 
-    this.projectteamInfo.projectId = projectId;
+        const projectData = response.serviceResponse;
 
-    this.emp360Service.getTeamInfo(this.projectteamInfo).subscribe({
-      next: (response: any) => {
-        if (response.serviceStatus === "Success") {
-          this.filterProjectByProjectId = response.serviceResponse;
-           console.log("getTeamInfo ", this.filterProjectByProjectId);
+        this.filterProjectByProjectId = projectData.teamDetails.map(team => ({
+          teamId: team.teamId,
+          teamName: team.teamName,
+          spoc: team.spoc,
+          projectId: projectData.projectId,
+          projectName: projectData.projectName,
+          employees: team.teamMemberDetails.map(member => ({
+            empId: member.empId,
+            employeeName: member.employeeName,
+            employeeRole: member.employeeRole,
+            billableType: member.billableType,
+            startDate: member.startDate,
+            active: member.active,
+            employeeTeamMapId: member.employeeTeamMapId,
+            emp360: member.empId
+          }))
+        }));
 
-          const groupedData = {};
+        console.log(" Final Data:", this.filterProjectByProjectId);
 
-          this.filterProjectByProjectId.forEach((member) => {
-            const teamKey = member.teamId;
-
-            if (!groupedData[teamKey]) {
-              groupedData[teamKey] = {
-                teamId: member.teamId,
-                teamName: member.teamName,
-                employees: [],
-                projectId: member.projectId,
-                projectName: member.projectName
-              };
-            }
-
-            groupedData[teamKey].employees.push({
-              empId: member.empId,
-              employeeName: member.employeeName,
-              employeeRole: member.employeeRole ? member.employeeRole.split(',').filter(role => role.trim() !== '').join(', ') : "",
-              startDate: member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null,
-              billableType: member.billableType,
-              active: member.active,
-              employeeTeamMapId:member.employeeTeamMapId,
-              emp360: {}
-            });
-
-            groupedData[teamKey].employees = groupedData[teamKey].employees || [];
-          });
-
-          this.filterProjectByProjectId = Object.values(groupedData);
-
-          this.filterProjectByProjectId.forEach((team) => {
-            team.employees.forEach((employee) => {
-              employee.emp360 = employee.empId;
-            });
-          });
-          // console.log("Formatted Team Data: ", this.teamMemberList);
-        } else {
-          console.warn("Failed to fetch team info");
-        }
       }
-    });
-  }
+    }
+  });
+}
+
   filterProjects(id) {
     this.getTeamByProjectId(id);
 
@@ -392,6 +431,7 @@ flattenProjectData(data: any[]): any[] {
     }
 
     const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table); // Convert table to worksheet
+    
     const workbook: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Project Data');
 
@@ -777,6 +817,12 @@ formatToLocalDateTime(date: any): string {
   handlePageChange(event) {
     this.page = event;
   }
+
+  // handlePageChange(event, type: string) {
+  //   if (type === 'project') this.projectPage = event;
+  //   if (type === 'team') this.teamPage = event;
+  //   if (type === 'teamMember') this.teamMemberPage = event;
+  // }
 
   cancelRequest() {
     this.modalRef?.close();
@@ -1624,7 +1670,7 @@ console.log("mapping ID",this.employeeTeamMapId);
       return;
     }
 
-    if (!this.membersEndDate || this.membersEndDate == undefined || this.membersEndDate == null) {
+    if (!this.removePermanently && (!this.membersEndDate || this.membersEndDate == undefined || this.membersEndDate == null)) {
       this.openAlertMessageModal("Please provide End date!!");
       return;
     }
@@ -1633,7 +1679,7 @@ console.log("mapping ID",this.employeeTeamMapId);
 
     for (let member of this.selectedRemoveMembers) {
       const memberStartDate = this.normalizeDate(member.startDate);
-      if (memberStartDate > teamMembersEndDate) {
+      if (!this.removePermanently && (memberStartDate > teamMembersEndDate)) {
         this.openAlertMessageModal(`Member End date cannot be less then Member Start date for ${member.employementId}!!`);
         return;
       }

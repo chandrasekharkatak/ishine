@@ -17839,6 +17839,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				+ "FROM Project_Level_Summary pls\n"
 				+ "WHERE\n"
 				+ "(:status = 'All' OR pls.project_status = :status)\n"
+				+ "AND (:applyProjectIdsFilter = 0 OR pls.project_id IN (:projectIds))\n"
 				+ "AND (:projectName IS NULL OR LOWER(pls.project_name) LIKE CONCAT('%', LOWER(:projectName), '%'))\n"
 				+ "AND (:poNo IS NULL OR LOWER(pls.po_no) LIKE CONCAT('%', LOWER(:poNo), '%'))\n"
 				+ "AND (:startDate IS NULL OR LOWER(pls.project_start_date) LIKE CONCAT('%', LOWER(:startDate), '%'))\n"
@@ -17911,6 +17912,8 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			@Param("year") Integer year,
 			@Param("status") String status,
 			@Param("emp_id") Long emp_id,
+			@Param("applyProjectIdsFilter") Integer applyProjectIdsFilter,
+			@Param("projectIds") List<Integer> projectIds,
 				String projectName,String poNo,String startDate,String endDate,String projectManagerName,String projectType,String clientName,String apmosysRM,String apmosysRMEmail,
 				String clientRM,Integer totalExpectedFillCount,Integer totalClientSideApprovedCount,Integer totalClientSidePendingCount,Integer totalClientSideNotFilledCou,
 				Integer totalEmployees, String active,

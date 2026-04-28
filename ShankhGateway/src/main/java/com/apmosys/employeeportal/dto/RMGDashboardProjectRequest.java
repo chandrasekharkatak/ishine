@@ -28,5 +28,13 @@ public class RMGDashboardProjectRequest {
     private String sortColumn;
     private String sortColumnType;
     private Map<String, String> projectFilter;
+
+    /**
+     * Server-side only: primary project ids for link-aware project name search filtering.
+     */
+    private List<Integer> linkSearchPrimaryProjectIds;
+
+    /** Server-side only: LIKE pattern for project name partial search (e.g. %term%). */
+    private String linkSearchNameLikeParameter;
 }
 

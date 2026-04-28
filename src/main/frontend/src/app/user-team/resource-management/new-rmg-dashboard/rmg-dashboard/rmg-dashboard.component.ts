@@ -245,7 +245,7 @@ getTnmExpiredTooltip(): string[] {
     , { field: 'billable', header: 'Is Billable', sortable: true, searchable: true }
     , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
     , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'ApMSys RM', sortable: true, searchable: true }
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
@@ -296,7 +296,7 @@ getTnmExpiredTooltip(): string[] {
     , { field: 'billableType', header: 'User Billable Type', sortable: true, searchable: true }
     , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
     , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'ApMSys RM', sortable: true, searchable: true }
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
@@ -310,7 +310,7 @@ getTnmExpiredTooltip(): string[] {
   onBenchEmployeeDetailsSubTableColumnConfig = [
     { field: 'projectName', header: 'Project Name', sortable: false, searchable: false }
     , { field: 'clientName', header: 'Client Name', sortable: false, searchable: false }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: false, searchable: false }
+    , { field: 'apmosysRM', header: 'ApMSys RM', sortable: false, searchable: false }
     , { field: 'clientRM', header: 'Client RM', sortable: false, searchable: false }
     , { field: 'poNo', header: 'PO No.', sortable: false, searchable: false }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: false, searchable: false }
@@ -321,7 +321,7 @@ getTnmExpiredTooltip(): string[] {
   mappedEmployeeDetailsSubTableColumnConfig = [
     { field: 'projectName', header: 'Project Name', sortable: false, searchable: false }
     , { field: 'clientName', header: 'Client Name', sortable: false, searchable: false }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: false, searchable: false }
+    , { field: 'apmosysRM', header: 'ApMSys RM', sortable: false, searchable: false }
     , { field: 'clientRM', header: 'Client RM', sortable: false, searchable: false }
     , { field: 'poNo', header: 'PO No.', sortable: false, searchable: false }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: false, searchable: false }
@@ -339,7 +339,7 @@ getTnmExpiredTooltip(): string[] {
     , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
     , { field: 'teamName', header: 'Team Name', sortable: true, searchable: true }
     , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'ApMSys RM', sortable: true, searchable: true }
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
@@ -352,7 +352,7 @@ getTnmExpiredTooltip(): string[] {
   unfilledTimesheetProjectColumnConfig = [
     { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
     , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'ApMSys RM', sortable: true, searchable: true }
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false }
@@ -372,8 +372,8 @@ getTnmExpiredTooltip(): string[] {
   timesheetNonCompliance = { key: 'TIMESHEET_NON_COMPLIANCE', label: 'Timesheet Non-Compliance Projects', value: 'timesheet_non_compliance', count: null, style: 'color: #EC4899', bgstyle: 'background-color: #EC4899;color: #fff;', leftstyle: 'border-left:4px solid;color: #EC4899', i_class: 'fa-solid fa-calendar-xmark fa-beat-fade', columnConfig: this.unfilledTimesheetProjectColumnConfig, defaultSortColumn: 'projectName', subTableColumnConfig: [], color: '', infoLabel: '' };
 
   workforceOverview = [
-    { key: 'TOTAL', icon: 'bi-people', label: 'Active Employees In Apmosys', value: null, desc: 'Full organization headcount', colorClass: 'text-info', columnConfig: [], defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#1B294B', tooltip: [
-      'Total active employees in Apmosys including all categories.'
+    { key: 'TOTAL', icon: 'bi-people', label: 'Active Employees In ApMoSys', value: null, desc: 'Full organization headcount', colorClass: 'text-info', columnConfig: [], defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#1B294B', tooltip: [
+      'Total active employees in ApMoSys including all categories.'
     ] },
     { key: 'MAPPED_TO_PROJECT', icon: 'bi-person-check', label: 'Assigned to Projects', value: null, desc: 'Mapped to ≥ 1 project', colorClass: 'text-success', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#64B497',  tooltip: [
       'Employees currently assigned to one or more active projects.'
@@ -449,6 +449,11 @@ getTnmExpiredTooltip(): string[] {
   departmentList: any[] = [];
   filteredDepartmentList: any[] = [];
   projectDetailsList: any[] = [];
+  projectDetailsResolveMap: Record<string, { resolvedProjectViewId: string; redirected: boolean; resolvedProjectName?: string }> = {};
+  /** Link-aware project name search (same contract as HR project view: serviceResponse1 / serviceResponse2). */
+  rmgLinkedProjectSearchInfo: string | null = null;
+  rmgLinkedPrimaryProjectIdsFromSearch: number[] = [];
+  rmgLinkedSearchRowTooltipByProjectId: Record<number, string> = {};
   projectSummaryData: any[] = [];
 
   // Variables
@@ -468,6 +473,11 @@ getTnmExpiredTooltip(): string[] {
   // Project Details Table
   searchOnEnter: boolean = true;
   isProjectSearchEnabled: boolean = false;
+  /** Project Name column header (app-info-tooltip): linked / partial name search + PO filter hint. */
+  projectNameSearchInfoTooltip: string[] = [
+    'Search includes projects whose names were later linked to another project.',
+    'Linked results are shown as the current primary project with a link icon.',
+  ];
   totalProjectsCount: number = 0;
   projectPage: number = 1;
   projectPageSize: number = 10;
@@ -477,6 +487,13 @@ getTnmExpiredTooltip(): string[] {
   projectSortColumnType: string;
   projectFilters: any = {};
   projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "projectStartDate", "projectEndDate", "state", "createdOn", "projectStatus", "draftStatus"];
+  poSearchTooltip: string[] = [
+    'Shows only active POs.',
+    'Search includes both active and expired PO numbers.'
+  ];
+  dateSearchTooltip: string[] = [
+    'Search supports dd-mm-yyyy or yyyy-mm-dd date formats only.',
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -504,7 +521,7 @@ getTnmExpiredTooltip(): string[] {
 
   async ngOnInit() {
     this.updateDepartmentLabel();
-    this.projectStatus = 'TOTAL';
+    this.projectStatus = this.filterStateService?.selectedProjectStatus ? this.filterStateService?.selectedProjectStatus :  'TOTAL';
     this.expiredTNMProjectFilter = 'allExpiredTNMProjectsCount';
     this.fixedCostProjectFilter = 'all';
     this.projectPageSize = this.filterStateService?.projectPageSize ? this.filterStateService.projectPageSize : 10;
@@ -1848,7 +1865,7 @@ getTnmExpiredTooltip(): string[] {
       'Project Type': x.poProjectType || 'NA',
       'Project Manager': x.projectManagers && x.projectManagers.length > 0 ? x.projectManagers[0].projectManagerName : 'NA',
       'Client': x.clientName || 'NA',
-      'Apmosys RM': x.apmosysRM || 'NA',
+      'ApMSys RM': x.apmosysRM || 'NA',
       'Client RM': x.clientRM || 'NA',
       'Start Date': this.normalizeDate(x.projectStartDate) || 'NA',
       'End Date': this.normalizeDate(x.projectEndDate) || 'NA',
@@ -1881,6 +1898,9 @@ getTnmExpiredTooltip(): string[] {
   getProjectDetailsList(scrollToBottom: any) {
     this.totalProjectsCount = 0;
     this.projectDetailsList = [];
+    this.rmgLinkedProjectSearchInfo = null;
+    this.rmgLinkedPrimaryProjectIdsFromSearch = [];
+    this.rmgLinkedSearchRowTooltipByProjectId = {};
     let rmgProjectRequest = this.getRMGRequestObject();
     rmgProjectRequest.page = rmgProjectRequest.page ? (rmgProjectRequest.page - 1) || 0 : 0
     this.resourceManagementService.fetchProjectDetailsList(rmgProjectRequest).pipe(first()).subscribe((response: any) => {
@@ -1888,8 +1908,13 @@ getTnmExpiredTooltip(): string[] {
         const apiResponse = response?.serviceResponse?.projectList;
         this.totalProjectsCount = apiResponse?.totalElements || 0;
         this.projectDetailsList = [...apiResponse?.content];
+        this.rmgLinkedProjectSearchInfo = response?.serviceResponse1 || null;
+        this.absorbRmgServiceResponse2LinkedMeta(response?.serviceResponse2);
+        this.populateProjectDetailsResolveMap(this.projectDetailsList);
         console.log(this.projectDetailsList,"lalallala");
       } else {
+        this.rmgLinkedPrimaryProjectIdsFromSearch = [];
+        this.rmgLinkedSearchRowTooltipByProjectId = {};
         this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
       }
 
@@ -1898,8 +1923,146 @@ getTnmExpiredTooltip(): string[] {
       }
     },
       (error) => {
+        this.rmgLinkedPrimaryProjectIdsFromSearch = [];
+        this.rmgLinkedSearchRowTooltipByProjectId = {};
         this.openAlertMessageModal('Something went wrong!!');
       });
+  }
+
+  isRmgLinkedSearchPrimaryRow(project: any): boolean {
+    if (!this.rmgLinkedPrimaryProjectIdsFromSearch?.length) {
+      return false;
+    }
+    const pid = Number(project?.projectId);
+    if (!Number.isFinite(pid)) {
+      return false;
+    }
+    return this.rmgLinkedPrimaryProjectIdsFromSearch.some(v => Number(v) === pid);
+  }
+
+  getRmgLinkedSearchRowTooltip(project: any): string {
+    const pid = Number(project?.projectId);
+    if (Number.isFinite(pid) && this.rmgLinkedSearchRowTooltipByProjectId[pid]) {
+      return this.rmgLinkedSearchRowTooltipByProjectId[pid];
+    }
+    return this.rmgLinkedProjectSearchInfo || '';
+  }
+
+  private absorbRmgServiceResponse2LinkedMeta(raw: any): void {
+    this.rmgLinkedPrimaryProjectIdsFromSearch = [];
+    this.rmgLinkedSearchRowTooltipByProjectId = {};
+    if (raw == null) {
+      return;
+    }
+    if (typeof raw === 'string') {
+      const s = raw.trim();
+      if (!s) {
+        return;
+      }
+      try {
+        this.absorbRmgServiceResponse2LinkedMeta(JSON.parse(s));
+        return;
+      } catch {
+        this.rmgLinkedPrimaryProjectIdsFromSearch = s.split(/[,;\s]+/g)
+          .map(t => Number(t.trim()))
+          .filter(v => Number.isFinite(v));
+        return;
+      }
+    }
+    if (Array.isArray(raw)) {
+      this.rmgLinkedPrimaryProjectIdsFromSearch = raw
+        .map(v => Number(v))
+        .filter(v => Number.isFinite(v));
+      return;
+    }
+    if (typeof raw === 'object') {
+      const idsRaw = (raw as any).linkedPrimaryIds ?? (raw as any).linked_primary_ids;
+      if (idsRaw != null && Array.isArray(idsRaw)) {
+        this.rmgLinkedPrimaryProjectIdsFromSearch = idsRaw
+          .map((v: any) => Number(v))
+          .filter((v: number) => Number.isFinite(v));
+      }
+      const mapRaw = (raw as any).matchedLinkedNamesByPrimaryId
+        ?? (raw as any).matched_linked_names_by_primary_id;
+      if (mapRaw != null && typeof mapRaw === 'object' && !Array.isArray(mapRaw)) {
+        for (const k of Object.keys(mapRaw)) {
+          const pid = Number(k);
+          const arr = (mapRaw as any)[k];
+          const names = Array.isArray(arr)
+            ? arr.map((x: any) => String(x == null ? '' : x).trim()).filter((t: string) => t.length > 0)
+            : [];
+          if (Number.isFinite(pid) && names.length > 0) {
+            this.rmgLinkedSearchRowTooltipByProjectId[pid] = this.buildRmgLinkedSearchRowTooltipText(names);
+          }
+        }
+        if (this.rmgLinkedPrimaryProjectIdsFromSearch.length === 0) {
+          this.rmgLinkedPrimaryProjectIdsFromSearch = Object.keys(mapRaw)
+            .map(k => Number(k))
+            .filter(v => Number.isFinite(v));
+        }
+      }
+    }
+  }
+
+  private buildRmgLinkedSearchRowTooltipText(names: string[]): string {
+    const list = this.formatRmgEnglishNameList(names);
+    return `Included via linked project whose name matches your search. Project :  ${list}.`;
+  }
+
+  private formatRmgEnglishNameList(parts: string[]): string {
+    const seen = new Set<string>();
+    const p: string[] = [];
+    for (const x of parts) {
+      const t = String(x || '').trim();
+      if (!t || seen.has(t)) {
+        continue;
+      }
+      seen.add(t);
+      p.push(t);
+    }
+    if (p.length === 0) {
+      return '';
+    }
+    if (p.length === 1) {
+      return p[0];
+    }
+    if (p.length === 2) {
+      return `${p[0]} and ${p[1]}`;
+    }
+    return `${p.slice(0, -1).join(', ')}, and ${p[p.length - 1]}`;
+  }
+
+  private populateProjectDetailsResolveMap(rows: any[]) {
+    // Use numeric projectId for linked detection/copy-name to avoid ambiguity when
+    // multiple linked projects share the same poProjectId (same "poXXXX" projectViewId).
+    const ids = (rows || [])
+      .map(r => r?.projectId)
+      .filter(v => v !== null && v !== undefined && String(v).trim() !== '')
+      .map(v => String(v));
+
+    const unique = Array.from(new Set(ids));
+    if (unique.length === 0) {
+      this.projectDetailsResolveMap = {};
+      return;
+    }
+
+    this.resourceManagementService.resolveProjectViewIds(unique).pipe(first()).subscribe((resp: any) => {
+      if (resp?.serviceStatus === 'Success' && resp?.serviceResponse) {
+        this.projectDetailsResolveMap = resp.serviceResponse || {};
+      }
+    });
+  }
+
+  copyPrimaryProjectName(projectViewId: any) {
+    const key = String(projectViewId || '');
+    const name = this.projectDetailsResolveMap?.[key]?.resolvedProjectName;
+    if (!name) {
+      this.openAlertMessageModal('Primary project name not available.');
+      return;
+    }
+    navigator.clipboard.writeText(name)
+      .then(() => this.openAlertMessageModal('Primary project name copied.'))
+      .catch(() => this.openAlertMessageModal('Unable to copy.'));
   }
   // Projects Table APIs & Methods End
 

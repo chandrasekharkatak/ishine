@@ -313,18 +313,29 @@
                     </mat-paginator>
                 </div>
             </div>
+            <div *ngIf="rmgLinkedProjectSearchInfo" class="alert alert-warning py-2 px-3 small mb-2 mx-2" role="status">
+                {{ rmgLinkedProjectSearchInfo }}
+            </div>
             <div class="table-container">
                 <table class="custom-table" matSort (matSortChange)="sortProjectData($event)">
                     <thead>
                         <tr>
                             <th>Actions</th>
                             <th class="max-width200 min-width200" mat-sort-header="name|string">
-                                Project Name
+                                <span>
+                                    Project Name
+                                    <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2"
+                                        [shouldShine]="false" [iconBgColor]="'#202020'"
+                                        [content]="projectNameSearchInfoTooltip" [size]="16">
+                                    </app-info-tooltip>
+                                </span>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="poNo|string">
                                 PO No.
-                                <i class="fa fa-info-circle info-icon cursor-pointer ml-2" title="Shows only active POs. Search includes both active and expired PO numbers.">
-                                </i>
+                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2" 
+                                    [shouldShine]="false" [iconBgColor]="'#202020'" 
+                                    [content]="poSearchTooltip" [size]="16">
+                                </app-info-tooltip>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="projectType|string">
                                 Project Type
@@ -336,31 +347,34 @@
                                 Client
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="apmosysRM|string">
-                                Apmosys RM
+                                ApMoSys RM
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="clientRM|string">
                                 Client RM
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="projectStartDate|string">
                                 Start Date
-                                <i class="fa fa-info-circle info-icon cursor-pointer ml-2"
-                                title="Allowed Formats dd-mm-yyyy / yyyy-mm-dd can only be searched.">
-                            </i>
+                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2" 
+                                    [shouldShine]="false" [iconBgColor]="'#202020'" 
+                                    [content]="dateSearchTooltip" [size]="16">
+                                </app-info-tooltip>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="projectEndDate|string">
                                 End Date
-                                <i class="fa fa-info-circle info-icon cursor-pointer ml-2"
-                                title="Allowed Formats dd-mm-yyyy / yyyy-mm-dd can only be searched.">
-                            </i>
+                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2" 
+                                    [shouldShine]="false" [iconBgColor]="'#202020'" 
+                                    [content]="dateSearchTooltip" [size]="16">
+                                </app-info-tooltip>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="state|string">
                                 State
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="createdOn|datetime">
                                 Created On
-                                <i class="fa fa-info-circle info-icon cursor-pointer ml-2"
-                                title="Allowed Formats dd-mm-yyyy / yyyy-mm-dd can only be searched.">
-                            </i>
+                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2" 
+                                    [shouldShine]="false" [iconBgColor]="'#202020'" 
+                                    [content]="dateSearchTooltip" [size]="16">
+                                </app-info-tooltip>
                             </th>
                             <!-- <th class="max-width200 min-width200" mat-sort-header="status|string">
                                 PO Project Status
@@ -394,25 +408,25 @@
                                             (click)="onAction('PREVIEW',project)">
                                             <i class="fas fa-eye"></i> Preview
                                         </button>
-                                        <button mat-menu-item (click)="onAction('EDIT_NEW', project);">
+                                        <button mat-menu-item (click)="onAction('EDIT_NEW', project);" *ngIf="!(project.active === 'false')">
                                             <i class="fas fa-pen"></i> Edit
                                         </button>
                                         <button mat-menu-item
-                                            *ngIf="(project.draftStatus == 'Approved' || project.isTeamCreated == 'true') && project.projectStatus != 'Completed'"
+                                            *ngIf="(project.draftStatus == 'Approved' || project.isTeamCreated == 'true') && project.projectStatus != 'Completed' && !(project.active === 'false')"
                                             (click)="onAction('MARK_AS_COMPLETE', project)">
                                             <i class="fas fa-check-double"></i> Mark as Complete
                                         </button>
                                         <button mat-menu-item
-                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
+                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !(project.active === 'false')"
                                             (click)="onAction('APPROVE',project);">
                                             <i class="fas fa-square-check"></i> Approve
                                         </button>
                                         <button mat-menu-item
-                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
+                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !(project.active === 'false')"
                                             (click)="onAction('REJECT', project);">
                                             <i class="fas fa-times"></i> Reject
                                         </button>
-                                        <button mat-menu-item *ngIf="project.poProjectType"
+                                        <button mat-menu-item *ngIf="project.poProjectType && !(project.active === 'false')"
                                             (click)="onAction('CLIENT_SIDE_ID_STATUS',project);">
                                             <i class="fas fa-id-badge"></i> ClientID Status
                                         </button>
@@ -422,16 +436,60 @@
                                         </button>
                                     </mat-menu>
                                 </td>
-                                <td class="max-width200 min-width200 truncate" [title]="project?.name || 'NA'"
+                                <td class="max-width200 min-width200 text-break"
+                                    [title]="project?.name || 'NA'"
                                     *ngIf="(project?.draftStatus == 'Not Started' || project?.active === 'false')">
-                                    {{ project?.name || 'NA' }}
-                                    <span *ngIf="project?.active === 'false'" class="inactive-label">Inactive</span>
+
+                                    <span class="rmg-inactive-project-name-text">
+                                        {{ project?.name || 'NA' }}
+                                    </span>
+
+                                    <span class="d-inline-flex align-items-center flex-wrap gap-1 ms-1 align-middle">
+
+                                        <ng-container *ngIf="projectDetailsResolveMap?.[project?.projectId]?.redirected">
+                                            <span class="icon-btn warning"
+                                                [title]="'Linked to project: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || 'Primary project')">
+                                                <i class="bi bi-link-45deg"></i>
+                                            </span>
+                                            <button type="button" class="icon-btn ghost"
+                                                [title]="'Click to copy primary project name: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || '')"
+                                                (click)="$event.stopPropagation(); copyPrimaryProjectName(project?.projectId)">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </ng-container>
+
+                                        <span *ngIf="rmgLinkedProjectSearchInfo && isRmgLinkedSearchPrimaryRow(project)"
+                                            class="icon-btn warning"
+                                            [title]="getRmgLinkedSearchRowTooltip(project)">
+                                            <i class="bi bi-link-45deg"></i>
+                                        </span>
+
+                                        <span *ngIf="project?.active === 'false'" class="inactive-label text-nowrap">
+                                            Inactive
+                                        </span>
+                                    </span>
                                 </td>
                                 <td class="max-width200 min-width200" title="Click to view Project Details"
                                     *ngIf="(project?.draftStatus != 'Not Started' && project?.active !== 'false')">
                                     <span style="cursor: pointer; color: blue;" id="clickablefor360"
                                         [navigateToProjectView]="project?.projectViewId">
+                                        <ng-container *ngIf="projectDetailsResolveMap?.[project?.projectId]?.redirected">
+                                            <span class="icon-btn warning"
+                                                [title]="'Linked to project: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || 'Primary project')">
+                                                <i class="bi bi-link-45deg"></i>
+                                            </span>
+                                            <button type="button" class="icon-btn ghost"
+                                                [title]="'Click to copy primary project name: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || '')"
+                                                (click)="$event.stopPropagation(); copyPrimaryProjectName(project?.projectId)">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </ng-container>
                                         {{ project?.name || 'NA' }}
+                                        <span *ngIf="rmgLinkedProjectSearchInfo && isRmgLinkedSearchPrimaryRow(project)"
+                                            class="icon-btn warning"
+                                            [title]="getRmgLinkedSearchRowTooltip(project)">
+                                            <i class="bi bi-link-45deg"></i>
+                                        </span>
                                     </span>
                                 </td>
                                 <td class="max-width200 min-width200 truncate" [title]="project?.poNo || 'NA'">

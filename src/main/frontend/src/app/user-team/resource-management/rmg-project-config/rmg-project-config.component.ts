@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, TemplateRef, ViewChild, Output, ViewContainerRef } from '@angular/core';
-import { SafeResourceUrl } from '@angular/platform-browser';
+import { SafeResourceUrl,DomSanitizer } from '@angular/platform-browser';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Project } from 'src/app/models/project';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -38,6 +38,8 @@ import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { EmployeeProjectService } from 'src/app/services/employee-project.service';
 import { AppModalService } from '../app-modal.service';
+import { MilestoneUpdatedLog } from 'src/app/models/MilestoneUpdatedLog'; 
+
 
 export const MY_DATE_FORMATS = {
     parse: {
@@ -93,6 +95,10 @@ export class RmgProjectConfigComponent implements OnInit {
     @ViewChild("mark_complete_fc_project") markCompleteFCProjectTemplateRef!: TemplateRef<any>;
     @ViewChild("team_member_details_preview") teamMemberDetailsPreviewTemplateRef!: TemplateRef<any>;
     @ViewChild("shadow_resource_mapping") shadowResourceMappingTemplateRef!: TemplateRef<any>;
+    @ViewChild('alertTemplate') alertTemplateForMilestone!: TemplateRef<any>;
+    @ViewChild("project_milestone_extended_preview") projectMilestoneExtendedPreviewTemplateRef: TemplateRef<any>;
+    @ViewChild('confirmMilestoneStatusModal') confirmMilestoneStatusModal!: TemplateRef<any>;
+
 
     alertMessageModalRef!: NgbModalRef;
     migrateTeamModalRef!: NgbModalRef;
@@ -147,6 +153,9 @@ export class RmgProjectConfigComponent implements OnInit {
     projectList: any[] = [];
     projectsBench: any[] = [];
     projectsOther: any[] = [];
+
+    // Linked project indicator (resolved via bulk resolver using numeric projectId)
+    projectConfigResolveMap: Record<string, { resolvedProjectViewId: string; redirected: boolean; resolvedProjectName?: string }> = {};
     employeeListFilteredByDept: any[] = [];
     employeeExistingProjectDetails: any[] = [];
     teamMigrationPoDetailsList: any[] = [];
@@ -207,6 +216,23 @@ export class RmgProjectConfigComponent implements OnInit {
     fcProjectMilestoneList: FCProjectMilestone[] = [];
     statusList = [Status.NOT_STARTED, Status.IN_PROGRESS, Status.ON_HOLD, Status.COMPLETED];
     projectMilestone: FCProjectMilestone = new FCProjectMilestone();
+    milestoneExtendReason:any
+    isOtherReasonSelected: boolean = false;
+    isExtensionEnabled:boolean =false
+    showMilestoneImageModal:boolean =false
+    minExtendDate!: Date;
+    expandedMilestoneId:any
+    isImageFile: boolean = false;
+    isPdfFile: boolean = false;
+    selectedFile: File | null = null;
+    selectedLogs: any[] = [];
+    selectedLogType: 'start' | 'end' | 'status' | null = null;
+    logHeader:any;
+    isStatusChanged: boolean = false;
+    originalStatus:any
+    projectNameForMilestoneUpdate:any;
+    poNameForMilestoneUpdate : string;
+    confirmMilestoneStatus:any;
 
     // Client Side Pagination
     // Old Team Member
@@ -220,7 +246,7 @@ export class RmgProjectConfigComponent implements OnInit {
     oldTeamMemberSearchOnEnter: boolean = true;
     rmgOldTeamMemberColumnList: any[] = ['blank', 'employementId', 'memberName', 'memberDepartment', 'poNo', 'employeeRole', 'blank', 'blank', 'blank', 'blank'];
     rmgOldTeamMemberColumnListForTNM: any[] = ['blank', 'employementId', 'memberName', 'memberDepartment', 'poNo', 'displayRequirement', 'employeeRole', 'blank', 'blank', 'blank', 'blank'];
-    rmgOldTeamMemberColumnListForInternal = ['blank', 'employementId', 'memberName', 'memberDepartment', 'employeeRole', 'blank', 'blank', 'blank', 'blank'];
+    rmgOldTeamMemberColumnListForInternal = ['blank', 'employementId', 'memberName', 'memberDepartment', 'employeeRole', 'blank', 'blank', 'blank'];
 
     // Current Team Member
     isCurrentTeamMemberSearchEnabled: boolean = false;
@@ -233,10 +259,10 @@ export class RmgProjectConfigComponent implements OnInit {
     currentTeamMemberSearchOnEnter: boolean = true;
     rmgCurrentTeamMemberColumnListForTNM: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
     rmgCurrentTeamMemberColumnList: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'poNo', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnListForInternal: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListForInternal: any[] = ['blank', 'blank', 'blank', 'employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank'];
     rmgCurrentTeamMemberColumnListForTNMPreview: any[] = ['blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
     rmgCurrentTeamMemberColumnListPreview: any[] = ['blank', 'employementId', 'memberName', 'poNo', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnListForInternalPreview: any[] = ['blank', 'employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListForInternalPreview: any[] = ['blank', 'employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank'];
 
 
     // Migrate Team Member
@@ -332,7 +358,8 @@ export class RmgProjectConfigComponent implements OnInit {
         private readonly dialog: MatDialog,
         private drawerService: GlobalRightDrawerService,
         private employeeProjectService: EmployeeProjectService,
-        private appModalService : AppModalService
+        private appModalService : AppModalService,
+        private sanitizer: DomSanitizer,
     ) {
         this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     }
@@ -346,6 +373,7 @@ export class RmgProjectConfigComponent implements OnInit {
         this.getActiveProjectList();
         this.setProjectType();
         this.initialiseNewTeamObj();
+        this.populateProjectConfigResolveMap();
         if (this.isProjectPreview) {
             this.getResourceRequirementDetailsByProjectId(false);
         }
@@ -371,6 +399,32 @@ export class RmgProjectConfigComponent implements OnInit {
                 }
             }
         });
+    }
+
+    private populateProjectConfigResolveMap() {
+        const projectId = this.rmgProjectObj?.projectId;
+        if (projectId === null || projectId === undefined || String(projectId).trim() === '') {
+            this.projectConfigResolveMap = {};
+            return;
+        }
+
+        this.resourceManagementService.resolveProjectViewIds([String(projectId)]).pipe(first()).subscribe((resp: any) => {
+            if (resp?.serviceStatus === 'Success' && resp?.serviceResponse) {
+                this.projectConfigResolveMap = resp.serviceResponse || {};
+            }
+        });
+    }
+
+    copyPrimaryProjectNameFromConfig() {
+        const key = String(this.rmgProjectObj?.projectId || '');
+        const name = this.projectConfigResolveMap?.[key]?.resolvedProjectName;
+        if (!name) {
+            this.openAlertMessageModal('Primary project name not available.');
+            return;
+        }
+        navigator.clipboard.writeText(name)
+            .then(() => this.openAlertMessageModal('Primary project name copied.'))
+            .catch(() => this.openAlertMessageModal('Unable to copy.'));
     }
 
     // Modals Start
@@ -489,9 +543,47 @@ export class RmgProjectConfigComponent implements OnInit {
     }
 
     openUpdateProjectMilestoneModal(milestone: any) {
+        this.extensionReason()
+        this.isExtensionEnabled = false
+        this.isStatusChanged = false;
+        this.file = null;
+        this.selectedFile = null;
+        this.selectedFilePreviewUrl = null;
         this.projectMilestone = JSON.parse(JSON.stringify(milestone));
-        this.updateProjectMilestoneModalRef = this.modalService.open(this.updateProjectMilestoneTemplateRef, { modalDialogClass: 'modal-lg', backdrop: 'static', keyboard: false });
+        this.minExtendedDate()
+        this.originalStatus = this.projectMilestone.status
+        this.updateProjectMilestoneModalRef = this.modalService.open(this.updateProjectMilestoneTemplateRef, {
+            modalDialogClass: 'modal-xl ep-milestone-modal-shell',
+            backdrop: 'static',
+            keyboard: false
+        });
     }
+
+    minExtendedDateformilestone: Date;
+
+    /** Earliest selectable new end date: calendar day after milestone start (no max). */
+    minExtendedDate(): void {
+        const startDate = this.projectMilestone?.startDate;
+        if (!startDate) return;
+        this.minExtendedDateformilestone = moment(startDate).startOf('day').add(1, 'day').toDate();
+    }
+
+    get milestoneExtendEndDateTooltip(): string {
+        const sd = this.projectMilestone?.startDate;
+        if (!sd) {
+            return (
+                'Choose any date from the day after the milestone start date onward.\n' +
+                'There is no latest date limit.'
+            );
+        }
+        const formatted = moment(sd).format('D MMM YYYY');
+        return (
+            `Milestone start date is ${formatted}.\n` +
+            'You may select any date after that day.\n' +
+            'Pick a date before the current end date to finish earlier, or after it to extend.'
+        );
+    }
+
 
     closeUpdateProjectMilestoneModal() {
         if (this.updateProjectMilestoneModalRef) {
@@ -503,11 +595,13 @@ export class RmgProjectConfigComponent implements OnInit {
         this.projectMilestoneDocumentModalRef = this.modalService.open(this.projectMilestoneDocumentTemplateRef, { modalDialogClass: 'modal-lg', backdrop: 'static', keyboard: false });
     }
 
-    closeProjectMilestoneDocumentsModal() {
-        if (this.projectMilestoneDocumentModalRef) {
-            this.projectMilestoneDocumentModalRef?.close();
-        }
-    }
+closeProjectMilestoneDocumentsModal() {
+    if (this.projectMilestoneDocumentModalRef) {
+        this.projectMilestoneDocumentModalRef?.close();
+        this.projectMilestoneDocumentModalRef = null;
+      }
+      this.milestoneDocumentUrl = null;
+     }
 
     openMarkAsCompleteFCProjectModal() {
         this.markCompleteFCProjectModalRef = this.modalService.open(this.markCompleteFCProjectTemplateRef, { modalDialogClass: 'modal-lg', backdrop: 'static', keyboard: false });
@@ -704,7 +798,7 @@ export class RmgProjectConfigComponent implements OnInit {
         return status?.trim() === Status.COMPLETED || status?.trim() === Status.ON_HOLD;
     }
 
-    validateProjectMilestone() {
+    validateMilestoneStatusUpdate() {
         if (!this.projectMilestone.startDate) {
             this.openAlertMessageModal('Start date is required for milestone');
             return false;
@@ -971,35 +1065,43 @@ export class RmgProjectConfigComponent implements OnInit {
 
     clearSelectedFile(fileInput: HTMLInputElement) {
         this.file = null;
+        this.selectedFile = null;
         fileInput.value = '';
     }
 
-    onFileSelected(event: any): void {
+    onFileSelected(event: any, projectMilestone: any): void {
         const file: File = event.target.files[0];
         this.file = null;
         this.selectedFilePreviewUrl = null;
-        if (!file) {
-            return;
-        }
-
+    
+        if (!file) { return; }
+    
         if (file) {
-            const allowedTypes = ['image/jpeg', 'image/png'];
-            if (!allowedTypes.includes(file.type)) {
-                alert('Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.');
-                event.target.value = '';
-                this.file = null;
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = () => {
-                this.selectedFilePreviewUrl = reader.result as string;
-            };
-            reader.readAsDataURL(file);
-            this.file = file;
+          const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+          if (!allowedTypes.includes(file.type)) {
+            this.openAlertMessageModal("Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.");
+            event.target.value = '';
+            this.file = null;
+            return;
+          }
+    
+          const maxSize = 25 * 1024 * 1024; // 25MB
+          if (file.size > maxSize) {
+            this.openAlertMessageModal("File size should be less than 25MB!!");
+            return;
+          }
+          const uniquefile = projectMilestone.id + '_' + file.name
+          this.validateFileName(uniquefile, "status");
+          const reader = new FileReader();
+          reader.onload = () => {
+            this.selectedFilePreviewUrl = reader.result as string;
+          };
+          reader.readAsDataURL(file);
+          this.file = new File([file], uniquefile, { type: file.type });
+          this.selectedFile = this.file;
         }
-    }
-
+      }
+    
     previewSelectedFile(): void {
         if (!this.file || !this.selectedFilePreviewUrl) {
             this.openAlertMessageModal('Please select a file to preview!!');
@@ -2103,6 +2205,12 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
                 this.openAlertMessageModal(`End Date cannot be less than Start Date for Member # ${i + 1}`);
                 return;
             }
+            if (member.endDate && member.endDate != undefined && member.endDate != null && this.normalizeDate(member.startDate) > this.normalizeDate(member.endDate)) {
+                member.startDate = member.dbStartDate || null;
+                this.openAlertMessageModal(`Start Date cannot be greater than the End Date  for Member # ${i + 1}!!`);
+                return false;
+            }
+
             member.startDate = member.startDate ? moment(member.startDate).format('YYYY-MM-DDTHH:mm:ss') : null;
             member.endDate = member.endDate ? moment(member.endDate).format('YYYY-MM-DDTHH:mm:ss') : null;
             member.isShadow = team?.rmgCurrentTeamMemberList[i].isShadow != null && team?.rmgCurrentTeamMemberList[i].isShadow ? 1 : 0;
@@ -2150,7 +2258,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
             return;
         }
 
-        if (!this.membersEndDate || this.membersEndDate == undefined || this.membersEndDate == null) {
+        if (!this.removePermanently && (!this.membersEndDate || this.membersEndDate == undefined || this.membersEndDate == null)) {
             this.openAlertMessageModal("Please provide End date!!");
             return;
         }
@@ -2326,6 +2434,10 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
     async validateEmployeeProjectStartDate(member: RmgTeamMember, projectId: any, projectType: any): Promise<boolean> {
         member.isEndDateVisible = false;
         member.memberMaxEndDate = null;
+        if (member.endDate && member.endDate != undefined && member.endDate != null && this.normalizeDate(member.startDate) > this.normalizeDate(member.endDate)) {
+            this.openAlertMessageModal(`Start Date cannot be greater than the End Date!!`);
+            return false;
+        }
         let projectData = {
             currentProjectId: this.rmgProjectObj?.projectId,
             projectIds: [this.rmgProjectObj?.projectId, projectId],
@@ -2698,6 +2810,9 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
     }
 
     async getResourceRequirementDetailsByProjectId(currentActivePOs: boolean) {
+        if (this.allNonBillableProjectTypes.includes(this.projectType?.toLowerCase())) {
+            return;
+        }
         this.allRmgProjectResourceRequirementList = [];
         this.currentRmgProjectResourceRequirementList = [];
         try {
@@ -2870,7 +2985,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
             return;
         }
         employee.startDate = employee?.selectedProject.startDate;
-        const flag: boolean = await this.validateEmployeeProjectStartDate(employee, employee?.selectedProject?.projectId, this.projectType);
+        const flag: boolean = await this.validateEmployeeProjectStartDateDefaultMapping(employee, employee?.selectedProject?.projectId, this.projectType);
         if (!flag) {
             return;
         }
@@ -3152,7 +3267,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
     getProjectMilestones() {
         this.fcProjectMilestoneList = [];
         let projectObjTemp = new Project();
-        projectObjTemp.poProjectId = this.rmgProjectObj.projectId;
+        projectObjTemp.projectId = this.rmgProjectObj.projectId;
         this.projectService.getAllProjectFCLineItemListByProjectId(projectObjTemp).pipe(first()).subscribe({
             next: (response: any) => {
                 if (response.serviceStatus === "Success") {
@@ -3184,24 +3299,26 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         )
     }
 
-    updateMilestoneChanges() {
-        let isValid = this.validateProjectMilestone();
-        if (!isValid) {
-            return;
-        }
-
+  async updateMilestoneChanges() {
+        this.projectNameForMilestoneUpdate = this.rmgProjectObj.projectName;
         this.projectMilestone.updatedBy = this.currentUser.empId;
         this.projectMilestone.updatedOn = new Date();
+        this.projectMilestone.updatedByName = this.currentUser.name;
+        this.projectMilestone.poProjectId=this.rmgProjectObj.poProjectId
+        this.projectMilestone.projectId=this.rmgProjectObj.poProjectId
+
         const formData = new FormData();
         formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
-        if (this.file) {
-            formData.append('file', this.file);
-        }
+        formData.append('projectName', this.rmgProjectObj.projectName);
+        formData.append('previousStatus' , this.originalStatus)
+        if (this.file) {formData.append('file', this.file);}
 
         this.projectService.updateMilestoneById(formData).pipe(first()).subscribe({
             next: (response: any) => {
                 if (response.serviceStatus === "Success") {
                     this.file = null;
+                    this.selectedFile = null;
+                    this.isStatusChanged = false;
                     const index = this.fcProjectMilestoneList.findIndex(m => m.id === this.projectMilestone.id);
                     if (index > -1) {
                         this.fcProjectMilestoneList[index] = { ...this.projectMilestone };
@@ -3217,6 +3334,22 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
             }
         });
         this.closeUpdateProjectMilestoneModal();
+    }
+
+    openMileStoneStatusModal() {
+        const isValid = this.validateMilestoneStatusUpdate();
+        if (!isValid) { return; }
+
+        this.confirmMilestoneStatus = "Are you sure to update the milestone status from " + this.originalStatus + " to " + this.projectMilestone.status + " ?";
+        this.modalService.open(this.confirmMilestoneStatusModal, {
+            modalDialogClass: 'modal-md',
+            backdrop: 'static',
+            keyboard: false
+        });
+    }
+
+    onStatusChange(newStatus: string) {
+      this.isStatusChanged = newStatus !== this.originalStatus;
     }
 
     calculatePoStatus() {
@@ -3252,10 +3385,9 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         if (allCompleted) {
             this.openMarkAsCompleteFCProjectModal();
         } else {
-
-            this.updateMilestoneChanges();
             this.closeUpdateProjectMilestoneModal();
         }
+        return allCompleted
     }
 
     markAsCompleteFCProject() {
@@ -3284,6 +3416,38 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
                 this.openAlertMessageModal("Something went wrong while completing the project.");
             }
         );
+    }
+
+    onMarkCompleteFCProjectDeclined() {
+        const projectDto = this.buildProjectReminderPayload();
+        this.confirmCompleteMailTrigger(projectDto);
+        this.closeMarkAsCompleteFCProjectModal();
+    }
+
+    confirmCompleteMailTrigger(projectDto: any) {
+    this.resourceManagementService.completeProjectReminder(projectDto.projectId).pipe(first())
+            .subscribe((response: any) => {
+                if (response.serviceStatus === "Success") {
+                    console.log("Completion mail triggered successfully!!");
+                }
+            }, (error) => {
+                console.log(error);
+            });
+    }
+
+    private buildProjectReminderPayload(): Project {
+        const project = new Project();
+        project.id = this.rmgProjectObj.poProjectId;
+        project.projectId = this.rmgProjectObj.projectId;
+        project.projectName = this.rmgProjectObj.projectName;
+        project.projectStatus = this.rmgProjectObj.projectStatus;
+        project.status = this.rmgProjectObj.status;
+        project.projectType = this.rmgProjectObj.projectType;
+        project.poProjectType = this.rmgProjectObj.poProjectType;
+        project.internalProjectType = this.rmgProjectObj.internalProjectType;
+        project.clientState = this.rmgProjectObj.state;
+        project.updatedBy = this.currentUser.empId;
+        return project;
     }
     // FC Milestone Method & APIs End
   get isPreviewStep(): boolean {
@@ -3408,4 +3572,280 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
     this.teamHoverPopupTitle = '';
     this.teamHoverPopupStyle = {};
   }
+
+onExtendedDateSelected() {  
+  if (!this.projectMilestone.extendedDate) {
+    this.projectMilestone.extensionReason = null;
+    this.projectMilestone.extensionFile = null;
+    return;
+  }
+
+  if (this.isSameDay(this.projectMilestone.extendedDate, this.projectMilestone.endDate)) {
+    this.projectMilestone.extendedDate = null;
+    this.projectMilestone.extensionReason = null;
+    this.projectMilestone.extensionFile = null;
+    this.isExtensionEnabled = false;
+    this.openAlertMessageModal("Updated End Date cannot be the same as current Milestone End Date. Please select a different date.");
+  }
+}
+
+clearExtensionFile(fileInput: HTMLInputElement) {
+  this.projectMilestone.extensionFile = null;
+  fileInput.value = '';
+}
+
+onExtensionFileSelected(event: any,projectMilestone:any) {
+
+  const file = event.target.files[0];
+  if (!file) return;
+ const allowedTypes = ['application/pdf','image/jpeg','image/jpg','image/png'];
+
+  if (!allowedTypes.includes(file.type)) {
+    this.openAlertMessageModal("Only PDF, JPG, JPEG, or PNG files are allowed.");
+    event.target.value = '';
+    return;
+  }
+
+  const maxSize = 25 * 1024 * 1024; // 25MB
+  if (file.size > maxSize) {
+    this.openAlertMessageModal( "File size should be less than 25MB!!");
+    return;
+  }
+
+  const uniquefile =projectMilestone.id+'_'+file.name
+  this.validateFileName(uniquefile,"extended")
+  this.projectMilestone.extensionFile = new File([file],uniquefile,{ type: file.type });
+}
+
+validateFileName(uniquefile: any,type:any) {
+  this.projectService.validateDocName(uniquefile).subscribe({
+    next: (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        // No duplicate
+        console.error(response.serviceResponse);
+      } else if (response.serviceStatus === 'Fail') {
+        // Duplicate found
+        type==="extended"?this.projectMilestone.extensionFile = null:this.selectedFile = null;
+        this.openAlertMessageModal(response.serviceResponse);
+        return false;        
+      }
+    },
+    error: (error) => {
+        type==="extended"?this.projectMilestone.extensionFile = null:this.selectedFile = null;
+        this.openAlertMessageModal("Error while validating file. Kindly try after sometime!!");
+        return false;        
+    }
+  });
+}
+
+
+previewMilestoneFile(file1:any) {
+  if (!file1) return;
+
+  const file = file1;
+  const fileURL = URL.createObjectURL(file1);
+  this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+  this.isPdfFile = file.type === 'application/pdf';
+  this.isImageFile = file.type.startsWith('image/');
+
+  this.projectMilestoneDocumentModalRef = this.modalService.open(
+    this.projectMilestoneDocumentTemplateRef,
+    {
+      modalDialogClass: 'modal-xl',
+      backdrop: 'static',
+      keyboard: false
+    }
+  );
+}
+
+extensionReason() {
+    this.projectService.getAllMilestoneExtendReason().subscribe({
+      next: (response) => {
+        if (response.serviceStatus === 'Success') {
+          this.milestoneExtendReason = response.serviceResponse;
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching milestones:', error);
+
+      }
+    });
+  }
+
+updateMilestoneExtendedDateWithReason():Promise<boolean> {
+  const isValid = this.validateMilestoneExtensionUpdate();
+  if (!isValid) {
+    return Promise.resolve(false);
+  }
+  
+   console.log("this.currentUser===>>",this.currentUser);
+  this.projectNameForMilestoneUpdate = this.rmgProjectObj.projectName;
+    
+  const payload: MilestoneUpdatedLog = {
+    milestoneId: this.projectMilestone.id,
+    poId: this.projectMilestone.poId,
+    projectId: this.projectMilestone.projectId,
+    lineItemName: this.projectMilestone.lineItemName,
+    milestoneName: this.projectMilestone.name,
+    milestoneStartDate: this.projectMilestone.startDate ? this.projectMilestone.startDate : null,
+    milestoneEndDate: this.projectMilestone.endDate ? this.projectMilestone.endDate : null, 
+    description: this.projectMilestone.description,
+    remarks: this.projectMilestone.remarks,
+    milestoneStatus: this.projectMilestone.status,
+    extendedDate: this.projectMilestone.extendedDate,
+    updatedBy: this.currentUser.empId,
+    updatedByName: this.currentUser.name,
+    projectName : this.projectNameForMilestoneUpdate,
+    poNumber : this.projectMilestone.poNumber,
+    milestoneExtensionReasonId: this.projectMilestone.extensionReason?.id,
+    milestoneExtensionReasonText: this.projectMilestone?.extensionReason?.milestoneExtensionReason==='Other'? this.projectMilestone.customReason : ""  };
+
+  const formData = new FormData();
+  formData.append("milestoneData",new Blob([JSON.stringify(payload)], { type: "application/json" }));
+
+  // optional file
+  if (this.projectMilestone.extensionFile) {
+    formData.append("extensionFile", this.projectMilestone.extensionFile);
+  }
+
+  return new Promise((resolve) => {
+    this.projectService.updateMilestoneExtendedDate(formData).subscribe({
+      next: (response: any) => {
+        console.log(response);
+        if (response?.serviceStatus === 'Success') {
+          this.openAlertMessageModal("Date Extended successfully!!")
+          this.isExtensionEnabled = false
+          this.getProjectMilestones();
+          resolve(true);
+        } else {
+          this.openAlertMessageModal("Something went wrong while updating extended date. Kindly try after sometime!!");
+          resolve(false);
+        }
+      },error: () => {
+        this.openAlertMessageModal("Something went wrong while updating extended date. Kindly try after sometime!!");
+        resolve(false);
+      }
+    });
+  });
+}   
+
+private validateMilestoneExtensionUpdate(): boolean {
+  if (!this.isExtensionEnabled) {
+    return false;
+  }
+  if (this.isSameDay(this.projectMilestone.extendedDate, this.projectMilestone.endDate)) {
+    this.openAlertMessageModal("Updated End Date cannot be the same as current Milestone End Date. Please select a different date.");
+    return false;
+  }
+  if (!this.projectMilestone.extensionReason) {
+    this.openAlertMessageModal("Kindly select the extension reason!!");
+    return false;
+  }
+  if (this.projectMilestone?.extensionReason?.milestoneExtensionReason === 'Other' &&
+      (!this.projectMilestone?.customReason || !this.projectMilestone?.customReason.trim())) {
+    this.openAlertMessageModal("Kindly Enter Custom Reason!!");
+    return false;
+  }
+  return true;
+}
+
+private isSameDay(firstDate: any, secondDate: any): boolean {
+  if (!firstDate || !secondDate) {
+    return false;
+  }
+  const first = new Date(firstDate);
+  const second = new Date(secondDate);
+  return !isNaN(first.getTime()) && !isNaN(second.getTime()) &&
+    first.getFullYear() === second.getFullYear() &&
+    first.getMonth() === second.getMonth() &&
+    first.getDate() === second.getDate();
+}
+
+
+onExtendedDateChange(event: any) {
+  if (event.value) { this.isExtensionEnabled = true; }
+}
+
+
+toggleExtensionLogs(milestone: any) {
+  if (!milestone.extendedDate) {return;}
+  this.expandedMilestoneId = this.expandedMilestoneId === milestone.id ? null : milestone.id;
+}
+
+previewDocument(documentId: number,documentName:any) {
+  this.projectService.getExtensionDocumentByName(documentName).subscribe((res: any) => {
+      if (!res || !res.documentContent) {
+        this.milestoneDocumentUrl = null;
+        this.openAlertMessageModal("Error fetching document for preview. Kindly try after sometime!!");
+        return;
+      }
+      const byteCharacters = atob(res.documentContent);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: res.documentType });
+      const url = window.URL.createObjectURL(blob);
+
+      this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+      this.isPdfFile = res.documentType === 'application/pdf';
+      this.isImageFile = res.documentType.startsWith('image/');
+      
+      this.projectMilestoneDocumentModalRef = this.modalService.open(
+      this.projectMilestoneDocumentTemplateRef,{modalDialogClass: 'modal-xl',keyboard: false});
+    },
+    (error) => {
+      console.error('Error fetching document:', error);
+      this.openAlertMessageModal("Error fetching document for preview. Kindly try after sometime!!");
+      this.milestoneDocumentUrl = null;
+      return
+    }
+  );
+}
+
+closeProjectMilestoneImageModal() {
+  this.showMilestoneImageModal = false;
+  this.milestoneDocumentUrl = null;
+}
+
+toggleLogs(milestone: any, type: 'start' | 'end' | 'status') {
+
+  // If clicking same milestone and same log type → collapse
+  if (this.expandedMilestoneId === milestone.id && this.selectedLogType === type) {
+    this.expandedMilestoneId = null;
+    this.selectedLogs = [];
+    this.selectedLogType = null;
+    this.logHeader = '';
+    return;
+  }
+  // Expand row
+  this.expandedMilestoneId = milestone.id;
+  this.selectedLogType = type;
+  this.selectedLogs = [];
+
+  switch (type) {
+    case 'start':
+      this.selectedLogs = milestone.milestoneExtendedStartDateLogs || [];
+      this.logHeader = 'Start Date';
+      break;
+
+    case 'end':
+      this.selectedLogs = milestone.milestoneExtendedEndDateLogs || [];
+      this.logHeader = 'End Date';
+      break;
+
+    case 'status':
+      this.selectedLogs = milestone.milestoneStatusLogs || [];
+      this.logHeader = 'Status';
+      break;
+  }
+}
+
+trackByLog(index: number, log: any) {
+  return log.documentId || index;
+}
+
+
+
 }
