@@ -290,6 +290,7 @@ export class ResourceManagementComponent implements OnInit {
   selectedTeamsDetails: any[] = [];
   isProjectTable: boolean = false;
   isEditProject: boolean = false;
+  isClientSideIdTnmProjectType: boolean = false;
   isUpdation: boolean = false;
   isHideButton: boolean = false;
   allProjectTable: boolean = false;
@@ -2212,6 +2213,7 @@ export class ResourceManagementComponent implements OnInit {
         this.openRejectProjectModal(project);
         break;
       case 'CLIENT_SIDE_ID_STATUS':
+        this.isClientSideIdTnmProjectType = project.poProjectType && project?.poProjectType?.trim()?.toLowerCase() === 'tnm';
         this.openClientSideIdConfirmationModal(project.projectId);
         break;
       case 'RESTORE':
