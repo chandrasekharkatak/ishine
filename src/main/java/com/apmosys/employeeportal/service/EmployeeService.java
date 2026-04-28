@@ -589,11 +589,12 @@ public class EmployeeService {
 				employeeTeamMap.setEmpId(newEmployee.getEmpId());
 				employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
 				employeeTeamMap.setActive(2l);
-				employeeTeamMap.setStartDate(LocalDateTime.now());
+				employeeTeamMap.setStartDate(employeedto.getNewEtmStartDate() != null ? employeedto.getNewEtmStartDate() : LocalDateTime.now());
 				employeeTeamMap.setEmployeeRole(employeeRole.toString());
 				employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
 				employeeTeamMap.setPoId(employeedto.getPoId());
 				employeeTeamMap.setRoleId(employeedto.getPoRoleId());
+				employeeTeamMap.setEmpTeamDepartmentId(dept != null ? dept.getDeptId() : null);
 				employeeTeamMap.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
 				employeeTeamMap.setUpdatedOn(LocalDateTime.now());
 				EmployeeTeamMap dbEmployeeTeamMap = employeeTeamMapRepository.save(employeeTeamMap);
@@ -2335,32 +2336,6 @@ public class EmployeeService {
 
 				if (Boolean.TRUE.equals(employeedto.getIsUpdateDefaultProject())) {
 
-					List<EmployeeTeamMap> existingTeamMappings = employeeTeamMapRepository
-							.findByEmpIdAndProjectId(employeedto.getEmpId(), employeedto.getProjectId());
-					if (existingTeamMappings != null) {
-
-						LocalDateTime now = LocalDateTime.now();
-						for (EmployeeTeamMap existingMap : existingTeamMappings) {
-							if (employeedto.getOldEtmEndDate() == null){
-								existingMap.setActive(0L);
-								existingMap.setEndDate(now);
-							} else {
-								if (!employeedto.getOldEtmEndDate().toLocalDate().isAfter(now.toLocalDate())) {
-									existingMap.setActive(0L);
-								}
-								existingMap.setEndDate(employeedto.getOldEtmEndDate());
-							}
-							
-							existingMap.setUpdatedBy(updatedBy);
-						}
-						employeeTeamMapRepository.saveAll(existingTeamMappings);
-					}
-
-					StringBuilder employeeRole = new StringBuilder("");
-					for (String empRole : employeedto.getDefaultTeamEmployeeRole()) {
-						employeeRole.append(empRole).append(",");
-					}
-
 					if (employeedto.getDefaultProjectId() != null) {
 						List<EmployeeTeamMap> existingTeamMappingForFutureDate = employeeTeamMapRepository.findByEmpIdAndTeamIdAndStartDateGreaterThanCurrentDate(employee2.getEmpId(), employeedto.getDefaultTeamId());	
 						if (existingTeamMappingForFutureDate != null && !existingTeamMappingForFutureDate.isEmpty() && existingTeamMappingForFutureDate.size() > 1) {
@@ -2372,6 +2347,34 @@ public class EmployeeService {
 				            logService.logMyInfo(httpRequest, apiLogInfo);
 				            return response;
 						}
+
+						List<EmployeeTeamMap> existingTeamMappings = employeeTeamMapRepository
+								.findByEmpIdAndProjectId(employeedto.getEmpId(), employeedto.getProjectId());
+						if (existingTeamMappings != null) {
+
+							LocalDateTime now = LocalDateTime.now();
+							for (EmployeeTeamMap existingMap : existingTeamMappings) {
+								if (employeedto.getOldEtmEndDate() == null) {
+									existingMap.setActive(0L);
+									existingMap.setEndDate(now);
+								} else {
+									if (!employeedto.getOldEtmEndDate().toLocalDate().isAfter(now.toLocalDate())) {
+										existingMap.setActive(0L);
+									}
+									existingMap.setEndDate(employeedto.getOldEtmEndDate());
+								}
+
+								existingMap.setUpdatedBy(updatedBy);
+							}
+							employeeTeamMapRepository.saveAll(existingTeamMappings);
+						}
+
+						StringBuilder employeeRole = new StringBuilder("");
+						for (String empRole : employeedto.getDefaultTeamEmployeeRole()) {
+							employeeRole.append(empRole).append(",");
+						}
+
+						Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
 
 						EmployeeTeamMap employeeTeamMap =  new EmployeeTeamMap();
 						if (existingTeamMappingForFutureDate != null && !existingTeamMappingForFutureDate.isEmpty() && existingTeamMappingForFutureDate.size() == 1) {
@@ -2385,6 +2388,7 @@ public class EmployeeService {
 						employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
 						employeeTeamMap.setPoId(employeedto.getPoId());
 						employeeTeamMap.setRoleId(employeedto.getPoRoleId());
+						employeeTeamMap.setEmpTeamDepartmentId(dept != null ? dept.getDeptId() : null);
 						employeeTeamMap.setCreatedBy(updatedBy);
 						employeeTeamMap.setUpdatedBy(updatedBy);
 						employeeTeamMap.setUpdatedOn(LocalDateTime.now());
