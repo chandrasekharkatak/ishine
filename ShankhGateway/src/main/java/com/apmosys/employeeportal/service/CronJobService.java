@@ -7166,251 +7166,254 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
             
 		}
 	    
-//	    private String buildAutoMigrationHtml(AutoMigrationDTO dto) {
-//
-//	        StringBuilder sb = new StringBuilder();
-//
-//	        sb.append("<!DOCTYPE html>")
-//	          .append("<html><head>")
-//	          .append("<meta charset='UTF-8'>")
-//	          .append("<style>")
-//
-//	         
-//	          .append("body { font-family: 'Segoe UI', sans-serif; background:#faf8fc; color:#4a4a4a; }")
-//	          .append(".container { max-width:800px; margin:auto; padding:20px; }")
-//
-//	         
-//	          .append(".header { background: linear-gradient(135deg,#e6d9f3,#f9e4ec); padding:25px; border-radius:12px; text-align:center; }")
-//	          .append(".header h2 { margin:0; color:#5a3d6d; }")
-//	          .append(".sub { color:#7b6a8d; font-size:14px; margin-top:5px; }")
-//
-//	         
-//	          .append(".info { background:#f3edf9; padding:15px; border-radius:10px; margin-top:20px; }")
-//
-//	         
-//	          .append(".section-title { margin-top:25px; font-size:18px; color:#6b4c7a; font-weight:600; }")
-//
-//	        
-//	          .append(".card { background:#ffffff; border-left:5px solid #d9c9e8; padding:15px; margin-top:15px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05);} ")
-//
-//	          .append(".name { font-weight:600; color:#4a3b5c; font-size:15px; }")
-//	          .append(".label { color:#8b7a9d; font-size:12px; }")
-//	          .append(".value { margin-bottom:6px; }")
-//
-//	         
-//	          .append(".move { background:#f9f6fc; padding:10px; border-radius:6px; margin-top:8px; }")
-//
-//	       
-//	          .append(".footer { margin-top:30px; font-size:12px; color:#8b7a9d; text-align:center; }")
-//
-//	          .append("</style></head><body>");
-//
-//	        sb.append("<div class='container'>");
-//
-//	      
-//	        sb.append("<div class='header'>")
-//	          .append("<h2> PO Renewal - Automatic Resource Onboarding</h2>")
-//	          .append("<div class='sub'>Ensuring smooth project continuity</div>")
-//	          .append("</div>");
-//
-//	    
-//	        sb.append("<div class='info'>")
-//	          .append("<div><b>Project:</b> ").append(dto.getProjectName()).append("</div>")
-//	          .append("<div><b>Project Type:</b> ").append(dto.getProjectType()).append("</div>")
-//	          .append("<div><b>PO Movement:</b> ")
-//	          .append(dto.getPreviousPoNumber())
-//	          .append(" -> ")
-//	          .append(dto.getCurrentPoNumber())
-//	          .append("</div>")
-//	          .append("</div>");
-//
-//	      
-//	        sb.append("<div class='section-title'>What does this mean?</div>");
-//
-//	        if ("TNM".equalsIgnoreCase(dto.getProjectType())) {
-//	            sb.append("<div class='info'>")
-//	              .append("The previous PO has expired. To ensure work continues smoothly, ")
-//	              .append("employees with matching roles have been automatically moved to the renewed PO. ")
-//	              .append("This avoids any disruption in ongoing project activities.")
-//	              .append("</div>");
-//	        } else {
-//	            sb.append("<div class='info'>")
-//	              .append("The previous PO has expired. To maintain uninterrupted monitoring operations, ")
-//	              .append("all active employees have been automatically moved to the renewed PO.")
-//	              .append("</div>");
-//	        }
-//
-//	      
-//	        sb.append("<div class='section-title'> Auto Onboarded Resources</div>");
-//
-//	        for (EmployeeImpactDTO emp : dto.getEmployees()) {
-//
-//	            sb.append("<div class='card'>");
-//
-//	            sb.append("<div class='name'>").append(emp.getEmployeeName()).append("</div>");
-//
-//	            if ("TNM".equalsIgnoreCase(dto.getProjectType())) {
-//	                sb.append("<div class='value'><span class='label'>Role:</span> ")
-//	                  .append(emp.getRoleName() != null ? emp.getRoleName() : "-")
-//	                  .append("</div>");
-//	            }
-//
-//	            sb.append("<div class='move'>");
-//
-//	            sb.append("<div class='value'><span class='label'>PO Movement:</span><br>")
-//	              .append(emp.getPreviousPoNumber())
-//	              .append(" -> ")
-//	              .append(emp.getCurrentPoNumber())
-//	              .append("</div>");
-//
-//	            sb.append("<div class='value'><span class='label'>Team Movement:</span><br>")
-//	              .append(emp.getPreviousTeamName())
-//	              .append(" -> ")
-//	              .append(emp.getNewTeamName())
-//	              .append("</div>");
-//
-//	            sb.append("</div>");
-//
-//	            sb.append("<div class='value'><span class='label'>Reason:</span> ")
-//	              .append(emp.getReason()).append("</div>");
-//
-//	            sb.append("</div>");
-//	        }
-//
-//	       
-//	        sb.append("<div class='footer'>")
-//	          .append("This is an automated notification generated during PO renewal.<br>")
-//	          .append("</div>");
-//
-//	        sb.append("</div></body></html>");
-//
-//	        return sb.toString();
-//	    }
-	    
 	    private String buildAutoMigrationHtml(AutoMigrationDTO dto) {
 
 	        StringBuilder sb = new StringBuilder();
 
 	        sb.append("<!DOCTYPE html>")
-	          .append("<html><head><meta charset='UTF-8'>")
+	          .append("<html><head>")
+	          .append("<meta charset='UTF-8'>")
 	          .append("<style>")
-	          .append("body { font-family: 'Segoe UI', sans-serif; background:#faf8fc; color:#4a4a4a; margin:0; padding:0; }")
-	          .append(".container { max-width:860px; margin:auto; padding:24px; }")
-	          .append(".header { background:linear-gradient(135deg,#e6d9f3,#f9e4ec); padding:28px; border-radius:12px; text-align:center; }")
-	          .append(".header h2 { margin:0; color:#5a3d6d; font-size:21px; }")
-	          .append(".sub { color:#7b6a8d; font-size:13px; margin-top:6px; }")
-	          .append(".info-box { background:#f3edf9; padding:16px 20px; border-radius:10px; margin-top:18px; line-height:2; }")
-	          .append(".info-box b { color:#5a3d6d; }")
-	          .append(".section-title { margin-top:26px; font-size:16px; color:#6b4c7a; font-weight:700; border-bottom:2px solid #e0d0f0; padding-bottom:6px; }")
-	          .append(".notice { background:#fff8e1; border-left:4px solid #f0b429; padding:12px 16px; border-radius:8px; margin-top:12px; font-size:13px; color:#5a4a00; }")
-	          .append("table { width:100%; border-collapse:collapse; margin-top:16px; font-size:13px; }")
-	          .append("thead tr { background:#e8daf4; color:#4a3060; }")
-	          .append("th { padding:10px 14px; text-align:left; font-weight:600; border-bottom:2px solid #d4bfea; }")
-	          .append("tbody tr:nth-child(even) { background:#f9f5fd; }")
-	          .append("tbody tr:nth-child(odd)  { background:#ffffff; }")
-	          .append("td { padding:10px 14px; border-bottom:1px solid #ede5f5; vertical-align:middle; }")
-	          .append(".arrow { color:#9b59b6; font-weight:700; }")
-	          .append(".badge { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; }")
-	          .append(".badge-active  { background:#d4f5e2; color:#1a7a45; }")
-	          .append(".badge-pending { background:#fff0cc; color:#8a6000; }")
-	          .append(".badge-future  { background:#ddeeff; color:#1a4a8a; }")
-	          .append(".footer { margin-top:30px; font-size:11px; color:#8b7a9d; text-align:center; padding-top:12px; border-top:1px solid #e8daf4; }")
-	          .append("</style></head><body><div class='container'>");
 
-	        // ── Header ─────────────────────────────────────────────────────────────
+	         
+	          .append("body { font-family: 'Segoe UI', sans-serif; background:#faf8fc; color:#4a4a4a; }")
+	          .append(".container { max-width:800px; margin:auto; padding:20px; }")
+
+	         
+	          .append(".header { background: linear-gradient(135deg,#e6d9f3,#f9e4ec); padding:25px; border-radius:12px; text-align:center; }")
+	          .append(".header h2 { margin:0; color:#5a3d6d; }")
+	          .append(".sub { color:#7b6a8d; font-size:14px; margin-top:5px; }")
+
+	         
+	          .append(".info { background:#f3edf9; padding:15px; border-radius:10px; margin-top:20px; }")
+
+	         
+	          .append(".section-title { margin-top:25px; font-size:18px; color:#6b4c7a; font-weight:600; }")
+
+	        
+	          .append(".card { background:#ffffff; border-left:5px solid #d9c9e8; padding:15px; margin-top:15px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05);} ")
+
+	          .append(".name { font-weight:600; color:#4a3b5c; font-size:15px; }")
+	          .append(".label { color:#8b7a9d; font-size:12px; }")
+	          .append(".value { margin-bottom:6px; }")
+
+	         
+	          .append(".move { background:#f9f6fc; padding:10px; border-radius:6px; margin-top:8px; }")
+
+	       
+	          .append(".footer { margin-top:30px; font-size:12px; color:#8b7a9d; text-align:center; }")
+
+	          .append("</style></head><body>");
+
+	        sb.append("<div class='container'>");
+
+	      
 	        sb.append("<div class='header'>")
-	          .append("<h2>&#128196; PO Renewal &ndash; Automatic Resource Onboarding</h2>")
-	          .append("<div class='sub'>Resources have been seamlessly carried forward to the renewed PO</div>")
+	          .append("<h2> PO Renewal - Automatic Resource Onboarding</h2>")
+	          .append("<div class='sub'>Ensuring smooth project continuity</div>")
 	          .append("</div>");
 
-	        // ── Project Info ────────────────────────────────────────────────────────
-	        sb.append("<div class='info-box'>")
-	          .append("<div><b>Project &nbsp;&nbsp;&nbsp;&nbsp;:</b> ").append(dto.getProjectName()).append("</div>")
-	          .append("<div><b>Type &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ").append(dto.getProjectType()).append("</div>")
-	          .append("<div><b>PO Movement :</b> <span class='arrow'>")
-	          .append(dto.getPreviousPoNumber()).append(" &rarr; ").append(dto.getCurrentPoNumber())
-	          .append("</span></div>")
+	    
+	        sb.append("<div class='info'>")
+	          .append("<div><b>Project:</b> ").append(dto.getProjectName()).append("</div>")
+	          .append("<div><b>Project Type:</b> ").append(dto.getProjectType()).append("</div>")
+	          .append("<div><b>PO Movement:</b> ")
+	          .append(dto.getPreviousPoNumber())
+	          .append(" -> ")
+	          .append(dto.getCurrentPoNumber())
+	          .append("</div>")
 	          .append("</div>");
 
-	   
-	        sb.append("<div class='section-title'>What happened?</div>");
+	      
+	        sb.append("<div class='section-title'>What does this mean?</div>");
+
 	        if ("TNM".equalsIgnoreCase(dto.getProjectType())) {
-	            sb.append("<div class='notice'>")
-	              .append("The previous PO has expired. Employees with <b>matching roles</b> have been automatically ")
-	              .append("carried forward to the renewed PO to ensure uninterrupted project activities. ")
-	              .append("Please review the list below and reach out if any adjustment is needed.")
+	            sb.append("<div class='info'>")
+	              .append("The previous PO has expired. To ensure work continues smoothly, ")
+	              .append("employees with matching roles have been automatically moved to the renewed PO. ")
+	              .append("This avoids any disruption in ongoing project activities.")
 	              .append("</div>");
 	        } else {
-	            sb.append("<div class='notice'>")
-	              .append("The previous PO has expired. <b>All active employees</b> under this Monitoring project ")
-	              .append("have been automatically moved to the renewed PO to maintain continuity. ")
-	              .append("Please review and reach out if any adjustment is needed.")
+	            sb.append("<div class='info'>")
+	              .append("The previous PO has expired. To maintain uninterrupted monitoring operations, ")
+	              .append("all active employees have been automatically moved to the renewed PO.")
 	              .append("</div>");
+	        }
+
+	      
+	        sb.append("<div class='section-title'> Auto Onboarded Resources</div>");
+
+	        for (EmployeeImpactDTO emp : dto.getEmployees()) {
+
+	            sb.append("<div class='card'>");
+
+	            sb.append("<div class='name'>").append(emp.getEmployeeName()).append("</div>");
+	            sb.append("<div class='value'><span class='label'>Department:</span> ")
+	            .append(emp.getDepartmentName() != null ? emp.getDepartmentName() : "-")
+	            .append("</div>");
+
+	            if ("TNM".equalsIgnoreCase(dto.getProjectType())) {
+	                sb.append("<div class='value'><span class='label'>Role:</span> ")
+	                  .append(emp.getRoleName() != null ? emp.getRoleName() : "-")
+	                  .append("</div>");
+	            }
+
+	            sb.append("<div class='move'>");
+
+	            sb.append("<div class='value'><span class='label'>PO Movement:</span><br>")
+	              .append(emp.getPreviousPoNumber())
+	              .append(" -> ")
+	              .append(emp.getCurrentPoNumber())
+	              .append("</div>");
+
+	            sb.append("<div class='value'><span class='label'>Team Movement:</span><br>")
+	              .append(emp.getPreviousTeamName())
+	              .append(" -> ")
+	              .append(emp.getNewTeamName())
+	              .append("</div>");
+
+	            sb.append("</div>");
+
+	            sb.append("<div class='value'><span class='label'>Reason:</span> ")
+	              .append(emp.getReason()).append("</div>");
+
+	            sb.append("</div>");
 	        }
 
 	       
-	        sb.append("<div class='section-title'>&#128100; Auto Onboarded Resources</div>");
-	        sb.append("<table><thead><tr>")
-	          .append("<th>#</th>")
-	          .append("<th>Employee</th>")
-	          .append("<th>Department</th>");
-
-	        if ("TNM".equalsIgnoreCase(dto.getProjectType())) {
-	            sb.append("<th>Role</th>");
-	        }
-
-	        sb.append("<th>Team Movement</th>")
-	          .append("<th>PO Movement</th>")
-	          .append("<th>Status</th>")
-	          .append("</tr></thead><tbody>");
-
-	        int i = 1;
-	        for (EmployeeImpactDTO emp : dto.getEmployees()) {
-
-	            String reason = emp.getReason() != null ? emp.getReason().toLowerCase() : "";
-	            String badge;
-	            if (reason.contains("future")) {
-	                badge = "<span class='badge badge-future'>Future Dated</span>";
-	            } else if (reason.contains("pending") || reason.contains("approval")) {
-	                badge = "<span class='badge badge-pending'>Pending Approval</span>";
-	            } else {
-	                badge = "<span class='badge badge-active'>Active</span>";
-	            }
-
-	            sb.append("<tr>")
-	              .append("<td>").append(i++).append("</td>")
-	              .append("<td><b>").append(emp.getEmployeeName()).append("</b></td>")
-	              .append("<td>").append(emp.getDepartmentName() != null ? emp.getDepartmentName() : "-").append("</td>");
-
-	            if ("TNM".equalsIgnoreCase(dto.getProjectType())) {
-	                sb.append("<td>").append(emp.getRoleName() != null ? emp.getRoleName() : "-").append("</td>");
-	            }
-
-	            sb.append("<td>")
-	              .append(emp.getPreviousTeamName())
-	              .append(" <span class='arrow'>&rarr;</span> ")
-	              .append(emp.getNewTeamName())
-	              .append("</td>")
-	              .append("<td>")
-	              .append(emp.getPreviousPoNumber())
-	              .append(" <span class='arrow'>&rarr;</span> ")
-	              .append(emp.getCurrentPoNumber())
-	              .append("</td>")
-	              .append("<td>").append(badge).append("</td>")
-	              .append("</tr>");
-	        }
-
-	        sb.append("</tbody></table>");
-
-	     
 	        sb.append("<div class='footer'>")
-	          .append("This is an automated notification triggered during PO renewal. &nbsp;|&nbsp; Please do not reply to this email.<br>")
-	          .append("For any concerns, contact your Project Manager or the PO Portal team.")
+	          .append("This is an automated notification generated during PO renewal.<br>")
 	          .append("</div>");
 
 	        sb.append("</div></body></html>");
+
 	        return sb.toString();
 	    }
+	    
+//	    private String buildAutoMigrationHtml(AutoMigrationDTO dto) {
+//
+//	        StringBuilder sb = new StringBuilder();
+//
+//	        sb.append("<!DOCTYPE html>")
+//	          .append("<html><head><meta charset='UTF-8'>")
+//	          .append("<style>")
+//	          .append("body { font-family: 'Segoe UI', sans-serif; background:#faf8fc; color:#4a4a4a; margin:0; padding:0; }")
+//	          .append(".container { max-width:860px; margin:auto; padding:24px; }")
+//	          .append(".header { background:linear-gradient(135deg,#e6d9f3,#f9e4ec); padding:28px; border-radius:12px; text-align:center; }")
+//	          .append(".header h2 { margin:0; color:#5a3d6d; font-size:21px; }")
+//	          .append(".sub { color:#7b6a8d; font-size:13px; margin-top:6px; }")
+//	          .append(".info-box { background:#f3edf9; padding:16px 20px; border-radius:10px; margin-top:18px; line-height:2; }")
+//	          .append(".info-box b { color:#5a3d6d; }")
+//	          .append(".section-title { margin-top:26px; font-size:16px; color:#6b4c7a; font-weight:700; border-bottom:2px solid #e0d0f0; padding-bottom:6px; }")
+//	          .append(".notice { background:#fff8e1; border-left:4px solid #f0b429; padding:12px 16px; border-radius:8px; margin-top:12px; font-size:13px; color:#5a4a00; }")
+//	          .append("table { width:100%; border-collapse:collapse; margin-top:16px; font-size:13px; }")
+//	          .append("thead tr { background:#e8daf4; color:#4a3060; }")
+//	          .append("th { padding:10px 14px; text-align:left; font-weight:600; border-bottom:2px solid #d4bfea; }")
+//	          .append("tbody tr:nth-child(even) { background:#f9f5fd; }")
+//	          .append("tbody tr:nth-child(odd)  { background:#ffffff; }")
+//	          .append("td { padding:10px 14px; border-bottom:1px solid #ede5f5; vertical-align:middle; }")
+//	          .append(".arrow { color:#9b59b6; font-weight:700; }")
+//	          .append(".badge { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; }")
+//	          .append(".badge-active  { background:#d4f5e2; color:#1a7a45; }")
+//	          .append(".badge-pending { background:#fff0cc; color:#8a6000; }")
+//	          .append(".badge-future  { background:#ddeeff; color:#1a4a8a; }")
+//	          .append(".footer { margin-top:30px; font-size:11px; color:#8b7a9d; text-align:center; padding-top:12px; border-top:1px solid #e8daf4; }")
+//	          .append("</style></head><body><div class='container'>");
+//
+//	        // ── Header ─────────────────────────────────────────────────────────────
+//	        sb.append("<div class='header'>")
+//	          .append("<h2>&#128196; PO Renewal &ndash; Automatic Resource Onboarding</h2>")
+//	          .append("<div class='sub'>Resources have been seamlessly carried forward to the renewed PO</div>")
+//	          .append("</div>");
+//
+//	        // ── Project Info ────────────────────────────────────────────────────────
+//	        sb.append("<div class='info-box'>")
+//	          .append("<div><b>Project &nbsp;&nbsp;&nbsp;&nbsp;:</b> ").append(dto.getProjectName()).append("</div>")
+//	          .append("<div><b>Type &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ").append(dto.getProjectType()).append("</div>")
+//	          .append("<div><b>PO Movement :</b> <span class='arrow'>")
+//	          .append(dto.getPreviousPoNumber()).append(" &rarr; ").append(dto.getCurrentPoNumber())
+//	          .append("</span></div>")
+//	          .append("</div>");
+//
+//	   
+//	        sb.append("<div class='section-title'>What happened?</div>");
+//	        if ("TNM".equalsIgnoreCase(dto.getProjectType())) {
+//	            sb.append("<div class='notice'>")
+//	              .append("The previous PO has expired. Employees with <b>matching roles</b> have been automatically ")
+//	              .append("carried forward to the renewed PO to ensure uninterrupted project activities. ")
+//	              .append("Please review the list below and reach out if any adjustment is needed.")
+//	              .append("</div>");
+//	        } else {
+//	            sb.append("<div class='notice'>")
+//	              .append("The previous PO has expired. <b>All active employees</b> under this Monitoring project ")
+//	              .append("have been automatically moved to the renewed PO to maintain continuity. ")
+//	              .append("Please review and reach out if any adjustment is needed.")
+//	              .append("</div>");
+//	        }
+//
+//	       
+//	        sb.append("<div class='section-title'>&#128100; Auto Onboarded Resources</div>");
+//	        sb.append("<table><thead><tr>")
+//	          .append("<th>#</th>")
+//	          .append("<th>Employee</th>")
+//	          .append("<th>Department</th>");
+//
+//	        if ("TNM".equalsIgnoreCase(dto.getProjectType())) {
+//	            sb.append("<th>Role</th>");
+//	        }
+//
+//	        sb.append("<th>Team Movement</th>")
+//	          .append("<th>PO Movement</th>")
+//	          .append("<th>Status</th>")
+//	          .append("</tr></thead><tbody>");
+//
+//	        int i = 1;
+//	        for (EmployeeImpactDTO emp : dto.getEmployees()) {
+//
+//	            String reason = emp.getReason() != null ? emp.getReason().toLowerCase() : "";
+//	            String badge;
+//	            if (reason.contains("future")) {
+//	                badge = "<span class='badge badge-future'>Future Dated</span>";
+//	            } else if (reason.contains("pending") || reason.contains("approval")) {
+//	                badge = "<span class='badge badge-pending'>Pending Approval</span>";
+//	            } else {
+//	                badge = "<span class='badge badge-active'>Active</span>";
+//	            }
+//
+//	            sb.append("<tr>")
+//	              .append("<td>").append(i++).append("</td>")
+//	              .append("<td><b>").append(emp.getEmployeeName()).append("</b></td>")
+//	              .append("<td>").append(emp.getDepartmentName() != null ? emp.getDepartmentName() : "-").append("</td>");
+//
+//	            if ("TNM".equalsIgnoreCase(dto.getProjectType())) {
+//	                sb.append("<td>").append(emp.getRoleName() != null ? emp.getRoleName() : "-").append("</td>");
+//	            }
+//
+//	            sb.append("<td>")
+//	              .append(emp.getPreviousTeamName())
+//	              .append(" <span class='arrow'>&rarr;</span> ")
+//	              .append(emp.getNewTeamName())
+//	              .append("</td>")
+//	              .append("<td>")
+//	              .append(emp.getPreviousPoNumber())
+//	              .append(" <span class='arrow'>&rarr;</span> ")
+//	              .append(emp.getCurrentPoNumber())
+//	              .append("</td>")
+//	              .append("<td>").append(badge).append("</td>")
+//	              .append("</tr>");
+//	        }
+//
+//	        sb.append("</tbody></table>");
+//
+//	     
+//	        sb.append("<div class='footer'>")
+//	          .append("This is an automated notification triggered during PO renewal. &nbsp;|&nbsp; Please do not reply to this email.<br>")
+//	          .append("For any concerns, contact your Project Manager or the PO Portal team.")
+//	          .append("</div>");
+//
+//	        sb.append("</div></body></html>");
+//	        return sb.toString();
+//	    }
 	    
 	    public void sendPoDeletionImpactMail(PoDeletionImpactDTO dto) {
 
