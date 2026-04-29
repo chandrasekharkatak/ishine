@@ -260,6 +260,13 @@
                     </div>
                 </div>
                 <div class="horizontal-row"></div>
+                 <div class="col-12" *ngIf="rmgProjectObj?.projectMessage">
+                      <div class="project-message-bar">
+                          <div class="scroll-text">
+                              {{ rmgProjectObj.projectMessage }}
+                          </div>
+                      </div>
+                 </div>
             </div>
 
             <ng-container *ngIf="projectType === 'TNM'">
@@ -2490,7 +2497,7 @@
         <br>
 
         <div class="d-flex justify-content-end" *ngIf="isExtensionEnabled && projectMilestone.extendedDate">
-        <button type="button" class="ep-btn ep-btn--primary" [disabled]="projectMilestone.status === 'Completed'" 
+        <button type="button" class="ep-btn ep-btn--primary" [disabled]="projectMilestone.status === 'Completed'"
         [title]="projectMilestone.status === 'Completed'  ? 'Date cannot be updated after milestone is marked completed': 'Click to update milestone extension details'"
         (click)="updateMilestoneExtendedDateWithReason()">Update Extension</button>
         </div>

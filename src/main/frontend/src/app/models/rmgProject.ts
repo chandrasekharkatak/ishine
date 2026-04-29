@@ -17,6 +17,7 @@ export class RmgProject {
     projectStatus: any;
     draftProjectStatus: any;
     isDraftProject: any;
+    projectMessage: any;
 
     totalRequirements: any;
     assignedApproved: any;
