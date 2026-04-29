@@ -1716,27 +1716,14 @@
 
   <div class="col-md-12" *ngIf="isAccessFeatureMapping">
     <div class="col-md-12 ml-auto d-flex flex-column flex-md-row  align-items-center">
-      <div class="col-md-8 mb-2 mb-md-0">
-        <input class="ml-4 mr-1" type="radio" name="persona" id="Employee" value="Employee"
-          (click)="selectPersona($event)">
-        <label for="Employee">Employee</label>
-        <input class="ml-4 mr-1" type="radio" name="persona" id="TeamLead" value="TeamLead"
-          (click)="selectPersona($event)">
-        <label for="TeamLead">Team Lead</label>
-        <br class="d-md-none">
-        <input class="ml-4 mr-1" type="radio" name="persona" id="Manager" value="Manager"
-          (click)="selectPersona($event)">
-        <label for="Manager">Manager</label>
-        <input class="ml-4 mr-1" type="radio" name="persona" id="HR" value="HR" (click)="selectPersona($event)">
-        <label for="HR">HR</label>
-        <input class="ml-4 mr-1" type="radio" name="persona" id="RMG" value="RMG" (click)="selectPersona($event)">
-        <label for="RMG">RMG</label>
-        <br class="d-md-none">
-        <input class="ml-4 mr-1" type="radio" name="persona" id="HOD" value="HOD" (click)="selectPersona($event)">
-        <label for="HOD">HOD</label>
-        <input class="ml-4 mr-1" type="radio" name="persona" id="SuperAdmin" value="SuperAdmin"
-          (click)="selectPersona($event)">
-        <label for="SuperAdmin">Super Admin</label>
+      <div class="col-md-12 ml-auto mt-2">
+        <div class="d-flex flex-wrap align-items-center">
+          <label *ngFor="let p of personas" class="d-inline-flex align-items-center mr-3 mb-2 persona-item">
+            <input type="radio" name="persona" class="mr-1" [value]="p.value"
+              (click)="selectPersona($event)" />
+            <span>{{ p.label }}</span>
+          </label>
+        </div>
       </div>
 
       <!-- <div class="col-md-2 ml-auto mb-2">
@@ -1755,9 +1742,75 @@
       </div>
 
     </div>
- 
-    <div class="col-md-12">
-      <div class="overflow-auto" style="max-height: 75vh;">
+      <div class="acl-filter-panel" *ngIf="employeeRole">
+      <div class="acl-filter-panel__title">
+        Refine Access View
+        <span class="acl-filter-panel__subtitle">Filter by department and designation</span>
+      </div>
+      <div class="acl-filter-row">
+        <!-- Department Dropdown -->
+        <div class="acl-filter-item">
+          <label class="dropdown">Select Department(s)
+            <span class="acl-filter-count" *ngIf="selectedDepartments?.length">{{selectedDepartments.length}} selected</span>
+          </label>
+          <div class="acl-filter-input-group">
+            <app-my-select #departmentSelectBox class="form-control department-select"
+              placeholder="Select Department(s)" [(ngModel)]="selectedDepartments"
+              (dropdownClosed)="onAclAdvSearch(departmentSelectBox,'departmentSearch')"
+              [options]="filteredDepartments" displayKey="header" valueKey="header" [multiple]="true" [wrapOptions]="true">
+            </app-my-select>
+            <button type="button" class="acl-filter-icon-btn acl-filter-icon-btn--apply" title="Apply Department Filter"
+              (click)="applyAclDropdownFilter(departmentSelectBox,'departmentSearch')">
+              <i class="fa fa-check"></i>
+            </button>
+            <button *ngIf="selectedDepartments?.length" type="button" class="acl-filter-icon-btn acl-filter-icon-btn--clear" title="Clear Department Selection"
+              (click)="clearAclDropdownFilter('Dept')">
+              <i class="fa fa-eraser"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Designation Dropdown -->
+        <div *ngIf="designationDropdown" class="acl-filter-item">
+          <label class="dropdown">Select Designation(s)
+            <span class="acl-filter-count" *ngIf="selectedDesignations?.length">{{selectedDesignations.length}} selected</span>
+          </label>
+          <div class="acl-filter-input-group">
+            <app-my-select #designationSelect class="form-control department-select"
+              placeholder="Select Designation(s)" [(ngModel)]="selectedDesignations"
+              (dropdownClosed)="onAclAdvSearch(designationSelect,'designationSearch')"
+              [options]="filteredDesignationsForDropdown" displayKey="desig" valueKey="desig" [multiple]="true" [wrapOptions]="true">
+            </app-my-select>
+            <button type="button" class="acl-filter-icon-btn acl-filter-icon-btn--apply" title="Apply Designation Filter"
+              (click)="applyAclDropdownFilter(designationSelect,'designationSearch')">
+              <i class="fa fa-check"></i>
+            </button>
+            <button *ngIf="selectedDesignations?.length" type="button" class="acl-filter-icon-btn acl-filter-icon-btn--clear" title="Clear Designation Selection"
+              (click)="clearAclDropdownFilter('Desig')">
+              <i class="fa fa-eraser"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      </div>
+
+    <div class="col-md-12 mt-4">
+      <div class="acl-action-bar" [hidden]="paginateData.length == 0">
+        <button type="button" class="acl-toolbar-icon-btn" [title]="isSearchEnabled ? 'Hide Sub-Feature Filter' : 'Show Sub-Feature Filter'" (click)="toggleSearch()">
+          <i class="fa" [ngClass]="isSearchEnabled ? 'fa-xmark' : 'fa-search'"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-primary custom-hover-btn acl-update-btn"
+          [disabled]="disableUpdateButton" (click)="confirmAndUpdateACL(acl_update_confirm_template)">
+          Update
+        </button>
+      </div>
+
+
+      <div class="acl-select-all-hint" *ngIf="paginateData.length > 0">
+        <i class="fa fa-circle-info mr-1"></i> The first checkbox in each row selects all roles for that sub-feature. You can also drag & drop columns and rows to rearrange the ACL view.
+      </div>
+      <div class="acl-table-container">
+      <div class="overflow-auto acl-table-wrap" bassHorizontalScroll>
         <table class="table table-bordered table-hover table-sticky acl-table" id="aclReportInfo">
           <thead class="acl-header" id="aclReportInfoTHead">
             <tr id="aclReportInfoTHeadTr" cdkDropList cdkDropListOrientation="horizontal"
@@ -1802,6 +1855,34 @@
                 </ng-container>
               </ng-container>
             </tr>
+          <!-- Advance Search for Sub-Feature -->
+            <tr *ngIf="isSearchEnabled">
+              <ng-container *ngFor="let column of finalColumns; let parentIndex = index">            
+                <ng-container *ngIf="column.department?.length > 0">
+                  <ng-container *ngFor="let sub of column.department; let subIndex = index">
+                    <th *ngIf="parentIndex === 0 && subIndex === 0;else blankInput">
+                    <div class="acl-filter-input-group acl-subfeature-filter-group">
+                    <app-my-select #subFeatureSelect class="form-control department-select acl-subfeature-select" placeholder="Select Sub-Feature" [(ngModel)]="selectedSubFeature"
+                            (dropdownClosed)="onAclAdvSearch(subFeatureSelect,'subFeatureSearch')"
+                            [options]="subFeatureListForDropdown" displayKey="subFeature"  [multiple]="true" [showSelectAll]="false" [wrapOptions]="true">
+                    </app-my-select>
+                    <button type="button" class="acl-filter-icon-btn acl-filter-icon-btn--apply" title="Apply Sub-Feature Filter"
+                      (click)="applyAclDropdownFilter(subFeatureSelect,'subFeatureSearch')">
+                      <i class="fa fa-check"></i>
+                    </button>
+                    <button *ngIf="selectedSubFeature?.length" type="button" class="acl-filter-icon-btn acl-filter-icon-btn--clear" title="Clear Sub-Feature Selection"
+                      (click)="clearAclDropdownFilter('Sub')">
+                      <i class="fa fa-eraser"></i>
+                    </button>
+                    </div>
+                    </th>
+                  <ng-template #blankInput>
+                    <th></th>
+                  </ng-template>
+                  </ng-container>
+                </ng-container>
+              </ng-container>
+            </tr>
           </thead>
           <tbody cdkDropList [cdkDropListData]="paginateData" (cdkDropListDropped)="dropRow($event)">
             <tr #tr cdkDrag cdkDragLockAxis="y" (mousedown)="mouseDown($event, tr)"
@@ -1809,7 +1890,14 @@
 
               <ng-container *ngFor="let cell of finalColumns; let i = index">
                 <ng-container *ngIf="i == 0">
-                  <td class="sticky-col" *ngFor="let x of cell.department">{{ element[x.field] }}</td>
+                  <td  *ngFor="let x of cell.department">
+                   <label>
+                      <input type="checkbox" class="small-checkbox" [(ngModel)]="element.selectAll"
+                                    (change)="selectAllACLSubFeature(element)" />
+                          <span class="primary"></span>
+                        </label>  
+                      {{ element[x.field] }}  
+                      </td>
                 </ng-container>
                 <ng-container *ngIf="i != 0">
                   <td *ngFor="let x of cell.department">
@@ -1822,15 +1910,6 @@
                 </ng-container>
               </ng-container>
 
-              <!-- <ng-container *ngFor="let cell of columns; let i = index">
-                        <ng-container *ngIf="i == 0">
-                          <td>{{ element[cell.field] }}</td>
-                        </ng-container>
-                        <ng-container *ngIf="i != 0">
-                          <td><input class="cell-checkbox" type="checkbox" [(ngModel)]="element[cell.field]"
-                              (change)="selectCellCheckbox(cell.field,element[cell.field], element.subfeatureId)" /></td>
-                        </ng-container>
-                      </ng-container> -->
               <div *cdkDragPreview class="preview" [style.margin-top]="pos?.y" [style.margin-left]="pos?.x"
                 [style.width]="pos?.width">
                 <table>
@@ -1844,12 +1923,6 @@
           </tbody>
         </table>
       </div>
-      <div class="row" [hidden]="paginateData.length == 0">
-        <div class="col-md-12 d-flex justiy-content-center mt-2">
-          <button type="button" class="btn btn-sm btn-outline-primary"
-            (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
-
-        </div>
       </div>
     </div>
   </div>
@@ -1858,13 +1931,22 @@
 
     <div class="row">
       <div class="col-md-12">
-        <!-- <div class="selector-toggle" (click)="toggleSearch()">
-          <a href="javascript:void(0)">
-              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+      <div class="d-flex align-items-center justify-content-between mt-2"> 
+        <div class="selector-toggle" (click)="toggleSearch()">
+          <a href="javascript:void(0)" class="text-decoration-none">
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
-        </div> -->
-        <div class="table-container" style="max-height: 65vh;">
+        </div>
+      
+        <div [hidden]="defaultMappingListFilter.length == 0">
+          <button type="button" class="btn btn-sm btn-outline-primary me-2 mb-2"
+                  (click)="updateDefaultFeatureMapping(alert_message)"> Update
+          </button>
+        </div>      
+      </div>
+
+        <div class="table-container" bassHorizontalScroll  style="max-height: 65vh;">
           <table class="table table-bordered" matSort (matSortChange)="sortData($event)" id="defaultMappInfo">
             <thead class="thead-light acl-header" id="defaultMappInfoTHead">
               <tr id="defaultMappInfoTHeadTr">
@@ -1878,8 +1960,23 @@
                 <th scope="col" class="info-label ">HoD</th>
                 <th scope="col" class="info-label ">Super Admin</th>
               </tr>
-              <tr app-column-filter-bar *ngIf="isDefaultFeatureMapping && isSearchEnabled"
-                [columnList]="defaultMappingColumns" (onSearch)="onSearch($event);page=1"></tr>
+          <ng-container *ngIf="isSearchEnabled ">
+            <ng-container *ngFor="let col of aclAdvColumns">
+              <td >
+
+              <ng-container *ngIf="col.column !== 'blank'; else blankInput">
+                <app-my-select #selectBox class="form-control department-select" placeholder="Select {{ col.column }}" 
+                      (dropdownClosed)="onAclAdvSearch(selectBox)" valueKey="item" [(ngModel)]="col.value"
+                      [options]="filteredDistinctValues[col.column]" displayKey="item"  [multiple]="true" [wrapOptions]="true">
+                </app-my-select>    
+                </ng-container> 
+                <ng-template #blankInput>
+                </ng-template>
+              </td>
+            </ng-container>
+            </ng-container> 
+            
+
             </thead>
             <tbody>
               <tr
@@ -1936,14 +2033,6 @@
               </tr>
             </tbody>
           </table>
-        </div>
-        <div class="row" [hidden]="defaultMappingListFilter.length == 0">
-          <div class="col-md-12 d-flex justiy-content-center mt-2">
-            <button type="button" class="btn btn-sm btn-outline-primary"
-              (click)="updateDefaultFeatureMapping(alert_message)">Update</button>
-            <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="defaultMappingListFilter.length == 0" (click)="exportToExcel()"><em
-                  class="fa fa-file-arrow-down fa-2x"></em></button> -->
-          </div>
         </div>
       </div>
     </div>
@@ -2068,33 +2157,679 @@
 </div>
 <!-- end :: Timesheet Report table -->
 
-<!-- start :: Custom Query Form -->
-<div class="row" *ngIf="isCustomQueryForm">
-  <div class="col-md-12">
-    <div class="row">
-      <div class="col-md-12 table-header">
-        <h1 class="table-header-title">Custom Query Data</h1>
-      </div>
-    </div>
+<!-- Start : Custom Query Data  -->
 
-    <div class="row">
-      <div class="col-md-12">
-        <div class="form-group">
-          <label for="customQuery"><span class="text-danger">*</span>Query</label>
-          <textarea class="form-control" id="customQuery" rows="4" [(ngModel)]="customQuery"></textarea>
+  <div class="row" *ngIf="isCustomQueryForm">
+    <!-- Custom Query Model -->
+    <div class="col-md-12 table-header d-flex align-items-center">
+      <h1 class="table-header-title mb-0">Custom Query Data</h1>
+    </div>
+    
+      <div class="col-md-12 px-0" *ngIf="!isSavedQuery">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isSavedQuery}"
+          (click)="showSavedQuery()">Back To Saved Queries</button>
+      </div>
+
+    
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-12" *ngIf="isSavedQuery">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h4>Saved Queries</h4>
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCustomQuery}" *ngIf="userMapping.custom_query_save"
+          (click)="showCustomQuery()">+ New Query</button>
+          </div>
+          <div *ngIf="savedQueries.length === 0" class="text-muted small">
+            No saved queries
+          </div>
+
+          <div class="saved-query-toolbar" *ngIf="savedQueries.length > 0">
+            <div class="saved-query-toolbar__left">
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Search saved queries..."
+                [(ngModel)]="savedQuerySearchText"
+                (ngModelChange)="onSavedQuerySearchChange()">
+              <div class="saved-query-toolbar__hint">
+                Showing {{ savedQueriesFiltered?.length || 0 }} of {{ savedQueries?.length || 0 }}
+              </div>
+            </div>
+
+            <div class="saved-query-toolbar__right">
+              <label class="mb-0 small">Rows:</label>
+              <select
+                class="form-control form-control-sm w-auto"
+                [(ngModel)]="savedQueryPageSize"
+                (change)="changeSavedQueryPageSize(savedQueryPageSize)">
+                <option *ngFor="let size of savedQueryPageSizeOptions" [ngValue]="size">{{ size }}</option>
+                <option [ngValue]="-1">All</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="table">
+              <thead class="thead-light">
+                <tr>
+                  <th>Sr No</th>
+                  <th>Query Name</th>
+                  <th>Description</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let q of savedQueriesPaginated; let i = index">
+                  <td class="clickable fixed-cell">
+                    {{ ((savedQueryPage - 1) * savedQueryPageSize) + i + 1 }}
+                  </td>
+                  <td class="clickable fixed-cell">
+                    {{ q.queryName }}
+                  </td>
+                  <td class="clickable fixed-cell desc-cell" [title]="q.description">
+                    {{ q.description }}
+                  </td>
+        
+                  <!-- ACTIONS -->
+                  <td class="text-center">
+                    <!-- EXECUTE -->
+                    <i class="fas fa-play action-icon execute" *ngIf="userMapping.custom_query_execute"
+                       title="Run Query"
+                       (click)="selectQuery(q); $event.stopPropagation()">
+                    </i>
+                    <!-- UPDATE -->
+                    <i class="fas fa-edit action-icon update"
+                       title="Edit Query" *ngIf="userMapping.custom_query_save"
+                       (click)="openQueryModal('update', q); $event.stopPropagation()">
+                    </i>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="saved-query-pagination" *ngIf="(savedQueriesFiltered?.length || 0) > 0">
+            <button class="btn btn-sm btn-outline-primary"
+              (click)="prevSavedQueryPage()" [disabled]="savedQueryPage === 1">
+              <i class="fas fa-angle-double-left"></i>
+            </button>
+            <span class="mx-2 small">
+              {{ savedQueryPage }} of {{ savedQueryTotalPages }}
+            </span>
+            <button class="btn btn-sm btn-outline-primary"
+              (click)="nextSavedQueryPage()" [disabled]="savedQueryPage === savedQueryTotalPages">
+              <i class="fas fa-angle-double-right"></i>
+            </button>
+          </div>
+
+          <!-- <div class="query-item d-flex justify-content-between align-items-center" *ngFor="let q of savedQueries"
+              (click)="selectQuery(q)">
+            
+            <div class="q-name"> {{ q.queryName }} <br> <small>{{ q.description }}</small></div>
+            
+            <button class="btn btn-sm btn-outline-primary edit-btn"
+              (click)="openQueryModal('update', q); $event.stopPropagation()">
+              <i class="fas fa-edit"></i>
+            </button>
+          </div> -->
         </div>
+        <div class="col-md-12" *ngIf="isCustomQuery">
+
+          <!-- EDITOR (New Query) -->
+          <div class="row" *ngIf="!showPreview || !hideCustomQueryEditorOnPreview">
+            <div class="col-md-12">
+              <div class="custom-query-editor">
+                <textarea
+                  class="query-box w-100"
+                  [(ngModel)]="customQuery"
+                  (ngModelChange)="onCustomQueryTextChange()"
+                  placeholder="Write your SQL query here..."></textarea>
+
+                <div class="custom-query-actions">
+                  <button
+                    class="btn btn-outline-primary btn-sm"
+                    *ngIf="userMapping.custom_query_execute"
+                    [disabled]="!customQuery"
+                    (click)="getCustomQueryData(alert_message)">
+                    Test
+                  </button>
+
+                  <button
+                    class="btn btn-outline-primary btn-sm"
+                    *ngIf="userMapping.custom_query_save && isSaveEnable"
+                    [disabled]="!customQuery"
+                    (click)="openQueryModal('create')">
+                    Save Query
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- <div class="row mt-2" *ngIf="hideCustomQueryEditorOnPreview">
+            <div class="col-md-12">SQL : {{customQuery}}</div>
+            <hr>
+          </div> -->
+          <!-- LOADER -->
+          <div class="row" *ngIf="isLoading">
+            <div class="col-md-12 d-flex justify-content-center my-3">
+              <div class="spinner-border text-primary"></div>
+            </div>
+          </div>
+        
+          <!-- RESULT -->
+          <div class="row" *ngIf="showPreview">
+            <div class="col-md-12">
+              <!-- HEADER -->
+              <div class="d-flex justify-content-between align-items-center mb-2 mt-2">
+                <div class="d-flex align-items-center flex-wrap">
+                  <span>Results: ({{ customQueryTotalElements || 0 }})</span>
+                  <!-- <input type="text"
+                    class="form-control form-control-sm"
+                    style="width: 220px; height: 30px;"
+                    [(ngModel)]="customQuerySearchText"
+                    (ngModelChange)="currentPage = 1; loadCustomQueryPage(alert_message)"
+                    placeholder="Search in results..." /> -->
+                </div>
+              
+                <div class="d-flex align-items-center" >
+                  <!-- COLUMN VISIBILITY -->
+                  <button type="button" class="btn btn-sm btn-outline-primary mr-2"
+                    (click)="openColumnPicker()" title="Choose visible columns">
+                    <i class="fa fa-columns" aria-hidden="true"></i>
+                  </button>
+
+                  <!-- COLUMN SEARCH TOGGLE -->
+                  <button type="button" class="btn btn-sm btn-outline-primary mr-2"
+                    (click)="toggleCustomQueryColumnSearch()" title="Column-wise search">
+                    <i *ngIf="!isCustomQueryColumnSearchEnabled" class="fa fa-search" aria-hidden="true"></i>
+                    <i *ngIf="isCustomQueryColumnSearchEnabled" class="fa-solid fa-xmark" aria-hidden="true"></i>
+                  </button>
+                
+                  <!-- FILTER BUTTON -->
+                  <button type="button" class="btn btn-sm btn-outline-primary mr-2"
+                    (click)="openCustomQueryFilter(alert_message)" title="Filter results">
+                    <i class="fa-solid fa-filter" ></i>
+                  </button>
+              
+                  <!-- DOWNLOAD -->
+                  <button type="button" id="buttonPosition" class="btn btn-sm btn-outline-primary"
+                    (click)="downloadPreviewExcel(alert_message)" title="Export Excel">
+                    <i class="fa fa-download"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- TABLE -->
+              <div class="table-container">
+                <table class="table" matSort (matSortChange)="onSort($event)">
+                  <thead class="thead-light">
+                    <tr>
+                      <th *ngFor="let col of customQueryDisplayColumns" [mat-sort-header]="col">
+                        {{ col }}
+                      </th>
+                    </tr>
+                    <tr app-column-filter-bar
+                      *ngIf="isCustomQueryColumnSearchEnabled"
+                      [columnList]="customQueryDisplayColumns"
+                      [searchOnEnter]="true"
+                      [initialValues]="customQueryColumnSearch"
+                      (onSearch)="onSearchForCustomQueryColumnFilters($event)">
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngIf="paginateData.length === 0">
+                      <td [attr.colspan]="customQueryDisplayColumns.length || 1" class="text-center">
+                        No Data to display...
+                      </td>
+                    </tr>
+        
+                    <tr *ngFor="let row of paginateData">
+                      <td *ngFor="let col of customQueryDisplayColumns">
+                        {{ row[col] }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+        
+              <!-- PAGINATION -->
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <div>
+                  <button class="btn btn-sm btn-outline-primary"
+                    (click)="prevPage()" [disabled]="currentPage === 1"><i class="fas fa-angle-double-left"></i></button>
+                  <span class="mx-2">
+                    {{ currentPage }} of {{ totalPages }}
+                  </span>
+                  <button class="btn btn-sm btn-outline-primary"
+                    (click)="nextPage()" [disabled]="currentPage === totalPages"><i class="fas fa-angle-double-right"></i></button>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                  <label class="mb-0 small">Rows:</label>
+                  <select class="form-control form-control-sm w-auto"
+                    style="height: 30px; padding: 2px 6px; font-size: 13px; cursor: pointer;"
+                    [(ngModel)]="pageSize" (change)="changePageSize(pageSize)">
+                    <option *ngFor="let size of pageSizeOptions" [ngValue]="size">
+                      {{ size }}
+                    </option>
+                    <option [ngValue]="-1">All</option>
+                  </select>
+                </div>
+        
+              </div>
+        
+            </div>
+          </div>
+        
+        </div>
+        <!-- Main Row Closed -->
+      </div> 
+    </div>
+</div>
+
+
+<!-- Open Custom Query Filter Module -->
+
+<div class="filter-overlay filter-overlay--viewport" *ngIf="showFilter" (click)="closeCustomQueryFilter()">
+  <div class="filter-modal container" (click)="$event.stopPropagation()">
+
+    <!-- HEADER -->
+    <div class="filter-header d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">Custom query filter</h5>
+      <button class="close-btn" (click)="closeCustomQueryFilter()">×</button>
+    </div>
+
+    <!-- COLUMN HEADER -->
+    <div class="row fw-bold mb-2 filter-table-header">
+      <div class="col-md-3">Column</div>
+      <div class="col-md-3">Condition</div>
+      <div class="col-md-3">Value</div>
+      <div class="col-md-2">Join</div>
+      <div class="col-md-1 text-center">Actions</div>
+    </div>
+
+    <!-- ROWS -->
+    <div *ngFor="let query of filterRequest; let i = index; trackBy: trackByCustomFilterRow" class="row align-items-center mb-3">
+
+      <!-- FIELD -->
+      <div class="col-md-3">
+        <select class="form-control"
+                [(ngModel)]="query.column"
+                (change)="onCustomQueryFilterColumnChange(query)">
+          <option value="" disabled>Select column</option>
+          <option *ngFor="let col of columns" [value]="col">{{col}}</option>
+        </select>
+      </div>
+
+      <!-- OPERATOR -->
+      <div class="col-md-3">
+        <select class="form-control"
+                [(ngModel)]="query.operator"
+                (change)="onCustomQueryFilterOperatorChange(query)">
+          <option value="" disabled>Select condition</option>
+          <option *ngFor="let op of operatorList" [value]="op.symbol">
+            {{op.name}}
+          </option>
+        </select>
+      </div>
+
+      <!-- VALUE -->
+      <div class="col-md-3">
+        <ng-container *ngIf="query.operator === 'between'">
+          <input type="text" class="form-control mb-1" [(ngModel)]="query.value" placeholder="From">
+          <input type="text" class="form-control" [(ngModel)]="query.valueTo" placeholder="To">
+        </ng-container>
+
+        <ng-container *ngIf="query.operator === 'is_null' || query.operator === 'is_not_null'">
+          <input type="text" class="form-control" value="—" disabled>
+        </ng-container>
+
+        <ng-container *ngIf="query.operator && query.operator !== 'between' && query.operator !== 'is_null' && query.operator !== 'is_not_null'">
+          <!-- IN / NOT IN: comma list (dropdown is single-select only) -->
+          <input *ngIf="query.operator === 'in' || query.operator === 'not_in'"
+                 type="text"
+                 class="form-control"
+                 [(ngModel)]="query.value"
+                 placeholder="Comma-separated values">
+
+          <select *ngIf="query.operator !== 'in' && query.operator !== 'not_in' && query.valueOptionList?.length"
+                  class="form-control"
+                  [(ngModel)]="query.value"
+                  [title]="'Values from current results (max ' + customQueryFilterValueOptionsCap + ' distinct)'">
+            <option value="" disabled>Select value</option>
+            <option *ngFor="let v of query.valueOptionList" [value]="v">
+              {{v}}
+            </option>
+          </select>
+
+          <input *ngIf="query.operator !== 'in' && query.operator !== 'not_in' && !query.valueOptionList?.length"
+                 type="text"
+                 class="form-control"
+                 [(ngModel)]="query.value"
+                 placeholder="Enter value (no samples in current results)">
+        </ng-container>
+      </div>
+
+      <!-- CONJUNCTION -->
+      <div class="col-md-2">
+        <ng-container *ngIf="i === 0">
+          <div class="form-control text-center bg-light" style="cursor: not-allowed;">—</div>
+        </ng-container>
+        <ng-container *ngIf="i !== 0">
+          <select class="form-control" [(ngModel)]="query.conjunction">
+            <option [ngValue]="'AND'">AND</option>
+            <option [ngValue]="'OR'">OR</option>
+          </select>
+        </ng-container>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="col-md-1 text-center d-flex flex-column gap-1 align-items-center">
+        <button type="button" class="btn btn-outline-primary btn-sm"
+                (click)="addFilter(i)" title="Add row">
+          <i class="fas fa-plus"></i>
+        </button>
+
+        <button *ngIf="filterRequest.length > 1" type="button"
+                class="btn btn-outline-danger btn-sm"
+                (click)="removeFilter(i)" title="Remove row">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="d-flex align-items-center justify-content-center mt-3">
+      <button type="button" title="Apply Filter" class="btn btn-primary mr-2" (click)="submit(alert_message)">Apply</button>
+      <button type="button" title="Reset Filter & Close" class="btn btn-outline-secondary mr-2" (click)="resetCustomQueryFilterForm($event)">Cancel</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Custom Query: choose visible columns -->
+<div class="filter-overlay filter-overlay--viewport" *ngIf="showColumnPicker" (click)="closeColumnPicker()">
+  <div class="filter-modal column-picker-modal" (click)="$event.stopPropagation()">
+    <div class="column-picker-header">
+      <div>
+        <h5 class="column-picker-title mb-1">Visible columns</h5>
+        <p class="column-picker-subtitle mb-0">
+          Choose what appears in the table and Excel file. Search matches the field name or its label.
+        </p>
+      </div>
+      <button type="button" class="close-btn column-picker-close" (click)="closeColumnPicker()"
+        aria-label="Close">×</button>
+    </div>
+
+    <div class="column-picker-toolbar">
+      <div class="input-group input-group-sm column-picker-search">
+        <span class="input-group-text bg-white"><i class="fa fa-search text-muted" aria-hidden="true"></i></span>
+        <input type="text" class="form-control" [(ngModel)]="columnPickerSearch"
+          placeholder="Search by name or label…" />
+      </div>
+      <div class="column-picker-meta text-muted small">
+        <span>{{ columnPickerSelectedCount }} of {{ columnPickerRows.length }} selected</span>
+        <span *ngIf="columnPickerSearch?.trim()" class="ms-2">
+          · {{ columnPickerFilteredList.length }} match<span *ngIf="columnPickerFilteredList.length !== 1">es</span>
+        </span>
       </div>
     </div>
 
-    <div class="row">
-      <div class="col-md-12">
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [disabled]="!customQuery"
-          (click)="getCustomQueryData(alert_message)">Execute</button>
+    <div class="column-picker-scroll">
+      <div class="column-picker-grid">
+        <label class="column-picker-tile" *ngFor="let row of columnPickerFilteredList"
+          [class.column-picker-tile--on]="row.selected">
+          <input class="column-picker-checkbox" type="checkbox" [(ngModel)]="row.selected" />
+          <span class="column-picker-tile-body">
+            <span class="column-picker-label">{{ formatColumnFieldLabel(row.name) }}</span>
+            <code class="column-picker-code">{{ row.name }}</code>
+          </span>
+        </label>
+      </div>
+      <p *ngIf="!columnPickerFilteredList.length" class="text-muted small text-center py-4 mb-0">
+        No columns match your search.
+      </p>
+    </div>
+
+    <div class="column-picker-footer">
+      <div class="column-picker-bulk">
+        <button type="button" class="btn btn-link btn-sm column-picker-link" (click)="columnPickerSelectAll()">
+          Select all
+        </button>
+        <span class="column-picker-bulk-sep text-muted" aria-hidden="true">|</span>
+        <button type="button" class="btn btn-link btn-sm column-picker-link" (click)="columnPickerClearAll()">
+          Clear all
+        </button>
+      </div>
+      <div class="column-picker-actions">
+        <button type="button" class="btn btn-sm btn-outline-secondary px-3" (click)="closeColumnPicker()">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-sm btn-primary px-3" (click)="applyColumnPicker()">
+          Apply
+        </button>
       </div>
     </div>
   </div>
 </div>
-<!-- end :: Custom Query Form -->
+
+
+<div class="row" *ngIf="showQueryModal">
+
+  <!-- BACK BUTTON -->
+  <div class="px-0 mb-2">
+    <button class="btn btn-sm btn-outline-primary"
+      (click)="closeQueryModal()">
+      <i class="fa-solid fa-arrow-left-long"></i>
+    </button>
+  </div>
+
+  <!-- CARD -->
+  <div class="card col-md-12 px-0">
+
+    <!-- HEADER -->
+    <div class="card-header text-center text-uppercase">
+      <strong *ngIf="modalMode === 'create'">Create Query</strong>
+      <strong *ngIf="modalMode === 'update'">Update Query</strong>
+    </div>
+
+    <!-- BODY -->
+    <div class="card-body">
+
+      <!-- ERROR -->
+      <div *ngIf="duplicateError" class="text-danger small mb-2">
+        {{ duplicateError }}
+      </div>
+
+      <!-- ROW 1 -->
+      <div class="row">
+
+        <!-- QUERY NAME -->
+        <div class="col-md-4 mb-2">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label>
+                <span class="text-danger">*</span> Query Name
+              </label>
+              <input type="text"
+                [(ngModel)]="queryForm.queryName"
+                class="form-control">
+            </div>
+          </div>
+        </div>
+
+        <!-- DESCRIPTION -->
+        <div class="col-md-4 mb-2">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label>Description</label>
+              <input type="text"
+                [(ngModel)]="queryForm.description"
+                class="form-control">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ROW 2 -->
+      <div class="row">
+
+        <!-- QUERY -->
+        <div class="col-md-12 mb-2">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label>
+                <span class="text-danger">*</span> Query
+              </label>
+              <textarea rows="4"
+                [(ngModel)]="queryForm.queryText"
+                (ngModelChange)="onQueryTextChange()"
+                class="form-control"
+                [disabled]="modalMode === 'create'">
+              </textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ROLES -->
+      <div class="row">
+        <div class="col-md-12">
+
+          <div class="info-wrapper">
+            <div class="form-group">
+
+              <label>
+                <span class="text-danger">*</span> Select Roles
+              </label>
+
+              <div class="role-container role-picker">
+
+                <!-- SEARCH -->
+                <div class="role-picker__search">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Search roles..."
+                    [(ngModel)]="roleSearchText">
+
+                  <div class="role-picker__meta">
+                    <span class="role-picker__count">
+                      Selected: <strong>{{ selectedRoleIds?.length || 0 }}</strong>
+                    </span>
+                    <button
+                      type="button"
+                      class="btn btn-link btn-sm role-picker__clear"
+                      [disabled]="!selectedRoleIds?.length"
+                      (click)="clearSelectedRoles()">
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                <!-- GROUP -->
+                <div *ngFor="let emp of filteredGroupedRoles" class="emp-block">
+
+                  <div class="emp-header" (click)="emp.open = !emp.open">
+                    <div class="emp-header__left">
+                      <i class="fas"
+                        [ngClass]="emp.open ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                      <span class="emp-header__title">{{ emp.employeeRole }}</span>
+                    </div>
+
+                    <!-- Select All (Employee Level) -->
+                    <label class="role-picker__selectall" (click)="$event.stopPropagation()">
+                      <input
+                        type="checkbox"
+                        [checked]="isEmpAllSelected(emp)"
+                        (change)="toggleEmp(emp)" />
+                      <span>Select all</span>
+                    </label>
+                  </div>
+                
+                  <div *ngIf="emp.open" class="dept-wrapper">
+                
+                    <div *ngFor="let dept of emp.departments" class="dept-block">
+                
+                      <div class="dept-header">
+                        <span class="dept-header__title">{{ dept.departmentName }}</span>
+
+                        <!-- Select All (Department Level) -->
+                        <label class="role-picker__selectall" (click)="$event.stopPropagation()">
+                          <input
+                            type="checkbox"
+                            [checked]="isDeptAllSelected(dept)"
+                            (change)="toggleDept(dept)" />
+                          <span>Select all</span>
+                        </label>
+                      </div>
+                
+                      <div class="role-list">
+                
+                        <label *ngFor="let role of dept.roles" class="role-chip"> 
+                          <input
+                            type="checkbox"
+                            [checked]="selectedRoleIds.includes(role.jobRoleId)"
+                            (change)="onRoleToggle(role)">
+                          <span>{{ role.name }}</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- SELECTED -->
+              <div class="small text-muted mt-2">
+                Selected: {{ getSelectedRoleNames() }}
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- FOOTER BUTTONS -->
+      <div class="row mt-3">
+        <div class="col-md-12">
+
+          <button *ngIf="modalMode === 'create'"
+            class="btn btn-primary btn-sm mx-1"
+            [disabled]="!queryForm.queryName || !queryForm.queryText || selectedRoleIds.length === 0"
+            (click)="saveQueryUI(alert_message)">
+            Save
+          </button>
+
+          <button *ngIf="modalMode === 'update'"
+            class="btn btn-outline-primary btn-sm mx-1"
+            [disabled]="!queryForm.queryText || isValidatingQuery"
+            (click)="validateQuery(alert_message)">
+            {{ isValidatingQuery ? 'Validating...' : (isQueryValidated ? 'Validated' : 'Validate Query') }}
+          </button>
+
+          <button *ngIf="modalMode === 'update'"
+            class="btn btn-primary btn-sm mx-1"
+            [disabled]="!isQueryValidated"
+            (click)="updateQueryUI(alert_message)">
+            Update
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- End : Custom Query Modal End -->
 
 <!-- Filter Modal -->
 <ng-template #filter>
@@ -2127,6 +2862,14 @@
   <div class="modal-body text-center">
     <p>{{alertMessage}}</p>
     <button type="button" class="btn btn-primary" (click)="cancelRequest();getEmployeeReportData()">OK</button>
+  </div>
+</ng-template>
+
+<ng-template #acl_update_confirm_template>
+  <div class="modal-body text-center">
+    <p>Are you sure you want to update Access Control List permissions?</p>
+    <button type="button" class="btn btn-success mr-2 mt-2" (click)="proceedAclUpdate(alert_message)">Yes, Proceed</button>
+    <button type="button" class="btn btn-danger mt-2" (click)="cancelRequest()">No, Cancel</button>
   </div>
 </ng-template>
 

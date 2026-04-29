@@ -100,7 +100,6 @@ public class MailService {
 	public boolean sendMailWithCC(String receiver,String cc, String subject, String text) throws AddressException, MessagingException {
 
 		try {
-
 			Session session = mailProperties();
 
 			MimeMessage msg = new MimeMessage(session);
@@ -123,10 +122,11 @@ public class MailService {
 		}
 	}
 	
-	public boolean sendMailWithImage(String receiver, String cc, String subject, String htmlBody ,String imageFileName)
+	public boolean sendMailWithImage(String receiver, List<String> cc, String subject, String htmlBody,String imageFileName)
 			throws AddressException, MessagingException {
 
 		try {
+			String ccString = String.join(",", cc);
 			Session session = mailProperties();
 
 			Message msg = new MimeMessage(session);
@@ -134,7 +134,8 @@ public class MailService {
 			msg.setSubject(subject);
 			msg.setFrom(new InternetAddress(sender));
 			msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(receiver));
-			msg.setRecipients(javax.mail.Message.RecipientType.CC, InternetAddress.parse(cc, true));
+			
+			msg.setRecipients(javax.mail.Message.RecipientType.CC, InternetAddress.parse(ccString, true));
 
 			// creates message part
 			MimeBodyPart messageBodyPart = new MimeBodyPart();
@@ -511,6 +512,32 @@ public class MailService {
 	        e.printStackTrace();
 	        return false;
 	    }
+	}
+
+	public boolean sendMailWithManagersCC(String receiver,List<String>cc, String subject, String text) throws AddressException, MessagingException {
+
+		try {
+			String ccString = String.join(",", cc);
+			Session session = mailProperties();
+
+			MimeMessage msg = new MimeMessage(session);
+
+			msg.setSubject(subject);
+			msg.setContent(text, "text/html");
+			msg.setFrom(new InternetAddress(sender));
+
+			msg.setRecipients(javax.mail.Message.RecipientType.TO, InternetAddress.parse(receiver, true));
+			msg.setRecipients(javax.mail.Message.RecipientType.CC, InternetAddress.parse(ccString, true));
+
+			javax.mail.Transport.send(msg);
+
+			return true;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+
+		}
 	}
 
 

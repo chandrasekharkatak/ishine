@@ -20,11 +20,8 @@ public interface TrainingContentRepository extends JpaRepository<TrainingContent
 	
 	@Query("SELECT tc FROM TrainingContent tc WHERE tc.trainingMaster.trainingId = :trainingId " +
 		   "AND tc.activeStatus = 'true' " +
-		   "AND tc.effectiveFrom <= :currentDate " +
-		   "AND (tc.effectiveTo IS NULL OR tc.effectiveTo >= :currentDate) " +
-		   "ORDER BY tc.effectiveFrom DESC")
-	TrainingContent findByTrainingMaster_TrainingId(@Param("trainingId") Integer trainingId, 
-															 @Param("currentDate") LocalDate currentDate);
+		   "ORDER BY tc.contentId DESC")
+	TrainingContent findByTrainingMaster_TrainingId(@Param("trainingId") Integer trainingId);
 	
 	@Query("SELECT tc FROM TrainingContent tc WHERE tc.trainingMaster.trainingId = :trainingId " +
 		   "AND tc.activeStatus = 'true' " +
