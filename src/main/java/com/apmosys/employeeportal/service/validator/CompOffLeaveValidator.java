@@ -15,6 +15,7 @@ import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 
 /**
@@ -29,10 +30,12 @@ public class CompOffLeaveValidator {
 
 	@Autowired
 	private EmployeeRepository employeeRepository;
-	@Autowired
-	private HolidayRepository holidayRepository;
+	// @Autowired
+	// private HolidayRepository holidayRepository;
 	@Autowired
 	CompOffLeaveRepository compOffLeaveRepository;
+	@Autowired
+	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
 	private static void require(boolean condition, String message) {
 		if (!condition) {
@@ -54,7 +57,7 @@ public class CompOffLeaveValidator {
             .existsByEmpIdAndFromDateAndCompOffStatusIn(
                     leaveDTO.getEmpId(),
                     appliedForDate,
-                   List.of("Pending", "Pending For Approval", "Approved")
+                   List.of("Pending", "Pending For Approval", "Availed")
             );
 			Employee employee =
         employeeRepository
@@ -76,12 +79,23 @@ public class CompOffLeaveValidator {
             employee.getDateOfJoining()),
         "Comp-off cannot be applied for dates before joining date."
     );
-			boolean isHoliday =holidayRepository.existsByDateOfHoliday(appliedForDate);
+	// 		boolean isHoliday =holidayRepository.existsByDateOfHoliday(appliedForDate);
 
-    require(
-        isHoliday,
-        "Selected date is not a valid holiday."
-    );
+    // require(
+    //     isHoliday,
+    //     "Selected date is not a valid holiday."
+    // );
+
+	boolean eligible = employeeTimesheetsNewRepository
+        .isEligibleForCompOff(
+            leaveDTO.getEmpId(),
+            appliedForDate
+        );
+
+require(eligible,
+    "Comp-off can only be applied for dates where timesheet is filled as Non-working day.");
+
+	
 
     require(!pendingExists,
             "A pending comp-off request already exists for this date.");
@@ -138,7 +152,7 @@ public class CompOffLeaveValidator {
     .findByEmpIdAndFromDateAndCompOffStatusIn(
         leaveDTO.getEmpId(),
         appliedForDate,
-        List.of("Pending", "Pending For Approval", "Approved")
+        List.of("Pending", "Pending For Approval", "Availed")
     );
 
 		if (existing != null &&
@@ -165,12 +179,21 @@ public class CompOffLeaveValidator {
             employee.getDateOfJoining()),
         "Comp-off cannot be applied for dates before joining date."
     );
-	boolean isHoliday =holidayRepository.existsByDateOfHoliday(appliedForDate);
+	// boolean isHoliday =holidayRepository.existsByDateOfHoliday(appliedForDate);
 
-    require(
-        isHoliday,
-        "Selected date is not a valid holiday."
-    );
+    // require(
+    //     isHoliday,
+    //     "Selected date is not a valid holiday."
+    // );
+
+	boolean eligible = employeeTimesheetsNewRepository
+        .isEligibleForCompOff(
+            leaveDTO.getEmpId(),
+            appliedForDate
+        );
+
+require(eligible,
+    "Comp-off can only be applied for dates marked as Non-working day.");
 
 	}
 
