@@ -208,7 +208,7 @@ public class LeaveApplicationValidator {
             return;
         }
         if (dto.getNoOfDays() > clLeaveDays) {
-            throw new LeaveApplicationException("Casual leave cannot be taken for more than" + clLeaveDays + " days");
+            throw new LeaveApplicationException("Casual leave cannot be taken for more than " + clLeaveDays + " days");
         }
         YearMonth appliedMonth = YearMonth.from(LocalDate.parse(dto.getFromDate()));
         List<EmployeeLeave> clLeavesThisMonth = employeeLeaveRepository.findByEmpIdAndLeaveTypeAndMonth(
