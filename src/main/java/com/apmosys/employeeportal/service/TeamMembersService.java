@@ -1777,6 +1777,25 @@ public class TeamMembersService {
 				return response;
 			}
 
+			Employee employee = employeeRepository.findByEmpId(rmgTeamMemberDto.getEmpId());
+			if (employee == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee not found, Please contact Admin!!");
+				return response;
+			}
+
+			if (employee.getDateOfJoining() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Date of Joining is null, Please contact Admin!!");
+				return response;
+			}
+			if (rmgTeamMemberDto.getStartDate().toLocalDate().isBefore(employee.getDateOfJoining())) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("EMPLOYEE_DATE_OF_JOINING_LESS_THAN_MEMBER_START_DATE");
+				response.setServiceResponse2("Employee’s Start Date must not be earlier than the Employee’s Date of Joining("+ employee.getDateOfJoining() +")!!");
+				return response;
+			}
+
 			Project currentProject = projectRepository.findByProjectId(rmgTeamMemberDto.getProjectId());
 			if (currentProject == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);

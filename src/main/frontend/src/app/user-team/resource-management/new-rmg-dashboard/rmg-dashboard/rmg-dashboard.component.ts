@@ -142,7 +142,7 @@ export class RmgDashboardComponent implements OnInit {
       ]
     },
     {
-      value: null, label: 'Scheduled', desc: 'Planned for Future Start', colorClass: 'text-info', color: '#0dcaf0', icon: 'fa-solid fa-calendar-check', key: 'SCHEDULED', tooltip: [
+      value: null, label: 'Scheduled', desc: 'Planned for Future Start', colorClass: 'text-info', color: '#17a2b8', icon: 'fa-solid fa-calendar-check', key: 'SCHEDULED', tooltip: [
         'Projects where resources are onboarded with future start date.'
       ]
     },
@@ -205,7 +205,7 @@ export class RmgDashboardComponent implements OnInit {
   }
 
   zeroTimesheetBars = [
-    { label: 'No Timesheet', value: null, color: '#2f467f', key: 'All', display: false, subKey: 'TIMESHEET_NON_COMPLIANCE',fullLabel:'No Timesheet Filled' },
+    { label: 'No Timesheet', value: null, color: '#2f467f', key: 'All', display: false, subKey: 'TIMESHEET_NON_COMPLIANCE', fullLabel: 'No Timesheet Filled' },
     { label: '3 Months', value: null, color: '#5677C2', key: '3M', display: true },
     { label: '6 Months', value: null, color: '#CC9433', key: '6M', display: true },
     { label: '1 Year', value: null, color: '#C65353', key: '1Y', display: true },
@@ -422,6 +422,11 @@ export class RmgDashboardComponent implements OnInit {
         'Employees not assigned to any active project at present.'
       ]
     },
+    {
+      key: 'FUTURE_START_DATE', icon: 'bi-calendar', label: 'Scheduled Employees', value: null, desc: 'Mapped to Project with Future Start Date', colorClass: 'text-accent', columnConfig: this.futureStartDateAssignedEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#799ED2', tooltip: [
+        'Employees Mapped to Project with Future Start Date.'
+      ]
+    },
   ];
 
   projectDistribution = [
@@ -531,7 +536,7 @@ export class RmgDashboardComponent implements OnInit {
   searchOnEnter: boolean = true;
   isProjectSearchEnabled: boolean = false;
   /** Project Name column header (app-info-tooltip): linked / partial name search + PO filter hint. */
-  projectNameSearchInfoTooltip: string[] = [ 'Search includes projects whose names were later linked to another project.', 'Linked results are shown as the current primary project with a link icon.',];
+  projectNameSearchInfoTooltip: string[] = ['Search includes projects whose names were later linked to another project.', 'Linked results are shown as the current primary project with a link icon.',];
   totalProjectsCount: number = 0;
   projectPage: number = 1;
   projectPageSize: number = 10;
@@ -1775,7 +1780,7 @@ export class RmgDashboardComponent implements OnInit {
     newRmgDashboardProjectRequest.projectFilter = null;
     let subKeyKeyMap = new Map<string, string>();
 
-    this.attentionRequiredProjectAlerts.forEach(item => {
+    this.attentionRequiredProjectAlerts?.filter(i => i.key !== 'UNDERBOARDED')?.forEach(item => {
       const subKey = item?.subKey || item.key;
       subKeyKeyMap.set(subKey, item?.key);
     });

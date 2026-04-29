@@ -26,6 +26,7 @@ export enum ResultType {
   EMPLOYEE_EXISTING_PROJECT_DETAILS = 'EMPLOYEE_EXISTING_PROJECT_DETAILS',
   DELETE_EMPLOYEE_FROM_EXISTING_PROJECT = 'DELETE_EMPLOYEE_FROM_EXISTING_PROJECT',
   EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT = 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT',
+  EMPLOYEE_DATE_OF_JOINING_LESS_THAN_MEMBER_START_DATE = 'EMPLOYEE_DATE_OF_JOINING_LESS_THAN_MEMBER_START_DATE',
   SUCCESS = 'SUCCESS',
   ERROR = 'ERROR',
 }
@@ -76,7 +77,13 @@ export class EmployeeProjectService {
     try {
       const response: any = await firstValueFrom(this.teamService.validateEmployeeProjectStartDate(rmgMember));
       if (response.serviceStatus === 'Success') {
-        if (response.serviceResponse == 'PROJECT_START_DATE_LESS_THAN_MEMBER_START_DATE') {
+        if (response.serviceResponse == 'EMPLOYEE_DATE_OF_JOINING_LESS_THAN_MEMBER_START_DATE') {
+          const responseMsg = response.serviceResponse2 && response.serviceResponse2 != null ? response.serviceResponse2 : 'Member Start Date must not be earlier than the Employee’s Date of Joining!!';
+          result = this.failureResult(ResultType.EMPLOYEE_DATE_OF_JOINING_LESS_THAN_MEMBER_START_DATE, responseMsg);
+          this.handleResult(result);
+          return result;
+        }
+        else if (response.serviceResponse == 'PROJECT_START_DATE_LESS_THAN_MEMBER_START_DATE') {
           result = this.failureResult(ResultType.PROJECT_START_DATE_ERROR, '');
           this.handleResult(result);
           return result;
@@ -139,7 +146,7 @@ export class EmployeeProjectService {
       const response: any = await firstValueFrom(this.projectService.updateProjectStartDate(projectObj));
       if (response.serviceStatus == "Success") {
         this.appModalService.close('PROJECT_START_DATE_UPDATE_CONFIRMATION');
-        this.appModalService.triggerAction({ actionType: 'PROJECT_START_DATE_UPDATED'});
+        this.appModalService.triggerAction({ actionType: 'PROJECT_START_DATE_UPDATED' });
         result = this.alertResult(response.serviceResponse);
       } else {
         result = this.alertResult(response.serviceResponse || "Something went wrong!");
@@ -301,27 +308,26 @@ export class EmployeeProjectService {
     let result: AppResult;
     try {
       const response: any = await firstValueFrom(this.projectService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId, enforceCheck));
-      
+
 
       const restriction = response?.serviceResponse1;
 
-        if (enforceCheck && restriction?.restricted === true) {
-            const teamNames: string[] = Array.isArray(restriction?.teamNames) ? restriction.teamNames : [];
-            const teamLabel = teamNames.length > 0 ? teamNames.join(', ') : 'an existing team';
+      if (enforceCheck && restriction?.restricted === true) {
+        const teamNames: string[] = Array.isArray(restriction?.teamNames) ? restriction.teamNames : [];
+        const teamLabel = teamNames.length > 0 ? teamNames.join(', ') : 'an existing team';
 
-            this.toastService.error(
-                `Employee is already mapped to ${teamLabel} in this project.`,
-                'Not allowed'
-            );
+        this.toastService.error(
+          `Employee is already mapped to ${teamLabel} in this project.`,
+          'Not allowed'
+        );
 
-            return this.failureResult(
-                ResultType.ALERT,
-                `Employee is already mapped to ${teamLabel} in this project.`,
-                { teamMappingRestricted: true }
-            );
-        }
+        return this.failureResult(
+          ResultType.ALERT,
+          `Employee is already mapped to ${teamLabel} in this project.`,
+          { teamMappingRestricted: true }
+        );
+      }
 
-      
       if (response?.serviceStatus !== "Success") {
         result = this.alertResult(response?.serviceResponse || "Something went wrong!!");
         this.handleResult(result);
@@ -336,7 +342,7 @@ export class EmployeeProjectService {
       }
 
       const employeeExistingProjectDetails = this.mapEmployeeProjectDates(response.serviceResponse);
-      employeeExistingProjectDetails.forEach((e)=>{
+      employeeExistingProjectDetails.forEach((e) => {
         e.currentProjectId = projectId
       });
       result = this.createResult(true, ResultType.EMPLOYEE_EXISTING_PROJECT_DETAILS, { data: { data: employeeExistingProjectDetails, employmentId: employee.employmentId, name: employee.name } });
@@ -454,6 +460,10 @@ export class EmployeeProjectService {
 
       case ResultType.EMPLOYEE_EXISTING_PROJECT_DETAILS:
         this.appModalService.open('EMPLOYEE_EXISTING_PROJECT_DETAILS', 'EMPLOYEE_EXISTING_PROJECT_DETAILS', result.data);
+        break;
+
+      case ResultType.EMPLOYEE_DATE_OF_JOINING_LESS_THAN_MEMBER_START_DATE:
+        this.appModalService.open('ALERT', 'ALERT', result.message);
         break;
 
       case ResultType.DELETE_EMPLOYEE_FROM_EXISTING_PROJECT:

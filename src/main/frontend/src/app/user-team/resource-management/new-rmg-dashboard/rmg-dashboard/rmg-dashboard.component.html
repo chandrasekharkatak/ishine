@@ -97,11 +97,10 @@
             <div class="d-flex align-items-center gap-2 rounded px-3 py-2 mb-4">
                 <i class="bi bi-exclamation-triangle text-warning"></i>&nbsp;
                 <span class="small fw-semibold">
-                    <!-- {{ attentionRequiredProjectCount || 0 }} -->
                     Projects Need Attention:</span>&nbsp;
                 <div class="d-flex align-items-center gap-3 ms-2">
                     <ng-container *ngFor="let a of attentionRequiredProjectAlerts">
-                        <span *ngIf="a.value && a?.value > 0"
+                        <span
                             class="project-alert-card x-small text-muted mr-1 cursor-pointer"
                             (click)="onProjectStatusSelect(a.subKey, [], true)">
                             <span *ngIf="a.value != undefined && a.value != null; else loading"
@@ -166,8 +165,8 @@
                     </div>
                     <span class="fs-4 fw-bold">{{ attentionRequiredProjectCountPercent + '%' }} </span>
                 </div>
-                <p class="x-small text-muted mt-1 mb-0">Includes Underboarded, Overboarded, Defaulters, Expired TNM, and
-                    No Timesheet projects</p>
+                <p class="x-small text-muted mt-1 mb-0">Includes Overboarded, Defaulters, Expired TNM, and
+                    No Timesheet Filled projects</p>
             </div>
 
             <!-- Project Lifecycle -->
@@ -466,7 +465,7 @@
                     Workforce Overview
                 </p>
                 <div class="row g-3 mb-4">
-                    <div class="col-4" *ngFor="let item of workforceOverview">
+                    <div class="col-4 mb-2" *ngFor="let item of workforceOverview">
                         <div class="status-card border rounded pb-1 pt-2 pl-3 pr-3 position-relative"
                             (click)="openEmployeeDetailsModal(item)">
                             <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"

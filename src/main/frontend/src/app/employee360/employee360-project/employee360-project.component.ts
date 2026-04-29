@@ -137,10 +137,11 @@ export class Employee360ProjectComponent implements OnInit {
   allBillableProjectTypes = ['tnm', 'fixed cost', 'monitoring'];
   allNonBillableProjectTypes = ['internalrndproducts', 'bench', 'internal'];
   employeeRoles: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
+  endDateUpdateAllowedRoles: any[] = ['hod', 'superadmin', 'super admin'];
   projectTypes: any[] = ['Bench', 'Other'];
   projectPage = 1;
-teamPage = 1;
-teamMemberPage = 1;
+  teamPage = 1;
+  teamMemberPage = 1;
   defaultProjectObj: SetDefaultProjectObj = new SetDefaultProjectObj();
   removePermanently: boolean = false;
   membersEndDate: any;
@@ -1646,6 +1647,8 @@ console.log("mapping ID",this.employeeTeamMapId);
     if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT') {
       this.openAlertMessageModal('Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!');
       return false;
+    } else if (response?.type === 'EMPLOYEE_DATE_OF_JOINING_LESS_THAN_MEMBER_START_DATE') {
+        return false;
     }
 
     employee.selectedProject.updatedBy = this.currentUser.empId;
