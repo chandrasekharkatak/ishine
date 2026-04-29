@@ -421,7 +421,7 @@ public class PoSyncOrchestratorService {
 		        );
 
 		if (!autoMigrated.isEmpty()) {
-			cronJobService.sendAutoMigrationMail(autoMigrated);
+			cronJobService.sendAutoMigrationMail(autoMigrated, project.getProjectId());
 		}
 
 		projectService.recalculateProjectDates(project.getProjectId(), true);
