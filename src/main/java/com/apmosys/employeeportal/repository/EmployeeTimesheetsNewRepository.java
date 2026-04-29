@@ -334,6 +334,14 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			"WHERE et.emp_id = :empId AND et.date = :localDate")
 	List<Object[]> getTimesheetDataByEmpIdAndDate(Long empId, LocalDate localDate);
 
+	@Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END " +
+       "FROM EmployeeTimesheetsNew e " +
+       "WHERE e.empId = :empId " +
+       "AND e.date = :date " +
+       "AND e.dayTypeId = 3 " +
+       "AND e.status IN (1,2)")
+boolean isEligibleForCompOff(Long empId, LocalDate date);
+
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllTimesheetData();
 
