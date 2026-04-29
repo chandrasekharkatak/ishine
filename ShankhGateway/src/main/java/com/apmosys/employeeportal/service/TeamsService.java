@@ -5865,6 +5865,7 @@ public class TeamsService {
 
 	    if (!migratedEmployees.isEmpty()) {
 	        dto.setEmployees(migratedEmployees);
+	        dto.setMigratedDeptIds(migratedDeptIds);	        
 	        result.add(dto);
 	    }
 
