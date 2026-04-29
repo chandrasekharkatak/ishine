@@ -2187,6 +2187,7 @@ storePreviousStatus(){
     // transform date formats to YYYY-MM-DD
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat);
     this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
+    if (this.employeeObj.newEtmStartDate) this.employeeObj.newEtmStartDate = this.normalizeDate(this.employeeObj.newEtmStartDate);
 
 
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
@@ -5367,6 +5368,20 @@ resetDefaultProjectFields() {
   }
 
   async validateEmployeeProjectStartDate(alertMessageTemplate: any): Promise<boolean> {
+    if (this.isCreation && this.employeeObj.newEtmStartDate && this.normalizeDate(this.employeeObj.newEtmStartDate) < this.normalizeDate(this.employeeObj.dateOfJoining)) {
+      this.alertMessage = "Employee’s Start Date must not be earlier than the Employee’s Date of Joining!!";
+      this.openAlertMod(alertMessageTemplate, this.alertMessage);
+      return false;
+    }
+    // Condition to check the Project Start Date less than Employee Start Date & if less than Pop Up to date the Project Start Date Flow to be added
+    // if (this.isCreation && this.employeeObj.newEtmStartDate && this.normalizeDate(this.employeeObj.newEtmStartDate) < this.normalizeDate(this.employeeObj.dateOfJoining)) {
+    //   this.alertMessage = "Employee’s Start Date must not be earlier than the Employee’s Date of Joining!!";
+    //   this.openAlertMod(alertMessageTemplate, this.alertMessage);
+    //   return false;
+    // }
+    if (this.isCreation) {
+      return true;
+    }
     if (this.normalizeDate(this.employeeObj.newEtmStartDate) < this.normalizeDate(this.employeeObj.oldEtmEndDate)) {
       this.alertMessage = "Employee Current Project End date cannot be greater then New Project Start date!!";
       this.openAlertMod(alertMessageTemplate, this.alertMessage);

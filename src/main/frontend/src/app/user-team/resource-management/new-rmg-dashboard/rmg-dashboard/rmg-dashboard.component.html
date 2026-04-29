@@ -97,15 +97,17 @@
             <div class="d-flex align-items-center gap-2 rounded px-3 py-2 mb-4">
                 <i class="bi bi-exclamation-triangle text-warning"></i>&nbsp;
                 <span class="small fw-semibold">
-                    <!-- {{ attentionRequiredProjectCount || 0 }} -->
                     Projects Need Attention:</span>&nbsp;
                 <div class="d-flex align-items-center gap-3 ms-2">
-                    <span class="project-alert-card x-small text-muted mr-1 cursor-pointer"
-                        *ngFor="let a of attentionRequiredProjectAlerts"
-                        (click)="onProjectStatusSelect(a.subKey, [], true)">
-                        <span *ngIf="a.value != undefined && a.value != null; else loading" class="fw-bold text-blue">{{
-                            a.value || 0 }}</span> {{ a.label }}
-                    </span>
+                    <ng-container *ngFor="let a of attentionRequiredProjectAlerts">
+                        <span
+                            class="project-alert-card x-small text-muted mr-1 cursor-pointer"
+                            (click)="onProjectStatusSelect(a.subKey, [], true)">
+                            <span *ngIf="a.value != undefined && a.value != null; else loading"
+                                class="fw-bold text-blue">{{
+                                a.value || 0 }}</span> {{ a.fullLabel }}
+                        </span>
+                    </ng-container>
                 </div>
             </div>
 
@@ -116,9 +118,6 @@
                         <div class="status-card border rounded pr-1 p-1 position-relative"
                             [ngClass]="{ 'rmg-card-selected': projectStatus === card.key }"
                             (click)="onProjectStatusSelect(card.key, statusCards)">
-                            <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
-                                [iconBgColor]="card.color" [content]="card.tooltip" [size]="16">
-                            </app-info-tooltip>
                             <div class="d-flex align-items-center">
                                 <div class="col-3 pl-1">
                                     <div class="icon-circle-accent circle d-flex align-items-center justify-content-center"
@@ -127,8 +126,14 @@
                                     </div>
                                 </div>
                                 <div class="col-9 pl-2 pr-1">
-                                    <div class="d-flex align-items-center flex-column gap-2 mb-1">
-                                        <span class="kpi-label align-self-start text-muted mb-0">{{ card.label }}</span>
+                                    <div class="d-flex align-items-start flex-column gap-2 mb-1">
+                                        <div class="d-flex justify-content-between">
+                                            <span class="kpi-label align-self-start text-muted mb-0">{{ card.label
+                                                }}</span>
+                                            <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                                                [iconBgColor]="card.color" [content]="card.tooltip" [size]="16">
+                                            </app-info-tooltip>
+                                        </div>
                                         <h6>
                                             <span *ngIf="card.value != undefined && card.value != null; else loading"
                                                 class="fs-4 align-self-start fw-bold mb-0">
@@ -148,7 +153,7 @@
                 <div class="d-flex align-items-center justify-content-between">
                     <span class="kpi-label text-uppercase">Billing Loss Risk Score</span>
                     <span class="x-small text-muted">{{attentionRequiredProjectCount}} risk factors / {{
-                        statusCards[0]?.value}}
+                        statusCards[1]?.value}}
                         projects</span>
                 </div>
                 <div class="d-flex align-items-center gap-3" (click)="intializeBillingLossProgressBar()">
@@ -160,8 +165,8 @@
                     </div>
                     <span class="fs-4 fw-bold">{{ attentionRequiredProjectCountPercent + '%' }} </span>
                 </div>
-                <p class="x-small text-muted mt-1 mb-0">Includes Underboarded, Overboarded, Defaulters, Expired TNM, and
-                    No Timesheet projects</p>
+                <p class="x-small text-muted mt-1 mb-0">Includes Overboarded, Defaulters, Expired TNM, and
+                    No Timesheet Filled projects</p>
             </div>
 
             <!-- Project Lifecycle -->
@@ -224,8 +229,7 @@
                         <!-- Scheduled - displayed like Project Lifecycle with centered count -->
                         <div class="col-4 mb-3 pr-1"
                             (click)="onProjectStatusSelect(projectLifeCycleStages[3].key, projectLifeCycleStages)">
-                            <div
-                                class="status-card border rounded p-3 d-flex flex-column justify-content-center align-items-center text-center position-relative"
+                            <div class="status-card border rounded p-3 d-flex flex-column justify-content-center align-items-center text-center position-relative"
                                 [ngClass]="{ 'rmg-card-selected': projectStatus === projectLifeCycleStages[3].key }">
                                 <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
                                     [iconBgColor]="projectLifeCycleStages[3].color"
@@ -235,8 +239,8 @@
                                     class="mb-2" style="font-size: 28px;"></i>
                                 <h5 class="fs-4 fw-bold mb-2" [ngClass]="projectLifeCycleStages[3].colorClass">{{
                                     projectLifeCycleStages[3].value || 0 }}</h5>
-                                <h6 class="x-small fw-semibold mb-1">{{ projectLifeCycleStages[3].label }}</h6>
-                                <p class="xx-small text-muted mb-0">{{ projectLifeCycleStages[3].desc }}</p>
+                                <h6 class="x-small fw-semibold mb-3">{{ projectLifeCycleStages[3].label }}</h6>
+                                <p class="xx-small text-muted mb-2">{{ projectLifeCycleStages[3].desc }}</p>
                             </div>
                         </div>
 
@@ -245,8 +249,7 @@
                         <!-- Underboarded -->
                         <div class="col-4 mb-3 pl-1 pr-1"
                             (click)="onProjectStatusSelect(resourceCards[0].key, resourceCards)">
-                            <div
-                                class="status-card border rounded p-3 d-flex justify-content-around align-items-center gap-3 position-relative"
+                            <div class="status-card border rounded p-3 d-flex justify-content-around align-items-center gap-3 position-relative"
                                 [ngClass]="{ 'rmg-card-selected': projectStatus === resourceCards[0].key }">
                                 <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
                                     [iconBgColor]="resourceCards[0].color" [content]="resourceCards[0].tooltip"
@@ -267,8 +270,7 @@
                         <!-- Overboarded -->
                         <div class="col-4 mb-3 pl-1"
                             (click)="onProjectStatusSelect(resourceCards[1].key, resourceCards)">
-                            <div
-                                class="status-card border rounded p-3 d-flex justify-content-around align-items-center gap-3 position-relative"
+                            <div class="status-card border rounded p-3 d-flex justify-content-around align-items-center gap-3 position-relative"
                                 [ngClass]="{ 'rmg-card-selected': projectStatus === resourceCards[1].key }">
                                 <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
                                     [iconBgColor]="resourceCards[1].color" [content]="resourceCards[1].tooltip"
@@ -463,7 +465,7 @@
                     Workforce Overview
                 </p>
                 <div class="row g-3 mb-4">
-                    <div class="col-4" *ngFor="let item of workforceOverview">
+                    <div class="col-4 mb-2" *ngFor="let item of workforceOverview">
                         <div class="status-card border rounded pb-1 pt-2 pl-3 pr-3 position-relative"
                             (click)="openEmployeeDetailsModal(item)">
                             <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
@@ -693,17 +695,17 @@
                             <th class="max-width200 min-width200" mat-sort-header="name|string">
                                 <span class="d-inline-flex align-items-center flex-wrap gap-1">
                                     Project Name
-                                    <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2"
-                                        [shouldShine]="false" [iconBgColor]="'#202020'"
-                                        [content]="projectNameSearchInfoTooltip" [size]="16">
+                                    <app-info-tooltip *ngIf="isProjectSearchEnabled"
+                                        class="table-header-info-tooltip ml-2" [shouldShine]="false"
+                                        [iconBgColor]="'#202020'" [content]="projectNameSearchInfoTooltip" [size]="16">
                                     </app-info-tooltip>
                                 </span>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="poNo|string">
                                 PO No.
-                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2" 
-                                    [shouldShine]="false" [iconBgColor]="'#202020'" 
-                                    [content]="poSearchTooltip" [size]="16">
+                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2"
+                                    [shouldShine]="false" [iconBgColor]="'#202020'" [content]="poSearchTooltip"
+                                    [size]="16">
                                 </app-info-tooltip>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="projectType|string">
@@ -723,16 +725,16 @@
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="projectStartDate|string">
                                 Start Date
-                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2" 
-                                    [shouldShine]="false" [iconBgColor]="'#202020'" 
-                                    [content]="dateSearchTooltip" [size]="16">
+                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2"
+                                    [shouldShine]="false" [iconBgColor]="'#202020'" [content]="dateSearchTooltip"
+                                    [size]="16">
                                 </app-info-tooltip>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="projectEndDate|string">
                                 End Date
-                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2" 
-                                    [shouldShine]="false" [iconBgColor]="'#202020'" 
-                                    [content]="dateSearchTooltip" [size]="16">
+                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2"
+                                    [shouldShine]="false" [iconBgColor]="'#202020'" [content]="dateSearchTooltip"
+                                    [size]="16">
                                 </app-info-tooltip>
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="state|string">
@@ -740,9 +742,9 @@
                             </th>
                             <th class="max-width200 min-width200" mat-sort-header="createdOn|datetime">
                                 Created On
-                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2" 
-                                    [shouldShine]="false" [iconBgColor]="'#202020'" 
-                                    [content]="dateSearchTooltip" [size]="16">
+                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2"
+                                    [shouldShine]="false" [iconBgColor]="'#202020'" [content]="dateSearchTooltip"
+                                    [size]="16">
                                 </app-info-tooltip>
                             </th>
                             <!-- <th class="max-width200 min-width200" mat-sort-header="status|string">
@@ -797,7 +799,7 @@
                                             <i class="fas fa-times"></i> Reject
                                         </button>
                                         <button mat-menu-item
-                                            *ngIf="project.poProjectType && !(project.active === 'false')"
+                                            *ngIf="project.poProjectType && !allNonBillableProjectTypes.includes(project.poProjectType?.trim()?.toLowerCase()) && !(project.active === 'false')"
                                             (click)="onAction('CLIENT_SIDE_ID_STATUS',project);">
                                             <i class="fas fa-id-badge"></i> ClientID Status
                                         </button>
@@ -807,42 +809,39 @@
                                         </button>
                                     </mat-menu>
                                 </td>
-                                <td class="max-width200 min-width200 text-break"
-                                    [title]="project?.name || 'NA'"
+                                <td class="max-width200 min-width200 text-break" [title]="project?.name || 'NA'"
                                     *ngIf="(project?.draftStatus == 'Not Started' || project?.active === 'false')">
 
-                                <span class="rmg-inactive-project-name-text">
-                                    {{ project?.name || 'NA' }}
-                                </span>
-
-                                <span class="d-inline-flex align-items-center flex-wrap gap-1 ms-1 align-middle">
-
-                                    <ng-container *ngIf="projectDetailsResolveMap?.[project?.projectId]?.redirected">
-                                    <span class="icon-btn warning"
-                                            [title]="'Linked to project: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || 'Primary project')">
-                                        <i class="bi bi-link-45deg"></i>
+                                    <span class="rmg-inactive-project-name-text">
+                                        {{ project?.name || 'NA' }}
                                     </span>
 
-                                    <button type="button"
-                                            class="icon-btn ghost"
-                                            [title]="'Click to copy primary project name: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || '')"
-                                            (click)="$event.stopPropagation(); copyPrimaryProjectName(project?.projectId)">
-                                        <i class="bi bi-clipboard"></i>
-                                    </button>
-                                    </ng-container>
+                                    <span class="d-inline-flex align-items-center flex-wrap gap-1 ms-1 align-middle">
 
-                                    <span *ngIf="rmgLinkedProjectSearchInfo && isRmgLinkedSearchPrimaryRow(project)"
-                                        class="icon-btn warning"
-                                        [title]="getRmgLinkedSearchRowTooltip(project)">
-                                    <i class="bi bi-link-45deg"></i>
+                                        <ng-container
+                                            *ngIf="projectDetailsResolveMap?.[project?.projectId]?.redirected">
+                                            <span class="icon-btn warning"
+                                                [title]="'Linked to project: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || 'Primary project')">
+                                                <i class="bi bi-link-45deg"></i>
+                                            </span>
+
+                                            <button type="button" class="icon-btn ghost"
+                                                [title]="'Click to copy primary project name: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || '')"
+                                                (click)="$event.stopPropagation(); copyPrimaryProjectName(project?.projectId)">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </ng-container>
+
+                                        <span *ngIf="rmgLinkedProjectSearchInfo && isRmgLinkedSearchPrimaryRow(project)"
+                                            class="icon-btn warning" [title]="getRmgLinkedSearchRowTooltip(project)">
+                                            <i class="bi bi-link-45deg"></i>
+                                        </span>
+
+                                        <span *ngIf="project?.active === 'false'" class="inactive-label">
+                                            Inactive
+                                        </span>
+
                                     </span>
-
-                                    <span *ngIf="project?.active === 'false'"
-                                        class="inactive-label">
-                                    Inactive
-                                    </span>
-
-                                </span>
 
                                 </td>
                                 <td class="max-width200 min-width200" title="Click to view Project Details"
@@ -863,8 +862,7 @@
                                         </ng-container>
                                         {{ project?.name || 'NA' }}
                                         <span *ngIf="rmgLinkedProjectSearchInfo && isRmgLinkedSearchPrimaryRow(project)"
-                                            class="icon-btn warning"
-                                            [title]="getRmgLinkedSearchRowTooltip(project)">
+                                            class="icon-btn warning" [title]="getRmgLinkedSearchRowTooltip(project)">
                                             <i class="bi bi-link-45deg"></i>
                                         </span>
                                     </span>

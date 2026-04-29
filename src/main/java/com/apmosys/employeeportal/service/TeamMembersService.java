@@ -1777,6 +1777,25 @@ public class TeamMembersService {
 				return response;
 			}
 
+			Employee employee = employeeRepository.findByEmpId(rmgTeamMemberDto.getEmpId());
+			if (employee == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee not found, Please contact Admin!!");
+				return response;
+			}
+
+			if (employee.getDateOfJoining() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Date of Joining is null, Please contact Admin!!");
+				return response;
+			}
+			if (rmgTeamMemberDto.getStartDate().toLocalDate().isBefore(employee.getDateOfJoining())) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("EMPLOYEE_DATE_OF_JOINING_LESS_THAN_MEMBER_START_DATE");
+				response.setServiceResponse2("Employee’s Start Date must not be earlier than the Employee’s Date of Joining("+ employee.getDateOfJoining() +")!!");
+				return response;
+			}
+
 			Project currentProject = projectRepository.findByProjectId(rmgTeamMemberDto.getProjectId());
 			if (currentProject == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -1816,7 +1835,7 @@ public class TeamMembersService {
 			}
 
 			response = validateExistingEmployeeProjectTimesheet(rmgTeamMemberDto.getEmpId(),
-					rmgTeamMemberDto.getStartDate(), projectIds);
+					rmgTeamMemberDto.getStartDate(), projectIds, rmgTeamMemberDto.getProjectType());
 			if (response != null && response.getServiceResponse() != null
 					&& response.getServiceResponse().equals("CONFLICTING_TIMESHEET_RECORDS_FOUND")) {
 				return response;
@@ -1872,7 +1891,7 @@ public class TeamMembersService {
 	}
 
 	private ServiceResponse validateExistingEmployeeProjectTimesheet(Long empId, LocalDateTime startDate,
-			List<Integer> projectIds) {
+			List<Integer> projectIds, String currentProjectType) {
 		ServiceResponse response = new ServiceResponse();
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 
@@ -1882,6 +1901,13 @@ public class TeamMembersService {
 			response.setServiceResponse("NO_TIMESHEET_RECORDS_FOUND");
 			return response;
 		}
+		boolean hasTnmInRawData = employeeProjectTimesheetDtoList.stream()
+	            .anyMatch(dto -> "TNM".equalsIgnoreCase(dto.getProjectType()));
+
+		  if (!hasTnmInRawData) {
+		        response.setServiceResponse("NO_TIMESHEET_RECORDS_FOUND");
+		        return response;
+		    }	
 
 		LocalDate newStartDate = startDate.toLocalDate();
 		List<EmployeeProjectTimesheetDto> filteredEmployeeProjectTimesheetDtoList = new ArrayList<EmployeeProjectTimesheetDto>();

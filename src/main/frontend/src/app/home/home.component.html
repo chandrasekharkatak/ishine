@@ -2352,61 +2352,6 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
 
 <ng-template #attendancePolicyModal>
-<!-- <<<<<<< HEAD
-  <div class="modal-header border-0 pb-0">
-    <h5 class="modal-title text-danger d-flex align-items-center gap-2">
-      <i class="fa fa-exclamation-triangle mr-3"></i>
-      Attendance Policy Notification
-    </h5>
-    <button type="button" class="close" (click)="closeRepeatedOffendeNoticeModal()">&times;</button>
-  </div>
-
-  <div class="modal-body text-center px-4">
-
-   
-    <div class="summary-wrapper">
-      <div class="main-text">
-        {{popupHeading}}
-      </div>
-
-      <div class="latest-text" *ngIf="defaulterMonths?.length">
-        Latest:
-        <span class="latest-highlight">
-          {{ getMonthName(defaulterMonths[0].month) }} {{ defaulterMonths[0].year }}
-        </span>
-      </div>
-    </div>
-
-    
-    <div class="mb-3">
-      <button class="toggle-btn-modern" (click)="showAllMonths = !showAllMonths">
-        {{ showAllMonths ? 'Hide history ▲' : 'View history ▼' }}
-      </button>
-    </div>
-
-    
-    <div *ngIf="showAllMonths" class="months-chip-container">
-      <span class="month-chip" *ngFor="let m of defaulterMonths; let i = index" [class.active-chip]="i === 0">
-        {{ getMonthName(m.month) }} {{ m.year }}
-      </span>
-    </div>
-
-    
-    <div class="alert modern-alert mt-3">
-            {{popupDescription}}
-    </div>
-
-  </div>
-
-  <div class="modal-footer border-0 pt-2 justify-content-center">
-    <button class="btn btn-primary px-4" [disabled]="isSavingConsent"
-      (click)="acknowledgeRepeatedOffendeNoticePolicy()">
-
-      <span *ngIf="!isSavingConsent">I Understand</span>
-      <span *ngIf="isSavingConsent">Saving...</span>
-
-    </button>
-======= -->
   <div class="corporate-modal">
     <!-- Header -->
     <div class="modal-header-corp">
@@ -2470,3 +2415,4 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
     </div>
   </div>
 </ng-template>
+

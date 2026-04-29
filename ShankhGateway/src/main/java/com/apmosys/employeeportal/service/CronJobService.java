@@ -7229,8 +7229,11 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 	            sb.append("<div class='name'>").append(emp.getEmployeeName()).append("</div>");
 
-	            sb.append("<div class='value'><span class='label'>Role:</span> ")
-	              .append(emp.getRoleName()).append("</div>");
+	            if ("TNM".equalsIgnoreCase(dto.getProjectType())) {
+	                sb.append("<div class='value'><span class='label'>Role:</span> ")
+	                  .append(emp.getRoleName() != null ? emp.getRoleName() : "-")
+	                  .append("</div>");
+	            }
 
 	            sb.append("<div class='move'>");
 

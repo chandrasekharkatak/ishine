@@ -26,6 +26,7 @@ public class RmgProjectDto {
 
     private String poProjectType;
     private String internalProjectType;
+    private String projectMessage;
 
     private List<Long> departmentIds;
     private List<Long> projectOverheadIds;
@@ -65,6 +66,7 @@ public class RmgProjectDto {
         this.internalProjectType = TypeConversionUtil.getSafeString(row[9]);
         this.status = TypeConversionUtil.getSafeString(row[10]);
         this.poProjectId = TypeConversionUtil.safeParseLong(row[11]);
+        this.projectMessage = TypeConversionUtil.getSafeString(row[12]);
     }
 
 }

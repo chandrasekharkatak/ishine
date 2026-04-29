@@ -5788,10 +5788,18 @@ public List<AutoMigrationDTO> migrateResourcesAfterRenewalDTO(Integer projectId,
 	    Employee empEntity = employeeRepository.findById(oldRow.getEmpId()).orElse(null);
 	    Team oldTeam = teamRepository.findById(oldRow.getTeamId()).orElse(null);
 	    Team newTeam = teamRepository.findById(newRow.getTeamId()).orElse(null);
-	    RoleDetails role = roleDetailsRepository.findById(oldRow.getRoleId()).orElse(null);
+	    if ("TNM".equalsIgnoreCase(projectType)) {
+	        RoleDetails role = roleDetailsRepository
+	                .findById(oldRow.getRoleId())
+	                .orElse(null);
+
+	        emp.setRoleName(role != null ? role.getRole() : "-");
+	    } else {
+	        emp.setRoleName(null); 
+	    }
 
 	    emp.setEmployeeName(empEntity != null ? empEntity.getName() : "Unknown");
-	    emp.setRoleName(role != null ? role.getRole() : "Unknown Role");
+	   
 
 	    emp.setPreviousTeamName(oldTeam != null ? oldTeam.getTeamName() : "Unknown");
 	    emp.setNewTeamName(newTeam != null ? newTeam.getTeamName() : "Same Team");

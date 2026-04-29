@@ -861,7 +861,7 @@
 }
 
 .manager-popup-body {
-    max-height: 150px;   
+    max-height: 150px;
     overflow-y: auto;
 }
 
@@ -908,6 +908,58 @@ td .manager-popup {
     border-radius: 8px;
 }
 
+/* @media (max-width: 1366px) {
+
+    .min-width100 {
+        min-width: 80px !important;
+    }
+
+    .min-width150 {
+        min-width: 120px !important;
+    }
+
+    .min-width180 {
+        min-width: 140px !important;
+    }
+
+    .min-width200 {
+        min-width: 160px !important;
+    }
+} */
+/* full width container */
+.project-message-bar {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 10px 0 8px 0;
+}
+
+
+.scroll-text {
+    display: inline-block;
+    min-width: 100%;
+    padding-left: 100%;
+    font-weight: 600;
+    color: black;
+    animation: scroll-left 12s linear infinite;
+}
+
+
+@keyframes scroll-left {
+    0% {
+        transform: translateX(0%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+.project-message-bar:hover .scroll-text {
+    animation-play-state: paused;
+}
+.project-message-bar:hover .scroll-text {
+    animation-play-state: paused;
+}
 /* ========== Update Project Milestone modal – new design ========== */
   .ep-milestone-modal {
     --ep-accent: #193D8A;
@@ -1967,7 +2019,7 @@ td .manager-popup {
 }
 
 ::ng-deep .ep-datepicker-57px .mat-mdc-floating-label {
-  top: 28px; 
+  top: 28px;
 }
 
 .milestone-doc-preview-body {

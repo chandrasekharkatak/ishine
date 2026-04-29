@@ -61,7 +61,7 @@ export class RmgStatusCardsComponent {
   unfilledTimesheetProjectColumnConfig = [
     { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
     , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'ApMoSys RM', sortable: true, searchable: true }
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false }
@@ -181,7 +181,7 @@ export class RmgStatusCardsComponent {
     , { field: 'billable', header: 'Is Billable', sortable: true, searchable: true }
     , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
     , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'ApMoSys RM', sortable: true, searchable: true }
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
@@ -232,7 +232,7 @@ export class RmgStatusCardsComponent {
     , { field: 'billableType', header: 'User Billable Type', sortable: true, searchable: true }
     , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
     , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'ApMoSys RM', sortable: true, searchable: true }
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
@@ -246,7 +246,7 @@ export class RmgStatusCardsComponent {
   onBenchEmployeeDetailsSubTableColumnConfig = [
     { field: 'projectName', header: 'Project Name', sortable: false, searchable: false }
     , { field: 'clientName', header: 'Client Name', sortable: false, searchable: false }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: false, searchable: false }
+    , { field: 'apmosysRM', header: 'ApMoSys RM', sortable: false, searchable: false }
     , { field: 'clientRM', header: 'Client RM', sortable: false, searchable: false }
     , { field: 'poNo', header: 'PO No.', sortable: false, searchable: false }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: false, searchable: false }
@@ -257,7 +257,7 @@ export class RmgStatusCardsComponent {
   mappedEmployeeDetailsSubTableColumnConfig = [
     { field: 'projectName', header: 'Project Name', sortable: false, searchable: false }
     , { field: 'clientName', header: 'Client Name', sortable: false, searchable: false }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: false, searchable: false }
+    , { field: 'apmosysRM', header: 'ApMoSys RM', sortable: false, searchable: false }
     , { field: 'clientRM', header: 'Client RM', sortable: false, searchable: false }
     , { field: 'poNo', header: 'PO No.', sortable: false, searchable: false }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: false, searchable: false }
@@ -275,7 +275,7 @@ export class RmgStatusCardsComponent {
     , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
     , { field: 'teamName', header: 'Team Name', sortable: true, searchable: true }
     , { field: 'clientName', header: 'Client Name', sortable: true, searchable: true }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'ApMoSys RM', sortable: true, searchable: true }
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
@@ -324,7 +324,7 @@ export class RmgStatusCardsComponent {
   ];
 
   FC_PROJECT_FILTERS_LIST = [
-    { key: "all", label: 'Active', title: 'Active', count: null, color: '#5cb85c' },
+    // { key: "all", label: 'Active', title: 'Active', count: null, color: '#5cb85c' },
     { key: "defaulter", label: 'Defaulter', title: 'Defaulter', count: null, color: '#d9534f' },
     { key: "ontime", label: 'On Time', title: 'On Time', count: null, color: '#f0ad4e' },
   ];
@@ -350,7 +350,7 @@ export class RmgStatusCardsComponent {
     , { field: 'projectType', header: 'Project Type', sortable: true, searchable: true }
     , { field: 'projectManagerName', header: 'Project Manager', sortable: true, searchable: true }
     , { field: 'clientName', header: 'Client', sortable: true, searchable: true }
-    , { field: 'apmosysRM', header: 'Apmosys RM', sortable: true, searchable: true }
+    , { field: 'apmosysRM', header: 'ApMoSys RM', sortable: true, searchable: true }
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poStartDate', header: 'Start Date', sortable: true, searchable: true }
     , { field: 'poEndDate', header: 'End Date', sortable: true, searchable: true }
