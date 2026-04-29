@@ -901,23 +901,22 @@ closeProjectMilestoneDocumentsModal() {
         };
 
         const currentMembers = rmgTeam?.rmgTeamMemberList?.filter(isFutureOrActive) || [];
-        const currentMemberMap = new Map<number, RmgTeamMember>();
+        // const currentMemberMap = new Map<number, RmgTeamMember>();
+        // for (const member of currentMembers) {
+        //     if (!member?.empId) continue;
+        //     const existing = currentMemberMap.get(member.empId);
 
-        for (const member of currentMembers) {
-            if (!member?.empId) continue;
-            const existing = currentMemberMap.get(member.empId);
+        //     if (!existing) {
+        //         currentMemberMap.set(member.empId, member);
+        //         continue;
+        //     }
 
-            if (!existing) {
-                currentMemberMap.set(member.empId, member);
-                continue;
-            }
-
-            const existingDate = moment(existing.startDate);
-            const currentDate = moment(member.startDate);
-            const selected = existingDate.isBefore(currentDate) ? existing : member;
-            currentMemberMap.set(member.empId, selected);
-        }
-        rmgTeam.rmgCurrentTeamMemberList = Array.from(currentMemberMap.values());
+        //     const existingDate = moment(existing.startDate);
+        //     const currentDate = moment(member.startDate);
+        //     const selected = existingDate.isBefore(currentDate) ? existing : member;
+        //     currentMemberMap.set(member.empId, selected);
+        // }
+        rmgTeam.rmgCurrentTeamMemberList = currentMembers;
 
 
         if (this.projectType === 'TNM') {
