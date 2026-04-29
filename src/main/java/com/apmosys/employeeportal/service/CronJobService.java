@@ -104,6 +104,7 @@ import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.enums.TeamMemberStatusTriggerSource;
 import com.apmosys.employeeportal.enums.DayTypeCode;
 import com.apmosys.employeeportal.model.BiomaxDefaulter;
 import com.apmosys.employeeportal.model.BiomaxRequest;
@@ -257,6 +258,9 @@ public class CronJobService {
 	
 	@Autowired
 	TeamsService teamsService;
+
+	@Autowired
+	TeamMemberStatusOrchestrationService teamMemberStatusOrchestrationService;
 
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
@@ -7758,41 +7762,10 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 			}
 		}
 	    
-	    @Scheduled(cron = "0 32 18 * * *")
+	    @Scheduled(cron = "0 0 1 * * *")
 	    @Transactional
 	    public void updateTeamMemberStatus() {
-
-	        LogDTO apiLogInfo = new LogDTO();
-	        apiLogInfo.setSubFeatureName("updateTeamMemberStatus");
-	        apiLogInfo.setApiUrl("/api/updateTeamMemberStatus");
-	        apiLogInfo.setLogLevel("INFO");
-
-	        StringBuilder logBuilder = new StringBuilder();
-
-	        LocalDate today = LocalDate.now();
-	        LocalDateTime todayStart = today.atStartOfDay();
-	        LocalDateTime tomorrowStart = today.plusDays(1).atStartOfDay();
-	        LocalDateTime now = LocalDateTime.now();
-
-	        try {
-
-	            teamsService.processDeactivations(todayStart, now);
-
-	            teamsService.processActivations(todayStart, tomorrowStart, now);
-
-	            teamsService.updateDefaultProjectMappings();
-
-	            logBuilder.append("Team member scheduler executed successfully.");
-
-	        } catch (Exception ex) {
-
-	        	logBuilder.append("Team member scheduler failed");
-	            logBuilder.append("Scheduler failed: ")
-	                      .append(ex.getMessage());
-	        }
-
-	        apiLogInfo.setApiRequest(logBuilder.toString());
-	        logService.logMyInfo(httpRequest, apiLogInfo);
+	        teamMemberStatusOrchestrationService.updateTeamMemberStatus(TeamMemberStatusTriggerSource.SCHEDULER);
 	    }
 	    
 	    

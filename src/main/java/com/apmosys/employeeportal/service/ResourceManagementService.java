@@ -238,6 +238,9 @@ public class ResourceManagementService {
 	ProjectApprovalMailBuilder projectApprovalMailBuilder;
 
 	@Autowired
+	TeamMemberStatusAsyncService teamMemberStatusAsyncService;
+
+	@Autowired
 	ProjectRepository projectRepository;
 
 	@Autowired
@@ -1652,6 +1655,7 @@ public class ResourceManagementService {
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Project Approved");
+			teamMemberStatusAsyncService.triggerFromInternalFlow();
 
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
