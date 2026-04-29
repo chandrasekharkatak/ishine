@@ -7,8 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.apmosys.employeeportal.enums.TeamMemberStatusExecutionStatus;
-import com.apmosys.employeeportal.enums.TeamMemberStatusTriggerSource;
+import com.apmosys.employeeportal.enums.SchedulerTriggerType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,36 +18,33 @@ public class TeamMemberStatusOrchestrationService {
     private static final Logger log = LoggerFactory.getLogger(TeamMemberStatusOrchestrationService.class);
 
     private final TeamsService teamsService;
-    private final TeamMemberStatusExecutionTrackerService trackerService;
+    private final SchedulerExecutionTrackerService schedulerExecutionTrackerService;
 
-    public void updateTeamMemberStatus(TeamMemberStatusTriggerSource triggerSource) {
-        boolean schedulerTriggered = TeamMemberStatusTriggerSource.SCHEDULER.equals(triggerSource);
-        LocalDate today = LocalDate.now();
+    private static final String METHOD_NAME = "updateTeamMemberStatus";
 
-        if (schedulerTriggered && !trackerService.shouldRunForScheduler(today)) {
-            log.info("Skipping updateTeamMemberStatus. Already succeeded for today.");
+    public void updateTeamMemberStatus(SchedulerTriggerType triggerType) {
+        if (SchedulerTriggerType.SCHEDULER.equals(triggerType)
+                && !schedulerExecutionTrackerService.shouldRunTodayForScheduler(METHOD_NAME)) {
+            log.info("Skipping {}. Already executed successfully today.", METHOD_NAME);
             return;
         }
 
+        schedulerExecutionTrackerService.logExecutionStart(METHOD_NAME, triggerType);
         try {
             executeTeamMemberStatusUpdateCoreLogic();
-            if (schedulerTriggered) {
-                trackerService.updateExecutionStatus(today, TeamMemberStatusExecutionStatus.SUCCESS);
-            }
+            schedulerExecutionTrackerService.logExecutionSuccess(METHOD_NAME, triggerType);
         } catch (Exception ex) {
-            if (schedulerTriggered) {
-                TeamMemberStatusExecutionStatus status = ex instanceof InterruptedException
-                        ? TeamMemberStatusExecutionStatus.INTERRUPTED
-                        : TeamMemberStatusExecutionStatus.FAILED;
-                trackerService.updateExecutionStatus(today, status);
+            if (ex instanceof InterruptedException) {
+                schedulerExecutionTrackerService.logExecutionInterrupted(METHOD_NAME, triggerType, ex.getMessage());
+            } else {
+                schedulerExecutionTrackerService.logExecutionFailure(METHOD_NAME, triggerType, ex.getMessage());
             }
             throw new RuntimeException("Failed to execute updateTeamMemberStatus", ex);
+        } finally {
+            log.debug("updateTeamMemberStatus completed triggerType={}", triggerType);
         }
     }
 
-    /**
-     * Core business logic intentionally unchanged.
-     */
     protected void executeTeamMemberStatusUpdateCoreLogic() {
         LocalDate today = LocalDate.now();
         LocalDateTime todayStart = today.atStartOfDay();

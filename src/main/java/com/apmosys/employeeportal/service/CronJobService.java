@@ -104,7 +104,7 @@ import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
-import com.apmosys.employeeportal.enums.TeamMemberStatusTriggerSource;
+import com.apmosys.employeeportal.enums.SchedulerTriggerType;
 import com.apmosys.employeeportal.enums.DayTypeCode;
 import com.apmosys.employeeportal.model.BiomaxDefaulter;
 import com.apmosys.employeeportal.model.BiomaxRequest;
@@ -7762,10 +7762,10 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 			}
 		}
 	    
-	    @Scheduled(cron = "0 0 1 * * *")
+	    @Scheduled(cron = "0 55 16 * * *")
 	    @Transactional
 	    public void updateTeamMemberStatus() {
-	        teamMemberStatusOrchestrationService.updateTeamMemberStatus(TeamMemberStatusTriggerSource.SCHEDULER);
+	        teamMemberStatusOrchestrationService.updateTeamMemberStatus(SchedulerTriggerType.SCHEDULER);
 	    }
 	    
 	    

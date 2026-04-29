@@ -5149,17 +5149,14 @@ public class TeamsService {
         List<EmpPrimaryProjectMapping> mappings =
                 empPrimaryProjectMappingRepository.findByEmpIdIn(empIds);
 
-        Map<Long, EmpPrimaryProjectMapping> mappingMap =
+        Map<Long, List<EmpPrimaryProjectMapping>> mappingsByEmpId =
                 mappings.stream()
-                .collect(Collectors.toMap(
-                        EmpPrimaryProjectMapping::getEmpId,
-                        Function.identity(),
-                        (a, b) -> a
-                ));
+                        .collect(Collectors.groupingBy(EmpPrimaryProjectMapping::getEmpId));
 
         List<EmpPrimaryProjectMapping> updates = new ArrayList<>();
         
         List<MultiProjectEmployeeDTO> multiProjectEmployees = new ArrayList<>();
+        Map<String, Set<MultiProjectEmployeeDTO>> hodNoDefaultEmployees = new HashMap<>();
         List<EmployeeBillableUpdateDTO> billableUpdates = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
 
@@ -5171,27 +5168,83 @@ public class TeamsService {
 
             if (empProjects.size() > 1) {
 
-            	 multiProjectEmployees.add(
-            	            buildMultiProjectEmployee(empId, empProjects)
-            	    );
+                MultiProjectEmployeeDTO dto =
+                        buildMultiProjectEmployee(empId, empProjects);
+                multiProjectEmployees.add(dto);
+
+                boolean hasDefault =
+                        mappingsByEmpId
+                                .getOrDefault(empId, Collections.emptyList())
+                                .stream()
+                                .anyMatch(m -> "Y".equalsIgnoreCase(m.getIsMapped()));
+
+                if (!hasDefault) {
+                    String hodEmail = employeeRepository.findHodMail(empId);
+                    if (hodEmail != null && !hodEmail.isBlank()) {
+                        hodNoDefaultEmployees
+                                .computeIfAbsent(hodEmail, k -> new HashSet<>())
+                                .add(dto);
+                    }
+                }
                 continue;
             }
 
             ProjectEmpInfoDTO project = empProjects.get(0);
 
-            EmpPrimaryProjectMapping mapping =
-                    mappingMap.getOrDefault(
-                            empId,
-                            new EmpPrimaryProjectMapping());
+            Long projectId = project.getProjectId() != null
+                    ? project.getProjectId().longValue()
+                    : null;
 
-            mapping.setEmpId(empId);
-            mapping.setPrimaryProjectId(Long.parseLong(project.getProjectId().toString()));
-            mapping.setPrimaryProjectName(project.getProjectName());
-            mapping.setIsMapped("Y");
-            mapping.setUpdatedOn(now);
-            mapping.setUpdatedBy(1L);
+            if (projectId == null) {
+                continue;
+            }
 
-            updates.add(mapping);
+            String projectName = project.getProjectName();
+
+            List<EmpPrimaryProjectMapping> empMappings =
+                    new ArrayList<>(
+                            mappingsByEmpId.getOrDefault(empId, Collections.emptyList()));
+
+            // Demote any existing default mapping that is not the current single active project
+            for (EmpPrimaryProjectMapping existing : empMappings) {
+                if ("Y".equalsIgnoreCase(existing.getIsMapped())
+                        && !Objects.equals(existing.getPrimaryProjectId(), projectId)) {
+
+                    existing.setIsMapped("N");
+                    existing.setUpdatedOn(now);
+                    existing.setUpdatedBy(1L);
+                    updates.add(existing);
+                }
+            }
+
+            EmpPrimaryProjectMapping target =
+                    empMappings.stream()
+                            .filter(m -> Objects.equals(m.getPrimaryProjectId(), projectId))
+                            .findFirst()
+                            .orElse(null);
+
+            if (target == null) {
+                target = new EmpPrimaryProjectMapping();
+                target.setEmpId(empId);
+                target.setPrimaryProjectId(projectId);
+                target.setPrimaryProjectName(projectName);
+                target.setIsMapped("Y");
+                target.setUpdatedOn(now);
+                target.setUpdatedBy(1L);
+                updates.add(target);
+            } else {
+                boolean needsUpdate =
+                        !"Y".equalsIgnoreCase(target.getIsMapped())
+                                || !Objects.equals(target.getPrimaryProjectName(), projectName);
+
+                if (needsUpdate) {
+                    target.setPrimaryProjectName(projectName);
+                    target.setIsMapped("Y");
+                    target.setUpdatedOn(now);
+                    target.setUpdatedBy(1L);
+                    updates.add(target);
+                }
+            }
             
             billableUpdates.add(
                     computeBillableUpdate(empId, project)
@@ -5199,6 +5252,8 @@ public class TeamsService {
         }
         
         notifyManagersForMultipleProjectsGrouped(multiProjectEmployees);
+
+        notifyHodsForMissingDefaultMapping(hodNoDefaultEmployees);
         
         if (!billableUpdates.isEmpty()) {
 
@@ -5210,6 +5265,65 @@ public class TeamsService {
 
             empPrimaryProjectMappingRepository.saveAll(updates);
         }
+    }
+
+    private void notifyHodsForMissingDefaultMapping(
+            Map<String, Set<MultiProjectEmployeeDTO>> hodEmailToEmployees) {
+
+        if (hodEmailToEmployees == null || hodEmailToEmployees.isEmpty()) {
+            return;
+        }
+
+        String subject = "Employees missing default project mapping (Multiple active projects)";
+
+        for (Map.Entry<String, Set<MultiProjectEmployeeDTO>> entry : hodEmailToEmployees.entrySet()) {
+
+            String hodEmail = entry.getKey();
+            Set<MultiProjectEmployeeDTO> employees = entry.getValue();
+
+            if (hodEmail == null || hodEmail.isBlank() || employees == null || employees.isEmpty()) {
+                continue;
+            }
+
+            String body = buildHodMissingDefaultEmailBody(employees);
+
+            try {
+                mailService.sendMailWithCC(
+                        hodEmail,
+                        rmgMail,
+                        subject,
+                        body
+                );
+            } catch (Exception ex) {
+                log.error("Error sending grouped HOD email for missing default mapping hod={}", hodEmail, ex);
+            }
+        }
+    }
+
+    private String buildHodMissingDefaultEmailBody(Set<MultiProjectEmployeeDTO> employees) {
+
+        StringBuilder body = new StringBuilder();
+        body.append("Dear HOD,<br><br>");
+        body.append("The following employees are mapped to multiple active projects, but none is selected as the default project.<br>");
+        body.append("Please coordinate with the relevant stakeholders to set the correct default project mapping.<br><br>");
+
+        body.append("<table border='1' cellpadding='5'>")
+            .append("<tr>")
+            .append("<th>Employee ID</th>")
+            .append("<th>Projects</th>")
+            .append("</tr>");
+
+        for (MultiProjectEmployeeDTO emp : employees) {
+            body.append("<tr>")
+                .append("<td>").append(emp.getEmpId()).append("</td>")
+                .append("<td>").append(String.join(", ", emp.getProjectNames())).append("</td>")
+                .append("</tr>");
+        }
+
+        body.append("</table><br>");
+        body.append("Regards,<br>");
+        body.append("Employee Portal Scheduler");
+        return body.toString();
     }
 
     /*

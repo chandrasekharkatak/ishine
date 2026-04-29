@@ -1,6 +1,6 @@
 package com.apmosys.employeeportal.enums;
 
-public enum TeamMemberStatusExecutionStatus {
+public enum SchedulerExecutionStatus {
     SUCCESS,
     FAILED,
     INTERRUPTED

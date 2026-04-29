@@ -3,7 +3,7 @@ package com.apmosys.employeeportal.service;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import com.apmosys.employeeportal.enums.TeamMemberStatusTriggerSource;
+import com.apmosys.employeeportal.enums.SchedulerTriggerType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,6 +15,11 @@ public class TeamMemberStatusAsyncService {
 
     @Async
     public void triggerFromInternalFlow() {
-        teamMemberStatusOrchestrationService.updateTeamMemberStatus(TeamMemberStatusTriggerSource.INTERNAL);
+        teamMemberStatusOrchestrationService.updateTeamMemberStatus(SchedulerTriggerType.INTERNAL);
+    }
+
+    @Async
+    public void triggerFromController() {
+        teamMemberStatusOrchestrationService.updateTeamMemberStatus(SchedulerTriggerType.CONTROLLER);
     }
 }
