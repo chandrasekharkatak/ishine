@@ -3652,7 +3652,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
                "    ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
                "END AS prefixed_id, " +
-               "e.employeement_id " +
+               "e.employeement_id, e.email, " +
+               "CASE " +
+               "    WHEN e.approvals_to = 'Reporting Manager' THEN rm.email " +
+               "    ELSE m.email " +
+               "END AS Reporting_Manager_Email " +
                "FROM employee e " +
                "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id " +
                "LEFT JOIN employee m ON e.manager_id = m.emp_id " +
@@ -3672,6 +3676,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                "        ELSE CONCAT('A', CAST(e.employeement_id AS CHAR)) " +
                "    END LIKE CONCAT('%', :employeeCode, '%')) " +
                "AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+               "AND (:employeeEmail IS NULL OR LOWER(e.email) LIKE LOWER(CONCAT('%', :employeeEmail, '%'))) " +
+               "AND (:managerEmail IS NULL OR " +
+               "    LOWER(CASE " +
+               "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.email " +
+               "        ELSE m.email " +
+               "    END) LIKE LOWER(CONCAT('%', :managerEmail, '%'))) " +
                "AND (:managerName IS NULL OR " +
                "    LOWER(CASE " +
                "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
@@ -3683,7 +3693,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			@Param("employeeName") String employeeName,
 			@Param("employeeCode") String employeeCode,
 			@Param("departmentName") String departmentName,
-			@Param("managerName") String managerName
+			@Param("managerName") String managerName,
+			@Param("employeeEmail") String employeeEmail,
+			@Param("managerEmail") String managerEmail
 		);
 
 	@Query(value = "SELECT DISTINCT " +
@@ -3741,6 +3753,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                "        ELSE CONCAT('A', CAST(e.employeement_id AS CHAR)) " +
                "    END LIKE CONCAT('%', :employeeCode, '%')) " +
                "AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+               "AND (:employeeEmail IS NULL OR LOWER(e.email) LIKE LOWER(CONCAT('%', :employeeEmail, '%'))) " +
+               "AND (:managerEmail IS NULL OR " +
+               "    LOWER(CASE " +
+               "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.email " +
+               "        ELSE m.email " +
+               "    END) LIKE LOWER(CONCAT('%', :managerEmail, '%'))) " +
                "AND (:managerName IS NULL OR " +
                "    LOWER(CASE " +
                "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
@@ -3751,7 +3769,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			@Param("employeeName") String employeeName,
 			@Param("employeeCode") String employeeCode,
 			@Param("departmentName") String departmentName,
-			@Param("managerName") String managerName
+			@Param("managerName") String managerName,
+			@Param("employeeEmail") String employeeEmail,
+			@Param("managerEmail") String managerEmail
 		);
 
 }
