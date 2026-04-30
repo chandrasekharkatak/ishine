@@ -41,6 +41,8 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 	private final List<String> WHITELISTED_APIS = Arrays.asList(
 			"/api/authenticateUser",
 			"/api/authenticateUserWithOTP",
+			"/api/auth/po/session-login",
+			"/api/auth/po/session-logout",
 			"/api/checkEmailWhenForgotPassword",
 			"/api/checkOTPWhenForgotPassword",
 			"/api/resendOTP",
@@ -49,6 +51,8 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			
 			"/employeeportalapp/api/authenticateUser",
 			"/employeeportalapp/api/authenticateUserWithOTP",
+			"/employeeportalapp/api/auth/po/session-login",
+			"/employeeportalapp/api/auth/po/session-logout",
 			"/employeeportalapp/api/checkEmailWhenForgotPassword",
 			"/employeeportalapp/api/checkOTPWhenForgotPassword",
 			"/employeeportalapp/api/resendOTP",
@@ -58,6 +62,8 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			
 			"/employeeportal/api/authenticateUser",
 			"/employeeportal/api/authenticateUserWithOTP",
+			"/employeeportal/api/auth/po/session-login",
+			"/employeeportal/api/auth/po/session-logout",
 			"/employeeportal/api/checkEmailWhenForgotPassword",
 			"/employeeportal/api/checkOTPWhenForgotPassword",
 			"/employeeportal/api/resendOTP",

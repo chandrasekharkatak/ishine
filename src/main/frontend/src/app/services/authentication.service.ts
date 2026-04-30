@@ -110,6 +110,10 @@ if (encryptedUser) {
     return this.http.post(`${this.baseUrl}api/resendOTP`, user);
   }
 
+  authenticateFromPoSession(payload: { empId: number; poToken: string; deepLink: string }) {
+    return this.http.post(`${this.baseUrl}api/auth/po/session-login`, payload);
+  }
+
   /** Session Check Logic */
   checkSession() {
     if (!this.currentUserValue) return;

@@ -15,6 +15,8 @@ import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LMSDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.PoSessionLoginRequestDTO;
+import com.apmosys.employeeportal.dto.PoSessionLogoutRequestDTO;
 import com.apmosys.employeeportal.service.AuthenticationService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -87,6 +89,16 @@ public class AuthenticationController {
 
 		ServiceResponse response = authenticationService.resendOTP(employeedto);
 		return response;
+	}
+
+	@RequestMapping(value = "/auth/po/session-login", method = RequestMethod.POST)
+	public ServiceResponse authenticateFromPoSession(@RequestBody PoSessionLoginRequestDTO requestDto) {
+		return authenticationService.authenticateFromPoSession(requestDto);
+	}
+
+	@RequestMapping(value = "/auth/po/session-logout", method = RequestMethod.POST)
+	public ServiceResponse logoutFromPoSession(@RequestBody PoSessionLogoutRequestDTO requestDto) {
+		return authenticationService.logoutFromPoSession(requestDto);
 	}
 	
 	@RequestMapping(value = "/getServerDate", method = RequestMethod.GET)

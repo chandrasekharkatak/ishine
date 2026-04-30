@@ -28,6 +28,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
@@ -37,12 +38,16 @@ import com.apmosys.employeeportal.dto.LMSDTO;
 import com.apmosys.employeeportal.dto.LMSEmailSend;
 import com.apmosys.employeeportal.dto.LMSRedirect;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.PoSessionLoginRequestDTO;
+import com.apmosys.employeeportal.dto.PoSessionLogoutRequestDTO;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.PoSessionAccessLog;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.FeatureMasterRepository;
+import com.apmosys.employeeportal.repository.PoSessionAccessLogRepository;
 import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -95,6 +100,9 @@ public class AuthenticationService {
 	
 	@Autowired
 	RoleFeatureMapRepository roleFeatureMapRepository;
+
+	@Autowired
+	private PoSessionAccessLogRepository poSessionAccessLogRepository;
 	
 	@Value("${spring.servlet.multipart.max-file-size}")
 	private String maxFileSize;
@@ -1104,7 +1112,151 @@ public class AuthenticationService {
 	}
 
 
-	
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse authenticateFromPoSession(PoSessionLoginRequestDTO requestDto) {
+		ServiceResponse response = new ServiceResponse();
+		SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+
+		try {
+			if (requestDto == null || requestDto.getEmpId() == null || requestDto.getPoToken() == null
+					|| requestDto.getPoToken().trim().isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid Po session payload.");
+				return response;
+			}
+
+			Employee employee = employeeRepository.findById(requestDto.getEmpId()).orElse(null);
+			if (employee == null || "InActive".equalsIgnoreCase(employee.getEmploymentstatus())) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee not found or inactive.");
+				return response;
+			}
+
+			UserSession existingUserSession = userSessionRepository.findByEmpId(employee.getEmpId());
+			LocalDateTime now = LocalDateTime.now();
+			String sessionKey;
+			String action;
+
+			if (existingUserSession != null) {
+				existingUserSession.setPoToken(requestDto.getPoToken());
+				existingUserSession.setLastCheckTime(now);
+				userSessionRepository.save(existingUserSession);
+				sessionKey = existingUserSession.getSessionKey();
+				action = "LOGIN_EXISTING_SESSION_REUSED";
+			} else {
+				String rawSessionString = LocalDateTime.now().toString() + employee.getEmail();
+				String encSessionString = EncryptDecrypt.encrypt(rawSessionString);
+				List<Long> featureIds = featureMasterRepository.getAllFeatureIdsByJobRoleIds(employee.getJobRoleId());
+				String subFeatureIds = featureIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+
+				UserSession newSession = new UserSession();
+				newSession.setEmpId(employee.getEmpId());
+				newSession.setLoginTime(now);
+				newSession.setLastCheckTime(now);
+				newSession.setSessionKey(encSessionString);
+				newSession.setPoToken(requestDto.getPoToken());
+				newSession.setFetaureIds(subFeatureIds);
+				userSessionRepository.save(newSession);
+				sessionKey = encSessionString;
+				action = "LOGIN_NEW_SESSION";
+			}
+
+			String deepLink = requestDto.getDeepLink() == null || requestDto.getDeepLink().trim().isEmpty() ? "/home"
+					: requestDto.getDeepLink().trim();
+			savePoSessionAccessLog(employee.getEmpId(), deepLink, action, sessionKey, now);
+
+			ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId(), employee.getEmpId());
+			EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employee.getEmail());
+			AppreciationEventDTO currentEventDto = appreciationService.getAppreciationEventInfo();
+
+			currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
+			currentEmployeeDto.setCompOffLockDays(compOffLockDays);
+			currentEmployeeDto.setLeaveBackdatedLockDays(leaveBackdatedLockDays);
+			currentEmployeeDto.setLeaveFuturedatedLockDays(leaveFutureLockDays);
+			currentEmployeeDto.setRevokeReporteeLeaveValidity(revokeReporteeLeaveValidity);
+
+			LogDTO logInfo = userLogInfoList.getOrDefault(employee.getEmpId(), new LogDTO());
+			logInfo.setEmpId(employee.getEmpId());
+			logInfo.setFeatureName("Login");
+			if (logInfo.getLoginTime() == null) {
+				logInfo.setLoginTime(df.format(new Date()));
+			}
+			userLogInfoList.put(employee.getEmpId(), logInfo);
+
+			Object[] object = new Object[9];
+			object[0] = currentEmployeeDto;
+			object[1] = serviceResponse.getServiceResponse();
+			object[2] = sessionKey;
+			object[3] = sessionTimeout;
+			object[4] = maxFileSize.replace("MB", "");
+			object[5] = maxRequestSize.replace("MB", "");
+			object[6] = logInfo;
+			object[7] = currentEventDto;
+			object[8] = deepLink;
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(object);
+			response.setServiceMessage("Po session login successful.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Unable to authenticate from Po session.");
+			response.setServiceError(e.getMessage());
+		}
+
+		return response;
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse logoutFromPoSession(PoSessionLogoutRequestDTO requestDto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (requestDto == null || requestDto.getEmpId() == null || requestDto.getPoToken() == null
+					|| requestDto.getPoToken().trim().isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid Po logout payload.");
+				return response;
+			}
+
+			UserSession userSession = userSessionRepository.findByEmpId(requestDto.getEmpId());
+			if (userSession == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Session already destroyed.");
+				return response;
+			}
+
+			if (userSession.getPoToken() == null || !userSession.getPoToken().equals(requestDto.getPoToken())) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Po token mismatch. Session not deleted.");
+				return response;
+			}
+
+			savePoSessionAccessLog(requestDto.getEmpId(), "/logout", "LOGOUT", userSession.getSessionKey(), LocalDateTime.now());
+			userSessionRepository.deleteById(userSession.getUserSessionId());
+			userLogInfoList.remove(requestDto.getEmpId());
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Po session logout successful.");
+			return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Unable to logout Po session.");
+			response.setServiceError(e.getMessage());
+			return response;
+		}
+	}
+
+	private void savePoSessionAccessLog(Long empId, String deepLink, String action, String sessionKey, LocalDateTime accessedAt) {
+		PoSessionAccessLog accessLog = new PoSessionAccessLog();
+		accessLog.setEmpId(empId);
+		accessLog.setDeepLink(deepLink);
+		accessLog.setAction(action);
+		accessLog.setSessionKey(sessionKey);
+		accessLog.setAccessedAt(accessedAt);
+		poSessionAccessLogRepository.save(accessLog);
+	}
+
 	public boolean checkUserToken(String token) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
