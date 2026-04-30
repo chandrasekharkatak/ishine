@@ -887,7 +887,13 @@
                 </a>
               </ng-container>
             </td>
-            <td>{{ employee.totalExperience }}</td>
+            <td>
+              <div class="exp-cell">
+                <span class="exp-pill" [title]="employee.totalExperience + ' years'">
+                  {{ employee.totalExperience | experienceDuration }}
+                </span>
+              </div>
+            </td>
             <td *ngIf="changeTable">
               <ng-container *ngIf="employee.primaryProjectName">
                 {{ (show === i) ? employee.primaryProjectName : (employee.primaryProjectName | slice: 0:20) }}
@@ -1331,7 +1337,13 @@
                 <td>{{employee.probationPeriod}}</td>
                 <td>{{employee.noticePeriod}}</td>
                 <td>{{employee.country}}</td>
-                <td>{{employee.totalExperience}}</td>
+                <td>
+                  <div class="exp-cell">
+                    <span class="exp-pill" [title]="employee.totalExperience + ' years'">
+                      {{ employee.totalExperience | experienceDuration }}
+                    </span>
+                  </div>
+                </td>
                 <td>{{employee.emergencyContactMobile}}</td>
                 <td>{{employee.emergencyContactPerson}}</td>
                 <td>{{employee.landline}}</td>

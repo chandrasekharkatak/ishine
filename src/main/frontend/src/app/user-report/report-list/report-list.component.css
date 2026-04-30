@@ -2133,6 +2133,29 @@ body.modal-open {
   overflow: hidden;
 }
 
+/* Experience badge + mini bar (Reports) */
+.exp-cell {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 64px;
+}
+
+.exp-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  color: #0d6efd;
+  background: rgba(13, 110, 253, 0.10);
+  border: 1px solid rgba(13, 110, 253, 0.25);
+}
+
 /* Custom query — column picker (compact card, two-column grid, clear actions) */
 .filter-modal.column-picker-modal {
   width: min(520px, calc(100% - 8px));
