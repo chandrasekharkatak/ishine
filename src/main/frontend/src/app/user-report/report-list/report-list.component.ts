@@ -863,6 +863,23 @@ dateRange: string; type: string; count: string;
     }, 0);
   }
 
+  private isTeamExpanded(pIndex: number, tIndex: number): boolean {
+    return this.expandedTeams?.has(`${pIndex}-${tIndex}`) || false;
+  }
+
+  getVisibleRowspanForTeam(team: any, pIndex: number, tIndex: number): number {
+    const len = team?.mappedEmployeeDetails?.length || 0;
+    if (len <= 1) return len || 1;
+    return this.isTeamExpanded(pIndex, tIndex) ? len : 1;
+  }
+
+  getVisibleRowspanForProject(project: any, pIndex: number): number {
+    if (!project?.teamDetails) return 0;
+    return project.teamDetails.reduce((acc: number, team: any, tIndex: number) => {
+      return acc + this.getVisibleRowspanForTeam(team, pIndex, tIndex);
+    }, 0);
+  }
+
   poProjectSync(template: TemplateRef<any>) {
     this.employeeService.getPoProjectSync().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -929,6 +946,43 @@ dateRange: string; type: string; count: string;
   employeeList: any[] = [];
   projectList: any[] = [];
   projectSummary: any = {};
+
+  private computeFresherExperienceFromDoj(dateOfJoining: any): number {
+    if (!dateOfJoining) return 0;
+    const doj = moment(dateOfJoining, [moment.ISO_8601, 'DD-MM-YYYY', 'YYYY-MM-DD', AppComponent.DATE_FORMAT], true);
+    if (!doj.isValid()) {
+      const fallback = moment(new Date(dateOfJoining));
+      if (!fallback.isValid()) return 0;
+      const years = moment().diff(fallback, 'days') / 365.25;
+      return Number(Math.max(0, years).toFixed(1));
+    }
+    const years = moment().diff(doj, 'days') / 365.25;
+    return Number(Math.max(0, years).toFixed(1));
+  }
+
+  private applyExperienceForReport(employee: any): void {
+    if (!employee) return;
+    const expType = (employee.experience || '').toString().toLowerCase();
+    const rawTotal = employee.totalExperience;
+    const totalNum = rawTotal === null || rawTotal === undefined || rawTotal === '' ? NaN : Number(rawTotal);
+
+    // Rule:
+    // - Fresher: always show tenure since DOJ
+    // - Otherwise: if totalExperience is missing/0, show tenure since DOJ (prevents "0" UX)
+    // - Else: keep stored totalExperience
+    if (expType === 'fresher') {
+      employee.totalExperience = this.computeFresherExperienceFromDoj(employee.dateOfJoining);
+      return;
+    }
+
+    if (!Number.isFinite(totalNum) || totalNum === 0) {
+      const tenure = this.computeFresherExperienceFromDoj(employee.dateOfJoining);
+      if (tenure > 0) {
+        employee.totalExperience = tenure;
+      }
+    }
+  }
+
   getEmployeeReportData() {
     this.page = 1;
     this.employeeList = [];
@@ -945,6 +999,7 @@ dateRange: string; type: string; count: string;
         this.employeeList.forEach(employee => {
           employee.emp360EmpId = employee.empId;
           employee.emp360ManagerId = employee.managerId;
+          this.applyExperienceForReport(employee);
 
         });
         this.projectList = res.getProjectToEmployeeReportForProjectDTO || [];
@@ -953,6 +1008,7 @@ dateRange: string; type: string; count: string;
             team.mappedEmployeeDetails.forEach(employee => {
               employee.emp360EmpId = employee.empId;
               employee.emp360ManagerId = project.projectManagerId;
+              this.applyExperienceForReport(employee);
             });
           });
         });
@@ -1955,6 +2011,7 @@ onSearchClientProject(searchData: any) {
             employee.emp360Manager = employee.managerId;
             employee.emp360CreatedBy = employee.createdBy;
             employee.emp360UpdatedBy = employee.updatedBy;
+            this.applyExperienceForReport(employee);
           });
         } else {
           this.openAlertMod(template, response.serviceResponse)

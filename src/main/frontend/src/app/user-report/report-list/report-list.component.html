@@ -983,10 +983,10 @@
           <ng-container *ngFor="let project of filteredProjectList | projectColumnFilter: filters | paginate: { itemsPerPage: 5, currentPage: page }; let pIndex = index">
             <ng-container *ngFor="let team of project.teamDetails; let tIndex = index">
               <ng-container *ngFor="let emp of team.mappedEmployeeDetails; let eIndex = index">
-                <tr>
+                <tr *ngIf="eIndex === 0 || expandedTeams.has(pIndex + '-' + tIndex)">
                   <td class="sticky-col" [class.no-border]="!(team.mappedEmployeeDetails.length > 1 && eIndex === 0)">
                     <ng-container *ngIf="team.mappedEmployeeDetails.length > 1 && eIndex === 0; else emptyCell">
-                      <button (click)="extendEmployees(pIndex,eIndex)" [title]="expandedTeams.has(pIndex + '-' + tIndex) ? 'Collapse' : 'Expand'" class="btn-expand">
+                      <button (click)="extendEmployees(pIndex,tIndex)" [title]="expandedTeams.has(pIndex + '-' + tIndex) ? 'Collapse' : 'Expand'" class="btn-expand">
                         <i class="fas" 
                         [class.fa-chevron-down]="!expandedTeams.has(pIndex + '-' + tIndex)"
                         [class.fa-chevron-up]="expandedTeams.has(pIndex + '-' + tIndex)"></i>
@@ -997,13 +997,13 @@
                     </ng-template>
                   </td>
                   
-                  <td  *ngIf="eIndex === 0 || expandedTeams.has(pIndex + '-' + tIndex)" [class.no-border]="eIndex != 0">{{ getHierarchicalSrNo(pIndex, tIndex, eIndex) }}</td>
+                  <td [class.no-border]="eIndex != 0">{{ getHierarchicalSrNo(pIndex, tIndex, eIndex) }}</td>
 
 
-                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getVisibleRowspanForProject(project, pIndex)">
                     {{ project.projectName }}
                   </td>
-                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getVisibleRowspanForProject(project, pIndex)">
                     <ng-container *ngIf="userMapping.reports_employee_360 && emp.emp360ManagerId; else plainManager">
                       <span id="clickablefor360" [navigateToEmployee360]="emp.emp360ManagerId" style="cursor: pointer;"
                         title="Click to view Manager 360">
@@ -1012,45 +1012,45 @@
                     </ng-container>
                     <ng-template #plainManager>{{ project.projectManager }}</ng-template>
                   </td>
-                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getVisibleRowspanForProject(project, pIndex)">
                     {{ project.apmosysRM || '—' }}
                   </td>
-                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getVisibleRowspanForProject(project, pIndex)">
                     {{ project.clientRM || '—' }}
                   </td>
-                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getVisibleRowspanForProject(project, pIndex)">
                     {{ project.poStartDate }}
                   </td>
-                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getVisibleRowspanForProject(project, pIndex)">
                     {{ project.poEndDate }}
                   </td>
-                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getVisibleRowspanForProject(project, pIndex)">
                     {{ project.poNo }}
                   </td>
-                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getVisibleRowspanForProject(project, pIndex)">
                     {{ project.poProjectType }}
                   </td>
 
 
-                  <td *ngIf="eIndex === 0" [attr.rowspan]="team.mappedEmployeeDetails.length">
+                  <td *ngIf="eIndex === 0" [attr.rowspan]="getVisibleRowspanForTeam(team, pIndex, tIndex)">
                     {{ team.teamName }}
                   </td>
 
 
-                  <td *ngIf="(userMapping.reports_employee_360 && emp.emp360EmpId) && (eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex))" id="clickablefor360"
+                  <td *ngIf="userMapping.reports_employee_360 && emp.emp360EmpId" id="clickablefor360"
                     [navigateToEmployee360]="emp.emp360EmpId" style="cursor: pointer;"
                     title="Click to view Employee 360">
                     {{ emp.employeeName }}
                   </td>
                   
-                  <td *ngIf="!userMapping.reports_employee_360 && (eIndex ===0 || expandedTeams.has(pIndex + '-' + tIndex))">{{ emp.employeeName }}</td>
-                  <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.jobRole }}</td>
-                  <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.deptName }}</td>
-                  <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.mobileNo }}</td>
-                  <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.email }}</td>
-                  <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.billable }}</td>
-                  <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.billableType }}</td>
-                  <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.effectiveStartDate }}</td>
+                  <td *ngIf="!userMapping.reports_employee_360">{{ emp.employeeName }}</td>
+                  <td>{{ emp.jobRole }}</td>
+                  <td>{{ emp.deptName }}</td>
+                  <td>{{ emp.mobileNo }}</td>
+                  <td>{{ emp.email }}</td>
+                  <td>{{ emp.billable }}</td>
+                  <td>{{ emp.billableType }}</td>
+                  <td>{{ emp.effectiveStartDate }}</td>
                 
                 </tr>
 
