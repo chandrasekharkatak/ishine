@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -232,5 +233,16 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	
 	@Query(value = "SELECT d FROM Department d ")
 	public List<Department> getAllDeptsList();
+	
+	@Query("SELECT new com.apmosys.employeeportal.dto.DepartmentDTO(d.deptId, d.name) FROM JobRole jr " +
+		       "JOIN Department d ON jr.deptId = d.deptId " +
+		       "WHERE jr.jobRoleId = :jobRoleId")
+	DepartmentDTO findDepartmentNameByJobRoleId(Long jobRoleId);
+	
+	@Query("SELECT DISTINCT e.email " +
+		       "FROM Department d " +
+		       "JOIN Employee e ON d.hodId = e.empId " +
+		       "WHERE d.deptId IN :deptIds")
+		List<String> findHodEmailsByDeptIds(@Param("deptIds") Set<Long> deptIds);
 
 }

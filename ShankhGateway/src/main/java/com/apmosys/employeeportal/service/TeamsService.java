@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.ActivityTemplateDTO;
 import com.apmosys.employeeportal.dto.BillableInfo;
 import com.apmosys.employeeportal.dto.DeactivationCandidateDTO;
+import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeBillableUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeImpactDTO;
@@ -5678,102 +5680,267 @@ public class TeamsService {
 	}
 	
 	
-public List<AutoMigrationDTO> migrateResourcesAfterRenewalDTO(Integer projectId, Long renewedPoId, Long renewedBy) {
-		
-		List<AutoMigrationDTO> result = new ArrayList<>();
-		ProjectPoDetails previousPo = projectPoDetailsRepository
-				.findByNextPOAndProjectIdAndActiveTrue(renewedPoId, projectId).orElse(null);
-		
-		Optional<ProjectPoDetails> currentPo = projectPoDetailsRepository.findByPoIdAndProjectIdAndActiveTrue(renewedPoId, projectId)	;	
-				
-		LocalDateTime previousPoEndDate = previousPo.getPoEndDate();
-		LocalDateTime currentPoStartDate = currentPo.get().getPoStartDate();		
-				
-		if (previousPo == null) {
-			return result;
-		}
-		
-		if (previousPo.getPoEndDate() != null &&
-	            previousPo.getPoEndDate().isAfter(LocalDateTime.now())) {
+//public List<AutoMigrationDTO> migrateResourcesAfterRenewalDTO(Integer projectId, Long renewedPoId, Long renewedBy) {
+//		
+//		List<AutoMigrationDTO> result = new ArrayList<>();
+//		ProjectPoDetails previousPo = projectPoDetailsRepository
+//				.findByNextPOAndProjectIdAndActiveTrue(renewedPoId, projectId).orElse(null);
+//		
+//		Optional<ProjectPoDetails> currentPo = projectPoDetailsRepository.findByPoIdAndProjectIdAndActiveTrue(renewedPoId, projectId)	;	
+//				
+//		LocalDateTime previousPoEndDate = previousPo.getPoEndDate();
+//		LocalDateTime currentPoStartDate = currentPo.get().getPoStartDate();		
+//				
+//		if (previousPo == null) {
+//			return result;
+//		}
+//		
+//		if (previousPo.getPoEndDate() != null &&
+//	            previousPo.getPoEndDate().isAfter(LocalDateTime.now())) {
+//
+//	        return result;
+//	    }
+//		
+//		Optional<Project> project = projectRepository.findById(projectId);
+//		String projectType = project.get().getPoProjectType();
+//		Long previousPoId = previousPo.getPoId();
+//		
+//		AutoMigrationDTO dto = new AutoMigrationDTO();
+//	    dto.setProjectName(project.get().getProjectName());
+//	    dto.setProjectType(projectType);
+//	    dto.setPreviousPoNumber(previousPo.getPoNo());
+//	    dto.setCurrentPoNumber(currentPo.get().getPoNo());
+//
+//	    List<EmployeeImpactDTO> migratedEmployees = new ArrayList<>();
+//
+//		if ("TNM".equalsIgnoreCase(projectType)) {
+//		
+//		List<Long> oldRoles = poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
+//		List<Long> newRoles = poRequirementMappingRepository.findRoleIdsByPoId(renewedPoId);
+//		Set<Long> carryForwardRoles = oldRoles.stream().filter(newRoles::contains).collect(Collectors.toSet());
+//		if (!carryForwardRoles.isEmpty()) {
+//			for (Long roleId : carryForwardRoles) {
+//				List<EmployeeTeamMap> employees = employeeTeamMapRepository.findActiveEmployeesForRole(previousPoId,
+//						roleId);
+//				for (EmployeeTeamMap oldRow : employees) {
+//					EmployeeTeamMap newRow = new EmployeeTeamMap();
+//					BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+//					newRow.setPoId(renewedPoId);
+//					newRow.setEndDate(null);
+//					newRow.setCreatedBy(renewedBy);
+////					newRow.setUpdatedBy(renewedBy);
+//					newRow.setUpdatedOn(LocalDateTime.now());
+//					newRow.setStartDate(currentPoStartDate);
+//					newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+//					employeeTeamMapRepository.save(newRow);
+//					oldRow.setActive(0L);
+//					oldRow.setEndDate(previousPoEndDate);
+//					oldRow.setUpdatedBy(renewedBy);
+//					oldRow.setUpdatedOn(LocalDateTime.now());
+//					employeeTeamMapRepository.save(oldRow);
+//					
+//					  migratedEmployees.add(buildEmployeeImpactDTO(
+//		                        oldRow, newRow, previousPo, currentPo, projectType));
+//				}
+//			}
+//		}
+//		}else if  ("Monitoring".equalsIgnoreCase(projectType)) {
+//			List<EmployeeTeamMap> employees =
+//	                employeeTeamMapRepository.findActiveEmployeesByPoId(previousPoId);
+//			 for (EmployeeTeamMap oldRow : employees) {
+//			  EmployeeTeamMap newRow = new EmployeeTeamMap();
+//	            BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+//
+//	            newRow.setPoId(renewedPoId);
+//	            newRow.setEndDate(null);
+//	            newRow.setCreatedBy(renewedBy);
+////	            newRow.setUpdatedBy(renewedBy);
+//	            newRow.setUpdatedOn(LocalDateTime.now());
+//	            newRow.setStartDate(currentPoStartDate);
+//	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+//	            employeeTeamMapRepository.save(newRow);
+//	            oldRow.setActive(0L);
+//	            oldRow.setEndDate(previousPoEndDate);
+//	            oldRow.setUpdatedBy(renewedBy);
+//	            oldRow.setUpdatedOn(LocalDateTime.now());
+//
+//	            employeeTeamMapRepository.save(oldRow);
+//	            migratedEmployees.add(buildEmployeeImpactDTO(
+//	                    oldRow, newRow, previousPo, currentPo, projectType));
+//		}
+//		}
+//		   if (!migratedEmployees.isEmpty()) {
+//		        dto.setEmployees(migratedEmployees);
+//		        result.add(dto);
+//		    }
+//
+//		    return result;
+//		
+//	}
+	
+	public List<AutoMigrationDTO> migrateResourcesAfterRenewalDTO(Integer projectId, Long renewedPoId, Long renewedBy) {
 
+	    List<AutoMigrationDTO> result = new ArrayList<>();
+	    ProjectPoDetails previousPo = projectPoDetailsRepository
+	            .findByNextPOAndProjectIdAndActiveTrue(renewedPoId, projectId).orElse(null);
+
+	    if (previousPo == null) {
 	        return result;
 	    }
-		
-		Optional<Project> project = projectRepository.findById(projectId);
-		String projectType = project.get().getPoProjectType();
-		Long previousPoId = previousPo.getPoId();
-		
-		AutoMigrationDTO dto = new AutoMigrationDTO();
+
+	    Optional<ProjectPoDetails> currentPoOpt = projectPoDetailsRepository
+	            .findByPoIdAndProjectIdAndActiveTrue(renewedPoId, projectId);
+
+	    if (currentPoOpt.isEmpty()) {
+	        return result;
+	    }
+
+	    if (previousPo.getPoEndDate() != null &&
+	            previousPo.getPoEndDate().isAfter(LocalDateTime.now())) {
+	        return result;
+	    }
+
+	    ProjectPoDetails currentPo = currentPoOpt.get();
+
+	    LocalDateTime previousPoEndDate  = previousPo.getPoEndDate();
+	    LocalDate    currentPoStartDate  = currentPo.getPoStartDate().toLocalDate();
+	    LocalDate    currentPoEndDate    = currentPo.getPoEndDate() != null
+	                                           ? currentPo.getPoEndDate().toLocalDate()
+	                                           : null;
+
+	    Optional<Project> project = projectRepository.findById(projectId);
+	    String projectType = project.get().getPoProjectType();
+	    Long   previousPoId = previousPo.getPoId();
+
+	    AutoMigrationDTO dto = new AutoMigrationDTO();
 	    dto.setProjectName(project.get().getProjectName());
 	    dto.setProjectType(projectType);
 	    dto.setPreviousPoNumber(previousPo.getPoNo());
-	    dto.setCurrentPoNumber(currentPo.get().getPoNo());
+	    dto.setCurrentPoNumber(currentPo.getPoNo());
 
 	    List<EmployeeImpactDTO> migratedEmployees = new ArrayList<>();
 
-		if ("TNM".equalsIgnoreCase(projectType)) {
-		
-		List<Long> oldRoles = poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
-		List<Long> newRoles = poRequirementMappingRepository.findRoleIdsByPoId(renewedPoId);
-		Set<Long> carryForwardRoles = oldRoles.stream().filter(newRoles::contains).collect(Collectors.toSet());
-		if (!carryForwardRoles.isEmpty()) {
-			for (Long roleId : carryForwardRoles) {
-				List<EmployeeTeamMap> employees = employeeTeamMapRepository.findActiveEmployeesForRole(previousPoId,
-						roleId);
-				for (EmployeeTeamMap oldRow : employees) {
-					EmployeeTeamMap newRow = new EmployeeTeamMap();
-					BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
-					newRow.setPoId(renewedPoId);
-					newRow.setEndDate(null);
-					newRow.setCreatedBy(renewedBy);
-//					newRow.setUpdatedBy(renewedBy);
-					newRow.setUpdatedOn(LocalDateTime.now());
-					newRow.setStartDate(currentPoStartDate);
-					newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
-					employeeTeamMapRepository.save(newRow);
-					oldRow.setActive(0L);
-					oldRow.setEndDate(previousPoEndDate);
-					oldRow.setUpdatedBy(renewedBy);
-					oldRow.setUpdatedOn(LocalDateTime.now());
-					employeeTeamMapRepository.save(oldRow);
-					
-					  migratedEmployees.add(buildEmployeeImpactDTO(
-		                        oldRow, newRow, previousPo, currentPo, projectType));
-				}
-			}
-		}
-		}else if  ("Monitoring".equalsIgnoreCase(projectType)) {
-			List<EmployeeTeamMap> employees =
+	    if ("TNM".equalsIgnoreCase(projectType)) {
+
+	        List<Long> oldRoles = poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
+	        List<Long> newRoles = poRequirementMappingRepository.findRoleIdsByPoId(renewedPoId);
+	        Set<Long> carryForwardRoles = oldRoles.stream()
+	                .filter(newRoles::contains)
+	                .collect(Collectors.toSet());
+
+	        if (!carryForwardRoles.isEmpty()) {
+	            for (Long roleId : carryForwardRoles) {
+	                List<EmployeeTeamMap> employees =
+	                        employeeTeamMapRepository.findActiveEmployeesForRole(previousPoId, roleId);
+
+	                for (EmployeeTeamMap oldRow : employees) {
+	                    migratedEmployees.add(
+	                        migrateEmployee(oldRow, renewedPoId, renewedBy,
+	                                        previousPoEndDate, currentPoStartDate, currentPoEndDate,
+	                                        previousPo, currentPoOpt, projectType)
+	                    );
+	                }
+	            }
+	        }
+
+	    } else if ("Monitoring".equalsIgnoreCase(projectType)) {
+
+	        List<EmployeeTeamMap> employees =
 	                employeeTeamMapRepository.findActiveEmployeesByPoId(previousPoId);
-			 for (EmployeeTeamMap oldRow : employees) {
-			  EmployeeTeamMap newRow = new EmployeeTeamMap();
-	            BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
 
-	            newRow.setPoId(renewedPoId);
-	            newRow.setEndDate(null);
-	            newRow.setCreatedBy(renewedBy);
-//	            newRow.setUpdatedBy(renewedBy);
-	            newRow.setUpdatedOn(LocalDateTime.now());
-	            newRow.setStartDate(currentPoStartDate);
-	            newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
-	            employeeTeamMapRepository.save(newRow);
-	            oldRow.setActive(0L);
-	            oldRow.setEndDate(previousPoEndDate);
-	            oldRow.setUpdatedBy(renewedBy);
-	            oldRow.setUpdatedOn(LocalDateTime.now());
+	        for (EmployeeTeamMap oldRow : employees) {
+	            migratedEmployees.add(
+	                migrateEmployee(oldRow, renewedPoId, renewedBy,
+	                                previousPoEndDate, currentPoStartDate, currentPoEndDate,
+	                                previousPo, currentPoOpt, projectType)
+	            );
+	        }
+	    }
+	    
+	    Set<Long> migratedDeptIds = migratedEmployees.stream()
+	            .filter(e -> e.getDeptId() != null)
+	            .map(EmployeeImpactDTO::getDeptId)
+	            .collect(Collectors.toSet());
 
-	            employeeTeamMapRepository.save(oldRow);
-	            migratedEmployees.add(buildEmployeeImpactDTO(
-	                    oldRow, newRow, previousPo, currentPo, projectType));
-		}
-		}
-		   if (!migratedEmployees.isEmpty()) {
-		        dto.setEmployees(migratedEmployees);
-		        result.add(dto);
-		    }
 
-		    return result;
-		
+	    if (!migratedEmployees.isEmpty()) {
+	        dto.setEmployees(migratedEmployees);
+	        dto.setMigratedDeptIds(migratedDeptIds);	        
+	        result.add(dto);
+	    }
+
+	    return result;
+	}
+
+
+	/**
+	 * Decides HOW to migrate a single EmployeeTeamMap row:
+	 *
+	 *  Case A – active=0 AND startDate is in the future (future-dated, HOD-approved):
+	 *           Just flip poId. No new row needed.
+	 *
+	 *  Case B – active=1 or active=2 AND employee startDate (date-only) falls within
+	 *           [renewedPo.startDate, renewedPo.endDate]:
+	 *           Just flip poId. No new row needed.
+	 *
+	 *  Case C – everything else (existing behaviour):
+	 *           Create new row for renewedPo, deactivate old row.
+	 */
+	private EmployeeImpactDTO migrateEmployee(
+	        EmployeeTeamMap oldRow,
+	        Long renewedPoId,
+	        Long renewedBy,
+	        LocalDateTime previousPoEndDate,
+	        LocalDate currentPoStartDate,
+	        LocalDate currentPoEndDate,          // may be null
+	        ProjectPoDetails previousPo,
+	        Optional<ProjectPoDetails> currentPo,
+	        String projectType) {
+
+	    LocalDate empStartDate = oldRow.getStartDate() != null
+	            ? oldRow.getStartDate().toLocalDate()
+	            : null;
+
+	    boolean isFutureDatedApproved = oldRow.getActive() == 0L
+	            && empStartDate != null
+	            && empStartDate.isAfter(LocalDate.now());
+
+	    boolean isWithinRenewedPoRange = (oldRow.getActive() == 1L || oldRow.getActive() == 2L)
+	            && empStartDate != null
+	            && currentPoEndDate != null
+	            && !empStartDate.isBefore(currentPoStartDate)   // empStartDate >= renewedPo.startDate
+	            && !empStartDate.isAfter(currentPoEndDate);      // empStartDate <= renewedPo.endDate
+
+	    if (isFutureDatedApproved || isWithinRenewedPoRange) {
+	        // ── Case A & B: in-place poId update only ──────────────────────────
+	        oldRow.setPoId(renewedPoId);
+	        oldRow.setUpdatedBy(renewedBy);
+	        oldRow.setUpdatedOn(LocalDateTime.now());
+	        employeeTeamMapRepository.save(oldRow);
+
+	        // Build impact DTO representing an in-place move (no "new row")
+	        return buildEmployeeImpactDTO(oldRow, null, previousPo, currentPo, projectType);
+
+	    } else {
+	        // ── Case C: existing behaviour ─────────────────────────────────────
+	        EmployeeTeamMap newRow = new EmployeeTeamMap();
+	        BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+	        newRow.setPoId(renewedPoId);
+	        newRow.setEndDate(null);
+	        newRow.setCreatedBy(renewedBy);
+	        newRow.setUpdatedOn(LocalDateTime.now());
+	        newRow.setStartDate(LocalDateTime.of(currentPoStartDate, LocalTime.MIDNIGHT));
+	        newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+	        employeeTeamMapRepository.save(newRow);
+
+	        oldRow.setActive(0L);
+	        oldRow.setEndDate(previousPoEndDate);
+	        oldRow.setUpdatedBy(renewedBy);
+	        oldRow.setUpdatedOn(LocalDateTime.now());
+	        employeeTeamMapRepository.save(oldRow);
+
+	        return buildEmployeeImpactDTO(oldRow, newRow, previousPo, currentPo, projectType);
+	    }
 	}
 	
 	private EmployeeImpactDTO buildEmployeeImpactDTO(
@@ -5806,6 +5973,15 @@ public List<AutoMigrationDTO> migrateResourcesAfterRenewalDTO(Integer projectId,
 
 	    emp.setPreviousPoNumber(previousPo.getPoNo());
 	    emp.setCurrentPoNumber(currentPo.get().getPoNo());
+	    if (empEntity.getJobRoleId() != null) {
+	    	DepartmentDTO dept = departmentRepository
+	                .findDepartmentNameByJobRoleId(empEntity.getJobRoleId());
+	    	
+	    	 if (dept != null) {
+	    	        emp.setDeptId(dept.getDeptId());
+	    	        emp.setDepartmentName(dept.getName());
+	    	    }     
+	    }
 
 	    if ("TNM".equalsIgnoreCase(projectType)) {
 	        emp.setReason("Auto onboarded due to PO renewal and role continuity (TNM)");

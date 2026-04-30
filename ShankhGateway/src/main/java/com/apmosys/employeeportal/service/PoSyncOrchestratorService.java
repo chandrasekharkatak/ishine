@@ -234,15 +234,21 @@ public class PoSyncOrchestratorService {
 					
 					requirementService.syncRequirementsRTS(po.getPoId(), poDto.getResourceRequirementList(),poDto.getUpdatedByEmpId());
 					
+//					List<AutoMigrationDTO> autoMigrated =
+//					        teamsService.migrateFromPreviousPOOnUpdate(
+//					                project.getProjectId(),
+//					                po.getPoId(),
+//					                poDto.getUpdatedByEmpId()
+//					        );
 					List<AutoMigrationDTO> autoMigrated =
-					        teamsService.migrateFromPreviousPOOnUpdate(
+					        teamsService.migrateResourcesAfterRenewalDTO(
 					                project.getProjectId(),
 					                po.getPoId(),
 					                poDto.getUpdatedByEmpId()
 					        );
 					
 					if (!changes.isEmpty() || !autoMigrated.isEmpty()) {
-						requirementService.sendRequirementChangeMail(po.getPoId(), changes , autoMigrated);
+						requirementService.sendRequirementChangeMail(po.getPoId(), changes , autoMigrated,project.getProjectId());
 				    }
 				}
 				
@@ -421,7 +427,7 @@ public class PoSyncOrchestratorService {
 		        );
 
 		if (!autoMigrated.isEmpty()) {
-			cronJobService.sendAutoMigrationMail(autoMigrated);
+			cronJobService.sendAutoMigrationMail(autoMigrated, project.getProjectId());
 		}
 
 		projectService.recalculateProjectDates(project.getProjectId(), true);

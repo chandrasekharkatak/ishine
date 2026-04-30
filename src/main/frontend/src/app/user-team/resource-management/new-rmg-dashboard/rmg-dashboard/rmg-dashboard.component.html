@@ -288,20 +288,6 @@
                             </div>
                         </div>
 
-                        <!-- TNM Expired -->
-                        <div class="col-12">
-                            <div class="status-card border rounded p-3 position-relative"
-                                [ngClass]="{ 'rmg-card-selected': projectStatus === 'TOTAL_EXPIRED_TNM' }">
-                                <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
-                                    [iconBgColor]="'#2f467f'" [content]="getTnmExpiredTooltip()" [size]="16">
-                                </app-info-tooltip>
-                                <div class="d-flex align-items-center justify-content-between mb-1">
-                                    <p class="kpi-label text-muted text-uppercase mb-0">TNM Expired</p>
-                                </div>
-                                <div id="TOTAL_EXPIRED_TNM_Chart" style="height: 180px;"></div>
-                                <p class="xx-small text-muted mt-1 mb-0">Darker = older = higher priority</p>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -358,10 +344,24 @@
             </div>
 
 
-            <!-- Fixed Cost / No Timesheet / Completed -->
-            <div class="row">
+            <!-- TNM Expired / Fixed Cost / No Timesheet / Completed -->
+            <div class="row" >
+                <!-- TNM Expired -->
+                <div class="col-3 mb-2 pr-1">
+                            <div class="status-card border rounded p-3 position-relative"
+                                [ngClass]="{ 'rmg-card-selected': projectStatus === 'TOTAL_EXPIRED_TNM' }">
+                                <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                                    [iconBgColor]="'#2f467f'" [content]="getTnmExpiredTooltip()" [size]="16">
+                                </app-info-tooltip>
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <p class="kpi-label text-muted text-uppercase mb-0">TNM Expired</p>
+                                </div>
+                                <div id="TOTAL_EXPIRED_TNM_Chart" style="height: 180px;"></div>
+                                <p class="xx-small text-muted mt-1 mb-0">Darker = older = higher priority</p>
+                            </div>
+                        </div>
                 <!-- Fixed Cost -->
-                <div class="col-4 mb-2 pr-1">
+                <div class="col-3 mb-2 pr-1 pl-1">
                     <div class="status-card border rounded p-3 position-relative"
                         [ngClass]="{ 'rmg-card-selected': projectStatus === 'TOTAL_FC' }">
                         <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false" [iconBgColor]="'#1B294B'"
@@ -376,7 +376,7 @@
                 </div>
 
                 <!-- No Timesheet -->
-                <div class="col-4 mb-2 pr-1 pl-1">
+                <div class="col-3 mb-2 pr-1 pl-1">
                     <div class="status-card border rounded p-3"
                         [ngClass]="{ 'rmg-card-selected': projectStatus === 'TIMESHEET_NON_COMPLIANCE' }">
                         <div class="card-body p-2">
@@ -387,7 +387,7 @@
                     </div>
                 </div>
                 <!-- Completed Projects -->
-                <div class="col-4 mb-2 pl-1">
+                <div class="col-3 mb-2 pl-1">
                     <div class="status-card border rounded pr-3 pl-3 pt-3">
                         <div class="card-body p-1">
                             <p class="kpi-label text-muted text-uppercase mb-1">Completed Projects</p>

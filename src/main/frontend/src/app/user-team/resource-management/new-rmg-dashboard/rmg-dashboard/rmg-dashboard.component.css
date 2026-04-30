@@ -31,6 +31,9 @@
 
 .status-card {
   position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Selected card highlight (subtle, professional). */
@@ -606,13 +609,13 @@
 
 .icon-btn.warning {
   background: #fff3cd;
-  color: #b58105; 
+  color: #b58105;
   border: 1px solid #ffe08a;
   box-shadow: 0 1px 4px rgba(255, 193, 7, 0.25);
 }
 
 .icon-btn.warning i {
-  font-size: 15px; 
+  font-size: 15px;
 }
 
 .icon-btn.warning:hover {

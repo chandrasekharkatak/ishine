@@ -1154,11 +1154,11 @@ public class TeamMembersService {
 				
 				// Case 2: End date is past or today → deactivate
 				if (endInPastOrToday) {
-					empTeamMapping.setActive(0L);
+					empTeamMapping.setActive(!empTeamMapping.getActive().equals(2L) ? 0L : 2L);
 				}
 				// Case 3: No end date provided → remove immediately
 				if (endDate == null) {
-					empTeamMapping.setActive(0L);
+					empTeamMapping.setActive(!empTeamMapping.getActive().equals(2L) ? 0L : 2L);
 					empTeamMapping.setEndDate(LocalDateTime.now());
 				}
 

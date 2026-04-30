@@ -17,6 +17,9 @@ public class EmployeeImpactDTO {
 	
 	private String employeeName;
     private String teamName;
+    private String departmentName;
+    private Long deptId;
+    
     
     private String roleName;
 

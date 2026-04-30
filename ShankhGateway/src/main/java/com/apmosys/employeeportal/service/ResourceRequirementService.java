@@ -30,6 +30,7 @@ import com.apmosys.employeeportal.model.PoRequirementMapping;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
 import com.apmosys.employeeportal.model.RoleDetails;
+import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.PoDepartmentMappingRepository;
 import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
@@ -59,6 +60,12 @@ public class ResourceRequirementService {
 	
 	@Autowired
 	ProjectRepository projectRepository;
+	
+	@Autowired
+	DepartmentRepository departmentRepository;
+	
+	@Autowired
+	CronJobService cronJobService;
 	
 	
 	@Autowired
@@ -638,23 +645,45 @@ Objects.equals(e.getLineItemEndDate(),
 
 	    public void sendRequirementChangeMail(
 	            Long poId,
-	            List<RequirementChangeDTO> changes, List<AutoMigrationDTO> autoMigrated) throws Exception {
+	            List<RequirementChangeDTO> changes, List<AutoMigrationDTO> autoMigrated,Integer projectId) throws Exception {
 	    	 ProjectPoDetails po = projectPoDetailsRepository.findByPoId(poId);
+	    	
+	    	 String subject = "PO Resource Requirement Update - PO NO: " + po.getPoNo();
+	    	   String body = buildHtmlBody(poId, changes ,autoMigrated);
+	        mailService.sendMailWithCC("priyadarshini.singh@apmosys.com", "prarthana.lenka@apmosys.com", subject, body);
+	        
+	        Set<String> toAddresses = new HashSet<>();
 
-	        List<String> hodEmails =
-	                poDepartmentMappingRepository.findHodEmailsByPoId(poId);
+		    // HODs from migrated departments
+	        if (autoMigrated != null && !autoMigrated.isEmpty()) {
+	            AutoMigrationDTO dto = autoMigrated.get(0);
 
-	        if (hodEmails.isEmpty()) return;
+	            if (dto.getMigratedDeptIds() != null && !dto.getMigratedDeptIds().isEmpty()) {
+	                List<String> hodEmails = departmentRepository
+	                        .findHodEmailsByDeptIds(dto.getMigratedDeptIds());
+	                if (hodEmails != null) toAddresses.addAll(hodEmails);
+	            }
+	        }
 
-	        String to = String.join(",", hodEmails);
-	        String cc = "prarthana.lenka@apmosys.com";
+		    // Managers + overheads
+		    Set<String> stakeholderEmails = cronJobService.getProjectStakeholderEmails(projectId);
+		    toAddresses.addAll(stakeholderEmails);
 
-	        String subject = "PO Resource Requirement Update - PO NO: " + po.getPoNo();
+		       Set<String> ccAddresses = new HashSet<>();
+		    ccAddresses.add("prarthana.lenka@apmosys.com");
 
-	        String body = buildHtmlBody(poId, changes ,autoMigrated);
-
-	        mailService.sendMailWithCC("priyadarshini.singh@apmosys.com", cc, subject, body);
-	    }
+		    
+		    try {
+        mailService.sendMailWithCC("prarthana.lenka@apmosys.com","priyadarshini.singh@apmosys.com",subject, body);
+//		    	String toList = String.join(",", toAddresses);
+//		        String ccList = String.join(",", ccAddresses);
+//		        mailService.sendMailWithCC(toList, ccList, subject, body);
+		    }  catch (Exception e) {
+                e.printStackTrace();
+              
+		    }
+            
+		}
 
 	    private String buildHtmlBody(
 	            Long poId,
@@ -772,50 +801,69 @@ Objects.equals(e.getLineItemEndDate(),
 	        
 	        if (autoMigrated != null && !autoMigrated.isEmpty()) {
 
-	            sb.append("<div class='section-title'>Automatic Resource Onboarding</div>");
+	            sb.append("<div class='section-title'>Auto Onboarded Resources</div>");
 
 	            sb.append("<div style='margin-bottom:15px; font-size:13px; color:#6b4c7a;'>")
-	              .append("Resources have been automatically onboarded as part of PO update because matching roles were found between an expired previous PO and the current PO.")
+	              .append("The following employees were automatically onboarded as part of PO update, ")
+	              .append("since they were still active in the previous PO.")
 	              .append("</div>");
 
 	            for (AutoMigrationDTO migration : autoMigrated) {
 
-	                sb.append("<div class='change-card'>")
-
-	               
-	                  .append("<div style='margin-bottom:10px; font-size:13px;'>")
-	                  .append("<b>Previous PO:</b> ").append(migration.getPreviousPoNumber())
-	                  .append(" &nbsp;&nbsp; ➝ &nbsp;&nbsp; ")
-	                  .append("<b>Current PO:</b> ").append(migration.getCurrentPoNumber())
-	                  .append("</div>")
-
-	                  .append("<div class='card-header'>")
-	                  .append("<div class='role-name'>")
-	                  .append(migration.getRoleName())
-	                  .append("</div>")
-	                  .append("<span class='badge badge-new'>Auto Onboarded</span>")
-	                  .append("</div>");
-
-	                sb.append("<div class='employees-section'>")
-	                  .append("<div class='employees-title'>Onboarded Employees</div>")
-	                  .append("<div class='employees-list'>");
-
 	                for (EmployeeImpactDTO emp : migration.getEmployees()) {
 
-	                    sb.append("<div class='employee-item'>")
-	                      .append("<div class='employee-name'>")
+	                    sb.append("<div class='change-card'>");
+
+	                    // Employee Name
+	                    sb.append("<div class='employee-name' style='font-size:15px; font-weight:600;'>")
 	                      .append(emp.getEmployeeName())
-	                      .append("</div>")
-	                      .append("<div class='employee-team'>Team: ")
-	                      .append(emp.getTeamName())
-	                      .append("</div>")
-	                      .append("<div class='impact-reason'>")
-	                      .append("Automatically onboarded due to role continuity between expired previous PO and updated PO")
+	                      .append("</div>");
+
+	                    // Department
+	                    sb.append("<div class='detail-item'>")
+	                      .append("<div class='detail-label'>Department</div>")
+	                      .append("<div class='detail-value'>")
+	                      .append(emp.getDepartmentName() != null ? emp.getDepartmentName() : "-")
 	                      .append("</div>")
 	                      .append("</div>");
-	                }
 
-	                sb.append("</div></div></div>");
+	                    // Role (only for TNM)
+	                    if (emp.getRoleName() != null) {
+	                        sb.append("<div class='detail-item'>")
+	                          .append("<div class='detail-label'>Role</div>")
+	                          .append("<div class='detail-value'>")
+	                          .append(emp.getRoleName())
+	                          .append("</div>")
+	                          .append("</div>");
+	                    }
+
+	                    // PO Movement
+	                    sb.append("<div class='detail-item'>")
+	                      .append("<div class='detail-label'>PO Movement</div>")
+	                      .append("<div class='detail-value'>")
+	                      .append(emp.getPreviousPoNumber())
+	                      .append(" -> ")
+	                      .append(emp.getCurrentPoNumber())
+	                      .append("</div>")
+	                      .append("</div>");
+
+	                    // Team Movement
+	                    sb.append("<div class='detail-item'>")
+	                      .append("<div class='detail-label'>Team Movement</div>")
+	                      .append("<div class='detail-value'>")
+	                      .append(emp.getPreviousTeamName())
+	                      .append(" -> ")
+	                      .append(emp.getNewTeamName())
+	                      .append("</div>")
+	                      .append("</div>");
+
+	                    // Reason
+	                    sb.append("<div class='impact-reason'>")
+	                      .append(emp.getReason())
+	                      .append("</div>");
+
+	                    sb.append("</div>");
+	                }
 	            }
 	        }
 
@@ -824,7 +872,7 @@ Objects.equals(e.getLineItemEndDate(),
 	        // Footer
 	        sb.append("<div class='footer'>")
 	                .append("<p><strong>Note:</strong> This is an automated notification. ")
-	                .append("Please contact the PO Manager for further details or clarifications.</p>")
+	                .append("Please contact the RMG for further details or clarifications.</p>")
 	                .append("</div>");
 
 	        sb.append("</body>")
