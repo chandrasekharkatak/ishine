@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -17,7 +18,9 @@ import com.apmosys.employeeportal.dto.LMSDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.PoSessionLoginRequestDTO;
 import com.apmosys.employeeportal.dto.PoSessionLogoutRequestDTO;
+import com.apmosys.employeeportal.dto.PoVerifyDirectAccessRequestDTO;
 import com.apmosys.employeeportal.service.AuthenticationService;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
@@ -28,6 +31,9 @@ public class AuthenticationController {
 	  private String redirectionURL;
 	@Autowired
 	AuthenticationService authenticationService;
+	
+	@Autowired
+	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
 
 	LeaveDTO dto = new LeaveDTO();
 
@@ -91,13 +97,20 @@ public class AuthenticationController {
 		return response;
 	}
 
-	@RequestMapping(value = "/auth/po/session-login", method = RequestMethod.POST)
-	public ServiceResponse authenticateFromPoSession(@RequestBody PoSessionLoginRequestDTO requestDto) {
+	@PostMapping("/auth/po/session-login")
+	public ServiceResponse authenticateFromPoSession(@RequestBody PoSessionLoginRequestDTO requestDto, HttpServletRequest httpRequest) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return authenticationService.authenticateFromPoSession(requestDto);
 	}
 
-	@RequestMapping(value = "/auth/po/session-logout", method = RequestMethod.POST)
-	public ServiceResponse logoutFromPoSession(@RequestBody PoSessionLogoutRequestDTO requestDto) {
+	@PostMapping("/auth/po/verifyTokenOfPoPortalForDirectAccess")
+	public ServiceResponse verifyTokenOfPoPortalForDirectAccess(@RequestBody PoVerifyDirectAccessRequestDTO requestDto) {
+		return authenticationService.verifyTokenOfPoPortalForDirectAccess(requestDto);
+	}
+
+	@PostMapping("/auth/po/session-logout")
+	public ServiceResponse logoutFromPoSession(@RequestBody PoSessionLogoutRequestDTO requestDto, HttpServletRequest httpRequest) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return authenticationService.logoutFromPoSession(requestDto);
 	}
 	

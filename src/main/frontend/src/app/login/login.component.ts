@@ -330,18 +330,18 @@ this.user.otp = encryptedOtp;
   private handlePoSessionLogin(empId: number, poToken: string, deepLink: string): void {
     this.isError = false;
     this.errorMsg = '';
-    this.authenticationService.authenticateFromPoSession({ empId, poToken, deepLink }).pipe(first()).subscribe({
+    this.authenticationService.verifyPoPortalTokenForDirectAccess({ empId, poToken, deepLink }).pipe(first()).subscribe({
       next: async (response: any) => {
         if (response?.serviceStatus === "Success") {
           await this.completeAuthenticatedLogin(response.serviceResponse, false);
         } else {
           this.isError = true;
-          this.errorMsg = response?.serviceResponse || 'Unable to authenticate from Po session.';
+          this.errorMsg = response?.serviceResponse || 'Unable to verify Po portal access.';
         }
       },
       error: (err: any) => {
         this.isError = true;
-        this.errorMsg = err?.error?.serviceResponse || 'Unable to authenticate from Po session.';
+        this.errorMsg = err?.error?.serviceResponse || 'Unable to verify Po portal access.';
       }
     });
   }
