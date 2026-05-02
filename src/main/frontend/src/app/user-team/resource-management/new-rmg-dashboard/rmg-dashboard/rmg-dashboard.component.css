@@ -94,9 +94,13 @@
     font-size: 10px;
 }
 
+.wrapper-section{
+     background: linear-gradient(135deg, rgba(25, 61, 138, 0.15), rgba(25, 61, 138, 0.05));
+}
+
 .glance-section {
-    background: linear-gradient(135deg, rgba(25, 61, 138, 0.15), rgba(25, 61, 138, 0.05));
-    background: linear-gradient(135deg, rgba(25, 61, 138, 0.15), rgba(25, 61, 138, 0.05));
+    background: url('/assets/Images/rmg_bg.gif') right no-repeat;
+    background-size: contain;
 }
 
 .text-accent {
@@ -728,4 +732,9 @@
   border: 1px solid #f1b0b7;
   border-radius: 999px;
   white-space: nowrap;
+}
+
+.rmg-gif {
+    height: 250px;
+    width: 500px;
 }

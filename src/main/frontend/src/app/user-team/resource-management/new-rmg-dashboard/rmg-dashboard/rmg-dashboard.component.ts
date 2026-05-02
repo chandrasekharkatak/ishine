@@ -240,13 +240,13 @@ export class RmgDashboardComponent implements OnInit {
   ];
 
   insights = [
-    { key: 'PENDING_FOR_APPROVAL', value: null, text: ' project(s) stuck in Pending Approval', subValue: null, subText: 'Approval bottleneck detected', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.projectLifeCycleStages },
-    // { key: 'UNDERBOARDED', value: null, text: ' TNM project(s) Underboarded', subValue: null, subText: null, stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 9, criticalThreshold: 30, valueList: this.resourceCards },
-    // { key: 'OVERBOARDED', value: null, text: ' TNM project(s) Overboarded', subValue: null, subText: 'Wrong roles or excess member', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.resourceCards },
-    // { key: 'allExpiredTNMProjectsCount', value: null, text: ' TNM project(s) Expired since 6+ months', subValue: null, subText: '{projectCount} project(s) expired {bucketName} — highest priority', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.tnmExpiredBars },
-    // { key: 'HIGHEST_EXPIRED_TNM_BUCKET', value: null, text: ' Highest TNM expiry: {projectCount} projects in {bucketName} bucket', subValue: null, subText: 'Largest concentration of expiring projects', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 0, valueList: this.tnmExpiredBars },
-    { key: 'defaulter', value: null, text: ' fixed cost defaulters', subValue: null, subText: '{projectCount} on time out of {totalProjectCount} active', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 30, criticalThreshold: 50, valueList: this.fixedCostItems },
-    { key: 'TIMESHEET_NON_COMPLIANCE', value: null, text: ' project(s) with no timesheet filled', subValue: null, subText: '', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 30, criticalThreshold: 50, valueList: this.zeroTimesheetBars },
+    { key: 'PENDING_FOR_APPROVAL', value: null, text: ' project(s) stuck in Pending Approval', subValue: null, subText: 'Approve or reject the team allocation to enable timesheet entry or initiate new resource allocation.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.projectLifeCycleStages },
+    { key: 'UNDERBOARDED', value: null, text: ' TNM project(s) Underboarded', subValue: null, subText: 'Add required resources to meet the planned team capacity.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 9, criticalThreshold: 30, valueList: this.resourceCards },
+    { key: 'OVERBOARDED', value: null, text: ' TNM project(s) Overboarded', subValue: null, subText: 'Remove excess resources, deallocate from expired projects, or review and resolve rejected additional resource requests.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.resourceCards },
+    { key: 'allExpiredTNMProjectsCount', value: null, text: ' TNM project(s) Expired since 6+ months', subValue: null, subText: 'Renew the project or mark it as complete, and deallocate remaining resources.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.tnmExpiredBars },
+    { key: 'HIGHEST_EXPIRED_TNM_BUCKET', value: null, text: ' Highest TNM expiry: {projectCount} projects in {bucketName} bucket', subValue: null, subText: 'Largest concentration of expiring projects', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 0, valueList: this.tnmExpiredBars },
+    { key: 'defaulter', value: null, text: ' fixed cost defaulters', subValue: null, subText: 'Extend project milestones or mark the project as complete to resolve defaulter status.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 30, criticalThreshold: 50, valueList: this.fixedCostItems },
+    { key: 'TIMESHEET_NON_COMPLIANCE', value: null, text: ' project(s) with no timesheet filled', subValue: null, subText: 'Ensure timesheets are filled for inactive periods to maintain compliance and reporting accuracy. Or mark as complete the project as the project is complete. ', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 30, criticalThreshold: 50, valueList: this.zeroTimesheetBars },
     { key: 'COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE', value: null, text: ' completed project(s) have active teams', subValue: null, subText: 'Resources not yet released', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 30, criticalThreshold: 50, valueList: this.completedItems },
   ];
 
@@ -410,22 +410,22 @@ export class RmgDashboardComponent implements OnInit {
     {
       key: 'TOTAL', icon: 'bi-people', label: 'Active Employees In ApMoSys', value: null, desc: 'Full organization headcount', colorClass: 'text-info', columnConfig: [], defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#1B294B', tooltip: [
         'Total active employees in ApMoSys including all categories.'
-      ]
+      ], display: false
     },
     {
       key: 'MAPPED_TO_PROJECT', icon: 'bi-person-check', label: 'Assigned to Projects', value: null, desc: 'Mapped to ≥ 1 project', colorClass: 'text-success', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#64B497', tooltip: [
         'Employees currently assigned to one or more active projects.'
-      ]
+      ], display: true
     },
     {
       key: 'NOT_MAPPED_TO_ANY_PROJECT', icon: 'bi-person-x', label: 'Unassigned Employees', value: null, desc: 'No active project mapping', colorClass: 'text-warning', columnConfig: this.notMappedEmployeesColumConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#D68585', tooltip: [
         'Employees not assigned to any active project at present.'
-      ]
+      ], display: true
     },
     {
       key: 'FUTURE_START_DATE', icon: 'bi-calendar', label: 'Scheduled Employees', value: null, desc: 'Mapped to Project with Future Start Date', colorClass: 'text-accent', columnConfig: this.futureStartDateAssignedEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig, bgColor: '#799ED2', tooltip: [
         'Employees Mapped to Project with Future Start Date.'
-      ]
+      ], display: true
     },
   ];
 
