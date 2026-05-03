@@ -30,6 +30,7 @@ public class EmployeeOtherActiveProject {
 	private Long count;
 	private Long updatedBy;
 	private LocalDateTime startDate;
+	private Long etmId;
 
 	public EmployeeOtherActiveProject(Long empId, Integer projectId, String projectName, Long poId, Long teamId,
 			Long poResourceRequirementId, String poNo, String teamName, String employeeRole, String role,
@@ -46,8 +47,46 @@ public class EmployeeOtherActiveProject {
 		this.startDate = startDate;
 		this.resourceRequirement = getResourceRequirementString(role, department, experience, count);
 	}
-	
-	public EmployeeOtherActiveProject(Long empId, Integer projectId, String projectName, String projectType, Date projectStartDate, Long poId, Long teamId,
+
+	public EmployeeOtherActiveProject(Long empId, Integer projectId, String projectName, Long poId, Long teamId,
+			Long poResourceRequirementId, String poNo, String teamName, String employeeRole, String role,
+			String department, String experience, Long count, LocalDateTime startDate, Long etmId) {
+		this.empId = empId;
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.poId = poId;
+		this.teamId = teamId;
+		this.poResourceRequirementId = poResourceRequirementId;
+		this.poNo = poNo;
+		this.teamName = teamName;
+		this.employeeRole = employeeRole;
+		this.startDate = startDate;
+		this.resourceRequirement = getResourceRequirementString(role, department, experience, count);
+		this.etmId = etmId;
+	}
+
+	public EmployeeOtherActiveProject(Long empId, Integer projectId, String projectName, String projectType,
+			Date projectStartDate, Long poId, Long teamId,
+			Long poResourceRequirementId, String poNo, String teamName, String employeeRole, String role,
+			String department, String experience, Long count, LocalDateTime startDate, Long etmId) {
+		this.empId = empId;
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.projectType = projectType;
+		this.projectStartDate = projectStartDate;
+		this.poId = poId;
+		this.teamId = teamId;
+		this.poResourceRequirementId = poResourceRequirementId;
+		this.poNo = poNo;
+		this.teamName = teamName;
+		this.employeeRole = employeeRole;
+		this.startDate = startDate;
+		this.resourceRequirement = getResourceRequirementString(role, department, experience, count);
+		this.etmId = etmId;
+	}
+
+	public EmployeeOtherActiveProject(Long empId, Integer projectId, String projectName, String projectType,
+			Date projectStartDate, Long poId, Long teamId,
 			Long poResourceRequirementId, String poNo, String teamName, String employeeRole, String role,
 			String department, String experience, Long count, LocalDateTime startDate) {
 		this.empId = empId;

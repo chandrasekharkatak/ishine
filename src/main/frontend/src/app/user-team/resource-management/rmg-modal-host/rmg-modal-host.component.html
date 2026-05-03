@@ -61,6 +61,9 @@
         </div>
     </div>
     <div class="card-body">
+        <h6 class="text-danger mb-3" *ngIf="!isProjectOverlapping">
+            Please contact the RM to reject the timesheet so that the resource onboarding process can proceed.
+        </h6>
         <div class="table-container mt-2">
             <table class="custom-table">
                 <thead>
@@ -115,14 +118,21 @@
                                 </mat-icon>
                                 <mat-datepicker #overlappingEntriesEndDatepicker></mat-datepicker>
                             </div>
-                            <div *ngIf="normalizeDate(entries.employeeTeamEndDate) == normalizeDate(entries.employeeTeamStartDate)"
+                            <div
                                 class="d-flex align-items-center">
                                 <mat-checkbox class="remove-permanently" color="primary"
                                     [(ngModel)]="entries.removePermanently"></mat-checkbox>
                                 <small>Remove Permanently</small>&nbsp;
-                                <i class="fa fa-beat fa-info-circle info-icon-danger cursor-pointer"
-                                    title="This will permanently delete the entry from the table. This action cannot be undone.">
-                                </i>
+                                <span class="info-chip red-chip">
+                                    <span triggers="mouseenter:mouseleave" placement="bottom" container="body" popoverClass="info-popover"
+                                        [ngbPopover]="removePermanentlyAlertTpl">
+                                        <ng-template #removePermanentlyAlertTpl>
+                                            <ng-container *ngTemplateOutlet="removePermanentlyAlert">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa fa-beat fa-info-circle cursor-pointer"></i>
+                                    </span>
+                                </span>
                             </div>
                         </td>
                         <td *ngIf="!isProjectOverlapping" [title]="entries.timesheetFilledCount || 'NA'">
@@ -288,13 +298,20 @@
                 <mat-icon class="calendar-icon" (click)="employeeProjectEndDatePicker.open()" [class.disabled]="employeeProjectEndDateType === 'PO'">calendar_today</mat-icon>
                 <mat-datepicker #employeeProjectEndDatePicker></mat-datepicker>
             </div>
-            <div *ngIf="normalizeDate(employeeProjectEndDate) == normalizeDate(deleteEmployeeExistingProjectMappingObj.startDate)"
+            <div
                 class="d-flex align-items-center">
                 <mat-checkbox class="remove-permanently" color="primary" [(ngModel)]="deleteEmployeeExistingProjectMappingObj.removePermanently"></mat-checkbox>
                 <small>Remove Permanently</small>&nbsp;
-                <i class="fa fa-beat fa-info-circle info-icon-danger cursor-pointer"
-                    title="This will permanently delete the entry from the table. This action cannot be undone.">
-                </i>
+                <span class="info-chip red-chip">
+                    <span triggers="mouseenter:mouseleave" placement="right" container="body" popoverClass="info-popover"
+                        [ngbPopover]="removePermanentlyAlertTpl">
+                        <ng-template #removePermanentlyAlertTpl>
+                            <ng-container *ngTemplateOutlet="removePermanentlyAlert">
+                            </ng-container>
+                        </ng-template>
+                        <i class="fa fa-beat fa-info-circle cursor-pointer"></i>
+                    </span>
+                </span>
             </div>
         </div>
         <div class="row justify-content-center align-items-center">
@@ -335,5 +352,15 @@
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="closeModal('ALERT')">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #removePermanentlyAlert>
+    <div class="popover-info red-border">
+        <div class="popover-row">
+            <span>
+                Member will be <span class="highlight-text">permanently</span> removed from the team.
+            </span>
+        </div>
     </div>
 </ng-template>

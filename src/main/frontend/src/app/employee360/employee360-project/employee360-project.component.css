@@ -257,3 +257,31 @@
 .cursor-pointer {
     cursor: pointer;
 }
+
+
+.info-chip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.red-chip {
+background-color: #DC2626;
+color: white;
+}
+
+.red-border {
+    border-left: 4px solid #dc3545;
+}
+
+.highlight-text {
+  font-weight: bold;
+  font-style: italic;
+}
