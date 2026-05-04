@@ -30,6 +30,8 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
 import { PageEvent } from "@angular/material/paginator";
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
 class FilterData {
   title: any;
@@ -357,7 +359,9 @@ dateRange: string; type: string; count: string;
 
   async ngOnInit(): Promise<void> {
     this.hideMaternityLeaveEmps = true;
-
+    this.searchSubject.pipe(debounceTime(500),distinctUntilChanged()).subscribe(searchData=>{
+      this.onSearchForViewTimesheet(searchData);
+    });
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -1819,7 +1823,7 @@ onSearchClientProject(searchData: any) {
   };
 
     if (!queryObj) {
-      this.openAlertMod(this.alertModal, "Enter filter to featch view timesheet data");
+      this.openAlertMod(this.alertModal, "Enter filter to fetch view timesheet data");
 
     } else {
       this.timesheetService.customTimesheetApplicationReport(queryObj).pipe(first()).subscribe((response: any) => {
@@ -3428,6 +3432,11 @@ private mapFieldToBackendColumn(field: string): string {
 
   return mapping[field] || field; // fallback to same name if not mapped
 }
+private searchSubject = new Subject<any>;
+
+onSearchTimesheet(searchData : any){
+  this.searchSubject.next(searchData); 
+}
 
 onSearchForViewTimesheet(searchData: any) {
   this.filters = searchData;
@@ -3471,6 +3480,7 @@ onSearchForViewTimesheet(searchData: any) {
   }
 
   this.getCustomTimesheetApplicationsList(this.activeQueryList, this.alertTemplate);
+  this.filters= {};
 }
 private normalizeDate(value: string): string {
   if (!value) return value;
@@ -4779,7 +4789,16 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     this.getAllLeaveTimesheets(this.alert_message_timesheet_leave_report);
   }
 
-
+  toggleSearchForTimesheetReport(){
+     this.sortColumn = [];
+    this.sortColumnType = [];
+    this.sortDirection = '';
+    this.isSearchEnabled = !this.isSearchEnabled;
+    if (!this.isSearchEnabled) {
+      this.filters = {};
+      this.showTimesheetReportTable();
+    }
+  }
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {
