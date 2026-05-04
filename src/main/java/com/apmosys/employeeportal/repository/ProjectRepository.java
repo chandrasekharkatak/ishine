@@ -8687,18 +8687,17 @@ List<Object[]> getClientAndProjectDataList(
 		        @Param("from_Date") String fromDate,
 		        @Param("to_Date") String toDate,String employmentId,String name,String sortBy,String sortDirection,int offset,int pageSize);
 			
-		    @Query(value = "SELECT DISTINCT e.email\n"
-		    		+ "		            FROM Employee e\n"
-		    		+ "		            LEFT JOIN ProjectManagerMapping pmm \n"
-		    		+ "		                   ON e.empId = pmm.projectManagerId \n"
-		    		+ "		                   AND pmm.active = 1\n"
-		    		+ "		            LEFT JOIN ProjectOverheadMapping pom \n"
-		    		+ "		                   ON e.empId = pom.projectOverheadId \n"
-		    		+ "		                   AND pom.active = 1\n"
-		    		+ "		            WHERE pmm.projectId IN (:projectIds)\n"
-		    		+ "		               OR pom.projectId IN (:projectIds)")
-		    List<String> findManagerAndOverheadEmails(@Param("projectIds") List<Integer> projectIds);
-
+		    // @Query(value = "SELECT DISTINCT e.email\n"
+		    // 		+ "		            FROM Employee e\n"
+		    // 		+ "		            LEFT JOIN ProjectManagerMapping pmm \n"
+		    // 		+ "		                   ON e.empId = pmm.projectManagerId \n"
+		    // 		+ "		                   AND pmm.active = 1\n"
+		    // 		+ "		            LEFT JOIN ProjectOverheadMapping pom \n"
+		    // 		+ "		                   ON e.empId = pom.projectOverheadId \n"
+		    // 		+ "		                   AND pom.active = 1\n"
+		    // 		+ "		            WHERE pmm.projectId IN (:projectIds)\n"
+		    // 		+ "		               OR pom.projectId IN (:projectIds)")
+		    // List<String> findManagerAndOverheadEmails(@Param("projectIds") List<Integer> projectIds);
 
 			@Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(" +
 			"t.timesheetId, ptsn.id.projectId, a.teamId, t.empId, dtmn.dayType, t.date, " +
