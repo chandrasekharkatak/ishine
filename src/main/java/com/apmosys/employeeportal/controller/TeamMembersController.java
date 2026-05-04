@@ -105,8 +105,8 @@ public class TeamMembersController {
 	@GetMapping("/getEmployeeExistingProjectDetailsByEmpId")
 	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(@RequestParam Long empId,
 			@RequestParam Integer projectId,
-			@RequestParam(required = false, defaultValue = "false") boolean enforceSingleTeamPerProject) {
-		return teamMembersService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId, enforceSingleTeamPerProject);
+			@RequestParam(required = false, defaultValue = "false") boolean enforceSingleTeamPerProject, @RequestParam Long teamId) {
+		return teamMembersService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId, enforceSingleTeamPerProject, teamId);
 	}
 
 	// @Encrypted

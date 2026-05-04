@@ -1780,7 +1780,7 @@ export class RmgDashboardComponent implements OnInit {
     newRmgDashboardProjectRequest.projectFilter = null;
     let subKeyKeyMap = new Map<string, string>();
 
-    this.attentionRequiredProjectAlerts?.filter(i => i.key !== 'UNDERBOARDED')?.forEach(item => {
+    this.attentionRequiredProjectAlerts?.forEach(item => {
       const subKey = item?.subKey || item.key;
       subKeyKeyMap.set(subKey, item?.key);
     });

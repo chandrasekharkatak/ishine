@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, TemplateRef, ViewChild, Output, ViewContainerRef } from '@angular/core';
-import { SafeResourceUrl,DomSanitizer } from '@angular/platform-browser';
+import { SafeResourceUrl, DomSanitizer } from '@angular/platform-browser';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Project } from 'src/app/models/project';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -38,7 +38,7 @@ import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { EmployeeProjectService } from 'src/app/services/employee-project.service';
 import { AppModalService } from '../app-modal.service';
-import { MilestoneUpdatedLog } from 'src/app/models/MilestoneUpdatedLog'; 
+import { MilestoneUpdatedLog } from 'src/app/models/MilestoneUpdatedLog';
 
 
 export const MY_DATE_FORMATS = {
@@ -195,7 +195,6 @@ export class RmgProjectConfigComponent implements OnInit {
     allResourceRequirement: boolean = true;
     removePermanently: boolean = false;
     newMemberTeamMappingRestricted: boolean = false;
-    isCloneSaveRestricted: boolean = false;
 
     // Dates
     todaysDate: any
@@ -216,23 +215,23 @@ export class RmgProjectConfigComponent implements OnInit {
     fcProjectMilestoneList: FCProjectMilestone[] = [];
     statusList = [Status.NOT_STARTED, Status.IN_PROGRESS, Status.ON_HOLD, Status.COMPLETED];
     projectMilestone: FCProjectMilestone = new FCProjectMilestone();
-    milestoneExtendReason:any
+    milestoneExtendReason: any
     isOtherReasonSelected: boolean = false;
-    isExtensionEnabled:boolean =false
-    showMilestoneImageModal:boolean =false
+    isExtensionEnabled: boolean = false
+    showMilestoneImageModal: boolean = false
     minExtendDate!: Date;
-    expandedMilestoneId:any
+    expandedMilestoneId: any
     isImageFile: boolean = false;
     isPdfFile: boolean = false;
     selectedFile: File | null = null;
     selectedLogs: any[] = [];
     selectedLogType: 'start' | 'end' | 'status' | null = null;
-    logHeader:any;
+    logHeader: any;
     isStatusChanged: boolean = false;
-    originalStatus:any
-    projectNameForMilestoneUpdate:any;
-    poNameForMilestoneUpdate : string;
-    confirmMilestoneStatus:any;
+    originalStatus: any
+    projectNameForMilestoneUpdate: any;
+    poNameForMilestoneUpdate: string;
+    confirmMilestoneStatus: any;
 
     // Client Side Pagination
     // Old Team Member
@@ -358,7 +357,7 @@ export class RmgProjectConfigComponent implements OnInit {
         private readonly dialog: MatDialog,
         private drawerService: GlobalRightDrawerService,
         private employeeProjectService: EmployeeProjectService,
-        private appModalService : AppModalService,
+        private appModalService: AppModalService,
         private sanitizer: DomSanitizer,
     ) {
         this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -385,12 +384,12 @@ export class RmgProjectConfigComponent implements OnInit {
             if (action.actionType === 'GET_ETM_MAX_END_DATE') {
                 const empId = action.data;
                 const date = await this.getMaxEmployeeTeamMapStartDate(empId);
-                if(this.currentTeam.newRmgTeamMember && this.currentTeam?.newRmgTeamMember?.empId == empId){
+                if (this.currentTeam.newRmgTeamMember && this.currentTeam?.newRmgTeamMember?.empId == empId) {
                     this.currentTeam.newRmgTeamMember.startDate = date;
                 } else {
-                    if(this.isValidList(this.cloneMemberMappingList)){
-                        for(let member of this.cloneMemberMappingList){
-                            if(member?.empId && member.empId == empId){
+                    if (this.isValidList(this.cloneMemberMappingList)) {
+                        for (let member of this.cloneMemberMappingList) {
+                            if (member?.empId && member.empId == empId) {
                                 member.startDate = date;
                                 break;
                             }
@@ -500,7 +499,7 @@ export class RmgProjectConfigComponent implements OnInit {
     openMappingToOtherProjectAsDefaultModal(actionType: any) {
         this.defaultProjectMappingActionType = actionType;
         this.closeMappingToOtherProjectAsDefaultModal();
-        this.drawerService.open(this.mappingToOtherProjectAsDefaultTemplateRef);    
+        this.drawerService.open(this.mappingToOtherProjectAsDefaultTemplateRef);
     }
 
     closeMappingToOtherProjectAsDefaultModal() {
@@ -595,13 +594,13 @@ export class RmgProjectConfigComponent implements OnInit {
         this.projectMilestoneDocumentModalRef = this.modalService.open(this.projectMilestoneDocumentTemplateRef, { modalDialogClass: 'modal-lg', backdrop: 'static', keyboard: false });
     }
 
-closeProjectMilestoneDocumentsModal() {
-    if (this.projectMilestoneDocumentModalRef) {
-        this.projectMilestoneDocumentModalRef?.close();
-        this.projectMilestoneDocumentModalRef = null;
-      }
-      this.milestoneDocumentUrl = null;
-     }
+    closeProjectMilestoneDocumentsModal() {
+        if (this.projectMilestoneDocumentModalRef) {
+            this.projectMilestoneDocumentModalRef?.close();
+            this.projectMilestoneDocumentModalRef = null;
+        }
+        this.milestoneDocumentUrl = null;
+    }
 
     openMarkAsCompleteFCProjectModal() {
         this.markCompleteFCProjectModalRef = this.modalService.open(this.markCompleteFCProjectTemplateRef, { modalDialogClass: 'modal-lg', backdrop: 'static', keyboard: false });
@@ -984,17 +983,9 @@ closeProjectMilestoneDocumentsModal() {
             });
         }
 
-        // rmgTeam.rmgCurrentTeamMemberList = rmgTeam?.rmgTeamMemberList?.filter(teamMember => {
-        //     return teamMember.isMemberActive != 0 || moment(teamMember.startDate).format('YYYY-MM-DD') >= moment(new Date()).format('YYYY-MM-DD')
-        // }) || [];
-
         if (!this.isValidList(rmgTeam.rmgCurrentTeamMemberList)) {
             this.toggleAddNewMember(rmgTeam);
         }
-
-        // Removing all the members from the list that are in the current team
-        let empIdList = rmgTeam?.rmgCurrentTeamMemberList?.map(emp => emp.empId) || [];
-        this.employeeListFilteredByDept = this.employeeListFilteredByDept?.filter(emp => !empIdList.includes(emp?.empId));
 
         rmgTeam.rmgOldTeamMemberList = rmgTeam?.rmgTeamMemberList?.filter(teamMember => {
             return teamMember.isMemberActive == 0 && moment(teamMember.startDate).format('YYYY-MM-DD') < moment(new Date()).format('YYYY-MM-DD')
@@ -1072,35 +1063,35 @@ closeProjectMilestoneDocumentsModal() {
         const file: File = event.target.files[0];
         this.file = null;
         this.selectedFilePreviewUrl = null;
-    
+
         if (!file) { return; }
-    
+
         if (file) {
-          const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-          if (!allowedTypes.includes(file.type)) {
-            this.openAlertMessageModal("Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.");
-            event.target.value = '';
-            this.file = null;
-            return;
-          }
-    
-          const maxSize = 25 * 1024 * 1024; // 25MB
-          if (file.size > maxSize) {
-            this.openAlertMessageModal("File size should be less than 25MB!!");
-            return;
-          }
-          const uniquefile = projectMilestone.id + '_' + file.name
-          this.validateFileName(uniquefile, "status");
-          const reader = new FileReader();
-          reader.onload = () => {
-            this.selectedFilePreviewUrl = reader.result as string;
-          };
-          reader.readAsDataURL(file);
-          this.file = new File([file], uniquefile, { type: file.type });
-          this.selectedFile = this.file;
+            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+            if (!allowedTypes.includes(file.type)) {
+                this.openAlertMessageModal("Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.");
+                event.target.value = '';
+                this.file = null;
+                return;
+            }
+
+            const maxSize = 25 * 1024 * 1024; // 25MB
+            if (file.size > maxSize) {
+                this.openAlertMessageModal("File size should be less than 25MB!!");
+                return;
+            }
+            const uniquefile = projectMilestone.id + '_' + file.name
+            this.validateFileName(uniquefile, "status");
+            const reader = new FileReader();
+            reader.onload = () => {
+                this.selectedFilePreviewUrl = reader.result as string;
+            };
+            reader.readAsDataURL(file);
+            this.file = new File([file], uniquefile, { type: file.type });
+            this.selectedFile = this.file;
         }
-      }
-    
+    }
+
     previewSelectedFile(): void {
         if (!this.file || !this.selectedFilePreviewUrl) {
             this.openAlertMessageModal('Please select a file to preview!!');
@@ -1277,9 +1268,10 @@ closeProjectMilestoneDocumentsModal() {
 
     updateEmployeeList() {
         const deptIds = this.currentTeam?.deptIds ?? [];
-        const currentTeamEmpIds = new Set(
-            this.currentTeam?.rmgCurrentTeamMemberList?.map(emp => emp.empId) ?? []
-        );
+        const currentTeamEmpIds: any[] = [];
+        // const currentTeamEmpIds =  new Set(
+        //     this.currentTeam?.rmgCurrentTeamMemberList?.map(emp => emp.empId) ?? []
+        // );
         const spocList = this.spocList ?? [];
 
         this.cloneMemberMappingList.forEach(mem => {
@@ -1293,7 +1285,7 @@ closeProjectMilestoneDocumentsModal() {
 
             mem.memberList = spocList.filter(emp => {
                 if (!deptIds.includes(emp.deptId)) return false;
-                if (currentTeamEmpIds.has(emp.empId)) return false;
+                if (currentTeamEmpIds.includes(emp.empId)) return false;
                 return !otherSelectedEmpIds.has(emp.empId) || emp.empId === mem.empId;
             });
         });
@@ -1303,7 +1295,7 @@ closeProjectMilestoneDocumentsModal() {
         return this.currentTeam?.rmgOldTeamMemberList.some(member => { return this.normalizeDate(member.endDate) != this.normalizeDate(member.dbEndDate) });
     }
 
-    get isNewTeamDetailsFilled(): boolean  {
+    get isNewTeamDetailsFilled(): boolean {
         return this.isValidString(this.rmgProjectObj.newTeamObj.teamName) && this.isValidList(this.rmgProjectObj.newTeamObj.deptIds);
     }
     // Helpers End
@@ -1638,10 +1630,10 @@ closeProjectMilestoneDocumentsModal() {
 
                 if (!this.isValidList(this.rmgProjectObj.teamDetailsList)) {
                     this.toggleAddNewTeam();
-                }else{
+                } else {
                     this.originalTeamDetailsList = JSON.parse(
-                      JSON.stringify(this.rmgProjectObj.teamDetailsList)
-                  );
+                        JSON.stringify(this.rmgProjectObj.teamDetailsList)
+                    );
                 }
                 this.setTeamDepartmentNames(this.rmgProjectObj?.teamDetailsList);
                 this.updateAddTeamButton();
@@ -1817,48 +1809,51 @@ closeProjectMilestoneDocumentsModal() {
         }
     }
 
-//     isAnyTeamUpdated(): boolean {
-//     if (!this.originalTeamDetailsList) return false;
+    //     isAnyTeamUpdated(): boolean {
+    //     if (!this.originalTeamDetailsList) return false;
 
-//     return this.rmgProjectObj.teamDetailsList.some((team, index) => {
-//         const original = this.originalTeamDetailsList[index];
+    //     return this.rmgProjectObj.teamDetailsList.some((team, index) => {
+    //         const original = this.originalTeamDetailsList[index];
 
-//         return (
-//             team.teamName?.trim() !== original?.teamName?.trim() ||
-//             team.spocId !== original?.spocId ||
-//             JSON.stringify(team.deptIds || []) !== JSON.stringify(original?.deptIds || [])
-//         );
-//     });
-// }
-isAnyTeamUpdated(): boolean {
-    if (!this.originalTeamDetailsList?.length) return false;
+    //         return (
+    //             team.teamName?.trim() !== original?.teamName?.trim() ||
+    //             team.spocId !== original?.spocId ||
+    //             JSON.stringify(team.deptIds || []) !== JSON.stringify(original?.deptIds || [])
+    //         );
+    //     });
+    // }
+    isAnyTeamUpdated(): boolean {
+        if (!this.originalTeamDetailsList?.length) return false;
 
-    const originalMap = new Map(
-        this.originalTeamDetailsList.map(team => [team.teamId, team])
-    );
+        const originalMap = new Map(
+            this.originalTeamDetailsList.map(team => [team.teamId, team])
+        );
 
-    return this.rmgProjectObj.teamDetailsList.some(team => {
-        const original = originalMap.get(team.teamId);
-        return this.hasTeamChanged(team, original);
-    });
-}
-hasTeamChanged(team: RmgTeam, original: RmgTeam): boolean {
-    if (!original) return true; // new team case
+        return this.rmgProjectObj.teamDetailsList.some(team => {
+            const original = originalMap.get(team.teamId);
+            return this.hasTeamChanged(team, original);
+        });
+    }
 
-    return (
-        (team.teamName || '').trim() !== (original.teamName || '').trim() ||
-        team.spocId !== original.spocId ||
-        !this.areArraysEqual(team.deptIds, original.deptIds)
-    );
-}
-areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
-    if (arr1.length !== arr2.length) return false;
+    hasTeamChanged(team: RmgTeam, original: RmgTeam): boolean {
+        if (!original) return true; // new team case
 
-    const sorted1 = [...arr1].sort();
-    const sorted2 = [...arr2].sort();
+        return (
+            (team.teamName || '').trim() !== (original.teamName || '').trim() ||
+            team.spocId !== original.spocId ||
+            !this.areArraysEqual(team.deptIds, original.deptIds)
+        );
+    }
 
-    return sorted1.every((val, index) => val === sorted2[index]);
-}
+    areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
+        if (arr1.length !== arr2.length) return false;
+
+        const sorted1 = [...arr1].sort();
+        const sorted2 = [...arr2].sort();
+
+        return sorted1.every((val, index) => val === sorted2[index]);
+    }
+
     addOrUpdateTeamDetails(isUpdate: boolean) {
         let teamList = isUpdate ? this.rmgProjectObj?.teamDetailsList : this.rmgProjectObj?.teamDetailsList.filter(team => team.isNotSaved);
         if (!this.isValidList(teamList)) {
@@ -2431,6 +2426,9 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
     }
 
     async validateEmployeeProjectStartDate(member: RmgTeamMember, projectId: any, projectType: any): Promise<boolean> {
+        if (member.isEndDateVisible) {
+            member.endDate = member.dbEndDate ? member.dbEndDate : null;
+        }
         member.isEndDateVisible = false;
         member.memberMaxEndDate = null;
         if (member.endDate && member.endDate != undefined && member.endDate != null && this.normalizeDate(member.startDate) > this.normalizeDate(member.endDate)) {
@@ -2445,7 +2443,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
         if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {
             return true;
-        } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT') {
+        } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT' || response?.type === 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT') {
             member.isEndDateVisible = true;
             member.memberMaxEndDate = response?.data.memberMaxEndDate;
             this.openAlertMessageModal('Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!');
@@ -2465,7 +2463,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
         if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {
             return true;
-        } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT') {
+        } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT' || response?.type === 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT') {
             this.openAlertMessageModal('Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!');
             return false;
         } else {
@@ -2487,7 +2485,8 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         this.existingEmployeeProjectTimesheetEntries = [];
 
         let rmgMember = new RmgTeamMember();
-        rmgMember.selectedEmpIds = this.markDefaultProjectCompletionList?.map(member => member.empId)
+        rmgMember.selectedEmpIds = this.markDefaultProjectCompletionList?.map(member => member.empId) || [];
+        rmgMember.selectedEtmIds = this.markDefaultProjectCompletionList?.map(member => member.etmId) || [];
         rmgMember.projectId = projectId;
         rmgMember.projectStartDate = normalisedProjectStartDate;
         rmgMember.projectType = projectType;
@@ -2569,6 +2568,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         rmgMember.isShadow = this.shadowResourceMappingMember?.isShadow != null && this.shadowResourceMappingMember?.isShadow ? 1 : 0;
         rmgMember.defaultProject = this.shadowResourceMappingMember.defaultProject;
         rmgMember.teamId = this.currentTeam.teamId;
+        rmgMember.etmId = this.shadowResourceMappingMember?.etmId;
 
         this.teamService.updateMemberShadowMapping(rmgMember).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
@@ -2603,7 +2603,6 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
 
     removeFromCloneMemberMappingList(member: RmgTeamMember, index: number) {
         this.cloneMemberMappingList.splice(index, 1);
-        this.updateCloneRestrictionState();
         if (!this.isValidList(this.cloneMemberMappingList)) {
             this.currentTeam.newRmgTeamMember = new RmgTeamMember();
             this.currentTeam.addNewTeamMemberToggle = false;
@@ -2897,7 +2896,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         }
     }
 
-    async getEmployeeExistingProjectDetailsByEmpId(rmgTeamMember:RmgTeamMember,empId: any, resetObj: boolean, projectId: any): Promise<boolean> {
+    async getEmployeeExistingProjectDetailsByEmpId(rmgTeamMember: RmgTeamMember, empId: any, resetObj: boolean, projectId: any): Promise<boolean> {
         if (resetObj) {
             this.currentTeam.newRmgTeamMember = new RmgTeamMember();
         }
@@ -2906,8 +2905,9 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         this.currentTeam.newRmgTeamMember.employementId = employee.employmentId;
         this.currentTeam.newRmgTeamMember.dbDefaultProject = !this.currentTeam.newRmgTeamMember.defaultProject && this.rmgProjectObj.projectId === employee?.defaultProjectId;
         this.currentTeam.newRmgTeamMember.empTeamDepartmentId = employee?.deptId;
-        const response = await this.employeeProjectService.getEmployeeExistingProjectDetails(empId, projectId, employee,true);
-        if (this.handleRestrictionMultipleTeam(response)) {
+        const response = await this.employeeProjectService.getEmployeeExistingProjectDetails(empId, projectId, employee, true, this.currentTeam.teamId);
+        if (response?.type === 'EMPLOYEE_ALREADY_MAPPED_TO_SAME_PROJECT_DIFFERENT_TEAM') {
+            this.currentTeam.newRmgTeamMember.isRestricted = true;
             return false;
         }
         if (response?.type === 'EMPLOYEE_EXISTING_PROJECT_DETAILS') {
@@ -2924,11 +2924,11 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         member.employementId = employee.employmentId;
         member.dbDefaultProject = !member?.defaultProject && this.rmgProjectObj.projectId === employee?.defaultProjectId;
         member.empTeamDepartmentId = employee?.deptId;
-        const response = await this.employeeProjectService.getEmployeeExistingProjectDetails(empId, projectId, employee,true);
-        if (this.handleRestrictionMultipleTeam(response, member)) {
+        const response = await this.employeeProjectService.getEmployeeExistingProjectDetails(empId, projectId, employee, true, member.teamId);
+        if (response?.type === 'EMPLOYEE_ALREADY_MAPPED_TO_SAME_PROJECT_DIFFERENT_TEAM') {
+            member.isRestricted = true;
             return false;
         }
-
         if (response?.type === 'EMPLOYEE_EXISTING_PROJECT_DETAILS') {
             return false;
         }
@@ -2937,45 +2937,8 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         return true;
     }
 
-    // handleRestrictionMultipleTeam(response: any, isClone: boolean = false): boolean {
-
-    //     const isRestricted =
-    //         !!(response?.data?.teamMappingRestricted ||
-    //            response?.extraData?.teamMappingRestricted);
-    
-    //     if (isClone) {
-    //         this.cloneMemberTeamMappingRestricted = isRestricted;
-    //     } else {
-    //         this.newMemberTeamMappingRestricted = isRestricted;
-    //     }
-    
-    //     return isRestricted;
-    // }
-
-    handleRestrictionMultipleTeam(response: any, member?: RmgTeamMember): boolean {
-
-        const isRestricted =
-            !!(response?.data?.teamMappingRestricted ||
-               response?.extraData?.teamMappingRestricted);
-    
-        
-        if (!member) {
-            this.newMemberTeamMappingRestricted = isRestricted;
-        }
-    
-       
-        if (member) {
-            member.isRestricted = isRestricted;
-        }
-    
-       
-        this.updateCloneRestrictionState();
-    
-        return isRestricted;
-    }
-
-    updateCloneRestrictionState() {
-        this.isCloneSaveRestricted = this.cloneMemberMappingList?.some(m => m.isRestricted);
+    get isCloneSaveRestricted(): boolean {
+        return this.cloneMemberMappingList?.some(m => m.isRestricted);
     }
 
     async updateMappingToOtherProjectAsDefault(employee: RmgTeamMember) {
@@ -3003,7 +2966,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
                     await this.getTeamDetailsByTeamId(this.currentTeam);
                     await this.validateRemoveMembers(this.currentTeam?.rmgCurrentTeamMemberList);
                 } else if (this.defaultProjectMappingActionType === 'DEFAULT_REMOVE') {
-                   await this.getTeamDetailsByTeamId(this.currentTeam);
+                    await this.getTeamDetailsByTeamId(this.currentTeam);
                 }
             } else {
                 this.toastService.error(response.serviceResponse || "Something went wrong!");
@@ -3048,6 +3011,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         tempRmgTeamMember.poRequirementMappingId = employee.poRequirementMappingId;
         tempRmgTeamMember.clientName = this.rmgProjectObj?.clientName;
         tempRmgTeamMember.selectedEmpIds = isBulk ? this.markDefaultProjectCompletionList?.map(member => member.empId) ?? [] : employee?.empId ? [employee.empId] : [];
+        tempRmgTeamMember.selectedEtmIds = isBulk ? this.markDefaultProjectCompletionList?.map(member => member.etmId) ?? [] : employee?.etmId ? [employee.etmId] : [];
         tempRmgTeamMember.projectType = this.projectType;
         tempRmgTeamMember.startDate = this.normalizeDate(this.defaultProjectObj.startDate);
 
@@ -3101,8 +3065,8 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
             const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
             if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {
                 continue;
-            } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT') {
-                this.openAlertMessageModal('Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!');
+            } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT' || response?.type === 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT') {
+                this.openAlertMessageModal(`Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date for EmploymentId : ${member.employementId} !!`);
                 return false;
             } else {
                 return false;
@@ -3120,6 +3084,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         tempRmgTeamMember.poRequirementMappingId = this.defaultProjectObj.poRequirementMappingId;
         tempRmgTeamMember.clientName = this.rmgProjectObj?.clientName;
         tempRmgTeamMember.selectedEmpIds = this.markDefaultProjectCompletionList?.map(member => member.empId) || [];
+        tempRmgTeamMember.selectedEtmIds = this.markDefaultProjectCompletionList?.map(member => member.etmId) || [];
         tempRmgTeamMember.projectType = this.projectType;
         tempRmgTeamMember.startDate = this.normalizeDate(this.defaultProjectObj.startDate);
 
@@ -3298,19 +3263,19 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         )
     }
 
-  async updateMilestoneChanges() {
+    async updateMilestoneChanges() {
         this.projectNameForMilestoneUpdate = this.rmgProjectObj.projectName;
         this.projectMilestone.updatedBy = this.currentUser.empId;
         this.projectMilestone.updatedOn = new Date();
         this.projectMilestone.updatedByName = this.currentUser.name;
-        this.projectMilestone.poProjectId=this.rmgProjectObj.poProjectId
-        this.projectMilestone.projectId=this.rmgProjectObj.poProjectId
+        this.projectMilestone.poProjectId = this.rmgProjectObj.poProjectId
+        this.projectMilestone.projectId = this.rmgProjectObj.poProjectId
 
         const formData = new FormData();
         formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
         formData.append('projectName', this.rmgProjectObj.projectName);
-        formData.append('previousStatus' , this.originalStatus)
-        if (this.file) {formData.append('file', this.file);}
+        formData.append('previousStatus', this.originalStatus)
+        if (this.file) { formData.append('file', this.file); }
 
         this.projectService.updateMilestoneById(formData).pipe(first()).subscribe({
             next: (response: any) => {
@@ -3348,7 +3313,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
     }
 
     onStatusChange(newStatus: string) {
-      this.isStatusChanged = newStatus !== this.originalStatus;
+        this.isStatusChanged = newStatus !== this.originalStatus;
     }
 
     calculatePoStatus() {
@@ -3424,7 +3389,7 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
     }
 
     confirmCompleteMailTrigger(projectDto: any) {
-    this.resourceManagementService.completeProjectReminder(projectDto.projectId).pipe(first())
+        this.resourceManagementService.completeProjectReminder(projectDto.projectId).pipe(first())
             .subscribe((response: any) => {
                 if (response.serviceStatus === "Success") {
                     console.log("Completion mail triggered successfully!!");
@@ -3448,7 +3413,8 @@ areArraysEqual(arr1: any[] = [], arr2: any[] = []): boolean {
         project.updatedBy = this.currentUser.empId;
         return project;
     }
-    // FC Milestone Method & APIs End
+// FC Milestone Method & APIs End
+
   get isPreviewStep(): boolean {
     return this.projectConfigStepperIndex === 2; // 2 = Preview step index
   }

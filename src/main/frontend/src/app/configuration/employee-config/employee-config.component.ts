@@ -1884,7 +1884,7 @@ storePreviousStatus(){
         }
 
         if (employeeObj.newEtmStartDate !== undefined && employeeObj.newEtmStartDate !== null) {
-          let member = { empId: employeeObj.empId, startDate: employeeObj.newEtmStartDate };
+          let member = { empId: employeeObj.empId, startDate: employeeObj.newEtmStartDate, teamId : employeeObj.defaultTeamId };
           let projectData = {
             currentProjectId: employeeObj.defaultProjectId,
             projectIds: [employeeObj.defaultProjectId],
@@ -5387,7 +5387,7 @@ resetDefaultProjectFields() {
       this.openAlertMod(alertMessageTemplate, this.alertMessage);
       return false;
     }
-    let member = { empId: this.employeeObj.empId, startDate: this.employeeObj.newEtmStartDate };
+    let member = { empId: this.employeeObj.empId, startDate: this.employeeObj.newEtmStartDate, teamId : this.employeeObj.defaultTeamId };
     let projectData = {
       currentProjectId: this.employeeObj.defaultProjectId,
       projectIds: [this.employeeObj.defaultProjectId],

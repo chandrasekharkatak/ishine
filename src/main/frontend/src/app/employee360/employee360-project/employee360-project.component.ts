@@ -870,7 +870,7 @@ formatToLocalDateTime(date: any): string {
       return;
     }
 
-    const flag: boolean = await this.validateEmployeeProjectStartDate(this.projectObj.empId, this.projectObj.projectId, '', edit_enddate_template);
+    const flag: boolean = await this.validateEmployeeProjectStartDate(this.projectObj.empId, this.projectObj.projectId, '', this.projectObj.teamId, edit_enddate_template);
     if (!flag) {
       return;
     }
@@ -1350,12 +1350,13 @@ console.log("mapping ID",this.employeeTeamMapId);
 		this.alertMessageModalRef = this.modalService?.open(this.alertTemplate, { modalDialogClass: 'modal-sm' });
 	}
 
-  async validateEmployeeProjectStartDate(empId: any, projectId: any, projectType: any, edit_enddate_template?: any): Promise<boolean> {
+  async validateEmployeeProjectStartDate(empId: any, projectId: any, projectType: any, teamId:any, edit_enddate_template?: any): Promise<boolean> {
     this.projectObj.isEndDateVisible = false;
     this.projectObj.memberMaxEndDate = null;
     let rmgMember: RmgTeamMember = new RmgTeamMember();
     rmgMember.empId = empId;
     rmgMember.startDate = this.startDate;
+    rmgMember.teamId = teamId;
     let projectData = {
       currentProjectId: projectId,
       projectIds: [projectId],
@@ -1364,7 +1365,7 @@ console.log("mapping ID",this.employeeTeamMapId);
     const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(rmgMember, projectData);
     if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {
       return true;
-    } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT') {
+    } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT' || response?.type === 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT') {
       this.projectObj.isEndDateVisible = true;
       this.projectObj.memberMaxEndDate = response?.data.memberMaxEndDate;
       this.editEnddateModal(edit_enddate_template, this.projectObj);
@@ -1638,6 +1639,7 @@ console.log("mapping ID",this.employeeTeamMapId);
     let rmgMember: RmgTeamMember = new RmgTeamMember();
     rmgMember.empId = employee.empId;
     rmgMember.startDate = employee.selectedProject.startDate;
+    rmgMember.teamId = employee.teamId;
     let projectData = {
       currentProjectId: employee?.selectedProject?.projectId,
       projectIds: [employee?.selectedProject?.projectId],
@@ -1808,6 +1810,7 @@ console.log("mapping ID",this.employeeTeamMapId);
     let rmgMember: RmgTeamMember = new RmgTeamMember();
     rmgMember.empId = employee.empId;
     rmgMember.startDate = employee.selectedProject.startDate;
+    rmgMember.teamId = employee.selectedProject.teamId;
     let projectData = {
       currentProjectId: projectId,
       projectIds: [projectId],
@@ -1816,7 +1819,7 @@ console.log("mapping ID",this.employeeTeamMapId);
     const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(rmgMember, projectData);
     if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {
       return true;
-    } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT') {
+    } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT' || response?.type === 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT') {
       // this.projectObj.isEndDateVisible = true;
       // this.projectObj.memberMaxEndDate = response?.data.memberMaxEndDate;
       // this.editEnddateModal(edit_enddate_template, this.projectObj);

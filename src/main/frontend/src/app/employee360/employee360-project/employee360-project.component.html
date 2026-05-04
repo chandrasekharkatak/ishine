@@ -328,7 +328,7 @@
                     <label class="info-label">Select Start Date</label>
                     <div class="date-input-wrapper">
                         <input id="occasionDate" class="form-control date-input" readonly [matDatepicker]="startDatepicker"
-                            (dateChange)="validateEmployeeProjectStartDate(this.projectObj.empId, this.projectObj.projectId, '')"
+                            (dateChange)="validateEmployeeProjectStartDate(this.projectObj.empId, this.projectObj.projectId, this.projectObj.teamId, '')"
                             [(ngModel)]="startDate" (click)="startDatepicker.open()" />
                         <mat-icon class="calendar-icon" (click)="startDatepicker.open()">calendar_today</mat-icon>
                         <mat-datepicker #startDatepicker></mat-datepicker>
@@ -942,9 +942,16 @@
         <div class="row justify-content-center align-items-center">
             <mat-checkbox class="remove-permanently" color="primary" [(ngModel)]="removePermanently"></mat-checkbox>
             <small>Remove Permanently</small>&nbsp;
-            <i class="fa fa-beat fa-info-circle info-icon-danger cursor-pointer"
-                title="This will permanently delete the entry from the table. This action cannot be undone.">
-            </i>
+            <span class="info-chip red-chip">
+                <span triggers="mouseenter:mouseleave" placement="right" container="body" popoverClass="info-popover"
+                    [ngbPopover]="removePermanentlyAlertTpl">
+                    <ng-template #removePermanentlyAlertTpl>
+                        <ng-container *ngTemplateOutlet="removePermanentlyAlert">
+                        </ng-container>
+                    </ng-template>
+                    <i class="fa fa-beat cursor-pointer"></i>
+                </span>
+            </span>
         </div>
         <div class="row justify-content-center align-items-center">
             <button type="button" class="btn btn-success btn-sm" (click)="removeTeamMembersFromProject();">Yes,
@@ -955,3 +962,12 @@
     </div>
 </ng-template>
 
+<ng-template #removePermanentlyAlert>
+    <div class="popover-info red-border">
+        <div class="popover-row">
+            <span>
+                Member will be <span class="highlight-text">permanently</span> removed from the team.
+            </span>
+        </div>
+    </div>
+</ng-template>

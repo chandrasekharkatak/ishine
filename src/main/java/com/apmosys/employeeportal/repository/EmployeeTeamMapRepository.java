@@ -105,9 +105,10 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 			+ "and p.projectId = :projectId "
 			+ "and t.isActive != 'N' "
 			+ "and p.active != 'false' "
+			+ "and t.teamId != :teamId "
 			+ "and (etm.active in (1,2) or (etm.active = 0 and etm.startDate is not null and FUNCTION('DATE', etm.startDate) > CURRENT_DATE))")
 	List<String> findConflictingTeamNamesForOnboarding(@Param("empId") Long empId,
-			@Param("projectId") Integer projectId);
+			@Param("projectId") Integer projectId, Long teamId);
 		
 //	@Query(nativeQuery = true)
 //	List<EmployeeTeamMap> findByTeamIdAndActive(Long teamId);
@@ -1583,5 +1584,40 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 
 	@Query(value=" SELECT DATE_ADD(MAX(DATE(etm.end_date)), INTERVAL 1 DAY) FROM employee_team_mapping etm WHERE etm.emp_id =:empId AND etm.end_date IS NOT NULL ", nativeQuery = true)
 	LocalDate findEtmMaxEndDateByEmpId(Long empId);
+	
+	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.employeeTeamMapId IN :etmIds ")
+	List<EmployeeTeamMap> findByEtmIdIn(List<Long> etmIds);
 
-	}
+	@Query(value = "select new com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto( "
+			+ " e.empId, etm.employeeTeamMapId, "
+			+ " p.projectId, p.projectName, "
+			+ " CASE WHEN p.poProjectType IS NOT NULL AND TRIM(p.poProjectType) != '' THEN p.poProjectType ELSE p.internalProjectType END, \n"
+			+ " t.teamId, "
+			+ " t.teamName, date(p.startDate), date(etm.startDate), date(etm.endDate)) \n"
+			+ " FROM Employee e  \n"
+			+ " INNER JOIN EmployeeTeamMap etm on e.empId = etm.empId \n"
+			+ " INNER JOIN Team t on etm.teamId = t.teamId \n"
+			+ " INNER JOIN Project p on t.projectId = p.projectId \n"
+			+ " WHERE 1=1 \n"
+			+ " AND p.projectId = :projectId \n"
+			+ " AND t.teamId != :teamId \n"
+			+ " AND e.empId =:empId AND (etm.endDate IS NULL OR DATE(etm.endDate) >= DATE(:startDate)) \n")
+	List<EmployeeProjectTimesheetDto> findByEmpIdAndDateAndTeamIdNotIn(Long empId, LocalDateTime startDate, Integer projectId, Long teamId);
+	
+	@Query(value = "select new com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto( "
+			+ " e.empId, etm.employeeTeamMapId, "
+			+ " p.projectId, p.projectName, "
+			+ " CASE WHEN p.poProjectType IS NOT NULL AND TRIM(p.poProjectType) != '' THEN p.poProjectType ELSE p.internalProjectType END, \n"
+			+ " t.teamId, "
+			+ " t.teamName, date(p.startDate), date(etm.startDate), date(etm.endDate)) \n"
+			+ " FROM Employee e  \n"
+			+ " INNER JOIN EmployeeTeamMap etm on e.empId = etm.empId \n"
+			+ " INNER JOIN Team t on etm.teamId = t.teamId \n"
+			+ " INNER JOIN Project p on t.projectId = p.projectId \n"
+			+ " WHERE 1=1 \n"
+			+ " AND p.projectId = :projectId \n"
+			+ " AND etm.employeeTeamMapId != :etmId \n"
+			+ " AND e.empId =:empId AND (etm.endDate IS NULL OR DATE(etm.endDate) >= DATE(:startDate)) \n")
+	List<EmployeeProjectTimesheetDto> findByEmpIdAndDateAndEtmIdNotIn(Long empId, LocalDateTime startDate, Integer projectId, Long etmId);
+	
+}

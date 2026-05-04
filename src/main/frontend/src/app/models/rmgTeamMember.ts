@@ -69,6 +69,7 @@ export class RmgTeamMember {
     createdBy: any;
     updatedBy: any;
     selectedEmpIds: number[] = [];
+    selectedEtmIds: number[] = [];
     projectIds: number[] = [];
     mappedDefaultProjectId: any;
     otherActiveProjectIds: any[] = [];
