@@ -1635,7 +1635,16 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			hasCondition = true;
 
 			switch (column) {
-
+				case "Employment Status":
+					query.append("LOWER(e1.employmentstatus) ");
+					if (operator.equalsIgnoreCase("like")) {
+						query.append("LIKE LOWER('%").append(value).append("%')");
+					} else if (operator.equals("=")) {
+						query.append("= LOWER('").append(value).append("')");
+					} else {
+						query.append(operator).append(" '").append(value).append("'");
+					}
+					break;
 				case "Employee Id":
 					if (operator.equals("=")) {
 						if (value.startsWith("AP-")) {
@@ -1723,6 +1732,44 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				        query.append(operator).append(" '").append(value).append("'");
 				    }
 				    break;
+				case "Total Working Hour":
+					query.append("(et.total_working_minutes / 60) ")
+						.append(operator)
+						.append(" ")
+						.append(value);
+					break;
+				case "Team Name":
+					query.append("LOWER(t.team_name) ");
+					if (operator.equalsIgnoreCase("like")) {
+						query.append("LIKE LOWER('%").append(value).append("%')");
+					} else {
+						query.append(operator).append(" LOWER('").append(value).append("')");
+					}
+					break;
+				case "Project Name":
+					query.append("LOWER(p.project_name) ");
+					if (operator.equalsIgnoreCase("like")) {
+						query.append("LIKE LOWER('%").append(value).append("%')");
+					} else {
+						query.append(operator).append(" LOWER('").append(value).append("')");
+					}
+					break;
+				case "Client Name":
+					query.append("LOWER(c.client_name) ");
+					if (operator.equalsIgnoreCase("like")) {
+						query.append("LIKE LOWER('%").append(value).append("%')");
+					} else {
+						query.append(operator).append(" LOWER('").append(value).append("')");
+					}
+					break;
+				case "Updated By":
+					query.append("LOWER(e2.name) ");
+					if (operator.equalsIgnoreCase("like")) {
+						query.append("LIKE LOWER('%").append(value).append("%')");
+					} else {
+						query.append(operator).append(" LOWER('").append(value).append("')");
+					}
+					break;
 
 
 				default:
