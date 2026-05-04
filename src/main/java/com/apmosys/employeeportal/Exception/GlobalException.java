@@ -84,6 +84,24 @@ public class GlobalException {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 	}
 
+	@ExceptionHandler(LeaveApplicationException.class)
+	public ResponseEntity<ServiceResponse> handleLeaveApplication(LeaveApplicationException ex) {
+		ServiceResponse response = new ServiceResponse();
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		ExceptionLogContext.add(ex.getLocalizedMessage());
+		response.setServiceResponse(ex.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
+
+	@ExceptionHandler(CompOffLeaveException.class)
+	public ResponseEntity<ServiceResponse> handleCompOffLeave(CompOffLeaveException ex) {
+		ServiceResponse response = new ServiceResponse();
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		ExceptionLogContext.add(ex.getLocalizedMessage());
+		response.setServiceResponse(ex.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
+
 	// @ExceptionHandler(Exception.class)
 	// public ResponseEntity<ServiceResponse> handleGeneralError(Exception e) {
 	// 	ServiceResponse response = new ServiceResponse();

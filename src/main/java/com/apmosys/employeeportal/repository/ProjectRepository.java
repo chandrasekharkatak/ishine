@@ -5411,14 +5411,15 @@ boolean existsByProjectName(String projectName);
 			+ " WHEN p.is_draft_project IS NULL THEN 'Not Started' \n"
 			+ " ELSE 'Un Mentioned Test Data' \n"
 			+ " END as draft_project_status \n"
-			+ " ,po_project_type, p.internal_project_type, p.status status, p.po_project_id "
+			+ " ,po_project_type, p.internal_project_type, p.status status, p.po_project_id, ppd.msg as project_message "
 			+ " FROM projects p\n"
 			+ " LEFT JOIN clients c ON p.client_id = c.client_id \n"
 			+ " LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n"
+			+ " LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id \n"
 			+ " WHERE 1=1 \n"
 			+ " and p.project_id =:projectId \n"
 			+ " GROUP BY p.project_id, project_name, c.client_name, cl.client_state, p.start_date, p.end_date "
-			+ ", p.project_status ,po_project_type, p.internal_project_type, p.status, p.po_project_id  ", nativeQuery = true)
+			+ ", p.project_status ,po_project_type, p.internal_project_type, p.status, p.po_project_id, ppd.msg ", nativeQuery = true)
 	List<Object[]> getProjectConfigurationDetailsByProjectIdNew(@Param("projectId") Integer projectId);
 
 	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO(etm.empId, p.projectId, p.projectName) "
@@ -8263,7 +8264,7 @@ List<Object[]> getClientAndProjectDataList(
 			+ " etm.empId, p.projectId, p.projectName"
 			+ " ,CASE WHEN p.poProjectType IS NOT NULL AND TRIM(p.poProjectType) != '' THEN p.poProjectType ELSE p.internalProjectType END, DATE(p.startDate)"
 			+ " , ppd.poId, t.teamId, prm.poRequirementMappingId \n"
-			+ " , ppd.poNo, t.teamName, etm.employeeRole, prm.role, prm.department, prm.experience, prm.count, etm.startDate) "
+			+ " , ppd.poNo, t.teamName, etm.employeeRole, prm.role, prm.department, prm.experience, prm.count, etm.startDate, etm.employeeTeamMapId) "
 			+ "FROM Project p \n"
 			+ "INNER JOIN Team t ON t.projectId = p.projectId AND t.isActive != 'N' \n"
 			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active != 0 \n"

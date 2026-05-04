@@ -260,6 +260,13 @@
                     </div>
                 </div>
                 <div class="horizontal-row"></div>
+                 <div class="col-12" *ngIf="rmgProjectObj?.projectMessage">
+                      <div class="project-message-bar">
+                          <div class="scroll-text">
+                              {{ rmgProjectObj.projectMessage }}
+                          </div>
+                      </div>
+                 </div>
             </div>
 
             <ng-container *ngIf="projectType === 'TNM'">
@@ -507,7 +514,7 @@
                     </th>
                     <th class="col-action" *ngIf="projectConfigStepperIndex === 1"></th>
                     <th class="col-info">Info</th>
-                    <th class="min-width100 max-width150" mat-sort-header="employementId|string" title="Employment Id">
+                    <th class="min-width50 max-width100 truncate" mat-sort-header="employementId|string" title="Employment Id">
                         Employment Id
                     </th>
                     <th class="min-width100 max-width150" mat-sort-header="memberName|string" title="Name">
@@ -571,9 +578,9 @@
                     <tr *ngIf="projectConfigStepperIndex === 1">
                         <td></td>
                         <td [attr.colspan]="2">
-                            <div class="d-flex justify-evenly">
+                            <div class="d-flex justify-content-start">
                                 <button class="btn btn-sm btn-outline-primary" title="Save New Member"
-                                    (click)="saveNewTeamMemberDetails()" [disabled]="newMemberTeamMappingRestricted">
+                                    (click)="saveNewTeamMemberDetails()" [disabled]="currentTeam.newRmgTeamMember.isRestricted">
                                     <i class="fa fa-floppy-disk"></i>
                                 </button>&nbsp;&nbsp;
                                 <button class="btn btn-sm btn-outline-primary" (click)="toggleAddNewMember(team)">
@@ -610,13 +617,13 @@
                                 >
                             </app-my-select>
                         </td>
-                        <td class="min-width150 max-width200">
+                        <td class="min-width180 max-width200">
                             <app-my-select #employeeRoleSelect class="form-control" placeholder="Select Role"
                                 [(ngModel)]="currentTeam.newRmgTeamMember.employeeRoles" [options]="employeeRoles"
                                 [multiple]="true">
                             </app-my-select>
                         </td>
-                        <td class="min-width100 max-width150 col-start-date">
+                        <td class="min-width180 max-width200 col-start-date">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input start-date-input" readonly [matDatepicker]="startDatepicker"
                                     (dateChange)="validateEmployeeProjectStartDate(currentTeam.newRmgTeamMember, rmgProjectObj.projectId, projectType)"
@@ -627,7 +634,7 @@
                                 <mat-datepicker #startDatepicker></mat-datepicker>
                             </div>
                         </td>
-                        <td class="min-width100 max-width150" *ngIf="currentTeam.newRmgTeamMember.isEndDateVisible">
+                        <td class="min-width180 max-width200" *ngIf="currentTeam.newRmgTeamMember.isEndDateVisible">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" readonly [matDatepicker]="endDatepicker"
                                     [(ngModel)]="currentTeam.newRmgTeamMember.endDate"
@@ -656,7 +663,7 @@
                         <td></td>
                         <td></td>
                         <td>
-                            <div class="d-flex justify-evenly">
+                            <div class="d-flex justify-content-start">
                                 <button class="btn btn-sm btn-outline-primary" title="Remove From Cloning List"
                                     (click)="removeFromCloneMemberMappingList(member, i)">
                                     <i class="fa-solid fa-xmark"></i>
@@ -692,12 +699,12 @@
                                 >
                             </app-my-select>
                         </td>
-                        <td class="min-width150 max-width200">
+                        <td class="min-width180 max-width200">
                             <app-my-select #employeeRoleSelect class="form-control" placeholder="Select Role"
                                 [(ngModel)]="member.employeeRoles" [options]="employeeRoles" [multiple]="true">
                             </app-my-select>
                         </td>
-                        <td class="min-width100 max-width150 col-start-date">
+                        <td class="min-width180 max-width200 col-start-date">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input start-date-input" readonly [matDatepicker]="startDatepicker"
                                     (dateChange)="validateEmployeeProjectStartDate(member, rmgProjectObj.projectId, projectType)"
@@ -708,7 +715,7 @@
                                 <mat-datepicker #startDatepicker></mat-datepicker>
                             </div>
                         </td>
-                        <td class="min-width100 max-width150" *ngIf="member.isEndDateVisible">
+                        <td class="min-width180 max-width200" *ngIf="member.isEndDateVisible">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" readonly [matDatepicker]="endDatepicker"
                                     [(ngModel)]="member.endDate" [max]="member.memberMaxEndDate"
@@ -804,9 +811,21 @@
                                         <i class="fa-solid fa-calendar-check"></i>
                                     </span>
                                 </div>
+                                <div *ngIf="member?.isMemberActive == 2"
+                                    class="info-chip yellow-chip">
+                                    <span triggers="mouseenter:mouseleave" placement="bottom" container="body"
+                                        popoverClass="info-popover" [ngbPopover]="pendingForApprovalTpl">
+                                        <ng-template #pendingForApprovalTpl>
+                                            <ng-container
+                                                *ngTemplateOutlet="pendingForApprovalInfo;">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa-solid fa-clock"></i>
+                                    </span>
+                                </div>
                             </div>
                         </td>
-                        <td class="min-width100 max-width150" [title]="member.employementId|| 'NA' ">
+                        <td class="min-width50 max-width100 truncate" [title]="member.employementId|| 'NA' ">
                             {{ member.employementId || 'NA' }}
                         </td>
                         <td class="min-width100 max-width150 truncate" [title]="member.memberName || 'NA' ">
@@ -829,7 +848,7 @@
                                 [options]="employeeRoles" [multiple]="true">
                             </app-my-select>
                         </td>
-                        <td class="min-width100 max-width150 col-start-date">
+                        <td class="min-width180 max-width200 col-start-date">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input start-date-input" readonly [matDatepicker]="startDatepicker"
                                     [disabled]="projectConfigStepperIndex !== 1"
@@ -840,7 +859,15 @@
                                 <mat-datepicker #startDatepicker></mat-datepicker>
                             </div>
                         </td>
-                        <td class="min-width100 max-width150 truncate"
+                        <td class="min-width100 max-width150" *ngIf="member.isEndDateVisible">
+                            <div class="date-input-wrapper">
+                                <input class="form-control date-input" readonly [matDatepicker]="endDatepicker" [(ngModel)]="member.endDate"
+                                    [max]="member.memberMaxEndDate" [disabled]="!member.empId" (click)="endDatepicker.open()" />
+                                <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
+                                <mat-datepicker #endDatepicker></mat-datepicker>
+                            </div>
+                        </td>
+                        <td class="min-width100 max-width150 truncate" *ngIf="!member.isEndDateVisible"
                             [title]="member.endDate ? ( member.endDate | date:'dd-MM-yyyy'): 'NA'">
                             {{ member.endDate ? ( member.endDate | date:'dd-MM-yyyy'): 'NA' }}
                         </td>
@@ -1473,6 +1500,16 @@
     </div>
 </ng-template>
 
+<ng-template #pendingForApprovalInfo>
+    <div class="popover-info yellow-border">
+        <div class="popover-row">
+            <span>Pending for Approval
+            </span>
+        </div>
+    </div>
+</ng-template>
+
+
 <ng-template #mapping_other_project_as_default>
     <div class="card-header project-card-header" style="margin:0px !important">
         <div class="row align-items-center">
@@ -1953,9 +1990,16 @@
         <div class="row justify-content-center align-items-center">
             <mat-checkbox class="remove-permanently" color="primary" [(ngModel)]="removePermanently"></mat-checkbox>
             <small>Remove Permanently</small>&nbsp;
-            <i class="fa fa-beat fa-info-circle info-icon-danger cursor-pointer"
-                title="This will permanently delete the entry from the table. This action cannot be undone.">
-            </i>
+            <span class="info-chip red-chip">
+                <span triggers="mouseenter:mouseleave" placement="right" container="body" popoverClass="info-popover"
+                    [ngbPopover]="removePermanentlyAlertTpl">
+                    <ng-template #removePermanentlyAlertTpl>
+                        <ng-container *ngTemplateOutlet="removePermanentlyAlert">
+                        </ng-container>
+                    </ng-template>
+                    <i class="fa fa-beat fa-info-circle cursor-pointer"></i>
+                </span>
+            </span>
         </div>
         <div class="row justify-content-center align-items-center">
             <button type="button" class="btn btn-success btn-sm" (click)="removeTeamMembersFromProject();">Yes,
@@ -2490,7 +2534,7 @@
         <br>
 
         <div class="d-flex justify-content-end" *ngIf="isExtensionEnabled && projectMilestone.extendedDate">
-        <button type="button" class="ep-btn ep-btn--primary" [disabled]="projectMilestone.status === 'Completed'" 
+        <button type="button" class="ep-btn ep-btn--primary" [disabled]="projectMilestone.status === 'Completed'"
         [title]="projectMilestone.status === 'Completed'  ? 'Date cannot be updated after milestone is marked completed': 'Click to update milestone extension details'"
         (click)="updateMilestoneExtendedDateWithReason()">Update Extension</button>
         </div>
@@ -2626,4 +2670,14 @@
       </button>
     </div>
   </div>
+</ng-template>
+
+<ng-template #removePermanentlyAlert>
+    <div class="popover-info red-border">
+        <div class="popover-row">
+            <span>
+                Member will be <span class="highlight-text">permanently</span> removed from the team.
+            </span>
+        </div>
+    </div>
 </ng-template>

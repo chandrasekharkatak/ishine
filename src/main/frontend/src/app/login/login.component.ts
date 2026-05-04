@@ -106,6 +106,15 @@ export class LoginComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.route.queryParamMap.subscribe(params => {
       this.redirectUrl = params.get('redirect') || params.get('returnUrl') || sessionStorage.getItem('postLoginRedirect');
+      const poToken = params.get('poToken') || params.get('token');
+      const empIdRaw = params.get('empId');
+      if (poToken && empIdRaw) {
+        const empId = Number(empIdRaw);
+        if (!isNaN(empId)) {
+          const deepLink = this.redirectUrl || params.get('deepLink') || '/home';
+          this.handlePoSessionLogin(empId, poToken, deepLink);
+        }
+      }
     });
     this.intervalId = setInterval(() => {
       this.nextSlide();
@@ -307,166 +316,7 @@ this.user.otp = encryptedOtp;
   if (this.userOTP.length <= 8) {
     const response: any = await this.authenticationService.authenticateUserWithOTP(this.user).toPromise();
     if (response.serviceStatus == "Success") {
-      const responseObj = response.serviceResponse;
-      let user = responseObj[0];
-      this.allMappedSubfeatures = responseObj[1];
-      console.log("allMappedSubfeatures =>  ",this.allMappedSubfeatures);
-      this.authenticationService.sessionString = responseObj[2];
-      this.authenticationService.sessionTimeout = responseObj[3];
-
-      sessionStorage.setItem('maxFileSize', responseObj[4]);
-      sessionStorage.setItem('maxRequestSize', responseObj[5]);
-
-      let log: Log = responseObj[6];
-      log.empId = user.empId;
-      this.enableAppreciation = responseObj[7];
-
-     // this.authenticationService.setCookie({ name: "SESSIONID", value: this.authenticationService.sessionString, session: true , secure: true,  sameSite: "Strict"});
-      sessionStorage.setItem('token', this.authenticationService.sessionString);
-
-      let getAllSubFeaturesResp: any = await this.subfeatureService.getAllSubFeatures().toPromise();
-      if (getAllSubFeaturesResp.serviceStatus == "Success") {
-        this.allSubFeatures = getAllSubFeaturesResp.serviceResponse;
-        this.getFeatureList();
-
-        // wipe OTP after use
-        this.user.otp = null;
-
-        this.user.empId = user.empId;
-        this.user.name = user.name;
-        this.user.managerId = user.managerId;
-        this.user.departmentId = user.departmentId;
-        this.user.employmentstatus = user.employmentstatus;
-        this.user.gender = user.gender;
-        this.user.dateOfJoining = user.dateOfJoining;
-        this.user.timesheetLockDays = user.timesheetLockDays;
-        this.user.employeementId = user.employeementId;
-        this.user.isNew = user.isNew;
-        this.user.departmentName = user.departmentName;
-        this.user.dateOfResign = user.dateOfResign;
-        // this.user.isUserInfoUpdated = (user.isUserInfoUpdated == null) ? true : JSON.parse(user.isUserInfoUpdated);
-        this.user.isUserInfoUpdated = (user.isUserInfoUpdated == null || user.isUserInfoUpdated === "") ? true : JSON.parse(user.isUserInfoUpdated);
-        this.user.userMapping = this.getActiveSubFeatures();
-        this.user.tabList = this.getTabList();
-        this.user.appreciationEventInfo = this.enableAppreciation;
-        this.user.isAppreciationEnable = user.isAppreciationEnable;
-        this.user.employeeRole = user.employeeRole;
-        this.user.managerName = user.managerName;
-        this.user.managerEmail = user.managerEmail;
-        this.user.hodId = user.hodId;
-        this.user.hodName = user.hodName;
-        this.user.hodEmail = user.hodEmail;
-        this.user.isTimesheetLockCheckEnable = user.isTimesheetLockCheckEnable;
-        this.user.timesheetBackDatedDays = user.timesheetBackDatedDays;
-        this.user.compOffLockDays = user.compOffLockDays;
-        this.user.leaveBackdatedLockDays = user.leaveBackdatedLockDays;
-        this.user.leaveFuturedatedLockDays = user.leaveFuturedatedLockDays;
-        this.user.reportingManagerId = user.reportingManagerId;
-        this.user.reportingManagerName = user.reportingManagerName;
-        this.user.reportingManagerEmail = user.reportingManagerEmail;
-        this.user.approvalsTo = user.approvalsTo;
-        this.user.revokeReporteeLeaveValidity = user.revokeReporteeLeaveValidity;
-        this.user.policyReadConsent = user.policyReadConsent;
-        this.user.notificationConsent = user.notificationConsent;
-        this.user.poPortalAllProjectApi = user.poPortalAllProjectApi;
-        this.user.probationPeriod = user.probationPeriod;
-        this.user.releaseNoteNotification = user.releaseNoteNotification;
-        this.user.linkedinPageNotification = user.linkedinPageNotification;
-        this.user.newsletterReadCheck = user.newsletterReadCheck;
-        this.user.workLocation = user.workLocation;
-        this.user.maritalStatus = user.maritalStatus;
-        this.user.jobRoleName = user.jobRoleName;
-        this.user.isApmosysProduct = user.isApmosysProduct;
-        this.user.trainingLockStatus = user.trainingLockStatus; // Set training lock status from backend
-
-        if (user.isNew == "true") {
-          sessionStorage.setItem('FirstTimeLogin', "true");
-        } else {
-          sessionStorage.setItem('FirstTimeLogin', "false");
-        }
-        const encrypted = this.encryptionService.encrypt(JSON.stringify(this.user));
-        sessionStorage.setItem('currentUser', encrypted);
-        this.authenticationService.setcurrentUserSubject(this.user);
-        const encryptedLog = this.encryptionService.encrypt(JSON.stringify(log));
-        sessionStorage.setItem('logInfo', encryptedLog);
-        this.logService.updateLogInfo(log);
-        this.timeSession();
-
-        this.authenticationService.startUserSessionCheck();
-
-        // If login came with Team Attendance redirect, skip all default routing.
-        if (this.handleTeamAttendanceRedirect()) {
-          return;
-        }
-        // If login came with All Timesheets redirect, skip all default routing.
-        if (this.handleAllTimesheetsRedirect()) {
-          return;
-        }
-        
-        // Check training lock status and route accordingly
-        // Priority 1: If hard lock (deadline crossed) - user is frozen, must route to training page
-        
-        if (this.user.trainingLockStatus && 
-            this.user.trainingLockStatus.isHardLock === true) {
-          // Hard lock: deadline crossed (regardless of lock enabled) - user is frozen on training screen
-          this.router.navigate(['/training']);
-          return;
-        }
-        
-        // Priority 2: If user is frozen (mandatory + lock enabled) OR (mandatory + deadline crossed) - route to training page
-        if (this.user.trainingLockStatus && 
-            this.user.trainingLockStatus.isLocked === true) {
-          // User is frozen: (mandatory + lock enabled) OR (mandatory + deadline crossed) - route to training page
-          this.router.navigate(['/training']);
-          return;
-        }
-        
-        // Priority 3: If mandatory training exists (but not frozen) - route to training page for completion
-        if (this.user.trainingLockStatus && 
-            this.user.trainingLockStatus.hasMandatoryTrainingPending === true) {
-          // Mandatory training pending (but not frozen) - route to training page for completion
-          this.router.navigate(['/training']);
-          return;
-        }
-        
-        // Proceed with normal navigation - LinkedIn notification will be handled globally in App component
-        if (this.authGaurd.id != null) {
-          let url = this.authGaurd.currentUrl;
-          if (url.includes("user-survey")) {
-            this.router.navigate(['/user-survey', this.authGaurd.id]);
-          }
-          if (url.includes("my-resignation")) {
-            this.router.navigate(['/user-exit/my-resignation', this.authGaurd.id]);
-          }
-          if (url.includes("resource-management")) {
-            this.router.navigate(['/user-team/resource-management', this.authGaurd.id]);
-          }
-          if (url.includes("helpdesk")) {
-            this.router.navigate(['/helpdesk', this.authGaurd.id]);
-          }
-        } else {
-          this.router.navigate(['/home']);
-        }
-
-        if (this.user.tabList.find(e => e.tabName === 'HR Policies')) {
-          if (this.currentUser.policyReadConsent != null) {
-            this.router.navigate(['/user-policies']);
-          }
-        }
-
-        if (this.user.tabList.find(e => e.tabName === 'Newsletters')) {
-          if (this.currentUser.newsletterReadCheck != null) {
-            this.router.navigate(['/newsletters']);
-          }
-        }
-
-          if (this.user.tabList.find(e => e.tabName === 'Training')) {
-          if (this.currentUser.newsletterReadCheck != null) {
-            this.router.navigate(['/newsletters']);
-          }
-        }
-        
-      }
+      await this.completeAuthenticatedLogin(response.serviceResponse, true);
     } else {
       this.isError = true;
       this.errorMsg = response.serviceResponse;
@@ -476,6 +326,135 @@ this.user.otp = encryptedOtp;
     this.errorMsg = "Invalid OTP !!";
   }
 }
+
+  private handlePoSessionLogin(empId: number, poToken: string, deepLink: string): void {
+    this.isError = false;
+    this.errorMsg = '';
+    this.authenticationService.verifyPoPortalTokenForDirectAccess({ empId, poToken, deepLink }).pipe(first()).subscribe({
+      next: async (response: any) => {
+        if (response?.serviceStatus === "Success") {
+          await this.completeAuthenticatedLogin(response.serviceResponse, false);
+        } else {
+          this.isError = true;
+          this.errorMsg = response?.serviceResponse || 'Unable to verify Po portal access.';
+        }
+      },
+      error: (err: any) => {
+        this.isError = true;
+        this.errorMsg = err?.error?.serviceResponse || 'Unable to verify Po portal access.';
+      }
+    });
+  }
+
+  private async completeAuthenticatedLogin(responseObj: any, wipeOtpAfterUse: boolean): Promise<void> {
+    const user = responseObj[0];
+    this.allMappedSubfeatures = responseObj[1];
+    this.authenticationService.sessionString = responseObj[2];
+    this.authenticationService.sessionTimeout = responseObj[3];
+
+    sessionStorage.setItem('maxFileSize', responseObj[4]);
+    sessionStorage.setItem('maxRequestSize', responseObj[5]);
+
+    const log: Log = responseObj[6];
+    log.empId = user.empId;
+    this.enableAppreciation = responseObj[7];
+    const requestedDeepLink = responseObj[8];
+
+    sessionStorage.setItem('token', this.authenticationService.sessionString);
+
+    const getAllSubFeaturesResp: any = await this.subfeatureService.getAllSubFeatures().toPromise();
+    if (getAllSubFeaturesResp.serviceStatus != "Success") {
+      this.isError = true;
+      this.errorMsg = "Unable to load user permissions.";
+      return;
+    }
+
+    this.allSubFeatures = getAllSubFeaturesResp.serviceResponse;
+    this.getFeatureList();
+
+    if (wipeOtpAfterUse) {
+      this.user.otp = null;
+    }
+
+    this.user.empId = user.empId;
+    this.user.name = user.name;
+    this.user.managerId = user.managerId;
+    this.user.departmentId = user.departmentId;
+    this.user.employmentstatus = user.employmentstatus;
+    this.user.gender = user.gender;
+    this.user.dateOfJoining = user.dateOfJoining;
+    this.user.timesheetLockDays = user.timesheetLockDays;
+    this.user.employeementId = user.employeementId;
+    this.user.isNew = user.isNew;
+    this.user.departmentName = user.departmentName;
+    this.user.dateOfResign = user.dateOfResign;
+    this.user.isUserInfoUpdated = (user.isUserInfoUpdated == null || user.isUserInfoUpdated === "") ? true : JSON.parse(user.isUserInfoUpdated);
+    this.user.userMapping = this.getActiveSubFeatures();
+    this.user.tabList = this.getTabList();
+    this.user.appreciationEventInfo = this.enableAppreciation;
+    this.user.isAppreciationEnable = user.isAppreciationEnable;
+    this.user.employeeRole = user.employeeRole;
+    this.user.managerName = user.managerName;
+    this.user.managerEmail = user.managerEmail;
+    this.user.hodId = user.hodId;
+    this.user.hodName = user.hodName;
+    this.user.hodEmail = user.hodEmail;
+    this.user.isTimesheetLockCheckEnable = user.isTimesheetLockCheckEnable;
+    this.user.timesheetBackDatedDays = user.timesheetBackDatedDays;
+    this.user.compOffLockDays = user.compOffLockDays;
+    this.user.leaveBackdatedLockDays = user.leaveBackdatedLockDays;
+    this.user.leaveFuturedatedLockDays = user.leaveFuturedatedLockDays;
+    this.user.reportingManagerId = user.reportingManagerId;
+    this.user.reportingManagerName = user.reportingManagerName;
+    this.user.reportingManagerEmail = user.reportingManagerEmail;
+    this.user.approvalsTo = user.approvalsTo;
+    this.user.revokeReporteeLeaveValidity = user.revokeReporteeLeaveValidity;
+    this.user.policyReadConsent = user.policyReadConsent;
+    this.user.notificationConsent = user.notificationConsent;
+    this.user.poPortalAllProjectApi = user.poPortalAllProjectApi;
+    this.user.probationPeriod = user.probationPeriod;
+    this.user.releaseNoteNotification = user.releaseNoteNotification;
+    this.user.linkedinPageNotification = user.linkedinPageNotification;
+    this.user.newsletterReadCheck = user.newsletterReadCheck;
+    this.user.workLocation = user.workLocation;
+    this.user.maritalStatus = user.maritalStatus;
+    this.user.jobRoleName = user.jobRoleName;
+    this.user.isApmosysProduct = user.isApmosysProduct;
+    this.user.trainingLockStatus = user.trainingLockStatus;
+
+    sessionStorage.setItem('FirstTimeLogin', user.isNew == "true" ? "true" : "false");
+    const encrypted = this.encryptionService.encrypt(JSON.stringify(this.user));
+    sessionStorage.setItem('currentUser', encrypted);
+    this.authenticationService.setcurrentUserSubject(this.user);
+    const encryptedLog = this.encryptionService.encrypt(JSON.stringify(log));
+    sessionStorage.setItem('logInfo', encryptedLog);
+    this.logService.updateLogInfo(log);
+    this.timeSession();
+    this.authenticationService.startUserSessionCheck();
+
+    if (requestedDeepLink) {
+      const normalizedDeepLink = this.normalizeRedirectTarget(requestedDeepLink);
+      this.router.navigateByUrl(normalizedDeepLink || '/home');
+      return;
+    }
+    if (this.handleTeamAttendanceRedirect()) return;
+    if (this.handleAllTimesheetsRedirect()) return;
+
+    if (this.user.trainingLockStatus?.isHardLock === true || this.user.trainingLockStatus?.isLocked === true || this.user.trainingLockStatus?.hasMandatoryTrainingPending === true) {
+      this.router.navigate(['/training']);
+      return;
+    }
+
+    if (this.authGaurd.id != null) {
+      let url = this.authGaurd.currentUrl;
+      if (url.includes("user-survey")) this.router.navigate(['/user-survey', this.authGaurd.id]);
+      if (url.includes("my-resignation")) this.router.navigate(['/user-exit/my-resignation', this.authGaurd.id]);
+      if (url.includes("resource-management")) this.router.navigate(['/user-team/resource-management', this.authGaurd.id]);
+      if (url.includes("helpdesk")) this.router.navigate(['/helpdesk', this.authGaurd.id]);
+    } else {
+      this.router.navigate(['/home']);
+    }
+  }
 
   timeSession() {
     // Dynamic Subfeature Flags

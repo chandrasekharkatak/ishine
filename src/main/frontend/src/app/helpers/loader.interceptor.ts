@@ -559,10 +559,18 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/v2/timesheet/getRejectionDetailsWithProjectsByTimesheetId`,
     `${this.baseUrl}` + `api/v2/timesheet/bulkFinalUploadProjectBased`,
     `${this.baseUrl}` + `api/v2/timesheet/getLastThreeMonthsWorkingDates`,
+    `${this.baseUrl}` + `api/auth/po/session-login`,
+    `${this.baseUrl}` + `api/auth/po/verifyTokenOfPoPortalForDirectAccess`,
+
 
     `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
     `${this.baseUrl}` + `api/getExtensionDocumentByName`,
     `${this.baseUrl}` + `api/validateDocName`,
+    `${this.baseUrl}` + `api/getAllMyTeamLeaveRevokeApplicationsByEmpId`,
+    `${this.baseUrl}` + `api/getRevokeLeaveApplicationByEmpId`,
+    `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
+    `${this.baseUrl}` + `api/getExtensionDocumentByName`,
+    `${this.baseUrl}` + `api/validateDocName`
 
 
   ];

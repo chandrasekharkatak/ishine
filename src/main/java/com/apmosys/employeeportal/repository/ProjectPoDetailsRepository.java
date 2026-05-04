@@ -122,7 +122,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 
     List<ProjectPoDetails> findByProjectIdAndActiveFalse(Integer projectId);
 
-		List<ProjectPoDetails> findByProjectIdAndPoIdIn(Integer projectId, Set<Long> poIdsFromPortal);
+    List<ProjectPoDetails> findByProjectIdAndPoIdIn(Integer projectId, Set<Long> poIdsFromPortal);
 		
 		// @Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO( "
         	// 	+ "       e.employeementId,e.name,rd.role,rd.experience,rd.department,"
@@ -299,4 +299,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 
     @Query("SELECT ppd.projectId FROM ProjectPoDetails ppd where ppd.poNo = :poNo and ppd.active is true")
 	Integer findProjectIdByPoNo(String poNo);
+    List<ProjectPoDetails> findByProjectIdAndPoIdInAndActiveTrue(Integer projectId, Set<Long> poIds);
+
+    List<ProjectPoDetails> findByProjectIdAndPrevPOInAndActiveTrue(Integer projectId, Set<Long> poIds);
 }

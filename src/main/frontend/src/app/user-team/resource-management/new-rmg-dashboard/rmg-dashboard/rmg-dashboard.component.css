@@ -31,6 +31,9 @@
 
 .status-card {
   position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Selected card highlight (subtle, professional). */
@@ -91,9 +94,13 @@
     font-size: 10px;
 }
 
+.wrapper-section{
+     background: linear-gradient(135deg, rgba(25, 61, 138, 0.15), rgba(25, 61, 138, 0.05));
+}
+
 .glance-section {
-    background: linear-gradient(135deg, rgba(25, 61, 138, 0.15), rgba(25, 61, 138, 0.05));
-    background: linear-gradient(135deg, rgba(25, 61, 138, 0.15), rgba(25, 61, 138, 0.05));
+    background: url('/assets/Images/rmg_bg.gif') right no-repeat;
+    background-size: contain;
 }
 
 .text-accent {
@@ -606,13 +613,13 @@
 
 .icon-btn.warning {
   background: #fff3cd;
-  color: #b58105; 
+  color: #b58105;
   border: 1px solid #ffe08a;
   box-shadow: 0 1px 4px rgba(255, 193, 7, 0.25);
 }
 
 .icon-btn.warning i {
-  font-size: 15px; 
+  font-size: 15px;
 }
 
 .icon-btn.warning:hover {
@@ -725,4 +732,9 @@
   border: 1px solid #f1b0b7;
   border-radius: 999px;
   white-space: nowrap;
+}
+
+.rmg-gif {
+    height: 250px;
+    width: 500px;
 }

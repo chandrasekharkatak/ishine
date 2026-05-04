@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -127,7 +128,7 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 			+ "WHERE p.poId = :poId")
 	List<Long> findRoleIdsByPoId(Long poId);
 
-	
+	Optional<PoRequirementMapping> findByPoIdAndRoleId(Long poId, Long roleId);
 	
 	
 }

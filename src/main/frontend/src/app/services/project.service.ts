@@ -143,11 +143,12 @@ updateMilestoneExtendedDate(formData: FormData): Observable<any> {
   //   return this.http.get(`${this.baseUrl}` + `api/getEmployeeExistingProjectDetailsByEmpId`, { params: httpParams });
   // }
 
-  getEmployeeExistingProjectDetailsByEmpId(empId: any, projectId: any, enforceSingleTeamPerProject: boolean = false) {
+  getEmployeeExistingProjectDetailsByEmpId(empId: any, projectId: any, enforceSingleTeamPerProject: boolean = false, teamId: any) {
     let httpParams = new HttpParams()
       .append("empId", empId)
       .append("projectId", projectId)
-      .append("enforceSingleTeamPerProject", String(enforceSingleTeamPerProject));
+      .append("enforceSingleTeamPerProject", String(enforceSingleTeamPerProject))
+      .append("teamId", teamId);
     return this.http.get(`${this.baseUrl}` + `api/getEmployeeExistingProjectDetailsByEmpId`, { params: httpParams });
   }
 

@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
 import java.util.List;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,6 +22,8 @@ public class AutoMigrationDTO {
 	private String currentPoNumber;
 	private String projectName;
     private String projectType;
+    private Set<Long> migratedDeptIds; 
+    
 
 	private List<EmployeeImpactDTO> employees;
 }

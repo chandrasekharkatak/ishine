@@ -53,7 +53,7 @@ export class CompOffComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  compOffReqColumns:any[] = ['blank','compOffReasons','fromDate','noOfDays','description','status'];
+  compOffReqColumns:any[] = ['blank','compOffReasons','fromDate','noOfDays','description','status','rejectCompOffReason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','blank'];
   tabName: string;
 
   constructor(
@@ -183,7 +183,7 @@ export class CompOffComponent implements OnInit {
       const dateFormat = 'YYYY-MM-DD';
       const currentDate = new Date();
       const DAY_IN_MS = 24 * 60 * 60 * 1000;
-      let BACKDATED_LEAVE_PERIOD = 31;
+      let BACKDATED_LEAVE_PERIOD = 3;
 
       if(this.currentUser.compOffLockDays){
         BACKDATED_LEAVE_PERIOD = this.currentUser.compOffLockDays;
@@ -302,14 +302,26 @@ export class CompOffComponent implements OnInit {
 
       //console.log("Apply Comp off : ", this.compOffObj);
       //console.log("compoff currentuser    ::   ",this.currentUser);
-      this.leaveService.applyForCompOff(this.compOffObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.openAlertMod(template, response.serviceResponse);
-          this.showCompOffRequestTable();
-        } else {
-          this.openAlertMod(template, response.serviceResponse);
-        }
-      });
+      this.leaveService.applyForCompOff(this.compOffObj)
+  .pipe(first())
+  .subscribe({
+    next: (response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.showCompOffRequestTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    },
+    error: (error) => {
+      const msg =
+        error?.error?.serviceResponse ||
+        error?.error?.message ||
+        "Something went wrong!";
+        
+      this.openAlertMod(template, msg);
+    }
+  });
     }
 
 
@@ -353,23 +365,45 @@ export class CompOffComponent implements OnInit {
         compOff.managerEmail = this.currentUser.reportingManagerEmail;
         compOff.managerId = this.currentUser.reportingManagerId;
         compOff.managerName = this.currentUser.reportingManagerName;
+        compOff.empId=this.currentUser.empId;
       }else{
         compOff.reportingManagerId = this.currentUser.managerId;
         compOff.managerId = this.currentUser.managerId;
         compOff.managerEmail = this.currentUser.managerEmail;
         compOff.managerName = this.currentUser.managerName;
+        compOff.empId=this.currentUser.empId;
       }
 
 
       //console.log("Update comp off : ", compOff);
-      this.leaveService.updateCompOff(compOff).pipe(first()).subscribe((response: any) => {
+      // this.leaveService.updateCompOff(compOff).pipe(first()).subscribe((response: any) => {
+      //   if (response.serviceStatus == "Success") {
+      //     this.openAlertMod(template, response.serviceResponse);
+      //     this.showCompOffRequestTable();
+      //   } else {
+      //     this.openAlertMod(template, response.serviceResponse);
+      //   }
+      // });
+        this.leaveService.updateCompOff(compOff)
+    .pipe(first())
+    .subscribe({
+      next: (response: any) => {
         if (response.serviceStatus == "Success") {
           this.openAlertMod(template, response.serviceResponse);
           this.showCompOffRequestTable();
         } else {
           this.openAlertMod(template, response.serviceResponse);
         }
-      });
+      },
+      error: (error) => {
+        const msg =
+          error?.error?.serviceResponse ||
+          error?.error?.message ||
+          "Something went wrong!";
+
+        this.openAlertMod(template, msg);
+      }
+    });
     }
 
     deleteCompOff(template: TemplateRef<any>) {

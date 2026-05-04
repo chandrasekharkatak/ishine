@@ -236,6 +236,7 @@ import { PortalModule } from '@angular/cdk/portal';
 import { RmgModalHostComponent } from './user-team/resource-management/rmg-modal-host/rmg-modal-host.component';
 import { RmgDashboardComponent } from './user-team/resource-management/new-rmg-dashboard/rmg-dashboard/rmg-dashboard.component';
 
+import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 
 registerLocaleData(localeGb);
 
@@ -431,6 +432,7 @@ registerLocaleData(localeGb);
     QuizSubmit,
   ],
   imports: [
+    NgbTooltipModule,
     BrowserModule,
     AppRoutingModule,
     MatCardModule,

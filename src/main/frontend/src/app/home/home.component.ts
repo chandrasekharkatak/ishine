@@ -211,6 +211,9 @@ rejectedCount = 0;
   clientFilter: boolean | null = null;
 
   leaveObj = new Leave();
+  leaveRejectionReasonList: any[] = [];
+selectedRejectionIds: number[] = [];
+showOtherRemarks = false;
 
   zoomScale = 1;
   zoomLevel = 100;
@@ -296,10 +299,12 @@ rejectedCount = 0;
     "Ensure all entries are approved for the month to close successfully.",
   ]
 
+
   @ViewChild('attendancePolicyModal') attendancePolicyModalRef!: TemplateRef<any>;
   summaryText: string = '';
   defaulterMonths: any[] = [];
   showAllMonths: boolean = false;
+
 location: any;
 act: any;
 project: any;
@@ -425,9 +430,13 @@ timesheet: any;
     this.getRejectionReason();
     //console.log('User Mapping', this.userMapping);
     this.getTimesheetStatusCountsByEmpId();
+
+    this.getLeaveRejectionReasons();
+
     setTimeout(() => {
       this.loadPolicyNotification();
     });
+
   }
 
   //   openProbationNotificationModal(template: TemplateRef<any>) {
@@ -469,6 +478,31 @@ timesheet: any;
     this.locationStrategy.onPopState(() => {
       history.pushState(null, null, location.href);
     })
+  }
+
+  onRejectionReasonChange() {
+    const other = this.leaveRejectionReasonList.find(
+      x => x.reason.toLowerCase() === 'other'
+    );
+
+    this.showOtherRemarks =
+      other && this.selectedRejectionIds.includes(other.rejectionReasonId);
+
+    if (!this.showOtherRemarks) {
+      this.leaveObj.rejectReason = '';
+    }
+  }
+  isRejectDisabled(): boolean {
+    if (this.selectedRejectionIds.length === 0) {
+      return true;
+    }
+
+    if (!this.leaveObj.rejectReason ||
+      !this.leaveObj.rejectReason.trim()) {
+      return true;
+    }
+
+    return false;
   }
 
 
@@ -574,6 +608,44 @@ timesheet: any;
       }
     });
   }
+  onUpdateLeaveStatusNew(
+  template: TemplateRef<any>,
+  leaveApplication: any,
+  updatedLeaveStatusId: number
+) {
+  this.cancelRequest();
+
+  // 1 = Pending, 2 = Approved, 3 = Rejected
+  leaveApplication.leaveStatusId = updatedLeaveStatusId;
+  leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId;
+  leaveApplication.rejectReason = leaveApplication.rejectReason?.trim();
+
+  // New fields for rejection flow
+  leaveApplication.rejectionIds = this.selectedRejectionIds || [];
+
+  this.leaveService.updateLeaveStatusNew(leaveApplication)
+    .pipe(first())
+    .subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+          this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+        }
+
+        this.openAlertMod(template, response.serviceResponse);
+        this.resetRejectModalData();
+      },
+      error: (error: any) => {
+        console.error(error);
+        this.openAlertMod(template, "Something went wrong.");
+      }
+    });
+}
+resetRejectModalData() {
+  this.selectedRejectionIds = [];
+  this.showOtherRemarks = false;
+  this.leaveObj.rejectReason = '';
+}
 
   onUpdateLeaveStatusCheck(template: TemplateRef<any>, updatedLeaveStatusId) {
     this.cancelRequest();
@@ -664,6 +736,28 @@ timesheet: any;
     }
     this.onUpdateLeaveStatus(template, this.leaveObj, 3);
   }
+  onSingleRejectNew(template: TemplateRef<any>,) {
+    this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
+    if (!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)) {
+      this.alertMessage = "Please enter valid reason !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    this.onUpdateLeaveStatusNew(template, this.leaveObj, 3);
+  }
+
+  getLeaveRejectionReasons() {
+  this.leaveService.getLeaveRejectionReasons()
+    .subscribe({
+      next: (response: any) => {
+        this.leaveRejectionReasonList = response;
+        console.log('Rejection Reasons:', this.leaveRejectionReasonList);
+      },
+      error: (error: any) => {
+        console.error(error);
+      }
+    });
+}
 
   // openLeaveRejectModal
   openLeaveRejectModal(template: TemplateRef<any>, leave: any) {
@@ -2111,6 +2205,51 @@ private roundToTwo(num: number): number {
     });
 
   }
+
+  bulkRejectLeaveNew(template: TemplateRef<any>) {
+
+  this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
+
+  if (this.showOtherRemarks &&
+      !this.leaveObj.rejectReason) {
+    this.alertMessage = "Please enter remarks for Other reason.";
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+
+  let leaveObj = new Leave();
+
+  leaveObj.bulkLeaveRejectList = this.bulkLeaveReject;
+  leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+  leaveObj.leaveStatusId = 3;
+  leaveObj.approverEmail = this.currentUser.email;
+  leaveObj.rejectReason = this.leaveObj.rejectReason;
+  leaveObj.rejectionIds = this.selectedRejectionIds;
+
+  this.leaveService.bulkRejectLeaveRequestNew(leaveObj)
+    .pipe(first())
+    .subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus == "Success") {
+
+          this.openAlertMod(
+            template,
+            "All Selected Leaves Rejected Successfully"
+          );
+
+          this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+          this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+
+          this.bulkLeaveApprove = [];
+          this.bulkLeaveReject = [];
+          this.resetRejectModalData();
+        }
+      },
+      error: (error: any) => {
+        console.error(error);
+      }
+    });
+}
 
 
 

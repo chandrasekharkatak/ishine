@@ -1,65 +1,142 @@
-.table-header{
-    width: 100%;
-    height: 50px;
-    background: var(--ghost-white);
-    margin-bottom: 1em;
+/* ===============================
+Holidays Table - Required CSS
+=============================== */
+
+/* Header */
+.leave-section-header {
+background: linear-gradient(90deg, #f8f9fa, #ffffff);
+font-size: 15px;
+font-weight: 600;
+color: #343a40;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+border-bottom: 1px solid #dee2e6;
+padding: 10px 16px;
 }
 
-.table-header-title{
-    font-size: 2rem;
-    padding: .2em;
-    margin-bottom: 0;
-    color: var(--raisin-black);
+.leave-section-header i {
+color: #0d6efd;
 }
 
-.text-highlight{
-    color: var(--dark-cornflower-blue);
+/* Wrapper + Scroll */
+.ts-table-wrapper {
+width: 100%;
+box-sizing: border-box;
+font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
-.my-pagination::ng-deep .ngx-pagination .current {
-    background: #193d8a  !important;
+.ts-table-scroll {
+width: 100%;
+overflow-x: auto;
 }
 
-.my-pagination::ng-deep{
-    padding-top: 10px;
+/* Toolbar */
+.ts-toolbar {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 10px;
+padding-bottom: 10px;
 }
 
-.scrollable-table{
-    width: 92vw;
-    height: 70vh;
-} 
-
-.col{
-    min-width: 300px;
+.ts-search-toggle {
+width: 32px;
+height: 32px;
+border-radius: 6px;
+border: 1px solid #e2e8f0;
+background: #ffffff;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #64748b;
+font-size: 13px;
+cursor: pointer;
+transition: all 0.15s;
 }
 
-.thead-light th{
-    position: sticky;
-    top: -0.7px;
+.ts-search-toggle:hover {
+background: #f1f5f9;
+color: #1a2e44;
 }
 
-.info-label{
-    width: 400px;
+/* Table */
+.ts-table {
+width: 100%;
+border-collapse: collapse;
+font-size: 13px;
+color: #1e293b;
+background: #ffffff;
+border: 1px solid #e2e8f0;
+border-radius: 8px;
+overflow: hidden;
 }
-.overflow-auto{
-    position: relative;
-    max-height: 500px; 
-    overflow-y: auto;
-    margin-top: 20px;
+
+.ts-table thead tr {
+background: #1a2e44;
 }
-.table{
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+
+.ts-table thead th {
+padding: 11px 12px;
+font-size: 11px;
+font-weight: 700;
+text-transform: uppercase;
+color: #ffffff;
+white-space: nowrap;
 }
-.thead-light{
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--ghost-white);
+
+/* Filter Row */
+.ts-table thead tr:nth-child(2) th {
+background: #f1f5f9 !important;
+color: #334155 !important;
+font-size: 12px;
+padding: 8px 10px;
+text-transform: none;
 }
-.export-button {
-     position: absolute;
-    right: 0%;
-    top: -25px;
+
+/* Rows */
+.ts-table tbody tr.ts-row {
+border-bottom: 1px solid #f1f5f9;
+transition: background 0.1s;
+}
+
+.ts-table tbody tr.ts-row:hover {
+background: #f8fafc;
+}
+
+.ts-table tbody td {
+padding: 10px 12px;
+font-size: 13px;
+color: #334155;
+}
+
+/* Empty State */
+.ts-empty {
+text-align: center;
+padding: 40px 20px;
+color: #94a3b8;
+font-size: 13px;
+}
+
+.ts-empty i {
+font-size: 24px;
+display: block;
+margin-bottom: 8px;
+}
+
+/* Pagination */
+.ts-pagination {
+padding-top: 12px;
+display: flex;
+justify-content: center;
+}
+
+.ts-pagination::ng-deep .ngx-pagination .current {
+background: #1a2e44 !important;
+border-radius: 4px;
+}
+
+.ts-pagination::ng-deep .ngx-pagination a,
+.ts-pagination::ng-deep .ngx-pagination button {
+border-radius: 4px;
+font-size: 13px;
 }

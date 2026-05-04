@@ -165,7 +165,8 @@ export class RmgModalHostComponent {
         return;
 
       case 'DELETE_EMPLOYEE_FROM_EXISTING_PROJECT':
-        this.employeeProjectEndDate = null
+        this.employeeProjectEndDateType = 'Custom';
+        this.employeeProjectEndDate = null;
         this.deleteEmployeeExistingProjectMappingObj = data;
         template = this.deleteEmployeeFromExistingProjectTemplateRef;
         break;

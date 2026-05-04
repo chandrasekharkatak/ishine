@@ -579,7 +579,7 @@
     <div class="modal-body text-center">
         <h6>Select if a Client Side ID is provided for the VMS process.</h6>
         <label>
-            <input type="checkbox" [(ngModel)]="hasClientSideIdFlag" (change)="onMandatoryChange()" />
+            <input type="checkbox" [(ngModel)]="hasClientSideIdFlag" (change)="onMandatoryChange()" [disabled]="isClientSideIdTnmProjectType" />
             Is Client Side ID Mandatory?
         </label>
         <br>
