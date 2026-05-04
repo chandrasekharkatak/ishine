@@ -17,7 +17,6 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LMSDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.PoSessionLoginRequestDTO;
-import com.apmosys.employeeportal.dto.PoSessionLogoutRequestDTO;
 import com.apmosys.employeeportal.dto.PoVerifyDirectAccessRequestDTO;
 import com.apmosys.employeeportal.service.AuthenticationService;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
@@ -108,11 +107,11 @@ public class AuthenticationController {
 		return authenticationService.verifyTokenOfPoPortalForDirectAccess(requestDto);
 	}
 
-	@PostMapping("/auth/po/session-logout")
-	public ServiceResponse logoutFromPoSession(@RequestBody PoSessionLogoutRequestDTO requestDto, HttpServletRequest httpRequest) {
-		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		return authenticationService.logoutFromPoSession(requestDto);
-	}
+//	@PostMapping("/auth/po/session-logout")
+//	public ServiceResponse logoutFromPoSession(@RequestBody PoSessionLoginRequestDTO requestDto, HttpServletRequest httpRequest) {
+//		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+//		return authenticationService.logoutFromPoSession(requestDto);
+//	}
 	
 	@RequestMapping(value = "/getServerDate", method = RequestMethod.GET)
 	public LocalDate getServerDate() {

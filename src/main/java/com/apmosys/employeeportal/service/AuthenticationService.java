@@ -42,7 +42,6 @@ import com.apmosys.employeeportal.dto.LMSEmailSend;
 import com.apmosys.employeeportal.dto.LMSRedirect;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoSessionLoginRequestDTO;
-import com.apmosys.employeeportal.dto.PoSessionLogoutRequestDTO;
 import com.apmosys.employeeportal.dto.PoVerifyDirectAccessRequestDTO;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.DraftEmployee;
@@ -1423,7 +1422,7 @@ public class AuthenticationService {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse logoutFromPoSession(PoSessionLogoutRequestDTO requestDto) {
+	public ServiceResponse logoutFromPoSession(PoSessionLoginRequestDTO requestDto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setLogLevel("INFO");
