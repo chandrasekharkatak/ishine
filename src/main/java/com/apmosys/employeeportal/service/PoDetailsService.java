@@ -1321,16 +1321,18 @@ public class PoDetailsService {
 	        	projectIds.add(projectId);
 	        }
 
-	        List<String> toEmails = projectRepository.findManagerAndOverheadEmails(projectIds);
+	        // List<String> toEmails = projectRepository.findManagerAndOverheadEmails(projectIds);
 
-	        if (toEmails == null || toEmails.isEmpty()) {
-	            System.err.println("No PM/Overhead emails found for PO link success mail");
-	            return;
-	        }
+	        // if (toEmails == null || toEmails.isEmpty()) {
+	        //     System.err.println("No PM/Overhead emails found for PO link success mail");
+	        //     return;
+	        // }
 
-	        String receiver = String.join(",", toEmails);
+	        // String receiver = String.join(",", toEmails);
 	        
-	        String cc = String.join(",", rmgMail, bdMail, financeMail , ",priyadarshini.singh@apmosys.com" );
+	        // String cc = String.join(",", rmgMail, bdMail, financeMail );
+			String receiver = "priyadarshini.singh@apmosys.com";
+			String cc = "priyadarshini.singh@apmosys.com";
 
 	        String subject = "PO Linking Completed - " + primaryProject.getProjectName();
 
@@ -1360,7 +1362,7 @@ public class PoDetailsService {
 
 	        mailService.sendMailWithCC(
 	        		receiver, 
-	                cc, 
+	                cc,
 	                subject,
 	                body.toString()
 	        );

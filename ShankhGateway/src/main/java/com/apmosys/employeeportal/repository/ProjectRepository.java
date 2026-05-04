@@ -8691,7 +8691,7 @@ List<Object[]> getClientAndProjectDataList(
 		    		+ "		                   AND pom.active = 1\n"
 		    		+ "		            WHERE pmm.projectId IN (:projectIds)\n"
 		    		+ "		               OR pom.projectId IN (:projectIds)")
-		    List<String> findManagerAndOverheadEmails(@Param("projectIds") List<Integer> projectIds);
+		    List<String> findManagerAndOverheadEmails(@Param("projectIds") List<Long> projectIds);
 
 
 			@Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(" +

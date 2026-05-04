@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -123,6 +124,9 @@ public class PoDetailsService {
 	
 	@Autowired
 	MailService mailService;
+
+	@Autowired
+	PoLinkImpactEmailBuilder poLinkImpactEmailBuilder;
 	
 	@Autowired
 	ProjectService projectService;
@@ -931,21 +935,35 @@ public class PoDetailsService {
 
 	public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 
+	    if (payloadDTO == null
+	    		|| payloadDTO.getPrimaryProject() == null
+	    		|| payloadDTO.getDeletedProjects() == null
+	    		|| payloadDTO.getDeletedProjects().isEmpty()) {
+	    	log.info("liftAndShiftTeamNew: skipped (null payload, missing primary, or no deleted projects)");
+	    	return;
+	    }
+
 	    Long updatedBy = fetchUpdatedBy(payloadDTO);
 
 	    ProjectPoMappingWithResourceDTO primaryDTO = payloadDTO.getPrimaryProject();
 
 	    Project primaryProject = projectRepository.findByPoProjectId(primaryDTO.getProjectId());
+	    if (primaryProject == null || primaryProject.getProjectId() == null) {
+	    	ExceptionLogContext.add("liftAndShiftTeamNew: primary project not found for poProjectId="
+	    			+ primaryDTO.getProjectId());
+	    	throw new RuntimeException("Primary project not found for PO link team lift.");
+	    }
 
 	    Set<String> primaryTeamNames = fetchPrimaryTeamNames(primaryDTO.getProjectId());
 
-	    List<Project> deletedProjects =
+	    List<Project> deletedProjects = Optional.ofNullable(
 	            projectRepository.findByPoProjectIdIn(
 	                    payloadDTO.getDeletedProjects()
 	                            .stream()
 	                            .map(ProjectPoMappingWithResourceDTO::getProjectId)
-	                            .collect(Collectors.toSet())
-	            );
+	                            .filter(Objects::nonNull)
+	                            .collect(Collectors.toSet())))
+	            .orElse(Collections.emptyList());
 
 	    Set<Long> deletedProjectIds =
 	            deletedProjects.stream()
@@ -1131,19 +1149,50 @@ public class PoDetailsService {
 
 	private Long fetchUpdatedBy(IshineLinkProjectDto payloadDTO) {
 
-		if (payloadDTO.getDeletedProjects().isEmpty()
-	            || payloadDTO.getDeletedProjects().get(0).getPoDetailsList().isEmpty()) {
-	        throw new RuntimeException("Unable to derive updatedBy from payload");
-	    }
+		if (payloadDTO == null) {
+			throw new RuntimeException("Unable to derive updatedBy: payload is null");
+		}
 
-	    PoDetailsForProjectPoMappingDTO poDto = payloadDTO.getDeletedProjects().get(0).getPoDetailsList().get(0);
+		Long updatedBy = null;
+		String updatedByName = null;
 
-		validationService.validateEmployeeExists(
-	            poDto.getUpdatedByEmpId(),
-	            poDto.getUpdatedByEmpName()
-	    );
-		
-	    return poDto.getUpdatedByEmpId();
+		if (payloadDTO.getDeletedProjects() != null) {
+			for (ProjectPoMappingWithResourceDTO del : payloadDTO.getDeletedProjects()) {
+				if (del == null || del.getPoDetailsList() == null) {
+					continue;
+				}
+				for (PoDetailsForProjectPoMappingDTO poDto : del.getPoDetailsList()) {
+					if (poDto != null && poDto.getUpdatedByEmpId() != null) {
+						updatedBy = poDto.getUpdatedByEmpId();
+						updatedByName = poDto.getUpdatedByEmpName();
+						break;
+					}
+				}
+				if (updatedBy != null) {
+					break;
+				}
+			}
+		}
+
+		if (updatedBy == null && payloadDTO.getPrimaryProject() != null
+				&& payloadDTO.getPrimaryProject().getPoDetailsList() != null) {
+			for (PoDetailsForProjectPoMappingDTO poDto : payloadDTO.getPrimaryProject().getPoDetailsList()) {
+				if (poDto != null && poDto.getUpdatedByEmpId() != null) {
+					updatedBy = poDto.getUpdatedByEmpId();
+					updatedByName = poDto.getUpdatedByEmpName();
+					break;
+				}
+			}
+		}
+
+		if (updatedBy == null) {
+			throw new RuntimeException(
+					"Unable to derive updatedBy from payload (no updatedByEmpId on deleted or primary PO rows)");
+		}
+
+		validationService.validateEmployeeExists(updatedBy, updatedByName);
+
+		return updatedBy;
 	}
 	
 	private Set<String> fetchPrimaryTeamNames(Long poProjectId) {
@@ -1203,7 +1252,9 @@ public class PoDetailsService {
 	
 	private void handleProjectManagerMappings( Long deletedProjectId, Long primaryProjectId, Long updatedBy) {
 
-	    List<ProjectManagerMapping> sourceMappings = projectManagerMappingRepository.findByProjectIdAndActive(deletedProjectId, 1);
+	    List<ProjectManagerMapping> sourceMappings = Optional
+	    		.ofNullable(projectManagerMappingRepository.findByProjectIdAndActive(deletedProjectId, 1))
+	    		.orElse(Collections.emptyList());
 
 	    if (sourceMappings.isEmpty()) {
 	        return;
@@ -1220,7 +1271,9 @@ public class PoDetailsService {
 
 	private void handleProjectOverheadMappings( Long deletedProjectId, Long primaryProjectId, Long updatedBy) {
 
-	    List<ProjectOverheadMapping> sourceMappings = projectOverheadMappingRepository.findByProjectIdAndActive(deletedProjectId, 1);
+	    List<ProjectOverheadMapping> sourceMappings = Optional
+	    		.ofNullable(projectOverheadMappingRepository.findByProjectIdAndActive(deletedProjectId, 1))
+	    		.orElse(Collections.emptyList());
 
 	    if (sourceMappings.isEmpty()) {
 	        return;
@@ -1237,9 +1290,13 @@ public class PoDetailsService {
 	private void handleTeamsLiftAndShift(Long deletedProjectId, Long primaryProjectId, Long updatedBy,
 	        Set<String> primaryTeamNames, String deletedProjectName) {
 
-	    List<Team> teams = teamRepository.findActiveTeamsByProjectId(deletedProjectId.intValue());
+	    List<Team> teams = Optional
+	    		.ofNullable(teamRepository.findActiveTeamsByProjectId(deletedProjectId.intValue()))
+	    		.orElse(Collections.emptyList());
 
-	    if (teams == null || teams.isEmpty()) {
+	    if (teams.isEmpty()) {
+	    	log.info("liftAndShiftTeamNew: no active teams for deleted internal projectId={}; continuing PO link",
+	    			deletedProjectId);
 	        return;
 	    }
 
@@ -1267,8 +1324,13 @@ public class PoDetailsService {
 
 	    // 1. Fetch empIds from primary project (based on active teams & mappings)
 	   
-        List<Long> empIds = employeeTeamMapRepository.findDistinctEmpIdsByProjectId(primaryProjectId);
-        if (empIds == null || empIds.isEmpty()) {
+        List<Long> empIds = Optional
+        		.ofNullable(employeeTeamMapRepository.findDistinctEmpIdsByProjectId(primaryProjectId))
+        		.orElse(Collections.emptyList());
+        if (empIds.isEmpty()) {
+        	log.info(
+        			"handleEmployeeClientSideIdMapping: no employees mapped on primary projectId={}; skipping client-side id remap",
+        			primaryProjectId);
 	        return;
 	    }
 
@@ -1340,19 +1402,37 @@ public class PoDetailsService {
 	public void sendPoLinkSuccessMail(Project primaryProject, IshineLinkProjectDto dto) {
 
 	    try {
-	    	
-	        List<Integer> projectIds = new ArrayList<>();
-	        Integer projectId;
+	    	if (primaryProject == null) {
+	    		log.warn("sendPoLinkSuccessMail: primaryProject is null; skipping mail");
+	    		return;
+	    	}
 
-	        projectIds.add(primaryProject.getProjectId());
+	        // NOTE:
+	        // In PoPortal payloads, ProjectPoMappingWithResourceDTO.projectId is actually poProjectId (Long),
+	        // NOT the internal projects.projectId (Integer).
+	        // ProjectManagerMapping / ProjectOverheadMapping store internal projectId as Long
+	        List<Long> internalProjectIds = new ArrayList<>();
 
-	        for (ProjectPoMappingWithResourceDTO deleted : dto.getDeletedProjects()) {
-	        	Project project = projectRepository.findByPoProjectId(deleted.getProjectId());
-	        	projectId = project.getProjectId();
-	        	projectIds.add(projectId);
+	        if (primaryProject != null && primaryProject.getProjectId() != null) {
+	        	internalProjectIds.add(primaryProject.getProjectId().longValue());
 	        }
 
-	        List<String> toEmails = projectRepository.findManagerAndOverheadEmails(projectIds);
+	        if (dto != null && dto.getDeletedProjects() != null) {
+		        for (ProjectPoMappingWithResourceDTO deleted : dto.getDeletedProjects()) {
+		        	if (deleted == null) continue;
+		        	Long deletedPoProjectId = deleted.getProjectId(); // poProjectId from PO portal payload
+		        	if (deletedPoProjectId == null) continue;
+
+		        	Project deletedProjectEntity = projectRepository.findByPoProjectId(deletedPoProjectId);
+		        	if (deletedProjectEntity == null || deletedProjectEntity.getProjectId() == null) {
+		        		continue;
+		        	}
+
+		        	internalProjectIds.add(deletedProjectEntity.getProjectId().longValue());
+		        }
+	        }
+
+	        List<String> toEmails = projectRepository.findManagerAndOverheadEmails(internalProjectIds);
 
 	        if (toEmails == null || toEmails.isEmpty()) {
 	            System.err.println("No PM/Overhead emails found for PO link success mail");
@@ -1360,44 +1440,25 @@ public class PoDetailsService {
 	        }
 
 	        String receiver = String.join(",", toEmails);
-	        
-	        String cc = String.join(",", rmgMail, bdMail, financeMail , ",priyadarshini.singh@apmosys.com" );
+	        String cc = String.join(",", rmgMail, bdMail, financeMail);
 
-	        String subject = "PO Linking Completed - " + primaryProject.getProjectName();
+	        String projectName = primaryProject.getProjectName() != null ? primaryProject.getProjectName() : "";
+	        String subject = "PO Linking Completed - " + projectName;
 
-	        StringBuilder body = new StringBuilder();
-
-	        body.append("Dear Team,<br><br>");
-	        body.append("PO Linking completed successfully in iShine.<br><br>");
-
-	        body.append("<b>Primary Project:</b><br>");
-	        body.append(primaryProject.getProjectName());
-
-	        body.append("<b>Merged Projects:</b><br>");
-	        for (ProjectPoMappingWithResourceDTO deleted : dto.getDeletedProjects()) {
-	            body.append("• ")
-	                .append(deleted.getProjectName())
-	                .append("<br>");
-	        }
-
-	        body.append("<br><b>Final PO List:</b><br>");
-	        for (PoDetailsForProjectPoMappingDTO po : dto.getPrimaryProject().getPoDetailsList()) {
-	            body.append("• ")
-	                .append(po.getPoNo())
-	                .append("<br>");
-	        }
-
-	        body.append("<br>Sincerely,<br>Team RMG - iShine");
+	        String body = poLinkImpactEmailBuilder.buildEmailBody(primaryProject, dto);
 
 	        mailService.sendMailWithCC(
 	        		receiver, 
 	                cc, 
 	                subject,
-	                body.toString()
+	                body
 	        );
+	        log.info("sendPoLinkSuccessMail: sent successfully for primaryProjectId={}",
+	        		primaryProject.getProjectId());
 
 	    } catch (Exception e) {
-	        log.error("sendPoLinkSuccessMail: failed primaryProjectId={}", primaryProject.getProjectId(), e);
+	        Integer pid = primaryProject != null ? primaryProject.getProjectId() : null;
+	        log.error("sendPoLinkSuccessMail: failed primaryProjectId={}", pid, e);
 	    }
 	}
 	

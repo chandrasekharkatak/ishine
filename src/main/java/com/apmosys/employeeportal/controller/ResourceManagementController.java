@@ -548,13 +548,6 @@ public class ResourceManagementController {
 		 return poSyncOrchestratorService.deletePoInIshineNew(dto);
 	 }
 	 
-	 
-	 @PostMapping("/linkPoInIshineNew")
-	 public ServiceResponse linkPoInIshineNew(HttpServletRequest httpRequest,@RequestBody  IshineLinkProjectDto dto) {
-		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		 return poSyncOrchestratorService.linkPoInIshineNew(dto);
-	 }
-	 
 	 @PostMapping("/updateRmDetailsInPo")
 	 public ServiceResponse updateRmDetailsInPo(HttpServletRequest httpRequest,@RequestBody  RmUpdateSyncDto dto) {
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);

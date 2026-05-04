@@ -314,8 +314,8 @@
                                         [checked]="rmgProjectObj.isAllTeamsSelected" title="Select All Teams"
                                         (change)="onAllTeamsCheckboxChange()"></mat-checkbox>
                                 </th>
-                                <th class="min-width180 max-width200">Team Name</th>
-                                <th class="min-width180 max-width200">Department(s)</th>
+                                <th class="min-width180 max-width200"><span class="text-danger">*</span>Team Name</th>
+                                <th class="min-width180 max-width200"><span class="text-danger">*</span>Department(s)</th>
                                 <th class="min-width180 max-width200">SPOC</th>
                                 <th>Action</th>
                             </tr>
@@ -518,20 +518,20 @@
                         Employment Id
                     </th>
                     <th class="min-width100 max-width150" mat-sort-header="memberName|string" title="Name">
-                        Name
+                        <span class="text-danger">*</span>Name
                     </th>
                     <th class="min-width100 max-width150" *ngIf="!isInternalProject" mat-sort-header="poNo|string" title="PO No.">
-                        PO No.
+                        <span class="text-danger">*</span>PO No.
                     </th>
                     <th class="min-width180 max-width200" *ngIf="!isInternalProject && projectType == 'TNM'"
                         mat-sort-header="displayRequirement|string" title="PO Role">
-                        PO Role
+                        <span class="text-danger">*</span>PO Role
                     </th>
                     <th class="min-width180 max-width200" title="Employee Role">
-                        Employee Role
+                        <span class="text-danger">*</span>Employee Role
                     </th>
                     <th class="min-width100 max-width150 col-start-date" title="Start Date">
-                        Start Date
+                        <span class="text-danger">*</span>Start Date
                     </th>
                     <th class="min-width100 max-width150" title="End Date">
                         End Date
