@@ -1513,9 +1513,9 @@ onSearchClientProject(searchData: any) {
     this.sortColumn = [];
     this.sortColumnType = [];
     this.sortDirection = '';
-    this.page = 1;
+    this.page = 0;
     this.isTimesheetReportTable = true;
-
+    this.resetFilters();
     this.isLeaveReportTable = false;
     this.isEmployeeReportTable = false;
     this.isAccessControlListTable = false;
@@ -1557,6 +1557,17 @@ onSearchClientProject(searchData: any) {
 
     this.data = ''
   }
+  resetFilters() {
+  this.queryList = [];                 // clear current filters
+  this.activeQueryListForFilter = []; // clear applied filters
+  this.storedDataList = [];           // clear saved filters
+  this.isFilterApplied = false;       // reset flag
+
+  this.page = 0;                      // reset pagination
+
+  // reload default data
+  // this.showTimesheetReportTable();  // or leave/employee based on screen
+}
 
   showEmployeeReportTable() {
     this.leaveReportFlag = false;
