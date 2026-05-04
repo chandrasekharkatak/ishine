@@ -133,7 +133,8 @@
                   'role-manager': (node?.cssClass || '').toLowerCase() === 'manager',
                   'role-coworker': (node?.cssClass || '').toLowerCase() === 'co-worker',
                   'role-reportee': (node?.cssClass || '').toLowerCase() === 'reportee',
-                  'is-focused': isFocusedNode(node)
+                  'is-focused': isFocusedNode(node),
+                  'org-node-disabled': node?.disabled
                 }"
                 (click)="onHierarchyNodeClick(node)"
                 [title]="node?.title || node?.name">

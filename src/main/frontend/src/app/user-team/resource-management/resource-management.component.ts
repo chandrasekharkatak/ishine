@@ -1101,6 +1101,23 @@ toggleDepartments() {
     }
   }
 
+  /**
+   * Org-wide hierarchy / department visibility (align with EmployeeService.hasWideHierarchyAnchorAccess).
+   */
+  hasOrgWideHierarchyAccess(): boolean {
+    const r = (this.currentUser?.employeeRole ?? '').toString().trim();
+    if (!r) {
+      return false;
+    }
+    if (/^superadmin$/i.test(r) || /^hod$/i.test(r) || /^hr$/i.test(r)) {
+      return true;
+    }
+    if (/^hr\s*manager$/i.test(r)) {
+      return true;
+    }
+    return false;
+  }
+
   sectionViewInit() {
     if (this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin') {
       this.isHOD = true;

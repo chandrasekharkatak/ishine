@@ -347,6 +347,12 @@ thead {
   box-shadow: 0 14px 26px rgba(25, 61, 138, 0.18);
 }
 
+.org-node.org-node-disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .org-collapse {
   position: absolute;
   top: 6px;
