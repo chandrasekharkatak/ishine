@@ -120,5 +120,10 @@ public class TeamMembersController {
 	public ServiceResponse getTeamMemberDetailsByEmpIdAndProjectId(@RequestParam Integer projectId, @RequestParam Long empId, @RequestParam Long employeeTeamMapId) {
 		return teamMembersService.getTeamMemberDetailsByEmpIdAndProjectId(projectId, empId, employeeTeamMapId);
 	}
-	
+
+	// @Encrypted
+	@GetMapping("/validateIfAnyApprovedOrPendingTimesheetExist")
+	public ServiceResponse validateIfAnyApprovedOrPendingTimesheetExist(@RequestParam Integer projectId, @RequestParam Long empId, @RequestParam Long employeeTeamMapId) {
+		return teamMembersService.validateIfAnyApprovedOrPendingTimesheetExist(projectId, empId, employeeTeamMapId);
+	}
 }

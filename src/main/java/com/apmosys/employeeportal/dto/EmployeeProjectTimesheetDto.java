@@ -38,6 +38,22 @@ public class EmployeeProjectTimesheetDto {
 		this.timesheetFilledCount = timesheetFilledCount;
 	}
 
+	public EmployeeProjectTimesheetDto(Integer projectId, String projectName, String projectType, String teamName,
+			Date projectStartDate, Date employeeTeamStartDate, Date employeeTeamEndDate, Long timesheetFilledCount,
+			Long etmId) {
+		super();
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.projectType = projectType;
+		this.teamName = teamName;
+		this.projectStartDate = projectStartDate != null ? LocalDate.parse(projectStartDate.toString()) : null;
+		this.employeeTeamStartDate = employeeTeamStartDate != null ? LocalDate.parse(employeeTeamStartDate.toString())
+				: null;
+		this.employeeTeamEndDate = employeeTeamEndDate != null ? LocalDate.parse(employeeTeamEndDate.toString()) : null;
+		this.timesheetFilledCount = timesheetFilledCount;
+		this.etmId = etmId;
+	}
+
 	public EmployeeProjectTimesheetDto(Long empId, Long etmId, Integer projectId, String projectName,
 			String projectType, Long teamId, String teamName,
 			Date projectStartDate, Date employeeTeamStartDate, Date employeeTeamEndDate) {

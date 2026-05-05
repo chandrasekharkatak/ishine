@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -1619,5 +1620,13 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ " AND etm.employeeTeamMapId != :etmId \n"
 			+ " AND e.empId =:empId AND (etm.endDate IS NULL OR DATE(etm.endDate) >= DATE(:startDate)) \n")
 	List<EmployeeProjectTimesheetDto> findByEmpIdAndDateAndEtmIdNotIn(Long empId, LocalDateTime startDate, Integer projectId, Long etmId);
+
+    boolean existsByEmpIdAndRoleIdAndPoIdAndActive(Long empId, Long roleId, Long poId, long l);
+
+	@Transactional
+	@Modifying
+	@Query(value = "DELETE FROM EmployeeTeamMap etm WHERE etm.empId =:empId AND etm.roleId =:roleId AND etm.startDate > :startDate \n"
+			+ "AND etm.teamId IN (SELECT teamId FROM Team WHERE projectId = :projectId) ")
+	void deactivateFutureEntries(Long empId, Long roleId, LocalDateTime startDate, Integer projectId);
 	
 }

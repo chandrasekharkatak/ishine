@@ -302,4 +302,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
     List<ProjectPoDetails> findByProjectIdAndPoIdInAndActiveTrue(Integer projectId, Set<Long> poIds);
 
     List<ProjectPoDetails> findByProjectIdAndPrevPOInAndActiveTrue(Integer projectId, Set<Long> poIds);
+
+    List<ProjectPoDetails> findByProjectIdAndNextPOInAndActiveTrue(Integer projectId, Set<Long> poIds);
+
 }
