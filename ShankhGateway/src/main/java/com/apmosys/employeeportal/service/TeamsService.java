@@ -5919,7 +5919,7 @@ public class TeamsService {
 	        employeeTeamMapRepository.save(oldRow);
 
 	        // Build impact DTO representing an in-place move (no "new row")
-	        return buildEmployeeImpactDTO(oldRow, null, previousPo, currentPo, projectType);
+	        return buildEmployeeImpactDTO(oldRow, oldRow, previousPo, currentPo, projectType);
 
 	    } else {
 	        // ── Case C: existing behaviour ─────────────────────────────────────

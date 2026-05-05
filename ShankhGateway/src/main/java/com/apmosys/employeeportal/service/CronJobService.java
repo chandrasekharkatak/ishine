@@ -7510,11 +7510,11 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 	        
 	        List<String> managerEmails =
-	                projectManagerMappingRepository.findProjectManagerEmails(projectId);
+	                projectManagerMappingRepository.findProjectManagerEmails(Long.parseLong(projectId.toString()));
 
 	      
 	        List<String> overheadEmails =
-	                projectOverheadMappingRepository.findProjectOverheadEmails(projectId);
+	                projectOverheadMappingRepository.findProjectOverheadEmails(Long.parseLong(projectId.toString()));
 
 	        // ✅ Merge all & remove duplicates automatically
 //	        if (hodEmails != null) uniqueEmails.addAll(hodEmails);
