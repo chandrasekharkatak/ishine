@@ -1415,7 +1415,8 @@
                     </button>
                     <button class="po-popup-btn po-popup-btn--timesheet"
                       [navigateToTeamEmployeeTimesheet]="project.projectId" [formattedMonthLabel]="formattedMonthLabel"
-                      [isClientDashboard]="isClientDashboard" title="Team Attendance">
+                      [isClientDashboard]="isClientDashboard" [fromDate]="fromDate" [toDate]="toDate"
+                      [poNo]="project.poNo" title="Team Attendance">
                       <i class="fa fa-calendar-days"></i>
                       <span>Team Attendance</span>
                     </button>
