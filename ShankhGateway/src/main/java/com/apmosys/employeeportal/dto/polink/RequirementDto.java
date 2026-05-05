@@ -14,7 +14,7 @@ public class RequirementDto {
 	private String roleAndDepartment;
 	private long requiredCount;
 	private long mappedCount;
-	/** User-visible status line, e.g. "Balanced", "Underboarding", "Potential overboarding". */
+	/** Staffing vs requirement: Balanced, Underboarded, Overboarded, etc. */
 	private String statusText;
 	/** Inline style color for status (email-safe). */
 	private String statusColor;

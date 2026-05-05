@@ -528,12 +528,12 @@ public class ResourceManagementController {
 	 }
 	 
 	 
-	 @PostMapping("/poCrudOperationsInIshineNew")
-	 public ServiceResponse poCrudOperationsInIshineNew(HttpServletRequest httpRequest,@RequestBody ProjectPoMappingWithResourceDTO poPortalProjects) {
-		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		 return poSyncOrchestratorService.poCrudOperationsInIshineNew(poPortalProjects);
-	 }
-	 
+//	 @PostMapping("/poCrudOperationsInIshineNew")
+//	 public ServiceResponse poCrudOperationsInIshineNew(HttpServletRequest httpRequest,@RequestBody ProjectPoMappingWithResourceDTO poPortalProjects) {
+//		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+//		 return poSyncOrchestratorService.poCrudOperationsInIshineNew(poPortalProjects);
+//	 }
+//	 
 	 
 	 @PostMapping("/renewPoInIshineNew")
 	 public ServiceResponse renewPoInIshineNew(HttpServletRequest httpRequest, @Valid @RequestBody RenewedPoSyncDto dto) {

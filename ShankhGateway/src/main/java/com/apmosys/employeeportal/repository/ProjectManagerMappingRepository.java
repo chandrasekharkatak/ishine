@@ -88,6 +88,6 @@ List<Integer> isUserProjectManagerOfAnyActiveInternalProjectList(@Param("empId")
 		       "JOIN Employee e ON pm.projectManagerId = e.empId " +
 		       "WHERE pm.projectId = :projectId " +
 		       "AND pm.active = 1")
-		List<String> findProjectManagerEmails(Integer projectId);
+		List<String> findProjectManagerEmails(Long projectId);
 
 }

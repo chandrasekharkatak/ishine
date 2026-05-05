@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -15,8 +16,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,8 +26,9 @@ import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
-import com.apmosys.employeeportal.dto.polink.BoardingGroupDto;
+import com.apmosys.employeeportal.dto.polink.BoardingTableRowDto;
 import com.apmosys.employeeportal.dto.polink.PoLinkEmailContentDto;
+import com.apmosys.employeeportal.dto.polink.PreviousPoRequirementsBlockDto;
 import com.apmosys.employeeportal.dto.polink.PreviousRequirementDto;
 import com.apmosys.employeeportal.dto.polink.RequirementDto;
 import com.apmosys.employeeportal.dto.polink.ResourceImpactDto;
@@ -61,14 +61,14 @@ public class PoLinkEmailDataService {
 	private final ResourceRequirementRepository resourceRequirementRepository;
 	private final ProjectRepository projectRepository;
 	private final ProjectPoDetailsRepository projectPoDetailsRepository;
-	private final PoHierarchyService poHierarchyService;
 
 	public PoLinkEmailContentDto buildEmailContent(Project primaryProject, IshineLinkProjectDto dto) {
 		PoLinkEmailContentDto out = new PoLinkEmailContentDto();
 		if (primaryProject == null) {
 			out.setProjectDisplayName("Project");
-			out.setShowNoRequirementDataBanner(true);
-			out.setNoRequirementBannerNote("Primary project context was missing.");
+			out.setWhatChangedHtml(buildWhatChangedSummaryHtml(null, null, dto));
+			out.setIncludePreviousPoRequirementsSection(false);
+			out.setMergedRemovedProjectLines(buildMergedRemovedLines(dto));
 			return out;
 		}
 
@@ -91,7 +91,6 @@ public class PoLinkEmailDataService {
 		}
 
 		Set<Long> primaryPoIds = new HashSet<>();
-		Set<Long> modifiedPoIds = new HashSet<>();
 		ProjectPoMappingWithResourceDTO primaryPayload = dto != null ? dto.getPrimaryProject() : null;
 
 		if (primaryPayload != null && primaryPayload.getPoDetailsList() != null) {
@@ -101,20 +100,16 @@ public class PoLinkEmailDataService {
 				}
 			}
 		}
-		for (Long id : primaryPoIds) {
-			if (deletedPoIds.contains(id)) {
-				modifiedPoIds.add(id);
-			}
-		}
 
 		out.setMergedRemovedProjectLines(buildMergedRemovedLines(dto));
-		out.setWhatChangedHtml(buildWhatChangedNarrative(primaryProject, primaryPayload, dto));
+		out.setWhatChangedHtml(buildWhatChangedSummaryHtml(primaryProject, primaryPayload, dto));
 
-		if (internalProjectId != null) {
-			out.setHierarchyTreeHtml(poHierarchyService.formatBusinessPlainTree(
-					primaryName, internalProjectId, deletedPoIds, primaryPoIds, modifiedPoIds));
+		boolean showPreviousReq = !isMonitoringPrimary(primaryProject);
+		out.setIncludePreviousPoRequirementsSection(showPreviousReq);
+		if (showPreviousReq) {
+			out.setPreviousRequirementBlocks(groupPreviousRequirements(buildPreviousRequirementRows(dto)));
 		} else {
-			out.setHierarchyTreeHtml("<span style=\"color:#6b7280\">PO hierarchy is not available.</span>");
+			out.setPreviousRequirementBlocks(Collections.emptyList());
 		}
 
 		ResourceImpactDto impact = new ResourceImpactDto();
@@ -129,10 +124,6 @@ public class PoLinkEmailDataService {
 		}
 		out.setResourceImpact(impact);
 
-		List<PreviousRequirementDto> previousRows = buildPreviousRequirementRows(dto);
-		out.setPreviousRequirementRows(previousRows);
-
-		boolean anyRequirementSource = false;
 		List<RequirementDto> currentTable = new ArrayList<>();
 
 		Map<Long, ProjectPoDetails> ppdByPo = loadPpdMap(internalProjectId);
@@ -150,9 +141,6 @@ public class PoLinkEmailDataService {
 				}
 
 				List<ReqLine> lines = getRequirementsFromDtoOrDb(po, internalProjectId, prms);
-				if (!lines.isEmpty()) {
-					anyRequirementSource = true;
-				}
 
 				Set<Long> coveredPrm = new HashSet<>();
 				ProjectPoDetails rowPpd = ppdByPo.get(po.getPoId());
@@ -185,7 +173,7 @@ public class PoLinkEmailDataService {
 					String roleDept = formatRoleDept(m.getRole(), m.getDepartment());
 					String poStatus = poDateStatus(rowPpd);
 					boolean expiredRow = "Expired".equals(poStatus);
-					String staffingText = mcnt == 0 ? "Underboarded" : "Potential overboarding";
+					String staffingText = mcnt == 0 ? "Underboarded" : "Overboarded";
 					if (mcnt == 0) {
 						log.info(
 								"PO link email: uncovered PRM with zero mapped headcount poId={} prmId={}; listing as Underboarded",
@@ -201,7 +189,6 @@ public class PoLinkEmailDataService {
 							.poLifecycleStatus(poStatus)
 							.expiredRow(expiredRow)
 							.build());
-					anyRequirementSource = true;
 				}
 
 				if (lines.isEmpty() && prms.isEmpty()) {
@@ -221,16 +208,37 @@ public class PoLinkEmailDataService {
 		}
 
 		out.setCurrentRequirementRows(currentTable);
-		out.setBoardingGroups(buildUnifiedBoardingGroups(
+		out.setBoardingTableRows(buildBoardingTableRows(
 				primaryPayload, internalProjectId, currentTable, ppdByPo, dto, deletedPoIds, primaryPoIds));
 
-		if (!anyRequirementSource && (primaryPayload == null || isPayloadMissingRequirements(primaryPayload))) {
-			out.setShowNoRequirementDataBanner(true);
-			out.setNoRequirementBannerNote(
-					"No requirement lines were found in the sync payload or project resource_requirement after PO link.");
-		}
-
 		return out;
+	}
+
+	private static boolean isMonitoringPrimary(Project p) {
+		String t = trim(p.getPoProjectType());
+		return t.equalsIgnoreCase("monitoring");
+	}
+
+	private List<PreviousPoRequirementsBlockDto> groupPreviousRequirements(List<PreviousRequirementDto> flat) {
+		Map<String, List<PreviousRequirementDto>> byProject = new LinkedHashMap<>();
+		for (PreviousRequirementDto r : flat) {
+			if (r == null) {
+				continue;
+			}
+			String key = trim(r.getProjectName());
+			if (key.isEmpty()) {
+				key = "--";
+			}
+			byProject.computeIfAbsent(key, k -> new ArrayList<>()).add(r);
+		}
+		List<PreviousPoRequirementsBlockDto> blocks = new ArrayList<>();
+		for (Map.Entry<String, List<PreviousRequirementDto>> e : byProject.entrySet()) {
+			blocks.add(PreviousPoRequirementsBlockDto.builder()
+					.projectDisplayName(e.getKey())
+					.rows(e.getValue())
+					.build());
+		}
+		return blocks;
 	}
 
 	private Map<Long, ProjectPoDetails> loadPpdMap(Integer internalProjectId) {
@@ -268,25 +276,21 @@ public class PoLinkEmailDataService {
 		return lines;
 	}
 
-	private String buildWhatChangedNarrative(
+	private String buildWhatChangedSummaryHtml(
 			Project primaryProject,
 			ProjectPoMappingWithResourceDTO primaryPayload,
 			IshineLinkProjectDto dto) {
 
-		String primaryProj = esc(trim(primaryProject != null ? primaryProject.getProjectName() : ""));
-		String oldProj = "";
+		String primaryProjEsc = esc(trim(primaryProject != null ? primaryProject.getProjectName() : ""));
 		String oldPo = "";
-		String newPo = "";
+		String primaryPo = "";
 		if (dto != null && dto.getDeletedProjects() != null && !dto.getDeletedProjects().isEmpty()) {
 			ProjectPoMappingWithResourceDTO d0 = dto.getDeletedProjects().get(0);
-			if (d0 != null) {
-				oldProj = trim(d0.getProjectName());
-				if (d0.getPoDetailsList() != null) {
-					for (PoDetailsForProjectPoMappingDTO p : d0.getPoDetailsList()) {
-						if (p != null && p.getPoNo() != null && !p.getPoNo().isEmpty()) {
-							oldPo = p.getPoNo();
-							break;
-						}
+			if (d0 != null && d0.getPoDetailsList() != null) {
+				for (PoDetailsForProjectPoMappingDTO p : d0.getPoDetailsList()) {
+					if (p != null && p.getPoNo() != null && !p.getPoNo().isEmpty()) {
+						oldPo = trim(p.getPoNo());
+						break;
 					}
 				}
 			}
@@ -294,31 +298,31 @@ public class PoLinkEmailDataService {
 		if (primaryPayload != null && primaryPayload.getPoDetailsList() != null) {
 			for (PoDetailsForProjectPoMappingDTO p : primaryPayload.getPoDetailsList()) {
 				if (p != null && p.getPoNo() != null && !p.getPoNo().isEmpty()) {
-					newPo = p.getPoNo();
+					primaryPo = trim(p.getPoNo());
 					break;
 				}
 			}
 		}
 
+		boolean hadMerge =
+				dto != null && dto.getDeletedProjects() != null && !dto.getDeletedProjects().isEmpty();
+
 		StringBuilder sb = new StringBuilder();
-		sb.append("<ul style=\"margin:8px 0 0 18px;padding:0;color:#374151;line-height:1.55;font-size:14px;\">");
-		if (!oldPo.isEmpty() && !newPo.isEmpty()) {
-			sb.append("<li>PO <b>").append(esc(oldPo)).append("</b>");
-			if (!oldProj.isEmpty()) {
-				sb.append(" from project <b>").append(esc(oldProj)).append("</b>");
-			}
-			sb.append(" has been linked to the primary PO <b>").append(esc(newPo)).append("</b>.</li>");
+		sb.append("<ul style=\"margin:8px 0 0 18px;padding:0;color:#334155;line-height:1.55;font-size:14px;\">");
+		if (!oldPo.isEmpty() && !primaryPo.isEmpty()) {
+			sb.append("<li>PO <b>").append(esc(oldPo)).append("</b> is now linked to <b>")
+					.append(esc(primaryPo)).append("</b> (primary PO).</li>");
+		} else if (!primaryPo.isEmpty()) {
+			sb.append("<li>Primary PO <b>").append(esc(primaryPo)).append("</b> is in effect.</li>");
 		}
-		if (!oldProj.isEmpty()) {
-			sb.append("<li>The previous project &quot;<b>").append(esc(oldProj)).append("</b>&quot; is no longer the active context after this link.</li>");
+		if (hadMerge) {
+			sb.append("<li>Previous project context is no longer active.</li>");
 		}
-		sb.append("<li>References that pointed at the old PO context should now follow the primary project");
-		if (!primaryProj.isEmpty()) {
-			sb.append(" &quot;<b>").append(primaryProj).append("</b>&quot;");
+		sb.append("<li>All references should now use the primary project");
+		if (!primaryProjEsc.isEmpty()) {
+			sb.append(" &quot;").append(primaryProjEsc).append("&quot;");
 		}
 		sb.append(".</li>");
-		sb.append("<li>If a role exists in both the old and new PO, it is aligned to the latest primary PO line.</li>");
-		sb.append("<li>If a role exists only on the old PO, review and remove it if it is no longer needed.</li>");
 		sb.append("</ul>");
 		return sb.toString();
 	}
@@ -376,7 +380,7 @@ public class PoLinkEmailDataService {
 		return prev;
 	}
 
-	private List<BoardingGroupDto> buildUnifiedBoardingGroups(
+	private List<BoardingTableRowDto> buildBoardingTableRows(
 			ProjectPoMappingWithResourceDTO primary,
 			Integer internalProjectId,
 			List<RequirementDto> currentRows,
@@ -385,9 +389,9 @@ public class PoLinkEmailDataService {
 			Set<Long> deletedPoIds,
 			Set<Long> primaryPoIdSet) {
 
-		List<BoardingGroupDto> groups = new ArrayList<>();
+		List<BoardingTableRowDto> rows = new ArrayList<>();
 		if (primary == null || primary.getPoDetailsList() == null) {
-			return groups;
+			return rows;
 		}
 
 		Map<Long, String> poToRemovedProject = new HashMap<>();
@@ -417,19 +421,17 @@ public class PoLinkEmailDataService {
 			ProjectPoDetails ppd = ppdByPo.get(po.getPoId());
 			String poStatus = poDateStatus(ppd);
 			boolean mergedFromDeleted = mergedFromDeletedContext(po.getPoId(), deletedPoIds, primaryPoIdSet);
+			String fromProject = poToRemovedProject.get(po.getPoId());
+
 			if (mappings.isEmpty()) {
 				log.info("PO link email boarding: no PRM rows for poId={} poNo={}; emitting empty-resource snapshot",
 						po.getPoId(), poNo);
-				long totalMappedOnPo = sumMappedForPo(poNo, currentRows);
-				boolean over = isPoAttentionForBoarding(poNo, currentRows);
-				boolean highlight = "Expired".equals(poStatus) || mergedFromDeleted || over
-						|| (totalMappedOnPo == 0 && hasRequirementForPo(poNo, currentRows));
-				groups.add(BoardingGroupDto.builder()
+				rows.add(BoardingTableRowDto.builder()
 						.poLabel(poNo)
-						.poStateLabel(poStatus)
-						.highlightGroup(highlight)
-						.memberLines(Collections.singletonList(
-								"No resources are currently mapped to this PO."))
+						.status(poStatus)
+						.resourceName("-")
+						.team("-")
+						.remark("No resources mapped")
 						.build());
 				continue;
 			}
@@ -438,7 +440,7 @@ public class PoLinkEmailDataService {
 
 			Set<String> seenRoleWindow = new HashSet<>();
 			Set<String> memberKeys = new LinkedHashSet<>();
-			List<String> memberLines = new ArrayList<>();
+			List<com.apmosys.employeeportal.dto.EmployeeImpactDTO> orderedEmps = new ArrayList<>();
 
 			for (PoRequirementMapping m : mappings) {
 				if (m == null || m.getRoleId() == null) {
@@ -483,11 +485,10 @@ public class PoLinkEmailDataService {
 							if (e == null) {
 								continue;
 							}
-							String line = formatBoardingMemberLine(
-									e, poToRemovedProject.get(po.getPoId()), poStatus, mergedFromDeleted);
-							String dedupeKey = line.toLowerCase(Locale.ROOT);
+							String dedupeKey = (trim(e.getEmployeeName()) + "|" + trim(e.getTeamName()))
+									.toLowerCase(Locale.ROOT);
 							if (memberKeys.add(dedupeKey)) {
-								memberLines.add(line);
+								orderedEmps.add(e);
 							}
 						}
 					}
@@ -498,50 +499,71 @@ public class PoLinkEmailDataService {
 			boolean over = isPoAttentionForBoarding(poNo, currentRows);
 			long totalMappedOnPo = sumMappedForPo(poNo, currentRows);
 			boolean highlight = expired || mergedFromDeleted || over;
-			boolean showOk = !highlight && !memberLines.isEmpty() && totalMappedOnPo > 0 && "Active".equals(poStatus);
+			boolean showOk = !highlight && !orderedEmps.isEmpty() && totalMappedOnPo > 0 && "Active".equals(poStatus);
+			boolean needsEmptyRow = orderedEmps.isEmpty();
 
-			List<String> displayLines = new ArrayList<>();
-			for (String ml : memberLines) {
-				if (showOk) {
-					displayLines.add(ml + " (OK)");
-				} else if (expired) {
-					displayLines.add(ml + " (needs attention)");
-				} else if (over) {
-					displayLines.add(ml + " (review allocation)");
-				} else {
-					displayLines.add(ml);
-				}
-			}
+			String baseRemark = boardingRemarkForPo(expired, over, mergedFromDeleted, showOk, fromProject);
 
-			if (displayLines.isEmpty()) {
+			if (needsEmptyRow) {
 				log.info("PO link email boarding: no active employees in evaluated windows for poNo={}", poNo);
-				displayLines.add("No resources are currently mapped to this PO.");
+				rows.add(BoardingTableRowDto.builder()
+						.poLabel(poNo)
+						.status(poStatus)
+						.resourceName("-")
+						.team("-")
+						.remark("No resources mapped")
+						.build());
+				continue;
 			}
 
-			groups.add(BoardingGroupDto.builder()
-					.poLabel(poNo)
-					.poStateLabel(poStatus)
-					.highlightGroup(highlight || (totalMappedOnPo == 0 && hasRequirementForPo(poNo, currentRows)))
-					.memberLines(displayLines)
-					.build());
+			for (com.apmosys.employeeportal.dto.EmployeeImpactDTO e : orderedEmps) {
+				String name = trim(e.getEmployeeName());
+				if (name.isEmpty()) {
+					name = "-";
+				}
+				String team = trim(e.getTeamName());
+				if (team.isEmpty()) {
+					team = "-";
+				}
+				rows.add(BoardingTableRowDto.builder()
+						.poLabel(poNo)
+						.status(poStatus)
+						.resourceName(name)
+						.team(team)
+						.remark(baseRemark)
+						.build());
+			}
 		}
-		return groups;
+		return rows;
 	}
 
-	private static String formatBoardingMemberLine(
-			com.apmosys.employeeportal.dto.EmployeeImpactDTO e,
-			String fromProject,
-			String poStatus,
-			boolean mergedFromDeleted) {
+	private static String boardingRemarkForPo(
+			boolean expired,
+			boolean over,
+			boolean mergedFromDeleted,
+			boolean showOk,
+			String fromProject) {
 
-		String n = trim(e.getEmployeeName());
-		String t = trim(e.getTeamName());
-		String base = t.isEmpty() ? n : n + " (" + t + ")";
-		if (fromProject != null && !fromProject.isEmpty()
-				&& ("Expired".equals(poStatus) || mergedFromDeleted)) {
-			return base + " (from " + fromProject + ")";
+		if (showOk) {
+			return "-";
 		}
-		return base;
+		if (expired) {
+			String r = "Needs attention";
+			if (fromProject != null && !fromProject.isEmpty()) {
+				return r + " (from " + fromProject + ")";
+			}
+			return r;
+		}
+		if (over) {
+			return "Review Allocation";
+		}
+		if (mergedFromDeleted) {
+			if (fromProject != null && !fromProject.isEmpty()) {
+				return "Review Allocation (from " + fromProject + ")";
+			}
+			return "Review Allocation";
+		}
+		return "-";
 	}
 
 	private static long sumMappedForPo(String poLabel, List<RequirementDto> currentRows) {
@@ -554,21 +576,12 @@ public class PoLinkEmailDataService {
 		return s;
 	}
 
-	private static boolean hasRequirementForPo(String poLabel, List<RequirementDto> currentRows) {
-		for (RequirementDto r : currentRows) {
-			if (r != null && poLabel.equals(r.getPoLabel()) && r.getRequiredCount() > 0) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	private static boolean isPoAttentionForBoarding(String poLabel, List<RequirementDto> currentRows) {
 		for (RequirementDto r : currentRows) {
 			if (r == null || !poLabel.equals(r.getPoLabel()) || r.getStatusText() == null) {
 				continue;
 			}
-			if (r.getStatusText().contains("Overboard") || r.getStatusText().contains("Potential")) {
+			if (r.getStatusText().contains("Overboard")) {
 				return true;
 			}
 		}
@@ -762,7 +775,7 @@ public class PoLinkEmailDataService {
 			statusText = "Overboarded";
 			color = "#dc2626";
 		} else if (line.required == 0 && mapped > 0) {
-			statusText = "Potential overboarding";
+			statusText = "Overboarded";
 			color = "#ea580c";
 		} else if (line.required == 0 && mapped == 0) {
 			statusText = "Underboarded";
@@ -860,21 +873,6 @@ public class PoLinkEmailDataService {
 		LocalDateTime ms = mapStart != null ? mapStart : LocalDateTime.MIN;
 		LocalDateTime me = mapEnd != null ? mapEnd : LocalDateTime.MAX;
 		return !reqStart.isAfter(me) && !ms.isAfter(reqEnd);
-	}
-
-	private static boolean isPayloadMissingRequirements(ProjectPoMappingWithResourceDTO primary) {
-		if (primary.getPoDetailsList() == null) {
-			return true;
-		}
-		for (PoDetailsForProjectPoMappingDTO p : primary.getPoDetailsList()) {
-			if (p == null) {
-				continue;
-			}
-			if (p.getResourceRequirementList() != null && !p.getResourceRequirementList().isEmpty()) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 	private static String formatRoleDept(String role, String dept) {

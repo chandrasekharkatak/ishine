@@ -19,16 +19,14 @@ public class PoLinkEmailContentDto {
 
 	private String whatChangedHtml;
 
-	private boolean showNoRequirementDataBanner;
-	private String noRequirementBannerNote;
+	/** When false, previous PO requirements section is omitted (e.g. Monitoring primary). */
+	private boolean includePreviousPoRequirementsSection;
 
-	private String hierarchyTreeHtml;
-
-	private List<PreviousRequirementDto> previousRequirementRows = new ArrayList<>();
+	private List<PreviousPoRequirementsBlockDto> previousRequirementBlocks = new ArrayList<>();
 
 	private List<RequirementDto> currentRequirementRows = new ArrayList<>();
 
-	private List<BoardingGroupDto> boardingGroups = new ArrayList<>();
+	private List<BoardingTableRowDto> boardingTableRows = new ArrayList<>();
 
 	private ResourceImpactDto resourceImpact = new ResourceImpactDto();
 }

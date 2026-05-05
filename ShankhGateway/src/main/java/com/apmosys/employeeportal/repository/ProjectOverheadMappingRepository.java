@@ -68,6 +68,6 @@ List<Integer> isUserProjectOverheadOfAnyActiveInternalAndExternalProjectList(@Pa
 		       "JOIN Employee e ON po.projectOverheadId = e.empId " +
 		       "WHERE po.projectId = :projectId " +
 		       "AND po.active = 1")
-		List<String> findProjectOverheadEmails(Integer projectId);
+		List<String> findProjectOverheadEmails(Long projectId);
 	
 }

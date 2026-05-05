@@ -1448,8 +1448,10 @@ public class PoDetailsService {
 	        String body = poLinkImpactEmailBuilder.buildEmailBody(primaryProject, dto);
 
 	        mailService.sendMailWithCC(
-	        		receiver, 
-	                cc, 
+	        		// receiver, 
+					"priyadarshini.singh@apmosys.com",
+					//cc,
+	                "prarthana.lenka@apmosys.com", 
 	                subject,
 	                body
 	        );
