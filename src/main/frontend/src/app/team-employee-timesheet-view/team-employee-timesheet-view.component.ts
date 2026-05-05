@@ -164,9 +164,7 @@ alertMessageOfDoc: any;
     if (this.year && this.month) {
       this.selectedMonth = new Date(this.year, this.month - 1, 1);
       this.generateDaysForMonth(this.selectedMonth);
-      if (this.isClientDashboard) {
-        this.initializeDateRange();
-      }
+      this.initializeDateRange();
     }
   }
 
@@ -248,15 +246,11 @@ alertMessageOfDoc: any;
 
     this.selectedMonth = new Date(this.year, this.month - 1, 1);
     this.generateDaysForMonth(this.selectedMonth);
-    if (this.isClientDashboard) {
-      this.applyIncomingDateRangeToMonthContext();
-      this.initializeDateRange();
-      this.loadPoOptionsFromApi(() => {
-        this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
-      });
-    } else {
+    this.applyIncomingDateRangeToMonthContext();
+    this.initializeDateRange();
+    this.loadPoOptionsFromApi(() => {
       this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
-    }
+    });
   }
 
   getEmployeeTimesheetAsCalenderByProjectId(projectId:any,month:any,year:any): void {
@@ -425,16 +419,20 @@ alertMessageOfDoc: any;
               this.wasAllPoSelected = false;
             }
           } else {
-            this.openAlertMod(response?.serviceResponse || response?.serviceMessage || 'Unable to fetch PO details.');
+            // API returned null/non-array PO payload: keep PO filter hidden.
             this.poOptionsLoadedFromApi = false;
-            this.buildPoIdOptions();
+            this.poIdOptions = [];
+            this.selectedPoIdFilters = [];
+            this.wasAllPoSelected = false;
           }
           onComplete?.();
         },
-        error: (err: any) => {
-          this.openAlertMod(err?.error || 'Error while fetching PO details.');
+        error: (_err: any) => {
+          // If PO API fails, keep attendance view functional and hide PO filter.
           this.poOptionsLoadedFromApi = false;
-          this.buildPoIdOptions();
+          this.poIdOptions = [];
+          this.selectedPoIdFilters = [];
+          this.wasAllPoSelected = false;
           onComplete?.();
         }
       });
@@ -937,6 +935,10 @@ monthSelected(event: Date, datepicker: any) {
       .filter(opt => this.selectedPoIdFilters.includes(opt.value))
       .map(opt => opt.label);
     return labels.length ? labels.join(', ') : 'Select PO No';
+  }
+
+  get showPoFilter(): boolean {
+    return this.poIdOptions.length > 0;
   }
 
   private formatDateForInput(date: Date): string {
