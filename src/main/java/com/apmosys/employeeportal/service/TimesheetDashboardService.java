@@ -1692,7 +1692,7 @@ public class TimesheetDashboardService {
 		    	}
 		    	if(object.getAllEmp()) {
 		    		empTimesheet= timesheetsNewRepository.getEmployeeTimesheetAsCalenderByProjectIdForAllEmp(object.getProjectId(),
-			    			object.getMonth(),object.getYear(),object.getEmpId());
+		    				resolvedFromDate,resolvedToDate,object.getEmpId(),poNoFilters,object.getPoProjectId());
 		    	} else {
 		    		empTimesheet= timesheetsNewRepository.getEmployeeTimesheetAsCalenderByProjectId(object.getProjectId(),
 		    				resolvedFromDate,resolvedToDate,object.getEmpId(),poNoFilters,object.getPoProjectId());
