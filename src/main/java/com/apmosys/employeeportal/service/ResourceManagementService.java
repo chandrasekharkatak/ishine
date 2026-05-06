@@ -116,6 +116,7 @@ import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.PageDTO;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
+import com.apmosys.employeeportal.dto.PoProjectLookupResponseDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
@@ -14664,8 +14665,7 @@ public class ResourceManagementService {
 				return response;
 			}
 
-				Integer projectId = poDetailsRepository
-					.findProjectIdByPoNo(poNo);
+				Integer projectId = poDetailsRepository.findProjectIdByPoNo(poNo);
 
 			if (projectId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -14673,10 +14673,13 @@ public class ResourceManagementService {
 				return response;
 			}
 
-			
+			Boolean hasClientSideId = projectRepository.getClientSideIdMandatory(projectId);
+			Long poProjectId = poDetailsRepository.findPoProjectIdByPoNo(poNo);
+			PoProjectLookupResponseDTO payload = new PoProjectLookupResponseDTO(projectId,
+					Boolean.TRUE.equals(hasClientSideId), poProjectId);
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(projectId);
+			response.setServiceResponse(payload);
 		} catch (Exception e) {
 			log.error("Error while fetching projectId by poNo: {}", poNo, e);
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
