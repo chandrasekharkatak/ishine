@@ -4644,13 +4644,13 @@ public class TeamsService {
 			
 			List<RmgTeamDto> rmgTeamDtoList = teamRepository.getActiveTeamDetailsByProjectId(projectId);
 			String projectStatus = projectRepository.findLatestProjectStatus(projectId); 
-			if(projectStatus.equalsIgnoreCase("not started") && rmgTeamDtoList.isEmpty()) {
+			if("not started".equalsIgnoreCase(projectStatus) && rmgTeamDtoList.isEmpty()) {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				apiLogInfo.setApiResponse("Project Status : "+projectStatus);
 				response.setServiceResponse(Collections.emptyList());
 				return response;
-			}else if (rmgTeamDtoList.isEmpty()) {
+			} else if (rmgTeamDtoList.isEmpty()) {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				apiLogInfo.setApiResponse("No active teams found!!");
