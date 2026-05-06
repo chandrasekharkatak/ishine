@@ -1227,11 +1227,12 @@ public class TimesheetDashboardService {
 	        		 response.setServiceResponse1("Your search matched a linked project name. Rows marked with the link icon are the primary project(s) for those matches. Search text: "
 	        				 + originalProjectNameSearch);
 	        		 response.setServiceResponse2(buildLinkedProjectSearchMetadata(matchedByName));
+					 projectName = null;
 	        	 } else {
 	        		 response.setServiceResponse2(null);
 	        	 }
 	        	 // Avoid filtering by primary project's name; ids are authoritative
-	        	 projectName = null;
+	        	 
 	         }
 
  				if (timesheetDTO.getDataForExcel()) {

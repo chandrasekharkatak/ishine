@@ -14522,6 +14522,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "            OR :clientFilter = FALSE\n"
 			+ "            OR p.has_client_side_id = TRUE\n"
 			+ "          )\n"
+			+ "      AND etn.day_type_id <> 5\n"
 			+ "    AND ( :startDate IS NULL OR etn.date >= STR_TO_DATE(:startDate, '%Y-%m-%d') ) \n" 
 		    + "    AND ( :endDate IS NULL OR etn.date <= STR_TO_DATE(:endDate, '%Y-%m-%d') ) \n" 
 			+ ") x\n"
@@ -17410,6 +17411,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				    "                THEN e.reporting_manager_id " +
 				    "                ELSE e.manager_id END) = :managerId " +
 				    "    AND etn.status = :status " +
+					"    AND etn.day_type_id <> 5" +
 				    "    AND ( :startDate IS NULL OR etn.date >= STR_TO_DATE(:startDate, '%Y-%m-%d') ) " +
 				    "    AND ( :endDate IS NULL OR etn.date <= STR_TO_DATE(:endDate, '%Y-%m-%d') ) " +
 				    ") " +
@@ -17491,6 +17493,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				    "    WHERE (CASE WHEN e.approvals_to = 'Reporting Manager' " +
 				    "                THEN e.reporting_manager_id ELSE e.manager_id END) = :managerId " +
 				    "    AND etn.status = :status " +
+					"    AND etn.day_type_id <> 5 " +
 				    "    AND ( :startDate IS NULL OR etn.date >= STR_TO_DATE(:startDate, '%Y-%m-%d') ) " +
 				    "    AND ( :endDate IS NULL OR etn.date <= STR_TO_DATE(:endDate, '%Y-%m-%d') ) " +
 
