@@ -10,7 +10,7 @@
 
       <!-- Date/Month filters + Legend -->
       <div class="tav-top-bar">
-        <div class="tav-range-controls" *ngIf="isClientDashboard; else normalMonthFilter">
+        <div class="tav-range-controls">
           <div class="tav-range-item">
             <label class="tav-range-label">From Date</label>
             <input
@@ -46,7 +46,7 @@
             </div>
           </div>
 
-          <div class="tav-range-item">
+          <div class="tav-range-item" *ngIf="showPoFilter">
             <label class="tav-range-label">PO No</label>
             <div class="tav-range-input tav-month-select-shell tav-po-select-shell">
               <mat-select
@@ -70,17 +70,6 @@
             </button>
           </div>
         </div>
-        <ng-template #normalMonthFilter>
-          <mat-form-field appearance="outline" class="tav-month-picker">
-            <input matInput [matDatepicker]="monthPicker"
-              [value]="formattedMonthLabel" placeholder="Select month">
-            <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
-            <mat-datepicker #monthPicker startView="year" [startAt]="currentDate"
-              (monthSelected)="monthSelected($event, monthPicker)"
-              panelClass="month-picker">
-            </mat-datepicker>
-          </mat-form-field>
-        </ng-template>
 
         <div class="tav-legend">
           <div *ngFor="let code of legendEntries" class="tav-legend__item">
