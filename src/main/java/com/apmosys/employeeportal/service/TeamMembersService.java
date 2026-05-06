@@ -460,15 +460,6 @@ public class TeamMembersService {
 			}
 		});
 
-		Map<Long, Employee> employeeMap = employeeRepository.findByEmpIdIn(allEmpIds).stream()
-				.collect(Collectors.toMap(Employee::getEmpId, Function.identity()));
-
-		List<Long> shadowEmpIds = employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(allEmpIds,
-				project.getProjectId());
-
-		BillableInfo billableInfo = resolveBillableInfo(project);
-
-		Map<Long, BillableInfo> billableUpdates = new HashMap<>();
 		List<EmpPrimaryProjectMapping> mappingsToSave = new ArrayList<>(existingCurrentProjectMappings);
 
 		for (Long empId : allEmpIds) {
@@ -481,21 +472,8 @@ public class TeamMembersService {
 				mappingsToSave
 						.add(createNewMapping(empId, project, projectId, updatedBy, now, isDefaultProjectDateOfFuture));
 			}
-
-			BillableInfo finalInfo = shadowEmpIds.contains(empId) ? new BillableInfo("Shadow", "No") : billableInfo;
-			Employee emp = employeeMap.get(empId);
-			if (emp == null || !Objects.equals(emp.getBillable(), finalInfo.getBillable())
-					|| !Objects.equals(emp.getBillableType(), finalInfo.getBillableType())) {
-				billableUpdates.put(empId, finalInfo);
-			}
 		}
 		empPrimaryProjectMappingRepository.saveAll(mappingsToSave);
-
-		for (Map.Entry<Long, BillableInfo> entry : billableUpdates.entrySet()) {
-			BillableInfo empIdToBillable = entry.getValue();
-			employeeRepository.updateBillableFields(entry.getKey(), empIdToBillable.getBillable(),
-					empIdToBillable.getBillableType());
-		}
 	}
 
 	private void createActivityForEmployeeRole(Long teamId, Long currentUserEmpId, List<Long> newEmpIds,
@@ -1133,7 +1111,7 @@ public class TeamMembersService {
 
 				if (prevPoDetailsList != null && !prevPoDetailsList.isEmpty()) {
 					currentPoIdAndPrevPoDetailsMap = prevPoDetailsList.stream()
-							.collect(Collectors.groupingBy(ProjectPoDetails::getPrevPO));
+							.collect(Collectors.groupingBy(ProjectPoDetails::getNextPO));
 				}
 			}
 		}
@@ -1161,7 +1139,8 @@ public class TeamMembersService {
 
 				LocalDate startDate = empTeamMapping.getStartDate().toLocalDate();
 				LocalDate selectedEndDate = rmgTeamDto.getEndDate() != null ? rmgTeamDto.getEndDate().toLocalDate() : LocalDate.now();
-				if (selectedEndDate != null && startDate.isAfter(selectedEndDate)) {
+
+				if (!rmgTeamMember.isRemovePermanently() && selectedEndDate != null && startDate.isAfter(selectedEndDate)) {
 					throw new IllegalArgumentException("End date cannot be less than Start date: " + startDate);
 				}
 

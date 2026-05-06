@@ -78,6 +78,7 @@ import com.apmosys.employeeportal.controller.ProjectStructureRequest;
 import com.apmosys.employeeportal.customrepository.EmployeeCustomRepository;
 import com.apmosys.employeeportal.customrepository.ProjectCustomRepository;
 import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
+import com.apmosys.employeeportal.dto.BillableInfo;
 import com.apmosys.employeeportal.dto.ClientDetailsSyncDto;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
@@ -1737,7 +1738,18 @@ public class ResourceManagementService {
 		                        EmpIdAndNameDTO::getEmpId,
 		                        EmpIdAndNameDTO::getName
 		                ));
+						
+		Map<Long, Employee> employeeMap = employeeRepository.findByEmpIdIn(empIds).stream()
+				.collect(Collectors.toMap(Employee::getEmpId, Function.identity()));
+		
+		List<Long> empIdsList = new ArrayList<>(empIds);
+		List<Long> shadowEmpIds = employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(empIdsList,
+				project.getProjectId());
+		
+		BillableInfo billableInfo = resolveBillableInfo(project);
 
+		Map<Long, BillableInfo> billableUpdates = new HashMap<>();
+				
 		for (EmployeeTeamMap member : members) {
 
 			context.getBean(getClass()).validateStartDate(member, project, empNameMap);
@@ -1755,10 +1767,25 @@ public class ResourceManagementService {
 	                .computeIfAbsent(team.getTeamName(), k -> new ArrayList<>())
 	                .add(member);
 			}
+
+			if (!startDate.isAfter(today)) {
+				BillableInfo finalInfo = shadowEmpIds.contains(member.getEmpId()) ? new BillableInfo("Shadow", "No") : billableInfo;
+				Employee emp = employeeMap.get(member.getEmpId());
+				if (emp == null || !Objects.equals(emp.getBillable(), finalInfo.getBillable())
+						|| !Objects.equals(emp.getBillableType(), finalInfo.getBillableType())) {
+					billableUpdates.put(member.getEmpId(), finalInfo);
+				}
+			}
 		}
 
+		if (!billableUpdates.isEmpty()) {
+			for (Map.Entry<Long, BillableInfo> entry : billableUpdates.entrySet()) {
+				BillableInfo empIdToBillable = entry.getValue();
+				employeeRepository.updateBillableFields(entry.getKey(), empIdToBillable.getBillable(),
+						empIdToBillable.getBillableType());
+			}
+		}
 		employeeTeamMapRepository.saveAll(members);
-
 		return modifiedTeams;
 	}
 
@@ -17952,6 +17979,34 @@ public class ResourceManagementService {
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong, unable to fetch % OF EMPLOYEES ON CLIENT PROJECTS!!");
 		}
 		return serviceResponse;
+	}
+
+	private BillableInfo resolveBillableInfo(Project project) {
+		String YES = "Yes";
+		String NO = "No";
+		String Y = "Y";
+		String N = "N";
+		String SHADOW = "Shadow";
+		String TNM = "TNM";
+		String FIXED_COST = "Fixed Cost";
+		String BENCH = "Bench";
+		String INTERNAL_RND = "InternalRNDProducts";
+		String MONITORING = "Monitoring";
+
+		if (TNM.equalsIgnoreCase(project.getPoProjectType())) {
+			return new BillableInfo(TNM, YES);
+		}
+		if (FIXED_COST.equalsIgnoreCase(project.getPoProjectType())
+				|| MONITORING.equalsIgnoreCase(project.getPoProjectType())) {
+			return new BillableInfo(FIXED_COST, NO);
+		}
+		if (BENCH.equalsIgnoreCase(project.getInternalProjectType())) {
+			return new BillableInfo(BENCH, NO);
+		}
+		if (INTERNAL_RND.equalsIgnoreCase(project.getInternalProjectType())) {
+			return new BillableInfo(INTERNAL_RND, NO);
+		}
+		return new BillableInfo(null, null);
 	}
 	
 }
