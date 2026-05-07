@@ -641,6 +641,7 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.noOfDays = '';
     this.leaveObj.reason = '';
     this.overLappingTeamMemberList = [];
+    this.getMyLeaveBalancesByEmpId();
   }
 
   setLeaveTypeCode(leaveTypeMasterId: any) {
@@ -1965,7 +1966,7 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
     this.leaveBalanceList = [];
 
     let leaveObj = new Leave();
-    leaveObj.employeementId = this.currentUser.employeementId;
+    leaveObj.employeementId = this.leaveObj.employeementId;
     if (this.currentUser.isApmosysProduct === 'true') {
       leaveObj.employeeType = 'Apmosys Product';
     } else {
