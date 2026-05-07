@@ -494,7 +494,8 @@ export class LeaveComponent implements OnInit {
     this.isOverlapsedLeaveTable = false;
     this.leaveObj.maternityType = leaveHistory.maternityType
     this.leaveObj = Object.assign({}, leaveHistory);
-
+    this.LeaveObj.leaveTypeMasterId = leaveHistory.leaveTypeMasterId;
+    console.log("Leave obj",this.LeaveObj);
     this.leaveObj.fromDateDayType = leaveHistory.fromDateDayType;
     this.leaveObj.toDateDayType = leaveHistory.toDateDayType;
     this.leaveObj.fromDate = (this.leaveObj.fromDate) ? moment(this.leaveObj.fromDate, AppComponent.DATE_FORMAT).format(AppComponent.DB_DATE_FORMAT) : null;
@@ -506,13 +507,17 @@ export class LeaveComponent implements OnInit {
     } else if (this.isTeamLeaveHistory) {
       this.leaveObj.leaveAppliedFor = "team";
     }
+    console.log("Leave obj",this.LeaveObj);
 
     //console.log("this.leaveObj for Update : ", this.leaveObj);
     this.getLeaveMetadata();
+    console.log("Leave obj",this.LeaveObj);
     this.initializeDateMarkers();
-    this.setPolicyObj(this.leaveObj.leaveTypeMasterId);
+    console.log("Leave obj",this.LeaveObj);
+    // this.setPolicyObj(this.leaveObj.leaveTypeMasterId);
     this.getAllLeaveBalanceByEmpId(this.leaveObj);
-    this.isCompOffSelected(this.leaveObj.leaveTypeMasterId)
+    console.log("Leave obj",this.LeaveObj);
+    // this.isCompOffSelected(this.leaveObj.leaveTypeMasterId)
   }
 
   // Modals
@@ -1650,8 +1655,11 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
     }
 
     // this.getAllLeaveTypesByLeavePolicies(userObj);
-    this.getAllMyLeaveApplicationsByEmpId(userObj);
-    this.getAllLeaveTypesByLeavePolicies(userObj)
+    if(!this.isUpdation){
+      this.getAllMyLeaveApplicationsByEmpId(userObj);
+      this.getAllLeaveTypesByLeavePolicies(userObj);
+    }
+    
   }
 
   getAllTeamMemberList() {
