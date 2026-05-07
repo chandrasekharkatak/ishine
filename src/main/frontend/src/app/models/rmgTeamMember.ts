@@ -92,6 +92,13 @@ export class RmgTeamMember {
     roleFilterActionLabel: 'Show Active PO Roles' | 'Show All PO Roles' = 'Show Active PO Roles';
     poFilterActionLabel: 'Show Active PO' | 'Show All PO' = 'Show Active PO';
 
+    // Optional calling page/module context for backend validation (e.g., 'RMG').
+    validationContext?: string;
+    // Optional source identifier for validation flow (e.g., 'CURRENT_TEAM_TEMPLATE').
+    validationSource?: string;
+    // Optional validation/help message to show in UI (e.g., future assignment guidance).
+    validationMessage?: string;
+
     requiredCount: any;
     actualAssigned: any;
     projectNewStartDate: any;

@@ -635,13 +635,24 @@
                             </div>
                         </td>
                         <td class="min-width180 max-width200" *ngIf="currentTeam.newRmgTeamMember.isEndDateVisible">
-                            <div class="date-input-wrapper">
-                                <input class="form-control date-input" readonly [matDatepicker]="endDatepicker"
-                                    [(ngModel)]="currentTeam.newRmgTeamMember.endDate"
-                                    [max]="currentTeam.newRmgTeamMember.memberMaxEndDate"
-                                    [disabled]="!currentTeam.newRmgTeamMember.empId" (click)="endDatepicker.open()" />
-                                <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
-                                <mat-datepicker #endDatepicker></mat-datepicker>
+                            <div class="d-flex align-items-center">
+                                <div class="date-input-wrapper flex-grow-1">
+                                    <input class="form-control date-input" readonly [matDatepicker]="endDatepicker"
+                                        [(ngModel)]="currentTeam.newRmgTeamMember.endDate"
+                                        [min]="currentTeam.newRmgTeamMember.startDate"
+                                        [max]="currentTeam.newRmgTeamMember.memberMaxEndDate"
+                                        [disabled]="!currentTeam.newRmgTeamMember.empId"
+                                        (click)="endDatepicker.open()" />
+                                    <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
+                                    <mat-datepicker #endDatepicker></mat-datepicker>
+                                </div>
+                                <app-info-tooltip *ngIf="currentTeam.newRmgTeamMember.validationMessage"
+                                    class="ml-2"
+                                    [shouldShine]="false"
+                                    iconBgColor="#ca8a04"
+                                    [size]="16"
+                                    [content]="[currentTeam.newRmgTeamMember.validationMessage]">
+                                </app-info-tooltip>
                             </div>
                         </td>
                         <td class="min-width100 max-width150" *ngIf="!currentTeam.newRmgTeamMember.isEndDateVisible">
@@ -718,7 +729,9 @@
                         <td class="min-width180 max-width200" *ngIf="member.isEndDateVisible">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" readonly [matDatepicker]="endDatepicker"
-                                    [(ngModel)]="member.endDate" [max]="member.memberMaxEndDate"
+                                    [(ngModel)]="member.endDate"
+                                    [min]="member.startDate"
+                                    [max]="member.memberMaxEndDate"
                                     [disabled]="!member.empId" (click)="endDatepicker.open()" />
                                 <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
                                 <mat-datepicker #endDatepicker></mat-datepicker>
@@ -862,6 +875,7 @@
                         <td class="min-width100 max-width150" *ngIf="member.isEndDateVisible">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" readonly [matDatepicker]="endDatepicker" [(ngModel)]="member.endDate"
+                                    [min]="member.startDate"
                                     [max]="member.memberMaxEndDate" [disabled]="!member.empId" (click)="endDatepicker.open()" />
                                 <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
                                 <mat-datepicker #endDatepicker></mat-datepicker>
@@ -1026,6 +1040,7 @@
                         <td class="min-width100 max-width150 col-end-date">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" readonly [matDatepicker]="endDatepicker"
+                                    [min]="member.startDate"
                                     [disabled]="projectConfigStepperIndex !== 1"
                                     (dateChange)="onMemberEndDateChange($event, currentTeam.newRmgTeamMember)"
                                     [(ngModel)]="member.endDate" (click)="endDatepicker.open()" />

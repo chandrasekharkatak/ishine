@@ -2004,6 +2004,12 @@ public class TeamMembersService {
 				return response;
 			}
 
+			// Centralized same project/team conflict validation (backward compatible via serviceResponse strings).
+			ServiceResponse sameTeamConflict = validateSameProjectTeamDuplicateAndFutureConflicts(rmgTeamMemberDto);
+			if (sameTeamConflict != null) {
+				return sameTeamConflict;
+			}
+
 			if (rmgTeamMemberDto.getProjectIds() == null || rmgTeamMemberDto.getProjectIds().isEmpty()) {
 				List<Integer> temp = new ArrayList<>();
 				temp.add(currentProject.getProjectId());
@@ -2015,11 +2021,15 @@ public class TeamMembersService {
 				projectIds.add(currentProject.getProjectId());
 			}
 
-			response = validateEmployeeCurrentProjectOverlapWithStartDate(rmgTeamMemberDto.getEmpId(),
-					rmgTeamMemberDto.getStartDate(), rmgTeamMemberDto.getProjectType(), currentProject.getProjectId(), rmgTeamMemberDto.getTeamId(), rmgTeamMemberDto.getEtmId());
-			if (response != null && response.getServiceResponse() != null
-					&& response.getServiceResponse().equals("OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT")) {
-				return response;
+			// For PO projects (po_project_type != null), keep existing "same project overlap across teams" validation.
+			// For non-PO projects (po_project_type == null), do NOT block joining other teams in the same project.
+			if (currentProject.getPoProjectType() != null && !currentProject.getPoProjectType().trim().isEmpty()) {
+				response = validateEmployeeCurrentProjectOverlapWithStartDate(rmgTeamMemberDto.getEmpId(),
+						rmgTeamMemberDto.getStartDate(), rmgTeamMemberDto.getProjectType(), currentProject.getProjectId(), rmgTeamMemberDto.getTeamId(), rmgTeamMemberDto.getEtmId());
+				if (response != null && response.getServiceResponse() != null
+						&& response.getServiceResponse().equals("OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT")) {
+					return response;
+				}
 			}
 
 			response = validateEmployeeExistingProjectOverlapWithStartDate(rmgTeamMemberDto.getEmpId(),
@@ -2054,6 +2064,305 @@ public class TeamMembersService {
 			response.setServiceError(e.getMessage());
 		}
 		return response;
+	}
+	
+	private ServiceResponse validateSameProjectTeamDuplicateAndFutureConflicts(RmgTeamMemberDto dto) {
+		if (dto == null || dto.getEmpId() == null || dto.getProjectId() == null || dto.getStartDate() == null) {
+			return null;
+		}
+
+		final LocalDate today = LocalDate.now();
+		final LocalDate newStart = dto.getStartDate().toLocalDate();
+		final LocalDate newEnd = dto.getEndDate() != null ? dto.getEndDate().toLocalDate() : null;
+		final boolean isRmgContext = dto.getValidationContext() != null
+				&& "RMG".equalsIgnoreCase(dto.getValidationContext().trim());
+
+		// Validate within SAME team. If caller omitted teamId, fall back to project only for PO projects
+		// (legacy behavior). For non-PO projects, teamId is mandatory to enforce team-level restriction.
+		Project p = dto.getProjectId() != null ? projectRepository.findByProjectId(dto.getProjectId()) : null;
+		boolean isPoProject = p != null && p.getPoProjectType() != null && !p.getPoProjectType().trim().isEmpty();
+		boolean allowProjectScopeFallback = isPoProject;
+		boolean isNonPoProject = p != null && (p.getPoProjectType() == null || p.getPoProjectType().trim().isEmpty());
+		if (isNonPoProject && dto.getTeamId() == null) {
+			ServiceResponse resp = new ServiceResponse();
+			resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			resp.setServiceResponse("TEAM_ID_REQUIRED_FOR_VALIDATION");
+			resp.setServiceResponse1("Team Id is required to validate re-joining for non-PO projects.");
+			return resp;
+		}
+
+		List<EmployeeTeamMap> mappings =
+				dto.getTeamId() != null
+						? employeeTeamMapRepository.findAllByEmpIdAndTeamIdExcludingEtmId(dto.getEmpId(), dto.getTeamId(), dto.getEtmId())
+						: (allowProjectScopeFallback
+								? employeeTeamMapRepository.findAllByEmpIdAndProjectIdExcludingEtmId(dto.getEmpId(), dto.getProjectId(), dto.getEtmId())
+								: java.util.Collections.emptyList());
+		if (mappings == null || mappings.isEmpty()) {
+			mappings = java.util.Collections.emptyList();
+		}
+
+		log.info("validateEmployeeProjectStartDate same-scope check empId={} projectId={} teamId={} etmId={} mappingsFound={}",
+				dto.getEmpId(), dto.getProjectId(), dto.getTeamId(), dto.getEtmId(), mappings.size());
+
+		for (EmployeeTeamMap m : mappings) {
+			if (m == null) continue;
+			if (dto.getTeamId() != null && (m.getTeamId() == null || !m.getTeamId().equals(dto.getTeamId()))) {
+				continue;
+			}
+
+			// CASE 1: active = 1 or 2 -> already assigned
+			if (m.getActive() != null && (m.getActive() == 1 || m.getActive() == 2)) {
+				log.info("validateEmployeeProjectStartDate conflict: active mapping exists empId={} projectId={} teamId={} existingEtmId={} active={} start={} end={}",
+						dto.getEmpId(), dto.getProjectId(), m.getTeamId(), m.getEmployeeTeamMapId(), m.getActive(),
+						m.getStartDate() != null ? m.getStartDate().toLocalDate() : null,
+						m.getEndDate() != null ? m.getEndDate().toLocalDate() : null);
+				ServiceResponse resp = new ServiceResponse();
+				resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				resp.setServiceResponse("EMPLOYEE_ALREADY_ASSIGNED_TO_SAME_PROJECT_TEAM");
+				resp.setServiceResponse1("Employee is already assigned to this project/team.");
+				return resp;
+			}
+
+			// active == 0 cases
+			if (m.getActive() != null && m.getActive() == 0) {
+				LocalDate existingStart = m.getStartDate() != null ? m.getStartDate().toLocalDate() : null;
+				LocalDate existingEnd = m.getEndDate() != null ? m.getEndDate().toLocalDate() : null;
+
+				// CASE 3: historical assignment completed -> allow
+				if (existingEnd != null && existingEnd.isBefore(today)) {
+					continue;
+				}
+
+				// CASE 2: future planned assignment in SAME team (active=0, start in future, end null)
+				if (existingStart != null && existingStart.isAfter(today) && existingEnd == null) {
+					if (!isRmgContext) {
+						ServiceResponse resp = new ServiceResponse();
+						resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						resp.setServiceResponse("FUTURE_ASSIGNMENT_CONFLICT_SAME_PROJECT_TEAM");
+						resp.setServiceResponse1(
+								"Employee already has a future project/team mapping. Please contact RMG for further assistance.");
+							resp.setServiceResponse2(java.util.Map.of(
+									"hasConflict", true,
+									"hasFutureConflict", true,
+									"allowTemporaryAssignment", false,
+									"conflictingStartDate", existingStart,
+									"validationMessage",
+									"Employee already has a future project/team mapping. Please contact RMG for further assistance."
+							));
+						return resp;
+					}
+
+					// RMG: if newStart is before the existing scheduled start, allow a temporary assignment only if it ends before existingStart.
+					// If newStart is on/after existingStart, it overlaps the scheduled onboarding and must be blocked until the scheduled record is adjusted.
+					if (!newStart.isBefore(existingStart)) {
+						ServiceResponse resp = new ServiceResponse();
+						resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						resp.setServiceResponse("FUTURE_TEAM_ONBOARDING_OVERLAP");
+						String msg = "Employee already has a future onboarding in this team starting from " + existingStart
+								+ ". Please update/close the existing scheduled onboarding before adding a new one.";
+						resp.setServiceResponse1(msg);
+						resp.setServiceResponse2(java.util.Map.of(
+								"hasConflict", true,
+								"hasFutureConflict", true,
+								"allowTemporaryAssignment", false,
+								"conflictingStartDate", existingStart,
+								"validationMessage", msg,
+								"conflictingEtmId", m.getEmployeeTeamMapId()
+						));
+						return resp;
+					}
+
+					ServiceResponse resp = new ServiceResponse();
+					resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					if (newEnd == null) {
+						resp.setServiceResponse("FUTURE_ASSIGNMENT_CONFLICT_REQUIRE_ENDDATE");
+						String msg = "Employee already has a future onboarding in this team starting from " + existingStart
+								+ ". Please provide a non-overlapping end date (before " + existingStart + ") to continue.";
+						resp.setServiceResponse1(msg);
+						resp.setServiceResponse2(java.util.Map.of(
+								"hasConflict", true,
+								"hasFutureConflict", true,
+								"allowTemporaryAssignment", true,
+								"conflictingStartDate", existingStart,
+								"validationMessage", msg
+						));
+						return resp;
+					}
+					if (!newEnd.isBefore(existingStart)) {
+						resp.setServiceResponse("FUTURE_ASSIGNMENT_CONFLICT_ENDDATE_OVERLAP");
+						String msg = "End date must be before the employee's future onboarding start date (" + existingStart + ").";
+						resp.setServiceResponse1(msg);
+						resp.setServiceResponse2(java.util.Map.of(
+								"hasConflict", true,
+								"hasFutureConflict", true,
+								"allowTemporaryAssignment", true,
+								"conflictingStartDate", existingStart,
+								"validationMessage", msg
+						));
+						return resp;
+					}
+					// endDate is valid (new assignment ends before the future onboarding starts)
+					continue;
+				}
+
+				// CASE 4: active=0 and endDate is NULL but not a clean future assignment => treat as open assignment
+				if (existingEnd == null) {
+					// Special case: CURRENT_TEAM_TEMPLATE should treat future-scheduled active=0 mappings as "future onboarding"
+					// and allow the endDate-based resolution flow instead of hard-blocking as OPEN assignment.
+					boolean isCurrentTeamTemplate = dto.getValidationSource() != null
+							&& "CURRENT_TEAM_TEMPLATE".equalsIgnoreCase(dto.getValidationSource().trim());
+					if (isCurrentTeamTemplate && existingStart != null && existingStart.isAfter(today)) {
+						// Reuse the same future onboarding resolution behavior (RMG: endDate required; non-RMG: hard block).
+						if (!isRmgContext) {
+							ServiceResponse resp = new ServiceResponse();
+							resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							resp.setServiceResponse("FUTURE_ASSIGNMENT_CONFLICT_SAME_PROJECT_TEAM");
+							resp.setServiceResponse1(
+									"Employee already has a future project/team mapping. Please contact RMG for further assistance.");
+							resp.setServiceResponse2(java.util.Map.of(
+									"hasConflict", true,
+									"hasFutureConflict", true,
+									"allowTemporaryAssignment", false,
+									"conflictingStartDate", existingStart,
+									"validationMessage",
+									"Employee already has a future project/team mapping. Please contact RMG for further assistance."
+							));
+							return resp;
+						}
+
+						ServiceResponse resp = new ServiceResponse();
+						resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						if (newEnd == null) {
+							resp.setServiceResponse("FUTURE_ASSIGNMENT_CONFLICT_REQUIRE_ENDDATE");
+							String msg = "Employee already has a future onboarding in this team starting from " + existingStart
+									+ ". Please provide a non-overlapping end date (before " + existingStart + ") to continue.";
+							resp.setServiceResponse1(msg);
+							resp.setServiceResponse2(java.util.Map.of(
+									"hasConflict", true,
+									"hasFutureConflict", true,
+									"allowTemporaryAssignment", true,
+									"conflictingStartDate", existingStart,
+									"validationMessage", msg
+							));
+							return resp;
+						}
+						if (!newEnd.isBefore(existingStart)) {
+							resp.setServiceResponse("FUTURE_ASSIGNMENT_CONFLICT_ENDDATE_OVERLAP");
+							String msg = "End date must be before the employee's future onboarding start date (" + existingStart + ").";
+							resp.setServiceResponse1(msg);
+							resp.setServiceResponse2(java.util.Map.of(
+									"hasConflict", true,
+									"hasFutureConflict", true,
+									"allowTemporaryAssignment", true,
+									"conflictingStartDate", existingStart,
+									"validationMessage", msg
+							));
+							return resp;
+						}
+						continue;
+					}
+					// open-ended mapping overlaps any new mapping starting on/after existing start.
+					if (existingStart != null && (newEnd == null || !newEnd.isBefore(existingStart))) {
+						// If newStart is on/after existingStart, it overlaps.
+						if (!newStart.isBefore(existingStart)) {
+							ServiceResponse resp = new ServiceResponse();
+							resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							resp.setServiceResponse("OPEN_ASSIGNMENT_CONFLICT_SAME_PROJECT_TEAM");
+							resp.setServiceResponse1("Employee has an open assignment in this project/team. Please review existing mapping.");
+							resp.setServiceResponse2(existingStart);
+							return resp;
+						}
+					}
+				}
+			}
+		}
+
+		// PO projects: extend ONLY future scheduled overlap handling across the project (active=0, future start, end null).
+		// Keep existing "active overlap across teams of same project" validations unchanged (handled elsewhere).
+		if (isPoProject) {
+			List<EmployeeTeamMap> projectScope = employeeTeamMapRepository
+					.findAllByEmpIdAndProjectIdExcludingEtmId(dto.getEmpId(), dto.getProjectId(), dto.getEtmId());
+			if (projectScope != null && !projectScope.isEmpty()) {
+				for (EmployeeTeamMap m : projectScope) {
+					if (m == null) continue;
+					if (m.getActive() == null || m.getActive() != 0) continue;
+					LocalDate existingStart = m.getStartDate() != null ? m.getStartDate().toLocalDate() : null;
+					LocalDate existingEnd = m.getEndDate() != null ? m.getEndDate().toLocalDate() : null;
+					if (existingStart == null || !existingStart.isAfter(today) || existingEnd != null) continue;
+
+					log.info("validateEmployeeProjectStartDate PO future-scheduled mapping detected empId={} projectId={} existingTeamId={} existingEtmId={} existingStart={}",
+							dto.getEmpId(), dto.getProjectId(), m.getTeamId(), m.getEmployeeTeamMapId(), existingStart);
+
+					if (!isRmgContext) {
+						ServiceResponse resp = new ServiceResponse();
+						resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						resp.setServiceResponse("FUTURE_ASSIGNMENT_CONFLICT_SAME_PROJECT_TEAM");
+						resp.setServiceResponse1(
+								"Employee already has a future project/team mapping. Please contact RMG for further assistance.");
+						resp.setServiceResponse2(java.util.Map.of(
+								"hasConflict", true,
+								"hasFutureConflict", true,
+								"allowTemporaryAssignment", false,
+								"conflictingStartDate", existingStart,
+								"validationMessage",
+								"Employee already has a future project/team mapping. Please contact RMG for further assistance."
+						));
+						return resp;
+					}
+
+					// RMG: if the new start is before the future scheduled start, allow only if it ends before that date.
+					// If new start is on/after future start, it overlaps the scheduled onboarding and must be adjusted first.
+					if (!newStart.isBefore(existingStart)) {
+						ServiceResponse resp = new ServiceResponse();
+						resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						resp.setServiceResponse("FUTURE_TEAM_ONBOARDING_OVERLAP");
+						String msg = "Employee already has a future onboarding in this project starting from " + existingStart
+								+ ". Please update/close the existing scheduled onboarding before adding a new one.";
+						resp.setServiceResponse1(msg);
+						resp.setServiceResponse2(java.util.Map.of(
+								"hasConflict", true,
+								"hasFutureConflict", true,
+								"allowTemporaryAssignment", false,
+								"conflictingStartDate", existingStart,
+								"validationMessage", msg,
+								"conflictingEtmId", m.getEmployeeTeamMapId()
+						));
+						return resp;
+					}
+
+					ServiceResponse resp = new ServiceResponse();
+					resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					if (newEnd == null) {
+						resp.setServiceResponse("FUTURE_ASSIGNMENT_CONFLICT_REQUIRE_ENDDATE");
+						String msg = "Employee already has a future onboarding in this project starting from " + existingStart
+								+ ". Please provide a non-overlapping end date (before " + existingStart + ") to continue.";
+						resp.setServiceResponse1(msg);
+						resp.setServiceResponse2(java.util.Map.of(
+								"hasConflict", true,
+								"hasFutureConflict", true,
+								"allowTemporaryAssignment", true,
+								"conflictingStartDate", existingStart,
+								"validationMessage", msg
+						));
+						return resp;
+					}
+					if (!newEnd.isBefore(existingStart)) {
+						resp.setServiceResponse("FUTURE_ASSIGNMENT_CONFLICT_ENDDATE_OVERLAP");
+						String msg = "End date must be before the employee's future onboarding start date (" + existingStart + ").";
+						resp.setServiceResponse1(msg);
+						resp.setServiceResponse2(java.util.Map.of(
+								"hasConflict", true,
+								"hasFutureConflict", true,
+								"allowTemporaryAssignment", true,
+								"conflictingStartDate", existingStart,
+								"validationMessage", msg
+						));
+						return resp;
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	private ServiceResponse validateEmployeeCurrentProjectOverlapWithStartDate(Long empId, LocalDateTime startDate,

@@ -97,6 +97,14 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	
 	@Query("SELECT etm from EmployeeTeamMap etm WHERE etm.empId = :empId AND etm.teamId = :teamId")
 	EmployeeTeamMap findByEmpIdAndTeamId(Long empId, Long teamId);
+	
+	@Query("SELECT etm FROM EmployeeTeamMap etm "
+			+ "WHERE etm.empId = :empId "
+			+ "AND etm.teamId = :teamId "
+			+ "AND (:excludeEtmId IS NULL OR etm.employeeTeamMapId <> :excludeEtmId)")
+	List<EmployeeTeamMap> findAllByEmpIdAndTeamIdExcludingEtmId(@Param("empId") Long empId,
+			@Param("teamId") Long teamId,
+			@Param("excludeEtmId") Long excludeEtmId);
 
 	@Query("select distinct t.teamName "
 			+ "from EmployeeTeamMap etm "
@@ -1500,6 +1508,16 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 
 	@Query(value = "select etm from EmployeeTeamMap etm inner join Team t on t.teamId = etm.teamId inner join Project p on p.projectId = t.projectId where etm.active != 0 and t.isActive = 'Y' and p.projectId =:projectId and etm.empId = :empId ")
 	List<EmployeeTeamMap> findByEmpIdAndProjectId(Long empId, Integer projectId);
+
+	@Query("SELECT etm FROM EmployeeTeamMap etm "
+			+ "INNER JOIN Team t ON t.teamId = etm.teamId "
+			+ "INNER JOIN Project p ON p.projectId = t.projectId "
+			+ "WHERE etm.empId = :empId "
+			+ "AND p.projectId = :projectId "
+			+ "AND (:excludeEtmId IS NULL OR etm.employeeTeamMapId <> :excludeEtmId)")
+	List<EmployeeTeamMap> findAllByEmpIdAndProjectIdExcludingEtmId(@Param("empId") Long empId,
+			@Param("projectId") Integer projectId,
+			@Param("excludeEtmId") Long excludeEtmId);
 	
 	
 		@Query(value = "SELECT distinct new com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO( c.clientId, "

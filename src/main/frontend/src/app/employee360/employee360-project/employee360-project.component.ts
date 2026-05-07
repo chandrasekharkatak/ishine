@@ -1370,7 +1370,7 @@ console.log("mapping ID",this.employeeTeamMapId);
       this.projectObj.isEndDateVisible = true;
       this.projectObj.memberMaxEndDate = response?.data.memberMaxEndDate;
       this.editEnddateModal(edit_enddate_template, this.projectObj);
-      this.openAlertMessageModal('Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!');
+      this.openAlertMessageModal(response?.message || 'Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!');
       return false;
     } else {
       return false;
