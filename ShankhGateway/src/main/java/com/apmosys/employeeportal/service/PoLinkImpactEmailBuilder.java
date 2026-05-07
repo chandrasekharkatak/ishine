@@ -56,14 +56,14 @@ public class PoLinkImpactEmailBuilder {
 				.append(FONT).append(";\">");
 
 		// Header gradient (NEW REQUIREMENT)
-		h.append("<tr><td style=\"background: linear-gradient(90deg, #cee0f8 0%, #E8F1FD 100%);")
+		h.append("<tr><td style=\"background: linear-gradient(90deg, #DDE2ED 0%, #F2F4F9 100%);")
 				.append(" color:#2F80ED; padding:16px 20px; font-size:18px; font-weight:600; text-align:center; font-family:")
 				.append(FONT).append(";\">");
 		h.append("PO Linking Completed");
 		h.append("</td></tr>");
 
 		// Subheader line (keeps prior header content)
-		h.append("<tr><td style=\"padding:12px 20px; background: linear-gradient(90deg, #cee0f8 0%, #E8F1FD 100%);").append(C_BANNER_BG)
+		h.append("<tr><td style=\"padding:12px 20px; background: linear-gradient(90deg, #DDE2ED 0%, #F2F4F9 100%);").append(C_BANNER_BG)
 				.append("; font-family:").append(FONT).append("; font-size:14px; color:#555; text-align:center;\">");
 		h.append("<strong>Primary Project:</strong> ").append(esc(d.getProjectDisplayName()));
 		h.append("</td></tr>");

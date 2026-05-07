@@ -127,6 +127,10 @@ export class TeamService {
     return this.http.post(`${this.baseUrl}` + `api/deleteSelectedTeams`, deleteTeamsPo);
   }
 
+  validateDeleteSelectedTeams(deleteTeamsPo: PoDetails) {
+    return this.http.post(`${this.baseUrl}` + `api/validateDeleteSelectedTeams`, deleteTeamsPo);
+  }
+
   addOrUpdateTeamDetails(updateTeamPoDetails: PoDetails) {
     return this.http.post(`${this.baseUrl}` + `api/addOrUpdateTeamDetails`, updateTeamPoDetails);
   }
