@@ -1064,9 +1064,12 @@ public class TeamMembersService {
 		return response;
 	}
 
-	private String handleRemoveTeamMembers(RmgTeamDto rmgTeamDto, Project project, Team team,
+	protected String handleRemoveTeamMembers(RmgTeamDto rmgTeamDto, Project project, Team team,
 			Map<Long, EmployeeTeamMap> empTeamMap) {
 		StringBuilder sb = new StringBuilder();
+		if (rmgTeamDto == null || rmgTeamDto.getRmgTeamMemberList() == null || rmgTeamDto.getRmgTeamMemberList().isEmpty()) {
+			return "No team members provided to remove.";
+		}
 		Long currentUserEmpId = rmgTeamDto.getUpdatedBy();
 
 		List<Employee> empList = employeeRepository.findByEmpIdIn(rmgTeamDto.getRmgTeamMemberList().stream()
@@ -1102,6 +1105,7 @@ public class TeamMembersService {
 
 				if (nextPoDetailsList != null && !nextPoDetailsList.isEmpty()) {
 					currentPoIdAndNextPoDetailsMap = nextPoDetailsList.stream()
+					.filter(Objects::nonNull).filter(x -> x.getPrevPO() != null)
 					.collect(Collectors.groupingBy(ProjectPoDetails::getPrevPO));
 				}
 
@@ -1111,6 +1115,7 @@ public class TeamMembersService {
 
 				if (prevPoDetailsList != null && !prevPoDetailsList.isEmpty()) {
 					currentPoIdAndPrevPoDetailsMap = prevPoDetailsList.stream()
+							.filter(Objects::nonNull).filter(x -> x.getNextPO() != null)
 							.collect(Collectors.groupingBy(ProjectPoDetails::getNextPO));
 				}
 			}
@@ -1141,7 +1146,9 @@ public class TeamMembersService {
 				LocalDate selectedEndDate = rmgTeamDto.getEndDate() != null ? rmgTeamDto.getEndDate().toLocalDate() : LocalDate.now();
 
 				if (!rmgTeamMember.isRemovePermanently() && selectedEndDate != null && startDate.isAfter(selectedEndDate)) {
-					throw new IllegalArgumentException("End date cannot be less than Start date: " + startDate);
+					sb.append("Not applicable - start date is greater than provided end date for : ")
+							.append(rmgTeamMember.getEmpId()).append(" \n");
+					continue;
 				}
 
 				if (!rmgTeamMember.isRemovePermanently() && isTNMorMonitoringProject

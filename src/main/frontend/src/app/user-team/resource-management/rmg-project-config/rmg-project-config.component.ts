@@ -88,6 +88,7 @@ export class RmgProjectConfigComponent implements OnInit {
     @ViewChild("employee_existing_project_details") employeeExistingProjectDetailsTemplateRef!: TemplateRef<any>;
     @ViewChild("delete_employee_from_existing_project") deleteEmployeeFromExistingProjectTemplateRef!: TemplateRef<any>;
     @ViewChild("delete_team_confirmation") deleteTeamConfirmationTemplateRef!: TemplateRef<any>;
+    @ViewChild("delete_team_validation_preview") deleteTeamValidationPreviewTemplateRef!: TemplateRef<any>;
     @ViewChild("add_new_member") addNewMemberTemplateRef!: TemplateRef<any>;
     @ViewChild("extend_team_member_end_date") extendTeamMemberEndDateTemplateRef!: TemplateRef<any>;
     @ViewChild("update_project_milestone") updateProjectMilestoneTemplateRef!: TemplateRef<any>;
@@ -110,6 +111,7 @@ export class RmgProjectConfigComponent implements OnInit {
     employeeExistingProjectDetailsModalRef!: NgbModalRef;
     deleteEmployeeFromExistingProjectModalRef!: NgbModalRef;
     deleteTeamConfirmationModalRef!: NgbModalRef;
+    deleteTeamValidationPreviewModalRef!: NgbModalRef;
     addNewMemberModalRef!: NgbModalRef;
     extendTeamMemberEndDateModalRef!: NgbModalRef;
     updateProjectMilestoneModalRef!: NgbModalRef;
@@ -202,6 +204,9 @@ export class RmgProjectConfigComponent implements OnInit {
     employeeProjectEndDate: any;
     projectNewStartDate: any
     teamEndDate: any;
+    deleteTeamValidationRows: any[] = [];
+    deleteTeamApplicableEmpIds: number[] = [];
+    deleteTeamBlockedEmpIds: number[] = [];
     gapStartDate: any;
     gapEndDate: any;
     shadowResourceMappingMemberEndDate: any;
@@ -470,7 +475,18 @@ export class RmgProjectConfigComponent implements OnInit {
     openRemoveMembersModal() {
         this.membersEndDate = null;
         this.removePermanently = false;
+        this.membersEndDateType = 'Custom';
         this.removeMembersConfirmationModalRef = this.modalService?.open(this.removeMembersConfirmationTemplateRef, { modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false });
+    }
+
+    onMemberRemoveEndDateTypeChange(event: any) {
+        const selectedValue = event?.value;
+        if (selectedValue === 'PO') {
+            const poEndDate = this.selectedRemoveMembers?.[0]?.poEndDate;
+            this.membersEndDate = poEndDate ? moment(poEndDate).format('YYYY-MM-DD') : null;
+        } else if (selectedValue === 'Custom') {
+            this.membersEndDate = null;
+        }
     }
 
     closeRemoveMembersModal() {
@@ -538,6 +554,19 @@ export class RmgProjectConfigComponent implements OnInit {
     closeDeleteTeamConfirmationModal() {
         if (this.deleteTeamConfirmationModalRef) {
             this.deleteTeamConfirmationModalRef?.close();
+        }
+    }
+
+    openDeleteTeamValidationPreviewModal() {
+        this.deleteTeamValidationPreviewModalRef = this.modalService?.open(
+            this.deleteTeamValidationPreviewTemplateRef,
+            { modalDialogClass: 'modal-lg', backdrop: 'static', keyboard: false }
+        );
+    }
+
+    closeDeleteTeamValidationPreviewModal() {
+        if (this.deleteTeamValidationPreviewModalRef) {
+            this.deleteTeamValidationPreviewModalRef?.close();
         }
     }
 
@@ -693,6 +722,9 @@ export class RmgProjectConfigComponent implements OnInit {
         this.markDefaultProjectCompletionList = [];
         this.mappingToOtherProjectAsDefaultList = [];
         this.deletingTeamMembersList = [];
+        this.deleteTeamValidationRows = [];
+        this.deleteTeamApplicableEmpIds = [];
+        this.deleteTeamBlockedEmpIds = [];
 
         let poObj = new PoDetails();
         poObj.projectId = this.rmgProjectObj.projectId;
@@ -705,41 +737,8 @@ export class RmgProjectConfigComponent implements OnInit {
             if (response.serviceStatus === "Success") {
                 let teamMembers: RmgTeamMember[] = response.serviceResponse || [];
                 this.deletingTeamMembersList = teamMembers;
-
-                // having no other active projects and this is default project
-                let noOtherActiveAndCurrentIsDefaultProjectEmpIds: number[] = teamMembers
-                    .filter(member =>
-                        Array.isArray(member.otherActiveProjectIds) &&
-                        member.otherActiveProjectIds.length === 0 &&
-                        member.defaultProject === true
-                    )
-                    .map(member => member.empId);
-
-                // having other active projects and this is default project
-                const otherActiveAndCurrentIsDefaultProjectEmpIds: number[] = teamMembers
-                    .filter(member =>
-                        Array.isArray(member.otherActiveProjectIds) &&
-                        member.otherActiveProjectIds.length > 0 &&
-                        member.defaultProject === true
-                    )
-                    .map(member => member.empId);
-
-                this.markDefaultProjectCompletionList = teamMembers.filter(member => noOtherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
-                this.mappingToOtherProjectAsDefaultList = teamMembers.filter(member => otherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
-
-                this.resetDefaultProjectCompletion(this.markDefaultProjectCompletionList);
-                this.mapProjectListToEmployees(this.mappingToOtherProjectAsDefaultList);
-
-                if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
-                    this.openMarkDefaultProjectCompletionModal('DELETE_TEAM');
-                    this.openMappingToOtherProjectAsDefaultModal('DELETE_TEAM');
-                } else if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length === 0) {
-                    this.openMarkDefaultProjectCompletionModal('DELETE_TEAM');
-                } else if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length === 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
-                    this.openMappingToOtherProjectAsDefaultModal('DELETE_TEAM');
-                } else {
-                    this.openDeleteTeamConfirmationModal('DELETE_TEAM');
-                }
+                // NEW FLOW: end-date selection + validation preview must happen BEFORE default project update popups.
+                this.openDeleteTeamConfirmationModal('DELETE_TEAM');
 
             } else {
                 this.toastService.error(response.serviceResponse || 'Something went wrong!!');
@@ -1954,6 +1953,136 @@ export class RmgProjectConfigComponent implements OnInit {
                 team.updatedBy = this.currentUser.empId;
                 return team;
             });
+        // Step 1: validation preview from backend
+        this.teamService.validateDeleteSelectedTeams(this.deleteTeamsPo).pipe(first()).subscribe((resp: any) => {
+            if (resp.serviceStatus === "Success") {
+                const preview = resp.serviceResponse || {};
+                this.deleteTeamValidationRows = Array.isArray(preview.rows) ? preview.rows : [];
+                this.deleteTeamApplicableEmpIds = Array.isArray(preview.applicableEmpIds) ? preview.applicableEmpIds : [];
+                this.deleteTeamBlockedEmpIds = Array.isArray(preview.blockedEmpIds) ? preview.blockedEmpIds : [];
+                this.buildDeleteTeamPreviewGroups();
+                this.closeDeleteTeamConfirmationModal();
+                this.openDeleteTeamValidationPreviewModal();
+            } else {
+                this.toastService.error(resp.serviceResponse || 'Something went wrong!!');
+            }
+        });
+    }
+
+    blockedEmployees: any[] = [];
+    inactiveEmployees: any[] = [];
+    deletedEmployees: any[] = [];
+
+    private buildDeleteTeamPreviewGroups() {
+        const rows = Array.isArray(this.deleteTeamValidationRows) ? this.deleteTeamValidationRows : [];
+
+        const normalize = (s: any) => (typeof s === 'string' ? s.trim().toLowerCase() : '');
+
+        const mapped = rows.map(r => {
+            const statusRaw = normalize(r?.status);
+
+            let kind: 'blocked' | 'inactive' | 'deleted' | 'other' = 'other';
+            let label = r?.status;
+            let reasonOrAction = r?.status;
+
+            if (statusRaw.includes('not applicable') || statusRaw.includes('start date is greater') || statusRaw.includes('end date is before start date')) {
+                kind = 'blocked';
+                label = 'End date is before start date';
+                reasonOrAction = 'End date is before start date';
+            } else if (statusRaw.includes('will be made inactive') || statusRaw.includes('inactivate')) {
+                kind = 'inactive';
+                label = 'Will be inactivated';
+                reasonOrAction = 'Will be inactivated';
+            } else if (statusRaw.includes('future scheduled') || statusRaw.includes('pending')) {
+                kind = 'deleted';
+                if (statusRaw.includes('future')) {
+                    label = 'Future scheduled resource';
+                    reasonOrAction = 'Future scheduled resource';
+                } else {
+                    label = 'Pending resource';
+                    reasonOrAction = 'Pending resource';
+                }
+            } else if (statusRaw.includes('permanently deleted')) {
+                kind = 'deleted';
+                // default mapping for older backend strings
+                if (statusRaw.includes('future')) {
+                    label = 'Future scheduled resource';
+                    reasonOrAction = 'Future scheduled resource';
+                } else {
+                    label = 'Pending resource';
+                    reasonOrAction = 'Pending resource';
+                }
+            }
+
+            return {
+                employeeCode: r?.employeeCode,
+                employeeName: r?.employeeName,
+                teamStartDate: r?.teamStartDate,
+                label,
+                kind,
+                reasonOrAction
+            };
+        });
+
+        this.blockedEmployees = mapped.filter(x => x.kind === 'blocked');
+        this.inactiveEmployees = mapped.filter(x => x.kind === 'inactive');
+        this.deletedEmployees = mapped.filter(x => x.kind === 'deleted');
+    }
+
+    get deleteTeamSummary() {
+        const blocked = this.blockedEmployees?.length || 0;
+        const inactive = this.inactiveEmployees?.length || 0;
+        const deleted = this.deletedEmployees?.length || 0;
+        const canProceed = (inactive + deleted) > 0;
+        return { blocked, inactive, deleted, canProceed };
+    }
+
+    confirmDeleteTeamsAfterValidation() {
+        const applicableSet = new Set(this.deleteTeamApplicableEmpIds || []);
+        const teamMembers = (this.deletingTeamMembersList || []).filter(m => applicableSet.size === 0 || applicableSet.has(m.empId));
+
+        const noOtherActiveAndCurrentIsDefaultProjectEmpIds: number[] = teamMembers
+            .filter(member =>
+                Array.isArray(member.otherActiveProjectIds) &&
+                member.otherActiveProjectIds.length === 0 &&
+                member.defaultProject === true
+            )
+            .map(member => member.empId);
+
+        const otherActiveAndCurrentIsDefaultProjectEmpIds: number[] = teamMembers
+            .filter(member =>
+                Array.isArray(member.otherActiveProjectIds) &&
+                member.otherActiveProjectIds.length > 0 &&
+                member.defaultProject === true
+            )
+            .map(member => member.empId);
+
+        this.markDefaultProjectCompletionList = teamMembers.filter(member => noOtherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
+        this.mappingToOtherProjectAsDefaultList = teamMembers.filter(member => otherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
+
+        this.resetDefaultProjectCompletion(this.markDefaultProjectCompletionList);
+        this.mapProjectListToEmployees(this.mappingToOtherProjectAsDefaultList);
+
+        this.closeDeleteTeamValidationPreviewModal();
+
+        if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
+            this.openMarkDefaultProjectCompletionModal('DELETE_TEAM');
+            this.openMappingToOtherProjectAsDefaultModal('DELETE_TEAM');
+            return;
+        }
+        if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length === 0) {
+            this.openMarkDefaultProjectCompletionModal('DELETE_TEAM');
+            return;
+        }
+        if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length === 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
+            this.openMappingToOtherProjectAsDefaultModal('DELETE_TEAM');
+            return;
+        }
+
+        this.performDeleteSelectedTeamsApi();
+    }
+
+    private performDeleteSelectedTeamsApi() {
         this.teamService.deleteSelectedTeams(this.deleteTeamsPo).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus === "Success") {
                 this.getAllTeamsByProjectId();
@@ -1961,7 +2090,6 @@ export class RmgProjectConfigComponent implements OnInit {
             } else {
                 this.toastService.error(response.serviceResponse);
             }
-            this.closeDeleteTeamConfirmationModal();
         });
     }
 
@@ -2250,6 +2378,11 @@ export class RmgProjectConfigComponent implements OnInit {
         if (!this.isValidList(this.selectedRemoveMembers)) {
             this.openAlertMessageModal("Kindly Select atleast one member to Remove!!");
             return;
+        }
+
+        if (!this.removePermanently && this.membersEndDateType === 'PO') {
+            const poEndDate = this.selectedRemoveMembers?.[0]?.poEndDate;
+            this.membersEndDate = poEndDate ? moment(poEndDate).format('YYYY-MM-DD') : null;
         }
 
         if (!this.removePermanently && (!this.membersEndDate || this.membersEndDate == undefined || this.membersEndDate == null)) {

@@ -1971,6 +1971,14 @@
             <br> Do you want to proceed?
         </p>
         <p *ngIf="removePermanently" class="text-danger mb-1">Note: This action cannot be undone.</p>
+        <div class="row justify-content-center align-items-center"
+            *ngIf="!isInternalProject">
+            <mat-radio-group color="primary" [(ngModel)]="membersEndDateType"
+                (change)="onMemberRemoveEndDateTypeChange($event)">
+                <mat-radio-button value="PO">PO End Date</mat-radio-button>
+                <mat-radio-button value="Custom">Custom End Date</mat-radio-button>
+            </mat-radio-group>
+        </div>
         <div class="row justify-content-center align-items-center">
             <div class="col-md-8">
                 <div class="info-wrapper">
@@ -1978,9 +1986,10 @@
                         <label class="info-label ml-1">Select End Date<span *ngIf="!removePermanently" class="text-danger">*</span></label>
                         <div class="date-input-wrapper">
                             <input class="form-control date-input" readonly [matDatepicker]="membersEndDatePicker"
-                                [(ngModel)]="membersEndDate" (click)="membersEndDatePicker.open()" />
+                                [(ngModel)]="membersEndDate" (click)="membersEndDatePicker.open()"
+                                [disabled]="membersEndDateType === 'PO'" />
                             <mat-icon class="calendar-icon"
-                                (click)="membersEndDatePicker.open()">calendar_today</mat-icon>
+                                (click)="membersEndDatePicker.open()" [class.disabled]="membersEndDateType === 'PO'">calendar_today</mat-icon>
                             <mat-datepicker #membersEndDatePicker></mat-datepicker>
                         </div>
                     </div>
@@ -2031,6 +2040,144 @@
             <button type="button" class="btn btn-danger" (click)="closeDeleteTeamConfirmationModal()">No,
                 Cancel</button>&nbsp;
         </div>
+    </div>
+</ng-template>
+
+<ng-template #delete_team_validation_preview>
+    <div class="modal-header">
+        <h5 class="modal-title">Delete Team(s) - Preview</h5>
+        <button type="button" class="close" aria-label="Close" (click)="closeDeleteTeamValidationPreviewModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body delete-team-preview-body">
+        <div class="delete-team-preview-summary" *ngIf="deleteTeamSummary.blocked > 0 || deleteTeamSummary.inactive > 0 || deleteTeamSummary.deleted > 0">
+            <div class="delete-team-preview-summary__title">Summary</div>
+                <ul class="delete-team-preview-summary__list">
+                    <li *ngIf="deleteTeamSummary.blocked > 0">
+                        <b>{{ deleteTeamSummary.blocked }}</b> resources cannot be removed
+                    </li>
+                    <li *ngIf="deleteTeamSummary.inactive > 0">
+                        <b>{{ deleteTeamSummary.inactive }}</b> resources will be made inactive
+                    </li>
+                    <li *ngIf="deleteTeamSummary.deleted > 0">
+                        <b>{{ deleteTeamSummary.deleted }}</b> resources will be permanently deleted
+                    </li>
+                </ul>
+            <div class="delete-team-preview-summary__hint text-danger fw-bold">
+                Team will be deleted only after all active resources are successfully removed.
+            </div>
+        </div>
+
+        <ng-container *ngIf="isValidList(deleteTeamValidationRows); else noValidationRows">
+
+            <!-- A) Blocked -->
+            <div class="delete-team-preview-section" *ngIf="isValidList(blockedEmployees)">
+                <div class="delete-team-preview-section__header">
+                    <div class="delete-team-preview-section__title">
+                        Resources That Cannot Be Removed As End Date Is Before Start Date
+                    </div>
+                    <span class="dt-badge dt-badge--count dt-badge--danger">{{ blockedEmployees.length }}</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered dt-table">
+                        <thead>
+                            <tr>
+                                <th>Employee Code</th>
+                                <th>Employee Name</th>
+                                <th>Team Start Date</th>
+                                <!-- <th>Reason</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let row of blockedEmployees">
+                                <td>{{ row.employeeCode }}</td>
+                                <td>{{ row.employeeName }}</td>
+                                <td>{{ row.teamStartDate ? (row.teamStartDate | date:'dd-MM-yyyy') : '-' }}</td>
+                                <!-- <td>
+                                    <span class="dt-badge dt-badge--danger">{{ row.label }}</span>
+                                </td> -->
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- B) Will be inactivated -->
+            <div class="delete-team-preview-section" *ngIf="isValidList(inactiveEmployees)">
+                <div class="delete-team-preview-section__header">
+                    <div class="delete-team-preview-section__title">
+                        Resources That Will Be Removed
+                    </div>
+                    <span class="dt-badge dt-badge--count dt-badge--success">{{ inactiveEmployees.length }}</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered dt-table">
+                        <thead>
+                            <tr>
+                                <th>Employee Code</th>
+                                <th>Employee Name</th>
+                                <th>Team Start Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let row of inactiveEmployees">
+                                <td>{{ row.employeeCode }}</td>
+                                <td>{{ row.employeeName }}</td>
+                                <td>{{ row.teamStartDate ? (row.teamStartDate | date:'dd-MM-yyyy') : '-' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- C) Permanently deleted -->
+            <div class="delete-team-preview-section" *ngIf="isValidList(deletedEmployees)">
+                <div class="delete-team-preview-section__header">
+                    <div class="delete-team-preview-section__title">
+                        Resources To Be Permanently Deleted
+                    </div>
+                    <span class="dt-badge dt-badge--count dt-badge--warning">{{ deletedEmployees.length }}</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered dt-table">
+                        <thead>
+                            <tr>
+                                <th>Employee Code</th>
+                                <th>Employee Name</th>
+                                <th>Team Start Date</th>
+                                <!-- <th>Reason</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let row of deletedEmployees">
+                                <td>{{ row.employeeCode }}</td>
+                                <td>{{ row.employeeName }}</td>
+                                <td>{{ row.teamStartDate ? (row.teamStartDate | date:'dd-MM-yyyy') : '-' }}</td>
+                                <!-- <td>
+                                    <span class="dt-badge dt-badge--warning">{{ row.label }}</span>
+                                </td> -->
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </ng-container>
+
+        <ng-template #noValidationRows>
+            <p class="text-muted mb-0">
+                No resources are associated with the selected team(s). You can proceed with deletion.
+            </p>
+        </ng-template>
+    </div>
+    <div class="modal-footer delete-team-preview-footer justify-content-center">
+        <button type="button" class="btn btn-sm btn-success"
+            [disabled]="deleteTeamValidationRows?.length > 0 && !deleteTeamSummary.canProceed"
+            (click)="confirmDeleteTeamsAfterValidation()">
+            Yes, Proceed
+        </button>
+        <button type="button" class="btn btn-sm btn-danger" (click)="closeDeleteTeamValidationPreviewModal()">No, Cancel</button>
     </div>
 </ng-template>
 

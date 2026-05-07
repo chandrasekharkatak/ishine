@@ -1629,4 +1629,21 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "AND etm.teamId IN (SELECT teamId FROM Team WHERE projectId = :projectId) ")
 	void deactivateFutureEntries(Long empId, Long roleId, LocalDateTime startDate, Integer projectId);
 	
+	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId in :teamIds AND etm.active IN (1, 2)")
+	List<EmployeeTeamMap> findByTeamIdsAndActive(@Param("teamIds") List<Long> teamIds);
+
+	@Query("SELECT etm FROM EmployeeTeamMap etm "
+			+ "WHERE etm.teamId in :teamIds "
+			+ "AND etm.active = 0 "
+			+ "AND etm.endDate IS NULL "
+			+ "AND FUNCTION('DATE', etm.startDate) > CURRENT_DATE")
+	List<EmployeeTeamMap> findFutureScheduledByTeamIds(@Param("teamIds") List<Long> teamIds);
+
+	@Query("SELECT COUNT(etm) > 0 "
+			+ "FROM EmployeeTeamMap etm "
+			+ "WHERE etm.teamId = :teamId "
+			+ "AND (etm.active IN (1,2) "
+			+ "     OR (etm.active = 0 AND etm.endDate IS NULL AND etm.startDate IS NOT NULL AND FUNCTION('DATE', etm.startDate) > CURRENT_DATE))")
+	boolean existsActivePendingOrFutureScheduled(@Param("teamId") Long teamId);
+	
 }

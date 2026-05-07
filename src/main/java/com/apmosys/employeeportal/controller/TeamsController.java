@@ -345,6 +345,12 @@ public class TeamsController {
 	}
 
 	// @Encrypted
+	@PostMapping("/validateDeleteSelectedTeams")
+	public ServiceResponse validateDeleteSelectedTeams(@RequestBody PoDetailsDto poDetailsDto) {
+		return teamsService.validateDeleteSelectedTeams(poDetailsDto);
+	}
+
+	// @Encrypted
 	@PostMapping("/migrateTeam")
 	public ServiceResponse migrateTeam(@RequestBody MigrateTeam migrateTeam) {
 		return teamsService.migrateTeam(migrateTeam);

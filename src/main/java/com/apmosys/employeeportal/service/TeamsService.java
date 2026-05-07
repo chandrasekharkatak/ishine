@@ -69,6 +69,8 @@ import com.apmosys.employeeportal.dto.ProjectManagerEmailDTO;
 import com.apmosys.employeeportal.dto.RmgMemberEndDateDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
+import com.apmosys.employeeportal.dto.TeamDeleteValidationPreviewDto;
+import com.apmosys.employeeportal.dto.TeamDeleteValidationRowDto;
 import com.apmosys.employeeportal.dto.TNMConflictDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -253,6 +255,9 @@ public class TeamsService {
 	private RoleDetailsRepository roleDetailsRepository;
 	
 	@Autowired ReportService reportService;
+	
+	@Autowired
+	TeamMembersService teamMembersService;
 
 	private static final Logger log = LoggerFactory.getLogger(TeamsService.class);
 
@@ -462,18 +467,27 @@ public class TeamsService {
 
 							}else {
 								// If member already added as HOD,manager or teamLead --> check activity persona
-								int index = IntStream.range(0, mapList.size())
-										.filter(i -> mapList.get(i).getEmpId().equals(teamMember.getEmpId()))
-									     .findFirst()
-									     .orElse(-1);
-
-								if(!str.toString().contains(mapList.get(index).getEmployeeRole())) {
-									str.append(mapList.get(index).getEmployeeRole()).append(",");
-								}
-
-								if(index >= 0) {
-									mapList.get(index).setEmployeeRole(str.toString());
-								}
+//								int index = IntStream.range(0, mapList.size())
+//										.filter(i -> mapList.get(i).getEmpId().equals(teamMember.getEmpId()))
+//									     .findFirst()
+//									     .orElse(-1);
+//
+//								if(!str.toString().contains(mapList.get(index).getEmployeeRole())) {
+//									str.append(mapList.get(index).getEmployeeRole()).append(",");
+//								}
+//
+//								if(index >= 0) {
+//									mapList.get(index).setEmployeeRole(str.toString());
+//								}
+								mapList.stream()
+							    .filter(e -> e.getEmpId().equals(teamMember.getEmpId()))
+							    .findFirst()
+							    .ifPresent(e -> {
+							        if (!str.toString().contains(e.getEmployeeRole())) {
+							            str.append(e.getEmployeeRole()).append(",");
+							        }
+							        e.setEmployeeRole(str.toString());
+							    });
 							}
 						});
 
@@ -4226,190 +4240,364 @@ public class TeamsService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse deleteSelectedTeams(PoDetailsDto poDetailsDto) {
-		ServiceResponse response = new ServiceResponse();
-		try {
-			if (poDetailsDto == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Request cannot be null!!");
-				return response;
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        if (poDetailsDto == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Request cannot be null!!");
+	            return response;
+	        }
+	        if (poDetailsDto.getTeamList() == null || poDetailsDto.getTeamList().isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Team Details List cannot be null!!");
+	            return response;
+	        }
+	        if (poDetailsDto.getProjectId() == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Project Id cannot be null!!");
+	            return response;
+	        }
+
+	        Project existingProject = projectRepository.findByProjectId(poDetailsDto.getProjectId());
+	        if (existingProject == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Project not found!!");
+	            return response;
+	        }
+
+	        List<RmgTeamDto> teamDtoList = poDetailsDto.getTeamList();
+	        Long currentUserEmpId = teamDtoList.stream().map(RmgTeamDto::getUpdatedBy).filter(Objects::nonNull)
+	                .findFirst().orElse(null);
+	        if (currentUserEmpId == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Emp Id cannot be null!!");
+	            return response;
+	        }
+
+	        List<Long> selectedTeamIds = teamDtoList.stream().map(RmgTeamDto::getTeamId).filter(Objects::nonNull)
+	                .distinct().collect(Collectors.toList());
+	        if (selectedTeamIds.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Team Id cannot be null!!");
+	            return response;
+	        }
+
+	        List<Team> teamList = teamRepository.findActiveTeamsByTeamIds(selectedTeamIds);
+	        if (teamList == null || teamList.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Selected Team Details not found!!");
+	            return response;
+	        }
+
+	        Map<Long, Team> teamById = teamList.stream().filter(t -> t != null && t.getTeamId() != null).collect(
+				Collectors.toMap(Team::getTeamId, Function.identity(), (a, b) -> a));
+
+	        List<EmployeeTeamMap> allMappings =
+	                employeeTeamMapRepository.findByTeamIdsAndActive(selectedTeamIds);
+	        List<EmployeeTeamMap> futureScheduledMappings =
+					employeeTeamMapRepository.findFutureScheduledByTeamIds(selectedTeamIds);
+
+	        Map<Long, List<EmployeeTeamMap>> teamIdToMappings =
+	                allMappings.stream().collect(Collectors.groupingBy(EmployeeTeamMap::getTeamId));
+	        Map<Long, List<EmployeeTeamMap>> teamIdToFutureMappings =
+					(futureScheduledMappings == null ? List.<EmployeeTeamMap>of() : futureScheduledMappings)
+							.stream()
+							.filter(Objects::nonNull)
+							.collect(Collectors.groupingBy(EmployeeTeamMap::getTeamId));
+
+	        List<String> ableToInactiveTeamNames = new ArrayList<>();
+	        List<String> warningTeamNames = new ArrayList<>();
+	        List<Long> teamsToHardDeletePending = new ArrayList<>();
+	        List<Long> teamsToHardDeleteFuture = new ArrayList<>();
+
+	        LocalDate today = LocalDate.now();
+	        LocalDateTime now = LocalDateTime.now();
+	        LocalDateTime startOfDay = today.atStartOfDay();
+
+	        for (RmgTeamDto teamDto : teamDtoList) {
+	            if (teamDto == null || teamDto.getTeamId() == null) {
+	                warningTeamNames.add("Unknown team in request");
+	                continue;
+	            }
+	            Team team = teamById.get(teamDto.getTeamId());
+	            if (team == null) {
+	                warningTeamNames.add((teamDto.getTeamName() != null ? teamDto.getTeamName() : "Unknown") + " -> not found");
+	                continue;
+	            }
+
+	            List<EmployeeTeamMap> employeeTeamMappings =
+	                    teamIdToMappings.getOrDefault(teamDto.getTeamId(), Collections.emptyList());
+	            List<EmployeeTeamMap> futureMappingsForTeam =
+						teamIdToFutureMappings.getOrDefault(teamDto.getTeamId(), Collections.emptyList());
+
+	            Map<Long, EmployeeTeamMap> empTeamMapByEmpId =
+	                    employeeTeamMappings.stream()
+	                            .filter(Objects::nonNull)
+	                            .filter(x -> x.getEmpId() != null)
+	                            .collect(Collectors.toMap(
+	                                    EmployeeTeamMap::getEmpId,
+	                                    Function.identity(),
+	                                    (a, b) -> a
+	                            ));
+
+				// Pre-validation: build applicable vs blocked members based on end date and ETM start date.
+				LocalDate selectedEndDate = teamDto.getEndDate() != null ? teamDto.getEndDate().toLocalDate() : LocalDate.now();
+
+				List<RmgTeamMemberDto> applicableMembers = new ArrayList<>();
+				List<Long> blockedEmpIds = new ArrayList<>();
+
+				for (EmployeeTeamMap etm : employeeTeamMappings) {
+					if (etm == null || etm.getEmpId() == null) {
+						continue;
+					}
+					// A) Active resources (active=1): validate start_date <= selected end date
+					if (Objects.equals(etm.getActive(), 1L)) {
+						if (etm.getStartDate() != null && etm.getStartDate().toLocalDate().isAfter(selectedEndDate)) {
+							blockedEmpIds.add(etm.getEmpId());
+						} else {
+							RmgTeamMemberDto m = new RmgTeamMemberDto();
+							m.setEmpId(etm.getEmpId());
+							m.setRemovePermanently(false);
+							applicableMembers.add(m);
+						}
+					}
+				}
+
+				// B) Pending resources (active=2) -> hard delete (handled after loop, no N+1)
+				boolean hasPending = employeeTeamMappings.stream().anyMatch(x -> x != null && Objects.equals(x.getActive(), 2L));
+				if (hasPending) {
+					teamsToHardDeletePending.add(team.getTeamId());
+				}
+				// C) Future scheduled (active=0 and start_date > current_date) -> hard delete
+				if (futureMappingsForTeam != null && !futureMappingsForTeam.isEmpty()) {
+					teamsToHardDeleteFuture.add(team.getTeamId());
+				}
+
+				// IMPORTANT: blocked employees must NOT block eligible employees.
+				// We will process applicable employees, and keep the team active if any blocked/remaining resources exist.
+				if (!blockedEmpIds.isEmpty()) {
+					log.info("Delete team pre-validation: teamId={} blockedEmpIds={} selectedEndDate={}",
+							team.getTeamId(), blockedEmpIds, selectedEndDate);
+					warningTeamNames.add("Team \"" + team.getTeamName()
+							+ "\" could not be deleted because some resources are still active for the selected duration");
+				}
+
+				log.info("Delete team eligible employees: teamId={} eligibleEmpIds={} selectedEndDate={}",
+						team.getTeamId(),
+						applicableMembers.stream().map(RmgTeamMemberDto::getEmpId).collect(Collectors.toList()),
+						selectedEndDate);
+
+				// Proceed with existing removal flow for applicable employees only (may be empty).
+				teamDto.setRmgTeamMemberList(applicableMembers);
+
+	            String removalResponse = teamMembersService.handleRemoveTeamMembers(
+	                    teamDto,
+	                    existingProject,
+	                    team,
+	                    empTeamMapByEmpId
+	            );
+
+	            if (removalResponse != null && !removalResponse.trim().isEmpty()) {
+					log.info("Delete team removal response: teamId={} msg={}", team.getTeamId(), removalResponse);
+	                warningTeamNames.add(team.getTeamName() + " -> " + removalResponse);
+	            }
+
+				// After removal + hard-deletes (performed below), mark inactive only if no active/pending/future remain.
+				ableToInactiveTeamNames.add(team.getTeamName());
+	        }
+
+	        // Hard delete pending + future scheduled resources (no rollback expected)
+	        if (!teamsToHardDeletePending.isEmpty()) {
+				log.info("Delete team: hard deleting pending mappings for teams={}", teamsToHardDeletePending);
+				employeeTeamMapRepository.hardDeletePendingMappingsByTeamIds(teamsToHardDeletePending);
 			}
-			if (poDetailsDto.getTeamList() == null || poDetailsDto.getTeamList().isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Team Details List cannot be null!!");
-				return response;
-			}
-			if (poDetailsDto.getProjectId() == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Project Id cannot be null!!");
-				return response;
+	        if (!teamsToHardDeleteFuture.isEmpty()) {
+				log.info("Delete team: hard deleting future scheduled mappings for teams={}", teamsToHardDeleteFuture);
+				employeeTeamMapRepository.deleteScheduledEmployeesByTeamIds(teamsToHardDeleteFuture);
 			}
 
-			Project existingProject = projectRepository.findByProjectId(poDetailsDto.getProjectId());
-			if (existingProject == null) {
+	        entityManager.flush();
+
+			// Final: mark team inactive only if NO active/pending/future mappings remain.
+			List<String> notDeletedDueToRemaining = new ArrayList<>();
+			for (Long teamId : selectedTeamIds) {
+				Team team = teamById.get(teamId);
+				if (team == null) {
+					continue;
+				}
+				boolean stillHas = employeeTeamMapRepository.existsActivePendingOrFutureScheduled(teamId);
+				log.info("Delete team post-check: teamId={} stillHasActiveOrPendingOrFuture={}", teamId, stillHas);
+				if (stillHas) {
+					notDeletedDueToRemaining.add(team.getTeamName());
+					continue;
+				}
+				team.setIsActive("N");
+				team.setUpdatedBy(currentUserEmpId);
+				team.setUpdatedOn(now);
+				teamRepository.save(team);
+				log.info("Delete team marked inactive: teamId={} teamName={}", teamId, team.getTeamName());
+			}
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        if (!notDeletedDueToRemaining.isEmpty()) {
+				response.setServiceResponse("Team not deleted as there are still active resources in the team.");
+			} else {
+				response.setServiceResponse("Team and Its Resources are set to inactive successfully!!");
+			}
+
+	        Integer projectId = existingProject.getProjectId();
+	        Long pendingCount = selectedTeamIds.isEmpty()
+	                ? employeeTeamMapRepository.countPendingTeamsByProjectId(projectId)
+	                : employeeTeamMapRepository.countPendingTeamsExcludingDeleted(projectId, selectedTeamIds);
+
+	        if (pendingCount != null && pendingCount > 0) {
+	            if (!ableToInactiveTeamNames.isEmpty()) {
+	                sendTeamDeletedMail(poDetailsDto.getProjectId(), currentUserEmpId, ableToInactiveTeamNames);
+	            }
+	            return response;
+	        }
+
+	        String isDraft = existingProject.getIsDraftProject();
+	        String projectActive = existingProject.getActive();
+	        if (isDraft != null && isDraft.equalsIgnoreCase("true") && projectActive != null
+					&& projectActive.equalsIgnoreCase("true")) {
+	            String card = employeeTeamMapRepository.findProjectStatusCardByProjectId(projectId, startOfDay);
+	            Long endedCount = employeeTeamMapRepository.countHistoricalEndedMappingsByProjectId(projectId, startOfDay);
+	            if ("NOT_STARTED".equalsIgnoreCase(card)
+	                    && endedCount != null
+						&& endedCount > 0) {
+	                card = "DEBOARDED";
+	            }
+	            if ("UNKNOWN".equalsIgnoreCase(card)) {
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Unable to allocate project to a status card!");
+	                return response;
+	            }
+	            switch (card) {
+	                case "NOT_STARTED":
+	                    existingProject.setIsDraftProject(null);
+	                    existingProject.setProjectStatus("Not Started");
+	                    break;
+
+	                case "APPROVED":
+	                case "DEBOARDED":
+	                    existingProject.setIsDraftProject("false");
+	                    existingProject.setProjectStatus("In Progress");
+	                    break;
+	            }
+
+	            projectRepository.save(existingProject);
+	        }
+
+	        if (!ableToInactiveTeamNames.isEmpty()) {
+	            sendTeamDeletedMail(poDetailsDto.getProjectId(), currentUserEmpId, ableToInactiveTeamNames);
+	        }
+			if (!warningTeamNames.isEmpty()) {
+				response.setServiceResponse1(String.join(", ", warningTeamNames));
+			}
+	    } catch (Exception e) {
+	        log.error("Error in deleteSelectedTeams : ", e);
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong!!");
+	        response.setServiceError(e.getMessage());
+	    }
+
+	    return response;
+	}
+
+	@Transactional(readOnly = true)
+	public ServiceResponse validateDeleteSelectedTeams(PoDetailsDto poDetailsDto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (poDetailsDto == null || poDetailsDto.getProjectId() == null
+					|| poDetailsDto.getTeamList() == null || poDetailsDto.getTeamList().isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Project not found!!");
+				response.setServiceResponse("Invalid request!!");
 				return response;
 			}
 
 			List<RmgTeamDto> teamDtoList = poDetailsDto.getTeamList();
-			Long currentUserEmpId = teamDtoList.stream().map(RmgTeamDto::getUpdatedBy).filter(Objects::nonNull)
-					.findFirst().orElse(null);
-			if (currentUserEmpId == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Emp Id cannot be null!!");
-				return response;
-			}
+			List<Long> teamIds = teamDtoList.stream().filter(Objects::nonNull).map(RmgTeamDto::getTeamId)
+					.filter(Objects::nonNull).distinct().collect(Collectors.toList());
 
-			List<Long> selectedTeamIds = teamDtoList.stream().map(RmgTeamDto::getTeamId).filter(Objects::nonNull)
-					.distinct().collect(Collectors.toList());
-			if (selectedTeamIds.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Team Id cannot be null!!");
-				return response;
-			}
+			List<EmployeeTeamMap> activeOrPending = employeeTeamMapRepository.findByTeamIdsAndActive(teamIds);
+			List<EmployeeTeamMap> futureScheduled = employeeTeamMapRepository.findFutureScheduledByTeamIds(teamIds);
+			List<EmployeeTeamMap> all = new ArrayList<>();
+			if (activeOrPending != null) all.addAll(activeOrPending);
+			if (futureScheduled != null) all.addAll(futureScheduled);
 
-			List<Team> teamList = teamRepository.findActiveTeamsByTeamIds(selectedTeamIds);
-			if (teamList == null || teamList.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Selected Team Details not found!!");
-				return response;
-			}
+			List<Long> empIds = all.stream().filter(Objects::nonNull).map(EmployeeTeamMap::getEmpId)
+					.filter(Objects::nonNull).distinct().collect(Collectors.toList());
+			Map<Long, Employee> empById = employeeRepository.findByEmpIdIn(empIds).stream()
+					.filter(Objects::nonNull)
+					.collect(Collectors.toMap(Employee::getEmpId, Function.identity(), (a,b) -> a));
 
-			Map<Long, Team> teamById = teamList.stream().filter(t -> t != null && t.getTeamId() != null).collect(
-					Collectors.toMap(Team::getTeamId, Function.identity(), (a, b) -> a));
-
-			List<String> ableToInactiveTeamNames = new ArrayList<>();
-			List<String> unableToInactiveTeamNames = new ArrayList<>();
-			List<Long> deletedTeamIds = new ArrayList<>();
-
+			TeamDeleteValidationPreviewDto preview = new TeamDeleteValidationPreviewDto();
 			LocalDate today = LocalDate.now();
-			LocalDateTime now = LocalDateTime.now();
-			LocalDateTime startOfDay = today.atStartOfDay();
 
 			for (RmgTeamDto teamDto : teamDtoList) {
-				if (teamDto == null || teamDto.getTeamId() == null) {
-					unableToInactiveTeamNames.add("Unknown");
-					continue;
-				}
-				Team team = teamById.get(teamDto.getTeamId());
-				if (team == null) {
-					unableToInactiveTeamNames.add(teamDto.getTeamName() != null ? teamDto.getTeamName() : "Unknown");
-					continue;
-				}
+				if (teamDto == null || teamDto.getTeamId() == null) continue;
+				LocalDate selectedEnd = teamDto.getEndDate() != null ? teamDto.getEndDate().toLocalDate() : today;
+				List<EmployeeTeamMap> mappings = all.stream()
+						.filter(m -> m != null && Objects.equals(m.getTeamId(), teamDto.getTeamId()))
+						.collect(Collectors.toList());
 
-				team.setIsActive("N");
-				team.setUpdatedBy(currentUserEmpId);
-				team.setUpdatedOn(now);
+				for (EmployeeTeamMap etm : mappings) {
+					if (etm == null || etm.getEmpId() == null) continue;
+					Employee emp = empById.get(etm.getEmpId());
+					String employmentId = (emp != null && emp.getEmployeementId() != null)
+							? String.valueOf(emp.getEmployeementId())
+							: "";
+					boolean isApm = emp != null && emp.getIsApmosysProduct() != null
+							&& (emp.getIsApmosysProduct().equalsIgnoreCase("true")
+							|| emp.getIsApmosysProduct().equalsIgnoreCase("y")
+							|| emp.getIsApmosysProduct().equalsIgnoreCase("yes")
+							|| emp.getIsApmosysProduct().equals("1"));
+					String empCode = (isApm ? "AP-" : "A-") + (employmentId != null ? employmentId : "");
+					String empName = emp != null ? emp.getName() : ("EMP-" + etm.getEmpId());
+					LocalDate start = etm.getStartDate() != null ? etm.getStartDate().toLocalDate() : null;
 
-				List<EmployeeTeamMap> employeeTeamMappings = employeeTeamMapRepository
-						.findByTeamIdAndActive(teamDto.getTeamId());
-				List<EmployeeTeamMap> toUpdate = new ArrayList<>();
-				if (employeeTeamMappings != null) {
-					for (EmployeeTeamMap empTeamMap : employeeTeamMappings) {
-						if (empTeamMap == null) {
-							continue;
+					String status;
+					if (Objects.equals(etm.getActive(), 2L)) {
+						status = "Permanently deleted as the resource is not confirmed";
+					} else if (Objects.equals(etm.getActive(), 0L) && etm.getStartDate() != null
+							&& etm.getStartDate().toLocalDate().isAfter(today)) {
+						status = "Permanently deleted as future scheduled resource";
+					} else if (Objects.equals(etm.getActive(), 1L)) {
+						if (start != null && start.isAfter(selectedEnd)) {
+							status = "Not applicable - start date is greater than provided end date";
+							preview.getBlockedEmpIds().add(etm.getEmpId());
+						} else {
+							status = "Will be made inactive";
+							preview.getApplicableEmpIds().add(etm.getEmpId());
 						}
-						if (Objects.equals(empTeamMap.getActive(), 2L)) {
-							continue;
-						}
-						empTeamMap.setRescRemovedBy(currentUserEmpId);
-						empTeamMap.setUpdatedBy(currentUserEmpId);
-						empTeamMap.setUpdatedOn(now);
-						empTeamMap.setEndDate(teamDto.getEndDate());
-						if (teamDto.getEndDate() == null) {
-							empTeamMap.setActive(0L);
-							empTeamMap.setEndDate(now);
-						} else if (!teamDto.getEndDate().toLocalDate().isAfter(today)) {
-							empTeamMap.setActive(0L);
-						}
-						toUpdate.add(empTeamMap);
+					} else {
+						continue;
 					}
-				}
-				if (!toUpdate.isEmpty()) {
-					employeeTeamMapRepository.saveAll(toUpdate);
-				}
-				teamRepository.save(team);
-				ableToInactiveTeamNames.add(team.getTeamName());
-				deletedTeamIds.add(team.getTeamId());
-			}
 
-			if (!unableToInactiveTeamNames.isEmpty()) {
-				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-				String teamNames = unableToInactiveTeamNames.stream().filter(Objects::nonNull)
-						.collect(Collectors.joining(", "));
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse(
-						"Unable to set the following Team and its Resources to inactive : " + teamNames);
-				return response;
+					preview.getRows().add(TeamDeleteValidationRowDto.builder()
+							.teamId(teamDto.getTeamId())
+							.empId(etm.getEmpId())
+							.employeeCode(empCode)
+							.employeeName(empName)
+							.teamStartDate(start)
+							.status(status)
+							.build());
+				}
 			}
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Team and Its Resources are set to inactive successfully!!");
-
-			entityManager.flush();
-
-			if (!deletedTeamIds.isEmpty()) {
-				employeeTeamMapRepository.hardDeletePendingMappingsByTeamIds(deletedTeamIds);
-				entityManager.flush();
-			}
-
-			Integer projectId = existingProject.getProjectId();
-			Long pendingCount = deletedTeamIds.isEmpty()
-					? employeeTeamMapRepository.countPendingTeamsByProjectId(projectId)
-					: employeeTeamMapRepository.countPendingTeamsExcludingDeleted(projectId, deletedTeamIds);
-
-			if (pendingCount != null && pendingCount > 0) {
-				if (!ableToInactiveTeamNames.isEmpty()) {
-					sendTeamDeletedMail(poDetailsDto.getProjectId(), currentUserEmpId, ableToInactiveTeamNames);
-				}
-				return response;
-			}
-
-			String isDraft = existingProject.getIsDraftProject();
-			String projectActive = existingProject.getActive();
-			if (isDraft != null && isDraft.equalsIgnoreCase("true") && projectActive != null
-					&& projectActive.equalsIgnoreCase("true")) {
-				String card = employeeTeamMapRepository.findProjectStatusCardByProjectId(projectId, startOfDay);
-				Long endedCount = employeeTeamMapRepository.countHistoricalEndedMappingsByProjectId(projectId, startOfDay);
-				if ("NOT_STARTED".equalsIgnoreCase(card)
-						&& endedCount != null
-						&& endedCount > 0) {
-					card = "DEBOARDED";
-				}
-				if ("UNKNOWN".equalsIgnoreCase(card)) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Unable to allocate project to a status card!");
-					return response;
-				}
-				switch (card) {
-					case "NOT_STARTED":
-						existingProject.setIsDraftProject(null);
-						existingProject.setProjectStatus("Not Started");
-						projectRepository.save(existingProject);
-						break;
-					case "APPROVED":
-					case "DEBOARDED":
-						existingProject.setIsDraftProject("false");
-						existingProject.setProjectStatus("In Progress");
-						projectRepository.save(existingProject);
-						break;
-					default:
-						break;
-				}
-			}
-
-			if (!ableToInactiveTeamNames.isEmpty()) {
-				sendTeamDeletedMail(poDetailsDto.getProjectId(), currentUserEmpId, ableToInactiveTeamNames);
-			}
+			response.setServiceResponse(preview);
+			return response;
 		} catch (Exception e) {
-			log.error("Error in deleteSelectedTeams : ", e);
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong!!");
+			log.error("Error in validateDeleteSelectedTeams : ", e);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Something went wrong!!");
 			response.setServiceError(e.getMessage());
+			return response;
 		}
-		return response;
 	}
-
+	
 	private void sendTeamDeletedMail(Integer projectId, Long currentUserEmpId, List<String> deletedTeamNames) {
 		try {
 			Project project = projectRepository.findByProjectId(projectId);
@@ -4644,13 +4832,13 @@ public class TeamsService {
 			
 			List<RmgTeamDto> rmgTeamDtoList = teamRepository.getActiveTeamDetailsByProjectId(projectId);
 			String projectStatus = projectRepository.findLatestProjectStatus(projectId); 
-			if(projectStatus.equalsIgnoreCase("not started") && rmgTeamDtoList.isEmpty()) {
+			if("not started".equalsIgnoreCase(projectStatus) && rmgTeamDtoList.isEmpty()) {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				apiLogInfo.setApiResponse("Project Status : "+projectStatus);
 				response.setServiceResponse(Collections.emptyList());
 				return response;
-			}else if (rmgTeamDtoList.isEmpty()) {
+			} else if (rmgTeamDtoList.isEmpty()) {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				apiLogInfo.setApiResponse("No active teams found!!");

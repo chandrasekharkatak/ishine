@@ -8268,7 +8268,7 @@ List<Object[]> getClientAndProjectDataList(
 			+ "FROM Project p \n"
 			+ "INNER JOIN Team t ON t.projectId = p.projectId AND t.isActive != 'N' \n"
 			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active != 0 \n"
-			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.active = true \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.active = true AND etm.poId = ppd.poId \n"
 			+ "LEFT JOIN PoRequirementMapping prm ON etm.roleId = prm.roleId and etm.poId = prm.poId and prm.active = true  \n"
 			+ "WHERE 1=1 \n"
 			+ "AND p.active != 'false' \n"

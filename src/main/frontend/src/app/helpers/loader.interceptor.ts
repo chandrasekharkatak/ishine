@@ -570,7 +570,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getRevokeLeaveApplicationByEmpId`,
     `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
     `${this.baseUrl}` + `api/getExtensionDocumentByName`,
-    `${this.baseUrl}` + `api/validateDocName`
+    `${this.baseUrl}` + `api/validateDocName`,
+    `${this.baseUrl}` + `api/validateDeleteSelectedTeams`
 
 
   ];
