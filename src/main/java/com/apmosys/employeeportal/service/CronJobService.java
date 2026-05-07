@@ -7762,7 +7762,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 			}
 		}
 	    
-	    @Scheduled(cron = "0 55 16 * * *")
+	    @Scheduled(cron = "0 52 13 * * *")
 	    @Transactional
 	    public void updateTeamMemberStatus() {
 	        teamMemberStatusOrchestrationService.updateTeamMemberStatus(SchedulerTriggerType.SCHEDULER);

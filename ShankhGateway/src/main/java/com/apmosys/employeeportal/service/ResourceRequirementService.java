@@ -666,7 +666,7 @@ Objects.equals(e.getLineItemEndDate(),
 	        }
 
 		    // Managers + overheads
-		    Set<String> stakeholderEmails = cronJobService.getProjectStakeholderEmails(projectId);
+		    Set<String> stakeholderEmails = cronJobService.getProjectStakeholderEmails(Long.parseLong(projectId.toString()));
 		    toAddresses.addAll(stakeholderEmails);
 
 		       Set<String> ccAddresses = new HashSet<>();

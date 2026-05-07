@@ -15370,7 +15370,12 @@ public class ResourceManagementService {
 		Set<String> states = new HashSet<>();
 		states.add(getProjectStatusState(primaryProject));
 
-		for (ProjectPoMappingWithResourceDTO deletedProject : deletedProjects) {
+		List<ProjectPoMappingWithResourceDTO> safeDeleted =
+				deletedProjects == null ? Collections.emptyList() : deletedProjects;
+		for (ProjectPoMappingWithResourceDTO deletedProject : safeDeleted) {
+			if (deletedProject == null || deletedProject.getProjectId() == null) {
+				continue;
+			}
 			Project deletedProjEntity = projectRepository.findByPoProjectId(deletedProject.getProjectId());
 
 			if (deletedProjEntity != null) {

@@ -299,7 +299,13 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 
     @Query("SELECT ppd.projectId FROM ProjectPoDetails ppd where ppd.poNo = :poNo and ppd.active is true")
 	Integer findProjectIdByPoNo(String poNo);
+
+    @Query("SELECT ppd.poProjectId FROM ProjectPoDetails ppd where ppd.poNo = :poNo and ppd.active is true")
+    Long findPoProjectIdByPoNo(String poNo);
     List<ProjectPoDetails> findByProjectIdAndPoIdInAndActiveTrue(Integer projectId, Set<Long> poIds);
 
     List<ProjectPoDetails> findByProjectIdAndPrevPOInAndActiveTrue(Integer projectId, Set<Long> poIds);
+
+    List<ProjectPoDetails> findByProjectIdAndNextPOInAndActiveTrue(Integer projectId, Set<Long> poIds);
+
 }

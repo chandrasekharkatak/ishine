@@ -18685,7 +18685,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				@Query(value = "select new com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto( "
 						+ " p.projectId, p.projectName, "
 						+ " CASE WHEN p.poProjectType IS NOT NULL AND TRIM(p.poProjectType) != '' THEN p.poProjectType ELSE p.internalProjectType END, \n"
-						+ " t.teamName, date(p.startDate), date(etm.startDate), date(etm.endDate), count(distinct et.timesheetId)) \n"
+						+ " t.teamName, date(p.startDate), date(etm.startDate), date(etm.endDate), count(distinct et.timesheetId), etm.employeeTeamMapId) \n"
 						+ "FROM Employee e  \n"
 						+ "INNER JOIN EmployeeTeamMap etm on e.empId = etm.empId \n"
 						+ "INNER JOIN Team t on etm.teamId = t.teamId \n"
@@ -18696,7 +18696,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 						+ "INNER JOIN Activity a on etam.activityId = a.activityId and a.teamId = t.teamId \n"
 						+ "where e.empId = :empId and et.date between DATE(:startDate) and CURDATE() \n"
 						+ "and lower(dt.dayType) like '%working%' and p.projectId  NOT IN :projectIds  \n"
-						+ "group by p.projectId, p.projectName, p.startDate, etm.startDate \n")
+						+ "group by p.projectId, p.projectName, p.startDate, etm.startDate, etm.employeeTeamMapId \n")
 				public List<EmployeeProjectTimesheetDto> findByEmpIdAndDate(Long empId, LocalDateTime startDate, List<Integer> projectIds);
 
 				@Query(value = "SELECT " +
@@ -19221,5 +19221,17 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							@Param("po_project_id") Long poProjectId 
 							
 					);
+
+
+		@Query(value = "Select COALESCE(COUNT(DISTINCT et.timesheetId),0) \n"
+				+ "FROM Employee e  \n"
+				+ "INNER JOIN EmployeeTeamMap etm on e.empId = etm.empId AND etm.employeeTeamMapId = :etmId  \n"
+				+ "INNER JOIN Team t on etm.teamId = t.teamId \n"
+				+ "INNER JOIN Project p on t.projectId = p.projectId \n"
+				+ "INNER JOIN EmployeeTimesheetsNew et on et.empId =:empId \n"
+				+ "INNER JOIN ProjectTimesheetStatusNew ptsn on ptsn.id.timesheetId = et.timesheetId AND ptsn.id.projectId = :projectId \n"
+				+ "WHERE e.empId =:empId AND DATE(et.date) >= DATE(etm.startDate) AND (etm.endDate IS NULL OR etm.endDate != null AND DATE(et.date) <= DATE(etm.endDate)) \n"
+				+ "AND p.projectId =:projectId AND et.status IN(1,2) \n")
+		public Integer findTimesheetFilledCountByEmpIdAndProjectIdInEtmDateRange(Long empId, Integer projectId, Long etmId);
 
 }

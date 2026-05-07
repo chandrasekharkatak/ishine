@@ -4497,10 +4497,26 @@ public class ProjectService {
 	    }
 
 	   
-	    PoDetailsForProjectPoMappingDTO poDto =
-	            deletedProjects.get(0).getPoDetailsList().get(0);
+	    PoDetailsForProjectPoMappingDTO poDto = null;
+	    for (ProjectPoMappingWithResourceDTO d : deletedProjects) {
+	    	if (d == null || d.getPoDetailsList() == null) {
+	    		continue;
+	    	}
+	    	for (PoDetailsForProjectPoMappingDTO p : d.getPoDetailsList()) {
+	    		if (p != null) {
+	    			poDto = p;
+	    			break;
+	    		}
+	    	}
+	    	if (poDto != null) {
+	    		break;
+	    	}
+	    }
+	    if (poDto == null) {
+	    	throw new RuntimeException(
+	    			"Deleted project payload has no PO detail rows; cannot resolve updatedBy for project deactivation.");
+	    }
 
-	    
 	            validationService.validateEmployeeExists(
 	                    poDto.getUpdatedByEmpId(),
 	                    poDto.getUpdatedByEmpName()

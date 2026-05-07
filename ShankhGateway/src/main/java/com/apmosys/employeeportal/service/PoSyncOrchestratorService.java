@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -692,11 +693,18 @@ public class PoSyncOrchestratorService {
 	                    dto.getPrimaryProject().getPoDetailsList()
 	            );
 	            
-	           ishineStatus = resourceManagementService.ishineStatusReturn( dto.getDeletedProjects(),primaryProject);
+	           List<ProjectPoMappingWithResourceDTO> deletedForStatus =
+	        		   dto.getDeletedProjects() == null ? Collections.emptyList() : dto.getDeletedProjects();
+	           ishineStatus = resourceManagementService.ishineStatusReturn(deletedForStatus, primaryProject);
+	           log.info(
+	        		   "linkPoInIshineNew: completed merge for primaryProjectId={} deletedProjectPayloads={}; iShine status={}",
+	        		   primaryProject.getProjectId(), deletedForStatus.size(), ishineStatus);
 	           
 	           EmailTrigger.sendAfterCommit(() ->
 	           		poDetailsService.sendPoLinkSuccessMail(primaryProject, dto)
 		       );
+	           log.info("linkPoInIshineNew: scheduled PO link success email for primaryProjectId={}",
+	        		   primaryProject.getProjectId());
 
 	        }
 

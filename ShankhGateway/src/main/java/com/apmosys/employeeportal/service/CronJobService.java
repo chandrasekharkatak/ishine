@@ -7144,9 +7144,9 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		                .findHodEmailsByDeptIds(dto.getMigratedDeptIds());
 		        if (hodEmails != null) toAddresses.addAll(hodEmails);
 		    }
-
+			
 		    // Managers + overheads
-		    Set<String> stakeholderEmails = getProjectStakeholderEmails(projectId);
+		    Set<String> stakeholderEmails = getProjectStakeholderEmails(Long.parseLong(projectId.toString()));
 		    toAddresses.addAll(stakeholderEmails);
 
 		    // ── CC: only you ──────────────────────────────────────────────────────
@@ -7176,8 +7176,8 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	          .append("<style>")
 
 	         
-	          .append("body { font-family: 'Segoe UI', sans-serif; background:#faf8fc; color:#4a4a4a; }")
-	          .append(".container { max-width:800px; margin:auto; padding:20px; }")
+	          .append("body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background:#f4f6f8; color:#4a4a4a; }")
+	          .append(".container { width:600px; margin:0 auto; padding:0; }")
 
 	         
 	          .append(".header { background: linear-gradient(135deg,#e6d9f3,#f9e4ec); padding:25px; border-radius:12px; text-align:center; }")
@@ -7205,6 +7205,13 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 	          .append("</style></head><body>");
 
+	        // Standard outer container (600px centered, visible left/right spacing)
+	        sb.append("<table width='100%' cellpadding='0' cellspacing='0' style='background-color:#f4f6f8; padding:20px 0; font-family: Segoe UI, Arial, Helvetica, sans-serif;'>")
+	          .append("<tr><td align='center'>")
+	          .append("<table width='600' cellpadding='0' cellspacing='0' style='background:#ffffff; border-radius:10px; overflow:hidden; font-family: Segoe UI, Arial, Helvetica, sans-serif;'>")
+	          .append("<tr><td style='padding:16px 20px;'>");
+
+	        // Keep existing renew layout inside the fixed-width container
 	        sb.append("<div class='container'>");
 
 	      
@@ -7285,7 +7292,10 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	          .append("This is an automated notification generated during PO renewal.<br>")
 	          .append("</div>");
 
-	        sb.append("</div></body></html>");
+	        // Close renew inner container + outer container tables
+	        sb.append("</div>")
+	          .append("</td></tr></table></td></tr></table>")
+	          .append("</body></html>");
 
 	        return sb.toString();
 	    }
@@ -7490,7 +7500,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	    }
 	    
 	    
-	    public Set<String> getProjectStakeholderEmails(Integer projectId) {
+	    public Set<String> getProjectStakeholderEmails(Long projectId) {
 
 	        Set<String> uniqueEmails = new HashSet<>();
 
@@ -7500,11 +7510,11 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 	        
 	        List<String> managerEmails =
-	                projectManagerMappingRepository.findProjectManagerEmails(projectId);
+	                projectManagerMappingRepository.findProjectManagerEmails(Long.parseLong(projectId.toString()));
 
 	      
 	        List<String> overheadEmails =
-	                projectOverheadMappingRepository.findProjectOverheadEmails(projectId);
+	                projectOverheadMappingRepository.findProjectOverheadEmails(Long.parseLong(projectId.toString()));
 
 	        // ✅ Merge all & remove duplicates automatically
 //	        if (hodEmails != null) uniqueEmails.addAll(hodEmails);

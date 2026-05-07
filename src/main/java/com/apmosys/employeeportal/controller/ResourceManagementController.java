@@ -528,12 +528,12 @@ public class ResourceManagementController {
 	 }
 	 
 	 
-	 @PostMapping("/poCrudOperationsInIshineNew")
-	 public ServiceResponse poCrudOperationsInIshineNew(HttpServletRequest httpRequest,@RequestBody ProjectPoMappingWithResourceDTO poPortalProjects) {
-		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		 return poSyncOrchestratorService.poCrudOperationsInIshineNew(poPortalProjects);
-	 }
-	 
+//	 @PostMapping("/poCrudOperationsInIshineNew")
+//	 public ServiceResponse poCrudOperationsInIshineNew(HttpServletRequest httpRequest,@RequestBody ProjectPoMappingWithResourceDTO poPortalProjects) {
+//		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+//		 return poSyncOrchestratorService.poCrudOperationsInIshineNew(poPortalProjects);
+//	 }
+//	 
 	 
 	 @PostMapping("/renewPoInIshineNew")
 	 public ServiceResponse renewPoInIshineNew(HttpServletRequest httpRequest, @Valid @RequestBody RenewedPoSyncDto dto) {
@@ -546,13 +546,6 @@ public class ResourceManagementController {
 	 public ServiceResponse deletePoInIshineNew(HttpServletRequest httpRequest,@Valid @RequestBody  DeletedPoSyncDTO dto) {
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		 return poSyncOrchestratorService.deletePoInIshineNew(dto);
-	 }
-	 
-	 
-	 @PostMapping("/linkPoInIshineNew")
-	 public ServiceResponse linkPoInIshineNew(HttpServletRequest httpRequest,@RequestBody  IshineLinkProjectDto dto) {
-		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		 return poSyncOrchestratorService.linkPoInIshineNew(dto);
 	 }
 	 
 	 @PostMapping("/updateRmDetailsInPo")

@@ -997,6 +997,22 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "AND etm.roleId = :roleId\n"
 			+ "AND etm.active != 0")
 	List<EmployeeImpactDTO> findActiveEmployeesByPoAndRole(Long poId, Long roleId);
+
+	@Query(value ="SELECT new com.apmosys.employeeportal.dto.EmployeeImpactDTO(e.name, t.teamName)\n"
+			+ "FROM EmployeeTeamMap etm\n"
+			+ "LEFT JOIN Employee e ON etm.empId = e.empId\n"
+			+ "LEFT JOIN Team t ON etm.teamId = t.teamId\n"
+			+ "WHERE etm.poId = :poId\n"
+			+ "AND etm.roleId = :roleId\n"
+			+ "AND etm.active != 0\n"
+			+ "AND etm.startDate IS NOT NULL\n"
+			+ "AND etm.startDate <= :rangeEnd\n"
+			+ "AND (etm.endDate IS NULL OR etm.endDate >= :rangeStart)")
+	List<EmployeeImpactDTO> findActiveEmployeesByPoAndRoleWithinDates(
+			@Param("poId") Long poId,
+			@Param("roleId") Long roleId,
+			@Param("rangeStart") LocalDateTime rangeStart,
+			@Param("rangeEnd") LocalDateTime rangeEnd);
 	
 	
 	@Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END\n"
@@ -1469,7 +1485,23 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 		       "AND FUNCTION('DATE', etm.startDate) > CURRENT_DATE")
 		List<EmployeeDeletionDTO> findScheduledEmployeesForPo(Long poId);
 
-	
-	
+	@Query("SELECT COUNT(DISTINCT etm.empId) FROM EmployeeTeamMap etm "
+			+ "WHERE etm.poRequirementMappingId = :prmId AND etm.active <> 0 "
+			+ "AND etm.startDate IS NOT NULL AND etm.startDate <= :rangeEnd "
+			+ "AND (etm.endDate IS NULL OR etm.endDate >= :rangeStart)")
+	Long countDistinctActiveEmployeesOnPrmInWindow(
+			@Param("prmId") Long prmId,
+			@Param("rangeStart") LocalDateTime rangeStart,
+			@Param("rangeEnd") LocalDateTime rangeEnd);
+
+	@Query("SELECT COUNT(DISTINCT etm.empId) FROM EmployeeTeamMap etm "
+			+ "WHERE etm.poId = :poId AND etm.roleId = :roleId AND etm.active <> 0 "
+			+ "AND etm.startDate IS NOT NULL AND etm.startDate <= :rangeEnd "
+			+ "AND (etm.endDate IS NULL OR etm.endDate >= :rangeStart)")
+	Long countDistinctActiveEmployeesOnPoAndRoleInWindow(
+			@Param("poId") Long poId,
+			@Param("roleId") Long roleId,
+			@Param("rangeStart") LocalDateTime rangeStart,
+			@Param("rangeEnd") LocalDateTime rangeEnd);
 
 }

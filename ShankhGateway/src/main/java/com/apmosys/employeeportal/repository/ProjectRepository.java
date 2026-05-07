@@ -8258,7 +8258,7 @@ List<Object[]> getClientAndProjectDataList(
 			+ " etm.empId, p.projectId, p.projectName"
 			+ " ,CASE WHEN p.poProjectType IS NOT NULL AND TRIM(p.poProjectType) != '' THEN p.poProjectType ELSE p.internalProjectType END, DATE(p.startDate)"
 			+ " , ppd.poId, t.teamId, prm.poRequirementMappingId \n"
-			+ " , ppd.poNo, t.teamName, etm.employeeRole, prm.role, prm.department, prm.experience, prm.count, etm.startDate, etm.employeeTeamMapId) "
+			+ " , ppd.poNo, t.teamName, etm.employeeRole, prm.role, prm.department, prm.experience, prm.count, etm.startDate) "
 			+ "FROM Project p \n"
 			+ "INNER JOIN Team t ON t.projectId = p.projectId AND t.isActive != 'N' \n"
 			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active != 0 \n"
@@ -8691,7 +8691,7 @@ List<Object[]> getClientAndProjectDataList(
 		    		+ "		                   AND pom.active = 1\n"
 		    		+ "		            WHERE pmm.projectId IN (:projectIds)\n"
 		    		+ "		               OR pom.projectId IN (:projectIds)")
-		    List<String> findManagerAndOverheadEmails(@Param("projectIds") List<Integer> projectIds);
+		    List<String> findManagerAndOverheadEmails(@Param("projectIds") List<Long> projectIds);
 
 
 			@Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(" +

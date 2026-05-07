@@ -192,6 +192,9 @@ maxYear!: Date;
           const resolvedProjectId = this.extractProjectIdFromPoLookupResponse(response);
           if (response?.serviceStatus === 'Success' && resolvedProjectId !== null) {
             this.projectId = resolvedProjectId;
+            // For PO deep-link flow, derive dashboard mode from project's hasClientSideId.
+            // This should override query-param flag only when access is PO-number driven.
+            this.isClientDashboard = this.extractClientDashboardFlagFromPoLookupResponse(response);
             const poProjectId = response?.serviceResponse?.poProjectId;
             if (!this.poProjectId && poProjectId !== undefined && poProjectId !== null && poProjectId !== '') {
               this.poProjectId = poProjectId;
@@ -221,6 +224,18 @@ maxYear!: Date;
     }
 
     return null;
+  }
+
+  private extractClientDashboardFlagFromPoLookupResponse(response: any): boolean {
+    const payload = response?.serviceResponse;
+
+    // Expected contract: serviceResponse object contains hasClientSideId
+    if (payload && typeof payload === 'object' && payload.hasClientSideId !== undefined && payload.hasClientSideId !== null) {
+      return payload.hasClientSideId === true || payload.hasClientSideId === 'true';
+    }
+
+    // Fallback: keep existing value when flag is not returned in response
+    return this.isClientDashboard;
   }
 
   private continueTimesheetLoadFlow(): void {
