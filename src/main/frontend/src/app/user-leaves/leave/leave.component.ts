@@ -265,6 +265,7 @@ export class LeaveComponent implements OnInit {
     this.isTeamLeaveRevokeApplication = false;
     this.reset();
     this.getAllHolidays();
+    this.getMyLeaveBalancesByEmpId();
     // this.getAllLeaveTypes();
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.leaveObj.fromDateDayType = ''
