@@ -510,6 +510,9 @@ export class LeaveComponent implements OnInit {
     //console.log("this.leaveObj for Update : ", this.leaveObj);
     this.getLeaveMetadata();
     this.initializeDateMarkers();
+    this.setPolicyObj(this.leaveObj.leaveTypeMasterId);
+    this.getAllLeaveBalanceByEmpId(this.leaveObj);
+    this.isCompOffSelected(this.leaveObj.leaveTypeMasterId)
   }
 
   // Modals
