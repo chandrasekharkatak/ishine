@@ -124,8 +124,8 @@ maxYear!: Date;
   startY = 0;
   translateX = 0;
   translateY = 0;
-alertMessageOfDoc: any;
-
+  alertMessageOfDoc: any;
+  hoverRowKey: string | null = null;
   constructor(private route: ActivatedRoute,
     private modalService: NgbModal,
     private exportExcelService: ExportExcelService,
@@ -792,14 +792,16 @@ monthSelected(event: Date, datepicker: any) {
   this.formattedMonthLabel = this.selectedMonth.toLocaleDateString('en-US', options);
 }
 
-  showPopup(empId: string) {
+  showPopup(empId: string, projectId: string) {
     clearTimeout(this.hideTimeout);
-    this.hoveredEmpId = empId;
+    // this.hoveredEmpId = empId;
+    this.hoverRowKey = `${empId}_${projectId}`;
   }
 
   scheduleHidePopup() {
     this.hideTimeout = setTimeout(() => {
-      this.hoveredEmpId = null;
+      // this.hoveredEmpId = null;
+      this.hoverRowKey = null;
     }, 200); // Delay to allow mouseenter on popup
   }
 
@@ -1265,5 +1267,9 @@ zoomOut() {
   }
 }
 
+  isFirstOccurrenceOfEmployee(item: any): boolean {
+  return this.filteredTimesheetData.indexOf(item) ===
+    this.filteredTimesheetData.findIndex(d => d.empId === item.empId);
+}
 
 }

@@ -176,18 +176,19 @@
                 <!-- Employee name with hover popup -->
                 <td class="tav-emp-cell">
                   <span class="tav-emp-name"
-                    (mouseenter)="showPopup(item.empId)"
+                    (mouseenter)="showPopup(item.empId,item.projectId)"
                     (mouseleave)="scheduleHidePopup()">
                     {{ item.employeeName || 'NA' }}
                   </span>
                   <span *ngIf="item.employmentStatus === 'InActive'" class="tav-inactive-tag">
                     InActive
                   </span>
-                  <div *ngIf="hoveredEmpId === item.empId"
+                  <div *ngIf="hoverRowKey === item.empId + '_' + item.projectId"
                     class="tav-hover-popup"
                     (mouseenter)="cancelHidePopup()"
                     (mouseleave)="scheduleHidePopup()">
-                    <button class="tav-popup-btn tav-popup-btn--360"
+                    <button *ngIf="isFirstOccurrenceOfEmployee(item)"
+                     class="tav-popup-btn tav-popup-btn--360"
                       [navigateToEmployee360]="item.empId"
                       (click)="cancelRequest()"
                       title="Employee 360">
