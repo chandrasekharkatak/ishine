@@ -923,6 +923,14 @@
             <br> Do you want to proceed?
         </p>
         <p *ngIf="removePermanently" class="text-danger mb-1">Note: This action cannot be undone.</p>
+        <div class="row justify-content-center align-items-center"
+            *ngIf="!allNonBillableProjectTypes.includes((projectType || '').toLowerCase())">
+            <mat-radio-group color="primary" [(ngModel)]="membersEndDateType"
+                (change)="onMemberRemoveEndDateTypeChange($event)">
+                <mat-radio-button value="PO">PO End Date</mat-radio-button>
+                <mat-radio-button value="Custom">Custom End Date</mat-radio-button>
+            </mat-radio-group>
+        </div>
         <div class="row justify-content-center align-items-center">
             <div class="col-md-8">
                 <div class="info-wrapper">
@@ -930,9 +938,10 @@
                         <label class="info-label ml-1">Select End Date<span *ngIf="!removePermanently" class="text-danger">*</span></label>
                         <div class="date-input-wrapper">
                             <input class="form-control date-input" readonly [matDatepicker]="membersEndDatePicker"
-                                [(ngModel)]="membersEndDate" (click)="membersEndDatePicker.open()" />
+                                [(ngModel)]="membersEndDate" (click)="membersEndDatePicker.open()"
+                                [disabled]="membersEndDateType === 'PO'" />
                             <mat-icon class="calendar-icon"
-                                (click)="membersEndDatePicker.open()">calendar_today</mat-icon>
+                                (click)="membersEndDatePicker.open()" [class.disabled]="membersEndDateType === 'PO'">calendar_today</mat-icon>
                             <mat-datepicker #membersEndDatePicker></mat-datepicker>
                         </div>
                     </div>
@@ -949,7 +958,7 @@
                         <ng-container *ngTemplateOutlet="removePermanentlyAlert">
                         </ng-container>
                     </ng-template>
-                    <i class="fa fa-beat cursor-pointer"></i>
+                    <i class="fa fa-beat fa-info-circle cursor-pointer"></i>
                 </span>
             </span>
         </div>
