@@ -697,6 +697,7 @@ export class RmgProjectConfigComponent implements OnInit {
         return this.validationService.validateNullUndefinedEmptyStringTrim(string);
     }
 
+
     isValidNumber(value: any): boolean {
         return typeof value === 'number' && !Number.isNaN(value);
     }
@@ -2203,6 +2204,8 @@ export class RmgProjectConfigComponent implements OnInit {
             this.openAlertMessageModal(`Kindly Select an Employee!!`);
             return;
         }
+        // Ensure teamId is present for validation (mandatory for non-PO projects team-level restriction).
+        newTeamMember.teamId = this.currentTeam?.teamId;
 
         if (!this.isInternalProject) {
             if (!newTeamMember.poId || !this.isValidNumber(newTeamMember.poId)) {
@@ -2559,9 +2562,17 @@ export class RmgProjectConfigComponent implements OnInit {
     }
 
     async validateEmployeeProjectStartDate(member: RmgTeamMember, projectId: any, projectType: any): Promise<boolean> {
-        if (member.isEndDateVisible) {
-            member.endDate = member.dbEndDate ? member.dbEndDate : null;
+        // Ensure teamId is present for validation (mandatory for non-PO projects team-level restriction).
+        if (!member?.teamId && this.currentTeam?.teamId) {
+            member.teamId = this.currentTeam.teamId;
         }
+        if (!member?.teamId) {
+            this.openAlertMessageModal("Please select a team before onboarding resource.");
+            return false;
+        }
+
+        // Do NOT overwrite user-entered endDate during the RMG two-step validation flow.
+        // The backend may ask for an endDate (future mapping scenario), and user will provide it.
         member.isEndDateVisible = false;
         member.memberMaxEndDate = null;
         if (member.endDate && member.endDate != undefined && member.endDate != null && this.normalizeDate(member.startDate) > this.normalizeDate(member.endDate)) {
@@ -2571,15 +2582,29 @@ export class RmgProjectConfigComponent implements OnInit {
         let projectData = {
             currentProjectId: this.rmgProjectObj?.projectId,
             projectIds: [this.rmgProjectObj?.projectId, projectId],
-            projectType: projectType
+            projectType: projectType,
+            validationContext: 'RMG',
+            validationSource: 'CURRENT_TEAM_TEMPLATE'
         };
+        console.debug('[validateEmployeeProjectStartDate] payload', {
+            empId: member.empId,
+            projectId: projectData.currentProjectId,
+            teamId: member.teamId,
+            startDate: member.startDate,
+            endDate: member.endDate,
+            validationContext: projectData.validationContext
+        });
         const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
+        console.debug('[validateEmployeeProjectStartDate] result', response);
         if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {
             return true;
         } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT' || response?.type === 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT') {
             member.isEndDateVisible = true;
             member.memberMaxEndDate = response?.data.memberMaxEndDate;
-            this.openAlertMessageModal('Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!');
+            // Show backend-provided message (future assignment / overlap guidance) when available.
+            const msg = response?.message || 'Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!';
+            member.validationMessage = response?.message || member.validationMessage || null;
+            this.openAlertMessageModal(msg);
             return false;
         } else {
             return false;
@@ -2590,7 +2615,8 @@ export class RmgProjectConfigComponent implements OnInit {
         let projectData = {
             currentProjectId: this.rmgProjectObj?.projectId,
             projectIds: [this.rmgProjectObj?.projectId, projectId],
-            projectType: projectType
+            projectType: projectType,
+            validationContext: 'RMG'
         };
         member.startDate = member.selectedProject.startDate;
         const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
@@ -3193,7 +3219,8 @@ export class RmgProjectConfigComponent implements OnInit {
             let projectData = {
                 currentProjectId: this.rmgProjectObj?.projectId,
                 projectIds: [this.rmgProjectObj?.projectId, this.defaultProjectObj.projectId],
-                projectType: this.projectType
+                projectType: this.projectType,
+                validationContext: 'RMG'
             };
             const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
             if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {

@@ -30,7 +30,9 @@ export enum ResultType {
   SUCCESS = 'SUCCESS',
   ERROR = 'ERROR',
   EMPLOYEE_ALREADY_MAPPED_TO_SAME_PROJECT_DIFFERENT_TEAM = 'EMPLOYEE_ALREADY_MAPPED_TO_SAME_PROJECT_DIFFERENT_TEAM',
-  OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT = 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT'
+  OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT = 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT',
+  EMPLOYEE_ALREADY_ASSIGNED_TO_SAME_PROJECT_TEAM = 'EMPLOYEE_ALREADY_ASSIGNED_TO_SAME_PROJECT_TEAM',
+  FUTURE_ASSIGNMENT_CONFLICT_SAME_PROJECT_TEAM = 'FUTURE_ASSIGNMENT_CONFLICT_SAME_PROJECT_TEAM'
 }
 
 export interface AppResult<T = any> {
@@ -64,6 +66,26 @@ export class EmployeeProjectService {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
+  /**
+   * Formats any date-like tokens inside backend messages for display.
+   * Converts:
+   * - yyyy-MM-dd
+   * - yyyy-MM-ddTHH:mm:ss
+   * into dd/MM/yyyy.
+   */
+  formatDisplayMessage(message: any): string {
+    if (message === null || message === undefined) {
+      return '';
+    }
+    // If backend sends a Date object (rare), format directly.
+    if (message instanceof Date) {
+      return moment(message).format('DD/MM/YYYY');
+    }
+    const str = String(message);
+    // Replace yyyy-MM-dd and yyyy-MM-ddTHH:mm:ss patterns.
+    return str.replace(/\b(\d{4})-(\d{2})-(\d{2})(?:T\d{2}:\d{2}:\d{2})?\b/g, (_m, y, mm, dd) => `${dd}/${mm}/${y}`);
+  }
+
   async validateEmployeeProjectStartDateChange(member: any, projectData: any): Promise<any> {
     let result: AppResult;
     const selectedDate = this.normalizeDate(member.startDate);
@@ -77,11 +99,77 @@ export class EmployeeProjectService {
     rmgMember.projectIds = projectData.projectIds;
     rmgMember.teamId = member.teamId;
     rmgMember.etmId = member?.etmId;
+    // Optional context and end date support (backward compatible)
+    rmgMember.endDate = member?.endDate ? this.normalizeDate(member.endDate) : null;
+    rmgMember.validationContext = projectData?.validationContext || null;
+    rmgMember.validationSource = projectData?.validationSource || member?.validationSource || null;
     try {
+      console.debug('[validateEmployeeProjectStartDateChange] request', {
+        empId: rmgMember.empId,
+        projectId: rmgMember.projectId,
+        teamId: rmgMember.teamId,
+        startDate: rmgMember.startDate,
+        endDate: rmgMember.endDate,
+        validationContext: rmgMember.validationContext,
+        validationSource: rmgMember.validationSource
+      });
       const response: any = await firstValueFrom(this.teamService.validateEmployeeProjectStartDate(rmgMember));
+      console.debug('[validateEmployeeProjectStartDateChange] response', response);
       if (response.serviceStatus === 'Success') {
+        // Centralized same project/team validations
+        if (response.serviceResponse === 'EMPLOYEE_ALREADY_ASSIGNED_TO_SAME_PROJECT_TEAM') {
+          const msg = this.formatDisplayMessage(response.serviceResponse1 || 'Employee is already assigned to this project/team.');
+          result = this.failureResult(ResultType.EMPLOYEE_ALREADY_ASSIGNED_TO_SAME_PROJECT_TEAM, msg);
+          this.handleResult(result);
+          return result;
+        }
+        if (response.serviceResponse === 'FUTURE_ASSIGNMENT_CONFLICT_SAME_PROJECT_TEAM') {
+          const msg = this.formatDisplayMessage(
+            response?.serviceResponse2?.validationMessage
+            || response.serviceResponse1
+            || 'Employee already has a future project/team mapping. Please contact RMG for further assistance.'
+          );
+          result = this.failureResult(ResultType.FUTURE_ASSIGNMENT_CONFLICT_SAME_PROJECT_TEAM, msg);
+          this.handleResult(result);
+          return result;
+        }
+        if (['FUTURE_ASSIGNMENT_CONFLICT_REQUIRE_ENDDATE', 'FUTURE_ASSIGNMENT_CONFLICT_ENDDATE_OVERLAP'].includes(response.serviceResponse)) {
+          // RMG-only controlled handling: enable end date input and enforce max end date = futureStart - 1
+          const futureStart = response?.serviceResponse2?.conflictingStartDate || response?.serviceResponse2;
+          if (futureStart) {
+            member.memberMaxEndDate = moment(futureStart).subtract(1, 'day').format('YYYY-MM-DD');
+          }
+          member.isEndDateVisible = true;
+          // Use an existing caller-handled type to keep flows compatible (enables endDate field).
+          const msg = this.formatDisplayMessage(response?.serviceResponse2?.validationMessage || response?.serviceResponse1 || '');
+          member.validationMessage = msg;
+          result = this.failureResult(ResultType.EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT, msg, member);
+          return result;
+        }
+        if (response.serviceResponse === 'OPEN_ASSIGNMENT_CONFLICT_SAME_PROJECT_TEAM') {
+          const msg = this.formatDisplayMessage(response.serviceResponse1 || 'Employee has an open assignment in this project/team. Please review existing mapping.');
+          result = this.alertResult(msg);
+          this.handleResult(result);
+          return result;
+        }
+        if (response.serviceResponse === 'TEAM_ID_REQUIRED_FOR_VALIDATION') {
+          const msg = this.formatDisplayMessage(response.serviceResponse1 || 'Team Id is required for validation.');
+          result = this.alertResult(msg);
+          this.handleResult(result);
+          return result;
+        }
+        if (response.serviceResponse === 'FUTURE_TEAM_ONBOARDING_OVERLAP') {
+          const msg = this.formatDisplayMessage(
+            response?.serviceResponse2?.validationMessage
+            || response.serviceResponse1
+            || 'Employee already has a future onboarding in this team. Please update existing scheduled onboarding.'
+          );
+          result = this.alertResult(msg);
+          this.handleResult(result);
+          return result;
+        }
         if (response.serviceResponse == 'EMPLOYEE_DATE_OF_JOINING_LESS_THAN_MEMBER_START_DATE') {
-          const responseMsg = response.serviceResponse2 && response.serviceResponse2 != null ? response.serviceResponse2 : 'Member Start Date must not be earlier than the Employee’s Date of Joining!!';
+          const responseMsg = this.formatDisplayMessage(response.serviceResponse2 && response.serviceResponse2 != null ? response.serviceResponse2 : 'Member Start Date must not be earlier than the Employee’s Date of Joining!!');
           result = this.failureResult(ResultType.EMPLOYEE_DATE_OF_JOINING_LESS_THAN_MEMBER_START_DATE, responseMsg);
           this.handleResult(result);
           return result;
@@ -455,7 +543,7 @@ export class EmployeeProjectService {
         break;
 
       case ResultType.ALERT:
-        this.appModalService.open('ALERT', 'ALERT', result.message);
+        this.appModalService.open('ALERT', 'ALERT', this.formatDisplayMessage(result.message));
         break;
 
       case ResultType.EMPLOYEE_EXISTING_PROJECT_DETAILS:
@@ -463,11 +551,19 @@ export class EmployeeProjectService {
         break;
 
       case ResultType.EMPLOYEE_DATE_OF_JOINING_LESS_THAN_MEMBER_START_DATE:
-        this.appModalService.open('ALERT', 'ALERT', result.message);
+        this.appModalService.open('ALERT', 'ALERT', this.formatDisplayMessage(result.message));
         break;
 
       case ResultType.EMPLOYEE_ALREADY_MAPPED_TO_SAME_PROJECT_DIFFERENT_TEAM:
-        this.appModalService.open('ALERT', 'ALERT', result.message);
+        this.appModalService.open('ALERT', 'ALERT', this.formatDisplayMessage(result.message));
+        break;
+
+      case ResultType.EMPLOYEE_ALREADY_ASSIGNED_TO_SAME_PROJECT_TEAM:
+        this.appModalService.open('ALERT', 'ALERT', this.formatDisplayMessage(result.message || 'Employee already has an active assignment in this project/team.'));
+        break;
+
+      case ResultType.FUTURE_ASSIGNMENT_CONFLICT_SAME_PROJECT_TEAM:
+        this.appModalService.open('ALERT', 'ALERT', this.formatDisplayMessage(result.message || 'Employee already has a future assignment in this project/team. Please contact RMG for further assistance.'));
         break;
 
       case ResultType.DELETE_EMPLOYEE_FROM_EXISTING_PROJECT:

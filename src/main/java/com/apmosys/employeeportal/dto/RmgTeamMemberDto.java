@@ -82,6 +82,18 @@ public class RmgTeamMemberDto {
 	private List<Long> selectedEmpIds;
 	private List<EmployeeOtherActiveProject> otherActiveProjects;
 	private List<Integer> projectIds;
+	
+	/**
+	 * Optional calling page/module context for validation.
+	 * Expected values (case-insensitive): "RMG" for RMG flows; anything else/null treated as non-RMG.
+	 */
+	private String validationContext;
+	
+	/**
+	 * Optional source identifier for validation flow (used to keep backward-compatible behavior across pages).
+	 * Example values: "CURRENT_TEAM_TEMPLATE".
+	 */
+	private String validationSource;
 
 	public RmgTeamMemberDto(String memberName, String employeeRole, List<String> employeeRoles, LocalDateTime startDate,
 			LocalDateTime endDate, Integer isShadow, Long isMemberActive, boolean defaultProject) {
