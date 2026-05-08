@@ -218,6 +218,7 @@ export class LeaveComponent implements OnInit {
     this.preventBackButton();
     this.onGetEmployeeInfo();
     this.getLeaveRejectionReasons();
+    this.getMyLeaveBalancesByEmpId();
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -516,6 +517,7 @@ export class LeaveComponent implements OnInit {
     console.log("Leave obj",this.LeaveObj);
     // this.setPolicyObj(this.leaveObj.leaveTypeMasterId);
     this.getAllLeaveBalanceByEmpId(this.leaveObj);
+    this.getMyLeaveBalancesByEmpId();
     console.log("Leave obj",this.LeaveObj);
     // this.isCompOffSelected(this.leaveObj.leaveTypeMasterId)
   }
