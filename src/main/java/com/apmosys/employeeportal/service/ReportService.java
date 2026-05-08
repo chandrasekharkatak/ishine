@@ -1020,11 +1020,6 @@ public class ReportService {
 	public ServiceResponse getEmployeesWorkingInProjects(ProjectNamesRequestDTO request) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			if (request == null || request.getProjectNames() == null || request.getProjectNames().isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceError("projectNames is required and must not be empty");
-				return response;
-			}
 			if (request.getStartDate() == null || request.getEndDate() == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceError("startDate and endDate are required (yyyy-MM-dd)");
@@ -1038,7 +1033,7 @@ public class ReportService {
 			LocalDateTime rangeStart = request.getStartDate().atStartOfDay();
 			LocalDateTime rangeEnd = request.getEndDate().atTime(LocalTime.MAX);
 			List<ProjectEmployeeTeamReportDTO> rows = employeeTeamMapRepository
-					.findEmployeesInProjectsByProjectNames(request.getProjectNames(), rangeStart, rangeEnd);
+					.findEmployeesInProjectsByDateRange(rangeStart, rangeEnd);
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(rows);
 		} catch (Exception e) {

@@ -617,13 +617,11 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 			+ "INNER JOIN Employee e ON e.empId = etm.empId "
 			+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId "
 			+ "INNER JOIN Department d ON d.deptId = jr.deptId "
-			+ "WHERE p.projectName IN :projectNames "
-			+ "AND e.empId NOT BETWEEN 1 AND 6 "
+			+ "WHERE e.empId NOT BETWEEN 1 AND 6 "
 			+ "AND etm.startDate <= :rangeEnd "
 			+ "AND (etm.endDate IS NULL OR etm.endDate >= :rangeStart) "
 			+ "ORDER BY p.projectId, e.name")
-	List<ProjectEmployeeTeamReportDTO> findEmployeesInProjectsByProjectNames(
-			@Param("projectNames") List<String> projectNames,
+	List<ProjectEmployeeTeamReportDTO> findEmployeesInProjectsByDateRange(
 			@Param("rangeStart") LocalDateTime rangeStart,
 			@Param("rangeEnd") LocalDateTime rangeEnd);
 

@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 public class ProjectNamesRequestDTO {
 
-	private List<String> projectNames;
+//	private List<String> projectNames;
 
 	@JsonFormat(pattern = "yyyy-MM-dd")
 	private LocalDate startDate;
