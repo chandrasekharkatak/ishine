@@ -766,6 +766,20 @@ export class ResourceManagementComponent implements OnInit {
     }
   }
 
+  hasOrgWideHierarchyAccess(): boolean {
+    const r = (this.currentUser?.employeeRole ?? '').toString().trim();
+    if (!r) {
+      return false;
+    }
+    if (/^superadmin$/i.test(r) || /^hod$/i.test(r) || /^hr$/i.test(r)) {
+      return true;
+    }
+    if (/^hr\s*manager$/i.test(r)) {
+      return true;
+    }
+    return false;
+  }
+
   sectionViewInit(): void {
     const role = this.currentUser.employeeRole?.trim() || '';
     this.isHOD = role === 'HOD' || role === 'SuperAdmin';

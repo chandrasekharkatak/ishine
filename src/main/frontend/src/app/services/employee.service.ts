@@ -129,6 +129,11 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/getHierarchyChartByEmpId`, employeeObj);
   }
 
+  /** Full management spine (top → immediate manager) for org-wide roles only; empty otherwise. */
+  getManagementSpineForHierarchy(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/getManagementSpineForHierarchy`, employeeObj);
+  }
+
   customQueryForEmployeeReport(queryObj: Query) {
     return this.http.post(`${this.baseUrl}` + `api/customQueryForEmployeeReport`, queryObj);
   }

@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -1221,8 +1222,9 @@ public class EmployeeService {
 					empDTO.setRole(object[51] != null ? (object[51].toString()) : null);
 					empDTO.setEmployeementId(object[52] != null ? Long.parseLong(object[52].toString()) : null);
 					empDTO.setProbationPeriod(object[53] != null ? Short.parseShort(object[53].toString()) : null);
-					empDTO.setDateOfResign(
-							object[54] != null ? format.format(format.parse(object[54].toString())) : null);
+					empDTO.setDateOfResign(object[54] != null && !object[54].toString().trim().isEmpty()
+							? format.format(format.parse(object[54].toString()))
+							: null);
 					empDTO.setBillable(object[55] != null ? (object[55].toString()) : null);
 					empDTO.setChild1(object[56] != null ? (object[56].toString()) : null);
 					empDTO.setChild2(object[57] != null ? (object[57].toString()) : null);
@@ -1231,7 +1233,9 @@ public class EmployeeService {
 					empDTO.setSpouse(object[60] != null ? (object[60].toString()) : null);
 					empDTO.setTotalExperience(object[61] != null ? Float.parseFloat(object[61].toString()) : null);
 					empDTO.setSecondaryEmail(object[62] != null ? object[62].toString() : null);
-					empDTO.setDateOfRelieving(object[63] != null ? format.format(format.parse(object[63].toString())) : null);
+					empDTO.setDateOfRelieving(object[63] != null && !object[63].toString().trim().isEmpty()
+							? format.format(format.parse(object[63].toString()))
+							: null);
 					empDTO.setReportingManagerId(object[64] != null ? Long.parseLong(object[64].toString()) : null);
 					empDTO.setApprovalsTo(object[65] != null ? object[65].toString() : null);
 					empDTO.setReportingManagerName(object[66] != null ? object[66].toString() : null);
@@ -5662,7 +5666,34 @@ public class EmployeeService {
 		return null;
 	}
 
-	/** HOD, HR-ish departments, or SuperAdmin may use any anchor; others only own reporting subtree. */
+	/**
+	 * Job roles that may use any hierarchy anchor (org-wide). Matches frontend Resource Management
+	 * {@code hasOrgWideHierarchyAccess} and HR/HOD users whose department name is not exactly "HR".
+	 */
+	private boolean isWideHierarchyEmployeeRole(String employeeRole) {
+		if (employeeRole == null) {
+			return false;
+		}
+		String r = employeeRole.trim();
+		if (r.isEmpty()) {
+			return false;
+		}
+		if ("SuperAdmin".equalsIgnoreCase(r)) {
+			return true;
+		}
+		if ("HOD".equalsIgnoreCase(r)) {
+			return true;
+		}
+		if ("HR".equalsIgnoreCase(r)) {
+			return true;
+		}
+		if ("HR Manager".equalsIgnoreCase(r)) {
+			return true;
+		}
+		return false;
+	}
+
+	/** HOD (dept or role), HR (dept or role), RMG/Accounts depts, or SuperAdmin may use any anchor; others only own reporting subtree. */
 	private boolean hasWideHierarchyAnchorAccess(Long empId) {
 		if (empId == null) {
 			return false;
@@ -5673,7 +5704,7 @@ public class EmployeeService {
 		}
 		try {
 			String role = employeeRepository.getEmployeeRoleByEmpId(empId);
-			if (role != null && "SuperAdmin".equalsIgnoreCase(role.trim())) {
+			if (isWideHierarchyEmployeeRole(role)) {
 				return true;
 			}
 		} catch (Exception ignored) {
@@ -5941,6 +5972,123 @@ public class EmployeeService {
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 			
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	private EmployeeDTO mapMyManagerInfoRowToEmployeeDto(Object[] object) {
+		EmployeeDTO dto = new EmployeeDTO();
+		dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+		dto.setName(object[1] != null ? object[1].toString() : null);
+		dto.setEmail(object[2] != null ? object[2].toString() : null);
+		dto.setEmployeementId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+		dto.setJobRoleName(object[4] != null ? object[4].toString() : null);
+		dto.setDepartmentName(object[5] != null ? object[5].toString() : null);
+		dto.setManagerName(object[6] != null ? object[6].toString() : null);
+		dto.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+		dto.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
+		dto.setIsConsultant(object[9] != null ? object[9].toString() : null);
+		dto.setIsApprenticeship(object[10] != null ? object[10].toString() : null);
+		return dto;
+	}
+
+	/**
+	 * Returns the management line from org root down to the anchor employee's immediate manager (inclusive),
+	 * ordered top → bottom. Used to extend the My Team hierarchy chart above a single parent level.
+	 * Only {@link #hasWideHierarchyAnchorAccess(Long)} callers receive data; others get an empty list.
+	 */
+	public ServiceResponse getManagementSpineForHierarchy(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("view_my_team");
+		apiLogInfo.setApiUrl("/api/getManagementSpineForHierarchy");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : ").append(employeedto != null ? employeedto.getEmpId() : null);
+		try {
+			Long callerEmpId = getLoggedInEmpIdFromSecurityContext();
+			if (employeedto == null || employeedto.getEmpId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee id is required");
+				apiLogInfo.setApiResponse("Missing anchor empId");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+			if (callerEmpId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Unauthorized");
+				apiLogInfo.setApiResponse("No logged-in employee");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+			if (!hasWideHierarchyAnchorAccess(callerEmpId)) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(new ArrayList<EmployeeDTO>());
+				apiLogInfo.setApiResponse("Not org-wide role — empty spine");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+
+			Long nextMgrId = employeedto.getManagerId();
+			List<EmployeeDTO> spineTopToBottom = new ArrayList<>();
+			Set<Long> visitedHopEmpIds = new HashSet<>();
+			int guard = 0;
+			while (nextMgrId != null && guard++ < 100) {
+				if (!visitedHopEmpIds.add(nextMgrId)) {
+					break;
+				}
+				List<Object[]> rows = employeeRepository.getMyManagerInfo(nextMgrId);
+				if (rows == null || rows.isEmpty()) {
+					break;
+				}
+				EmployeeDTO dto = mapMyManagerInfoRowToEmployeeDto(rows.get(0));
+				if (dto.getEmpId() == null) {
+					break;
+				}
+				if (!dto.getEmpId().equals(nextMgrId)) {
+					break;
+				}
+				if (dto.getManagerId() != null && dto.getManagerId().equals(dto.getEmpId())) {
+					dto.setHierarchyType("Manager");
+					spineTopToBottom.add(0, dto);
+					break;
+				}
+				dto.setHierarchyType("Manager");
+				spineTopToBottom.add(0, dto);
+				nextMgrId = dto.getManagerId();
+			}
+
+			List<EmployeeDTO> spineDeduped = new ArrayList<>();
+			Set<Long> uniqueIds = new LinkedHashSet<>();
+			for (EmployeeDTO e : spineTopToBottom) {
+				if (e.getEmpId() == null) {
+					continue;
+				}
+				if (!uniqueIds.add(e.getEmpId())) {
+					continue;
+				}
+				spineDeduped.add(e);
+			}
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(spineDeduped);
+			apiLogInfo.setApiResponse("spine size : " + spineDeduped.size());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
@@ -6771,8 +6919,9 @@ public class EmployeeService {
 					empDTO.setRole(object[51] != null ? (object[51].toString()) : null);
 					empDTO.setEmployeementId(object[52] != null ? Long.parseLong(object[52].toString()) : null);
 					empDTO.setProbationPeriod(object[53] != null ? Short.parseShort(object[53].toString()) : null);
-					empDTO.setDateOfResign(
-							object[54] != null ? format.format(format.parse(object[54].toString())) : null);
+					empDTO.setDateOfResign(object[54] != null && !object[54].toString().trim().isEmpty()
+							? format.format(format.parse(object[54].toString()))
+							: null);
 					empDTO.setBillable(object[55] != null ? (object[55].toString()) : null);
 					empDTO.setChild1(object[56] != null ? (object[56].toString()) : null);
 					empDTO.setChild2(object[57] != null ? (object[57].toString()) : null);
@@ -6781,7 +6930,9 @@ public class EmployeeService {
 					empDTO.setSpouse(object[60] != null ? (object[60].toString()) : null);
 					empDTO.setTotalExperience(object[61] != null ? Float.parseFloat(object[61].toString()) : null);
 					empDTO.setSecondaryEmail(object[62] != null ? object[62].toString() : null);
-					empDTO.setDateOfRelieving(object[63] != null ? format.format(format.parse(object[63].toString())) : null);
+					empDTO.setDateOfRelieving(object[63] != null && !object[63].toString().trim().isEmpty()
+							? format.format(format.parse(object[63].toString()))
+							: null);
 					empDTO.setReportingManagerId(object[64] != null ? Long.parseLong(object[64].toString()) : null);
 					empDTO.setApprovalsTo(object[65] != null ? object[65].toString() : null);
 					empDTO.setReportingManagerName(object[66] != null ? object[66].toString() : null);
