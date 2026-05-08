@@ -399,7 +399,7 @@ public class EmployeeDTO {
 	private List<EmployeeSkillProficiencyDTO> employeeSkills;
 	private List<CertificateDTO> employeeCertificates;
 	private Boolean hideMaternityLeaveEmps;
-
+	private List<Long> jobRoleIds;
 	private Long poId;
 	private Long poRoleId;
 	private LocalDateTime oldEtmEndDate;
