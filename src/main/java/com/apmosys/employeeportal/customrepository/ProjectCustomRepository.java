@@ -765,7 +765,7 @@ public class ProjectCustomRepository {
 				.append("INNER JOIN employee e3 ON etm2.emp_id = e3.emp_id  \n")
 				.append("WHERE 1=1 \n")
                 .append("AND DATE(etm2.start_date) <= CURDATE() \n")
-				.append("AND etm2.active != 0 AND e3.employmentstatus != 'InActive' \n")
+				.append("AND etm2.active = 1 AND e3.employmentstatus != 'InActive' \n")
 				.append("AND t3.is_active != 'N' AND p3.po_project_type = 'TNM'  \n")
 				.append("AND p3.active != 'false' \n")
 				.append("GROUP BY p3.project_id, etm2.po_id, etm2.role_id \n")
