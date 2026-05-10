@@ -864,7 +864,7 @@ public class ProjectCustomRepository {
 					.append(" AND p.project_id IN :projectIds  \n");
 		}
 		else if (projectStatus.equalsIgnoreCase("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
-			query.append(" AND p.active = 'true' AND t.is_active != 'N' AND etm.active != 0 \n")
+			query.append(" AND p.active = 'true' AND t.is_active != 'N' AND (etm.active != 0 OR (etm.active = 0 AND DATE(etm.start_date) > CURDATE())) \n")
 					.append(" AND e.employmentstatus != 'InActive' AND p.status = 'Completed'  \n")
 					.append(" AND p.project_id IN :projectIds \n");
 		}
