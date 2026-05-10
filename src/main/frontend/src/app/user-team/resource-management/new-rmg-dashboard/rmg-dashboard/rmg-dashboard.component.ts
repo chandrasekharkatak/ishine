@@ -1258,9 +1258,9 @@ export class RmgDashboardComponent implements OnInit {
             y: d.value || 0,
             color:
             d.label === 'On Time'
-              ? '#A2AFCD'
+              ? '#7B8FC7'
               : d.label === 'Defaulter'
-              ? '#4468BB'
+              ? '#2F467F'
               : (d.color || '#4f68a9')
               }))
         }
