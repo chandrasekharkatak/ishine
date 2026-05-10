@@ -948,7 +948,7 @@ public class ProjectCustomRepository {
 	
 	private String getOffBoardedProjectsCondition() {
 		StringBuilder offBoardedCondition = new StringBuilder();
-		offBoardedCondition.append(" AND p.active= 'true' AND (p.is_draft_project IS NOT NULL OR UPPER(p.is_draft_project) != 'REJECTED') \n")
+		offBoardedCondition.append(" AND p.active= 'true' AND (p.is_draft_project IS NOT NULL AND UPPER(p.is_draft_project) != 'REJECTED') \n")
 		.append(" AND EXISTS (SELECT 1 FROM teams t3 WHERE t3.project_id = p.project_id AND t3.is_active  = 'Y' ) \n")
 		// .append(" AND p.project_id IN (SELECT t2.project_id FROM teams t2 INNER JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE (etm2.active = 0 AND DATE(etm2.end_date) < CURDATE()))  \n")
 		.append(" AND p.project_id NOT IN (SELECT t2.project_id FROM teams t2 LEFT JOIN employee_team_mapping etm2 ON (t2.team_id = etm2.team_id OR etm2.team_id IS NULL) WHERE 1 = 1 AND (etm2.active != 0 OR (etm2.active = 0 AND DATE(etm2.start_date) > CURDATE()))) \n");
