@@ -218,6 +218,7 @@ export class LeaveComponent implements OnInit {
     this.preventBackButton();
     this.onGetEmployeeInfo();
     this.getLeaveRejectionReasons();
+    this.getMyLeaveBalancesByEmpId();
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -265,6 +266,7 @@ export class LeaveComponent implements OnInit {
     this.isTeamLeaveRevokeApplication = false;
     this.reset();
     this.getAllHolidays();
+    this.getMyLeaveBalancesByEmpId();
     // this.getAllLeaveTypes();
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.leaveObj.fromDateDayType = ''
@@ -493,7 +495,8 @@ export class LeaveComponent implements OnInit {
     this.isOverlapsedLeaveTable = false;
     this.leaveObj.maternityType = leaveHistory.maternityType
     this.leaveObj = Object.assign({}, leaveHistory);
-
+    this.LeaveObj.leaveTypeMasterId = leaveHistory.leaveTypeMasterId;
+    console.log("Leave obj",this.LeaveObj);
     this.leaveObj.fromDateDayType = leaveHistory.fromDateDayType;
     this.leaveObj.toDateDayType = leaveHistory.toDateDayType;
     this.leaveObj.fromDate = (this.leaveObj.fromDate) ? moment(this.leaveObj.fromDate, AppComponent.DATE_FORMAT).format(AppComponent.DB_DATE_FORMAT) : null;
@@ -505,10 +508,18 @@ export class LeaveComponent implements OnInit {
     } else if (this.isTeamLeaveHistory) {
       this.leaveObj.leaveAppliedFor = "team";
     }
+    console.log("Leave obj",this.LeaveObj);
 
     //console.log("this.leaveObj for Update : ", this.leaveObj);
     this.getLeaveMetadata();
+    console.log("Leave obj",this.LeaveObj);
     this.initializeDateMarkers();
+    console.log("Leave obj",this.LeaveObj);
+    // this.setPolicyObj(this.leaveObj.leaveTypeMasterId);
+    this.getAllLeaveBalanceByEmpId(this.leaveObj);
+    this.getMyLeaveBalancesByEmpId();
+    console.log("Leave obj",this.LeaveObj);
+    // this.isCompOffSelected(this.leaveObj.leaveTypeMasterId)
   }
 
   // Modals
@@ -640,6 +651,7 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.noOfDays = '';
     this.leaveObj.reason = '';
     this.overLappingTeamMemberList = [];
+    this.getMyLeaveBalancesByEmpId();
   }
 
   setLeaveTypeCode(leaveTypeMasterId: any) {
@@ -1645,8 +1657,11 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
     }
 
     // this.getAllLeaveTypesByLeavePolicies(userObj);
-    this.getAllMyLeaveApplicationsByEmpId(userObj);
-    this.getAllLeaveTypesByLeavePolicies(userObj)
+    if(!this.isUpdation){
+      this.getAllMyLeaveApplicationsByEmpId(userObj);
+      this.getAllLeaveTypesByLeavePolicies(userObj);
+    }
+    
   }
 
   getAllTeamMemberList() {
@@ -1964,7 +1979,7 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
     this.leaveBalanceList = [];
 
     let leaveObj = new Leave();
-    leaveObj.employeementId = this.currentUser.employeementId;
+    leaveObj.employeementId = this.leaveObj.employeementId;
     if (this.currentUser.isApmosysProduct === 'true') {
       leaveObj.employeeType = 'Apmosys Product';
     } else {

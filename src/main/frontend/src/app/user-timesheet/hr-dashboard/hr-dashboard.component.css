@@ -5512,3 +5512,8 @@ input:checked+.slider:before {
 .insight-timesheet-table td {
   line-height: 1.4;
 }
+
+.po-name-anchor {
+  position: relative;
+  display: inline-block;
+}

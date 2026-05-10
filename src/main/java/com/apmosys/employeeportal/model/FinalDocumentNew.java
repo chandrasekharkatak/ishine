@@ -12,10 +12,12 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.envers.Audited;
 
 import lombok.Data;
 
 @Entity
+@Audited
 @Table(name = "final_document_new")
 @Data
 public class FinalDocumentNew {

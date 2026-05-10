@@ -475,7 +475,18 @@ export class RmgProjectConfigComponent implements OnInit {
     openRemoveMembersModal() {
         this.membersEndDate = null;
         this.removePermanently = false;
+        this.membersEndDateType = 'Custom';
         this.removeMembersConfirmationModalRef = this.modalService?.open(this.removeMembersConfirmationTemplateRef, { modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false });
+    }
+
+    onMemberRemoveEndDateTypeChange(event: any) {
+        const selectedValue = event?.value;
+        if (selectedValue === 'PO') {
+            const poEndDate = this.selectedRemoveMembers?.[0]?.poEndDate;
+            this.membersEndDate = poEndDate ? moment(poEndDate).format('YYYY-MM-DD') : null;
+        } else if (selectedValue === 'Custom') {
+            this.membersEndDate = null;
+        }
     }
 
     closeRemoveMembersModal() {
@@ -2370,6 +2381,11 @@ export class RmgProjectConfigComponent implements OnInit {
         if (!this.isValidList(this.selectedRemoveMembers)) {
             this.openAlertMessageModal("Kindly Select atleast one member to Remove!!");
             return;
+        }
+
+        if (!this.removePermanently && this.membersEndDateType === 'PO') {
+            const poEndDate = this.selectedRemoveMembers?.[0]?.poEndDate;
+            this.membersEndDate = poEndDate ? moment(poEndDate).format('YYYY-MM-DD') : null;
         }
 
         if (!this.removePermanently && (!this.membersEndDate || this.membersEndDate == undefined || this.membersEndDate == null)) {

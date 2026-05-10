@@ -9,6 +9,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.hibernate.envers.Audited;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +18,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
+@Audited
 @Table(name = "employee_timesheet_location_mapping")
 @Getter
 @Setter

@@ -1396,15 +1396,12 @@
 
                 <!-- Project Name with hover popup -->
                 <td class="po-name-cell">
+                  <span class="po-name-anchor">
                   <span class="po-project-name" (mouseenter)="showProjectPopup(project.projectId)"
                     (mouseleave)="scheduleHideProjectPopup()">
                     {{ project.projectName || 'NA' }}
                   </span>
-                  <span *ngIf="linkedProjectSearchInfo && isLinkedSearchPrimaryRow(project)" class="ms-2 rounded-circle text-dark border border-warning-subtle"
-                    style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
-                    [title]="getLinkedSearchRowTooltip(project)">
-                    <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;" aria-hidden="true"></i>
-                  </span>
+                 
 
                   <div class="po-hover-popup" *ngIf="hoveredProjectId === project.projectId"
                     (mouseenter)="cancelHideProjectPopup()" (mouseleave)="scheduleHideProjectPopup()">
@@ -1421,6 +1418,13 @@
                       <span>Team Attendance</span>
                     </button>
                   </div>
+                  </span>
+
+                   <span *ngIf="linkedProjectSearchInfo && isLinkedSearchPrimaryRow(project)" class="ms-2 rounded-circle text-dark border border-warning-subtle"
+                    style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
+                    [title]="getLinkedSearchRowTooltip(project)">
+                    <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;" aria-hidden="true"></i>
+                  </span>
                 </td>
 
                 <td>{{ project.poNo || 'NA' }}</td>
