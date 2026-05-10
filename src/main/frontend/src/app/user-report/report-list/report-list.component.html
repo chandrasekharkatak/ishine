@@ -998,7 +998,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                   <td class="sticky-col" [class.no-border]="!(team.mappedEmployeeDetails.length > 1 && eIndex === 0)">
                     <ng-container *ngIf="team.mappedEmployeeDetails.length > 1 && eIndex === 0; else emptyCell">
                       <button (click)="extendEmployees(pIndex,eIndex)" [title]="expandedTeams.has(pIndex + '-' + tIndex) ? 'Collapse' : 'Expand'" class="btn-expand">
-                        <i class="fas" 
+                        <i class="fas"
                         [class.fa-chevron-down]="!expandedTeams.has(pIndex + '-' + tIndex)"
                         [class.fa-chevron-up]="expandedTeams.has(pIndex + '-' + tIndex)"></i>
                       </button>
@@ -1007,7 +1007,7 @@ firt share list of feature and then go one by one details, nothing to be missed
 
                     </ng-template>
                   </td>
-                  
+
                   <td  *ngIf="eIndex === 0 || expandedTeams.has(pIndex + '-' + tIndex)" [class.no-border]="eIndex != 0">{{ getHierarchicalSrNo(pIndex, tIndex, eIndex) }}</td>
 
 
@@ -1030,10 +1030,10 @@ firt share list of feature and then go one by one details, nothing to be missed
                     {{ project.clientRM || '—' }}
                   </td>
                   <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                    {{ project.poStartDate }}
+                    {{ project.projectStartDate }}
                   </td>
                   <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                    {{ project.poEndDate }}
+                    {{ project.projectEndDate }}
                   </td>
                   <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getVisibleRowspanForProject(project, pIndex)">
                     {{ project.poNo }}
@@ -1053,7 +1053,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                     title="Click to view Employee 360">
                     {{ emp.employeeName }}
                   </td>
-                  
+
                   <td *ngIf="!userMapping.reports_employee_360 && (eIndex ===0 || expandedTeams.has(pIndex + '-' + tIndex))">{{ emp.employeeName }}</td>
                   <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.jobRole }}</td>
                   <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.deptName }}</td>
@@ -1062,7 +1062,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                   <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.billable }}</td>
                   <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.billableType }}</td>
                   <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.effectiveStartDate }}</td>
-                
+
                 </tr>
 
               </ng-container>
@@ -1759,9 +1759,75 @@ firt share list of feature and then go one by one details, nothing to be missed
       </div>
 
     </div>
- 
-    <div class="col-md-12">
-      <div class="overflow-auto" style="max-height: 75vh;">
+      <div class="acl-filter-panel" *ngIf="employeeRole">
+      <div class="acl-filter-panel__title">
+        Refine Access View
+        <span class="acl-filter-panel__subtitle">Filter by department and designation</span>
+      </div>
+      <div class="acl-filter-row">
+        <!-- Department Dropdown -->
+        <div class="acl-filter-item">
+          <label class="dropdown">Select Department(s)
+            <span class="acl-filter-count" *ngIf="selectedDepartments?.length">{{selectedDepartments.length}} selected</span>
+          </label>
+          <div class="acl-filter-input-group">
+            <app-my-select #departmentSelectBox class="form-control department-select"
+              placeholder="Select Department(s)" [(ngModel)]="selectedDepartments"
+              (dropdownClosed)="onAclAdvSearch(departmentSelectBox,'departmentSearch')"
+              [options]="filteredDepartments" displayKey="header" valueKey="header" [multiple]="true" [wrapOptions]="true">
+            </app-my-select>
+            <button type="button" class="acl-filter-icon-btn acl-filter-icon-btn--apply" title="Apply Department Filter"
+              (click)="applyAclDropdownFilter(departmentSelectBox,'departmentSearch')">
+              <i class="fa fa-check"></i>
+            </button>
+            <button *ngIf="selectedDepartments?.length" type="button" class="acl-filter-icon-btn acl-filter-icon-btn--clear" title="Clear Department Selection"
+              (click)="clearAclDropdownFilter('Dept')">
+              <i class="fa fa-eraser"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Designation Dropdown -->
+        <div *ngIf="designationDropdown" class="acl-filter-item">
+          <label class="dropdown">Select Designation(s)
+            <span class="acl-filter-count" *ngIf="selectedDesignations?.length">{{selectedDesignations.length}} selected</span>
+          </label>
+          <div class="acl-filter-input-group">
+            <app-my-select #designationSelect class="form-control department-select"
+              placeholder="Select Designation(s)" [(ngModel)]="selectedDesignations"
+              (dropdownClosed)="onAclAdvSearch(designationSelect,'designationSearch')"
+              [options]="filteredDesignationsForDropdown" displayKey="desig" valueKey="desig" [multiple]="true" [wrapOptions]="true">
+            </app-my-select>
+            <button type="button" class="acl-filter-icon-btn acl-filter-icon-btn--apply" title="Apply Designation Filter"
+              (click)="applyAclDropdownFilter(designationSelect,'designationSearch')">
+              <i class="fa fa-check"></i>
+            </button>
+            <button *ngIf="selectedDesignations?.length" type="button" class="acl-filter-icon-btn acl-filter-icon-btn--clear" title="Clear Designation Selection"
+              (click)="clearAclDropdownFilter('Desig')">
+              <i class="fa fa-eraser"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      </div>
+
+    <div class="col-md-12 mt-4">
+      <div class="acl-action-bar" [hidden]="paginateData.length == 0">
+        <button type="button" class="acl-toolbar-icon-btn" [title]="isSearchEnabled ? 'Hide Sub-Feature Filter' : 'Show Sub-Feature Filter'" (click)="toggleSearch()">
+          <i class="fa" [ngClass]="isSearchEnabled ? 'fa-xmark' : 'fa-search'"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-primary custom-hover-btn acl-update-btn"
+          [disabled]="disableUpdateButton" (click)="confirmAndUpdateACL(acl_update_confirm_template)">
+          Update
+        </button>
+      </div>
+
+
+      <div class="acl-select-all-hint" *ngIf="paginateData.length > 0">
+        <i class="fa fa-circle-info mr-1"></i> The first checkbox in each row selects all roles for that sub-feature. You can also drag & drop columns and rows to rearrange the ACL view.
+      </div>
+      <div class="acl-table-container">
+      <div class="overflow-auto acl-table-wrap" bassHorizontalScroll>
         <table class="table table-bordered table-hover table-sticky acl-table" id="aclReportInfo">
           <thead class="acl-header" id="aclReportInfoTHead">
             <tr id="aclReportInfoTHeadTr" cdkDropList cdkDropListOrientation="horizontal"

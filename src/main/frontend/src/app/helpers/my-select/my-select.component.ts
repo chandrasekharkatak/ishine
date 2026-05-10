@@ -58,6 +58,11 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
     }
   }
 
+  ngDoCheck() {
+    // manually trigger filtering when searchText changes (ngModel doesn't auto-pipe)
+    this.onSearchChange();
+  }
+
   openWithDynamicPosition(triggerElement: HTMLElement) {
     if (!this.matSelect) return;
     setTimeout(() => this.matSelect.open());

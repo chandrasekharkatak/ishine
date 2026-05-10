@@ -179,6 +179,66 @@ export class EmployeeProjectService {
           this.handleResult(result);
           return result;
         }
+        // #current_team_member_resource_template only: TNM overlap with a future allocation (endDate may be null on serviceResponse2).
+        else if (response.serviceResponse === 'CURRENT_TNM_PROJECT_OVERLAPPING'
+            && projectData?.validationSource === 'CURRENT_TEAM_TEMPLATE') {
+          const raw = response.serviceResponse2;
+          const entries = Array.isArray(raw) ? raw : (raw != null ? [raw] : []);
+          member.tnmOverlapDetail = entries;
+
+          let boundaryStartRaw: any = null;
+          let bestNorm: string | null = null;
+
+          for (const entry of entries) {
+            if (!entry?.employeeTeamStartDate) {
+              continue;
+            }
+            const eStartNorm = this.normalizeDate(entry.employeeTeamStartDate);
+            if (!eStartNorm) {
+              continue;
+            }
+            // Future mapping strictly after selected start (per product rule).
+            if (eStartNorm > selectedDate) {
+              if (!bestNorm || eStartNorm < bestNorm) {
+                bestNorm = eStartNorm;
+                boundaryStartRaw = entry.employeeTeamStartDate;
+              }
+            }
+          }
+
+          if (!boundaryStartRaw && entries.length > 0) {
+            for (const entry of entries) {
+              if (!entry?.employeeTeamStartDate) {
+                continue;
+              }
+              const eStartNorm = this.normalizeDate(entry.employeeTeamStartDate);
+              if (!eStartNorm || eStartNorm < selectedDate) {
+                continue;
+              }
+              const hasEnd = this.validationService.validateNullUndefinedEmptyStringTrim(entry.employeeTeamEndDate);
+              const eEndNorm = hasEnd ? this.normalizeDate(entry.employeeTeamEndDate) : null;
+              if (!hasEnd || (eEndNorm != null && eEndNorm >= selectedDate)) {
+                boundaryStartRaw = entry.employeeTeamStartDate;
+                break;
+              }
+            }
+          }
+
+          member.isEndDateVisible = true;
+          if (boundaryStartRaw) {
+            member.memberMaxEndDate = moment(boundaryStartRaw).subtract(1, 'day').format('YYYY-MM-DD');
+          }
+          const fsDisp = this.formatDisplayMessage(boundaryStartRaw || '');
+          const msg = boundaryStartRaw
+            ? `Resource already has a future project allocation starting from ${fsDisp}. Please select an end date before that date.`
+            : this.formatDisplayMessage(
+                response.serviceResponse1
+                || 'This resource overlaps another TNM project assignment. Please select an end date for the current assignment.'
+              );
+          member.validationMessage = msg;
+          result = this.failureResult(ResultType.EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT, msg, member);
+          return result;
+        }
         else if (['CONFLICTING_TIMESHEET_RECORDS_FOUND', 'OTHER_TNM_PROJECT_OVERLAPPING', 'CURRENT_TNM_PROJECT_OVERLAPPING'].includes(response.serviceResponse)) {
           const entries = response.serviceResponse2 || [];
           let newStartDateEarlierThanAnyExistingProject: boolean = false;
