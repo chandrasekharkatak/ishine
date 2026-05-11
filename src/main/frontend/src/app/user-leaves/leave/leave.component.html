@@ -123,6 +123,8 @@
                             <div class="col-12 mt-2" *ngIf="leaveDetails.length !== 0">
                                 <div class="card border-primary leave-stat-card mb-2">
                                     <div class="card-body p-2">
+                                        <span class="card-subtitle-v2" *ngIf="leaveObj.leaveTypeMasterId == 1">You can apply 15 Paid Leaves in a month</span>
+                                        <span class="card-subtitle-v2" *ngIf="leaveObj.leaveTypeMasterId == 2">You can apply 2 Casual Leaves in a month</span>
                                         <span class="card-subtitle-v2" *ngIf="leaveObj.leaveTypeMasterId == 4">Another Comp-Off will be applicable after 15 days</span>
                                         <h6 class="mb-0">
                                             <span style="color: #193d8a;">Available Balance : </span>
