@@ -1663,4 +1663,8 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "     OR (etm.active = 0 AND etm.endDate IS NULL AND etm.startDate IS NOT NULL AND FUNCTION('DATE', etm.startDate) > CURRENT_DATE))")
 	boolean existsActivePendingOrFutureScheduled(@Param("teamId") Long teamId);
 	
+
+	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId in :teamIds and etm.employeeTeamMapId in :etmIds and etm.active != 0 ")
+	List<EmployeeTeamMap> activeAndPendingEmployeesByTeamIdsAndEtmIds(List<Long> teamIds,List<Long> etmIds);
+
 }

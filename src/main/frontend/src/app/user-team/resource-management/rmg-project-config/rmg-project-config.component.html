@@ -775,7 +775,7 @@
                         *ngFor="let member of teamMembers | multicolFilter: currentTeamMemberFilters : true | sort : [currentTeamMemberSortColumn, currentTeamMemberSortColumnType, currentTeamMemberSortDirection] | paginate: { itemsPerPage: currentTeamMemberPageSize, currentPage: currentTeamMemberPage }; let i= index">
                         <td class="col-select" *ngIf="projectConfigStepperIndex === 1">
                             <mat-checkbox class="custom-checkbox" color="primary" [(ngModel)]="member.isMemberSelected"
-                                (change)="onMemberCheckboxChange(team, $event, member.empId)">
+                                (change)="onMemberCheckboxChange(team, $event, member.etmId)">
                             </mat-checkbox>
                         </td>
                         <td class="col-action" *ngIf="projectConfigStepperIndex === 1">
@@ -2030,7 +2030,7 @@
             </div>
         </div>
         <div class="row justify-content-center align-items-center">
-            <mat-checkbox class="remove-permanently" color="primary" [(ngModel)]="removePermanently"></mat-checkbox>
+            <mat-checkbox class="remove-permanently" color="primary" [(ngModel)]="removePermanently" (change)="onRemovePermanentlyChecked($event.checked)"></mat-checkbox>
             <small>Remove Permanently</small>&nbsp;
             <span class="info-chip red-chip">
                 <span triggers="mouseenter:mouseleave" placement="right" container="body" popoverClass="info-popover"
@@ -2285,9 +2285,9 @@
                 </mat-panel-title>
             </mat-expansion-panel-header>
             <div class="mt-2">
-                <div class="row align-items-center mb-1" *ngIf="currentRmgProjectResourceRequirementList.length > 0">
+                <div class="row align-items-center mb-1">
                     <div class="col-md-2 d-flex justify-content-start">
-                        <button class="btn btn-sm btn-outline-primary" (click)="toggleAllResourceRequirementSearch()">
+                        <button class="btn btn-sm btn-outline-primary" (click)="toggleAllResourceRequirementSearch()" *ngIf="currentRmgProjectResourceRequirementList.length > 0">
                             <i
                                 [ngClass]="{ 'fa fa-search' : !isAllResourceRequirementSearchEnabled, 'fa-solid fa-xmark': isAllResourceRequirementSearchEnabled}"></i>
                         </button>&nbsp;&nbsp;
@@ -2297,7 +2297,7 @@
                                 [ngClass]="{ 'fa fa-filter' :  allResourceRequirement, 'fa-solid fa-rotate-left': !allResourceRequirement}"></i>
                         </button>
                     </div>
-                    <div class="col-md-10 d-flex justify-content-end">
+                    <div class="col-md-10 d-flex justify-content-end" *ngIf="currentRmgProjectResourceRequirementList.length > 0">
                         <mat-paginator [length]="currentRmgProjectResourceRequirementList.length"
                             [pageIndex]="allResourceRequirementPage-1" [pageSize]="allResourceRequirementPageSize"
                             [pageSizeOptions]="[5, 10, 20, 50]" (page)="allResourceRequirementPageChange($event)">

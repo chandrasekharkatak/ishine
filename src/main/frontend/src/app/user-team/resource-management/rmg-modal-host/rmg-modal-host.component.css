@@ -257,3 +257,12 @@ border-left: 4px solid #dc3545;
 font-weight: bold;
 font-style: italic;
 }
+
+.popover-info {
+    padding: 10px 12px;
+    max-width: 250px;
+    font-size: 12px;
+    line-height: 1.4;
+    border-radius: 6px;
+    background-color: #fff;
+}

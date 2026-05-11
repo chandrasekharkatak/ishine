@@ -185,5 +185,10 @@ export class TeamService {
     let httpParams = new HttpParams().append("projectId", projectId).append("empId", empId).append("employeeTeamMapId", employeeTeamMapId);
     return this.http.get(`${this.baseUrl}` + `api/getTeamMemberDetailsByEmpIdAndProjectId`, { params: httpParams });
   }
+
+  validateIfAnyApprovedOrPendingTimesheetExist(projectId: any, empId: any, employeeTeamMapId: any): any {
+    let httpParams = new HttpParams().append("projectId", projectId).append("empId", empId).append("employeeTeamMapId", employeeTeamMapId);
+    return this.http.get(`${this.baseUrl}` + `api/validateIfAnyApprovedOrPendingTimesheetExist`, { params: httpParams });
+  }
   
 }

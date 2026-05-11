@@ -163,6 +163,7 @@ export class RmgProjectConfigComponent implements OnInit {
     teamMigrationPoDetailsList: any[] = [];
     teamMigrationTeamList: any[] = [];
     teamMigrationResourceRequirementList: any[] = [];
+    selectedMembersEtmId: any[] = [];
     selectedMembersEmpId: any[] = [];
     poDetailsList: PoDetails[] = [];
     filteredPoDetailsList: PoDetails[] = [];
@@ -675,7 +676,7 @@ export class RmgProjectConfigComponent implements OnInit {
 
     openShadowResourceMappingModal(member: RmgTeamMember) {
         this.shadowResourceMappingMember = member;
-        this.shadowResourceMappingMemberEndDate = null;
+        this.shadowResourceMappingMemberEndDate = member.endDate && member.endDate != null ? member.endDate : null;
         this.shadowResourceMappingMemberStartDate = null
         this.shadowResourceMappingModalRef = this.modalService.open(this.shadowResourceMappingTemplateRef, { modalDialogClass: 'modal-md', backdrop: 'static', keyboard: false });
     }
@@ -730,7 +731,7 @@ export class RmgProjectConfigComponent implements OnInit {
         let poObj = new PoDetails();
         poObj.projectId = this.rmgProjectObj.projectId;
         poObj.selectedTeamIds = this.rmgProjectObj?.teamDetailsList.filter(team => team.isTeamSelected).map(team => team.teamId);
-        poObj.activeEtmFlag = false;
+        poObj.activeEtmFlag = true;
 
         this.deleteTeamsPo = poObj;
         this.deleteTeamsPo.teamList = this.rmgProjectObj?.teamDetailsList;
@@ -1202,7 +1203,7 @@ export class RmgProjectConfigComponent implements OnInit {
     }
 
     resetTeamDetailsForm() {
-        this.selectedMembersEmpId = [];
+        this.selectedMembersEtmId = [];
     }
 
     filterResourceRequirementDetails() {
@@ -1338,14 +1339,14 @@ export class RmgProjectConfigComponent implements OnInit {
                 .every(member => member.isMemberSelected);
     }
 
-    onMemberCheckboxChange(team: RmgTeam, event: any, empId: any): void {
-        if (!this.isValidList(this.selectedMembersEmpId)) {
-            this.selectedMembersEmpId = [];
+    onMemberCheckboxChange(team: RmgTeam, event: any, etmId: any): void {
+        if (!this.isValidList(this.selectedMembersEtmId)) {
+            this.selectedMembersEtmId = [];
         }
         if (event?.checked) {
-            this.selectedMembersEmpId.push(empId);
+            this.selectedMembersEtmId.push(etmId);
         } else {
-            this.selectedMembersEmpId = this.selectedMembersEmpId.filter(id => id !== empId);
+            this.selectedMembersEtmId = this.selectedMembersEtmId.filter(id => id !== etmId);
         }
 
         this.updateTeamSelection(team);
@@ -1355,9 +1356,9 @@ export class RmgProjectConfigComponent implements OnInit {
     onAllTeamTeamMemberCheckboxChange(team: RmgTeam, event: any, teamMembers: RmgTeamMember[]): void {
         team.isAllMemberSelected = !team.isAllMemberSelected;
         if (event?.checked) {
-            this.selectedMembersEmpId = teamMembers?.map(member => member.empId);
+            this.selectedMembersEtmId = teamMembers?.map(member => member.etmId);
         } else {
-            this.selectedMembersEmpId = [];
+            this.selectedMembersEtmId = [];
         }
         this.setMembersSelection(team.rmgCurrentTeamMemberList, team.isAllMemberSelected);
         this.updateRemoveTeamMemberButton(team);
@@ -1678,7 +1679,7 @@ export class RmgProjectConfigComponent implements OnInit {
                 this.setRequirementResourceTypeForTeam(team, true);
 
                 team?.rmgCurrentTeamMemberList?.forEach(member => {
-                    if (this.selectedMembersEmpId?.includes(member?.empId)) {
+                    if (this.selectedMembersEtmId?.includes(member?.etmId)) {
                         member.isMemberSelected = true;
                     }
                 });
@@ -1794,7 +1795,7 @@ export class RmgProjectConfigComponent implements OnInit {
                 this.setRequirementResourceTypeForTeam(team, true);
                 this.updateTeamSelection(team);
                 team?.rmgCurrentTeamMemberList?.map(member => {
-                    if (this.selectedMembersEmpId?.includes(member?.empId)) {
+                    if (this.selectedMembersEtmId?.includes(member?.etmId)) {
                         member.isMemberSelected = true;
                     }
                 });
@@ -2377,7 +2378,7 @@ export class RmgProjectConfigComponent implements OnInit {
         this.updateAddTeamMemberButton(team);
     }
 
-    removeTeamMembersFromProject() {
+    async removeTeamMembersFromProject() {
         if (!this.isValidList(this.selectedRemoveMembers)) {
             this.openAlertMessageModal("Kindly Select atleast one member to Remove!!");
             return;
@@ -2387,9 +2388,12 @@ export class RmgProjectConfigComponent implements OnInit {
             const poEndDate = this.selectedRemoveMembers?.[0]?.poEndDate;
             this.membersEndDate = poEndDate ? moment(poEndDate).format('YYYY-MM-DD') : null;
         }
-
         if (!this.removePermanently && (!this.membersEndDate || this.membersEndDate == undefined || this.membersEndDate == null)) {
             this.openAlertMessageModal("Please provide End date!!");
+            return;
+        }
+        const flag = await this.onRemovePermanentlyChecked(true);
+        if (!flag) {
             return;
         }
 
@@ -2484,6 +2488,7 @@ export class RmgProjectConfigComponent implements OnInit {
         tempTeamMembersMigrationObj.targetProjectId = this.teamMembersMigrationObj.targetProjectId;
         tempTeamMembersMigrationObj.currentUserEmpId = this.currentUser.empId;
         tempTeamMembersMigrationObj.empIds = employee.empId ? [employee.empId] : [];
+        tempTeamMembersMigrationObj.etmIds = employee.etmId ? [employee.etmId] : [];
         tempTeamMembersMigrationObj.targetPoId = employee.targetPoId;
         tempTeamMembersMigrationObj.targetRoleId = employee.targetRoleId;
         tempTeamMembersMigrationObj.migrationTeamIds = this.teamMembersMigrationObj.migrationTeamIds;
@@ -2678,6 +2683,18 @@ export class RmgProjectConfigComponent implements OnInit {
             this.openAlertMessageModal("Something went wrong, unable to validate the selected start date at the moment!!");
             return false;
         }
+    }
+
+    async onRemovePermanentlyChecked(isChecked: boolean) {
+        if (isChecked && this.isValidList(this.selectedRemoveMembers)) {
+            for (let member of this.selectedRemoveMembers) {
+                const response = await this.employeeProjectService.validateIfAnyApprovedOrPendingTimesheetExist(this.rmgProjectObj.projectId, member.empId, member.etmId);
+                if (!response) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     onMemberEndDateChange(event: MatDatepickerInputEvent<Date>, member: RmgTeamMember) {
