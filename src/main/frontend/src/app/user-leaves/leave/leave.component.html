@@ -34,7 +34,11 @@
                 </div>
             </div>
         </div>
-        <div class="leave-balance-strip" *ngIf="leaveBalanceList?.length">
+        <div class="leave-balance-strip" *ngIf="leaveBalanceList?.length 
+            && (
+                leaveObj.leaveAppliedFor == 'self' 
+                || (leaveObj.leaveAppliedFor == 'team' && leaveObj.empId)
+               )">
             <div class="leave-balance-pill" *ngFor="let bal of leaveBalanceList">
                 <span class="leave-balance-pill__type">{{ bal.leaveType }}</span>
                 <span class="leave-balance-pill__count">{{ bal.balance }}</span>
