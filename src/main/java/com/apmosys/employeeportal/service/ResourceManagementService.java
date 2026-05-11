@@ -14727,9 +14727,11 @@ public class ResourceManagementService {
 				response.setServiceResponse("fromDate cannot be after toDate.");
 				return response;
 			}
-
+			
+			LocalDateTime startDate = fromDate.atStartOfDay();
+			LocalDateTime endDate = toDate.atTime(LocalTime.MAX);	
 			List<ProjectPoDetails> activePos = poDetailsRepository
-					.findAllActivePosForProjectAndDateRange(projectId, fromDate, toDate);
+					.findAllActivePosForProjectAndDateRange(projectId, startDate, endDate);
 			if (activePos == null || activePos.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No active POs found for the given project and date range.");

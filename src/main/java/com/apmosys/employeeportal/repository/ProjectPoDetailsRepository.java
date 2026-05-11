@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.Optional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -108,13 +109,16 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
     List<Long> findActivePoIdsByProjectId(@Param("projectId") Integer projectId);
 
     @Query("SELECT ppd FROM ProjectPoDetails ppd "
+    		+ "INNER JOIN Project p ON p.projectId = ppd.projectId "
+    		+ "INNER JOIN Team t on t.projectId = p.projectId "
+    		+ "INNER JOIN EmployeeTeamMap etm on etm.teamId = t.teamId "
             + "WHERE ppd.active = true "
             + "AND ppd.projectId = :projectId "
-            + "AND DATE(ppd.poStartDate) <= DATE(:toDate) "
-            + "AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= DATE(:fromDate)) "
+            + "AND DATE(etm.startDate) <= DATE(:toDate) "
+            + "AND (etm.endDate IS NULL OR DATE(etm.endDate) >= DATE(:fromDate)) "
             + "ORDER BY ppd.poNo ASC")
     List<ProjectPoDetails> findAllActivePosForProjectAndDateRange(@Param("projectId") Integer projectId,
-            @Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate);
+            @Param("fromDate") LocalDateTime fromDate, @Param("toDate") LocalDateTime toDate);
 
     List<ProjectPoDetails> findByProjectIdAndActiveTrue(Integer projectId);
 

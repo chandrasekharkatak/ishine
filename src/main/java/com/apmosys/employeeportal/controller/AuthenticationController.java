@@ -97,7 +97,7 @@ public class AuthenticationController {
 	}
 
 	@PostMapping("/auth/po/session-login")
-	public ServiceResponse authenticateFromPoSession(@RequestBody PoSessionLoginRequestDTO requestDto, HttpServletRequest httpRequest) {
+	public ServiceResponse authenticateFromPoSession(@RequestBody PoSessionLoginRequestDTO requestDto, HttpServletRequest httpRequest) throws Exception {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return authenticationService.authenticateFromPoSession(requestDto);
 	}
