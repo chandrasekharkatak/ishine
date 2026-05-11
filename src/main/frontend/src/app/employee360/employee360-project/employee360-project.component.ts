@@ -1847,4 +1847,11 @@ console.log("mapping ID",this.employeeTeamMapId);
     }
   }
 
+  async onRemovePermanentlyChecked(isChecked: any) {
+    if (isChecked) {
+      return await this.employeeProjectService.validateIfAnyApprovedOrPendingTimesheetExist(this.newProjectObj.projectId, this.newProjectObj.empId, this.newProjectObj.employeeTeamMapId);
+    }
+  }
+
+
 }

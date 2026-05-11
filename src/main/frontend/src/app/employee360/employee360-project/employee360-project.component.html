@@ -452,15 +452,6 @@
 
 <ng-template #MarkAsCompleteDefaultProject>
         <div class="default-project-wrapper container-fluid p-3">
-            <!-- Header and Toggle Switch -->
-            <!-- <div class="d-flex justify-content-between align-items-center mb-3">
-                <h1 class="table-header-title">Employee(s) With New Default Project Mappings Requirement</h1>
-                <i class="fa-solid" [ngClass]="isBulkUpdateMode ? 'fa-toggle-on' : 'fa-toggle-off'"
-                    style="font-size: 24px; cursor: pointer; color: #061E5C;"
-                    (click)="isBulkUpdateMode = !isBulkUpdateMode">
-                </i>
-            </div> -->
-
             <!-- Bulk Update Mode -->
             <div *ngIf="!isBulkUpdateMode" class="bulk-mode-section mb-4">
                 <p class="section-title">Bulk Default Project Mapping</p>
@@ -949,7 +940,7 @@
             </div>
         </div>
         <div class="row justify-content-center align-items-center">
-            <mat-checkbox class="remove-permanently" color="primary" [(ngModel)]="removePermanently"></mat-checkbox>
+            <mat-checkbox class="remove-permanently" color="primary" [(ngModel)]="removePermanently" (change)="onRemovePermanentlyChecked($event.checked)"></mat-checkbox>
             <small>Remove Permanently</small>&nbsp;
             <span class="info-chip red-chip">
                 <span triggers="mouseenter:mouseleave" placement="right" container="body" popoverClass="info-popover"

@@ -121,7 +121,7 @@
                             <div
                                 class="d-flex align-items-center">
                                 <mat-checkbox class="remove-permanently" color="primary"
-                                    [(ngModel)]="entries.removePermanently"></mat-checkbox>
+                                    [(ngModel)]="entries.removePermanently" (change)="onRemovePermanentlyChecked($event.checked, entries)"></mat-checkbox>
                                 <small>Remove Permanently</small>&nbsp;
                                 <span class="info-chip red-chip">
                                     <span triggers="mouseenter:mouseleave" placement="bottom" container="body" popoverClass="info-popover"
@@ -300,7 +300,7 @@
             </div>
             <div
                 class="d-flex align-items-center">
-                <mat-checkbox class="remove-permanently" color="primary" [(ngModel)]="deleteEmployeeExistingProjectMappingObj.removePermanently"></mat-checkbox>
+                <mat-checkbox class="remove-permanently" color="primary" [(ngModel)]="deleteEmployeeExistingProjectMappingObj.removePermanently" (change)="onRemovePermanentlyChecked($event.checked, deleteEmployeeExistingProjectMappingObj)"></mat-checkbox>
                 <small>Remove Permanently</small>&nbsp;
                 <span class="info-chip red-chip">
                     <span triggers="mouseenter:mouseleave" placement="right" container="body" popoverClass="info-popover"
