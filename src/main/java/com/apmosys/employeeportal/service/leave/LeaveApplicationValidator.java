@@ -66,6 +66,9 @@ public class LeaveApplicationValidator {
     @Value("${CLleave.maxDays}")
     private Long clLeaveDays;
 
+    @Value("${leave.pl.max.days.per.month}")
+    private double maxPlDaysPerMonth;
+
     public void validateRequestPresent(LeaveDTO dto) {
         if (dto == null) {
             throw new LeaveApplicationException("Invalid request payload");
@@ -228,6 +231,47 @@ public class LeaveApplicationValidator {
                             + totalCLDaysThisMonth + " days.");
         }
     }
+
+public void validatePrivilegeLeaveRules(LeaveDTO dto) {
+
+    if (!"PL".equalsIgnoreCase(dto.getLeaveTypeCode())) {
+        return;
+    }
+
+    if (dto.getNoOfDays() > maxPlDaysPerMonth) {
+
+        throw new LeaveApplicationException(
+                "Privilege Leave cannot be taken for more than "
+                        + maxPlDaysPerMonth + " days at once");
+    }
+
+    YearMonth appliedMonth = YearMonth.from(LocalDate.parse(dto.getFromDate()));
+
+    List<EmployeeLeave> plLeavesThisMonth =
+            employeeLeaveRepository.findByEmpIdAndLeaveTypeAndMonth(
+                    dto.getEmpId(),
+                    dto.getLeaveTypeMasterId(),
+                    appliedMonth.getYear(),
+                    appliedMonth.getMonthValue());
+
+    double totalPLDaysThisMonth = plLeavesThisMonth.stream()
+            .filter(leave ->
+                    leave.getLeaveStatusId() != null
+                            && (leave.getLeaveStatusId() == 1
+                            || leave.getLeaveStatusId() == 2))
+            .mapToDouble(EmployeeLeave::getNoOfDays)
+            .sum();
+
+    if (totalPLDaysThisMonth + dto.getNoOfDays()
+            > maxPlDaysPerMonth) {
+
+        throw new LeaveApplicationException(
+                "Privilege Leave cannot exceed "
+                        + maxPlDaysPerMonth
+                        + " days in a month. Already applied: "
+                        + totalPLDaysThisMonth + " days.");
+    }
+}
     public void validateCasualLeaveRulesForUpdate(LeaveDTO dto) {
         if (!"Casual Leave".equalsIgnoreCase(dto.getLeaveType())) {
             return;
