@@ -301,6 +301,53 @@ public void validatePrivilegeLeaveRules(LeaveDTO dto) {
         }
     }
 
+    public void validatePrivilegeLeaveRulesForUpdate(LeaveDTO dto) {
+
+    if (!"Paid Leave".equalsIgnoreCase(dto.getLeaveType())) {
+        return;
+    }
+
+    if (dto.getNoOfDays() > maxPlDaysPerMonth) {
+
+        throw new LeaveApplicationException(
+                "Privilege Leave cannot be taken for more than "
+                        + maxPlDaysPerMonth + " days");
+    }
+
+    YearMonth appliedMonth =
+            YearMonth.from(LocalDate.parse(dto.getFromDate()));
+
+    List<EmployeeLeave> plLeavesThisMonth =
+            employeeLeaveRepository.findByEmpIdAndLeaveTypeAndMonth(
+                    dto.getEmpId(),
+                    dto.getLeaveTypeMasterId(),
+                    appliedMonth.getYear(),
+                    appliedMonth.getMonthValue());
+
+    double totalPLDaysThisMonth = plLeavesThisMonth.stream()
+            .filter(leave ->
+                    leave.getLeaveStatusId() != null
+                            && (leave.getLeaveStatusId() == 1
+                            || leave.getLeaveStatusId() == 2)
+
+                            // Exclude current leave being updated
+                            && (dto.getLeaveId() == null
+                            || !leave.getLeaveId().equals(dto.getLeaveId()))
+            )
+            .mapToDouble(EmployeeLeave::getNoOfDays)
+            .sum();
+
+    if (totalPLDaysThisMonth + dto.getNoOfDays()
+            > maxPlDaysPerMonth) {
+
+        throw new LeaveApplicationException(
+                "Privilege Leave cannot exceed "
+                        + maxPlDaysPerMonth
+                        + " days in a month. Already applied: "
+                        + totalPLDaysThisMonth + " days.");
+    }
+}
+
     /**
      * Ensures leave day type exists before persisting leave + timesheet side effects (fail fast, transactional rollback).
      */
