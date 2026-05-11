@@ -547,7 +547,7 @@
     <div class="modal-body text-center">
         <h5>Please select project completion date</h5>
         <div class="date-input-wrapper">
-            <input class="form-control date-input" [max]="minDate" readonly [matDatepicker]="completionDatepicker"
+            <input matInput class="form-control date-input" [max]="minDate" readonly [matDatepicker]="completionDatepicker"
                 [(ngModel)]="selectedDate" (click)="completionDatepicker.open()" />
             <mat-icon class="calendar-icon" (click)="completionDatepicker.open()">calendar_today</mat-icon>
             <mat-datepicker #completionDatepicker></mat-datepicker>

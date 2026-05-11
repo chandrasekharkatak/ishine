@@ -2476,7 +2476,7 @@ public class ProjectService {
                  		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
                  		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
                  		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
-                 		+ "  END AS prefixed_employeementId FROM employee e ")
+                 		+ "  END AS prefixed_employeementId, e.experience, date(e.date_of_joining) FROM employee e ")
                  .append("INNER JOIN job_role j ON j.job_role_id = e.job_role_id ")
                  .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
                  .append("INNER JOIN employee m ON e.manager_id = m.emp_id ")
@@ -2538,7 +2538,7 @@ public class ProjectService {
 	             		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
 	             		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
 	             		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
-	             		+ "  END AS prefixed_employeementId FROM employee e ")
+	             		+ "  END AS prefixed_employeementId, e.experience, date(e.date_of_joining) FROM employee e ")
                  .append("INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id ")
                  .append("LEFT JOIN teams t ON t.team_id = etm.team_id ")
                  .append("LEFT JOIN projects p ON p.project_id = t.project_id \n "
@@ -3025,6 +3025,7 @@ public class ProjectService {
 
 			Map<Long, GetProjectToEmployeeReportForProjectDTO> projectMap = new HashMap<>();
 			Map<String, GetProjectToEmployeeReportForTeamDTO> teamMap = new HashMap<>();
+			Map<String, Set<Long>> teamEmpSeen = new HashMap<>();
 
 			for (Object[] record : resultList) {
 
@@ -3055,6 +3056,7 @@ public class ProjectService {
 					teamDTO.setMappedEmployeeDetails(new ArrayList<>());
 					projectMap.get(projectId).getTeamDetails().add(teamDTO);
 					teamMap.put(teamKey, teamDTO);
+					teamEmpSeen.put(teamKey, new java.util.HashSet<>());
 				}
 
 				GetProjectToEmployeeReportForEmployeeDTO empDTO = new GetProjectToEmployeeReportForEmployeeDTO();

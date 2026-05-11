@@ -105,7 +105,7 @@
         </div>
         <div class="card-body">
           <div id="outerContainer">
-            <div class="pdf-container">
+            <div class="pdf-container" (contextmenu)="$event.preventDefault()">
               <pdf-viewer [src]="src" [rotation]="0" [original-size]="false" [show-all]="true" [fit-to-page]="false"
                 [zoom]="1" [zoom-scale]="'page-width'" [stick-to-page]="false" [render-text]="true"
                 [external-link-target]="'blank'" [autoresize]="true" [show-borders]="false"
@@ -117,13 +117,32 @@
     </div>
 
     <div class="row mt-2">
-      <div class="row mt-2">
-  <div class="col-md-12">
+      <!-- <div class="row mt-2">
+        <div class="col-md-12">
     
-    <button type="button" class="btn btn-outline-primary" *ngIf="newsletterObj.isRead"
-      (click)="cancelRequest()">Close</button>
-    <button class="btn btn-sm btn-outline-primary mt-1" *ngIf="!newsletterObj.isRead" type="submit"
-      (click)="onReadNewsletter(alert_message)">Mark As Read</button>
+          <button type="button" class="btn btn-outline-primary" *ngIf="newsletterObj.isRead"
+            (click)="cancelRequest()">Close</button>
+          <button class="btn btn-sm btn-outline-primary mt-1" *ngIf="!newsletterObj.isRead" type="submit"
+            (click)="onReadNewsletter(alert_message)">Mark As Read</button>
+        </div>
+      </div> -->
+
+      <div class="row mt-2">
+  <div class="col-md-12 d-flex justify-content-center">
+
+    <button type="button" class="btn btn-outline-primary"
+      *ngIf="newsletterObj.isRead"
+      (click)="cancelRequest()">
+      Close
+    </button>
+
+    <button class="btn btn-sm btn-outline-primary highlight-btn mt-1"
+      *ngIf="!newsletterObj.isRead"
+      type="submit"
+      (click)="onReadNewsletter(alert_message)">
+      Mark As Read
+    </button>
+
   </div>
 </div>
     </div>

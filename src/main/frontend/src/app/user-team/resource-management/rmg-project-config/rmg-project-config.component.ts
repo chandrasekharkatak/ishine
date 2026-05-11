@@ -2575,6 +2575,8 @@ export class RmgProjectConfigComponent implements OnInit {
         // The backend may ask for an endDate (future mapping scenario), and user will provide it.
         member.isEndDateVisible = false;
         member.memberMaxEndDate = null;
+        member.validationMessage = null;
+        member.tnmOverlapDetail = null;
         if (member.endDate && member.endDate != undefined && member.endDate != null && this.normalizeDate(member.startDate) > this.normalizeDate(member.endDate)) {
             this.openAlertMessageModal(`Start Date cannot be greater than the End Date!!`);
             return false;
@@ -2600,10 +2602,12 @@ export class RmgProjectConfigComponent implements OnInit {
             return true;
         } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT' || response?.type === 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT') {
             member.isEndDateVisible = true;
-            member.memberMaxEndDate = response?.data.memberMaxEndDate;
+            if (response?.data?.memberMaxEndDate) {
+                member.memberMaxEndDate = response.data.memberMaxEndDate;
+            }
             // Show backend-provided message (future assignment / overlap guidance) when available.
             const msg = response?.message || 'Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!';
-            member.validationMessage = response?.message || member.validationMessage || null;
+            member.validationMessage = msg;
             this.openAlertMessageModal(msg);
             return false;
         } else {

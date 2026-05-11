@@ -1,6 +1,6 @@
 import { ConnectedPosition, Overlay, OverlayRef, ViewportRuler } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { Component, Input, Output, EventEmitter, forwardRef, OnInit, ViewChild, ElementRef, ViewContainerRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, forwardRef, OnInit, ViewChild, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatSelect } from '@angular/material/select';
 
@@ -32,6 +32,8 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   @Input() showFilterAction: boolean = false;
   @Input() filterActionLabel: string = 'Filter List';
 
+  @Input() wrapOptions = false;
+  @Input() showSelectAll = true;
   @Output() selectionChange = new EventEmitter<any>();
   @Output() change = new EventEmitter<any>();
   @Output() dropdownClosed = new EventEmitter<void>();
@@ -48,6 +50,17 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
 
   ngOnInit(): void {
     this.filteredOptions = this.options || [];
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['options']) {
+      this.onSearchChange();
+    }
+  }
+
+  ngDoCheck() {
+    // manually trigger filtering when searchText changes (ngModel doesn't auto-pipe)
+    this.onSearchChange();
   }
 
   openWithDynamicPosition(triggerElement: HTMLElement) {
@@ -180,15 +193,6 @@ isAllSelected(): boolean {
     );
   }
 
-ngOnChanges() {
-    this.onSearchChange();
-  }
-
-  ngDoCheck() {
-    // manually trigger filtering when searchText changes (ngModel doesn't auto-pipe)
-    this.onSearchChange();
-  }
-
   getIndex(list: any[], item: any): number {
   return list.findIndex((element) => this.compareObjects(element, item));
 }
@@ -265,4 +269,12 @@ isDisabledOption(option: any): boolean {
     this.filterAction.emit();
   }
 
+
+trackByOption = (_: number, opt: any): any => this.valueKey ? opt?.[this.valueKey] : this.getDisplayText(opt);
+
+getPanelClass(): string[] {
+  return this.wrapOptions ? ['custom-select-panel', 'wrapped-select-panel'] : ['custom-select-panel'];
+}
+
+  
 }
