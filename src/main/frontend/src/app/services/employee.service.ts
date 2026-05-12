@@ -546,24 +546,54 @@ duplicateCertificate(certificateobj:any){
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeProjectCount`,employeeReport);
   }
 
-  calculateTotalExperience(totalExperience:any,dateOfJoining:any) {
-      const previousExp = Number(totalExperience ?? 0);
-      
-      let apmosysExp = 0;
-      if (dateOfJoining) {
-        const doj = new Date(dateOfJoining);
-        const today = new Date();
-      
-        const diff = today.getTime() - doj.getTime();
-        apmosysExp = diff / (1000 * 60 * 60 * 24 * 365.25); 
+  /**
+   * Same formula as Employee 360: previous (pre-join) years + tenure since date of joining.
+   * Parses DOJ as DD-MM-YYYY (profile display), YYYY-MM-DD, or falls back to Date.parse.
+   */
+  calculateTotalExperience(totalExperience: any, dateOfJoining: any): number {
+    const previousExp = Number(totalExperience ?? 0);
+
+    let apmosysExp = 0;
+    if (dateOfJoining != null && String(dateOfJoining).trim() !== '') {
+      const s = String(dateOfJoining).trim();
+      let dojMs: number | null = null;
+      const dmy = /^(\d{1,2})-(\d{1,2})-(\d{4})$/.exec(s);
+      if (dmy) {
+        const d = parseInt(dmy[1], 10);
+        const m = parseInt(dmy[2], 10);
+        const y = parseInt(dmy[3], 10);
+        const dt = new Date(y, m - 1, d);
+        if (!isNaN(dt.getTime())) {
+          dojMs = dt.getTime();
+        }
+      } else {
+        const ymd = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s);
+        if (ymd) {
+          const y = parseInt(ymd[1], 10);
+          const m = parseInt(ymd[2], 10);
+          const d = parseInt(ymd[3], 10);
+          const dt = new Date(y, m - 1, d);
+          if (!isNaN(dt.getTime())) {
+            dojMs = dt.getTime();
+          }
+        } else {
+          const dt = new Date(s);
+          if (!isNaN(dt.getTime())) {
+            dojMs = dt.getTime();
+          }
+        }
       }
-    
-      // Total = previous exp + apmosys exp
-      let totalExp = previousExp + apmosysExp;
-      let totalCurrentExperience = Number(totalExp.toFixed(1));
-      return totalCurrentExperience;
-    
+      if (dojMs != null) {
+        const today = new Date();
+        const diff = today.getTime() - dojMs;
+        apmosysExp = Math.max(0, diff) / (1000 * 60 * 60 * 24 * 365.25);
+      }
     }
+
+    const totalExp = previousExp + apmosysExp;
+    const safe = Number.isFinite(totalExp) ? totalExp : previousExp;
+    return Number(safe.toFixed(1));
+  }
 
   getPendingTimesheetProjects(empId: number, relievingDate: string | null) {
     const payload = {
