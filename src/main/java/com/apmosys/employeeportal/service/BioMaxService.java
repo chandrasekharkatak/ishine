@@ -145,6 +145,7 @@ public class BioMaxService {
 			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 			cachedConnection = DriverManager.getConnection(
 				"jdbc:sqlserver://192.168.0.126:1433;databaseName=SmartOfficedb;encrypt=true;trustServerCertificate=true;",
+//				"jdbc:sqlserver://localhost:1433;databaseName=SmartOfficedb;encrypt=true;trustServerCertificate=true;",
 				"apmosys",
 				"apmosys@123"
 			);
@@ -1008,6 +1009,7 @@ public class BioMaxService {
 		String employeeCodeInput = searchParams != null ? searchParams.get("employeeCode") : null;
 		String departmentName = searchParams != null ? searchParams.get("departmentName") : null;
 		String managerName = searchParams != null ? searchParams.get("reportingManagerName") : null;
+		String employeeEmail = searchParams != null ? searchParams.get("employeeEmail") : null;
 		
 		// Query with filters applied using the cleaned prefixed codes 
 		List<Object[]> employees = employeeRepository.findByPrefixedEmployeementIdInWithFilters(
@@ -1015,7 +1017,9 @@ public class BioMaxService {
 			(employeeName != null && !employeeName.trim().isEmpty()) ? employeeName : null,
 			(employeeCodeInput != null && !employeeCodeInput.trim().isEmpty()) ? employeeCodeInput : null,
 			(departmentName != null && !departmentName.trim().isEmpty()) ? departmentName : null,
-			(managerName != null && !managerName.trim().isEmpty()) ? managerName : null
+			(managerName != null && !managerName.trim().isEmpty()) ? managerName : null,
+			(employeeEmail != null && !employeeEmail.trim().isEmpty()) ? employeeEmail : null,
+			(searchParams != null && searchParams.get("reportingManagerEmail") != null && !searchParams.get("reportingManagerEmail").trim().isEmpty()) ? searchParams.get("reportingManagerEmail") : null
 		);
 		
 		Map<String, Map<String, String>> employeeMap = new HashMap<>();
@@ -1027,10 +1031,14 @@ public class BioMaxService {
 			String reportingManager = row[2] != null ? row[2].toString() : "N/A";
 			String deptName = row[3] != null ? row[3].toString() : "N/A";
 			String prefixedId = row[4] != null ? row[4].toString() : null; // MySQL returns with hyphen
+			String empEmail = row[6] != null ? row[6].toString() : "N/A";
+			String managerEmail = row[7] != null ? row[7].toString() : "N/A";
 			
 			employeeDetails.put("reportingManager", reportingManager);
 			employeeDetails.put("employeeName", empName);
 			employeeDetails.put("departmentName", deptName);
+			employeeDetails.put("employeeEmail", empEmail);
+			employeeDetails.put("reportingManagerEmail", managerEmail);
 			if (prefixedId != null) {
 				employeeDetails.put("employeeCode", prefixedId);
 				// Cleaned version for key (e.g., AP-2134 -> AP2134)
@@ -1051,6 +1059,8 @@ public class BioMaxService {
 					bioMaTO.setReportingManagerName(employeeDetails.get("reportingManager"));
 					bioMaTO.setEmployeeName(employeeDetails.get("employeeName"));
 					bioMaTO.setDepartmentName(employeeDetails.get("departmentName"));
+					bioMaTO.setEmployeeEmail(employeeDetails.get("employeeEmail"));
+					bioMaTO.setReportingManagerEmail(employeeDetails.get("reportingManagerEmail"));
 					if (employeeDetails.containsKey("employeeCode")) {
 						bioMaTO.setEmployeeCode(employeeDetails.get("employeeCode"));
 					}
@@ -1078,6 +1088,12 @@ public class BioMaxService {
 										break;
 									case "logDate":
 										if (bioMaTO.getLogDate() == null || !bioMaTO.getLogDate().contains(value)) matchesFilters = false;
+										break;
+									case "employeeEmail":
+										if (bioMaTO.getEmployeeEmail() == null || !bioMaTO.getEmployeeEmail().toLowerCase().contains(searchVal)) matchesFilters = false;
+										break;
+									case "reportingManagerEmail":
+										if (bioMaTO.getReportingManagerEmail() == null || !bioMaTO.getReportingManagerEmail().toLowerCase().contains(searchVal)) matchesFilters = false;
 										break;
 								}
 							}
@@ -1206,7 +1222,9 @@ public class BioMaxService {
 				(employeeName != null && !employeeName.trim().isEmpty()) ? employeeName : null,
 				(employeeCodeInput != null && !employeeCodeInput.trim().isEmpty()) ? employeeCodeInput : null,
 				(departmentName != null && !departmentName.trim().isEmpty()) ? departmentName : null,
-				(reportingManagerName != null && !reportingManagerName.trim().isEmpty()) ? reportingManagerName : null
+				(reportingManagerName != null && !reportingManagerName.trim().isEmpty()) ? reportingManagerName : null,
+				(searchParams.get("employeeEmail") != null && !searchParams.get("employeeEmail").trim().isEmpty()) ? searchParams.get("employeeEmail") : null,
+				(searchParams.get("reportingManagerEmail") != null && !searchParams.get("reportingManagerEmail").trim().isEmpty()) ? searchParams.get("reportingManagerEmail") : null
 			);
 			
 			for (Object[] row : rawData) {

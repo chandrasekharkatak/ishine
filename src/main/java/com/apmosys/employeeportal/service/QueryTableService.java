@@ -354,6 +354,9 @@ public class QueryTableService {
 			if (existing.isPresent()) {
 				throw new Exception("Query already exists with same name and SQL");
 			}
+			if (roleIds==null || roleIds.isEmpty()){
+				throw new Exception("Query Not Created At Least One Role is Mandatory for this Query.");
+			}
 			CustomQuery saved = queryRepo.save(query);
 			List<CustomQueryRoles> mappings = roleIds.stream().map(roleId -> {
 				CustomQuery qr = saved;

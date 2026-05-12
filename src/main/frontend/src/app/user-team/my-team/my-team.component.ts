@@ -87,7 +87,9 @@ export class MyTeamComponent implements OnInit {
   isHierarchyTable:boolean = false;
 
   nodes: any = [];
-  expandedNodeIds = new Set<any>();
+  /** Expand/collapse keys (uses node.nodeUid so duplicate empIds do not share state). */
+  expandedNodeKeys = new Set<string>();
+  private hierarchyNodeUidSeq = 0;
   private childrenCache = new Map<any, HierarchyUser[]>(); // empId -> direct reportees
   private loadingChildren = new Set<any>();
   private readonly childrenBatchSize = 10;
@@ -1379,7 +1381,8 @@ else if(employee.employeementId &&
 
   myTeamHierarchyChart(employeeObj:Employee) {
     this.nodes = [];
-    this.expandedNodeIds.clear();
+    this.expandedNodeKeys.clear();
+    this.hierarchyNodeUidSeq = 0;
     this.childrenVisibleCount.clear();
     this.childrenCache.clear();
     this.loadingChildren.clear();
@@ -1423,6 +1426,10 @@ else if(employee.employeementId &&
           managerNode.title = `${manager.jobRoleName}, ${manager.departmentName} ${(manager.reporteeCount !== 0)? `, ${manager.reporteeCount} reportee(s)`: ``}`;
           managerNode.empId = manager.empId;
           managerNode.managerId = manager.managerId;
+          if (this.isSelfReportEmployeeRow(manager)) {
+            managerNode.disabled = true;
+          }
+          this.ensureHierarchyNodeUid(managerNode);
         }else {
           console.error("Manager Not found.");
         }
@@ -1435,7 +1442,12 @@ else if(employee.employeementId &&
               const title = `${employee.jobRoleName}, ${employee.departmentName} ${(employee.reporteeCount !== 0)? `, ${employee.reporteeCount} reportee(s)`: ``}`;
               const empId = employee.empId;
               const managerId = employee.managerId;
-              return new HierarchyUser(name, cssClass, title, empId, managerId);
+              const u = new HierarchyUser(name, cssClass, title, empId, managerId);
+              if (this.isSelfReportEmployeeRow(employee)) {
+                u.disabled = true;
+              }
+              this.ensureHierarchyNodeUid(u);
+              return u;
             });
           }else{
             console.error("Co-Workers Not found.");
@@ -1448,6 +1460,10 @@ else if(employee.employeementId &&
             user.empId = self.empId;
             user.managerId = self.managerId;
             user.id = "self-node";
+            if (this.isSelfReportEmployeeRow(self)) {
+              user.disabled = true;
+            }
+            this.ensureHierarchyNodeUid(user);
           }else{
             console.error("User Not found.");
           }
@@ -1459,7 +1475,12 @@ else if(employee.employeementId &&
               const title = `${employee.jobRoleName}, ${employee.departmentName} ${(employee.reporteeCount !== 0)? `, ${employee.reporteeCount} reportee(s)`: ``}`;
               const empId = employee.empId;
               const managerId = employee.managerId;
-              return new HierarchyUser(name, cssClass, title, empId, managerId);
+              const u = new HierarchyUser(name, cssClass, title, empId, managerId);
+              if (this.isSelfReportEmployeeRow(employee)) {
+                u.disabled = true;
+              }
+              this.ensureHierarchyNodeUid(u);
+              return u;
             });
           }else{
             console.error("Reportees Not found.");
@@ -1470,22 +1491,230 @@ else if(employee.employeementId &&
           managerNode.childs.push(...coWorkerList);
 
         this.nodes.push(managerNode);
-        // Expand root + self by default so reportees are visible on first click
-        if (managerNode?.empId != null) {
-          this.expandedNodeIds.add(managerNode.empId);
-        }
-        if (user?.empId != null) {
-          this.expandedNodeIds.add(user.empId);
-        }
 
-        // Ensure the chart starts focused (reduces top empty space)
-        const focusId = user?.empId ?? managerNode?.empId;
-        if (focusId != null) {
-          this.setFocusNode(focusId);
-        }
+        const finishChartLayout = () => {
+          this.applyDuplicateChildDisabled(this.nodes?.[0]);
+          this.applyDefaultHierarchyExpansion(this.nodes?.[0], user);
+          const focusId = user?.empId ?? managerNode?.empId;
+          if (focusId != null) {
+            this.setFocusNode(focusId);
+          }
+        };
+
+        this.employeeService.getManagementSpineForHierarchy(employee).pipe(first()).subscribe({
+          next: (spineRes: any) => {
+            const spineRaw = spineRes?.serviceResponse as any[] | undefined;
+            const spine = this.dedupeManagementSpineByEmpId(spineRaw);
+            if (
+              spineRes?.serviceStatus === 'Success' &&
+              spine?.length > 1 &&
+              manager?.empId != null &&
+              managerNode?.empId != null
+            ) {
+              const last = spine[spine.length - 1];
+              if (last != null && String(last.empId) === String(managerNode.empId)) {
+                // Org-wide: one level = all direct reportees of each parent, not a single vertical line.
+                let level = spine.length - 2;
+                const stepUp = (cur: HierarchyUser) => {
+                  if (level < 0) {
+                    this.nodes = [cur];
+                    finishChartLayout();
+                    return;
+                  }
+                  const row = spine[level];
+                  level -= 1;
+                  this.wrapParentWithAllReporteesForOrgChart(row, cur).then((parent) => stepUp(parent));
+                };
+                stepUp(managerNode);
+                return;
+              }
+            }
+            finishChartLayout();
+          },
+          error: () => finishChartLayout()
+        });
       } else {
         console.error(response.serviceResponse);
       }
+    });
+  }
+
+  /**
+   * Expand every node on the path from root to the logged-in user so multi-branch levels (e.g. all
+   * reportees of a director) stay open for the path to "self".
+   */
+  private applyDefaultHierarchyExpansion(root: HierarchyUser | undefined, selfNode: HierarchyUser | null): void {
+    const selfId = selfNode?.empId;
+    if (root && selfId != null) {
+      const path = this.findPathToEmpId(root, selfId);
+      if (path?.length) {
+        path.forEach((n) => {
+          const k = this.expandNodeKey(n);
+          if (k) {
+            this.expandedNodeKeys.add(k);
+          }
+        });
+        return;
+      }
+    }
+    let n: HierarchyUser | undefined = root;
+    while (n && (n.childs?.length === 1)) {
+      const k = this.expandNodeKey(n);
+      if (k) {
+        this.expandedNodeKeys.add(k);
+      }
+      n = n.childs[0];
+    }
+    const nk = this.expandNodeKey(n);
+    if (nk) {
+      this.expandedNodeKeys.add(nk);
+    }
+    const sk = this.expandNodeKey(selfNode ?? undefined);
+    if (sk) {
+      this.expandedNodeKeys.add(sk);
+    }
+  }
+
+  /** DB anomaly manager_id = emp_id — show node but keep non-interactive. */
+  private isSelfReportEmployeeRow(row: any): boolean {
+    return row?.empId != null && row?.managerId != null && String(row.empId) === String(row.managerId);
+  }
+
+  /** Same person as immediate parent (e.g. manager listed again under own reportees) — show but not clickable. */
+  private applyDuplicateChildDisabled(root: HierarchyUser | undefined): void {
+    if (!root?.childs?.length) return;
+    const pid = root.empId;
+    for (const c of root.childs) {
+      if (c?.empId != null && pid != null && String(c.empId) === String(pid)) {
+        c.disabled = true;
+      }
+      this.applyDuplicateChildDisabled(c);
+    }
+  }
+
+  private ensureHierarchyNodeUid(node: HierarchyUser | undefined | null): void {
+    if (node && !node.nodeUid) {
+      node.nodeUid = 'h' + (++this.hierarchyNodeUidSeq);
+    }
+  }
+
+  /** Expand/collapse map key (distinct per rendered card even when empId repeats). */
+  private expandNodeKey(node: HierarchyUser | undefined | null): string {
+    if (!node) {
+      return '';
+    }
+    this.ensureHierarchyNodeUid(node);
+    return node.nodeUid as string;
+  }
+
+  /** Removes duplicate spine rows (same empId) — prevents stacked duplicate parents in org-wide chart. */
+  private dedupeManagementSpineByEmpId(spine: any[] | undefined): any[] {
+    if (!spine?.length) {
+      return [];
+    }
+    const seen = new Set<string>();
+    const out: any[] = [];
+    for (const row of spine) {
+      const id = row?.empId != null ? String(row.empId) : '';
+      if (!id || seen.has(id)) {
+        continue;
+      }
+      seen.add(id);
+      out.push(row);
+    }
+    return out;
+  }
+
+  /** Breadcrumb path: one entry per empId (tree can repeat same person if data is inconsistent). */
+  private dedupeHierarchyPathByEmpId(path: HierarchyUser[]): HierarchyUser[] {
+    const seen = new Set<string>();
+    const out: HierarchyUser[] = [];
+    for (const n of path) {
+      const id = n?.empId != null ? String(n.empId) : '';
+      if (!id) {
+        out.push(n);
+        continue;
+      }
+      if (seen.has(id)) {
+        continue;
+      }
+      seen.add(id);
+      out.push(n);
+    }
+    return out;
+  }
+
+  private wrapParentWithAllReporteesForOrgChart(parentMeta: any, childSubtree: HierarchyUser): Promise<HierarchyUser> {
+    return new Promise((resolve) => {
+      const emp = new Employee();
+      emp.empId = parentMeta.empId;
+      emp.managerId = parentMeta.managerId;
+      emp.employeementId = parentMeta.empId;
+      const fallbackSingleChild = () => {
+        const parent = new HierarchyUser();
+        parent.name = parentMeta.name;
+        parent.cssClass = 'Manager';
+        parent.title = `${parentMeta.jobRoleName || ''}, ${parentMeta.departmentName || ''}`;
+        parent.empId = parentMeta.empId;
+        parent.managerId = parentMeta.managerId;
+        parent.childs = [childSubtree];
+        this.ensureHierarchyNodeUid(parent);
+        this.ensureHierarchyNodeUid(childSubtree);
+        resolve(parent);
+      };
+      this.employeeService.getHierarchyChartByEmpId(emp).pipe(first()).subscribe({
+        next: (res: any) => {
+          const parent = new HierarchyUser();
+          parent.name = parentMeta.name;
+          parent.cssClass = 'Manager';
+          const rc = parentMeta.reporteeCount;
+          parent.title = `${parentMeta.jobRoleName || ''}, ${parentMeta.departmentName || ''}` +
+            (rc != null && rc !== 0 ? `, ${rc} reportee(s)` : '');
+          parent.empId = parentMeta.empId;
+          parent.managerId = parentMeta.managerId;
+          if (this.isSelfReportEmployeeRow(parentMeta)) {
+            parent.disabled = true;
+          }
+
+          if (res?.serviceStatus !== 'Success') {
+            parent.childs = [childSubtree];
+            this.ensureHierarchyNodeUid(parent);
+            this.ensureHierarchyNodeUid(childSubtree);
+            resolve(parent);
+            return;
+          }
+          const list = (res.serviceResponse ?? []) as any[];
+          const reportees = list.filter((x) => (x?.hierarchyType ?? '').toLowerCase() === 'reportee');
+          const childKey = String(childSubtree.empId);
+          const sorted = reportees.slice().sort((a, b) =>
+            String(a.name ?? '').localeCompare(String(b.name ?? ''))
+          );
+          const nodes: HierarchyUser[] = sorted.map((r) => {
+            if (String(r.empId) === childKey) {
+              this.ensureHierarchyNodeUid(childSubtree);
+              return childSubtree;
+            }
+            const title =
+              `${r.jobRoleName ?? ''}, ${r.departmentName ?? ''}` +
+              (r.reporteeCount != null && r.reporteeCount !== 0 ? `, ${r.reporteeCount} reportee(s)` : '');
+            const u = new HierarchyUser(r.name, 'Reportee', title, r.empId, r.managerId);
+            if (this.isSelfReportEmployeeRow(r)) {
+              u.disabled = true;
+            }
+            this.ensureHierarchyNodeUid(u);
+            return u;
+          });
+          if (!nodes.some((n) => String(n.empId) === childKey)) {
+            this.ensureHierarchyNodeUid(childSubtree);
+            nodes.push(childSubtree);
+            nodes.sort((a, b) => String(a.name ?? '').localeCompare(String(b.name ?? '')));
+          }
+          parent.childs = nodes;
+          this.ensureHierarchyNodeUid(parent);
+          resolve(parent);
+        },
+        error: () => fallbackSingleChild()
+      });
     });
   }
 
@@ -1519,14 +1748,19 @@ else if(employee.employeementId &&
         }
 
         const list = (response.serviceResponse ?? []) as any[];
-        const reportees = list.filter(x => (x?.hierarchyType ?? '').toLowerCase() === 'reportee');
+        const reportees = list.filter((x) => (x?.hierarchyType ?? '').toLowerCase() === 'reportee');
         const mapped = reportees.map(employee => {
           const name = employee.name;
           const cssClass = employee.hierarchyType;
           const title = `${employee.jobRoleName}, ${employee.departmentName} ${(employee.reporteeCount !== 0) ? `, ${employee.reporteeCount} reportee(s)` : ``}`;
           const childEmpId = employee.empId;
           const childManagerId = employee.managerId;
-          return new HierarchyUser(name, cssClass, title, childEmpId, childManagerId);
+          const u = new HierarchyUser(name, cssClass, title, childEmpId, childManagerId);
+          if (this.isSelfReportEmployeeRow(employee)) {
+            u.disabled = true;
+          }
+          this.ensureHierarchyNodeUid(u);
+          return u;
         });
 
         this.childrenCache.set(empId, mapped);
@@ -1540,7 +1774,8 @@ else if(employee.employeementId &&
   }
 
   isExpanded(node: HierarchyUser): boolean {
-    return !!node?.empId && this.expandedNodeIds.has(node.empId);
+    const k = this.expandNodeKey(node);
+    return !!k && this.expandedNodeKeys.has(k);
   }
 
   toggleExpand(node: HierarchyUser, event?: MouseEvent): void {
@@ -1548,26 +1783,31 @@ else if(employee.employeementId &&
       event.stopPropagation();
       event.preventDefault();
     }
-    if (!node?.empId) return;
-    if (this.expandedNodeIds.has(node.empId)) {
-      this.expandedNodeIds.delete(node.empId);
-      this.childrenVisibleCount.delete(node.empId);
+    if (!node?.empId || node.disabled) return;
+    const key = this.expandNodeKey(node);
+    if (!key) return;
+    if (this.expandedNodeKeys.has(key)) {
+      this.expandedNodeKeys.delete(key);
+      this.childrenVisibleCount.delete(key);
     } else {
-      this.expandedNodeIds.add(node.empId);
+      this.expandedNodeKeys.add(key);
       if (node?.childs?.length) {
-        this.childrenVisibleCount.set(node.empId, Math.min(this.childrenBatchSize, node.childs.length));
+        this.childrenVisibleCount.set(key, Math.min(this.childrenBatchSize, node.childs.length));
       }
     }
   }
 
   onHierarchyNodeClick(node: HierarchyUser): void {
-    if (!node?.empId) return;
+    if (!node?.empId || node.disabled) return;
 
     // Always keep parent/child context: expand in-place.
     // If we already have children, just expand.
     if (node?.childs?.length > 0) {
-      this.expandedNodeIds.add(node.empId);
-      this.childrenVisibleCount.set(node.empId, Math.min(this.childrenBatchSize, node.childs.length));
+      const key = this.expandNodeKey(node);
+      if (key) {
+        this.expandedNodeKeys.add(key);
+        this.childrenVisibleCount.set(key, Math.min(this.childrenBatchSize, node.childs.length));
+      }
       this.setFocusNode(node.empId);
       return;
     }
@@ -1575,9 +1815,13 @@ else if(employee.employeementId &&
     // Lazy-load this node's direct reportees and attach under it.
     this.fetchDirectReportees(node.empId, node.managerId).then(children => {
       node.childs = children ?? [];
+      this.applyDuplicateChildDisabled(node);
       if (node.childs.length > 0) {
-        this.expandedNodeIds.add(node.empId);
-        this.childrenVisibleCount.set(node.empId, Math.min(this.childrenBatchSize, node.childs.length));
+        const key = this.expandNodeKey(node);
+        if (key) {
+          this.expandedNodeKeys.add(key);
+          this.childrenVisibleCount.set(key, Math.min(this.childrenBatchSize, node.childs.length));
+        }
       }
       this.setFocusNode(node.empId);
     });
@@ -1585,13 +1829,15 @@ else if(employee.employeementId &&
 
   getVisibleChildren(node: HierarchyUser): HierarchyUser[] {
     if (!node?.childs?.length) return [];
-    const count = this.childrenVisibleCount.get(node.empId) ?? Math.min(this.childrenBatchSize, node.childs.length);
+    const nk = this.expandNodeKey(node);
+    const count = this.childrenVisibleCount.get(nk) ?? Math.min(this.childrenBatchSize, node.childs.length);
     return node.childs.slice(0, count);
   }
 
   canShowMoreChildren(node: HierarchyUser): boolean {
     if (!node?.childs?.length) return false;
-    const count = this.childrenVisibleCount.get(node.empId) ?? Math.min(this.childrenBatchSize, node.childs.length);
+    const nk = this.expandNodeKey(node);
+    const count = this.childrenVisibleCount.get(nk) ?? Math.min(this.childrenBatchSize, node.childs.length);
     return count < node.childs.length;
   }
 
@@ -1601,9 +1847,10 @@ else if(employee.employeementId &&
       event.preventDefault();
     }
     if (!node?.childs?.length) return;
-    const current = this.childrenVisibleCount.get(node.empId) ?? Math.min(this.childrenBatchSize, node.childs.length);
+    const nk = this.expandNodeKey(node);
+    const current = this.childrenVisibleCount.get(nk) ?? Math.min(this.childrenBatchSize, node.childs.length);
     const next = Math.min(node.childs.length, current + this.childrenBatchSize);
-    this.childrenVisibleCount.set(node.empId, next);
+    this.childrenVisibleCount.set(nk, next);
   }
 
   showLessChildren(node: HierarchyUser, event?: MouseEvent): void {
@@ -1612,7 +1859,8 @@ else if(employee.employeementId &&
       event.preventDefault();
     }
     if (!node?.childs?.length) return;
-    this.childrenVisibleCount.set(node.empId, Math.min(this.childrenBatchSize, node.childs.length));
+    const nk = this.expandNodeKey(node);
+    this.childrenVisibleCount.set(nk, Math.min(this.childrenBatchSize, node.childs.length));
   }
 
   // ---------- Pan / zoom ----------
@@ -1734,10 +1982,13 @@ else if(employee.employeementId &&
   private setFocusNode(empId: any): void {
     this.selectedHierarchyEmpId = empId;
     const path = this.findPathToEmpId(this.nodes?.[0], empId);
-    this.selectedHierarchyPath = path ?? [];
+    this.selectedHierarchyPath = this.dedupeHierarchyPathByEmpId(path ?? []);
     // expand ancestors
-    this.selectedHierarchyPath.forEach(p => {
-      if (p?.empId) this.expandedNodeIds.add(p.empId);
+    this.selectedHierarchyPath.forEach((p) => {
+      const ek = this.expandNodeKey(p);
+      if (ek) {
+        this.expandedNodeKeys.add(ek);
+      }
     });
 
     // If the target is inside a "Show more" slice, widen the slice so it becomes visible.
@@ -1747,8 +1998,9 @@ else if(employee.employeementId &&
       if (!parent?.empId || !parent?.childs?.length || !child?.empId) continue;
       const idx = parent.childs.findIndex((c: any) => String(c?.empId) === String(child.empId));
       if (idx >= 0) {
-        const current = this.childrenVisibleCount.get(parent.empId) ?? Math.min(this.childrenBatchSize, parent.childs.length);
-        this.childrenVisibleCount.set(parent.empId, Math.max(current, idx + 1));
+        const pk = this.expandNodeKey(parent);
+        const current = this.childrenVisibleCount.get(pk) ?? Math.min(this.childrenBatchSize, parent.childs.length);
+        this.childrenVisibleCount.set(pk, Math.max(current, idx + 1));
       }
     }
     // center on node
@@ -1791,12 +2043,44 @@ else if(employee.employeementId &&
   }
 
   private findPathToEmpId(root: HierarchyUser | undefined, empId: any): HierarchyUser[] | null {
+    return this.findPathToEmpIdImpl(root, empId, new Set<string>());
+  }
+
+  /**
+   * Path to target empId; pathStack tracks current chain (add/remove on backtrack) so shared
+   * empIds in the tree do not block searching sibling branches, but true cycles on one path stop.
+   */
+  private findPathToEmpIdImpl(
+    root: HierarchyUser | undefined,
+    empId: any,
+    pathStack: Set<string>
+  ): HierarchyUser[] | null {
     if (!root) return null;
-    if (String(root.empId) === String(empId)) return [root];
+    const k = root.empId != null ? String(root.empId) : '';
+    if (k) {
+      if (pathStack.has(k)) {
+        return null;
+      }
+      pathStack.add(k);
+    }
+    if (String(root.empId) === String(empId)) {
+      if (k) {
+        pathStack.delete(k);
+      }
+      return [root];
+    }
     const kids = root.childs ?? [];
     for (const child of kids) {
-      const found = this.findPathToEmpId(child, empId);
-      if (found) return [root, ...found];
+      const found = this.findPathToEmpIdImpl(child, empId, pathStack);
+      if (found) {
+        if (k) {
+          pathStack.delete(k);
+        }
+        return [root, ...found];
+      }
+    }
+    if (k) {
+      pathStack.delete(k);
     }
     return null;
   }
@@ -1820,7 +2104,7 @@ else if(employee.employeementId &&
       });
 
       // "Visible" = what is currently expanded on screen
-      if (node.childs?.length && this.expandedNodeIds.has(node.empId)) {
+      if (node.childs?.length && this.expandedNodeKeys.has(this.expandNodeKey(node))) {
         node.childs.forEach((c: any) => walk(c, node.empId, level + 1, currentPath));
       }
     };

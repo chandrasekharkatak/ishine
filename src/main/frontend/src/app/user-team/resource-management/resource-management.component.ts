@@ -60,7 +60,20 @@ import { RmgProjectConfigComponent } from './rmg-project-config/rmg-project-conf
 import { SubfeatureService } from 'src/app/services/subfeature.service';
 import { FeatureUsageLog } from 'src/app/models/featureUsageLog';
 import { RmgDashboardComponent } from './new-rmg-dashboard/rmg-dashboard/rmg-dashboard.component';
+import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 
+export const PROJECT_COMPLETION_DATE_FORMATS = {
+  parse: {
+    dateInput: 'DD-MM-YYYY',
+  },
+  display: {
+    dateInput: 'DD-MM-YYYY',
+    monthYearLabel: 'MMM YYYY',
+    dateA11yLabel: 'DD-MM-YYYY',
+    monthYearA11yLabel: 'MMMM YYYY',
+  },
+};
 
 class FilterData {
   title: any;
@@ -72,7 +85,11 @@ class FilterData {
   standalone: false,
   selector: 'app-resource-management',
   templateUrl: './resource-management.component.html',
-  styleUrls: ['./resource-management.component.css']
+  styleUrls: ['./resource-management.component.css'],
+  providers: [
+    { provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_MOMENT_DATE_ADAPTER_OPTIONS] },
+    { provide: MAT_DATE_FORMATS, useValue: PROJECT_COMPLETION_DATE_FORMATS },
+  ],
 })
 
 export class ResourceManagementComponent implements OnInit {
@@ -747,6 +764,20 @@ export class ResourceManagementComponent implements OnInit {
       console.error("Error fetching user departments:", error);
       throw error;
     }
+  }
+
+  hasOrgWideHierarchyAccess(): boolean {
+    const r = (this.currentUser?.employeeRole ?? '').toString().trim();
+    if (!r) {
+      return false;
+    }
+    if (/^superadmin$/i.test(r) || /^hod$/i.test(r) || /^hr$/i.test(r)) {
+      return true;
+    }
+    if (/^hr\s*manager$/i.test(r)) {
+      return true;
+    }
+    return false;
   }
 
   sectionViewInit(): void {
@@ -1854,7 +1885,7 @@ export class ResourceManagementComponent implements OnInit {
 
   submitProjectCompletionDate() {
     this.completedProjectDetails.projectStatus = 'Completed';
-    this.completedProjectDetails.projectCompletionDate = this.selectedDate;
+    this.completedProjectDetails.projectCompletionDate = moment(this.selectedDate).format('YYYY-MM-DD');
     this.completedProjectDetails.updatedBy = this.currentUser.empId;
 
     if (!this.completedProjectDetails.projectCompletionDate) {

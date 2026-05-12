@@ -1894,15 +1894,17 @@ storePreviousStatus(){
           employeeObj.isEndDateVisible = false;
           employeeObj.memberMaxEndDate = null;
           const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
-          if (response?.type !== 'NO_CONFLICT' && response?.type !== 'PROJECT_GAP') {
-            return false;
-          } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT') {
+          if (response?.type === 'NO_CONFLICT' && response?.type == 'PROJECT_GAP') {
+            return true;
+          } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT' || response?.type === 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT') {
             employeeObj.isEndDateVisible = true;
             employeeObj.memberMaxEndDate = response?.data.memberMaxEndDate;
             this.alertMessage = 'Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!';
             this.openAlertMod(template, this.alertMessage);
             return false;
-          } 
+          } else {
+            return false;
+          }
         }
       }
     }
@@ -5399,7 +5401,7 @@ resetDefaultProjectFields() {
     const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
     if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {
       return true;
-    } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT') {
+    } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT' || response?.type === 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT') {
       this.employeeObj.isEndDateVisible = true;
       this.employeeObj.memberMaxEndDate = response?.data.memberMaxEndDate;
       this.alertMessage = 'Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!';

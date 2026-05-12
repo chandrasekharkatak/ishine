@@ -1541,13 +1541,12 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "INNER JOIN Employee e ON e.empId = etm.empId "
 			+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId "
 			+ "INNER JOIN Department d ON d.deptId = jr.deptId "
-			+ "WHERE p.projectName IN :projectNames "
-			+ "AND e.empId NOT BETWEEN 1 AND 6 "
+			+ "WHERE p.poProjectType='TNM' AND "
+			+ "e.empId NOT BETWEEN 1 AND 6 "
 			+ "AND etm.startDate <= :rangeEnd "
 			+ "AND (etm.endDate IS NULL OR etm.endDate >= :rangeStart) "
 			+ "ORDER BY p.projectId, e.name")
-	List<ProjectEmployeeTeamReportDTO> findEmployeesInProjectsByProjectNames(
-			@Param("projectNames") List<String> projectNames,
+	List<ProjectEmployeeTeamReportDTO> findEmployeesInProjectsByDateRange(
 			@Param("rangeStart") LocalDateTime rangeStart,
 			@Param("rangeEnd") LocalDateTime rangeEnd);
 		
@@ -1664,4 +1663,8 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "     OR (etm.active = 0 AND etm.endDate IS NULL AND etm.startDate IS NOT NULL AND FUNCTION('DATE', etm.startDate) > CURRENT_DATE))")
 	boolean existsActivePendingOrFutureScheduled(@Param("teamId") Long teamId);
 	
+
+	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId in :teamIds and etm.employeeTeamMapId in :etmIds and etm.active != 0 ")
+	List<EmployeeTeamMap> activeAndPendingEmployeesByTeamIdsAndEtmIds(List<Long> teamIds,List<Long> etmIds);
+
 }

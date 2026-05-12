@@ -35,3 +35,30 @@
     z-index: 100;
     background: var(--ghost-white);
 }
+
+/* A4 size modal */
+.a4-modal .modal-dialog {
+  max-width: 850px !important;   /* A4 width */
+  width: 850px !important;
+  margin: auto;
+}
+
+.a4-modal .modal-content {
+  height: 1123px !important;     /* A4 height */
+}
+
+.a4-modal .modal-body {
+  height: calc(100% - 60px);
+  overflow: hidden;
+}
+
+/* PDF container scroll */
+.a4-modal .pdf-container {
+  height: 100%;
+  overflow-y: auto;
+}
+
+::ng-deep .a4-modal .modal-dialog {
+  max-width: 794px !important;
+  width: 794px !important;
+}

@@ -1256,8 +1256,13 @@ export class RmgDashboardComponent implements OnInit {
           data: data.map(d => ({
             name: d.label,
             y: d.value || 0,
-            color: d.color || '#4f68a9'
-          }))
+            color:
+            d.label === 'On Time'
+              ? '#7B8FC7'
+              : d.label === 'Defaulter'
+              ? '#2F467F'
+              : (d.color || '#4f68a9')
+              }))
         }
       ]
     } as Highcharts.Options);

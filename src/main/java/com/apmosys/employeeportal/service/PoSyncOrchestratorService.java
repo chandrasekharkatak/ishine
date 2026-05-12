@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -37,8 +38,10 @@ import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
+import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
+import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.RequirementChangeDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
@@ -47,8 +50,10 @@ import com.apmosys.employeeportal.enums.SyncRequestType;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Client;
+import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
+import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
@@ -1110,7 +1115,61 @@ public class PoSyncOrchestratorService {
 				return response;
 			}
 
-			teamsService.disableActiveTeamsAndMembers(projectObj, resourceManagementDTO.getUpdatedBy(), logBuilder);
+			// Validate active resources against completion date (block if any active start date is after completion date)
+			LocalDate completionDate;
+			try {
+				completionDate = LocalDate.parse(resourceManagementDTO.getProjectCompletionDate());
+			} catch (Exception ex) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid Project Completion Date format. Expected yyyy-MM-dd.");
+				return response;
+			}
+
+			List<EmployeeTeamMap> activeEtms = employeeTeamMapRepository.findByProjectIdAndActive(projectObj.getProjectId(), 1L);
+			boolean invalidFutureStartExists = activeEtms != null && activeEtms.stream()
+					.anyMatch(etm -> etm != null && etm.getStartDate() != null
+							&& etm.getStartDate().toLocalDate().isAfter(completionDate));
+			if (invalidFutureStartExists) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("RESOURCE_START_DATE_AFTER_COMPLETION_DATE");
+				response.setServiceResponse1(
+						"There are resource(s) mapped to this project whose start date is greater than the selected completion date. Please resolve it to continue.");
+				return response;
+			}
+
+			// Inactivate resources using centralized team deletion/removal flow (ensures ETM endDate = completionDate)
+			List<Team> activeTeams = teamRepository.findByProjectIdAndIsActive(projectObj.getProjectId(), "Y");
+			if (activeTeams != null && !activeTeams.isEmpty()) {
+				List<RmgTeamDto> teamDtoList = new ArrayList<>();
+				for (Team t : activeTeams) {
+					if (t == null || t.getTeamId() == null) {
+						continue;
+					}
+					RmgTeamDto dto = new RmgTeamDto();
+					dto.setTeamId(t.getTeamId());
+					dto.setTeamName(t.getTeamName());
+					dto.setProjectId(projectObj.getProjectId());
+					dto.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
+					dto.setCustomEndDate(false);
+					dto.setEndDate(completionDate.atStartOfDay());
+					teamDtoList.add(dto);
+				}
+
+				if (!teamDtoList.isEmpty()) {
+					PoDetailsDto deletePayload = new PoDetailsDto();
+					deletePayload.setProjectId(projectObj.getProjectId());
+					deletePayload.setTeamList(teamDtoList);
+
+					ServiceResponse deleteResp = teamsService.deleteSelectedTeams(deletePayload);
+					if (deleteResp == null || deleteResp.getServiceStatus() == null
+							|| !ServiceResponse.STATUS_SUCCESS.equals(deleteResp.getServiceStatus())) {
+						String msg = deleteResp != null && deleteResp.getServiceResponse() != null
+								? String.valueOf(deleteResp.getServiceResponse())
+								: "Unable to inactivate project resources before completion.";
+						throw new RuntimeException(msg);
+					}
+				}
+			}
 
 			projectObj.setProjectCompletionDate(resourceManagementDTO.getProjectCompletionDate());
 			projectObj.setActive("false");
@@ -1125,27 +1184,27 @@ public class PoSyncOrchestratorService {
 			resourceManagementDTO.setProjectType(projectType);
 			
 			
-			if (!projectType.equals("Internal")) {
-				resourceManagementDTO.setPoProjectId(projectDbResponse.getPoProjectId());
-				ServiceResponse poPortalResponse = resourceManagementService.sendProjectInfoToPoPortal(resourceManagementDTO);
-				if (poPortalResponse != null && poPortalResponse.getServiceStatus() != null
-						&& poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Completion status updated to Shankh portal!");
-					apiLogInfo.setApiResponse("Reverse synced successfully!");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Unable to intimate completion status to Shankh portal!");
-					apiLogInfo.setApiResponse("Reverse synced failed!");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					throw new RuntimeException("Reverse synced failed, Unable to sync project completion status to Shankh portal!!");
-				}
-			}
+			// if (!projectType.equals("Internal")) {
+			// 	resourceManagementDTO.setPoProjectId(projectDbResponse.getPoProjectId());
+			// 	ServiceResponse poPortalResponse = resourceManagementService.sendProjectInfoToPoPortal(resourceManagementDTO);
+			// 	if (poPortalResponse != null && poPortalResponse.getServiceStatus() != null
+			// 			&& poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+			// 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			// 		response.setServiceResponse("Completion status updated to Shankh portal!");
+			// 		apiLogInfo.setApiResponse("Reverse synced successfully!");
+			// 		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			// 	} else {
+			// 		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			// 		response.setServiceResponse("Unable to intimate completion status to Shankh portal!");
+			// 		apiLogInfo.setApiResponse("Reverse synced failed!");
+			// 		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			// 		throw new RuntimeException("Reverse synced failed, Unable to sync project completion status to Shankh portal!!");
+			// 	}
+			// }
 
-			if (projectDbResponse != null) {
-				resourceManagementService.sendProjectCompletionMail(projectDbResponse,resourceManagementDTO.getUpdatedBy(), logBuilder);
-			}
+			// if (projectDbResponse != null) {
+			// 	resourceManagementService.sendProjectCompletionMail(projectDbResponse,resourceManagementDTO.getUpdatedBy(), logBuilder);
+			// }
 
 			if (projectDbResponse != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
