@@ -5473,3 +5473,10 @@ tr[app-column-filter-bar] .clear-filter:hover {
   padding: 10px 20px;
   background: #fff;
 }
+
+.ts-action-wrapper  {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;  
+}
