@@ -35,9 +35,9 @@
                                     <!-- <div class="col-md-4 mb-0"> -->
                                     <!-- <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Is Employee a Consultant</label>
-                                            <select class="form-control" [(ngModel)]="employeeObj.isConsultant" 
+                                            <select class="form-control" [(ngModel)]="employeeObj.isConsultant"
                                                     [disabled]="isUpdation && (employeeObj.isConsultant == null || isUpdation)">
-         
+
                                                 <option *ngIf="!isUpdation" value="true">Yes</option>
                                                 <option *ngIf="!isUpdation" value="false">No</option>
                                                 <option *ngIf="isUpdation && employeeObj.isConsultant === true" selected value="true">Yes</option>
@@ -74,13 +74,13 @@
                                                     [(ngModel)]="employeeObj.employeementId"
                                                     (blur)="checkEmployeementId(alert_message)" [disabled]="isUpdation">
                                                 <input *ngIf="!isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> 
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
                                                 <input *ngIf="!isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
                                                 <input *ngIf="isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" readonly>
                                                  <input *ngIf="isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" readonly> 
+                                                [(ngModel)]="employeeObj.employeementId" readonly>
                                             </div>
                                         </div>
                                     </div> -->
@@ -97,7 +97,7 @@
                                                             {{ getEmpIdPrefix(employeeObj.employeeType) }}
                                                         </span>
                                                     </div>
-                                                    <input type="text" 
+                                                    <input type="text"
                                                     (keypress)="fieldRestictCharacter($event)"
                                                         class="form-control" maxlength="8" autocomplete="none"
                                                         [(ngModel)]="employeeObj.employeementId"
@@ -746,7 +746,7 @@
 
                                     <!-- <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus == 'InActive' " >   by priyadarshini -->
 
-                                    <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.employmentstatus == 'InActive' " >    
+                                    <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.employmentstatus == 'InActive' " >
                                     <div class="info-wrapper">
                                     <div class="form-group">
                                     <label class="info-label"><span class="text-danger">*</span>Employment Release Status</label>
@@ -756,7 +756,7 @@
                                     <option value="Terminated">Terminated</option>
                                     <option value="Absconded">Absconded</option>
                                     <option value="askToResign">Ask To Resign</option>
-                                    
+
                                     </select>
                                     </div>
                                     </div>
@@ -774,7 +774,7 @@
             <label class="info-label"><span class="text-danger">*</span>Mapping Update Type</label>
             <small class="text-danger">(Please select for employment status)</small>
             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.updateType" (change)="resetFieldOnChange(employeeObj)">
-                 <option selected="selected" value="" disabled>Select</option> 
+                 <option selected="selected" value="" disabled>Select</option>
                 <option value="automatic">Automatic</option>
                 <option value="manual">Manual</option>
             </select>
@@ -797,7 +797,7 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    </div> 
+                                    </div>
 
 <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'manual'">
     <div class="info-wrapper">
@@ -846,6 +846,7 @@
                                                     <option value="Terminated">Terminated</option>
                                                     <option value="Absconded">Absconded</option>
                                                     <option value="askToResign">Ask To Resign</option>
+                                                    <option value="Death">Death</option>
 
                                                 </select>
                                             </div>
@@ -1258,7 +1259,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                   
+
 
                                     <div class="col-md-4 mb-0" *ngIf="showProjectDropdown && (isCreation || this.employeeObj.isUpdateDefaultProject)">
                                         <div class="info-wrapper">
@@ -4617,7 +4618,7 @@
         <button class="btn btn-success" (click)="confirmUpdateDefaultProject(true)">Yes</button>&nbsp;
 
             <button class="btn btn-danger" (click)="confirmUpdateDefaultProject(false)">No</button>
-        
+
     </div>
 </ng-template>
 <ng-template #inactiveTemplate>
