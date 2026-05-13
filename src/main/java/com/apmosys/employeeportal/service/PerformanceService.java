@@ -595,7 +595,8 @@ public class PerformanceService {
 			List<QuaterCycleExcludedEmployeesMap> excludedEmployees = quaterCycleExcludedEmployeesMapRepo.findByQuarterId(quarterCycle.getQuarterId());  
 			if(!excludedEmployees.isEmpty()) {
 			quaterCycleExcludedEmployeesMapRepo.deleteAll(excludedEmployees);
-			if(!quarterCycleDTO.getExcludedEmployees().isEmpty() && quarterCycle != null) {
+			quaterCycleExcludedEmployeesMapRepo.flush();
+			if(quarterCycleDTO.getExcludedEmployees()!= null && !quarterCycleDTO.getExcludedEmployees().isEmpty() && quarterCycle != null) {
 				List<QuaterCycleExcludedEmployeesMap> newExcludedEmpdata = new ArrayList<QuaterCycleExcludedEmployeesMap>();
 				quarterCycleDTO.getExcludedEmployees().forEach(empId ->{
 					QuaterCycleExcludedEmployeesMap data = new QuaterCycleExcludedEmployeesMap();
@@ -607,7 +608,7 @@ public class PerformanceService {
 				quaterCycleExcludedEmployeesMapRepo.saveAll(newExcludedEmpdata);
 			}
 			}else {
-				if(!quarterCycleDTO.getExcludedEmployees().isEmpty() && quarterCycle != null) {
+				if(quarterCycleDTO.getExcludedEmployees()!= null && !quarterCycleDTO.getExcludedEmployees().isEmpty() && quarterCycle != null) {
 					List<QuaterCycleExcludedEmployeesMap> newExcludedEmpdata = new ArrayList<QuaterCycleExcludedEmployeesMap>();
 					quarterCycleDTO.getExcludedEmployees().forEach(empId ->{
 						QuaterCycleExcludedEmployeesMap data = new QuaterCycleExcludedEmployeesMap();

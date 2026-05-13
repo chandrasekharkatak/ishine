@@ -323,6 +323,8 @@ export class PerformanceConfigComponent implements OnInit {
     console.log(this.quarterCycle.cycleType);
     if(this.selectedEmployees.length > 0){
       this.quarterCycle.excludedEmployees = this.selectedEmployees.map(emp => emp.empId);
+    }else{
+      this.quarterCycle.excludedEmployees = [];
     }
 
     this.performanceService.createQuarterCycle(this.quarterCycle).pipe(first()).subscribe((response: any) => {
@@ -348,6 +350,8 @@ export class PerformanceConfigComponent implements OnInit {
     this.quarterCycle.quarterCycle = `${this.quarterCycle.fromMonth}-${this.quarterCycle.toMonth}`;
     if(this.selectedEmployees.length > 0){
       this.quarterCycle.excludedEmployees = this.selectedEmployees.map(emp => emp.empId);
+    }else{
+      this.quarterCycle.excludedEmployees = [];
     }
     this.performanceService.updateQuarterCycle(this.quarterCycle).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
