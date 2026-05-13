@@ -588,6 +588,7 @@ public class PerformanceService {
 			QuaterCycle quar = quarterCycleRepository.getById(quarterCycleDTO.getQuarterId());
 			quar.setFinancialYear(quarterCycleDTO.getFinancialYear());
 			quar.setQuarterCycle(quarterCycleDTO.getQuarterCycle());
+			quar.setCycleType(quarterCycleDTO.getCycleType());
 			quar.setUpdatedBy(quarterCycleDTO.getUpdatedBy());
 			quar.setUpdatedOn(LocalDateTime.now());
 

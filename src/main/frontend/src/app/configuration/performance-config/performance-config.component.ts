@@ -348,6 +348,7 @@ export class PerformanceConfigComponent implements OnInit {
     this.quarterCycle.updatedBy = this.currentUser.empId;
     this.quarterCycle.financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
     this.quarterCycle.quarterCycle = `${this.quarterCycle.fromMonth}-${this.quarterCycle.toMonth}`;
+    this.quarterCycle.cycleType = this.selectedCycleFrequency;
     if(this.selectedEmployees.length > 0){
       this.quarterCycle.excludedEmployees = this.selectedEmployees.map(emp => emp.empId);
     }else{
