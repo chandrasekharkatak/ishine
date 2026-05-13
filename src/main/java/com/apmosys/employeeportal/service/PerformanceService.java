@@ -7,14 +7,19 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,6 +49,7 @@ import com.apmosys.employeeportal.model.EmployeeRatingPerformance;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.ProjectInsightResponse;
 import com.apmosys.employeeportal.model.QuaterCycle;
+import com.apmosys.employeeportal.model.QuaterCycleExcludedEmployeesMap;
 import com.apmosys.employeeportal.model.ReviewType;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -53,6 +59,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightResponseRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
+import com.apmosys.employeeportal.repository.QuaterCycleExcludedEmployeesMapRepo;
 import com.apmosys.employeeportal.repository.ReviewTypeRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -99,6 +106,9 @@ public class PerformanceService {
 
 	@Autowired
 	ProjectInsightResponseRepository projectInsightResponseRepository;
+	
+	@Autowired
+	QuaterCycleExcludedEmployeesMapRepo quaterCycleExcludedEmployeesMapRepo;
 	
 	public ServiceResponse addReviewType(ReviewTypeDTO reviewTypeDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -152,19 +162,32 @@ public class PerformanceService {
 
 	}
 
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse createQuarterCycle(QuarterCycleDTO quarterCycleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
 			QuaterCycle quar = new QuaterCycle();
-
+			
 			quar.setFinancialYear(quarterCycleDTO.getFinancialYear());
 			quar.setQuarterCycle(quarterCycleDTO.getQuarterCycle());
 			quar.setCreatedBy(quarterCycleDTO.getCreatedBy());
 			quar.setIsActive(quarterCycleDTO.getIsActive());
 			quar.setIsEnable(quarterCycleDTO.getIsEnable());
+			quar.setCycleType(quarterCycleDTO.getCycleType()); // added this to store the cycleType , i.e(monthly , quarterly , halfyearly).
 
 			QuaterCycle quarterCycle = quarterCycleRepository.save(quar);
+			if(!quarterCycleDTO.getExcludedEmployees().isEmpty() && quarterCycle != null) {
+				List<QuaterCycleExcludedEmployeesMap> excludedEmpdata = new ArrayList<QuaterCycleExcludedEmployeesMap>();
+				quarterCycleDTO.getExcludedEmployees().forEach(empId ->{
+					QuaterCycleExcludedEmployeesMap data = new QuaterCycleExcludedEmployeesMap();
+					data.setEmpId(empId);
+					data.setQuarterId(quarterCycle.getQuarterId());
+					data.setCreatedBy(quarterCycle.getCreatedBy());
+					excludedEmpdata.add(data);
+					});
+				quaterCycleExcludedEmployeesMapRepo.saveAll(excludedEmpdata);
+			}
 			if (quarterCycle != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("New Quarter Cycle Created.");
@@ -177,26 +200,26 @@ public class PerformanceService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-
-
-		QuaterCycle quar = new QuaterCycle();
-		
-		quar.setFinancialYear(quarterCycleDTO.getFinancialYear());
-		quar.setQuarterCycle(quarterCycleDTO.getQuarterCycle());
-		quar.setCreatedBy(quarterCycleDTO.getCreatedBy());
-		quar.setIsActive(quarterCycleDTO.getIsActive());
-		quar.setIsEnable(quarterCycleDTO.getIsEnable());
-		quar.setCycleType(quarterCycleDTO.getCycleType()); // added this to store the cycleType , i.e(monthly , quarterly , halfyearly).
-		
-		
-		QuaterCycle quarterCycle = quarterCycleRepository.save(quar);
-		if (quarterCycle != null) {
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("New Cycle Created.");
-		} else {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("New Quarter Cycle creation Failed.");			
-		}
+			throw e;
+//
+//		QuaterCycle quar = new QuaterCycle();
+//		
+//		quar.setFinancialYear(quarterCycleDTO.getFinancialYear());
+//		quar.setQuarterCycle(quarterCycleDTO.getQuarterCycle());
+//		quar.setCreatedBy(quarterCycleDTO.getCreatedBy());
+//		quar.setIsActive(quarterCycleDTO.getIsActive());
+//		quar.setIsEnable(quarterCycleDTO.getIsEnable());
+//		quar.setCycleType(quarterCycleDTO.getCycleType()); // added this to store the cycleType , i.e(monthly , quarterly , halfyearly).
+//		
+//		
+//		QuaterCycle quarterCycle = quarterCycleRepository.save(quar);
+//		if (quarterCycle != null) {
+//			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			response.setServiceResponse("New Cycle Created.");
+//		} else {
+//			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			response.setServiceResponse("New Quarter Cycle creation Failed.");			
+//		}
 
 		}
 		return response;
@@ -281,7 +304,14 @@ public class PerformanceService {
 				quarDTO.setUpdatedByName(object[8] != null ? object[8].toString() : null);
 				quarDTO.setIsActive(object[9] != null ? Boolean.parseBoolean(object[9].toString()) : false);
 				quarDTO.setIsEnable(object[10] != null ? Boolean.parseBoolean(object[10].toString()) : false);
-
+				quarDTO.setCycleType(object[11] != null ? object[11].toString():null);
+				List<QuaterCycleExcludedEmployeesMap> excludedEmpList = quaterCycleExcludedEmployeesMapRepo.findByQuarterId(quarterId);
+				if(!excludedEmpList.isEmpty()) {
+				quarDTO.setExcludedEmployees(excludedEmpList.stream()
+				        .map(QuaterCycleExcludedEmployeesMap::getEmpId)
+				        .filter(Objects::nonNull)
+				        .collect(Collectors.toList()));
+				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(quarDTO);
 			} else {
@@ -362,49 +392,144 @@ public class PerformanceService {
 			List<ReviewType> validReviewDetails = new ArrayList<>();
 			List<ReviewType> reviewDetails=reviewTypeRepository.findAll();
 			logBuilder.append("getAllReview size : "+reviewDetails.size());
-			if(reviewDetails !=null) {
-				reviewDetails.forEach((reviewDetail)->{
-					
-					if (reviewDetail.getFlag()) {
+			if (reviewDetails.isEmpty()) {
 
-						Optional.ofNullable(reviewDetail.getDeptId()).ifPresent(deptId -> {
-							Optional<Department> department = Optional
-									.ofNullable(departmentRepository.findByDeptId(deptId));
-							department.ifPresent(dept -> reviewDetail.setDepartmentName(dept.getName()));
-						});
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No ReviewType found.");
 
-						Optional.ofNullable(reviewDetail.getCreatedBy()).ifPresent(empId -> {
-							Optional<Employee> employee = Optional.ofNullable(employeeRepository.findByEmpId(empId));
-							employee.ifPresent(emp -> reviewDetail.setEmployeeName(emp.getName()));
-						});
+	            return response;
+	        }
+			 // Filter only active records
+	        validReviewDetails = reviewDetails.stream()
+	                .filter(ReviewType::getFlag)
+	                .collect(Collectors.toList());
 
-						Optional.ofNullable(reviewDetail.getUpdatedBy()).ifPresent(empId -> {
-							Optional<Employee> employee = Optional.ofNullable(employeeRepository.findByEmpId(empId));
-							employee.ifPresent(emp -> reviewDetail.setUpdatedByName(emp.getName()));
-						});
+	        // Collect unique IDs
+	        Set<Long> deptIds = validReviewDetails.stream()
+	                .map(ReviewType::getDeptId)
+	                .filter(Objects::nonNull)
+	                .collect(Collectors.toSet());
 
-						Optional.ofNullable(reviewDetail.getQuarterId()).ifPresent(quarterId -> {
-							Optional<QuaterCycle> optionalQuarterCycle = quarterCycleRepository.findById(quarterId);
-							optionalQuarterCycle.ifPresent(quaterCycle -> {
-								reviewDetail.setActive(quaterCycle.getIsActive());
-								reviewDetail.setQuarterCycle(quaterCycle.getQuarterCycle());
-							});
-						});
+	        Set<Long> empIds = new HashSet<>();
 
-						validReviewDetails.add(reviewDetail);
-					}
+	        validReviewDetails.forEach(r -> {
 
-				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(validReviewDetails);
-				apiLogInfo.setApiResponse("ReviewType  Fetched successfully.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Unable to Fetche ReviewType.");
-				apiLogInfo.setApiResponse("Unable to Fetche ReviewType.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
+	            if (r.getCreatedBy() != null) {
+	                empIds.add(r.getCreatedBy());
+	            }
+
+	            if (r.getUpdatedBy() != null) {
+	                empIds.add(r.getUpdatedBy());
+	            }
+	        });
+
+	        Set<Long> quarterIds = validReviewDetails.stream()
+	                .map(ReviewType::getQuarterId)
+	                .filter(Objects::nonNull)
+	                .collect(Collectors.toSet());
+	        
+	        // Bulk fetch
+	        Map<Long, Department> departmentMap =
+	                departmentRepository.findAllById(deptIds)
+	                        .stream()
+	                        .collect(Collectors.toMap(
+	                                Department::getDeptId,
+	                                Function.identity()
+	                        ));
+
+	        Map<Long, Employee> employeeMap =
+	                employeeRepository.findAllById(empIds)
+	                        .stream()
+	                        .collect(Collectors.toMap(
+	                                Employee::getEmpId,
+	                                Function.identity()
+	                        ));
+
+	        Map<Long, QuaterCycle> quarterMap =
+	                quarterCycleRepository.findAllById(quarterIds)
+	                        .stream()
+	                        .collect(Collectors.toMap(
+	                                QuaterCycle::getQuarterId,
+	                                Function.identity()
+	                        ));
+	        
+	     // Populate response data
+	        for (ReviewType reviewDetail : validReviewDetails) {
+
+	            Department department = departmentMap.get(reviewDetail.getDeptId());
+
+	            if (department != null) {
+	                reviewDetail.setDepartmentName(department.getName());
+	            }
+
+	            Employee createdByEmployee =
+	                    employeeMap.get(reviewDetail.getCreatedBy());
+
+	            if (createdByEmployee != null) {
+	                reviewDetail.setEmployeeName(createdByEmployee.getName());
+	            }
+
+	            Employee updatedByEmployee =
+	                    employeeMap.get(reviewDetail.getUpdatedBy());
+
+	            if (updatedByEmployee != null) {
+	                reviewDetail.setUpdatedByName(updatedByEmployee.getName());
+	            }
+
+	            QuaterCycle quaterCycle =
+	                    quarterMap.get(reviewDetail.getQuarterId());
+
+	            if (quaterCycle != null) {
+	                reviewDetail.setActive(quaterCycle.getIsActive());
+	                reviewDetail.setQuarterCycle(quaterCycle.getQuarterCycle());
+	            }
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(validReviewDetails);
+//			if(reviewDetails !=null) {
+//				reviewDetails.forEach((reviewDetail)->{
+//					
+//					if (reviewDetail.getFlag()) {
+//
+//						Optional.ofNullable(reviewDetail.getDeptId()).ifPresent(deptId -> {
+//							Optional<Department> department = Optional
+//									.ofNullable(departmentRepository.findByDeptId(deptId));
+//							department.ifPresent(dept -> reviewDetail.setDepartmentName(dept.getName()));
+//						});
+//
+//						Optional.ofNullable(reviewDetail.getCreatedBy()).ifPresent(empId -> {
+//							Optional<Employee> employee = Optional.ofNullable(employeeRepository.findByEmpId(empId));
+//							employee.ifPresent(emp -> reviewDetail.setEmployeeName(emp.getName()));
+//						});
+//
+//						Optional.ofNullable(reviewDetail.getUpdatedBy()).ifPresent(empId -> {
+//							Optional<Employee> employee = Optional.ofNullable(employeeRepository.findByEmpId(empId));
+//							employee.ifPresent(emp -> reviewDetail.setUpdatedByName(emp.getName()));
+//						});
+//
+//						Optional.ofNullable(reviewDetail.getQuarterId()).ifPresent(quarterId -> {
+//							Optional<QuaterCycle> optionalQuarterCycle = quarterCycleRepository.findById(quarterId);
+//							optionalQuarterCycle.ifPresent(quaterCycle -> {
+//								reviewDetail.setActive(quaterCycle.getIsActive());
+//								reviewDetail.setQuarterCycle(quaterCycle.getQuarterCycle());
+//							});
+//						});
+//
+//						validReviewDetails.add(reviewDetail);
+//					}
+//
+//				});
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse(validReviewDetails);
+//				apiLogInfo.setApiResponse("ReviewType  Fetched successfully.");
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//			} else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Unable to Fetche ReviewType.");
+//				apiLogInfo.setApiResponse("Unable to Fetche ReviewType.");
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -417,6 +542,7 @@ public class PerformanceService {
 		return response;
 	}
 
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse deleteReviewType(Long reviewTypeId) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -449,12 +575,13 @@ public class PerformanceService {
 			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
-
+			throw e;
 		}
 
 		return response;
 	}
 
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse updateQuarterCycle(QuarterCycleDTO quarterCycleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
@@ -465,6 +592,33 @@ public class PerformanceService {
 			quar.setUpdatedOn(LocalDateTime.now());
 
 			QuaterCycle quarterCycle = quarterCycleRepository.save(quar);
+			List<QuaterCycleExcludedEmployeesMap> excludedEmployees = quaterCycleExcludedEmployeesMapRepo.findByQuarterId(quarterCycle.getQuarterId());  
+			if(!excludedEmployees.isEmpty()) {
+			quaterCycleExcludedEmployeesMapRepo.deleteAll(excludedEmployees);
+			if(!quarterCycleDTO.getExcludedEmployees().isEmpty() && quarterCycle != null) {
+				List<QuaterCycleExcludedEmployeesMap> newExcludedEmpdata = new ArrayList<QuaterCycleExcludedEmployeesMap>();
+				quarterCycleDTO.getExcludedEmployees().forEach(empId ->{
+					QuaterCycleExcludedEmployeesMap data = new QuaterCycleExcludedEmployeesMap();
+					data.setEmpId(empId);
+					data.setQuarterId(quarterCycle.getQuarterId());
+					data.setCreatedBy(quarterCycle.getCreatedBy());
+					newExcludedEmpdata.add(data);
+					});
+				quaterCycleExcludedEmployeesMapRepo.saveAll(newExcludedEmpdata);
+			}
+			}else {
+				if(!quarterCycleDTO.getExcludedEmployees().isEmpty() && quarterCycle != null) {
+					List<QuaterCycleExcludedEmployeesMap> newExcludedEmpdata = new ArrayList<QuaterCycleExcludedEmployeesMap>();
+					quarterCycleDTO.getExcludedEmployees().forEach(empId ->{
+						QuaterCycleExcludedEmployeesMap data = new QuaterCycleExcludedEmployeesMap();
+						data.setEmpId(empId);
+						data.setQuarterId(quarterCycle.getQuarterId());
+						data.setCreatedBy(quarterCycle.getCreatedBy());
+						newExcludedEmpdata.add(data);
+						});
+					quaterCycleExcludedEmployeesMapRepo.saveAll(newExcludedEmpdata);
+				}
+			}
 			if (quarterCycle != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(" Quarter Cycle Updated.");
@@ -478,11 +632,11 @@ public class PerformanceService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-
+			throw e;
 		}
 		return response;
 	}
-
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse updateReviewType(ReviewTypeDTO reviewTypeDTO) {
 
 		ServiceResponse response = new ServiceResponse();
@@ -538,6 +692,7 @@ public class PerformanceService {
 			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
+			throw e;
 		}
 
 		return response;
