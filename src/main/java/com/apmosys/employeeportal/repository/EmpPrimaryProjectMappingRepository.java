@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDateTime;
+import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -72,5 +73,18 @@ public interface EmpPrimaryProjectMappingRepository extends JpaRepository<EmpPri
 
 	@Query("SELECT epm FROM EmpPrimaryProjectMapping epm WHERE epm.empId IN :empIds AND primaryProjectId=:projectId ")
 	List<EmpPrimaryProjectMapping> findByEmpIdInAndProjectId(@Param("empIds") List<Long> empIds, @Param("projectId") Long projectId);
-	 
+
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO("
+        + "p.projectId, "
+        + "p.projectName, "
+        + "p.clientFlag, "
+        + "p.hasClientSideId, "
+        + "p.poProjectType, "
+        + "0"
+        + ") "
+        + "FROM EmpPrimaryProjectMapping eppm "
+        + "INNER JOIN Project p ON p.projectId = eppm.primaryProjectId "
+        + "WHERE eppm.empId = :empId "
+        + "AND eppm.isMapped = 'Y'")
+List<ProjectNameAndPrjoectIdDTO> getPrimaryMappedProjects(@Param("empId") Long empId);
 }

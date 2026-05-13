@@ -32,6 +32,7 @@ import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
+import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
@@ -79,6 +80,9 @@ public class HolidayService {
 
 	@Autowired
 	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
+
+	@Autowired
+	EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
 
     @Autowired
     EmployeeTimesheetLocationMappingRepository employeeTimesheetLocationMappingRepository;
@@ -617,6 +621,8 @@ public class HolidayService {
 	        List<ProjectNameAndPrjoectIdDTO> projectDTOList =
 	                employeeTimesheetsNewRepository.getProjectListForDateAndEmpId(
 	                        emp.getEmpId(), startOfDay, endOfDay);
+
+			if (projectDTOList == null || projectDTOList.isEmpty()) { projectDTOList = empPrimaryProjectMappingRepository.getPrimaryMappedProjects(emp.getEmpId()); }
 
 	        if (projectDTOList != null && !projectDTOList.isEmpty()) {
 
