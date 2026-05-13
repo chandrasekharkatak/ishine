@@ -105,6 +105,11 @@ const routes: Routes = [
     loadChildren: () => import('./module-routing/user-performance/user-performance.module').then(m => m.UserPerformanceModule),
     canActivate: [AuthGuard]
   },
+  {
+    path: 'skill-matrix',
+    loadChildren: () => import('./module-routing/skill-matrix/skill-matrix.module').then(m => m.SkillMatrixModule),
+    canActivate: [AuthGuard]
+  },
   { path: 'hr-policies', component: HrPoliciesComponent, canActivate: [AuthGuard] },
   { path: 'helpdesk', component: HelpdeskComponent },
   { path: 'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard] },

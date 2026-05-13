@@ -1,0 +1,718 @@
+/* —— Reimbursement apply form (professional UI) —— */
+.rmb-page {
+  --rmb-primary: #1e4d8b;
+  --rmb-primary-light: #2d6bc4;
+  --rmb-accent: #f28c18;
+  --rmb-surface: #f6f8fc;
+  --rmb-border: #e1e8f0;
+  --rmb-text: #1a2b3d;
+  --rmb-muted: #5c6b7a;
+  --rmb-success: #0d8a5b;
+  --rmb-danger: #c42b3a;
+  --rmb-radius: 10px;
+  --rmb-radius-sm: 8px;
+  --rmb-shadow: 0 8px 32px rgba(30, 77, 139, 0.12);
+  margin-bottom: 2rem;
+}
+
+.rmb-card {
+  border-radius: var(--rmb-radius);
+  overflow: hidden;
+  box-shadow: var(--rmb-shadow) !important;
+}
+
+.rmb-card-header {
+  background: linear-gradient(135deg, var(--rmb-primary) 0%, #163a6b 55%, var(--rmb-primary-light) 100%);
+  color: #fff;
+  padding: 1.35rem 1.5rem;
+}
+
+.rmb-header-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.rmb-header-icon-wrap {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.rmb-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.rmb-subtitle {
+  font-size: 0.9rem;
+  opacity: 0.92;
+  max-width: 42rem;
+  line-height: 1.45;
+}
+
+.rmb-card-body {
+  padding: 1.75rem 1.5rem 0;
+  background: linear-gradient(180deg, #fafbfd 0%, #fff 120px);
+}
+
+/* Sections */
+.rmb-section {
+  position: relative;
+}
+
+.rmb-section--profile {
+  background: #fff;
+  border: 1px solid var(--rmb-border);
+  border-radius: var(--rmb-radius-sm);
+  padding: 1.25rem 1.25rem 0.5rem;
+  box-shadow: 0 2px 8px rgba(30, 77, 139, 0.04);
+}
+
+.rmb-section--claim {
+  background: #fff;
+  border: 1px solid var(--rmb-border);
+  border-radius: var(--rmb-radius-sm);
+  padding: 1.25rem 1.25rem 0.5rem;
+  border-left: 4px solid var(--rmb-accent);
+  box-shadow: 0 2px 8px rgba(242, 140, 24, 0.06);
+}
+
+.rmb-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.rmb-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--rmb-text);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.rmb-section-hint {
+  font-size: 0.8125rem;
+  color: var(--rmb-muted);
+  margin: 0 0 1rem;
+  line-height: 1.45;
+}
+
+.rmb-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+}
+
+.rmb-badge--muted {
+  background: #eef2f7;
+  color: var(--rmb-muted);
+}
+
+.rmb-badge--accent {
+  background: rgba(242, 140, 24, 0.15);
+  color: #b35f0a;
+}
+
+/* Labels & inputs */
+.rmb-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--rmb-muted);
+  margin-bottom: 0.4rem;
+}
+
+.rmb-req {
+  color: var(--rmb-danger);
+  margin-right: 0.15rem;
+}
+
+.rmb-control {
+  border-radius: var(--rmb-radius-sm);
+  border-color: #cfd8e6;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rmb-control:focus {
+  border-color: var(--rmb-primary-light);
+  box-shadow: 0 0 0 3px rgba(45, 107, 196, 0.2);
+}
+
+.rmb-control--readonly {
+  background: linear-gradient(180deg, #f4f6fa 0%, #eef2f8 100%) !important;
+  color: var(--rmb-text);
+  border-color: #dce3ed;
+  cursor: not-allowed;
+}
+
+.rmb-textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.rmb-field-error {
+  font-size: 0.8rem;
+  color: var(--rmb-danger);
+  margin-top: 0.35rem;
+}
+
+/* Amount with ₹ prefix */
+.rmb-input-affix {
+  position: relative;
+}
+
+.rmb-input-affix__prefix {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 700;
+  color: var(--rmb-muted);
+  font-size: 0.95rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.rmb-control--affix {
+  padding-left: 2rem;
+}
+
+/* File row */
+.rmb-file-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.rmb-file-row .rmb-file-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.rmb-btn-circle {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: var(--rmb-radius-sm);
+  border: 2px solid var(--rmb-primary-light);
+  color: var(--rmb-primary-light);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.rmb-btn-circle:hover:not(:disabled) {
+  background: var(--rmb-primary-light);
+  color: #fff;
+}
+
+.rmb-btn-circle:disabled {
+  opacity: 0.45;
+}
+
+.rmb-btn-circle--danger {
+  border-color: #e8a0a6;
+  color: var(--rmb-danger);
+}
+
+.rmb-btn-circle--danger:hover:not(:disabled) {
+  background: var(--rmb-danger);
+  border-color: var(--rmb-danger);
+  color: #fff;
+}
+
+/* Draft ticket card */
+.rmb-section--draft {
+  margin-top: 0.25rem;
+}
+
+.rmb-draft-card {
+  display: flex;
+  border-radius: var(--rmb-radius-sm);
+  overflow: hidden;
+  border: 1px solid #c5ddf5;
+  background: linear-gradient(135deg, #f0f7ff 0%, #fff 60%);
+  box-shadow: 0 4px 20px rgba(30, 107, 196, 0.08);
+}
+
+.rmb-draft-card__accent {
+  width: 6px;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, var(--rmb-primary-light), var(--rmb-accent));
+}
+
+.rmb-draft-card__body {
+  flex: 1;
+  padding: 1rem 1.15rem;
+}
+
+.rmb-draft-card__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.rmb-draft-pill {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: var(--rmb-primary);
+  color: #fff;
+}
+
+.rmb-draft-total {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--rmb-primary);
+  letter-spacing: -0.02em;
+}
+
+.rmb-draft-copy {
+  font-size: 0.9rem;
+  color: var(--rmb-text);
+  line-height: 1.5;
+}
+
+.rmb-draft-table-wrap {
+  border-radius: 6px;
+  border: 1px solid var(--rmb-border);
+  overflow: hidden;
+  background: #fff;
+}
+
+.rmb-draft-table {
+  margin: 0;
+}
+
+.rmb-draft-table thead th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--rmb-muted);
+  font-weight: 700;
+  border-bottom-width: 2px;
+  background: #f6f8fc;
+}
+
+.rmb-draft-table tbody td {
+  vertical-align: middle;
+  font-size: 0.9rem;
+}
+
+.rmb-draft-amt {
+  font-weight: 700;
+  color: var(--rmb-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Separate amount from purpose — avoids cramped / touching columns */
+.rmb-draft-col-amt {
+  min-width: 5.5rem;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  white-space: nowrap;
+}
+
+.rmb-draft-col-purpose {
+  min-width: 12rem;
+  padding-left: 1.25rem !important;
+}
+
+.rmb-draft-col-project {
+  min-width: 8.5rem;
+  max-width: 14rem;
+}
+
+.rmb-draft-project-cell {
+  font-size: 0.82rem;
+  color: var(--rmb-text);
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rmb-purpose-cell {
+  max-width: min(28rem, 50vw);
+  color: var(--rmb-muted);
+  font-size: 0.86rem;
+  word-break: break-word;
+}
+
+.rmb-draft-col-docs {
+  min-width: 5.5rem;
+  white-space: nowrap;
+}
+
+.rmb-draft-doc-count {
+  font-weight: 600;
+  color: var(--rmb-text);
+  margin-right: 0.35rem;
+}
+
+.rmb-btn-doc-view {
+  padding: 0.2rem 0.45rem;
+  line-height: 1;
+  border-radius: 6px;
+  border: 1px solid var(--rmb-primary-light);
+  color: var(--rmb-primary);
+  background: #fff;
+  vertical-align: middle;
+}
+
+.rmb-btn-doc-view:hover {
+  background: #eef4ff;
+  color: var(--rmb-primary);
+}
+
+/* Documents modal */
+.rmb-docs-modal-header {
+  background: linear-gradient(135deg, #f4f8ff 0%, #fff 100%);
+  border-bottom: 1px solid var(--rmb-border);
+}
+
+.rmb-docs-list-wrap {
+  border: 1px solid var(--rmb-border);
+  border-radius: var(--rmb-radius-sm);
+  background: #fff;
+}
+
+.rmb-docs-list-table thead th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--rmb-muted);
+  border-top: none;
+}
+
+.rmb-doc-preview-panel {
+  border: 1px solid var(--rmb-border);
+  border-radius: var(--rmb-radius-sm);
+  padding: 0.75rem 1rem;
+  background: #fafbfd;
+}
+
+.rmb-doc-preview-frame {
+  width: 100%;
+  height: 420px;
+  border: none;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.rmb-doc-preview-img {
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+/* Existing documents while editing a draft claim */
+.rmb-edit-docs-panel {
+  border: 1px solid var(--rmb-border);
+  border-radius: var(--rmb-radius-sm);
+  background: #fff;
+  padding: 0.35rem 0.75rem;
+}
+
+.rmb-edit-doc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.rmb-edit-doc-row:last-child {
+  border-bottom: none;
+}
+
+.rmb-edit-doc-name {
+  font-size: 0.875rem;
+  color: var(--rmb-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rmb-chip {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: #eef4ff;
+  color: var(--rmb-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.rmb-btn-icon-danger {
+  border: none;
+  background: transparent;
+  color: var(--rmb-danger);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  padding: 0;
+  line-height: 1;
+  transition: background 0.15s ease;
+}
+
+.rmb-btn-icon-danger:hover {
+  background: rgba(196, 43, 58, 0.1);
+}
+
+.rmb-draft-actions {
+  min-width: 5.5rem;
+}
+
+.rmb-btn-icon-edit {
+  border: none;
+  background: transparent;
+  color: var(--rmb-primary);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  padding: 0;
+  line-height: 1;
+  margin-right: 0.15rem;
+  transition: background 0.15s ease;
+}
+
+.rmb-btn-icon-edit:hover {
+  background: rgba(30, 77, 139, 0.1);
+}
+
+.rmb-draft-row--editing {
+  background: linear-gradient(90deg, rgba(45, 107, 196, 0.08) 0%, transparent 100%);
+  box-shadow: inset 3px 0 0 var(--rmb-primary-light);
+}
+
+.rmb-badge--editing {
+  background: rgba(45, 107, 196, 0.18);
+  color: var(--rmb-primary);
+}
+
+.rmb-section-hint--editing {
+  color: var(--rmb-text);
+}
+
+/* Action bar */
+.rmb-actions {
+  margin: 1.5rem -1.5rem 0;
+  padding: 1.25rem 1.5rem 1.5rem;
+  background: linear-gradient(180deg, #f0f3f8 0%, #e8ecf4 100%);
+  border-top: 1px solid var(--rmb-border);
+  border-radius: 0 0 var(--rmb-radius) var(--rmb-radius);
+}
+
+.rmb-actions-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+}
+
+.rmb-btn {
+  font-weight: 600;
+  padding: 0.65rem 1.35rem;
+  border-radius: var(--rmb-radius-sm);
+  min-height: 46px;
+  transition: transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.rmb-btn:active {
+  transform: scale(0.98);
+}
+
+.rmb-btn--ghost {
+  background: #fff;
+  border: 1px solid #c5cdd8;
+  color: var(--rmb-muted);
+}
+
+.rmb-btn--ghost:hover {
+  background: #f8f9fb;
+  border-color: #aeb8c6;
+  color: var(--rmb-text);
+}
+
+.rmb-btn--secondary {
+  background: #fff;
+  border: 2px solid var(--rmb-primary-light);
+  color: var(--rmb-primary);
+}
+
+.rmb-btn--secondary:hover {
+  background: rgba(45, 107, 196, 0.08);
+}
+
+.rmb-btn--primary {
+  background: linear-gradient(135deg, var(--rmb-primary-light) 0%, var(--rmb-primary) 100%);
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(30, 77, 139, 0.35);
+}
+
+.rmb-btn--primary:hover {
+  color: #fff;
+  filter: brightness(1.05);
+  box-shadow: 0 6px 20px rgba(30, 77, 139, 0.4);
+}
+
+/* Project: bordered select + clear control outside the box */
+.rmb-page .rmb-project-field-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.4rem;
+}
+
+.rmb-page .rmb-project-field-row .rmb-select-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rmb-page .rmb-project-clear-btn {
+  flex-shrink: 0;
+  align-self: center;
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--rmb-radius-sm);
+  background: transparent;
+  color: var(--rmb-danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.rmb-page .rmb-project-clear-btn:hover {
+  color: #9e222e;
+  background: rgba(196, 43, 58, 0.1);
+}
+
+.rmb-page .rmb-project-clear-btn:focus {
+  outline: 2px solid var(--rmb-primary-light);
+  outline-offset: 2px;
+}
+
+/* Project field: mat-select inside app-my-select — bordered shell to match .form-control.rmb-control */
+.rmb-page .rmb-select-wrap {
+  border: 1px solid #cfd8e6;
+  border-radius: var(--rmb-radius-sm);
+  background: #fff;
+  padding: 0 0.65rem;
+  min-height: calc(1.5em + 0.75rem + 2px);
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rmb-page .rmb-select-wrap:focus-within {
+  border-color: var(--rmb-primary-light);
+  box-shadow: 0 0 0 3px rgba(45, 107, 196, 0.2);
+  outline: none;
+}
+
+.rmb-page .rmb-select-wrap--disabled {
+  background: linear-gradient(180deg, #f4f6fa 0%, #eef2f8 100%);
+  border-color: #dce3ed;
+  cursor: not-allowed;
+}
+
+.rmb-page .rmb-select-wrap--disabled:focus-within {
+  border-color: #dce3ed;
+  box-shadow: none;
+}
+
+.rmb-page .rmb-select-wrap app-my-select {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: block;
+  width: 100%;
+}
+
+.rmb-page .rmb-select-wrap ::ng-deep mat-select {
+  width: 100%;
+  display: block;
+}
+
+.rmb-page .rmb-select-wrap ::ng-deep .mat-mdc-select-trigger {
+  min-height: 38px;
+  padding: 0 0 0 2px;
+  box-sizing: border-box;
+}
+
+.rmb-page .rmb-select-wrap ::ng-deep .mat-mdc-select-value {
+  max-width: 100%;
+}
+
+.rmb-page .rmb-select-wrap ::ng-deep .mat-mdc-select-value-text,
+.rmb-page .rmb-select-wrap ::ng-deep .mat-mdc-select-placeholder {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.rmb-page .rmb-select-wrap ::ng-deep .mat-mdc-select-placeholder {
+  color: #6c757d !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 767px) {
+  .rmb-card-body {
+    padding: 1.25rem 1rem 0;
+  }
+
+  .rmb-actions {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .rmb-actions-inner {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .rmb-actions-inner .rmb-btn {
+    width: 100%;
+  }
+}

@@ -1,6 +1,7 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { Sort } from '@angular/material/sort';
 import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { MyReimbursement } from 'src/app/models/reimbursement';
@@ -8,6 +9,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
+import { ReimbursementTicketModalComponent } from '../reimbursement-ticket-modal/reimbursement-ticket-modal.component';
 
 @Component({
   standalone: false,
@@ -32,6 +34,32 @@ export class ReimbursementapprovalComponent implements OnInit {
   currentUser: any;
   alertMessage: any;
   level: number;
+  ticketRequests: any[] = [];
+  selectedTicket: any = null;
+  ticketModalRef: NgbModalRef | null = null;
+  isSearchEnabledTickets = false;
+  /** Pending = only tickets awaiting this actor's action; All = every ticket assigned in the workflow (any outcome). */
+  ticketListView: 'pending' | 'all' = 'pending';
+  ticketFilters: any = {};
+  ticketActiveColumns: any[] = [
+    'ticketNo',
+    'fullName',
+    'displayStatus',
+    'workflowStage',
+    'totalClaimAmount',
+    'submittedOn',
+    'level1ApproverName',
+    'level1ApproverStatus',
+    'level2ApproverName',
+    'level2ApproverStatus',
+    'level3ApproverName',
+    'level3ApproverStatus'
+  ];
+  sortColumn = '';
+  sortColumnType = '';
+  sortDirection = '';
+  pageTickets = 1;
+
   constructor(
     private modalService: NgbModal,
      private sanitizer: DomSanitizer,
@@ -67,7 +95,33 @@ export class ReimbursementapprovalComponent implements OnInit {
       } else {
         console.error('Error fetching data:', response.serviceResponse);
       }
+
+      await this.loadTicketRequests();
     }
+  }
+
+  async loadTicketRequests(): Promise<void> {
+    const tBody = { empId: this.currentUser.empId, email: this.currentUser.email };
+    const req$ = this.ticketListView === 'pending'
+      ? this.reimbursementService.fetchReimbursementTicketsForApproval(tBody)
+      : this.reimbursementService.fetchReimbursementTicketsAssignedAll(tBody);
+    const tResp: any = await req$.toPromise();
+    if (tResp.serviceStatus === 'Success') {
+      this.ticketRequests = tResp.serviceResponse || [];
+    } else {
+      this.ticketRequests = [];
+    }
+  }
+
+  async setTicketListView(view: 'pending' | 'all'): Promise<void> {
+    if (this.ticketListView === view) {
+      return;
+    }
+    this.ticketListView = view;
+    this.pageTickets = 1;
+    this.ticketFilters = {};
+    this.isSearchEnabledTickets = false;
+    await this.loadTicketRequests();
   }
 
   isValidForm() {
@@ -178,26 +232,162 @@ export class ReimbursementapprovalComponent implements OnInit {
       console.error('Error during API call:', error);
       alert('An error occurred while updating the data. Please try again later.');
     }
+  }
 
-
-
-
- // }
-}
-closeModal() {
+  closeModal() {
   this.modalRef?.close();
   this.onGetReimbursementInfo();
 }
 
-openEditModal(template: TemplateRef<any> ,row :any) {
-
+openEditModal(template: TemplateRef<any>, row: any) {
   this.selectedReimbursementRequest = { ...row };
-
-  console.log('editpain asichi re ::::::::::::::::::::',this.selectedReimbursementRequest);
-
-  this.openAlertMod(template, "njvhv");
-
+  this.modalRef = this.modalService.open(template, { size: 'lg', backdrop: 'static' });
 }
+
+  shouldShowTicketAction(t: any): boolean {
+    if (!t?.workflowStage) {
+      return false;
+    }
+    if (t.workflowStage === 'PENDING_HOD') {
+      const uid = String(this.currentUser?.empId ?? '');
+      if (t.hodEmpId != null && t.hodEmpId !== '' && uid === String(t.hodEmpId)) {
+        return true;
+      }
+      const hodMail = (t.hodEmail || '').trim().toLowerCase();
+      const myMail = (this.currentUser?.email || '').trim().toLowerCase();
+      return !!hodMail && !!myMail && hodMail === myMail;
+    }
+    return t.workflowStage === 'PENDING_HR' || t.workflowStage === 'PENDING_FINANCE';
+  }
+
+  openTicketModal(t: any) {
+    const ref = this.modalService.open(ReimbursementTicketModalComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      windowClass: 'rmb-ticket-modal'
+    });
+    const copy = JSON.parse(JSON.stringify(t));
+    ref.componentInstance.ticket = copy;
+    ref.componentInstance.actor = { empId: this.currentUser?.empId, email: this.currentUser?.email };
+    ref.result
+      .then((r: any) => {
+        if (r?.refreshed) {
+          this.onGetReimbursementInfo();
+        }
+      })
+      .catch(() => {});
+  }
+
+  sortTicketData(sort: Sort) {
+    if (sort.active) {
+      const sortParams: any[] = sort.active?.split('|');
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;
+    }
+  }
+
+  toggleTicketSearch() {
+    this.isSearchEnabledTickets = !this.isSearchEnabledTickets;
+    if (!this.isSearchEnabledTickets) {
+      this.ticketFilters = {};
+    }
+  }
+
+  onTicketSearch(searchData: any) {
+    if (this.isSearchEnabledTickets) {
+      this.ticketFilters = searchData;
+    }
+  }
+
+  handleTicketPageChange(event: any) {
+    this.pageTickets = event;
+  }
+
+  openTicketActionModal(template: TemplateRef<any>, row: any) {
+    this.selectedTicket = JSON.parse(JSON.stringify(row));
+    const stage = row.workflowStage;
+    const pending = stage === 'PENDING_HOD' ? 'PENDING_HOD'
+      : stage === 'PENDING_HR' ? 'PENDING_HR' : 'PENDING_FINANCE';
+    this.selectedTicket._pendingStatus = pending;
+    if (pending !== 'PENDING_FINANCE') {
+      this.selectedTicket._decisions = (row.claims || [])
+        .filter((c: any) => c.claimStatus === pending)
+        .map((c: any) => ({
+          claimId: c.claimId,
+          expenditureType: c.expenditureType,
+          projectName: c.projectName,
+          amount: c.amount,
+          approved: true,
+          remarks: ''
+        }));
+    } else {
+      this.selectedTicket._financeAction = 'PAID';
+      this.selectedTicket._financeRemarks = '';
+    }
+    this.ticketModalRef = this.modalService.open(template, { size: 'lg', backdrop: 'static' });
+  }
+
+  async submitTicketDecisions(alertTpl: TemplateRef<any>, errTpl: TemplateRef<any>) {
+    if (!this.selectedTicket) {
+      return;
+    }
+    const decs = this.selectedTicket._decisions || [];
+    for (const d of decs) {
+      if (d.approved === false && (!d.remarks || !String(d.remarks).trim())) {
+        this.openAlertMod1(errTpl, 'Remarks are required for each rejected claim.');
+        return;
+      }
+    }
+    const body = {
+      ticketId: this.selectedTicket.ticketId,
+      actorEmpId: this.currentUser.empId,
+      actorEmail: this.currentUser.email,
+      decisions: decs.map((d: any) => ({
+        claimId: d.claimId,
+        approved: d.approved === true,
+        remarks: d.remarks || ''
+      }))
+    };
+    const stage = this.selectedTicket.workflowStage;
+    let resp: any;
+    if (stage === 'PENDING_HOD') {
+      resp = await this.reimbursementService.processReimbursementTicketHod(body).pipe(first()).toPromise();
+    } else {
+      resp = await this.reimbursementService.processReimbursementTicketHr(body).pipe(first()).toPromise();
+    }
+    if (resp.serviceStatus === 'Success') {
+      this.ticketModalRef?.close();
+      this.openAlertMod(alertTpl, 'Ticket processed successfully.');
+      await this.onGetReimbursementInfo();
+    } else {
+      this.openAlertMod1(errTpl, resp.serviceError || resp.serviceResponse || 'Update failed.');
+    }
+  }
+
+  async submitFinanceTicketDecision(alertTpl: TemplateRef<any>, errTpl: TemplateRef<any>) {
+    const act = this.selectedTicket._financeAction;
+    const remarks = this.selectedTicket._financeRemarks;
+    if (act === 'REJECTED' && (!remarks || !String(remarks).trim())) {
+      this.openAlertMod1(errTpl, 'Remarks are required when rejecting.');
+      return;
+    }
+    const body = {
+      ticketId: this.selectedTicket.ticketId,
+      actorEmpId: this.currentUser.empId,
+      actorEmail: this.currentUser.email,
+      action: act,
+      remarks: remarks || ''
+    };
+    const resp: any = await this.reimbursementService.processReimbursementTicketFinance(body).pipe(first()).toPromise();
+    if (resp.serviceStatus === 'Success') {
+      this.ticketModalRef?.close();
+      this.openAlertMod(alertTpl, 'Finance action recorded.');
+      await this.onGetReimbursementInfo();
+    } else {
+      this.openAlertMod1(errTpl, resp.serviceError || resp.serviceResponse || 'Update failed.');
+    }
+  }
 
 docUrl: string | null = null;
 preview(template:TemplateRef<any>){

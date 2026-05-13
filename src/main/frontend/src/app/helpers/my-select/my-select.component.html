@@ -1,13 +1,15 @@
-
-  <mat-select panelClass="custom-select-panel"
+  <mat-select [panelClass]="selectPanelClass"
   disableOptionCentering
     [multiple]="multiple"
     [(ngModel)]="selectedValue"
     (selectionChange)="onSelectionChange($event.value)"
     (openedChange)="onDropdownOpened($event)"
     [compareWith]="compareObjects"
-    [placeholder]="placeholder"
+    [placeholder]="multiple ? '' : placeholder"
   >
+    <mat-select-trigger *ngIf="multiple" class="my-select__multi-trigger">
+      <span class="my-select__multi-trigger-text">{{ multiTriggerLabel() }}</span>
+    </mat-select-trigger>
     <mat-option>
       <ngx-mat-select-search
       [(ngModel)]="searchText"

@@ -32,11 +32,15 @@ import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.EmployeeRole;
 import com.apmosys.employeeportal.model.FieldAlteration;
+import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeRoleMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.FieldAlterationRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
@@ -53,6 +57,12 @@ public class ReportService {
 	
 	@Autowired
 	EmployeeRoleMasterRepository employeeRoleMasterRepository;
+
+	@Autowired
+	private JobRoleRepository jobRoleRepository;
+
+	@Autowired
+	private RoleFeatureMapRepository roleFeatureMapRepository;
 	
 	@Autowired
 	EmployeeRepository employeeRepository;
@@ -470,6 +480,42 @@ public class ReportService {
 //		logService.logMyInfo(httpRequest, apiLogInfo);
 //		return response;
 //	}
+
+	/**
+	 * Left-nav tabs come from {@code role_subfeature_mapping} (per job role). "View Default Role Access"
+	 * only updates {@code employee_role_master}; mirror Y/N to every {@link JobRole} with the same
+	 * {@code employeeRole} persona so menus and login tab lists stay in sync.
+	 */
+	private void syncRoleSubfeatureMappingFromDefault(Long subFeatureMasterId, String employeePersona, String permissionYn) {
+		if (subFeatureMasterId == null || employeePersona == null || employeePersona.isEmpty()) {
+			return;
+		}
+		List<JobRole> jobRoles = jobRoleRepository.findByEmployeeRole(employeePersona.trim());
+		if (jobRoles == null || jobRoles.isEmpty()) {
+			return;
+		}
+		if ("Y".equalsIgnoreCase(permissionYn)) {
+			for (JobRole jr : jobRoles) {
+				RoleFeatureMap existing = roleFeatureMapRepository.findByJobRoleIdAndSubFeatureMasterId(
+						jr.getJobRoleId(), subFeatureMasterId);
+				if (existing == null) {
+					RoleFeatureMap map = new RoleFeatureMap();
+					map.setJobRoleId(jr.getJobRoleId());
+					map.setSubFeatureMasterId(subFeatureMasterId);
+					roleFeatureMapRepository.save(map);
+				}
+			}
+		} else if ("N".equalsIgnoreCase(permissionYn)) {
+			for (JobRole jr : jobRoles) {
+				RoleFeatureMap existing = roleFeatureMapRepository.findByJobRoleIdAndSubFeatureMasterId(
+						jr.getJobRoleId(), subFeatureMasterId);
+				if (existing != null) {
+					roleFeatureMapRepository.delete(existing);
+				}
+			}
+		}
+	}
+
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse updateDefaultFeatureMapping(JobRoleDTO jobRoleDTO) {
 
@@ -523,6 +569,8 @@ public class ReportService {
 	                    EmployeeRole dbResponse = employeeRoleMasterRepository.save(defaultRole);
 
 	                    if (dbResponse != null) {
+	                        syncRoleSubfeatureMappingFromDefault(object.getSubFeatureId(), object.getEmployeeRole(),
+	                                object.getPermission());
 	                        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	                        response.setServiceResponse("Default role sub-feature mapping updated successfully.");
 
@@ -547,6 +595,8 @@ public class ReportService {
 	                    EmployeeRole newEmployeeRoleMapping = employeeRoleMasterRepository.save(employeeRole);
 
 	                    if (newEmployeeRoleMapping != null) {
+	                        syncRoleSubfeatureMappingFromDefault(object.getSubFeatureId(), object.getEmployeeRole(),
+	                                object.getPermission());
 	                        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	                        response.setServiceResponse("New role sub-feature mapping added successfully.");
 

@@ -29,6 +29,7 @@ import { BodyComponent } from './body/body.component';
 import { SidenavComponent } from './sidenav/sidenav.component';
 
 import { ColFilterPipe } from './col-filter.pipe';
+import { RmbCamelCaseDisplayPipe } from './rmb-camel-case-display.pipe';
 import { ResourceManagementComponent } from './user-team/resource-management/resource-management.component';
 
 import { ColumnFilterBarComponent } from './helpers/column-filter-bar/column-filter-bar.component';
@@ -93,6 +94,11 @@ import { HolidaysComponent } from './user-leaves/holidays/holidays.component';
 import { LeaveComponent } from './user-leaves/leave/leave.component';
 import { UserLeavesComponent } from './user-leaves/user-leaves.component';
 import { UserPerformanceComponent } from './user-performance/user-performance.component';
+import { SkillMatrixContainerComponent } from './skill-matrix/skill-matrix-container.component';
+import { SkillMatrixSubmitComponent } from './skill-matrix/skill-matrix-submit.component';
+import { SkillMatrixMySubmissionsComponent } from './skill-matrix/skill-matrix-my-submissions.component';
+import { SkillMatrixApproveRequestsComponent } from './skill-matrix/skill-matrix-approve-requests.component';
+import { SkillMatrixMasterConfigurationComponent } from './skill-matrix/skill-matrix-master-configuration.component';
 import { UserPoliciesComponent } from './user-policies/user-policies.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { UserRequestsComponent } from './user-requests/user-requests.component';
@@ -149,6 +155,7 @@ import { PerformanceManagementSystemComponent } from './user-performance/perform
 import { FilterEmployeePipe } from './filter-employee.pipe';
 import { ViewEmployeeComponent } from './user-team/resource-management/view-employee/view-employee.component';
 import { TotalReimbursementrequestComponent } from './reimbursement/total-reimbursementrequest/total-reimbursementrequest.component';
+import { ReimbursementDashboardComponent } from './reimbursement/reimbursement-dashboard/reimbursement-dashboard.component';
 import { SafePipe } from './safe.pipe';
 import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequest/total-travelrequest.component';
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
@@ -218,6 +225,7 @@ import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomple
 import { NgxEditorModule } from 'ngx-editor';
 import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
 import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
+import { ReimbursementTicketModalComponent } from './reimbursement/reimbursement-ticket-modal/reimbursement-ticket-modal.component';
 
 registerLocaleData(localeGb);
 
@@ -234,6 +242,11 @@ registerLocaleData(localeGb);
     UserSalaryComponent,
     UserRequestsComponent,
     UserPerformanceComponent,
+    SkillMatrixContainerComponent,
+    SkillMatrixSubmitComponent,
+    SkillMatrixMySubmissionsComponent,
+    SkillMatrixApproveRequestsComponent,
+    SkillMatrixMasterConfigurationComponent,
     HrPoliciesComponent,
     HelpdeskComponent,
     ConfigurationComponent,
@@ -279,6 +292,7 @@ registerLocaleData(localeGb);
     ProjectConfigComponent,
     ResourceManagementComponent,
     ColFilterPipe,
+    RmbCamelCaseDisplayPipe,
     SortPipe,
     ColumnFilterBarComponent,
     MultiColFilterPipe,
@@ -338,6 +352,8 @@ registerLocaleData(localeGb);
     ViewEmployeeComponent,
     TotalTravelrequestComponent,
     TotalReimbursementrequestComponent,
+    ReimbursementDashboardComponent,
+    ReimbursementTicketModalComponent,
     SafePipe,
     TravelConfigComponent,
     ReimbursmentConfigComponent,

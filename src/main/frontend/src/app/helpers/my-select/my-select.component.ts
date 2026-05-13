@@ -24,6 +24,8 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   @Input() displayKey: string | string[] = '';
   @Input() displaySeparator: string = ' ';
   @Input() valueKey;
+  /** When true, option labels wrap in the overlay panel (long project names, etc.). */
+  @Input() wrapOptionLines = false;
   @Output() selectionChange = new EventEmitter<any>();
   @Output() change = new EventEmitter<any>();
   @Output() dropdownClosed = new EventEmitter<void>();
@@ -37,6 +39,12 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
 
   ngOnInit(): void {
     this.filteredOptions = this.options || [];
+  }
+
+  get selectPanelClass(): string {
+    return this.wrapOptionLines
+      ? 'custom-select-panel my-select-panel--wrap'
+      : 'custom-select-panel';
   }
 
   openWithDynamicPosition(triggerElement: HTMLElement) {
@@ -54,9 +62,22 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   }
 
   sort(value: any) {
-    return Array.isArray(value)
-      ? value.sort((x, y) => this.getIndex(this.options, x) - this.getIndex(this.options, y))
-      : value ?? undefined;
+    if (!Array.isArray(value)) {
+      return value ?? undefined;
+    }
+    const copy = [...value];
+    return copy.sort((a, b) => this.sortIndexForItem(a) - this.sortIndexForItem(b));
+  }
+
+  /** Order multiselect values by option list order (supports primitive ids when {@link #valueKey} is set). */
+  private sortIndexForItem(item: any): number {
+    if (!this.options?.length) {
+      return 0;
+    }
+    if (this.valueKey) {
+      return this.options.findIndex((o) => o[this.valueKey] === item);
+    }
+    return this.getIndex(this.options, item);
   }
 
 
@@ -175,7 +196,18 @@ deepEqual(obj1: any, obj2: any): boolean {
   });
 }
 
-getDisplayText(option: any): string {
+  /**
+   * Closed state for multiselect: always show the placeholder only — selection is visible as
+   * checkmarks in the panel and typically as chips below the field on the parent screen.
+   */
+  multiTriggerLabel(): string {
+    if (!this.multiple) {
+      return '';
+    }
+    return this.placeholder || 'Select';
+  }
+
+  getDisplayText(option: any): string {
   if (!option) return '';
 
   // If displayKey is array → join multiple keys

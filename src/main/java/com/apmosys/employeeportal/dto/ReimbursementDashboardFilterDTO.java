@@ -1,0 +1,20 @@
+package com.apmosys.employeeportal.dto;
+
+import lombok.Data;
+
+@Data
+public class ReimbursementDashboardFilterDTO {
+	private String fromDate;
+	private String toDate;
+	private String department;
+	/** Matches displayTicketStatus label, e.g. Paid, Submitted */
+	private String ticketStatus;
+	/** Raw workflow stage: PENDING_HOD, PENDING_HR, PENDING_FINANCE, PAID, REJECTED */
+	private String workflowStage;
+	private Long projectId;
+	private Integer clientId;
+	/** Expenditure type on claim, e.g. Travel, Food */
+	private String expenditureType;
+	/** Filter tickets for this employee (portal emp_id). */
+	private Long employeeEmpId;
+}

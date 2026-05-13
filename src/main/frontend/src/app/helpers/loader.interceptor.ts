@@ -277,6 +277,17 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/updateReimbursementData`,
     `${this.baseUrl}` + `api/revokeReimbursement`,
     `${this.baseUrl}` + `api/approveOrRejectReimbursement`,
+    `${this.baseUrl}` + `api/saveReimbursementTicket`,
+    `${this.baseUrl}` + `api/fetchReimbursementClaimProjectOptions`,
+    `${this.baseUrl}` + `api/fetchReimbursementClientsFromMaster`,
+    `${this.baseUrl}` + `api/fetchMyReimbursementTickets`,
+    `${this.baseUrl}` + `api/fetchReimbursementTicketsForApproval`,
+    `${this.baseUrl}` + `api/fetchReimbursementTicketsAssignedAll`,
+    `${this.baseUrl}` + `api/processReimbursementTicketHod`,
+    `${this.baseUrl}` + `api/processReimbursementTicketHr`,
+    `${this.baseUrl}` + `api/processReimbursementTicketFinance`,
+    `${this.baseUrl}` + `api/fetchReimbursementTicketAuditByTicketId`,
+    `${this.baseUrl}` + `api/fetchReimbursementDashboard`,
     `${this.baseUrl}` + `api/uploadFileReimbursement`,
     `${this.baseUrl}` + `api/approveOrRejectTravel`,
     `${this.baseUrl}` + `api/fetchTravelData`,
@@ -498,6 +509,7 @@ export class LoaderInterceptor implements HttpInterceptor {
   ]
 
   DYNAMIC_URL_whiteList = [
+    `${this.baseUrl}` + `api/skill-matrix/`,
     `${this.baseUrl}` + `api/training/getTrainingContent/`,
     `${this.baseUrl}` + `api/training/getTrainingResponses/`,
     `${this.baseUrl}` + `api/training/downloadContent/`

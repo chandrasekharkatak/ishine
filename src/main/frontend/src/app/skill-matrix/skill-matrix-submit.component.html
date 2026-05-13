@@ -1,0 +1,674 @@
+<div class="smsfr" [class.smsfr--locked]="isLocked">
+  <!-- Lock overlay: blocks only this page, not top nav -->
+  <div class="smsfrLock" *ngIf="isLocked">
+    <div class="smsfrLockCard">
+      <div class="smsfrLockTitle">
+        <span class="smsfrLockTitle__txt">Under review</span>
+        <span class="smsfrLockTitle__ref" *ngIf="lockSubmissionId">(Ref: {{ lockSubmissionId }})</span>
+      </div>
+      <div class="smsfrLockMsg">
+        Your data is currently under review. Please wait for the decision. You cannot perform any further actions until the review process is completed.
+      </div>
+      <div class="smsfrLockMeta" *ngIf="lockPendingWithName">
+        Pending with
+        <span class="smsfrLockPill">
+          {{ lockPendingWith === 'HOD' ? 'HOD' : 'Manager' }}: {{ lockPendingWithName }}
+        </span>.
+      </div>
+      <div class="smsfrLockMeta" *ngIf="!lockPendingWithName && lockPendingWith">
+        Pending with
+        <span class="smsfrLockPill">
+          {{ lockPendingWith === 'HOD' ? 'HOD' : 'Manager' }}
+        </span>.
+      </div>
+    </div>
+  </div>
+
+  <div class="smsfrLock smsfrLock--approved" *ngIf="!isLocked && approvedBlock">
+    <div class="smsfrLockCard">
+      <div class="smsfrLockTitle">
+        <span class="smsfrLockTitle__txt">Approved submission exists</span>
+        <span class="smsfrLockTitle__ref" *ngIf="approvedBlockSubmissionId">(Ref: {{ approvedBlockSubmissionId }})</span>
+      </div>
+      <div class="smsfrLockMsg">
+        You already have an approved submission. To add more skills to your existing approved profile, use
+        <strong>“Add Skills”</strong> from <strong>My Submissions</strong> instead of submitting a full new form.
+      </div>
+    </div>
+  </div>
+
+  <div class="smsfrLock smsfrLock--rejected" *ngIf="!isLocked && !approvedBlock && rejectedBlock">
+    <div class="smsfrLockCard">
+      <div class="smsfrLockTitle">
+        <span class="smsfrLockTitle__txt">Submission rejected</span>
+        <span class="smsfrLockTitle__ref" *ngIf="rejectedBlockSubmissionId">(Ref: {{ rejectedBlockSubmissionId }})</span>
+      </div>
+      <div class="smsfrLockMsg">
+        Your previous submission was rejected. Please open <strong>My Submissions</strong> and click <strong>Edit &amp; resubmit</strong>
+        to update the rejected skills and submit again.
+      </div>
+    </div>
+  </div>
+
+  <div class="smsfrContent" [class.smsfrContent--blur]="isLocked || approvedBlock || rejectedBlock">
+  <p *ngIf="pingError" class="alert alert-warning small py-2 px-3 mb-3">{{ pingError }}</p>
+  <p *ngIf="contextError" class="alert alert-danger small py-2 px-3 mb-3">{{ contextError }}</p>
+  <ng-container *ngIf="contextLoading"></ng-container>
+  <p *ngIf="stepError" class="alert alert-danger small py-2 px-3 mb-3">{{ stepError }}</p>
+
+  <div class="step-bar" *ngIf="curStep < 7">
+    <ng-container *ngFor="let label of stepLabels; let i = index">
+      <div style="display:flex;align-items:center">
+        <div class="sc" [ngClass]="stepCircleClass(i + 1)">{{ circleInner(i + 1) }}</div>
+        <span class="sl" [ngClass]="stepLabelClass(i + 1)">{{ label }}</span>
+      </div>
+      <div *ngIf="i < stepLabels.length - 1" class="sline" [class.done]="curStep > i + 1 || curStep === 7"></div>
+    </ng-container>
+  </div>
+
+  <div class="pbar" *ngIf="curStep < 7">
+    <div class="pfill" [style.width]="progressWidth"></div>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="panel" [class.active]="curStep === 1">
+    <div class="step-title">Step 1 — Employee &amp; department</div>
+   
+    <div class="card">
+      <div class="sect">Pre-filled from iShine</div>
+      <p *ngIf="contextHint" class="alert alert-info small py-2 px-3 mb-2">{{ contextHint }}</p>
+      <div class="g2">
+        <div class="fg">
+          <div class="fl">Full name <span class="req">*</span></div>
+          <input class="inp readonly" [(ngModel)]="empName" name="empName" readonly>
+        </div>
+        <div class="fg">
+          <div class="fl">Employee ID</div>
+          <input class="inp readonly" [(ngModel)]="empId" name="empId" readonly>
+        </div>
+        <div class="fg">
+          <div class="fl">Reporting manager</div>
+          <input class="inp readonly" [(ngModel)]="empMgr" name="empMgr" readonly>
+        </div>
+        <div class="fg">
+          <div class="fl">HOD name</div>
+          <input class="inp readonly" [(ngModel)]="hodName" name="hodName" readonly>
+        </div>
+        <div class="fg">
+          <div class="fl">Date of joining</div>
+          <input class="inp readonly" [(ngModel)]="doj" name="doj" readonly>
+        </div>
+        <div class="fg">
+          <div class="fl">Mobile number</div>
+          <input class="inp readonly" [(ngModel)]="mobileNo" name="mobileNo" readonly>
+        </div>
+        <div class="fg">
+          <div class="fl">Department <span class="req">*</span></div>
+          <input class="inp readonly" [(ngModel)]="deptDisplay" name="deptDisplay" readonly>
+        </div>
+        <div class="fg">
+          <div class="fl">Designation <span class="req">*</span></div>
+          <input class="inp readonly" [(ngModel)]="empRole" name="empRole" readonly>
+        </div>
+        <div class="fg">
+          <div class="fl">Total experience</div>
+          <input class="inp readonly" [(ngModel)]="experienceInRole" name="expRole" readonly>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <div></div>
+      <button type="button" class="btn btn-p" (click)="go(2)">Next — Select skills →</button>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="panel" [class.active]="curStep === 2">
+    <div class="step-title">Step 2 — Select your skills</div>
+    <div class="step-sub">Search your department skill library. Required and Optional lists come from Skill Matrix .</div>
+    <div class="alert-w" *ngIf="selectedDept">{{ step2Banner }}</div>
+    <div class="card" *ngIf="selectedDept">
+      <div class="smsfrBaseline" *ngIf="isAddSkillsMode && approvedSkillNames().length">
+        <div class="sect">Approved skills (read-only)</div>
+        <div class="hint" style="margin-bottom:6px">These are already approved and cannot be edited. Add only new skills below.</div>
+        <div class="chip-pool">
+          <span class="chip chip-lock" *ngFor="let s of approvedSkillNames()">🔒 {{ s }}</span>
+        </div>
+      </div>
+      <div class="sect">Required skills — must rate all <span class="bdg b-re" style="margin-left:6px">Mandatory</span></div>
+      <div class="hint" style="margin-bottom:6px">Skills with type <strong>Required</strong> for your department. Use the same search-and-select control as Master Configuration.</div>
+      <div class="smsfr-submit__field">
+        <label class="smsfr-submit__label">Required skills <span class="req">*</span></label>
+        <app-my-select class="skill-matrix-master-config__search-select smsfr-submit__my-select"
+          [multiple]="true"
+          [options]="requiredPool"
+          displayKey="skillName"
+          valueKey="skillId"
+          placeholder="Search or select required skills"
+          [(ngModel)]="requiredPickIds"
+          name="reqSkillPickIds">
+        </app-my-select>
+      </div>
+      <div class="smsfr-submit__selected-hint" *ngIf="requiredPicksOrdered.length">Selected</div>
+      <div class="chip-pool">
+        <span class="chip chip-r" *ngFor="let s of requiredPicksOrdered">{{ s.skillName }}</span>
+      </div>
+
+      <div class="sect" style="margin-top:12px">Additional skills — tap to add <span class="bdg b-te" style="margin-left:6px">Optional</span></div>
+      <div class="hint" style="margin-bottom:6px">Skills with type <strong>Optional</strong> for your department. Only add what you can justify.</div>
+      <div class="smsfr-submit__field">
+        <label class="smsfr-submit__label">Optional skills</label>
+        <app-my-select class="skill-matrix-master-config__search-select smsfr-submit__my-select"
+          [multiple]="true"
+          [options]="optionalPool"
+          displayKey="skillName"
+          valueKey="skillId"
+          placeholder="Search or select optional skills"
+          [(ngModel)]="optionalPickIds"
+          name="optSkillPickIds">
+        </app-my-select>
+      </div>
+      <div class="smsfr-submit__selected-hint" *ngIf="optionalPicksOrdered.length">Selected</div>
+      <div class="chip-pool">
+        <span class="chip chip-te" *ngFor="let s of optionalPicksOrdered">{{ s.skillName }}</span>
+      </div>
+
+      <label class="chk-lbl smsfr-submit__propose-toggle" style="margin-top:12px">
+        <input type="checkbox" [(ngModel)]="showProposeSkillForm" name="showProposeSkillForm"
+          (ngModelChange)="onProposeSkillFormToggle($event)">
+        <span class="smsfr-submit__propose-toggle-text">Skill not in the list?</span>
+      </label>
+      <div class="hint smsfr-submit__propose-hint" *ngIf="showProposeSkillForm" style="margin-bottom:6px">Adds a new skill to the master for <strong>your department</strong>.</div>
+      <div class="smsfr-submit__custom-row" *ngIf="showProposeSkillForm">
+        <div class="smsfr-submit__field">
+          <label class="smsfr-submit__label" for="custSkInp">Skill name <span class="req">*</span></label>
+          <input id="custSkInp" class="inp smsfr-submit__custom-inp" [(ngModel)]="customSkillName" name="custSk"
+            placeholder="e.g. Power BI, SAP FICO…" autocomplete="off">
+        </div>
+        <div class="smsfr-submit__field">
+          <label class="smsfr-submit__label">Category <span class="req">*</span></label>
+          <app-my-select class="skill-matrix-master-config__search-select smsfr-submit__my-select"
+            [options]="categoryOptions"
+            displayKey="categoryName"
+            valueKey="categoryId"
+            placeholder="Search or select category"
+            [(ngModel)]="selectedCategoryId"
+            name="custCatPickId">
+          </app-my-select>
+        </div>
+      </div>
+      <p *ngIf="showProposeSkillForm && skillProposeError" class="alert alert-danger small py-2 px-3 mb-2">{{ skillProposeError }}</p>
+      <button type="button" class="btn btn-g" style="font-size:12px;padding:6px 14px" *ngIf="showProposeSkillForm"
+        (click)="proposeCustomSkill()">＋ Add to master &amp; my list</button>
+      <div class="chip-pool" style="margin-top:8px">
+        <span class="chip chip-r" *ngFor="let c of customSkillPicks">{{ c.skillName }}
+          <button type="button" class="chip-x" (click)="removeCustomPick(c)" aria-label="Remove">×</button>
+        </span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn btn-g" (click)="go(1)">← Back</button>
+      <button type="button" class="btn btn-g btn-save-draft" [disabled]="draftSaving" (click)="saveDraft(2)">Save as draft</button>
+      <button type="button" class="btn btn-p" (click)="go(3)">Next — Rate &amp; evidence →</button>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="panel" [class.active]="curStep === 3">
+    <div class="step-head-row">
+      <div class="step-title">Step 3 — Rate yourself &amp; provide evidence</div>
+      <span class="s3-prog s3-prog--head">{{ s3ProgText }}</span>
+    </div>
+    <div class="step-sub">Expand each skill. Select your level, tick sub-skills you know, and fill evidence details — all in one place.</div>
+    <div class="smsfrBaseline" *ngIf="approvedSkillNames().length">
+      <div class="sect">Approved skills (read-only reference)</div>
+      <div class="chip-pool">
+        <span class="chip chip-lock" *ngFor="let s of approvedSkillNames()">🔒 {{ s }}</span>
+      </div>
+    </div>
+    <div *ngFor="let sk of allSkillNames; let i = index">
+      <!-- NOTE: Only lock approved baseline skills in Add Skills mode.
+           When editing a rejected submission, employee must be able to edit the rejected skill. -->
+      <div class="skb" [class.open]="isSkillOpen(i)" [class.skb-approved]="isAddSkillsMode && isApprovedSkillName(sk)">
+        <div class="skb-hdr" (click)="toggleSkillBlock(i)">
+          <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+            <span class="bdg" [ngClass]="isRequiredSkill(sk) ? 'b-re' : 'b-te'">{{ isRequiredSkill(sk) ? 'Required' : 'Optional' }}</span>
+            <span style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ sk }}</span>
+            <span style="font-size:11px;color:var(--middle-grey);white-space:nowrap">{{ skillStatusText(i) }}</span>
+            <span *ngIf="isAddSkillsMode && isApprovedSkillName(sk)" class="bdg b-bl" style="margin-left:6px">Approved</span>
+            <ng-container *ngIf="reviewNoteForSkillName(sk) as rn">
+              <span style="margin-left:6px;font-size:11px;color:#b42318;font-weight:700;white-space:nowrap"
+                [title]="rn.comment">
+                {{ rejectionLabel(sk) }}
+              </span>
+              <button type="button"
+                class="btn btn-sm btn-outline-danger"
+                style="padding:2px 8px;font-size:11px;line-height:1;border-radius:999px"
+                (click)="openReviewNote(sk, $event)">
+                View reason
+              </button>
+            </ng-container>
+          </div>
+          <span style="font-size:11px;color:var(--dark-cornflower-blue);flex-shrink:0;margin-left:8px">▾</span>
+        </div>
+        <div class="skb-body">
+          <div class="fg">
+            <div class="fl" style="font-size:12px">Proficiency level <span class="req">*</span></div>
+            <div class="rating-grid">
+              <button type="button" class="ropt" *ngFor="let rl of ratingLabels; let j = index"
+                [class.sel]="isRatingSelected(i, j + 1)" (click)="rate(i, j + 1)">
+                <div><span class="rdot" [ngClass]="'r' + (j + 1)">{{ j + 1 }}</span></div>
+                <div style="font-weight:600;font-size:11px">{{ rl }}</div>
+                <div style="font-size:10px;margin-top:2px">{{ ratingHints[j] }}</div>
+              </button>
+            </div>
+          </div>
+          <div class="g3" style="margin-top:8px">
+            <div class="fg">
+              <div class="fl" style="font-size:12px">Years experience <span class="req">*</span></div>
+              <select class="sel sel-sm" [(ngModel)]="yearsExperience[i]" [name]="'yearsExp'+i">
+                <option value="">Select…</option>
+                <option>Less than 6 months</option>
+                <option>6–12 months</option>
+                <option>1–2 years</option>
+                <option>2–3 years</option>
+                <option>3–5 years</option>
+                <option>5+ years</option>
+              </select>
+            </div>
+            <div class="fg">
+              <div class="fl" style="font-size:12px">Last used</div>
+              <select class="sel sel-sm" [(ngModel)]="lastUsed[i]" [name]="'lastUsed'+i">
+                <option value="">Select…</option>
+                <option>Currently using</option>
+                <option>Less than 3 months ago</option>
+                <option>3–6 months ago</option>
+                <option>6–12 months ago</option>
+                <option>More than 1 year ago</option>
+              </select>
+            </div>
+            <div class="fg">
+              <div class="fl" style="font-size:12px">Usage frequency</div>
+              <select class="sel sel-sm" [(ngModel)]="usageFrequency[i]" [name]="'usageFreq'+i">
+                <option value="">Select…</option>
+                <option>Daily</option>
+                <option>Weekly</option>
+                <option>Monthly</option>
+                <option>Occasionally</option>
+              </select>
+            </div>
+          </div>
+          <div class="fg">
+            <div class="fl" style="font-size:12px">What specifically can you do with this skill? <span class="req">*</span></div>
+            <textarea class="ta ta-sm" [(ngModel)]="whatCanDo[i]" [name]="'whatCanDo'+i" placeholder="Describe real tasks, complexity handled, tools used..."></textarea>
+            <div class="hint">Manager will review this text to validate your claimed level. Be specific.</div>
+          </div>
+          <div class="ev-section" *ngIf="subsFor(sk).length">
+            <div class="ev-section-hdr">
+              <span class="bdg b-bl">Sub-skills</span>
+              <span style="font-weight:400;color:var(--middle-grey)">Tick sub-skills of <strong>{{ sk }}</strong> you are confident in</span>
+            </div>
+            <div class="ev-section-body">
+              <div class="hint" style="margin-bottom:8px">Mapped in the skill library. Tick only those you can demonstrate.</div>
+              <div class="sub-grid">
+                <label class="sub-item" *ngFor="let sub of subsFor(sk); let si = index" [class.checked]="isSubChecked(i, si)">
+                  <input type="checkbox" [checked]="isSubChecked(i, si)"
+                    (change)="setSubChecked(i, si, $any($event.target).checked)"> {{ sub }}
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="ev-section" style="margin-top:8px">
+            <div class="ev-section-hdr"><span class="bdg b-am">Certification</span></div>
+            <div class="ev-section-body">
+              <div class="tgl" (click)="toggleCert(i)">
+                <div class="tgl-track" [class.on]="isCertOn(i)"><div class="tgl-thumb"></div></div>
+                <span style="font-size:12px">I have a certification for this skill</span>
+              </div>
+              <div class="cert-box" [class.show]="isCertOn(i)">
+                <div class="g2" style="margin-bottom:8px">
+                  <div class="fg"><div class="fl" style="font-size:12px">Certification name <span class="req">*</span></div>
+                    <input class="inp inp-sm" [(ngModel)]="certName[i]" [name]="'certName'+i" placeholder="e.g. AWS Solutions Architect"></div>
+                  <div class="fg"><div class="fl" style="font-size:12px">Issuing body <span class="req">*</span></div>
+                    <input class="inp inp-sm" [(ngModel)]="certIssuingBody[i]" [name]="'certIssuing'+i" placeholder="e.g. Amazon, ISQI"></div>
+                  <div class="fg"><div class="fl" style="font-size:12px">Date obtained <span class="req">*</span></div>
+                    <input class="inp inp-sm" [(ngModel)]="certDateObtained[i]" [name]="'certDob'+i" type="date"></div>
+                  <div class="fg"><div class="fl" style="font-size:12px">Expiry</div>
+                    <select class="sel sel-sm" [(ngModel)]="certExpiryType[i]" [name]="'certExp'+i">
+                      <option value="">No expiry / lifetime</option>
+                      <option value="1_year">1 year</option>
+                      <option value="2_year">2 years</option>
+                      <option value="3_year">3 years</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="fg"><div class="fl" style="font-size:12px">Certificate ID / Credential URL (optional)</div>
+                  <input class="inp inp-sm" [(ngModel)]="certCredential[i]" [name]="'certCred'+i" placeholder="Credly URL or certificate number"></div>
+
+                <input
+                  type="file"
+                  #certFile
+                  accept="application/pdf,image/png,image/jpeg"
+                  style="display:none"
+                  (change)="onCertFileSelected(i, $event)">
+
+                <div class="upload-btn" (click)="openCertPicker(i, certFile, $event)">
+                  <div style="font-size:20px;margin-bottom:4px">↑</div>
+                  <div style="font-weight:600">Upload certificate</div>
+                  <div class="hint" style="margin-top:2px">PDF / JPG / PNG · Max 5MB</div>
+                </div>
+                <div *ngIf="certUploadLabel[i]" style="margin-top:8px;font-size:12px;color:#27500a">{{ certUploadLabel[i] }}</div>
+                <div *ngIf="certUploadError[i]" style="margin-top:8px;font-size:12px;color:#b42318">{{ certUploadError[i] }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="ev-section" style="margin-top:8px">
+            <div class="ev-section-hdr"><span class="bdg b-te">Training &amp; course</span></div>
+            <div class="ev-section-body">
+              <div class="tgl" (click)="toggleTraining(i)">
+                <div class="tgl-track" [class.on]="isTrainingOn(i)"><div class="tgl-thumb"></div></div>
+                <span style="font-size:12px">I want to add training or course details for this skill</span>
+              </div>
+              <div class="cert-box" [class.show]="isTrainingOn(i)">
+                <div class="g3">
+                  <div class="fg"><div class="fl" style="font-size:12px">Course / training name</div>
+                    <input class="inp inp-sm" [(ngModel)]="trainingCourseName[i]" [name]="'trCourse'+i" placeholder="e.g. React Advanced — Udemy"></div>
+                  <div class="fg"><div class="fl" style="font-size:12px">Platform / institute</div>
+                    <input class="inp inp-sm" [(ngModel)]="trainingPlatform[i]" [name]="'trPlatform'+i" placeholder="Udemy, Coursera..."></div>
+                  <div class="fg"><div class="fl" style="font-size:12px">Completion year</div>
+                    <input class="inp inp-sm" [(ngModel)]="trainingCompletionYear[i]" [name]="'trYear'+i" placeholder="e.g. 2023"></div>
+                </div>
+                <div class="hint">Add only the most relevant training.</div>
+              </div>
+            </div>
+          </div>
+          <div class="ev-section" style="margin-top:8px">
+            <div class="ev-section-hdr"><span class="bdg b-gr">Additional evidence</span></div>
+            <div class="ev-section-body">
+              <div class="tgl" (click)="toggleAdditionalEvidence(i)">
+                <div class="tgl-track" [class.on]="isAdditionalEvidenceOn(i)"><div class="tgl-thumb"></div></div>
+                <span style="font-size:12px">I want to add links, endorsements, or other evidence for this skill</span>
+              </div>
+              <div class="cert-box" [class.show]="isAdditionalEvidenceOn(i)">
+                <div class="g2">
+                  <div class="fg">
+                    <div class="fl" style="font-size:12px">GitHub / portfolio URL (optional)</div>
+                    <input class="inp inp-sm" [(ngModel)]="githubPortfolioUrl[i]" [name]="'github'+i" placeholder="https://github.com/...">
+                  </div>
+                  <div class="fg">
+                    <div class="fl" style="font-size:12px">Colleague who can endorse (optional)</div>
+                    <input class="inp inp-sm" [(ngModel)]="colleagueEndorser[i]" [name]="'endorser'+i" placeholder="Name, designation">
+                  </div>
+                </div>
+                <div class="fg">
+                  <div class="fl" style="font-size:12px">Knowledge sessions / tech talks</div>
+                  <input class="inp inp-sm" [(ngModel)]="knowledgeSessionNote[i]" [name]="'ksNote'+i" placeholder="e.g. Workshop for QA team">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn btn-g" (click)="go(2)">← Back</button>
+      <button type="button" class="btn btn-g btn-save-draft" [disabled]="draftSaving" (click)="saveDraft(3)">Save as draft</button>
+      <button type="button" class="btn btn-p" (click)="go(4)">Next — Project history →</button>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="panel" [class.active]="curStep === 4">
+    <div class="step-title">Step 4 — Project experience</div>
+    <div class="step-sub">Link your skills to real projects. This is the strongest evidence for your ratings.</div>
+    <div class="alert-i">Projects are fetched from your iShine records. For each project, describe what you did and which skills you applied.</div>
+    <div class="card">
+      <div class="sect">Your project assignment history</div>
+      <ng-container *ngIf="projectHistoryLoading"></ng-container>
+      <p *ngIf="projectHistoryError" class="alert alert-danger small py-2 px-3 mb-2">{{ projectHistoryError }}</p>
+      <p *ngIf="!projectHistoryLoading && !projectHistoryError && allProjects.length === 0" class="hint mb-2">
+        No projects found in your iShine mapping.
+      </p>
+
+      <ng-container *ngFor="let p of allProjects; let pi = index; trackBy: trackByProject">
+        <label class="proj-row">
+          <input type="checkbox" [checked]="projectOpen[pi]" (change)="toggleProject(pi, $any($event.target).checked)">
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px">
+              {{ p.projectName || '—' }}
+              <span class="bdg b-bl" *ngIf="p.status">{{ p.status }}</span>
+              <button type="button" class="btn btn-g" style="padding:2px 8px;font-size:11px;margin-left:8px"
+                *ngIf="p.status === 'Manual'"
+                (click)="$event.preventDefault(); $event.stopPropagation(); removeManualProjectByEmployeeTeamMapId(p.employeeTeamMapId)">
+                Remove
+              </button>
+            </div>
+            <div class="hint" style="margin:0">
+              <span *ngIf="p.startDate">{{ p.startDate }}</span>
+              <span *ngIf="p.startDate || p.endDate"> – </span>
+              <span>{{ p.endDate || 'present' }}</span>
+              <span *ngIf="p.teamName"> · {{ p.teamName }}</span>
+              <span *ngIf="p.clientName"> · {{ p.clientName }}</span>
+            </div>
+          </div>
+        </label>
+
+        <div class="proj-detail" *ngIf="projectOpen[pi]">
+          <div class="g2" style="margin-bottom:8px">
+            <div class="fg"><div class="fl" style="font-size:12px">Your role <span class="req">*</span></div>
+              <input class="inp inp-sm" [(ngModel)]="projRole[pi]" [name]="'projRole'+pi" placeholder="Enter your role (e.g. Developer, Team Lead)"></div>
+            <div class="fg"><div class="fl" style="font-size:12px">Allocation %</div>
+              <select class="sel sel-sm" [(ngModel)]="projAlloc[pi]" [name]="'projAlloc'+pi">
+                <option [ngValue]="25">25%</option><option [ngValue]="50">50%</option><option [ngValue]="75">75%</option><option [ngValue]="100">100%</option>
+              </select></div>
+          </div>
+          <div class="fg"><div class="fl" style="font-size:12px">What did you build / contribute? <span class="req">*</span></div>
+            <textarea class="ta inp-sm" [(ngModel)]="projSummary[pi]" [name]="'projSummary'+pi" style="min-height:56px" placeholder="Modules built, APIs integrated, features owned..."></textarea></div>
+          <div class="fg" style="margin-top:6px"><div class="fl" style="font-size:12px">Skills applied <span class="req">*</span></div></div>
+          <div class="phdr"><span>Skill</span><span>Level</span><span>Contribution</span><span></span></div>
+          <div class="prow" *ngFor="let row of rowsForProject(pi); let ri = index">
+            <select class="sel sel-sm" [(ngModel)]="row.skill" [name]="'p'+pi+'s'+ri">
+              <option *ngFor="let opt of projectSkillOptions()" [value]="opt">{{ opt }}</option>
+            </select>
+            <select class="sel sel-sm" [(ngModel)]="row.level" [name]="'p'+pi+'l'+ri"><option>L1</option><option>L2</option><option>L3</option><option>L4</option><option>L5</option></select>
+            <input class="inp inp-sm" [(ngModel)]="row.contrib" [name]="'p'+pi+'c'+ri" placeholder="What you did...">
+            <button type="button" class="btn btn-g" style="padding:4px 8px" (click)="removeProjectSkillRow(pi, ri)">×</button>
+          </div>
+          <button type="button" class="btn btn-g" style="font-size:12px;padding:5px 12px;margin-top:4px" (click)="addProjectSkillRow(pi)">＋ Add skill row</button>
+          <div class="ev-section proj-domain-wrap">
+            <div class="ev-section-body">
+              <div class="tgl proj-domain-tgl" (click)="toggleProjDomainSpecific(pi)">
+                <div class="tgl-track" [class.on]="projDomainSpecific[pi]"><div class="tgl-thumb"></div></div>
+                <span class="proj-domain-tgl__text">This project is domain-specific (map to Skill Domain master)</span>
+              </div>
+              <div class="cert-box proj-domain-cert" [class.show]="projDomainSpecific[pi]">
+                <div class="proj-domain-fields">
+                  <div class="proj-domain-row proj-domain-row--flex">
+                    <div class="fg proj-domain-fg proj-domain-fg--cell">
+                      <div class="fl" style="font-size:12px">Domain <span class="req">*</span></div>
+                      <app-my-select
+                        class="skill-matrix-master-config__search-select smsfr-submit__my-select proj-domain-myselect"
+                        [options]="submitSkillDomainOptions"
+                        displayKey="domainName"
+                        valueKey="domainId"
+                        placeholder="Search or select domain"
+                        [(ngModel)]="projDomainId[pi]"
+                        [name]="'projDomain'+pi"
+                        (selectionChange)="onProjDomainChange(pi, $event != null && $event !== '' ? +$event : null)">
+                      </app-my-select>
+                    </div>
+                    <div class="fg proj-domain-fg proj-domain-fg--cell" *ngIf="projectSubdomainRowVisible(pi)">
+                      <div class="fl" style="font-size:12px">Sub domain <span class="req">*</span></div>
+                      <app-my-select
+                        class="skill-matrix-master-config__search-select smsfr-submit__my-select proj-domain-myselect"
+                        [options]="projSubdomainOptions[pi] || []"
+                        displayKey="subdomainName"
+                        valueKey="subdomainId"
+                        placeholder="Search or select sub domain"
+                        [(ngModel)]="projSubdomainId[pi]"
+                        [name]="'projSub'+pi"
+                        (selectionChange)="onProjSubdomainChange(pi, $event != null && $event !== '' ? +$event : null)">
+                      </app-my-select>
+                    </div>
+                    <div class="fg proj-domain-fg proj-domain-fg--cell" *ngIf="projectFeatureRowVisible(pi)">
+                      <div class="fl" style="font-size:12px">Domain feature <span class="req">*</span></div>
+                      <app-my-select
+                        class="skill-matrix-master-config__search-select smsfr-submit__my-select proj-domain-myselect"
+                        [options]="projFeatureOptions[pi] || []"
+                        displayKey="featureName"
+                        valueKey="featureId"
+                        placeholder="Search or select feature"
+                        [(ngModel)]="projFeatureId[pi]"
+                        [name]="'projFeat'+pi">
+                      </app-my-select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <div class="sect" style="margin-top:12px">Add a project not listed above</div>
+      <div class="g2">
+        <div class="fg"><input class="inp" [(ngModel)]="manualDraft.projectName" name="manualProjectName" placeholder="Project name"></div>
+        <div class="fg"><input class="inp" [(ngModel)]="manualDraft.clientName" name="manualClientName" placeholder="Client / internal / freelance"></div>
+        <div class="fg"><input class="inp" [(ngModel)]="manualDraft.duration" name="manualDuration" placeholder="Duration e.g. Jan–Jun 2022"></div>
+        <div class="fg"><input class="inp" [(ngModel)]="manualDraft.role" name="manualRole" placeholder="Your role"></div>
+      </div>
+      <div class="fg"><textarea class="ta" [(ngModel)]="manualDraft.details" name="manualDetails" placeholder="Skills used and contributions in detail..."></textarea></div>
+      <button type="button" class="btn btn-g" style="font-size:12px;padding:6px 14px;margin-top:4px" (click)="addManualProject()">＋ Add this project</button>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn btn-g" (click)="go(3)">← Back</button>
+      <button type="button" class="btn btn-g btn-save-draft" [disabled]="draftSaving" (click)="saveDraft(4)">Save as draft</button>
+      <button type="button" class="btn btn-p" (click)="go(5)">Next — Aspirations →</button>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="panel" [class.active]="curStep === 5">
+    <div class="step-title">Step 5 — Learning goals &amp; career aspirations</div>
+    <div class="step-sub">Tells your manager where you want to grow — drives your L&amp;D plan and project assignments.</div>
+    <div class="card" *ngIf="selectedDept">
+      <!-- Add Skills: aspirations are fully read-only -->
+      <ng-container *ngIf="isAddSkillsMode; else editableAspirations">
+        <div class="smsfrBaseline">
+          <div class="sect">Approved aspirations (read-only)</div>
+          <div class="hint" style="margin-bottom:6px">These were already approved and cannot be changed in Add Skills.</div>
+          <div class="chip-pool">
+            <span class="chip chip-lock" *ngFor="let a of approvedAspirations()">🔒 {{ a }}</span>
+          </div>
+        </div>
+
+        <div class="sect" style="margin-top:12px">Career goals (approved)</div>
+        <div class="g2">
+          <div class="fg">
+            <div class="fl" style="font-size:12px">Target role in 2 years</div>
+            <input class="inp readonly" [ngModel]="goalRole" name="goalRole_ro" readonly>
+          </div>
+          <div class="fg">
+            <div class="fl" style="font-size:12px">Departments you'd like to grow into</div>
+            <input class="inp readonly" value="—" readonly>
+          </div>
+        </div>
+        <div class="fg">
+          <div class="fl" style="font-size:12px">What kind of projects do you want next?</div>
+          <textarea class="ta readonly" readonly>—</textarea>
+        </div>
+        <div class="sect">Learning preferences</div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;opacity:.75;pointer-events:none">
+          <label class="chk-lbl"><input type="checkbox" checked disabled> Online self-paced</label>
+          <label class="chk-lbl"><input type="checkbox" disabled> Classroom / workshop</label>
+          <label class="chk-lbl"><input type="checkbox" checked disabled> Project-based / stretch</label>
+          <label class="chk-lbl"><input type="checkbox" checked disabled> Pair programming / mentoring</label>
+          <label class="chk-lbl"><input type="checkbox" disabled> Certifications</label>
+          <label class="chk-lbl"><input type="checkbox" disabled> Conferences</label>
+        </div>
+        <div class="sect" style="margin-top:12px">Message to your manager (approved)</div>
+        <textarea class="ta readonly" [ngModel]="messageToManager" name="messageToManager_ro" readonly></textarea>
+      </ng-container>
+
+      <!-- Normal Submit for Review: editable aspirations -->
+      <ng-template #editableAspirations>
+        <div class="sect">Skills you want to develop (next 12 months)</div>
+        <div class="hint" style="margin-bottom:6px">Tap to add interest.</div>
+        <div class="chip-pool">
+          <button type="button" class="chip chip-asp" *ngFor="let a of aspirationsPool()" [class.picked]="isAspPicked(a)" (click)="toggleAsp(a)">{{ a }}</button>
+        </div>
+        <div class="fg" style="margin-top:10px"><div class="fl" style="font-size:12px">Other skills to learn (not in the list)</div>
+          <input class="inp" name="aspirationOtherSkillsText" [(ngModel)]="aspirationOtherSkillsText" placeholder="Type any skill you want to learn... (comma or new line to add several)"></div>
+        <div class="sect" style="margin-top:12px">Career goals</div>
+        <div class="g2">
+          <div class="fg"><div class="fl" style="font-size:12px">Target role in 2 years <span class="req">*</span></div>
+            <input class="inp" [(ngModel)]="goalRole" name="goalRole" placeholder="e.g. Tech Lead, QA Manager..."></div>
+          <div class="fg"><div class="fl" style="font-size:12px">Departments you'd like to grow into</div>
+            <input class="inp" placeholder="e.g. Products &amp; R&amp;D, Presales..."></div>
+        </div>
+        <div class="fg"><div class="fl" style="font-size:12px">What kind of projects do you want next?</div>
+          <textarea class="ta" placeholder="e.g. Client-facing, innovation, automation..."></textarea></div>
+        <div class="sect">Learning preferences</div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px">
+          <label class="chk-lbl"><input type="checkbox" checked> Online self-paced</label>
+          <label class="chk-lbl"><input type="checkbox"> Classroom / workshop</label>
+          <label class="chk-lbl"><input type="checkbox" checked> Project-based / stretch</label>
+          <label class="chk-lbl"><input type="checkbox" checked> Pair programming / mentoring</label>
+          <label class="chk-lbl"><input type="checkbox"> Certifications</label>
+          <label class="chk-lbl"><input type="checkbox"> Conferences</label>
+        </div>
+        <div class="sect" style="margin-top:12px">Message to your manager (optional)</div>
+        <textarea class="ta" [(ngModel)]="messageToManager" name="messageToManager" placeholder="Support needed, projects you'd like..."></textarea>
+      </ng-template>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn btn-g" (click)="go(4)">← Back</button>
+      <button type="button" class="btn btn-g btn-save-draft" [disabled]="draftSaving || isAddSkillsMode" (click)="saveDraft(5)">Save as draft</button>
+      <button type="button" class="btn btn-p" (click)="go(6)">Next — Review &amp; submit →</button>
+    </div>
+  </div>
+
+  <!-- Step 6 -->
+  <div class="panel" [class.active]="curStep === 6">
+    <div class="step-title">Step 6 — Review &amp; submit</div>
+    <div class="step-sub">Review your submission before sending for manager approval.</div>
+    <div class="alert-s">Everything looks complete. Submitting will notify <strong>{{ mgrRevName }}</strong> (Manager) first. After Manager approval, it will go to <strong>{{ hodRevName }}</strong> (Department HOD). Your profile goes live only after <strong>both Manager and HOD approvals</strong>.</div>
+    <div class="card">
+      <div class="sect">Submission summary</div>
+      <div class="rev-row"><span class="rl">Employee</span><span class="rv">{{ revEmployee }}</span></div>
+      <div class="rev-row"><span class="rl">Department</span><span class="rv">{{ revDept }}</span></div>
+      <div class="rev-row"><span class="rl">Designation</span><span class="rv">{{ revRole }}</span></div>
+      <div class="rev-row"><span class="rl">Reporting manager</span><span class="rv">{{ revMgr }}</span></div>
+      <div class="rev-row"><span class="rl">Total skills rated</span><span class="rv">{{ revSkills }}</span></div>
+      <div class="rev-row"><span class="rl">Skills with certification</span><span class="rv">{{ revCerts }}</span></div>
+      <div class="rev-row"><span class="rl">Projects linked</span><span class="rv">2 projects with skill contribution details</span></div>
+      <div class="rev-row"><span class="rl">Target role</span><span class="rv">{{ revGoal }}</span></div>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn btn-g" (click)="go(5)">← Back</button>
+      <button type="button" class="btn btn-sub" (click)="submit()">Submit For Approval →</button>
+    </div>
+    <p *ngIf="draftError" class="alert alert-danger small py-2 px-3 mt-2">{{ draftError }}</p>
+    <p *ngIf="draftSavedAt" class="text-muted small mt-2">Draft saved at {{ draftSavedAt }}</p>
+  </div>
+
+  <!-- Step 7 success -->
+  <div class="panel" [class.active]="curStep === 7">
+    <div class="success-wrap">
+      <div class="success-icon">✓</div>
+      <div style="font-size:1.1rem;font-weight:600;margin-bottom:8px">Submitted successfully</div>
+      <div class="step-sub" style="max-width:560px;margin:0 auto 20px">Sent to <strong>{{ doneManager }}</strong> (Manager) for review. After Manager approval, it will be sent to <strong>{{ hodRevName }}</strong> (Department HOD). Your skill profile goes live only after <strong>both Manager and HOD approvals</strong>.</div>
+      <div class="success-ref">
+        <div class="success-ref__title">Submission reference</div>
+        <div class="success-ref__row">Submission ID: <strong>{{ doneRefId }}</strong></div>
+        <div class="success-ref__row">Submitted: {{ doneRefWhen }}</div>
+        <div class="success-ref__row">Manager review deadline: 15 days from today</div>
+        <div class="success-ref__status">
+          Status:
+          <span class="bdg b-am">Pending manager review</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>

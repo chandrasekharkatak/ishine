@@ -28,6 +28,34 @@ body {
     background: var(--ghost-white);
 }
 
+/* SweetAlert: Rejection reasons popup (professional, no icon) */
+.smSwalRejection {
+  border-radius: 14px !important;
+  padding: 18px 18px 14px !important;
+}
+.smSwalRejection .swal2-title {
+  margin: 2px 0 10px !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  color: var(--dark-cornflower-blue) !important;
+}
+.smSwalRejection .swal2-html-container {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.smSwalRejection .swal2-icon {
+  display: none !important;
+}
+.smSwalRejection .swal2-actions {
+  margin: 14px 0 0 !important;
+}
+.smSwalRejection .swal2-confirm {
+  border-radius: 8px !important;
+  padding: 8px 18px !important;
+  font-weight: 800 !important;
+  font-size: 12px !important;
+}
+
 img{
     max-width: 100%;
     display: block;

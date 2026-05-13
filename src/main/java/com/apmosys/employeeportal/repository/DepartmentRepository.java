@@ -29,6 +29,8 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	public List<DepartmentDTO>  getAllDepartments();
 
 	public Department findByName(String department);
+
+	Optional<Department> findFirstByNameIgnoreCase(String name);
 	
 	@Query(value = "SELECT * FROM department WHERE dept_id IN (:departmentIdList)", nativeQuery = true)
 	List<Object[]> getAllDepartmentsByIdList(@Param("departmentIdList") List<Long> departmentIdList);

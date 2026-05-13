@@ -101,5 +101,51 @@ export class ReimbursementService {
   onGetFoodType() {
     return this.http.get(`${this.baseUrl}` + `api/onGetFoodType`);
   }
-  
+
+  saveReimbursementTicket(body: any) {
+    return this.http.post(`${this.baseUrl}api/saveReimbursementTicket`, body);
+  }
+
+  fetchReimbursementClaimProjectOptions(body: { empId: any }) {
+    return this.http.post(`${this.baseUrl}api/fetchReimbursementClaimProjectOptions`, body);
+  }
+
+  /** Client list from {@code clients} table (for BD Others dropdown). */
+  fetchReimbursementClientsFromMaster() {
+    return this.http.post(`${this.baseUrl}api/fetchReimbursementClientsFromMaster`, {});
+  }
+
+  fetchMyReimbursementTickets(body: { empId: any }) {
+    return this.http.post(`${this.baseUrl}api/fetchMyReimbursementTickets`, body);
+  }
+
+  fetchReimbursementTicketsForApproval(body: { empId: any; email: string }) {
+    return this.http.post(`${this.baseUrl}api/fetchReimbursementTicketsForApproval`, body);
+  }
+
+  /** Every ticket assigned to this approver (any status), not only pending-at-stage queues. */
+  fetchReimbursementTicketsAssignedAll(body: { empId: any; email: string }) {
+    return this.http.post(`${this.baseUrl}api/fetchReimbursementTicketsAssignedAll`, body);
+  }
+
+  processReimbursementTicketHod(body: any) {
+    return this.http.post(`${this.baseUrl}api/processReimbursementTicketHod`, body);
+  }
+
+  processReimbursementTicketHr(body: any) {
+    return this.http.post(`${this.baseUrl}api/processReimbursementTicketHr`, body);
+  }
+
+  processReimbursementTicketFinance(body: any) {
+    return this.http.post(`${this.baseUrl}api/processReimbursementTicketFinance`, body);
+  }
+
+  fetchReimbursementTicketAuditByTicketId(ticketId: number) {
+    return this.http.post(`${this.baseUrl}api/fetchReimbursementTicketAuditByTicketId`, { ticketId });
+  }
+
+  fetchReimbursementDashboard(filter?: any) {
+    return this.http.post(`${this.baseUrl}api/fetchReimbursementDashboard`, filter || {});
+  }
+
 }

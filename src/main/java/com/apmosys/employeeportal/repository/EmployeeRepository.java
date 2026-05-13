@@ -492,6 +492,21 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "where jr.name like '%VP%' and jr.employee_role='HOD' and e.employmentstatus != 'InActive'")
 	public List<Object[]> findAllVPsEmail();
 
+	/** VP role per org convention (same filter as VP notification list). */
+	@Query(nativeQuery = true, value = "SELECT 1 FROM employee e INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+			+ "WHERE e.emp_id = :empId AND jr.name LIKE '%VP%' AND jr.employee_role = 'HOD' "
+			+ "AND e.employmentstatus != 'InActive' LIMIT 1")
+	List<Integer> findOneIfVpHodEmployee(@Param("empId") Long empId);
+
+	@Query(nativeQuery = true, value = "SELECT jr.dept_id FROM employee e INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+			+ "WHERE e.emp_id = :empId AND e.employmentstatus != 'InActive' LIMIT 1")
+	Long findJobRoleDeptIdByEmpId(@Param("empId") Long empId);
+
+	@Query(nativeQuery = true, value = "SELECT 1 FROM employee e INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+			+ "WHERE e.emp_id = :empId AND jr.employee_role = 'HOD' "
+			+ "AND e.employmentstatus != 'InActive' LIMIT 1")
+	List<Integer> findOneIfJobRoleHodEmployee(@Param("empId") Long empId);
+
 	// @Query(nativeQuery = true , value = "select e.employeement_id,e.email,e.name
 	// , em.name as managerName,d.name as departmentName, hd.name as
 	// hodName,e.billable,e.billable_type,"

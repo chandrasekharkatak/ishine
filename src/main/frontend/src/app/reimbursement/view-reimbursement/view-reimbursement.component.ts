@@ -1,6 +1,8 @@
 import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { Sort } from '@angular/material/sort';
+import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { MyReimbursement } from 'src/app/models/reimbursement';
 import { MyTravelDesk } from 'src/app/models/travelDesk';
@@ -8,6 +10,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
+import { ReimbursementTicketModalComponent } from '../reimbursement-ticket-modal/reimbursement-ticket-modal.component';
 
 @Component({
   standalone: false,
@@ -26,6 +29,9 @@ export class ViewReimbursementComponent implements OnInit {
   currentEmployeeInfo: Employee = new Employee();
   travelRequests: any = [];
   reimbursementRequests: any = [];
+  myReimbursementTickets: any[] = [];
+  selectedTicket: any = null;
+  ticketModalRef: NgbModalRef | null = null;
   selectedReimbursementRequest: any = [];
   selectedTravelRequest: any = [];
   selectedReimbursementdataforDelete: any = [];
@@ -41,6 +47,31 @@ export class ViewReimbursementComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private reimbursementService: ReimbursementService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x) }
+
+  // Table UX: filter + sort + paginate (Timesheet-style)
+  isSearchEnabledTickets = false;
+  ticketFilters: any = {};
+  ticketActiveColumns: any[] = [
+    'ticketNo',
+    'displayStatus',
+    'workflowStage',
+    'totalClaimAmount',
+    'paidClaimAmount',
+    'submittedOn',
+    'level1ApproverName',
+    'level1ApproverStatus',
+    'level2ApproverName',
+    'level2ApproverStatus',
+    'level3ApproverName',
+    'level3ApproverStatus',
+    'rejectionSummaryText',
+    'blank',
+    'blank'
+  ];
+  sortColumn = '';
+  sortColumnType = '';
+  sortDirection = '';
+  pageTickets = 1;
 
   ngOnInit(): void {
     this.onGetEmployeeInfo();
@@ -67,7 +98,86 @@ export class ViewReimbursementComponent implements OnInit {
       } else {
         console.error('Error fetching data:', response.serviceResponse);
       }
+
+      const tr: any = await this.reimbursementService.fetchMyReimbursementTickets({ empId: this.currentUser.empId })
+        .pipe(first()).toPromise();
+      if (tr.serviceStatus === 'Success') {
+        this.myReimbursementTickets = tr.serviceResponse || [];
+      } else {
+        this.myReimbursementTickets = [];
+      }
     }
+  }
+
+  openTicketDetailsModal(template: TemplateRef<any>, t: any) {
+    this.selectedTicket = t;
+    this.ticketModalRef = this.modalService.open(template, { size: 'lg', backdrop: 'static' });
+  }
+
+  openTicketModal(t: any) {
+    const ref = this.modalService.open(ReimbursementTicketModalComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      windowClass: 'rmb-ticket-modal'
+    });
+    const copy = JSON.parse(JSON.stringify(t));
+    ref.componentInstance.ticket = copy;
+    ref.componentInstance.actor = { empId: this.currentUser?.empId, email: this.currentUser?.email };
+    ref.result
+      .then((r: any) => {
+        if (r?.refreshed) {
+          this.onGetReimbursementInfo();
+        }
+      })
+      .catch(() => {});
+  }
+
+  closeTicketDetailsModal() {
+    this.ticketModalRef?.close();
+    this.ticketModalRef = null;
+    this.selectedTicket = null;
+  }
+
+  sortTicketData(sort: Sort) {
+    if (sort.active) {
+      const sortParams: any[] = sort.active?.split('|');
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;
+    }
+  }
+
+  toggleTicketSearch() {
+    this.isSearchEnabledTickets = !this.isSearchEnabledTickets;
+    if (!this.isSearchEnabledTickets) {
+      this.ticketFilters = {};
+    }
+  }
+
+  onTicketSearch(searchData: any) {
+    if (this.isSearchEnabledTickets) {
+      this.ticketFilters = searchData;
+    }
+  }
+
+  handleTicketPageChange(event: any) {
+    this.pageTickets = event;
+  }
+
+  /** Amount paid (sum of PAID claim lines); shown once Finance completes payment. */
+  ticketPaidAmountDisplay(t: any): number | null {
+    if (!t) return null;
+    const n = Number(t.paidClaimAmount);
+    if (!Number.isFinite(n)) return null;
+    if (t.workflowStage === 'PAID') {
+      return n;
+    }
+    return n > 0 ? n : null;
+  }
+
+  rejectedClaimLines(t: any): any[] {
+    const rows = t?.rejectedClaimLines;
+    return Array.isArray(rows) ? rows : [];
   }
 
   isValidForm() {

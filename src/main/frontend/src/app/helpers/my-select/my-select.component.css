@@ -37,9 +37,50 @@
     vertical-align: unset !important;
 }
 
+.my-select__multi-trigger {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+}
+
+.my-select__multi-trigger-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9375rem;
+  color: #334155;
+}
+
 ::ng-deep .mdc-list-item__primary-text  {
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   display: block !important;
+}
+
+/* Wrapped option text (panel gets this class when [wrapOptionLines]="true") — must beat rules above */
+::ng-deep .custom-select-panel.my-select-panel--wrap {
+  max-width: min(100vw - 32px, 640px) !important;
+  min-width: min(100%, 280px) !important;
+}
+
+::ng-deep .custom-select-panel.my-select-panel--wrap .mat-mdc-option {
+  height: auto !important;
+  min-height: 40px !important;
+  line-height: 1.4 !important;
+  white-space: normal !important;
+  align-items: flex-start !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+::ng-deep .custom-select-panel.my-select-panel--wrap .mdc-list-item__primary-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  display: block !important;
+  line-height: 1.4 !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
