@@ -19234,4 +19234,14 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				+ "AND p.projectId =:projectId AND et.status IN(1,2) \n")
 		public Integer findTimesheetFilledCountByEmpIdAndProjectIdInEtmDateRange(Long empId, Integer projectId, Long etmId);
 
+
+
+					 @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName, p.clientFlag, p.hasClientSideId,p.poProjectType, etm.isShadow)\n"
+								+ "FROM EmployeeTeamMap etm\n"
+								+ "inner join Team t on t.teamId = etm.teamId \n"
+								+ "inner join Project p on p.projectId = t.projectId\n"
+								+ "WHERE FUNCTION('DATE', etm.startDate) <= :selectedDate\n"
+								+ "  AND (etm.endDate IS NULL OR FUNCTION('DATE', etm.endDate) >= :selectedDate) and etm.active != 2 and etm.empId = :emp_id")
+							List<ProjectNameAndPrjoectIdDTO> getProjectListForDateAndEmpId2( @Param("emp_id") Long empId,  @Param("selectedDate") Date selectedDate	);	
+
 }
