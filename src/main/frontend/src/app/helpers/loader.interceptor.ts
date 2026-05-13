@@ -120,6 +120,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/deleteAppreciationEvent`,
     `${this.baseUrl}` + `api/updateAppreciationEvent`,
     `${this.baseUrl}` + `api/getHierarchyChartByEmpId`,
+    `${this.baseUrl}` + `api/getManagementSpineForHierarchy`,
     `${this.baseUrl}` + `api/getAllManagers`,
     `${this.baseUrl}` + `api/getAllTeamMemberView`,
     `${this.baseUrl}` + `api/getAllTeamsByProjectId`,
@@ -562,8 +563,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/v2/timesheet/getLastThreeMonthsWorkingDates`,
     `${this.baseUrl}` + `api/auth/po/session-login`,
     `${this.baseUrl}` + `api/auth/po/verifyTokenOfPoPortalForDirectAccess`,
-
-
+    `${this.baseUrl}` + `api/validateIfAnyApprovedOrPendingTimesheetExist`,
     `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
     `${this.baseUrl}` + `api/getExtensionDocumentByName`,
     `${this.baseUrl}` + `api/validateDocName`,
@@ -572,10 +572,10 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
     `${this.baseUrl}` + `api/getExtensionDocumentByName`,
     `${this.baseUrl}` + `api/validateDocName`,
-    `${this.baseUrl}` + `api/validateDeleteSelectedTeams`
-
-
-  ];
+    `${this.baseUrl}` + `api/validateDeleteSelectedTeams`,
+    `${this.baseUrl}` + `api/getMappedSubFeatureList` 
+    
+  ]
 
   DYNAMIC_URL_whiteList = [
     `${this.baseUrl}` + `api/training/getTrainingContent/`,

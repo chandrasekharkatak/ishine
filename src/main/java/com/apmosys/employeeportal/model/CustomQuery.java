@@ -23,12 +23,13 @@ public class CustomQuery {
     @Column(name = "query_id")
     private Long queryId;
 
-    @Column(name = "query_name")
+    @Column(name = "query_name", columnDefinition = "TEXT")
     private String queryName;
 
-    @Column(name = "query_sql")
+    @Column(name = "query_sql", columnDefinition = "TEXT")
     private String querySql;
 
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     private int status;

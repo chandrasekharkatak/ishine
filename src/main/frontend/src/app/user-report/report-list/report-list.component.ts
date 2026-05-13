@@ -28,6 +28,7 @@ import { ResourceManagementService } from "src/app/services/resource-management.
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { LoaderService } from 'src/app/services/loader.service';
 import * as XLSX from 'xlsx';
 import { PageEvent } from "@angular/material/paginator";
 import { Subject } from 'rxjs';
@@ -37,6 +38,8 @@ class FilterData {
   title: any;
   columns: any;
   queryList: any;
+  useCustomQuery: true;      
+  customQuery: any; 
 }
 interface Project {
   projectId: string;
@@ -52,6 +55,9 @@ export class ReportListComponent implements OnInit {
 
   @ViewChild("alert_message")
   alertModal: TemplateRef<any>;
+
+  @ViewChild("filter")
+  filterModal: TemplateRef<any>;
 
   @ViewChild("alert_message_sync")
   alertModalSync: TemplateRef<any>;
@@ -335,6 +341,46 @@ dateRange: string; type: string; count: string;
 
   isRmgToggleViewVisible:boolean = false;
 
+
+  //Acl Redesign
+  aclAdvColumns = [
+    { column: 'Tab Name', value: [], distinctValues: [], searchText: '' },
+    { column: 'Feature', value: [], distinctValues: [], searchText: '' },
+    { column: 'Sub Feature', value: [], distinctValues: [], searchText: '' },
+    { column: 'blank' },
+    { column: 'blank' },
+    { column: 'blank' },
+    { column: 'blank' },
+    { column: 'blank' },
+    { column: 'blank' }
+  ];
+
+  advSearchFlag : boolean = false;
+  filteredDistinctValues: any = {};
+  selectedDepartments: string[] = [];
+  designationDropdown:boolean=false;
+  mappedDesignationList:any=[]
+  filteredDesignationsForDropdown:any = [];
+  selectedDesignations: string[] = [];
+  copyFinalColumns: any[] = [];
+  subFeatureListForDropdown: any[] = [];
+  selectedSubFeature: any []=[];
+  subFeatureListForDropdownCopy: any[] = [];
+  paginateDataCopy:any=[]
+  subFeatureSearch:boolean=false
+  disableUpdateButton:boolean =true;
+
+  personas = [
+  { label: 'Employee', value: 'Employee' },
+  { label: 'Team Lead', value: 'TeamLead' },
+  { label: 'Manager', value: 'Manager' },
+  { label: 'HR', value: 'HR' },
+  { label: 'RMG', value: 'RMG' },
+  { label: 'HOD', value: 'HOD' },
+  { label: 'Super Admin', value: 'SuperAdmin' }
+];
+
+
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: NgbModal,
@@ -350,7 +396,8 @@ dateRange: string; type: string; count: string;
     private departmentService: DepartmentService,
     private location: Location, private router: Router,
     private resourceManagementService: ResourceManagementService,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private loaderService: LoaderService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     const navigation = this.router.getCurrentNavigation();
@@ -403,6 +450,8 @@ dateRange: string; type: string; count: string;
 
     console.log("On ngOnInIt Toggle ",this.employeeReportObj);
   }
+
+  
 
   private refreshReportData(): void {
     console.log("Refreshing data with dept IDs:", this.employeeReportObj);
@@ -822,6 +871,23 @@ dateRange: string; type: string; count: string;
     }, 0);
   }
 
+  private isTeamExpanded(pIndex: number, tIndex: number): boolean {
+    return this.expandedTeams?.has(`${pIndex}-${tIndex}`) || false;
+  }
+
+  getVisibleRowspanForTeam(team: any, pIndex: number, tIndex: number): number {
+    const len = team?.mappedEmployeeDetails?.length || 0;
+    if (len <= 1) return len || 1;
+    return this.isTeamExpanded(pIndex, tIndex) ? len : 1;
+  }
+
+  getVisibleRowspanForProject(project: any, pIndex: number): number {
+    if (!project?.teamDetails) return 0;
+    return project.teamDetails.reduce((acc: number, team: any, tIndex: number) => {
+      return acc + this.getVisibleRowspanForTeam(team, pIndex, tIndex);
+    }, 0);
+  }
+
   poProjectSync(template: TemplateRef<any>) {
     this.employeeService.getPoProjectSync().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -888,6 +954,43 @@ dateRange: string; type: string; count: string;
   employeeList: any[] = [];
   projectList: any[] = [];
   projectSummary: any = {};
+
+  private computeFresherExperienceFromDoj(dateOfJoining: any): number {
+    if (!dateOfJoining) return 0;
+    const doj = moment(dateOfJoining, [moment.ISO_8601, 'DD-MM-YYYY', 'YYYY-MM-DD', AppComponent.DATE_FORMAT], true);
+    if (!doj.isValid()) {
+      const fallback = moment(new Date(dateOfJoining));
+      if (!fallback.isValid()) return 0;
+      const years = moment().diff(fallback, 'days') / 365.25;
+      return Number(Math.max(0, years).toFixed(1));
+    }
+    const years = moment().diff(doj, 'days') / 365.25;
+    return Number(Math.max(0, years).toFixed(1));
+  }
+
+  private applyExperienceForReport(employee: any): void {
+    if (!employee) return;
+    const expType = (employee.experience || '').toString().toLowerCase();
+    const rawTotal = employee.totalExperience;
+    const totalNum = rawTotal === null || rawTotal === undefined || rawTotal === '' ? NaN : Number(rawTotal);
+
+    // Rule:
+    // - Fresher: always show tenure since DOJ
+    // - Otherwise: if totalExperience is missing/0, show tenure since DOJ (prevents "0" UX)
+    // - Else: keep stored totalExperience
+    if (expType === 'fresher') {
+      employee.totalExperience = this.computeFresherExperienceFromDoj(employee.dateOfJoining);
+      return;
+    }
+
+    if (!Number.isFinite(totalNum) || totalNum === 0) {
+      const tenure = this.computeFresherExperienceFromDoj(employee.dateOfJoining);
+      if (tenure > 0) {
+        employee.totalExperience = tenure;
+      }
+    }
+  }
+
   getEmployeeReportData() {
     this.page = 1;
     this.employeeList = [];
@@ -904,6 +1007,7 @@ dateRange: string; type: string; count: string;
         this.employeeList.forEach(employee => {
           employee.emp360EmpId = employee.empId;
           employee.emp360ManagerId = employee.managerId;
+          this.applyExperienceForReport(employee);
 
         });
         this.projectList = res.getProjectToEmployeeReportForProjectDTO || [];
@@ -912,6 +1016,7 @@ dateRange: string; type: string; count: string;
             team.mappedEmployeeDetails.forEach(employee => {
               employee.emp360EmpId = employee.empId;
               employee.emp360ManagerId = project.projectManagerId;
+              this.applyExperienceForReport(employee);
             });
           });
         });
@@ -1476,6 +1581,9 @@ onSearchClientProject(searchData: any) {
     this.filters = {};
     this.isSearchEnabled = false;
 
+    this.employeeRole='';
+    this.resetAclAdv();
+
     const today = new Date();
     const oneMonthBefore = new Date();
     oneMonthBefore.setMonth(today.getMonth() - 1);
@@ -1527,6 +1635,9 @@ onSearchClientProject(searchData: any) {
     this.isLeaveTimesheetReportTable = false;
     this.filters = {};
     this.isSearchEnabled = false;
+
+    this.employeeRole='';
+    this.resetAclAdv();
 
     const today = new Date();
     const oneMonthBefore = new Date();
@@ -1590,7 +1701,8 @@ onSearchClientProject(searchData: any) {
     this.isLeaveTimesheetReportTable = false;
     this.filters = {};
     this.isSearchEnabled = false;
-
+    this.employeeRole='';
+    this.resetAclAdv();
 
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Employee Report') {
@@ -1625,6 +1737,7 @@ onSearchClientProject(searchData: any) {
     this.paginateData = [];
     this.finalColumns = [];
     this.toggleAccessList();
+    this.paginateDataCopy=[];
   }
 
   showLeaveTimesheetReportTable() {
@@ -1645,6 +1758,8 @@ onSearchClientProject(searchData: any) {
     this.filters = {};
     this.isSearchEnabled = false;
 
+    this.employeeRole='';
+    this.resetAclAdv();
     this.allLeaveTimesheets = [];
   }
 
@@ -1661,7 +1776,12 @@ onSearchClientProject(searchData: any) {
     this.isLeaveTimesheetReportTable = false;
     this.closeQueryModal();
     this.loadQueriesByRole();
-    this.showCustomQuery();
+    this.isSavedQuery = true;
+    this.showSavedQuery();
+    this.isSaveEnable = false;
+    this.employeeRole='';
+    this.resetAclAdv();
+
   }
 
   setRmgToggleViewVisible() {
@@ -1924,6 +2044,7 @@ onSearchClientProject(searchData: any) {
             employee.emp360Manager = employee.managerId;
             employee.emp360CreatedBy = employee.createdBy;
             employee.emp360UpdatedBy = employee.updatedBy;
+            this.applyExperienceForReport(employee);
           });
         } else {
           this.openAlertMod(template, response.serviceResponse)
@@ -1937,6 +2058,7 @@ onSearchClientProject(searchData: any) {
     this.showColumnList = [];
     this.hiddenColumnObj = [];
     this.getAllJobRoleList(this.employeeRole);
+    this.resetAclAdv();
   }
 
   getAllJobRoleList(persona: any) {
@@ -1946,7 +2068,8 @@ onSearchClientProject(searchData: any) {
     this.subfeatureList = [];
     this.paginateData = [];
     this.finalColumns = [];
-
+    this.subFeatureListForDropdown=[];
+    this.subFeatureListForDropdownCopy=[];
 
     this.jobRoleService.getAllSubFeatureList().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1983,6 +2106,22 @@ onSearchClientProject(searchData: any) {
             });
 
             this.finalColumns = final;
+            /* For maintaining the actual fetched data as this.finalColumns
+              is updated as per departments and designations selected from 
+              dropdown in ACL which then used to show data in UI */
+            this.copyFinalColumns = JSON.parse(JSON.stringify(final));
+            this.filteredDepartments = this.finalColumns.filter(c => !!c.header);
+            this.mappedDesignationList = [];
+
+            this.finalColumns.forEach(item => {
+              item.department.forEach(dep => {
+                this.mappedDesignationList.push({
+                  department: item.header || null,
+                  designation: dep.header,
+                });
+              });
+            });
+
             this.subfeatureList.forEach(subfeature => {
               let paginateDataItem = {}
 
@@ -1996,25 +2135,45 @@ onSearchClientProject(searchData: any) {
               });
               this.paginateData.push(paginateDataItem)
             });
+            if(!this.subFeatureSearch){
+                this.paginateDataCopy = JSON.parse(JSON.stringify(this.paginateData));}
+            
+            this.subFeatureListForDropdown = Array.from(
+              new Map(this.paginateData.map(item => [item.subfeatureId, { 
+                  subFeatureId: item.subfeatureId,
+                  subFeature: item.subFeature}])).values());
 
-            this.personaWiseJobRole.forEach((role) => {
-              this.employeeObj.jobRoleId = role.jobRoleId;
-              this.jobRoleService.getMappedSubFeatureList(this.employeeObj).pipe(first()).subscribe((response: any) => {
-                if (response.serviceStatus == "Success") {
-                  const mappedSubFeatures = response.serviceResponse;
-                  mappedSubFeatures.forEach(subFeature => {
-                    let mappedSubFeatureData = this.paginateData.find(data => {
-                      const subFeatureName = data.subFeature;
-                      if (subFeatureName == subFeature.subFeatureName)
-                        return data;
-                    });
-                    if (mappedSubFeatureData)
-                      mappedSubFeatureData[role.jobRoleId] = true;
-                  });
-                } else {
-                  console.error(response.serviceResponse);
-                }
-              });
+          this.subFeatureListForDropdownCopy = this.subFeatureListForDropdown;  
+          this.selectedDepartments; 
+          this.selectedDesignations; 
+          let selectedIds = this.selectedSubFeature.map(x => x.subFeatureId);
+          if (selectedIds.length > 0) {
+              this.paginateData = this.paginateData.filter(row =>
+                 selectedIds.includes(Number(row.subfeatureId)));                 
+            }
+
+          this.employeeObj.jobRoleIds = this.personaWiseJobRole.map(r => r.jobRoleId);  
+          this.jobRoleService.getMappedSubFeatureList(this.employeeObj)
+            .pipe(first())
+            .subscribe((resp: any) => {
+              if (resp.serviceStatus === "Success") {
+
+                let mappedList = resp.serviceResponse;
+                mappedList.forEach(sub => {
+                  let row = this.paginateData.find(d => d.subFeature === sub.subFeatureName);
+                  if (row) row[sub.jobRoleId] = true;
+                });
+
+                mappedList.forEach(sub => {
+                  let row = this.paginateDataCopy.find(d => d.subFeature === sub.subFeatureName);
+                  if (row) row[sub.jobRoleId] = true;
+                });
+                this.updateSelectAllCheckbox();
+                if (this.subFeatureSearch) {this.updateAclData();}
+
+              } else {
+                console.error(resp.serviceResponse);
+              }
             });
           } else {
             console.error(response.serviceResponse)
@@ -2070,6 +2229,9 @@ onSearchClientProject(searchData: any) {
         "subFeatureId": subFeatureId
       });
     }
+    if(this.updatedRoleSubFeature.length>0){
+      this.disableUpdateButton=false
+    }
   }
 
   updateJobRoleSubFeatureMapping(template: TemplateRef<any>) {
@@ -2080,6 +2242,11 @@ onSearchClientProject(searchData: any) {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.updatedRoleSubFeature = [];
+        this.getAllJobRoleList(this.employeeRole);
+        this.selectedDepartments = [];
+        this.selectedDesignations=[];
+        this.selectedSubFeature=[];
+        this.disableUpdateButton=true
       } else {
         this.openAlertMod(template, response.serviceResponse);
         this.updatedRoleSubFeature = [];
@@ -2111,15 +2278,28 @@ onSearchClientProject(searchData: any) {
     if (event.target.checked) {
       this.isAccessFeatureMapping = false;
       this.isDefaultFeatureMapping = true;
+      this.employeeRole='';
       this.showDefaultMappingTable();
+      this.finalColumns=[]
+      this.paginateData=[]
     } else {
       this.isAccessFeatureMapping = true;
       this.isDefaultFeatureMapping = false;
     }
+    this.resetAclAdv();
   }
 
   getDefaultMapping(template: TemplateRef<any>) {
-    this.jobRoleService.getDefaultMapping().pipe(first()).subscribe((response: any) => {
+  
+    let payload = this.aclAdvColumns
+    .filter(({ value }) => Array.isArray(value) ? value.length > 0 : !!value && String(value).trim() !== '')
+    .map(({ column, value }) => ({ column, value }));
+
+    if (payload.length === 0) {
+    payload = [{ column: 'none', value: [] }];}
+
+
+  this.jobRoleService.getDefaultMapping(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.defaultMappingList = response.serviceResponse;
         this.defaultMappingList.forEach((object) => {
@@ -2203,6 +2383,31 @@ onSearchClientProject(searchData: any) {
 
       return { ...x, tabSpan, featureSpan };
     });
+ 
+  if(!this.advSearchFlag) { 
+    this.aclAdvColumns[0].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.tabName)
+      .filter(Boolean))].map(v => ({ item: v }));
+    this.aclAdvColumns[1].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.featureName)
+      .filter(Boolean))].map(v => ({ item: v }));
+    this.aclAdvColumns[2].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.subFeatureName)
+      .filter(Boolean))].map(v => ({ item: v }));
+  
+
+  // this.aclAdvColumns[0].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.tabName).filter(Boolean))];
+  // this.aclAdvColumns[1].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.featureName).filter(Boolean))];
+  // this.aclAdvColumns[2].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.subFeatureName).filter(Boolean))];
+
+  this.aclAdvColumns.forEach(col => {
+    if (!this.filteredDistinctValues[col.column]) {
+      this.filteredDistinctValues[col.column] = [];
+    }
+    this.filteredDistinctValues[col.column].splice(
+      0,
+      this.filteredDistinctValues[col.column].length,
+      ...col.distinctValues
+    );
+  });
+  }
   }
 
   openFilterModal(template: TemplateRef<any>, columns: any[], title: any) {
@@ -2414,10 +2619,10 @@ onSearchClientProject(searchData: any) {
 
 
 /* Custom Query VARIABLES */
-isSidebarClosed = false; //for sidebar open close
+isSaveEnable = false; //for sidebar open close
 savedQueries: any[] = [];
 isSavedQuery = false;
-isCustomQuery = true;
+isCustomQuery = false;
 modalMode: 'create' | 'update' = 'create';
 selectedQuery: any = null;
 
@@ -2432,12 +2637,77 @@ filterText: string = '';
 columnFilters: any = {};
 previewData: any[] = [];
 isLoading = false;
+// Custom Query results: server-side mode
+isCustomQueryServerSide = true;
+customQueryTotalElements = 0;
+customQuerySortColumn: string | null = null;
+customQuerySortDirection: 'asc' | 'desc' | '' = '';
+customQuerySearchText = '';
+activeCustomQueryFilters: any[] = [];
+customQueryColumnSearch: any = {};
+isCustomQueryColumnSearchEnabled = false;
 duplicateError = '';
 groupedRoles: any[] = [];
 selectedRoleIds: number[] = [];
 roleSearchText: string = '';
 expandedEmpRoles: Set<string> = new Set();
 expandedDepts: Set<string> = new Set();
+// When true, we hide the editor once results are shown (used for "Run Query" from saved queries list).
+hideCustomQueryEditorOnPreview = false;
+
+/** Subset of `columns` to show in Custom Query results; empty = show all. Order follows `columns`. */
+visibleCustomQueryColumns: string[] = [];
+showColumnPicker = false;
+columnPickerSearch = '';
+columnPickerRows: { name: string; selected: boolean }[] = [];
+
+// Saved Queries table: search + pagination (independent from results pagination)
+savedQuerySearchText = '';
+savedQueryPage = 1;
+savedQueryPageSize = 10;
+savedQueryPageSizeOptions: number[] = [5, 10, 20, 30, 50, 100];
+savedQueriesFiltered: any[] = [];
+savedQueriesPaginated: any[] = [];
+
+clearSelectedRoles(): void {
+  this.selectedRoleIds = [];
+}
+
+private resetCustomQueryPreview(): void {
+  this.showPreview = false;
+  this.isSaveEnable = false;
+  this.columns = [];
+  this.tableData = [];
+  this.previewData = [];
+  this.filteredData = [];
+  this.paginateData = [];
+  this.showFilter = false;
+  this.filterRequest = [this.createRow()];
+  this.customQueryTotalElements = 0;
+  this.customQuerySortColumn = null;
+  this.customQuerySortDirection = '';
+  this.customQuerySearchText = '';
+  this.activeCustomQueryFilters = [];
+  this.customQueryColumnSearch = {};
+  this.isCustomQueryColumnSearchEnabled = false;
+  this.visibleCustomQueryColumns = [];
+  this.showColumnPicker = false;
+  this.columnPickerRows = [];
+  this.columnPickerSearch = '';
+}
+
+onCustomQueryTextChange(): void {
+  // If user edits query after a successful test, hide previous results and disable Save.
+  this.resetCustomQueryPreview();
+}
+
+// Query validation state (Update Query screen)
+isQueryValidated = false;
+isValidatingQuery = false;
+
+onQueryTextChange(): void {
+  this.isQueryValidated = false;
+}
 //for create query modules
 showQueryModal = false;
 queryForm: any = {
@@ -2454,6 +2724,8 @@ showCustomQuery(){
   this.isCustomQuery = true;
   this.showQueryModal = false;
   this.showPreview = false;
+  this.hideCustomQueryEditorOnPreview = false;
+  this.roleSearchText = '';
 }
 
 showSavedQuery(){
@@ -2461,14 +2733,28 @@ showSavedQuery(){
   this.isSavedQuery = true;
   this.showQueryModal = false;
   this.showPreview = false;
+  this.hideCustomQueryEditorOnPreview = false;
+  this.roleSearchText = '';
+  this.customQuery = '';
+  this.savedQuerySearchText = '';
+  this.savedQueryPage = 1;
   this.loadQueriesByRole();
 }
 
 /* SELECT QUERY */
 selectQuery(q: any) {
-  this.customQuery = q.querySql;
+  this.customQuery = q?.querySql;
+
+  // Switch UI to query editor + results area (otherwise the screen becomes blank).
   this.showCustomQuery();
-  this.showPreview=false;
+  // For saved query execution, show results-only view after load.
+  this.hideCustomQueryEditorOnPreview = true;
+
+  if (this.customQuery != '') {
+    // Use the actual alert template ref.
+    this.getCustomQueryData(this.alertModal);
+  }
+  this.isSavedQuery = false;
 }
 
 /* LOAD SAVED QUERIES BY ROLE ===== */
@@ -2484,11 +2770,71 @@ loadQueriesByRole() {
         } else {
           this.savedQueries = [];
         }
+        this.applySavedQueryFilters();
       },
       error: (err) => {
         console.error('Error loading queries', err);
+        this.savedQueries = [];
+        this.applySavedQueryFilters();
       }
     });
+}
+
+onSavedQuerySearchChange(): void {
+  this.savedQueryPage = 1;
+  this.applySavedQueryFilters();
+}
+
+applySavedQueryFilters(): void {
+  const text = (this.savedQuerySearchText || '').trim().toLowerCase();
+  const base = Array.isArray(this.savedQueries) ? this.savedQueries : [];
+
+  if (!text) {
+    this.savedQueriesFiltered = [...base];
+  } else {
+    this.savedQueriesFiltered = base.filter(q => {
+      const name = (q?.queryName || '').toString().toLowerCase();
+      const desc = (q?.description || '').toString().toLowerCase();
+      const sql = (q?.querySql || '').toString().toLowerCase();
+      return name.includes(text) || desc.includes(text) || sql.includes(text);
+    });
+  }
+
+  this.updateSavedQueryPagination();
+}
+
+changeSavedQueryPageSize(size: number): void {
+  if (size === -1) {
+    this.savedQueryPageSize = this.savedQueriesFiltered.length || 1;
+  } else {
+    this.savedQueryPageSize = size;
+  }
+  this.savedQueryPage = 1;
+  this.updateSavedQueryPagination();
+}
+
+updateSavedQueryPagination(): void {
+  const start = (this.savedQueryPage - 1) * this.savedQueryPageSize;
+  const end = start + this.savedQueryPageSize;
+  this.savedQueriesPaginated = (this.savedQueriesFiltered || []).slice(start, end);
+}
+
+nextSavedQueryPage(): void {
+  if (this.savedQueryPage < this.savedQueryTotalPages) {
+    this.savedQueryPage++;
+    this.updateSavedQueryPagination();
+  }
+}
+
+prevSavedQueryPage(): void {
+  if (this.savedQueryPage > 1) {
+    this.savedQueryPage--;
+    this.updateSavedQueryPagination();
+  }
+}
+
+get savedQueryTotalPages(): number {
+  return Math.ceil((this.savedQueriesFiltered?.length || 0) / this.savedQueryPageSize) || 1;
 }
 
 /* LOAD JOB ROLES=========== */
@@ -2516,6 +2862,9 @@ openQueryModal(mode: 'create' | 'update', query?: any) {
   this.isCustomQuery=false;
   this.isSavedQuery=false
   this.isCustomQueryForm = false;
+  this.roleSearchText = '';
+  this.isQueryValidated = false;
+  this.isValidatingQuery = false;
   this.loadJobRoles();
 
   if (mode === 'update' && query) {
@@ -2551,12 +2900,16 @@ closeQueryModal() {
     selectedRoles: []
   };
   this.isCustomQueryForm = true;
+  this.roleSearchText = '';
+  this.isQueryValidated = false;
+  this.isValidatingQuery = false;
   if(this.modalMode == 'create'){
     this.showCustomQuery();
   }else{ 
     this.showSavedQuery();
   }
   this.selectedQuery = null;
+  this.isSaveEnable = false;
 }
 
 validateQueryForm(): boolean {
@@ -2615,9 +2968,10 @@ saveQueryUI(template: TemplateRef<any>) {
     return;
   }
 
-  const roleIds = (this.queryForm.selectedRoles || [])
-  .map(r => r.jobRoleId)
-  .filter(id => id !== undefined && id !== null);
+  // const roleIds = (this.queryForm.selectedRoles || [])
+  // .map(r => r.jobRoleId)
+  // .filter(id => id !== undefined && id !== null);
+  const roleIds = this.selectedRoleIds || [];
 
   const payload = {
     query: {
@@ -2654,12 +3008,63 @@ saveQueryUI(template: TemplateRef<any>) {
     });
 }
 
+validateQuery(template: TemplateRef<any>): void {
+  const raw = (this.queryForm?.queryText || '').toString();
+  const sql = raw.trim().replace(/\s{2,}/g, ' ');
+
+  if (!sql) {
+    this.alertMessage = 'Please enter a query to validate.';
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+
+  if (!sql.toLowerCase().startsWith('select')) {
+    this.alertMessage = 'Query validation failed. Only SELECT queries are allowed.';
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+
+  this.isValidatingQuery = true;
+  this.isQueryValidated = false;
+
+  const queryObj = new Query();
+  queryObj.customQuery = sql;
+
+  this.utilityService.getCustomQueryData(queryObj).pipe(first()).subscribe({
+    next: (response: any) => {
+      this.isValidatingQuery = false;
+
+      if (response?.serviceStatus === 'Success') {
+        this.isQueryValidated = true;
+        this.alertMessage = 'Query validated successfully. You can now click Update.';
+        this.openAlertMod(template, this.alertMessage);
+        return;
+      }
+
+      this.alertMessage =
+        'Query validation failed. Please check the SQL syntax and ensure the query returns data.';
+      this.openAlertMod(template, this.alertMessage);
+    },
+    error: () => {
+      this.isValidatingQuery = false;
+      this.alertMessage =
+        'Query validation failed due to a system error. Please try again.';
+      this.openAlertMod(template, this.alertMessage);
+    }
+  });
+}
 
 /* UPDATE QUERY */
 updateQueryUI(template: TemplateRef<any>) {
 
   if (!this.selectedQuery?.queryId) return;
   if (!this.validateQueryForm()) return;
+
+  if (!this.isQueryValidated) {
+    this.alertMessage = 'Please validate the query first, then click Update.';
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
 
   const roleIds = this.selectedRoleIds || [];
 
@@ -2837,6 +3242,8 @@ get filteredGroupedRoles() {
 getCustomQueryData(template: TemplateRef<any>) {
 
   this.customQuery = this.customQuery?.trim().replace(/\s{2,}/g, ' ');
+  // Always clear previous results before re-testing.
+  this.resetCustomQueryPreview();
 
   if (!this.customQuery.toLowerCase().startsWith('select')) {
     this.alertMessage = "Only SELECT queries are allowed";
@@ -2850,75 +3257,120 @@ getCustomQueryData(template: TemplateRef<any>) {
     return;
   }
 
+  // Server-side: load first page
+  this.currentPage = 1;
+  this.activeCustomQueryFilters = [];
+  this.customQuerySortColumn = null;
+  this.customQuerySortDirection = '';
+  this.customQuerySearchText = '';
+  this.loadCustomQueryPage(template);
+}
+
+private buildSelectedColumnsForRequest(): string {
+  const cols = this.visibleCustomQueryColumns?.length ? this.visibleCustomQueryColumns : [];
+  if (!cols.length) return '';
+  return cols.map((c) => `temp.${c}`).join(',');
+}
+
+loadCustomQueryPage(template: TemplateRef<any>): void {
   this.isLoading = true;
 
-  const queryObj = new Query();
-  queryObj.customQuery = this.customQuery;
+  const payload: any = {
+    customQuery: this.customQuery,
+    customQueryFilters: this.activeCustomQueryFilters || [],
+    selectedColumns: this.buildSelectedColumnsForRequest(),
+    page: this.currentPage,
+    size: this.pageSize,
+    sortColumn: this.customQuerySortColumn,
+    sortDirection: this.customQuerySortDirection,
+    searchText: (this.customQuerySearchText || '').trim(),
+    columnSearch: this.isCustomQueryColumnSearchEnabled ? (this.customQueryColumnSearch || {}) : {}
+  };
 
-  this.utilityService.getCustomQueryData(queryObj)
+  const api$ = (this.activeCustomQueryFilters && this.activeCustomQueryFilters.length)
+    ? this.utilityService.getFilteredQueryDataPaged(payload)
+    : this.utilityService.getCustomQueryDataPaged(payload);
+
+  api$
     .pipe(first())
     .subscribe({
       next: (response: any) => {
-
         this.isLoading = false;
 
         if (response.serviceStatus !== "Success") {
-          this.alertMessage = "Something was wrong please try again.";
+          this.alertMessage = response.serviceResponse;
           this.openAlertMod(template, this.alertMessage);
+          this.resetCustomQueryPreview();
           return;
         }
 
-        const data = response.serviceResponse;
+        const pageDto = response.serviceResponse;
+        const headers: string[] = pageDto?.headers || [];
+        const rows: any[] = pageDto?.rows || [];
 
-        if (!data || data.length === 0) {
-          this.alertMessage = "No data available, please check query.";
-          this.openAlertMod(template, this.alertMessage);
-          return;
-        }
-
-        const headers: string[] = data[0];
-
-        this.tableData = [];
-        this.previewData = [];
-
-        for (let i = 1; i < data.length; i++) {
-          const row = data[i];
-          const obj: any = {};
-
-          headers.forEach((header, index) => {
-            obj[header] = row[index] ?? null;
-          });
-
-          this.tableData.push(obj);
-          this.previewData.push({ ...obj });
-        }
-
+        this.customQueryTotalElements = Number(pageDto?.totalElements || 0);
         this.columns = [...headers];
-        this.filteredData = [...this.tableData];
-        this.currentPage = 1;
 
-        this.updatePagination();
+        this.tableData = rows.map((r: any[]) => {
+          const obj: any = {};
+          headers.forEach((h, idx) => {
+            obj[h] = r?.[idx] ?? null;
+          });
+          return obj;
+        });
+
+        // In server-side mode, filteredData is the current page (for existing table binding).
+        this.filteredData = [...this.tableData];
+        this.paginateData = [...this.tableData];
+
         this.showPreview = true;
-      },error: () => {
+        this.isSaveEnable = true;
+      },
+      error: () => {
         this.isLoading = false;
+        this.resetCustomQueryPreview();
       }
     });
+}
+
+toggleCustomQueryColumnSearch(): void {
+  this.isCustomQueryColumnSearchEnabled = !this.isCustomQueryColumnSearchEnabled;
+  if (!this.isCustomQueryColumnSearchEnabled) {
+    this.customQueryColumnSearch = {};
+    this.currentPage = 1;
+    this.loadCustomQueryPage(this.alertModal);
+  }
+}
+
+onSearchForCustomQueryColumnFilters(searchData: any): void {
+  this.customQueryColumnSearch = searchData || {};
+  this.currentPage = 1;
+  this.loadCustomQueryPage(this.alertModal);
 }
 
 
 /* PAGINATION */
 changePageSize(size: number) {
   if (size === -1) {
-    this.pageSize = this.filteredData.length; // ALL
+    // Server-side: cap to total elements (still fetches one page)
+    this.pageSize = Math.max(1, Math.min(this.customQueryTotalElements || 1, 500));
   } else {
     this.pageSize = size;
   }
   this.currentPage = 1;
+  if (this.isCustomQueryServerSide && this.showPreview) {
+    this.loadCustomQueryPage(this.alertModal);
+    return;
+  }
   this.updatePagination();
 }
 updatePagination() {
   if (!this.filteredData) {
     this.filteredData = [];
+  }
+  if (this.isCustomQueryServerSide && this.showPreview) {
+    this.paginateData = [...(this.tableData || [])];
+    return;
   }
   const start = (this.currentPage - 1) * this.pageSize;
   const end = start + this.pageSize;
@@ -2928,6 +3380,10 @@ updatePagination() {
 nextPage() {
   if (this.currentPage < this.totalPages) {
     this.currentPage++;
+    if (this.isCustomQueryServerSide && this.showPreview) {
+      this.loadCustomQueryPage(this.alertModal);
+      return;
+    }
     this.updatePagination();
   }
 }
@@ -2935,31 +3391,132 @@ nextPage() {
 prevPage() {
   if (this.currentPage > 1) {
     this.currentPage--;
+    if (this.isCustomQueryServerSide && this.showPreview) {
+      this.loadCustomQueryPage(this.alertModal);
+      return;
+    }
     this.updatePagination();
   }
 }
 
 get totalPages(): number {
+  if (this.isCustomQueryServerSide && this.showPreview) {
+    return Math.ceil((this.customQueryTotalElements || 0) / (this.pageSize || 10)) || 1;
+  }
   return Math.ceil(this.filteredData.length / this.pageSize) || 1;
 }
 /* Export Excel Data */
 downloadPreviewExcel(template : TemplateRef<any>) {
 
   if (!this.tableData || this.tableData.length === 0) {
-    this.alertMessage('No data to export');
+    this.alertMessage = 'No data to export';
     this.openAlertMod(template, this.alertMessage);
     return;
   }
-  const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.tableData);
+  const cols = this.customQueryDisplayColumns;
+  const exportRows = this.tableData.map((row: any) => {
+    const o: any = {};
+    cols.forEach((c) => {
+      o[c] = row[c];
+    });
+    return o;
+  });
+  const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportRows);
   const workbook: XLSX.WorkBook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'AllData');
   XLSX.writeFile(workbook, 'CustomQueryData.xlsx');
+}
+
+/** Columns shown in the Custom Query results table (and Excel export). */
+get customQueryDisplayColumns(): string[] {
+  const all = this.columns || [];
+  if (!this.visibleCustomQueryColumns?.length) {
+    return [...all];
+  }
+  const wanted = this.visibleCustomQueryColumns.filter((c) => all.includes(c));
+  return wanted.length ? wanted : [...all];
+}
+
+openColumnPicker(): void {
+  this.showFilter = false;
+  this.modalRef?.close();
+  const cols = this.columns || [];
+  this.columnPickerSearch = '';
+  this.columnPickerRows = cols.map((name) => ({
+    name,
+    selected: !this.visibleCustomQueryColumns?.length || this.visibleCustomQueryColumns.includes(name)
+  }));
+  this.showColumnPicker = true;
+}
+
+closeColumnPicker(): void {
+  this.showColumnPicker = false;
+}
+
+/** Human-readable label for DB-style column keys (e.g. `dept_color_code` → "Dept color code"). */
+formatColumnFieldLabel(field: string): string {
+  if (field == null || field === '') {
+    return '';
+  }
+  return String(field)
+    .split(/[_\s]+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+}
+
+get columnPickerSelectedCount(): number {
+  return (this.columnPickerRows || []).filter((r) => r.selected).length;
+}
+
+get columnPickerFilteredList(): { name: string; selected: boolean }[] {
+  const q = (this.columnPickerSearch || '').trim().toLowerCase();
+  if (!q) {
+    return this.columnPickerRows;
+  }
+  return this.columnPickerRows.filter((r) => {
+    if (r.name.toLowerCase().includes(q)) {
+      return true;
+    }
+    return this.formatColumnFieldLabel(r.name).toLowerCase().includes(q);
+  });
+}
+
+columnPickerSelectAll(): void {
+  this.columnPickerRows.forEach((r) => {
+    r.selected = true;
+  });
+}
+
+columnPickerClearAll(): void {
+  this.columnPickerRows.forEach((r) => {
+    r.selected = false;
+  });
+}
+
+applyColumnPicker(): void {
+  const picked = this.columnPickerRows.filter((r) => r.selected).map((r) => r.name);
+  const all = this.columns || [];
+  if (!picked.length || picked.length >= all.length) {
+    this.visibleCustomQueryColumns = [];
+  } else {
+    this.visibleCustomQueryColumns = all.filter((c) => picked.includes(c));
+  }
+  this.showColumnPicker = false;
 }
 
 /* sort the filtered data as per asc or  */
 onSort(event: any) {
   const { active, direction } = event;
   if (!direction) return;
+
+  if (this.isCustomQueryServerSide && this.showPreview) {
+    this.customQuerySortColumn = active;
+    this.customQuerySortDirection = direction;
+    this.currentPage = 1;
+    this.loadCustomQueryPage(this.alertModal);
+    return;
+  }
 
   this.filteredData.sort((a: any, b: any) => {
     let valA = a[active];
@@ -2981,6 +3538,236 @@ onSort(event: any) {
 
   this.updatePagination();
 }
+
+
+//Custom Query Filter Start
+// ===== UI CONTROL =====
+showFilter = false;
+/** Exposed for filter UI tooltip — cap distinct values in Value dropdown. */
+customQueryFilterValueOptionsCap = 2000;
+/** Stable row id so *ngFor can rebuild selects after reset (avoids stuck ngModel UI). */
+private customFilterRowSeq = 0;
+operatorList = [
+  { name: 'Equals', symbol: 'equals' },
+  { name: 'Not Equals', symbol: 'not_equals' },
+  { name: 'Contains', symbol: 'contains' },
+  { name: 'Not Contains', symbol: 'not_contains' },
+  { name: 'Starts With', symbol: 'starts_with' },
+  { name: 'Ends With', symbol: 'ends_with' },
+
+  { name: 'Greater Than', symbol: 'gt' },
+  { name: 'Greater Than Equals', symbol: 'gte' },
+  { name: 'Less Than', symbol: 'lt' },
+  { name: 'Less Than Equals', symbol: 'lte' },
+
+  { name: 'Between', symbol: 'between' },
+
+  { name: 'In', symbol: 'in' },
+  { name: 'Not In', symbol: 'not_in' },
+
+  { name: 'Is Null', symbol: 'is_null' },
+  { name: 'Is Not Null', symbol: 'is_not_null' }
+];
+filterRequest: any[] = [this.createRow()];
+createRow() {
+  return {
+    _rid: ++this.customFilterRowSeq,
+    column: '',
+    operator: '',
+    conjunction: 'AND',
+    value: '',
+    valueTo: '',
+    valueOptionList: []
+  };
+}
+
+trackByCustomFilterRow(_index: number, row: any): number {
+  return row._rid;
+}
+
+openFilter(template?: TemplateRef<any>) {
+  this.openCustomQueryFilter(template);
+}
+
+openCustomQueryFilter(template?: TemplateRef<any>): void {
+  this.showColumnPicker = false;
+  if (!this.columns?.length) {
+    this.alertMessage = 'Run a query first to load columns for filtering.';
+    if (template) {
+      this.openAlertMod(template, this.alertMessage);
+    }
+    return;
+  }
+  if (!this.filterRequest?.length) {
+    this.filterRequest = [this.createRow()];
+  }
+  this.showFilter = true;
+}
+
+closeCustomQueryFilter(): void {
+  this.showFilter = false;
+}
+
+resetCustomQueryFilterForm(event?: MouseEvent): void {
+  event?.stopPropagation();
+  event?.preventDefault();
+  // Dismiss validation/info modal so it cannot swallow clicks or mask a stale form state.
+  this.modalRef?.close();
+  this.filterRequest = [this.createRow()];
+  this.submit(this.alertModal);
+}
+
+cancel() {
+  this.closeCustomQueryFilter();
+}
+
+// ===== ADD / REMOVE =====
+addFilter(index: number) {
+  this.filterRequest.splice(index + 1, 0, this.createRow());
+  if (this.filterRequest?.length) {
+    this.filterRequest[0].conjunction = 'AND';
+  }
+}
+
+removeFilter(index: number) {
+  this.filterRequest.splice(index, 1);
+  if (!this.filterRequest.length) {
+    this.filterRequest = [this.createRow()];
+  }
+}
+
+onCustomQueryFilterOperatorChange(query: any): void {
+  query.value = '';
+  query.valueTo = '';
+  // Keep valueOptionList — it comes from the selected column / result set.
+}
+
+/**
+ * Distinct non-empty cell values for `columnKey` from the current query result rows (`tableData`).
+ */
+private buildDistinctColumnValuesFromResults(columnKey: string): string[] {
+  const key = (columnKey || '').toString().trim();
+  if (!key || !Array.isArray(this.tableData) || !this.tableData.length) {
+    return [];
+  }
+
+  const seen = new Set<string>();
+  const out: string[] = [];
+
+  for (const row of this.tableData) {
+    if (row == null || typeof row !== 'object') continue;
+    const raw = row[key];
+    if (raw === undefined || raw === null) continue;
+    const s = String(raw).trim();
+    if (s === '') continue;
+    if (seen.has(s)) continue;
+    seen.add(s);
+    out.push(s);
+    if (out.length >= this.customQueryFilterValueOptionsCap) {
+      break;
+    }
+  }
+
+  if (out.length) {
+    const numericLike = out.every((v) => v !== '' && !Number.isNaN(Number(v)));
+    if (numericLike) {
+      out.sort((a, b) => Number(a) - Number(b));
+    } else {
+      out.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+    }
+  }
+
+  return out;
+}
+
+// ===== COLUMN CHANGE: value list from current result set =====
+onCustomQueryFilterColumnChange(query: any): void {
+  if (!query?.column) {
+    query.valueOptionList = [];
+    query.value = '';
+    query.valueTo = '';
+    return;
+  }
+
+  query.value = '';
+  query.valueTo = '';
+  // Server-side: fetch distinct values from DB (works with large datasets)
+  const payload: any = {
+    customQuery: this.customQuery,
+    column: query.column,
+    limit: this.customQueryFilterValueOptionsCap,
+    customQueryFilters: this.activeCustomQueryFilters || []
+  };
+
+  query.valueOptionList = [];
+  this.utilityService.getCustomQueryDistinctValues(payload)
+    .pipe(first())
+    .subscribe({
+      next: (res: any) => {
+        if (res && res.serviceStatus === 'Success') {
+          query.valueOptionList = res.serviceResponse || [];
+        } else {
+          query.valueOptionList = [];
+        }
+      },
+      error: () => {
+        query.valueOptionList = [];
+      }
+    });
+}
+
+// ===== SUBMIT =====
+submit(template: TemplateRef<any>) {
+
+  const rows = (this.filterRequest || []).map((q: any) => ({
+    column: (q.column || '').toString().trim(),
+    operator: (q.operator || '').toString().trim(),
+    conjunction: (q.conjunction || 'AND').toString().trim().toUpperCase(),
+    value: q.value,
+    valueTo: q.valueTo
+  }));
+
+  const customQueryFilters = rows
+    .filter((q) => q.column && q.operator)
+    .filter((q) => /^[a-zA-Z0-9_]+$/.test(q.column))
+    .filter((q) => {
+      if (q.operator === 'is_null' || q.operator === 'is_not_null') {
+        return true;
+      }
+      if (q.operator === 'between') {
+        return this.validationService.validateNullUndefinedEmptyString(q.value)
+          && this.validationService.validateNullUndefinedEmptyString(q.valueTo);
+      }
+      if (q.operator === 'in' || q.operator === 'not_in') {
+        return this.validationService.validateNullUndefinedEmptyString(q.value);
+      }
+      return this.validationService.validateNullUndefinedEmptyString(q.value);
+    })
+    .map((q) => ({
+      column: q.column,
+      operator: q.operator,
+      conjunction: (q.conjunction === 'OR') ? 'OR' : 'AND',
+      value: q.value ?? '',
+      valueTo: q.operator === 'between' ? (q.valueTo ?? '') : ''
+    }));
+
+  // No valid filter rows (e.g. after "Reset rows"): clear filters and reload full server-side results.
+  if (!customQueryFilters.length) {
+    this.showFilter = false;
+    this.activeCustomQueryFilters = [];
+    this.currentPage = 1;
+    this.loadCustomQueryPage(template);
+    return;
+  }
+
+  // Server-side: apply filters and reload page 1
+  this.activeCustomQueryFilters = customQueryFilters;
+  this.currentPage = 1;
+  this.showFilter = false;
+  this.loadCustomQueryPage(template);
+}
+
+
 
 
   // getCustomQueryData(template: TemplateRef<any>) {
@@ -3320,7 +4107,7 @@ handlePageChange1(event) {
         }
       });
 
-      fieldData.push(departments, designations, ...this.paginateData);
+      fieldData.push(departments, designations, ...this.paginateDataCopy);
 
       const onlySpecificDataArr = fieldData.map(response => {
         let data = {};
@@ -4799,6 +5586,234 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
       this.showTimesheetReportTable();
     }
   }
+  onAclAdvSearch(selectBox?: any,type?:any){ 
+    this.loaderService.requestStarted();
+    setTimeout(() => {
+      try {
+        this.performAclAdvSearch(selectBox, type);
+      } finally {
+        this.loaderService.requestEnded();
+      }
+    }, 0);
+  }
+
+  private performAclAdvSearch(selectBox?: any,type?:any){
+    if(type=='departmentSearch'){
+
+    if(this.selectedDepartments.length>0) {
+      this.designationDropdown=true;
+    }else{    
+      this.designationDropdown=false } 
+    this.searchText = '';
+
+    const filtered = this.mappedDesignationList
+    .filter(item => item.department && this.selectedDepartments.includes(item.department))
+    .map(item => item.designation);
+    
+  this.filteredDesignationsForDropdown = Array.from(new Set(filtered))
+  .map(desig => ({
+    desig: desig
+  }));
+
+    this.updateAclData()
+    
+    }else if(type=='designationSearch'){
+        this.updateAclData()
+    }else if(type=='subFeatureSearch'){
+        this.subFeatureSearch=true;
+        this.getAllJobRoleList(this.employeeRole);
+      console.log("selectedSubFeature===>>",this.selectedSubFeature)
+        this.updateAclData()
+    }else{
+      this.advSearchFlag=true;  
+      this.getDefaultMapping(this.alertModal);
+    }
+    this.updateSelectAllCheckbox();
+}
+
+updateAclData(){
+  const filteredFinalColumns = this.copyFinalColumns.map(item => {
+    if (item.header === undefined) {
+      return item;
+    }
+   
+  const hasSelectedDepartments = this.selectedDepartments?.length > 0;
+  const hasSelectedDesignations = this.selectedDesignations?.length > 0;
+
+  // Include all departments if none are selected
+  const isDeptSelected = !hasSelectedDepartments || this.selectedDepartments.includes(item.header);
+
+  if (isDeptSelected) {
+    const filteredDepartment = !hasSelectedDesignations
+      ? item.department
+      : item.department.filter(dep => this.selectedDesignations.includes(dep.header));
+      if (hasSelectedDesignations && filteredDepartment.length === 0) {return null;}
+
+    return { ...item,department: filteredDepartment};
+    }
+      return null;
+    })
+    .filter(item => item !== null); 
+    this.finalColumns=filteredFinalColumns
+    
+}
+
+filterValues(col: any) {
+  this.filteredDistinctValues[col.column] = col.distinctValues.filter((item: string) =>
+    item.toLowerCase().includes(col.searchText.toLowerCase())
+  );
+}
+
+clearAclSelection(col: any, event: Event) {
+  event.stopPropagation();
+  col.value = [];
+}
+
+resetAclAdv(){
+  this.aclAdvColumns[0].value = [];
+  this.aclAdvColumns[1].value = [];
+  this.aclAdvColumns[2].value = [];
+  this.isSearchEnabled=false;
+  this.advSearchFlag=false;
+  this.searchText = '';
+  this.selectedDepartments=[];
+  this.selectedDesignations=[];
+  this.selectedSubFeature=[];
+  this.designationDropdown=false
+  this.subFeatureSearch=false
+  this.disableUpdateButton=true
+}
+
+filterAclDeptDesign(type:string) {
+  const search = this.searchText.toLowerCase().trim();
+  if(type=='Dept'){
+      this.filteredDepartments = this.finalColumns
+        .filter(c => !!c.header) 
+        .filter(c => c.header.toLowerCase().includes(search));
+  }else if(type=='Desig'){
+      this.filteredDesignationsForDropdown = this.filteredDesignationsForDropdown
+          .filter(c=>c.toLowerCase().includes(search))   
+  }else{
+      this.subFeatureListForDropdown = this.subFeatureListForDropdownCopy
+        .filter((c: any) => c.subFeature.toLowerCase().includes(search));
+        }
+}
+
+clearDepartmentSelection(event: Event,type:string) {
+  event.stopPropagation();
+  if(type=='Dept'){
+    this.selectedDepartments = [];
+    this.selectedDesignations=[];
+    this.finalColumns=this.copyFinalColumns
+    this.designationDropdown=false
+  }else if(type=='Desig'){
+    this.selectedDesignations=[];
+  }else {
+    this.subFeatureSearch=false
+    this.selectedSubFeature=[];
+    this.paginateData = JSON.parse(JSON.stringify(this.paginateDataCopy));
+    this.subFeatureListForDropdown = JSON.parse(JSON.stringify(this.subFeatureListForDropdownCopy));
+  }
+  this.searchText = '';
+}
+
+applyAclDropdownFilter(selectBox: any, type: string): void {
+  this.onAclAdvSearch(selectBox, type);
+}
+
+clearAclDropdownFilter(type: string): void {
+  this.loaderService.requestStarted();
+  setTimeout(() => {
+    try {
+      if (type === 'Dept') {
+        this.selectedDepartments = [];
+        this.selectedDesignations = [];
+        this.designationDropdown = false;
+        this.filteredDesignationsForDropdown = [];
+        this.finalColumns = this.copyFinalColumns;
+      } else if (type === 'Desig') {
+        this.selectedDesignations = [];
+      } else {
+        this.selectedSubFeature = [];
+        this.subFeatureSearch = false;
+        this.paginateData = JSON.parse(JSON.stringify(this.paginateDataCopy));
+        this.subFeatureListForDropdown = JSON.parse(JSON.stringify(this.subFeatureListForDropdownCopy));
+      }
+      this.updateAclData();
+      this.updateSelectAllCheckbox();
+    } finally {
+      this.loaderService.requestEnded();
+    }
+  }, 0);
+}
+
+confirmAndUpdateACL(template: TemplateRef<any>): void {
+  this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
+}
+
+proceedAclUpdate(template: TemplateRef<any>): void {
+  this.cancelRequest();
+  this.updateJobRoleSubFeatureMapping(template);
+}
+
+compareSubFeature(a: any, b: any): boolean {
+  return a?.subFeatureId === b?.subFeatureId;
+}
+
+selectAllACLSubFeature(row: any) {
+  const subId = row.subfeatureId;
+  this.disableUpdateButton=false
+  const numericFields: string[] = [];
+  this.finalColumns.forEach(col => {
+    col.department.forEach(dep => {
+      if (/^\d+$/.test(dep.field)) {
+        numericFields.push(dep.field);
+      }
+    });
+  });
+
+  numericFields.forEach(field => {
+    row[field] = row.selectAll;
+    this.updateRoleSubFeature(field, subId, row.selectAll);
+  });
+}
+
+
+updateRoleSubFeature(jobRoleId: any, subFeatureId: number, isAssigned: boolean) {
+
+  const index = this.updatedRoleSubFeature.findIndex(
+    x => x.subFeatureId === subFeatureId && x.jobRoleId === jobRoleId
+  );
+
+  if (index >= 0) {
+    if (this.updatedRoleSubFeature[index].isAssigned === isAssigned) {
+      this.updatedRoleSubFeature.splice(index, 1);
+    } else {
+      this.updatedRoleSubFeature[index].isAssigned = isAssigned;
+    }
+  } else {
+    this.updatedRoleSubFeature.push({
+      jobRoleId: jobRoleId,
+      subFeatureId: subFeatureId,
+      isAssigned: isAssigned
+    });
+  }
+}
+
+updateSelectAllCheckbox() {
+  if (!this.paginateData?.length) return;
+
+  const fields = this.finalColumns
+    .slice(1) 
+    .reduce((acc: any[], c: any) => acc.concat(c.department), [])
+    .map((d: any) => d.field);
+
+  this.paginateData.forEach(row => {
+    row.selectAll = fields.every(f => row[f] === true);
+  });
+}
+
+
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {

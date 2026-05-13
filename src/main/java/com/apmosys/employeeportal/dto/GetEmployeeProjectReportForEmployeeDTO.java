@@ -47,5 +47,7 @@ public class GetEmployeeProjectReportForEmployeeDTO {
     private String effectiveStartDate;
     private String effectiveEndDate;
     private String employeementIdAccToET;
+    private String experience;
+    private String dateOfJoining;
 
 }

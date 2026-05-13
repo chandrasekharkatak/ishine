@@ -3,6 +3,7 @@
   width: auto !important;
   min-width: 240px !important;
   max-width: calc(100vw - 24px) !important;
+  margin-top: 2px !important;
 }
 
 ::ng-deep .mat-mdc-option {
@@ -51,4 +52,18 @@
    display: none !important;
  }
 
-/* If you want single-line options, change white-space back to nowrap above. */
+::ng-deep .wrapped-select-panel .mat-mdc-option {
+  height: auto !important;
+  min-height: 36px !important;
+  line-height: 1.35 !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+::ng-deep .wrapped-select-panel .mdc-list-item__primary-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: break-word !important;
+  line-height: 1.35 !important;
+}

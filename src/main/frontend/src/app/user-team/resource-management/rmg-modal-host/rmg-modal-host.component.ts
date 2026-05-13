@@ -6,7 +6,7 @@ import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { Sort } from '@angular/material/sort';
 import { GlobalRightDrawerService } from 'src/app/services/global-right-drawer.service';
-import { ResultType } from 'src/app/services/employee-project.service';
+import { EmployeeProjectService, ResultType } from 'src/app/services/employee-project.service';
 import * as moment from 'moment';
 import { RmgTeamMember } from 'src/app/models/rmgTeamMember';
 
@@ -101,6 +101,7 @@ export class RmgModalHostComponent {
     private modalService: NgbModal,
     private appModalService: AppModalService,
     private drawerService: GlobalRightDrawerService,
+    private employeeProjectService: EmployeeProjectService
   ) { }
 
   ngOnInit() {
@@ -168,6 +169,7 @@ export class RmgModalHostComponent {
         this.employeeProjectEndDateType = 'Custom';
         this.employeeProjectEndDate = null;
         this.deleteEmployeeExistingProjectMappingObj = data;
+        this.deleteEmployeeExistingProjectMappingObj.removePermanently= false;
         template = this.deleteEmployeeFromExistingProjectTemplateRef;
         break;
 
@@ -263,6 +265,12 @@ export class RmgModalHostComponent {
     else if (selectedValue === 'Custom') {
       this.employeeProjectEndDate = null;
 
+    }
+  }
+
+  async onRemovePermanentlyChecked(isChecked: boolean, data: any) {
+    if (isChecked) {
+      const response: any = await this.employeeProjectService.validateIfAnyApprovedOrPendingTimesheetExist(data.projectId, data.empId, data.etmId);
     }
   }
 

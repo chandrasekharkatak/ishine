@@ -32,8 +32,23 @@ public class BioMaTO {
     private Long empId;
 	private String departmentName;
 	private String reportingManagerName;
+	private String employeeEmail;
     
     
+    public void setEmployeeEmail(String employeeEmail) {
+    	this.employeeEmail = employeeEmail;
+    }
+    public String getEmployeeEmail() {
+    	return employeeEmail;
+    }
+    private String reportingManagerEmail;
+    
+    public void setReportingManagerEmail(String reportingManagerEmail) {
+    	this.reportingManagerEmail = reportingManagerEmail;
+    }
+    public String getReportingManagerEmail() {
+    	return reportingManagerEmail;
+    }
     public void setDeduct(String deduct) {
     	this.deduct = deduct;
     }

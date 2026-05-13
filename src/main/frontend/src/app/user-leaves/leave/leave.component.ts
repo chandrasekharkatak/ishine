@@ -1980,11 +1980,29 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
 
     let leaveObj = new Leave();
     leaveObj.employeementId = this.leaveObj.employeementId;
-    if (this.currentUser.isApmosysProduct === 'true') {
-      leaveObj.employeeType = 'Apmosys Product';
-    } else {
-      leaveObj.employeeType = 'Other';
-    }
+     let employeeTypeSource: any;
+
+  if (this.leaveObj.leaveAppliedFor == 'self') {
+
+    employeeTypeSource = this.currentUser;
+
+  } else {
+
+    employeeTypeSource = this.teamMemberList.find(
+      employee => employee.empId == this.leaveObj.empId
+    );
+
+  }
+
+  if (employeeTypeSource?.isApmosysProduct === 'true') {
+
+    leaveObj.employeeType = 'Apmosys Product';
+
+  } else {
+
+    leaveObj.employeeType = 'Other';
+
+  }
     this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveBalanceList = response.serviceResponse;

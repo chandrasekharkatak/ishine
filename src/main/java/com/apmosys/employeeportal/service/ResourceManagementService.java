@@ -144,6 +144,7 @@ import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
 import com.apmosys.employeeportal.dto.RmgProjectDto;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
+import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.SkippedEmployeeDTO;
 import com.apmosys.employeeportal.dto.SpocDTO;
@@ -289,6 +290,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
+	
+	@Autowired
+	private TeamMembersService teamMembersService;
 
 	@Autowired
 	EmployeeRepository employeeRepository;
@@ -4735,7 +4739,80 @@ public class ResourceManagementService {
 				return response;
 			}
 
-			disableActiveTeamsAndMembers(projectObj, resourceManagementDTO.getUpdatedBy(), logBuilder);
+			// Validate active resources against completion date (block if any active start date is after completion date)
+			LocalDate completionDate;
+			try {
+				completionDate = LocalDate.parse(resourceManagementDTO.getProjectCompletionDate());
+			} catch (Exception ex) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid Project Completion Date format. Expected yyyy-MM-dd.");
+				return response;
+			}
+
+			List<EmployeeTeamMap> activeEtms = employeeTeamMapRepository.findByProjectIdAndActive(projectObj.getProjectId(), 1L);
+			boolean invalidFutureStartExists = activeEtms != null && activeEtms.stream()
+					.anyMatch(etm -> etm != null && etm.getStartDate() != null
+							&& etm.getStartDate().toLocalDate().isAfter(completionDate));
+			if (invalidFutureStartExists) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("RESOURCE_START_DATE_AFTER_COMPLETION_DATE");
+				response.setServiceResponse1(
+						"There are resource(s) mapped to this project whose start date is greater than the selected completion date. Please resolve it to continue.");
+				return response;
+			}
+
+			// Inactivate active mappings using the existing TeamMembersService flow (keeps rollback behavior at this level).
+			if (activeEtms != null && !activeEtms.isEmpty()) {
+				Map<Long, List<EmployeeTeamMap>> byTeam = activeEtms.stream()
+						.filter(Objects::nonNull)
+						.filter(etm -> etm.getTeamId() != null)
+						.collect(Collectors.groupingBy(EmployeeTeamMap::getTeamId));
+
+				List<Team> teams = teamRepository.findByProjectIdAndIsActive(projectObj.getProjectId(), "Y");
+				Map<Long, Team> teamMap = teams != null
+						? teams.stream().filter(Objects::nonNull).collect(Collectors.toMap(Team::getTeamId, Function.identity(), (a, b) -> a))
+						: new HashMap<>();
+
+				for (Map.Entry<Long, List<EmployeeTeamMap>> e : byTeam.entrySet()) {
+					Long teamId = e.getKey();
+					Team team = teamMap.get(teamId);
+					if (team == null) {
+						throw new RuntimeException("Team not found for teamId=" + teamId + " during project completion inactivation.");
+					}
+
+					RmgTeamDto rmgTeamDto = new RmgTeamDto();
+					rmgTeamDto.setTeamId(teamId);
+					rmgTeamDto.setProjectId(projectObj.getProjectId());
+					rmgTeamDto.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
+					rmgTeamDto.setCustomEndDate(false);
+					rmgTeamDto.setEndDate(completionDate.atStartOfDay());
+
+					List<RmgTeamMemberDto> members = e.getValue().stream()
+							.filter(Objects::nonNull)
+							.map(etm -> {
+								RmgTeamMemberDto m = new RmgTeamMemberDto();
+								m.setEmpId(etm.getEmpId());
+								m.setRemovePermanently(false);
+								return m;
+							})
+							.collect(Collectors.toList());
+					rmgTeamDto.setRmgTeamMemberList(members);
+
+					Map<Long, EmployeeTeamMap> empTeamMap = e.getValue().stream()
+							.filter(Objects::nonNull)
+							.filter(etm -> etm.getEmpId() != null)
+							.collect(Collectors.toMap(EmployeeTeamMap::getEmpId, Function.identity(), (a, b) -> a));
+
+					String removeMsg = teamMembersService.handleRemoveTeamMembers(rmgTeamDto, projectObj, team, empTeamMap);
+					if (removeMsg != null && !removeMsg.isBlank()) {
+						// Fail fast and rollback completion transaction if inactivation did not complete cleanly.
+						throw new RuntimeException("Unable to inactivate all active resources before project completion. Details: " + removeMsg);
+					}
+				}
+			}
+
+			// Disable teams (do not override ETM endDates; ETM inactivation was already done above).
+			disableActiveTeamsOnly(projectObj, resourceManagementDTO.getUpdatedBy(), logBuilder);
 
 			projectObj.setProjectCompletionDate(resourceManagementDTO.getProjectCompletionDate());
 			projectObj.setActive("false");
@@ -4790,6 +4867,21 @@ public class ResourceManagementService {
 			apiLogInfo.setLogLevel("ERROR");
 		}
 		return response;
+	}
+	
+	private void disableActiveTeamsOnly(Project project, Long currentUserEmpId, StringBuilder logBuilder) {
+		List<Team> teams = teamRepository.findByProjectIdAndIsActive(project.getProjectId(), "Y");
+		if (teams == null || teams.isEmpty()) {
+			logBuilder.append("\n Empty teamlist found in database for method findByProjectIdAndIsActive for project : "
+					+ project.getProjectName());
+			return;
+		}
+		for (Team team : teams) {
+			team.setIsActive("N");
+			team.setUpdatedBy(currentUserEmpId);
+			team.setUpdatedOn(LocalDateTime.now());
+		}
+		teamRepository.saveAll(teams);
 	}
 
 	private void disableActiveTeamsAndMembers(Project project, Long currentUserEmpId, StringBuilder logBuilder) {
@@ -14635,9 +14727,11 @@ public class ResourceManagementService {
 				response.setServiceResponse("fromDate cannot be after toDate.");
 				return response;
 			}
-
+			
+			LocalDateTime startDate = fromDate.atStartOfDay();
+			LocalDateTime endDate = toDate.atTime(LocalTime.MAX);	
 			List<ProjectPoDetails> activePos = poDetailsRepository
-					.findAllActivePosForProjectAndDateRange(projectId, fromDate, toDate);
+					.findAllActivePosForProjectAndDateRange(projectId, startDate, endDate);
 			if (activePos == null || activePos.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No active POs found for the given project and date range.");

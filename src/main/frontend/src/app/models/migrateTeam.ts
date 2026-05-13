@@ -23,5 +23,6 @@ export class MigrateTeams {
     employeeRoles: any[] = [];
     updatedBy: any;
     empIds: any;
+    etmIds: any[] = [];
 
 }

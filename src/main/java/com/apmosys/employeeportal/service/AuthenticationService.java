@@ -43,6 +43,7 @@ import com.apmosys.employeeportal.dto.LMSRedirect;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoSessionLoginRequestDTO;
 import com.apmosys.employeeportal.dto.PoVerifyDirectAccessRequestDTO;
+import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
@@ -1136,9 +1137,10 @@ public class AuthenticationService {
 	 * <li>Row exists with mapped {@code po_token}: return existing token (session unchanged).</li>
 	 * </ul>
 	 * No deep link at this stage; logs use {@link #PO_LOG_DEEP_LINK_TOKEN_FETCH}.
+	 * @throws Exception 
 	 */
 	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse authenticateFromPoSession(PoSessionLoginRequestDTO requestDto) {
+	public ServiceResponse authenticateFromPoSession(PoSessionLoginRequestDTO requestDto) throws Exception {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setLogLevel("INFO");
@@ -1166,11 +1168,12 @@ public class AuthenticationService {
 			Employee employee = employeeRepository.findById(requestDto.getEmpId()).orElse(null);
 			if (employee == null || "InActive".equalsIgnoreCase(employee.getEmploymentstatus())) {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee not found or inactive.");
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Employee not found or inactive.");
 				apiLogInfo.setApiResponse((String) response.getServiceResponse());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				return response;
+//				return response;
+				throw new DataNotFoundException("Employee not found or inactive.");
 			}
 
 			LocalDateTime now = LocalDateTime.now();
@@ -1212,12 +1215,13 @@ public class AuthenticationService {
 		} catch (Exception e) {
 			ExceptionLogContext.add(e);
 			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Unable to complete Po session-login (token fetch).");
-			response.setServiceError(e.getMessage());
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Unable to complete Po session-login (token fetch).");
+//			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiResponse((String) response.getServiceResponse());
 			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			return response;
+//			return response;
+			throw new Exception(e.getMessage());
 		} 
 		finally {
 			if (initialLog != null) {

@@ -21,14 +21,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.AclColumnDTO;
 import com.apmosys.employeeportal.dto.BulkBillableUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeRoleDTO;
 import com.apmosys.employeeportal.dto.FeatureMasterDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectEmployeeTeamReportDTO;
 import com.apmosys.employeeportal.dto.ProjectNamesRequestDTO;
+import com.apmosys.employeeportal.dto.MappedSubFeatureDTO;
+import com.apmosys.employeeportal.dto.MappedSubFeatureDTO;
 import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
@@ -210,41 +214,31 @@ public class ReportService {
         apiLogInfo.setApiUrl("/api/getMappedSubFeatureList");
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("JobRoleId : " + employeeDto.getJobRoleId());
+        logBuilder.append("JobRoleId : " + employeeDto.getJobRoleIds());
 		try {
+	        List<Long> jobRoleIds = employeeDto.getJobRoleIds();
+	        if (jobRoleIds == null || jobRoleIds.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Job role list is empty");
+	            return response;
+	        }
+	        
+			List<MappedSubFeatureDTO> mappedSubFeatureByJobRoleId = employeeRoleMasterRepository
+					.getMappedSubFeatureByJobRoleIds(jobRoleIds);
 			
-			List<Object[]> mappedSubFeatureByJobRoleId = employeeRoleMasterRepository
-					.getMappedSubFeatureByJobRoleId(employeeDto.getJobRoleId());
-			
-			List<EmployeeDTO> dtoList = new ArrayList<>();
-			
-			if (!mappedSubFeatureByJobRoleId.isEmpty()) {
-
-				mappedSubFeatureByJobRoleId.forEach((object) -> {
-					EmployeeDTO empDTO = new EmployeeDTO();
-
-					empDTO.setJobRoleId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					empDTO.setJobRoleName(object[1] != null ? object[1].toString() : null);
-					empDTO.setEmployeeRole(object[2] != null ? object[2].toString() : null);
-					empDTO.setSubFeatureId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
-					empDTO.setSubFeatureName(object[4] != null ? object[4].toString() : null);
-					empDTO.setFeatureId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
-					empDTO.setFeatureName(object[6] != null ? object[6].toString() : null);
-					
-					dtoList.add(empDTO);
-				});
-				
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-                apiLogInfo.setApiResponse("MappedRoleList : " + dtoList.size());			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Mapped Role List is Empty.");
-                apiLogInfo.setApiResponse("Mapped Role is Empty");			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
+			 if (mappedSubFeatureByJobRoleId == null || mappedSubFeatureByJobRoleId.isEmpty()) {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("Mapped Role List is Empty.");
+		            apiLogInfo.setApiResponse("Mapped Role List is Empty.");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		            
+		        } else {
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(mappedSubFeatureByJobRoleId);
+		            apiLogInfo.setApiResponse("MappedRoleList : " + mappedSubFeatureByJobRoleId.size());
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		        }		
+			 
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -311,7 +305,7 @@ public class ReportService {
 		return response;
 	}
 
-	public ServiceResponse getDefaultMapping() {
+	public ServiceResponse getDefaultMapping(List<AclColumnDTO> aclColumnDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		//apiLogInfo.setSubFeatureName("");
@@ -321,22 +315,32 @@ public class ReportService {
 		//logBuilder.append("");
 		try {
 			
-			List<Object[]> subFeatureList = employeeRoleMasterRepository.getAllSubFeatureList();
-			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+			List<String> tabNames = null;
+		    List<String> featureNames = null;
+		    List<String> subFeatureNames = null;
+
+		    for (AclColumnDTO f : aclColumnDTO) {
+		        if (f.getValue() == null || f.getValue().isEmpty()) continue;
+
+		        switch (f.getColumn()) {
+		            case "Tab Name":
+		                tabNames = f.getValue();
+		                break;
+		            case "Feature":
+		                featureNames = f.getValue();
+		                break;
+		            case "Sub Feature":
+		                subFeatureNames = f.getValue();
+		                break;
+		        }
+		    }
+		    			
+		    List<EmployeeRoleDTO> subFeatureList = employeeRoleMasterRepository.getAllSubFeatureList(tabNames,featureNames,subFeatureNames);
+			List<EmployeeRoleDTO> dtoList = new ArrayList<EmployeeRoleDTO>();
 			
 			if(!subFeatureList.isEmpty()) {
 				subFeatureList.forEach((object) -> {
-					EmployeeDTO empDTO = new EmployeeDTO();
-
-					empDTO.setSubFeatureId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					empDTO.setSubFeatureName(object[1] != null ? object[1].toString() : null);
-					empDTO.setFeatureId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-					empDTO.setFeatureName(object[3] != null ? object[3].toString() : null);
-					empDTO.setTabId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
-					empDTO.setTabName(object[5] != null ? object[5].toString() : null);
-					
-					Long subFeatureId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
-					List<EmployeeRole> employeeRoleMaster = employeeRoleMasterRepository.findBySubFeatureMasterId(subFeatureId);
+					List<EmployeeRole> employeeRoleMaster = employeeRoleMasterRepository.findBySubFeatureMasterId(object.getSubFeatureId());
 					List<FeatureMasterDTO> permissionList = new ArrayList<FeatureMasterDTO>();
 					
 					if(!employeeRoleMaster.isEmpty()) {
@@ -349,8 +353,8 @@ public class ReportService {
 						});
 					}
 					
-					empDTO.setPermissionList(permissionList);
-					dtoList.add(empDTO);
+					object.setPermissionList(permissionList);
+					dtoList.add(object);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
@@ -1133,11 +1137,6 @@ public class ReportService {
 	public ServiceResponse getEmployeesWorkingInProjects(ProjectNamesRequestDTO request) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			if (request == null || request.getProjectNames() == null || request.getProjectNames().isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceError("projectNames is required and must not be empty");
-				return response;
-			}
 			if (request.getStartDate() == null || request.getEndDate() == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceError("startDate and endDate are required (yyyy-MM-dd)");
@@ -1151,7 +1150,7 @@ public class ReportService {
 			LocalDateTime rangeStart = request.getStartDate().atStartOfDay();
 			LocalDateTime rangeEnd = request.getEndDate().atTime(LocalTime.MAX);
 			List<ProjectEmployeeTeamReportDTO> rows = employeeTeamMapRepository
-					.findEmployeesInProjectsByProjectNames(request.getProjectNames(), rangeStart, rangeEnd);
+					.findEmployeesInProjectsByDateRange(rangeStart, rangeEnd);
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(rows);
 		} catch (Exception e) {

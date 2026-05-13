@@ -98,6 +98,8 @@ export class RmgTeamMember {
     validationSource?: string;
     // Optional validation/help message to show in UI (e.g., future assignment guidance).
     validationMessage?: string;
+    /** Raw overlap rows from CURRENT_TNM_PROJECT_OVERLAPPING (CURRENT_TEAM_TEMPLATE only). */
+    tnmOverlapDetail?: any;
 
     requiredCount: any;
     actualAssigned: any;

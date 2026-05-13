@@ -765,7 +765,7 @@ public class ProjectCustomRepository {
 				.append("INNER JOIN employee e3 ON etm2.emp_id = e3.emp_id  \n")
 				.append("WHERE 1=1 \n")
                 .append("AND DATE(etm2.start_date) <= CURDATE() \n")
-				.append("AND etm2.active != 0 AND e3.employmentstatus != 'InActive' \n")
+				.append("AND etm2.active = 1 AND e3.employmentstatus != 'InActive' \n")
 				.append("AND t3.is_active != 'N' AND p3.po_project_type = 'TNM'  \n")
 				.append("AND p3.active != 'false' \n")
 				.append("GROUP BY p3.project_id, etm2.po_id, etm2.role_id \n")
@@ -864,7 +864,7 @@ public class ProjectCustomRepository {
 					.append(" AND p.project_id IN :projectIds  \n");
 		}
 		else if (projectStatus.equalsIgnoreCase("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
-			query.append(" AND p.active = 'true' AND t.is_active != 'N' AND etm.active != 0 \n")
+			query.append(" AND p.active = 'true' AND t.is_active != 'N' AND (etm.active != 0 OR (etm.active = 0 AND DATE(etm.start_date) > CURDATE())) \n")
 					.append(" AND e.employmentstatus != 'InActive' AND p.status = 'Completed'  \n")
 					.append(" AND p.project_id IN :projectIds \n");
 		}
@@ -948,7 +948,7 @@ public class ProjectCustomRepository {
 	
 	private String getOffBoardedProjectsCondition() {
 		StringBuilder offBoardedCondition = new StringBuilder();
-		offBoardedCondition.append(" AND p.active= 'true' AND (p.is_draft_project IS NOT NULL OR UPPER(p.is_draft_project) != 'REJECTED') \n")
+		offBoardedCondition.append(" AND p.active= 'true' AND (p.is_draft_project IS NOT NULL AND UPPER(p.is_draft_project) != 'REJECTED') \n")
 		.append(" AND EXISTS (SELECT 1 FROM teams t3 WHERE t3.project_id = p.project_id AND t3.is_active  = 'Y' ) \n")
 		// .append(" AND p.project_id IN (SELECT t2.project_id FROM teams t2 INNER JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE (etm2.active = 0 AND DATE(etm2.end_date) < CURDATE()))  \n")
 		.append(" AND p.project_id NOT IN (SELECT t2.project_id FROM teams t2 LEFT JOIN employee_team_mapping etm2 ON (t2.team_id = etm2.team_id OR etm2.team_id IS NULL) WHERE 1 = 1 AND (etm2.active != 0 OR (etm2.active = 0 AND DATE(etm2.start_date) > CURDATE()))) \n");
