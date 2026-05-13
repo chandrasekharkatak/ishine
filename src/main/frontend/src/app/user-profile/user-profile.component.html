@@ -24,7 +24,7 @@
                                 class="user-card__profile-avatar__img" alt="Avatar" />
 
                             <!-- IMAGE UPLOAD -->
-                            <div *ngIf="isUpdateProfile && userMapping.upload_profile_image"
+                            <div *ngIf="showImageUpload && userMapping.upload_profile_image"
                                 class="user-card__profile-avatar-upload mt-3">
                                 <input type="file" name="file" accept="image/jpeg,image/jpg" id="profileImg"
                                     class="profileImgFile" (change)="onProfileImageSelect($event,alert_message)" />
