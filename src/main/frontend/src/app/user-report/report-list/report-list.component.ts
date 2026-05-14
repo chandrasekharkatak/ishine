@@ -112,7 +112,7 @@ selectedClientProjectViewOption: string = 'default';
 
   allTimesheetApplicationsList: any[] = [];
   timesheetApplicationsDataForExcel: any[] = [];
-
+  allTimesheetApplicationsListForExcel:any[] =[]; 
   allJobRoleList: any[] = [];
   personaWiseJobRole: any[] = [];
   accessControlList: any[] = [];
@@ -1901,7 +1901,9 @@ onSearchClientProject(searchData: any) {
 
 
   getCustomTimesheetApplicationsList(queryObjList: any, template: TemplateRef<any>,exportAll?) {
-    this.allTimesheetApplicationsList = [];
+    if(!exportAll){
+      this.allTimesheetApplicationsList = [];
+    }
     const finalQueryList = this.isFilterApplied
     ? this.activeQueryListForFilter
     : queryObjList;
@@ -1922,10 +1924,41 @@ onSearchClientProject(searchData: any) {
     } else {
       this.timesheetService.customTimesheetApplicationReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
+          if(exportAll){
+            this.allTimesheetApplicationsListForExcel = response.serviceResponse.content;
+
+             if (this.allTimesheetApplicationsListForExcel.length == 0) {
+            this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
+          }
+           this.allTimesheetApplicationsListForExcel.forEach(timesheet => {
+            timesheet.employeementId = (timesheet.employmentIdAcToET);
+           timesheet.employeeType = (timesheet.isApmosysProduct === 'true')
+  ? 'Apmosys Product'
+  : ((timesheet.isApprenticeship === 'true')
+    ? 'Apprentice'
+    : ((timesheet.isConsultant === 'true')
+      ? 'Consultant'
+      : 'Regular')),
+              timesheet.description = timesheet.description?.replaceAll('<br>', '')
+            timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+            timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.updatedOn = (timesheet.updatedOn) ? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.emp360 = timesheet.empId;
+            timesheet.emp360UpdatedBy = timesheet.timesheetStatusUpdatedBy;
+
+          });
+            this.isTimesheetReportTable = true;
+            this.exportToExcel();
+          return;
+          }
           this.allTimesheetApplicationsList = response.serviceResponse.content;
-             this.totalItems = response.serviceResponse.totalElements;
-          this.viewReportPage = response.serviceResponse.pageable.pageNumber;
-          this.pageSize = response.serviceResponse.pageable.pageSize;
+         
+            this.totalItems = response.serviceResponse.totalElements;
+            this.viewReportPage = response.serviceResponse.pageable.pageNumber;
+            this.pageSize = response.serviceResponse.pageable.pageSize;
+          
 
           if (this.allTimesheetApplicationsList.length == 0) {
             this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
@@ -1949,10 +1982,10 @@ onSearchClientProject(searchData: any) {
             timesheet.emp360UpdatedBy = timesheet.timesheetStatusUpdatedBy;
 
           });
-          if (exportAll) {
-            this.isTimesheetReportTable = true;
-            this.exportToExcel();
-          }
+          // if (exportAll) {
+          //   this.isTimesheetReportTable = true;
+          //   this.exportToExcel();
+          // }
 
         } else {
           this.openAlertMod(template, response.serviceResponse);
@@ -3902,7 +3935,7 @@ handlePageChange1(event) {
     if (this.isTimesheetReportTable == true) {
       this.excelName = 'timesheetReport.xlsx';
 
-      const onlySpecificDataArr = this.allTimesheetApplicationsList.map(
+      const onlySpecificDataArr = this.allTimesheetApplicationsListForExcel.map(
         x => ({
           "Employeement Id": x.employeementId,
           "Employee Type": x.employeeType,

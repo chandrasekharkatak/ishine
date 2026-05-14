@@ -2018,10 +2018,10 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
 
 		String whereClause = " WHERE " + filterQuery +
-				" AND jr.dept_id IN (" + deptList + ")" +
-				" AND etm.active != 0 " +
-				" AND t.is_active != 'N' " +
-				" AND p.active != 'false' ";
+				" AND jr.dept_id IN (" + deptList + ")" ;
+				// " AND etm.active != 0 " +
+				// " AND t.is_active != 'N' " +
+				// " AND p.active != 'false' ";
 
 		String orderBy = (sort != null && sort.isSorted())
 				? sort.stream()
@@ -2063,7 +2063,8 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				+ "e1.name AS employeeName,  \n"
 				+ "et.date AS date,  \n"
 				+ "dtm.day_type AS dayType,  \n"
-				+ "et.description AS description,  \n"
+				// + "pts.description AS description,  \n"
+				+ "GROUP_CONCAT(DISTINCT TRIM(REPLACE(REPLACE(pts.description, '<br>', ''), '<br/>', '')) SEPARATOR ' | ') AS description, "
 				+ "sm.status AS status,  \n"
 				+ "ROUND(et.total_working_minutes /60 , 2 ) AS totalTime,  \n"
 				+ "DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn,  \n"
@@ -2091,7 +2092,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id  \n"
 				+  whereClause 
 				+ "GROUP BY \n"
-				+ "    e1.employeement_id, et.date, dtm.day_type, et.description, \n"
+				+ "    e1.employeement_id, et.date, dtm.day_type, \n"
 				+ "    sm.status, et.total_working_minutes, et.created_on, \n"
 				+ "    et.updated_on, e2.name, ltm.leave_type, e1.is_apmosys_product\n"
 				+ "ORDER BY " + orderBy ;
