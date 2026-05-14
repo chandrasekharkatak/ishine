@@ -852,7 +852,6 @@ public class PoSyncOrchestratorService {
 		return (query != null && !query.isEmpty()) ? uri + "?" + query : uri;
 	}
 	
-	
 	public void syncClientsFromPoPortalCron() {
 		if (!poPortalClientSyncCronEnabled) {
 			log.debug("syncClientsFromPoPortalCron skipped: po.portal.client.sync.cron.enabled=false");
@@ -864,7 +863,7 @@ public class PoSyncOrchestratorService {
 		ExceptionLogContext.clear();
 
 		HttpServletRequest cronHttpRequest = null;
-		String sourceSystem = "/internal/cron/syncClientFromPo";
+		String sourceSystem = httpRequest.getRequestURI().toString();
 
 		ApiLog initialLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
