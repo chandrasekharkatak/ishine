@@ -894,8 +894,8 @@ firt share list of feature and then go one by one details, nothing to be missed
             </td>
             <td>
               <div class="exp-cell">
-                <span class="exp-pill" [title]="employee.totalExperience + ' years'">
-                  {{ employee.totalExperience | experienceDuration }}
+                <span class="exp-pill" [title]="(employee.totalExperience | number:'1.1-1') + ' years total'">
+                  {{ employee.totalExperience | number:'1.1-1' }}
                 </span>
               </div>
             </td>
@@ -1344,8 +1344,8 @@ firt share list of feature and then go one by one details, nothing to be missed
                 <td>{{employee.country}}</td>
                 <td>
                   <div class="exp-cell">
-                    <span class="exp-pill" [title]="employee.totalExperience + ' years'">
-                      {{ employee.totalExperience | experienceDuration }}
+                    <span class="exp-pill" [title]="(employee.totalExperience | number:'1.1-1') + ' years total'">
+                      {{ employee.totalExperience | number:'1.1-1' }}
                     </span>
                   </div>
                 </td>

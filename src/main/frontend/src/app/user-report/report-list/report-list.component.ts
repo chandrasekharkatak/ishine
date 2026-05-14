@@ -955,40 +955,14 @@ dateRange: string; type: string; count: string;
   projectList: any[] = [];
   projectSummary: any = {};
 
-  private computeFresherExperienceFromDoj(dateOfJoining: any): number {
-    if (!dateOfJoining) return 0;
-    const doj = moment(dateOfJoining, [moment.ISO_8601, 'DD-MM-YYYY', 'YYYY-MM-DD', AppComponent.DATE_FORMAT], true);
-    if (!doj.isValid()) {
-      const fallback = moment(new Date(dateOfJoining));
-      if (!fallback.isValid()) return 0;
-      const years = moment().diff(fallback, 'days') / 365.25;
-      return Number(Math.max(0, years).toFixed(1));
-    }
-    const years = moment().diff(doj, 'days') / 365.25;
-    return Number(Math.max(0, years).toFixed(1));
-  }
-
+  /** Align with Employee 360: total = previous work years + tenure since DOJ (see EmployeeService.calculateTotalExperience). */
   private applyExperienceForReport(employee: any): void {
-    if (!employee) return;
-    const expType = (employee.experience || '').toString().toLowerCase();
-    const rawTotal = employee.totalExperience;
-    const totalNum = rawTotal === null || rawTotal === undefined || rawTotal === '' ? NaN : Number(rawTotal);
-
-    // Rule:
-    // - Fresher: always show tenure since DOJ
-    // - Otherwise: if totalExperience is missing/0, show tenure since DOJ (prevents "0" UX)
-    // - Else: keep stored totalExperience
-    if (expType === 'fresher') {
-      employee.totalExperience = this.computeFresherExperienceFromDoj(employee.dateOfJoining);
+    if (!employee) {
       return;
     }
-
-    if (!Number.isFinite(totalNum) || totalNum === 0) {
-      const tenure = this.computeFresherExperienceFromDoj(employee.dateOfJoining);
-      if (tenure > 0) {
-        employee.totalExperience = tenure;
-      }
-    }
+    const isFresher = (employee.experience || '').toString().toLowerCase() === 'fresher';
+    const previousYears = isFresher ? 0 : Number(employee.totalExperience ?? 0);
+    employee.totalExperience = this.employeeService.calculateTotalExperience(previousYears, employee.dateOfJoining);
   }
 
   getEmployeeReportData() {
