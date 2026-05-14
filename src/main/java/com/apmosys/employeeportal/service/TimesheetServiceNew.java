@@ -3132,12 +3132,13 @@ public class TimesheetServiceNew {
     	    	
     	    	LocalDateTime selectedDateTime = payload.getDate();
 
-    	    	LocalDate selectedDate = selectedDateTime.toLocalDate();
+    	    	LocalDate localDate = selectedDateTime.toLocalDate();
+    	    	Date selectedDate = java.sql.Date.valueOf(localDate);
 
-    	    	LocalDateTime startOfDay = selectedDate.atStartOfDay();
-    	    	LocalDateTime endOfDay   = selectedDate.atTime(LocalTime.MAX);
+//    	    	LocalDateTime startOfDay = selectedDate.atStartOfDay();
+//    	    	LocalDateTime endOfDay   = selectedDate.atTime(LocalTime.MAX);
 
-    	        List<ProjectNameAndPrjoectIdDTO> activeProjectList = employeeTimesheetsNewRepository.getProjectListForDateAndEmpId(empId, startOfDay, endOfDay);
+    	        List<ProjectNameAndPrjoectIdDTO> activeProjectList = employeeTimesheetsNewRepository.getProjectListForDateAndEmpId2(empId, selectedDate);
     	        
     	        if (activeProjectList.isEmpty()) {
     	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);

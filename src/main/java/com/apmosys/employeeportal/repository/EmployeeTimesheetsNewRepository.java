@@ -18760,7 +18760,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							+ "				    INNER JOIN project_po_details ppd \n"
 							+ "				    ON ppd.project_id = p.project_id  and ppd.active = true \n"
 							+ "				    AND DATE(ppd.po_start_date) <= DATE(:to_date)  \n"
-							+ "				    AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= DATE(:from_date) ) \n"
+//							+ "				    AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= DATE(:from_date) ) \n"
 							+ "			        INNER JOIN teams t ON p.project_id = t.project_id\n"
 							+ "			        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
 							+ "			        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
@@ -19041,8 +19041,9 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							+ "	FROM projects p\n"
 							+ " LEFT JOIN project_po_details ppd \n"
 							+ "	ON ppd.project_id = p.project_id \n"
-							+ "	AND DATE(ppd.po_start_date) <= :to_date \n"
-							+ "	AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= :from_date ) AND ppd.active = true\n"
+							+ "	AND DATE(ppd.po_start_date) <= DATE(:to_date) \n"
+//							+ "	AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= :from_date ) 
+							+ " AND ppd.active = true\n"
 							+ "	INNER JOIN teams t ON p.project_id = t.project_id\n"
 							+ "	INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
 							+ "	INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
@@ -19060,10 +19061,10 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							+ "	OR (YEAR(e.date_of_relieving) = year(:to_date) AND MONTH(e.date_of_relieving) >= month(:to_date))\n"
 							+ "	) \n"
 							+ "	AND e.emp_id not between 1 and 6 \n"
-							+ "	AND etm.start_date <= :to_date \n"
-							+ "	AND (etm.end_date IS NULL OR etm.end_date >= :from_date )\n"
+							+ "	AND DATE( etm.start_date ) <= DATE(:to_date )\n"
+							+ "	AND (DATE(etm.end_date ) IS NULL OR DATE( etm.end_date ) >= DATE(:from_date) )\n"
 							+ "	AND (:po_project_id IS NULL OR ppd.po_project_id IN (:po_project_id))\n"
-							+ "	AND (:po_no IS NULL OR 'All' IN (:po_no) OR ppd.po_no IN (:po_no)) \n"
+							+ "	AND (:po_no IS NULL OR 'All' IN (:po_no) OR ppd.po_no IN (:po_no) ) \n"
 							+ "),\n"
 							+ "Project_Managers_Aggregated AS (\n"
 							+ "	SELECT pm.project_id, GROUP_CONCAT(DISTINCT e2.name ORDER BY e2.name SEPARATOR ', ') AS Project_Manager_Names\n"
@@ -19233,5 +19234,15 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				+ "WHERE e.empId =:empId AND DATE(et.date) >= DATE(etm.startDate) AND (etm.endDate IS NULL OR etm.endDate != null AND DATE(et.date) <= DATE(etm.endDate)) \n"
 				+ "AND p.projectId =:projectId AND et.status IN(1,2) \n")
 		public Integer findTimesheetFilledCountByEmpIdAndProjectIdInEtmDateRange(Long empId, Integer projectId, Long etmId);
+
+
+
+					 @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName, p.clientFlag, p.hasClientSideId,p.poProjectType, etm.isShadow)\n"
+								+ "FROM EmployeeTeamMap etm\n"
+								+ "inner join Team t on t.teamId = etm.teamId \n"
+								+ "inner join Project p on p.projectId = t.projectId\n"
+								+ "WHERE FUNCTION('DATE', etm.startDate) <= :selectedDate\n"
+								+ "  AND (etm.endDate IS NULL OR FUNCTION('DATE', etm.endDate) >= :selectedDate) and etm.active != 2 and etm.empId = :emp_id")
+							List<ProjectNameAndPrjoectIdDTO> getProjectListForDateAndEmpId2( @Param("emp_id") Long empId,  @Param("selectedDate") Date selectedDate	);	
 
 }

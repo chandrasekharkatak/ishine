@@ -4714,7 +4714,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
 
 
     // 12. In update mode, load shadowForList for projects that have isShadowTimesheet so Shadow For dropdown shows options and selected value
-    if (this.isUpdation && this.fromDate && timesheetEmpId != null) {
+    if ((this.isUpdation || this.isAutofillMode) && this.fromDate && timesheetEmpId != null) {
       this.timesheetLocations.forEach(loc => loc.projects?.forEach(proj => {
         if (proj.isShadowTimesheet && proj.projectId) this.getEmployeeListByProjectId(proj, timesheetEmpId);
       }));

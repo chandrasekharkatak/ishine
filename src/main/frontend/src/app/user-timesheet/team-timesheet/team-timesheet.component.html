@@ -771,20 +771,22 @@
                     }
                   </td>
                 <td class="col-actions ts-actions-cell">
-                  <button type="button" class="ts-action-btn ts-doc-btn" *ngIf="timesheet.documentData.length > 0" (click)="openDocumentPopup(timesheet, null, false)" title="View all documents">
-                    <i class="fa fa-eye"></i>
-                  </button>
-                  <button type="button" class="ts-action-btn ts-approve-btn" *ngIf="selectedStatus === 1 "
-                  [disabled]="hasClientApprovalPending(timesheet)"
-                    (click)="approveSingleTimesheet(timesheet)" [title]="hasClientApprovalPending(timesheet)
-            ? 'Client approval for this timesheet is not completed'
-            : 'Approve timesheet'">
-                    <i class="fas fa-check"></i>
-                  </button>
-                  <button type="button" class="ts-action-btn ts-reject-btn" *ngIf="selectedStatus === 1 || selectedStatus === 2"
-                    (click)="openRejectPopup(rejectPopup, timesheet)" title="Reject timesheet">
-                    <i class="fas fa-times"></i>
-                  </button>
+                  <div class="ts-actions-wrapper">
+                    <button type="button" class="ts-action-btn ts-doc-btn" *ngIf="timesheet.documentData.length > 0" (click)="openDocumentPopup(timesheet, null, false)" title="View all documents">
+                      <i class="fa fa-eye"></i>
+                    </button>
+                    <button type="button" class="ts-action-btn ts-approve-btn" *ngIf="selectedStatus === 1 "
+                    [disabled]="hasClientApprovalPending(timesheet)"
+                      (click)="approveSingleTimesheet(timesheet)" [title]="hasClientApprovalPending(timesheet)
+              ? 'Client approval for this timesheet is not completed'
+              : 'Approve timesheet'">
+                      <i class="fas fa-check"></i>
+                    </button>
+                    <button type="button" class="ts-action-btn ts-reject-btn" *ngIf="selectedStatus === 1 || selectedStatus === 2"
+                      (click)="openRejectPopup(rejectPopup, timesheet)" title="Reject timesheet">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
                 </td>
               </tr>
               <tr *ngIf="expandedTimesheetIndex === i">
