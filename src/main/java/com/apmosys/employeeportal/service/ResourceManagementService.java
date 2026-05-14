@@ -17588,17 +17588,13 @@ public class ResourceManagementService {
 			String type = getProjectType(projectStructure.getType());
 			boolean isAllType = "All".equals(type);
 
-			if (projectStructure.getDeptName() != null && projectStructure.getDeptName().length > 0) {
-				String dept = projectStructure.getDeptName()[0].toString();
-				fetchStructure = isAllType ? resourceRequirementRepository.getListAllProjectStructure(dept)
-						: resourceRequirementRepository.getListProjectStructure(dept, type);
-			} else if (projectStructure.getDepartmentIds() != null && !projectStructure.getDepartmentIds().isEmpty()) {
-
-				String baseQuery = " SELECT DISTINCT client_name, project_name, po_project_type, dept_abbreviation, dept_name, dept_ids \n"
+			String baseQuery = " SELECT DISTINCT client_name, project_name, po_project_type, dept_abbreviation, dept_name, dept_ids, employee_names, employee_details \n"
 						+ " FROM ( SELECT DISTINCT p.project_id, c.client_name,  p.project_name, p.po_project_type, \n"
 						+ " GROUP_CONCAT(DISTINCT d.dept_id ORDER BY d.dept_id SEPARATOR ',') AS dept_ids, \n"
-						+ " GROUP_CONCAT(DISTINCT d.dept_abbreviation ORDER BY d.dept_id SEPARATOR ', ') AS dept_abbreviation, \n"
-						+ " GROUP_CONCAT(DISTINCT d.name ORDER BY d.dept_id SEPARATOR ', ') AS dept_name \n"
+						+ " GROUP_CONCAT(DISTINCT d.dept_abbreviation ORDER BY d.dept_id SEPARATOR ',') AS dept_abbreviation, \n"
+						+ " GROUP_CONCAT(DISTINCT d.name ORDER BY d.dept_id SEPARATOR ',') AS dept_name, \n"
+						+ " GROUP_CONCAT(DISTINCT e.name ORDER BY e.name SEPARATOR ',') AS employee_names, \n"
+						+ " GROUP_CONCAT(DISTINCT CONCAT(e.emp_id, '::', e.name) ORDER BY e.name SEPARATOR ',') AS employee_details \n"
 						+ " FROM projects p INNER JOIN clients c ON c.client_id = p.client_id \n"
 						+ " INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id \n"
 						+ " INNER JOIN teams t ON t.project_id = p.project_id \n"
@@ -17611,26 +17607,35 @@ public class ResourceManagementService {
 						+ " GROUP BY p.project_id, c.client_name, p.project_name, p.po_project_type \n"
 						+ " ) AS dept_list \n";
 
-				StringBuilder sql = new StringBuilder(baseQuery);
-				sql.append(" WHERE ");
+			StringBuilder sql = new StringBuilder(baseQuery);
+			sql.append(" WHERE 1=1 ");
 
+			if (projectStructure.getDeptName() != null && projectStructure.getDeptName().length > 0) {
+				String deptNameCondition = Arrays.stream(projectStructure.getDeptName())
+						.map(name -> " FIND_IN_SET('" + name.replace("'", "''") + "', dept_name)").collect(Collectors.joining(" OR "));
+				sql.append(" AND (").append(deptNameCondition).append(")");
+			} else if (projectStructure.getDepartmentIds() != null && !projectStructure.getDepartmentIds().isEmpty()) {
 				String deptCondition = projectStructure.getDepartmentIds().stream()
 						.map(id -> " FIND_IN_SET(" + id + ", dept_ids)").collect(Collectors.joining(" OR "));
-				sql.append("(").append(deptCondition).append(")");
-				if (!isAllType) {
-					sql.append(" AND po_project_type = :type");
-				}
-				sql.append(" GROUP BY dept_ids, dept_abbreviation, client_name, project_name, po_project_type");
-
-				Query query = entityManager.createNativeQuery(sql.toString());
-				if (!isAllType) {
-					query.setParameter("type", type);
-				}
-				fetchStructure = query.getResultList();
-			} else {
-				fetchStructure = isAllType ? resourceRequirementRepository.getAllStructure()
-						: resourceRequirementRepository.getAllProjectStructure(type);
+				sql.append(" AND (").append(deptCondition).append(")");
 			}
+
+			if (projectStructure.getEmployeeNames() != null && !projectStructure.getEmployeeNames().isEmpty()) {
+				String empCondition = projectStructure.getEmployeeNames().stream()
+						.map(name -> " FIND_IN_SET('" + name.replace("'", "''") + "', employee_names)").collect(Collectors.joining(" OR "));
+				sql.append(" AND (").append(empCondition).append(")");
+			}
+
+			if (!isAllType) {
+				sql.append(" AND po_project_type = :type");
+			}
+			sql.append(" GROUP BY dept_ids, dept_abbreviation, client_name, project_name, po_project_type, employee_names, employee_details, dept_name");
+
+			Query query = entityManager.createNativeQuery(sql.toString());
+			if (!isAllType) {
+				query.setParameter("type", type);
+			}
+			fetchStructure = query.getResultList();
 
 			List<ProjectStructureResponse> result = fetchStructure.stream().map(ProjectStructureResponse::new)
 					.collect(Collectors.toList());

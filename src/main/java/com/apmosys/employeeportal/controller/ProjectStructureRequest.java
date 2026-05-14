@@ -13,4 +13,5 @@ public class ProjectStructureRequest {
 	private String type;
 	private String[] depts;
 	private List<Long> departmentIds;
+	private List<String> employeeNames;
 }
