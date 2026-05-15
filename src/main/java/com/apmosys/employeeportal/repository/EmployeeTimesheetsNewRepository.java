@@ -1390,7 +1390,7 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 	@Query(value = "WITH\n"
 			+ "    Employees_With_ClientID AS (\n"
 			+ "        SELECT DISTINCT ecsm.emp_id\n"
-			+ "        FROM employee_client_side_id_mapping_new ecsm\n"
+			+ "        FROM employee_client_side_id_mapping ecsm\n"
 			+ "        WHERE ecsm.client_side_id IS NOT NULL AND ecsm.client_side_id != '' AND ecsm.active = 1\n"
 			+ "    ),\n"
 			+ "    Authorized_Employees AS (\n"
@@ -1526,11 +1526,11 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 			+ "				where e.emp_id not in\n"
 			+ "				(\n"
 			+ "				SELECT DISTINCT ecsm.emp_id\n"
-			+ "				FROM employee_client_side_id_mapping_new ecsm\n"
+			+ "				FROM employee_client_side_id_mapping ecsm\n"
 			+ "				WHERE ecsm.client_side_id IS NOT NULL AND ecsm.client_side_id != '' AND ecsm.active = 1\n"
 			+ "				)\n"
 			+ "				AND EXISTS (\n"
-			+ "				    SELECT 1 FROM employee_client_side_id_mapping_new ecsm2\n"
+			+ "				    SELECT 1 FROM employee_client_side_id_mapping ecsm2\n"
 			+ "				    WHERE ecsm2.emp_id = e.emp_id AND ecsm2.client_side_id IS NOT NULL AND ecsm2.client_side_id != '' AND ecsm2.active = 1\n"
 			+ "				)\n"
 			+ "                ),\n"
@@ -2746,27 +2746,27 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 
 
 	// ========== UPDATED: New query using _new tables ==========
-	@Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.date,dtm.day_type,e.name employeeName,etam.description ,sm.status, \n"
-			+ "em.name created_by,em.emp_id as createdById,et.created_on,e.employeement_id,ROUND(et.total_activities_minutes / 60, 2) AS total_time , e.email,et.office_in_time, et.office_out_time, TIME_FORMAT(SEC_TO_TIME(et.total_working_minutes * 60), '%H:%i') AS total_working_hours, pts.is_night_shift, e.manager_id AS current_manager_id,e.is_consultant,e.is_apprenticeship,e.emp_id, \n"
-			+ "pts.client_in_time, pts.client_out_time, ecsm.client_side_id, CAST(pts.total_client_working_minutes AS DECIMAL(10,2))/60 AS total_client_working_hours,\n"
-			+ "pts.project_id, csm.status AS client_approval_status, CASE WHEN ecsm.client_side_id IS NOT NULL THEN 1 ELSE 0 END AS has_client_side_id, CASE WHEN pts.shadow_emp_id IS NOT NULL THEN 1 ELSE 0 END AS is_shadow_timesheet , pts.shadow_emp_id\n"
-			+ "        FROM employee_timesheets_new et\n"
-			+ "        INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
-			+ "        INNER JOIN teams t ON t.team_id = etm.team_id\n"
-			+ "        INNER JOIN projects p ON p.project_id = t.project_id\n"
-			+ "        INNER join employee_timesheet_activities_mapping_new etam on et.timesheet_id = etam.timesheet_id\n"
-			+ "        INNER join activities a on etam.activity_id = a.activity_id and a.team_id = t.team_id\n"
-			+ "        INNER JOIN employee e ON e.emp_id = et.emp_id\n"
-			+ "        INNER JOIN employee em ON  et.created_by = em.emp_id\n"
-			+ "        LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id\n"
-			+ "        LEFT JOIN status_master_new sm ON et.status = sm.status_id\n"
-			+ "        LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.project_id = etam.project_id\n"
-			+ "        LEFT JOIN client_status_master_new csm ON pts.client_approval_status = csm.status_id\n"
-			+ "        LEFT JOIN employee_client_side_id_mapping_new ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = pts.project_id AND ecsm.active = 1\n"
-			+ "        WHERE dtm.day_type LIKE '%Working%'\n"
-			+ "        and sm.status = 'Pending'\n"
-			+ "         and et.emp_id = :empId and t.team_id = :teamId")
-	public List<Object[]> getPendingTimesheetsByEmpAndTeam(Long empId, Long teamId);
+	// @Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.date,dtm.day_type,e.name employeeName,etam.description ,sm.status, \n"
+	// 		+ "em.name created_by,em.emp_id as createdById,et.created_on,e.employeement_id,ROUND(et.total_activities_minutes / 60, 2) AS total_time , e.email,et.office_in_time, et.office_out_time, TIME_FORMAT(SEC_TO_TIME(et.total_working_minutes * 60), '%H:%i') AS total_working_hours, pts.is_night_shift, e.manager_id AS current_manager_id,e.is_consultant,e.is_apprenticeship,e.emp_id, \n"
+	// 		+ "pts.client_in_time, pts.client_out_time, ecsm.client_side_id, CAST(pts.total_client_working_minutes AS DECIMAL(10,2))/60 AS total_client_working_hours,\n"
+	// 		+ "pts.project_id, csm.status AS client_approval_status, CASE WHEN ecsm.client_side_id IS NOT NULL THEN 1 ELSE 0 END AS has_client_side_id, CASE WHEN pts.shadow_emp_id IS NOT NULL THEN 1 ELSE 0 END AS is_shadow_timesheet , pts.shadow_emp_id\n"
+	// 		+ "        FROM employee_timesheets_new et\n"
+	// 		+ "        INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
+	// 		+ "        INNER JOIN teams t ON t.team_id = etm.team_id\n"
+	// 		+ "        INNER JOIN projects p ON p.project_id = t.project_id\n"
+	// 		+ "        INNER join employee_timesheet_activities_mapping_new etam on et.timesheet_id = etam.timesheet_id\n"
+	// 		+ "        INNER join activities a on etam.activity_id = a.activity_id and a.team_id = t.team_id\n"
+	// 		+ "        INNER JOIN employee e ON e.emp_id = et.emp_id\n"
+	// 		+ "        INNER JOIN employee em ON  et.created_by = em.emp_id\n"
+	// 		+ "        LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id\n"
+	// 		+ "        LEFT JOIN status_master_new sm ON et.status = sm.status_id\n"
+	// 		+ "        LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.project_id = etam.project_id\n"
+	// 		+ "        LEFT JOIN client_status_master_new csm ON pts.client_approval_status = csm.status_id\n"
+	// 		+ "        LEFT JOIN employee_client_side_id_mapping ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = pts.project_id AND ecsm.active = 1\n"
+	// 		+ "        WHERE dtm.day_type LIKE '%Working%'\n"
+	// 		+ "        and sm.status = 'Pending'\n"
+	// 		+ "         and et.emp_id = :empId and t.team_id = :teamId")
+	// public List<Object[]> getPendingTimesheetsByEmpAndTeam(Long empId, Long teamId);
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
 
@@ -2799,37 +2799,37 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 
 
 	// ========== UPDATED: New query using _new tables ==========
-	@Query(nativeQuery = true, value = "SELECT DISTINCT et.timesheet_id,et.date,dtm.day_type,e.name employeeName,etam.description ,sm.status,\n"
-			+ "				 				em.name created_by,em.emp_id as createdById,et.created_on,e.employeement_id,ROUND(et.total_activities_minutes / 60, 2) AS total_time , e.email,et.office_in_time, et.office_out_time, TIME_FORMAT(SEC_TO_TIME(et.total_working_minutes * 60), '%H:%i') AS total_working_hours, pts.is_night_shift, e.manager_id AS current_manager_id,e.is_consultant,e.is_apprenticeship,e.emp_id,\n"
-			+ "				 			pts.client_in_time, pts.client_out_time, ecsm.client_side_id, CAST(pts.total_client_working_minutes AS DECIMAL(10,2))/60 AS total_client_working_hours, \n"
-			+ "				 				pts.project_id, csm.status AS client_approval_status, CASE WHEN ecsm.client_side_id IS NOT NULL THEN 1 ELSE 0 END AS has_client_side_id, CASE WHEN pts.shadow_emp_id IS NOT NULL THEN 1 ELSE 0 END AS is_shadow_timesheet , pts.shadow_emp_id, e.is_apmosys_product \n"
-			+ "				 			       FROM employee_timesheets_new et\n"
-			+ "				 				        INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
-			+ "				 				       INNER JOIN teams t ON t.team_id = etm.team_id\n"
-			+ "				 				        INNER JOIN projects p ON p.project_id = t.project_id\n"
-			+ "				 				        INNER join employee_timesheet_activities_mapping_new etam on et.timesheet_id = etam.timesheet_id\n"
-			+ "				 				        INNER join activities a on etam.activity_id = a.activity_id and a.team_id = t.team_id\n"
-			+ "				 				        INNER JOIN employee e ON e.emp_id = et.emp_id\n"
-			+ "				 				       INNER JOIN employee em ON  et.created_by = em.emp_id\n"
-			+ "				 				        LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id\n"
-			+ "				 				        LEFT JOIN status_master_new sm ON et.status = sm.status_id\n"
-			+ "				 				        LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.project_id = etam.project_id\n"
-			+ "				 				        LEFT JOIN client_status_master_new csm ON pts.client_approval_status = csm.status_id\n"
-			+ "				 				        LEFT JOIN employee_client_side_id_mapping_new ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = pts.project_id AND ecsm.active = 1\n"
-			+ "				 				        WHERE dtm.day_type LIKE '%Working%'\n"
-			+ "				 				        and sm.status = 'Pending'\n"
-			+ "				 				        and et.emp_id = :empId  and t.team_id = :teamId \n"
-			+ "                                        and et.date between \n"
-			+ "                                        COALESCE(NULLIF(:fromDate, ''), DATE_FORMAT(CURDATE(), '%Y-%m-01')) and\n"
-			+ "										COALESCE(NULLIF(:toDate, ''), CURDATE())\n"
-			+ "	                                       AND ( \n"
-			+ "	                                             (:clientFlag IS NULL) \n"
-			+ "	                                          OR (:clientFlag = TRUE  AND ecsm.client_side_id IS NOT NULL) \n"
-			+ "	                                          OR (:clientFlag = FALSE AND ecsm.client_side_id IS NULL) \n"
-			+ "	                                         ) \n"
-			+ "                                        Order by et.date desc")
-	public List<Object[]> getMyTimesheetRequests(Long empId, Long teamId, String fromDate, String toDate,
-			Boolean clientFlag);
+	// @Query(nativeQuery = true, value = "SELECT DISTINCT et.timesheet_id,et.date,dtm.day_type,e.name employeeName,etam.description ,sm.status,\n"
+	// 		+ "				 				em.name created_by,em.emp_id as createdById,et.created_on,e.employeement_id,ROUND(et.total_activities_minutes / 60, 2) AS total_time , e.email,et.office_in_time, et.office_out_time, TIME_FORMAT(SEC_TO_TIME(et.total_working_minutes * 60), '%H:%i') AS total_working_hours, pts.is_night_shift, e.manager_id AS current_manager_id,e.is_consultant,e.is_apprenticeship,e.emp_id,\n"
+	// 		+ "				 			pts.client_in_time, pts.client_out_time, ecsm.client_side_id, CAST(pts.total_client_working_minutes AS DECIMAL(10,2))/60 AS total_client_working_hours, \n"
+	// 		+ "				 				pts.project_id, csm.status AS client_approval_status, CASE WHEN ecsm.client_side_id IS NOT NULL THEN 1 ELSE 0 END AS has_client_side_id, CASE WHEN pts.shadow_emp_id IS NOT NULL THEN 1 ELSE 0 END AS is_shadow_timesheet , pts.shadow_emp_id, e.is_apmosys_product \n"
+	// 		+ "				 			       FROM employee_timesheets_new et\n"
+	// 		+ "				 				        INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
+	// 		+ "				 				       INNER JOIN teams t ON t.team_id = etm.team_id\n"
+	// 		+ "				 				        INNER JOIN projects p ON p.project_id = t.project_id\n"
+	// 		+ "				 				        INNER join employee_timesheet_activities_mapping_new etam on et.timesheet_id = etam.timesheet_id\n"
+	// 		+ "				 				        INNER join activities a on etam.activity_id = a.activity_id and a.team_id = t.team_id\n"
+	// 		+ "				 				        INNER JOIN employee e ON e.emp_id = et.emp_id\n"
+	// 		+ "				 				       INNER JOIN employee em ON  et.created_by = em.emp_id\n"
+	// 		+ "				 				        LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id\n"
+	// 		+ "				 				        LEFT JOIN status_master_new sm ON et.status = sm.status_id\n"
+	// 		+ "				 				        LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.project_id = etam.project_id\n"
+	// 		+ "				 				        LEFT JOIN client_status_master_new csm ON pts.client_approval_status = csm.status_id\n"
+	// 		+ "				 				        LEFT JOIN employee_client_side_id_mapping ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = pts.project_id AND ecsm.active = 1\n"
+	// 		+ "				 				        WHERE dtm.day_type LIKE '%Working%'\n"
+	// 		+ "				 				        and sm.status = 'Pending'\n"
+	// 		+ "				 				        and et.emp_id = :empId  and t.team_id = :teamId \n"
+	// 		+ "                                        and et.date between \n"
+	// 		+ "                                        COALESCE(NULLIF(:fromDate, ''), DATE_FORMAT(CURDATE(), '%Y-%m-01')) and\n"
+	// 		+ "										COALESCE(NULLIF(:toDate, ''), CURDATE())\n"
+	// 		+ "	                                       AND ( \n"
+	// 		+ "	                                             (:clientFlag IS NULL) \n"
+	// 		+ "	                                          OR (:clientFlag = TRUE  AND ecsm.client_side_id IS NOT NULL) \n"
+	// 		+ "	                                          OR (:clientFlag = FALSE AND ecsm.client_side_id IS NULL) \n"
+	// 		+ "	                                         ) \n"
+	// 		+ "                                        Order by et.date desc")
+	// public List<Object[]> getMyTimesheetRequests(Long empId, Long teamId, String fromDate, String toDate,
+	// 		Boolean clientFlag);
 
 	// @Query(value= " WITH RECURSIVE\n"
 	// + " Date_Parameters AS (\n"
@@ -4529,40 +4529,40 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 
 
 	// ========== UPDATED: New query using _new tables ==========
-	@Query(value = "WITH RankedTimeSheets AS ( " +
-			"SELECT et.emp_id, et.office_in_time, et.office_out_time, pts.project_id, c.client_id, cl.client_location_id, "
-			+
-			"t.team_name, a.activity, a.activity_id, etam.description, ecsm.client_side_id, t.team_id, csm.status AS client_approval_status, "
-			+
-			"RANK() OVER (PARTITION BY et.emp_id ORDER BY et.date DESC) as rnk, " +
-			"CASE WHEN e.is_apmosys_product = 'true' " +
-			"THEN CONCAT('AP-', e.employeement_id) " +
-			"ELSE CONCAT('A-', e.employeement_id) END AS employement_id,"
-			+ "ROUND(et.total_working_minutes / 60, 2) AS total_time, e.timesheet_lock_updated_on, is_timesheet_lock_check_enable "
-			+
-			"FROM employee_timesheets_new et " +
-			"INNER JOIN employee_timesheet_activities_mapping_new etam ON et.timesheet_id = etam.timesheet_id " +
-			"INNER JOIN activities a ON etam.activity_id = a.activity_id " +
-			"LEFT JOIN employee e ON et.emp_id = e.emp_id " +
-			"LEFT JOIN teams t ON a.team_id = t.team_id " +
-			"LEFT JOIN projects p ON p.project_id = t.project_id " +
-			"LEFT JOIN clients c ON p.client_id = c.client_id " +
-			"LEFT JOIN client_locations cl ON cl.client_id = c.client_id " +
-			"LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id " +
-			"LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.project_id = etam.project_id "
-			+
-			"LEFT JOIN client_status_master_new csm ON pts.client_approval_status = csm.status_id " +
-			"LEFT JOIN employee_client_side_id_mapping_new ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = pts.project_id AND ecsm.active = 1 "
-			+
-			"WHERE UPPER(dtm.day_type) LIKE '%WORKING%' " +
-			") " +
-			"SELECT DISTINCT employement_id, office_in_time, office_out_time, project_id, client_id, client_location_id, "
-			+
-			"team_name, activity, activity_id, description, team_id, client_approval_status, total_time, timesheet_lock_updated_on, is_timesheet_lock_check_enable "
-			+
-			"FROM RankedTimeSheets " +
-			"WHERE rnk = 1 AND emp_id = :emp_id", nativeQuery = true)
-	List<Object[]> getLastTimesheetFiledByEmpId(@Param("emp_id") Long emp_id);
+	// @Query(value = "WITH RankedTimeSheets AS ( " +
+	// 		"SELECT et.emp_id, et.office_in_time, et.office_out_time, pts.project_id, c.client_id, cl.client_location_id, "
+	// 		+
+	// 		"t.team_name, a.activity, a.activity_id, etam.description, ecsm.client_side_id, t.team_id, csm.status AS client_approval_status, "
+	// 		+
+	// 		"RANK() OVER (PARTITION BY et.emp_id ORDER BY et.date DESC) as rnk, " +
+	// 		"CASE WHEN e.is_apmosys_product = 'true' " +
+	// 		"THEN CONCAT('AP-', e.employeement_id) " +
+	// 		"ELSE CONCAT('A-', e.employeement_id) END AS employement_id,"
+	// 		+ "ROUND(et.total_working_minutes / 60, 2) AS total_time, e.timesheet_lock_updated_on, is_timesheet_lock_check_enable "
+	// 		+
+	// 		"FROM employee_timesheets_new et " +
+	// 		"INNER JOIN employee_timesheet_activities_mapping_new etam ON et.timesheet_id = etam.timesheet_id " +
+	// 		"INNER JOIN activities a ON etam.activity_id = a.activity_id " +
+	// 		"LEFT JOIN employee e ON et.emp_id = e.emp_id " +
+	// 		"LEFT JOIN teams t ON a.team_id = t.team_id " +
+	// 		"LEFT JOIN projects p ON p.project_id = t.project_id " +
+	// 		"LEFT JOIN clients c ON p.client_id = c.client_id " +
+	// 		"LEFT JOIN client_locations cl ON cl.client_id = c.client_id " +
+	// 		"LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id " +
+	// 		"LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.project_id = etam.project_id "
+	// 		+
+	// 		"LEFT JOIN client_status_master_new csm ON pts.client_approval_status = csm.status_id " +
+	// 		"LEFT JOIN employee_client_side_id_mapping ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = pts.project_id AND ecsm.active = 1 "
+	// 		+
+	// 		"WHERE UPPER(dtm.day_type) LIKE '%WORKING%' " +
+	// 		") " +
+	// 		"SELECT DISTINCT employement_id, office_in_time, office_out_time, project_id, client_id, client_location_id, "
+	// 		+
+	// 		"team_name, activity, activity_id, description, team_id, client_approval_status, total_time, timesheet_lock_updated_on, is_timesheet_lock_check_enable "
+	// 		+
+	// 		"FROM RankedTimeSheets " +
+	// 		"WHERE rnk = 1 AND emp_id = :emp_id", nativeQuery = true)
+	// List<Object[]> getLastTimesheetFiledByEmpId(@Param("emp_id") Long emp_id);
 
 	// @Query(value= "WITH RECURSIVE\n"
 	// + " Date_Parameters AS (\n"
@@ -5077,6 +5077,7 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 	Set<LocalDate> allTimesheetFilledDatesForDateRange(@Param("startDate") LocalDate startDate,
 			@Param("endDate") LocalDate endDate, @Param("projectId") Integer projectId, @Param("empId") Long empId);
 
+			// this is not used 
 	@Query(value = " WITH RECURSIVE\n"
 			+ "    Date_Parameters AS (\n"
 			+ "        SELECT\n"
@@ -5151,7 +5152,7 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 			+ "			JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id\n"
 			+ "			LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = :emp_id\n"
 			+ "			LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
-			+ "        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "        WHERE p.has_client_side_id = 1\n"
 			+ "  AND (\n"
 			+ "		e.date_of_relieving IS NULL \n"
@@ -5918,6 +5919,7 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 	// ,int offset,int pageSize,
 	// String sortBy,String sortDirection);
 
+	//This query is not used any more.
 	@Query(value = " WITH RECURSIVE\n"
 			+ "    Date_Parameters AS (\n"
 			+ "        SELECT\n"
@@ -5993,7 +5995,7 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 			+ "        LEFT JOIN employee s ON s.emp_id = t.spoc_id\n"
 			+ "        LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
 			+ "        LEFT JOIN department d ON d.dept_id = jr.dept_id\n"
-			+ "        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "        WHERE p.project_id IN (SELECT project_id FROM Authorized_Project_IDs)\n"
 			+ "        AND etm.start_date <= (SELECT to_date FROM Date_Parameters)\n"
 			+ "        AND (etm.end_date IS NULL OR etm.end_date >= (SELECT from_date FROM Date_Parameters))\n"
@@ -7373,7 +7375,7 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 			+ "			JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id\n"
 			+ "			LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = :emp_id\n"
 			+ "			LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
-			+ "        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "        WHERE p.has_client_side_id = 1 \n"
 			+ "			AND (\n"
 			+ "			ae.emp_id IS NOT NULL \n"
@@ -7674,7 +7676,7 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 			+ "	        AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters) "
 			+ "	        AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)) AND ppd.active = True "
 		    + "        LEFT JOIN department d ON d.dept_id = jr.dept_id\n"
-		    + "        LEFT JOIN employee_client_side_id_mapping_new ecsm\n"
+		    + "        LEFT JOIN employee_client_side_id_mapping ecsm\n"
 		    + "               ON e.emp_id = ecsm.emp_id\n"
 		    + "              AND ecsm.project_id = t.project_id\n"
 		    + "              AND ecsm.active = 1\n"
@@ -8430,7 +8432,7 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 			@Param("month") Integer month,
 			@Param("year") Integer year,
 			@Param("project_id") Integer projectId);
-
+// Not used
 	@Query(value = "WITH RECURSIVE\n"
 			+ "			    Date_Parameters AS (\n"
 			+ "			        SELECT\n"
@@ -8492,7 +8494,7 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 			+ "	        		ON ppd.project_id = p.project_id "
 			+ "	        		AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters) "
 			+ "	        		AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)) AND ppd.active = true "
-			+ "			        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "			        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "			        WHERE p.project_id IN (SELECT project_id FROM Authorized_Project_IDs) \n"
 			+ " AND (\n"
 			+ "		e.date_of_relieving IS NULL \n"
@@ -11356,7 +11358,7 @@ List<Long> getPaginatedEmployeeIds(
 			+ "			JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id\n"
 			+ "			LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = :emp_id\n"
 			+ "			LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
-			+ "        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "        WHERE p.has_client_side_id = 1 \n"
 			+ "			AND (\n"
 			+ "			ae.emp_id IS NOT NULL \n"
