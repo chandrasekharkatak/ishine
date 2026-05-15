@@ -312,6 +312,13 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getHierarchyChartByEmpId(employeedto);
 		return response;
 	}
+
+	/** Full upward management spine for org-wide roles (SuperAdmin, HOD, HR, …); empty list for others. */
+	@JobRoleAccess(featureIds = {14})
+	@RequestMapping(value = "/getManagementSpineForHierarchy", method = RequestMethod.POST)
+	public ServiceResponse getManagementSpineForHierarchy(@RequestBody EmployeeDTO employeedto) {
+		return employeeService.getManagementSpineForHierarchy(employeedto);
+	}
 	@JobRoleAccess(featureIds = {3,7})
 	@RequestMapping(value = "/revokeAccount", method = RequestMethod.POST)
 	public ServiceResponse revokeAccount(@RequestBody EmployeeDTO employeedto) {

@@ -1,29 +1,32 @@
 package com.apmosys.employeeportal.service;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.apmosys.employeeportal.dto.QueryTableDTO;
+import com.apmosys.employeeportal.model.CustomQuery;
+import com.apmosys.employeeportal.model.CustomQueryResponse;
+import com.apmosys.employeeportal.model.CustomQueryRoles;
+import com.apmosys.employeeportal.model.QueryTable;
+import com.apmosys.employeeportal.repository.CustomQueryRepository;
+import com.apmosys.employeeportal.repository.QueryRoleRepository;
+import com.apmosys.employeeportal.repository.QueryTableRepository;
+import com.apmosys.employeeportal.utility.ServiceResponse;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.apmosys.employeeportal.dto.CustomFilterDTO;
-import com.apmosys.employeeportal.dto.LogDTO;
-import com.apmosys.employeeportal.dto.QueryTableDTO;
-import com.apmosys.employeeportal.model.QueryTable;
-import com.apmosys.employeeportal.repository.QueryTableRepository;
-import com.apmosys.employeeportal.utility.ServiceResponse;
+import java.sql.*;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class QueryTableService {
+	@Autowired
+    private CustomQueryRepository queryRepo;
+
+    @Autowired
+    private QueryRoleRepository roleRepo;
 
 	@Autowired
 	private QueryTableRepository queryTableRepository; 
@@ -341,5 +344,105 @@ public class QueryTableService {
 		
 		return response;
 	}
+	
+	//save custom Queries
+	public CustomQuery createCustomQuery(CustomQuery query, List<Long> roleIds) {
+		try {
+//			log.info("Creating query: {}", query.getQueryName());
+			Optional<CustomQuery> existing = queryRepo.findByQueryNameAndQuerySql(query.getQueryName(), query.getQuerySql());
+
+			if (existing.isPresent()) {
+				throw new Exception("Query already exists with same name and SQL");
+			}
+			if (roleIds==null || roleIds.isEmpty()){
+				throw new Exception("Query Not Created At Least One Role is Mandatory for this Query.");
+			}
+			CustomQuery saved = queryRepo.save(query);
+			List<CustomQueryRoles> mappings = roleIds.stream().map(roleId -> {
+				CustomQuery qr = saved;
+				CustomQueryRoles map = new CustomQueryRoles();
+				map.setQueryId(qr.getQueryId());
+				map.setRoleId(roleId);
+				return map;
+			}).collect(Collectors.toList());
+			roleRepo.saveAll(mappings);
+//			log.info("Query created successfully with id {}", saved.getQueryId());
+			return saved;
+
+		} catch (Exception ex) {
+//			log.error("Error while creating query", ex.getMessage());
+			throw new RuntimeException("Failed to create query : "+ex);
+		}
+	}
+
+	public List<CustomQueryResponse> getQueriesByEmpId(Long empId) {
+		try {
+			List<Object[]> rows = queryRepo.findActiveQueriesByEmpId(empId);
+			Map<Long, CustomQueryResponse> map = new LinkedHashMap<>();
+
+			for (Object[] row : rows) {
+
+				Long queryId = ((Number) row[0]).longValue();
+				String queryName = (String) row[1];
+				String querySql = (String) row[2];
+				String description = (String) row[3];
+				int status = ((Number) row[4]).intValue();
+//				Long createdBy = ((Number) row[5]).longValue();
+				Long roleId = ((Number) row[5]).longValue();
+
+				CustomQueryResponse res = map.get(queryId);
+
+				if (res == null) {
+					res = new CustomQueryResponse();
+					res.setQueryId(queryId);
+					res.setQueryName(queryName);
+					res.setQuerySql(querySql);
+					res.setDescription(description);
+					res.setStatus(status);
+//					res.setCreatedBy(createdBy);
+					res.setRoleIds(new ArrayList<>());
+					map.put(queryId, res);
+				}
+
+				res.getRoleIds().add(roleId);
+			}
+			return new ArrayList<>(map.values());
+		} catch (Exception ex) {
+			System.out.println("Error while fetching queries"+ ex);
+			throw new RuntimeException("Failed to fetch queries");
+		}
+	}
+
+	@Transactional
+	public CustomQuery updateCustomQuery(Long queryId, CustomQuery updatedQuery, List<Long> roleIds) {
+		try {
+			CustomQuery existing = queryRepo.findById(queryId).orElseThrow(() -> new RuntimeException("Query not found"));
+
+			existing.setQueryName(updatedQuery.getQueryName());
+			existing.setQuerySql(updatedQuery.getQuerySql());
+			existing.setDescription(updatedQuery.getDescription());
+			existing.setStatus(updatedQuery.getStatus());
+
+			CustomQuery saved = queryRepo.save(existing);
+
+			roleRepo.deleteByQueryId(queryId);
+
+			List<CustomQueryRoles> mappings = roleIds.stream().map(roleId -> {
+				CustomQueryRoles map = new CustomQueryRoles();
+				map.setQueryId(queryId);
+				map.setRoleId(roleId);
+				return map;
+			}).collect(Collectors.toList());
+
+			roleRepo.saveAll(mappings);
+
+			return saved;
+
+		} catch (Exception ex) {
+			throw new RuntimeException("Failed to update query: " + ex.getMessage());
+		}
+	}
+	
+	
 
 }

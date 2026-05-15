@@ -127,7 +127,9 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/employeeportal/api/training/downloadContent",
 			"/employeeportal/api/training/checkTrainingFrequency",
 			"/api/poCrudOperationsInIshine",
-			"/api/getExtensionDocumentById"
+			"/api/getExtensionDocumentById",
+			"/employeeportal/api/getEmployeesWorkingInProjects",
+			"/api/getEmployeesWorkingInProjects"
 
 			);
 	

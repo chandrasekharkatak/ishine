@@ -40,12 +40,19 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   src:any;
   fileName:any
 
+  // policyModalConfiguration = {
+  //   backdrop: true,
+  //   ignoreBackdropClick: true,
+  //   keyboard: false,
+  //   class : 'modal-xl'
+  // }
+
   policyModalConfiguration = {
-    backdrop: true,
-    ignoreBackdropClick: true,
-    keyboard: false,
-    class : 'modal-xl'
-  }
+  size: 'lg',
+  backdrop: true,
+  centered: true,
+  windowClass: 'a4-modal'
+};
 
   readEnambleModalConfig = {
     backdrop: true,
@@ -207,7 +214,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   }
 
   openPreviewDocument(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.open(template, this.policyModalConfiguration);
+    this.modalRef = this.modalService.open(template, this.policyModalConfiguration );
     setTimeout(() => {
       if (this.currentDoc.readEnabled == 'false') {
         this.isDocumentScrolledToBottom = true;

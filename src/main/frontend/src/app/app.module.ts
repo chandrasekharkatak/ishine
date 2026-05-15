@@ -180,6 +180,7 @@ import { TrainingConfigComponent } from './configuration/training-config/trainin
 import { TrainingComponent } from './training/training.component';
 import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
+import { ExperienceDurationPipe } from './pipes/experience-duration.pipe';
 import { HomeComponent } from './home/home.component';
 import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
 import { ProjectColumnFilterPipe } from './project-column-filter.pipe';
@@ -452,6 +453,7 @@ registerLocaleData(localeGb);
     MatButtonModule,
     MatExpansionModule,
     NgxPaginationModule,
+    ExperienceDurationPipe,
     NgxEditorModule
   ],
   providers: [

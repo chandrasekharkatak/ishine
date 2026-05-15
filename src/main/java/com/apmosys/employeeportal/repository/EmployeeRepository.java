@@ -305,6 +305,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeData(Long empId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeDataForExp(Long empId);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInProbationAndNotice();
@@ -3676,22 +3679,36 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
                "    ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
                "END AS prefixed_id, " +
-               "e.employeement_id " +
+               "e.employeement_id, e.email, " +
+               "CASE " +
+               "    WHEN e.approvals_to = 'Reporting Manager' THEN rm.email " +
+               "    ELSE m.email " +
+               "END AS Reporting_Manager_Email " +
                "FROM employee e " +
                "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id " +
                "LEFT JOIN employee m ON e.manager_id = m.emp_id " +
                "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
                "INNER JOIN department d ON jr.dept_id = d.dept_id " +
-               "WHERE e.employeement_id IN (:employeementIds) " +
+               "WHERE ( " +
+               "    REPLACE(CONCAT('A', CAST(e.employeement_id AS CHAR)), '-', '') IN (:biometricCodes) OR " +
+               "    REPLACE(CONCAT('AP', CAST(e.employeement_id AS CHAR)), '-', '') IN (:biometricCodes) OR " +
+               "    REPLACE(CONCAT('CS', CAST(e.employeement_id AS CHAR)), '-', '') IN (:biometricCodes) " +
+               ") " +
                "AND e.employmentstatus != 'InActive' " +
                "AND (:employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%'))) " +
                "AND (:employeeCode IS NULL OR " +
                "    CASE " +
-               "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
-               "        WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
-               "        ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
+               "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP', CAST(e.employeement_id AS CHAR)) " +
+               "        WHEN e.is_consultant = 'true' THEN CONCAT('CS', CAST(e.employeement_id AS CHAR)) " +
+               "        ELSE CONCAT('A', CAST(e.employeement_id AS CHAR)) " +
                "    END LIKE CONCAT('%', :employeeCode, '%')) " +
                "AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+               "AND (:employeeEmail IS NULL OR LOWER(e.email) LIKE LOWER(CONCAT('%', :employeeEmail, '%'))) " +
+               "AND (:managerEmail IS NULL OR " +
+               "    LOWER(CASE " +
+               "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.email " +
+               "        ELSE m.email " +
+               "    END) LIKE LOWER(CONCAT('%', :managerEmail, '%'))) " +
                "AND (:managerName IS NULL OR " +
                "    LOWER(CASE " +
                "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
@@ -3699,11 +3716,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                "    END) LIKE LOWER(CONCAT('%', :managerName, '%')))",
        nativeQuery = true)
 		List<Object[]> findByPrefixedEmployeementIdInWithFilters(
-			@Param("employeementIds") List<String> employeementIds,
+			@Param("biometricCodes") List<String> biometricCodes,
 			@Param("employeeName") String employeeName,
 			@Param("employeeCode") String employeeCode,
 			@Param("departmentName") String departmentName,
-			@Param("managerName") String managerName
+			@Param("managerName") String managerName,
+			@Param("employeeEmail") String employeeEmail,
+			@Param("managerEmail") String managerEmail
 		);
 
 	@Query(value = "SELECT DISTINCT " +
@@ -3739,7 +3758,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			@Param("managerName") String managerName
 		);
 
-	@Query(value = "SELECT DISTINCT CAST(e.employeement_id AS CHAR) " +
+	@Query(value = "SELECT DISTINCT " +
+               "CASE " +
+               "    WHEN e.is_apmosys_product = 'true' THEN 'AP' " +
+               "    WHEN e.is_consultant = 'true' THEN 'CS' " +
+               "    ELSE 'A' " +
+               "END, " +
+               "CAST(e.employeement_id AS CHAR) " +
                "FROM employee e " +
                "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
                "LEFT JOIN department d ON jr.dept_id = d.dept_id " +
@@ -3748,19 +3773,32 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                "WHERE e.employmentstatus != 'InActive' " +
                "AND e.emp_id NOT IN (1, 6) " +
                "AND (:employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%'))) " +
-               "AND (:employeeCode IS NULL OR CAST(e.employeement_id AS CHAR) LIKE CONCAT('%', :employeeCode, '%')) " +
+               "AND (:employeeCode IS NULL OR " +
+               "    CASE " +
+               "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP', CAST(e.employeement_id AS CHAR)) " +
+               "        WHEN e.is_consultant = 'true' THEN CONCAT('CS', CAST(e.employeement_id AS CHAR)) " +
+               "        ELSE CONCAT('A', CAST(e.employeement_id AS CHAR)) " +
+               "    END LIKE CONCAT('%', :employeeCode, '%')) " +
                "AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+               "AND (:employeeEmail IS NULL OR LOWER(e.email) LIKE LOWER(CONCAT('%', :employeeEmail, '%'))) " +
+               "AND (:managerEmail IS NULL OR " +
+               "    LOWER(CASE " +
+               "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.email " +
+               "        ELSE m.email " +
+               "    END) LIKE LOWER(CONCAT('%', :managerEmail, '%'))) " +
                "AND (:managerName IS NULL OR " +
                "    LOWER(CASE " +
                "        WHEN e.approvals_to = 'Reporting Manager' THEN rm.name " +
                "        ELSE m.name " +
                "    END) LIKE LOWER(CONCAT('%', :managerName, '%')))",
        nativeQuery = true)
-		List<String> findRawEmployeementIdsBySearchCriteria(
+		List<Object[]> findRawEmployeementIdsBySearchCriteria(
 			@Param("employeeName") String employeeName,
 			@Param("employeeCode") String employeeCode,
 			@Param("departmentName") String departmentName,
-			@Param("managerName") String managerName
+			@Param("managerName") String managerName,
+			@Param("employeeEmail") String employeeEmail,
+			@Param("managerEmail") String managerEmail
 		);
 
 }

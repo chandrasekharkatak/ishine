@@ -1789,6 +1789,7 @@
                 (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp; -->
 
                                     <button class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                                        title="View employee audit trail"
                                         (click)="getEmployeeAuditInfo(employee,audit_template,alert_message)"><em><i
                                                 class="fa-solid fa-clock-rotate-left"></i></em></button>&nbsp;
 
@@ -3744,7 +3745,7 @@
                                 <tbody>
 
                                     <tr
-                                        *ngIf="employeeWorkingHistory.length == 0 || (employeeWorkingHistory | colFilter:auditFilter:false).length == 0">
+                                        *ngIf="employeeWorkingHistory.length == 0 || (employeeWorkingHistory | colFilter:filterOnhistory:false).length == 0">
                                         <th colspan="11" class="text-center info-label">No details to display...</th>
                                     </tr>
 

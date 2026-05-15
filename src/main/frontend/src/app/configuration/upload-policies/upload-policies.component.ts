@@ -355,9 +355,17 @@ export class UploadPoliciesComponent implements OnInit {
     this.modalRef?.close();
   }
 
+  // openPreviewDocument(template: TemplateRef<any>) {
+  //   this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
+  // }
+
   openPreviewDocument(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
-  }
+  this.modalRef = this.modalService.open(template, {
+    windowClass: 'a4-modal',
+    backdrop: true,
+    centered: true
+  });
+}
 
 
   fileObjj :any;

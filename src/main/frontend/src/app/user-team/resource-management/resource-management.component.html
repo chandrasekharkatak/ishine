@@ -46,11 +46,11 @@
                 </div>
                 <div class="d-flex align-items-center gap-2" style="max-width: 900px; margin-left:30px;">
                     <!-- Departments Section - Keep original functionality -->
-                    <div *ngIf="!myDept || currentUser.employeeRole == 'SuperAdmin'" class="department-section">
+                    <div *ngIf="!myDept || hasOrgWideHierarchyAccess()" class="department-section">
                         <div class="flex-column d-flex justify-content-end" style="margin-top:15px;">
                             <label style="font-size: 12px; margin-bottom: 4px; font-weight: 500;"
                                 title="As Per Resource - Project Mapping">
-                                <span class="text-danger" *ngIf="currentUser.employeeRole != 'SuperAdmin'">
+                                <span class="text-danger" *ngIf="!hasOrgWideHierarchyAccess()">
                                     <i class="fa-solid fa-toggle-off" (click)="toggleDept();clearSelection($event)"
                                         style="cursor: pointer; color: #193D8A;"></i>
                                 </span>
@@ -88,7 +88,7 @@
                     </div>
 
                     <!-- My Departments Section - Keep original functionality -->
-                    <div *ngIf="myDept && currentUser.employeeRole != 'SuperAdmin'" class="my-department-section">
+                    <div *ngIf="myDept && !hasOrgWideHierarchyAccess()" class="my-department-section">
                         <div class="justify-content-end flex-column" style="margin-left:50%">
                             <label class="info-label" style="font-size: 12px; margin-bottom: 0px; font-weight: 500;">
                                 <span class="text-danger">

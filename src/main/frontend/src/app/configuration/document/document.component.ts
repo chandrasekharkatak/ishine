@@ -405,9 +405,15 @@ export class DocumentComponent implements OnInit {
   }
 
 
-  openPreviewDocument(template: TemplateRef<any>){
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
-  }
+  // openPreviewDocument(template: TemplateRef<any>){
+  //   this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
+  // }
+ 
+openPreviewDocument(template: TemplateRef<any>) {
+  this.modalRef = this.modalService.open(template, {
+    size: 'lg'  
+  });
+}
 
   spaceTrimDocumentName(){
     if(this.documentName != null || this.documentName != ''){

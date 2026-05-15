@@ -24,5 +24,8 @@ public class GetProjectToEmployeeReportForEmployeeDTO {
     private Long mobileNo;
     private String email;
     private String employeementIdAccToET;
+    private Float totalExperience;
+    private String experience;
+    private String dateOfJoining;
     
 }

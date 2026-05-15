@@ -82,33 +82,33 @@
   }
 }
 
-
-.cursor-pointer {
-  cursor: pointer;
+/* A4 Modal Size */
+.a4-modal .modal-dialog {
+  max-width: 850px; /* A4 width */
+  width: 850px;
 }
 
-.fa-external-link-alt:hover {
-  color: #0d6efd;
+.a4-modal .modal-content {
+  height: 1123px; /* A4 height */
 }
 
-.action-icon {
-  font-size: 16px;
-  color: #0d6efd;
-  background-color: #e7f1ff;
-  padding: 8px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  display: flex;
-  align-items: center;
+.a4-modal .modal-body {
+  overflow: hidden;
+  height: 100%;
 }
 
-.action-icon:hover {
-  background-color: #0d6efd;
-  color: #fff;
-  transform: scale(1.1);
+/* PDF container fit */
+.pdf-container {
+  height: 100%;
+  overflow: auto;
 }
 
-.table-header {
-  min-height: 50px;
+.highlight-btn {
+  border: 2px solid #0d6efd;
+  box-shadow: 0 0 6px rgba(13, 110, 253, 0.6);
+  transition: 0.3s ease;
+}
+
+.highlight-btn:hover {
+  box-shadow: 0 0 10px rgba(13, 110, 253, 0.9);
 }

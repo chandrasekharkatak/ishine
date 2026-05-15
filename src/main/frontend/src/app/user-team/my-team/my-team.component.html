@@ -46,7 +46,137 @@
                     (itemClick)="createHierarchyNodes($event)"></ngx-org-chart> -->
           <!-- <org-chart [data]="nodes" (nodeClick)="createHierarchyNodes($event)">
           </org-chart> -->
-          <div #orgChartContainer class="my-hierarchy" style="width: 100%; height: 700px;"></div>
+          <div class="my-hierarchy my-hierarchy-custom">
+            <div class="hierarchy-toolbar">
+              <div class="hierarchy-toolbar-row">
+                <div class="hierarchy-left">
+                  <div class="hierarchy-hint">
+                    Drag to pan, scroll to zoom. Click a node to expand reportees.
+                  </div>
+
+                  <div class="hierarchy-breadcrumbs" *ngIf="selectedHierarchyPath?.length">
+                    <span class="crumb" *ngFor="let n of selectedHierarchyPath; let last = last"
+                      (click)="onBreadcrumbClick(n)" [class.last]="last">
+                      {{ n?.name || 'NA' }}<span class="sep" *ngIf="!last">›</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="hierarchy-right">
+                  <div class="hierarchy-search">
+                    <input class="form-control form-control-sm" type="text"
+                      placeholder="Search employee..."
+                      [(ngModel)]="hierarchySearchText"
+                      (ngModelChange)="onHierarchySearchChange()" />
+                    <div class="hierarchy-search-results" *ngIf="hierarchySearchResults?.length">
+                      <button type="button" class="hierarchy-search-item"
+                        *ngFor="let r of hierarchySearchResults"
+                        (click)="focusHierarchyResult(r)">
+                        <span class="name">{{ r?.name }}</span>
+                        <span class="meta">{{ r?.title }}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="hierarchy-actions">
+                    <button type="button" class="btn btn-sm btn-outline-primary" (click)="goToStart()" title="Go to start (top-left)">
+                      <i class="fa-solid fa-angles-left" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" (click)="goToEnd()" title="Go to end (bottom-right)">
+                      <i class="fa-solid fa-angles-right" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" (click)="zoomOut()" title="Zoom out">
+                      −
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" (click)="zoomIn()" title="Zoom in">
+                      +
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" (click)="resetView()" title="Reset view">
+                      Reset
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success" (click)="exportVisibleHierarchyToExcel()"
+                      title="Export visible tree">
+                      Export visible
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <ng-container *ngIf="nodes?.length; else noHierarchyData">
+              <div class="hierarchy-tree hierarchy-viewport"
+                #orgChartViewport
+                (wheel)="onChartWheel($event)"
+                (mousedown)="onChartMouseDown($event)"
+                (mousemove)="onChartMouseMove($event)"
+                (mouseup)="onChartMouseUp()"
+                (mouseleave)="onChartMouseUp()">
+                <div class="orgchart orgchart-panzoom"
+                  [style.transform]="'scale(' + chartScale + ')'">
+                  <ul>
+                    <li>
+                      <ng-container *ngTemplateOutlet="hierarchyNodeTpl; context: { node: nodes[0] }"></ng-container>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </ng-container>
+
+            <ng-template #noHierarchyData>
+              <div class="text-center p-3">No hierarchy data available.</div>
+            </ng-template>
+
+            <ng-template #hierarchyNodeTpl let-node="node">
+              <div class="org-node"
+                [attr.data-emp-id]="node?.empId"
+                [ngClass]="{
+                  'role-self': node?.id === 'self-node' || (node?.cssClass || '').toLowerCase() === 'self',
+                  'role-manager': (node?.cssClass || '').toLowerCase() === 'manager',
+                  'role-coworker': (node?.cssClass || '').toLowerCase() === 'co-worker',
+                  'role-reportee': (node?.cssClass || '').toLowerCase() === 'reportee',
+                  'is-focused': isFocusedNode(node),
+                  'org-node-disabled': node?.disabled
+                }"
+                (click)="onHierarchyNodeClick(node)"
+                [title]="node?.title || node?.name">
+                <button class="org-collapse"
+                  *ngIf="node?.childs?.length > 0 && isExpanded(node)"
+                  title="Collapse"
+                  (click)="toggleExpand(node, $event)">
+                  <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+                </button>
+                <div class="org-content">
+                  <div class="org-avatar" aria-hidden="true">
+                    <i class="fa-solid fa-user"></i>
+                  </div>
+                  <div class="org-text">
+                    <div class="org-name">{{ node?.name || 'NA' }}</div>
+                    <div class="org-title">{{ node?.title || '' }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <ul *ngIf="node?.childs?.length > 0 && isExpanded(node)">
+                <li *ngFor="let child of getVisibleChildren(node)">
+                  <ng-container *ngTemplateOutlet="hierarchyNodeTpl; context: { node: child }"></ng-container>
+                </li>
+
+                <!-- Show more/less as the LAST item in this row -->
+                <li class="org-more-li" *ngIf="canShowMoreChildren(node)">
+                  <button type="button" class="org-more-btn"
+                    (click)="showMoreChildren(node, $event)">
+                    Show more ({{ (node.childs.length - getVisibleChildren(node).length) }})
+                  </button>
+                </li>
+                <li class="org-more-li" *ngIf="!canShowMoreChildren(node) && node.childs.length > 10">
+                  <button type="button" class="org-less-btn"
+                    (click)="showLessChildren(node, $event)">
+                    Show less
+                  </button>
+                </li>
+              </ul>
+            </ng-template>
+          </div>
 
         </div>
       </div>

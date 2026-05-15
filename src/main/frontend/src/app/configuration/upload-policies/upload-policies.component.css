@@ -36,22 +36,29 @@
     background: var(--ghost-white);
 }
 
-.table-header {
-  min-height: 50px;
+/* A4 size modal */
+.a4-modal .modal-dialog {
+  max-width: 850px !important;   /* A4 width */
+  width: 850px !important;
+  margin: auto;
 }
 
-.action-icon {
-  font-size: 16px;
-  color: #0d6efd;
-  background-color: #e7f1ff;
-  padding: 8px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
+.a4-modal .modal-content {
+  height: 1123px !important;     /* A4 height */
 }
 
-.action-icon:hover {
-  background-color: #0d6efd;
-  color: #fff;
-  transform: scale(1.1);
+.a4-modal .modal-body {
+  height: calc(100% - 60px);
+  overflow: hidden;
+}
+
+/* PDF container scroll */
+.a4-modal .pdf-container {
+  height: 100%;
+  overflow-y: auto;
+}
+
+::ng-deep .a4-modal .modal-dialog {
+  max-width: 794px !important;
+  width: 794px !important;
 }

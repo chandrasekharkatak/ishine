@@ -120,6 +120,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/deleteAppreciationEvent`,
     `${this.baseUrl}` + `api/updateAppreciationEvent`,
     `${this.baseUrl}` + `api/getHierarchyChartByEmpId`,
+    `${this.baseUrl}` + `api/getManagementSpineForHierarchy`,
     `${this.baseUrl}` + `api/getAllManagers`,
     `${this.baseUrl}` + `api/getAllTeamMemberView`,
     `${this.baseUrl}` + `api/getAllTeamsByProjectId`,
@@ -491,7 +492,12 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/training/getAllTrainingTypes`,
     `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
     `${this.baseUrl}` + `api/getExtensionDocumentByName`,
-    `${this.baseUrl}` + `api/validateDocName`
+    `${this.baseUrl}` + `api/validateDocName`,
+    `${this.baseUrl}` + `api/getTeamAppreciationDetails`,
+    `${this.baseUrl}` + `api/getMyAppreciationDetails`,
+    `${this.baseUrl}` + `api/getProjectByMonthRangeAndEmpId`,
+    `${this.baseUrl}` + `api/fetchActivePOListOfEmployee` ,
+    `${this.baseUrl}` + `api/getMappedSubFeatureList` 
     
   ]
 

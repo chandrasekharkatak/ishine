@@ -2285,7 +2285,7 @@ public class ProjectService {
                  		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
                  		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
                  		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
-                 		+ "  END AS prefixed_employeementId ")
+                 		+ "  END AS prefixed_employeementId, e.total_experience, e.experience, date(e.date_of_joining) ")
                  .append("FROM projects p ")
                  .append("INNER JOIN teams t ON t.project_id = p.project_id ")
                  .append("INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id ")
@@ -2322,7 +2322,7 @@ public class ProjectService {
                  		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
                  		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
                  		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
-                 		+ "  END AS prefixed_employeementId FROM employee e ")
+                 		+ "  END AS prefixed_employeementId, e.experience, date(e.date_of_joining) FROM employee e ")
                  .append("INNER JOIN job_role j ON j.job_role_id = e.job_role_id ")
                  .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
                  .append("INNER JOIN employee m ON e.manager_id = m.emp_id ")
@@ -2379,7 +2379,7 @@ public class ProjectService {
 	             		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
 	             		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
 	             		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
-	             		+ "  END AS prefixed_employeementId FROM employee e ")
+	             		+ "  END AS prefixed_employeementId, e.experience, date(e.date_of_joining) FROM employee e ")
                  .append("INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id ")
                  .append("LEFT JOIN teams t ON t.team_id = etm.team_id ")
                  .append("LEFT JOIN projects p ON p.project_id = t.project_id ")
@@ -2909,6 +2909,8 @@ public class ProjectService {
 	            dtoObj.setEffectiveStartDate(record[30] != null ? record[30].toString() : null);
 	            dtoObj.setEffectiveEndDate(record[31] != null ? record[31].toString() : null);
 	            dtoObj.setEmployeementIdAccToET(record[32] != null ? record[32].toString() : null);
+	            dtoObj.setExperience(record.length > 33 && record[33] != null ? record[33].toString() : null);
+	            dtoObj.setDateOfJoining(record.length > 34 && record[34] != null ? record[34].toString() : null);
 
 				return dtoObj;
 			}).collect(Collectors.toList());
@@ -2932,6 +2934,7 @@ public class ProjectService {
 
 			Map<Long, GetProjectToEmployeeReportForProjectDTO> projectMap = new HashMap<>();
 			Map<String, GetProjectToEmployeeReportForTeamDTO> teamMap = new HashMap<>();
+			Map<String, Set<Long>> teamEmpSeen = new HashMap<>();
 
 			for (Object[] record : resultList) {
 
@@ -2962,6 +2965,7 @@ public class ProjectService {
 					teamDTO.setMappedEmployeeDetails(new ArrayList<>());
 					projectMap.get(projectId).getTeamDetails().add(teamDTO);
 					teamMap.put(teamKey, teamDTO);
+					teamEmpSeen.put(teamKey, new java.util.HashSet<>());
 				}
 
 		            GetProjectToEmployeeReportForEmployeeDTO empDTO = new GetProjectToEmployeeReportForEmployeeDTO();
@@ -2975,8 +2979,15 @@ public class ProjectService {
 		            empDTO.setMobileNo(record[20] != null ? Long.parseLong(record[20].toString()) : null);
 		            empDTO.setEmail(record[21] != null ? record[21].toString() : null);
 		            empDTO.setEmployeementIdAccToET(record[22] != null ? record[22].toString() : null);
+		            empDTO.setTotalExperience(record.length > 23 && record[23] != null ? Float.parseFloat(record[23].toString()) : null);
+		            empDTO.setExperience(record.length > 24 && record[24] != null ? record[24].toString() : null);
+		            empDTO.setDateOfJoining(record.length > 25 && record[25] != null ? record[25].toString() : null);
 
-		            teamMap.get(teamKey).getMappedEmployeeDetails().add(empDTO);
+		            // De-dupe: same employee can appear multiple times due to joins or multiple mappings.
+		            Long empId = empDTO.getEmpId();
+		            if (empId == null || teamEmpSeen.get(teamKey).add(empId)) {
+		            	teamMap.get(teamKey).getMappedEmployeeDetails().add(empDTO);
+		            }
 		        }
 		        
 		        return new GetEmployeeProjectReportDTO(null, new ArrayList<>(projectMap.values()));

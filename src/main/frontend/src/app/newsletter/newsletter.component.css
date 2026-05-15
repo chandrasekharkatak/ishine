@@ -21,38 +21,31 @@
     padding-top: 10px;
 }
 
-.table-header {
-  min-height: 50px;
-  padding: 0 10px; /* spacing from edges */
+/* A4 Modal Size */
+.a4-modal .modal-dialog {
+  max-width: 850px; /* A4 width */
+  width: 850px;
 }
 
-.cursor-pointer {
-  cursor: pointer;
+.a4-modal .modal-content {
+  height: 1123px; /* A4 height */
 }
 
-.fa-external-link-alt:hover {
-  color: #0d6efd;
+.a4-modal .modal-body {
+  overflow: hidden;
+  height: 100%;
 }
 
-.action-icon {
-  font-size: 16px;
-  color: #0d6efd;
-  background-color: #e7f1ff;
-  padding: 8px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  display: flex;
-  align-items: center;
+/* PDF container fit */
+.pdf-container {
+  height: 100%;
+  overflow: auto;
+}
+.mt-2{
+  justify-content: center;
 }
 
-.action-icon:hover {
-  background-color: #0d6efd;
-  color: #fff;
-  transform: scale(1.1);
+.highlight-btn {
+  border: 2px solid #0d6efd;   /* thicker border */
+  box-shadow: 0 0 5px rgba(13, 110, 253, 0.5); /* glow effect */
 }
-
-.table-header {
-  min-height: 50px;
-}
-

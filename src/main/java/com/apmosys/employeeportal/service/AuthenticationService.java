@@ -592,7 +592,6 @@ public class AuthenticationService {
 					apiLogInfo.setApiResponse("Session exists.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
-					userSessionRepository.delete(existingUserSession);
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Sessionstring is different. Logging out of application.");
 					apiLogInfo.setApiResponse("Sessionstring is different. Logging out of application.");
