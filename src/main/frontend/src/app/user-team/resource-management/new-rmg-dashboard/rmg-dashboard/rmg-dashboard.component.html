@@ -318,53 +318,54 @@
                         </div>
             
                         <!-- Key Insights -->
-                        <div class="col-6 mb-2 pl-2">
+                        <div class="col-6 pl-2 pr-4">
                             <div class="status-card border rounded p-3">
                                 <p class="kpi-label text-muted text-uppercase mb-0">
                                     <i class="bi bi-exclamation-circle"></i>&nbsp;
                                     Key Insights
                                 </p>
-                                <ng-container *ngFor="let insight of insights">
-                                    <div class="mt-1" *ngIf="insight.value && insight.value != 0"
-                                        (click)="handleInsightClick(insight)">
-                                        <div class="row">
-                                            <div class="col-8">
-                                                <div class="d-flex justify-content-start align-items-center">
-                                                    <span class="insight-dot"
-                                                        [ngClass]="{'dot-critical': insight.status === 'critical','dot-warning': insight.status === 'warning','dot-ok': insight.status === 'ok'}">
-                                                    </span>&nbsp;
-                                                    <p class="x-small fw-semibold mb-0">
-                                                        <span *ngIf="!['HIGHEST_EXPIRED_TNM_BUCKET'].includes(insight.key)"> {{
-                                                            insight.value }}</span>
-                                                        <span>{{ insight.text }}</span>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div class="col-4">
-                                                <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                                                    <div class="insight-bar-bg">
-                                                        <div class="insight-bar-fill" [style.width.%]="insight.percentage"
-                                                            [ngClass]="{'bg-critical': insight.status === 'critical','bg-warning': insight.status === 'warning','bg-ok': insight.status === 'ok'}">
-                                                        </div>
+                                <div class="key-insight-scroll">
+                                    <ng-container *ngFor="let insight of insights">
+                                        <div class="mt-1" *ngIf="insight.value && insight.value != 0" (click)="handleInsightClick(insight)">
+                                            <div class="row">
+                                                <div class="col-8">
+                                                    <div class="d-flex justify-content-start align-items-center">
+                                                        <span class="insight-dot"
+                                                            [ngClass]="{'dot-critical': insight.status === 'critical','dot-warning': insight.status === 'warning','dot-ok': insight.status === 'ok'}">
+                                                        </span>&nbsp;
+                                                        <p class="x-small fw-semibold mb-0">
+                                                            <span *ngIf="!['HIGHEST_EXPIRED_TNM_BUCKET'].includes(insight.key)"> {{
+                                                                insight.value }}</span>
+                                                            <span>{{ insight.text }}</span>
+                                                        </p>
                                                     </div>
-                                                    <span class="xx-small text-muted">
-                                                        {{ insight.stat }}
-                                                    </span>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                                        <div class="insight-bar-bg">
+                                                            <div class="insight-bar-fill" [style.width.%]="insight.percentage"
+                                                                [ngClass]="{'bg-critical': insight.status === 'critical','bg-warning': insight.status === 'warning','bg-ok': insight.status === 'ok'}">
+                                                            </div>
+                                                        </div>
+                                                        <span class="xx-small text-muted">
+                                                            {{ insight.stat }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-8">
+                                                    <div class="flex justify-content-center align-items-center">
+                                                        <p class="xx-small text-muted mb-0 ml-2"
+                                                            *ngIf="insight?.subText && insight?.subText != undefined && insight?.subText != null && insight?.subText?.trim() != ''">
+                                                            {{ insight.subText }}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="row">
-                                            <div class="col-8">
-                                                <div class="flex justify-content-center align-items-center">
-                                                    <p class="xx-small text-muted mb-0 ml-2"
-                                                        *ngIf="insight?.subText && insight?.subText != undefined && insight?.subText != null && insight?.subText?.trim() != ''">
-                                                        {{ insight.subText }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </ng-container>
+                                    </ng-container>
+                                </div>
                             </div>
                         </div>
                     </div>

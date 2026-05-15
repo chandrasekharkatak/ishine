@@ -255,7 +255,7 @@ export class RmgDashboardComponent implements OnInit {
     { key: 'PENDING_FOR_APPROVAL', value: null, text: ' project(s) stuck in Pending Approval', subValue: null, subText: 'Approve or reject the team allocation to enable timesheet entry or initiate new resource allocation.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.projectLifeCycleStages },
     { key: 'UNDERBOARDED', value: null, text: ' TNM project(s) Underboarded', subValue: null, subText: 'Add required resources to meet the planned team capacity.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 9, criticalThreshold: 30, valueList: this.resourceCards },
     { key: 'OVERBOARDED', value: null, text: ' TNM project(s) Overboarded', subValue: null, subText: 'Remove excess resources, deallocate from expired projects, or review and resolve rejected additional resource requests.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.resourceCards },
-    { key: 'allExpiredTNMProjectsCount', value: null, text: ' TNM project(s) Expired since 6+ months', subValue: null, subText: 'Renew the project or mark it as complete, and deallocate remaining resources.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.tnmExpiredBars },
+    { key: 'allExpiredTNMProjectsCount', value: null, text: ' TNM project(s) Expired', subValue: null, subText: 'Renew the project or mark it as complete, and deallocate remaining resources.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.tnmExpiredBars },
     { key: 'HIGHEST_EXPIRED_TNM_BUCKET', value: null, text: ' Highest TNM expiry: {projectCount} projects in {bucketName} bucket', subValue: null, subText: 'Largest concentration of expiring projects', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 0, valueList: this.tnmExpiredBars },
     { key: 'defaulter', value: null, text: ' fixed cost defaulters', subValue: null, subText: 'Extend project milestones or mark the project as complete to resolve defaulter status.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 30, criticalThreshold: 50, valueList: this.fixedCostItems },
     { key: 'TIMESHEET_NON_COMPLIANCE', value: null, text: ' project(s) with no timesheet filled', subValue: null, subText: 'Ensure timesheets are filled for inactive periods to maintain compliance and reporting accuracy. Or mark as complete the project as the project is complete. ', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 30, criticalThreshold: 50, valueList: this.zeroTimesheetBars },
@@ -848,7 +848,8 @@ export class RmgDashboardComponent implements OnInit {
     this.projectStatus = insight.key;
     this.filterStateService.selectedProjectStatus = insight.key;
     if (insight.key == 'allExpiredTNMProjectsCount') {
-      this.projectStatus = 'TOTAL_EXPIRED_TNM'
+      this.projectStatus = 'TOTAL_EXPIRED_TNM';
+      this.filterStateService.selectedProjectStatus = 'TOTAL_EXPIRED_TNM';
       this.expiredTNMProjectFilter = 'allExpiredTNMProjectsCount';
     }
     else if (insight.key == 'HIGHEST_EXPIRED_TNM_BUCKET') {
