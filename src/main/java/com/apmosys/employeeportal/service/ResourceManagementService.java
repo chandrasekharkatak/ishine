@@ -17229,10 +17229,12 @@ public class ResourceManagementService {
 			List<Long> selectedDeptIds = new ArrayList<>();
 			LocalDate fromDate = null;
 			LocalDate toDate = null;
+			String projectTypee = null;
 			if (pageDTO.getExtraFilter() != null && !pageDTO.getExtraFilter().isEmpty()) {
 				Map<String, Object> extraFilters = pageDTO.getExtraFilter();
 				String fromDateStr = (String) extraFilters.get("fromDate");
 				String toDateStr = (String) extraFilters.get("toDate");
+				 projectTypee = (String) extraFilters.get("projectType");
 
 				fromDate = fromDateStr != null ? LocalDate.parse(fromDateStr) : null;
 				toDate = toDateStr != null ? LocalDate.parse(toDateStr) : null;
@@ -17266,7 +17268,7 @@ public class ResourceManagementService {
 
 			Slice<EmployeeDetailsDTO> projectDetailsList = employeeCustomRepository
 					.getUnfilledTimesheetProjectDetailsPage(isAllAccessEmployee, deptIds, pageDTO, projectIds, fromDate,
-							toDate);
+							toDate,projectTypee);
 
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(projectDetailsList);
@@ -17984,22 +17986,38 @@ public class ResourceManagementService {
 
 			Set<Integer> projectIds = getProjectIdsByType("TIMESHEET_NON_COMPLIANCE", isAllAccessEmployee, hodProjects, deptFlag, empId);
 			Set<Integer> filteredProjectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, "ALL", deptIds);
-			Set<String> timesheetRangeSet = Set.of("All", "3M", "6M", "1Y");
-			Map<String, Long> allProjectStatusCount = new LinkedHashMap<>();
+			List<String> timesheetRanges = List.of("All","3M", "6M", "1Y");
+			 Map<String, Map<String, Long>> result = new LinkedHashMap<>();
 
-			for (String timesheetRange : timesheetRangeSet) {
-				if (timesheetRange.equals("All")) {
-					allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
-					continue;
-				}
-				List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
-				LocalDate fromDate = dateRange.get(0);
-				LocalDate toDate = dateRange.get(1);
-				allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate));
-			}
+//			for (String timesheetRange : timesheetRangeSet) {
+//				if (timesheetRange.equals("All")) {
+//					allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
+//					continue;
+//				}
+//				List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
+//				LocalDate fromDate = dateRange.get(0);
+//				LocalDate toDate = dateRange.get(1);
+//				allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate));
+//			}
+			
+			 for (String timesheetRange : timesheetRanges) {
+				 if (timesheetRange.equals("All")) {
+					 result.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCountByProjectType(isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
+						continue;
+					}
+		            List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
+		            LocalDate fromDate = dateRange.get(0);
+		            LocalDate toDate  = dateRange.get(1);
+
+		            Map<String, Long> countByType = employeeCustomRepository
+		                    .getUnfilledTimesheetProjectDetailsCountByProjectType(
+		                            isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate);
+
+		            result.put(timesheetRange, countByType);
+		        }
 
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			serviceResponse.setServiceResponse(allProjectStatusCount);
+			serviceResponse.setServiceResponse(result);
 		} catch (Exception e) {
 			log.error("Error in getUnfilledTimesheetProjectDetailsCount", e);
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");

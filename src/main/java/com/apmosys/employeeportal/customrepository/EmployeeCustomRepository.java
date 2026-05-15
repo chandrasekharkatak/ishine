@@ -356,7 +356,7 @@ public class EmployeeCustomRepository {
 
     public Slice<EmployeeDetailsDTO> getUnfilledTimesheetProjectDetailsPage(boolean isAllAccessEmployee,
             List<Long> deptIds, PageDTO pageDTO, Set<Integer> projectIds,
-            LocalDate fromDate, LocalDate toDate) {
+            LocalDate fromDate, LocalDate toDate, String projectType) {
 
         String sortBy = getCustomQuerySortBy(pageDTO.getSortColumn(), true);
         String sortDirection = pageDTO.getSortDirection();
@@ -365,6 +365,33 @@ public class EmployeeCustomRepository {
 
         Map<String, String> searchFilter = pageDTO.getSearchFilter();
         String baseQuery = getUnfilledTimesheetProjectDetailsQuery(isAllAccessEmployee, fromDate, toDate);
+        
+       
+        if (projectType != null
+                && !projectType.trim().isEmpty()) {
+
+            if ("TNM".equalsIgnoreCase(projectType)) {
+
+                baseQuery +=
+                        " AND p.po_project_type = 'TNM' ";
+
+            } else if ("Fixed Cost".equalsIgnoreCase(projectType)) {
+
+                baseQuery +=
+                        " AND p.po_project_type = 'Fixed Cost' ";
+
+            } else if ("Monitoring".equalsIgnoreCase(projectType)) {
+
+                baseQuery +=
+                        " AND p.po_project_type = 'Monitoring' ";
+
+            } else if ("Internal".equalsIgnoreCase(projectType)) {
+
+                baseQuery +=
+                        " AND p.po_project_type IS NULL "
+                                + " AND p.internal_project_type IS NOT NULL ";
+            }
+        }
         
         System.err.println(baseQuery);
 
@@ -824,6 +851,7 @@ public class EmployeeCustomRepository {
                 if (fromDate != null && toDate != null) {
                     query.append(" AND et.date >= :fromDate AND et.date <= :toDate \n");
                 }
+               
                 query.append(" ) \n");
         return query.toString();
     }
@@ -1306,6 +1334,46 @@ public class EmployeeCustomRepository {
             throw e;
         }
         return total;
+    }
+    
+    
+ // Add this new method alongside getUnfilledTimesheetProjectDetailsCount
+    public Map<String, Long> getUnfilledTimesheetProjectDetailsCountByProjectType(
+            boolean isAllAccessEmployee, List<Long> deptIds,
+            Set<Integer> projectIds, LocalDate fromDate, LocalDate toDate) {
+
+        String baseQuery = getUnfilledTimesheetProjectDetailsQuery(isAllAccessEmployee, fromDate, toDate);
+        Map<String, Long> result = new LinkedHashMap<>();
+
+        // Project type conditions
+        Map<String, String> projectTypeConditions = new LinkedHashMap<>();
+        projectTypeConditions.put("TNM",           "p.po_project_type = 'TNM'");
+        projectTypeConditions.put("Fixed Cost",    "p.po_project_type = 'Fixed Cost'");
+        projectTypeConditions.put("Monitoring",    "p.po_project_type = 'Monitoring'");
+        projectTypeConditions.put("Internal",      "p.po_project_type IS NULL AND p.internal_project_type IS NOT NULL");
+
+        try (Session session = entityManager.unwrap(Session.class)) {
+            for (Map.Entry<String, String> entry : projectTypeConditions.entrySet()) {
+                // Wrap the base query with an additional project-type filter
+                StringBuilder countQuery = new StringBuilder("SELECT COUNT(DISTINCT p.project_id) ")
+                        .append(baseQuery)
+                        .append(" AND (").append(entry.getValue()).append(")");
+
+                NativeQuery<?> countNative = session.createNativeQuery(countQuery.toString());
+                countNative.setParameterList("projectIds", projectIds);
+                countNative.setParameter("deptIds", deptIds);
+                if (fromDate != null && toDate != null) {
+                    countNative.setParameter("fromDate", fromDate);
+                    countNative.setParameter("toDate", toDate);
+                }
+                Long count = ((Number) countNative.getSingleResult()).longValue();
+                result.put(entry.getKey(), count);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+        return result;
     }
 
     private List<LocalDate> getDateRange(String key) {
