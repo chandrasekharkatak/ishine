@@ -2695,7 +2695,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 
 
 	            mailService.sendMailWithCC(
-	                    exceptionMaildev,
+	            		exceptionMailplsql,
 	                    exceptionMaildev,
 	                    "PO Sync Summary | TraceId : " + traceId,
 	                    mailBody
