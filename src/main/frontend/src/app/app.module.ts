@@ -230,14 +230,15 @@ import {MatRadioModule} from '@angular/material/radio';
 import { ToastrModule } from 'ngx-toastr';
 import { MyTableComponent } from './helpers/my-table/my-table.component';
 import { RmgStatusCardsComponent } from './user-team/resource-management/rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
-import {MatSidenavModule} from '@angular/material/sidenav';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
 import { RmgModalHostComponent } from './user-team/resource-management/rmg-modal-host/rmg-modal-host.component';
 import { RmgDashboardComponent } from './user-team/resource-management/new-rmg-dashboard/rmg-dashboard/rmg-dashboard.component';
-
+import { RmgProjectTableComponent } from './user-team/resource-management/rmg-project-table/rmg-project-table.component';
 import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
+import { ResizableDirective } from './resizable.directive';
 
 registerLocaleData(localeGb);
 
@@ -429,8 +430,10 @@ registerLocaleData(localeGb);
     MyTableComponent,
     RmgModalHostComponent,
     RmgStatusCardsComponent,
+    RmgProjectTableComponent,
     RmgDashboardComponent,
     QuizSubmit,
+    ResizableDirective
   ],
   imports: [
     NgbTooltipModule,

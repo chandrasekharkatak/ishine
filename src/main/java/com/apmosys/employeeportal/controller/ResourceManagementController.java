@@ -834,10 +834,10 @@ public class ResourceManagementController {
 	}
 	
 	// @Encrypted
-		@PostMapping("/getFCFilterWiseProjectStatusCount")
-		public ServiceResponse getFCFilterWiseProjectStatusCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
-			return resourceManagementService.getFCFilterWiseProjectStatusCount(rmgDashboardProjectRequest);
-		}
+	@PostMapping("/getFCFilterWiseProjectStatusCount")
+	public ServiceResponse getFCFilterWiseProjectStatusCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getFCFilterWiseProjectStatusCount(rmgDashboardProjectRequest);
+	}
 	
 	// @Encrypted
 	@PostMapping("/getAllUnfilledTimesheetProjectDetailsCount")
@@ -845,9 +845,16 @@ public class ResourceManagementController {
 		return resourceManagementService.getAllUnfilledTimesheetProjectDetailsCount(rmgDashboardProjectRequest);
 	}
 	
+	// @Encrypted
 	@GetMapping("/getEmployeeMappedToClientPercent")
 	public ServiceResponse getEmployeeMappedToClientPercent() {
 		return resourceManagementService.getEmployeeMappedToClientPercent();
+	}
+
+	// @Encrypted
+	@PostMapping("/getTimesheetApplicableProjectData")
+	public ServiceResponse getTimesheetApplicableProjectData(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getTimesheetApplicableProjectData(rmgDashboardProjectRequest);
 	}
 
 	@GetMapping("/getAllPosForProjectAndDate")

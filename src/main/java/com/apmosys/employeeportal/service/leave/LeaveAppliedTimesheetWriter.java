@@ -21,6 +21,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
@@ -43,6 +44,9 @@ public class LeaveAppliedTimesheetWriter {
 
     @Autowired
     private EmployeeTimesheetLocationMappingRepository employeeTimesheetLocationMappingRepository;
+
+    @Autowired
+	EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
 
     @Autowired
     private ProjectTimesheetService projectTimesheetService;
@@ -160,6 +164,10 @@ public class LeaveAppliedTimesheetWriter {
 
         List<ProjectNameAndPrjoectIdDTO> projectDTOList = employeeTimesheetsNewRepository.getProjectListForDateAndEmpId(
                 leaveDTO.getEmpId(), startOfDay, endOfDay);
+
+
+			if (projectDTOList == null || projectDTOList.isEmpty()) { projectDTOList = empPrimaryProjectMappingRepository.getPrimaryMappedProjects(leaveDTO.getEmpId()); }
+
 
         if (projectDTOList != null && !projectDTOList.isEmpty()) {
             for (ProjectNameAndPrjoectIdDTO projDto : projectDTOList) {

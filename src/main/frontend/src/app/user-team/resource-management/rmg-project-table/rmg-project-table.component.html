@@ -1,0 +1,285 @@
+<div class="card-body p-2">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold text-uppercase display-6 mb-0"> {{ selectedProjectStatusLabel }}</h5>
+        <div class="d-flex align-items-center" *ngIf="projectDetailsList.length > 0 || isProjectSearchEnabled">
+            <button class="btn text-accent small d-flex align-items-center" (click)="toggleProjectSearch()">
+                <i class="mr-1 "
+                    [ngClass]="{ 'bi bi-search' : !isProjectSearchEnabled, 'bi bi-x': isProjectSearchEnabled}"></i>
+            </button>
+            <button class="btn text-accent small d-flex align-items-center" matButton
+                [matMenuTriggerFor]="downloadMenu">
+                <i class="bi bi-download mr-1"></i>Export
+            </button>
+            <mat-menu #downloadMenu="matMenu">
+                <button mat-menu-item (click)="exportPageProjectDetailsToExcel(projectDetailsList)">
+                    <i class="bi bi-file-arrow-down-fill text-accent "></i> Download Page Data
+                </button>
+                <button mat-menu-item (click)="exportAllFilteredPageProjectDetailsToExcel()">
+                    <i class="bi bi-cloud-arrow-down"></i> Download All Data
+                </button>
+            </mat-menu>
+            <mat-select class="form-select toolbar-select min-width80" [(ngModel)]="projectPageSize"
+                (ngModelChange)="onProjectPageSizeChange()">
+                <mat-option *ngFor="let opt of pageSizeOptions" [value]="opt">
+                    {{ opt }}
+                </mat-option>
+            </mat-select>
+        </div>
+    </div>
+    <div *ngIf="rmgLinkedProjectSearchInfo" class="alert alert-warning py-2 px-3 small mb-2" role="status">
+        {{ rmgLinkedProjectSearchInfo }}
+    </div>
+
+    <div class="table-container">
+        <div class="table-wrapper">
+            <table class="custom-table" mat-table [dataSource]="projectDetailsList" matSort
+                (matSortChange)="sortProjectData($event)" cdkDropList cdkDropListOrientation="horizontal"
+                (cdkDropListDropped)="dropColumn($event)">
+
+                <ng-container *ngFor="let column of columns" [matColumnDef]="column?.key">
+                    <th mat-header-cell *matHeaderCellDef cdkDrag appResizable [column]="column"
+                        [style.width.px]="column.width" [style.min-width.px]="column.minWidth">
+                        <div class="header-container">
+                            <span *ngIf="column.sortable" [mat-sort-header]="column.key">
+                                {{ column.label }}
+                            </span>
+                            <span *ngIf="!column.sortable">
+                                {{ column.label }}
+                            </span>
+                            <ng-container [ngSwitch]="column.key">
+
+                                <ng-container *ngSwitchCase="'name'">
+                                    <app-info-tooltip *ngIf="isProjectSearchEnabled"
+                                        class="table-header-info-tooltip ml-2" [shouldShine]="false"
+                                        [iconBgColor]="'#202020'" [content]="projectNameSearchInfoTooltip" [size]="16">
+                                    </app-info-tooltip>
+                                </ng-container>
+
+                                <ng-container *ngSwitchCase="'poNo'">
+                                    <app-info-tooltip *ngIf="isProjectSearchEnabled"
+                                        class="table-header-info-tooltip ml-2" [shouldShine]="false"
+                                        [iconBgColor]="'#202020'" [content]="poSearchTooltip" [size]="16">
+                                    </app-info-tooltip>
+                                </ng-container>
+
+                                <ng-container *ngSwitchCase="'projectStartDate'">
+                                    <app-info-tooltip *ngIf="isProjectSearchEnabled"
+                                        class="table-header-info-tooltip ml-2" [shouldShine]="false"
+                                        [iconBgColor]="'#202020'" [content]="dateSearchTooltip" [size]="16">
+                                    </app-info-tooltip>
+                                </ng-container>
+
+                                <ng-container *ngSwitchCase="'projectEndDate'">
+                                    <app-info-tooltip *ngIf="isProjectSearchEnabled"
+                                        class="table-header-info-tooltip ml-2" [shouldShine]="false"
+                                        [iconBgColor]="'#202020'" [content]="dateSearchTooltip" [size]="16">
+                                    </app-info-tooltip>
+                                </ng-container>
+
+                                <ng-container *ngSwitchCase="'createdOn'">
+                                    <app-info-tooltip *ngIf="isProjectSearchEnabled"
+                                        class="table-header-info-tooltip ml-2" [shouldShine]="false"
+                                        [iconBgColor]="'#202020'" [content]="dateSearchTooltip" [size]="16">
+                                    </app-info-tooltip>
+                                </ng-container>
+
+                            </ng-container>
+                        </div>
+                    </th>
+
+                    <!-- CELL -->
+                    <td mat-cell *matCellDef="let row" [style.width.px]="column.width"
+                        [style.min-width.px]="column.width">
+                        <ng-container [ngSwitch]="column.key">
+                            <!-- ACTIONS -->
+
+                            <ng-container *ngSwitchCase="'actions'">
+                                <button class="btn btn-sm" matButton [matMenuTriggerFor]="actionMenu">
+                                    <em class="fa-solid fa-ellipsis-vertical"></em>
+                                </button>
+                                <mat-menu #actionMenu="matMenu">
+                                    <button mat-menu-item
+                                        *ngIf="row?.draftStatus != 'Not Started' || row?.isTeamCreated == 'true'"
+                                        (click)="onAction('PREVIEW',row)">
+                                        <i class="fas fa-eye"></i> Preview
+                                    </button>
+                                    <button mat-menu-item (click)="onAction('EDIT_NEW', row);"
+                                        *ngIf="!(row?.active === 'false')">
+                                        <i class="fas fa-pen"></i> Edit
+                                    </button>
+                                    <button mat-menu-item
+                                        *ngIf="(row?.draftStatus == 'Approved' || row?.isTeamCreated == 'true') && row?.projectStatus != 'Completed' && !(row?.active === 'false')"
+                                        (click)="onAction('MARK_AS_COMPLETE', row)">
+                                        <i class="fas fa-check-double"></i> Mark as Complete
+                                    </button>
+                                    <button mat-menu-item
+                                        *ngIf="userMapping.rmg_approval_option && row?.draftStatus === 'Pending For Approval' && !(row?.active === 'false')"
+                                        (click)="onAction('APPROVE',row);">
+                                        <i class="fas fa-square-check"></i> Approve
+                                    </button>
+                                    <button mat-menu-item
+                                        *ngIf="userMapping.rmg_approval_option && row?.draftStatus === 'Pending For Approval' && !(row?.active === 'false')"
+                                        (click)="onAction('REJECT', row);">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                    <button mat-menu-item
+                                        *ngIf="row?.poProjectType && !allNonBillableProjectTypes.includes(row?.poProjectType?.trim()?.toLowerCase()) && !(row?.active === 'false')"
+                                        (click)="onAction('CLIENT_SIDE_ID_STATUS',row);">
+                                        <i class="fas fa-id-badge"></i> ClientID Status
+                                    </button>
+                                    <button mat-menu-item *ngIf="row?.active === 'false'"
+                                        (click)="onAction('RESTORE',row);">
+                                        <i class="fas fa-trash-arrow-up"></i> Restore
+                                    </button>
+                                </mat-menu>
+                            </ng-container>
+
+                            <ng-container *ngSwitchCase="'name'">
+                                <ng-container *ngIf="(row?.draftStatus == 'Not Started' || row?.active === 'false')">
+                                    <span class="rmg-inactive-project-name-text">
+                                        {{ row?.name || 'NA' }}
+                                    </span>
+                                    <span class="d-inline-flex align-items-center flex-wrap gap-1 ms-1 align-middle">
+                                        <ng-container *ngIf="projectDetailsResolveMap?.[row?.projectId]?.redirected">
+                                            <span class="icon-btn warning"
+                                                [title]="'Linked to project: ' + (projectDetailsResolveMap?.[row?.projectId]?.resolvedProjectName || 'Primary project')">
+                                                <i class="bi bi-link-45deg"></i>
+                                            </span>
+                                            <button type="button" class="icon-btn ghost"
+                                                [title]="'Click to copy primary project name: ' + (projectDetailsResolveMap?.[row?.projectId]?.resolvedProjectName || '')"
+                                                (click)="$event.stopPropagation(); copyPrimaryProjectName(row?.projectId)">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </ng-container>
+                                        <span *ngIf="rmgLinkedProjectSearchInfo && isRmgLinkedSearchPrimaryRow(row)"
+                                            class="icon-btn warning" [title]="getRmgLinkedSearchRowTooltip(row)">
+                                            <i class="bi bi-link-45deg"></i>
+                                        </span>
+                                        <span *ngIf="row?.active === 'false'" class="inactive-label">
+                                            Inactive
+                                        </span>
+                                    </span>
+                                </ng-container>
+                                <ng-container *ngIf="(row?.draftStatus != 'Not Started' && row?.active !== 'false')">
+                                    <span style="cursor: pointer; color: blue;" id="clickablefor360"
+                                        [navigateToProjectView]="row?.projectViewId">
+                                        <ng-container *ngIf="projectDetailsResolveMap?.[row?.projectId]?.redirected">
+                                            <span class="icon-btn warning"
+                                                [title]="'Linked to project: ' + (projectDetailsResolveMap?.[row?.projectId]?.resolvedProjectName || 'Primary project')">
+                                                <i class="bi bi-link-45deg"></i>
+                                            </span>
+                                            <button type="button" class="icon-btn ghost"
+                                                [title]="'Click to copy primary project name: ' + (projectDetailsResolveMap?.[row?.projectId]?.resolvedProjectName || '')"
+                                                (click)="$event.stopPropagation(); copyPrimaryProjectName(row?.projectId)">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </ng-container>
+                                        {{ row?.name || 'NA' }}
+                                        <span *ngIf="rmgLinkedProjectSearchInfo && isRmgLinkedSearchPrimaryRow(row)"
+                                            class="icon-btn warning" [title]="getRmgLinkedSearchRowTooltip(row)">
+                                            <i class="bi bi-link-45deg"></i>
+                                        </span>
+                                    </span>
+                                </ng-container>
+                            </ng-container>
+
+                            <ng-container *ngSwitchCase="'poNo'">
+                                {{ row?.poNo || 'NA' }}
+                            </ng-container>
+
+                            <ng-container *ngSwitchCase="'projectType'">
+                                {{ row?.poProjectType || 'NA' }}
+                            </ng-container>
+
+                            <ng-container *ngSwitchCase="'projectManagerName'">
+                                <ng-container title="Click to view Employee 360"
+                                    *ngIf="userMapping.rmg_employee_360 && row?.projectManagerName && !isAccounts">
+                                    <span class="info-label cursor-pointer" id="clickablefor360"
+                                        *ngFor="let managerData of row?.projectManagers; let last = last"
+                                        [navigateToEmployee360]="managerData.projectManagerId">
+                                        {{managerData.projectManagerName ? managerData.projectManagerName : 'NA' }}
+                                        {{!last ? ',' : ''}}
+                                    </span>
+                                </ng-container>
+                                <ng-container *ngIf="!userMapping.rmg_employee_360 || !row?.projectManagerName">
+                                    <span class="info-label cursor-pointer"
+                                        *ngFor="let managerData of row?.projectManagers; let last = last">
+                                        {{managerData.projectManagerName ? managerData.projectManagerName : 'NA'}}
+                                        {{!last ? ',' : ''}}
+                                    </span>
+                                </ng-container>
+                                <ng-container
+                                    *ngIf="(!row?.projectManagers || row?.projectManagers.length === 0) && row?.projectManager">
+                                    <span class="info-label">
+                                        {{row?.projectManager}}
+                                    </span>
+                                </ng-container>
+                            </ng-container>
+
+                            <ng-container *ngSwitchCase="'projectStartDate'">
+                                {{ row?.projectStartDate ? ( row?.projectStartDate | date: 'dd-MM-yyyy') : 'NA' }}
+                            </ng-container>
+
+                            <ng-container *ngSwitchCase="'projectEndDate'">
+                                {{ row?.projectEndDate ? ( row?.projectEndDate | date: 'dd-MM-yyyy') : 'NA' }}
+                            </ng-container>
+
+                            <ng-container *ngSwitchCase="'createdOn'">
+                                {{ row?.createdOn ? ( row?.createdOn | date: 'dd-MM-yyyy') : 'NA' }}
+                            </ng-container>
+
+                            <ng-container *ngSwitchCase="'draftStatus'">
+                                <em
+                                    [ngStyle]="{'color': (row?.draftStatus == 'Pending For Approval') ? 'orange' : (row?.draftStatus == 'Approved') ? 'green' : (row?.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">{{
+                                    row?.draftStatus || 'NA' }}</em>
+                            </ng-container>
+
+                            <ng-container *ngSwitchDefault>
+                                {{ row[column.key] || 'NA' }}
+                            </ng-container>
+                        </ng-container>
+                    </td>
+                </ng-container>
+
+                <ng-container *ngFor="let column of columns" [matColumnDef]="'filter_' + column.key">
+                    <th mat-header-cell *matHeaderCellDef [style.width.px]="column.width"
+                        [style.min-width.px]="column.minWidth">
+                        <input *ngIf="column.searchable" type="text" class="form-control" placeholder="Search"
+                            [(ngModel)]="column.searchValue" (keyup.enter)="onProjectSearch(column)">
+                    </th>
+                </ng-container>
+
+                <tr mat-header-row style="background-color: #f4f6f8;" *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                <tr mat-header-row class="filter-row" *matHeaderRowDef="filterColumns; sticky: true"
+                    [hidden]="!isProjectSearchEnabled"></tr>
+                <tr class="mat-row" *matNoDataRow>
+                    <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+                        No data available
+                    </td>
+                </tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="pagination-container d-flex justify-content-between align-items-center" *ngIf="totalProjectsCount > 0">
+        <div class="pagination-info">
+            {{ startIndex }} – {{ endIndex }} of {{ totalProjectsCount }}
+        </div>
+        <div class="pagination-controls d-flex align-items-center gap-2" [class.animating]="true">
+            <button class="page-btn icon-btn" (click)="prevProjectPage()" [disabled]="projectPage === 1">
+                ‹
+            </button>
+            <ng-container *ngFor="let item of visiblePages">
+                <button *ngIf="item !== '...'" class="page-btn" [ngClass]="{ 'active': item === projectPage }"
+                    (click)="goToPage(item)">
+                    {{ item }}
+                </button>
+                <span *ngIf="item === '...'" class="dots">...</span>
+            </ng-container>
+            <button class="page-btn icon-btn" (click)="nextProjectPage()" [disabled]="projectPage === totalPages">
+                ›
+            </button>
+        </div>
+    </div>
+</div>

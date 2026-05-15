@@ -65,6 +65,8 @@ public class ProjectFetchDTO {
 	private String projectManager;
 	private String poProjectStatus;
 	private Timestamp createdOn1;
+	private Long activeResources;
+	private Long requiredResources;
 
 	List<PoDetailsDto> poDetailsList;
 
@@ -362,6 +364,8 @@ public class ProjectFetchDTO {
 				? (row[23] instanceof Timestamp ? ((Timestamp) row[23]).toLocalDateTime() : null)
 				: null;
 		projectFetchDTO.projectCompletionDate = TypeConversionUtil.getSafeString(row[24]);
+		projectFetchDTO.requiredResources = TypeConversionUtil.safeParseLong(row[25]);
+		projectFetchDTO.activeResources = TypeConversionUtil.safeParseLong(row[26]);
 		return projectFetchDTO;
 	}
 

@@ -1770,11 +1770,16 @@ public class RewardsService {
 	    return null;
 	}
 	
+	@Transactional
 	public ServiceResponse saveExcelDataForReward(MultipartFile file , Long createdBy) throws EncryptedDocumentException, InvalidFormatException {
 	    ServiceResponse response = new ServiceResponse();
 	    List<String> errorMessages = new ArrayList<>();
 	    List<Long> inactiveEmployees = new ArrayList<>();
-
+		// Long employeeId = null;
+		Long employmentId = null;
+		String prefix = "";
+		String employeeCode= "";
+		List<EmployeeRewards> rewardsToSave = new ArrayList<>();
 	    try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
 	        Sheet sheet = workbook.getSheetAt(0);
 	        Iterator<Row> rows = sheet.iterator();
@@ -1804,16 +1809,33 @@ public class RewardsService {
 	                continue;
 	            }
 	            
-	            Long employeeId = null;
 	            try {
 	                Cell employeeIdCell = currentRow.getCell(columnIndexMap.get("Employee Id"));
+					 employeeCode = employeeIdCell.getStringCellValue().trim().toUpperCase();
 	                if (employeeIdCell == null) {
 	                    errorMessages.add("Row " + rowNum + ": Employee Id is missing.");
 	                    continue;
 	                }
-	                employeeId = (long) employeeIdCell.getNumericCellValue();
+					String numericPart = "";
+
+					if (employeeCode.startsWith("APR")) {
+						prefix = "APR-";
+						numericPart = employeeCode.substring(4);
+					} else if (employeeCode.startsWith("AP")) {
+						prefix = "AP-";
+						numericPart = employeeCode.substring(3);
+					} else if (employeeCode.startsWith("A")) {
+						prefix = "A-";
+						numericPart = employeeCode.substring(2);
+					} else {
+						errorMessages.add("Row " + rowNum + ": Invalid E.M.P. Code format.");
+						continue;
+					}
+
+					 employmentId = Long.parseLong(numericPart);
+	                // employeeId = (long) employeeIdCell.getNumericCellValue();
 	            } catch (Exception e) {
-	                errorMessages.add("Row " + rowNum + ": Invalid EmployeeId.");
+	                errorMessages.add("Row " + rowNum + ": Invalid E.M.P. Code format.");
 	                continue;
 	            }
 	            
@@ -1826,24 +1848,39 @@ public class RewardsService {
 	                }
 	                employeeName = employeeNameCell.getStringCellValue().trim();
 	            }
+				List<Employee> employees = null;
 
-	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employeeId));
-	            if (!optionalEmployee.isPresent()) {
-	                errorMessages.add("Row " + rowNum + ": Employee with ID '" + employeeId + "' not found.");
-	                continue;
-	            }
+				if ("APR-".equals(prefix)) {
+					employees = employeeRepository.findByAprEmployeementId(employmentId);
+				} else if ("AP-".equals(prefix)) {
+					employees = employeeRepository.findByApEmployeementId(employmentId);
+				} else if ("A-".equals(prefix)) {
+					employees = employeeRepository.findByAonlyEmployeementId(employmentId);
+				}
 
-	            Employee employee = optionalEmployee.get();
+				if (employees == null || employees.isEmpty()) {
+					errorMessages.add("Row " + rowNum + ": Employee with ID '" + employeeCode + "' not found.");
+					continue;
+				}
+
+				if (employees.size() > 1) {
+					errorMessages.add("Row " + rowNum + ": More than one employee exists for Employee ID '" + employeeCode + "'.");
+					continue;
+				}
+
+				Employee employee = employees.get(0);
+
+	            // Employee employee = optionalEmployee.get();
 	            
 	            
 	            if (!employee.getName().equalsIgnoreCase(employeeName)) {
-	                errorMessages.add("Row " + rowNum + ": Employee Name does not correspond to Employee ID '" + employeeId + "'.");
+	                errorMessages.add("Row " + rowNum + ": Employee Name does not correspond to Employee ID '" + employeeCode + "'.");
 	                continue;
 	            }
 	            
 
 	            if ("InActive".equalsIgnoreCase(employee.getEmploymentstatus())) {
-	                inactiveEmployees.add(employeeId);
+	                inactiveEmployees.add(employmentId);
 	                continue;
 	            }
 	            
@@ -1945,16 +1982,18 @@ public class RewardsService {
 	            reward.setCommonProperty(commonProperties);	            
 	            reward.setIsActive(0);
 	            reward.setRewardType(0);	            
-	            employeeRewardsRepository.save(reward);
+	            rewardsToSave.add(reward);
 	        }
 
 	        if (!errorMessages.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse(String.join(", ", errorMessages));
-	        } else {
-	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            response.setServiceResponse("File uploaded and processed successfully.");
-	        }
+				return response;
+	        } 
+			employeeRewardsRepository.saveAll(rewardsToSave);
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("File uploaded and processed successfully.");
+	        
 	    } catch (IOException e) {
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 	        response.setServiceResponse("Something went wrong.");

@@ -4893,4 +4893,32 @@ public List<Object[]> fetchInActivePOListOfProject(
 		nativeQuery = true)
 	List<Object[]> findByPrefixedEmployeementIdIn(@Param("employeementIds") List<String> employeementIds);
 
+	@Query(value =
+        "SELECT * FROM employee " +
+        "WHERE employeement_id = :employmentId " +
+        "AND is_apmosys_product = 'false' " +
+        "AND is_apprenticeship = 'false' ",
+        nativeQuery = true)
+    List<Employee> findByAonlyEmployeementId(@Param("employmentId") Long employmentId);
+
+
+    // APR = apprenticeship true
+    @Query(value =
+        "SELECT * FROM employee " +
+        "WHERE employeement_id = :employmentId " +
+        "AND is_apprenticeship = 'true' " ,
+        nativeQuery = true)
+    List<Employee> findByAprEmployeementId(@Param("employmentId") Long employmentId);
+
+
+    // AP = apmosys product true AND apprenticeship false
+    @Query(value =
+        "SELECT * FROM employee " +
+        "WHERE employeement_id = :employmentId " +
+        "AND is_apmosys_product = 'true' " +
+        "AND is_apprenticeship = 'false' " ,
+        nativeQuery = true)
+    List<Employee> findByApEmployeementId(@Param("employmentId") Long employmentId);
+
+
 }

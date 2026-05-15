@@ -230,6 +230,7 @@ import com.apmosys.employeeportal.utility.ExceptionUtils;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.apmosys.employeeportal.utility.TypeConversionUtil;
 
 @Service
 public class ResourceManagementService {
@@ -16303,6 +16304,9 @@ public class ResourceManagementService {
 		case "COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE":
 			projectDetailsList = projectCustomRepository.handleGeneralProjectFilters(rmgDashboardProjectRequest,
 					deptIds, projectIds, projectStatus, projectNames, sortBy, sortDirection, page);
+		case "TIMESHEET_APPLICABLE_PROJECT":
+			projectDetailsList = projectCustomRepository.handleTimesheetApplicableProjects(rmgDashboardProjectRequest,
+					deptIds, projectIds, projectStatus, projectNames, sortBy, sortDirection, page);
 		default:
 			break;
 		}
@@ -16663,6 +16667,7 @@ public class ResourceManagementService {
 		case "UNDERBOARDED":
 		case "SCHEDULED":
 		case "TOTAL":
+		case "TIMESHEET_APPLICABLE_PROJECT":
 			return true;
 		default:
 			return false;
@@ -18059,7 +18064,7 @@ public class ResourceManagementService {
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(allProjectStatusCount);
 		} catch (Exception e) {
-			log.error("Error in getProjectStatusCount", e);
+			log.error("Error in getFCFilterWiseProjectStatusCount", e);
 			serviceResponse.setServiceError(e.getMessage());
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
 		}
@@ -18111,4 +18116,66 @@ public class ResourceManagementService {
 		return new BillableInfo(null, null);
 	}
 	
+	@Transactional(readOnly = true)
+	public ServiceResponse getTimesheetApplicableProjectData(RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			serviceResponse = validateFilter(rmgDashboardProjectRequest, apiLogInfo, serviceResponse);
+			if (serviceResponse != null && serviceResponse.getServiceStatus() != null
+					&& serviceResponse.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
+				return serviceResponse;
+			}
+			serviceResponse = new ServiceResponse();
+			List<Long> deptIds = Optional.ofNullable(resolveDepartments(rmgDashboardProjectRequest))
+					.orElse(Collections.emptyList());
+
+			String projectStatus = rmgDashboardProjectRequest.getProjectStatus() != null
+					? rmgDashboardProjectRequest.getProjectStatus()
+					: "";
+			List<String> projectNames = getAllProjectNamesByPoNo(rmgDashboardProjectRequest.getProjectFilter());
+
+			String userType = rmgDashboardProjectRequest.getCurrentUserType();
+			Set<Integer> projectIds = getProjectIdsByDeptIds(deptIds);
+			if (userType.equals("HOD") || userType.equals("USER")) {
+				projectIds.addAll(buildProjectIdSetForHodOrUser(rmgDashboardProjectRequest.getCurrentUserEmpId()));
+				List<Long> selectedDeptList = rmgDashboardProjectRequest.getDepartmentIds();
+				if (selectedDeptList != null && !selectedDeptList.isEmpty()) {
+					Set<Integer> matchingDeptProjects = getProjectIdsByDeptIds(selectedDeptList);
+					projectIds.retainAll(matchingDeptProjects);
+				}
+			}
+
+			
+			Map<String, Long> allProjectStatusCount = new LinkedHashMap<>();
+			List<Object[]> objArr = projectRepository.getProjectTypeWiseProjectCount(projectIds, deptIds);
+			if (objArr != null && !objArr.isEmpty()) {
+
+				Set<String> internalProjectTypes = Set.of("internalrndproducts", "internal", "bench");
+
+				for (Object[] obj : objArr) {
+					String projectType = TypeConversionUtil.getSafeString(obj[0]);
+					if (projectType == null || projectType.isBlank()) {
+						continue;
+					}
+					Long projectCount = Optional.ofNullable(TypeConversionUtil.safeParseLong(obj[1])).orElse(0L);
+
+					if (internalProjectTypes.contains(projectType)) {
+						projectType = "internal";
+					}
+					allProjectStatusCount.merge(projectType, projectCount, Long::sum);
+				}
+			}
+
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(allProjectStatusCount);
+		} catch (Exception e) {
+			log.error("Error in getTimesheetApplicableProjectData", e);
+			serviceResponse.setServiceError(e.getMessage());
+			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
+		}
+		return serviceResponse;
+	}
+
 }
