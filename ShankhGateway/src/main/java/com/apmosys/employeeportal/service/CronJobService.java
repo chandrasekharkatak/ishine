@@ -7155,10 +7155,10 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 		    
 		    try {
-        mailService.sendMailWithCC("prarthana.lenka@apmosys.com","priyadarshini.singh@apmosys.com",subject, body);
-//		    	String toList = String.join(",", toAddresses);
-//		        String ccList = String.join(",", ccAddresses);
-//		        mailService.sendMailWithCC(toList, ccList, subject, body);
+//        mailService.sendMailWithCC("prarthana.lenka@apmosys.com","priyadarshini.singh@apmosys.com",subject, body);
+		    	String toList = String.join(",", toAddresses);
+		        String ccList = String.join(",", ccAddresses);
+		        mailService.sendMailWithCC(toList, ccList, subject, body);
 		    }  catch (Exception e) {
                 e.printStackTrace();
               

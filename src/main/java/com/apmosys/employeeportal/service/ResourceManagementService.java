@@ -2162,11 +2162,11 @@ public class ResourceManagementService {
 
 		try {
 			mailService.sendMailWithCC(
-//			        String.join(",", allEmails),
+			        String.join(",", allEmails),
 					// to be removed before prod deployment
-					"priyadarshini.singh@apmosys.com",
-//			        employee.getEmail(),
-					"",
+//					"priyadarshini.singh@apmosys.com",
+			        employee.getEmail(),
+//					"",
 			        "Regarding Project Rejection",
 			        emailHtml
 			);
