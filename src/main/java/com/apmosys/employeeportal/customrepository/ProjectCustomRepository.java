@@ -132,8 +132,11 @@ public class ProjectCustomRepository {
             List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection,
             Pageable page) {
 
-        String query = getQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
-                projectStatus, false, projectNames);
+        // String query = getQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
+        //         projectStatus, false, projectNames);
+        String projectType = getProjectType(projectStatus);
+        String query = getApprovedAndNotStartedProjectsQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
+                projectNames, projectType);
         
         System.err.println(query);
 
@@ -201,11 +204,18 @@ public class ProjectCustomRepository {
             List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection,
             Pageable page) {
 
-        String query = getFCProjectQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
-                rmgDashboardProjectRequest.getFixedCostFilter(), projectNames);
-        
-        System.err.println(query);
+        String query2 = "";
+        if (rmgDashboardProjectRequest.getFixedCostFilter() != null
+                && "all".equals(rmgDashboardProjectRequest.getFixedCostFilter())) {
+            query2 = getApprovedAndNotStartedProjectsQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
+                    projectNames, "Fixed Cost");
+        } else {
+            query2 = getFCProjectQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
+                    rmgDashboardProjectRequest.getFixedCostFilter(), projectNames);
+        }
+        String query = query2;
 
+        System.err.println(query);
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
                         projectNames, null, "", false, false,
@@ -456,8 +466,16 @@ public class ProjectCustomRepository {
     public Long handleFCProjectsCount(RMGDashboardProjectRequest rmgDashboardProjectRequest,
             List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection) {
 
-        String query = getFCProjectQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
-                rmgDashboardProjectRequest.getFixedCostFilter(), projectNames);
+        String query2 = "";
+        if (rmgDashboardProjectRequest.getFixedCostFilter() != null
+                && "all".equals(rmgDashboardProjectRequest.getFixedCostFilter())) {
+            query2 = getApprovedAndNotStartedProjectsQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
+                    projectNames, "Fixed Cost");
+        } else {
+            query2 = getFCProjectQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
+                    rmgDashboardProjectRequest.getFixedCostFilter(), projectNames);
+        }
+        String query = query2;
 
         CompletableFuture<Long> countFuture = CompletableFuture
                 .supplyAsync(
@@ -529,9 +547,13 @@ public class ProjectCustomRepository {
     public Long handleProjectsByTypeCount(RMGDashboardProjectRequest rmgDashboardProjectRequest,
             List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection) {
 
-        String query = getQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
-                projectStatus, false, projectNames);
+        // String query = getQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
+        //         projectStatus, false, projectNames);
 
+        String projectType = getProjectType(projectStatus);
+        String query = getApprovedAndNotStartedProjectsQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
+                projectNames, projectType);
+                
         CompletableFuture<Long> countFuture = CompletableFuture
                 .supplyAsync(
                         () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
@@ -763,8 +785,7 @@ public class ProjectCustomRepository {
 		StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" )");
 
 		StringBuilder queryJoins = new StringBuilder();
-		queryJoins.append(
-				" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
+		queryJoins.append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
 				.append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND (pdm.dept_id IN :deptIds)  \n")
 				.append(" LEFT JOIN clients c ON c.client_id = p.client_id  \n")
 				.append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
@@ -780,9 +801,17 @@ public class ProjectCustomRepository {
 		query1.append(queryJoins)
 			  .append(" WHERE 1=1 \n")
 			  .append(getPendingForApprovalProjectsCondition());
-
-		query2.append(queryJoins)
+        
+        StringBuilder queryJoins2 = new StringBuilder();
+        queryJoins2.append(" INNER JOIN po_department_mapping pdm on pdm.project_id = p.project_id AND (pdm.dept_id IN :deptIds)  \n")
+                .append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id \n")
+                .append(" LEFT JOIN clients c ON c.client_id = p.client_id  \n")
+                .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
+                .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1  \n")
+                .append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n");
+		query2.append(queryJoins2)
 		      .append(" WHERE 1=1 \n")
+              .append(" AND ((pdm.po_id IS NULL AND pdm.project_id = p.project_id) OR (pdm.po_id IS NOT NULL AND pdm.po_id = ppd.po_id AND DATE(ppd.po_start_date) <= CURDATE() AND DATE(ppd.po_end_date) >= CURDATE() AND ppd.active = 1)) \n")
 		      .append(getNotStartedProjectsCondition());
 
 		query3.append(queryJoins)
@@ -833,6 +862,71 @@ public class ProjectCustomRepository {
 		query.append(String.format(" ORDER BY %s %s ", sortBy, sortDirection));
 		return query.toString();
 	}
+
+    private String getApprovedAndNotStartedProjectsQuery(RMGDashboardProjectRequest rmgReq, String sortBy,
+            String sortDirection, List<String> projectNames, String projectType) {
+        Map<String, String> projectFilter = rmgReq != null ? rmgReq.getProjectFilter() : null;
+
+        StringBuilder query = new StringBuilder(" ( " + projectDetailsStartQuery); // Approved
+        StringBuilder query1 = new StringBuilder(projectDetailsStartQuery); // Not Started
+        StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" )");
+
+        StringBuilder queryJoins = new StringBuilder();
+        queryJoins.append(
+                " LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
+                .append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND (pdm.dept_id IN :deptIds)  \n")
+                .append(" LEFT JOIN clients c ON c.client_id = p.client_id  \n")
+                .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
+                .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1  \n")
+                .append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n");
+
+        query.append(" INNER JOIN teams t ON p.project_id = t.project_id  \n")
+                .append(" INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id  \n")
+                .append(queryJoins)
+                .append(" WHERE 1=1 \n");
+        if ("INTERNAL".equalsIgnoreCase(projectType)) {
+            query.append(" AND p.po_project_type IS NULL AND p.internal_project_type is not null AND TRIM(p.internal_project_type) != '' \n");
+        } else {
+            query.append(" AND UPPER(p.po_project_type) = ").append("'").append(projectType).append("'");
+        }
+        query.append(getApprovedProjectsCondition());
+
+        StringBuilder queryJoins1 = new StringBuilder();
+        queryJoins1.append(
+                " INNER JOIN po_department_mapping pdm on pdm.project_id = p.project_id AND (pdm.dept_id IN :deptIds)  \n")
+                .append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id \n")
+                .append(" LEFT JOIN clients c ON c.client_id = p.client_id  \n")
+                .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
+                .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1  \n")
+                .append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n");
+
+        query1.append(queryJoins1)
+                .append(" WHERE 1=1 \n")
+                .append(" AND ((pdm.po_id IS NULL AND pdm.project_id = p.project_id) OR (pdm.po_id IS NOT NULL AND pdm.po_id = ppd.po_id AND DATE(ppd.po_start_date) <= CURDATE() AND DATE(ppd.po_end_date) >= CURDATE() AND ppd.active = 1)) \n");
+        if ("INTERNAL".equalsIgnoreCase(projectType)) {
+            query1.append(" AND p.po_project_type IS NULL AND p.internal_project_type is not null AND TRIM(p.internal_project_type) != '' \n");
+        } else {
+            query1.append(" AND UPPER(p.po_project_type) = ").append("'").append(projectType).append("'");
+        }
+        query1.append(getNotStartedProjectsCondition());
+
+        appendLinkSearchPrimaryProjectIdFilter(rmgReq, query, query1);
+
+        if (projectNames != null && !projectNames.isEmpty()) {
+            query.append(" AND p.project_name IN (:projectNames) \n");
+            query1.append(" AND p.project_name IN (:projectNames) \n");
+        }
+        query.append(groupQuery);
+        query1.append(groupQuery);
+
+        query.append(" UNION ALL \n")
+                .append(query1)
+                .append(" ) as T1");
+
+        appenCustomSearchToQuery(projectFilter, query);
+        query.append(String.format(" ORDER BY %s %s ", sortBy, sortDirection));
+        return query.toString();
+    }
 
     private String getOverboardedAndUnderboardedProjectQuery(RMGDashboardProjectRequest rmgReq, String sortBy,
 			String sortDirection, List<String> projectNames, String projectStatus) {
@@ -929,7 +1023,15 @@ public class ProjectCustomRepository {
 					.append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
 					.append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id AND pm.active = 1 \n")
 					.append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
-		} else {
+		} else if (projectStatus.equalsIgnoreCase("NOT_STARTED")) {
+            query.append(" INNER JOIN po_department_mapping pdm on pdm.project_id = p.project_id AND pdm.dept_id IN :deptIds \n")
+                    .append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id \n")
+                    .append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id \n")
+                    .append(" LEFT JOIN clients c ON c.client_id = p.client_id \n")
+                    .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
+                    .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id AND pm.active = 1 \n")
+                    .append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
+        } else {
 			if (projectStatus.equalsIgnoreCase("APPROVED") || projectStatus.equalsIgnoreCase("SCHEDULED")) {
 				query.append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
 						.append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n");
@@ -942,11 +1044,11 @@ public class ProjectCustomRepository {
 					.append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id AND pm.active = 1 \n")
 					.append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
 		}
-        
         query.append(" WHERE 1=1 \n");
         appendLinkSearchPrimaryProjectIdFilter(rmgReq, query);
 
 		if (projectStatus.equalsIgnoreCase("NOT_STARTED")) {
+            query.append(" AND ((pdm.po_id IS NULL AND pdm.project_id = p.project_id) OR (pdm.po_id IS NOT NULL AND pdm.po_id = ppd.po_id AND DATE(ppd.po_start_date) <= CURDATE() AND DATE(ppd.po_end_date) >= CURDATE() AND ppd.active = 1)) \n");
 			query.append(getNotStartedProjectsCondition());
 		}
 		else if (projectStatus.equalsIgnoreCase("PENDING_FOR_APPROVAL")) {
@@ -1307,31 +1409,41 @@ public class ProjectCustomRepository {
     }
     
     private boolean isValidDateOrPartial(String value) {
-
-      
-
         String v = value.replace("/", "-").trim();
-
-     
-        DateTimeFormatter[] fullFormats = new DateTimeFormatter[]{
+        DateTimeFormatter[] fullFormats = new DateTimeFormatter[] {
                 DateTimeFormatter.ofPattern("dd-MM-yyyy"),
                 DateTimeFormatter.ofPattern("yyyy-MM-dd")
         };
-
         for (DateTimeFormatter formatter : fullFormats) {
             try {
                 LocalDate.parse(v, formatter);
-                return true; 
-            } catch (Exception ignored) {}
+                return true;
+            } catch (Exception ignored) {
+            }
         }
 
-      
         if (v.matches("^[0-9\\-]+$")) {
             return true;
         }
-
-       
         return false;
+    }
+
+    String getProjectType(String projectStatus) {
+        switch (projectStatus) {
+            case "TOTAL_FC":
+                return "FC";
+            case "TOTAL_EXPIRED_TNM":
+            case "TOTAL_TNM":
+            case "ALL_TNM":
+            case "TOTAL_ACTIVE_TNM":
+                return "TNM";
+            case "TOTAL_MONITORING":
+                return "MONITORING";
+            case "TOTAL_INTERNAL":
+                return "INTERNAL";
+            default:
+                return null;
+        }
     }
 
 }

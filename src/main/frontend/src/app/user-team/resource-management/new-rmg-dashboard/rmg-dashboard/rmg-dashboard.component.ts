@@ -2131,7 +2131,7 @@ export class RmgDashboardComponent implements OnInit {
   
           pointWidth: 14,
   
-          borderRadius: 7,
+          borderRadius: 0,
   
           enableMouseTracking: false,
   
@@ -2185,7 +2185,7 @@ export class RmgDashboardComponent implements OnInit {
   
           color: this.projectTypeColors.TNM,
   
-          borderRadius: 7,
+          borderRadius: 0,
   
           data: displayData.map(bucket => ({
   
@@ -2209,7 +2209,7 @@ export class RmgDashboardComponent implements OnInit {
   
           color: this.projectTypeColors['Fixed Cost'],
   
-          borderRadius: 7,
+          borderRadius: 0,
   
           data: displayData.map(bucket => ({
   
@@ -2233,7 +2233,7 @@ export class RmgDashboardComponent implements OnInit {
   
           color: this.projectTypeColors.Monitoring,
   
-          borderRadius: 7,
+          borderRadius: 0,
   
           data: displayData.map(bucket => ({
   
@@ -2257,7 +2257,7 @@ export class RmgDashboardComponent implements OnInit {
   
           color: this.projectTypeColors.Internal,
   
-          borderRadius: 7,
+          borderRadius: 0,
   
           data: displayData.map(bucket => ({
   
