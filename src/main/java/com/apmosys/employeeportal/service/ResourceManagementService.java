@@ -16267,48 +16267,52 @@ public class ResourceManagementService {
 				Direction.fromString(sortDirection), sortBy);
 
 		switch (projectStatus) {
-		case "TOTAL":
-			projectDetailsList = projectCustomRepository.handleAllProjects(rmgDashboardProjectRequest, deptIds,
-					projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "TOTAL_FC":
-			projectDetailsList = projectCustomRepository.handleFCProjects(rmgDashboardProjectRequest, deptIds,
-					projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "TOTAL_EXPIRED_TNM":
+			case "TOTAL":
+				projectDetailsList = projectCustomRepository.handleAllProjects(rmgDashboardProjectRequest, deptIds,
+						projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			case "TOTAL_FC":
+				projectDetailsList = projectCustomRepository.handleFCProjects(rmgDashboardProjectRequest, deptIds,
+						projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			case "TOTAL_EXPIRED_TNM":
 				projectDetailsList = projectCustomRepository.handleExpiredTNMProjects(rmgDashboardProjectRequest,
 						deptIds, projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "TOTAL_TNM":
-		case "ALL_TNM":
-		case "TOTAL_ACTIVE_TNM":
-		case "TOTAL_MONITORING":
-		case "TOTAL_INTERNAL":
-			projectDetailsList = projectCustomRepository.handleProjectsByType(rmgDashboardProjectRequest, deptIds,
-					projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "UNDERBOARDED":
-		case "OVERBOARDED":
-				projectDetailsList = projectCustomRepository.handleOverboardedAndUnderboardedProjects(rmgDashboardProjectRequest,
+				break;
+			case "TOTAL_TNM":
+			case "ALL_TNM":
+			case "TOTAL_ACTIVE_TNM":
+			case "TOTAL_MONITORING":
+			case "TOTAL_INTERNAL":
+				projectDetailsList = projectCustomRepository.handleProjectsByType(rmgDashboardProjectRequest, deptIds,
+						projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			case "UNDERBOARDED":
+			case "OVERBOARDED":
+				projectDetailsList = projectCustomRepository.handleOverboardedAndUnderboardedProjects(
+						rmgDashboardProjectRequest,
 						deptIds, projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "ALL":
-		case "NOT_STARTED":
-		case "PENDING_FOR_APPROVAL":
-		case "APPROVED":
-		case "REJECTED":
-		case "OFFBOARDED":
-		case "SCHEDULED":
-		case "COMPLETED_IN_ISHINE":
-		case "COMPLETED_IN_SHANKH":
-		case "COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE":
-			projectDetailsList = projectCustomRepository.handleGeneralProjectFilters(rmgDashboardProjectRequest,
-					deptIds, projectIds, projectStatus, projectNames, sortBy, sortDirection, page);
-		case "TIMESHEET_APPLICABLE_PROJECT":
-			projectDetailsList = projectCustomRepository.handleTimesheetApplicableProjects(rmgDashboardProjectRequest,
-					deptIds, projectIds, projectStatus, projectNames, sortBy, sortDirection, page);
-		default:
-			break;
+				break;
+			case "ALL":
+			case "NOT_STARTED":
+			case "PENDING_FOR_APPROVAL":
+			case "APPROVED":
+			case "REJECTED":
+			case "OFFBOARDED":
+			case "SCHEDULED":
+			case "COMPLETED_IN_ISHINE":
+			case "COMPLETED_IN_SHANKH":
+			case "COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE":
+				projectDetailsList = projectCustomRepository.handleGeneralProjectFilters(rmgDashboardProjectRequest,
+						deptIds, projectIds, projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			case "TIMESHEET_APPLICABLE_PROJECT":
+				projectDetailsList = projectCustomRepository.handleTimesheetApplicableProjects(
+						rmgDashboardProjectRequest,
+						deptIds, projectIds, projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			default:
+				break;
 		}
 		return projectDetailsList;
 	}
