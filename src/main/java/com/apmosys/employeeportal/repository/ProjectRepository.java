@@ -9052,5 +9052,21 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 	@Query(nativeQuery=true,value = "select e.email from employee e join  department d on e.department_id = d.dept_id where d.dept_id = 2")
 	List<String> getAccountsTeamEmails();
 
+	@Query(nativeQuery = true, value = " SELECT LOWER(po_project_type), project_count  \n"
+			+ " FROM ( \n"
+			+ " SELECT  \n"
+			+ " CASE WHEN po_project_type IS NOT NULL AND TRIM(p.po_project_type) != '' THEN p.po_project_type ELSE p.internal_project_type END AS po_project_type \n"
+			+ " , COUNT(distinct p.project_id) project_count \n"
+			+ " FROM projects p  \n"
+			+ " INNER JOIN teams t on t.project_id = p.project_id  \n"
+			+ " INNER JOIN employee_team_mapping etm on etm.team_id = t.team_id \n"
+			+ " INNER JOIN po_department_mapping pdm on pdm.project_id = p.project_id AND pdm.dept_id IN :deptIds \n"
+			+ " WHERE 1=1 AND p.project_id IN :projectIds   \n"
+			+ " AND t.is_active = 'Y' \n"
+			+ " AND etm.active = 1 \n"
+			+ " AND p.active= 'true' \n"
+			+ " GROUP BY CASE WHEN po_project_type IS NOT NULL AND TRIM(p.po_project_type) != '' THEN p.po_project_type ELSE p.internal_project_type END) T1 \n")
+	public List<Object[]> getProjectTypeWiseProjectCount(Set<Integer> projectIds, List<Long> deptIds);
+
 
 }

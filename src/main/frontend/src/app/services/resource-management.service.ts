@@ -315,6 +315,10 @@ export class ResourceManagementService {
     return this.http.post(`${this.baseUrl}` + `api/getFCFilterWiseProjectStatusCount`, rmgProjectRequest);
   }
 
+  getTimesheetApplicableProjectData(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getTimesheetApplicableProjectData`, rmgProjectRequest);
+  }
+
   getEmployeeMappedToClientPercent() {
     return this.http.get(`${this.baseUrl}` + `api/getEmployeeMappedToClientPercent`);
   }
