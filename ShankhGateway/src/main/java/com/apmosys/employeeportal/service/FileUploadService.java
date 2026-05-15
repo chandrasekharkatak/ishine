@@ -481,7 +481,7 @@ public class FileUploadService {
 //	@Scheduled(cron = "0 */4 * * * *")
 //	@Scheduled(cron = "0 0 7 ? * *")
 	@Async
-	@Scheduled(cron = "${VP_mails}")
+//	@Scheduled(cron = "${VP_mails}")
 	public void execute() {
 	    try {
 	        List<Object[]> findVpEmail = employeeRepository.findAllVPsEmail();
@@ -708,7 +708,7 @@ public class FileUploadService {
 
 	
 	@Async
-	@Scheduled(cron = "${department_wise_billable_report}")
+//	@Scheduled(cron = "${department_wise_billable_report}")
 	public void executeBillableReportMethod() {
 	    logger.info("Starting executeBillableReportMethod");
 

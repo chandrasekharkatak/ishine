@@ -950,7 +950,7 @@ public class PoPortalAPIService {
 	
 	
 		@Async
-		@Scheduled(cron = "${milestoneExpiryNotifier.time}")
+//		@Scheduled(cron = "${milestoneExpiryNotifier.time}")
 		public void milestoneExpiryNotifierMail() {
 		    System.out.println("======= Project Expiry Job Started =======");
 	

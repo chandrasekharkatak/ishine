@@ -32,7 +32,7 @@ public class TrainingCron {
 	@Autowired
 	private MailService mailService;
 
-	@Scheduled(cron = "${trainingReminder.time}")
+//	@Scheduled(cron = "${trainingReminder.time}")
 	public void sendTrainingReminders() {
 
 		
