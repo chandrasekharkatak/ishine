@@ -1836,9 +1836,9 @@ export class RmgDashboardComponent implements OnInit {
 
   // Projects Table APIs & Methods Start
   getProjectDetailsList(scrollToBottom: any) {
-    if (this.rmgProjectTableComponent) {
-      this.rmgProjectTableComponent?.refreshProjectData();
-    }
+    // if (this.rmgProjectTableComponent) {
+    //   this.rmgProjectTableComponent?.refreshProjectData();
+    // }
 
     if (scrollToBottom) {
       setTimeout(() => this.scrollToTable());
