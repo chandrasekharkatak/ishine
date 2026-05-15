@@ -18,6 +18,8 @@
         (click)="classCategory()" >Vehicle Type</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : foodAllowanceTypeTab}"
             (click)="foodTypeTable()">Food Allowance Type</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isSubmissionWindowTab}"
+            (click)="showSubmissionWindowPanel()">Submission Window</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isRuleSetTab}"
             (click)="showRuleSetPanel()">Approval Matrix</button>
         <!-- <button type=" button" class="btn btn-outline-primary btn-sm mx-1">Reimbursment-config</button> -->
@@ -25,7 +27,7 @@
 </div>
 
 <div class="row"
-    *ngIf="isCategoryTable && !isClass && !istravelMode && !isRuleSetTab">
+    *ngIf="isCategoryTable && !isClass && !istravelMode && !isRuleSetTab && !isSubmissionWindowTab">
 
     <div class="col-md-12">
 
@@ -121,7 +123,7 @@
 
 
 <div class="row"
-    *ngIf="istravelMode && !isClass && !isCategoryTable && !isRuleSetTab">
+    *ngIf="istravelMode && !isClass && !isCategoryTable && !isRuleSetTab && !isSubmissionWindowTab">
 
     <div class="col-md-12">
 
@@ -217,7 +219,7 @@
 
 
 <div class="row"
-    *ngIf="isClass && !istravelMode && !isCategoryTable && !isRuleSetTab">
+    *ngIf="isClass && !istravelMode && !isCategoryTable && !isRuleSetTab && !isSubmissionWindowTab">
 
     <div class="col-md-12">
 
@@ -308,7 +310,7 @@
 
 
 <div class="row"
-    *ngIf="foodCategoryTable && !isClass && !istravelMode && !isCategoryTable && !isRuleSetTab">
+    *ngIf="foodCategoryTable && !isClass && !istravelMode && !isCategoryTable && !isRuleSetTab && !isSubmissionWindowTab">
 
     <div class="col-md-12">
 
@@ -395,6 +397,37 @@
             </div>
         </div>
     </div>
+</div>
+
+<div class="row" *ngIf="isSubmissionWindowTab">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h3 class="table-header-title">Monthly submission window</h3>
+      </div>
+    </div>
+    <div class="card p-4" style="max-width: 520px;">
+      <p class="text-muted small mb-3">
+        Employees can apply for reimbursement only from the <strong>1st</strong> through the configured day of each calendar month.
+        After that day, Apply Reimbursement is hidden until the next month.
+      </p>
+      <div class="form-group">
+        <label class="info-label"><span class="text-danger">*</span> Last day to apply (day of month)</label>
+        <input type="number" class="form-control" min="1" max="31" name="rmbDeadlineDay"
+          [(ngModel)]="submissionSettings.monthlyDeadlineDay" [disabled]="submissionSettingsLoading" />
+        <small class="text-muted">Example: 10 = apply allowed on 1st–10th only.</small>
+      </div>
+      <div class="form-group form-check">
+        <input type="checkbox" class="form-check-input" id="rmbSubWindowEnabled" name="rmbSubWindowEnabled"
+          [(ngModel)]="submissionSettings.enabled" [disabled]="submissionSettingsLoading" />
+        <label class="form-check-label" for="rmbSubWindowEnabled">Enforce monthly submission window</label>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" (click)="saveSubmissionSettings()"
+        [disabled]="submissionSettingsSaving || submissionSettingsLoading">
+        {{ submissionSettingsSaving ? 'Saving…' : 'Save settings' }}
+      </button>
+    </div>
+  </div>
 </div>
 
 <div class="row" *ngIf="isRuleSetTab">

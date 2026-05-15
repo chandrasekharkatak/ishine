@@ -186,4 +186,16 @@ export class ReimbursementService {
     });
   }
 
+  getReimbursementSubmissionSettings() {
+    return this.http.get(`${this.baseUrl}api/getReimbursementSubmissionSettings`);
+  }
+
+  saveReimbursementSubmissionSettings(body: { monthlyDeadlineDay: number; enabled: boolean; updatedBy: number }) {
+    return this.http.post(`${this.baseUrl}api/saveReimbursementSubmissionSettings`, body);
+  }
+
+  getReimbursementSubmissionWindowStatus() {
+    return this.http.get(`${this.baseUrl}api/getReimbursementSubmissionWindowStatus`);
+  }
+
 }

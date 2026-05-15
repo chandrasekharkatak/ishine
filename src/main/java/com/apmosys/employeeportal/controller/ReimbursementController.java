@@ -23,11 +23,13 @@ import com.apmosys.employeeportal.dto.ReimbursementDTO;
 import com.apmosys.employeeportal.dto.ReimbursementFinanceTicketActionDTO;
 import com.apmosys.employeeportal.dto.ReimbursementTicketActorDTO;
 import com.apmosys.employeeportal.dto.ReimbursementTicketStageActionDTO;
+import com.apmosys.employeeportal.dto.ReimbursementSubmissionSettingsDTO;
 import com.apmosys.employeeportal.dto.ReimbursementTicketSubmitRequestDTO;
 import com.apmosys.employeeportal.dto.TravelBasedReimbursementRequestDTO;
 import com.apmosys.employeeportal.dto.TravelModeDTO;
 import com.apmosys.employeeportal.service.ReimbursementApprovalMatrixService;
 import com.apmosys.employeeportal.service.ReimbursementService;
+import com.apmosys.employeeportal.service.ReimbursementSubmissionSettingsService;
 import com.apmosys.employeeportal.service.ReimbursementTicketService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -43,6 +45,9 @@ public class ReimbursementController {
 
 	@Autowired
 	private ReimbursementApprovalMatrixService reimbursementApprovalMatrixService;
+
+	@Autowired
+	private ReimbursementSubmissionSettingsService reimbursementSubmissionSettingsService;
 
 	@PostMapping("/fetchReimbursementData")
 	public ServiceResponse fetchReimbursementData(@RequestBody ReimbursementDTO reimbursementObj) {
@@ -171,6 +176,21 @@ public class ReimbursementController {
 	@PostMapping("/deleteFoodType")
 	public ServiceResponse deleteFoodType(@RequestBody TravelModeDTO dto) {
 		return reimbursementService.deleteFoodType(dto.getFoodTypeId());
+	}
+
+	@GetMapping("/getReimbursementSubmissionSettings")
+	public ServiceResponse getReimbursementSubmissionSettings() {
+		return reimbursementSubmissionSettingsService.fetchSettings();
+	}
+
+	@PostMapping("/saveReimbursementSubmissionSettings")
+	public ServiceResponse saveReimbursementSubmissionSettings(@RequestBody ReimbursementSubmissionSettingsDTO body) {
+		return reimbursementSubmissionSettingsService.saveSettings(body);
+	}
+
+	@GetMapping("/getReimbursementSubmissionWindowStatus")
+	public ServiceResponse getReimbursementSubmissionWindowStatus() {
+		return reimbursementSubmissionSettingsService.fetchSubmissionWindowStatus();
 	}
 
 	@PostMapping("/saveReimbursementTicket")

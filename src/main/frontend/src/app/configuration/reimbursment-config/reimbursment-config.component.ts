@@ -60,6 +60,10 @@ export class ReimbursmentConfigComponent implements OnInit {
   isCategoryTableTab: boolean = true;
   /** Reimbursement → Approval Matrix tab (approval rules UI; backend later). */
   isRuleSetTab = false;
+  isSubmissionWindowTab = false;
+  submissionSettings = { monthlyDeadlineDay: 10, enabled: true };
+  submissionSettingsLoading = false;
+  submissionSettingsSaving = false;
   foodCategoryTable = false;
   foodAllowanceTypeTab = false;
   handlePageChange(event) {
@@ -181,6 +185,7 @@ export class ReimbursmentConfigComponent implements OnInit {
     this.foodCategoryTable =false;
     this.foodAllowanceTypeTab = false;
     this.isRuleSetTab = false;
+    this.isSubmissionWindowTab = false;
   }
   createCategory(){
     this.resetForm();
@@ -218,6 +223,7 @@ toggleSearchReviewType() {
     this.foodCategoryTable =false;
     this.foodAllowanceTypeTab = false;
     this.isRuleSetTab = false;
+    this.isSubmissionWindowTab = false;
   }
 
   isClass:boolean=false;
@@ -232,6 +238,7 @@ toggleSearchReviewType() {
     this.foodCategoryTable =false;
     this.foodAllowanceTypeTab = false;
     this.isRuleSetTab = false;
+    this.isSubmissionWindowTab = false;
   }
 
   foodTypeTable(){
@@ -244,10 +251,12 @@ toggleSearchReviewType() {
     this.foodAllowanceTypeTab = true;
     this.isClassTab = false;
     this.isRuleSetTab = false;
+    this.isSubmissionWindowTab = false;
   }
 
-  showRuleSetPanel(): void {
-    this.isRuleSetTab = true;
+  showSubmissionWindowPanel(): void {
+    this.isSubmissionWindowTab = true;
+    this.isRuleSetTab = false;
     this.isCategoryTable = false;
     this.isClass = false;
     this.istravelMode = false;
@@ -256,6 +265,66 @@ toggleSearchReviewType() {
     this.isCategoryTableTab = false;
     this.isClassTab = false;
     this.foodAllowanceTypeTab = false;
+    void this.loadSubmissionSettings();
+  }
+
+  async loadSubmissionSettings(): Promise<void> {
+    this.submissionSettingsLoading = true;
+    try {
+      const res: any = await this.reimbursementService.getReimbursementSubmissionSettings().toPromise();
+      if (res?.serviceStatus === 'Success' && res.serviceResponse) {
+        const s = res.serviceResponse;
+        this.submissionSettings = {
+          monthlyDeadlineDay: Number(s.monthlyDeadlineDay) || 10,
+          enabled: s.enabled !== false
+        };
+      }
+    } catch {
+      /* keep defaults */
+    } finally {
+      this.submissionSettingsLoading = false;
+    }
+  }
+
+  async saveSubmissionSettings(): Promise<void> {
+    const day = Number(this.submissionSettings.monthlyDeadlineDay);
+    if (!day || day < 1 || day > 31) {
+      void Swal.fire({ icon: 'warning', title: 'Invalid day', text: 'Enter a day between 1 and 31.' });
+      return;
+    }
+    this.submissionSettingsSaving = true;
+    try {
+      const res: any = await this.reimbursementService
+        .saveReimbursementSubmissionSettings({
+          monthlyDeadlineDay: day,
+          enabled: this.submissionSettings.enabled,
+          updatedBy: Number(this.currentUser?.empId)
+        })
+        .toPromise();
+      if (res?.serviceStatus === 'Success') {
+        void Swal.fire({ icon: 'success', title: 'Saved', text: res.serviceMessage || 'Submission window updated.' });
+      } else {
+        void Swal.fire({ icon: 'error', title: 'Save failed', text: res?.serviceError || res?.serviceResponse });
+      }
+    } catch (e: any) {
+      void Swal.fire({ icon: 'error', title: 'Save failed', text: e?.message || 'Unexpected error.' });
+    } finally {
+      this.submissionSettingsSaving = false;
+    }
+  }
+
+  showRuleSetPanel(): void {
+    this.isRuleSetTab = true;
+    this.isSubmissionWindowTab = false;
+    this.isCategoryTable = false;
+    this.isClass = false;
+    this.istravelMode = false;
+    this.foodCategoryTable = false;
+    this.istravelModeTab = false;
+    this.isCategoryTableTab = false;
+    this.isClassTab = false;
+    this.foodAllowanceTypeTab = false;
+    this.isSubmissionWindowTab = false;
   }
 
   subClassCategory(){

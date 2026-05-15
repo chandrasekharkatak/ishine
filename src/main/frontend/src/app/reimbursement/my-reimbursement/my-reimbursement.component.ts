@@ -95,9 +95,13 @@ vehicleTypeList:any[] = [];
   claimDateMax = '';
   /** From configured approval matrix for this employee. */
   approvalFlowSummary = '';
+  /** When false, monthly submission window is closed (after configured day of month). */
+  submissionWindowAllowed = true;
+  submissionWindowMessage = '';
 
   ngOnInit(): void {
     this.refreshClaimDateBounds();
+    void this.loadSubmissionWindowStatus();
     this.onGetEmployeeInfo();
     this.onGetExpenditureType();
     this.onGetTravelMode();
@@ -852,7 +856,24 @@ vehicleTypeList:any[] = [];
     }
   }
 
+  async loadSubmissionWindowStatus(): Promise<void> {
+    try {
+      const res: any = await this.reimbursementService.getReimbursementSubmissionWindowStatus().toPromise();
+      if (res?.serviceStatus === 'Success' && res.serviceResponse) {
+        this.submissionWindowAllowed = res.serviceResponse.allowed !== false;
+        this.submissionWindowMessage = res.serviceResponse.message || '';
+      }
+    } catch {
+      this.submissionWindowAllowed = true;
+      this.submissionWindowMessage = '';
+    }
+  }
+
   async submitEntireTicket(template: TemplateRef<any>) {
+    if (!this.submissionWindowAllowed) {
+      this.openAlertMod(template, this.submissionWindowMessage || 'Reimbursement submission is closed for this month.');
+      return;
+    }
     if (this.ticketClaims.length < 1) {
       this.openAlertMod(template, 'Use "Add claim to ticket" to add at least one claim before submitting.');
       return;

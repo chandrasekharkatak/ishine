@@ -106,6 +106,9 @@ public class ReimbursementTicketService {
 	@Autowired
 	private ReimbursementTicketMatrixWorkflowService matrixWorkflowService;
 
+	@Autowired
+	private ReimbursementSubmissionSettingsService reimbursementSubmissionSettingsService;
+
 	@Value("${reimbursement.workflow.hr.mail:hrm2@apmosys.com}")
 	private String workflowHrMail;
 
@@ -717,6 +720,7 @@ public class ReimbursementTicketService {
 	public ServiceResponse submitTicket(ReimbursementTicketSubmitRequestDTO req) {
 		ServiceResponse resp = new ServiceResponse();
 		try {
+			reimbursementSubmissionSettingsService.assertSubmissionAllowed();
 			if (req.getClaims() == null || req.getClaims().isEmpty()) {
 				resp.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				resp.setServiceError("At least one claim is required.");
