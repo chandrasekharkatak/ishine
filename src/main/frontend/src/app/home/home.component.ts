@@ -3440,14 +3440,7 @@ onExtendedDateChange(event: any) {
   if (event.value) { this.isExtensionEnabled = true; }
 }
 
-   goToGrievanceComponent(category: string, subCategory: string)  {
-    this.router.navigate(['/grievance'], {
-    queryParams: {
-      category: category,
-      subcategory: subCategory
-    }
-  });
-}
+   
 
 }
 

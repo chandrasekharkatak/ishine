@@ -289,13 +289,5 @@ getEmpIdPrefixFromFlags(employee: any): string {
     this.modalRef?.close();
   }
 
-  goToGrievanceComponent(category: string, subCategory: string)  {
-	    this.router.navigate(['/grievance'], {
-	    queryParams: {
-	      category: category,
-	      subcategory: subCategory
-	    }
-	  });
-	}
 
 }

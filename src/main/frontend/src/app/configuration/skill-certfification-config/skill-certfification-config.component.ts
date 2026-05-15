@@ -294,14 +294,7 @@ export class SkillCertfificationConfigComponent implements OnInit {
       return false;
     }
   }
-goToGrievanceComponent(category: string, subCategory: string)  {
-	    this.router.navigate(['/grievance'], {
-	    queryParams: {
-	      category: category,
-	      subcategory: subCategory
-	    }
-	  });
-	}
+
 
 
 }

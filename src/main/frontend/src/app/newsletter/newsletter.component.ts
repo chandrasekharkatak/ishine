@@ -431,14 +431,7 @@ if (emittedArray[1] == 'Filter All Document') {
 
 
 
-goToGrievanceComponent(category: string, subCategory: string)  {
-    this.router.navigate(['/grievance'], {
-    queryParams: {
-      category: category,
-      subcategory: subCategory
-    }
-  });
-}
+
 
 
 }

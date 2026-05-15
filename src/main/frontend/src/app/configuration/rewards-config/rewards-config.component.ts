@@ -625,14 +625,7 @@ console.log("Validation passed for customFilterDTOList");
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
-  goToGrievanceComponent(category: string, subCategory: string)  {
-	    this.router.navigate(['/grievance'], {
-	    queryParams: {
-	      category: category,
-	      subcategory: subCategory
-	    }
-	  });
-	}
+
 
 
 }

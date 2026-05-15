@@ -501,15 +501,6 @@ export class DeptConfigComponent implements OnInit {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
-
-     goToGrievanceComponent(category: string, subCategory: string)  {
-    this.router.navigate(['/grievance'], {
-    queryParams: {
-      category: category,
-      subcategory: subCategory
-    }
-  });
-}
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

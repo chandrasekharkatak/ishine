@@ -832,16 +832,6 @@ onFileSelect(event: any, template: TemplateRef<any>) {
 // Video Upload end
 
 
-goToGrievanceComponent(category: string, subCategory: string)  {
-	    this.router.navigate(['/grievance'], {
-	    queryParams: {
-	      category: category,
-	      subcategory: subCategory
-	    }
-	  });
-	}
-
-
 }  function compare(a: number | string, b: number | string, isAsc: boolean) {
     return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
   }

@@ -4053,14 +4053,7 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   window.URL.revokeObjectURL(url);
 }
 
-   goToGrievanceComponent(category: string, subCategory: string)  {
-    this.router.navigate(['/grievance'], {
-    queryParams: {
-      category: category,
-      subcategory: subCategory
-    }
-  });
-}
+
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

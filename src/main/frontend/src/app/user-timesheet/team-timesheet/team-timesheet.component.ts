@@ -2002,13 +2002,6 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
     return d.toISOString().split('T')[0];
   }
 
-   goToGrievanceComponent(category: string, subCategory: string)  {
-    this.router.navigate(['/grievance'], {
-    queryParams: {
-      category: category,
-      subcategory: subCategory
-    }
-  });
-}
+
 
 }

@@ -275,14 +275,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
     //console.log("Updated Filter : ", this.filters);
   }
 
-  goToGrievanceComponent(category: string, subCategory: string)  {
-    this.router.navigate(['/grievance'], {
-    queryParams: {
-      category: category,
-      subcategory: subCategory
-    }
-  });
-}
+  
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

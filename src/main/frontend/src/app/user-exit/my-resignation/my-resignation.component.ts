@@ -630,13 +630,6 @@ export class MyResignationComponent implements OnInit {
     //console.log("Updated Filter : ", this.filters);
   }
 
-  goToGrievanceComponent(category: string, subCategory: string) {
-    this.router.navigate(['/grievance'], {
-      queryParams: {
-        category: category,
-        subcategory: subCategory
-      }
-    });
-  }
+
 
 }

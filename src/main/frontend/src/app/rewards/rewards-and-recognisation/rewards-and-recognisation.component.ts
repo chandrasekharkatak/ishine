@@ -1099,12 +1099,5 @@ onEnableQuarterClick(template: TemplateRef<any>) {
 
 
 
-   goToGrievanceComponent(category: string, subCategory: string)  {
-    this.router.navigate(['/grievance'], {
-    queryParams: {
-      category: category,
-      subcategory: subCategory
-    }
-  });
-}
+  
   }
