@@ -53,6 +53,13 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/employeeportalapp/api/checkOTPWhenForgotPassword",
 			"/employeeportalapp/api/resendOTP",
 			"/employeeportalapp/api/checkUserSession",
+
+			"/employeeportalapp-grievance/api/authenticateUser",
+			"/employeeportalapp-grievance/api/authenticateUserWithOTP",
+			"/employeeportalapp-grievance/api/checkEmailWhenForgotPassword",
+			"/employeeportalapp-grievance/api/checkOTPWhenForgotPassword",
+			"/employeeportalapp-grievance/api/resendOTP",
+			"/employeeportalapp-grievance/api/checkUserSession",
 			
 			"/employeeportal-grievance/api/authenticateUser",
 			"/employeeportal-grievance/api/authenticateUserWithOTP",
