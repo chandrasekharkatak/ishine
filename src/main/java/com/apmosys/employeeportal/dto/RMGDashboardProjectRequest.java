@@ -19,6 +19,7 @@ public class RMGDashboardProjectRequest {
     private String fixedCostFilter;
     private String employeeGroupKey;
     private String unfilledTimesheetFilter;
+    private String timesheetApplicableProjectTypeFilter;
     private String fromDate;
     private String toDate;
 

@@ -8,6 +8,7 @@ export class RMGDashboardProjectRequest {
     expiredProjectFilter: any;
     unfilledTimesheetFilter: any;
     fixedCostFilter: any;
+    timesheetApplicableProjectTypeFilter:any;
     type: any;
     employeeGroupKey: any;
     fromDate: any;

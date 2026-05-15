@@ -42,6 +42,29 @@ public class ProjectCustomRepository {
     @Autowired
     private ProjectOverheadMappingRepository projectOverheadMappingRepository;
 
+    private static final StringBuilder projectDetailsStartQueryWithRequiredAndAllocatedCount = new StringBuilder()
+            .append(" WITH REQUIREMENT_COUNT AS ( \n")
+            .append(" 	SELECT p.project_id, coalesce(sum(prm.count), 0) required_resources \n")
+            .append(" 	FROM projects p \n")
+            .append("  LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURDATE() AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURDATE()) AND ppd.active = 1 \n")
+            .append("  LEFT JOIN po_requirement_mapping prm ON prm.po_id = ppd.po_id  \n")
+            .append(" 	WHERE 1=1  \n")
+            .append("  GROUP BY p.project_id \n")
+            .append(" ) , \n")
+            .append(" ALLOCATED_COUNT AS ( \n")
+            .append(" 	SELECT p.project_id, coalesce(count(distinct e.emp_id), 0) as active_resources \n")
+            .append(" 	FROM projects p \n")
+            .append("  LEFT JOIN teams t ON t.project_id = p.project_id and p.active= 'true' and t.is_active = 'Y' \n")
+            .append("  LEFT JOIN employee_team_mapping etm ON etm.team_id = t.team_id and etm.active = 1 \n")
+            .append("  LEFT JOIN employee e ON e.emp_id = etm.emp_id and upper(e.employmentstatus) != 'INACTIVE' \n")
+            .append(" 	where 1=1 \n")
+            .append("  GROUP BY p.project_id\n")
+            .append(" ), \n")
+            .append(" PROJECT_WISE_ACTIVE_AND_ALLOCATED_COUNT AS ( \n")
+            .append(" select rc.project_id, rc.required_resources, ac.active_resources \n")
+            .append(" FROM REQUIREMENT_COUNT rc \n")
+            .append(" LEFT JOIN ALLOCATED_COUNT ac ON rc.project_id = ac.project_id )  \n");
+
     private static final StringBuilder projectDetailsStartQuery = new StringBuilder()
             .append(" ( SELECT DISTINCT \n")
             .append(" p.project_id, p.project_name, p.internal_project_type \n")
@@ -66,8 +89,10 @@ public class ProjectCustomRepository {
             .append(" WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n")
             .append(" ELSE CAST(p.project_id AS CHAR)  \n")
             .append(" END AS project_overview_id  \n")
-            .append(",p.created_on, p.updated_on, p.project_completion_date \n")
-            .append(" FROM projects p \n");
+            .append(",p.created_on, p.updated_on, p.project_completion_date, pwc.required_resources, pwc.active_resources \n")
+            .append(" FROM projects p \n")
+            .append(" LEFT JOIN PROJECT_WISE_ACTIVE_AND_ALLOCATED_COUNT pwc ON pwc.project_id = p.project_id \n")
+            ;
 
     private static final StringBuilder projectDetailsGroupQuery = new StringBuilder()
             .append(" \n GROUP BY \n")
@@ -75,7 +100,7 @@ public class ProjectCustomRepository {
             .append(" ,p.po_project_id, p.start_date, p.end_date \n")
             .append(" ,p.client_id,c.client_name \n")
             .append(" ,p.active, p.status , p.project_status, p.sync_project, p.created_by, p.updated_by, approval_status \n")
-            .append(" ,project_overview_id, p.created_on, p.updated_on, p.project_completion_date \n");
+            .append(" ,project_overview_id, p.created_on, p.updated_on, p.project_completion_date, pwc.required_resources, pwc.active_resources \n");
 
     private void appendLinkSearchPrimaryProjectIdFilter(RMGDashboardProjectRequest req, StringBuilder... builders) {
         if (req == null) {
@@ -205,6 +230,81 @@ public class ProjectCustomRepository {
         }
         populateProjectManagersAndOverheads(list);
         return new PageImpl<>(list, page, count);
+    }
+
+    public Slice<ProjectFetchDTO> handleTimesheetApplicableProjects(
+            RMGDashboardProjectRequest rmgDashboardProjectRequest, List<Long> deptIds, Set<Integer> projectIds,
+            String projectStatus, List<String> projectNames, String sortBy, String sortDirection, Pageable page) {
+
+        String query = getTimesheetApplicableProjectQuery(rmgDashboardProjectRequest, sortBy, sortDirection,
+                rmgDashboardProjectRequest.getTimesheetApplicableProjectTypeFilter(), projectNames);
+
+        System.err.println(query);
+
+        CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
+                .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
+                        projectNames, null, "", false, false,
+                        rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
+        CompletableFuture<Long> countFuture = CompletableFuture
+                .supplyAsync(() -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
+                        false, rmgDashboardProjectRequest.getLinkSearchPrimaryProjectIds(),
+                        rmgDashboardProjectRequest.getLinkSearchNameLikeParameter()));
+        CompletableFuture.allOf(listFuture, countFuture).join();
+
+        Long count = null;
+        List<ProjectFetchDTO> list = null;
+        try {
+            count = countFuture.get();
+            list = listFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Error executing async DB calls", e);
+        }
+        populateProjectManagersAndOverheads(list);
+        return new PageImpl<>(list, page, count);
+    }
+
+    private String getTimesheetApplicableProjectQuery(RMGDashboardProjectRequest rmgReq,
+            String sortBy, String sortDirection, String timesheetApplicableProjectTypeFilter,
+            List<String> projectNames) {
+        Map<String, String> projectFilter = rmgReq != null ? rmgReq.getProjectFilter() : null;
+        StringBuilder query = new StringBuilder(projectDetailsStartQuery);
+        StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" ) as T1");
+
+        query.append(" INNER JOIN po_department_mapping pdm on pdm.project_id = p.project_id AND pdm.dept_id IN :deptIds \n")
+                .append(" INNER JOIN teams t ON p.project_id = t.project_id AND t.is_active = 'Y' \n")
+                .append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id AND etm.active = 1 \n")
+                .append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND ppd.active  = 1 \n")
+                .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1 \n")
+                .append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n")
+                .append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id \n")
+                .append(" LEFT JOIN clients c ON p.client_id = c.client_id \n")
+                .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
+                .append(" WHERE 1=1 \n");
+        appendLinkSearchPrimaryProjectIdFilter(rmgReq, query);
+        query.append(" AND p.active = 'true' \n");
+
+		Set<String> timesheetApplicableProjectTypes = Set.of("fixedCost", "tnm", "monitoring");
+
+        if (timesheetApplicableProjectTypeFilter != null) {
+            if (timesheetApplicableProjectTypeFilter.equals("internal")) {
+                query.append(" AND p.po_project_type IS NULL AND (LOWER(p.internal_project_type) = 'internalrndproducts' OR (p.internal_project_type) = 'internal' OR LOWER(p.internal_project_type) = 'bench') \n");
+            } else if (timesheetApplicableProjectTypes.contains(timesheetApplicableProjectTypeFilter)) {
+                query.append(" AND p.po_project_type IS NOT NULL AND LOWER(p.po_project_type) = '")
+                        .append(timesheetApplicableProjectTypeFilter).append("' \n");
+            }
+        }
+
+        if (projectNames != null && !projectNames.isEmpty()) {
+            query.append(" AND p.project_name IN (:projectNames)\n");
+        }
+
+        query.append(groupQuery);
+        appenCustomSearchToQuery(projectFilter, query);
+        query.append(String.format(" ORDER BY %s %s ", sortBy, sortDirection));
+        return query.toString();
     }
 
     public Slice<ProjectFetchDTO> handleOverboardedAndUnderboardedProjects(RMGDashboardProjectRequest rmgDashboardProjectRequest,
@@ -502,7 +602,7 @@ public class ProjectCustomRepository {
             Set<Integer> projectIds, String dbProjectStatus, boolean isProjectId, boolean addStartAndEndDate,
             List<Integer> linkSearchPrimaryProjectIds, String linkSearchNameLikeParameter) {
 
-        query = "SELECT * FROM " + query;
+        query = projectDetailsStartQueryWithRequiredAndAllocatedCount + " SELECT * FROM " + query;
         System.out.println(projectStatus + " : ================================= query");
         System.out.println(query);
         try (Session session = entityManager.unwrap(Session.class)) {
@@ -548,6 +648,16 @@ public class ProjectCustomRepository {
             boolean isProjectId, boolean addStartAndEndDate, List<Integer> linkSearchPrimaryProjectIds,
             String linkSearchNameLikeParameter) {
         query = "SELECT count(*) FROM " + query;
+        query = query.replace(" LEFT JOIN PROJECT_WISE_ACTIVE_AND_ALLOCATED_COUNT pwc ON pwc.project_id = p.project_id \n","")
+                .replace(", pwc.required_resources, pwc.active_resources", "");
+
+        if (query.contains("ORDER BY active_resources") || query.contains("ORDER BY required_resources")) {
+            query = query.replace("ORDER BY active_resources asc", "")
+                        .replace("ORDER BY active_resources desc", "")
+                        .replace("ORDER BY required_resources asc", "")
+                        .replace("ORDER BY required_resources desc", "");
+        }
+
         System.out.println(projectStatus + " : ================================= query");
         System.out.println(query);
         try (Session session = entityManager.unwrap(Session.class)) {
@@ -1062,6 +1172,10 @@ public class ProjectCustomRepository {
                 return " ishine_project_status";
             case "draftStatus":
                 return "Approval_status";
+            case "requiredResources":
+                return "required_resources";
+            case "activeResources":
+                return "active_resources";
             default:
                 return defaultFlag ? "project_name" : null;
         }

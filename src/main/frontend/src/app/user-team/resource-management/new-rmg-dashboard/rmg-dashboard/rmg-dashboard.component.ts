@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, OnInit, Output, TemplateRef, ViewChild,  HostListener, Input } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { AppComponent } from 'src/app/app.component';
@@ -16,11 +16,9 @@ import { ResourceManagementService } from 'src/app/services/resource-management.
 import { TeamService } from 'src/app/services/team.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { RmgProjectConfigComponent } from '../../rmg-project-config/rmg-project-config.component';
 import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
 import * as moment from 'moment';
-import { Sort } from '@angular/material/sort';
 import { first, firstValueFrom, pipe } from 'rxjs';
 import { RMGDashboardProjectRequest } from 'src/app/models/rmgDashboardProjectRequest';
 import * as Highcharts from 'highcharts';
@@ -28,6 +26,7 @@ import HC_more from 'highcharts/highcharts-more';
 import HC_solidGauge from 'highcharts/modules/solid-gauge';
 import HC_xrange from 'highcharts/modules/xrange';
 import VennModule from 'highcharts/modules/venn';
+import { RmgProjectTableComponent } from '../../rmg-project-table/rmg-project-table.component';
 
 VennModule(Highcharts);
 HC_more(Highcharts);
@@ -52,8 +51,8 @@ export class RmgDashboardComponent implements OnInit {
   allNonBillableProjectTypes = ['internalrndproducts', 'bench', 'internal'];
 
   @Output() actionTriggered = new EventEmitter<{ action: string; project: any; }>();
-
-  @ViewChild('rmgProjectConfig') rmgProjectComponent!: RmgProjectConfigComponent;
+  
+  @ViewChild('rmgProjectTable') rmgProjectTableComponent!: RmgProjectTableComponent;
   @ViewChild('chartSection') chartSection!: ElementRef;
   @ViewChild("project_configuration") projectConfigurationTemplateRef: TemplateRef<any>;
   @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
@@ -190,6 +189,13 @@ export class RmgDashboardComponent implements OnInit {
     { key: "ontime", label: 'On Time', value: null, color: '#4468BB', display: true, fullLabel: 'On Time (Fixed Cost)' },
   ];
 
+  timesheetApplicableProjects = [
+    { key: "tnm", label: 'TNM', value: null, color: '#7b8fc7', display: true },
+    { key: "fixedCost", label: 'Fixed Cost', value: null, color: '#6f85c0', subKey: 'TOTAL_FC', display: true },
+    { key: "monitoring", label: 'Monitoring', value: null, color: '#627bb8', display: true },
+    { key: "internal", label: 'Internal & Bench', value: null, color: '#4f68a9', display: true }
+  ];
+
   getTnmExpiredTooltip(): string[] {
     return [
       'TNM projects that have exceeded end date and resources are still onboarded.'
@@ -201,6 +207,12 @@ export class RmgDashboardComponent implements OnInit {
       'Defaulter: Projects on which resources are onboarded despite po_end_date is crossed.',
       'On Time: Projects on which resoruces are onboarded and po_end_date is not crossed.',
       'Active: Sum of Defaulter and On Time.'
+    ];
+  }
+
+  getTimesheetApplicableProjectTooltip(): string[] {
+    return [
+      'It represents the total number of Projects on which resources can fill timesheet.'
     ];
   }
 
@@ -476,8 +488,9 @@ export class RmgDashboardComponent implements OnInit {
 
   kpis = [
     {
-      label: 'TOTAL PROJECTS', value: this.statusCards[0]?.value, change: null, period: 'vs last week', status: null, icon: 'bi-lightning', key: 'ALL', extraValue: null, tooltip: [
-        'Total number of projects currently present in the system.'
+      label: 'ACTIVE PROJECTS', value: this.statusCards[1]?.value, change: null, period: 'vs last week', status: null, icon: 'bi-lightning', key: 'ALL', extraValue: null, tooltip: [
+        'Currently active projects in execution phase.',
+        'Projects active as of the current date.'
       ]
     },
     {
@@ -526,28 +539,12 @@ export class RmgDashboardComponent implements OnInit {
   projectStatus: string = '';
   expiredTNMProjectFilter: string = '';
   fixedCostProjectFilter: string = '';
+  timesheetApplicableProjectTypeFilter: string = '';
   activeEmployeesCount: number = 0;
   unassignedEmployeesCount: number = 0;
   assignedEmployeesCount: number = 0;
 
   // Objects
-
-  // Project Details Table
-  searchOnEnter: boolean = true;
-  isProjectSearchEnabled: boolean = false;
-  /** Project Name column header (app-info-tooltip): linked / partial name search + PO filter hint. */
-  projectNameSearchInfoTooltip: string[] = ['Search includes projects whose names were later linked to another project.', 'Linked results are shown as the current primary project with a link icon.',];
-  totalProjectsCount: number = 0;
-  projectPage: number = 1;
-  projectPageSize: number = 10;
-  pageSizeOptions: any[] = [5, 10, 20, 50];
-  projectSortDirection: string = 'asc';
-  projectSortColumn: string;
-  projectSortColumnType: string;
-  projectFilters: any = {};
-  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "projectStartDate", "projectEndDate", "state", "createdOn", "projectStatus", "draftStatus"];
-  poSearchTooltip: string[] = ['Shows only active POs.', 'Search includes both active and expired PO numbers.'];
-  dateSearchTooltip: string[] = ['Search supports dd-mm-yyyy or yyyy-mm-dd date formats only.',];
 
   constructor(
     private route: ActivatedRoute,
@@ -578,7 +575,7 @@ export class RmgDashboardComponent implements OnInit {
     this.projectStatus = this.filterStateService?.selectedProjectStatus ? this.filterStateService?.selectedProjectStatus : 'TOTAL';
     this.expiredTNMProjectFilter = 'allExpiredTNMProjectsCount';
     this.fixedCostProjectFilter = 'all';
-    this.projectPageSize = this.filterStateService?.projectPageSize ? this.filterStateService.projectPageSize : 10;
+    this.timesheetApplicableProjectTypeFilter = 'all';
 
     const deptName = String(this.currentUser.departmentName).trim();
     const empRole = String(this.currentUser.employeeRole).trim();
@@ -593,11 +590,6 @@ export class RmgDashboardComponent implements OnInit {
     this.getEmployeeNameAndEmpld();
     this.mapSubFeatureFlag();
 
-
-    if (this.filterStateService.projectReportFilters) {
-      this.isProjectSearchEnabled = true;
-      this.projectFilters = this.filterStateService.projectReportFilters;
-    }
     if ((this.filterStateService.deptIdList && this.filterStateService.deptIdList.length > 0) || (this.filterStateService.deptIdListByUser && this.filterStateService.deptIdListByUser.length > 0)) {
       this.myDept = this.filterStateService.myDept;
       this.selectedDepartmentIds = this.filterStateService.deptIdList;
@@ -605,16 +597,10 @@ export class RmgDashboardComponent implements OnInit {
 
     if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
       this.projectStatus = 'ALL';
-      this.isProjectSearchEnabled = true;
       setTimeout(() => this.scrollToTable());
-    } else {
-      this.getProjectDetailsList(false);
-    }
-
+    } 
     this.loadRMGDashboard();
   }
-
-
 
   // Department Table APIs & Methods Starts
   onDepartmentSelectionChange() {
@@ -734,17 +720,9 @@ export class RmgDashboardComponent implements OnInit {
     // FILTERS
     rmgProjectRequest.projectStatus = this.projectStatus;
     rmgProjectRequest.departmentIds = this.selectedDepartmentIds;
-    rmgProjectRequest.projectFilter = this.projectFilters;
     rmgProjectRequest.expiredProjectFilter = this.expiredTNMProjectFilter;
     rmgProjectRequest.fixedCostFilter = this.fixedCostProjectFilter;
-
-    // PAGINATION
-    rmgProjectRequest.page = this.projectPage || 0;
-    rmgProjectRequest.pageSize = this.projectPageSize;
-    rmgProjectRequest.sortColumn = this.projectSortColumn || 'name';
-    rmgProjectRequest.sortDirection = this.projectSortDirection || 'asc';
-    rmgProjectRequest.sortColumnType = this.projectSortColumnType || 'string';
-
+    rmgProjectRequest.timesheetApplicableProjectTypeFilter = this.timesheetApplicableProjectTypeFilter;
     return rmgProjectRequest;
   }
 
@@ -758,7 +736,7 @@ export class RmgDashboardComponent implements OnInit {
     await Promise.all(promises);
     this.updateKpis();
 
-    this.intializeBillingLossProgressBar();
+    // this.intializeBillingLossProgressBar();
   }
 
   getPercentage(value: any = 0, total: any = 0): number {
@@ -784,6 +762,18 @@ export class RmgDashboardComponent implements OnInit {
     );
   }
 
+  get totalTimesheetApplicableProjects() {
+    let total = 0;
+    if (this.timesheetApplicableProjects) {
+      this.timesheetApplicableProjects.map(type => {
+        if (type && type.value) {
+          total = total + type.value;
+        }
+      })
+    }
+    return total;
+  }
+
   setReportTabVisible() {
     this.isReportTabVisible = this.currentUser?.userMapping?.some(m => m.featureName === 'Reports') ?? false;
   }
@@ -795,7 +785,6 @@ export class RmgDashboardComponent implements OnInit {
   }
 
   onAction(action: string, project: any) {
-    // this.filterStateService.projectPageSize = this.projectPageSize;
     // this.filterStateService.selectedProjectStatus = this.projectStatus;
     // this.filterStateService.projectReportFilters = this.projectFilters;
     // this.filterStateService.deptIdList = this.selectedDepartmentIds;
@@ -818,10 +807,12 @@ export class RmgDashboardComponent implements OnInit {
     console.log(point);
     if (chartId) {
       this.projectStatus = chartId.split('_Chart')[0];
-      this.projectPage = 1;
       this.filterStateService.selectedProjectStatus = this.projectStatus;
       if (this.projectStatus == 'TOTAL_FC') {
         this.fixedCostProjectFilter = this.fixedCostItems.find(t => t.label === point?.name).key;
+      }
+      if (this.projectStatus == 'TIMESHEET_APPLICABLE_PROJECT') {
+        this.timesheetApplicableProjectTypeFilter = this.timesheetApplicableProjects.find(t => t.label === point?.name).key;
       }
       this.getProjectDetailsList(true);
     }
@@ -837,7 +828,6 @@ export class RmgDashboardComponent implements OnInit {
         return;
       } else if (projectStatus == 'TOTAL_EXPIRED_TNM') {
         this.projectStatus = projectStatus;
-        this.projectPage = 1;
         this.filterStateService.selectedProjectStatus = this.projectStatus;
         this.expiredTNMProjectFilter = this.tnmExpiredBars.find(t => t.label === point?.category).key;
       }
@@ -855,7 +845,6 @@ export class RmgDashboardComponent implements OnInit {
       return;
     }
 
-    this.projectPage = 1;
     this.projectStatus = insight.key;
     this.filterStateService.selectedProjectStatus = insight.key;
     if (insight.key == 'allExpiredTNMProjectsCount') {
@@ -939,7 +928,7 @@ export class RmgDashboardComponent implements OnInit {
     this.kpis = this.kpis.map(kpi => {
       switch (kpi.key) {
         case 'ALL':
-          return { ...kpi, value: statusMap['ALL'] };
+          return { ...kpi, value: statusMap['TOTAL'] };
 
         case 'TOTAL':
           return { ...kpi, value: workforceMap['TOTAL'] };
@@ -1511,6 +1500,7 @@ export class RmgDashboardComponent implements OnInit {
     promises.push(this.loadResourceCardData());
     promises.push(this.loadExpiredTnmData());
     promises.push(this.loadFixedCostData());
+    promises.push(this.loadTimesheetApplicableProjectData());
     promises.push(this.loadZeroTimesheetData());
 
     await Promise.all(promises);
@@ -1539,6 +1529,11 @@ export class RmgDashboardComponent implements OnInit {
   async loadFixedCostData() {
     await this.getFCFilterWiseProjectStatusCount();
     this.renderPieChart('TOTAL_FC_Chart', this.fixedCostItems, 120);
+  }
+
+   async loadTimesheetApplicableProjectData() {
+    await this.getTimesheetApplicableProjectData();
+    this.renderPieChart('TIMESHEET_APPLICABLE_PROJECT_Chart', this.timesheetApplicableProjects, 140);
   }
 
   async getCount(status: any, statusList: any[]) {
@@ -1619,7 +1614,6 @@ export class RmgDashboardComponent implements OnInit {
   }
 
   onProjectStatusSelect(status: string, projectStatusList: any, skipCountUpdate: boolean = false) {
-    this.projectPage = 1;
     this.projectStatus = status;
     this.filterStateService.selectedProjectStatus = status;
     if (this.projectStatus === 'TOTAL_EXPIRED_TNM') {
@@ -1629,6 +1623,9 @@ export class RmgDashboardComponent implements OnInit {
     }
     else if (this.projectStatus == 'TOTAL_FC') {
       this.fixedCostProjectFilter = 'all';
+    }
+    else if (this.projectStatus == 'TIMESHEET_APPLICABLE_PROJECT') {
+      this.timesheetApplicableProjectTypeFilter = 'all';
     }
 
     if (skipCountUpdate) {
@@ -1671,6 +1668,26 @@ export class RmgDashboardComponent implements OnInit {
         const counts = response.serviceResponse;
         for (const filter of this.zeroTimesheetBars) {
           filter.value = counts[filter.key];
+        }
+      } else {
+        this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
+      }
+    } catch (error) {
+      this.openAlertMessageModal("Something went wrong!");
+    }
+  }
+
+  async getTimesheetApplicableProjectData() {
+    let newRmgDashboardProjectRequest = this.getRMGRequestObject();
+    newRmgDashboardProjectRequest.projectFilter = null;
+    newRmgDashboardProjectRequest.projectStatus = 'TIMESHEET_APPLICABLE_PROJECT';
+    try {
+      const response: any = await firstValueFrom(this.resourceManagementService.getTimesheetApplicableProjectData(newRmgDashboardProjectRequest));
+      if (response?.serviceStatus == "Success" && response?.serviceResponse != null) {
+        const counts = response.serviceResponse;
+        for (const filter of this.timesheetApplicableProjects) {
+          filter.value = counts[filter.key];
+          continue;
         }
       } else {
         this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
@@ -1818,310 +1835,14 @@ export class RmgDashboardComponent implements OnInit {
   // Count & List APIs & Methods End
 
   // Projects Table APIs & Methods Start
-  onProjectSearch(searchData: any) {
-    this.projectPage = 1;
-    this.projectFilters = searchData;
-    this.filterStateService.projectReportFilters = this.projectFilters;
-    this.getProjectDetailsList(false);
-  }
-
-  onProjectPageSizeChange() {
-    this.filterStateService.projectPageSize = this.projectPageSize;
-    this.getProjectDetailsList(false);
-  }
-
-  sortProjectData(sort: Sort) {
-    if (sort.active) {
-      let sortParams: any[] = sort.active?.split("|");
-      this.projectSortColumn = sortParams[0];
-      this.projectSortColumnType = sortParams[1];
-      this.projectSortDirection = sort.direction;
-      this.getProjectDetailsList(false);
-    }
-  }
-
-  toggleProjectSearch(scrollToBottom: any = false): void {
-    this.isProjectSearchEnabled = !this.isProjectSearchEnabled;
-    if (!this.isProjectSearchEnabled) {
-      this.projectFilters = {};
-      this.filterStateService.clearProjectReportFilters();
-      this.getProjectDetailsList(scrollToBottom);
-    }
-  }
-
-  get totalPages(): number {
-    return Math.ceil(this.totalProjectsCount / this.projectPageSize);
-  }
-
-  get pages(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
-  }
-
-  get startIndex(): number {
-    if (!this.totalProjectsCount || !this.projectPageSize) return 0;
-    return (this.projectPage - 1) * this.projectPageSize + 1;
-  }
-
-  get endIndex(): number {
-    if (!this.totalProjectsCount || !this.projectPageSize) return 0;
-    return Math.min(this.projectPage * this.projectPageSize, this.totalProjectsCount);
-  }
-
-  get visiblePages(): (number | string)[] {
-    const total = this.totalPages;
-    const current = this.projectPage;
-    const pages: (number | string)[] = [];
-    if (total <= 7) {
-      return Array.from({ length: total }, (_, i) => i + 1);
-    }
-    pages.push(1);
-
-    if (current > 4) {
-      pages.push('...');
-    }
-    const start = Math.max(2, current - 1);
-    const end = Math.min(total - 1, current + 1);
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-
-    if (current < total - 3) {
-      pages.push('...');
-    }
-    pages.push(total);
-    return pages;
-  }
-
-  goToPage(page: number | string) {
-    if (page !== '...' && typeof page === 'number') {
-      this.projectPage = page;
-      this.filterStateService.projectPageSize = this.projectPageSize;
-      this.getProjectDetailsList(false);
-    }
-  }
-
-  nextProjectPage() {
-    if (this.projectPage < this.totalPages) {
-      this.projectPage++;
-      this.filterStateService.projectPageSize = this.projectPageSize;
-      this.getProjectDetailsList(false);
-    }
-  }
-
-  prevProjectPage() {
-    if (this.projectPage > 1) {
-      this.projectPage--;
-      this.filterStateService.projectPageSize = this.projectPageSize;
-      this.getProjectDetailsList(false);
-    }
-  }
-
-  exportPageProjectDetailsToExcel(projectDetailsList: any[]): void {
-    const excelName = "Project Report.xlsx";
-    const exportData = projectDetailsList?.map(x => ({
-      'Project Name': x.name || 'NA',
-      'PO Number': x.poNo || 'NA',
-      'Project Type': x.poProjectType || 'NA',
-      'Project Manager': x.projectManagers && x.projectManagers.length > 0 ? x.projectManagers[0].projectManagerName : 'NA',
-      'Client': x.clientName || 'NA',
-      'ApMSys RM': x.apmosysRM || 'NA',
-      'Client RM': x.clientRM || 'NA',
-      'Start Date': this.normalizeDate(x.projectStartDate) || 'NA',
-      'End Date': this.normalizeDate(x.projectEndDate) || 'NA',
-      'State': x.state || 'NA',
-      'Created On': this.normalizeDate(x.createdOn) || 'NA',
-      'PO Project Status': x.status || 'NA',
-      'IShine Project Status': x.projectStatus || 'NA',
-      'Approval Status': x.draftStatus || 'NA',
-    }));
-    this.exportExcelService.exportTableDataToExcel(exportData, excelName);
-  }
-
-  exportAllFilteredPageProjectDetailsToExcel() {
-    let rmgProjectRequest = this.getRMGRequestObject();
-    rmgProjectRequest.page = 0;
-    rmgProjectRequest.pageSize = 100000;
-    this.resourceManagementService.fetchProjectDetailsList(rmgProjectRequest).pipe(first()).subscribe((response: any) => {
-      if (response?.serviceStatus == "Success" && response?.serviceResponse != null && this.validationService.validateNullUndefinedEmptyList(response?.serviceResponse?.projectList?.content)) {
-        const apiResponse = response?.serviceResponse?.projectList?.content || [];
-        this.exportPageProjectDetailsToExcel(apiResponse);
-      } else {
-        this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
-      }
-    },
-      (error) => {
-        this.openAlertMessageModal('Something went wrong!!');
-      });
-  }
-
   getProjectDetailsList(scrollToBottom: any) {
-    this.totalProjectsCount = 0;
-    this.projectDetailsList = [];
-    this.rmgLinkedProjectSearchInfo = null;
-    this.rmgLinkedPrimaryProjectIdsFromSearch = [];
-    this.rmgLinkedSearchRowTooltipByProjectId = {};
-    let rmgProjectRequest = this.getRMGRequestObject();
-    rmgProjectRequest.page = rmgProjectRequest.page ? (rmgProjectRequest.page - 1) || 0 : 0
-    this.resourceManagementService.fetchProjectDetailsList(rmgProjectRequest).pipe(first()).subscribe((response: any) => {
-      if (response?.serviceStatus == "Success" && response?.serviceResponse != null && this.validationService.validateNullUndefinedEmptyList(response?.serviceResponse?.projectList?.content)) {
-        const apiResponse = response?.serviceResponse?.projectList;
-        this.totalProjectsCount = apiResponse?.totalElements || 0;
-        this.projectDetailsList = [...apiResponse?.content];
-        this.rmgLinkedProjectSearchInfo = response?.serviceResponse1 || null;
-        this.absorbRmgServiceResponse2LinkedMeta(response?.serviceResponse2);
-        this.populateProjectDetailsResolveMap(this.projectDetailsList);
-        console.log(this.projectDetailsList, "lalallala");
-      } else {
-        this.rmgLinkedPrimaryProjectIdsFromSearch = [];
-        this.rmgLinkedSearchRowTooltipByProjectId = {};
-        this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
-      }
-
-      if (scrollToBottom) {
-        setTimeout(() => this.scrollToTable());
-      }
-    },
-      (error) => {
-        this.rmgLinkedPrimaryProjectIdsFromSearch = [];
-        this.rmgLinkedSearchRowTooltipByProjectId = {};
-        this.openAlertMessageModal('Something went wrong!!');
-      });
-  }
-
-  isRmgLinkedSearchPrimaryRow(project: any): boolean {
-    if (!this.rmgLinkedPrimaryProjectIdsFromSearch?.length) {
-      return false;
-    }
-    const pid = Number(project?.projectId);
-    if (!Number.isFinite(pid)) {
-      return false;
-    }
-    return this.rmgLinkedPrimaryProjectIdsFromSearch.some(v => Number(v) === pid);
-  }
-
-  getRmgLinkedSearchRowTooltip(project: any): string {
-    const pid = Number(project?.projectId);
-    if (Number.isFinite(pid) && this.rmgLinkedSearchRowTooltipByProjectId[pid]) {
-      return this.rmgLinkedSearchRowTooltipByProjectId[pid];
-    }
-    return this.rmgLinkedProjectSearchInfo || '';
-  }
-
-  private absorbRmgServiceResponse2LinkedMeta(raw: any): void {
-    this.rmgLinkedPrimaryProjectIdsFromSearch = [];
-    this.rmgLinkedSearchRowTooltipByProjectId = {};
-    if (raw == null) {
-      return;
-    }
-    if (typeof raw === 'string') {
-      const s = raw.trim();
-      if (!s) {
-        return;
-      }
-      try {
-        this.absorbRmgServiceResponse2LinkedMeta(JSON.parse(s));
-        return;
-      } catch {
-        this.rmgLinkedPrimaryProjectIdsFromSearch = s.split(/[,;\s]+/g)
-          .map(t => Number(t.trim()))
-          .filter(v => Number.isFinite(v));
-        return;
-      }
-    }
-    if (Array.isArray(raw)) {
-      this.rmgLinkedPrimaryProjectIdsFromSearch = raw
-        .map(v => Number(v))
-        .filter(v => Number.isFinite(v));
-      return;
-    }
-    if (typeof raw === 'object') {
-      const idsRaw = (raw as any).linkedPrimaryIds ?? (raw as any).linked_primary_ids;
-      if (idsRaw != null && Array.isArray(idsRaw)) {
-        this.rmgLinkedPrimaryProjectIdsFromSearch = idsRaw
-          .map((v: any) => Number(v))
-          .filter((v: number) => Number.isFinite(v));
-      }
-      const mapRaw = (raw as any).matchedLinkedNamesByPrimaryId
-        ?? (raw as any).matched_linked_names_by_primary_id;
-      if (mapRaw != null && typeof mapRaw === 'object' && !Array.isArray(mapRaw)) {
-        for (const k of Object.keys(mapRaw)) {
-          const pid = Number(k);
-          const arr = (mapRaw as any)[k];
-          const names = Array.isArray(arr)
-            ? arr.map((x: any) => String(x == null ? '' : x).trim()).filter((t: string) => t.length > 0)
-            : [];
-          if (Number.isFinite(pid) && names.length > 0) {
-            this.rmgLinkedSearchRowTooltipByProjectId[pid] = this.buildRmgLinkedSearchRowTooltipText(names);
-          }
-        }
-        if (this.rmgLinkedPrimaryProjectIdsFromSearch.length === 0) {
-          this.rmgLinkedPrimaryProjectIdsFromSearch = Object.keys(mapRaw)
-            .map(k => Number(k))
-            .filter(v => Number.isFinite(v));
-        }
-      }
-    }
-  }
-
-  private buildRmgLinkedSearchRowTooltipText(names: string[]): string {
-    const list = this.formatRmgEnglishNameList(names);
-    return `Included via linked project whose name matches your search. Project :  ${list}.`;
-  }
-
-  private formatRmgEnglishNameList(parts: string[]): string {
-    const seen = new Set<string>();
-    const p: string[] = [];
-    for (const x of parts) {
-      const t = String(x || '').trim();
-      if (!t || seen.has(t)) {
-        continue;
-      }
-      seen.add(t);
-      p.push(t);
-    }
-    if (p.length === 0) {
-      return '';
-    }
-    if (p.length === 1) {
-      return p[0];
-    }
-    if (p.length === 2) {
-      return `${p[0]} and ${p[1]}`;
-    }
-    return `${p.slice(0, -1).join(', ')}, and ${p[p.length - 1]}`;
-  }
-
-  private populateProjectDetailsResolveMap(rows: any[]) {
-    // Use numeric projectId for linked detection/copy-name to avoid ambiguity when
-    // multiple linked projects share the same poProjectId (same "poXXXX" projectViewId).
-    const ids = (rows || [])
-      .map(r => r?.projectId)
-      .filter(v => v !== null && v !== undefined && String(v).trim() !== '')
-      .map(v => String(v));
-
-    const unique = Array.from(new Set(ids));
-    if (unique.length === 0) {
-      this.projectDetailsResolveMap = {};
-      return;
+    if (this.rmgProjectTableComponent) {
+      this.rmgProjectTableComponent?.refreshProjectData();
     }
 
-    this.resourceManagementService.resolveProjectViewIds(unique).pipe(first()).subscribe((resp: any) => {
-      if (resp?.serviceStatus === 'Success' && resp?.serviceResponse) {
-        this.projectDetailsResolveMap = resp.serviceResponse || {};
-      }
-    });
-  }
-
-  copyPrimaryProjectName(projectViewId: any) {
-    const key = String(projectViewId || '');
-    const name = this.projectDetailsResolveMap?.[key]?.resolvedProjectName;
-    if (!name) {
-      this.openAlertMessageModal('Primary project name not available.');
-      return;
+    if (scrollToBottom) {
+      setTimeout(() => this.scrollToTable());
     }
-    navigator.clipboard.writeText(name)
-      .then(() => this.openAlertMessageModal('Primary project name copied.'))
-      .catch(() => this.openAlertMessageModal('Unable to copy.'));
   }
   // Projects Table APIs & Methods End
 
