@@ -447,6 +447,25 @@ export class RmgProjectConfigComponent implements OnInit {
         }
     }
 
+    openExistingEmployeeProjectTimesheetInfoModal(member: RmgTeamMember, entries: EmployeeProjectTimesheetDto[]) {
+        const rmgMember = new RmgTeamMember();
+        rmgMember.empId = member.empId;
+        rmgMember.projectId = this.rmgProjectObj?.projectId;
+        rmgMember.projectType = member.projectType || this.projectType;
+        rmgMember.startDate = this.normalizeDate(member.startDate);
+        rmgMember.projectIds = [this.rmgProjectObj?.projectId, member.projectId].filter(id => id != null);
+        rmgMember.teamId = member.teamId;
+        rmgMember.etmId = member?.etmId;
+
+        this.existingEmployeeProjectTimesheetEntries = entries;
+        this.isProjectOverlapping = true;
+        this.appModalService.open('EMPLOYEE_PROJECT_TIMESHEET_CONFLICT', 'EMPLOYEE_PROJECT_TIMESHEET_CONFLICT', {
+            entries,
+            isOverlap: true,
+            rmgMember
+        });
+    }
+
     openMigrateTeamModal() {
         this.teamMembersMigrationObj = new MigrateTeams();
         this.teamMembersMigrationObj.migrationTeamIds = this.rmgProjectObj?.teamDetailsList?.map(team => {
@@ -1140,6 +1159,50 @@ export class RmgProjectConfigComponent implements OnInit {
 
     getTodaysDate() {
         return moment().startOf('day').format('YYYY-MM-DDTHH:mm:ss');
+    }
+
+    private parseTnmOverlapEntries(raw: any): EmployeeProjectTimesheetDto[] {
+        if (raw == null || raw === undefined) {
+            return [];
+        }
+        return Array.isArray(raw) ? raw : [raw];
+    }
+
+    private isEmployeeTeamStartDateAfterProposedStart(employeeTeamStartDate: any, proposedStartDate: any): boolean {
+        const overlapNorm = this.normalizeDate(employeeTeamStartDate);
+        const proposedNorm = this.normalizeDate(proposedStartDate);
+        if (!overlapNorm || !proposedNorm) {
+            return false;
+        }
+        return overlapNorm > proposedNorm;
+    }
+
+    private hasTnmOverlapStartingAfterProposedDate(entries: EmployeeProjectTimesheetDto[], proposedStartDate: any): boolean {
+        return entries.some(entry =>
+            this.isEmployeeTeamStartDateAfterProposedStart(entry?.employeeTeamStartDate, proposedStartDate)
+        );
+    }
+
+    private handleCurrentTnmProjectOverlapping(member: RmgTeamMember, response: any): boolean {
+        const entries = this.parseTnmOverlapEntries(member.tnmOverlapDetail);
+
+        if (this.hasTnmOverlapStartingAfterProposedDate(entries, member.startDate)) {
+            member.isEndDateVisible = true;
+            if (response?.data?.memberMaxEndDate) {
+                member.memberMaxEndDate = response.data.memberMaxEndDate;
+            }
+            const msg = response?.message;
+            if (msg) {
+                member.validationMessage = msg;
+            }
+            return false;
+        }
+
+        member.isEndDateVisible = false;
+        member.memberMaxEndDate = null;
+        member.validationMessage = null;
+        this.openExistingEmployeeProjectTimesheetInfoModal(member, entries);
+        return false;
     }
 
     onTabChange(event: MatTabChangeEvent) {
@@ -2453,7 +2516,7 @@ export class RmgProjectConfigComponent implements OnInit {
                 return false;
             }
             if (endDate !== this.normalizeDate(member.dbEndDate)) {
-                tempRmgMemberEndDateList.push({ etmId: member.etmId, empId: member.empId, endDate: member.endDate });
+                tempRmgMemberEndDateList.push({ etmId: member.etmId, empId: member.empId, endDate: endDate });
             }
         }
 
@@ -2606,6 +2669,9 @@ export class RmgProjectConfigComponent implements OnInit {
         if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {
             return true;
         } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT' || response?.type === 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT') {
+            if (member?.tnmOverlapDetail?.length) {
+                return this.handleCurrentTnmProjectOverlapping(member, response);
+            }
             member.isEndDateVisible = true;
             if (response?.data?.memberMaxEndDate) {
                 member.memberMaxEndDate = response.data.memberMaxEndDate;

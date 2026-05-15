@@ -667,6 +667,26 @@
         </button>
     </div>
     <div class="modal-body">
+        <div class="row mb-3 align-items-center">
+            <div class="col-md-6">
+                <mat-label class="d-block mb-1 text-muted small fw-semibold">Select Departments</mat-label>
+                <app-my-select class="form-control"
+                    placeholder="Choose departments" [(ngModel)]="selectedUniqueDepts"
+                    (ngModelChange)="onUniqueDeptSelect($event)" [options]="uniqueDeptLists"
+                    displayKey="name" valueKey="name" [multiple]="true">
+                </app-my-select>
+                <mat-hint class="d-block mt-1 text-muted small">Filter projects by selecting one or more core departments</mat-hint>
+            </div>
+            <div class="col-md-6">
+                <mat-label class="d-block mb-1 text-muted small fw-semibold">Select Employees</mat-label>
+                <app-my-select class="form-control"
+                    placeholder="Choose employees" [(ngModel)]="selectedUniqueEmployees"
+                    (ngModelChange)="onUniqueEmployeeSelect($event)" [options]="projectEmployeeList"
+                    displayKey="name" valueKey="name" [multiple]="true">
+                </app-my-select>
+                <mat-hint class="d-block mt-1 text-muted small">Filter projects by selecting one or more employees</mat-hint>
+            </div>
+        </div>
         <div class="filter-section">
             <div class="filter-header d-flex align-items-center justify-content-between">
                 <h5 style="margin: 0">Filter by Departments</h5>
@@ -678,7 +698,7 @@
             <div class="filter-options" *ngIf="toggleProjectSummaryDepartmentsVisible"
                 style="max-height: 200px;overflow-y: auto;border: 1px solid #ddd;padding: 10px;margin-bottom: 20px;">
                 <div class="row">
-                    <div class="col-md-3 col-sm-4 col-6" *ngFor="let dept of allDeptartmentList; let i = index">
+                    <div class="col-md-3 col-sm-4 col-6" *ngFor="let dept of displayedDepartmentList; let i = index">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" [id]="'dept-' + i" [value]="dept.name"
                                 [checked]="selectedDepartments.includes(dept.name)"
@@ -735,7 +755,10 @@
                                     <ng-container *ngIf="isProjectName(rowIndex, colIndex)">
                                         <div class="project-name-container d-flex align-items-center justify-content-end"
                                             style="gap: 5px;">
-                                            <span [title]="getCellFullText(cell)" style="text-align: right;">
+                                            <span [title]="getCellFullText(cell)" 
+                                                  (click)="openProjectEmployeesModal(getCellFullText(cell))"
+                                                  class="text-primary"
+                                                  style="text-align: right; cursor: pointer; text-decoration: underline;">
                                                 {{ getDisplayProjectName(getCellFullText(cell),
                                                 tableData[0][colIndex]) }}
                                             </span>
@@ -760,6 +783,32 @@
                 </p>
             </ng-template>
         </div>
+    </div>
+</ng-template>
+
+<ng-template #project_employees_modal>
+    <div class="modal-header">
+        <h5 class="modal-title pull-left">
+            Employees in {{ selectedProjectForEmployees }}
+        </h5>
+        <button class="btn btn-sm btn-outline-primary-custom pull-right" (click)="closeProjectEmployeesModal()">
+            <i class="fa fa-xmark m-0"></i>
+        </button>
+    </div>
+    <div class="modal-body">
+        <ul class="list-group" style="max-height: 400px; overflow-y: auto;">
+            <li class="list-group-item list-group-item-action text-primary" 
+                style="cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s ease;"
+                onmouseover="this.style.borderLeftColor='#007bff'; this.style.backgroundColor='#f8f9fa';"
+                onmouseout="this.style.borderLeftColor='transparent'; this.style.backgroundColor='transparent';"
+                *ngFor="let emp of employeesForSelectedProject"
+                (click)="navigateToEmployee360(emp.empId)">
+                <i class="fa fa-user me-2 text-secondary"></i> {{ emp.name }}
+            </li>
+            <li class="list-group-item text-muted text-center" *ngIf="!employeesForSelectedProject || employeesForSelectedProject.length === 0">
+                No employees found for this project.
+            </li>
+        </ul>
     </div>
 </ng-template>
 

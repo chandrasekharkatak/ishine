@@ -283,3 +283,10 @@
         </div>
     </div>
 </div>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="closeAlertMessageModal()">OK</button>&nbsp;
+    </div>
+</ng-template>

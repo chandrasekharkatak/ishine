@@ -22,7 +22,6 @@ import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.Timesheet;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeTimesheetsNew, Long> {
 
@@ -1311,7 +1310,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	@Query(value = "WITH\n"
 			+ "    Employees_With_ClientID AS (\n"
 			+ "        SELECT DISTINCT ecsm.emp_id\n"
-			+ "        FROM employee_client_side_id_mapping_new ecsm\n"
+			+ "        FROM employee_client_side_id_mapping ecsm\n"
 			+ "        WHERE ecsm.client_side_id IS NOT NULL AND ecsm.client_side_id != '' AND ecsm.active = 1\n"
 			+ "    ),\n"
 			+ "    Authorized_Employees AS (\n"
@@ -1365,7 +1364,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	@Query(value = "WITH\n"
 			+ "    Employees_With_ClientID AS (\n"
 			+ "        SELECT DISTINCT ecsm.emp_id\n"
-			+ "        FROM employee_client_side_id_mapping_new ecsm\n"
+			+ "        FROM employee_client_side_id_mapping ecsm\n"
 			+ "        WHERE ecsm.client_side_id IS NOT NULL AND ecsm.client_side_id != '' AND ecsm.active = 1\n"
 			+ "    ),\n"
 			+ "    Authorized_Employees AS (\n"
@@ -1501,11 +1500,11 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "				where e.emp_id not in\n"
 			+ "				(\n"
 			+ "				SELECT DISTINCT ecsm.emp_id\n"
-			+ "				FROM employee_client_side_id_mapping_new ecsm\n"
+			+ "				FROM employee_client_side_id_mapping ecsm\n"
 			+ "				WHERE ecsm.client_side_id IS NOT NULL AND ecsm.client_side_id != '' AND ecsm.active = 1\n"
 			+ "				)\n"
 			+ "				AND EXISTS (\n"
-			+ "				    SELECT 1 FROM employee_client_side_id_mapping_new ecsm2\n"
+			+ "				    SELECT 1 FROM employee_client_side_id_mapping ecsm2\n"
 			+ "				    WHERE ecsm2.emp_id = e.emp_id AND ecsm2.client_side_id IS NOT NULL AND ecsm2.client_side_id != '' AND ecsm2.active = 1\n"
 			+ "				)\n"
 			+ "                ),\n"
@@ -2735,7 +2734,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "        LEFT JOIN status_master_new sm ON et.status = sm.status_id\n"
 			+ "        LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.project_id = etam.project_id\n"
 			+ "        LEFT JOIN client_status_master_new csm ON pts.client_approval_status = csm.status_id\n"
-			+ "        LEFT JOIN employee_client_side_id_mapping_new ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = pts.project_id AND ecsm.active = 1\n"
+			+ "        LEFT JOIN employee_client_side_id_mapping ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = pts.project_id AND ecsm.active = 1\n"
 			+ "        WHERE dtm.day_type LIKE '%Working%'\n"
 			+ "        and sm.status = 'Pending'\n"
 			+ "         and et.emp_id = :empId and t.team_id = :teamId")
@@ -2786,7 +2785,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "				 				        LEFT JOIN status_master_new sm ON et.status = sm.status_id\n"
 			+ "				 				        LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.project_id = etam.project_id\n"
 			+ "				 				        LEFT JOIN client_status_master_new csm ON pts.client_approval_status = csm.status_id\n"
-			+ "				 				        LEFT JOIN employee_client_side_id_mapping_new ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = pts.project_id AND ecsm.active = 1\n"
+			+ "				 				        LEFT JOIN employee_client_side_id_mapping ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = pts.project_id AND ecsm.active = 1\n"
 			+ "				 				        WHERE dtm.day_type LIKE '%Working%'\n"
 			+ "				 				        and sm.status = 'Pending'\n"
 			+ "				 				        and et.emp_id = :empId  and t.team_id = :teamId \n"
@@ -4521,7 +4520,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			"LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.project_id = etam.project_id "
 			+
 			"LEFT JOIN client_status_master_new csm ON pts.client_approval_status = csm.status_id " +
-			"LEFT JOIN employee_client_side_id_mapping_new ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = pts.project_id AND ecsm.active = 1 "
+			"LEFT JOIN employee_client_side_id_mapping ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = pts.project_id AND ecsm.active = 1 "
 			+
 			"WHERE UPPER(dtm.day_type) LIKE '%WORKING%' " +
 			") " +
@@ -5120,7 +5119,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "			JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id\n"
 			+ "			LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = :emp_id\n"
 			+ "			LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
-			+ "        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "        WHERE p.has_client_side_id = 1\n"
 			+ "  AND (\n"
 			+ "		e.date_of_relieving IS NULL \n"
@@ -5962,7 +5961,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "        LEFT JOIN employee s ON s.emp_id = t.spoc_id\n"
 			+ "        LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
 			+ "        LEFT JOIN department d ON d.dept_id = jr.dept_id\n"
-			+ "        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "        WHERE p.project_id IN (SELECT project_id FROM Authorized_Project_IDs)\n"
 			+ "        AND etm.start_date <= (SELECT to_date FROM Date_Parameters)\n"
 			+ "        AND (etm.end_date IS NULL OR etm.end_date >= (SELECT from_date FROM Date_Parameters))\n"
@@ -7340,7 +7339,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "			JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id\n"
 			+ "			LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = :emp_id\n"
 			+ "			LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
-			+ "        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "        WHERE p.has_client_side_id = 1 \n"
 			+ "			AND (\n"
 			+ "			ae.emp_id IS NOT NULL \n"
@@ -7640,7 +7639,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "	        AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters) "
 			+ "	        AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)) AND ppd.active = True "
 		    + "        LEFT JOIN department d ON d.dept_id = jr.dept_id\n"
-		    + "        LEFT JOIN employee_client_side_id_mapping_new ecsm\n"
+		    + "        LEFT JOIN employee_client_side_id_mapping ecsm\n"
 		    + "               ON e.emp_id = ecsm.emp_id\n"
 		    + "              AND ecsm.project_id = t.project_id\n"
 		    + "              AND ecsm.active = 1\n"
@@ -8417,7 +8416,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "	        		ON ppd.project_id = p.project_id "
 			+ "	        		AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters) "
 			+ "	        		AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)) AND ppd.active = true "
-			+ "			        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "			        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "			        WHERE p.project_id IN (SELECT project_id FROM Authorized_Project_IDs) \n"
 			+ " AND (\n"
 			+ "		e.date_of_relieving IS NULL \n"
@@ -11280,7 +11279,7 @@ List<Long> getPaginatedEmployeeIds(
 			+ "			JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id\n"
 			+ "			LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = :emp_id\n"
 			+ "			LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
-			+ "        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "        WHERE p.has_client_side_id = 1 \n"
 			+ "			AND (\n"
 			+ "			ae.emp_id IS NOT NULL \n"
@@ -12672,7 +12671,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "			JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id\n"
 			+ "			LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = 3\n"
 			+ "			LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = 3\n"
-			+ "        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "        WHERE p.has_client_side_id = 1 \n"
 			+ "			AND (\n"
 			+ "			ae.emp_id IS NOT NULL \n"
@@ -13190,7 +13189,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			"    LEFT JOIN project_overhead_mapping pom_check \n" +
 			"           ON p.project_id = pom_check.project_id \n" +
 			"          AND pom_check.project_overhead_id = :emp_id \n" +
-			"    LEFT JOIN employee_client_side_id_mapping_new ecsm \n" +
+			"    LEFT JOIN employee_client_side_id_mapping ecsm \n" +
 			"           ON e.emp_id = ecsm.emp_id \n" +
 			"          AND ecsm.project_id = t.project_id \n" +
 			"          AND ecsm.active = 1 \n" +
@@ -13769,7 +13768,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "			        LEFT JOIN employee s ON s.emp_id = t.spoc_id\n"
 			+ "			        LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
 			+ "			        LEFT JOIN department d ON d.dept_id = jr.dept_id\n"
-			+ "			        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "			        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "			        WHERE \n"
 			+ "                    e.emp_id IN (:authorizedEmployees)\n"
 			+ "                    AND \n"
@@ -14111,7 +14110,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "			        LEFT JOIN employee s ON s.emp_id = t.spoc_id\n"
 			+ "			        LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
 			+ "			        LEFT JOIN department d ON d.dept_id = jr.dept_id\n"
-			+ "			        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "			        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "			        WHERE \n"
 			+ "                    e.emp_id IN (:authorizedEmployees)\n"
 			+ "                    AND \n"

@@ -16267,48 +16267,52 @@ public class ResourceManagementService {
 				Direction.fromString(sortDirection), sortBy);
 
 		switch (projectStatus) {
-		case "TOTAL":
-			projectDetailsList = projectCustomRepository.handleAllProjects(rmgDashboardProjectRequest, deptIds,
-					projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "TOTAL_FC":
-			projectDetailsList = projectCustomRepository.handleFCProjects(rmgDashboardProjectRequest, deptIds,
-					projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "TOTAL_EXPIRED_TNM":
+			case "TOTAL":
+				projectDetailsList = projectCustomRepository.handleAllProjects(rmgDashboardProjectRequest, deptIds,
+						projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			case "TOTAL_FC":
+				projectDetailsList = projectCustomRepository.handleFCProjects(rmgDashboardProjectRequest, deptIds,
+						projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			case "TOTAL_EXPIRED_TNM":
 				projectDetailsList = projectCustomRepository.handleExpiredTNMProjects(rmgDashboardProjectRequest,
 						deptIds, projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "TOTAL_TNM":
-		case "ALL_TNM":
-		case "TOTAL_ACTIVE_TNM":
-		case "TOTAL_MONITORING":
-		case "TOTAL_INTERNAL":
-			projectDetailsList = projectCustomRepository.handleProjectsByType(rmgDashboardProjectRequest, deptIds,
-					projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "UNDERBOARDED":
-		case "OVERBOARDED":
-				projectDetailsList = projectCustomRepository.handleOverboardedAndUnderboardedProjects(rmgDashboardProjectRequest,
+				break;
+			case "TOTAL_TNM":
+			case "ALL_TNM":
+			case "TOTAL_ACTIVE_TNM":
+			case "TOTAL_MONITORING":
+			case "TOTAL_INTERNAL":
+				projectDetailsList = projectCustomRepository.handleProjectsByType(rmgDashboardProjectRequest, deptIds,
+						projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			case "UNDERBOARDED":
+			case "OVERBOARDED":
+				projectDetailsList = projectCustomRepository.handleOverboardedAndUnderboardedProjects(
+						rmgDashboardProjectRequest,
 						deptIds, projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "ALL":
-		case "NOT_STARTED":
-		case "PENDING_FOR_APPROVAL":
-		case "APPROVED":
-		case "REJECTED":
-		case "OFFBOARDED":
-		case "SCHEDULED":
-		case "COMPLETED_IN_ISHINE":
-		case "COMPLETED_IN_SHANKH":
-		case "COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE":
-			projectDetailsList = projectCustomRepository.handleGeneralProjectFilters(rmgDashboardProjectRequest,
-					deptIds, projectIds, projectStatus, projectNames, sortBy, sortDirection, page);
-		case "TIMESHEET_APPLICABLE_PROJECT":
-			projectDetailsList = projectCustomRepository.handleTimesheetApplicableProjects(rmgDashboardProjectRequest,
-					deptIds, projectIds, projectStatus, projectNames, sortBy, sortDirection, page);
-		default:
-			break;
+				break;
+			case "ALL":
+			case "NOT_STARTED":
+			case "PENDING_FOR_APPROVAL":
+			case "APPROVED":
+			case "REJECTED":
+			case "OFFBOARDED":
+			case "SCHEDULED":
+			case "COMPLETED_IN_ISHINE":
+			case "COMPLETED_IN_SHANKH":
+			case "COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE":
+				projectDetailsList = projectCustomRepository.handleGeneralProjectFilters(rmgDashboardProjectRequest,
+						deptIds, projectIds, projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			case "TIMESHEET_APPLICABLE_PROJECT":
+				projectDetailsList = projectCustomRepository.handleTimesheetApplicableProjects(
+						rmgDashboardProjectRequest,
+						deptIds, projectIds, projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			default:
+				break;
 		}
 		return projectDetailsList;
 	}
@@ -17225,10 +17229,12 @@ public class ResourceManagementService {
 			List<Long> selectedDeptIds = new ArrayList<>();
 			LocalDate fromDate = null;
 			LocalDate toDate = null;
+			String projectTypee = null;
 			if (pageDTO.getExtraFilter() != null && !pageDTO.getExtraFilter().isEmpty()) {
 				Map<String, Object> extraFilters = pageDTO.getExtraFilter();
 				String fromDateStr = (String) extraFilters.get("fromDate");
 				String toDateStr = (String) extraFilters.get("toDate");
+				 projectTypee = (String) extraFilters.get("projectType");
 
 				fromDate = fromDateStr != null ? LocalDate.parse(fromDateStr) : null;
 				toDate = toDateStr != null ? LocalDate.parse(toDateStr) : null;
@@ -17262,7 +17268,7 @@ public class ResourceManagementService {
 
 			Slice<EmployeeDetailsDTO> projectDetailsList = employeeCustomRepository
 					.getUnfilledTimesheetProjectDetailsPage(isAllAccessEmployee, deptIds, pageDTO, projectIds, fromDate,
-							toDate);
+							toDate,projectTypee);
 
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(projectDetailsList);
@@ -17593,17 +17599,13 @@ public class ResourceManagementService {
 			String type = getProjectType(projectStructure.getType());
 			boolean isAllType = "All".equals(type);
 
-			if (projectStructure.getDeptName() != null && projectStructure.getDeptName().length > 0) {
-				String dept = projectStructure.getDeptName()[0].toString();
-				fetchStructure = isAllType ? resourceRequirementRepository.getListAllProjectStructure(dept)
-						: resourceRequirementRepository.getListProjectStructure(dept, type);
-			} else if (projectStructure.getDepartmentIds() != null && !projectStructure.getDepartmentIds().isEmpty()) {
-
-				String baseQuery = " SELECT DISTINCT client_name, project_name, po_project_type, dept_abbreviation, dept_name, dept_ids \n"
+			String baseQuery = " SELECT DISTINCT client_name, project_name, po_project_type, dept_abbreviation, dept_name, dept_ids, employee_names, employee_details \n"
 						+ " FROM ( SELECT DISTINCT p.project_id, c.client_name,  p.project_name, p.po_project_type, \n"
 						+ " GROUP_CONCAT(DISTINCT d.dept_id ORDER BY d.dept_id SEPARATOR ',') AS dept_ids, \n"
-						+ " GROUP_CONCAT(DISTINCT d.dept_abbreviation ORDER BY d.dept_id SEPARATOR ', ') AS dept_abbreviation, \n"
-						+ " GROUP_CONCAT(DISTINCT d.name ORDER BY d.dept_id SEPARATOR ', ') AS dept_name \n"
+						+ " GROUP_CONCAT(DISTINCT d.dept_abbreviation ORDER BY d.dept_id SEPARATOR ',') AS dept_abbreviation, \n"
+						+ " GROUP_CONCAT(DISTINCT d.name ORDER BY d.dept_id SEPARATOR ',') AS dept_name, \n"
+						+ " GROUP_CONCAT(DISTINCT e.name ORDER BY e.name SEPARATOR ',') AS employee_names, \n"
+						+ " GROUP_CONCAT(DISTINCT CONCAT(e.emp_id, '::', e.name) ORDER BY e.name SEPARATOR ',') AS employee_details \n"
 						+ " FROM projects p INNER JOIN clients c ON c.client_id = p.client_id \n"
 						+ " INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id \n"
 						+ " INNER JOIN teams t ON t.project_id = p.project_id \n"
@@ -17616,26 +17618,35 @@ public class ResourceManagementService {
 						+ " GROUP BY p.project_id, c.client_name, p.project_name, p.po_project_type \n"
 						+ " ) AS dept_list \n";
 
-				StringBuilder sql = new StringBuilder(baseQuery);
-				sql.append(" WHERE ");
+			StringBuilder sql = new StringBuilder(baseQuery);
+			sql.append(" WHERE 1=1 ");
 
+			if (projectStructure.getDeptName() != null && projectStructure.getDeptName().length > 0) {
+				String deptNameCondition = Arrays.stream(projectStructure.getDeptName())
+						.map(name -> " FIND_IN_SET('" + name.replace("'", "''") + "', dept_name)").collect(Collectors.joining(" OR "));
+				sql.append(" AND (").append(deptNameCondition).append(")");
+			} else if (projectStructure.getDepartmentIds() != null && !projectStructure.getDepartmentIds().isEmpty()) {
 				String deptCondition = projectStructure.getDepartmentIds().stream()
 						.map(id -> " FIND_IN_SET(" + id + ", dept_ids)").collect(Collectors.joining(" OR "));
-				sql.append("(").append(deptCondition).append(")");
-				if (!isAllType) {
-					sql.append(" AND po_project_type = :type");
-				}
-				sql.append(" GROUP BY dept_ids, dept_abbreviation, client_name, project_name, po_project_type");
-
-				Query query = entityManager.createNativeQuery(sql.toString());
-				if (!isAllType) {
-					query.setParameter("type", type);
-				}
-				fetchStructure = query.getResultList();
-			} else {
-				fetchStructure = isAllType ? resourceRequirementRepository.getAllStructure()
-						: resourceRequirementRepository.getAllProjectStructure(type);
+				sql.append(" AND (").append(deptCondition).append(")");
 			}
+
+			if (projectStructure.getEmployeeNames() != null && !projectStructure.getEmployeeNames().isEmpty()) {
+				String empCondition = projectStructure.getEmployeeNames().stream()
+						.map(name -> " FIND_IN_SET('" + name.replace("'", "''") + "', employee_names)").collect(Collectors.joining(" OR "));
+				sql.append(" AND (").append(empCondition).append(")");
+			}
+
+			if (!isAllType) {
+				sql.append(" AND po_project_type = :type");
+			}
+			sql.append(" GROUP BY dept_ids, dept_abbreviation, client_name, project_name, po_project_type, employee_names, employee_details, dept_name");
+
+			Query query = entityManager.createNativeQuery(sql.toString());
+			if (!isAllType) {
+				query.setParameter("type", type);
+			}
+			fetchStructure = query.getResultList();
 
 			List<ProjectStructureResponse> result = fetchStructure.stream().map(ProjectStructureResponse::new)
 					.collect(Collectors.toList());
@@ -17975,22 +17986,38 @@ public class ResourceManagementService {
 
 			Set<Integer> projectIds = getProjectIdsByType("TIMESHEET_NON_COMPLIANCE", isAllAccessEmployee, hodProjects, deptFlag, empId);
 			Set<Integer> filteredProjectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, "ALL", deptIds);
-			Set<String> timesheetRangeSet = Set.of("All", "3M", "6M", "1Y");
-			Map<String, Long> allProjectStatusCount = new LinkedHashMap<>();
+			List<String> timesheetRanges = List.of("All","3M", "6M", "1Y");
+			 Map<String, Map<String, Long>> result = new LinkedHashMap<>();
 
-			for (String timesheetRange : timesheetRangeSet) {
-				if (timesheetRange.equals("All")) {
-					allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
-					continue;
-				}
-				List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
-				LocalDate fromDate = dateRange.get(0);
-				LocalDate toDate = dateRange.get(1);
-				allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate));
-			}
+//			for (String timesheetRange : timesheetRangeSet) {
+//				if (timesheetRange.equals("All")) {
+//					allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
+//					continue;
+//				}
+//				List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
+//				LocalDate fromDate = dateRange.get(0);
+//				LocalDate toDate = dateRange.get(1);
+//				allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate));
+//			}
+			
+			 for (String timesheetRange : timesheetRanges) {
+				 if (timesheetRange.equals("All")) {
+					 result.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCountByProjectType(isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
+						continue;
+					}
+		            List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
+		            LocalDate fromDate = dateRange.get(0);
+		            LocalDate toDate  = dateRange.get(1);
+
+		            Map<String, Long> countByType = employeeCustomRepository
+		                    .getUnfilledTimesheetProjectDetailsCountByProjectType(
+		                            isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate);
+
+		            result.put(timesheetRange, countByType);
+		        }
 
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			serviceResponse.setServiceResponse(allProjectStatusCount);
+			serviceResponse.setServiceResponse(result);
 		} catch (Exception e) {
 			log.error("Error in getUnfilledTimesheetProjectDetailsCount", e);
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");

@@ -89,11 +89,11 @@ public class TeamMembersController {
 		return teamMembersService.updateTeamMembersStartDateAndEndDate(employeeProjectTimesheetDto);
 	}
 
-	@Scheduled(cron = "0 0 1 * * *")
-	@GetMapping("/triggerUnmappedEmployeeProjectNotificationJob")
-	public void triggerUnmappedEmployeeProjectNotificationJob() {
-		teamMembersService.sendDepartmentWiseUnmappedEmployeeProjectMail();
-	}
+//	@Scheduled(cron = "0 0 1 * * *")
+//	@GetMapping("/triggerUnmappedEmployeeProjectNotificationJob")
+//	public void triggerUnmappedEmployeeProjectNotificationJob() {
+//		teamMembersService.sendDepartmentWiseUnmappedEmployeeProjectMail();
+//	}
 
 	// @Encrypted
 	@PostMapping("/updateEmployeeProjectMappingAsInActive")

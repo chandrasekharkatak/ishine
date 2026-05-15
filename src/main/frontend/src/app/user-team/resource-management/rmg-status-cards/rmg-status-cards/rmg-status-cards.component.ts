@@ -42,6 +42,10 @@ export class RmgStatusCardsComponent {
 
   @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
   @ViewChild('employee_details') employeeDetailsTemplateRef: TemplateRef<any>;
+  @ViewChild('delete_team_modal') delete_team_modal: TemplateRef<any>;
+  @ViewChild('project_employees_modal') project_employees_modal: TemplateRef<any>;
+  MarkAsCompleteDefaultProject: TemplateRef<any>;
+  OtherProjectDefaultMapping: TemplateRef<any>;
   @ViewChild('employee_project_timesheet_summary') employeeProjectTimesheetSummaryTemplateRef: TemplateRef<any>;
   @ViewChild('expired_tnm_projects_summary') expiredTNMProjectsSummaryTemplateRef: TemplateRef<any>;
   @ViewChild('fixed_cost_projects_summary') fixedCostProjectsSummaryTemplateRef: TemplateRef<any>;
@@ -401,6 +405,7 @@ export class RmgStatusCardsComponent {
   employeeListByDept: Employee[] = [];
   selectedDeptIds: any[] = [];
   departmentList: any[] = [];
+  projectEmployeeList: any[] = [];
 
   searchOnEnter: boolean = true;
   isProjectSearchEnabled: boolean = false;
@@ -433,6 +438,8 @@ export class RmgStatusCardsComponent {
   orgChartData: any[] = [];
   selectedDepartments: string[] = [];
   allDeptartmentList: any[] = [];
+  displayedDepartmentList: any[] = [];
+  projectEmployeesMap: Map<string, { empId: string, name: string }[]> = new Map();
   expandedProjects: Set<string> = new Set();
   expandedColumns: Set<string> = new Set();
   projectFullText: Map<string, string> = new Map();
@@ -656,6 +663,9 @@ export class RmgStatusCardsComponent {
       "name": "Director, Functional Testing, Performance Testing"
     }
   ];
+   uniqueDeptLists = [];
+   selectedUniqueDepts: string[] = [];
+   selectedUniqueEmployees: string[] = [];
 
   poSearchTooltip: string[] = [
     'Shows only active POs.',
@@ -1517,7 +1527,25 @@ export class RmgStatusCardsComponent {
         return subDepts.some(sd => allowedDeptNames.has(sd));
       });
     }
+
+    const uniqueDeptsMap = new Map<string, string>();
+    filteredDepts.forEach(({ name, deptab }) => {
+      const names = name.split(',').map(n => n.trim());
+      const tabs = deptab.split(',').map(t => t.trim());
+      for (let i = 0; i < tabs.length; i++) {
+        if (!uniqueDeptsMap.has(tabs[i])) {
+          uniqueDeptsMap.set(tabs[i], names[i] || tabs[i]);
+        }
+      }
+    });
+
+    this.uniqueDeptLists = Array.from(uniqueDeptsMap.entries())
+      .map(([deptab, name]) => ({ name, deptab }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
     this.allDeptartmentList = filteredDepts.map(({ name, deptab }) => ({ name, deptab })).sort((a, b) => a.name.localeCompare(b.name));
+    this.displayedDepartmentList = [...this.allDeptartmentList];
+
     this.filterError = null;
     this.selectedDepartments = [];
     this.getProjectStructure();
@@ -1525,10 +1553,19 @@ export class RmgStatusCardsComponent {
 
   getProjectStructure() {
     this.orgChartData = [];
+    
+    let deptNameToSend = null;
+    if (this.selectedDepartments && this.selectedDepartments.length > 0) {
+      deptNameToSend = this.selectedDepartments;
+    } else if (this.selectedUniqueDepts && this.selectedUniqueDepts.length > 0) {
+      deptNameToSend = this.displayedDepartmentList.map(d => d.name);
+    }
+
     const projectStructure = {
-      deptName: this.selectedDepartments?.length > 0 ? this.selectedDepartments : null,
+      deptName: deptNameToSend,
       type: this.selectedProjectStatus || this.PROJECT_STATUS.TOTAL.key,
-      departmentIds: this.selectedDeptIds
+      departmentIds: this.selectedDeptIds,
+      employeeNames: this.selectedUniqueEmployees?.length > 0 ? this.selectedUniqueEmployees : null
     };
 
     this.projectService.getProjectStructure(projectStructure).pipe(first()).subscribe((res: any) => {
@@ -1543,6 +1580,20 @@ export class RmgStatusCardsComponent {
   }
 
   processDataForOrgChart(projectStructureResponse: any) {
+    if (!this.selectedUniqueEmployees || this.selectedUniqueEmployees.length === 0) {
+      const employeeNamesSet = new Set<string>();
+      if (projectStructureResponse) {
+        projectStructureResponse.forEach((response: any) => {
+          if (response.employeeNames && Array.isArray(response.employeeNames)) {
+            response.employeeNames.forEach((empName: string) => {
+              if (empName) employeeNamesSet.add(empName);
+            });
+          }
+        });
+      }
+      this.projectEmployeeList = Array.from(employeeNamesSet).map(name => ({ name })).sort((a, b) => a.name.localeCompare(b.name));
+    }
+
     const departmentMap = this.buildDepartmentMap(projectStructureResponse);
     this.orgChartData = Array.from(departmentMap.entries()).map(([deptAb, clientMap]) => ({
       name: deptAb,
@@ -1561,7 +1612,30 @@ export class RmgStatusCardsComponent {
 
   private buildDepartmentMap(data: any[]) {
     const departmentMap = new Map<string, Map<string, string[]>>();
-    data.forEach(({ deptAb, clientName, projectName }) => {
+    this.projectEmployeesMap.clear();
+    
+    data.forEach(({ deptAb, clientName, projectName, employeeDetails }) => {
+      if (employeeDetails && Array.isArray(employeeDetails)) {
+        const existingMap = new Map<string, string>();
+        
+        // Add existing from map
+        const existing = this.projectEmployeesMap.get(projectName) || [];
+        existing.forEach(e => existingMap.set(e.empId, e.name));
+        
+        // Add new
+        employeeDetails.forEach(detail => {
+          if (detail && detail.includes('::')) {
+            const parts = detail.split('::');
+            if (parts.length === 2) {
+              existingMap.set(parts[0], parts[1]);
+            }
+          }
+        });
+
+        const combined = Array.from(existingMap.entries()).map(([empId, name]) => ({ empId, name }));
+        this.projectEmployeesMap.set(projectName, combined.sort((a, b) => a.name.localeCompare(b.name)));
+      }
+
       if (!departmentMap.has(deptAb)) {
         departmentMap.set(deptAb, new Map());
       }
@@ -1696,14 +1770,59 @@ export class RmgStatusCardsComponent {
     this.toggleProjectSummaryDepartmentsVisible = !this.toggleProjectSummaryDepartmentsVisible;
   }
 
+  onUniqueDeptSelect(event?: any): void {
+    const selectedUniqueDeptNames = this.selectedUniqueDepts;
+    if (selectedUniqueDeptNames && selectedUniqueDeptNames.length > 0) {
+      this.displayedDepartmentList = this.allDeptartmentList
+        .filter(dept => {
+          const subDepts = dept.name.split(',').map(s => s.trim());
+          return selectedUniqueDeptNames.some(selected => subDepts.includes(selected));
+        });
+    } else {
+      this.displayedDepartmentList = [...this.allDeptartmentList];
+    }
+    this.selectedDepartments = [];
+    this.getProjectStructure();
+  }
+
+  onUniqueEmployeeSelect(event?: any): void {
+    this.getProjectStructure();
+  }
+
   updateSelectedDepartments(department: string, event: any): void {
     const isChecked = event.target.checked;
     if (isChecked) {
-      this.selectedDepartments = [department];
+      if (!this.selectedDepartments.includes(department)) {
+        this.selectedDepartments = [...this.selectedDepartments, department];
+      }
     } else {
-      this.selectedDepartments = [];
+      this.selectedDepartments = this.selectedDepartments.filter(d => d !== department);
     }
+    
     this.getProjectStructure();
+  }
+
+  selectedProjectForEmployees: string = '';
+  employeesForSelectedProject: { empId: string, name: string }[] = [];
+  projectEmployeesModalRef: any;
+
+  openProjectEmployeesModal(projectName: string): void {
+    this.selectedProjectForEmployees = projectName;
+    this.employeesForSelectedProject = this.projectEmployeesMap.get(projectName) || [];
+    this.projectEmployeesModalRef = this.modalService.open(this.project_employees_modal, {
+      size: 'md',
+      backdrop: 'static'
+    });
+  }
+
+  closeProjectEmployeesModal(): void {
+    if (this.projectEmployeesModalRef) {
+      this.projectEmployeesModalRef.close();
+    }
+  }
+
+  navigateToEmployee360(empId: string): void {
+    this.employee360Service.navigateToEmployee360(empId);
   }
   // Chart Data APIs & Methods End 
 
