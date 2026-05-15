@@ -7151,7 +7151,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 		    // ── CC: only you ──────────────────────────────────────────────────────
 		    Set<String> ccAddresses = new HashSet<>();
-		    ccAddresses.add("prarthana.lenka@apmosys.com");
+		    ccAddresses.add(rmgMail);
 
 		    
 		    try {
@@ -7432,9 +7432,14 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	        String body = buildPoDeletionHtml(dto);
 
 	        try {
-	            mailService.sendMailWithCC(
-	                    "prarthana.lenka@apmosys.com",
-	                    "priyadarshini.singh@apmosys.com",
+//	            mailService.sendMailWithCC(
+//	                    rmgMail,
+//	                    "",
+//	                    subject,
+//	                    body
+//	            );
+	        	mailService.sendMail(
+	                    rmgMail,
 	                    subject,
 	                    body
 	            );
