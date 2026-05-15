@@ -10,6 +10,12 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
 import { ReimbursementTicketModalComponent } from '../reimbursement-ticket-modal/reimbursement-ticket-modal.component';
+import {
+  approvalLevelCell,
+  buildTicketFilterColumns,
+  deriveTableLevelColumns,
+  RmbApprovalLevelColumn
+} from '../rmb-approval-levels.helper';
 
 @Component({
   standalone: false,
@@ -41,20 +47,19 @@ export class ReimbursementapprovalComponent implements OnInit {
   /** Pending = only tickets awaiting this actor's action; All = every ticket assigned in the workflow (any outcome). */
   ticketListView: 'pending' | 'all' = 'pending';
   ticketFilters: any = {};
-  ticketActiveColumns: any[] = [
+  private readonly ticketStaticFilterColumns = [
     'ticketNo',
     'fullName',
     'displayStatus',
     'workflowStage',
     'totalClaimAmount',
-    'submittedOn',
-    'level1ApproverName',
-    'level1ApproverStatus',
-    'level2ApproverName',
-    'level2ApproverStatus',
-    'level3ApproverName',
-    'level3ApproverStatus'
+    'paidClaimAmount',
+    'rejectedTotalAmount',
+    'submittedOn'
   ];
+  ticketActiveColumns: string[] = [...this.ticketStaticFilterColumns];
+  tableLevelColumns: RmbApprovalLevelColumn[] = [];
+  readonly approvalLevelCell = approvalLevelCell;
   sortColumn = '';
   sortColumnType = '';
   sortDirection = '';
@@ -70,8 +75,8 @@ export class ReimbursementapprovalComponent implements OnInit {
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x)}
 
   ngOnInit(): void {
+    void this.loadTableLevelColumnsFallback();
     this.onGetReimbursementInfo();
-
   }
 
   async onGetReimbursementInfo() {
@@ -107,10 +112,114 @@ export class ReimbursementapprovalComponent implements OnInit {
       : this.reimbursementService.fetchReimbursementTicketsAssignedAll(tBody);
     const tResp: any = await req$.toPromise();
     if (tResp.serviceStatus === 'Success') {
-      this.ticketRequests = tResp.serviceResponse || [];
+      const raw = tResp.serviceResponse || [];
+      this.ticketRequests = raw.map((t: any) => ({
+        ...t,
+        rejectedTotalAmount: this.computeRejectedTotalAmount(t)
+      }));
     } else {
       this.ticketRequests = [];
     }
+    await this.refreshTableLevelColumns();
+  }
+
+  private matrixLevelColumnsFallback: RmbApprovalLevelColumn[] = [];
+
+  private async loadTableLevelColumnsFallback(): Promise<void> {
+    try {
+      const res: any = await this.reimbursementService
+        .resolveReimbursementApprovalMatrixForEmployee(Number(this.currentUser?.empId))
+        .pipe(first())
+        .toPromise();
+      if (res?.serviceStatus === 'Success' && res.serviceResponse?.levelColumns) {
+        this.matrixLevelColumnsFallback = res.serviceResponse.levelColumns;
+        this.refreshTableLevelColumns();
+      }
+    } catch {
+      this.matrixLevelColumnsFallback = [];
+    }
+  }
+
+  get ticketTableColspan(): number {
+    const actionCol = this.ticketListView === 'pending' ? 1 : 0;
+    return 7 + this.tableLevelColumns.length * 2 + 1 + actionCol;
+  }
+
+  private refreshTableLevelColumns(): void {
+    this.tableLevelColumns = deriveTableLevelColumns(
+      this.ticketRequests,
+      this.matrixLevelColumnsFallback
+    );
+    this.ticketActiveColumns = buildTicketFilterColumns(
+      this.ticketStaticFilterColumns,
+      this.tableLevelColumns.length
+    );
+  }
+
+  /** Sum of amounts on rejected claims (for table + sort/filter). */
+  computeRejectedTotalAmount(ticket: any): number {
+    const lines = ticket?.rejectedClaimLines;
+    if (Array.isArray(lines) && lines.length) {
+      return lines.reduce((sum: number, r: any) => sum + (Number(r?.amount) || 0), 0);
+    }
+    const claims = ticket?.claims || [];
+    return claims
+      .filter((c: any) => String(c?.claimStatus || '').includes('REJECTED'))
+      .reduce((sum: number, c: any) => sum + (Number(c?.amount) || 0), 0);
+  }
+
+  /** Show info icon for Partial or Rejected level aggregate (tooltip lists rejected claims at that level). */
+  showApproverLevelInfoIcon(status: any): boolean {
+    const s = String(status ?? '').trim().toLowerCase();
+    return s === 'partial' || s === 'rejected';
+  }
+
+  /**
+   * Hover text when status is Partial or Rejected: claims rejected at that level
+   * with sequence number, type, amount, and approver remarks / finance reason.
+   */
+  partialDetailTooltip(ticket: any, level: number): string {
+    const claims = Array.isArray(ticket?.claims) ? ticket.claims : [];
+    const blocks: string[] = [];
+    if (ticket?.approvalMatrixId && level >= 1) {
+      claims
+        .filter((c: any) => c?.claimStatus === 'LEVEL_REJECTED')
+        .forEach((c: any) =>
+          blocks.push(this.formatClaimRejectionBlock(c, (c?.hodRemarks || '').trim() || '—'))
+        );
+      if (blocks.length) {
+        return blocks.join('\n\n—\n\n');
+      }
+    }
+    if (level === 1) {
+      claims
+        .filter((c: any) => c?.claimStatus === 'HOD_REJECTED')
+        .forEach((c: any) =>
+          blocks.push(this.formatClaimRejectionBlock(c, (c?.hodRemarks || '').trim() || '—'))
+        );
+    } else if (level === 2) {
+      claims
+        .filter((c: any) => c?.claimStatus === 'HR_REJECTED')
+        .forEach((c: any) =>
+          blocks.push(this.formatClaimRejectionBlock(c, (c?.hrRemarks || '').trim() || '—'))
+        );
+    } else {
+      const finReason = (ticket?.financeRejectReason || '').trim() || '—';
+      claims
+        .filter((c: any) => c?.claimStatus === 'FINANCE_REJECTED')
+        .forEach((c: any) => blocks.push(this.formatClaimRejectionBlock(c, finReason)));
+    }
+    if (!blocks.length) {
+      return 'No rejected claim details are available for this level.';
+    }
+    return blocks.join('\n\n—\n\n');
+  }
+
+  private formatClaimRejectionBlock(claim: any, reason: string): string {
+    const seq = claim?.lineNo != null ? String(claim.lineNo) : '?';
+    const typ = claim?.expenditureType || '—';
+    const amt = claim?.amount != null ? String(claim.amount) : '—';
+    return `Claim ${seq} · ${typ}\nRejected amount: ₹${amt}\nReason: ${reason}`;
   }
 
   async setTicketListView(view: 'pending' | 'all'): Promise<void> {
@@ -248,6 +357,9 @@ openEditModal(template: TemplateRef<any>, row: any) {
     if (!t?.workflowStage) {
       return false;
     }
+    if (this.ticketListView === 'pending' && t.workflowStage === 'PENDING_LEVEL') {
+      return true;
+    }
     if (t.workflowStage === 'PENDING_HOD') {
       const uid = String(this.currentUser?.empId ?? '');
       if (t.hodEmpId != null && t.hodEmpId !== '' && uid === String(t.hodEmpId)) {
@@ -308,7 +420,9 @@ openEditModal(template: TemplateRef<any>, row: any) {
     this.selectedTicket = JSON.parse(JSON.stringify(row));
     const stage = row.workflowStage;
     const pending = stage === 'PENDING_HOD' ? 'PENDING_HOD'
-      : stage === 'PENDING_HR' ? 'PENDING_HR' : 'PENDING_FINANCE';
+      : stage === 'PENDING_HR' ? 'PENDING_HR'
+      : stage === 'PENDING_LEVEL' ? 'PENDING_APPROVAL'
+      : 'PENDING_FINANCE';
     this.selectedTicket._pendingStatus = pending;
     if (pending !== 'PENDING_FINANCE') {
       this.selectedTicket._decisions = (row.claims || [])
@@ -338,6 +452,10 @@ openEditModal(template: TemplateRef<any>, row: any) {
         this.openAlertMod1(errTpl, 'Remarks are required for each rejected claim.');
         return;
       }
+      if (d.approved === true && (!d.remarks || !String(d.remarks).trim())) {
+        this.openAlertMod1(errTpl, 'Approval comments are required for each approved claim.');
+        return;
+      }
     }
     const body = {
       ticketId: this.selectedTicket.ticketId,
@@ -351,10 +469,10 @@ openEditModal(template: TemplateRef<any>, row: any) {
     };
     const stage = this.selectedTicket.workflowStage;
     let resp: any;
-    if (stage === 'PENDING_HOD') {
-      resp = await this.reimbursementService.processReimbursementTicketHod(body).pipe(first()).toPromise();
-    } else {
+    if (stage === 'PENDING_HR') {
       resp = await this.reimbursementService.processReimbursementTicketHr(body).pipe(first()).toPromise();
+    } else {
+      resp = await this.reimbursementService.processReimbursementTicketHod(body).pipe(first()).toPromise();
     }
     if (resp.serviceStatus === 'Success') {
       this.ticketModalRef?.close();
@@ -368,8 +486,8 @@ openEditModal(template: TemplateRef<any>, row: any) {
   async submitFinanceTicketDecision(alertTpl: TemplateRef<any>, errTpl: TemplateRef<any>) {
     const act = this.selectedTicket._financeAction;
     const remarks = this.selectedTicket._financeRemarks;
-    if (act === 'REJECTED' && (!remarks || !String(remarks).trim())) {
-      this.openAlertMod1(errTpl, 'Remarks are required when rejecting.');
+    if (!remarks || !String(remarks).trim()) {
+      this.openAlertMod1(errTpl, act === 'REJECTED' ? 'Remarks are required when rejecting.' : 'Finance / approval notes are required when marking as paid.');
       return;
     }
     const body = {

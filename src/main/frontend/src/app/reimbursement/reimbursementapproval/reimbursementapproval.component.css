@@ -1,3 +1,22 @@
 .rmb-approve-subnav .btn {
   min-width: 7rem;
 }
+
+.rmb-approve-table {
+  width: 100%;
+  table-layout: auto;
+  min-width: 100%;
+}
+
+.rmb-approve-level-status {
+  white-space: nowrap;
+}
+
+.rmb-partial-info {
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.rmb-partial-info:focus {
+  box-shadow: none;
+}

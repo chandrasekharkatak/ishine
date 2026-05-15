@@ -564,8 +564,8 @@ docList: any[] = [];
     const t = this.selectedFinanceTicket;
     const act = t._financeAction;
     const remarks = t._financeRemarks;
-    if (act === 'REJECTED' && (!remarks || !String(remarks).trim())) {
-      this.openAlertMod(templateOk, 'Remarks required when rejecting.');
+    if (!remarks || !String(remarks).trim()) {
+      this.openAlertMod(templateOk, act === 'REJECTED' ? 'Remarks required when rejecting.' : 'Finance / approval notes required when marking as paid.');
       return;
     }
     const body = {

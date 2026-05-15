@@ -30,6 +30,8 @@ public class ReimbursementTicket {
 	public static final String STAGE_PENDING_HOD = "PENDING_HOD";
 	public static final String STAGE_PENDING_HR = "PENDING_HR";
 	public static final String STAGE_PENDING_FINANCE = "PENDING_FINANCE";
+	/** Ticket is at a configured approval-matrix level (see {@link #currentLevelOrder}). */
+	public static final String STAGE_PENDING_LEVEL = "PENDING_LEVEL";
 	public static final String STAGE_REJECTED = "REJECTED";
 	public static final String STAGE_PAID = "PAID";
 
@@ -71,6 +73,15 @@ public class ReimbursementTicket {
 
 	@Column(name = "workflow_stage", nullable = false)
 	private String workflowStage;
+
+	@Column(name = "approval_matrix_id")
+	private Long approvalMatrixId;
+
+	@Column(name = "current_level_order")
+	private Integer currentLevelOrder = 1;
+
+	@Column(name = "current_assignee_emp_id")
+	private Long currentAssigneeEmpId;
 
 	@Column(name = "submitted_on")
 	private Timestamp submittedOn;

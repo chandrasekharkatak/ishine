@@ -73,7 +73,7 @@ vehicleTypeList:any[] = [];
   mappedProjectsForClaim: { projectId: number; projectName: string; clientName?: string; clientId?: number | null }[] = [];
   /** How {@link #mappedProjectsForClaim} was built (for empty-state messaging). */
   projectPickerSource: 'TEAM' | 'DEPARTMENT' | null = null;
-  /** Server: employee is in Business Development — enables "Others" project line. */
+  /** Server: employee is in Business Development — enables "Others" project option. */
   showOthersOption = false;
   /** Distinct clients for BD Others picker. */
   clientsForOthers: { clientId: number; clientName: string }[] = [];
@@ -90,22 +90,51 @@ vehicleTypeList:any[] = [];
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  /** Earliest / latest calendar day allowed for claim & food date pickers (yyyy-MM-dd). */
+  /** Earliest / latest day for travel from/to dates and food date: previous calendar month only (yyyy-MM-dd). */
   claimDateMin = '';
   claimDateMax = '';
+  /** From configured approval matrix for this employee. */
+  approvalFlowSummary = '';
 
   ngOnInit(): void {
-    const today = new Date();
-    this.claimDateMax = this.formatDate(today);
-    const earliest = new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
-    this.claimDateMin = this.formatDate(earliest);
-    this.fromDate = this.claimDateMin;
-    this.toDate = this.claimDateMax;
+    this.refreshClaimDateBounds();
     this.onGetEmployeeInfo();
     this.onGetExpenditureType();
     this.onGetTravelMode();
     this.onGetVehicleType();
     this.onGetFoodType();
+  }
+
+  /** While applying in month M, expense dates must fall in month M−1 only (no current month, no earlier months). */
+  refreshClaimDateBounds(): void {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    const firstPrev = new Date(y, m - 1, 1);
+    const lastPrev = new Date(y, m, 0);
+    this.claimDateMin = this.formatDate(firstPrev);
+    this.claimDateMax = this.formatDate(lastPrev);
+    this.fromDate = this.claimDateMin;
+    this.toDate = this.claimDateMax;
+  }
+
+  /** Short hint for date pickers, e.g. "April 2026 (2026-04-01 to 2026-04-30)." */
+  get claimDateWindowHint(): string {
+    if (!this.claimDateMin || !this.claimDateMax) {
+      return '';
+    }
+    const start = new Date(this.claimDateMin + 'T12:00:00');
+    const label = start.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+    return `${label} only (${this.claimDateMin} to ${this.claimDateMax}).`;
+  }
+
+  /** True when yyyy-MM-dd string lies inside [claimDateMin, claimDateMax]. */
+  dateInClaimWindow(d: string | null | undefined): boolean {
+    if (d == null || d === '') {
+      return false;
+    }
+    const s = String(d).trim();
+    return s >= this.claimDateMin && s <= this.claimDateMax;
   }
 
   onReasonSelect() {
@@ -134,9 +163,29 @@ vehicleTypeList:any[] = [];
       this.currentEmployeeInfo = response.serviceResponse;
 
       console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
-      await this.loadMappedProjectsForReimbursement();
     } else {
       console.error(response.serviceResponse);
+    }
+    // Load project picker even when profile API fails (e.g. legacy data); uses session empId.
+    await this.loadMappedProjectsForReimbursement();
+    await this.loadApprovalFlowSummary();
+  }
+
+  private async loadApprovalFlowSummary(): Promise<void> {
+    const empId = this.currentEmployeeInfo?.empId ?? this.currentUser?.empId;
+    if (empId == null) {
+      return;
+    }
+    try {
+      const res: any = await this.reimbursementService
+        .resolveReimbursementApprovalMatrixForEmployee(Number(empId))
+        .pipe(first())
+        .toPromise();
+      if (res?.serviceStatus === 'Success' && res.serviceResponse?.approvalFlowSummary) {
+        this.approvalFlowSummary = res.serviceResponse.approvalFlowSummary;
+      }
+    } catch {
+      this.approvalFlowSummary = '';
     }
   }
 
@@ -644,6 +693,13 @@ vehicleTypeList:any[] = [];
         this.openAlertMod(template, 'Please select the Fooding Date.');
         return;
       }
+      if (!this.dateInClaimWindow(this.reimbursementObj.dateOfFood)) {
+        this.openAlertMod(
+          template,
+          `Food expense date must be in the previous calendar month only (${this.claimDateWindowHint})`
+        );
+        return;
+      }
     }
     if (!this.reimbursementObj.amount || this.reimbursementObj.amount <= 0) {
       this.openAlertMod(template, 'Please enter a valid Total Amount .');
@@ -660,6 +716,13 @@ vehicleTypeList:any[] = [];
       }
       if (String(this.reimbursementObj.toDate) < String(this.reimbursementObj.fromDate)) {
         this.openAlertMod(template, 'To date cannot be earlier than From date.');
+        return;
+      }
+      if (!this.dateInClaimWindow(this.reimbursementObj.fromDate) || !this.dateInClaimWindow(this.reimbursementObj.toDate)) {
+        this.openAlertMod(
+          template,
+          `From and To dates must be in the previous calendar month only (${this.claimDateWindowHint})`
+        );
         return;
       }
     }
@@ -801,8 +864,25 @@ vehicleTypeList:any[] = [];
     await this.onGetEmployeeInfo();
     for (const c of this.ticketClaims) {
       if (c.projectId == null || c.projectId === '') {
-        this.openAlertMod(template, 'Each claim must have a project. Edit any line missing a project and update it.');
+        this.openAlertMod(template, 'Each claim must have a project. Edit any claim missing a project and update it.');
         return;
+      }
+      if (c.expenditureType === 'Food') {
+        if (c.dateOfFood && !this.dateInClaimWindow(c.dateOfFood)) {
+          this.openAlertMod(
+            template,
+            `Each food claim date must be in the previous calendar month only (${this.claimDateWindowHint}). Edit the invalid claim.`
+          );
+          return;
+        }
+      } else if (c.fromDate && c.toDate) {
+        if (!this.dateInClaimWindow(c.fromDate) || !this.dateInClaimWindow(c.toDate)) {
+          this.openAlertMod(
+            template,
+            `Each claim's From and To dates must be in the previous calendar month only (${this.claimDateWindowHint}). Edit the invalid claim.`
+          );
+          return;
+        }
       }
       if (c.expenditureType !== 'Food' && c.fromDate && c.toDate && String(c.toDate) < String(c.fromDate)) {
         this.openAlertMod(
@@ -857,7 +937,11 @@ vehicleTypeList:any[] = [];
         this.ticketClaims = [];
         this.resetAfterSubmit();
         this.fileUploads = [{}];
-        this.openAlertMod(template, 'Success! Your reimbursement ticket was submitted.');
+        const ticketRef = this.displaySubmittedTicketRef(response.serviceResponse);
+        const successMsg = ticketRef
+          ? `Success! Your request has been registered with Ticket ID:- ${ticketRef}`
+          : 'Success! Your reimbursement ticket was submitted.';
+        this.openAlertMod(template, successMsg);
       } else {
         this.openAlertMod(template, response.serviceError || response.serviceResponse || 'Submit failed.');
       }
@@ -869,6 +953,24 @@ vehicleTypeList:any[] = [];
 
   isValidForm() {
     return true;
+  }
+
+  /** Matches backend ticketDisplayRef: public ticketNo (APM-RMB-…) when set, else numeric ticketId. */
+  private displaySubmittedTicketRef(servicePayload: unknown): string {
+    if (!servicePayload || typeof servicePayload !== 'object') {
+      return '';
+    }
+    const o = servicePayload as Record<string, unknown>;
+    const ticketNo = o['ticketNo'];
+    const ticketId = o['ticketId'];
+    const fromNo = typeof ticketNo === 'string' ? ticketNo.trim() : String(ticketNo ?? '').trim();
+    if (fromNo) {
+      return fromNo;
+    }
+    if (ticketId != null && String(ticketId).trim() !== '') {
+      return String(ticketId);
+    }
+    return '';
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -946,23 +1048,24 @@ vehicleTypeList:any[] = [];
       this.invalidFromDate = false;
       return;
     }
-
-    const selected = new Date(value + 'T12:00:00');
-    const day = selected.getDate();
-
-    if (day < 1 || day > 15) {
+    if (!this.dateInClaimWindow(value)) {
       this.invalidFromDate = true;
       this.reimbursementObj.fromDate = '';
       this.reimbursementObj.toDate = null;
-    } else {
-      this.invalidFromDate = false;
-      this.syncToDateAfterFromChange();
+      return;
     }
+    this.invalidFromDate = false;
+    this.syncToDateAfterFromChange();
   }
 
   onToDateChange(value: string) {
     this.invalidToDate = false;
     if (!value || !this.reimbursementObj.fromDate) {
+      return;
+    }
+    if (!this.dateInClaimWindow(value)) {
+      this.reimbursementObj.toDate = null;
+      this.invalidToDate = true;
       return;
     }
     if (String(value) < String(this.reimbursementObj.fromDate)) {
@@ -974,7 +1077,10 @@ vehicleTypeList:any[] = [];
   private syncToDateAfterFromChange(): void {
     const f = this.reimbursementObj.fromDate;
     const t = this.reimbursementObj.toDate;
-    if (f && t && String(t) < String(f)) {
+    if (!f || !t) {
+      return;
+    }
+    if (String(t) < String(f) || !this.dateInClaimWindow(t)) {
       this.reimbursementObj.toDate = null;
       this.invalidToDate = true;
     }

@@ -220,7 +220,7 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
       {
         l: 'Pipeline pending (₹)',
         v: '₹' + this.formatRupee(d.pipelinePendingAmount),
-        s: 'HOD / HR / Finance pending lines',
+        s: 'HOD / HR / Finance pending claims',
         vc: pipeline > 0 ? 'rmb-tone-warning' : 'rmb-tone-zero',
         sc: pipeline > 0 ? 'rmb-sub-warn' : 'rmb-sub-muted'
       },
@@ -239,7 +239,7 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
         sc: 'rmb-sub-info'
       },
       {
-        l: 'Rejected claim lines',
+        l: 'Rejected claims',
         v: this.formatNumber(d.rejectedClaimLines),
         s: this.pct(d.rejectedClaimLines, d.claimCount) + '% of claims',
         vc: rejLines > 0 ? 'rmb-tone-danger' : 'rmb-tone-zero',
@@ -288,7 +288,7 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
         sc: aging > 0 ? 'rmb-sub-danger' : 'rmb-sub-muted'
       },
       {
-        l: 'Finance-ready lines',
+        l: 'Finance-ready claims',
         v: this.formatNumber(d.approvedClaimLines),
         s: 'Approved at HR + Finance',
         vc: finLines > 0 ? 'rmb-tone-success' : 'rmb-tone-zero',
@@ -308,7 +308,7 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
     return this.pct(value, submitted || 1);
   }
 
-  /** Pending pipeline ₹ split by days since ticket submit (claim-line pipeline statuses). */
+  /** Pending pipeline ₹ split by days since ticket submit (claim pipeline statuses). */
   pendingAgingList(): { label: string; amount: number; pctLabel: string }[] {
     const d = this.reimbursementDashboard;
     const aging = d?.pendingAmountAging as Record<string, number> | undefined;
@@ -443,6 +443,12 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
     }
     if (f.clientId !== '' && f.clientId != null) {
       o.clientId = Number(f.clientId);
+    }
+    if (this.currentUser?.empId != null) {
+      o.actorEmpId = Number(this.currentUser.empId);
+    }
+    if (this.currentUser?.email) {
+      o.actorEmail = this.currentUser.email;
     }
     return o;
   }
@@ -659,7 +665,7 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
     const lineCategories = linePack?.categories as string[] | undefined;
     const canLine = !!(linePack && Array.isArray(lineCategories) && lineCategories.length > 0);
     if (canLine) {
-      /** Prototype: client `iCl` dashes rejected only; department `iDt` keeps all lines solid. */
+      /** Prototype: client `iCl` dashes rejected only; department `iDt` keeps all series solid. */
       const dashRejectedOnly = kind !== 'department';
       this.renderDashboardLineSeriesChart(stackId, linePack, { dashRejectedOnly });
     } else if (kind === 'project') {

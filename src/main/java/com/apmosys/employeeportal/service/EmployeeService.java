@@ -1432,10 +1432,13 @@ public class EmployeeService {
 					empDTO.setSpecializationList(specializationIds.toArray(new Long[specializationIds.size()]));
 				}
 				
-				EmpPrimaryProjectMapping employeeProject = empPrimaryProjectMappingRepository.findByEmpIdAndIsMapped(employeedto.getEmpId(),"Y");
-				if(employeeProject!=null) {
+				List<EmpPrimaryProjectMapping> primaryMappings = empPrimaryProjectMappingRepository
+						.findAllByEmpIdAndIsMappedOrderByMappingIdDesc(employeedto.getEmpId(), "Y");
+				EmpPrimaryProjectMapping employeeProject = (primaryMappings != null && !primaryMappings.isEmpty())
+						? primaryMappings.get(0) : null;
+				if (employeeProject != null && employeeProject.getPrimaryProjectId() != null) {
 					Project project = projectRepository.findByProjectId(employeeProject.getPrimaryProjectId().intValue());
-					empDTO.setDefaultProjectName(project.getProjectName());					
+					empDTO.setDefaultProjectName(project.getProjectName());
 				}
 						
 						

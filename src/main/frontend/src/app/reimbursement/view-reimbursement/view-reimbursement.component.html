@@ -1,8 +1,8 @@
-<div class="row">
+<div class="row rmb-page">
   <div class="col-md-12">
     <div class="row">
       <div class="col-md-12 table-header">
-        <h1 class="table-header-title">myReimbursementRequestHistory</h1>
+        <h1 class="table-header-title">My Reimbursement Requests</h1>
       </div>
     </div>
     <div class="row mt-3">
@@ -17,31 +17,29 @@
         </div>
 
         <div class="overflow-auto" bassHorizontalScroll>
-          <table class="table table-responsive table-bordered" matSort (matSortChange)="sortTicketData($event)">
+          <table class="table table-bordered rmb-view-table w-100" matSort (matSortChange)="sortTicketData($event)">
             <thead class="thead-light">
               <tr>
-                <th mat-sort-header="ticketNo|string">ticketId</th>
-                <th mat-sort-header="displayStatus|string">displayStatus</th>
-                <th mat-sort-header="workflowStage|string">workflowStage</th>
-                <th mat-sort-header="totalClaimAmount|number">totalClaimAmount</th>
-                <th mat-sort-header="paidClaimAmount|number">paidClaimAmount</th>
-                <th mat-sort-header="submittedOn|date">submittedOn</th>
-                <th mat-sort-header="level1ApproverName|string">level1ApproverName</th>
-                <th mat-sort-header="level1ApproverStatus|string">level1ApproverStatus</th>
-                <th mat-sort-header="level2ApproverName|string">level2ApproverName</th>
-                <th mat-sort-header="level2ApproverStatus|string">level2ApproverStatus</th>
-                <th mat-sort-header="level3ApproverName|string">level3ApproverName</th>
-                <th mat-sort-header="level3ApproverStatus|string">level3ApproverStatus</th>
-                <th>rejectedClaims</th>
-                <th>claims</th>
-                <th class="text-center">action</th>
+                <th mat-sort-header="ticketNo|string">Ticket</th>
+                <th mat-sort-header="displayStatus|string">Status</th>
+                <th mat-sort-header="workflowStage|string">Workflow</th>
+                <th mat-sort-header="totalClaimAmount|number">Total (₹)</th>
+                <th mat-sort-header="paidClaimAmount|number">Paid (₹)</th>
+                <th mat-sort-header="submittedOn|date">Submitted</th>
+                <ng-container *ngFor="let col of tableLevelColumns; let li = index">
+                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverName|string'">{{ col.levelLabel }} approver</th>
+                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverStatus|string'">{{ col.levelLabel }} status</th>
+                </ng-container>
+                <th>Rejections</th>
+                <th>Claims</th>
+                <th class="text-center">Action</th>
               </tr>
               <tr app-column-filter-bar *ngIf="isSearchEnabledTickets" [columnList]="ticketActiveColumns"
                 (onSearch)="onTicketSearch($event);pageTickets=1"></tr>
             </thead>
             <tbody>
               <tr *ngIf="!myReimbursementTickets?.length || (myReimbursementTickets | colFilter:ticketFilters:false).length === 0">
-                <td colspan="15" class="text-center text-muted">noDetailsToDisplay</td>
+                <td [attr.colspan]="ticketTableColspan" class="text-center text-muted">No records to display.</td>
               </tr>
               <tr *ngFor="let t of myReimbursementTickets
                 | colFilter:ticketFilters:false
@@ -56,24 +54,22 @@
                   <ng-template #noPaidAmt><span class="text-muted">—</span></ng-template>
                 </td>
                 <td>{{ t.submittedOn | date:'medium' }}</td>
-                <td>{{ (t.level1ApproverName || t.hodName || '—') | rmbCamelDisplay }}</td>
-                <td>{{ (t.level1ApproverStatus || '—') | rmbCamelDisplay }}</td>
-                <td>{{ (t.level2ApproverName || '—') | rmbCamelDisplay }}</td>
-                <td>{{ (t.level2ApproverStatus || '—') | rmbCamelDisplay }}</td>
-                <td>{{ (t.level3ApproverName || '—') | rmbCamelDisplay }}</td>
-                <td>{{ (t.level3ApproverStatus || '—') | rmbCamelDisplay }}</td>
+                <ng-container *ngFor="let col of tableLevelColumns; let li = index">
+                  <td>{{ approvalLevelCell(t, li, 'approverName') | rmbCamelDisplay }}</td>
+                  <td>{{ approvalLevelCell(t, li, 'approverStatus') | rmbCamelDisplay }}</td>
+                </ng-container>
                 <td class="view-rmb-reject-cell small">
                   <ng-container *ngIf="rejectedClaimLines(t).length; else noRejections">
-                    <div *ngFor="let r of rejectedClaimLines(t)" class="view-rmb-reject-line mb-2">
-                      <div class="font-weight-bold text-dark">claim{{ r.lineNo }} · {{ r.expenditureType | rmbCamelDisplay }} · ₹ {{ r.amount }}</div>
-                      <div class="text-muted">rejectedBy · {{ r.rejectedBy | rmbCamelDisplay }}</div>
+                    <div *ngFor="let r of rejectedClaimLines(t)" class="view-rmb-reject-block mb-2">
+                      <div class="font-weight-bold text-dark">Claim {{ r.lineNo }} · {{ r.expenditureType | rmbCamelDisplay }} · ₹ {{ r.amount }}</div>
+                      <div class="text-muted">Rejected by · {{ r.rejectedBy | rmbCamelDisplay }}</div>
                       <div class="text-break mt-1">{{ r.reason | rmbCamelDisplay }}</div>
                     </div>
                   </ng-container>
                   <ng-template #noRejections><span class="text-muted">—</span></ng-template>
                 </td>
                 <td>
-                  <span class="badge badge-light">{{ (t.claims || []).length }}Claims</span>
+                  <span class="badge badge-light">{{ (t.claims || []).length }} claim(s)</span>
                 </td>
                 <td class="text-center text-nowrap">
                   <span class="text-muted small">—</span>

@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, TemplateRef, ViewChild } from '@angular/core';
+import { Component, Input, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
@@ -13,8 +13,23 @@ type TicketStage = 'PENDING_HOD' | 'PENDING_HR' | 'PENDING_FINANCE' | string;
   templateUrl: './reimbursement-ticket-modal.component.html',
   styleUrls: ['./reimbursement-ticket-modal.component.css']
 })
-export class ReimbursementTicketModalComponent implements OnChanges {
-  @Input() ticket: any;
+export class ReimbursementTicketModalComponent {
+  /**
+   * NgbModal sets {@code componentInstance.ticket = ...} imperatively; that does not reliably
+   * trigger {@code ngOnChanges}. Use an {@code @Input()} setter so audit + finance defaults run
+   * whenever the ticket is assigned.
+   */
+  private _ticket: any;
+
+  @Input()
+  set ticket(value: any) {
+    this._ticket = value;
+    this.onTicketBound();
+  }
+  get ticket(): any {
+    return this._ticket;
+  }
+
   @Input() actor: { empId: any; email: string } | null = null;
 
   @ViewChild('rejectReasonModal', { static: true })
@@ -23,6 +38,8 @@ export class ReimbursementTicketModalComponent implements OnChanges {
   proofsModalTpl!: TemplateRef<any>;
   @ViewChild('rejectionInfoModal', { static: true })
   rejectionInfoModalTpl!: TemplateRef<any>;
+  @ViewChild('auditHistoryModal', { static: true })
+  auditHistoryModalTpl!: TemplateRef<any>;
 
   selectedClaim: any | null = null;
   selectedClaimDocIds: number[] = [];
@@ -32,15 +49,22 @@ export class ReimbursementTicketModalComponent implements OnChanges {
   rejectModalRef: NgbModalRef | null = null;
   rejectReason = '';
   rejectModalHeading = 'Rejection reason';
-  /** When true, confirming rejection applies the same reason to every pending claim at this stage. */
-  rejectAllMode = false;
-  private pendingRejectDecision: any | null = null;
+  /** When open, describes approve vs reject and single row vs all pending claims. */
+  remarksModalContext: { kind: 'approve' | 'reject'; bulk: boolean } | null = null;
+  private pendingRemarksDecision: any | null = null;
 
   proofsModalRef: NgbModalRef | null = null;
 
   rejectionInfoRef: NgbModalRef | null = null;
   rejectionInfoTitle = 'Rejection reason';
   rejectionInfoMessage = '';
+
+  historyModalRef: NgbModalRef | null = null;
+
+  /** Audit trail: who acted, when, and remarks (visible to all approvers). */
+  ticketAuditLog: any[] = [];
+  ticketAuditLoading = false;
+  ticketAuditError: string | null = null;
 
   constructor(
     public activeModal: NgbActiveModal,
@@ -49,20 +73,41 @@ export class ReimbursementTicketModalComponent implements OnChanges {
     private sanitizer: DomSanitizer
   ) {}
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (!changes['ticket'] || !this.ticket) {
+  /** Resolve DB ticket id from view payload (modal is opened with JSON-cloned list rows). */
+  private resolveTicketId(): number | null {
+    const t = this._ticket;
+    if (!t) {
+      return null;
+    }
+    const raw = t.ticketId != null ? t.ticketId : t.id;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  private onTicketBound(): void {
+    const tid = this.resolveTicketId();
+    if (tid != null) {
+      this.loadTicketAudit(tid);
+    } else {
+      this.ticketAuditLog = [];
+      this.ticketAuditLoading = false;
+      this.ticketAuditError = null;
+    }
+
+    const t = this._ticket;
+    if (!t) {
       return;
     }
     if (this.isFinanceStage) {
-      const a = this.ticket._financeAction;
+      const a = t._financeAction;
       if (a !== 'PAID' && a !== 'REJECTED') {
-        this.ticket._financeAction = 'PAID';
+        t._financeAction = 'PAID';
       }
-      if (this.ticket._financeRemarks == null) {
-        this.ticket._financeRemarks = '';
+      if (t._financeRemarks == null) {
+        t._financeRemarks = '';
       }
-      if (this.ticket._financeAction !== 'REJECTED') {
-        this.ticket._financeRemarks = '';
+      if (t._financeAction !== 'REJECTED') {
+        t._financeRemarks = '';
       }
     }
   }
@@ -76,10 +121,10 @@ export class ReimbursementTicketModalComponent implements OnChanges {
   }
 
   get isDecisionStage(): boolean {
-    return this.stage === 'PENDING_HOD' || this.stage === 'PENDING_HR';
+    return this.stage === 'PENDING_HOD' || this.stage === 'PENDING_HR' || this.stage === 'PENDING_LEVEL';
   }
 
-  /** Claims that Finance can still pay or reject (excludes HOD/HR-rejected lines). */
+  /** Claims that Finance can still pay or reject (excludes HOD/HR-rejected claims). */
   financePendingClaims(): any[] {
     if (!this.ticket?.claims?.length) return [];
     return this.ticket.claims.filter((c: any) => c?.claimStatus === 'PENDING_FINANCE');
@@ -127,7 +172,10 @@ export class ReimbursementTicketModalComponent implements OnChanges {
   ensureDecisions(): any[] {
     if (!this.ticket) return [];
     if (Array.isArray(this.ticket._decisions) && this.ticket._decisions.length) return this.ticket._decisions;
-    const pendingStatus = this.stage === 'PENDING_HOD' ? 'PENDING_HOD' : this.stage === 'PENDING_HR' ? 'PENDING_HR' : '';
+    const pendingStatus = this.stage === 'PENDING_HOD' ? 'PENDING_HOD'
+      : this.stage === 'PENDING_HR' ? 'PENDING_HR'
+      : this.stage === 'PENDING_LEVEL' ? 'PENDING_APPROVAL'
+      : '';
     const decs = (this.ticket.claims || [])
       .filter((c: any) => c?.claimStatus === pendingStatus)
       .map((c: any) => ({
@@ -150,25 +198,32 @@ export class ReimbursementTicketModalComponent implements OnChanges {
     return decs.find((d: any) => Number(d.claimId) === id) || null;
   }
 
-  /** Count of claim lines awaiting HOD/HR decision in this modal (drives bulk actions). */
+  /** Count of claims awaiting HOD/HR decision in this modal (drives bulk actions). */
   pendingDecisionCount(): number {
     return this.ensureDecisions().length;
   }
 
-  approveAllPending(): void {
-    this.docError = null;
-    for (const d of this.ensureDecisions()) {
-      d.approved = true;
-      d.remarks = '';
+  openApproveAllReason(): void {
+    if (this.pendingDecisionCount() <= 1) {
+      return;
     }
+    this.remarksModalContext = { kind: 'approve', bulk: true };
+    this.pendingRemarksDecision = null;
+    this.rejectModalHeading = 'Approve all claims';
+    this.rejectReason = '';
+    this.docError = null;
+    this.rejectModalRef = this.modalService.open(this.rejectReasonModalTpl, {
+      backdrop: 'static',
+      size: 'md'
+    });
   }
 
   openRejectAllReason(): void {
     if (this.pendingDecisionCount() <= 1) {
       return;
     }
-    this.rejectAllMode = true;
-    this.pendingRejectDecision = null;
+    this.remarksModalContext = { kind: 'reject', bulk: true };
+    this.pendingRemarksDecision = null;
     this.rejectModalHeading = 'Reject all claims';
     this.rejectReason = '';
     this.docError = null;
@@ -178,21 +233,31 @@ export class ReimbursementTicketModalComponent implements OnChanges {
     });
   }
 
-  markApprove(claim: any): void {
+  openApproveReason(claim: any): void {
     const d = this.decisionForClaim(claim?.claimId);
-    if (!d) return;
-    d.approved = true;
-    d.remarks = '';
+    if (!d) {
+      return;
+    }
+    this.remarksModalContext = { kind: 'approve', bulk: false };
+    this.rejectModalHeading = 'Approval comments';
+    this.pendingRemarksDecision = d;
+    this.rejectReason = d.approved === true ? String(d.remarks || '').trim() : '';
     this.docError = null;
+    this.rejectModalRef = this.modalService.open(this.rejectReasonModalTpl, {
+      backdrop: 'static',
+      size: 'md'
+    });
   }
 
   openRejectReason(claim: any): void {
     const d = this.decisionForClaim(claim?.claimId);
-    if (!d) return;
-    this.rejectAllMode = false;
+    if (!d) {
+      return;
+    }
+    this.remarksModalContext = { kind: 'reject', bulk: false };
     this.rejectModalHeading = 'Rejection reason';
-    this.pendingRejectDecision = d;
-    this.rejectReason = d.remarks || '';
+    this.pendingRemarksDecision = d;
+    this.rejectReason = d.approved === false ? String(d.remarks || '').trim() : '';
     this.docError = null;
     this.rejectModalRef = this.modalService.open(this.rejectReasonModalTpl, {
       backdrop: 'static',
@@ -201,25 +266,39 @@ export class ReimbursementTicketModalComponent implements OnChanges {
   }
 
   confirmRejectReason(): void {
-    const reason = (this.rejectReason || '').trim();
-    if (!reason) {
-      this.docError = 'Rejection reason is required.';
+    const text = (this.rejectReason || '').trim();
+    const ctx = this.remarksModalContext;
+    if (!text) {
+      this.docError = ctx?.kind === 'approve' ? 'Approval comments are required.' : 'Rejection reason is required.';
       return;
     }
-    if (this.rejectAllMode) {
+    if (!ctx) {
+      return;
+    }
+    if (ctx.bulk) {
       for (const d of this.ensureDecisions()) {
-        d.approved = false;
-        d.remarks = reason;
+        if (ctx.kind === 'reject') {
+          d.approved = false;
+          d.remarks = text;
+        } else {
+          d.approved = true;
+          d.remarks = text;
+        }
       }
     } else {
-      if (!this.pendingRejectDecision) {
+      if (!this.pendingRemarksDecision) {
         return;
       }
-      this.pendingRejectDecision.approved = false;
-      this.pendingRejectDecision.remarks = reason;
+      if (ctx.kind === 'reject') {
+        this.pendingRemarksDecision.approved = false;
+        this.pendingRemarksDecision.remarks = text;
+      } else {
+        this.pendingRemarksDecision.approved = true;
+        this.pendingRemarksDecision.remarks = text;
+      }
     }
-    this.pendingRejectDecision = null;
-    this.rejectAllMode = false;
+    this.pendingRemarksDecision = null;
+    this.remarksModalContext = null;
     this.rejectModalHeading = 'Rejection reason';
     this.rejectReason = '';
     this.rejectModalRef?.close();
@@ -227,8 +306,8 @@ export class ReimbursementTicketModalComponent implements OnChanges {
   }
 
   cancelRejectReason(): void {
-    this.pendingRejectDecision = null;
-    this.rejectAllMode = false;
+    this.pendingRemarksDecision = null;
+    this.remarksModalContext = null;
     this.rejectModalHeading = 'Rejection reason';
     this.rejectReason = '';
     this.rejectModalRef?.dismiss();
@@ -238,6 +317,117 @@ export class ReimbursementTicketModalComponent implements OnChanges {
   isRejectedStatus(status: any): boolean {
     const s = status != null ? String(status) : '';
     return s.includes('REJECTED');
+  }
+
+  loadTicketAudit(ticketId: number): void {
+    this.ticketAuditLoading = true;
+    this.ticketAuditError = null;
+    this.ticketAuditLog = [];
+    this.reimbursementService
+      .fetchReimbursementTicketAuditByTicketId(ticketId)
+      .pipe(first())
+      .subscribe({
+        next: (r: any) => {
+          this.ticketAuditLoading = false;
+          if (r?.serviceStatus === 'Success' && Array.isArray(r.serviceResponse)) {
+            this.ticketAuditLog = r.serviceResponse;
+          } else {
+            this.ticketAuditLog = [];
+            this.ticketAuditError =
+              (typeof r?.serviceError === 'string' && r.serviceError) ||
+              (typeof r?.serviceResponse === 'string' && r.serviceResponse) ||
+              'Could not load approval history.';
+          }
+        },
+        error: () => {
+          this.ticketAuditLoading = false;
+          this.ticketAuditLog = [];
+          this.ticketAuditError = 'Could not load approval history.';
+        }
+      });
+  }
+
+  openAuditHistoryModal(): void {
+    if (this.historyModalRef) {
+      return;
+    }
+    this.historyModalRef = this.modalService.open(this.auditHistoryModalTpl, {
+      size: 'lg',
+      backdrop: true,
+      centered: true,
+      scrollable: false,
+      windowClass: 'rmbtm-history-modal',
+      modalDialogClass: 'rmbtm-history-modal-dialog'
+    });
+    this.historyModalRef.result.then(
+      () => {
+        this.historyModalRef = null;
+      },
+      () => {
+        this.historyModalRef = null;
+      }
+    );
+  }
+
+  closeAuditHistoryModal(): void {
+    this.historyModalRef?.close();
+    this.historyModalRef = null;
+  }
+
+  formatAuditAction(action: string | null | undefined): string {
+    const a = (action || '').trim();
+    switch (a) {
+      case 'TICKET_SUBMITTED':
+        return 'Ticket submitted';
+      case 'HOD_CLAIM_DECISION':
+        return 'HOD — claim decision';
+      case 'HR_CLAIM_DECISION':
+        return 'HR — claim decision';
+      case 'FINANCE_PAID':
+        return 'Finance — marked paid';
+      case 'FINANCE_REJECTED':
+        return 'Finance — rejected';
+      default:
+        if (!a) {
+          return 'Activity';
+        }
+        return a
+          .replace(/_/g, ' ')
+          .toLowerCase()
+          .replace(/\b\w/g, (ch) => ch.toUpperCase());
+    }
+  }
+
+  formatAuditActor(row: any): string {
+    const name = String(row?.actorDisplayName ?? '').trim();
+    if (name) {
+      return name;
+    }
+    const email = String(row?.actorEmail ?? '').trim();
+    if (email) {
+      return email;
+    }
+    const eid = row?.actorEmpId;
+    if (eid != null && String(eid).trim() !== '') {
+      return `Employee ID: ${eid}`;
+    }
+    return '—';
+  }
+
+  claimLabelForAudit(claimId: any): string {
+    const id = Number(claimId);
+    if (!Number.isFinite(id)) {
+      return '';
+    }
+    const c = (this.ticket?.claims || []).find((x: any) => Number(x?.claimId) === id);
+    if (c?.lineNo != null) {
+      return `Claim ${c.lineNo}`;
+    }
+    return `Claim #${id}`;
+  }
+
+  hasAuditRemarks(row: any): boolean {
+    return String(row?.remarks ?? '').trim().length > 0;
   }
 
   rejectionReasonForClaim(c: any): string {
@@ -346,6 +536,10 @@ export class ReimbursementTicketModalComponent implements OnChanges {
         this.docError = 'Remarks are required for each rejected claim.';
         return;
       }
+      if (d.approved === true && (!d.remarks || !String(d.remarks).trim())) {
+        this.docError = 'Approval comments are required for each approved claim.';
+        return;
+      }
     }
     const body = {
       ticketId: this.ticket.ticketId,
@@ -359,9 +553,9 @@ export class ReimbursementTicketModalComponent implements OnChanges {
     };
     this.docError = null;
     const stage = this.stage;
-    const resp: any = stage === 'PENDING_HOD'
-      ? await this.reimbursementService.processReimbursementTicketHod(body).pipe(first()).toPromise()
-      : await this.reimbursementService.processReimbursementTicketHr(body).pipe(first()).toPromise();
+    const resp: any = stage === 'PENDING_HR'
+      ? await this.reimbursementService.processReimbursementTicketHr(body).pipe(first()).toPromise()
+      : await this.reimbursementService.processReimbursementTicketHod(body).pipe(first()).toPromise();
     if (resp?.serviceStatus === 'Success') {
       this.activeModal.close({ refreshed: true });
       return;
@@ -377,8 +571,10 @@ export class ReimbursementTicketModalComponent implements OnChanges {
       this.docError = 'No claims are pending finance; there is nothing to mark as paid.';
       return;
     }
-    if (act === 'REJECTED' && (!remarks || !String(remarks).trim())) {
-      this.docError = 'Please enter a rejection reason.';
+    if (!remarks || !String(remarks).trim()) {
+      this.docError = act === 'REJECTED'
+        ? 'Please enter a rejection reason.'
+        : 'Please enter finance / approval notes.';
       return;
     }
     const body = {

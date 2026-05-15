@@ -8517,7 +8517,10 @@ public class ResourceManagementService {
 	public Integer isDefaultProject(Long empId, Integer projectId) {
 		StringBuilder logs = new StringBuilder();
 	    try {
-	        EmpPrimaryProjectMapping empPrimaryProjectMapping = empPrimaryProjectMappingRepository.findByEmpIdAndIsMapped(empId,"Y");
+	        List<EmpPrimaryProjectMapping> primaryMappings = empPrimaryProjectMappingRepository
+	        		.findAllByEmpIdAndIsMappedOrderByMappingIdDesc(empId, "Y");
+	        EmpPrimaryProjectMapping empPrimaryProjectMapping = (primaryMappings != null && !primaryMappings.isEmpty())
+	        		? primaryMappings.get(0) : null;
 
 	        if (empPrimaryProjectMapping != null && empPrimaryProjectMapping.getPrimaryProjectId() != null) {
 	            if (Integer.parseInt(empPrimaryProjectMapping.getPrimaryProjectId().toString()) == projectId) {

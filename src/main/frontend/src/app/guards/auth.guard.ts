@@ -32,6 +32,12 @@ export class AuthGuard  {
     state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
       const currentUser:User = this.authenticationService.currentUserValue;
       if (currentUser) {
+        const routeRoot = route.routeConfig.path?.split("/")[0];
+        // If role has no tab mappings (data gap), still allow training routes so mandatory training / post-login redirect works.
+        if ((!currentUser.tabList || currentUser.tabList.length === 0) &&
+            (routeRoot === 'training' || routeRoot === 'user-training')) {
+          return true;
+        }
         if(!currentUser.tabList.find(tab => tab.tabRouteName == route.routeConfig.path?.split("/")[0])){
           // role not authorised so redirect to home page
           this.router.navigate(['/home']);

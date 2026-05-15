@@ -18,12 +18,14 @@
         (click)="classCategory()" >Vehicle Type</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : foodAllowanceTypeTab}"
             (click)="foodTypeTable()">Food Allowance Type</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isRuleSetTab}"
+            (click)="showRuleSetPanel()">Approval Matrix</button>
         <!-- <button type=" button" class="btn btn-outline-primary btn-sm mx-1">Reimbursment-config</button> -->
     </div>
 </div>
 
 <div class="row"
-    *ngIf="!classCategoryForm &&!travelModeForm && isCategoryTable && !createCategoryForm && !isClass  && !istravelMode">
+    *ngIf="isCategoryTable && !isClass && !istravelMode && !isRuleSetTab">
 
     <div class="col-md-12">
 
@@ -50,7 +52,7 @@
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
-                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="createCategory()"><em
+                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="resetForm(); createCategory()"><em
                             class="fa-solid fa-plus"></em>Add Category</button>
 
                 </div>
@@ -78,10 +80,7 @@
                                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                                <!-- <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th> -->
-                                <!-- <th scope="col" class="info-label">Actions</th> -->
+                                <th scope="col" class="info-label text-nowrap">Actions</th>
                               
                             </tr>
                             <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview"
@@ -89,20 +88,24 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <th colspan="8" class="text-center info-label" *ngIf="expenditureTypeList.length ==0">No details to display...</th>
+                                <th colspan="6" class="text-center info-label" *ngIf="expenditureTypeList.length ==0">No details to display...</th>
                             </tr>
-                            <tr>
-                                 <tr
+                            <tr
                                 *ngFor="let review of expenditureTypeList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
                                 <td>{{review.expenditureTypeName}}</td>
                                 <td>{{review.description}}</td>
                                 <td>{{review.createdByName}}</td>
                                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
-                                <!-- <td>{{review.updatedBy || "NA"}}</td>
-                                <td>{{review.updatedOn || "NA"}}</td> -->
-                             
-                            </tr> 
+                                <td class="text-nowrap rmb-actions">
+                                  <button type="button" class="btn btn-sm btn-outline-primary rmb-action-btn mr-1" (click)="editExpenditureType(review)" title="Edit" aria-label="Edit">
+                                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                                  </button>
+                                  <button type="button" class="btn btn-sm btn-outline-danger rmb-action-btn" (click)="deleteExpenditureTypeRow(review)" title="Delete" aria-label="Delete">
+                                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                                  </button>
+                                </td>
+                            </tr>
 
                         </tbody>
                     </table>
@@ -118,7 +121,7 @@
 
 
 <div class="row"
-    *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && istravelMode">
+    *ngIf="istravelMode && !isClass && !isCategoryTable && !isRuleSetTab">
 
     <div class="col-md-12">
 
@@ -145,7 +148,7 @@
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
-                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="travelCategory()"><em
+                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="resetForm(); travelCategory()"><em
                             class="fa-solid fa-plus"></em>Add Travel Mode</button>
 
                 </div>
@@ -165,38 +168,39 @@
                         <thead class="thead-light" id="domainInfoTHead">
                             <tr id="domainInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
-                                <th scope="col" class="info-label" mat-sort-header="modeType|string">Mode Type
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="requiresVehicleType|string">Requires Vehicle Type
-                                    Type</th>
+                                <th scope="col" class="info-label" mat-sort-header="expenditureType|string">Expenditure type</th>
+                                <th scope="col" class="info-label" mat-sort-header="modeType|string">Mode type</th>
+                                <th scope="col" class="info-label" mat-sort-header="requiresVehicleType|string">Requires vehicle</th>
                                 <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>
-              
-                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                                <!-- <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th> -->
-                                <!-- <th scope="col" class="info-label">Actions</th> -->
+                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                                <th scope="col" class="info-label text-nowrap">Actions</th>
                             </tr>
-                            <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview"
+                            <tr app-column-filter-bar *ngIf="istravelMode && isSearchEnabledReview"
                                 [columnList]="reviewColumns" (onSearch)="onSearch($event);page=1"></tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <th colspan="8" class="text-center info-label" *ngIf="travelModeList.length == 0">No details to display...</th>
                             </tr>
-                            <tr>
-                                 <tr
+                            <tr
                                 *ngFor="let review of travelModeList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
+                                <td>{{review.expenditureType}}</td>
                                 <td>{{review.modeType}}</td>
                                 <td>{{review.requiresVehicleType}}</td>
                                 <td>{{review.description}}</td>
                                 <td>{{review.createdByName}}</td>
                                 <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
-                          
-                            </tr> 
+                                <td class="text-nowrap rmb-actions">
+                                  <button type="button" class="btn btn-sm btn-outline-primary rmb-action-btn mr-1" (click)="editTravelMode(review)" title="Edit" aria-label="Edit">
+                                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                                  </button>
+                                  <button type="button" class="btn btn-sm btn-outline-danger rmb-action-btn" (click)="deleteTravelModeRow(review)" title="Delete" aria-label="Delete">
+                                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                                  </button>
+                                </td>
+                            </tr>
 
                         </tbody>
                     </table>
@@ -213,7 +217,7 @@
 
 
 <div class="row"
-    *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && isClass  && !istravelMode">
+    *ngIf="isClass && !istravelMode && !isCategoryTable && !isRuleSetTab">
 
     <div class="col-md-12">
 
@@ -240,7 +244,7 @@
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
-                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="subClassCategory()"><em
+                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="resetForm(); subClassCategory()"><em
                             class="fa-solid fa-plus"></em>Add Vehicle Type</button>
 
                 </div>
@@ -260,39 +264,35 @@
                         <thead class="thead-light" id="domainInfoTHead">
                             <tr id="domainInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
-                                <th scope="col" class="info-label" mat-sort-header="vehicleTypeName|string">Vehicle Type Name
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="description|string">Description
-                                    Type</th>
-                              
-                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                                <!-- <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th> -->
-                                <!-- <th scope="col" class="info-label">Actions</th> -->
-                                
+                                <th scope="col" class="info-label" mat-sort-header="vehicleTypeName|string">Vehicle type name</th>
+                                <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                                <th scope="col" class="info-label text-nowrap">Actions</th>
                             </tr>
-                            <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview"
+                            <tr app-column-filter-bar *ngIf="isClass && isSearchEnabledReview"
                                 [columnList]="reviewColumns" (onSearch)="onSearch($event);page=1"></tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <th colspan="8" class="text-center info-label" *ngIf="vehicleTypeList.length ==0">No details to display...</th>
+                                <th colspan="6" class="text-center info-label" *ngIf="vehicleTypeList.length ==0">No details to display...</th>
                             </tr>
-                            <tr>
-                                 <tr
+                            <tr
                                 *ngFor="let review of vehicleTypeList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
-
                                 <td>{{review.vehicleTypeName}}</td>
                                 <td>{{review.description}}</td>
-                               <td>{{review.createdByName}}</td>
+                                <td>{{review.createdByName}}</td>
                                 <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
-                                <!-- <td>{{review.updatedBy || "NA"}}</td>
-                                <td>{{review.updatedOn || "NA"}}</td> -->
-                            </tr> 
+                                <td class="text-nowrap rmb-actions">
+                                  <button type="button" class="btn btn-sm btn-outline-primary rmb-action-btn mr-1" (click)="editVehicleType(review)" title="Edit" aria-label="Edit">
+                                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                                  </button>
+                                  <button type="button" class="btn btn-sm btn-outline-danger rmb-action-btn" (click)="deleteVehicleTypeRow(review)" title="Delete" aria-label="Delete">
+                                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                                  </button>
+                                </td>
+                            </tr>
 
                         </tbody>
                     </table>
@@ -308,230 +308,7 @@
 
 
 <div class="row"
-    *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && createCategoryForm && !isClass && !istravelMode">
-    <div class="card col-md-12 px-0 shadow-sm rounded">
-        <div class="card-header bg-color text-white text-center text-uppercase">
-            <strong>Expenditure Type Form</strong>
-        </div>
-        <div class="card-body">
-            <form #reasonForm="ngForm" (ngSubmit)="submitExpenditureType(alert_message)">
-                <div class="form-row">
-                    <!-- Expenditure Type Name -->
-                    <div class="form-group col-md-4">
-                        <label class="info-label">
-                            <span class="text-danger">*</span> Expenditure Type Name
-                        </label>
-                        <input type="text" class="form-control" name="expenditureTypeName"
-                            [(ngModel)]="expenditureType.expenditureTypeName" (keypress)="fieldRestrictNumber($event)"
-                            required autocomplete="off" />
-                    </div>
-
-                    <!-- Description -->
-                    <div class="form-group col-md-4">
-                        <label class="info-label">
-                            <span class="text-danger">*</span> Description
-                        </label>
-                        <input type="text" class="form-control" name="description"
-                            [(ngModel)]="expenditureType.description" (keypress)="fieldRestrictNumber($event)" required
-                            autocomplete="off" />
-                    </div>
-
-         
-                </div>
-                <div class="row">
-                    <div class="col-12 d-flex justify-content-center">
-                      <button type="submit" class="btn btn-success" [disabled]="!reasonForm.form.valid">
-                        <i class="fas fa-paper-plane mr-2"></i> Submit
-                      </button>
-                    </div>
-                  </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-
-<div class="row"
-    *ngIf="!classCategoryForm && travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode">
-    <div class="card col-md-12 px-0 shadow-sm rounded">
-        <div class="card-header bg-color text-white text-center text-uppercase">
-            <strong>TRAVEL MODE</strong>
-        </div>
-        <div class="card-body">
-            <form #reasonForm="ngForm" (ngSubmit)="submitTravelMode(alert_message)">
-                <div class="row">
-
-                    <!-- Reason For Travel (Native select dropdown) -->
-                    <div class="col-md-4 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label"><span class="text-danger">*</span>Expenditure Type</label>
-                                <select class="form-control" name="selectedExpenditure"
-                                    [(ngModel)]="selectedExpenditure" required>
-                                    <option value="" disabled selected>Select Expenditure Type</option>
-                                    <option *ngFor="let expenditure of expenditureTypeList"
-                                        [value]="expenditure.expenditureTypeName">
-                                        {{ expenditure.expenditureTypeName }}
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-
-
-                    <!-- Mode Type -->
-                    <div class="col-md-4 mb-3">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
-                            <input type="text" [(ngModel)]="modeType" name="modeType" class="form-control"
-                                (keypress)="fieldRestrictNumber($event)" autocomplete="off">
-                        </div>
-                    </div>
-
-                    <div class="col-md-4 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label">
-                                    <span class="text-danger">*</span> Requires Vehicle Type
-                                </label>
-                                <select class="form-control" name="requiresVehicleType"
-                                    [(ngModel)]="requiresVehicleType" required>
-                                    <option [ngValue]="null" disabled selected>Select Option</option>
-                                    <option [ngValue]="true">Yes</option>
-                                    <option [ngValue]="false">No</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Description -->
-                    <div class="col-md-4 mb-3">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Description</label>
-                            <input type="text" [(ngModel)]="description" name="description" class="form-control"
-                                (keypress)="fieldRestrictNumber($event)" autocomplete="off">
-                        </div>
-                    </div>
-
-                
-                </div>
-
-                <div class="row">
-                    <div class="col-12 d-flex justify-content-center">
-                      <button type="submit" class="btn btn-success" [disabled]="!reasonForm.form.valid">
-                        <i class="fas fa-paper-plane mr-2"></i> Submit
-                      </button>
-                    </div>
-                  </div>
-            </form>
-
-        </div>
-    </div>
-</div>
-
-
-
-<div class="row"
-    *ngIf="classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode">
-
-    <div class="card col-md-12 px-0 shadow-sm rounded">
-        <div class="card-header bg-color text-white text-center text-uppercase">
-            <strong>Vehicle Type Form</strong>
-        </div>
-
-        <div class="card-body">
-            <form #reasonForm="ngForm" (ngSubmit)="submitVehicleType(alert_message)">
-                <div class="form-row row g-3">
-
-                    <!-- Vehicle Type Name -->
-                    <div class="form-group col-md-4">
-                        <label for="vehicleTypeName" class="form-label">
-                            <span class="text-danger">*</span> Vehicle Type Name
-                        </label>
-                        <input type="text" id="vehicleTypeName" class="form-control" name="vehicleTypeName"
-                            [(ngModel)]="vehicleType.vehicleTypeName" (keypress)="fieldRestrictNumber($event)" required
-                            autocomplete="off" placeholder="Enter vehicle type" />
-                    </div>
-
-                    <!-- Description -->
-                    <div class="form-group col-md-4">
-                        <label for="vehicleDescription" class="form-label">
-                            <span class="text-danger">*</span> Description
-                        </label>
-                        <input type="text" id="vehicleDescription" class="form-control" name="description"
-                            [(ngModel)]="vehicleType.description" (keypress)="fieldRestrictNumber($event)" required
-                            autocomplete="off" placeholder="Enter description" />
-                    </div>
-
-                </div>
-                <div class="row">
-                    <div class="col-12 d-flex justify-content-center">
-                      <button type="submit" class="btn btn-success" [disabled]="!reasonForm.form.valid">
-                        <i class="fas fa-paper-plane mr-2"></i> Submit
-                      </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-
-<div class="row"
-    *ngIf="!classCategoryForm && foodCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode">
-
-    <div class="card col-md-12 px-0 shadow-sm rounded">
-        <div class="card-header bg-color text-white text-center text-uppercase">
-            <strong>Food Allowance Type</strong>
-        </div>
-
-        <div class="card-body">
-            <form #reasonForm="ngForm" (ngSubmit)="saveFoodType(alert_message)">
-                <div class="form-row row g-3">
-
-                    <!-- Food Type Name -->
-                    <div class="form-group col-md-4">
-                        <label for="foodTypeName" class="form-label">
-                            <span class="text-danger">*</span> Food Type Name
-                        </label>
-                        <input type="text" id="foodTypeName" class="form-control" name="foodTypeName"
-                            [(ngModel)]="foodType.foodTypeName" (keypress)="fieldRestrictNumber($event)" required
-                            autocomplete="off" placeholder="Enter food type name" />
-                    </div>
-
-                    <!-- Description -->
-                    <div class="form-group col-md-4">
-                        <label for="description" class="form-label">
-                            <span class="text-danger">*</span> Description
-                        </label>
-                        <input type="text" id="description" class="form-control" name="description"
-                            [(ngModel)]="description" (keypress)="fieldRestrictNumber($event)" autocomplete="off"
-                            placeholder="Enter description" required />
-                    </div>
-
-              
-                </div>
-                <div class="row">
-                    <div class="col-12 d-flex justify-content-center">
-                      <button type="submit" class="btn btn-success" [disabled]="!reasonForm.form.valid">
-                        <i class="fas fa-paper-plane mr-2"></i> Submit
-                      </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-
-
-
-
-
-
-<div class="row"
-    *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && !istravelMode && foodCategoryTable">
+    *ngIf="foodCategoryTable && !isClass && !istravelMode && !isCategoryTable && !isRuleSetTab">
 
     <div class="col-md-12">
 
@@ -558,7 +335,7 @@
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
-                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="foodAllowanceType()"><em
+                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="resetForm(); openFoodTypeModal()"><em
                             class="fa-solid fa-plus"></em>Add Food Allowance Type </button>
 
                 </div>
@@ -578,39 +355,35 @@
                         <thead class="thead-light" id="domainInfoTHead">
                             <tr id="domainInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
-                                <th scope="col" class="info-label" mat-sort-header="vehicleTypeName|string">Vehicle Type Name
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="description|string">Description
-                                    Type</th>
-                              
-                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                                <!-- <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th> -->
-                                <!-- <th scope="col" class="info-label">Actions</th> -->
-                                
+                                <th scope="col" class="info-label" mat-sort-header="foodTypeName|string">Food allowance type</th>
+                                <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                                <th scope="col" class="info-label text-nowrap">Actions</th>
                             </tr>
-                            <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview"
+                            <tr app-column-filter-bar *ngIf="foodCategoryTable && isSearchEnabledReview"
                                 [columnList]="reviewColumns" (onSearch)="onSearch($event);page=1"></tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <th colspan="8" class="text-center info-label" *ngIf="foodTypeList.length ==0">No details to display...</th>
+                                <th colspan="6" class="text-center info-label" *ngIf="foodTypeList.length ==0">No details to display...</th>
                             </tr>
-                            <tr>
-                                 <tr
+                            <tr
                                 *ngFor="let review of foodTypeList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
-
                                 <td>{{review.foodTypeName}}</td>
                                 <td>{{review.description || "NA"}}</td>
                                 <td>{{review.createdByName}}</td>
                                 <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
-                                <!-- <td>{{review.updatedBy || "NA"}}</td>
-                                <td>{{review.updatedOn || "NA"}}</td> -->
-                            </tr> 
+                                <td class="text-nowrap rmb-actions">
+                                  <button type="button" class="btn btn-sm btn-outline-primary rmb-action-btn mr-1" (click)="editFoodType(review)" title="Edit" aria-label="Edit">
+                                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                                  </button>
+                                  <button type="button" class="btn btn-sm btn-outline-danger rmb-action-btn" (click)="deleteFoodTypeRow(review)" title="Delete" aria-label="Delete">
+                                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                                  </button>
+                                </td>
+                            </tr>
 
                         </tbody>
                     </table>
@@ -623,10 +396,161 @@
         </div>
     </div>
 </div>
-<!-- Optional alert modal template -->
-<ng-template #alert_message>
-    <div class="modal-body text-center">
-        <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest1()">OK</button>&nbsp;
+
+<div class="row" *ngIf="isRuleSetTab">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h3 class="table-header-title">Reimbursement(s)</h3>
+      </div>
     </div>
+    <app-reimbursement-rule-set-config></app-reimbursement-rule-set-config>
+  </div>
+</div>
+<!-- Add / Edit forms (ng-bootstrap modal) -->
+<ng-template #expenditureTypeModal let-modal>
+  <div class="modal-header bg-color text-white">
+    <h4 class="modal-title text-white mb-0">{{ expenditureType.id ? 'Edit expenditure type' : 'Add expenditure type' }}</h4>
+    <button type="button" class="close text-white" aria-label="Close" (click)="modal.dismiss('cancel')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <form #expForm="ngForm" (ngSubmit)="submitExpenditureType()">
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label class="info-label"><span class="text-danger">*</span> Expenditure type name</label>
+          <input type="text" class="form-control" name="expenditureTypeNameModal"
+            [(ngModel)]="expenditureType.expenditureTypeName" (keypress)="fieldRestrictNumber($event)"
+            required autocomplete="off" />
+        </div>
+        <div class="form-group col-md-6">
+          <label class="info-label"><span class="text-danger">*</span> Description</label>
+          <input type="text" class="form-control" name="expenditureDescriptionModal"
+            [(ngModel)]="expenditureType.description" (keypress)="fieldRestrictNumber($event)" required
+            autocomplete="off" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Cancel</button>
+      <button type="submit" class="btn btn-success" [disabled]="!expForm.form.valid">
+        <i class="fas fa-paper-plane mr-2"></i>Submit
+      </button>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #travelModeModal let-modal>
+  <div class="modal-header bg-color text-white">
+    <h4 class="modal-title text-white mb-0">{{ editingTravelModeId ? 'Edit travel mode' : 'Add travel mode' }}</h4>
+    <button type="button" class="close text-white" aria-label="Close" (click)="modal.dismiss('cancel')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <form #travelForm="ngForm" (ngSubmit)="submitTravelMode()">
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label class="info-label"><span class="text-danger">*</span> Expenditure type</label>
+          <select class="form-control" name="selectedExpenditureModal" [(ngModel)]="selectedExpenditure" required>
+            <option value="" disabled>Select expenditure type</option>
+            <option *ngFor="let expenditure of expenditureTypeList" [value]="expenditure.expenditureTypeName">
+              {{ expenditure.expenditureTypeName }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group col-md-6">
+          <label class="info-label"><span class="text-danger">*</span> Travel mode</label>
+          <input type="text" [(ngModel)]="modeType" name="modeTypeModal" class="form-control"
+            (keypress)="fieldRestrictNumber($event)" autocomplete="off" required>
+        </div>
+        <div class="form-group col-md-6">
+          <label class="info-label"><span class="text-danger">*</span> Requires vehicle type</label>
+          <select class="form-control" name="requiresVehicleTypeModal" [(ngModel)]="requiresVehicleType" required>
+            <option [ngValue]="null" disabled>Select option</option>
+            <option [ngValue]="true">Yes</option>
+            <option [ngValue]="false">No</option>
+          </select>
+        </div>
+        <div class="form-group col-md-6">
+          <label class="info-label"><span class="text-danger">*</span> Description</label>
+          <input type="text" [(ngModel)]="description" name="travelDescriptionModal" class="form-control"
+            (keypress)="fieldRestrictNumber($event)" autocomplete="off" required>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Cancel</button>
+      <button type="submit" class="btn btn-success" [disabled]="!travelForm.form.valid">
+        <i class="fas fa-paper-plane mr-2"></i>Submit
+      </button>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #vehicleTypeModal let-modal>
+  <div class="modal-header bg-color text-white">
+    <h4 class="modal-title text-white mb-0">{{ vehicleType.vehicleTypeId ? 'Edit vehicle type' : 'Add vehicle type' }}</h4>
+    <button type="button" class="close text-white" aria-label="Close" (click)="modal.dismiss('cancel')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <form #vehicleForm="ngForm" (ngSubmit)="submitVehicleType()">
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label class="form-label" for="vehicleTypeNameModal"><span class="text-danger">*</span> Vehicle type name</label>
+          <input type="text" id="vehicleTypeNameModal" class="form-control" name="vehicleTypeNameModal"
+            [(ngModel)]="vehicleType.vehicleTypeName" (keypress)="fieldRestrictNumber($event)" required
+            autocomplete="off" placeholder="Enter vehicle type" />
+        </div>
+        <div class="form-group col-md-6">
+          <label class="form-label" for="vehicleDescriptionModal"><span class="text-danger">*</span> Description</label>
+          <input type="text" id="vehicleDescriptionModal" class="form-control" name="vehicleDescriptionModal"
+            [(ngModel)]="vehicleType.description" (keypress)="fieldRestrictNumber($event)" required
+            autocomplete="off" placeholder="Enter description" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Cancel</button>
+      <button type="submit" class="btn btn-success" [disabled]="!vehicleForm.form.valid">
+        <i class="fas fa-paper-plane mr-2"></i>Submit
+      </button>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #foodTypeModal let-modal>
+  <div class="modal-header bg-color text-white">
+    <h4 class="modal-title text-white mb-0">{{ foodType.foodTypeId ? 'Edit food allowance type' : 'Add food allowance type' }}</h4>
+    <button type="button" class="close text-white" aria-label="Close" (click)="modal.dismiss('cancel')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <form #foodForm="ngForm" (ngSubmit)="saveFoodType()">
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label class="form-label" for="foodTypeNameModal"><span class="text-danger">*</span> Food type name</label>
+          <input type="text" id="foodTypeNameModal" class="form-control" name="foodTypeNameModal"
+            [(ngModel)]="foodType.foodTypeName" (keypress)="fieldRestrictNumber($event)" required
+            autocomplete="off" placeholder="Enter food type name" />
+        </div>
+        <div class="form-group col-md-6">
+          <label class="form-label" for="foodDescriptionModal"><span class="text-danger">*</span> Description</label>
+          <input type="text" id="foodDescriptionModal" class="form-control" name="foodDescriptionModal"
+            [(ngModel)]="foodType.description" (keypress)="fieldRestrictNumber($event)" autocomplete="off"
+            placeholder="Enter description" required />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Cancel</button>
+      <button type="submit" class="btn btn-success" [disabled]="!foodForm.form.valid">
+        <i class="fas fa-paper-plane mr-2"></i>Submit
+      </button>
+    </div>
+  </form>
 </ng-template>

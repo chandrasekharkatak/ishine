@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ExpenditureTypeDTO;
+import com.apmosys.employeeportal.dto.ReimbursementApprovalMatrixDTO;
+import com.apmosys.employeeportal.dto.ReimbursementApprovalMatrixSaveRequestDTO;
 import com.apmosys.employeeportal.dto.ReimbursementDashboardFilterDTO;
 import com.apmosys.employeeportal.dto.ReimbursementDTO;
 import com.apmosys.employeeportal.dto.ReimbursementFinanceTicketActionDTO;
@@ -24,6 +26,7 @@ import com.apmosys.employeeportal.dto.ReimbursementTicketStageActionDTO;
 import com.apmosys.employeeportal.dto.ReimbursementTicketSubmitRequestDTO;
 import com.apmosys.employeeportal.dto.TravelBasedReimbursementRequestDTO;
 import com.apmosys.employeeportal.dto.TravelModeDTO;
+import com.apmosys.employeeportal.service.ReimbursementApprovalMatrixService;
 import com.apmosys.employeeportal.service.ReimbursementService;
 import com.apmosys.employeeportal.service.ReimbursementTicketService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -37,6 +40,9 @@ public class ReimbursementController {
 
 	@Autowired
 	private ReimbursementTicketService reimbursementTicketService;
+
+	@Autowired
+	private ReimbursementApprovalMatrixService reimbursementApprovalMatrixService;
 
 	@PostMapping("/fetchReimbursementData")
 	public ServiceResponse fetchReimbursementData(@RequestBody ReimbursementDTO reimbursementObj) {
@@ -147,6 +153,26 @@ public class ReimbursementController {
 		return reimbursementService.getAllFoodType();
 	}
 
+	@PostMapping("/deleteExpenditureType")
+	public ServiceResponse deleteExpenditureType(@RequestBody ExpenditureTypeDTO dto) {
+		return reimbursementService.deleteExpenditureType(dto.getId());
+	}
+
+	@PostMapping("/deleteReimbursementTravelMode")
+	public ServiceResponse deleteReimbursementTravelMode(@RequestBody TravelModeDTO dto) {
+		return reimbursementService.deleteTravelMode(dto.getTravelModeId());
+	}
+
+	@PostMapping("/deleteVehicleType")
+	public ServiceResponse deleteVehicleType(@RequestBody TravelModeDTO dto) {
+		return reimbursementService.deleteVehicleType(dto.getVehicleTypeId());
+	}
+
+	@PostMapping("/deleteFoodType")
+	public ServiceResponse deleteFoodType(@RequestBody TravelModeDTO dto) {
+		return reimbursementService.deleteFoodType(dto.getFoodTypeId());
+	}
+
 	@PostMapping("/saveReimbursementTicket")
 	public ServiceResponse saveReimbursementTicket(@RequestBody ReimbursementTicketSubmitRequestDTO body) {
 		return reimbursementTicketService.submitTicket(body);
@@ -211,5 +237,31 @@ public class ReimbursementController {
 		return reimbursementTicketService.dashboard(filter != null ? filter : new ReimbursementDashboardFilterDTO());
 	}
 
+	@GetMapping("/getAllReimbursementApprovalMatrices")
+	public ServiceResponse getAllReimbursementApprovalMatrices() {
+		return reimbursementApprovalMatrixService.getAllApprovalMatrices();
+	}
+
+	@GetMapping("/resolveReimbursementApprovalMatrixForEmployee")
+	public ServiceResponse resolveReimbursementApprovalMatrixForEmployee(@RequestParam Long empId) {
+		return reimbursementApprovalMatrixService.resolveForEmployee(empId);
+	}
+
+	@PostMapping("/saveAllReimbursementApprovalMatrices")
+	public ServiceResponse saveAllReimbursementApprovalMatrices(
+			@RequestBody ReimbursementApprovalMatrixSaveRequestDTO request) {
+		return reimbursementApprovalMatrixService.saveAllApprovalMatrices(request);
+	}
+
+	@PostMapping("/saveReimbursementApprovalMatrix")
+	public ServiceResponse saveReimbursementApprovalMatrix(
+			@RequestBody ReimbursementApprovalMatrixSaveRequestDTO request) {
+		return reimbursementApprovalMatrixService.saveApprovalMatrix(request);
+	}
+
+	@PostMapping("/deleteReimbursementApprovalMatrix")
+	public ServiceResponse deleteReimbursementApprovalMatrix(@RequestBody ReimbursementApprovalMatrixDTO dto) {
+		return reimbursementApprovalMatrixService.deleteApprovalMatrix(dto != null ? dto.getMatrixId() : null);
+	}
 
 }

@@ -102,6 +102,22 @@ export class ReimbursementService {
     return this.http.get(`${this.baseUrl}` + `api/onGetFoodType`);
   }
 
+  deleteExpenditureType(id: number) {
+    return this.http.post(`${this.baseUrl}api/deleteExpenditureType`, { id });
+  }
+
+  deleteReimbursementTravelMode(travelModeId: number) {
+    return this.http.post(`${this.baseUrl}api/deleteReimbursementTravelMode`, { travelModeId });
+  }
+
+  deleteVehicleType(vehicleTypeId: number) {
+    return this.http.post(`${this.baseUrl}api/deleteVehicleType`, { vehicleTypeId });
+  }
+
+  deleteFoodType(foodTypeId: number) {
+    return this.http.post(`${this.baseUrl}api/deleteFoodType`, { foodTypeId });
+  }
+
   saveReimbursementTicket(body: any) {
     return this.http.post(`${this.baseUrl}api/saveReimbursementTicket`, body);
   }
@@ -146,6 +162,28 @@ export class ReimbursementService {
 
   fetchReimbursementDashboard(filter?: any) {
     return this.http.post(`${this.baseUrl}api/fetchReimbursementDashboard`, filter || {});
+  }
+
+  getAllReimbursementApprovalMatrices() {
+    return this.http.get(`${this.baseUrl}api/getAllReimbursementApprovalMatrices`);
+  }
+
+  saveAllReimbursementApprovalMatrices(body: { createdBy: number; matrices: any[] }) {
+    return this.http.post(`${this.baseUrl}api/saveAllReimbursementApprovalMatrices`, body);
+  }
+
+  saveReimbursementApprovalMatrix(body: { createdBy: number; matrices: any[] }) {
+    return this.http.post(`${this.baseUrl}api/saveReimbursementApprovalMatrix`, body);
+  }
+
+  deleteReimbursementApprovalMatrix(matrixId: number) {
+    return this.http.post(`${this.baseUrl}api/deleteReimbursementApprovalMatrix`, { matrixId });
+  }
+
+  resolveReimbursementApprovalMatrixForEmployee(empId: number) {
+    return this.http.get(`${this.baseUrl}api/resolveReimbursementApprovalMatrixForEmployee`, {
+      params: { empId: String(empId) }
+    });
   }
 
 }

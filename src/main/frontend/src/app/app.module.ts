@@ -161,6 +161,7 @@ import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequ
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
+import { ReimbursementRuleSetConfigComponent } from './configuration/reimbursement-rule-set-config/reimbursement-rule-set-config.component';
 import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
 import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
 import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-view/team-employee-timesheet-view.component';
@@ -357,6 +358,7 @@ registerLocaleData(localeGb);
     SafePipe,
     TravelConfigComponent,
     ReimbursmentConfigComponent,
+    ReimbursementRuleSetConfigComponent,
     TimesheetCreateSelfComponent,
     HrDashboardComponent,
     TimesheetConfigComponent,

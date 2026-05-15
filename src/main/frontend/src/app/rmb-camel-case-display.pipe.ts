@@ -2,22 +2,61 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 const DASH = '—';
 
-function tokenize(input: string): string[] {
-  const trimmed = input.trim();
-  if (!trimmed) {
-    return [];
-  }
-  const normalized = trimmed
+/** Public ticket reference — leave unchanged. */
+const TICKET_NO_PATTERN = /^APM-RMB-\d{8}-\d{4}$/i;
+
+const ACRONYMS: Record<string, string> = {
+  hod: 'HOD',
+  hr: 'HR',
+  bd: 'BD',
+  it: 'IT',
+  gst: 'GST',
+  pdf: 'PDF',
+  rmb: 'RMB',
+  apm: 'APM',
+  otp: 'OTP',
+  ceo: 'CEO',
+  cfo: 'CFO',
+  fin: 'Finance',
+};
+
+function splitIntoWords(raw: string): string[] {
+  const s = raw
+    .trim()
     .replace(/_+/g, ' ')
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2');
-  return normalized.split(/[^a-zA-Z0-9]+/).filter(Boolean);
+  return s.split(/\s+/).filter(Boolean);
+}
+
+const STOPWORDS = new Set(['by', 'or', 'and', 'to', 'of', 'in', 'at', 'as', 'on', 'for', 'the', 'a']);
+
+function formatWord(word: string): string {
+  if (!word) {
+    return '';
+  }
+  const lower = word.toLowerCase();
+  if (STOPWORDS.has(lower)) {
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  }
+  if (ACRONYMS[lower]) {
+    return ACRONYMS[lower];
+  }
+  // Short all-caps token (e.g. API status fragments)
+  if (/^[A-Z]{2,5}$/.test(word) && word.length <= 5) {
+    return word;
+  }
+  // Long SHOUTCASE → Title
+  if (/^[A-Z][A-Z0-9]+$/.test(word) && word.length > 5) {
+    return word.charAt(0) + word.slice(1).toLowerCase();
+  }
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
 }
 
 /**
- * Turns arbitrary API / human labels into a single camelCase token for display
- * (e.g. PENDING_HR → pendingHr, "Approved by HOD" → approvedByHod).
+ * Human-readable labels for reimbursement UI (spaces + title-style words).
+ * Replaces the old behaviour that forced camelCase tokens.
  */
-export function toRmbCamelCaseDisplay(value: unknown): string {
+export function formatRmbReadableLabel(value: unknown): string {
   if (value == null) {
     return DASH;
   }
@@ -28,22 +67,25 @@ export function toRmbCamelCaseDisplay(value: unknown): string {
     return String(value);
   }
   if (typeof value === 'boolean') {
-    return value ? 'true' : 'false';
+    return value ? 'Yes' : 'No';
   }
   const s = String(value).trim();
   if (!s) {
     return DASH;
   }
-  const parts = tokenize(s);
-  if (!parts.length) {
+  if (TICKET_NO_PATTERN.test(s)) {
+    return s.toUpperCase();
+  }
+  const words = splitIntoWords(s);
+  if (!words.length) {
     return DASH;
   }
-  const head = parts[0].toLowerCase();
-  const tail = parts
-    .slice(1)
-    .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-    .join('');
-  return head + tail;
+  return words.map(formatWord).join(' ');
+}
+
+/** @deprecated Use {@link formatRmbReadableLabel}; kept for any TS imports. */
+export function toRmbCamelCaseDisplay(value: unknown): string {
+  return formatRmbReadableLabel(value);
 }
 
 @Pipe({
@@ -52,6 +94,6 @@ export function toRmbCamelCaseDisplay(value: unknown): string {
 })
 export class RmbCamelCaseDisplayPipe implements PipeTransform {
   transform(value: unknown): string {
-    return toRmbCamelCaseDisplay(value);
+    return formatRmbReadableLabel(value);
   }
 }

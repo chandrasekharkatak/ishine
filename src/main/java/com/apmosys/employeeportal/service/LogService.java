@@ -43,10 +43,17 @@ public class LogService {
 		logBuilder.append("EmpId : " + logDTO.getEmpId());
 
 		try {
-			boolean isUserLogInfoAvailable = userLogInfoList.containsKey(logDTO.getEmpId());
-			
-			if(isUserLogInfoAvailable) userLogInfoList.put(logDTO.getEmpId(),logDTO);
-			
+			if (logDTO.getEmpId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Failed to update Log Info !!");
+				apiLogInfo.setApiResponse("empId is required");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+			// Always merge client log into the map (OTP may have run on another node, or map was empty).
+			userLogInfoList.put(logDTO.getEmpId(), logDTO);
 			sessionLogInfo = userLogInfoList.get(logDTO.getEmpId());
 			if(sessionLogInfo != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

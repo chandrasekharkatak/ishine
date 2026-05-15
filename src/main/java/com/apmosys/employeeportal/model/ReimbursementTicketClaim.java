@@ -27,6 +27,9 @@ import lombok.NoArgsConstructor;
 public class ReimbursementTicketClaim {
 
 	public static final String STATUS_PENDING_HOD = "PENDING_HOD";
+	/** Matrix-driven tickets awaiting the current approval level. */
+	public static final String STATUS_PENDING_APPROVAL = "PENDING_APPROVAL";
+	public static final String STATUS_LEVEL_REJECTED = "LEVEL_REJECTED";
 	public static final String STATUS_HOD_REJECTED = "HOD_REJECTED";
 	public static final String STATUS_PENDING_HR = "PENDING_HR";
 	public static final String STATUS_HR_REJECTED = "HR_REJECTED";

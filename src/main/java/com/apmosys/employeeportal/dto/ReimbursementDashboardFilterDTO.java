@@ -17,4 +17,7 @@ public class ReimbursementDashboardFilterDTO {
 	private String expenditureType;
 	/** Filter tickets for this employee (portal emp_id). */
 	private Long employeeEmpId;
+	/** Logged-in viewer — dashboard metrics are limited to this actor's approval scope when set. */
+	private Long actorEmpId;
+	private String actorEmail;
 }

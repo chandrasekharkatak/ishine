@@ -8,7 +8,10 @@
                     </div>
                     <div>
                         <h1 class="rmb-title mb-1">Create reimbursement request</h1>
-                        <p class="rmb-subtitle mb-0">Build a ticket with one or more claims, then submit for HOD → HR → Finance approval.</p>
+                        <p class="rmb-subtitle mb-0">
+                          Build a ticket with one or more claims, then submit for
+                          <strong>{{ approvalFlowSummary || 'configured approval' }}</strong>.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -62,7 +65,7 @@
                                 <span class="rmb-draft-total">₹ {{ ticketTotalAmount() | number:'1.0-0' }}</span>
                             </div>
                             <p class="rmb-draft-copy mb-2">
-                                <strong>Ticket draft.</strong> Use <em>Add claim to ticket</em> for each expense line, then <em>Submit ticket</em> once when ready.
+                                <strong>Ticket draft.</strong> Use <em>Add claim to ticket</em> for each expense claim, then <em>Submit ticket</em> once when ready.
                             </p>
                             <div class="table-responsive rmb-draft-table-wrap">
                                 <table class="table table-sm rmb-draft-table mb-0">
@@ -118,7 +121,7 @@
                         <span class="rmb-badge rmb-badge--editing" *ngIf="editingClaimIndex !== null">Editing claim #{{ editingClaimIndex + 1 }}</span>
                     </div>
                     <p class="rmb-section-hint" *ngIf="editingClaimIndex === null">Complete this block for one expense, attach proof, then add it to your ticket. Repeat for multiple claims.</p>
-                    <p class="rmb-section-hint rmb-section-hint--editing" *ngIf="editingClaimIndex !== null">This draft line is loaded below. Change any fields, add more files if needed, then <strong>Update claim in ticket</strong>. Existing documents stay attached unless you remove them from the Docs list.</p>
+                    <p class="rmb-section-hint rmb-section-hint--editing" *ngIf="editingClaimIndex !== null">This draft claim is loaded below. Change any fields, add more files if needed, then <strong>Update claim in ticket</strong>. Existing documents stay attached unless you remove them from the Docs list.</p>
                     <div class="row rmb-claim-grid">
                         <div class="col-md-6 col-lg-3 mb-3">
                             <label class="rmb-label" for="rmbExpenditureType"><span class="rmb-req">*</span>Expenditure type</label>
@@ -258,6 +261,10 @@
                                 (ngModelChange)="onKilometersChange()" name="distance" min="1" [disabled]="!reimbursementObj.vehicleType" />
                         </div>
 
+                        <div class="col-12 mb-2" *ngIf="claimDateWindowHint">
+                            <p class="small text-muted mb-0"><strong class="text-body">Allowed dates</strong> — {{ claimDateWindowHint }}</p>
+                        </div>
+
                         <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType === 'Food'">
                             <label class="rmb-label" for="foodType"><span class="rmb-req">*</span>Food allowance type</label>
                             <select class="form-control rmb-control" id="foodType" [(ngModel)]="reimbursementObj.foodAllowanceType" name="foodAllowanceType" required>
@@ -286,7 +293,7 @@
                             <label class="rmb-label" for="fromDate"><span class="rmb-req">*</span>From date</label>
                             <input class="form-control rmb-control" id="fromDate" [(ngModel)]="reimbursementObj.fromDate"
                                 (ngModelChange)="onFromDateChange($event)" type="date" [min]="claimDateMin" [max]="claimDateMax" autocomplete="off">
-                            <div *ngIf="invalidFromDate" class="rmb-field-error">Choose a date between the 1st and 15th of the month.</div>
+                            <div *ngIf="invalidFromDate" class="rmb-field-error">Pick a date in the previous calendar month only (not the current month or earlier months).</div>
                         </div>
 
                         <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType != 'Food'">
@@ -295,7 +302,7 @@
                                 (ngModelChange)="onToDateChange($event)"
                                 [min]="reimbursementObj.fromDate || claimDateMin" [max]="claimDateMax"
                                 [disabled]="!reimbursementObj.fromDate" autocomplete="off">
-                            <div *ngIf="invalidToDate" class="rmb-field-error">To date cannot be earlier than From date.</div>
+                            <div *ngIf="invalidToDate" class="rmb-field-error">Pick a To date on or after From date, within the previous calendar month only.</div>
                         </div>
 
                         <div class="col-12 col-lg-6 mb-3">
@@ -361,18 +368,18 @@
                 <div class="rmb-actions">
                     <div class="rmb-actions-inner">
                         <button type="button" class="btn rmb-btn rmb-btn--ghost" (click)="resetForm(alert_message)">
-                            <i class="fa fa-undo mr-2" aria-hidden="true"></i>Reset
+                            <i class="fa fa-undo" aria-hidden="true"></i><span>Reset</span>
                         </button>
                         <button *ngIf="editingClaimIndex !== null" type="button" class="btn rmb-btn rmb-btn--ghost" (click)="cancelEditDraftClaim()">
-                            <i class="fa fa-times mr-2" aria-hidden="true"></i>Cancel edit
+                            <i class="fa fa-times" aria-hidden="true"></i><span>Cancel edit</span>
                         </button>
                         <button type="button" class="btn rmb-btn rmb-btn--secondary" (click)="addClaimToTicket(alert_messagevalidation)">
-                            <i class="fa mr-2" [ngClass]="editingClaimIndex === null ? 'fa-list-ul' : 'fa-check'" aria-hidden="true"></i>
+                            <i class="fa" [ngClass]="editingClaimIndex === null ? 'fa-list-ul' : 'fa-check'" aria-hidden="true"></i>
                             <span *ngIf="editingClaimIndex === null">Add claim to ticket</span>
                             <span *ngIf="editingClaimIndex !== null">Update claim in ticket</span>
                         </button>
-                        <button type="button" class="btn rmb-btn rmb-btn--primary" (click)="submitEntireTicket(alert_messagevalidation)">
-                            <i class="fa fa-paper-plane mr-2" aria-hidden="true"></i>Submit ticket
+                        <button *ngIf="ticketClaims.length > 0" type="button" class="btn rmb-btn rmb-btn--primary" (click)="submitEntireTicket(alert_messagevalidation)">
+                            <i class="fa fa-paper-plane" aria-hidden="true"></i><span>Submit ticket</span>
                         </button>
                     </div>
                 </div>
@@ -412,7 +419,7 @@
     <div class="modal-body" *ngIf="draftDocsClaimIndex !== null">
         <p class="text-muted small mb-3">
             Claim <strong>{{ draftDocsClaimIndex + 1 }}</strong> — preview a file or remove it from this claim.
-            If you remove every file, the whole claim line is removed from the ticket.
+            If you remove every file, the whole claim is removed from the ticket.
         </p>
         <div class="table-responsive rmb-docs-list-wrap mb-3">
             <table class="table table-sm rmb-docs-list-table mb-0">

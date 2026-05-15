@@ -1,5 +1,5 @@
 
-<div class="row">
+<div class="row rmb-page">
     <div class="col-md-12">
       <div class="row">
         <div class="col-md-12 table-header d-flex flex-wrap justify-content-between align-items-end">
@@ -8,15 +8,15 @@
               <button type="button" class="btn btn-sm"
                 [class.btn-primary]="ticketListView === 'pending'"
                 [class.btn-outline-primary]="ticketListView !== 'pending'"
-                (click)="setTicketListView('pending')">{{ 'pendingActions' | rmbCamelDisplay }}</button>
+                (click)="setTicketListView('pending')">Pending Actions</button>
               <button type="button" class="btn btn-sm ml-1"
                 [class.btn-primary]="ticketListView === 'all'"
                 [class.btn-outline-primary]="ticketListView !== 'all'"
-                (click)="setTicketListView('all')">{{ 'allTickets' | rmbCamelDisplay }}</button>
+                (click)="setTicketListView('all')">All Tickets</button>
             </nav>
             <h1 class="table-header-title mb-0">
-              <ng-container *ngIf="ticketListView === 'pending'">{{ 'pendingReimbursementRequestHistory' | rmbCamelDisplay }}</ng-container>
-              <ng-container *ngIf="ticketListView === 'all'">{{ 'allAssignedReimbursementTickets' | rmbCamelDisplay }}</ng-container>
+              <ng-container *ngIf="ticketListView === 'pending'">Pending Reimbursement Approvals</ng-container>
+              <ng-container *ngIf="ticketListView === 'all'">All Assigned Reimbursement Tickets</ng-container>
             </h1>
           </div>
         </div>
@@ -32,29 +32,29 @@
         </div>
 
         <div class="col-md-12 overflow-auto" bassHorizontalScroll>
-          <table class="table table-responsive table-bordered" matSort (matSortChange)="sortTicketData($event)">
+          <table class="table table-bordered rmb-approve-table w-100" matSort (matSortChange)="sortTicketData($event)">
             <thead class="thead-light">
               <tr>
-                <th mat-sort-header="ticketNo|string">ticketId</th>
-                <th mat-sort-header="fullName|string">fullName</th>
-                <th mat-sort-header="displayStatus|string">displayStatus</th>
-                <th mat-sort-header="totalClaimAmount|number">totalClaimAmount</th>
-                <th mat-sort-header="submittedOn|date">submittedOn</th>
-                <th mat-sort-header="level1ApproverName|string">level1ApproverName</th>
-                <th mat-sort-header="level1ApproverStatus|string">level1ApproverStatus</th>
-                <th mat-sort-header="level2ApproverName|string">level2ApproverName</th>
-                <th mat-sort-header="level2ApproverStatus|string">level2ApproverStatus</th>
-                <th mat-sort-header="level3ApproverName|string">level3ApproverName</th>
-                <th mat-sort-header="level3ApproverStatus|string">level3ApproverStatus</th>
-                <th>claims</th>
-                <th *ngIf="ticketListView === 'pending'" class="text-center">action</th>
+                <th mat-sort-header="ticketNo|string">Ticket</th>
+                <th mat-sort-header="fullName|string">Employee</th>
+                <th mat-sort-header="displayStatus|string">Status</th>
+                <th mat-sort-header="totalClaimAmount|number" class="text-right">Total amt applied (₹)</th>
+                <th mat-sort-header="paidClaimAmount|number" class="text-right">Total amount paid (₹)</th>
+                <th mat-sort-header="rejectedTotalAmount|number" class="text-right">Rejected amt (₹)</th>
+                <th mat-sort-header="submittedOn|date">Submitted</th>
+                <ng-container *ngFor="let col of tableLevelColumns; let li = index">
+                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverName|string'">{{ col.levelLabel }} approver</th>
+                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverStatus|string'">{{ col.levelLabel }} status</th>
+                </ng-container>
+                <th>Claims</th>
+                <th *ngIf="ticketListView === 'pending'" class="text-center">Action</th>
               </tr>
               <tr app-column-filter-bar *ngIf="isSearchEnabledTickets" [columnList]="ticketActiveColumns"
                 (onSearch)="onTicketSearch($event);pageTickets=1"></tr>
             </thead>
             <tbody>
               <tr *ngIf="!ticketRequests?.length || (ticketRequests | colFilter:ticketFilters:false).length === 0">
-                <td [attr.colspan]="ticketListView === 'pending' ? 13 : 12" class="text-center text-muted">noDetailsToDisplay</td>
+                <td [attr.colspan]="ticketTableColspan" class="text-center text-muted">No records to display.</td>
               </tr>
               <tr *ngFor="let t of ticketRequests
                 | colFilter:ticketFilters:false
@@ -63,16 +63,26 @@
                 <td class="font-weight-bold">{{ t.ticketNo || t.ticketId }}</td>
                 <td>{{ t.fullName | rmbCamelDisplay }}</td>
                 <td>{{ t.displayStatus | rmbCamelDisplay }}</td>
-                <td>{{ t.totalClaimAmount }}</td>
+                <td class="text-right">{{ t.totalClaimAmount | number:'1.0-0' }}</td>
+                <td class="text-right">{{ (t.paidClaimAmount != null && t.paidClaimAmount !== '' ? +t.paidClaimAmount : 0) | number:'1.0-0' }}</td>
+                <td class="text-right">{{ (t.rejectedTotalAmount != null ? +t.rejectedTotalAmount : 0) | number:'1.0-0' }}</td>
                 <td>{{ t.submittedOn | date:'medium' }}</td>
-                <td>{{ (t.level1ApproverName || t.hodName || '—') | rmbCamelDisplay }}</td>
-                <td>{{ (t.level1ApproverStatus || '—') | rmbCamelDisplay }}</td>
-                <td>{{ (t.level2ApproverName || '—') | rmbCamelDisplay }}</td>
-                <td>{{ (t.level2ApproverStatus || '—') | rmbCamelDisplay }}</td>
-                <td>{{ (t.level3ApproverName || '—') | rmbCamelDisplay }}</td>
-                <td>{{ (t.level3ApproverStatus || '—') | rmbCamelDisplay }}</td>
+                <ng-container *ngFor="let col of tableLevelColumns; let li = index">
+                  <td>{{ approvalLevelCell(t, li, 'approverName') | rmbCamelDisplay }}</td>
+                  <td class="rmb-approve-level-status">
+                    <span class="d-inline-flex align-items-center flex-wrap">
+                      <span>{{ approvalLevelCell(t, li, 'approverStatus') | rmbCamelDisplay }}</span>
+                      <button *ngIf="showApproverLevelInfoIcon(approvalLevelCell(t, li, 'approverStatus'))" type="button"
+                        class="btn btn-link btn-sm p-0 ml-1 rmb-partial-info"
+                        [matTooltip]="partialDetailTooltip(t, li + 1)" matTooltipClass="rmb-partial-tooltip"
+                        matTooltipShowDelay="200" [attr.aria-label]="col.levelLabel + ' rejection details'">
+                        <i class="fa fa-info-circle text-info" aria-hidden="true"></i>
+                      </button>
+                    </span>
+                  </td>
+                </ng-container>
                 <td class="text-center">
-                  <span class="badge badge-light text-dark">{{ (t.claims || []).length }}Claims</span>
+                  <span class="badge badge-light text-dark">{{ (t.claims || []).length }} claim(s)</span>
                 </td>
                 <td *ngIf="ticketListView === 'pending'" class="text-center">
                   <button
@@ -80,7 +90,7 @@
                     class="btn btn-sm btn-success"
                     *ngIf="shouldShowTicketAction(t); else noAction"
                     (click)="openTicketModal(t)">
-                    takeAction
+                    Take action
                   </button>
                   <ng-template #noAction>
                     <span class="text-muted small">—</span>

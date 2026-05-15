@@ -11,6 +11,12 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
 import { ReimbursementTicketModalComponent } from '../reimbursement-ticket-modal/reimbursement-ticket-modal.component';
+import {
+  approvalLevelCell,
+  buildTicketFilterColumns,
+  deriveTableLevelColumns,
+  RmbApprovalLevelColumn
+} from '../rmb-approval-levels.helper';
 
 @Component({
   standalone: false,
@@ -51,23 +57,20 @@ export class ViewReimbursementComponent implements OnInit {
   // Table UX: filter + sort + paginate (Timesheet-style)
   isSearchEnabledTickets = false;
   ticketFilters: any = {};
-  ticketActiveColumns: any[] = [
+  private readonly ticketStaticFilterColumns = [
     'ticketNo',
     'displayStatus',
     'workflowStage',
     'totalClaimAmount',
     'paidClaimAmount',
     'submittedOn',
-    'level1ApproverName',
-    'level1ApproverStatus',
-    'level2ApproverName',
-    'level2ApproverStatus',
-    'level3ApproverName',
-    'level3ApproverStatus',
     'rejectionSummaryText',
     'blank',
     'blank'
   ];
+  ticketActiveColumns: string[] = [...this.ticketStaticFilterColumns];
+  tableLevelColumns: RmbApprovalLevelColumn[] = [];
+  readonly approvalLevelCell = approvalLevelCell;
   sortColumn = '';
   sortColumnType = '';
   sortDirection = '';
@@ -106,7 +109,29 @@ export class ViewReimbursementComponent implements OnInit {
       } else {
         this.myReimbursementTickets = [];
       }
+      await this.refreshTableLevelColumns();
     }
+  }
+
+  get ticketTableColspan(): number {
+    return 6 + this.tableLevelColumns.length * 2 + 3;
+  }
+
+  private async refreshTableLevelColumns(): Promise<void> {
+    let fallback: RmbApprovalLevelColumn[] = [];
+    try {
+      const res: any = await this.reimbursementService
+        .resolveReimbursementApprovalMatrixForEmployee(Number(this.currentUser.empId))
+        .pipe(first())
+        .toPromise();
+      if (res?.serviceStatus === 'Success' && res.serviceResponse?.levelColumns) {
+        fallback = res.serviceResponse.levelColumns;
+      }
+    } catch {
+      fallback = [];
+    }
+    this.tableLevelColumns = deriveTableLevelColumns(this.myReimbursementTickets, fallback);
+    this.ticketActiveColumns = buildTicketFilterColumns(this.ticketStaticFilterColumns, this.tableLevelColumns.length);
   }
 
   openTicketDetailsModal(template: TemplateRef<any>, t: any) {
@@ -164,7 +189,7 @@ export class ViewReimbursementComponent implements OnInit {
     this.pageTickets = event;
   }
 
-  /** Amount paid (sum of PAID claim lines); shown once Finance completes payment. */
+  /** Amount paid (sum of PAID claims); shown once Finance completes payment. */
   ticketPaidAmountDisplay(t: any): number | null {
     if (!t) return null;
     const n = Number(t.paidClaimAmount);
