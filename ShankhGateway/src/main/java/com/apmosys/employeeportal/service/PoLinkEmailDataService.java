@@ -54,6 +54,12 @@ public class PoLinkEmailDataService {
 
 	private static final Logger log = LoggerFactory.getLogger(PoLinkEmailDataService.class);
 
+	/**
+	 * When false, skips DB-heavy assembly for email sections not rendered in
+	 * {@link PoLinkImpactEmailBuilder} (Previous/Current PO Requirements, Boarding Snapshot).
+	 */
+	static final boolean INCLUDE_REQUIREMENT_AND_BOARDING_EMAIL_SECTIONS = false;
+
 	private static final ZoneId ZONE = ZoneId.systemDefault();
 
 	private final PoRequirementMappingRepository poRequirementMappingRepository;
@@ -74,8 +80,32 @@ public class PoLinkEmailDataService {
 
 		String primaryName = trim(primaryProject.getProjectName());
 		out.setProjectDisplayName(primaryName);
-		Integer internalProjectId = primaryProject.getProjectId();
+		ProjectPoMappingWithResourceDTO primaryPayload = dto != null ? dto.getPrimaryProject() : null;
 
+		out.setMergedRemovedProjectLines(buildMergedRemovedLines(dto));
+		out.setWhatChangedHtml(buildWhatChangedSummaryHtml(primaryProject, primaryPayload, dto));
+
+		ResourceImpactDto impact = new ResourceImpactDto();
+		if (primaryPayload != null && primaryProject.getProjectName() != null) {
+			String dtoName = trim(primaryPayload.getProjectName());
+			String dbName = trim(primaryProject.getProjectName());
+			if (!dtoName.isEmpty() && !dbName.isEmpty() && !dtoName.equalsIgnoreCase(dbName)) {
+				impact.setProjectDisplayNameChanged(true);
+				impact.setPreviousProjectDisplayName(dbName);
+				impact.setCurrentProjectDisplayName(dtoName);
+			}
+		}
+		out.setResourceImpact(impact);
+
+		if (!INCLUDE_REQUIREMENT_AND_BOARDING_EMAIL_SECTIONS) {
+			out.setIncludePreviousPoRequirementsSection(false);
+			out.setPreviousRequirementBlocks(Collections.emptyList());
+			out.setCurrentRequirementRows(Collections.emptyList());
+			out.setBoardingTableRows(Collections.emptyList());
+			return out;
+		}
+
+		Integer internalProjectId = primaryProject.getProjectId();
 		Set<Long> deletedPoIds = new HashSet<>();
 		if (dto != null && dto.getDeletedProjects() != null) {
 			for (ProjectPoMappingWithResourceDTO del : dto.getDeletedProjects()) {
@@ -89,10 +119,7 @@ public class PoLinkEmailDataService {
 				}
 			}
 		}
-
 		Set<Long> primaryPoIds = new HashSet<>();
-		ProjectPoMappingWithResourceDTO primaryPayload = dto != null ? dto.getPrimaryProject() : null;
-
 		if (primaryPayload != null && primaryPayload.getPoDetailsList() != null) {
 			for (PoDetailsForProjectPoMappingDTO p : primaryPayload.getPoDetailsList()) {
 				if (p != null && p.getPoId() != null) {
@@ -101,9 +128,6 @@ public class PoLinkEmailDataService {
 			}
 		}
 
-		out.setMergedRemovedProjectLines(buildMergedRemovedLines(dto));
-		out.setWhatChangedHtml(buildWhatChangedSummaryHtml(primaryProject, primaryPayload, dto));
-
 		boolean showPreviousReq = !isMonitoringPrimary(primaryProject);
 		out.setIncludePreviousPoRequirementsSection(showPreviousReq);
 		if (showPreviousReq) {
@@ -111,18 +135,6 @@ public class PoLinkEmailDataService {
 		} else {
 			out.setPreviousRequirementBlocks(Collections.emptyList());
 		}
-
-		ResourceImpactDto impact = new ResourceImpactDto();
-		if (primaryPayload != null && primaryProject.getProjectName() != null) {
-			String dtoName = trim(primaryPayload.getProjectName());
-			String dbName = trim(primaryProject.getProjectName());
-			if (!dtoName.isEmpty() && !dbName.isEmpty() && !dtoName.equalsIgnoreCase(dbName)) {
-				impact.setProjectDisplayNameChanged(true);
-				impact.setPreviousProjectDisplayName(dbName);
-				impact.setCurrentProjectDisplayName(dtoName);
-			}
-		}
-		out.setResourceImpact(impact);
 
 		List<RequirementDto> currentTable = new ArrayList<>();
 
