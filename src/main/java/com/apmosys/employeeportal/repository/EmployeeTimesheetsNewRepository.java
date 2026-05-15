@@ -12741,7 +12741,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "			JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id\n"
 			+ "			LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = 3\n"
 			+ "			LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = 3\n"
-			+ "        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "        WHERE 1 = 1 \n"
 			+ "			AND (\n"
 			+ "			ae.emp_id IS NOT NULL \n"
@@ -13259,7 +13259,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			"    LEFT JOIN project_overhead_mapping pom_check \n" +
 			"           ON p.project_id = pom_check.project_id \n" +
 			"          AND pom_check.project_overhead_id = :emp_id \n" +
-			"    LEFT JOIN employee_client_side_id_mapping_new ecsm \n" +
+			"    LEFT JOIN employee_client_side_id_mapping ecsm \n" +
 			"           ON e.emp_id = ecsm.emp_id \n" +
 			"          AND ecsm.project_id = t.project_id \n" +
 			"          AND ecsm.active = 1 \n" +
@@ -13838,7 +13838,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "			        LEFT JOIN employee s ON s.emp_id = t.spoc_id\n"
 			+ "			        LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
 			+ "			        LEFT JOIN department d ON d.dept_id = jr.dept_id\n"
-			+ "			        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "			        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "			        WHERE \n"
 			+ "                    e.emp_id IN (:authorizedEmployees)\n"
 			+ "                    AND \n"
@@ -14180,7 +14180,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "			        LEFT JOIN employee s ON s.emp_id = t.spoc_id\n"
 			+ "			        LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
 			+ "			        LEFT JOIN department d ON d.dept_id = jr.dept_id\n"
-			+ "			        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+			+ "			        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 			+ "			        WHERE \n"
 			+ "                    e.emp_id IN (:authorizedEmployees)\n"
 			+ "                    AND \n"
@@ -18774,7 +18774,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							+ "						JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id\n"
 							+ "						LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = :emp_id\n"
 							+ "						LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
-							+ "			        LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+							+ "			        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 							+ "			        WHERE p.has_client_side_id = 1 \n"
 							+ "						AND (\n"
 							+ "						ae.emp_id IS NOT NULL \n"
@@ -19053,7 +19053,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							+ "	LEFT JOIN employee s ON s.emp_id = t.spoc_id\n"
 							+ "	LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
 							+ "	LEFT JOIN department d ON d.dept_id = jr.dept_id\n"
-							+ "	LEFT JOIN employee_client_side_id_mapping_new ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
+							+ "	LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id AND ecsm.active = 1\n"
 							+ "	WHERE p.project_id IN (SELECT project_id FROM Authorized_Project_IDs) \n"
 							+ "	AND (\n"
 							+ "	e.date_of_relieving IS NULL \n"
