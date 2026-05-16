@@ -336,7 +336,7 @@ public class CronJobService {
 //	0 0/2 * ? * *
 //	@Scheduled(cron = "0 0 12 1 * ?")
 //	 At 00:00 (midnight) on the first day of every month
-	@Scheduled(cron = "0 0 0 1 * ?")
+//	@Scheduled(cron = "0 0 0 1 * ?")
 	public void monthlyLeaveIncrement() {
 		try {
 		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
@@ -604,7 +604,7 @@ public class CronJobService {
 //	@Scheduled(cron = "0 0 21 16 01 ?")
 
 //	@Scheduled(cron = "0 0 21 31 12 ?")
-	@Scheduled(cron = "0 28 17 3 11 ?")
+//	@Scheduled(cron = "0 28 17 3 11 ?")
 
 
 		public void YearlyLeaveCronJob() {
@@ -1134,7 +1134,7 @@ public class CronJobService {
 	// 0 1 1 ? * * - At 01:01:00am every day
 //	@Scheduled(cron = "0 1 1 ? * *")
 
-	@Scheduled(cron="${compOff_Expiration}")
+//	@Scheduled(cron="${compOff_Expiration}")
 	public void LeaveExpirationCronJob() {
 		System.err.println("Cron work");
 	    try {
@@ -1216,7 +1216,7 @@ public class CronJobService {
 
 	//0 0 1 1,2,3,4,5,6,7 JAN ? - At 01:00:00am, on the 1st, 2nd, 3rd, 4th, 5th, 6th and 7th day, in January
 
-	@Scheduled(cron = "0 0 1 1,2,3,4,5,6,7 JAN ?")
+//	@Scheduled(cron = "0 0 1 1,2,3,4,5,6,7 JAN ?")
 	public void addingWeekOff() {
 
 
@@ -1492,7 +1492,7 @@ public class CronJobService {
 //		}
 
 		// 0 0 12 ? * * - At 12:00:00pm every day
-	@Scheduled(cron = "0 1 00 ? * *")
+//	@Scheduled(cron = "0 1 00 ? * *")
 	public void automaticTimesheetFiller() {
 
 	    log.info("Automatic Timesheet Filler Cron Started");
@@ -1672,7 +1672,7 @@ public class CronJobService {
 	}
 
 	
-		@Scheduled(cron="${mailTrigger.time}")
+//		@Scheduled(cron="${mailTrigger.time}")
 		public void protalConfigMailTrigger() {
 			try {
 
@@ -1878,7 +1878,7 @@ public class CronJobService {
 
 		//Confirmation Mail ///Raj Alpha Swain
 //		@Scheduled(cron = "${mailTrigger.time}")
-		@Scheduled(cron = "0 0 10 * * *")
+//		@Scheduled(cron = "0 0 10 * * *")
 		public void portalConfigConfirmation() {
 			try {
 				sendProbationReminder();
@@ -2166,7 +2166,7 @@ public class CronJobService {
 
 
 
-		@Scheduled(cron = "0 0 10 * * *")
+//		@Scheduled(cron = "0 0 10 * * *")
 		public void automaticConfirmation()
 		{
 			try {
@@ -2375,7 +2375,7 @@ public class CronJobService {
 
 //		0 0 7 ? * * - At 07:00:00am every day
 		@Async
-		@Scheduled(cron="${birthdaymail.cron.expression}")
+//		@Scheduled(cron="${birthdaymail.cron.expression}")
 		public void birthdayGreetingMail() {
 			StringBuilder builder = new StringBuilder();
 
@@ -3401,7 +3401,7 @@ public class CronJobService {
 
 //		0 0 7 ? * * - At 07:00:00am every day
 		@Async
-		@Scheduled(cron="${birthdaymail.cron.expression}")
+//		@Scheduled(cron="${birthdaymail.cron.expression}")
 		public void birthdayReminderMail() {
 			StringBuilder builder = new StringBuilder();
 
@@ -4405,7 +4405,7 @@ public class CronJobService {
 		}
 
 		@Async
-		@Scheduled(cron = "0 0 9 ? * *")
+//		@Scheduled(cron = "0 0 9 ? * *")
 		public void resignationMailConsent() {
 			try {
 				List<Object[]> employeeObj = employeeRepository.getEmployeeByDateOfRelieving();
@@ -4636,7 +4636,7 @@ public class CronJobService {
 
 //		<-------Divya Code ----->
 		@Async
-		@Scheduled(cron="${timesheetDefaulter.time}")
+//		@Scheduled(cron="${timesheetDefaulter.time}")
 		public void timesheetDefaulterWeeklyMail() {
 
 			log.info("*********** timesheetDefaulterWeeklyMail JOB STARTED *******************");
@@ -4828,7 +4828,7 @@ public class CronJobService {
 //		*/20 * * * * *  for every 20 secs
 //      @Scheduled(cron = "0 0 8 ? * *")  // At 08:00 AM
 		@Async
-		@Scheduled(cron = "0 0 8 ? * *")  // At 08:00 AM
+//		@Scheduled(cron = "0 0 8 ? * *")  // At 08:00 AM
 		public void timesheetCheckEnable() {
 
 			try {
@@ -4881,7 +4881,7 @@ public class CronJobService {
 		}
 
 		@Async
-		@Scheduled(cron = "0 0 10 ? * MON")
+//		@Scheduled(cron = "0 0 10 ? * MON")
 		public void weeklyAllEmployeeDsrReport() {
 			try {
 				TimesheetDTO timesheetDto = new TimesheetDTO();
@@ -5338,7 +5338,7 @@ try {
 		// "0 0/30 * ? * *" - Run at evry 30 mins
 
 		@Async
-		@Scheduled(cron = "0 0/10 * ? * *")
+//		@Scheduled(cron = "0 0/10 * ? * *")
 		public void loggedInUserAudit() {
 
 			System.out.println(new Date() + " Running LoggedIn User Audit ... ");
@@ -5399,7 +5399,7 @@ try {
 		}
 
 		//0 0 0 1/3 * ? - At 00:00:00am, every 3 days starting on the 1st, every month
-		@Scheduled(cron = "0 0 0 1/3 * ?")
+//		@Scheduled(cron = "0 0 0 1/3 * ?")
 		public void oldProjectAlertMail() {
 			try {
 				List<ResourceManagementDTO> dtoList = new ArrayList<ResourceManagementDTO>();
@@ -5709,7 +5709,7 @@ try {
 		}
 		// 0 0 9 ? * * - At 09:00:00am every day
 		@Async
-		@Scheduled(cron = "0 0 9 ? * *")
+//		@Scheduled(cron = "0 0 9 ? * *")
 		public void pendingKycDefaulterMail() {
 
 			List<Department> allDeptList = departmentRepository.findAll();
@@ -7092,7 +7092,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	        }
 	    }
 	    
-	    @Scheduled(cron = "0 32 18 * * *")
+//	    @Scheduled(cron = "0 32 18 * * *")
 	    @Transactional
 	    public void updateTeamMemberStatus() {
 
@@ -7151,14 +7151,14 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 		    // ── CC: only you ──────────────────────────────────────────────────────
 		    Set<String> ccAddresses = new HashSet<>();
-		    ccAddresses.add("prarthana.lenka@apmosys.com");
+		    ccAddresses.add(rmgMail);
 
 		    
 		    try {
-        mailService.sendMailWithCC("prarthana.lenka@apmosys.com","priyadarshini.singh@apmosys.com",subject, body);
-//		    	String toList = String.join(",", toAddresses);
-//		        String ccList = String.join(",", ccAddresses);
-//		        mailService.sendMailWithCC(toList, ccList, subject, body);
+//        mailService.sendMailWithCC("prarthana.lenka@apmosys.com","priyadarshini.singh@apmosys.com",subject, body);
+		    	String toList = String.join(",", toAddresses);
+		        String ccList = String.join(",", ccAddresses);
+		        mailService.sendMailWithCC(toList, ccList, subject, body);
 		    }  catch (Exception e) {
                 e.printStackTrace();
               
@@ -7432,9 +7432,14 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	        String body = buildPoDeletionHtml(dto);
 
 	        try {
-	            mailService.sendMailWithCC(
-	                    "prarthana.lenka@apmosys.com",
-	                    "priyadarshini.singh@apmosys.com",
+//	            mailService.sendMailWithCC(
+//	                    rmgMail,
+//	                    "",
+//	                    subject,
+//	                    body
+//	            );
+	        	mailService.sendMail(
+	                    rmgMail,
 	                    subject,
 	                    body
 	            );

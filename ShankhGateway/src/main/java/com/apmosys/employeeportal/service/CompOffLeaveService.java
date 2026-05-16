@@ -1355,7 +1355,7 @@ public class CompOffLeaveService {
 	
 
 
-	@Scheduled(cron="${compOff_TAT}") // Run every two minutes
+//	@Scheduled(cron="${compOff_TAT}") // Run every two minutes
 	public void checkCompOffTAT() {
 	    System.out.println("CompOffTAT :: Call");
 

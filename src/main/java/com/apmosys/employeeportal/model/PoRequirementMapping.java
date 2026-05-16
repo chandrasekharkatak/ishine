@@ -24,7 +24,7 @@ import lombok.ToString;
 @Entity
 @ToString
 @Audited
-@Table(indexes = {@Index(name = "idx_prm_po_id", columnList = "po_id") })
+//@Table(indexes = {@Index(name = "idx_prm_po_id", columnList = "po_id") })
 public class PoRequirementMapping {
 	
 	    @Id

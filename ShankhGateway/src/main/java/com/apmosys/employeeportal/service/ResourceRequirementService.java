@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 
@@ -70,6 +71,9 @@ public class ResourceRequirementService {
 	
 	@Autowired
 	MailService mailService;
+	
+	@Value("${rmg.mail}")
+	private String rmgMail;
 	
 //	public void syncRequirementsRTS(
 //	        Long poId,
@@ -650,7 +654,7 @@ Objects.equals(e.getLineItemEndDate(),
 	    	
 	    	 String subject = "PO Resource Requirement Update - PO NO: " + po.getPoNo();
 	    	   String body = buildHtmlBody(poId, changes ,autoMigrated);
-	        mailService.sendMailWithCC("priyadarshini.singh@apmosys.com", "prarthana.lenka@apmosys.com", subject, body);
+//	        mailService.sendMailWithCC("priyadarshini.singh@apmosys.com", "prarthana.lenka@apmosys.com", subject, body);
 	        
 	        Set<String> toAddresses = new HashSet<>();
 
@@ -670,14 +674,14 @@ Objects.equals(e.getLineItemEndDate(),
 		    toAddresses.addAll(stakeholderEmails);
 
 		       Set<String> ccAddresses = new HashSet<>();
-		    ccAddresses.add("prarthana.lenka@apmosys.com");
+		    ccAddresses.add(rmgMail);
 
 		    
 		    try {
-        mailService.sendMailWithCC("prarthana.lenka@apmosys.com","priyadarshini.singh@apmosys.com",subject, body);
-//		    	String toList = String.join(",", toAddresses);
-//		        String ccList = String.join(",", ccAddresses);
-//		        mailService.sendMailWithCC(toList, ccList, subject, body);
+//        mailService.sendMailWithCC("prarthana.lenka@apmosys.com","priyadarshini.singh@apmosys.com",subject, body);
+		    	String toList = String.join(",", toAddresses);
+		        String ccList = String.join(",", ccAddresses);
+		        mailService.sendMailWithCC(toList, ccList, subject, body);
 		    }  catch (Exception e) {
                 e.printStackTrace();
               

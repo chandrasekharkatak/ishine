@@ -5483,7 +5483,7 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 	}
 	
 	
-	@Scheduled(cron ="${leaveMapToNewManager_cron}")
+//	@Scheduled(cron ="${leaveMapToNewManager_cron}")
 	public void mapOldPendingLeaveToNewManager() {
 		
 		ServiceResponse response = new ServiceResponse();
