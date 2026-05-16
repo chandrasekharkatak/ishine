@@ -18186,6 +18186,9 @@ public class ResourceManagementService {
 					if (internalProjectTypes.contains(projectType)) {
 						projectType = "internal";
 					}
+					if(projectType.equalsIgnoreCase("fixed cost")) {
+						projectType = "fixedCost";
+					}
 					allProjectStatusCount.merge(projectType, projectCount, Long::sum);
 				}
 			}

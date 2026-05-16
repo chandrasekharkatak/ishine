@@ -296,12 +296,15 @@ public class ProjectCustomRepository {
         appendLinkSearchPrimaryProjectIdFilter(rmgReq, query);
         query.append(" AND p.active = 'true' \n");
 
-		Set<String> timesheetApplicableProjectTypes = Set.of("fixedCost", "tnm", "monitoring");
+		Set<String> timesheetApplicableProjectTypes = Set.of("tnm", "monitoring");
 
         if (timesheetApplicableProjectTypeFilter != null) {
             if (timesheetApplicableProjectTypeFilter.equals("internal")) {
                 query.append(" AND p.po_project_type IS NULL AND (LOWER(p.internal_project_type) = 'internalrndproducts' OR (p.internal_project_type) = 'internal' OR LOWER(p.internal_project_type) = 'bench') \n");
-            } else if (timesheetApplicableProjectTypes.contains(timesheetApplicableProjectTypeFilter)) {
+            }else if(timesheetApplicableProjectTypeFilter.equals("fixedCost")) {
+                query.append(" AND p.po_project_type IS NOT NULL AND LOWER(p.po_project_type) = 'fixed cost' \n");
+            }
+            else if (timesheetApplicableProjectTypes.contains(timesheetApplicableProjectTypeFilter)) {
                 query.append(" AND p.po_project_type IS NOT NULL AND LOWER(p.po_project_type) = '")
                         .append(timesheetApplicableProjectTypeFilter).append("' \n");
             }
@@ -1494,7 +1497,7 @@ public class ProjectCustomRepository {
     String getProjectType(String projectStatus) {
         switch (projectStatus) {
             case "TOTAL_FC":
-                return "FC";
+                return "FIXED COST";
             case "TOTAL_EXPIRED_TNM":
             case "TOTAL_TNM":
             case "ALL_TNM":
