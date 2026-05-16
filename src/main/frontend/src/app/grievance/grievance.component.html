@@ -47,6 +47,11 @@
           <p class="grievance-raise-subtitle mb-0">
             Submit a ticket for the development team. Fields marked with <span class="text-danger">*</span> are required.
           </p>
+
+          <div *ngIf="alertMessage" class="alert mb-3" [ngClass]="'alert-' + alertType" role="alert">
+          {{ alertMessage }}
+          </div>
+          
         </div>
 
         <div class="grievance-raise-section-label grievance-raise-section-label--before-capture">
@@ -281,9 +286,9 @@
             </button>
           </div>
         </div>
-        <div *ngIf="alertMessage" class="alert mb-3" [ngClass]="'alert-' + alertType" role="alert">
+        <!-- <div *ngIf="alertMessage" class="alert mb-3" [ngClass]="'alert-' + alertType" role="alert">
           {{ alertMessage }}
-        </div>
+        </div> -->
         <div *ngIf="loading" class="text-muted py-4 text-center">
           <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>Loading tickets...
         </div>
