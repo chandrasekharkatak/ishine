@@ -2430,7 +2430,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	            // =====================================================
 	            // NULL PO DETAILS
 	            // =====================================================
-	            if (projectDto.getPoDetailsList() == null) {
+	            if (projectDto.getPoDetailsList() == null || projectDto.getPoDetailsList().isEmpty()){
 
 	                totalProjectsFailed++;
 
@@ -2724,13 +2724,13 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 		if (project == null || client == null) {
 			throw new PoportalApiException("Project or Client cannot be null");
 		}
-	    if (poDto.getDepartmentList() == null) {
+	    if (poDto.getDepartmentList() == null  || poDto.getDepartmentList().isEmpty()) {
 	        throw new PoportalApiException("Department list is NULL");
 	    }
 	    logger.info("department list is not null ");
 	    
 	    if ("TNM".equalsIgnoreCase(projectDto.getProjectType())
-	            && poDto.getResourceRequirementList() == null) {
+	            && (poDto.getResourceRequirementList() == null || poDto.getResourceRequirementList().isEmpty())) {
 	        throw new PoportalApiException("TNM project missing resources");
 	    }
 	    
