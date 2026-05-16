@@ -3529,6 +3529,10 @@ public class TeamsService {
 				} else {
 					obj.setOtherActiveProjectIds(List.of());
 				}
+				String employeeRole = obj.getEmployeeRole();
+				if(employeeRole != null && !employeeRole.isBlank()) {
+					obj.setEmployeeRole(employeeRole.replaceAll(",\\s*$", ""));
+				}
 				obj.setDisplayRequirement(getDisplayRequirement(obj));
 			}
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
