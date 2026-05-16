@@ -34,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.Exception.TimesheetValidationFailedException;
+import com.apmosys.employeeportal.dto.FetchDocDTO;
 import com.apmosys.employeeportal.dto.FileNameRequest;
 import com.apmosys.employeeportal.dto.FileNameResponse;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
@@ -278,9 +279,11 @@ public class EmployeeTimesheetControllerNew {
 	 * Endpoint: GET /api/v2/timesheet/getDocumentDataByDocId
 	 */
 	@JobRoleAccess(featureIds = { 15, 16, 24 })
-	@GetMapping("/getDocumentDataByDocId")
-	public ResponseEntity<Resource> getDocumentDataByDocId(@RequestParam Long docId, @RequestParam Boolean approvedDocType) throws IOException {
+	@PostMapping("/getDocumentDataByDocId")
+	public ResponseEntity<Resource> getDocumentDataByDocId(@RequestBody FetchDocDTO fetchDocDTO) throws IOException {
 
+		Long docId = fetchDocDTO.getDocId();
+		Boolean approvedDocType = fetchDocDTO.getApprovedDocType();
 		Resource resource = timesheetServiceNew.getDocumentDataByDocId(docId, approvedDocType);
 
 		if (resource == null) {
