@@ -20,3 +20,32 @@
 .my-pagination::ng-deep{
     padding-top: 10px;
 }
+
+/* A4 Modal Size */
+.a4-modal .modal-dialog {
+  max-width: 850px; /* A4 width */
+  width: 850px;
+}
+
+.a4-modal .modal-content {
+  height: 1123px; /* A4 height */
+}
+
+.a4-modal .modal-body {
+  overflow: hidden;
+  height: 100%;
+}
+
+/* PDF container fit */
+.pdf-container {
+  height: 100%;
+  overflow: auto;
+}
+.mt-2{
+  justify-content: center;
+}
+
+.highlight-btn {
+  border: 2px solid #0d6efd;   /* thicker border */
+  box-shadow: 0 0 5px rgba(13, 110, 253, 0.5); /* glow effect */
+}

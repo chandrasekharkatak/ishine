@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -82,23 +83,29 @@ import com.apmosys.employeeportal.dto.CertificateDTO;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
 import com.apmosys.employeeportal.dto.DefaultProjectEmployeeConfig;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
+import com.apmosys.employeeportal.dto.DefaulterResponseDTO;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjection;
 import com.apmosys.employeeportal.dto.EmployeeSkillProficiencyDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
+import com.apmosys.employeeportal.dto.ExpiredProjectDTOForNotification;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO.PoObject;
 import com.apmosys.employeeportal.dto.GetAllEmployeesWorkAnniversaryTodayDTO;
 import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
+import com.apmosys.employeeportal.dto.GetTeamAndTimesheetDetailsDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.LockStatusDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PageResponseDTO;
 import com.apmosys.employeeportal.dto.PendingTimesheetDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
+import com.apmosys.employeeportal.dto.PoRequirementDataDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
@@ -122,6 +129,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
 import com.apmosys.employeeportal.model.EmployeeCertificates;
+import com.apmosys.employeeportal.model.EmployeeDefaulterConsent;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeNotificationConsent;
@@ -137,6 +145,7 @@ import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.NewsletterReadResponse;
 import com.apmosys.employeeportal.model.Notification;
 import com.apmosys.employeeportal.model.PolicyReadResponse;
+import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.PredefinedSkills;
 import com.apmosys.employeeportal.model.PreviousEmployment;
 import com.apmosys.employeeportal.model.Proficiency;
@@ -144,6 +153,7 @@ import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
 import com.apmosys.employeeportal.model.ProjectOverheadMapping;
+import com.apmosys.employeeportal.model.QuaterCycleExcludedEmployeesMap;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.UploadPolicy;
 import com.apmosys.employeeportal.model.UserSession;
@@ -158,6 +168,7 @@ import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificatesRepository;
+import com.apmosys.employeeportal.repository.EmployeeDefaulterConsentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeNotificationConsentRepository;
@@ -167,6 +178,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeSkillProficiencyMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeSpecializationMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.FieldAlterationRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
@@ -177,7 +189,9 @@ import com.apmosys.employeeportal.repository.NewsletterReadResponseRepository;
 import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.NotificationRepository;
 import com.apmosys.employeeportal.repository.PIPRepository;
+import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
 import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
+import com.apmosys.employeeportal.repository.PortalConfigRepository;
 import com.apmosys.employeeportal.repository.PredefinedSkillsRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.repository.ProficiencyRepository;
@@ -186,9 +200,9 @@ import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
+import com.apmosys.employeeportal.repository.QuaterCycleExcludedEmployeesMapRepo;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.repository.UploadPolicyRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.request.EmployeeTimesheetProjectRequest;
@@ -196,6 +210,7 @@ import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
 import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
 import com.apmosys.employeeportal.serviceInterface.TrainingUserService;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
+import com.apmosys.employeeportal.utility.ExceptionLogContext;
 import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.LogEvents;
@@ -203,11 +218,11 @@ import com.apmosys.employeeportal.utility.NotificationUtil;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.apmosys.employeeportal.utility.TypeConversionUtil;
 
 import de.danielbechler.diff.ObjectDifferBuilder;
 import de.danielbechler.diff.node.DiffNode;
 import de.danielbechler.diff.node.Visit;
-
 
 
 @Service
@@ -218,8 +233,24 @@ public class EmployeeService {
 	
     private static final Logger logger = LoggerFactory.getLogger(EmployeeService.class);
 
+	/** PoPortal integration: GET /api/getAllEmployeeInfo */
+	private static final String API_GET_ALL_EMPLOYEE_INFO = "/api/getAllEmployeeInfo";
+	private static final String SUBFEATURE_GET_ALL_EMPLOYEE_INFO = "get_all_employee_info";
+	private static final String OPERATION_GET_ALL_EMPLOYEE_INFO = "getAllEmployeeInfo";
+	private static final String PO_PORTAL_LOG_SOURCE = "PoPortal";
+	private static final String LOG_LEVEL_INFO = "INFO";
+	private static final String LOG_LEVEL_ERROR = "ERROR";
+	private static final String MSG_EMPLOYEE_INFO_NOT_FOUND = "Employee Info not found.";
+	private static final String MSG_SYSTEM_ERROR = "Something Went Wrong.";
+
 	@Autowired
 	EmployeeRepository employeeRepository;
+
+    @Autowired
+    EmployeeDefaulterConsentRepository employeeDefaulterConsentRepository;
+	
+	@Autowired
+	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 	
 	@Autowired
 	ProjectManagerMappingRepository projectManagerMappingRepository;
@@ -280,7 +311,9 @@ public class EmployeeService {
 	
 	@Autowired
 	PredefinedSkillsRepository predefinedSkillsRepository;
-	
+
+    @Autowired
+    PortalConfigRepository portalConfigRepository;
 
 	@Value("${default.password}")
 	String defaultPaswword;
@@ -336,8 +369,8 @@ public class EmployeeService {
 	@Autowired
 	EmployeeSpecializationMapRepository employeeSpecializationMapRepository;
 	
-	@Autowired
-	TimesheetsRepository timesheetsRepository;
+//	@Autowired
+//	TimesheetsRepository timesheetsRepository;
 	
 	@Autowired
 	ResourceRequirementRepository resourceRequirementRepository;
@@ -347,6 +380,9 @@ public class EmployeeService {
 
 	@Autowired
 	PolicyReadResponseRepository policyReadResponseRepository;
+	
+	@Autowired
+	PoRequirementMappingRepository poRequirementMappingRepository;
 	
 	@Autowired
 	private ModelMapper mapper;
@@ -425,7 +461,12 @@ public class EmployeeService {
 	
     @Autowired
     private EntityManager entityManager;
+    
+    @Autowired
+    private QuaterCycleExcludedEmployeesMapRepo quaterCycleExcludedEmployeesMapRepo;
 	
+	@Autowired
+	private TeamMembersService teamMembersService;
 
 	
 //	@Value("${bd.mail}")
@@ -436,135 +477,6 @@ public class EmployeeService {
 
 
 
-//	@Transactional
-//	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
-//		ServiceResponse response = new ServiceResponse();
-//
-//		try {
-//
-//			Employee employee = new Employee();
-//
-//			employee.setEmployeementId(employeedto.getEmployeementId());
-//			employee.setName(employeedto.getName());
-//			employee.setDateOfBirth(stringToDateTimeParser.getDate(employeedto.getDateOfBirth(), "yyyy-MM-dd"));
-//			employee.setDateOfJoining(stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd"));
-//			employee.setManagerId(employeedto.getManagerId());
-//			employee.setEmail(employeedto.getEmail());
-//			employee.setGender(employeedto.getGender());
-//			employee.setBloodGroup(employeedto.getBloodGroup());
-//			employee.setMaritalStatus(employeedto.getMaritalStatus());
-//			employee.setFatherName(employeedto.getFatherName());
-//			employee.setPlaceOfBirth(employeedto.getPlaceOfBirth());
-//			employee.setMotherTongue(employeedto.getMotherTongue());
-//			employee.setPassportNumber(employeedto.getPassportNumber());
-//			employee.setAadhar(employeedto.getAadhar());
-//			employee.setPanNumber(employeedto.getPanNumber());
-//			employee.setMobileNo(employeedto.getMobileNo());
-//			employee.setLandline(employeedto.getLandline());
-//			employee.setAddress(employeedto.getAddress());
-//			employee.setCity(employeedto.getCity());
-//			employee.setState(employeedto.getState());
-//			employee.setCountry(employeedto.getCountry());
-//			employee.setPincode(employeedto.getPincode());
-//			employee.setAlternateMobileNo(employeedto.getAlternateMobileNo());
-//			employee.setPermanentAddress(employeedto.getPermanentAddress());
-//			employee.setEmergencyContactPerson(employeedto.getEmergencyContactPerson());
-//			employee.setRelation(employeedto.getRelation());
-//			employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
-//			employee.setNoticePeriod(employeedto.getNoticePeriod());
-//			employee.setEmploymentstatus(employeedto.getEmploymentstatus());
-//			employee.setBankName(employeedto.getBankName());
-//			employee.setBankAccountNo(employeedto.getBankAccountNo());
-//			employee.setBankIFSCCode(employeedto.getBankIFSCCode());
-//			employee.setPfAccountNumber(employeedto.getPfAccountNumber());
-//			employee.setPreviousPfAccountNumber(employeedto.getPreviousPfAccountNumber());
-//			employee.setUan(employeedto.getUan());
-//			employee.setEsicNumber(employeedto.getEsicNumber());
-//			employee.setGraduationType(employeedto.getGraduationType());
-//			employee.setPursuing(employeedto.getPursuing());
-//			employee.setYearOfPassing(employeedto.getYearOfPassing());
-//			employee.setPassingGrade(employeedto.getPassingGrade());
-//			employee.setAboutMe("Add about yourself.");
-//			employee.setViewsOnOrganisation("Add your views.");
-//			employee.setJobRoleId(employeedto.getJobRoleId());
-//			employee.setPassword(EncryptDecrypt.encrypt(defaultPaswword));
-//			employee.setCreatedBy(employeedto.getCreatedBy());
-//			employee.setExperience(employeedto.getExperience());
-//			employee.setRole(employeedto.getRole());
-//			employee.setWorkLocation(employeedto.getWorkLocation());
-//			employee.setInvalidAccessAttempt(0);
-//			Employee newEmployee = employeeRepository.save(employee);
-//
-//			Optional.ofNullable(employeedto.getPreviousEmploymentList()).ifPresent((previousEmployerList) -> {
-//
-//				if (!previousEmployerList.isEmpty()) {
-//					previousEmployerList.forEach((previousEmployer) -> {
-//						previousEmployer.setEmpId(newEmployee.getEmpId());
-//
-//					});
-//					addPreviousEmployer(previousEmployerList, employeedto.getIsDraft());
-//				}
-//
-//			});
-//
-//			Optional.ofNullable(employeedto.getCertifications()).ifPresent((certificationList) -> {
-//
-//				if (!certificationList.isEmpty()) {
-//					certificationList.forEach((certification) -> {
-//						certification.setEmpId(newEmployee.getEmpId());
-//
-//					});
-//					addCertifications(certificationList, employeedto.getIsDraft());
-//				}
-//
-//			});
-//
-//			List<LeaveTypeMaster> leaveTypeMasterList = leaveTypeMasterRepository.findAll();
-//
-//			List<EmployeeLeavesMap> mapList = new ArrayList<EmployeeLeavesMap>();
-//
-//			List<LeaveBalanceLog> logList = new ArrayList<LeaveBalanceLog>();
-//
-//			leaveTypeMasterList.forEach((leaveType) -> {
-//
-//				EmployeeLeavesMap map = new EmployeeLeavesMap();
-//				LeaveBalanceLog log = new LeaveBalanceLog();
-//
-//				map.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
-//				map.setEmpId(newEmployee.getEmpId());
-//				map.setBalance((float) 0);
-//				map.setPendingForApproval((float) 0);
-//				mapList.add(map);
-//
-//				log.setBalance(0.0f);
-//				log.setEmpId(newEmployee.getEmpId());
-//				log.setLeaveTypeMasterId(leaveType.getLeaveTypeMasterId());
-//				log.setMessage(LeaveLogMessage.addLeave);
-//				log.setUpdateBalanceBy("+0.0");
-//				logList.add(log);
-//
-//			});
-//
-//			List<EmployeeLeavesMap> list = employeeLeavesMapRepository.saveAll(mapList);
-//			List<LeaveBalanceLog> updatedLogList = leaveBalanceLogRepository.saveAll(logList);
-//
-//			if (list != null && updatedLogList != null) {
-//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//				response.setServiceResponse("Employee Profile Created.");
-//
-//			} else {
-//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//				response.setServiceResponse("Employee Profile Creation Failed.");
-//			}
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-//			response.setServiceResponse("Something Went Wrong.");
-//			response.setServiceError(e.getMessage());
-//		}
-//		return response;
-//	}
 
 	@Transactional
 	public ServiceResponse createEmployee(EmployeeDTO employeedto) {
@@ -675,46 +587,36 @@ public class EmployeeService {
 				employeeRole.append(empRole).append(",");
 			}
 			
-			if(employeedto.getDefaultProjectId() != null) {
+			if (employeedto.getDefaultProjectId() != null) {
 				Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
 				String departmentname = dept.getName();
-				
-				Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
-				resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
-				
-				
-				
-				
-				
+
 				EmployeeTeamMap employeeTeamMap = new EmployeeTeamMap();
 				employeeTeamMap.setEmpId(newEmployee.getEmpId());
 				employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
 				employeeTeamMap.setActive(2l);
-				employeeTeamMap.setStartDate(LocalDateTime.now());
+				employeeTeamMap.setStartDate(employeedto.getNewEtmStartDate() != null ? employeedto.getNewEtmStartDate() : LocalDateTime.now());
 				employeeTeamMap.setEmployeeRole(employeeRole.toString());
 				employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
-				employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
+				employeeTeamMap.setPoId(employeedto.getPoId());
+				employeeTeamMap.setRoleId(employeedto.getPoRoleId());
+				employeeTeamMap.setEmpTeamDepartmentId(dept != null ? dept.getDeptId() : null);
 				employeeTeamMap.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
-				employeeTeamMap.setUpdatedOn(LocalDateTime.now());	
-			   employeeTeamMapRepository.save(employeeTeamMap);
-			   
-			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
-			    if (project != null) {
-			    	project.setIsDraftProject("true");
-			    	project.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
-			    	project.setUpdatedOn(LocalDateTime.now());	
-			        proj = projectRepository.save(project);  
-			    }
-			   
-			   DefaultProjectUpdateDTO dto = new DefaultProjectUpdateDTO();
-			    dto.setUpdatedBy(employeedto.getCreatedBy().longValue()); 
-			    dto.setProjectId(employeedto.getDefaultProjectId());
-			    dto.setEmpIds(Collections.singletonList(newEmployee.getEmpId()));
-			    dto.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
+				employeeTeamMap.setUpdatedOn(LocalDateTime.now());
+				EmployeeTeamMap dbEmployeeTeamMap = employeeTeamMapRepository.save(employeeTeamMap);
 
-			    resourceManagementService.setDefaultProjectUpdateBillable(dto);
-			   
-			   }	
+				Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
+				if (project != null) {
+					project.setIsDraftProject("true");
+					project.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
+					project.setUpdatedOn(LocalDateTime.now());
+					proj = projectRepository.save(project);
+				}
+				
+				teamMembersService.updateEmployeeDefaultProjectIfUpdated(List.of(newEmployee.getEmpId()),
+						List.of(newEmployee.getEmpId()), project, Long.parseLong(newEmployee.getCreatedBy().toString()), List.of(dbEmployeeTeamMap));
+
+			}	
 						
 				if (newEmployee.getEmpId() != null) {
 
@@ -1325,8 +1227,9 @@ public class EmployeeService {
 					empDTO.setRole(object[51] != null ? (object[51].toString()) : null);
 					empDTO.setEmployeementId(object[52] != null ? Long.parseLong(object[52].toString()) : null);
 					empDTO.setProbationPeriod(object[53] != null ? Short.parseShort(object[53].toString()) : null);
-					empDTO.setDateOfResign(
-							object[54] != null ? format.format(format.parse(object[54].toString())) : null);
+					empDTO.setDateOfResign(object[54] != null && !object[54].toString().trim().isEmpty()
+							? format.format(format.parse(object[54].toString()))
+							: null);
 					empDTO.setBillable(object[55] != null ? (object[55].toString()) : null);
 					empDTO.setChild1(object[56] != null ? (object[56].toString()) : null);
 					empDTO.setChild2(object[57] != null ? (object[57].toString()) : null);
@@ -1335,7 +1238,9 @@ public class EmployeeService {
 					empDTO.setSpouse(object[60] != null ? (object[60].toString()) : null);
 					empDTO.setTotalExperience(object[61] != null ? Float.parseFloat(object[61].toString()) : null);
 					empDTO.setSecondaryEmail(object[62] != null ? object[62].toString() : null);
-					empDTO.setDateOfRelieving(object[63] != null ? format.format(format.parse(object[63].toString())) : null);
+					empDTO.setDateOfRelieving(object[63] != null && !object[63].toString().trim().isEmpty()
+							? format.format(format.parse(object[63].toString()))
+							: null);
 					empDTO.setReportingManagerId(object[64] != null ? Long.parseLong(object[64].toString()) : null);
 					empDTO.setApprovalsTo(object[65] != null ? object[65].toString() : null);
 					empDTO.setReportingManagerName(object[66] != null ? object[66].toString() : null);
@@ -1432,13 +1337,11 @@ public class EmployeeService {
 					empDTO.setSpecializationList(specializationIds.toArray(new Long[specializationIds.size()]));
 				}
 				
-				List<EmpPrimaryProjectMapping> primaryMappings = empPrimaryProjectMappingRepository
-						.findAllByEmpIdAndIsMappedOrderByMappingIdDesc(employeedto.getEmpId(), "Y");
-				EmpPrimaryProjectMapping employeeProject = (primaryMappings != null && !primaryMappings.isEmpty())
-						? primaryMappings.get(0) : null;
-				if (employeeProject != null && employeeProject.getPrimaryProjectId() != null) {
+				EmpPrimaryProjectMapping employeeProject = empPrimaryProjectMappingRepository.findByEmpIdAndIsMapped(employeedto.getEmpId(),"Y");
+				if(employeeProject!=null) {
 					Project project = projectRepository.findByProjectId(employeeProject.getPrimaryProjectId().intValue());
-					empDTO.setDefaultProjectName(project.getProjectName());
+					empDTO.setDefaultProjectName(project.getProjectName());			
+					empDTO.setProjectId(employeeProject.getPrimaryProjectId().intValue());		
 				}
 						
 						
@@ -2386,9 +2289,10 @@ public class EmployeeService {
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
 			
 			if (employeeObject.isPresent()) {
-				
-				Employee employee = employeeObject.get();
-				if(!employee.getEmployeementId().equals(employeedto.getEmployeementId())) {
+				Long updatedBy = employeedto.getUpdatedBy();
+
+				Employee employee2 = employeeObject.get();
+				if(!employee2.getEmployeementId().equals(employeedto.getEmployeementId())) {
 					ServiceResponse employeementIdExists = checkEmployeementId(employeedto);
 					if (employeementIdExists.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -2408,7 +2312,7 @@ public class EmployeeService {
 				if (employeedto.getEmploymentstatus().equals("InActive")) {
 					
 					// will check for Active, Confirmed, or Probation
-					String currentStatus = employee.getEmploymentstatus();
+					String currentStatus = employee2.getEmploymentstatus();
 					if (currentStatus.equals("Active") || 
 						currentStatus.equals("Confirmed") || 
 						currentStatus.equals("Probation")) {
@@ -2416,8 +2320,8 @@ public class EmployeeService {
 						LocalDate dateOfRelieving = null;
 						if (employeedto.getDateOfRelieving() != null && !employeedto.getDateOfRelieving().isEmpty()) {
 						    dateOfRelieving = LocalDate.parse(employeedto.getDateOfRelieving());
-						} else if (employee.getDateOfRelieving() != null && !employee.getDateOfRelieving().isEmpty()) {
-						    dateOfRelieving = LocalDate.parse(employee.getDateOfRelieving());
+						} else if (employee2.getDateOfRelieving() != null && !employee2.getDateOfRelieving().isEmpty()) {
+						    dateOfRelieving = LocalDate.parse(employee2.getDateOfRelieving());
 						}
 
 						ServiceResponse timesheetValidation = getPendingTimesheetProjects(
@@ -2438,7 +2342,81 @@ public class EmployeeService {
 						}
 					}
 				}
-				
+
+				if (Boolean.TRUE.equals(employeedto.getIsUpdateDefaultProject())) {
+
+					if (employeedto.getDefaultProjectId() != null) {
+						List<EmployeeTeamMap> existingTeamMappingForFutureDate = employeeTeamMapRepository.findByEmpIdAndTeamIdAndStartDateGreaterThanCurrentDate(employee2.getEmpId(), employeedto.getDefaultTeamId());	
+						if (existingTeamMappingForFutureDate != null && !existingTeamMappingForFutureDate.isEmpty() && existingTeamMappingForFutureDate.size() > 1) {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				            response.setServiceResponse("Multiple team mappings found for the same employee and team for the future date. Kindly contact admin!!");
+				            apiLogInfo.setApiResponse((String) "Multiple team mappings found for the same employee and team for the future date. Kindly contact admin!!");
+				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				            apiLogInfo.setApiRequest(logBuilder.toString());
+				            logService.logMyInfo(httpRequest, apiLogInfo);
+				            return response;
+						}
+
+						List<EmployeeTeamMap> existingTeamMappings = employeeTeamMapRepository
+								.findByEmpIdAndProjectId(employeedto.getEmpId(), employeedto.getProjectId());
+						if (existingTeamMappings != null) {
+
+							LocalDateTime now = LocalDateTime.now();
+							for (EmployeeTeamMap existingMap : existingTeamMappings) {
+								if (employeedto.getOldEtmEndDate() == null) {
+									existingMap.setActive(0L);
+									existingMap.setEndDate(now);
+								} else {
+									if (!employeedto.getOldEtmEndDate().toLocalDate().isAfter(now.toLocalDate())) {
+										existingMap.setActive(0L);
+									}
+									existingMap.setEndDate(employeedto.getOldEtmEndDate());
+								}
+
+								existingMap.setUpdatedBy(updatedBy);
+							}
+							employeeTeamMapRepository.saveAll(existingTeamMappings);
+						}
+
+						StringBuilder employeeRole = new StringBuilder("");
+						for (String empRole : employeedto.getDefaultTeamEmployeeRole()) {
+							employeeRole.append(empRole).append(",");
+						}
+
+						Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
+
+						EmployeeTeamMap employeeTeamMap =  new EmployeeTeamMap();
+						if (existingTeamMappingForFutureDate != null && !existingTeamMappingForFutureDate.isEmpty() && existingTeamMappingForFutureDate.size() == 1) {
+							employeeTeamMap = existingTeamMappingForFutureDate.get(0);
+						}
+						employeeTeamMap.setEmpId(employee2.getEmpId());
+						employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
+						employeeTeamMap.setActive(2l);
+						employeeTeamMap.setStartDate(employeedto.getNewEtmStartDate());
+						employeeTeamMap.setEmployeeRole(employeeRole.toString());
+						employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
+						employeeTeamMap.setPoId(employeedto.getPoId());
+						employeeTeamMap.setRoleId(employeedto.getPoRoleId());
+						employeeTeamMap.setEmpTeamDepartmentId(dept != null ? dept.getDeptId() : null);
+						employeeTeamMap.setCreatedBy(updatedBy);
+						employeeTeamMap.setUpdatedBy(updatedBy);
+						employeeTeamMap.setUpdatedOn(LocalDateTime.now());
+						EmployeeTeamMap dbEmployeeTeamMap = employeeTeamMapRepository.save(employeeTeamMap);
+
+						Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
+						if (project != null) {
+							project.setIsDraftProject("true");
+							project.setUpdatedBy(updatedBy);
+							project.setUpdatedOn(LocalDateTime.now());
+							project = projectRepository.save(project);
+						}
+
+						teamMembersService.updateEmployeeDefaultProjectIfUpdated(List.of(employee2.getEmpId()),
+								List.of(employee2.getEmpId()), project, updatedBy, List.of(dbEmployeeTeamMap));
+					}
+				}
+
+				Employee employee = employeeRepository.findByEmpId(employeedto.getEmpId());
 				
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setEmployeementId(employeedto.getEmployeementId());
@@ -2504,56 +2482,6 @@ public class EmployeeService {
 				employee.setIsConsultant(employeedto.getIsConsultant());
 				employee.setIsApprenticeship(employeedto.getIsApprenticeship());
 				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());
-				
-				
-				if(Boolean.TRUE.equals(employeedto.getIsUpdateDefaultProject())) {
-					Project proj = new Project();
-					StringBuilder employeeRole = new StringBuilder("");
-					for (String empRole : employeedto.getDefaultTeamEmployeeRole()) {
-						employeeRole.append(empRole).append(",");
-					}
-					
-					if(employeedto.getDefaultProjectId() != null) {
-						Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
-						String departmentname = dept.getName();
-						
-						Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
-						resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
-						
-						
-						
-						
-						
-						EmployeeTeamMap employeeTeamMap = new EmployeeTeamMap();
-						employeeTeamMap.setEmpId(employee.getEmpId());
-						employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
-						employeeTeamMap.setActive(2l);
-						employeeTeamMap.setStartDate(LocalDateTime.now());
-						employeeTeamMap.setEmployeeRole(employeeRole.toString());
-						employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
-						employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
-						employeeTeamMap.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
-						employeeTeamMap.setUpdatedOn(LocalDateTime.now());	
-					   employeeTeamMapRepository.save(employeeTeamMap);
-					   
-					   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
-					    if (project != null) {
-					    	project.setIsDraftProject("true");
-					    	project.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
-					    	project.setUpdatedOn(LocalDateTime.now());	
-					        proj = projectRepository.save(project);  
-					    }
-					   
-					   DefaultProjectUpdateDTO dto = new DefaultProjectUpdateDTO();
-					    dto.setUpdatedBy(employeedto.getUpdatedBy().longValue()); 
-					    dto.setProjectId(employeedto.getDefaultProjectId());
-					    dto.setEmpIds(Collections.singletonList(employee.getEmpId()));
-					    dto.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
-					    resourceManagementService.setDefaultProjectUpdateBillable(dto);
-					   
-					   }
-					}
-
 				
 				if ("No".equals(employeedto.getOnbenchDate())) {
 				    // Keep the existing value (no need to set it again)
@@ -2734,7 +2662,7 @@ public class EmployeeService {
 							
 							findAllActiveTeams.forEach(obj ->{
 								obj.setActive(0l);	
-								obj.setEndDate(LocalDate.parse(employeedto.getDateOfRelieving()).atStartOfDay());			
+								obj.setEndDate(LocalDate.parse(employeedto.getDateOfRelieving()).atStartOfDay());	
 								employeeTeamMapRepository.save(obj);
 								});
 						}
@@ -3699,110 +3627,417 @@ public class EmployeeService {
 		return employeeRepository.findexample(empId);
 	}
 	
+//	public ServiceResponse getAllEmployeesForPerformance(HrHodHrViewPerformance hrHodHrViewPerformance) {
+//		ServiceResponse response = new ServiceResponse();
+//		try {
+//			List<Object[]> allEmployeeListForPerformance=new ArrayList<Object[]>();
+//			if(hrHodHrViewPerformance.getHrvalidate()) {
+//				allEmployeeListForPerformance=employeeRepository.getAllEmployeesForPerformanceForHr();
+//			}else {
+//				allEmployeeListForPerformance = employeeRepository.getAllEmployeesForPerformance(hrHodHrViewPerformance.getEmpId());
+//				
+//			}
+//			
+//			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+//
+//			if (allEmployeeListForPerformance != null) {
+//				int totalEnabledQuarters = quarterCycleRepository.countByIsEnableAndIsActive();
+//				allEmployeeListForPerformance.forEach((object) -> {
+//					EmployeeDTO empDTO = new EmployeeDTO();
+//					
+//					empDTO.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+//					empDTO.setDateOfJoining(object[1] != null ? stringToDateTimeParser.formatDateToString(object[1].toString())
+//									: null);
+//					empDTO.setEmail(object[2] != null ? object[2].toString() : null);
+//					empDTO.setEmploymentstatus(object[3] != null ? object[3].toString() : null);
+//					empDTO.setJobRoleId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+//					empDTO.setManagerId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
+//					empDTO.setName(object[6] != null ? object[6].toString() : null);
+//					empDTO.setDepartmentId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+//					empDTO.setJobRoleName(object[8] != null ? object[8].toString() : null);
+//					empDTO.setDepartmentName(object[9] != null ? object[9].toString() : null);
+//					empDTO.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+//					empDTO.setManagerName(object[11] != null ? object[11].toString() : null);
+//					empDTO.setExperience(object[12] != null ? object[12].toString() : null);
+//					empDTO.setBillable(object[13] != null ? (object[13].toString()) : null);
+//					empDTO.setTotalExperience(object[14] != null ? Float.parseFloat(object[14].toString()) : null);
+//					empDTO.setJobRoleName(object[15] != null ? (object[15].toString()) : null);	
+//					empDTO.setBillableType(object[16] != null ? object[16].toString() : null );	
+//					empDTO.setDesignationName(object[17] != null ? object[17].toString() : null);
+//                    empDTO.setReportingManagerId(object[18] != null ? Long.parseLong(object[18].toString()) : null)	;
+//                    empDTO.setReportingManagerName(object[19] != null ? object[19].toString() : null);
+//                    empDTO.setEmployeeRole(object[20] != null ? object[20].toString() : null);                
+//					empDTO.setHodId(object[21] != null ? Long.parseLong(object[21].toString()) : null );
+//				    empDTO.setHodName(object[22] != null ? object[22].toString() : null);
+//				    empDTO.setHodDepartmentName(object[23] != null ? object[23].toString() : null);
+//				    empDTO.setIsApmosysProduct(object[24] != null ? object[24].toString() : null);
+//				    if (object.length > 25 && object[25] != null) {
+//				    	try {
+//				    		if (object[25] instanceof Number) {
+//				    			empDTO.setMobileNo(((Number) object[25]).longValue());
+//				    		} else {
+//				    			String ms = object[25].toString().trim();
+//				    			if (!ms.isEmpty()) {
+//				    				empDTO.setMobileNo(Long.parseLong(ms.replaceAll("[^0-9]", "")));
+//				    			}
+//				    		}
+//				    	} catch (Exception ignored) { }
+//				    }
+//				    if (object.length > 26 && object[26] != null) {
+//				    	empDTO.setWorkLocation(object[26].toString().trim());
+//				    }
+//				    
+//				    String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
+////				    String isConsultant = timesheetDto.getIsConsultant();
+//				    String isApmosysProduct = empDTO.getIsApmosysProduct();
+//
+//				    if (employmentId != null) {
+//				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+//				        	empDTO.setEmploymentIdAcToET("AP-" + employmentId);
+//				        }else {
+//				        	empDTO.setEmploymentIdAcToET("A-" + employmentId);
+//				        }
+//				    }
+//
+//				    
+//				    
+//					 
+////					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn(empDTO.getEmpId(), quarterCycleRepository.findAllEnabledQuarterIds());
+//					 
+//					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn1(empDTO.getEmpId()); 
+//					 
+//					 double performanceStatus = (totalEnabledQuarters > 0) 
+//							    ? ((double) completedQuarters / totalEnabledQuarters) * 100 
+//							    : 0.0;
+//					 performanceStatus = Double.parseDouble(String.format("%.2f", performanceStatus));
+//					 empDTO.setPerformanceStatusPercentage(performanceStatus);
+//					  //empDTO.setApprovalsTo(object[24] != null ? object[24].toString() : null);
+//						
+//					 dtoList.add(empDTO);
+//				});
+//				 
+//
+//	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	                response.setServiceResponse(dtoList);
+//			} else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Employee List is null.");
+//			}
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//		}
+//		return response;
+//	}
+	
 	public ServiceResponse getAllEmployeesForPerformance(HrHodHrViewPerformance hrHodHrViewPerformance) {
-		ServiceResponse response = new ServiceResponse();
-		try {
-			List<Object[]> allEmployeeListForPerformance=new ArrayList<Object[]>();
-			if(hrHodHrViewPerformance.getHrvalidate()) {
-				allEmployeeListForPerformance=employeeRepository.getAllEmployeesForPerformanceForHr();
-			}else {
-				allEmployeeListForPerformance = employeeRepository.getAllEmployeesForPerformance(hrHodHrViewPerformance.getEmpId());
-				
-			}
-			
-			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
-			if (allEmployeeListForPerformance != null) {
-				int totalEnabledQuarters = quarterCycleRepository.countByIsEnableAndIsActive();
-				allEmployeeListForPerformance.forEach((object) -> {
-					EmployeeDTO empDTO = new EmployeeDTO();
-					
-					empDTO.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					empDTO.setDateOfJoining(object[1] != null ? stringToDateTimeParser.formatDateToString(object[1].toString())
-									: null);
-					empDTO.setEmail(object[2] != null ? object[2].toString() : null);
-					empDTO.setEmploymentstatus(object[3] != null ? object[3].toString() : null);
-					empDTO.setJobRoleId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
-					empDTO.setManagerId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
-					empDTO.setName(object[6] != null ? object[6].toString() : null);
-					empDTO.setDepartmentId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
-					empDTO.setJobRoleName(object[8] != null ? object[8].toString() : null);
-					empDTO.setDepartmentName(object[9] != null ? object[9].toString() : null);
-					empDTO.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
-					empDTO.setManagerName(object[11] != null ? object[11].toString() : null);
-					empDTO.setExperience(object[12] != null ? object[12].toString() : null);
-					empDTO.setBillable(object[13] != null ? (object[13].toString()) : null);
-					empDTO.setTotalExperience(object[14] != null ? Float.parseFloat(object[14].toString()) : null);
-					empDTO.setJobRoleName(object[15] != null ? (object[15].toString()) : null);	
-					empDTO.setBillableType(object[16] != null ? object[16].toString() : null );	
-					empDTO.setDesignationName(object[17] != null ? object[17].toString() : null);
-                    empDTO.setReportingManagerId(object[18] != null ? Long.parseLong(object[18].toString()) : null)	;
-                    empDTO.setReportingManagerName(object[19] != null ? object[19].toString() : null);
-                    empDTO.setEmployeeRole(object[20] != null ? object[20].toString() : null);                
-					empDTO.setHodId(object[21] != null ? Long.parseLong(object[21].toString()) : null );
-				    empDTO.setHodName(object[22] != null ? object[22].toString() : null);
-				    empDTO.setHodDepartmentName(object[23] != null ? object[23].toString() : null);
-				    empDTO.setIsApmosysProduct(object[24] != null ? object[24].toString() : null);
-				    if (object.length > 25 && object[25] != null) {
-				    	try {
-				    		if (object[25] instanceof Number) {
-				    			empDTO.setMobileNo(((Number) object[25]).longValue());
-				    		} else {
-				    			String ms = object[25].toString().trim();
-				    			if (!ms.isEmpty()) {
-				    				empDTO.setMobileNo(Long.parseLong(ms.replaceAll("[^0-9]", "")));
-				    			}
-				    		}
-				    	} catch (Exception ignored) { }
-				    }
-				    if (object.length > 26 && object[26] != null) {
-				    	empDTO.setWorkLocation(object[26].toString().trim());
-				    }
-				    
-				    String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
-//				    String isConsultant = timesheetDto.getIsConsultant();
-				    String isApmosysProduct = empDTO.getIsApmosysProduct();
+	    ServiceResponse response = new ServiceResponse();
 
-				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	empDTO.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
-				        	empDTO.setEmploymentIdAcToET("A-" + employmentId);
-				        }
-				    }
+	    try {
 
-				    
-				    
-					 
-//					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn(empDTO.getEmpId(), quarterCycleRepository.findAllEnabledQuarterIds());
-					 
-					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn1(empDTO.getEmpId()); 
-					 
-					 double performanceStatus = (totalEnabledQuarters > 0) 
-							    ? ((double) completedQuarters / totalEnabledQuarters) * 100 
-							    : 0.0;
-					 performanceStatus = Double.parseDouble(String.format("%.2f", performanceStatus));
-					 empDTO.setPerformanceStatusPercentage(performanceStatus);
-					  //empDTO.setApprovalsTo(object[24] != null ? object[24].toString() : null);
-						
-					 dtoList.add(empDTO);
-				});
-				 
+	        List<Object[]> allEmployeeListForPerformance;
 
-	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	                response.setServiceResponse(dtoList);
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee List is null.");
-			}
+	        if (Boolean.TRUE.equals(hrHodHrViewPerformance.getHrvalidate())) {
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-		}
-		return response;
+	            allEmployeeListForPerformance =
+	                    employeeRepository.getAllEmployeesForPerformanceForHr();
+
+	        } else {
+
+	            allEmployeeListForPerformance =
+	                    employeeRepository.getAllEmployeesForPerformance(
+	                            hrHodHrViewPerformance.getEmpId()
+	                    );
+	        }
+
+	        if (allEmployeeListForPerformance == null
+	                || allEmployeeListForPerformance.isEmpty()) {
+
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Employee List is empty.");
+
+	            return response;
+	        }
+
+	        // Fetch only once
+	        int totalEnabledQuarters =
+	                quarterCycleRepository.countByIsEnableAndIsActive();
+
+	        // Single bulk query instead of query inside loop
+	        List<Object[]> completedQuarterCounts =
+	                quarterCycleRepository.getCompletedQuarterCountForAllEmployees();
+
+	        // Convert to Map<EmpId, Count>
+	        Map<Long, Integer> completedQuarterMap =
+	                completedQuarterCounts.stream()
+	                        .collect(Collectors.toMap(
+	                                obj -> ((Number) obj[0]).longValue(),
+	                                obj -> ((Number) obj[1]).intValue()
+	                        ));
+
+	        List<EmployeeDTO> dtoList =
+	                new ArrayList<>(allEmployeeListForPerformance.size());
+
+	        for (Object[] object : allEmployeeListForPerformance) {
+
+	            EmployeeDTO empDTO = new EmployeeDTO();
+
+	            empDTO.setEmployeementId(
+	                    object[0] != null
+	                            ? ((Number) object[0]).longValue()
+	                            : null
+	            );
+
+	            empDTO.setDateOfJoining(
+	                    object[1] != null
+	                            ? stringToDateTimeParser.formatDateToString(
+	                                    object[1].toString()
+	                            )
+	                            : null
+	            );
+
+	            empDTO.setEmail(
+	                    object[2] != null
+	                            ? object[2].toString()
+	                            : null
+	            );
+
+	            empDTO.setEmploymentstatus(
+	                    object[3] != null
+	                            ? object[3].toString()
+	                            : null
+	            );
+
+	            empDTO.setJobRoleId(
+	                    object[4] != null
+	                            ? ((Number) object[4]).longValue()
+	                            : null
+	            );
+
+	            empDTO.setManagerId(
+	                    object[5] != null
+	                            ? ((Number) object[5]).longValue()
+	                            : null
+	            );
+
+	            empDTO.setName(
+	                    object[6] != null
+	                            ? object[6].toString()
+	                            : null
+	            );
+
+	            empDTO.setDepartmentId(
+	                    object[7] != null
+	                            ? ((Number) object[7]).longValue()
+	                            : null
+	            );
+
+	            empDTO.setJobRoleName(
+	                    object[8] != null
+	                            ? object[8].toString()
+	                            : null
+	            );
+
+	            empDTO.setDepartmentName(
+	                    object[9] != null
+	                            ? object[9].toString()
+	                            : null
+	            );
+
+	            empDTO.setEmpId(
+	                    object[10] != null
+	                            ? ((Number) object[10]).longValue()
+	                            : null
+	            );
+
+	            empDTO.setManagerName(
+	                    object[11] != null
+	                            ? object[11].toString()
+	                            : null
+	            );
+
+	            empDTO.setExperience(
+	                    object[12] != null
+	                            ? object[12].toString()
+	                            : null
+	            );
+
+	            empDTO.setBillable(
+	                    object[13] != null
+	                            ? object[13].toString()
+	                            : null
+	            );
+
+	            empDTO.setTotalExperience(
+	                    object[14] != null
+	                            ? ((Number) object[14]).floatValue()
+	                            : null
+	            );
+
+	            empDTO.setJobRoleName(
+	                    object[15] != null
+	                            ? object[15].toString()
+	                            : null
+	            );
+
+	            empDTO.setBillableType(
+	                    object[16] != null
+	                            ? object[16].toString()
+	                            : null
+	            );
+
+	            empDTO.setDesignationName(
+	                    object[17] != null
+	                            ? object[17].toString()
+	                            : null
+	            );
+
+	            empDTO.setReportingManagerId(
+	                    object[18] != null
+	                            ? ((Number) object[18]).longValue()
+	                            : null
+	            );
+
+	            empDTO.setReportingManagerName(
+	                    object[19] != null
+	                            ? object[19].toString()
+	                            : null
+	            );
+
+	            empDTO.setEmployeeRole(
+	                    object[20] != null
+	                            ? object[20].toString()
+	                            : null
+	            );
+
+	            empDTO.setHodId(
+	                    object[21] != null
+	                            ? ((Number) object[21]).longValue()
+	                            : null
+	            );
+
+	            empDTO.setHodName(
+	                    object[22] != null
+	                            ? object[22].toString()
+	                            : null
+	            );
+
+	            empDTO.setHodDepartmentName(
+	                    object[23] != null
+	                            ? object[23].toString()
+	                            : null
+	            );
+
+	            empDTO.setIsApmosysProduct(
+	                    object[24] != null
+	                            ? object[24].toString()
+	                            : null
+	            );
+
+	            // Mobile Number
+	            if (object.length > 25 && object[25] != null) {
+
+	                try {
+
+	                    if (object[25] instanceof Number) {
+
+	                        empDTO.setMobileNo(
+	                                ((Number) object[25]).longValue()
+	                        );
+
+	                    } else {
+
+	                        String mobile =
+	                                object[25].toString()
+	                                        .replaceAll("[^0-9]", "")
+	                                        .trim();
+
+	                        if (!mobile.isEmpty()) {
+	                            empDTO.setMobileNo(Long.parseLong(mobile));
+	                        }
+	                    }
+
+	                } catch (Exception ignored) {
+	                }
+	            }
+
+	            // Work Location
+	            if (object.length > 26 && object[26] != null) {
+
+	                empDTO.setWorkLocation(
+	                        object[26].toString().trim()
+	                );
+	            }
+
+	            // Employment ID Formatting
+	            if (empDTO.getEmployeementId() != null) {
+
+	                String prefix =
+	                        "true".equalsIgnoreCase(
+	                                empDTO.getIsApmosysProduct()
+	                        )
+	                                ? "AP-"
+	                                : "A-";
+
+	                empDTO.setEmploymentIdAcToET(
+	                        prefix + empDTO.getEmployeementId()
+	                );
+	            }
+
+	            // Performance Status Calculation
+	            int completedQuarters =
+	                    completedQuarterMap.getOrDefault(
+	                            empDTO.getEmpId(),
+	                            0
+	                    );
+
+	            double performanceStatus =
+	                    totalEnabledQuarters > 0
+	                            ? ((double) completedQuarters
+	                                    / totalEnabledQuarters) * 100
+	                            : 0.0;
+
+	            performanceStatus =
+	                    Math.round(performanceStatus * 100.0) / 100.0;
+
+	            empDTO.setPerformanceStatusPercentage(
+	                    performanceStatus
+	            );
+
+	            dtoList.add(empDTO);
+	        }
+	       Long quarterId = quarterCycleRepository.findAllEnabledQuarterIds().get(0);
+	       List<QuaterCycleExcludedEmployeesMap> excludedData =  quaterCycleExcludedEmployeesMapRepo.findByQuarterId(quarterId);
+	       if(!excludedData.isEmpty()) {
+				Set<Long> empIds = excludedData.stream()
+				        .map(QuaterCycleExcludedEmployeesMap::getEmpId)
+				        .filter(Objects::nonNull)
+				        .collect(Collectors.toSet());
+				dtoList.removeIf(emp -> emp.getEmpId() != null && empIds.contains(emp.getEmpId()));
+				}
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(dtoList);
+
+	    } catch (Exception e) {
+
+	        e.printStackTrace();
+
+	        response.setServiceStatus(
+	                ServiceResponse.SOMETHING_WENT_WRONG
+	        );
+
+	        response.setServiceResponse(
+	                "Something Went Wrong."
+	        );
+
+	        response.setServiceError(e.getMessage());
+	    }
+
+	    return response;
 	}
 	
 	
@@ -5743,7 +5978,34 @@ public class EmployeeService {
 		return null;
 	}
 
-	/** HOD, HR-ish departments, or SuperAdmin may use any anchor; others only own reporting subtree. */
+	/**
+	 * Job roles that may use any hierarchy anchor (org-wide). Matches frontend Resource Management
+	 * {@code hasOrgWideHierarchyAccess} and HR/HOD users whose department name is not exactly "HR".
+	 */
+	private boolean isWideHierarchyEmployeeRole(String employeeRole) {
+		if (employeeRole == null) {
+			return false;
+		}
+		String r = employeeRole.trim();
+		if (r.isEmpty()) {
+			return false;
+		}
+		if ("SuperAdmin".equalsIgnoreCase(r)) {
+			return true;
+		}
+		if ("HOD".equalsIgnoreCase(r)) {
+			return true;
+		}
+		if ("HR".equalsIgnoreCase(r)) {
+			return true;
+		}
+		if ("HR Manager".equalsIgnoreCase(r)) {
+			return true;
+		}
+		return false;
+	}
+
+	/** HOD (dept or role), HR (dept or role), RMG/Accounts depts, or SuperAdmin may use any anchor; others only own reporting subtree. */
 	private boolean hasWideHierarchyAnchorAccess(Long empId) {
 		if (empId == null) {
 			return false;
@@ -5754,7 +6016,7 @@ public class EmployeeService {
 		}
 		try {
 			String role = employeeRepository.getEmployeeRoleByEmpId(empId);
-			if (role != null && "SuperAdmin".equalsIgnoreCase(role.trim())) {
+			if (isWideHierarchyEmployeeRole(role)) {
 				return true;
 			}
 		} catch (Exception ignored) {
@@ -5851,7 +6113,7 @@ public class EmployeeService {
 				Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
 				
 				// Get Filled EOD Count for Team Members
-				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerId(firstOfMonth, end, employeedto.getEmpId());
+				List<Object[]> timesheetList = employeeTimesheetsNewRepository.getMyTeamsFilledEodCountByManagerId(firstOfMonth, end, employeedto.getEmpId());
 
 				list.forEach((object) -> {
 					EmployeeDTO dto = new EmployeeDTO();
@@ -6022,6 +6284,123 @@ public class EmployeeService {
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 			
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	private EmployeeDTO mapMyManagerInfoRowToEmployeeDto(Object[] object) {
+		EmployeeDTO dto = new EmployeeDTO();
+		dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+		dto.setName(object[1] != null ? object[1].toString() : null);
+		dto.setEmail(object[2] != null ? object[2].toString() : null);
+		dto.setEmployeementId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+		dto.setJobRoleName(object[4] != null ? object[4].toString() : null);
+		dto.setDepartmentName(object[5] != null ? object[5].toString() : null);
+		dto.setManagerName(object[6] != null ? object[6].toString() : null);
+		dto.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+		dto.setReporteeCount(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
+		dto.setIsConsultant(object[9] != null ? object[9].toString() : null);
+		dto.setIsApprenticeship(object[10] != null ? object[10].toString() : null);
+		return dto;
+	}
+
+	/**
+	 * Returns the management line from org root down to the anchor employee's immediate manager (inclusive),
+	 * ordered top → bottom. Used to extend the My Team hierarchy chart above a single parent level.
+	 * Only {@link #hasWideHierarchyAnchorAccess(Long)} callers receive data; others get an empty list.
+	 */
+	public ServiceResponse getManagementSpineForHierarchy(EmployeeDTO employeedto) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("view_my_team");
+		apiLogInfo.setApiUrl("/api/getManagementSpineForHierarchy");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : ").append(employeedto != null ? employeedto.getEmpId() : null);
+		try {
+			Long callerEmpId = getLoggedInEmpIdFromSecurityContext();
+			if (employeedto == null || employeedto.getEmpId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee id is required");
+				apiLogInfo.setApiResponse("Missing anchor empId");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+			if (callerEmpId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Unauthorized");
+				apiLogInfo.setApiResponse("No logged-in employee");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+			if (!hasWideHierarchyAnchorAccess(callerEmpId)) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(new ArrayList<EmployeeDTO>());
+				apiLogInfo.setApiResponse("Not org-wide role — empty spine");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+
+			Long nextMgrId = employeedto.getManagerId();
+			List<EmployeeDTO> spineTopToBottom = new ArrayList<>();
+			Set<Long> visitedHopEmpIds = new HashSet<>();
+			int guard = 0;
+			while (nextMgrId != null && guard++ < 100) {
+				if (!visitedHopEmpIds.add(nextMgrId)) {
+					break;
+				}
+				List<Object[]> rows = employeeRepository.getMyManagerInfo(nextMgrId);
+				if (rows == null || rows.isEmpty()) {
+					break;
+				}
+				EmployeeDTO dto = mapMyManagerInfoRowToEmployeeDto(rows.get(0));
+				if (dto.getEmpId() == null) {
+					break;
+				}
+				if (!dto.getEmpId().equals(nextMgrId)) {
+					break;
+				}
+				if (dto.getManagerId() != null && dto.getManagerId().equals(dto.getEmpId())) {
+					dto.setHierarchyType("Manager");
+					spineTopToBottom.add(0, dto);
+					break;
+				}
+				dto.setHierarchyType("Manager");
+				spineTopToBottom.add(0, dto);
+				nextMgrId = dto.getManagerId();
+			}
+
+			List<EmployeeDTO> spineDeduped = new ArrayList<>();
+			Set<Long> uniqueIds = new LinkedHashSet<>();
+			for (EmployeeDTO e : spineTopToBottom) {
+				if (e.getEmpId() == null) {
+					continue;
+				}
+				if (!uniqueIds.add(e.getEmpId())) {
+					continue;
+				}
+				spineDeduped.add(e);
+			}
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(spineDeduped);
+			apiLogInfo.setApiResponse("spine size : " + spineDeduped.size());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
@@ -6495,51 +6874,94 @@ public class EmployeeService {
 
 	public ServiceResponse getAllEmployeeInfo() {
 		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("get_all_employee_info");
-		apiLogInfo.setApiUrl("/api/getAllEmployeeInfo");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append(employeeRepository.getAllEmployeeInfoForPoPortal());
+		LogDTO apiLogInfo = createGetAllEmployeeInfoLogDto();
 		ApiLog initialLog = null;
 		String exceptionDetailsForLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-		String sourceSystem = httpRequest.getRequestURL().toString();
-		
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
+
 		try {
-			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllEmployeeInfo", "PoPortal", null ,httpRequest);
-			List<PoPortalDTO> poPortalDTOList  = employeeRepository.getAllEmployeeInfoForPoPortal();
-			if(!poPortalDTOList.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(poPortalDTOList);
-				response.setServiceResponse(poPortalDTOList);
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				apiLogInfo.setApiResponse("List fetched of size : "+poPortalDTOList.size());
-				finalHttpStatusCode = HttpStatus.OK.value();
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee Info not found.");
-				apiLogInfo.setApiResponse("Employee Info not found.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			initialLog = apiLogUtility.startLog(
+					poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					OPERATION_GET_ALL_EMPLOYEE_INFO,
+					PO_PORTAL_LOG_SOURCE,
+					null,
+					httpRequest);
+
+			List<PoPortalDTO> poPortalDTOList = Optional
+					.ofNullable(employeeRepository.getAllEmployeeInfoForPoPortal())
+					.orElseGet(Collections::emptyList);
+
+			if (poPortalDTOList.isEmpty()) {
+				applyGetAllEmployeeInfoNotFound(response, apiLogInfo);
 				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
-				throw new DataNotFoundException("Employee Details Not Found in Database.");
+				logger.info("[{}] completed: notFound, employeeCount=0, path={}",
+						OPERATION_GET_ALL_EMPLOYEE_INFO, sourceSystem);
+			} else {
+				applyGetAllEmployeeInfoSuccess(response, apiLogInfo, poPortalDTOList);
+				finalHttpStatusCode = HttpStatus.OK.value();
+				logger.info("[{}] completed: success, employeeCount={}, path={}",
+						OPERATION_GET_ALL_EMPLOYEE_INFO, poPortalDTOList.size(), sourceSystem);
 			}
-		}catch(Exception e){
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			apiLogInfo.setLogLevel("ERROR");
-			response.setServiceError(e.getMessage());
+		} catch (Exception e) {
+			logger.error("[{}] failed: path={}, error={}", OPERATION_GET_ALL_EMPLOYEE_INFO, sourceSystem,
+					e.getMessage(), e);
+			applyGetAllEmployeeInfoSystemError(response, apiLogInfo, e);
 			exceptionDetailsForLog = e.toString();
 		} finally {
-			if(initialLog != null) {
-				apiLogUtility.endLog(initialLog.getId(),sourceSystem,finalHttpStatusCode,exceptionDetailsForLog, httpRequest);
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
+						httpRequest);
 			}
+			apiLogInfo.setApiRequest(buildGetAllEmployeeInfoApiRequestSummary(sourceSystem));
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+
+	private static LogDTO createGetAllEmployeeInfoLogDto() {
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName(SUBFEATURE_GET_ALL_EMPLOYEE_INFO);
+		apiLogInfo.setApiUrl(API_GET_ALL_EMPLOYEE_INFO);
+		apiLogInfo.setLogLevel(LOG_LEVEL_INFO);
+		return apiLogInfo;
+	}
+
+	private static String buildRequestPathForLogging(HttpServletRequest request) {
+		if (request == null) {
+			return "";
+		}
+		String uri = request.getRequestURI();
+		String query = request.getQueryString();
+		return (query != null && !query.isEmpty()) ? uri + "?" + query : uri;
+	}
+
+	private static String buildGetAllEmployeeInfoApiRequestSummary(String path) {
+		return OPERATION_GET_ALL_EMPLOYEE_INFO + "; path=" + path;
+	}
+
+	private static void applyGetAllEmployeeInfoSuccess(ServiceResponse response, LogDTO apiLogInfo,
+			List<PoPortalDTO> poPortalDTOList) {
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(poPortalDTOList);
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		apiLogInfo.setApiResponse("List fetched of size: " + poPortalDTOList.size());
+	}
+
+	private static void applyGetAllEmployeeInfoNotFound(ServiceResponse response, LogDTO apiLogInfo) {
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse(MSG_EMPLOYEE_INFO_NOT_FOUND);
+		apiLogInfo.setApiResponse(MSG_EMPLOYEE_INFO_NOT_FOUND);
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	}
+
+	private static void applyGetAllEmployeeInfoSystemError(ServiceResponse response, LogDTO apiLogInfo, Exception e) {
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse(MSG_SYSTEM_ERROR);
+		apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		apiLogInfo.setLogLevel(LOG_LEVEL_ERROR);
+		apiLogInfo.setApiResponse("Exception in " + OPERATION_GET_ALL_EMPLOYEE_INFO + ": " + e.getMessage());
+		response.setServiceError(e.getMessage());
 	}
 	
 	public ServiceResponse updateLeaveBalanceList(EmployeeDTO employeedto) {	
@@ -6809,8 +7231,9 @@ public class EmployeeService {
 					empDTO.setRole(object[51] != null ? (object[51].toString()) : null);
 					empDTO.setEmployeementId(object[52] != null ? Long.parseLong(object[52].toString()) : null);
 					empDTO.setProbationPeriod(object[53] != null ? Short.parseShort(object[53].toString()) : null);
-					empDTO.setDateOfResign(
-							object[54] != null ? format.format(format.parse(object[54].toString())) : null);
+					empDTO.setDateOfResign(object[54] != null && !object[54].toString().trim().isEmpty()
+							? format.format(format.parse(object[54].toString()))
+							: null);
 					empDTO.setBillable(object[55] != null ? (object[55].toString()) : null);
 					empDTO.setChild1(object[56] != null ? (object[56].toString()) : null);
 					empDTO.setChild2(object[57] != null ? (object[57].toString()) : null);
@@ -6819,7 +7242,9 @@ public class EmployeeService {
 					empDTO.setSpouse(object[60] != null ? (object[60].toString()) : null);
 					empDTO.setTotalExperience(object[61] != null ? Float.parseFloat(object[61].toString()) : null);
 					empDTO.setSecondaryEmail(object[62] != null ? object[62].toString() : null);
-					empDTO.setDateOfRelieving(object[63] != null ? format.format(format.parse(object[63].toString())) : null);
+					empDTO.setDateOfRelieving(object[63] != null && !object[63].toString().trim().isEmpty()
+							? format.format(format.parse(object[63].toString()))
+							: null);
 					empDTO.setReportingManagerId(object[64] != null ? Long.parseLong(object[64].toString()) : null);
 					empDTO.setApprovalsTo(object[65] != null ? object[65].toString() : null);
 					empDTO.setReportingManagerName(object[66] != null ? object[66].toString() : null);
@@ -7697,7 +8122,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	    try {
 	    	List<ProjectDTO> expiredPoList = new ArrayList<>();
 		      
-		        List<Project> result = projectRepository.getExpiredPolist();
+		        // List<Project> result = projectRepository.getExpiredPolist();
+				List<ExpiredProjectDTOForNotification> result = projectRepository.getExpiredPolist();
 
 		    if (result.isEmpty()) {
 	            serviceResponse.setServiceResponse("No data found");
@@ -7924,68 +8350,68 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	}
 	
 	
-	public ServiceResponse getInternalProjectsAccToDepartmentSelected(DefaultProjectEmployeeConfig defaultProjectEmployeeConfig){
-		   ServiceResponse response = new ServiceResponse();
-		    LogDTO apiLogInfo = new LogDTO();
-		    apiLogInfo.setApiUrl("/api/getInternalProjectsAccToDepartment");
-		    apiLogInfo.setLogLevel("INFO");
-		    try {
-		    	List<Object[]> getBenchOrOtherProjects = new ArrayList<>();
-		    	Long departmentId = defaultProjectEmployeeConfig.getDepartmentId();
-		    	if("Bench".equalsIgnoreCase(defaultProjectEmployeeConfig.getDefaultProjectType())){
-		    	getBenchOrOtherProjects= employeeRepository.getAllInternalBenchprojectsAndTeamDetailsForDepartmenFilter();
-		    	}else {
-		        getBenchOrOtherProjects = employeeRepository.getAllProjectsThatAreNotBench();
-		    	}
-		    	 Map<Integer, ProjectDTO> projectMap = new HashMap<>();
-		    	 
-		    	 for(Object[] row : getBenchOrOtherProjects) {
-		    		 
-		    		 Integer projectId = row[0]!=null ? Integer.parseInt(row[0].toString()) : null;
-		    		 String projectName = row[1]!=null ? row[1].toString():null;
-		    		 Long teamId = row[2]!=null ? Long.parseLong(row[2].toString()):null;
-		    		 String teamName = row[3]!=null ? row[3].toString():null;
-		    		 String deptIds = row[4]!=null ? row[4].toString():null;
-		    		 
-		    		 if (deptIds == null || !Arrays.asList(deptIds.split(",")).contains(departmentId.toString())) {
-		                 continue;
-		             }
-		    		 
-		    		 TeamDTO teamDTO = new TeamDTO();
-		             teamDTO.setTeamId(teamId);
-		             teamDTO.setTeamName(teamName);
-		             teamDTO.setDepartmentList(deptIds.split(","));
-		             
-		             if (projectMap.containsKey(projectId)) {
-		                 projectMap.get(projectId).getTeamList().add(teamDTO);
-		             } else {
-		               
-		                 ProjectDTO projectDTO = new ProjectDTO();
-		                 projectDTO.setProjectId(projectId);
-		                 projectDTO.setProjectName(projectName);
-		                 projectDTO.setTeamList(new ArrayList<>());
-		                 projectDTO.getTeamList().add(teamDTO);
-		                 projectMap.put(projectId, projectDTO);
-		             }
-		         }
+	public ServiceResponse getInternalProjectsAccToDepartmentSelected(DefaultProjectEmployeeConfig defaultProjectEmployeeConfig) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getInternalProjectsAccToDepartment");
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			List<Object[]> getBenchOrOtherProjects = new ArrayList<>();
+			Long departmentId = defaultProjectEmployeeConfig.getDepartmentId();
+			if ("Bench".equalsIgnoreCase(defaultProjectEmployeeConfig.getDefaultProjectType())) {
+				getBenchOrOtherProjects = employeeRepository.getAllInternalBenchprojectsAndTeamDetailsForDepartmenFilter();
+			} else {
+				getBenchOrOtherProjects = employeeRepository.getAllProjectsThatAreNotBench();
+			}
+			Map<Integer, ProjectDTO> projectMap = new HashMap<>();
 
-		         List<ProjectDTO> filteredProjects = new ArrayList<>(projectMap.values());
-		         response.setServiceResponse(filteredProjects);
-		         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		         apiLogInfo.setApiResponse("List fetched of size: " + filteredProjects.size());
-		    	
-		    }catch (Exception e) {
-		        e.printStackTrace();
-		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-		        response.setServiceResponse("An error occurred while processing the request.");
-		        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-		        apiLogInfo.setLogLevel("ERROR");
-		        response.setServiceError(e.getMessage());
-		    }
+			for (Object[] row : getBenchOrOtherProjects) {
+				Integer projectId = TypeConversionUtil.safeParseInt(row[0]);
+				String projectName = TypeConversionUtil.getSafeString(row[1]);
+				Long teamId = TypeConversionUtil.safeParseLong(row[2]);
+				String teamName = TypeConversionUtil.getSafeString(row[3]);
+				String deptIds = TypeConversionUtil.getSafeString(row[4]);
+				String projectType = TypeConversionUtil.getSafeString(row[5]);
+				Date projectStartDate = row[6] != null ? (Date) row[6] : null;
 
-		    logService.logMyInfo(httpRequest, apiLogInfo);
-		    return response;
+				if (deptIds == null || !Arrays.asList(deptIds.split(",")).contains(departmentId.toString())) {
+					continue;
+				}
+
+				TeamDTO teamDTO = new TeamDTO();
+				teamDTO.setTeamId(teamId);
+				teamDTO.setTeamName(teamName);
+				teamDTO.setDepartmentList(deptIds.split(","));
+
+				if (projectMap.containsKey(projectId)) {
+					projectMap.get(projectId).getTeamList().add(teamDTO);
+				} else {
+					ProjectDTO projectDTO = new ProjectDTO();
+					projectDTO.setProjectId(projectId);
+					projectDTO.setProjectName(projectName);
+					projectDTO.setProjectType(projectType);
+					projectDTO.setProjectStartDate(projectStartDate);
+					projectDTO.setTeamList(new ArrayList<>());
+					projectDTO.getTeamList().add(teamDTO);
+					projectMap.put(projectId, projectDTO);
+				}
+			}
+
+			List<ProjectDTO> filteredProjects = new ArrayList<>(projectMap.values());
+			response.setServiceResponse(filteredProjects);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("List fetched of size: " + filteredProjects.size());
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("An error occurred while processing the request.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
+			response.setServiceError(e.getMessage());
 		}
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 	
 	
 	public ServiceResponse getAllEmployeesBasedOnUserLogined(List<DepartmentDTO> deapartment) {
@@ -8485,153 +8911,457 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	public ServiceResponse getEmployeeAndTimesheetDetails(EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getEmployeeAndTimesheetDetails");
+		apiLogInfo.setLogLevel("INFO");
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
+
 		try {
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					"getEmployeeAndTimesheetDetails", PO_PORTAL_LOG_SOURCE, null, httpRequest);
+
+			if (employeeTimesheetRequest == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request body is missing");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+				response.setServiceError("Request body is missing");
+				exceptionDetailsForLog = "employeeTimesheetRequest is null";
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				return response;
+			}
+
 			List<EmployeeTimesheetProjectResponse> employeeTimesheetProjectResponseList = new ArrayList<>();
-			if (employeeTimesheetRequest.getStartDate() == null){
+			if (employeeTimesheetRequest.getStartDate() == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		        response.setServiceResponse("Invalid start date recieved!");
-		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		        apiLogInfo.setLogLevel("ERROR");
-		        response.setServiceError("Invalid start date recieved!");
-		        return response;
+				response.setServiceResponse("Invalid start date recieved!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+				response.setServiceError("Invalid start date recieved!");
+				exceptionDetailsForLog = "startDate null";
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				return response;
 			}
-			if (employeeTimesheetRequest.getEndDate() == null){
+			if (employeeTimesheetRequest.getEndDate() == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		        response.setServiceResponse("Invalid end date recieved!");
-		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		        apiLogInfo.setLogLevel("ERROR");
-		        response.setServiceError("Invalid end date recieved!");
-		        return response;
+				response.setServiceResponse("Invalid end date recieved!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+				response.setServiceError("Invalid end date recieved!");
+				exceptionDetailsForLog = "endDate null";
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				return response;
 			}
-			if (!employeeTimesheetRequest.getEndDate().isAfter(employeeTimesheetRequest.getStartDate())){
+			if (!employeeTimesheetRequest.getEndDate().isAfter(employeeTimesheetRequest.getStartDate())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		        response.setServiceResponse("Start date is greater than the recieved end date!");
-		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		        apiLogInfo.setLogLevel("ERROR");
-		        response.setServiceError("Start date is greater than the recieved end date!");
-		        return response;
+				response.setServiceResponse("Start date is greater than the recieved end date!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+				response.setServiceError("Start date is greater than the recieved end date!");
+				exceptionDetailsForLog = "date range invalid";
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				return response;
 			}
-			if(employeeTimesheetRequest.getListType().length() <= 0) {
+			if (employeeTimesheetRequest.getListType() == null
+					|| employeeTimesheetRequest.getListType().trim().isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		        response.setServiceResponse("Empty Billable type received!");
-		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		        apiLogInfo.setLogLevel("ERROR");
-		        response.setServiceError("Empty Billable type received!");
-		        return response;
+				response.setServiceResponse("Empty Billable type received!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+				response.setServiceError("Empty Billable type received!");
+				exceptionDetailsForLog = "listType empty";
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				return response;
 			}
 			employeeTimesheetProjectResponseList = employeeRepository.findEmployeeAndTimesheetDetailsWithoutPagination(
 					employeeTimesheetRequest.getStartDate().toLocalDate(),
 					employeeTimesheetRequest.getEndDate().toLocalDate(), employeeTimesheetRequest.getListType());
-			if(employeeTimesheetProjectResponseList != null || !employeeTimesheetProjectResponseList.isEmpty()) {
+			if (employeeTimesheetProjectResponseList != null && !employeeTimesheetProjectResponseList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		        response.setServiceResponse(employeeTimesheetProjectResponseList);
-		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-		        apiLogInfo.setLogLevel("INFO");
-		        return response;
+				response.setServiceResponse(employeeTimesheetProjectResponseList);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setLogLevel("INFO");
+				finalHttpStatusCode = HttpStatus.OK.value();
+				return response;
 			}
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(employeeTimesheetProjectResponseList != null
+					? employeeTimesheetProjectResponseList
+					: new ArrayList<>());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setLogLevel("INFO");
+			finalHttpStatusCode = HttpStatus.OK.value();
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw new BadRequestException("Something went wrong..");
+			logger.error("getEmployeeAndTimesheetDetails failed", e);
+			ExceptionLogContext.add(e);
+			exceptionDetailsForLog = String.valueOf(e);
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,
+						exceptionDetailsForLog != null ? exceptionDetailsForLog : ExceptionLogContext.get(),
+						httpRequest);
+			}
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
 		return response;
 	}
 
-    public ServiceResponse getTeamAndTimeSheetDetails(Long poProjectId) {
+    public ServiceResponse getTeamAndTimeSheetDetails(GetTeamAndTimesheetDetailsDTO dto) {
     	ServiceResponse response = new ServiceResponse();
     	LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getTeamAndTimeSheetDetails");
 	    apiLogInfo.setLogLevel("INFO");
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String sourceSystem = buildRequestPathForLogging(httpRequest);
+
 		try {
-			if(poProjectId == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		        response.setServiceResponse("Project not found in Ishine!");
-		        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " Empty project id received at Ishine! PoProjectId :- " + poProjectId );
-		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		        return response;
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					"getTeamAndTimeSheetDetails", PO_PORTAL_LOG_SOURCE, null, httpRequest);
+
+			if (dto == null) {
+				buildFailureResponse(response, apiLogInfo, "Request body is missing.");
+				exceptionDetailsForLog = "dto is null";
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				return response;
 			}
-			List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = employeeTeamMapRepository.getTeamAndTimeSheetDetails(poProjectId);
+
+			Long poId = dto.getPoId();
+			Long poProjectId = dto.getPoProjectId();
+			LocalDate startDate = dto.getStartDate();
+			LocalDate endDate = dto.getEndDate();
+			LocalDateTime startDateTime = null;
+			LocalDateTime endDateTime = null;
+			String projectName = dto.getProjectName();
+			if(poId == null) {
+				buildFailureResponse(response, apiLogInfo, "PO Id must not be null.");
+				exceptionDetailsForLog = "poId null";
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				return response;
+			}
+			// if (poProjectId == null) {
+			// 	return buildFailureResponse(response, apiLogInfo,
+			// 			"PO Project Id must not be null.");
+			// }
+
+			if (startDate == null) {
+				buildFailureResponse(response, apiLogInfo, "Start Date must not be null.");
+				exceptionDetailsForLog = "startDate null";
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				return response;
+			}
+	
+			if (endDate == null) {
+				buildFailureResponse(response, apiLogInfo, "End Date must not be null.");
+				exceptionDetailsForLog = "endDate null";
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				return response;
+			}
+	
+			if (endDate.isBefore(startDate)) {
+				buildFailureResponse(response, apiLogInfo,
+						"End Date must be greater than or equal to Start Date.");
+				exceptionDetailsForLog = "endDate before startDate";
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				return response;
+			}
+			if(projectName == null){
+				buildFailureResponse(response, apiLogInfo, "Projectname can not be null.");
+				exceptionDetailsForLog = "projectName null";
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				return response;
+			}
+			startDateTime = startDate.atStartOfDay();
+			endDateTime = endDate.atTime(23, 59, 59, 999999999);
+			// List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = employeeTeamMapRepository.getTeamAndTimeSheetDetails(poId,poProjectId,startDateTime,endDateTime);
+			List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = employeeTeamMapRepository.getTeamAndTimeSheetDetails2(poId,projectName,startDateTime,endDateTime);
+
 			if(teamTimesheetDetailsResponseList == null || teamTimesheetDetailsResponseList.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		        response.setServiceResponse("No timesheet detail fetched for the employee of this project!");
-		        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | No timesheet detail fetched for this employee in the given date range! Start Date:- " + poProjectId );
-		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | No timesheet detail fetched for this employee in the given date range! Start Date:- " + poId );
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		        finalHttpStatusCode = HttpStatus.OK.value();
 		        return response;
 			}
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse(teamTimesheetDetailsResponseList);
 	        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " Length of teamTimesheet Response list :- " + teamTimesheetDetailsResponseList.size() );
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        finalHttpStatusCode = HttpStatus.OK.value();
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("getTeamAndTimeSheetDetails failed", e);
+			ExceptionLogContext.add(e);
+			exceptionDetailsForLog = String.valueOf(e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-			throw e;
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,
+						exceptionDetailsForLog != null ? exceptionDetailsForLog : ExceptionLogContext.get(),
+						httpRequest);
+			}
+			logService.logMyInfo(httpRequest, apiLogInfo);
 		}
 		return response;
     }
 
+//    public ServiceResponse getProjectDetailsByEmpIdAndDateRange(EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
+//    	ServiceResponse response = new ServiceResponse();
+//    	LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setApiUrl("/api/getProjectDetailsByEmpIdAndDateRange");
+//	    apiLogInfo.setLogLevel("INFO");
+//	    StringBuilder logBuilder = new StringBuilder();
+//		try {
+//			List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = new ArrayList<>();
+//			if(employeeTimesheetRequest.getEmpId() != null) {
+//				logBuilder.append("EmpId:- " + employeeTimesheetRequest.getEmpId() + "\n");
+//				logBuilder.append("StartDate:- " + employeeTimesheetRequest.getStartDate() + "\n");
+//				logBuilder.append("EndDate:- " + employeeTimesheetRequest.getEndDate() + "\n");
+//	            
+//	            if (employeeTimesheetRequest.getStartDate() == null) {
+//	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	                response.setServiceResponse("Null start date received");
+//	                apiLogInfo.setApiResponse("Null start date date received for empId:- " + employeeTimesheetRequest.getEmpId());
+//	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	                apiLogInfo.setApiRequest(logBuilder.toString());
+//	                logService.logMyInfo(httpRequest, apiLogInfo);
+//	                return response;
+//	            }
+//	            
+//				Boolean flag = employeeRepository.isActiveEmployee(employeeTimesheetRequest.getEmpId());
+//				
+//				if(flag) {
+//					teamTimesheetDetailsResponseList = employeeTeamMapRepository.getProjectDetailsByEmpIdAndDateRange(employeeTimesheetRequest.getEmpId(),employeeTimesheetRequest.getStartDate(),employeeTimesheetRequest.getEndDate());
+//					if(teamTimesheetDetailsResponseList == null || teamTimesheetDetailsResponseList.isEmpty()) {
+//						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				        response.setServiceResponse("No timesheet detail fetched for this employee in the given date range!");
+//				        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | No timesheet detail fetched for this employee in the given date range! Start Date:- " + employeeTimesheetRequest.getStartDate() + " End Date:- " + employeeTimesheetRequest.getEndDate());
+//				        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				        return response;
+//					}
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			        response.setServiceResponse(teamTimesheetDetailsResponseList);
+//			        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " Length of teamTimesheet Response list :- " + teamTimesheetDetailsResponseList.size() );
+//			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//				
+//				} else {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			        response.setServiceResponse("Employee has been made inactive in Ishine!");
+//			        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | Employee has been made inactive in Ishine! empId:- " + employeeTimesheetRequest.getEmpId());
+//			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				}
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//			throw e;
+//		}
+//		 apiLogInfo.setApiRequest(logBuilder.toString());
+//	     logService.logMyInfo(httpRequest, apiLogInfo);
+//	     return response;
+//	}
+    
     public ServiceResponse getProjectDetailsByEmpIdAndDateRange(EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
-    	ServiceResponse response = new ServiceResponse();
-    	LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getProjectDetailsByEmpIdAndDateRange");
-	    apiLogInfo.setLogLevel("INFO");
-	    StringBuilder logBuilder = new StringBuilder();
-		try {
-			List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = new ArrayList<>();
-			if(employeeTimesheetRequest.getEmpId() != null) {
-				logBuilder.append("EmpId:- " + employeeTimesheetRequest.getEmpId() + "\n");
-				logBuilder.append("StartDate:- " + employeeTimesheetRequest.getStartDate() + "\n");
-				logBuilder.append("EndDate:- " + employeeTimesheetRequest.getEndDate() + "\n");
-	            
-	            if (employeeTimesheetRequest.getStartDate() == null) {
-	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	                response.setServiceResponse("Null start date received");
-	                apiLogInfo.setApiResponse("Null start date date received for empId:- " + employeeTimesheetRequest.getEmpId());
-	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	                apiLogInfo.setApiRequest(logBuilder.toString());
-	                logService.logMyInfo(httpRequest, apiLogInfo);
-	                return response;
-	            }
-	            
-				Boolean flag = employeeRepository.isActiveEmployee(employeeTimesheetRequest.getEmpId());
-				
-				if(flag) {
-					teamTimesheetDetailsResponseList = employeeTeamMapRepository.getProjectDetailsByEmpIdAndDateRange(employeeTimesheetRequest.getEmpId(),employeeTimesheetRequest.getStartDate(),employeeTimesheetRequest.getEndDate());
-					if(teamTimesheetDetailsResponseList == null || teamTimesheetDetailsResponseList.isEmpty()) {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				        response.setServiceResponse("No timesheet detail fetched for this employee in the given date range!");
-				        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | No timesheet detail fetched for this employee in the given date range! Start Date:- " + employeeTimesheetRequest.getStartDate() + " End Date:- " + employeeTimesheetRequest.getEndDate());
-				        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				        return response;
-					}
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			        response.setServiceResponse(teamTimesheetDetailsResponseList);
-			        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " Length of teamTimesheet Response list :- " + teamTimesheetDetailsResponseList.size() );
-			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			        response.setServiceResponse("Employee has been made inactive in Ishine!");
-			        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | Employee has been made inactive in Ishine! empId:- " + employeeTimesheetRequest.getEmpId());
-			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			throw e;
-		}
-		 apiLogInfo.setApiRequest(logBuilder.toString());
-	     logService.logMyInfo(httpRequest, apiLogInfo);
-	     return response;
-	}
+
+        ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/getProjectDetailsByEmpIdAndDateRange");
+        apiLogInfo.setLogLevel("INFO");
+
+        StringBuilder logBuilder = new StringBuilder();
+        ApiLog initialLog = null;
+        String exceptionDetailsForLog = null;
+        int finalHttpStatusCode = HttpStatus.OK.value();
+        String sourceSystem = buildRequestPathForLogging(httpRequest);
+
+        try {
+            initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+                    "getProjectDetailsByEmpIdAndDateRange", PO_PORTAL_LOG_SOURCE, null, httpRequest);
+
+            if (employeeTimesheetRequest == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Request body is missing");
+                apiLogInfo.setApiResponse("employeeTimesheetRequest is null");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                exceptionDetailsForLog = "employeeTimesheetRequest is null";
+                finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+                return response;
+            }
+
+            List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = new ArrayList<>();
+
+            if (employeeTimesheetRequest.getEmpId() != null) {
+
+                logBuilder.append("EmpId:- ").append(employeeTimesheetRequest.getEmpId()).append("\n");
+                logBuilder.append("StartDate:- ").append(employeeTimesheetRequest.getStartDate()).append("\n");
+                logBuilder.append("EndDate:- ").append(employeeTimesheetRequest.getEndDate()).append("\n");
+
+                if (employeeTimesheetRequest.getStartDate() == null) {
+                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                    response.setServiceResponse("Null start date received");
+
+                    apiLogInfo.setApiResponse("Null start date received for empId:- " + employeeTimesheetRequest.getEmpId());
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                    exceptionDetailsForLog = "startDate null";
+                    finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+                    return response;
+                }
+
+                Boolean flag = employeeRepository.isActiveEmployee(employeeTimesheetRequest.getEmpId());
+
+                if (Boolean.TRUE.equals(flag)) {
+
+                    List<Object[]> result =
+                            employeeTeamMapRepository.getProjectDetailsByEmpIdAndDateRange(
+                                    employeeTimesheetRequest.getEmpId(),
+                                    employeeTimesheetRequest.getStartDate(),
+                                    employeeTimesheetRequest.getEndDate()
+                            );
+
+                    if (result == null || result.isEmpty()) {
+
+                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                        response.setServiceResponse("No timesheet detail fetched for this employee in the given date range!");
+
+                        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse()
+                                + " | No timesheet detail fetched for this employee in the given date range! "
+                                + "Start Date:- " + employeeTimesheetRequest.getStartDate()
+                                + " End Date:- " + employeeTimesheetRequest.getEndDate());
+
+                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                        finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
+                        return response;
+                    }
+
+                    for (Object[] obj : result) {
+
+                        TeamTimesheetDetailsResponse dto = new TeamTimesheetDetailsResponse();
+
+                        dto.setEmpId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+                        dto.setEmployementId(obj[1] != null ? Long.parseLong(obj[1].toString()) : null);
+                        dto.setEmpName(obj[2] != null ? obj[2].toString() : null);
+                        dto.setRole(obj[3] != null ? obj[3].toString() : null);
+
+                        dto.setPoId(obj[4] != null ? Long.parseLong(obj[4].toString()) : null);
+                        dto.setBillingRole(obj[5] != null ? obj[5].toString() : null);
+
+                        dto.setTeamName(obj[6] != null ? obj[6].toString() : null);
+                        dto.setTeamId(obj[7] != null ? Long.parseLong(obj[7].toString()) : null);
+
+                        dto.setTeamLeadName(obj[8] != null ? obj[8].toString() : null);
+                        dto.setManagerName(obj[9] != null ? obj[9].toString() : null);
+
+                        dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
+                        dto.setProjectName(obj[11] != null ? obj[11].toString() : null);
+
+                        dto.setProjectManagerName(obj[12] != null ? obj[12].toString() : null);
+
+                        dto.setStartDate(
+                                obj[13] != null
+                                        ? convertToLocalDateTime(obj[13])
+                                        : null
+                        );
+
+                        dto.setEndDate(
+                                obj[14] != null
+                                        ? convertToLocalDateTime(obj[14])
+                                        : null
+                        );
+                        
+                        dto.setDepartment(obj[15] != null ? obj[15].toString() : null);                        
+                        teamTimesheetDetailsResponseList.add(dto);
+                    }
+
+                    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                    response.setServiceResponse(teamTimesheetDetailsResponseList);
+
+                    apiLogInfo.setApiResponse(apiLogInfo.getApiResponse()
+                            + " Length of teamTimesheet Response list :- "
+                            + teamTimesheetDetailsResponseList.size());
+
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+                    finalHttpStatusCode = HttpStatus.OK.value();
+
+                } else {
+
+                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                    response.setServiceResponse("Employee has been made inactive in Ishine!");
+
+                    apiLogInfo.setApiResponse(apiLogInfo.getApiResponse()
+                            + " | Employee has been made inactive in Ishine! empId:- "
+                            + employeeTimesheetRequest.getEmpId());
+
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                    finalHttpStatusCode = HttpStatus.FORBIDDEN.value();
+                }
+            }
+
+        } catch (Exception e) {
+            logger.error("getProjectDetailsByEmpIdAndDateRange failed", e);
+            ExceptionLogContext.add(e);
+            exceptionDetailsForLog = String.valueOf(e);
+
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Something Went Wrong.");
+            response.setServiceError(e.getMessage());
+
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+            finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        } finally {
+            if (initialLog != null) {
+                apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,
+                        exceptionDetailsForLog != null ? exceptionDetailsForLog : ExceptionLogContext.get(),
+                        httpRequest);
+            }
+            apiLogInfo.setApiRequest(logBuilder.toString());
+            logService.logMyInfo(httpRequest, apiLogInfo);
+        }
+
+        return response;
+    }
+    
+    
+    private LocalDateTime convertToLocalDateTime(Object value) {
+
+//        if (value instanceof Timestamp) {
+//            return ((Timestamp) value).toLocalDateTime();
+//        }
+
+        if (value instanceof LocalDateTime) {
+            return (LocalDateTime) value;
+        }
+
+        if (value instanceof Date) {
+            return ((Date) value).toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+        }
+
+        return null;
+    }
+
+
+
+    
     
 //Raj Alpha Swain
     
@@ -8977,8 +9707,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	                    employeeDetails.setName(object[1] != null ? object[1].toString() : null);
 	                    employeeDetails.setProjectName(object[4] != null ? object[4].toString() : null);
 	                    employeeDetails.setPoNo(object[7] != null ? object[7].toString() : null);
-	                    employeeDetails.setPoStartDate(object[5] != null ? object[5].toString() : null);
-	                    employeeDetails.setPoEndDate(object[6] != null ? object[6].toString() : null);
+	                    employeeDetails.setProjectStartDate(object[5] != null ? object[5].toString() : null);
+	                    employeeDetails.setProjectEndDate(object[6] != null ? object[6].toString() : null);
 	                    employeeDetails.setClientName(object[8] != null ? object[8].toString() : null);
 	                    employeeDetails.setClientLocation(object[9] != null ? object[9].toString() : null);
 	                    employeeDetails.setDepartmentName(object[10] != null ? object[10].toString() : null);
@@ -9011,8 +9741,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	                    projectDetails.setProjectName(object[0] != null ? object[0].toString() : null);
 	                    projectDetails.setPoNo(object[1] != null ? object[1].toString() : null);
 	                    projectDetails.setPoProjectType(object[2] != null ? object[2].toString() : null);
-	                    projectDetails.setPoStartDate(object[3] != null ? object[3].toString() : null);
-	                    projectDetails.setPoEndDate(object[4] != null ? object[4].toString() : null);
+	                    projectDetails.setProjectStartDate(object[3] != null ? object[3].toString() : null);
+	                    projectDetails.setProjectEndDate(object[4] != null ? object[4].toString() : null);
 	                    projectDetails.setClientRM(object[5] != null ? object[5].toString() : null);
 	                    projectDetails.setApmosysRM(object[6] != null ? object[6].toString() : null);
 	                    projectDetails.setClientName(object[7] != null ? object[7].toString() : null);
@@ -9679,8 +10409,8 @@ public ServiceResponse fetchInactivePOListOfEmployee(GetEmployeeProjectReportPay
                     employeeDetails.setName(object[1] != null ? object[1].toString() : null);
                     employeeDetails.setProjectName(object[2] != null ? object[2].toString() : null);
                     employeeDetails.setPoNo(object[5] != null ? object[5].toString() : null);
-                    employeeDetails.setPoStartDate(object[3] != null ? object[3].toString() : null);
-                    employeeDetails.setPoEndDate(object[4] != null ? object[4].toString() : null);
+                    employeeDetails.setProjectStartDate(object[3] != null ? object[3].toString() : null);
+                    employeeDetails.setProjectEndDate(object[4] != null ? object[4].toString() : null);
                     employeeDetails.setClientName(object[6] != null ? object[6].toString() : null);
                     employeeDetails.setClientLocation(object[7] != null ? object[7].toString() : null);
                     employeeDetails.setDepartmentName(object[8] != null ? object[8].toString() : null);
@@ -9714,8 +10444,8 @@ public ServiceResponse fetchInactivePOListOfEmployee(GetEmployeeProjectReportPay
                     projectDetails.setProjectName(object[0] != null ? object[0].toString() : null);
                     projectDetails.setPoNo(object[1] != null ? object[1].toString() : null);
                     projectDetails.setPoProjectType(object[2] != null ? object[2].toString() : null);
-                    projectDetails.setPoStartDate(object[3] != null ? object[3].toString() : null);
-                    projectDetails.setPoEndDate(object[4] != null ? object[4].toString() : null);
+                    projectDetails.setProjectStartDate(object[3] != null ? object[3].toString() : null);
+                    projectDetails.setProjectEndDate(object[4] != null ? object[4].toString() : null);
                     projectDetails.setClientRM(object[5] != null ? object[5].toString() : null);
                     projectDetails.setApmosysRM(object[6] != null ? object[6].toString() : null);
                     projectDetails.setClientName(object[7] != null ? object[7].toString() : null);
@@ -10257,6 +10987,11 @@ private Map<String, String> getDateRangeForList(String dateRangeType) {
             LocalDate expired9To12MonthEnd = currentDate.minusMonths(12);
             dateRange.put("fromDate", expiredAbove12Month.toString());
             dateRange.put("toDate", expired9To12MonthEnd.toString());
+            break;
+            
+        case "total":
+            dateRange.put("fromDate", null);
+            dateRange.put("toDate", null);
             break;
             
         default:
@@ -12284,11 +13019,309 @@ public ServiceResponse getPendingTimesheetProjects(Long empId, LocalDate relievi
     return response;
 }
 
+public ServiceResponse getPoRequirementDataByTeamAndPoId(Long teamId, Long poId) {
+
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setApiUrl("/api/getPoRequirementDataByTeamAndPoId");
+    try {
+        if (teamId == null || poId == null) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Team ID and PO ID are required");
+            return response;
+        }
+
+        List<PoRequirementDataDTO> data =
+                poRequirementMappingRepository
+                        .getPoRequirementDataByTeamAndPoId(teamId, poId);
+
+        if (data != null && !data.isEmpty()) {
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(data);
+            response.setServiceResponse1("PO Requirement data retrieved successfully");
+        } else {
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(null);
+            response.setServiceResponse1("No data found for given Team and PO");
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        response.setServiceResponse("Error while fetching PO Requirement data");
+        response.setServiceError(e.getMessage());
+    }
+
+    return response;
+}
+
+	@Transactional(readOnly = true)
+	public ServiceResponse getAllActiveEmployeeInformation() {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getAllActiveEmployeeInformation");
+		apiLogInfo.setApiUrl("/api/getAllActiveEmployeeInformation");
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			List<Object[]> results = employeeRepository.getAllActiveEmployeeInformation();
+			List<EmployeeInformationDTO> employeeInfoList = new ArrayList<>();
+			if (results != null && !results.isEmpty()) {
+				for (Object[] obj : results) {
+					Long empId = TypeConversionUtil.safeParseLong(obj[0]);
+					EmployeeInformationDTO dto = new EmployeeInformationDTO();
+					dto.setEmpId(empId);
+					dto.setEmploymentId(TypeConversionUtil.getSafeString(obj[1]));
+					dto.setName(TypeConversionUtil.getSafeString(obj[2]));
+					dto.setBillableType(TypeConversionUtil.getSafeString(obj[3]));
+					dto.setJobRole(TypeConversionUtil.getSafeString(obj[4]));
+					dto.setDeptName(TypeConversionUtil.getSafeString(obj[5]));
+					dto.setDeptId(TypeConversionUtil.safeParseLong(obj[6]));
+					dto.setDefaultProjectId(TypeConversionUtil.safeParseLong(obj[7]));
+					employeeInfoList.add(dto);
+				}
+			}
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(employeeInfoList);
+		} catch (Exception e) {
+			logger.error("Error in getAllActiveEmployeeInformation", e);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Error : " + e.getMessage());
+		}
+		return response;
+	}
+
+private ServiceResponse buildFailureResponse(ServiceResponse response,
+                                             LogDTO apiLogInfo,
+                                             String message) {
+
+    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    response.setServiceResponse(message);
+    apiLogInfo.setApiResponse(message);
+    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+    return response;
+}
+public ServiceResponse getInActiveableOrNot(Long empId) {
+
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setSubFeatureName("getInActiveableOrNot");
+    apiLogInfo.setApiUrl("/api/getInActiveableOrNot/{empId}");
+    apiLogInfo.setLogLevel("INFO");
+
+    try {
+    	 boolean isInactiveAllowed = false;
+
+         int currentYear = LocalDate.now().getYear();
+         int currentMonth = LocalDate.now().getMonthValue();
+
+         LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
+         LocalDate end = LocalDate.now().minusDays(1);
+
+         long totalDaysTillYesterday =
+                 ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
+
+         Integer pendingFlag =
+        	        employeeTimesheetsNewRepository
+        	                .hasRealPendingTimesheet(empId, firstOfMonth, end);
+
+        	boolean hasPendingTimesheets =
+        	        pendingFlag != null && pendingFlag == 1;
 
 
+         
+
+        Integer TNMStatus = employeeRepository.checkActiveTNMProject(empId);
+        boolean isUnderTNMProject = TNMStatus != null && TNMStatus == 1;
+
+        if (hasPendingTimesheets || isUnderTNMProject) {
+            isInactiveAllowed = true; 
+        }
+
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(isInactiveAllowed);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceResponse("Error : " + e.getMessage());
+    }
+
+    return response;
+}
+
+public ServiceResponse getEmployeeBillableType(Long empId){
+	
+	ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    // apiLogInfo.setSubFeatureName("getEmployeeBillableType");
+    apiLogInfo.setApiUrl("/api/getEmployeeBillableType");
+    apiLogInfo.setLogLevel("INFO");
+
+	try{
+		String billableType  = employeeRepository.getBillableType(empId);
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(billableType);
+	}
+	catch(Exception e){
+		e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceResponse("Error : " + e.getMessage());
+	}
+	return response;
+}
+
+    public ServiceResponse getDefaulterStatus(Long empId) {
+
+        ServiceResponse response = new ServiceResponse();
+
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/getDefaulterStatus");
+        apiLogInfo.setLogLevel("INFO");
+
+        try {
+
+            //  Validation
+            if (empId == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Employee ID is missing");
+
+                apiLogInfo.setApiResponse("Employee ID is missing");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                return response;
+            }
+            List<PortalConfig> configList = portalConfigRepository.findAll();
+
+                    Map<String, String> configMap = configList.stream()
+                    .collect(Collectors.toMap(
+                            PortalConfig::getConfigName,
+                            pc -> pc.getConfigValue() != null ? pc.getConfigValue() : ""));
+
+                    
+                    String heading = configMap.get("DEF_POPUP_HEADING");
+                    String description = configMap.get("DEF_POPUP_DESCRIPTION");
+
+                    int cutoffYear = configMap.get("DEF_CUTOFF_YEAR") != null
+                            ? Integer.parseInt(configMap.get("DEF_CUTOFF_YEAR"))
+                            : 2025;
+
+                    int cutoffMonth = configMap.get("DEF_CUTOFF_MONTH") != null
+                            ? Integer.parseInt(configMap.get("DEF_CUTOFF_MONTH"))
+                            : 10;
+
+            //  repository  Call
+            List<Object[]> result = employeeDefaulterConsentRepository.findDefaulterMonths(empId, cutoffYear,
+                    cutoffMonth);
+
+            if (result != null && !result.isEmpty()) {
+
+                List<Map<String, Integer>> months = new ArrayList<>();
+
+                for (Object[] row : result) {
+                    Map<String, Integer> m = new HashMap<>();
+                    m.put("year", ((Number) row[0]).intValue());
+                    m.put("month", ((Number) row[1]).intValue());
+                    months.add(m);
+                }
+
+                DefaulterResponseDTO data = new DefaulterResponseDTO(
+                        true,
+                        months,
+                        heading,
+                        description
+                );
+
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(data);
+
+                apiLogInfo.setApiResponse(months.size() + " month(s) found.");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+            } else {
+
+                Map<String, Object> data = new HashMap<>();
+                data.put("isDefaulter", false);
+                data.put("months", new ArrayList<>());
+
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(data);
+
+                apiLogInfo.setApiResponse("No defaulter record found");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Something Went Wrong.");
+            response.setServiceError(e.getMessage());
+
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+        }
+
+        apiLogInfo.setApiRequest("empId: " + empId);
+        logService.logMyInfo(httpRequest, apiLogInfo);
+
+        return response;
+    }
+
+    public ServiceResponse saveDefaulterConsent(Long empId) {
+
+        ServiceResponse response = new ServiceResponse();
+
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/saveDefaulterConsent");
+        apiLogInfo.setLogLevel("INFO");
+
+        try {
+
+            if (empId == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Employee ID is missing");
+
+                apiLogInfo.setApiResponse("Employee ID is missing");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                return response;
+            }
+
+            Optional<EmployeeDefaulterConsent> existingOpt = employeeDefaulterConsentRepository.findByEmpId(empId);
+
+            EmployeeDefaulterConsent entity;
+
+            if (existingOpt.isPresent()) {
+                employeeDefaulterConsentRepository.updateConsent(empId);
+            } else {
+
+                entity = new EmployeeDefaulterConsent();
+                entity.setEmpId(empId);
+                entity.setConsent(true); // first time consent
+
+                employeeDefaulterConsentRepository.save(entity);
+            }
 
 
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse("Consent saved successfully");
 
+            apiLogInfo.setApiResponse("Consent saved for empId: " + empId);
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Something went wrong.");
+            response.setServiceError(e.getMessage());
+
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+        }
+
+        apiLogInfo.setApiRequest("empId: " + empId);
+        logService.logMyInfo(httpRequest, apiLogInfo);
+
+        return response;
+    }
 }
 	

@@ -2412,7 +2412,7 @@ input:checked + .slider:hover:before {
 }
 
 /* Button styling */
-.btn-outline-primary {
+.custom-btn-outline-primary {
   border: 2px solid #667eea;
   color: #667eea;
   font-size: 12px;
@@ -2423,12 +2423,20 @@ input:checked + .slider:hover:before {
   background: linear-gradient(135deg, transparent 0%, rgba(102, 126, 234, 0.1) 100%);
 }
 
-.btn-outline-primary:hover {
-  background: 667eea;
+.custom-btn-outline-primary:hover {
+  background: #667eea;
   border-color: #667eea;
   color: white;
   transform: translateY(-2px);
   /* box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); */
+}
+
+.custom-btn-outline-primary:active,
+.custom-btn-outline-primary.active,
+.custom-btn-outline-primary:not(:disabled):not(.disabled).active {
+  background: #667eea;
+  border-color: #667eea;
+  color: #fff;
 }
 
 /* Modal close button */
@@ -4022,20 +4030,6 @@ display: inline-block;
   color: #424242;
 }
 
-.info-icon {
-  position: relative;
-  cursor: pointer;
-  font-size: 12px;
-  color: #fff;
-  /* background-color: #4A90E2; */
-  /* border-radius: 50%; */
-  padding: 4px 7px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
 
 /* Tooltip */
 .tooltip {
@@ -4054,10 +4048,6 @@ display: inline-block;
   transition: opacity 0.15s ease;
 }
 
-.info-icon:hover .tooltip {
-  visibility: visible;
-  opacity: 1;        /* appears instantly */
-}
 .button-group {
   display: flex;
   flex-direction: row;
@@ -4078,63 +4068,11 @@ display: inline-block;
 }
 
 .info-icon {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  width: 18px;
-  height: 18px;
-  font-size: 12px;
   border-radius: 50%;
-  background-color: #007bff;
-  color: white;
   cursor: pointer;
-  font-weight: bold;
-  user-select: none;
-  margin-left: .5rem;
-  font-style:normal;
-  position: relative;
-}
-
-/* Tooltip */
-.info-icon::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #333;
-  color: #fff;
-  padding: 6px 10px;
-  font-size: 12px;
-  border-radius: 6px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  z-index: 999;
-  visibility: hidden;
-}
-
-/* Tooltip arrow */
-.info-icon::before {
-  content: "";
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 6px;
-  border-style: solid;
-  border-color: transparent transparent #333 transparent;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease;
-}
-
-/* Show on hover */
-.info-icon:hover::after,
-.info-icon:hover::before {
-  opacity: 1;
-  visibility: visible;
+  color: #193D8A;
+  border-color: #193D8A;
+  background-color: #fff;
 }
 
 .select-flex {
@@ -4207,8 +4145,9 @@ display: inline-block;
 
 .employee-search-label {
     font-size: 12px;
-    margin-bottom: 4px;
+    margin-bottom: -4px;
     font-weight: 500;
+    margin-top: 8px;
 }
 
 .employee-search-input {
@@ -5771,5 +5710,132 @@ display: inline-block;
 
 ::ng-deep .ep-datepicker-57px .mat-mdc-floating-label {
   top: 28px; 
+}.employee-summary-btn {
+  font-size: 12px;
+  padding: 6px 16px;
+  height: 30px;
+  white-space: nowrap;
 }
 
+.milestone-preview-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 620px;
+}
+
+.milestone-preview-content {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.preview-image {
+  max-width: min(100%, 1000px);
+  max-height: 600px;
+  width: auto;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.preview-pdf {
+  width: min(100%, 1000px);
+  border: none;
+  display: block;
+  margin: 0 auto;
+}
+
+.milestone-preview-empty {
+  width: 100%;
+  text-align: center;
+}
+
+::ng-deep .modal-dialog.modal-lg.no-modal-content .modal-content {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.date-input-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.date-input {
+    padding-right: 36px;
+    cursor: pointer;
+    background-color: white;
+}
+
+.calendar-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #656565;
+}
+
+.rounded-20 {
+  border-radius: 20px;
+}
+
+
+/* Toggle Container */
+.new-rmg-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+}
+
+/* Hide default checkbox */
+.new-rmg-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* new-rmg-slider background */
+.new-rmg-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #d0d5dd;
+    border-radius: 50px;
+    transition: 0.3s;
+}
+
+/* Circle */
+.new-rmg-slider::before {
+    content: "";
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Checked state */
+.new-rmg-toggle-switch input:checked+.new-rmg-slider {
+    background-color: #193d8aff;
+}
+
+/* Move circle */
+.new-rmg-toggle-switch input:checked+.new-rmg-slider::before {
+    transform: translateX(22px);
+}
+
+/* Optional label */
+.new-rmg-toggle-label {
+    font-size: 14px;
+    color: #344054;
+}

@@ -860,13 +860,27 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     this.alertRedirectToList = false;
     this.modalRef?.close();
     if (shouldRedirect) {
+
+    setTimeout(async () => {
+
+      this.isperformanceDsah = true;
+      this.isreviewPage = false;
+
+      this.getAllEmployeesCurrentStatus();
+      this.getAllEmployee();
+
+      await this.getALLdepartmentByEmployee();
+
       setTimeout(() => {
-        this.isperformanceDsah = true;
-        this.isreviewPage = false;
-        this.getAllEmployeesCurrentStatus();
-        this.getAllEmployee();
-      }, 150);
-    }
+
+        if (this.performanceChartRef) {
+          this.performanceChartRef.reflow();
+        }
+
+      }, 400);
+
+    }, 300);
+  }
   }
 
 
@@ -2402,6 +2416,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   getFeedbackSectionTitle(): string {
     if (this.userMapping?.performance_action_by_hr) return 'HR remark/feedback';
     if (this.userMapping?.performance_action_by_hod) return 'HOD Feedback';
+    if (this.userMapping?.performance_action_by_hr && this.userMapping?.performance_action_by_hod) return 'HOD/HR Feedback';
     return 'Manager Feedback';
   }
 
@@ -2409,11 +2424,13 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   getFeedbackSectionLabel(): string {
     if (this.userMapping?.performance_action_by_hr) return 'HR Remarks';
     if (this.userMapping?.performance_action_by_hod) return 'HOD Remarks';
+    if (this.userMapping?.performance_action_by_hr && this.userMapping?.performance_action_by_hod) return 'HOD/HR Remarks';
     return 'Manager/Reporting Manager Remarks';
   }
 
   /** Disabled state for feedback textarea: HOD can always edit; Manager when Ongoing/Completed; HR when not in edit mode */
   getFeedbackTextareaDisabled(): boolean {
+    if (this.userMapping?.performance_action_by_hod && this.userMapping?.performance_action_by_hr) return false;
     if (this.userMapping?.performance_action_by_hr) return !this.isEditMode;
     if (this.userMapping?.performance_action_by_hod) return false;
     return this.currentStatus === 'Ongoing' || this.currentStatus === 'Completed' || this.currentStatus === 'Pending';
@@ -2522,7 +2539,16 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     });
     this.submitPerformance.finalRating = this.finalRating;
     this.submitPerformance.hodRemarks = this.hodRemarks;
-    if (!this.validationService.validateNullUndefinedEmptyString(this.submitPerformance.hodRemarks)) {
+    if(this.userMapping.performance_action_by_hod && this.userMapping.performance_action_by_hr) {
+      if (!this.validationService.validateNullUndefinedEmptyString(this.hrRemarks)) {
+        this.alertMessage = "Please justify your rating by providing remarks!";
+        this.openAlertMod(template, this.alertMessage);
+        return;
+      }else{
+        this.submitPerformance.hrRemark = this.hrRemarks;
+      }
+    }
+    else if(!this.validationService.validateNullUndefinedEmptyString(this.submitPerformance.hodRemarks)) {
       this.alertMessage = "Please justify your rating by providing remarks!";
       this.openAlertMod(template, this.alertMessage);
       return;
@@ -2531,6 +2557,8 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     this.performanceService.submitEmployeePerformanceHOD(this.submitPerformance).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse, true);
+        this.hodRemarks = '';
+  this.hrRemarks = '';
         let collapseElement = document.getElementById('collapse' + index);
         if (collapseElement) {
           collapseElement.classList.remove('show'); // Remove 'show' class
@@ -2723,7 +2751,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
       this.openAlertMod(template, this.alertMessage);
       return;
     }
-    if (this.userMapping.performance_action_by_hod) {
+    if (this.userMapping.performance_action_by_hod && !this.userMapping.performance_action_by_hr) {
       if ((this.isAcceptSelected || this.isRejectSelected) && !this.validationService.validateNullUndefinedEmptyString(this.hodRemarks)) {
         this.alertMessage = "Please enter HOD Remarks!";
         this.openAlertMod(template, this.alertMessage);
@@ -2772,7 +2800,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     this.submitRemarkHr.finalRating = this.finalRating;
     this.submitRemarkHr.employeePerformanceId = this.performnace1[0].employeePerformanceId;
 
-    if (this.userMapping.performance_action_by_hod) {
+    if (this.userMapping.performance_action_by_hod && !this.userMapping.performance_action_by_hr) {
       this.submitRemarkHr.hodId = this.currentUser.empId;
       this.submitRemarkHr.hodRemarks = this.hodRemarks;
       this.submitRemarkHr.hodReviewStatus = this.isAcceptSelected ? 'Accepted' : 'Rejected';
@@ -3078,4 +3106,15 @@ hasDataChanged(): boolean {
     if (this.userMapping?.performance_action_by_approvals_to && this.currentStatus === 'Rejected') return true;
     return false;
   }
+
+  allowOnlyLetters(event: KeyboardEvent): void {
+
+  const char = event.key;
+
+  const regex = /^[a-zA-Z.\-\s]+$/;
+
+  if (!regex.test(char)) {
+    event.preventDefault();
+  }
+}
 }

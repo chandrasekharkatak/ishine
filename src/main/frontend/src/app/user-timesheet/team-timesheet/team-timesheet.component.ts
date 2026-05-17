@@ -1,10 +1,10 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component,Input,Output,EventEmitter, ElementRef, OnInit, TemplateRef, ViewChild, NgModule } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as moment from 'moment';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { first } from 'rxjs/operators';
+import { catchError, first, map } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { BodyComponent } from 'src/app/body/body.component';
 import { EmployeeClientSideIdMapping } from 'src/app/models/employeeClientSideIdMapping';
@@ -21,16 +21,42 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
+import { ActivatedRoute } from '@angular/router';
+import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
 import { ProjectBasedBulkUploadPayload } from './types';
+import { HttpClient } from '@angular/common/http';
+import { finalize } from 'rxjs/operators';
+import {LoaderService} from 'src/app/services/loader.service';import { MatSortModule } from '@angular/material/sort';
+import { firstValueFrom, Observable, of, Subject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+import { ExcelDownloadService } from 'src/app/services/excel-download-service';
+import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
+import { APP_DATE_FORMATS, AppDateAdapter } from 'src/app/helpers/date-time-picker/date-time-picker.component';
+import { MatPaginator } from '@angular/material/paginator';
+
+
 
 
 @Component({
   standalone: false,
   selector: 'app-team-timesheet',
   templateUrl: './team-timesheet.component.html',
-  styleUrls: ['./team-timesheet.component.css']
+  styleUrls: ['./team-timesheet.component.css'],
+   providers: [         
+      {
+        provide: DateAdapter,
+        useClass: AppDateAdapter
+      },
+      {
+        provide: MAT_DATE_FORMATS,
+        useValue: APP_DATE_FORMATS
+      }
+    ]
 })
 export class TeamTimesheetComponent implements OnInit {
+
+  @ViewChild("night_shift_template_revampd")
+  nightShiftConfirmModal: TemplateRef<any>;
 
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
@@ -43,22 +69,35 @@ export class TeamTimesheetComponent implements OnInit {
   @ViewChild("clientSideIdNotMandatoryFound")
   clientSideIdNotMandatoryFound: TemplateRef<any>;
 
+  @ViewChild('skipped_timesheets_details')
+  skippedTimesheetModal!: TemplateRef<any>;
+
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
-
+  @ViewChild('statusModal') statusModal: any;
   @ViewChild("update_clientId")
   updateClientId: TemplateRef<any>;
+
+  @ViewChild('compOffConfirmModal')
+  compOffConfirmModal!: TemplateRef<any>;
+
+  @ViewChild('myPaginator', { static: false }) paginator: MatPaginator;
 
   data: string;
   feature = "Team Timesheets";
   currentUser: User;
   userMapping: any = {};
-
+  rejectEntries = [];
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType: any;
   clientSideIdForm: NgbModalRef;
   updateClientIdModalRef: NgbModalRef;
+  bulkRejectReasonIds: number[] = [];skippedTimesheetList: any;
+;
+bulkRejectRemark: string = '';
+rejectReasonError = false;
+rejectRemarkError = false;
 
   //flags
   isAllTimesheetTable: boolean = false;
@@ -74,11 +113,18 @@ export class TeamTimesheetComponent implements OnInit {
   modalRef:NgbModalRef;
   allTeamTimesheets: any[] = [];
   allTeamTimesheetRequests: Timesheet[] = [];
+  selectedTimesheetIds: number[] = [];
 
+  // Status Count
+  pendingCount = 0;
+  approvedCount = 0;
+  rejectedCount = 0;
 
   timesheetObj: Timesheet = new Timesheet();
   startDate: any;
   endDate: any;
+  /** 'currentMonth' | 'previousMonth' | 'custom' - drives request date filter and visibility of custom date inputs */
+  requestDateRangeType: 'currentMonth' | 'previousMonth' | 'custom' = 'currentMonth';
 
   isSelectAll: boolean = false;
   isSelect: boolean = false;
@@ -100,7 +146,23 @@ export class TeamTimesheetComponent implements OnInit {
   timesheetApplicationCount: any = 0;
   allTimesheetColumns: any[] = ['blank', 'blank', 'blank', 'employmentIdAcToET', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', , 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'createdOn'];
   allTimesheetReqColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus'];
-  allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employeementId', 'clientSideId', 'name', 'teamName', 'departmentName', 'projectName', 'clientName', 'billableType', 'employeeRole', 'spoc', 'projectManagerName', 'poNo', 'startdate', 'totalExpectedFillCount', 'totalIshineFilledCount', 'totalClientSideNotFilledCount', 'totalClientSidePendingCount', 'totalClientSideApprovedCount']
+  allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employmentId', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'locationCount', 'projectCount', 'appliedBy', 'appliedOn', 'isNightShift','blank'];
+  allTimesheetColumnsVMSStatusChange: any[] = [
+  'blank',   // Sr No (now becomes first column)
+  'employmentId',
+  'employeeName',
+  'date',
+  'dayType',
+  'workCheckIn',
+  'workCheckOut',
+  'locationCount',
+  'projectCount',
+  'appliedBy',
+  'appliedOn',
+  'isNightShift',
+  'blank'    // action column
+];
+
   previewUrl: any;
   fileType: '' | 'pdf' | 'image' | null = null;
   docData: any;
@@ -132,11 +194,11 @@ export class TeamTimesheetComponent implements OnInit {
   previewUrl2: SafeResourceUrl | null = null;
   fileName2: any = null;
   fileError2: string = '';
-  fileType2: '' | 'pdf' | 'image' | null = null;
+  fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
   rawObjectUrl2: string | null = null;
   selectedFile2: File | null = null;
   previewUrl1: SafeResourceUrl | null = null;
-  activePreviewUrl: SafeResourceUrl | null = null;
+  // activePreviewUrl: SafeResourceUrl | null = null;
   activeFileType: string | null = null;
   selectedFile: File | null = null;
   empClientSideObj: EmployeeClientSideIdMapping = new EmployeeClientSideIdMapping();
@@ -145,22 +207,48 @@ export class TeamTimesheetComponent implements OnInit {
   alertMessageModalRef: NgbModalRef;
   zoomScale = 1;
   zoomLevel = 100;
-  isDragging = false;
   startX = 0;
   startY = 0;
-  translateX = 0;
-  translateY = 0;
+  isAllSelected: boolean = false;
+  http :any;
+clientFilter: boolean = false;
+safePdfUrl:SafeResourceUrl | null = null;
+  documentData: any;
+alertModal: TemplateRef<any>;
   maxMonth = '';
   minMonth = '';
   allProjects: {projectId: number, projectName: string}[] = [];
   projectObj: { [projectId: number]: { empId: number; name: string }[] } = {};
   minusDaysData: {minusDays: number, checkMinusDaysForBulkUpload: boolean} = {minusDays: 45, checkMinusDaysForBulkUpload: true};
+  modalMessage: any;
+  modalTitle: string;
+  safePreviewUrl: SafeResourceUrl | null = null;
+  activePreviewUrl: string | null = null;
+  currentObjectUrl: string | null = null;
+  isFullscreen = false;
+  // Image transform state
+  scale = 1;
+  rotationDeg = 0;
+  translateX = 0;
+  translateY = 0;
+
+// Drag state
+ isDragging = false;
+ dragStartX = 0;
+ dragStartY = 0;
+ dragOriginX = 0;
+ dragOriginY = 0;
+activeRawObjectUrl: string | null = null;
+rejectionReasons:any;
+
+selectedTimesheetsAccrossThePages:any=[];
 
   constructor(
     public validationService: ValidationService,
     private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private timesheetService: TimesheetService,
+    private timesheetNewService: TimesheetNewService,
     private exportExcelService: ExportExcelService,
     private locationStrategy: LocationStrategy,
     private inputValidationService: InputValidationService,
@@ -169,12 +257,26 @@ export class TeamTimesheetComponent implements OnInit {
     private utilityService: UtilityService,
     private bodyComponent: BodyComponent,
     private sanitizer: DomSanitizer,
+    private route: ActivatedRoute,
+    private loaderService: LoaderService,
+    private excelDownloadService: ExcelDownloadService
+     
+
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+  //   this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+  // 'assets/Ishine_Timesheet_TNM.pdf');
   }
 
   async ngOnInit(): Promise<void> {
+    this.searchSubject
+    .pipe(debounceTime(400)) // 500ms debounce time
+    .subscribe(filters => {
+      this.filters = filters;
+      this.page1 = 0;
+      this.getMyReporteesTimesheetRequests();
+    });
     const now = new Date();
     this.today = now.toISOString().split('T')[0];
     // Dynamic Subfeature Flags
@@ -182,12 +284,25 @@ export class TeamTimesheetComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    this.sectionViewInit();
+    const view = this.route.snapshot.queryParams['view'];
+
+  if (
+    view === 'requests' &&
+    (this.userMapping.view_my_teams_timesheets_requests ||
+     this.userMapping.update_timesheet_request ||
+     this.userMapping.revoke_reportee_timesheet)
+  ) {
+    this.showAllTimesheetRequestsTable();
+  } else {
+    this.sectionViewInit(); // existing fallback
+  }
     this.preventBackButton();
     this.getRejectionReason();
     this.thisMonthValidation();
 
     this.selectedMonth = new Date(2025, 4, 1);
+
+
 
     // // Set maxMonth to previous month (current month is NOT allowed for selection)
     // // Set minMonth to the month of (today - 45 days)
@@ -199,7 +314,7 @@ export class TeamTimesheetComponent implements OnInit {
     // const prevMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
     // this.maxMonth = `${prevMonthYear}-${String(prevMonth).padStart(2, '0')}`;
 
-    // if(this.minusDaysData.checkMinusDaysForBulkUpload){ 
+    // if(this.minusDaysData.checkMinusDaysForBulkUpload){
     //   const fortyFiveDaysAgo = new Date(now);
     //   fortyFiveDaysAgo.setDate(now.getDate() - this.minusDaysData.minusDays);
     //   const minMonthValue = fortyFiveDaysAgo.getMonth() + 1; // 1-12
@@ -217,18 +332,37 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if (this.userMapping.view_my_teams_timesheets) {
-      this.showAllTimesheetsTable();
-    } else if (this.userMapping.view_my_teams_timesheets_requests || this.userMapping.update_timesheet_request || this.userMapping.revoke_reportee_timesheet) {
+   if (this.userMapping.view_my_teams_timesheets_requests || this.userMapping.update_timesheet_request || this.userMapping.revoke_reportee_timesheet) {
       this.showAllTimesheetRequestsTable();
     }
   }
+
+
+getTotalDocCount(projectId: number): number {
+  if (!this.selectedTimesheet?.documentData?.length) {
+    return 0;
+  }
+
+  return this.selectedTimesheet.documentData
+    .filter(d => d.docsProjectId === projectId)
+    .reduce((count, d) => {
+      let c = 0;
+      if (d.docId != null) c++;               // pending
+      if (d.bulkApprovedDocId != null) c++;   // approved
+      return count + c;
+    }, 0);
+}
+
+
 
   disableMannualDateInput() {
     return false;
   }
 
   showAllTimesheetsTable() {
+    this.pendingCount = null;
+    this.approvedCount = null;
+    this.rejectedCount = null;
     this.isAllTimesheetTable = true;
 
     this.isAllTimesheetRequestTable = false;
@@ -239,20 +373,52 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   showAllTimesheetRequestsTable() {
-    this.sortColumn = [];
-    this.sortColumnType = [];
-    this.sortDirection = '';
+
+    this.getRejectionReason();
+    this.sortColumn = 'date';
+    this.sortDirection = 'DESC';
     this.isAllTimesheetRequestTable = true;
     this.isTMBulkUpload = false;
-
     this.isAllTimesheetTable = false;
 
+    this.requestDateRangeType = 'currentMonth';
+    this.applyRequestDateRangeAndLoad();
+    this.page1 = 0;
+    this.data = '';
+  }
+
+  /** Apply current/previous month or custom dates and reload request list and status counts. */
+  applyRequestDateRangeAndLoad() {
+    const today = new Date();
+    this.page1 = 0; // pagination reset
+    this.paginator?.firstPage();
+    if (this.requestDateRangeType === 'currentMonth') {
+      const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
+      this.endDate = moment(today).format(AppComponent.DB_DATE_FORMAT);
+    } else if (this.requestDateRangeType === 'previousMonth') {
+      const prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const lastDayPrev = new Date(today.getFullYear(), today.getMonth(), 0);
+      this.startDate = moment(prevMonth).format(AppComponent.DB_DATE_FORMAT);
+      this.endDate = moment(lastDayPrev).format(AppComponent.DB_DATE_FORMAT);
+    }
+    this.getTimesheetStatusCountsByEmpId();
     this.getMyReporteesTimesheetRequests();
-    this.page = 1;
-    this.data = ''
+  }
+
+  /** Switch to custom date range and clear start/end so user can pick fresh. */
+  switchToCustomDateRangeForRequests() {
+    this.requestDateRangeType = 'custom';
+    this.startDate = null;
+    this.endDate = null;
   }
 
   showTMBulkUpload() {
+
+    this.pendingCount = null;
+    this.approvedCount = null;
+    this.rejectedCount = null;
+
     if(this.isTMBulkUpload){
       return;
     }
@@ -327,68 +493,144 @@ export class TeamTimesheetComponent implements OnInit {
     activityObj.description = sanitizedValue;
     event.target.value = sanitizedValue; // reflect the change in the UI
   }
-  getMyReporteesTimesheetRequests() {
-    this.allTeamTimesheetRequests = [];
-    this.isSelectAll = false
-    this.bulkApprove = []
-    this.bulkReject = []
 
-    let timesheetObj = new Timesheet();
-    timesheetObj.managerId = this.currentUser.empId;
-    timesheetObj.status = "Pending";
-    timesheetObj.fromDate = "";
-    timesheetObj.toDate = "";
 
-    // this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
-    //   if (response.serviceStatus == "Success") {
-    //     this.allTeamTimesheetRequests = response.serviceResponse;
-    //     this.allTeamTimesheetRequests.forEach((timesheet, index) => {
-    //       timesheet.checkId = "timesheet" + index;
-    //       timesheet.employeementId = "A-".concat(timesheet.employeementId);
-    //       timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-    //       timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-    //       timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-    //       timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-    //     });
+page1: number = 0;
+items: number = 10;
+totalRecords: number = 0;
+totalPages: number = 0;
 
-    //     this.allTeamTimesheetRequests.forEach(timesheet => {
-    //       timesheet.emp360 = timesheet.empId;
-    //       timesheet.emp360CreatedBy = timesheet.createdBy;
-    //     });
+ getMyReporteesTimesheetRequests() {
 
-    //     //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
-    //   } else {
-    //     console.error(response.serviceResponse)
-    //   }
-    // });
+  if (this.requestDateRangeType === 'custom' && (!this.startDate || !this.endDate)) {
+    this.allTeamTimesheetRequestsProjectView = [];
+    this.totalRecords = 0;
+    this.totalPages = 0;
+    return;
+  }
 
-    timesheetObj.fromDate = this.fromDate;
-    timesheetObj.toDate = this.toDate;
+  this.expandedTimesheetIndex = null;
+  this.isAllSelected = false;
+      // this.toggleAllRows({ target: { checked: false } });
+  this.loaderService.requestStarted();
 
-    this.timesheetService.getAllEmployeeDSROfRM(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allTeamTimesheetRequestsProjectView = response.serviceResponse;
-        // this.allTeamTimesheetRequests.forEach((timesheet, index) => {
-        //   timesheet.checkId = "timesheet" + index;
-        //   timesheet.employeementId = "A-".concat(timesheet.employeementId);
-        //   timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-        //   timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-        //   timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-        //   timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-        // });
+  const payload: any = {
+    empId: this.currentUser.empId,
+    clientFilter: this.clientFilter,
+    page: this.page1,
+    size: Number(this.items),
+    sortBy: this.sortColumn || 'date',
+    sortDir: this.sortDirection || 'DESC',
+    status: this.selectedStatus
+  };
 
-        // this.allTeamTimesheetRequests.forEach(timesheet => {
-        //   timesheet.emp360 = timesheet.empId;
-        //   timesheet.emp360CreatedBy = timesheet.createdBy;
-        // });
+  /* 🔹 COLUMN FILTERS */
+  this.addIfPresent(payload, 'employmentId', this.filters.employmentId);
+  this.addIfPresent(payload, 'employeeName', this.filters.employeeName);
+  this.addIfPresent(payload, 'date', this.filters.date);
+  this.addIfPresent(payload, 'dayType', this.filters.dayType);
+  this.addIfPresent(payload, 'projectName', this.filters.projectName);
+  this.addIfPresent(payload, 'poNo', this.filters.poNo);
+  this.addIfPresent(payload, 'shadowEmpName', this.filters.shadowEmp);
+  this.addIfPresent(payload, 'shadowFor', this.filters.shadowFor);
+  this.addIfPresent(payload, 'workCheckIn', this.filters.workCheckIn);
+  this.addIfPresent(payload, 'workCheckOut', this.filters.workCheckOut);
+  this.addIfPresent(payload, 'locationCount', this.filters.locationCount);
+  this.addIfPresent(payload, 'projectCount', this.filters.projectCount);
+  this.addIfPresent(payload, 'appliedBy', this.filters.appliedBy);
+  this.addIfPresent(payload, 'appliedOn', this.filters.appliedOn);
+  this.addIfPresent(payload, 'isNightShift', this.filters.isNightShift)
+  this.addIfPresent(payload, 'startDate', this.startDate);
+  this.addIfPresent(payload, 'endDate', this.endDate);
 
-        console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequestsProjectView);
-      } else {
-        console.error(response.serviceResponse)
+  this.timesheetService.getMyReporteesTimesheetRequests(payload)
+    .pipe(finalize(() => this.loaderService.requestEnded()))
+    .subscribe((res: any) => {
+
+      if (res.serviceStatus === 'Success') {
+
+        this.allTeamTimesheetRequestsProjectView =
+          res.serviceResponse.content || [];
+
+        this.totalRecords =
+          res.serviceResponse.totalElements || 0;
+
+        this.totalPages =
+          res.serviceResponse.totalPages || 0;
+
+          const selectedIds = new Set(
+            this.selectedTimesheetsAccrossThePages.map(r => r.timesheetId)
+          );
+
+          this.allTeamTimesheetRequestsProjectView.forEach(ts => {
+            ts.selected = selectedIds.has(ts.timesheetId);
+          });
+
+          this.selectedRows = this.allTeamTimesheetRequestsProjectView
+          .filter(r => r.selected);
+          if(this.selectedRows.length == this.allTeamTimesheetRequestsProjectView.length && this.selectedRows.length > 0){
+            this.isAllSelected = true;
+          }
       }
     });
+    //console.log(this.items);
 
+}
+
+onPageSizeChange() {
+  this.items = Number(this.items);
+  this.page1 = 0;
+  this.isAllSelected = false;
+  this.getMyReporteesTimesheetRequests();
+}
+
+
+
+onPageChange(event: any) {
+  this.page1 = event.pageIndex;
+  this.items = event.pageSize;
+
+  this.getMyReporteesTimesheetRequests(); // 🔥 BACKEND HIT
+}
+
+sortData(sort: Sort) {
+  if (!sort.active || sort.direction === '') return;
+ if (sort.active === 'employmentId') {
+    this.sortColumn = 'employeement_Id'; // raw DB column
+  } else {
+    this.sortColumn = sort.active;
   }
+  this.sortDirection = sort.direction.toUpperCase() as 'ASC' | 'DESC';
+  this.page1 = 0;
+  this.getMyReporteesTimesheetRequests();
+}
+
+
+
+
+
+  addIfPresent(payload: any, key: string, value: any) {
+    if (value !== undefined && value !== null && value !== '') {
+      payload[key] = value;
+    }
+  }
+
+
+// sortData(sort: Sort) {
+//   if (!sort.active) return;
+
+//   this.sortColumn = sort.active;      // ✅ string
+//   this.sortDirection = sort.direction.toUpperCase();
+//   this.getMyReporteesTimesheetRequests();
+// }
+
+
+
+// onGlobalSearchChange() {
+//   this.page1 = 1; // reset pagination
+//   this.getMyReporteesTimesheetRequests();
+// }
+
 
   /* Approve / Reject Timesheet requests */
   updateTimesheetRequestById(template: TemplateRef<any>, timesheet: Timesheet, status: any) {
@@ -542,7 +784,6 @@ export class TeamTimesheetComponent implements OnInit {
   //pagination
 
   page = 1;
-  page1 = 1;
   handlePageChange(event) {
     this.page = event;
     this.isSelectAll = false;
@@ -563,7 +804,6 @@ export class TeamTimesheetComponent implements OnInit {
     });
 
   }
-  items = 10;
   handleItemsChange(event) {
     this.items = event;
 
@@ -571,15 +811,15 @@ export class TeamTimesheetComponent implements OnInit {
 
 
   //sorting timesheet
-  sortData(sort: Sort) {
-    //console.log(sort);
-    if (sort.active) {
-      let sortParams: any[] = sort.active?.split("|");
-      this.sortColumn = sortParams[0];
-      this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;
-    }
-  }
+  // sortData(sort: Sort) {
+  //   //console.log(sort);
+  //   if (sort.active) {
+  //     let sortParams: any[] = sort.active?.split("|");
+  //     this.sortColumn = sortParams[0];
+  //     this.sortColumnType = sortParams[1];
+  //     this.sortDirection = sort.direction;
+  //   }
+  // }
 
   selectAll(event) {
     this.bulkApprove = [];
@@ -663,34 +903,34 @@ export class TeamTimesheetComponent implements OnInit {
     if (isNightShiftFound.length != 0) {
       this.modalRef = this.modalService.open(nightShiftTemplate, { modalDialogClass: 'modal-lg' });
     } else {
-      this.onBulkApproval(alertTemplate);
+      this.bulkApproveByIds();
     }
   }
 
   bulkApproveWithoutNightShiftRequest(template: TemplateRef<any>) {
     this.bulkApprove = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
     if (this.bulkApprove.length !== 0) {
-      this.onBulkApproval(template);
+      this.bulkApproveByIds();
     } else {
       this.cancelRequest();
       this.showAllTimesheetRequestsTable();
     }
   }
 
-  openBulkRejectModal(nightShiftTemplate: TemplateRef<any>, bulkRejectTimesheet: TemplateRef<any>) {
+  // openBulkRejectModal(nightShiftTemplate: TemplateRef<any>, bulkRejectTimesheet: TemplateRef<any>) {
 
-    this.selectedRejectReason = '';
-    this.timesheetObj.rejectReason = '';
+  //   this.selectedRejectReason = '';
+  //   this.timesheetObj.rejectReason = '';
 
-    const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
-    //console.log(isNightShiftFound, " : isNightShiftFound");
+  //   const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
+  //   //console.log(isNightShiftFound, " : isNightShiftFound");
 
-    if (isNightShiftFound.length != 0) {
-      this.modalRef = this.modalService.open(nightShiftTemplate, { modalDialogClass: 'modal-lg' });
-    } else {
-      this.openBulkRejectTimesheet(bulkRejectTimesheet);
-    }
-  }
+  //   if (isNightShiftFound.length != 0) {
+  //     this.modalRef = this.modalService.open(nightShiftTemplate, { modalDialogClass: 'modal-lg' });
+  //   } else {
+  //     this.openBulkRejectTimesheet(bulkRejectTimesheet);
+  //   }
+  // }
 
   bulkRejectWithoutNightShiftRequest(bulkRejectTimesheet: TemplateRef<any>) {
     this.timesheetObj.rejectReason = null;
@@ -703,62 +943,74 @@ export class TeamTimesheetComponent implements OnInit {
     }
   }
 
-  onBulkApproval(template: TemplateRef<any>) {
-    this.cancelRequest();
-    //console.log("Updated Bulk List : ", this.bulkApprove);
-    let timesheetObj = new Timesheet();
-    timesheetObj.bulkApprovedList = this.bulkApprove;
-    timesheetObj.updatedBy = this.currentUser.empId;
-    timesheetObj.status = "Approved"
-    //console.log("For Bulk Update : ", timesheetObj);
-    timesheetObj.bulkApprovedList.forEach((x) => {
-      x.employeementId = x.employeementId.substring(2)
-    })
-    const empId = timesheetObj.bulkApprovedList.length > 0
-      ? timesheetObj.bulkApprovedList[0].empId
-      : null;
-    console.log("test", empId);
-    this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, "All Selected Timesheets Approved Successfully ");
-        this.showAllTimesheetRequests(empId);
-        this.bulkApprove = [];
-        this.bulkReject = [];
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
+  // onBulkApproval(template: TemplateRef<any>) {
+  //   this.cancelRequest();
+  //   //console.log("Updated Bulk List : ", this.bulkApprove);
+  //   let timesheetObj = new Timesheet();
+  //   timesheetObj.bulkApprovedList = this.bulkApprove;
+  //   timesheetObj.updatedBy = this.currentUser.empId;
+  //   timesheetObj.status = "Approved"
+  //   //console.log("For Bulk Update : ", timesheetObj);
+  //   timesheetObj.bulkApprovedList.forEach((x) => {
+  //     x.employeementId = x.employeementId.substring(2)
+  //   })
+  //   const empId = timesheetObj.bulkApprovedList.length > 0
+  //     ? timesheetObj.bulkApprovedList[0].empId
+  //     : null;
+  //   console.log("test", empId);
+  //   this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.openAlertMod(template, "All Selected Timesheets Approved Successfully ");
+  //       this.showAllTimesheetRequests(empId);
+  //       this.bulkApprove = [];
+  //       this.bulkReject = [];
+  //     } else {
+  //       console.error(response.serviceResponse)
+  //     }
+  //   });
 
-  }
+  // }
 
-  OnBulkReject(template: TemplateRef<any>) {
-    //console.log("Updated Bulk List : ", this.bulkReject);
-    let timesheetObj = new Timesheet();
-    timesheetObj.bulkRejectList = this.bulkReject;
-    timesheetObj.updatedBy = this.currentUser.empId;
-    timesheetObj.status = "Rejected"
-    timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
-    timesheetObj.rejectionId = this.selectedRejectReason;
-    //console.log("For Bulk Update : ", timesheetObj);
-    timesheetObj.bulkRejectList.forEach((y) => {
-      y.employeementId = y.employeementId.substring(2);
-    })
-    this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, "All Selected Timesheets Rejected Successfully ");
-        this.showAllTimesheetRequestsTable();
-        this.bulkApprove = [];
-        this.bulkReject = [];
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
+  // OnBulkReject(template: TemplateRef<any>) {
+  //   //console.log("Updated Bulk List : ", this.bulkReject);
+  //   let timesheetObj = new Timesheet();
+  //   timesheetObj.bulkRejectList = this.bulkReject;
+  //   timesheetObj.updatedBy = this.currentUser.empId;
+  //   timesheetObj.status = "Rejected"
+  //   timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
+  //   timesheetObj.rejectionId = this.selectedRejectReason;
+  //   //console.log("For Bulk Update : ", timesheetObj);
+  //   timesheetObj.bulkRejectList.forEach((y) => {
+  //     y.employeementId = y.employeementId.substring(2);
+  //   })
+  //   this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.openAlertMod(template, "All Selected Timesheets Rejected Successfully ");
+  //       this.showAllTimesheetRequestsTable();
+  //       this.bulkApprove = [];
+  //       this.bulkReject = [];
+  //     } else {
+  //       console.error(response.serviceResponse)
+  //     }
+  //   });
 
-  }
+  // }
 
   getDoscForPreview(docId: any) {
     console.log(docId, ":docId");
     this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        console.log(response.serviceResponse);
+        this.docData = response.serviceResponse.docData;
+        console.log(typeof (this.docData), ":docDataType")
+        this.mimeType = response.serviceResponse.docMimeType
+        this.showPreview(this.docData, this.mimeType)
+      }
+    });
+  }
+  getFinalDocumentDataByDocId(timesheetId: any, docId: any) {
+    console.log(docId, ":docId");
+    this.timesheetService.getFinalDocumentDataByDocId(timesheetId, docId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         console.log(response.serviceResponse);
         this.docData = response.serviceResponse.docData;
@@ -790,6 +1042,11 @@ export class TeamTimesheetComponent implements OnInit {
     this.isSearchEnabled = !this.isSearchEnabled;
     if (!this.isSearchEnabled) {
       this.filters = {};
+      this.getMyReporteesTimesheetRequests();
+    this.getTimesheetStatusCountsByEmpId();
+    this.isAllSelected = false;
+     this.selectedTimesheetsAccrossThePages = [];
+    this.toggleAllRows({ target: { checked: false } });
     }
 
   }
@@ -806,9 +1063,14 @@ export class TeamTimesheetComponent implements OnInit {
     this.filters1 = searchData;
     console.log("Updated Filter : ", this.filters);
   }
-  onSearch(searchData) {
-    this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+  // onSearch(searchData: any) {
+  //   this.filters = searchData;
+  //   this.page1 = 0;
+  //   this.getMyReporteesTimesheetRequests();
+  // }
+
+  onSearch(searchData: any) {
+    this.searchSubject.next(searchData);
   }
 
   getRejectionReason() {
@@ -823,39 +1085,6 @@ export class TeamTimesheetComponent implements OnInit {
     });
 
   }
-
-  // onMonthYearChange() {
-  //   this.resetBulkUploadForm('MONTH');
-  //   this.getMyReporteesAndTheirProjects();
-  //   const [year, month] = this.timesheetObj.monthYear.split('-');
-
-  //   const selectedYear = parseInt(year);
-  //   const selectedMonth = parseInt(month);
-
-  //   // Get current date info
-  //   const now = new Date();
-  //   const currentYear = now.getFullYear();
-  //   const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
-
-  //   // Calculate the previous month and previous-previous month
-  //   const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-  //   const previousMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
-
-  //   // Check if selected month is the just previous month
-  //   const isJustPreviousMonth = (selectedYear === previousMonthYear && selectedMonth === previousMonth);
-
-  //   // Set minDate based on month selection
-  //   // If just previous month: allow from 1st
-  //   // If older months (previous' previous and beyond): allow from 15th
-  //   if (isJustPreviousMonth) {
-  //     this.minDate = this.timesheetObj.monthYear + '-01';
-  //   } else {
-  //     this.minDate = this.timesheetObj.monthYear + '-15';
-  //   }
-
-  //   const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
-  //   this.maxDate = `${year}-${month}-${lastDay.toString().padStart(2, '0')}`;
-  // }
 
   onMonthYearChange() {
     this.resetBulkUploadForm('MONTH');
@@ -907,66 +1136,42 @@ export class TeamTimesheetComponent implements OnInit {
       this.minDate = null;
     }
   }
-  
 
 
-  // getMyReporteesAndTheirProjects() {
 
-  //   this.timesheetObj.managerId = this.currentUser.empId;
-  //   this.timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus == "Success") {
-  //       this.reporteesAndTheirProject = response.serviceResponse;
-  //       // this.reportees = this.reporteesAndTheirProject;
 
-  //       this.allProjects = this.reporteesAndTheirProject.reduce((acc, rp) => {
-  //         if (!acc.some(p => p.projectId === rp.projectId)) {
-  //           acc.push(rp);
-  //         }
-  //         return acc;
-  //       }, []);
-
-  //       console.log("test", this.rejectReasons);
-  //     } else {
-  //       console.error(response.serviceResponse);
-  //     }
-  //   });
-
-  // }
-
-  // Simple approach using a Map
-    
   getMyReporteesAndTheirProjects() {
       this.timesheetObj.managerId = this.currentUser.empId;
-      
+
       this.timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.reporteesAndTheirProject = response.serviceResponse;
-          
+
           const projectMap = new Map<number, { empId: number; name: string }[]>();
-          
+
           for (const employee of this.reporteesAndTheirProject) {
             const empId = employee.empId;
             const empName = employee.name;
-            
+
             if (employee.projectList) {
               for (const project of employee.projectList) {
                 const projectId = project.projectId;
-                
+
                 if (projectId) {
                   if (!projectMap.has(projectId)) {
                     projectMap.set(projectId, []);
                   }
-                  
+
                   projectMap.get(projectId).push({ empId, name: empName });
                 }
               }
             }
           }
-          
+
           console.log("Project Map:", projectMap);
-          
+
           this.projectObj = Object.fromEntries(projectMap);
-          const projectsWithDetails = response.serviceResponse.flatMap(employee => 
+          const projectsWithDetails = response.serviceResponse.flatMap(employee =>
             employee.projectList?.map(project => ({
               projectId: project.projectId,
               projectName: project.projectName
@@ -984,24 +1189,24 @@ export class TeamTimesheetComponent implements OnInit {
 
           this.allProjects = uniqueProjects;
           console.log("All Projects:", this.allProjects);
-          
-            
+
+
           // console.log("Project Object:", this.projectObj);
-          
+
         } else {
           console.error(response.serviceResponse);
         }
       });
     }
 
-  onReporteeChange(empIds: number[]) {
+ onReporteeChange(empIds: number[]) {
     //  this.resetBulkUploadForm('EMP');
     // const selectedEmp = this.reporteesAndTheirProject.find(
     //   emp => emp.empId === empId
     // );
 
     console.log("Empids: ", empIds);
-    
+
 
     this.timesheetObj.projectId = this.timesheetObj.selectedProjectId;
     this.timesheetObj.empIds = empIds;
@@ -1144,7 +1349,7 @@ export class TeamTimesheetComponent implements OnInit {
       : `Bulk upload is permitted only for the previous month (from 1st) or older months within ${this.minusDaysData.minusDays} days (from 15th). Please select a valid date range.`;
 
       if(this.finalToDate < this.finalFromDate ){
-        this.finalToDate = null;  
+        this.finalToDate = null;
       }
   }
 
@@ -1168,8 +1373,10 @@ export class TeamTimesheetComponent implements OnInit {
     console.log('Min Date:', this.minDate, 'Max Date:', this.maxDate);
   }
 
-  onFinalFileSelected(event: any): void {
+  finalFile:File|null = null;
+  async onFinalFileSelected(event: any): Promise<void> {
     const file: File = event.target.files[0];
+    this.finalFile = file;
     this.fileError2 = '';
     this.previewUrl2 = null;
     this.fileType2 = null;
@@ -1182,11 +1389,13 @@ export class TeamTimesheetComponent implements OnInit {
 
     if (!allowedTypes.includes(file.type)) {
       this.fileError2 = 'Only PDF, JPG, JPEG, PNG, XLSX, and XLS files are allowed.';
+      this.finalFile = null;
       return;
     }
 
     if (file.size > maxSize) {
       this.fileError2 = 'File size must be 500Kb or less.';
+      this.finalFile = null;
       return;
     }
 
@@ -1196,15 +1405,29 @@ export class TeamTimesheetComponent implements OnInit {
 
     const objectUrl = URL.createObjectURL(file);
     this.rawObjectUrl2 = objectUrl;
-    this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
-    this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
-    this.selectedFile2 = file;
+    // this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
+    const excelTypes = [
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    // ✅ Detect file type ONCE
+    this.fileType2 =
+    file.type === 'application/pdf' ? 'pdf' :
+    excelTypes.includes(file.type) ? 'excel' : 'image';
+    if(this.fileType2 == 'image' || this.fileType2 == 'pdf'){
+      this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    }
+    else{
+      this.previewUrl2 = null;
+    }
+    this.selectedFile2 = await this.renameFile(file, this.timesheetObj.projectId, 'Approved');
+    console.log("selectedFile2: ",this.selectedFile2);
     this.fileName2 = file.name;
-    console.log(this.selectedFile2, "::this.selectedFile", this.fileName2, "::this.fileName")
   }
 
 
   openPreviewModalForTwo(docType: 'doc1' | 'doc2'): void {
+    this.openPreview();
     this.previewUrl = docType === 'doc1' ? this.previewUrl1 : this.previewUrl2;
     this.fileType = docType === 'doc1'
       ? (this.selectedFile?.type === 'application/pdf' ? 'pdf' : 'image')
@@ -1231,6 +1454,7 @@ export class TeamTimesheetComponent implements OnInit {
     console.log(this.finalFromDate);
     console.log(this.finalToDate);
     console.log(this.timesheetObj.projectId);
+    console.log(this.selectedFile2);
     if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
       // this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.timesheetObj.selectedEmpId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       //   if (response.serviceStatus === "Success") {
@@ -1248,7 +1472,9 @@ export class TeamTimesheetComponent implements OnInit {
         fromDate: this.finalFromDate,
         toDate: this.finalToDate,
         projectId: this.timesheetObj.projectId,
+        isBulkUploadBySelf:false
       }
+      console.log("This payload: ",payload);
 
       this.timesheetService.bulkFinalUploadProjectBased(payload, this.selectedFile2).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
@@ -1313,6 +1539,7 @@ export class TeamTimesheetComponent implements OnInit {
 
     if (level === 'PROJECT') {
 
+
     }
 
     if (level === 'UPLOAD') {
@@ -1350,9 +1577,9 @@ export class TeamTimesheetComponent implements OnInit {
       }
     });
 
-
-
   }
+
+
 
 
   openClientSideIdForm() {
@@ -1500,19 +1727,43 @@ export class TeamTimesheetComponent implements OnInit {
     setTimeout(() => (this.showDropdown = false), 150);
   }
   filteredData() {
-    if (!this.searchText) return this.allTeamTimesheetRequestsProjectView;
-    const lowerSearchText = this.searchText.toLowerCase();
+    let data = this.allTeamTimesheetRequestsProjectView || [];
 
-    return this.allTeamTimesheetRequestsProjectView.filter(item =>
-      item.name?.toLowerCase().includes(lowerSearchText) ||
-      item.employeementId?.toString().toLowerCase().includes(lowerSearchText) ||
-      item.clientSideId?.toLowerCase().includes(lowerSearchText) ||
-      item.departmentName?.toLowerCase().includes(lowerSearchText) ||
-      item.projectName?.toLowerCase().includes(lowerSearchText) ||
-      item.poNo?.toLowerCase().includes(lowerSearchText) ||
-      item.teamName?.toLowerCase().includes(lowerSearchText)
-    );
+    if (this.searchText && this.searchText.trim()) {
+      const search = this.searchText.toLowerCase().trim();
+
+      data = data.filter(item =>
+        /* ✅ EMPLOYEE NAME */
+        item.employeeName?.toLowerCase().includes(search)
+
+        /* ✅ EMP ID (NUMBER OR STRING BOTH) */
+        || item.empId?.toString().toLowerCase().includes(search)
+        || item.employeementId?.toString().toLowerCase().includes(search)
+
+        /* OTHER FIELDS */
+        || item.clientSideId?.toLowerCase().includes(search)
+        || item.departmentName?.toLowerCase().includes(search)
+        || item.projectName?.toLowerCase().includes(search)
+        || item.poNo?.toLowerCase().includes(search)
+        || item.teamName?.toLowerCase().includes(search)
+      );
+    }
+
+    /* COLUMN FILTER (toggle search row) */
+    if (this.filters && Object.keys(this.filters).length) {
+      Object.keys(this.filters).forEach(key => {
+        const value = this.filters[key];
+        if (value) {
+          data = data.filter(item =>
+            item[key]?.toString().toLowerCase().includes(value.toLowerCase())
+          );
+        }
+      });
+    }
+
+    return data;
   }
+
 
   filterSuggestions(): void {
     if (!this.searchText) {
@@ -1573,68 +1824,106 @@ export class TeamTimesheetComponent implements OnInit {
 
   updateSelectedRows(row: any) {
     this.selectedRows = this.filteredData().filter(r => r.selected);
+    const currentPageIds = new Set(this.filteredData().map(r => r.timesheetId));
+    console.log("Before removal of selected rows", this.selectedTimesheetsAccrossThePages);
+    console.log("Current page Id's",currentPageIds);
+     this.selectedTimesheetsAccrossThePages = this.selectedTimesheetsAccrossThePages
+    ?.filter(r => !currentPageIds.has(r.timesheetId));
+
+  // Add currently selected ones back
+  this.selectedTimesheetsAccrossThePages = [
+    ...this.selectedTimesheetsAccrossThePages,
+    ...this.selectedRows
+  ];
     console.log("test", this.selectedRows);
+    if(this.selectedRows.length != this.filteredData().length){
+      this.isAllSelected = false;
+    }else if (this.selectedRows.length !=0 && this.selectedRows.length == this.filteredData().length){
+      this.isAllSelected = true;
+    }
+    console.log(" this.isAllSelected =", this.isAllSelected )
+    console.log("Selected rows across pages", this.selectedTimesheetsAccrossThePages);
   }
 
   toggleAllRows(event: any) {
     const checked = event.target.checked;
-    this.filteredData().forEach(r => (r.selected = checked));
+    console.log(checked);
+    this.filteredData().forEach((timesheet: any) => {
+      timesheet.selected = checked;
+      this.onEmployeeToggle(timesheet); // 🔥 hierarchy call
+    });
+   
     this.updateSelectedRows(null);
   }
+
+
   clearAllSelections() {
     this.filteredData().forEach(r => r.selected = false);
     this.selectedRows = [];
+    this.selectedTimesheetsAccrossThePages = [];
+    this.toggleAllRows({ target: { checked: false } });
   }
 
-  bulkApprove1(template: TemplateRef<any>) {
-    let timesheetObj = new Timesheet();
-    timesheetObj.status = "Approved"
-    const rawData = this.selectedRows;
-    const empDetails = rawData.map(item => ({
-      empId: item.empId,
-      teamId: item.teamId,
-      status: "Approved",
-      timesheetStatusUpdatedBy: this.currentUser.empId
-    }));
+  // bulkApprove1(template: TemplateRef<any>) {
+  //   let timesheetObj = new Timesheet();
+  //   timesheetObj.status = "Approved"
+  //   const rawData = this.selectedRows;
+  //   const empDetails = rawData.map(item => ({
+  //     empId: item.empId,
+  //     teamId: item.teamId,
+  //     status: "Approved",
+  //     timesheetStatusUpdatedBy: this.currentUser.empId
+  //   }));
 
-    const payload = {
-      pendingApprovalList: empDetails
-    };
-    this.timesheetService.approveTimesheetRequest(payload).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.clearAllSelections();
-        this.openAlertMod(template, response.serviceResponse);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
+  //   const payload = {
+  //     pendingApprovalList: empDetails
+  //   };
+  //   this.timesheetService.approveTimesheetRequest(payload).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.clearAllSelections();
+  //       this.openAlertMod(template, response.serviceResponse);
+  //     } else {
+  //       this.openAlertMod(template, response.serviceResponse);
+  //     }
+  //   });
 
+  // }
+
+  getSelectedTimesheetIds(): number[] {
+    return this.selectedRows
+      .map(row => row.timesheetId)
+      .filter(id => id != null);
   }
+  getSelectedTimesheets(): any[] {
+  // return this.selectedRows.filter(row => row?.timesheetId != null);
+  return this.selectedTimesheetsAccrossThePages.filter(row => row?.timesheetId!= null);
+}
 
 
-  bulkReject1(template: TemplateRef<any>) {
-    const rawData = this.selectedRows;
-    const empDetails = rawData.map(item => ({
-      empId: item.empId,
-      teamId: item.teamId,
-      status: "Rejected",
-      timesheetStatusUpdatedBy: this.currentUser.empId,
-      rejectionId: this.selectedRejectReason,
-      rejectReason: this.timesheetObj.rejectReason
-    }));
-    const payload = {
-      pendingApprovalList: empDetails
-    };
-    this.timesheetService.approveTimesheetRequest(payload).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.clearAllSelections();
-        this.openAlertMod(template, "Timesheets rejected successfully");
-      } else {
-        this.openAlertMod(template, "Timesheets rejection failed");
-      }
+  // bulkReject1(template: TemplateRef<any>) {
+  //   const rawData = this.selectedRows;
+  //   const empDetails = rawData.map(item => ({
+  //     empId: item.empId,
+  //     teamId: item.teamId,
+  //     status: "Rejected",
+  //     timesheetStatusUpdatedBy: this.currentUser.empId,
+  //     rejectionId: this.selectedRejectReason,
+  //     rejectReason: this.timesheetObj.rejectReason
+  //   }));
+  //   const payload = {
+  //     pendingApprovalList: empDetails
+  //   };
+  //   this.timesheetService.approveTimesheetRequest(payload).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.clearAllSelections();
+  //       this.openAlertMod(template, "Timesheets rejected successfully");
+  //     } else {
+  //       this.openAlertMod(template, "Timesheets rejection failed");
+  //     }
+  //   });
+  // }
 
-    });
-  }
+
 
   showTimesheetRequests(template: TemplateRef<any>, details: any): void {
     this.isAllTimesheetRequestTable = true;
@@ -1797,125 +2086,97 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
 
-  // openReqMod(template: TemplateRef<any>) {
-
-  //   this.filters = {};
-  //   this.isSearchEnabled = false;
-  //   this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
-  // }
-
   opnenbulkRejectTimesheet(template: TemplateRef<any>) {
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
 
 
+
+
+  prepareFlatTimesheetData(timesheets: any[]): any[] {
+  const flatList: any[] = [];
+
+  timesheets.forEach(timesheet => {
+    (timesheet.locationSessions || []).forEach(location => {
+      (location.projects || []).forEach(project => {
+
+        const activities = project.activities && project.activities.length
+          ? project.activities
+          : [null]; // 👈 fallback
+
+        activities.forEach(activity => {
+
+          flatList.push({
+            // ===== TIMESHEET LEVEL =====
+            "Employee Id": timesheet.employmentId,
+            "Employee Name": timesheet.employeeName,
+            "Date": timesheet.date,
+            "Day Type": timesheet.dayType,
+            "Applied By": timesheet.appliedBy,
+            "Applied On": timesheet.appliedOn,
+
+            // ===== LOCATION LEVEL =====
+            "Work Location": location.workLocationType,
+            "Location In": location.locationInTime,
+            "Location Out": location.locationOutTime,
+
+            // ===== PROJECT LEVEL =====
+            "Project Name": project.projectName,
+            "Is Shadow": project.shadowEmp ? 'Yes' : 'No',
+
+            // ===== ACTIVITY LEVEL =====
+            // "Team Name": activity?.teamName || '-',
+            "Activity": activity?.activity || 'No Activity',
+            "Description": project.description || '-',
+            "Hours": activity?.durationMinutes || '00:00'
+          });
+
+        });
+
+      });
+    });
+  });
+
+  return flatList;
+}
+
+
   exportExcel1() {
-    if (this.isAllTimesheetRequestTable == true) {
-      this.excelName = 'AllTeamTimesheetDetails.xlsx';
-
-      this.allTeamTimesheetDataForExcel = this.allTeamTimesheetRequestsProjectView;
-      const onlySpecificDataArr = this.allTeamTimesheetDataForExcel.map(x => ({
-        "Employee Id": x.employeementId,
-        "Client Side Id": x.clientSideId,
-        "Employee Name": x.name,
-        "Team Name": x.teamName,
-        "Department Name": x.departmentName,
-        "Project Name": x.projectName,
-        "PONO": x.poNo,
-        "Client Name": x.clientName,
-        "Billable Type": x.billableType,
-        "Employee Role": x.employeeRole,
-        "SPOC": x.spoc,
-        "Project Manager Name": x.projectManagerName,
-        "Start Date": x.startdate,
-        "Total Expected Fill Count": x.totalExpectedFillCount,
-        "Total Filled Count": x.totalIshineFilledCount,
-        "TotalClient Side Not Filled Count": x.totalClientSideNotFilledCount,
-        "Total Client Side Pending Count": x.totalClientSidePendingCount,
-        "Total Client Side Approved Count": x.totalClientSideApprovedCount
-      }));
-
-
-      const fieldDetails = [
-        { Field: "Employee Id", Description: "Unique identifier for employee" },
-        { Field: "Client Side Id", Description: "Client's identification for the employee" },
-        { Field: "Employee Name", Description: "Name of the employee" },
-        { Field: "Team Name", Description: "Team where employee belongs" },
-        { Field: "Department Name", Description: "Department name" },
-        { Field: "Project Name", Description: "Project employee is assigned to" },
-        { Field: "PONO", Description: "Purchase Order Number" },
-        { Field: "Client Name", Description: "Name of the client" },
-        { Field: "Billable Type", Description: "Billable or Non-billable status" },
-        { Field: "Employee Role", Description: "Role of the employee" },
-        { Field: "SPOC", Description: "Single Point of Contact" },
-        { Field: "Project Manager Name", Description: "Name of project manager" },
-        { Field: "Start Date", Description: "Project start date" },
-        { Field: "Total Expected Fill Count", Description: "The Total Expected Fill Count represents the net number of working days the employee is expected to contribute during the current month on a project, adjusted for their project start date, any leaves taken, and all applicable holidays." },
-        { Field: "Total Filled Count", Description: "Total Timesheet filled from Ishine system" },
-        { Field: "Total Client Side Not Filled Count", Description: "Client side unfilled counts" },
-        { Field: "Total Client Side Pending Count", Description: "Pending approvals count of Client Side Attendance" },
-        { Field: "Total Client Side Approved Count", Description: "Approved counts by client" }
-      ];
-
-
-      const wb = XLSX.utils.book_new();
-
-
-      const dataSheet = XLSX.utils.json_to_sheet(onlySpecificDataArr);
-      const detailsSheet = XLSX.utils.json_to_sheet(fieldDetails);
-
-
-      XLSX.utils.book_append_sheet(wb, dataSheet, "Timesheet Data");
-      XLSX.utils.book_append_sheet(wb, detailsSheet, "Field Details");
-
-
-      XLSX.writeFile(wb, this.excelName);
+    this.excelName = 'Timesheet_Report.xlsx';
+    console.log(this.allTeamTimesheetRequestsProjectView,'data');
+    const flatData = this.prepareFlatTimesheetData(
+      this.allTeamTimesheetRequestsProjectView
+    );
+    console.log(flatData, 'flatData')
+    if (!flatData.length) {
+      return;
     }
-  }
 
+    const wb = XLSX.utils.book_new();
+    const sheet = XLSX.utils.json_to_sheet(flatData);
+
+    XLSX.utils.book_append_sheet(wb, sheet, 'Timesheet Data');
+    XLSX.writeFile(wb, this.excelName);
+  }
 
   resetDateFilter() {
     this.toDate = '';
     this.fromDate = '';
     this.getMyReporteesTimesheetRequests();
   }
- 
 
-zoomIn() {
-  if (this.zoomScale < 2.5) {
-    this.zoomScale += 0.1;
-    this.zoomLevel = Math.round(this.zoomScale * 100);
+
+
+
+  get transformStyle() {
+    if (this.zoomScale <= 1) {
+      return `scale(${this.zoomScale})`; // no translate when normal
+    }
+    return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
   }
-}
-
-zoomOut() {
-  if (this.zoomScale > 0.5) {
-    this.zoomScale -= 0.1;
-    this.zoomLevel = Math.round(this.zoomScale * 100);
-  }
-}
 
 
-get transformStyle() {
-  return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
-}
-
-startDrag(event: MouseEvent) {
-  if (this.zoomScale <= 1) return; // drag only when zoomed
-
-  this.isDragging = true;
-  this.startX = event.clientX - this.translateX;
-  this.startY = event.clientY - this.translateY;
-  event.preventDefault();
-}
-
-onDrag(event: MouseEvent) {
-  if (!this.isDragging) return;
-
-  this.translateX = event.clientX - this.startX;
-  this.translateY = event.clientY - this.startY;
-}
 
 endDrag() {
   this.isDragging = false;
@@ -1929,11 +2190,916 @@ resetPreviewState() {
   this.isDragging = false;
 }
 
+
+expandedTimesheetIndex: number | null = null;
+expandedProjectKey: string | null = null;
+
+toggleProject(tIndex: number,l: number, pIndex: number):void {
+  const key = `${tIndex}-${l}-${pIndex}`;
+  this.expandedProjectKey =
+    this.expandedProjectKey === key ? null : key;
+}
+/* EMPLOYEE ACCORDION */
+
+/* MAIN ACCORDION */
+toggleAccordion(index: number,timesheet:any): void {
+  if (this.expandedTimesheetIndex === index) {
+    this.expandedTimesheetIndex = null;
+    this.expandedProjectKey = null;   // close project accordion
+     this.selectedTimesheet = null;
+  } else {
+    this.expandedTimesheetIndex = index;
+    this.expandedProjectKey = null;   // reset project when switching employee
+     this.selectedTimesheet = timesheet;
+  }
+}
+
+
+
+
+
+   onEmployeeToggle(timesheet: any) {
+    if (!timesheet.locationSessions) return;
+
+    timesheet.locationSessions.forEach((loc: any) => {
+      if (!loc.projects) return;
+
+      loc.projects.forEach((project: any) => {
+        project.isSelected = timesheet.selected;
+      });
+    });
+  }
+
+
+
+  onProjectToggle(timesheet: any, project: any) {
+    const allProjects =
+      timesheet.locationSessions
+        ?.flatMap((l: any) => l.projects || []) || [];
+
+    // Parent (Timesheet) checked ONLY if all projects checked
+    timesheet.selected =
+      allProjects.length > 0 &&
+      allProjects.every((p: any) => p.isSelected === true);
+  }
+
+
+viewDoc(docUrl: string) {
+  if (!docUrl) return;
+
+  window.open(docUrl, '_blank');
+}
+
+isDocPopupOpen = false;
+
+closeDocumentPopup() {
+  this.isDocPopupOpen = false;
+  this.selectedTimesheet = null;
+}
+
+
+/* =======================
+   DOCUMENT VIEWER POPUP
+   ======================= */
+
+   @ViewChild('documentViewerModal') documentViewerModal!: TemplateRef<any>;
+   @ViewChild('documentViewerModalToggle') documentViewerModalToggle: TemplateRef<any>;
+
+   activeDocProject: any = null;
+   activeDocType: 'Pending' | 'Approved' = 'Pending';
+   isToggleMode: boolean = false;
+   activePreviewFile: any = null;
+   selectedTimesheet: any = null;
+
+   /* OPEN POPUP */
+openDocumentPopup(
+  timesheet: any,
+  docType: 'Pending' | 'Approved',
+  toggleMode: boolean = true,
+  project?: any
+): void {
+  console.log("Opening document");
+  this.selectedTimesheet = timesheet;
+  this.isToggleMode = toggleMode;
+  console.log("Project",project);
+
+  if (project) {
+
+    this.activeDocProject = project;
+  } else {
+    const firstDoc = timesheet.documentData?.[0];
+    if (firstDoc) {
+      this.activeDocProject = this.getProjectById(firstDoc.docsProjectId, timesheet);
+    } else {
+      this.activeDocProject = undefined;
+    }
+  }
+
+  this.activeDocType =  docType ? docType : 'Pending';
+
+
+if (toggleMode) {
+
+  this.modalRef = this.modalService.open(
+    this.documentViewerModalToggle,
+    { modalDialogClass: 'modal-xl', backdrop: 'static' }
+  );
+
+  this.getDocument(this.activeDocType);
+
+} else {
+
+  this.modalRef = this.modalService.open(
+    this.documentViewerModal,
+    { modalDialogClass: 'modal-xl', backdrop: 'static' }
+  );
+
+  this.loadActiveDocument();
+}
+}
+
+getProjectById(projectId: number, timesheet: any) {
+  for (const loc of timesheet.locationSessions || []) {
+    const proj = loc.projects?.find(p => p.projectId === projectId);
+    if (proj) return proj;
+  }
+  return undefined;
+}
+
+
+
+   /* PROJECT LIST */
+   getUniqueProjectsFromTimesheet(timesheet: any): any[] {
+     const map = new Map<number, any>();
+
+     (timesheet.locationSessions || []).forEach(loc => {
+       (loc.projects || []).forEach(proj => {
+         map.set(proj.projectId, proj);
+       });
+     });
+
+     return Array.from(map.values());
+   }
+
+   /* LEFT PROJECT CLICK */
+   selectProjectForDoc(project: any, type: 'Pending' | 'Approved'): void {
+     this.activeDocProject = project;
+     this.switchDocType(type);
+    //  this.setDefaultDocForProject();
+   }
+
+   /* TOGGLE PENDING / APPROVED */
+   switchDocType(type: 'Pending' | 'Approved'): void {
+     this.activeDocType = type;
+     this.loadActiveDocument();
+   }
+
+   /* DEFAULT DOC */
+   setDefaultDocForProject(): void {
+     if (!this.activeDocProject) {
+       this.activePreviewFile = null;
+       return;
+     }
+
+     if (this.hasApprovedDoc(this.activeDocProject.projectId)) {
+       this.activeDocType = 'Approved';
+     } else if (this.hasPendingDoc(this.activeDocProject.projectId)) {
+       this.activeDocType = 'Pending';
+     } else {
+       this.activePreviewFile = null;
+       return;
+     }
+
+     this.loadActiveDocument();
+   }
+
+   /* LOAD DOC */
+loadActiveDocument(): void {
+
+  if (!this.selectedTimesheet) {
+    this.safePdfUrl = null;
+    return;
+  }
+
+  this.getDocument(this.activeDocType);
+
+}
+
+
+   /* HELPERS */
+hasPendingDoc(projectId: number): boolean {
+  return this.selectedTimesheet?.documentData?.some(
+    d => d.docId != null && d.docsProjectId === projectId
+  ) || false;
+}
+
+hasApprovedDoc(projectId: number): boolean {
+  return this.selectedTimesheet?.documentData?.some(
+    d => d.bulkApprovedDocId != null && d.docsProjectId === projectId
+  ) || false;
+}
+
+
+getPendingCount(projectId: number): number {
+  // Count number of pending docs for this project
+  return this.selectedTimesheet?.documentData?.filter(
+    d => d.docsProjectId === projectId && d.docId != null
+  ).length || 0;
+}
+
+getApprovedCount(projectId: number): number {
+  // Count number of approved docs for this project
+  return this.selectedTimesheet?.documentData?.filter(
+    d => d.docsProjectId === projectId && d.bulkApprovedDocId != null
+  ).length || 0;
+}
+
+
+  getFilledStatus(projectId: number): string {
+
+  const docs = this.selectedTimesheet?.documentData || [];
+
+  const hasPending = docs.some(d => d.docId != null);
+  const hasApproved = docs.some(d => d.bulkApprovedDocId != null);
+
+  if (hasPending && hasApproved) return 'Pending , Approved';
+  if (hasPending) return 'Pending';
+  if (hasApproved) return 'Approved';
+
+  return '';
+}
+
+  //  getDocument(projectId: number, type: 'Pending' | 'Approved'): any {
+  //    return this.selectedTimesheet?.doumentData?.find(d =>
+  //      d.projectId === projectId &&
+  //      (type === 'Pending' ? !d.finalFlag : d.finalFlag)
+  //    );
+  //  }
+
+
+// getDocument(type: 'Pending' | 'Approved'): void {
+
+//   const doc = this.selectedTimesheet?.documentData?.find(d =>
+//     type === 'Pending' ? !d.finalFlag : d.finalFlag
+//   );
+//   if (!doc?.docId) {
+//     this.activePreviewFile = null;
+//     this.safePdfUrl = null;
+//     return;
+//   }
+
+
+//   if (type === 'Pending') {
+//     console.log("Pending DocId:", doc.docId);
+//   } else if (type === 'Approved') {
+
+//     console.log("Approved bulkApprovedDocId:", doc.bulkApprovedDocId);
+//   }
+
+
+//   this.timesheetNewService
+//     .getDocumentById(doc.docId, doc?.finalFlag)
+//     .subscribe({
+//       next: (blob: Blob) => {
+
+//         const fileURL = URL.createObjectURL(blob);
+
+//         this.safePdfUrl =
+//           this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+
+//       },
+//       error: err => {
+//         console.error("Document fetch failed", err);
+//         this.activePreviewFile = null;
+//       }
+//     });
+// }
+
+
+// getDocument(type: 'Pending' | 'Approved'): void {
+
+//   const doc = this.selectedTimesheet?.documentData[0];
+
+
+//   if (!doc?.docId) {
+//     this.activePreviewFile = null;
+//     this.safePdfUrl = null;
+//     return;
+//   }
+
+
+//   let docType: boolean = doc.finalFlag;
+
+
+//   let docIdToSend: number = doc.docId;
+
+//   if (type === 'Approved' && doc.bulkApprovedDocId) {
+//     docIdToSend = doc.bulkApprovedDocId;
+//   }
+
+
+//   if (type === 'Pending') {
+//     console.log("Pending DocId:", doc.docId);
+//   } else {
+//     docType = true;
+//     console.log("Approved bulkApprovedDocId:", doc.bulkApprovedDocId);
+//   }
+
+
+//   this.timesheetNewService
+//     .getDocumentById(docIdToSend, docType)
+//     .subscribe({
+//       next: (blob: Blob) => {
+
+//         const fileURL = URL.createObjectURL(blob);
+
+//         this.safePdfUrl =
+//           this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+
+//       },
+//       error: err => {
+//         console.error("Document fetch failed", err);
+//         this.activePreviewFile = null;
+//       }
+//     });
+// }
+
+
+
+
+getDocument(type: 'Pending' | 'Approved'): void {
+ if (!this.selectedTimesheet || !this.activeDocProject) {
+    this.clearPreview();
+    return;
+  }
+
+  const doc = this.selectedTimesheet.documentData?.find(d => d.docsProjectId === this.activeDocProject.projectId);
+
+  if (!doc) {
+    console.log(`No document found for project ${this.activeDocProject.projectId}`);
+    this.clearPreview();
+    return;
+  }
+
+  const docIdToSend = type === 'Approved' ? doc.bulkApprovedDocId : doc.docId;
+
+  if (!docIdToSend) {
+    console.log(`No ${type} document available for project ${this.activeDocProject.projectId}`);
+    this.clearPreview();
+    return;
+  }
+
+
+
+  this.safePdfUrl=null;
+
+  // Fetch document from backend
+  this.timesheetNewService.getDocumentById(docIdToSend, type === 'Approved')
+    .subscribe({
+      next: (blob: Blob) => {
+        this.clearPreview();
+        this.activeRawObjectUrl = URL.createObjectURL(blob);
+        const mime = (blob?.type || '').toLowerCase();
+        this.currentObjectUrl = URL.createObjectURL(blob);
+        const excelTypes = [
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ];
+        if (mime.includes('pdf')) {
+          this.activeFileType = 'pdf';
+          this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.currentObjectUrl);
+        } else if (mime.startsWith('image/')) {
+          this.activeFileType = 'image';
+          this.activePreviewUrl = this.currentObjectUrl;
+        } else if(excelTypes.includes(mime)) {
+          this.excelDownloadService.openConfirmAndDownload(blob,null);
+        } 
+        else {
+          // fallback: try showing as pdf (some backends send application/octet-stream)
+          // if it fails in iframe, user can still download
+          this.activeFileType = 'pdf';
+          this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.currentObjectUrl);
+        }
+      },
+      error: err => {
+        console.error("Document fetch failed", err);
+        this.safePdfUrl = null;
+      }
+    });
+}
+
+  //  Navigation CARDS
+
+   selectedStatus: number = 1;
+   private searchSubject = new Subject<any>();
+   onStatusChange(status: number) {
+    this.selectedStatus = status;
+    console.log("Status changed to:", this.selectedStatus);
+    this.page1 = 0; // pagination reset
+    this.paginator?.firstPage();
+    // this.items = 10;
+    this.isSearchEnabled = false;
+    this.expandedTimesheetIndex = null;
+    this.expandedProjectKey = null;
+    this.filters = {};
+    this.isAllSelected = false;
+    this.toggleAllRows({ target: { checked: false } });
+    this.getMyReporteesTimesheetRequests();
+    this.getTimesheetStatusCountsByEmpId();
+  }
+
+
+  getTimesheetStatusCountsByEmpId() {
+    const payload : any = {
+      managerId: this.currentUser.empId,
+      clientFilter: this.clientFilter,
+      startDate: this.startDate,
+      endDate: this.endDate
+    };
+
+    this.loaderService.requestStarted();
+
+    this.timesheetNewService
+  .getMyReporteesTimesheetRequestsCount(payload)
+  .pipe(finalize(() => this.loaderService.requestEnded()))
+  .subscribe({
+    next: (res: any) => {
+      console.log("Status Count Response", res);
+      if (res && res.serviceResponse) {
+        this.pendingCount = 0;
+        this.approvedCount = 0;
+        this.rejectedCount = 0;
+        res.serviceResponse.forEach((item: any) => {
+          const status = item[0]?.toLowerCase();
+          const count = Number(item[1]) || 0;
+          if (status === 'pending') {
+            this.pendingCount = count;
+          }
+          else if (status === 'approved') {
+            this.approvedCount = count;
+          }
+          else if (status === 'rejected') {
+            this.rejectedCount = count;
+          }
+        });
+      }
+    }
+  });
+}
+
+selectedProjects: any[] = [];
+selectedRejectReasons: any[] = [];
+rejectRemark: string = '';
+
+projectList: any[] = [];
+
+// openRejectPopup(template: any, timesheet: any) {
+//   this.selectedTimesheet = timesheet;
+//   this.selectedProjects = [];
+//   this.selectedRejectReasons = [];
+//   this.rejectRemark = '';
+
+//   // Flatten project list from timesheet (UI only)
+//   this.projectList =
+//     timesheet?.locationSessions?.flatMap((l: any) => l.projects) || [];
+
+//   this.modalRef = this.modalService.open(template, {
+//     modalDialogClass: 'modal-lg',
+//     backdrop: 'static'
+//   });
+
+// }
+
+  // BULK APPROVAL
+  
+async  bulkApproveByIds(confirmNightShift: boolean = false, ids?: number[]) {
+
+  let shouldCancel = false;
+    // const timesheetIds  = ids || this.getSelectedTimesheetIds();
+    console.log('befor', this.selectedRows)
+     const selectedTimesheets =  this.selectedTimesheetsAccrossThePages.filter(row => row?.timesheetId != null);
+
+    console.log('After', this.selectedRows)
+    console.log("selectedTimesheets",  selectedTimesheets);
+    let dataToValidate = structuredClone(selectedTimesheets);
+  let payloadData = structuredClone(selectedTimesheets);
+  let compOffValidate = structuredClone(selectedTimesheets);
+  let timesheetIds = [];
+    if(dataToValidate.filter(ts=>ts.isNightShift == true).length > 0){
+
+          const modalRef = this.modalService.open(this.nightShiftConfirmModal, {
+      modalDialogClass: 'ts-alert-modal',
+      backdrop: 'static'
+    });
+
+          await modalRef.result.then((result) => {
+            console.log(result);
+            if (result != undefined && result === 'YES') {
+              confirmNightShift = true;
+              // timesheetIds = payloadData.map(ts => ts.timesheetId);
+            } else if(result != undefined && result === 'NO'){
+              confirmNightShift = false;
+            //  timesheetIds =  payloadData.filter(ts=>ts.isNightShift != true).map(ts => ts.timesheetId);
+            }else{
+              // return;
+              shouldCancel = true;
+            }
+
+          }).catch(() => {});
+        if(shouldCancel){
+          return;
+        }
+  }
+    const hasCompOff = compOffValidate.some(ts =>
+      ts.dayType?.toLowerCase() === 'comp off'
+    );
+
+    if (hasCompOff) {
+
+      const modalRef = this.modalService.open(this.compOffConfirmModal);
+
+      await modalRef.result.then((result) => {
+        if (result === 'APPROVE') {
+          timesheetIds = selectedTimesheets.map(ts=> ts.timesheetId);
+          this.executeBulkApprove(timesheetIds,confirmNightShift);
+        }
+      }).catch(() => {});
+
+      return;
+    }
+
+    timesheetIds = selectedTimesheets.map(ts=> ts.timesheetId);
+    this.executeBulkApprove(timesheetIds,confirmNightShift);
+
+
+  }
+
+
+// BULK REJECT (FIXED)
+// BulkRejectByIds(
+//   template: TemplateRef<any>,
+//   rejectReason: string
+// ) {
+
+//   const timesheetIds = this.getSelectedTimesheetIds();
+
+//   if (!timesheetIds.length) {
+//     this.openAlertMod(template, 'No timesheets selected');
+//     return;
+//   }
+
+//   if (!rejectReason || !rejectReason.trim()) {
+//     this.openAlertMod(template, 'Reject reason is required');
+//     return;
+//   }
+
+//   const payload = {
+//     timesheetIds,
+//     projectIds: [],   // ⭐ ADD THIS
+
+//     status: 'REJECTED',
+//     updatedBy: this.currentUser.empId,
+//     rejectReason: rejectReason.trim(),
+//     rejectRemark: rejectReason.trim()
+//   };
+
+//   this.timesheetNewService
+//     .bulkRejectTimesheetsByIds1(payload)
+//     .subscribe({
+//       next: (res: any) => {
+//         if (res?.serviceStatus === 'Success') {
+//           this.clearAllSelections();
+//           this.modalRef?.close();
+//           this.getMyReporteesTimesheetRequests();
+//           this.openAlertMod(
+//             template,
+//             res.serviceResponse || 'Timesheets rejected successfully'
+//           );
+//         } else {
+//           this.openAlertMod(
+//             template,
+//             res?.serviceResponse || 'Bulk rejection failed'
+//           );
+//         }
+//       },
+//       error: () => {
+//         this.openAlertMod(template, 'Bulk rejection failed');
+//       }
+//     });
+
+
+// }
+
+
+
+openBulkRejectModal(bulkRejectTimesheet: TemplateRef<any>): void {
+  this.selectedRejectReason = '';
+  this.timesheetObj.rejectReason = '';
+
+  this.modalRef = this.modalService.open(
+    bulkRejectTimesheet,
+    { modalDialogClass: 'modal-lg', backdrop: 'static' }
+  );
+}
+hasClientApprovalPending(timesheet: any): boolean {
+
+  if (!timesheet?.locationSessions?.length) {
+    return false;
+  }
+
+  return timesheet.locationSessions.some((location: any) =>
+    (location.projects || []).some((project: any) =>
+      Number(project.clientApprovalStatus) === 1
+    )
+  );
+
+}
+
+// SINGLE TIMESHEET APPROVE
+approveSingleTimesheet(timesheet: any) {
+
+  if (!timesheet?.timesheetId) {
+    alert('Invalid timesheet');
+    return;
+  }
+
+  const payload = {
+    timesheetIds: [timesheet.timesheetId],
+    status: 'APPROVED',
+    updatedBy: this.currentUser.empId,
+    rmId: this.currentUser.empId
+  };
+this.modalMessage = null;
+this.skippedTimesheetList = null
+  this.loaderService.requestStarted();
+this.modalMessage = null;
+this.skippedTimesheetList = null
+  this.timesheetNewService
+    .bulkApproveTimesheetsByIds1(payload)
+    .pipe(finalize(() => this.loaderService.requestEnded()))
+    .subscribe({
+      next: (res: any) => {
+         this.modalTitle = 'Result';
+        let message = '';
+
+        if (res?.serviceStatus === 'Success') {
+
+          const processed = res?.serviceResponse?.processed || [];
+          const skipped = Array.isArray(res?.serviceResponse?.skipped)
+            ? res.serviceResponse.skipped
+            : [];
+          if (processed.length) {
+            message += `${processed.length} timesheet(s) approved successfully.\n`;
+             this.modalMessage = message;
+            //  this.modalService.open(this.statusModal, {modalDialogClass: 'ts-alert-modal'});
+          }else{
+            this.modalMessage = "No Valid Timesheet Request Found For Approval."
+          }
+          if (skipped.length) {
+
+            this.skippedTimesheetList = skipped
+
+              // message += `
+              //   <p><strong>Skipped Timesheets</strong></p>
+              //   <table class="table table-bordered table-sm">
+              //     <thead>
+              //       <tr>
+              //         <th>EMP ID</th>
+              //         <th>Date</th>
+              //         <th>Reason</th>
+              //       </tr>
+              //     </thead>
+              //     <tbody>
+              // `;
+
+              // skipped.forEach((item: any) => {
+              //   message += `
+              //     <tr>
+              //       <td>${item.employmentId}</td>
+              //       <td>${item.date}</td>
+              //       <td>${item.reason}</td>
+              //     </tr>
+              //   `;
+              // });
+
+              // message += `</tbody></table>`;
+            }
+
+          // this.selectedStatus = 2;
+          // this.onStatusChange(2);
+          this.page1 = 0;
+          this.paginator?.firstPage();
+          this.getMyReporteesTimesheetRequests();
+          this.getTimesheetStatusCountsByEmpId();
+          this.clearAllSelections();
+          this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
+          backdrop: 'static'} );
+
+        } else {
+           this.modalTitle = 'Error';
+          this.modalMessage =
+            res?.serviceResponse || 'Timesheet approval failed';
+            this.modalService.open(this.statusModal, { modalDialogClass: 'ts-alert-modal'});
+        }
+        
+
+      },
+      error: (err) => {
+        this.modalTitle = 'Error';
+
+        this.modalMessage =
+          err?.error?.message ||
+          err?.error?.serviceResponse ||
+          'Timesheet approval failed';
+
+        this.modalService.open(this.statusModal, { modalDialogClass: 'ts-alert-modal'});
+      }
+    });
+}
+
+// Single reject state
+selectedTimesheetForReject: any = null;
+singleRejectReason: string = '';
+
+openSingleRejectModal(
+  template: TemplateRef<any>,
+  timesheet: any
+): void {
+
+  this.selectedTimesheetForReject = timesheet;
+  this.singleRejectReason = '';
+
+  this.modalRef = this.modalService.open(
+    template,
+    { modalDialogClass: 'modal-md', backdrop: 'static' }
+  );
+}
+getAvailableProjects(currentIndex: number) {
+  // Get all selected project IDs except current row
+  const selectedProjectIds = this.rejectEntries
+    .filter((_, index) => index !== currentIndex)
+    .flatMap(entry => entry.projectIds || []);
+
+  // Return projects that are NOT already selected
+  return this.projectList.filter(
+    project => !selectedProjectIds.includes(project.projectId)
+  );
+}
+canAddMoreProjects(): boolean {
+  const allSelectedProjectIds = this.rejectEntries
+    .flatMap(entry => entry.projectIds || []);
+
+  const uniqueSelected = [...new Set(allSelectedProjectIds)];
+
+  return uniqueSelected.length < this.projectList.length;
+}
+// SINGLE TIMESHEET REJECT
+// submitSingleReject() {
+
+//   if (!this.selectedTimesheetForReject?.timesheetId) {
+//     alert('Invalid timesheet');
+//     return;
+//   }
+
+//   if (!this.singleRejectReason || !this.singleRejectReason.trim()) {
+//     alert('Reject reason is required');
+//     return;
+//   }
+
+//   const payload = {
+//     timesheetIds: [this.selectedTimesheetForReject.timesheetId],
+//     projectIds: [],   // ⭐ ADD THIS
+//     status: 'REJECTED',
+//     updatedBy: this.currentUser.empId,
+//     rejectReason: this.singleRejectReason.trim(),
+//     rejectRemark: this.singleRejectReason.trim()
+//   };
+
+//   this.timesheetNewService
+//     .bulkRejectTimesheetsByIds1(payload)
+//     .subscribe({
+//       next: (res: any) => {
+//         if (res?.serviceStatus === 'Success') {
+//           this.modalRef?.close(); // ✅ close ONLY current modal
+//           this.clearAllSelections();
+//           this.getMyReporteesTimesheetRequests();
+//           alert(res.serviceResponse || 'Timesheet rejected successfully');
+//         } else {
+//           alert(res?.serviceResponse || 'Timesheet rejection failed');
+//         }
+//       },
+//       error: () => {
+//         alert('Timesheet rejection failed');
+//       }
+//     });
+// }
+
+
+// Single Project Approve
+
+approveSingleProject(timesheet: any, project: any, location: any) {
+
+  if (!project?.projectId || !location?.locationMappingId) {
+    return;
+  }
+  const payload = {
+    timesheetId: timesheet.timesheetId,
+    locationMappingId: location.locationMappingId,
+    projectIds: [project.projectId],
+    status: 'APPROVED',
+    updatedBy: this.currentUser.empId
+  };
+  this.timesheetNewService
+    .approveRejectProjects(payload)
+    .subscribe({
+      next: (res: any) => {
+        if (res?.serviceStatus === 'Success') {
+          this.getMyReporteesTimesheetRequests();
+          alert(res.serviceResponse || 'Project approved successfully');
+        } else {
+          alert(res?.serviceResponse || 'Project approval failed');
+        }
+      },
+      error: () => {
+        alert('Project approval failed');
+      }
+    });
+}
+
+// Single project Reject
+
+selectedProjectForReject: any = null;
+selectedProjectTimesheet: any = null;
+selectedProjectLocation: any = null;
+singleProjectRejectReason: string = '';
+
+submitSingleProjectReject() {
+
+  if (
+    !this.selectedProjectForReject?.projectId ||
+    !this.selectedProjectLocation?.locationMappingId ||
+    !this.selectedProjectTimesheet?.timesheetId
+  ) {
+    alert('Invalid project data');
+    return;
+  }
+
+  if (!this.singleProjectRejectReason.trim()) {
+    alert('Reject reason is required');
+    return;
+  }
+
+  const payload = {
+    timesheetId: this.selectedProjectTimesheet.timesheetId,
+    locationMappingId: this.selectedProjectLocation.locationMappingId,
+    projectIds: [this.selectedProjectForReject.projectId],
+    status: 'REJECTED',
+    updatedBy: this.currentUser.empId,
+    rmId: this.currentUser.empId,
+    rejectReason: this.singleProjectRejectReason.trim()
+  };
+
+  this.timesheetNewService
+    .approveRejectProjects(payload)
+    .subscribe({
+      next: (res: any) => {
+        if (res?.serviceStatus === 'Success') {
+          this.modalRef?.close();
+          this.getMyReporteesTimesheetRequests();
+          alert(res.serviceResponse || 'Project rejected successfully');
+        } else {
+          alert(res?.serviceResponse || 'Project rejection failed');
+        }
+      },
+      error: () => {
+        alert('Project rejection failed');
+      }
+    });
+}
+
+openSingleProjectRejectModal(
+  template: TemplateRef<any>,
+  timesheet: any,
+  project: any,
+  location: any,
+  event: MouseEvent
+): void {
+
+  event.stopPropagation();
+  this.selectedProjectForReject = project;
+  this.selectedProjectTimesheet = timesheet;
+  this.selectedProjectLocation = location;
+  this.singleProjectRejectReason = '';
+
+  this.modalRef = this.modalService.open(
+    template,
+    { modalDialogClass: 'modal-md', backdrop: 'static' }
+  );
+}
+
 getReporteesFromProjectId(): { empId: number; name: string }[] {
   const projectId = this.timesheetObj.selectedProjectId;
-  console.log("Project Id : ", projectId);
-  console.log("Project Object : ", this.projectObj[projectId]);
-  
+
   return this.projectObj[projectId] ?? [];
 
 }
@@ -2000,4 +3166,641 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
     return d.toISOString().split('T')[0];
   }
 
+  // renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): File {
+  //   const ext = file.name.substring(file.name.lastIndexOf('.'));
+  //   const safeDocType = docType.toLowerCase(); // optional
+  //   const newFileName = `${projectId}_${safeDocType}_${file.name}`;
+
+  //   return new File([file], newFileName, { type: file.type });
+  // }
+
+
+  //   if (!this.selectedTimesheet?.timesheetId) {
+  //     alert("Invalid timesheet");
+  //     return;
+  //   }
+
+  //   if (!this.selectedRejectReasons?.length) {
+  //     alert("Select at least one reject reason");
+  //     return;
+  //   }
+
+  //   if (!this.selectedProjects?.length) {
+  //     alert("Select at least one project");
+  //     return;
+  //   }
+  //   const projectIds = this.selectedProjects
+  //     .map(p => typeof p === 'object' ? Number(p.projectId) : Number(p))
+  //     .filter(x => !!x);
+
+  //   const rejectReasonString = this.selectedRejectReasons.map(r => {
+
+  //     if (typeof r === 'object') return r.rejectionReason;
+
+  //     const match = this.rejectReasons.find(x => x.rejectionId === r);
+  //     return match?.rejectionReason;
+
+  //   }).filter(Boolean).join(', ');
+
+  //   const rejectRemarkText =
+  //     this.timesheetObj.rejectReason?.trim() || '';
+
+  //   const payload = {
+  //     timesheetIds: [Number(this.selectedTimesheet.timesheetId)],
+  //     projectIds: projectIds,
+  //     status: 'REJECTED',
+  //     updatedBy: Number(this.currentUser.empId),
+
+  //     rejectReason: rejectReasonString,
+  // rejectRemark: this.timesheetObj.rejectReason?.trim() || ''
+  //   };
+
+
+
+  //   this.timesheetNewService
+  //     .bulkRejectTimesheetsByIds1(payload)
+  //     .subscribe({
+  //       next: (res: any) => {
+  //          if (res?.serviceStatus === 'Success') {
+
+  //         this.modalRef?.close();
+  //         this.getMyReporteesTimesheetRequests();
+
+  //         this.statusModal(
+  //           'Success',
+  //           res.serviceResponse || 'Timesheet rejected successfully'
+  //         );
+
+  //       } else {
+  //         this.statusModal(
+  //           'Error',
+  //           res?.serviceResponse || 'Timesheet rejection failed'
+  //         );
+  //       }
+  //     },
+  //     error: () => {
+  //       this.statusModal('Error', 'Something went wrong');
+  //     }
+  //   });
+  // }
+
+
+
+
+  // openRejectPopup(template: any, timesheet: any) {
+
+  //   this.selectedTimesheet = timesheet;
+  //   this.selectedProjects = [];
+  //   this.selectedRejectReasons = [];
+  //   this.rejectRemark = '';
+
+  //   /* ⭐ FLATTEN + REMOVE DUPLICATES */
+  //   const map = new Map();
+
+  //   (timesheet?.locationSessions || []).forEach((loc: any) => {
+  //     (loc.projects || []).forEach((proj: any) => {
+  //       map.set(proj.projectId, proj);
+  //     });
+  //   });
+
+  //   this.projectList = Array.from(map.values());
+
+  //   console.log("Project List →", this.projectList); // ⭐ CHECK
+
+  //   this.modalRef = this.modalService.open(template, {
+  //     modalDialogClass: 'modal-lg',
+  //     backdrop: 'static'
+  //   });
+  // }
+  submitSingleTimesheetReject() {
+
+  if (!this.selectedTimesheet?.timesheetId) {
+    this.modalTitle = 'Error';
+    this.modalMessage = 'Invalid timesheet';
+    this.modalService.open(this.statusModal, { centered: true });
+    return;
+  }
+
+  const projectRejections = this.rejectEntries.map(entry => ({
+
+    projectIds: (entry.projectIds || []).map((p: any) =>
+    typeof p === 'object' ? p.projectId : p
+  ),
+
+  rejectionIds: entry.reasons.map((r: any) =>
+    typeof r === 'object' ? r.rejectionId : r
+  ),
+
+  rejectRemark: entry.remark?.trim() || ''
+
+}));
+this.modalMessage = null;
+this.skippedTimesheetList = null
+
+  const payload = {
+    timesheetIds: [Number(this.selectedTimesheet.timesheetId)],
+    status: 'REJECTED',
+    rmId: Number(this.currentUser.empId),
+    updatedBy: Number(this.currentUser.empId),
+    projectRejections
+  };
+this.modalMessage = null;
+this.skippedTimesheetList = null
+  this.loaderService.requestStarted();
+
+  this.timesheetNewService
+    .bulkRejectTimesheetsByIds1(payload)
+    .pipe(finalize(() => this.loaderService.requestEnded()))
+    .subscribe({
+      next: (res: any) => {
+      this.modalTitle = 'Result';
+        let message = '';
+      if (res?.serviceStatus === 'Success') {
+        const processed = res?.serviceResponse?.processed || [];
+          const skipped = Array.isArray(res?.serviceResponse?.skipped)
+            ? res.serviceResponse.skipped
+            : [];
+          if (processed.length) {
+            message += `${processed.length} timesheet(s) rejected successfully.\n`;
+            this.modalMessage = message;
+            // this.modalService.open(this.statusModal, { modalDialogClass: 'ts-alert-modal' });
+          }else{
+            this.modalMessage = "No Valid Timesheet Request Found For Rejection."
+          }
+          if (skipped.length) {
+
+            this.skippedTimesheetList = skipped
+
+          
+          // message += `
+          //   <p><strong>Skipped Timesheets</strong></p>
+          //   <table class="table table-bordered table-sm">
+          //     <thead>
+          //       <tr>
+          //         <th>EMP ID</th>
+          //         <th>Date</th>
+          //         <th>Reason</th>
+          //       </tr>
+          //     </thead>
+          //     <tbody>
+          // `;
+
+          // skipped.forEach((item: any) => {
+          //   message += `
+          //     <tr>
+          //       <td>${item.employmentId}</td>
+          //       <td>${item.date}</td>
+          //       <td>${item.reason}</td>
+          //     </tr>
+          //   `;
+          // });
+
+          // message += `</tbody></table>`;
+        }
+
+          this.modalRef?.close();
+          this.page1 = 0;
+          this.paginator?.firstPage();
+          // this.onStatusChange(3);
+          this.getMyReporteesTimesheetRequests();
+          this.getTimesheetStatusCountsByEmpId();
+          this.clearAllSelections();
+          this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
+          backdrop: 'static'} );
+          
+      } else {
+          this.modalTitle = 'Error';
+          this.modalMessage =
+            res?.serviceResponse || 'Timesheet rejection failed';
+            this.modalService.open(this.statusModal, { modalDialogClass: 'ts-alert-modal' });
+
+      }
+      },
+      error: () => {
+        this.modalTitle = 'Error';
+        this.modalMessage = 'Timesheet rejection failed';
+        this.modalService.open(this.statusModal, { modalDialogClass: 'ts-alert-modal' });
+      }
+    });
+    this.getTimesheetStatusCountsByEmpId();
 }
+
+
+  openRejectPopup(template: any, timesheet: any) {
+
+  this.selectedTimesheet = timesheet;
+
+  const map = new Map();
+
+  (timesheet?.locationSessions || []).forEach((loc: any) => {
+    (loc.projects || []).forEach((proj: any) => {
+      map.set(proj.projectId, proj);
+    });
+  });
+
+  this.projectList = Array.from(map.values());
+
+  this.rejectEntries = [
+    {
+      projectIds: [],
+      reasons: [],
+      remark: ''
+    }
+  ];
+
+  if (this.projectList.length === 1) {
+    this.rejectEntries[0].projectIds = [this.projectList[0].projectId];
+  }
+
+  console.log("Project List →", this.projectList);
+
+  this.modalRef = this.modalService.open(template, {
+    modalDialogClass: 'modal-lg',
+    backdrop: 'static'
+  });
+}
+addRejectRow() {
+  this.rejectEntries.push({
+    projectIds: [],
+    reasons: [],
+    remark: ''
+  });
+}
+
+removeRejectRow(index: number) {
+  this.rejectEntries.splice(index, 1);
+}
+isRejectFormValid(): boolean {
+  return this.rejectEntries.every(entry =>
+    entry.projectIds?.length &&
+    entry.reasons?.length &&
+    entry.remark?.trim().length > 0
+  );
+}
+
+
+onClientFilterChange() {
+  this.page1 = 0;
+  this.getMyReporteesTimesheetRequests();
+  this.getTimesheetStatusCountsByEmpId();
+}
+
+hasPreview(): boolean {
+  return !!this.safePreviewUrl || !!this.activePreviewUrl;
+}
+get imageTransform(): string {
+    return `
+    translate(-50%, -50%)
+    translate(${this.translateX}px, ${this.translateY}px)
+    scale(${this.scale})
+    rotate(${this.rotationDeg}deg)
+  `;
+  }
+clearPreview(): void {
+  this.isFullscreen = false;
+  this.safePreviewUrl = null;
+  this.activePreviewUrl = null;
+  this.activeFileType = 'unknown';
+  this.resetTransformations();
+
+  if (this.currentObjectUrl) {
+    URL.revokeObjectURL(this.currentObjectUrl);
+    this.currentObjectUrl = null;
+  }
+}
+zoomIn(): void {
+  console.log("Zoomed in");
+  this.scale = Math.min(this.scale + 0.2, 3);
+}
+
+zoomOut(): void {
+  this.scale = Math.max(this.scale - 0.2, 0.5);
+}
+
+rotate(): void {
+  this.rotationDeg = (this.rotationDeg + 90) % 360;
+}
+
+resetTransformations(): void {
+  this.scale = 1;
+  this.rotationDeg = 0;
+  this.translateX = 0;
+  this.translateY = 0;
+  this.isDragging = false;
+}
+
+/* ---------------- DRAG / PAN ---------------- */
+
+// startDrag(event: MouseEvent): void {
+//   if (this.activeFileType !== 'image') return;
+
+//   this.isDragging = true;
+//   this.dragStartX = event.clientX;
+//   this.dragStartY = event.clientY;
+//   this.dragOriginX = this.translateX;
+//   this.dragOriginY = this.translateY;
+// }
+
+ startDrag(event: MouseEvent): void {
+    this.isDragging = true;
+    this.startX = event.clientX - this.translateX;
+    this.startY = event.clientY - this.translateY;
+  }
+
+onDrag(event: MouseEvent): void {
+  if (!this.isDragging || this.activeFileType !== 'image') return;
+    this.translateX = event.clientX - this.startX;
+    this.translateY = event.clientY - this.startY;
+}
+
+  stopDrag(): void {
+    this.isDragging = false;
+  }
+
+/* ---------------- FULLSCREEN ---------------- */
+
+toggleFullscreen(): void {
+  this.isFullscreen = !this.isFullscreen;
+
+  // Optional UX: reset drag when toggling
+  // this.resetTransformations();
+}
+
+/* ---------------- DOWNLOAD ---------------- */
+
+downloadActiveFile(fileName = 'image-preview'): void {
+
+  // Ensure we have a raw object URL
+  if (!this.activeRawObjectUrl || this.activeFileType !== 'image') return;
+
+  const link = document.createElement('a');
+  link.href = this.activeRawObjectUrl;
+  link.download = fileName;
+  link.click();
+}
+
+openRejectReasonsModal(data: any, template: TemplateRef<any>) {
+  this.rejectionReasons = data;
+  this.modalService.open(
+    template,
+    { modalDialogClass: 'modal-lg', backdrop: 'static' }
+  );
+}
+
+executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
+  console.log(selectedTimesheets,"selectedTimesheets")
+  if(selectedTimesheets.length == 0 ) return;
+  const payload = {
+    timesheetIds : selectedTimesheets,
+    status: 'APPROVED',
+    updatedBy: this.currentUser.empId,
+    rmId : this.currentUser.empId,
+    confirmNightShift
+  };
+
+  this.loaderService.requestStarted();
+  this.modalMessage = null;
+  this.skippedTimesheetList = null
+  this.timesheetNewService
+    .bulkApproveTimesheetsByIds1(payload)
+    .pipe(finalize(() => this.loaderService.requestEnded()))
+    .subscribe({
+      next: (res: any) => {
+        const response = res?.serviceResponse;
+        this.modalTitle = 'Result';
+      let message = '';
+        if (res?.serviceStatus === 'Success') {
+
+        const processed = res?.serviceResponse?.processed || [];
+        const skipped = Array.isArray(res?.serviceResponse?.skipped)
+          ? res.serviceResponse.skipped
+          : [];
+        if (processed.length) {
+            message += `${processed.length} timesheet(s) approved successfully.`;
+            this.modalMessage = message;
+          // this.modalService.open(this.statusModal, {modalDialogClass: 'ts-alert-modal'});
+          }else{
+            this.modalMessage = "No Valid Timesheet Request Found For Approval."
+          }
+          if (skipped.length) {
+          this.skippedTimesheetList = skipped
+            // message += `
+            //   <p><strong>Skipped Timesheets</strong></p>
+            //   <table class="table table-bordered table-sm">
+            //     <thead>
+            //       <tr>
+            //         <th>EMP ID</th>
+            //         <th>Date</th>
+            //         <th>Reason</th>
+            //       </tr>
+            //     </thead>
+            //     <tbody>
+            // `;
+
+            // skipped.forEach((item: any) => {
+            //   message += `
+            //     <tr>
+            //       <td>${item.employmentId}</td>
+            //       <td>${item.date}</td>
+            //       <td>${item.reason}</td>
+            //     </tr>
+            //   `;
+            // });
+
+            // message += `</tbody></table>`;
+          }
+
+         
+        
+        this.page1 = 0;
+        this.paginator?.firstPage();
+        this.getMyReporteesTimesheetRequests();
+        this.getTimesheetStatusCountsByEmpId();
+            this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
+          backdrop: 'static'} );
+          this.clearAllSelections();
+      } else {
+          this.modalTitle = 'Error';
+          this.modalMessage =
+          res?.serviceResponse || 'Bulk approval failed';
+          this.modalService.open(this.statusModal, { centered: true });
+        }
+      }
+
+    });
+
+}
+openBulkRejectPopup(modal: any, ids?: number[]) {
+
+  const selectedTimesheets = ids
+  ? this.getSelectedTimesheets().filter(ts => ids.includes(ts.timesheetId))
+  : this.getSelectedTimesheets();
+
+  const timesheetIds = selectedTimesheets.map(ts => ts.timesheetId);
+
+
+
+  this.selectedTimesheetIds = timesheetIds;
+
+  this.bulkRejectReasonIds = null;
+  this.bulkRejectRemark = '';
+
+  this.modalService.open(modal, {
+  centered: true,
+  modalDialogClass: 'modal-lg',
+  backdrop: 'static'
+  });
+}
+
+confirmBulkReject(modal: any) {
+
+ this.rejectReasonError = !this.bulkRejectReasonIds || this.bulkRejectReasonIds.length === 0;
+  this.rejectRemarkError = !this.bulkRejectRemark || !this.bulkRejectRemark.trim();
+
+   if (this.rejectReasonError || this.rejectRemarkError) {
+    return;
+  }
+
+const payload = {timesheetIds: this.selectedTimesheetIds,
+                status: "REJECTED",
+                updatedBy: this.currentUser.empId,
+                rmId: this.currentUser.empId,
+                rejectMode: "BULK",
+                rejectionReasonId: this.bulkRejectReasonIds,
+                rejectRemark: this.bulkRejectRemark};
+
+this.loaderService.requestStarted();
+this.modalMessage = null;
+  this.skippedTimesheetList = null
+this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this.loaderService.requestEnded())).subscribe({next: (res: any) => {
+
+    modal.close();
+
+    this.modalTitle = 'Result';
+    let message = '';
+
+    if (res?.serviceStatus === 'Success') {
+
+      const processed = res?.serviceResponse?.processed || [];
+      const skipped = Array.isArray(res?.serviceResponse?.skipped)
+        ? res.serviceResponse.skipped
+        : [];
+      if (processed.length) {
+        message += `${processed.length} timesheet(s) rejected successfully.`;
+        this.modalMessage = message;
+      }else{
+        this.modalMessage = "No Valid Timesheet Request Found For Rejection."
+      }
+
+      if (skipped.length) {
+
+        this.skippedTimesheetList = skipped
+        // message += `
+        //   <p><strong>Skipped Timesheets</strong></p>
+        //   <table class="table table-bordered table-sm">
+        //     <thead>
+        //       <tr>
+        //         <th>EMP ID</th>
+        //         <th>Date</th>
+        //         <th>Reason</th>
+        //       </tr>
+        //     </thead>
+        //     <tbody>
+        // `;
+
+        // skipped.forEach((item: any) => {
+        //   message += `
+        //     <tr>
+        //       <td>${item.employmentId}</td>
+        //       <td>${item.date}</td>
+        //       <td>${item.reason}</td>
+        //     </tr>
+        //   `;
+        // });
+
+        // message += `</tbody></table>`;
+      }
+      // this.onStatusChange(3);
+      this.page1 = 0;
+      this.paginator?.firstPage();
+      this.modalService.open(this.skippedTimesheetModal, {modalDialogClass: 'modal-lg',
+          backdrop: 'static'} );
+      this.getMyReporteesTimesheetRequests();
+      this.getTimesheetStatusCountsByEmpId();
+      this.clearAllSelections();
+
+    } else {
+
+      this.modalTitle = 'Error';
+      this.modalMessage = res?.serviceResponse || 'Bulk rejection failed';
+
+      this.modalService.open(this.statusModal, { modalDialogClass: 'modal-lg' });
+    }
+
+
+  }
+});
+}
+
+openPreview() {
+  this.zoomScale = 1;
+  this.translateX = 0;
+  this.translateY = 0;
+}
+downloadFile(): void {
+  if (this.rawObjectUrl2) {
+    // Newly selected file — use object URL
+    const a = document.createElement('a');
+    console.log("A",a);
+    // console.log("Raw object url",file);
+    a.href = this.rawObjectUrl2;
+    a.download = this.finalFile.name || 'download';
+    a.click();
+  } 
+}
+
+   async renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): Promise<File> {
+    
+      try{
+      const ext = file.name.includes('.') ?file.name.substring(file.name.lastIndexOf('.')): '';
+      // const safeDocType = docType.toLowerCase(); // optional
+      // // const newFileName = `${this.currentUser.empId}_${projectId}_${}_${safeDocType}${ext}`;
+      // const newFileName = `${projectId}_${this.fromDate}_${this.dayType}_${safeDocType}${ext}`;
+  
+      const response: any = await firstValueFrom(this.timesheetService.generateFileName({
+        projectId: projectId,
+        extension: ext,
+        docType: docType
+      }));
+      const newFileName = response.fileName;
+  
+      return new File([file], newFileName, { type: file.type });
+    }
+     catch(error){
+      this.handleError(error,"Generating unique file name",true,"Unable to generate unique file name")
+      return null;
+    }
+  
+    }
+
+    private handleError(error: any, context: string, showToUser: boolean = false, userMessage?: string): void {
+      const errorMessage = error?.message || error?.toString() || 'An unexpected error occurred';
+      console.error(`[${context}]`, error);
+      
+      if (showToUser) {
+        const message = userMessage || `Error: ${errorMessage}. Please try again.`;
+        this.openAlertMod(this.alertTemplate, message);
+      }
+    }
+}
+
+
+
+
+
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+
+
+}
+

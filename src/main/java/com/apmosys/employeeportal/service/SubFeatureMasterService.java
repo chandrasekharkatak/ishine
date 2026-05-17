@@ -11,8 +11,10 @@ import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.RoleFeatureMapDTO;
 import com.apmosys.employeeportal.dto.SubFeatureMasterDTO;
+import com.apmosys.employeeportal.model.FeatureUsageLog;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
+import com.apmosys.employeeportal.repository.FeatureUsageLogRepository;
 import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.SubFeatureMasterRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -31,6 +33,9 @@ public class SubFeatureMasterService {
 
 	@Autowired
 	private LogService logService;
+
+	@Autowired
+	private FeatureUsageLogRepository featureUsageLogRepository;
 	
 	public ServiceResponse getSubfeaturesByJobRoleId(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -131,6 +136,32 @@ public class SubFeatureMasterService {
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	public ServiceResponse saveFeatureUsageLog(FeatureUsageLog featureUsageLog) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (featureUsageLog == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Feature Usage Log is null");
+				return response;
+			}
+			if (featureUsageLog.getEmpId() == null || featureUsageLog.getFeatureName() == null
+					|| featureUsageLog.getLogMessage() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Feature Usage Log is invalid");
+				return response;
+			}
+			featureUsageLogRepository.save(featureUsageLog);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Log Saved Successfully!!");
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
 		return response;
 	}
 

@@ -52,9 +52,10 @@ currentUser:User = new User();
                         this.router.navigate(['/home']); // access denied
                     }
                 }
-
+                // Rethrow so subscriber's error callback runs and LoaderInterceptor can stop the loader
                 return throwError(() => err);
-            }));;
+            })
+        );
     }
     
     userLogout(){

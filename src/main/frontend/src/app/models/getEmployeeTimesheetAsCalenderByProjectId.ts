@@ -3,7 +3,11 @@ export class getEmployeeTimesheetAsCalenderByProjectId{
 	projectId : any;
 	month : any;
 	year : any;
+	fromDate?: string;
+	toDate?: string;
 	empId : any;
+	poNo?: string | string[] | null;
+	poProjectId?: number | null;
 	// billableType : any;
 	billableType: string[];
 	allEmp: boolean;

@@ -107,8 +107,8 @@ export class AttendanceReconciliationComponent implements OnInit {
   startformattedDate: string;
   endformattedDate: string;
   maxTodayDate: any;
-  AttendancereConciliation: any[] = ['employeeCode', 'employeeName', 'inTime', 'outTime', 'totalDuration', 'logDate', 'departmentName', 'reportingManagerName'];
-  timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
+  AttendancereConciliation: any[] = ['employeeCode', 'employeeName', 'employeeEmail', 'inTime', 'outTime', 'totalDuration', 'logDate', 'departmentName', 'reportingManagerName', 'reportingManagerEmail'];
+  timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Email Id', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
 
   filters: any = {};
   fromDate: string = '';
@@ -645,8 +645,10 @@ export class AttendanceReconciliationComponent implements OnInit {
     return rows.map((x: any) => ({
       'Employee Id': x.employeeCode,
       'Employee Name': x.employeeName,
+      'Email': x.employeeEmail ?? 'NA',
       'Department': x.departmentName ?? 'NA',
       'Reporting Manager': x.reportingManagerName ?? 'NA',
+      'Manager Email': x.reportingManagerEmail ?? 'NA',
       'Log Date': x.logDate,
       'Log IN': x.inTime,
       'Log Out': x.outTime,

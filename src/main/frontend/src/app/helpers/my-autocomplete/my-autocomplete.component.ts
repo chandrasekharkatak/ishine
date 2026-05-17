@@ -20,24 +20,23 @@ export class MyAutocompleteComponent implements OnInit, ControlValueAccessor {
 
   control = new FormControl('');
   searchText = '';
+  private _options: any[] = [];
+  filteredOptions: any[] = [];
 
   @Input() placeholder: string = 'Search...';
   @Input() label: string | undefined;
   @Input() disabled = false;
   @Input() loading = false;
   @Input() displayKey: string = '';
+  @Input() valueKey: string = '';
   @Input() clearable = true;
-
-  private _options: any[] = [];
-  filteredOptions: any[] = [];
+  @Output() optionSelected = new EventEmitter<any>();
+  @Output() cleared = new EventEmitter<void>();
 
   @Input() set options(value: any[]) {
     this._options = value ?? [];
     this.filteredOptions = [...this._options]; // refresh UI when options input changes
   }
-
-  @Output() optionSelected = new EventEmitter<any>();
-  @Output() cleared = new EventEmitter<void>();
 
   onTouched: any = () => { };
   onChange: any = () => { };
@@ -66,7 +65,17 @@ export class MyAutocompleteComponent implements OnInit, ControlValueAccessor {
   }
 
   writeValue(value: any): void {
-    this.control.setValue(value, { emitEvent: false });
+    if (!value) {
+      this.control.setValue('', { emitEvent: false });
+      return;
+    }
+
+    if (this.isValidString(this.valueKey)) {
+      const selected = this._options.find(opt => opt[this.valueKey] === value);
+      this.control.setValue(selected ?? '', { emitEvent: false });
+    } else {
+      this.control.setValue(value, { emitEvent: false });
+    }
   }
 
   registerOnChange(fn: any): void {
@@ -87,11 +96,16 @@ export class MyAutocompleteComponent implements OnInit, ControlValueAccessor {
   }
 
   selectOption(option: any) {
-    let opt = this.displayKey ? option[this.displayKey] : option || '';
-    this.control.setValue(opt);
-    this.onChange(opt);
-    this.optionSelected.emit(opt);
+    this.control.setValue(option); // allow valueChanges to fire
+
+    const value = this.isValidString(this.valueKey)
+      ? option[this.valueKey]
+      : option;
+
+    this.onChange(value);
+    this.optionSelected.emit(option);
   }
+
 
   onManualInput() {
     const value = this.control.value;
@@ -114,6 +128,13 @@ export class MyAutocompleteComponent implements OnInit, ControlValueAccessor {
     const escaped = this.searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(escaped, 'gi');
     return text.replace(regex, (match: string) => `<mark>${match}</mark>`);
+  }
+
+  isValidString(text: any): boolean {
+    if (text === undefined || text === null || text === "" || (text && text?.toString()?.trim() === "")) {
+      return false;
+    }
+    return true;
   }
 }
 

@@ -23,3 +23,9 @@ describe('MyTimesheetComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+
+/*
+1)During update data should be auto filled 
+2)Updated data should conditional updatable
+3)
+*/

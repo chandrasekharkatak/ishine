@@ -33,10 +33,9 @@ import { RewardsServiceService } from '../services/rewards-service.service';
 import { TimesheetService } from '../services/timesheet.service';
 import { UtilityService } from '../services/utility.service';
 import { ValidationService } from '../services/validation.service';
-import { TimesheetCreateSelfComponent } from '../timesheet-create-self/timesheet-create-self.component';
 import { ProjectService } from '../services/project.service';
 import { EncryptionService } from '../services/EncryptionService';
-
+import {TimesheetNewService} from '../services/timesheet-new.service';
 import { MilestoneToBeExpired } from '../models/milestoneToBeExpired';
 import { MilestoneExtendReason } from '../models/MilestoneExtendReason';
 import { MilestoneUpdatedLog } from '../models/MilestoneUpdatedLog';
@@ -65,10 +64,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
   lines: any = [];
   probationNotifications: any[] = [];
   isLoadingNotifications = false;
-
-  @ViewChild(TimesheetCreateSelfComponent)
-  childComp!: TimesheetCreateSelfComponent;
-
 
     @ViewChild("previewTemplate")
     previewModal : TemplateRef<any>;
@@ -120,6 +115,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
   //export excel
   excelName: any = '';
 
+  // Timsheet Status Counts
+  pendingCount = 0;
+approvedCount = 0;
+rejectedCount = 0;
+
   birthdayList: any[] = [];
   workAnniversaryList: any[] = [];
   rewardsList: any[] = [];
@@ -162,10 +162,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   isExtensionEnabled : boolean = false;
 
   documentName: string = '';
-    documentType: string = '';
-    documentContent: File | null = null;
-
-
+  documentType: string = '';
+  documentContent: File | null = null;
 
   fieldTextType: boolean = false;
   fieldTextTypePassword: boolean = false;
@@ -213,6 +211,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
   clientFilter: boolean | null = null;
 
   leaveObj = new Leave();
+  leaveRejectionReasonList: any[] = [];
+selectedRejectionIds: number[] = [];
+showOtherRemarks = false;
 
   zoomScale = 1;
   zoomLevel = 100;
@@ -299,7 +300,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
   ]
 
 
-   
+  @ViewChild('attendancePolicyModal') attendancePolicyModalRef!: TemplateRef<any>;
+  summaryText: string = '';
+  defaulterMonths: any[] = [];
+  showAllMonths: boolean = false;
+
+location: any;
+act: any;
+project: any;
+timesheet: any;
 
   constructor(
     private modalService: NgbModal,
@@ -324,6 +333,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     public employee360Service: Employee360Service,
     public projectService: ProjectService,
     private fb: FormBuilder,
+    private timesheetNewService : TimesheetNewService,
 
   ) {
     this.authenticationService.currentUser.subscribe(x => {
@@ -419,7 +429,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.isEmployeeOnBench();
     this.getRejectionReason();
     //console.log('User Mapping', this.userMapping);
+    this.getTimesheetStatusCountsByEmpId();
 
+    this.getLeaveRejectionReasons();
+
+    setTimeout(() => {
+      this.loadPolicyNotification();
+    });
 
   }
 
@@ -462,6 +478,31 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.locationStrategy.onPopState(() => {
       history.pushState(null, null, location.href);
     })
+  }
+
+  onRejectionReasonChange() {
+    const other = this.leaveRejectionReasonList.find(
+      x => x.reason.toLowerCase() === 'other'
+    );
+
+    this.showOtherRemarks =
+      other && this.selectedRejectionIds.includes(other.rejectionReasonId);
+
+    if (!this.showOtherRemarks) {
+      this.leaveObj.rejectReason = '';
+    }
+  }
+  isRejectDisabled(): boolean {
+    if (this.selectedRejectionIds.length === 0) {
+      return true;
+    }
+
+    if (!this.leaveObj.rejectReason ||
+      !this.leaveObj.rejectReason.trim()) {
+      return true;
+    }
+
+    return false;
   }
 
 
@@ -567,6 +608,44 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
     });
   }
+  onUpdateLeaveStatusNew(
+  template: TemplateRef<any>,
+  leaveApplication: any,
+  updatedLeaveStatusId: number
+) {
+  this.cancelRequest();
+
+  // 1 = Pending, 2 = Approved, 3 = Rejected
+  leaveApplication.leaveStatusId = updatedLeaveStatusId;
+  leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId;
+  leaveApplication.rejectReason = leaveApplication.rejectReason?.trim();
+
+  // New fields for rejection flow
+  leaveApplication.rejectionIds = this.selectedRejectionIds || [];
+
+  this.leaveService.updateLeaveStatusNew(leaveApplication)
+    .pipe(first())
+    .subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+          this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+        }
+
+        this.openAlertMod(template, response.serviceResponse);
+        this.resetRejectModalData();
+      },
+      error: (error: any) => {
+        console.error(error);
+        this.openAlertMod(template, "Something went wrong.");
+      }
+    });
+}
+resetRejectModalData() {
+  this.selectedRejectionIds = [];
+  this.showOtherRemarks = false;
+  this.leaveObj.rejectReason = '';
+}
 
   onUpdateLeaveStatusCheck(template: TemplateRef<any>, updatedLeaveStatusId) {
     this.cancelRequest();
@@ -587,7 +666,66 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
     });
   }
+  isSavingConsent = false;
+  popupHeading: string = '';
+  popupDescription: string = '';
+  loadPolicyNotification(): void {
+    this.employeeService.getDefaulterStatus(this.currentUser.empId)
+      .subscribe((res: any) => {
 
+        const data = res.serviceResponse;
+
+        if (data && data.isDefaulter && data.months?.length) {
+
+          this.defaulterMonths = data.months;
+          this.popupHeading = data.heading || 'Attendance Policy Notification';
+          this.popupDescription = data.description || '';
+          const latest = this.defaulterMonths[0];
+
+    // Mock API response
+          this.summaryText =
+            `You have been marked as a defaulter.\n\nLatest: ${this.getMonthName(latest.month)
+            } ${latest.year}`;
+          this.showAllMonths = false;
+          // this.detailModalRef?.close();
+          this.openAttendancePolicyModal();
+        }
+
+      }, error => {
+        console.error("Error fetching defaulter status", error);
+      });
+  }
+  openAttendancePolicyModal(): void {
+    this.detailModalRef = this.modalService.open(this.attendancePolicyModalRef, {
+      size: 'md',
+      centered: true,
+      backdrop: 'static',
+      container: 'body'
+    });
+  }
+  closeRepeatedOffendeNoticeModal(): void {
+    this.detailModalRef?.close();
+  }
+  acknowledgeRepeatedOffendeNoticePolicy(): void {
+    if (this.isSavingConsent) return; 
+    this.employeeService.saveDefaulterConsent(this.currentUser.empId)
+      .subscribe((res: any) => {
+
+        console.log("Consent saved", res);
+
+        this.closeRepeatedOffendeNoticeModal();
+
+      }, err => {
+        console.error("Error saving consent", err);
+      });
+  }
+  getMonthName(month: number): string {
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return months[month - 1];
+  }
   // single leave reject modal
   onSingleReject(template: TemplateRef<any>,) {
     this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
@@ -598,6 +736,28 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
     this.onUpdateLeaveStatus(template, this.leaveObj, 3);
   }
+  onSingleRejectNew(template: TemplateRef<any>,) {
+    this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
+    if (!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)) {
+      this.alertMessage = "Please enter valid reason !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    this.onUpdateLeaveStatusNew(template, this.leaveObj, 3);
+  }
+
+  getLeaveRejectionReasons() {
+  this.leaveService.getLeaveRejectionReasons()
+    .subscribe({
+      next: (response: any) => {
+        this.leaveRejectionReasonList = response;
+        console.log('Rejection Reasons:', this.leaveRejectionReasonList);
+      },
+      error: (error: any) => {
+        console.error(error);
+      }
+    });
+}
 
   // openLeaveRejectModal
   openLeaveRejectModal(template: TemplateRef<any>, leave: any) {
@@ -727,45 +887,32 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // getDoscForPreview(docId:any){
-  //     console.log(docId,":docId");
-  //     this.resetPreviewState(); // added to reset all the zoom values 
-  //     this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
-  //       if (response.serviceStatus == "Success") {
-  //         console.log(response.serviceResponse);
-  //         this.docData = response.serviceResponse.docData;
-  //         console.log(typeof(this.docData),":docDataType")
-  //         this.mimeType = response.serviceResponse.docMimeType
-  //         this.showPreview(this.docData,this.mimeType)
-  //       }
-  //     });
-  //   }
-
-getDocsForPreview(docId: any) {
-  this.timesheetService.getDocumentDataByDocId(docId)
-    .pipe(first())
-    .subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-
-        this.docData = response.serviceResponse.docData;
-        this.mimeType = response.serviceResponse.docMimeType;
-
-        // Excel → Download
-        if (
-          this.mimeType === 'application/vnd.ms-excel' ||
-          this.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        ) {
-          const fileName = response.serviceResponse.docName || 'document.xlsx';
-          this.downloadExcel(this.docData, this.mimeType, fileName);
+  getDocsForPreview(docId:any){
+      console.log(docId,":docId");
+      this.resetPreviewState(); // added to reset all the zoom values
+      this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          console.log(response.serviceResponse);
+          this.docData = response.serviceResponse.docData;
+          console.log(typeof(this.docData),":docDataType")
+          this.mimeType = response.serviceResponse.docMimeType
+          this.showPreview(this.docData,this.mimeType)
         }
-        // PDF / Image → Preview
-        else {
-          this.showPreview(this.docData, this.mimeType);
-        }
-      }
-    });
-}
+      });
+    }
 
+    getFinalDocumentDataByDocId(timesheetId:any,docId:any){
+      console.log(docId,":docId");
+      this.timesheetService.getFinalDocumentDataByDocId(timesheetId,docId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          console.log(response.serviceResponse);
+          this.docData = response.serviceResponse.docData;
+          console.log(typeof(this.docData),":docDataType")
+          this.mimeType = response.serviceResponse.docMimeType
+          this.showPreview(this.docData,this.mimeType)
+        }
+      });
+    }
     showPreview(base64Data: string, mimeType: string) {
     const dataUrl = `data:${mimeType};base64,${base64Data}`;
       this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
@@ -1451,31 +1598,81 @@ getDocsForPreview(docId: any) {
       let rejectedCount = 0;
       let notFilledCount = 0;
 
-      for (let date = moment(timesheetObj.startDate); date.isSameOrBefore(timesheetObj.endDate); date.add(1, 'days')) {
-        let newTimesheetObj = new Timesheet();
-        newTimesheetObj.date = moment(date).format(dateFormat);
+      for (
+          let date = moment(timesheetObj.startDate);
+          date.isSameOrBefore(timesheetObj.endDate);
+          date.add(1, 'days')
+        ) {
+          const currentDateStr = date.format(dateFormat);
 
-        if (newTimesheetObj.date) {
-          let checkedTimesheet = filledTimesheetDetails.find(timesheet => timesheet.date == newTimesheetObj.date);
+          const rows = filledTimesheetDetails.filter(
+            t => t.date === currentDateStr
+          );
 
-          if (checkedTimesheet) {
-            newTimesheetObj = checkedTimesheet;
-            newTimesheetObj.totalWorkingHoursPercentage = (newTimesheetObj.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + "%";
+          // ===== LAST 7 DAYS (single row per date) =====
+          if (dateRange === 'Last 7 Days') {
+            const ts = rows[0]; // first is enough
 
-            // For Chart Data
-            if (newTimesheetObj.status == "Pending") { pendingCount++; }
-            else if (newTimesheetObj.status == "Approved") { approvedCount++; }
-            else if (newTimesheetObj.status == "Rejected") rejectedCount++;
+            if (ts) {
+              const clone = { ...ts } as Timesheet;
+              // clone.totalWorkingHoursPercentage =
+              //   (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + '%';
+              clone.totalWorkingHours = this.roundToTwo(clone.totalWorkingHours || 0);
+
+              clone.totalWorkingHoursPercentage =
+                this.roundToTwo(
+                  (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100
+                ) + '%';
+              this.timesheetDetails.push(clone);
+
+              if (clone.status === 'Pending') pendingCount++;
+              else if (clone.status === 'Approved') approvedCount++;
+              else if (clone.status === 'Rejected') rejectedCount++;
+            } else {
+              const empty = new Timesheet();
+              empty.date = currentDateStr;
+              empty.status = 'Not Filled';
+              empty.dayType = 'Not Filled';
+              empty.weekDayName = this.getWeekDay(currentDateStr);
+              empty.totalWorkingHoursPercentage = '0%';
+
+              this.timesheetDetails.push(empty);
+              notFilledCount++;
+            }
+
+            continue;
+          }
+
+          // ===== MONTH / OTHER VIEWS (multiple rows per date) =====
+          if (rows.length > 0) {
+            rows.forEach(ts => {
+              const clone = { ...ts } as Timesheet;
+              clone.totalWorkingHours = this.roundToTwo(clone.totalWorkingHours || 0);
+
+          clone.totalWorkingHoursPercentage =
+            this.roundToTwo(
+              (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100
+            ) + '%';
+
+              this.timesheetDetails.push(clone);
+
+              if (clone.status === 'Pending') pendingCount++;
+              else if (clone.status === 'Approved') approvedCount++;
+              else if (clone.status === 'Rejected') rejectedCount++;
+            });
           } else {
-            newTimesheetObj.totalWorkingHoursPercentage = "0%";
-            newTimesheetObj.status = "Not Filled";
-            newTimesheetObj.dayType = "Not Filled";
-            newTimesheetObj.weekDayName = this.getWeekDay(newTimesheetObj.date);
+            const empty = new Timesheet();
+            empty.date = currentDateStr;
+            empty.status = 'Not Filled';
+            empty.dayType = 'Not Filled';
+            empty.weekDayName = this.getWeekDay(currentDateStr);
+            empty.totalWorkingHoursPercentage = '0%';
+
+            this.timesheetDetails.push(empty);
             notFilledCount++;
           }
         }
-        this.timesheetDetails.push(newTimesheetObj);
-      }
+
 
       //console.log("timesheetDetails : ", this.timesheetDetails);
       this.timesheetDetails.sort(this.dateCompare);
@@ -1508,7 +1705,9 @@ getDocsForPreview(docId: any) {
 
   }
 
-
+private roundToTwo(num: number): number {
+  return Math.round((num + Number.EPSILON) * 100) / 100;
+}
   //Employee Info Update
   openUpdateInfo(template: TemplateRef<any>) {
     this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-xl' });
@@ -2006,6 +2205,51 @@ getDocsForPreview(docId: any) {
     });
 
   }
+
+  bulkRejectLeaveNew(template: TemplateRef<any>) {
+
+  this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
+
+  if (this.showOtherRemarks &&
+      !this.leaveObj.rejectReason) {
+    this.alertMessage = "Please enter remarks for Other reason.";
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+
+  let leaveObj = new Leave();
+
+  leaveObj.bulkLeaveRejectList = this.bulkLeaveReject;
+  leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
+  leaveObj.leaveStatusId = 3;
+  leaveObj.approverEmail = this.currentUser.email;
+  leaveObj.rejectReason = this.leaveObj.rejectReason;
+  leaveObj.rejectionIds = this.selectedRejectionIds;
+
+  this.leaveService.bulkRejectLeaveRequestNew(leaveObj)
+    .pipe(first())
+    .subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus == "Success") {
+
+          this.openAlertMod(
+            template,
+            "All Selected Leaves Rejected Successfully"
+          );
+
+          this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+          this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+
+          this.bulkLeaveApprove = [];
+          this.bulkLeaveReject = [];
+          this.resetRejectModalData();
+        }
+      },
+      error: (error: any) => {
+        console.error(error);
+      }
+    });
+}
 
 
 
@@ -2668,62 +2912,62 @@ getDocsForPreview(docId: any) {
 
 
 
-  renderTimesheet(day?: any): void {
-    console.log("Render triggered for:", day?.displayDate);
-    const empId = this.currentUser?.empId;
+  // renderTimesheet(day?: any): void {
+  //   console.log("Render triggered for:", day?.displayDate);
+  //   const empId = this.currentUser?.empId;
 
-    if (empId) {
-      this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
-        next: (res) => {
-
-
-          if (res.serviceStatus === 'Success') {
-
-            if (res.serviceResponse1 === 'No Timesheet') {
-
-              this.triggerNoTimesheetPopup = true;
-
-              this.lastTimesheetData = null;
+  //   if (empId) {
+  //     this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
+  //       next: (res) => {
 
 
+  //         if (res.serviceStatus === 'Success') {
+
+  //           if (res.serviceResponse1 === 'No Timesheet') {
+
+  //             this.triggerNoTimesheetPopup = true;
+
+  //             this.lastTimesheetData = null;
 
 
-            } if (res.serviceResponse1 === 'Not Active') {
-              this.triggerNoTimesheetPopupForInactiveEmployee = true;
-            }
-            else {
-              // this.lastTimesheetData = JSON.parse(JSON.stringify(res.serviceResponse));
-              const originalData = JSON.parse(JSON.stringify(res.serviceResponse));
-              const selectedDate = day?.displayDate; // e.g., '2025-07-04'
 
 
-              const fixDateTime = (datetime: string): string => {
-                if (!datetime || !selectedDate) return datetime;
-                const timePart = datetime.split(' ')[1];
-                return `${selectedDate} ${timePart}`;
-              };
-
-              originalData.officeInTime = fixDateTime(originalData.officeInTime);
-              originalData.officeOutTime = fixDateTime(originalData.officeOutTime);
-              originalData.date = selectedDate;
-
-              this.lastTimesheetData = originalData;
-            }
-          } else {
-            this.lastTimesheetData = null;
-          }
+  //           } if (res.serviceResponse1 === 'Not Active') {
+  //             this.triggerNoTimesheetPopupForInactiveEmployee = true;
+  //           }
+  //           else {
+  //             // this.lastTimesheetData = JSON.parse(JSON.stringify(res.serviceResponse));
+  //             const originalData = JSON.parse(JSON.stringify(res.serviceResponse));
+  //             const selectedDate = day?.displayDate; // e.g., '2025-07-04'
 
 
-          this.isTimesheetFormVisible = true;
-        },
-        error: (err) => {
-          console.error("Failed to fetch last timesheet", err);
-          this.lastTimesheetData = null;
-          this.isTimesheetFormVisible = true;
-        }
-      });
-    }
-  }
+  //             const fixDateTime = (datetime: string): string => {
+  //               if (!datetime || !selectedDate) return datetime;
+  //               const timePart = datetime.split(' ')[1];
+  //               return `${selectedDate} ${timePart}`;
+  //             };
+
+  //             originalData.officeInTime = fixDateTime(originalData.officeInTime);
+  //             originalData.officeOutTime = fixDateTime(originalData.officeOutTime);
+  //             originalData.date = selectedDate;
+
+  //             this.lastTimesheetData = originalData;
+  //           }
+  //         } else {
+  //           this.lastTimesheetData = null;
+  //         }
+
+
+  //         this.isTimesheetFormVisible = true;
+  //       },
+  //       error: (err) => {
+  //         console.error("Failed to fetch last timesheet", err);
+  //         this.lastTimesheetData = null;
+  //         this.isTimesheetFormVisible = true;
+  //       }
+  //     });
+  //   }
+  // }
 
 
 
@@ -2772,14 +3016,6 @@ getDocsForPreview(docId: any) {
   }
 
 
-
-
-  onTeamMemberSelected(empId: string): void {
-    if (empId) {
-      this.fetchLastTimesheet(empId);
-    }
-  }
-
   // fetchLastTimesheet(empId: number | string): void {
   //   this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
   //     next: (res) => {
@@ -2797,43 +3033,6 @@ getDocsForPreview(docId: any) {
 
   triggerNoTimesheetPopupForInactiveEmployee: boolean = false;
 
-
-  fetchLastTimesheet(empId: number | string): void {
-
-    this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
-      next: (res) => {
-
-        if (res.serviceStatus === 'Success') {
-          if (res.serviceResponse1 === 'No Timesheet') {
-
-            this.triggerNoTimesheetPopup = true;
-
-            this.lastTimesheetData = null;
-
-
-
-
-          } if (res.serviceResponse1 === 'Not Active') {
-            this.triggerNoTimesheetPopupForInactiveEmployee = true;
-          } else {
-            this.lastTimesheetData = { ...res.serviceResponse };
-          }
-
-
-
-
-        } else {
-          this.lastTimesheetData = null;
-        }
-
-      },
-      error: (err) => {
-        console.error("Failed to fetch last timesheet", err);
-        this.lastTimesheetData = null;
-
-      }
-    });
-  }
 
   onCreateTimesheet() {
     console.log("Timesheet submitted!");
@@ -2853,7 +3052,7 @@ getDocsForPreview(docId: any) {
     console.log('Timesheet Details:', this.timesheetDetails);
 
     if (this.shouldRenderTimesheet()) {
-      this.renderTimesheet();
+      // this.renderTimesheet();
     }
   }
 
@@ -2890,8 +3089,12 @@ getDocsForPreview(docId: any) {
   }
   //opne model
   openMilestoneExpiredListModal(): void {
+    // Close notification popup before opening milestone list.
+    this.modalRef?.close();
     this.detailModalRef = this.modalService.open(this.milestoneExpiredListModalRef, {
-      modalDialogClass: 'modal-xl'
+      modalDialogClass: 'milestone-list-modal-shell milestone-list-modal-top modal-xl',
+      backdropClass: 'milestone-list-backdrop',
+      keyboard: false
     });
   }
 
@@ -2931,6 +3134,9 @@ getDocsForPreview(docId: any) {
 
   updateMilestoneDetails(milestone: MilestoneToBeExpired): void {
 
+    // Prevent stacked modals: close milestone list before opening update modal.
+    this.closeMilestoneExpiredListModal();
+
     this.selectedMilestone = milestone;
     this.milestoneForm.patchValue({
       projectName: milestone.projectName,
@@ -2943,7 +3149,9 @@ getDocsForPreview(docId: any) {
 
     });
 
-    this.milestoneDetailModalRefView = this.modalService.open(this.milestoneDetailModalRef, { modalDialogClass:'modal-lg' });
+    this.milestoneDetailModalRefView = this.modalService.open(this.milestoneDetailModalRef, {
+      modalDialogClass: 'ep-milestone-modal-shell modal-xl'
+    });
     this.minExtendedDate();
   }
 
@@ -2983,6 +3191,10 @@ getDocsForPreview(docId: any) {
     }
 
     const formValues = this.milestoneForm.value;
+    if (this.isSameDay(formValues.extendedDate, this.selectedMilestone?.endDate)) {
+      this.openUpdateProjectCompletionModal("Updated End Date cannot be the same as the current Milestone End Date. Please select a different date.");
+      return;
+    }
 
     console.log("selectedMilestone" + this.selectedMilestone);
 
@@ -3007,16 +3219,15 @@ getDocsForPreview(docId: any) {
 
 
       extendedDate: formValues.extendedDate,
-      updatedBy: this.currentUser.employeementId,
+      updatedBy: this.currentUser.empId,
       updatedByName: this.currentUser.name,
-
       milestoneExtensionReasonId: formValues.extensionReasonId,
       milestoneExtensionReasonText: formValues.customReason
 
     };
     const formData = new FormData();
     formData.append("milestoneData",new Blob([JSON.stringify(payload)], { type: "application/json" }));
-  
+
     // optional file
     if (this.documentContent) {
       const file = this.documentContent
@@ -3024,7 +3235,6 @@ getDocsForPreview(docId: any) {
       formData.append("extensionFile", this.documentContent);
     }
 
-    console.log('Payload for milestone extension:', payload);
     this.isLoadingmilestoneDetailModal=true;
     this.projectService.updateMilestoneExtendedDate(formData).subscribe(
       (response: any) => {
@@ -3048,6 +3258,8 @@ getDocsForPreview(docId: any) {
         console.error('Error updating milestone:', errorResponse);
         this.isLoadingmilestoneDetailModal=false;
         this.openAlertMod(this.milestoneExpireValidationPupup, "Something went wrong. Kindly try after sometime!!");
+        this.isLoadingmilestoneDetailModal=false;
+        this.openAlertMod(this.milestoneExpireValidationPupup, "Something went wrong. Kindly try after sometime!!");
       }
     );
 
@@ -3055,8 +3267,8 @@ getDocsForPreview(docId: any) {
 
 
   //onchamges in form
-  onReasonChange(event: Event): void {
-    const selectedValue = (event.target as HTMLSelectElement).value;
+  onReasonChange(event: any): void {
+    const selectedValue = event?.value ?? (event?.target as HTMLSelectElement)?.value;
     const selectedReason = this.milestoneExtendReason.find(
       r => r.id === +selectedValue
     );
@@ -3105,18 +3317,39 @@ getDocsForPreview(docId: any) {
 
 
 
-    minExtendedDateformilestone:Date;
-   public  minExtendedDate(): void {
-    const endDate=this.milestoneForm.get('startDate').value;
-    this.minExtendedDateformilestone=new Date(this.convertToISO(endDate));
-      this.milestoneForm.get('extensionReasonId')?.reset();
-    console.log("minExtendedDateformilestone",this.minExtendedDateformilestone);
+    minExtendedDateformilestone: Date;
 
+   public minExtendedDate(): void {
+    const startDateStr = this.milestoneForm.get('startDate')?.value;
+    if (!startDateStr) return;
+    const parts = String(startDateStr).split('/');
+    let m: moment.Moment;
+    if (parts.length === 3) {
+      const d = Number(parts[0]);
+      const mo = Number(parts[1]);
+      const y = Number(parts[2]);
+      m = moment({ year: y, month: mo - 1, day: d }).startOf('day').add(1, 'day');
+    } else {
+      m = moment(startDateStr).startOf('day').add(1, 'day');
+    }
+    this.minExtendedDateformilestone = m.toDate();
+    this.milestoneForm.get('extensionReasonId')?.reset();
   }
-  convertToISO(dateString: string): string {
-  const [day, month, year] = dateString.split('/');
-  return `${year}-${month}-${Number(day) + 1}`;
-}
+
+  get milestoneExtendEndDateTooltip(): string {
+    const sd = this.milestoneForm?.get('startDate')?.value;
+    if (!sd) {
+      return (
+        'You may select any date after the milestone start date.\n' +
+        'There is no upper limit on the selected date.'
+      );
+    }
+    return (
+      `Milestone start date is ${sd}.\n` +
+      'You may select any date after that day.\n' +
+      'Pick a date before the current end date to finish earlier, or after it to extend.'
+    );
+  }
 
 public getDaysLeftForExpiry(endDate: string | Date): string {
     if (!endDate) {
@@ -3153,7 +3386,7 @@ public getDaysLeftForExpiry(endDate: string | Date): string {
     this.isHelpHovered = false
   }
 
-  
+
 
 
 openUserManualPdf(): void {
@@ -3274,6 +3507,92 @@ onTimesheetSearch(searchData) {
 }
 
 
+
+expandedTimesheetIndex: number | null = null;
+expandedProjectIndex: number | null = null;
+
+/* EMPLOYEE ACCORDION */
+toggleAccordion(index: number): void {
+  if (this.expandedTimesheetIndex === index) {
+    this.expandedTimesheetIndex = null;     // close employee
+    this.expandedProjectIndex = null;       // close project
+  } else {
+    this.expandedTimesheetIndex = index;    // open employee
+    this.expandedProjectIndex = null;       // reset project
+  }
+}
+
+/* PROJECT ACCORDION */
+toggleProject(projectIndex: number): void {
+  if (this.expandedProjectIndex === projectIndex) {
+    this.expandedProjectIndex = null;       // close project
+  } else {
+    this.expandedProjectIndex = projectIndex; // open project
+  }
+}
+
+
+onEmployeeToggle(timesheet: any) {
+  timesheet.locations.forEach((loc: any) => {
+    loc.projects.forEach((proj: any) => {
+      proj.isSelected = timesheet.isSelected;
+
+      proj.activities.forEach((act: any) => {
+        act.isSelected = timesheet.isSelected;
+      });
+    });
+  });
+}
+onProjectToggle(timesheet: any, project: any) {
+  project.activities.forEach((act: any) => {
+    act.isSelected = project.isSelected;
+  });
+
+  // Update employee checkbox
+  timesheet.isSelected = timesheet.locations
+    .flatMap((l: any) => l.projects)
+    .every((p: any) => p.isSelected);
+}
+onActivityToggle(timesheet: any, project: any) {
+  // Update project checkbox
+  project.isSelected = project.activities.every(
+    (act: any) => act.isSelected
+  );
+
+  // Update employee checkbox
+  timesheet.isSelected = timesheet.locations
+    .flatMap((l: any) => l.projects)
+    .every((p: any) => p.isSelected);
+}
+
+// allTeamTimesheets: any[] = [];
+
+// selectAllTimesheet(event){
+//   this.bulkApprove = [];
+//  this.bulkReject = [];
+
+//  const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
+//  checkboxes.forEach((checkbox: any) => {
+//    //console.log("checkbox : ", checkbox);
+//    let checkboxIndex = checkbox.getAttribute('id');
+//    let checkedTimesheet = this.allTeamTimesheets.find((_timesheet, index) => _timesheet.checkId == checkboxIndex);
+
+//    if (event.target.checked) {
+//      checkbox.checked = true;
+//      this.bulkApprove.push(checkedTimesheet);
+//      this.bulkReject.push(checkedTimesheet);
+//    } else {
+//      checkbox.checked = false;
+//      this.bulkApprove.forEach((timesheet, index) => {
+//        if (timesheet == checkedTimesheet) this.bulkApprove.splice(index, 1);
+//      });
+//      this.bulkReject.forEach((timesheet, index) => {
+//        if (timesheet == checkedTimesheet) this.bulkReject.splice(index, 1);
+//      });
+//    }
+//  });
+// }
+
 zoomIn() {
   if (this.zoomScale < 2.5) {
     this.zoomScale += 0.1;
@@ -3345,6 +3664,77 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   window.URL.revokeObjectURL(url);
 }
 
+onExtendedDateChange(event: any) {
+  if (event.value) {
+    if (this.isSameDay(event.value, this.selectedMilestone?.endDate)) {
+      this.milestoneForm.get('extendedDate')?.setValue(null);
+      this.isExtensionEnabled = false;
+      this.openUpdateProjectCompletionModal("Updated End Date cannot be the same as the current Milestone End Date. Please select a different date.");
+      return;
+    }
+    this.isExtensionEnabled = true;
+  }
+}
+
+private isSameDay(firstDate: any, secondDate: any): boolean {
+  if (!firstDate || !secondDate) {
+    return false;
+  }
+  const first = new Date(firstDate);
+  const second = new Date(secondDate);
+  return !isNaN(first.getTime()) && !isNaN(second.getTime()) &&
+    first.getFullYear() === second.getFullYear() &&
+    first.getMonth() === second.getMonth() &&
+    first.getDate() === second.getDate();
+}
+
+redirectToViewTeamTimesheet() {
+  this.router.navigate(
+    ['/user-timesheet/team-timesheet'],
+    { queryParams: { tab: 'team-timesheet', view: 'requests' } }
+  );
+}
+
+
+getTimesheetStatusCountsByEmpId() {
+  const payload : any = {
+    managerId: this.currentUser.empId,
+  };
+  this.timesheetNewService
+.getMyReporteesTimesheetRequestsCount(payload)
+.subscribe({
+  next: (res: any) => {
+    console.log("Status Count Response", res);
+    if (res && res.serviceResponse) {
+      this.pendingCount = 0;
+      this.approvedCount = 0;
+      this.rejectedCount = 0;
+
+      res.serviceResponse.forEach((item: any) => {
+
+        const status = item[0]?.toLowerCase();
+        const count = Number(item[1]) || 0;
+
+        if (status === 'pending') {
+          this.pendingCount = count;
+        }
+        else if (status === 'approved') {
+          this.approvedCount = count;
+        }
+        else if (status === 'rejected') {
+          this.rejectedCount = count;
+        }
+
+      });
+
+
+    }
+  }
+});
+
+}
+
+
 onFileSelected(event: any) {
   const file: File = event.target.files[0];
 
@@ -3365,7 +3755,7 @@ onFileSelected(event: any) {
   const maxSize = 25 * 1024 * 1024; // 25MB
   if (file.size > maxSize) {
     this.openUpdateProjectCompletionModal("File size should be less than 25 MB!!");
-    event.target.value = ''; 
+    event.target.value = '';
     this.resetFileData();
     return;
   }
@@ -3375,7 +3765,7 @@ onFileSelected(event: any) {
 
   this.documentName = uniquefile;
   this.documentType = file.type;
-  this.documentContent = file; 
+  this.documentContent = file;
   const url = URL.createObjectURL(file);
   if (file.type === 'application/pdf') {
     this.previewUrlForMileStone = this.sanitizer.bypassSecurityTrustResourceUrl(url);
@@ -3394,13 +3784,13 @@ validateFileName(uniquefile: any,type:any) {
         // Duplicate found
         this.resetFileData();
         this.openUpdateProjectCompletionModal(response.serviceResponse);
-        return false;        
+        return false;
       }
     },
     error: (error) => {
         this.resetFileData();
         this.openUpdateProjectCompletionModal("Error while validating file. Kindly try after sometime!!");
-        return false;        
+        return false;
     }
   });
 }
@@ -3434,10 +3824,6 @@ resetFileData() {
   this.documentType = '';
   this.documentContent = null;
   this.previewUrlForMileStone = null;
-}
-
-onExtendedDateChange(event: any) {
-  if (event.value) { this.isExtensionEnabled = true; }
 }
 
 }

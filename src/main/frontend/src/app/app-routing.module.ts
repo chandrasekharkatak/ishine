@@ -85,7 +85,7 @@ const routes: Routes = [
     loadChildren: () => import('./module-routing/employee360/employee360.module').then(m => m.Employee360Module)
   },
   { path: 'project-view', component: ProjectViewComponent },
-  { path: 'team-employee-timesheet', component: TeamEmployeeTimesheetViewComponent },
+  { path: 'team-employee-timesheet', component: TeamEmployeeTimesheetViewComponent, canActivate: [AuthGuard] },
   { path: 'lms-tab', component: LmstabComponent, canActivate: [AuthGuard] },
   { path: 'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard] },
   { path: 'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard] },

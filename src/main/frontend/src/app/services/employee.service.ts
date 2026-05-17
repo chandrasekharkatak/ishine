@@ -12,11 +12,11 @@ import { Certificate } from '../models/certificate';
 })
 export class EmployeeService {
 
-  
+
   private baseUrl:any = environment.baseUrl;
   private employeeSubject = new BehaviorSubject<Employee | null>(null);
   employee$: Observable<Employee | null> = this.employeeSubject.asObservable();
-  
+
   constructor(private http: HttpClient) { }
 
   setEmployee(employee: Employee) {
@@ -47,7 +47,7 @@ export class EmployeeService {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }
 
-  
+
   getAllEmployeesFor360View() {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesFor360View`);
   }
@@ -65,7 +65,7 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}api/getEmployeeAppreciationByEmpId`, requestPayload, {
       headers: { 'Content-Type': 'application/json' },
     });
-  } 
+  }
   getDateRangesForDropdown(currentEmp:any){
     return this.http.post(`${this.baseUrl}` + `api/getDateRangesForDropdown`,currentEmp,{
       headers: { 'Content-Type': 'application/json' },
@@ -80,12 +80,12 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/updateEmployeeProfileByEmpId`, employeeObj);
   }
 
-  getAllEmployeesByRole(employeeObj: Employee) {	
-    return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesByRole`, employeeObj);	
+  getAllEmployeesByRole(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesByRole`, employeeObj);
   }
   //added for manager role
-  getAllEmployeesByRoleForManager(employeeObj: Partial<Employee>) {	
-  return this.http.post(`${this.baseUrl}api/getAllEmployeesByRole`, employeeObj);	
+  getAllEmployeesByRoleForManager(employeeObj: Partial<Employee>) {
+  return this.http.post(`${this.baseUrl}api/getAllEmployeesByRole`, employeeObj);
 }
 
 
@@ -129,13 +129,15 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}` + `api/getHierarchyChartByEmpId`, employeeObj);
   }
 
+  /** Full management spine (top → immediate manager) for org-wide roles only; empty otherwise. */
+  getManagementSpineForHierarchy(employeeObj: Employee) {
+    return this.http.post(`${this.baseUrl}` + `api/getManagementSpineForHierarchy`, employeeObj);
+  }
+
   customQueryForEmployeeReport(queryObj: Query) {
     return this.http.post(`${this.baseUrl}` + `api/customQueryForEmployeeReport`, queryObj);
   }
 
-  getEmployeeWorkLocationForSummary() {
-    return this.http.get(`${this.baseUrl}` + `api/getEmployeeWorkLocationForSummary`);
-  }
 
   getEmployeeProfileCompletion(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeProfileCompletion`, employeeObj);
@@ -144,7 +146,7 @@ export class EmployeeService {
   updateTimesheetLockCheck(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/updateTimesheetLockCheck`, employeeObj);
   }
-  
+
   getEmployeeBasicInfo(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeBasicInfo`, employeeObj);
   }
@@ -221,7 +223,7 @@ export class EmployeeService {
 
    checkEmployeeOldPassword(user: User){
     return this.http.post(`${this.baseUrl}` + `api/checkEmployeeOldPassword`, user);
-   }	
+   }
 
    revokeAccount(employeeObj:Employee){
     return this.http.post(`${this.baseUrl}` + `api/revokeAccount` , employeeObj);
@@ -251,7 +253,7 @@ export class EmployeeService {
     return this.http.post(`${this.baseUrl}`+`api/getProjectsByDepartmentName`,department);
    }
 
-  //  getTeamByProjectName 
+  //  getTeamByProjectName
   getTeamByProjectName(project : any){
     return this.http.post(`${this.baseUrl}`+`api/getTeamByProjectName/`+project,project);
    }
@@ -427,7 +429,7 @@ updateDefaultProject(newemployeeObj : any){
  employeesMappedProjectsDepartmentWise(employeeReport:any){
   return this.http.post(`${this.baseUrl}` + `api/employeesMappedProjectsDepartmentWise`,employeeReport);
  }
- 
+
  getAllPieGraphListSummary(params: any){
   return this.http.post(`${this.baseUrl}`+`api/getAllPieGraphListSummary`, params)
 }
@@ -466,16 +468,16 @@ fetchInactivePOCounts(employeeReport:any){
   fetchactivePOListOfEmployee(employeeReport:any){
   return this.http.post(`${this.baseUrl}` + `api/fetchActivePOListOfEmployee`,employeeReport);
  }
- 
+
    revokeConfirmation(payload:any): Observable<any> {
-  
+
     return this.http.put(`${this.baseUrl}api/revoke`, payload);
   }
 
 //  getEmployeeByNameAndEmpidForTimesheet(employeeDetails:any){
 //   return this.http.post(`${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`,employeeDetails);
 //  }
- 
+
   getProbationReminders(payload:any): Observable<any> {
     return this.http.post(`${this.baseUrl}api/probation-reminders`,payload);
 }
@@ -541,24 +543,54 @@ duplicateCertificate(certificateobj:any){
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeProjectCount`,employeeReport);
   }
 
-  calculateTotalExperience(totalExperience:any,dateOfJoining:any) {
-      const previousExp = Number(totalExperience ?? 0);
-      
-      let apmosysExp = 0;
-      if (dateOfJoining) {
-        const doj = new Date(dateOfJoining);
-        const today = new Date();
-      
-        const diff = today.getTime() - doj.getTime();
-        apmosysExp = diff / (1000 * 60 * 60 * 24 * 365.25); 
+  /**
+   * Same formula as Employee 360: previous (pre-join) years + tenure since date of joining.
+   * Parses DOJ as DD-MM-YYYY (profile display), YYYY-MM-DD, or falls back to Date.parse.
+   */
+  calculateTotalExperience(totalExperience: any, dateOfJoining: any): number {
+    const previousExp = Number(totalExperience ?? 0);
+
+    let apmosysExp = 0;
+    if (dateOfJoining != null && String(dateOfJoining).trim() !== '') {
+      const s = String(dateOfJoining).trim();
+      let dojMs: number | null = null;
+      const dmy = /^(\d{1,2})-(\d{1,2})-(\d{4})$/.exec(s);
+      if (dmy) {
+        const d = parseInt(dmy[1], 10);
+        const m = parseInt(dmy[2], 10);
+        const y = parseInt(dmy[3], 10);
+        const dt = new Date(y, m - 1, d);
+        if (!isNaN(dt.getTime())) {
+          dojMs = dt.getTime();
+        }
+      } else {
+        const ymd = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s);
+        if (ymd) {
+          const y = parseInt(ymd[1], 10);
+          const m = parseInt(ymd[2], 10);
+          const d = parseInt(ymd[3], 10);
+          const dt = new Date(y, m - 1, d);
+          if (!isNaN(dt.getTime())) {
+            dojMs = dt.getTime();
+          }
+        } else {
+          const dt = new Date(s);
+          if (!isNaN(dt.getTime())) {
+            dojMs = dt.getTime();
+          }
+        }
       }
-    
-      // Total = previous exp + apmosys exp
-      let totalExp = previousExp + apmosysExp;
-      let totalCurrentExperience = Number(totalExp.toFixed(1));
-      return totalCurrentExperience;
-    
+      if (dojMs != null) {
+        const today = new Date();
+        const diff = today.getTime() - dojMs;
+        apmosysExp = Math.max(0, diff) / (1000 * 60 * 60 * 24 * 365.25);
+      }
     }
+
+    const totalExp = previousExp + apmosysExp;
+    const safe = Number.isFinite(totalExp) ? totalExp : previousExp;
+    return Number(safe.toFixed(1));
+  }
 
   getPendingTimesheetProjects(empId: number, relievingDate: string | null) {
     const payload = {
@@ -568,4 +600,32 @@ duplicateCertificate(certificateobj:any){
     return this.http.post(`${this.baseUrl}api/getPendingTimesheetProjects`, payload);
   }
 
+  getPoRequirementDataByTeamAndPoId(payload: any) {
+    return this.http.post(`${this.baseUrl}api/getPoRequirementDataByTeamAndPoId`, payload);
+  }
+
+  getAllActiveEmployeeInformation() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllActiveEmployeeInformation`);
+  }
+
+  checkInactiveValidation(empId: any) {
+  return this.http.get<boolean>(
+    `${this.baseUrl}api/getInActiveableOrNot/${empId}`
+  );
+}
+
+getEmployeeBillableType(empId:number){
+  return this.http.post(`${this.baseUrl}`+`api/getEmployeeBillableType`,empId);
+}
+
+  getDefaulterStatus(empId: number) {
+    return this.http.get(`${this.baseUrl}` + `api/getDefaulterStatus?empId=${empId}`);
+  }
+
+  saveDefaulterConsent(empId: number) {
+    return this.http.post(
+      `${this.baseUrl}` + `api/saveDefaulterConsent`,
+      {empId}
+    );
+  }
 }

@@ -68,8 +68,8 @@ public class MyConfig implements WebMvcConfigurer {
                 )
             
             .headers(headers -> headers
-                // Prevent Clickjacking
-            		.frameOptions(frame -> frame.sameOrigin())
+                // Allow iframe embedding from external sites (controlled by CSP frame-ancestors).
+            		.frameOptions(frame -> frame.disable())
 
 
                 // Strict-Transport-Security

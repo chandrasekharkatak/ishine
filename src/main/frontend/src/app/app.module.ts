@@ -140,7 +140,6 @@ import { EmployeeInfoComponent } from './user-update-info/employee-info/employee
 import { EmployeeUpdateListComponent } from './user-update-info/employee-update-list/employee-update-list.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
-import{TimesheetCreateSelfComponent} from './timesheet-create-self/timesheet-create-self.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -163,12 +162,12 @@ import { TravelConfigComponent } from './configuration/travel-config/travel-conf
 import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
 import { ReimbursementRuleSetConfigComponent } from './configuration/reimbursement-rule-set-config/reimbursement-rule-set-config.component';
 import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
+import { RoMonthYearFieldComponent } from './user-timesheet/hr-dashboard/ro-month-year-field/ro-month-year-field.component';
 import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
 import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-view/team-employee-timesheet-view.component';
 import { NavigateToTeamEmployeeTimesheetDirective } from './directives/navigate-to-team-employee-timesheet.directive';
 import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
 import { NavigateToCalenderViewDirective } from './directives/navigate-to-calender-view.directive';
-import { EdiTimesheetFormComponent } from './user-timesheet/my-timesheet/edi-timesheet-form/edi-timesheet-form.component';
 import { ViewImageComponent } from './user-team/view-image/view-image.component';
 import { MatPaginatorModule } from '@angular/material/paginator';
 
@@ -183,6 +182,7 @@ import { TrainingConfigComponent } from './configuration/training-config/trainin
 import { TrainingComponent } from './training/training.component';
 import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
+import { ExperienceDurationPipe } from './pipes/experience-duration.pipe';
 import { HomeComponent } from './home/home.component';
 import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
 import { ProjectColumnFilterPipe } from './project-column-filter.pipe';
@@ -197,7 +197,7 @@ import { AddDomainDataModalComponent } from './user-team/project-insight/compone
 import { DomainTablesComponent } from './user-team/Domain/DomainTables/DomainTables.component';
 import { ProjectInsightDomainModalComponent } from './user-team/Domain/DomainModal/app-project-insight-domain-modal.component';
 import { ViewDomainComponent } from './user-team/Domain/ViewDomain/ViewDomain.component';
-import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component'; 
+import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component';
 import { ProjectInsightDetailsComponent } from './user-team/project-insight/components/project-insight-details/project-insight-details.component';
 import { FilterProjectInsightComponent } from './user-team/project-insight/components/filter-project-insight/filter-project-insight.component';
 import { AllProjectInsightDomainsComponent } from './user-team/project-insight/components/all-project-insight-domains/all-project-insight-domains.component';
@@ -207,7 +207,7 @@ import { ProjectStaticFormComponent } from './user-team/project-insight/componen
 import { QuestionCardsComponent } from './user-team/project-insight/components';
 import { ProjectInsightQuestionLibraryComponent } from './user-team/project-insight/components/project-insight-question-library/project-insight-question-library.component';
 
-import { GroupBrowserComponent } from './user-team/project-insight/components/group-browser/group-browser.component'; 
+import { GroupBrowserComponent } from './user-team/project-insight/components/group-browser/group-browser.component';
 import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.component';
 import { ResizableModule } from 'angular-resizable-element';
 import { MatMenuModule } from '@angular/material/menu';
@@ -221,12 +221,33 @@ import { FileUploadComponent } from './helpers/form-renderer/FileUpload/FileUplo
 import { LmstabComponent } from './lmstab/lmstab.component';
 import { MySelectComponent } from './helpers/my-select/my-select.component';
 import { FloatingScrollWrapperComponent } from './helpers/floating-scroll-wrapper/floating-scroll-wrapper.component';
-import {MatTimepickerModule} from '@angular/material/timepicker';
+import { MatTimepickerModule } from '@angular/material/timepicker';
 import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomplete.component';
 import { NgxEditorModule } from 'ngx-editor';
+import { CalendarLegendComponent } from "./user-timesheet/shared/calendar-legend/calendar-legend.component";
+import { TeamAllTimesheetsTableComponent } from "./user-timesheet/team-timesheet/team-all-timesheets-table/team-all-timesheets-table.component";
+import { DateTimePickerComponent } from './helpers/date-time-picker/date-time-picker.component';
+import { TimesheetFormComponent } from './user-timesheet/my-timesheet/timesheet-form/timesheet-form.component';
 import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
+import { MatStepperModule } from '@angular/material/stepper';
+import { MatTabsModule } from '@angular/material/tabs';
+import { RmgProjectConfigComponent } from './user-team/resource-management/rmg-project-config/rmg-project-config.component';
+import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {MatRadioModule} from '@angular/material/radio';
+import { ToastrModule } from 'ngx-toastr';
+import { MyTableComponent } from './helpers/my-table/my-table.component';
+import { RmgStatusCardsComponent } from './user-team/resource-management/rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
 import { ReimbursementTicketModalComponent } from './reimbursement/reimbursement-ticket-modal/reimbursement-ticket-modal.component';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { PortalModule } from '@angular/cdk/portal';
+import { RmgModalHostComponent } from './user-team/resource-management/rmg-modal-host/rmg-modal-host.component';
+import { RmgDashboardComponent } from './user-team/resource-management/new-rmg-dashboard/rmg-dashboard/rmg-dashboard.component';
+import { RmgProjectTableComponent } from './user-team/resource-management/rmg-project-table/rmg-project-table.component';
+import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
+import { ResizableDirective } from './resizable.directive';
 
 registerLocaleData(localeGb);
 
@@ -330,8 +351,6 @@ registerLocaleData(localeGb);
     SubDomainComponent,
     FilterProjectInsightComponent,
     SubServiceComponent,
-    FilterProjectInsightComponent,
-    Employee360BiomaxComponent,
     AppreciationComponent,
     QrCodeGeneratorComponent,
     ExpiedPoAndProjectComponent,
@@ -359,15 +378,13 @@ registerLocaleData(localeGb);
     TravelConfigComponent,
     ReimbursmentConfigComponent,
     ReimbursementRuleSetConfigComponent,
-    TimesheetCreateSelfComponent,
     HrDashboardComponent,
     TimesheetConfigComponent,
     TeamEmployeeTimesheetViewComponent,
     NavigateToTeamEmployeeTimesheetDirective,
     CalendarViewComponent,
     NavigateToCalenderViewDirective,
-    EdiTimesheetFormComponent,
-    SkillModalComponent,
+     SkillModalComponent,
     MessageModalComponent,
     ConfirmationModalComponent,
     CertificateModalComponent,
@@ -375,35 +392,14 @@ registerLocaleData(localeGb);
     TrainingConfigComponent,
     TrainingComponent,
     ViewImageComponent,
-    SafeHtmlPipe,
     ConnectionLostComponent,
-    AppreciationComponent,
     PerformanceDashboardComponent,
     TeamDashboardComponent,
     AddDomainDataModalComponent,
     TemplatesComponent,
     QuarterCycleComponent,
     ViewPerformanceComponent,
-    NavigateToProjectViewDirective,
-    ProjectViewComponent,
-    PerformanceConfigComponent,
     PerformanceManagementSystemComponent,
-    QrCodeGeneratorComponent,
-    ExpiedPoAndProjectComponent,
-    NavigateToProjectViewDirective,
-    ProjectViewComponent,
-    PerformanceConfigComponent,
-    TravelAllowanceComponent,
-    ReimbursementComponent,
-    MyReimbursementComponent,
-    ViewReimbursementComponent,
-    ReimbursementapprovalComponent,
-    MyTravelrequestComponent,
-    TravelrequestapprovalComponent,
-    ViewTravelrequestComponent,
-    LMSComponent,
-    BiomaxApprovalComponent,
-    LmstabComponent,
     HighlightPipe,
     FormBuilderComponent,
     FormRendererComponent,
@@ -422,10 +418,20 @@ registerLocaleData(localeGb);
     FloatingScrollWrapperComponent,
     ProjectColumnFilterPipe,
     MyAutocompleteComponent,
+    TeamAllTimesheetsTableComponent,
+    TimesheetFormComponent,
     InfoTooltipComponent,
-    QuizSubmit
+    RmgProjectConfigComponent,
+    MyTableComponent,
+    RmgModalHostComponent,
+    RmgStatusCardsComponent,
+    RmgProjectTableComponent,
+    RmgDashboardComponent,
+    QuizSubmit,
+    ResizableDirective
   ],
   imports: [
+    NgbTooltipModule,
     BrowserModule,
     AppRoutingModule,
     MatCardModule,
@@ -460,6 +466,27 @@ registerLocaleData(localeGb);
     MatButtonModule,
     MatExpansionModule,
     NgxPaginationModule,
+    NgxEditorModule,
+    MatStepperModule,
+    MatTabsModule,
+    NgbPopoverModule,
+    MatSlideToggleModule,
+    MatRadioModule,
+    OverlayModule,
+    PortalModule,
+    CalendarLegendComponent,
+    DateTimePickerComponent,
+    RoMonthYearFieldComponent,
+    ToastrModule.forRoot({
+      positionClass: 'toast-top-right',
+      timeOut: 4000,
+      closeButton: true,
+      preventDuplicates: true,
+      newestOnTop: true
+    }),
+    MatSidenavModule,
+    // MatMomentDateModule
+    ExperienceDurationPipe,
     NgxEditorModule
   ],
   providers: [

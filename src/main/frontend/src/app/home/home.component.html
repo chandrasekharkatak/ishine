@@ -275,8 +275,8 @@
 
                     <p class="request-title"> <span>Timesheet</span><app-info-tooltip class="me-2" iconBgColor="#750D37" [size]="19"   [content]="rmTimesheetbulletContent">
                         </app-info-tooltip></p>
-                    <h4 class="req-card" (click)="openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">
-                        <span class="badge badge-secondary">{{timesheetApplicationCount}}</span>
+                    <h4 class="req-card" (click)="redirectToViewTeamTimesheet();getTimesheetStatusCountsByEmpId()">
+                        <span class="badge badge-secondary">{{pendingCount}}</span>
                     </h4>
                 </div>
                 <div class="text-center p-0">
@@ -1331,7 +1331,7 @@
         </div>
     </ng-template>
 
-    <ng-template #bulk_reject_leave>
+    <!-- <ng-template #bulk_reject_leave>
         <div class="modal-body text-center">
             <p>Kindly provide reason(s) for rejecting application.</p>
             <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
@@ -1343,7 +1343,96 @@
                 (click)="cancelRequest();openReqMod(LeaveReq);getAllMyTeamsPendingLeaveApplicationsByManagerId()">No,
                 Cancel</button>&nbsp;
         </div>
-    </ng-template>
+    </ng-template> -->
+    <ng-template #bulk_reject_leave>
+  <div class="reject-modal-shell">
+
+    <!-- Header -->
+    <div class="reject-modal-header">
+      <div class="reject-header-left">
+        <div class="reject-header-icon">
+          <i class="fa-solid fa-ban"></i>
+        </div>
+
+        <div>
+          <h5 class="reject-modal-title mb-1">Bulk Reject Leave</h5>
+          <p class="reject-modal-subtitle mb-0">
+            Reject selected leave requests with one or more reasons.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="reject-modal-body">
+
+      <div class="reject-info-banner">
+        <i class="bi bi-info-circle me-2"></i>
+        Selected reasons will be applied to all chosen leave requests.
+      </div>
+
+      <div class="row g-4">
+
+        <!-- Multi Select Reasons -->
+        <div class="col-12">
+          <label class="reject-field-label">
+            <span class="required-mark">*</span> Reject Reason(s)
+          </label>
+
+          <app-my-select
+            class="form-control modern-my-select"
+            placeholder="Choose rejection reason(s)"
+            [(ngModel)]="selectedRejectionIds"
+            [options]="leaveRejectionReasonList"
+            displayKey="reason"
+            valueKey="rejectionReasonId"
+            [multiple]="true"
+            (ngModelChange)="onRejectionReasonChange()">
+          </app-my-select>
+        </div>
+
+        <!-- Remarks -->
+        <div class="col-12">
+          <label class="reject-field-label">
+            <span class="required-mark">*</span>
+            Remarks
+          </label>
+
+          <textarea
+            rows="4"
+            class="form-control reject-remark-box"
+            placeholder="Enter remarks"
+            [(ngModel)]="leaveObj.rejectReason">
+          </textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="reject-modal-footer">
+
+      <button
+        type="button"
+        class="btn reject-cancel-btn"
+        (click)="cancelRequest();
+                 openReqMod(LeaveReq);
+                 getAllMyTeamsPendingLeaveApplicationsByManagerId()">
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="btn reject-submit-btn"
+        [disabled]="isRejectDisabled()"
+        (click)="cancelRequest(); bulkRejectLeaveNew(leave_reject)">
+        <i class="bi bi-x-lg me-2"></i>
+        Reject Selected
+      </button>
+
+    </div>
+  </div>
+</ng-template>
 
     <ng-template #bulk_comp_off_reject>
         <div class="modal-body text-center">
@@ -1401,7 +1490,7 @@
     </ng-template>
 
     <!-- for single rection modal -->
-    <ng-template #reject_leave_modal>
+    <!-- <ng-template #reject_leave_modal>
         <div class="modal-body text-center">
             <p>Kindly provide reason(s) for rejecting application.</p>
             <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
@@ -1412,7 +1501,94 @@
             <button type="button" class="btn btn-danger"
                 (click)="cancelRequest();getAllMyTeamsPendingLeaveApplicationsByManagerId()">No, Cancel</button>&nbsp;
         </div>
-    </ng-template>
+    </ng-template> -->
+    <ng-template #reject_leave_modal>
+  <div class="reject-modal-shell">
+
+    <!-- Header -->
+    <div class="reject-modal-header">
+      <div class="reject-header-left">
+        <div class="reject-header-icon">
+          <i class="fa-solid fa-ban"></i>
+        </div>
+
+        <div>
+          <h5 class="reject-modal-title mb-1">Reject Leave</h5>
+          <p class="reject-modal-subtitle mb-0">
+            Select one or more rejection reasons before submitting.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="reject-modal-body">
+
+      <div class="reject-info-banner">
+        <i class="bi bi-info-circle me-2"></i>
+        Select applicable reason(s).
+      </div>
+
+      <div class="row g-4">
+
+        <!-- Reasons -->
+        <div class="col-12">
+          <label class="reject-field-label">
+            <span class="required-mark">*</span> Reject Reason(s)
+          </label>
+
+          <app-my-select
+            class="form-control modern-my-select"
+            placeholder="Choose rejection reason(s)"
+            [(ngModel)]="selectedRejectionIds"
+            [options]="leaveRejectionReasonList"
+            displayKey="reason"
+            valueKey="rejectionReasonId"
+            [multiple]="true"
+            (ngModelChange)="onRejectionReasonChange()">
+          </app-my-select>
+        </div>
+
+        <!-- Remarks -->
+        <div class="col-12">
+          <label class="reject-field-label">
+            <span class="required-mark">*</span>
+            Remarks
+          </label>
+
+          <textarea
+            rows="4"
+            class="form-control reject-remark-box"
+            placeholder="Enter remarks"
+            [(ngModel)]="leaveObj.rejectReason">
+          </textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="reject-modal-footer">
+
+      <button
+        type="button"
+        class="btn reject-cancel-btn"
+        (click)="cancelRequest(); getAllMyTeamsPendingLeaveApplicationsByManagerId()">
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="btn reject-submit-btn"
+        [disabled]="isRejectDisabled()"
+        (click)="cancelRequest(); onSingleRejectNew(leave_success)">
+        <i class="bi bi-x-lg me-2"></i>
+        Reject Leave
+      </button>
+
+    </div>
+  </div>
+</ng-template>
 
     <ng-template #change_password>
         <div class="modal-body text-center">
@@ -1581,8 +1757,8 @@
                         </div>
                     </div>
                     <div class="text-center">
-                        <a [href]="notification.notificationMessage" 
-                           target="_blank" 
+                        <a [href]="notification.notificationMessage"
+                           target="_blank"
                            class="btn btn-primary btn-sm"
                            style="text-decoration: none;">
                             <i class="fab fa-linkedin mr-2"></i>
@@ -1800,143 +1976,77 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
 </div> -->
 
-    <!-- Timesheet Popup Modal -->
-    <div *ngIf="isTimesheetFormVisible" class="modal fade show d-block" tabindex="-1" role="dialog"
-        style="background-color: rgba(0,0,0,0.5);">
-
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-
-                <!-- Modal Header -->
-                <div class="modal-header">
-                    <h5 class="modal-title">Create Timesheet</h5>
-                    <button type="button" class="close" aria-label="Close" (click)="closeTimesheetForm()">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-
-
-                <div class="modal-body">
-
-                    <!-- <div class="modal-body">
-                        <app-timesheet-create-self *ngIf="isTimesheetFormVisible" [autofillData]="lastTimesheetData"
-                            (teamMemberSelected)="onTeamMemberSelected($event)"
-                            (createTimesheet)="onCreateTimesheet()"></app-timesheet-create-self>
-                    </div> -->
-
-                    <app-timesheet-create-self *ngIf="isTimesheetFormVisible" [autofillData]="lastTimesheetData"
-                        (teamMemberSelected)="onTeamMemberSelected($event)" (createTimesheet)="onCreateTimesheet()"
-                        (timesheetSubmitted)="onTimesheetSubmissionComplete()"
-                        [showNoTimesheetPopupTrigger]="triggerNoTimesheetPopup"
-                        [showNoTimesheetPopupTriggerForInActiveEmployee]="triggerNoTimesheetPopupForInactiveEmployee">
-                    </app-timesheet-create-self>
-
-
-
-
-
-                </div>
-
-                <!-- Modal Footer -->
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" (click)="closeTimesheetForm()">Close</button>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-
-
 
     <ng-template #milestone_expired_list_modal>
-        <div class="modal-header">
-            <h4 class="modal-title">Milestones to be Expired</h4>
-            <button type="button" class="close" aria-label="Close" (click)="closeMilestoneExpiredListModal()">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-
-        <div class="modal-body">
+      <div class="milestone-list-pane">
+        <div class="milestone-list-pane__inner">
+          <h3 class="milestone-list-pane__title">Project Milestone List</h3>
+          <div class="milestone-table-wrap">
             <div class="table-container" bassHorizontalScroll>
-                <table class="table table-bordered" matSort (matSortChange)="sortMilestoneExpiredData($event)">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>Sr. No</th>
-                            <th mat-sort-header="projectName|string">Project Name</th>
-                            <th mat-sort-header="lineItemName|string">Line Item</th>
-                            <th mat-sort-header="name|string">Milestone Name</th>
-
-                            <th mat-sort-header="startDate|string">Start Date</th>
-                            <th mat-sort-header="endDate|string">End Date</th>
-                            <th>Status</th>
-                            <th>Days Left</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <ng-container *ngIf="milestoneToBeExpired.length === 0">
-                            <tr>
-                                <td colspan="10" class="text-center">No milestones to display...</td>
-                            </tr>
-                        </ng-container>
-
-                        <ng-container
-                            *ngFor="let milestone of milestoneToBeExpired | sort : [milestoneExpiredSortColumn, milestoneExpiredSortColumnType, milestoneExpiredSortDirection] | paginate: { itemsPerPage: 5, currentPage: milestoneExpiredPage }; let i = index">
-                            <tr>
-                                <td>{{ i + 1 }}</td>
-                                <td>{{ milestone.projectName }}</td>
-                                <td>{{ milestone.lineItemName }}</td>
-                                <td>{{ milestone.name }}</td>
-
-                                <td>{{ milestone.startDate | date: 'dd/MM/yyyy' }}</td>
-                                <td>{{ milestone.endDate | date: 'dd/MM/yyyy' }}</td>
-
-                                <td>{{ milestone.status }}</td>
-                                <td>{{ getDaysLeftForExpiry(milestone.endDate) }}</td>
-
-                                <td>
-
-                                    <button class="btn btn-sm btn-info" (click)="updateMilestoneDetails(milestone)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </ng-container>
-                    </tbody>
-                </table>
-
-                <div class="row col-md-12">
-                    <pagination-controls class="my-pagination" [hidden]="milestoneToBeExpired.length === 0"
-                        (pageChange)="milestoneExpiredPage = $event">
-                    </pagination-controls>
-                </div>
+              <table class="table milestone-table" matSort (matSortChange)="sortMilestoneExpiredData($event)">
+                <thead class="milestone-table__head">
+                  <tr>
+                    <th class="milestone-table__th">#</th>
+                    <th class="milestone-table__th">Project Name</th>
+                    <th class="milestone-table__th" mat-sort-header="lineItemName|string">Line Item</th>
+                    <th class="milestone-table__th" mat-sort-header="name|string">Milestone Name</th>
+                    <th class="milestone-table__th" mat-sort-header="startDate|string">Start Date</th>
+                    <th class="milestone-table__th" mat-sort-header="endDate|string">End Date</th>
+                    <th class="milestone-table__th">Status</th>
+                    <th class="milestone-table__th">Days Left</th>
+                    <th class="milestone-table__th milestone-table__th--actions">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="milestone-table__body">
+                  <tr *ngIf="milestoneToBeExpired.length === 0" class="milestone-table__empty">
+                    <td colspan="9" class="text-center">No milestones to display.</td>
+                  </tr>
+                  <tr class="milestone-table__row"
+                    *ngFor="let milestone of milestoneToBeExpired | sort : [milestoneExpiredSortColumn, milestoneExpiredSortColumnType, milestoneExpiredSortDirection] | paginate: { itemsPerPage: 5, currentPage: milestoneExpiredPage }; let i = index">
+                    <td class="milestone-table__cell">{{ (milestoneExpiredPage - 1) * 5 + i + 1 }}</td>
+                    <td class="milestone-table__cell">{{ milestone.projectName || '-' }}</td>
+                    <td class="milestone-table__cell">{{ milestone.lineItemName || '-' }}</td>
+                    <td class="milestone-table__cell">{{ milestone.name || '-' }}</td>
+                    <td class="milestone-table__cell">{{ milestone.startDate | date: 'dd/MM/yyyy' }}</td>
+                    <td class="milestone-table__cell">{{ milestone.endDate | date: 'dd/MM/yyyy' }}</td>
+                    <td class="milestone-table__cell">{{ milestone.status || '-' }}</td>
+                    <td class="milestone-table__cell">{{ getDaysLeftForExpiry(milestone.endDate) }}</td>
+                    <td class="milestone-table__cell milestone-table__cell--actions">
+                      <button type="button" class="milestone-table__btn milestone-table__btn--edit"
+                        title="Update milestone" (click)="updateMilestoneDetails(milestone)">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
+            <div class="milestone-pagination" [hidden]="milestoneToBeExpired.length === 0">
+              <pagination-controls class="my-pagination" (pageChange)="milestoneExpiredPage = $event"></pagination-controls>
+            </div>
+          </div>
         </div>
-
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" (click)="closeMilestoneExpiredListModal()">Close</button>
-        </div>
+      </div>
     </ng-template>
 
 
 
 
 <ng-template #milestoneDetailModal>
-  <div class="modal-header" style="background: #1a3d8f; padding: 14px 20px;">
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <div style="width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,0.15);
-           display: flex; align-items: center; justify-content: center;">
-        <i class="fa fa-tasks" style="color: white; font-size: 13px;"></i>
+  <div class="ep-milestone-modal">
+    <header class="ep-milestone-modal__header">
+      <div class="ep-milestone-modal__header-accent"></div>
+      <div class="ep-milestone-modal__header-inner">
+        <h2 class="ep-milestone-modal__title">Update Milestone</h2>
+        <p class="ep-milestone-modal__subtitle">Update date</p>
+        <button type="button" class="ep-milestone-modal__close" aria-label="Close" (click)="closeMilestoneDetailModal()">
+          <i class="fa fa-times"></i>
+        </button>
       </div>
-      <h5 class="modal-title fw-semibold" style="color: white; margin: 0;">Milestone details</h5>
-    </div>
-    <button type="button" class="btn-close btn-close-white"
-      (click)="closeMilestoneDetailModal()"></button>
-  </div>
-
+    </header>
   <form [formGroup]="milestoneForm" (ngSubmit)="updateMilestoneExtendedDateWithReason()">
-    <div class="modal-body" style="padding: 20px; background: var(--bs-light, #f8f9fa);">
+    <div class="ep-milestone-modal__body">
+      <main class="ep-milestone-modal__main">
 
       <!-- Project Info Section -->
       <div class="milestone-section">
@@ -1981,7 +2091,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
                 <mat-icon matTooltip="You may select any date after the Start Date.
                 1. Select a date before the End Date to close the milestone earlier.
                 2. Select a date after the End Date to extend the milestone duration."
-                  matTooltipPosition="right" matTooltipClass="milestone-tooltip" class="info-icon mr-2"> info 
+                  matTooltipPosition="right" matTooltipClass="milestone-tooltip" class="info-icon mr-2"> info
                 </mat-icon>
             </label>
             <mat-form-field appearance="outline" class="w-100 milestone-datepicker">
@@ -2009,14 +2119,17 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
             <label class="field-label">
               Reason <span class="text-danger">*</span>
             </label>
-            <select class="milestone-select"
-              formControlName="extensionReasonId"
-              (change)="onReasonChange($event)">
-              <option [ngValue]="null" disabled>Select reason</option>
-              <option *ngFor="let reason of milestoneExtendReason" [value]="reason.id">
-                {{ reason.milestoneExtensionReason }}
-              </option>
-            </select>
+            <mat-form-field appearance="outline" class="w-100 milestone-reason-field">
+              <mat-select formControlName="extensionReasonId"
+                placeholder="Select reason"
+                panelClass="milestone-reason-panel"
+                (selectionChange)="onReasonChange($event)">
+                <mat-option [value]="null" disabled>Select reason</mat-option>
+                <mat-option *ngFor="let reason of milestoneExtendReason" [value]="reason.id">
+                  {{ reason.milestoneExtensionReason }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
 
             <div *ngIf="isOtherReasonSelected" class="mt-2">
               <label class="field-label">
@@ -2062,18 +2175,41 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
         </div>
       </div>
 
+      </main>
     </div>
-
-    <div class="modal-footer" style="background: #f8f9fa; border-top: 1px solid #dee2e6;">
-      <button type="button" class="btn btn-outline-secondary btn-sm px-4"
-        (click)="closeMilestoneDetailModal()">Cancel</button>
-      <button type="submit" class="btn btn-sm px-4"
-        style="background: #1a3d8f; color: white; border: none;">Submit</button>
-    </div>
+    <footer class="ep-milestone-modal__footer">
+      <div class="ep-milestone-modal__footer-actions">
+        <button type="button" class="ep-btn ep-btn--secondary" (click)="closeMilestoneDetailModal()">Cancel</button>
+        <button type="submit" class="ep-btn ep-btn--primary">Submit</button>
+      </div>
+    </footer>
   </form>
+</div>
 </ng-template>
 
-
+<ng-template #project_milestone_document>
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"> Document Preview</h5>
+                    <button type="button" class="close" aria-label="Close"
+                            (click)="closeProjectMilestoneDocumentsModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div *ngIf="previewUrlForMileStone">
+                        <iframe [src]="previewUrlForMileStone" width="100%" height="600px"></iframe>
+                    </div>
+                    <div *ngIf="!previewUrlForMileStone">
+                        <p>No document available for this milestone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
 
 
     <ng-template #milestoneExpireValidationPupup>
@@ -2212,5 +2348,71 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
             </div>
         </div>
     </div>
+</ng-template>
+
+
+<ng-template #attendancePolicyModal>
+  <div class="corporate-modal">
+    <!-- Header -->
+    <div class="modal-header-corp">
+      <div class="header-content">
+        <div class="alert-icon-wrap">
+          <i class="fa fa-exclamation-triangle"></i>
+        </div>
+        <div class="header-text">
+          <h2 class="corp-title">Attendance Policy Notification</h2>
+          <p class="corp-subtitle">{{popupHeading}}</p>
+        </div>
+      </div>
+      <button type="button" class="close-btn-corp" (click)="closeRepeatedOffendeNoticeModal()">&times;</button>
+    </div>
+
+    <div class="modal-body-corp">
+      <!-- Latest Status Section -->
+      <div class="latest-status-section" *ngIf="defaulterMonths?.length">
+        <span class="label-caps mb-2 d-block">Latest Default Month</span>
+        <div class="d-flex align-items-center gap-3 justify-content-between">
+          <span class="month-display">{{ getMonthName(defaulterMonths[0].month) }} {{ defaulterMonths[0].year }}</span>
+          <span class="badge-critical">Critical</span>
+        </div>
+      </div>
+
+      <!-- History Section -->
+      <div class="history-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="label-caps">Incident History</span>
+          <button class="btn-text-toggle" (click)="showAllMonths = !showAllMonths">
+            {{ showAllMonths ? 'Hide details' : 'View all months' }}
+            <i class="fa ml-1" [ngClass]="showAllMonths ? 'fa-angle-up' : 'fa-angle-down'"></i>
+          </button>
+        </div>
+
+        <!-- 3-Column Structured Grid -->
+        <div *ngIf="showAllMonths" class="corp-history-grid mb-4">
+          <div class="history-card" *ngFor="let m of defaulterMonths; let i = index" [class.active-item]="i === 0">
+            <span class="history-month">{{ getMonthName(m.month) }}</span>
+            <span class="history-year">{{ m.year }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Warning Banner -->
+      <div class="corp-warning-banner">
+        <i class="fa fa-info-circle warning-icon-corp"></i>
+        <p class="warning-text-corp">
+          {{popupDescription}}
+        </p>
+      </div>
+    </div>
+
+    <!-- Footer Action -->
+    <div class="modal-footer-corp">
+      <button class="btn-corp-primary w-100" [disabled]="isSavingConsent"
+        (click)="acknowledgeRepeatedOffendeNoticePolicy()">
+        <span *ngIf="!isSavingConsent">I Understand & Acknowledge</span>
+        <span *ngIf="isSavingConsent">Processing...</span>
+      </button>
+    </div>
+  </div>
 </ng-template>
 

@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -52,6 +53,10 @@ public class ProjectDTO {
 	private String projectManagerName;
 	private String apmosysRM;
 	private String clientRM;
+	
+	private Long poId;
+	private String projectType;
+	private Date projectStartDate;
 
 	public ProjectDTO(String clientName ,Integer clientId) {
 		this.clientId = clientId;

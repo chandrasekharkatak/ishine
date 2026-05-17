@@ -33,6 +33,10 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { Subscription } from 'rxjs';
 import { EmployeeIdService } from 'src/app/services/shared/employee-id.service';
 import { EmployeeIdUtilService } from 'src/app/services/employee-id-util.service';
+import { EmployeeProjectService } from 'src/app/services/employee-project.service';
+import { PoDetails } from 'src/app/models/poDetails';
+import { RmgResourceRequirement } from 'src/app/models/rmgResourceRequirement';
+import { RmgTeamMember } from 'src/app/models/rmgTeamMember';
 class FilterData {
   title: any;
   columns: any;
@@ -73,6 +77,8 @@ export class EmployeeConfigComponent implements OnInit {
   changeManagerTemplate: TemplateRef<any>;
   @ViewChild("change_default_project_template_on_deptUpdate")
   changeDefaultProjectTemplate: TemplateRef<any>;
+  @ViewChild("inactiveTemplate")
+  inactiveTemplate: TemplateRef<any>;
 
   feature = 'Employee Config';
   managerFlag: boolean = false;
@@ -146,6 +152,7 @@ export class EmployeeConfigComponent implements OnInit {
   allPreviousEmployment: any[] = [];
   updatedCertificationList: any[] = [];
   updatedPreviousEmployment: any[] = [];
+
   allStates: any[] = [
     "Andaman & Nicobar Islands",
     "Andhra Pradesh",
@@ -277,8 +284,19 @@ export class EmployeeConfigComponent implements OnInit {
   pendingTimesheetProjectModal: TemplateRef<any>;
 
 
-  constructor(
+  showPoDropdown: boolean = false;
+  showPoRoleDropdown: boolean = false;
+  defaultProjectUpdationProjectType: string = '';
+  roleFilterActionLabel: 'Show Active PO Roles' | 'Show All PO Roles' = 'Show Active PO Roles';
+  poFilterActionLabel: 'Show Active PO' | 'Show All PO' = 'Show Active PO';
 
+  internalProjectTypes = ['internal', 'internalrndproducts', 'bench']; 
+  poDetailsList: PoDetails[] = [];
+  filteredPoDetailsList: PoDetails[] = [];
+  resourceRequirementList: RmgResourceRequirement[] = [];
+  filteredActiveResourceRequirement: RmgResourceRequirement[] = [];
+
+  constructor(
     private employeeService: EmployeeService,
     public validationService: ValidationService,
     private datePipe: DatePipe,
@@ -295,7 +313,8 @@ export class EmployeeConfigComponent implements OnInit {
     private domainService: DomainService,
     private destinationService: DestinationService,
     private leaveService: LeaveService,
-    private employeeIdUtilService: EmployeeIdUtilService
+    private employeeIdUtilService: EmployeeIdUtilService,
+    private employeeProjectService: EmployeeProjectService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -1064,14 +1083,12 @@ export class EmployeeConfigComponent implements OnInit {
   stringToNumber(year: any) {
     this.employeeObj.yearOfPassing = Number.parseInt(year);
   }
-
+previousEmploymentStatus: string;
   retainStatus() {
+      const selectedStatus = this.employeeObj.employmentstatus;
+   
+      this.employeeObj.isRetain = selectedStatus === "Retain" ? "Yes" : "No";
 
-    if (this.employeeObj.employmentstatus == "Retain") {
-      this.employeeObj.isRetain = "Yes";
-    } else {
-      this.employeeObj.isRetain = "No";
-    }
     if ( ['Probation','Confirmed','Retain'].includes(this.employeeObj.employmentstatus)) {
       this.employeeObj.employmentReleaseStatus="";
       this.employeeObj.dateOfResign='';
@@ -1080,18 +1097,52 @@ export class EmployeeConfigComponent implements OnInit {
 
     console.log(this.employeeObj.employmentstatus)
     console.log(this.employeeObj.isRetain)
+
+    if (selectedStatus === "InActive") {
+
+    this.employeeService.checkInactiveValidation(this.employeeObj.empId)
+      .subscribe({
+        next: (response: any) => {
+
+          if (response.serviceResponse === true) {
+            this.openInactivePopup();
+          }
+
+        },
+        error: (err) => {
+          console.error("Inactive validation error", err);
+        }
+      });
+    }
   }
+  
+openInactivePopup() {
+
+  this.modalRef = this.modalService.open(this.inactiveTemplate, {
+    backdrop: 'static',
+    keyboard: false
+  });
+}
+onCancel() {
+  if (this.modalRef) {
+    this.modalRef.dismiss(); 
+  }
+
+  this.employeeObj.employmentstatus = this.previousEmploymentStatus;
+}
+storePreviousStatus(){
+    this.previousEmploymentStatus = this.employeeObj.employmentstatus;
+}
+
 
   showCreateForm() {
     this.isForm = true;
     this.isCreation = true;
-
     this.isTable = false;
     this.isUpdation = false;
     this.isDraft = false;
     this.isDraftTable = false;
     this.page = 1;
-    this.showResourceRequirementDropdown = false;
     this.deptSelected = false;
     this.showProjectDropdown = false;
     this.showTeamDropdown = false;
@@ -1433,7 +1484,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   // }
 
-  validateEmployeeObj(employeeObj: Employee, template: TemplateRef<any>) {
+  async validateEmployeeObj(employeeObj: Employee, template: TemplateRef<any>) {
 
     // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employeementId)) {
     //   this.alertMessage = "Please enter Employment Id !!"
@@ -1763,35 +1814,100 @@ export class EmployeeConfigComponent implements OnInit {
     }
 
      const shouldValidateDefaultProject = this.isCreation || (this.isUpdation && employeeObj.isUpdateDefaultProject);
-     if (shouldValidateDefaultProject) {
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultprojectType)) {
-      this.alertMessage = "Please select Default project Type !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    if (shouldValidateDefaultProject) {
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultprojectType)) {
+        this.alertMessage = "Please select Default project Type !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultProjectId)) {
-      this.alertMessage = "Please select Default project  !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultProjectId)) {
+        this.alertMessage = "Please select Default project  !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultTeamId)) {
-      this.alertMessage = "Please select Default Team !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-   
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultTeamId)) {
+        this.alertMessage = "Please select Default Team !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
       if ((employeeObj.defaultTeamEmployeeRole.length === 0 || !employeeObj.defaultTeamEmployeeRole)) {
         this.alertMessage = "Please select Employee Role In Default Project !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-    
-  }
 
+      if (!this.internalProjectTypes.includes(this.defaultProjectUpdationProjectType?.trim()?.toLowerCase())) {
+        if (!employeeObj.poId || !this.isValidNumber(employeeObj.poId)) {
+          this.alertMessage ="Kindly Select a PO!!";
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+        const selectedPo = this.poDetailsList?.find(po => po?.poId === employeeObj?.poId);
+        if (!selectedPo || selectedPo == undefined || selectedPo == null) {
+          this.alertMessage ="Selected PO not found in the List!!";
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+        if (this.defaultProjectUpdationProjectType === 'TNM' && (!employeeObj.poRoleId || !this.isValidNumber(employeeObj.poRoleId))) {
+          this.alertMessage ="Kindly Select a PO Role!!";
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+      }
 
+      if (this.isCreation && (!employeeObj.newEtmStartDate || employeeObj.newEtmStartDate == undefined || employeeObj.newEtmStartDate == null)) {
+        this.alertMessage ="Kindly Provide Project Start Date!!";
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
 
+      if (this.isUpdation && employeeObj.isUpdateDefaultProject) {
+        if (this.defaultProjectUpdationProjectType === 'TNM' && (!employeeObj.oldEtmEndDate || employeeObj.oldEtmEndDate == undefined || employeeObj.oldEtmEndDate == null)) {
+          this.alertMessage = "Kindly Provide Current Project End Date!!";
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+
+        if (!employeeObj.newEtmStartDate || employeeObj.newEtmStartDate == undefined || employeeObj.newEtmStartDate == null) {
+          this.alertMessage = "Kindly Provide Project Start Date!!";
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+
+        if (this.defaultProjectUpdationProjectType === 'TNM' && (this.normalizeDate(employeeObj.newEtmStartDate) < this.normalizeDate(employeeObj.oldEtmEndDate))) {
+          this.alertMessage = "Employee Current Project End date cannot be greater then New Project Start date!!";
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+
+        if (employeeObj.newEtmStartDate !== undefined && employeeObj.newEtmStartDate !== null) {
+          let member = { empId: employeeObj.empId, startDate: employeeObj.newEtmStartDate, teamId : employeeObj.defaultTeamId };
+          let projectData = {
+            currentProjectId: employeeObj.defaultProjectId,
+            projectIds: [employeeObj.defaultProjectId],
+            projectType: this.defaultProjectUpdationProjectType
+          };
+
+          employeeObj.isEndDateVisible = false;
+          employeeObj.memberMaxEndDate = null;
+          const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
+          if (response?.type === 'NO_CONFLICT' && response?.type == 'PROJECT_GAP') {
+            return true;
+          } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT' || response?.type === 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT') {
+            employeeObj.isEndDateVisible = true;
+            employeeObj.memberMaxEndDate = response?.data.memberMaxEndDate;
+            this.alertMessage = 'Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!';
+            this.openAlertMod(template, this.alertMessage);
+            return false;
+          } else {
+            return false;
+          }
+        }
+      }
+    }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.jobRoleId)) {
       this.alertMessage = "Please select Job Role !!"
@@ -2056,7 +2172,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   // CRUD
 
-  onCreateEmployee(template: TemplateRef<any>) {
+  async onCreateEmployee(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
     console.log("allCertificationList : ", this.allCertificationList);
     console.log("allPreviousEmployment : ", this.allPreviousEmployment);
@@ -2066,13 +2182,14 @@ export class EmployeeConfigComponent implements OnInit {
       return;
     }
 
-    let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
+    let inputValidated: boolean = await this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
 
     this.employeeObj.isDraft = false;
     // transform date formats to YYYY-MM-DD
     this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat);
     this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat);
+    if (this.employeeObj.newEtmStartDate) this.employeeObj.newEtmStartDate = this.normalizeDate(this.employeeObj.newEtmStartDate);
 
 
     this.employeeObj.certifications = (Object.keys(this.allCertificationList[0]).length === 0) ? null : this.allCertificationList;
@@ -2414,7 +2531,7 @@ export class EmployeeConfigComponent implements OnInit {
   async onUpdateEmployee(template: TemplateRef<any>) {
 
     const dateFormat = 'YYYY-MM-DD';
-    let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
+    let inputValidated: boolean = await this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
     if (!this.employeeObj.employeementId || this.employeeObj.employeementId == null || this.employeeObj.employeementId.toString().trim() == "") {
       this.openAlertMod(template, "Please enter valid employeement Id");
@@ -2480,7 +2597,10 @@ export class EmployeeConfigComponent implements OnInit {
     if (this.employeeObj.dateOfResign) this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
     if (this.employeeObj.dateOfRetain) this.employeeObj.dateOfRetain = moment(this.employeeObj.dateOfRetain).format(dateFormat)
     if (this.employeeObj.onRollDate) this.employeeObj.onRollDate = moment(this.employeeObj.onRollDate).format(dateFormat)
-    if (this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation") {
+    if (this.employeeObj.oldEtmEndDate) this.employeeObj.oldEtmEndDate = this.normalizeDate(this.employeeObj.oldEtmEndDate);
+    if (this.employeeObj.newEtmStartDate) this.employeeObj.newEtmStartDate = this.normalizeDate(this.employeeObj.newEtmStartDate);
+
+      if (this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation") {
       this.employeeObj.dateOfResign = null;
       this.employeeObj.dateOfRelieving = null;
     }
@@ -2665,7 +2785,7 @@ export class EmployeeConfigComponent implements OnInit {
         this.projectList = response.serviceResponse;
         if (this.projectList.length === 0) {
           this.showProjectDropdown = false;
-          this.openAlertMod(template, 'No project exists for the selected department. Please contact RMG to create one.');
+          this.openAlertMod(template, 'No Project(s) with Active Team(s) found for the Selected department. Please contact RMG Team.');
         } else {
           this.showProjectDropdown = true;
         }
@@ -2676,50 +2796,42 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
-  onProjectChange(event: any) {
-      this.resetCascade('PROJECT');
-    const selectedProjectId = +event.target.value;
+  async onProjectChange(selectedProjectId: any) {
+    this.resetCascade('PROJECT');
     const selectedProject = this.projectList.find(p => p.projectId === selectedProjectId);
+
+    this.showTeamDropdown = false;
     this.showEmployeeRoleDropdown = false;
+    this.teamList = [];
 
-    if (selectedProject && selectedProject.teamList) {
-      this.teamList = selectedProject.teamList;
-      this.showTeamDropdown = true;
-    } else {
-      this.teamList = [];
-      this.showTeamDropdown = false;
-    }
-
-    if (selectedProject && selectedProject.resourceRequirement && selectedProject.resourceRequirement.length > 0) {
-      this.resourceRequirements = selectedProject.resourceRequirement;
-      this.showResourceRequirementDropdown = true;
-    } else {
-      this.resourceRequirements = [];
-      this.showResourceRequirementDropdown = false;
-      this.employeeObj.selectedResourceOverviewId = null;
+    if (selectedProject) {
+      console.log(selectedProject)
+      this.defaultProjectUpdationProjectType = selectedProject.projectType;
+      this.employeeObj.projectStartDate = selectedProject.projectStartDate;
+      if (selectedProject?.teamList && selectedProject?.teamList?.length > 0) {
+        this.teamList = selectedProject.teamList;
+        this.showTeamDropdown = true;
+      }
+      if (this.defaultProjectUpdationProjectType && this.defaultProjectUpdationProjectType && !this.internalProjectTypes.includes(this.defaultProjectUpdationProjectType?.trim()?.toLowerCase())) {
+        this.showPoDropdown = true;
+        const response = await this.employeeProjectService.getPoDetailsByProjectId(selectedProject.projectId);
+        this.poDetailsList = response?.data || [];
+        this.filteredPoDetailsList = [...this.poDetailsList];
+      }
     }
   }
 
-
-  showResourceRequirementDropdown: boolean = false;
-  resourceRequirements: any[] = [];
-  onTeamChange(event: any) {
+  onTeamChange(selectedTeamId: any) {
     this.resetCascade('TEAM');
-    const selectedTeamId = +event.target.value;
     const selectedTeam = this.teamList.find(t => t.teamId === selectedTeamId);
-
+    this.employeeObj.defaultTeamId = selectedTeamId;
     if (selectedTeam) {
       this.showEmployeeRoleDropdown = true;
-
       this.employeeObj.defaultTeamEmployeeRole = [];
     } else {
       this.showEmployeeRoleDropdown = false;
     }
   }
-
-
-
-
 
   // getAllEmployeeList() {
   //   this.allEmployeeList = [];
@@ -3259,14 +3371,13 @@ export class EmployeeConfigComponent implements OnInit {
     jobRoleId ? this.employeeObj.jobRoleId = jobRoleId : this.employeeObj.jobRoleId = '';
   }
 
-   deptdefaultprojectChange(){
+  deptdefaultprojectChange() {
     this.resetCascade('Department');
-
-  if (this.isUpdation) {
-    this.modalRef = this.modalService.open(this.changeDefaultProjectTemplate,{ modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false } );
-  } else { 
-    this.deptSelected = true;
-  }
+    if (this.isUpdation) {
+      this.modalRef = this.modalService.open(this.changeDefaultProjectTemplate, { modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false });
+    } else {
+      this.deptSelected = true;
+    }
   }
 
     confirmUpdateDefaultProject(choice: boolean) {
@@ -3292,65 +3403,80 @@ resetDefaultProjectFields() {
 
 
 
-   resetCascade(level: 'PROJECT_TYPE' | 'PROJECT' | 'TEAM' | 'Department') {
-  switch (level) {
+  resetCascade(level: 'PROJECT_TYPE' | 'PROJECT' | 'TEAM' | 'Department') {
+    switch (level) {
+      case 'Department':
+        this.employeeObj.defaultprojectType = null
+        this.employeeObj.defaultProjectId = null;
+        this.employeeObj.defaultTeamId = null;
+        this.employeeObj.selectedResourceOverviewId = null;
+        this.employeeObj.isShadowResource = 0;
+        this.employeeObj.defaultTeamEmployeeRole = [];
 
-    case 'Department':
-      this.employeeObj.defaultprojectType = null
-       this.employeeObj.defaultProjectId = null;
-      this.employeeObj.defaultTeamId = null;
-      this.employeeObj.selectedResourceOverviewId = null;
-      this.employeeObj.defaultTeamEmployeeRole = [];
-      this.employeeObj.isShadowResource = 0;
+        this.projectList = [];
+        this.teamList = [];
 
-      this.projectList = [];
-      this.teamList = [];
-      this.resourceRequirements = [];
-
-      this.showProjectDropdown = false;
-      this.showTeamDropdown = false;
-      this.showResourceRequirementDropdown = false;
-      this.showEmployeeRoleDropdown = false;
-      break;
+        this.showProjectDropdown = false;
+        this.showTeamDropdown = false;
+        this.showEmployeeRoleDropdown = false;
+        break;
 
 
-    case 'PROJECT_TYPE':
-      this.employeeObj.defaultProjectId = null;
-      this.employeeObj.defaultTeamId = null;
-      this.employeeObj.selectedResourceOverviewId = null;
-      this.employeeObj.defaultTeamEmployeeRole = [];
-      this.employeeObj.isShadowResource = 0;
+      case 'PROJECT_TYPE':
+        this.employeeObj.defaultProjectId = null;
+        this.employeeObj.defaultTeamId = null;
+        this.employeeObj.selectedResourceOverviewId = null;
+        this.employeeObj.defaultTeamEmployeeRole = [];
+        this.employeeObj.isShadowResource = 0;
+        this.roleFilterActionLabel = 'Show Active PO Roles';
+        this.poFilterActionLabel = 'Show Active PO';
+        this.employeeObj.poId = null;
+        this.employeeObj.poRoleId = null;
+        this.employeeObj.oldEtmEndDate = null;
+        this.employeeObj.newEtmStartDate = null;
 
-      this.projectList = [];
-      this.teamList = [];
-      this.resourceRequirements = [];
+        this.projectList = [];
+        this.teamList = [];
+        this.poDetailsList = [];
+        this.filteredPoDetailsList = [];
+        this.resourceRequirementList = [];
+        this.filteredActiveResourceRequirement = [];
 
-      this.showProjectDropdown = false;
-      this.showTeamDropdown = false;
-      this.showResourceRequirementDropdown = false;
-      this.showEmployeeRoleDropdown = false;
-      break;
+        this.showProjectDropdown = false;
+        this.showTeamDropdown = false;
+        this.showEmployeeRoleDropdown = false;
+        this.showPoDropdown = false;
+        this.showPoRoleDropdown = false;
+        break;
 
-    case 'PROJECT':
-      this.employeeObj.defaultTeamId = null;
-      this.employeeObj.selectedResourceOverviewId = null;
-      this.employeeObj.defaultTeamEmployeeRole = [];
-      this.employeeObj.isShadowResource = 0;
+      case 'PROJECT':
+        this.employeeObj.defaultTeamId = null;
+        this.employeeObj.selectedResourceOverviewId = null;
+        this.employeeObj.defaultTeamEmployeeRole = [];
+        this.employeeObj.isShadowResource = 0;
+        this.employeeObj.poId = null;
+        this.employeeObj.poRoleId = null;
+        this.employeeObj.oldEtmEndDate = null;
+        this.employeeObj.newEtmStartDate = null;
 
-      this.teamList = [];
-      this.resourceRequirements = [];
+        this.teamList = [];
+        this.poDetailsList = [];
+        this.filteredPoDetailsList = [];
+        this.resourceRequirementList = [];
+        this.filteredActiveResourceRequirement = [];
 
-      this.showTeamDropdown = false;
-      this.showResourceRequirementDropdown = false;
-      this.showEmployeeRoleDropdown = false;
-      break;
+        this.showTeamDropdown = false;
+        this.showEmployeeRoleDropdown = false;
+        this.showPoDropdown = false;
+        this.showPoRoleDropdown = false;
+        break;
 
-    case 'TEAM':
-      this.employeeObj.defaultTeamEmployeeRole = [];
-      this.showEmployeeRoleDropdown = false;
-      break;
+      case 'TEAM':
+        this.employeeObj.defaultTeamEmployeeRole = [];
+        this.showEmployeeRoleDropdown = false;
+        break;
+    }
   }
-}
 
 
 
@@ -5174,49 +5300,132 @@ resetDefaultProjectFields() {
     );
   }
 
-pendingCount: number = 0;
-checkDate: string = '';
-pendingProjects: string[] = [];
+  pendingCount: number = 0;
+  checkDate: string = '';
+  pendingProjects: string[] = [];
 
- openPendingTimesheetProjectModal(empId: number, relievingDate: string | null): Promise<boolean> {
-  return new Promise(resolve => {
-    this.employeeService.getPendingTimesheetProjects(empId, relievingDate)
-      .pipe(first())
-      .subscribe((res: any) => {
-        if (res?.serviceStatus === 'Success' && res.serviceResponse) {
-          this.pendingCount = res.serviceResponse.pendingCount || 0;
-          this.checkDate = res.serviceResponse.checkDate;
-          this.pendingProjects = res.serviceResponse.pendingProjects || [];
+  openPendingTimesheetProjectModal(empId: number, relievingDate: string | null): Promise<boolean> {
+    return new Promise(resolve => {
+      this.employeeService.getPendingTimesheetProjects(empId, relievingDate)
+        .pipe(first())
+        .subscribe((res: any) => {
+          if (res?.serviceStatus === 'Success' && res.serviceResponse) {
+            this.pendingCount = res.serviceResponse.pendingCount || 0;
+            this.checkDate = res.serviceResponse.checkDate;
+            this.pendingProjects = res.serviceResponse.pendingProjects || [];
 
-          if (this.pendingCount === 0) {
-            console.log('No pending timesheets - proceeding with update');
+            if (this.pendingCount === 0) {
+              console.log('No pending timesheets - proceeding with update');
+              resolve(false);
+              return;
+            }
+            this.modalRef = this.modalService.open(
+              this.pendingTimesheetProjectModal,
+              { windowClass: 'modal-lg', backdrop: 'static' }
+            );
+
+            this.modalRef.result.finally(() => {
+              resolve(true);
+            });
+          } else {
             resolve(false);
-            return;
           }
-          this.modalRef = this.modalService.open(
-            this.pendingTimesheetProjectModal,
-            { windowClass: 'modal-lg', backdrop: 'static' }
-          );
-
-          this.modalRef.result.finally(() => {
-            resolve(true);
-          });
-        } else {
+        }, error => {
+          console.error('Pending project API error', error);
           resolve(false);
-        }
-      }, error => {
-        console.error('Pending project API error', error);
-        resolve(false);
-      });
-  });
-}
+        });
+    });
+  }
 
-}
+  async getResourceRequirementByPoId(poId: any) {
+    if (this.defaultProjectUpdationProjectType != 'TNM') {
+      return;
+    }
+    this.showPoRoleDropdown = true;
+    this.resourceRequirementList = [];
+    this.filteredActiveResourceRequirement = [];
+    const response = await this.employeeProjectService.getResourceRequirementByPoId(poId);
+    this.resourceRequirementList = response.data;
+    this.filteredActiveResourceRequirement = [...this.resourceRequirementList];
+  }
 
+  filterActivePoDetails() {
+    if (this.poFilterActionLabel === 'Show All PO') {
+      this.poFilterActionLabel = "Show Active PO";
+      this.filteredPoDetailsList = [...this.poDetailsList];
+    } else {
+      this.poFilterActionLabel = "Show All PO";
+      this.filteredPoDetailsList = this.poDetailsList.filter(p => !p.isExpired);
+    }
+  }
 
+  filterActiveResourceRequirement() {
+    if (this.roleFilterActionLabel === 'Show All PO Roles') {
+      this.roleFilterActionLabel = "Show Active PO Roles";
+      this.filteredActiveResourceRequirement = [...this.resourceRequirementList];
+    } else {
+      this.roleFilterActionLabel = "Show All PO Roles";
+      this.filteredActiveResourceRequirement = this.resourceRequirementList.filter(r => !r.isExpired);
+    }
+  }
 
+  async validateEmployeeProjectStartDate(alertMessageTemplate: any): Promise<boolean> {
+    if (this.isCreation && this.employeeObj.newEtmStartDate && this.normalizeDate(this.employeeObj.newEtmStartDate) < this.normalizeDate(this.employeeObj.dateOfJoining)) {
+      this.alertMessage = "Employee’s Start Date must not be earlier than the Employee’s Date of Joining!!";
+      this.openAlertMod(alertMessageTemplate, this.alertMessage);
+      return false;
+    }
+    // Condition to check the Project Start Date less than Employee Start Date & if less than Pop Up to date the Project Start Date Flow to be added
+    // if (this.isCreation && this.employeeObj.newEtmStartDate && this.normalizeDate(this.employeeObj.newEtmStartDate) < this.normalizeDate(this.employeeObj.dateOfJoining)) {
+    //   this.alertMessage = "Employee’s Start Date must not be earlier than the Employee’s Date of Joining!!";
+    //   this.openAlertMod(alertMessageTemplate, this.alertMessage);
+    //   return false;
+    // }
+    if (this.isCreation) {
+      return true;
+    }
+    if (this.normalizeDate(this.employeeObj.newEtmStartDate) < this.normalizeDate(this.employeeObj.oldEtmEndDate)) {
+      this.alertMessage = "Employee Current Project End date cannot be greater then New Project Start date!!";
+      this.openAlertMod(alertMessageTemplate, this.alertMessage);
+      return false;
+    }
+    let member = { empId: this.employeeObj.empId, startDate: this.employeeObj.newEtmStartDate, teamId : this.employeeObj.defaultTeamId };
+    let projectData = {
+      currentProjectId: this.employeeObj.defaultProjectId,
+      projectIds: [this.employeeObj.defaultProjectId],
+      projectType: this.defaultProjectUpdationProjectType
+    };
 
+    this.employeeObj.isEndDateVisible = false;
+    this.employeeObj.memberMaxEndDate = null;
+    const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
+    if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {
+      return true;
+    } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT' || response?.type === 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT') {
+      this.employeeObj.isEndDateVisible = true;
+      this.employeeObj.memberMaxEndDate = response?.data.memberMaxEndDate;
+      this.alertMessage = 'Start date overlaps with an existing mapping. Ensure the current assignment ends before the next start date!!';
+      this.openAlertMod(alertMessageTemplate, this.alertMessage);
+      return false;
+    } else {
+      return false;
+    }
+  }
 
-function compare(a: number | string, b: number | string, isAsc: boolean) {
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+  normalizeDate(dateInput: any) {
+    if (!dateInput) {
+      return null;
+    }
+    const date = new Date(dateInput);
+    if (isNaN(date.getTime())) {
+      return null;
+    }
+    return moment(dateInput).startOf('day').format('YYYY-MM-DDTHH:mm:ss');
+    // return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  isValidNumber(value: any): boolean {
+    return typeof value === 'number' && !Number.isNaN(value);
+  }
+
 }

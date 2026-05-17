@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.controller;
 
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.JobRoleAccess;
+import com.apmosys.employeeportal.dto.AclColumnDTO;
+import com.apmosys.employeeportal.dto.AclColumnDTO;
 import com.apmosys.employeeportal.dto.BulkBillableUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
@@ -41,13 +44,13 @@ public class ReportController {
 		return response;
 	}
 	
-	@JobRoleAccess(featureIds = {26})
-	@RequestMapping(value="/timesheetReport" , method = RequestMethod.GET)
-	public ServiceResponse timesheetReport() {		
-		
-		ServiceResponse response =	reportService.timesheetReport();
-		return response;
-	}
+//	@JobRoleAccess(featureIds = {26})
+//	@RequestMapping(value="/timesheetReport" , method = RequestMethod.GET)
+//	public ServiceResponse timesheetReport() {		
+//		
+//		ServiceResponse response =	reportService.timesheetReport();
+//		return response;
+//	}
 	
 	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value="/getMappedSubFeatureList" , method = RequestMethod.POST)
@@ -66,10 +69,10 @@ public class ReportController {
 	}
 	
 	@JobRoleAccess(featureIds = {26})
-	@RequestMapping(value = "/getDefaultMapping", method = RequestMethod.GET)
-	public ServiceResponse getDefaultMapping() {
+	@RequestMapping(value = "/getDefaultMapping", method = RequestMethod.POST)
+	public ServiceResponse getDefaultMapping(@RequestBody List<AclColumnDTO> aclColumnDTO) {
 
-		ServiceResponse response = reportService.getDefaultMapping();
+		ServiceResponse response = reportService.getDefaultMapping(aclColumnDTO);
 		return response;
 	}
 	

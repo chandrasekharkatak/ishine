@@ -8,7 +8,7 @@ import {
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, finalize, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { LoaderService } from '../services/loader.service';
 
@@ -120,6 +120,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/deleteAppreciationEvent`,
     `${this.baseUrl}` + `api/updateAppreciationEvent`,
     `${this.baseUrl}` + `api/getHierarchyChartByEmpId`,
+    `${this.baseUrl}` + `api/getManagementSpineForHierarchy`,
     `${this.baseUrl}` + `api/getAllManagers`,
     `${this.baseUrl}` + `api/getAllTeamMemberView`,
     `${this.baseUrl}` + `api/getAllTeamsByProjectId`,
@@ -350,13 +351,15 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/approveTimesheetRequest`,
     `${this.baseUrl}`+`api/getTimesheetDashboardCountForProject`,
     `${this.baseUrl}`+`api/getTimesheetDashboardCountForEmployee`,
+    `${this.baseUrl}` + `api/repeated-offender/summary`,
+    `${this.baseUrl}` + `api/repeated-offender/employees`,
     `${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`,
     `${this.baseUrl}`+`api/getProjectViewForClientAttendanceStatus`,
     `${this.baseUrl}` + `api/liftAndShiftTeams`,
     `${this.baseUrl}` + `api/updateHasClientSideId?flag`,
     `${this.baseUrl}` + `api/addTimesheetWithClient`,
      `${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`,
-     `${this.baseUrl}` + `updateMilestoneById`,
+     `${this.baseUrl}` + `api/updateMilestoneById`,
     `${this.baseUrl}` + `api/getWorkLocationSummaryDetails`,
     `${this.baseUrl}` + `api/getFixedCostCount`,
     // `${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`
@@ -481,7 +484,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getDocumentsBySelectedEmpId`,
     `${this.baseUrl}` + `api/downloadFinalDocuments`,
     `${this.baseUrl}` + `api/getPreviousMinusDays`,
-    `${this.baseUrl}` + `api/bulkFinalUploadProjectBased`,
+
     `${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`,
     `${this.baseUrl}` + `api/getAllQuarterCycles`,
     `${this.baseUrl}` + `api/isEnable`,
@@ -506,7 +509,6 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/training/getQuizQuestionByTrainingId`,
     `${this.baseUrl}` + `api/isClientIdMandetory`,
     `${this.baseUrl}` + `api/training/addTrainingType`,
-
     `${this.baseUrl}` + `api/updateSurvey`,
     `${this.baseUrl}` + `api/deleteSurvey`,
     `${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`,
@@ -516,8 +518,86 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getExtensionDocumentByName`,
     `${this.baseUrl}` + `api/validateDocName`,
     `${this.baseUrl}` + `api/getTeamAppreciationDetails`,
-    `${this.baseUrl}` + `api/getMyAppreciationDetails`
-    
+    `${this.baseUrl}` + `api/getMyAppreciationDetails`,
+    `${this.baseUrl}` + `api/getAllTeamsByPoId`,
+    `${this.baseUrl}` + `api/getTeamDetailsByTeamId`,
+    `${this.baseUrl}` + `api/migrateTeam`,
+    `${this.baseUrl}` + `api/getTeamDetailsByTeamIdsAndProjectId`,
+    `${this.baseUrl}` + `api/updateTeamDetails`,
+    `${this.baseUrl}` + `api/createTeams`,
+    `${this.baseUrl}` + `api/deleteSelectedTeams`,
+    `${this.baseUrl}` + `api/saveProjectInformation`,
+    `${this.baseUrl}` + `api/addOrUpdateTeamMembers`,
+    `${this.baseUrl}` + `api/getActiveTeamDetailsByProjectId`,
+    `${this.baseUrl}` + `api/addOrUpdateTeamDetails`,
+    `${this.baseUrl}` + `api/getActiveTeamDetailsByPoId`,
+    `${this.baseUrl}` + `api/getAllTeamsAndRoleWiseMembersByPoId`,
+    `${this.baseUrl}` + `api/updateEmployeeProjectMappingAsInActive`,
+    `${this.baseUrl}` + `api/getEmployeeExistingProjectDetailsByEmpId`,
+    `${this.baseUrl}` + `api/updateDefaultProjectCompletion`,
+    `${this.baseUrl}` + `api/removeTeamMembersFromProject`,
+    `${this.baseUrl}` + `api/updateMappingToOtherProjectAsDefault`,
+    `${this.baseUrl}` + `api/getResourceRequirementByPoId`,
+    `${this.baseUrl}` + `api/getUnfilledTimesheetProjectDetailsList`,
+    `${this.baseUrl}` + `api/fetchProjectDetailsList`,
+    `${this.baseUrl}` + `api/updateProjectStartDate`,
+    `${this.baseUrl}` + `api/getProjectConfigurationDetailsByProjectId`,
+    `${this.baseUrl}` + `api/validateEmployeeProjectStartDate`,
+    `${this.baseUrl}` + `api/getEmployeeDetailsListByEmployeeGroup`,
+    `${this.baseUrl}` + `api/getActiveProjectList`,
+    `${this.baseUrl}` + `api/getAllActiveEmployeeInformation`,
+    `${this.baseUrl}` + `api/updateMemberShadowMapping`,
+    `${this.baseUrl}` + `api/downloadFinalDocuments`,
+    `${this.baseUrl}` + `api/updateTeamMembersStartDateAndEndDate`,
+    `${this.baseUrl}` + `api/getAllLeaveBalanceByEmpId`,
+
+    /** v2 Timesheet APIs (new hierarchical timesheet) */
+    `${this.baseUrl}` + `api/v2/timesheet/addTimesheetWithClientNew`,
+    `${this.baseUrl}` + `api/v2/timesheet/getAllProjectsByEmpId`,
+    `${this.baseUrl}` + `api/v2/timesheet/getAllMyTimesheetsByEmpId`,
+    // `${this.baseUrl}` + `api/v2/timesheet/getTimesheetMetadataByEmpId`,
+    `${this.baseUrl}` + `api/v2/timesheet/getActiveProjectsAndClientSideIdByEmpId`,
+    `${this.baseUrl}` + `api/v2/timesheet/getAlreadyFilledTimesheetDatesByEmpId`,
+    `${this.baseUrl}` + `api/v2/timesheet/create`,
+    `${this.baseUrl}` + `api/v2/timesheet/getTimesheetDashboardCountForEmployee`,
+    `${this.baseUrl}` + `api/v2/timesheet/by-date`,
+    `${this.baseUrl}` + `api/v2/timesheet/by-date-range`,
+    `${this.baseUrl}` + `api/v2/timesheet/update-status`,
+    `${this.baseUrl}` + `api/v2/timesheet/project`,
+    `${this.baseUrl}` + `api/v2/timesheet/activity`,
+    `${this.baseUrl}` + `api/v2/timesheet/getDocumentDataByDocId`,
+    /** v2 Master APIs (used by timesheet form) */
+    `${this.baseUrl}` + `api/v2/master/day-type/getAllActiveDayType`,
+    `${this.baseUrl}` + `api/v2/master/work-location-type/getAllActiveLocationTypes`,
+    `${this.baseUrl}` + `api/v2/master/client-status/getAllActiveStatusForClient`,
+    `${this.baseUrl}` + `api/getMyProjectsInMonthYear`,
+    `${this.baseUrl}` + `api/getAllDisabledDateListForBulkDocSubmit`,
+    `${this.baseUrl}` + `api/updateClientSideIdMapping`,
+    `${this.baseUrl}` + `api/v2/timesheet/update`,
+    `${this.baseUrl}` + `api/v2/timesheet/getDocumentDataByDocId`,
+    `${this.baseUrl}` + `api/getApprovedLeaveLogsByEmpId`,
+    `${this.baseUrl}` + `api/getTimesheetStatusCountByManager`,
+    `${this.baseUrl}` + `api/getExistingProjectsAndTeamsByEmployee`,
+    `${this.baseUrl}` + `api/v2/timesheet/getMyLastFilledLocationIdForProjectAndEmp`,
+    `${this.baseUrl}` + `api/migrateTeamMembers`,
+    `${this.baseUrl}` + `api/getExistingProjectsAndTeamsByEmployee`,
+    `${this.baseUrl}` + `api/v2/timesheet/getRejectionDetailsWithProjectsByTimesheetId`,
+    `${this.baseUrl}` + `api/v2/timesheet/bulkFinalUploadProjectBased`,
+    `${this.baseUrl}` + `api/v2/timesheet/getLastThreeMonthsWorkingDates`,
+    `${this.baseUrl}` + `api/auth/po/session-login`,
+    `${this.baseUrl}` + `api/auth/po/verifyTokenOfPoPortalForDirectAccess`,
+    `${this.baseUrl}` + `api/validateIfAnyApprovedOrPendingTimesheetExist`,
+    `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
+    `${this.baseUrl}` + `api/getExtensionDocumentByName`,
+    `${this.baseUrl}` + `api/validateDocName`,
+    `${this.baseUrl}` + `api/getAllMyTeamLeaveRevokeApplicationsByEmpId`,
+    `${this.baseUrl}` + `api/getRevokeLeaveApplicationByEmpId`,
+    `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
+    `${this.baseUrl}` + `api/getExtensionDocumentByName`,
+    `${this.baseUrl}` + `api/validateDocName`,
+    `${this.baseUrl}` + `api/validateDeleteSelectedTeams`,
+    `${this.baseUrl}` + `api/getMappedSubFeatureList`, 
+    `${this.baseUrl}` + `api/getProjectStructure`, 
   ]
 
   DYNAMIC_URL_whiteList = [
@@ -525,32 +605,35 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/training/getTrainingContent/`,
     `${this.baseUrl}` + `api/training/getTrainingResponses/`,
     `${this.baseUrl}` + `api/training/downloadContent/`
-
   ]
-
 
   constructor(private loaderService: LoaderService) { }
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    let showLoader = false;
+
+    // Exact URL match from whitelist
     this.URL_whiteList.forEach((element) => {
-
-      if (request.url == element) {
-
-        request = request.clone({
-          setHeaders: {
-            loader: 'true'
-          }
-        });
+      if (request.url === element) {
+        showLoader = true;
       }
+    });
 
+    // // Pattern match for v2 timesheet APIs with dynamic paths (e.g. /123, /document/getById/456, update?timesheetId=1)
+    // if (!showLoader && request.url.includes('api/v2/timesheet')) {
+    //   showLoader = true;
+    // }
 
-
-    })
+    if (showLoader) {
+      request = request.clone({
+        setHeaders: {
+          loader: 'true'
+        }
+      });
+    }
 
     this.DYNAMIC_URL_whiteList.forEach((element) => {
-
       if (request.url.startsWith(element)) {
-
         request = request.clone({
           setHeaders: {
             loader: 'true'
@@ -610,7 +693,10 @@ export class LoaderInterceptor implements HttpInterceptor {
       }
 
       return throwError(() => error);
-    })
+    }),
+    //  finalize(() => {
+    //   this.loaderService.requestEnded();
+    // })
   );
 }
 

@@ -23,10 +23,15 @@ import java.text.ParseException;
 
 @Service
 public class LogService {
-	
+
+	private static final String TIMESHEET_API_LOGGER = "com.apmosys.employeeportal.logging.TimesheetApi";
+	private static final String TIMESHEET_V2_API_PREFIX = "/api/v2/timesheet";
+
 	private ConcurrentHashMap<Long, LogDTO> userLogInfoList = AuthenticationService.userLogInfoList;
-	
+
 	Logger logger = LoggerFactory.getLogger((LogService.class).getName());
+
+	private static final Logger TIMESHEET_API_LOG = LoggerFactory.getLogger(TIMESHEET_API_LOGGER);
 
 	private LogDTO sessionLogInfo;
 	
@@ -134,14 +139,26 @@ public class LogService {
 			if(apiLogInfo.getApiError() != null) logBuilder.append("| Error : "+ apiLogInfo.getApiError() +" ");
 			if(apiLogInfo.getApiStatus() != null) logBuilder.append("| Status : "+ apiLogInfo.getApiStatus() +" ");
 		}
+
+		if (apiLogInfo.getEmpId() != null) {
+			logBuilder.append(" | ApiEmpId : ").append(apiLogInfo.getEmpId());
+		}
 		
 //		System.out.println(logBuilder);
-		
-		if(apiLogInfo.getLogLevel().equals("INFO")) {
-			logger.info(logBuilder.toString());
+
+		String line = logBuilder.toString();
+		Logger auditLogger = isTimesheetV2ApiAudit(apiLogInfo) ? TIMESHEET_API_LOG : logger;
+
+		if ("INFO".equals(apiLogInfo.getLogLevel())) {
+			auditLogger.info(line);
 		}
-		if(apiLogInfo.getLogLevel().equals("ERROR")) {
-			logger.error(logBuilder.toString());
+		if ("ERROR".equals(apiLogInfo.getLogLevel())) {
+			auditLogger.error(line);
 		}
+	}
+
+	private static boolean isTimesheetV2ApiAudit(LogDTO apiLogInfo) {
+		String url = apiLogInfo.getApiUrl();
+		return url != null && url.startsWith(TIMESHEET_V2_API_PREFIX);
 	}
 }

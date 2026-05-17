@@ -16,6 +16,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
+import { HttpResponse } from '@angular/common/module.d-CnjH8Dlt';
 @Component({
   standalone: false,
   selector: 'app-calendar-view',
@@ -350,6 +351,50 @@ monthSelected(event: Date, datepicker: any) {
     );
   }
 
+  // onDateClick(dateObj: any): void {
+  //   if (!dateObj || !dateObj.date) {
+  //     this.openAlertMod(this.alertTemplate, "Invalid date selection.");
+  //     return;
+  //   }
+
+  //   this.dateObj = dateObj;
+
+  //   const payload = {
+  //     empId: this.empId,
+  //     date: this.formatDate(dateObj.date)
+  //   };
+
+  //   console.log("Fetching document for:", payload);
+
+  //   this.timesheetService.getDocumentsByEmpAndDate(payload).subscribe({
+  //     next: (res: any) => {
+  //       if (res.serviceStatus === 'Success' && res.serviceResponse) {
+  //         const docs = res.serviceResponse;
+
+  //         let doc =
+  //           docs.find((d: any) => d.clientApprovalStatus?.toLowerCase() === 'approved') ||
+  //           docs.find((d: any) => d.clientApprovalStatus?.toLowerCase() === 'pending');
+
+  //         if (doc.docData && doc.docMimeType) {
+  //           this.showPreview(doc.docData, doc.docMimeType, doc.docName);
+  //         } else {
+  //           this.openAlertMod(this.alertTemplate, "No valid document data found.");
+  //         }
+  //       } else {
+  //         this.openAlertMod(this.alertTemplate, res.serviceMessage || 'No document found.');
+  //       }
+  //     },
+  //     error: (err) => {
+  //       console.error('Error fetching document:', err);
+  //       this.openAlertMod(this.alertTemplate, 'Error while fetching document.');
+  //     }
+  //   });
+  // }
+
+  // Simpler service method
+
+
+  // Simpler onDateClick method
   onDateClick(dateObj: any): void {
     if (!dateObj || !dateObj.date) {
       this.openAlertMod(this.alertTemplate, "Invalid date selection.");
@@ -358,34 +403,33 @@ monthSelected(event: Date, datepicker: any) {
 
     this.dateObj = dateObj;
 
-    const payload = {
-      empId: this.empId,
-      date: this.formatDate(dateObj.date)
-    };
+    const empId = this.empId;
+    const date = this.formatDate(dateObj.date);
 
-    console.log("Fetching document for:", payload);
+    console.log("Fetching document for:", { empId, date });
 
-    this.timesheetService.getDocumentsByEmpAndDate(payload).subscribe({
-      next: (res: any) => {
-        if (res.serviceStatus === 'Success' && res.serviceResponse) {
-          const docs = res.serviceResponse;
-
-          let doc =
-            docs.find((d: any) => d.clientApprovalStatus?.toLowerCase() === 'approved') ||
-            docs.find((d: any) => d.clientApprovalStatus?.toLowerCase() === 'pending');
-
-          if (doc.docData && doc.docMimeType) {
-            this.showPreview(doc.docData, doc.docMimeType, doc.fileName);
-          } else {
-            this.openAlertMod(this.alertTemplate, "No valid document data found.");
+    this.timesheetService.getDocumentsByEmpAndDate(empId, date,this.projectIdForDropDown).subscribe({
+      next: (response: HttpResponse<Blob>) => {
+        const blob = response.body;
+        if (blob && blob.size > 0) {
+          // Extract filename from Content-Disposition header or use default
+          const contentDisposition = response.headers.get('Content-Disposition');
+          let filename = `document_${date}`;
+          if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+            if (filenameMatch && filenameMatch[1]) {
+              filename = filenameMatch[1].replace(/['"]/g, '');
+            }
           }
+          // Convert blob to base64
+          this.convertBlobToBase64(blob, blob.type, filename);
         } else {
-          this.openAlertMod(this.alertTemplate, res.serviceMessage || 'No document found.');
+          this.openAlertMod(this.alertTemplate, "File Not Found.");
         }
       },
       error: (err) => {
         console.error('Error fetching document:', err);
-        this.openAlertMod(this.alertTemplate, 'Error while fetching document.');
+        this.openAlertMod(this.alertTemplate, err.error || 'Error while fetching document.');
       }
     });
   }
@@ -398,12 +442,44 @@ monthSelected(event: Date, datepicker: any) {
     return `${year}-${month}-${day}`;
   }
 
+  // showPreview(base64Data: string, mimeType: string, fileName?: string): void {
+  //   const dataUrl = `data:${mimeType};base64,${base64Data}`;
+  //   this.resetPreviewState();
+  //   this.previewBase64 = base64Data;
+  //   this.previewMimeType = mimeType;
+  //   this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
+
+  //   if (mimeType === 'application/pdf') {
+  //     this.fileType = 'pdf';
+  //   } else if (mimeType.startsWith('image/')) {
+  //     this.fileType = 'image';
+  //   } else if (
+  //     mimeType === 'application/vnd.ms-excel' ||
+  //     mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  //   ) {
+  //     this.fileType = 'excel';
+  //   }else {
+  //     this.fileType = 'other';
+  //   }
+
+  //   // this.previewFileName = fileName || 'Document Preview';
+  //   // this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xxl modal-dialog-centered',scrollable: true });
+
+  //   this.modalRef = this.modalService.open(this.previewModal, {
+  //   modalDialogClass: 'modal-xl modal-dialog-centered',
+  //   scrollable: false
+  //   });
+
+  // }
+
   showPreview(base64Data: string, mimeType: string, fileName?: string): void {
     const dataUrl = `data:${mimeType};base64,${base64Data}`;
     this.resetPreviewState();
+    
     this.previewBase64 = base64Data;
     this.previewMimeType = mimeType;
     this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
+    this.previewFileName = fileName || 'Document Preview';
 
     if (mimeType === 'application/pdf') {
       this.fileType = 'pdf';
@@ -414,18 +490,14 @@ monthSelected(event: Date, datepicker: any) {
       mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     ) {
       this.fileType = 'excel';
-    }else {
+    } else {
       this.fileType = 'other';
     }
 
-    // this.previewFileName = fileName || 'Document Preview';
-    // this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xxl modal-dialog-centered',scrollable: true });
-
     this.modalRef = this.modalService.open(this.previewModal, {
-    modalDialogClass: 'modal-xl modal-dialog-centered',
-    scrollable: false
+      modalDialogClass: 'modal-xl modal-dialog-centered',
+      scrollable: false
     });
-
   }
 
   getProjectByMonthRangeAndEmpId(fromMonthChange: boolean = false){
@@ -516,6 +588,58 @@ endDrag() {
   this.isDragging = false;
 }
 
+
+  getDocsForPreview(docId: any) {
+  this.timesheetService.getDocumentDataByDocId(docId)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+
+        this.docData = response.serviceResponse.docData;
+        this.mimeType = response.serviceResponse.docMimeType;
+
+        // Excel → Download
+        if (
+          this.mimeType === 'application/vnd.ms-excel' ||
+          this.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ) {
+          const fileName = response.serviceResponse.docName || 'document.xlsx';
+          this.downloadExcel(this.docData, this.mimeType, fileName);
+        }
+        // PDF / Image → Preview
+        else {
+          this.showPreview(this.docData, this.mimeType);
+        }
+      }
+    });
+}
+
+
+  downloadExcel(base64Data: string, mimeType: string, fileName: string) {
+
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const blob = new Blob(
+    [new Uint8Array(byteNumbers)],
+    { type: mimeType }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+
+  window.URL.revokeObjectURL(url);
+}
+
+
 resetPreviewState() {
   this.zoomScale = 1;
   this.zoomLevel = 100;
@@ -574,62 +698,46 @@ resetPreviewState() {
       case 'image/webp':
         return 'jpeg';
       case 'application/vnd.ms-excel':
-      return 'xls';
+        return 'xls';
       case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-      return 'xlsx';
+        return 'xlsx';
       default:
         return 'file';
     }
   }
 
-  getDocsForPreview(docId: any) {
-  this.timesheetService.getDocumentDataByDocId(docId)
-    .pipe(first())
-    .subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-
-        this.docData = response.serviceResponse.docData;
-        this.mimeType = response.serviceResponse.docMimeType;
-
-        // Excel → Download
-        if (
-          this.mimeType === 'application/vnd.ms-excel' ||
-          this.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        ) {
-          const fileName = response.serviceResponse.docName || 'document.xlsx';
-          this.downloadExcel(this.docData, this.mimeType, fileName);
-        }
-        // PDF / Image → Preview
-        else {
-          this.showPreview(this.docData, this.mimeType);
-        }
-      }
-    });
-}
-
-
-  downloadExcel(base64Data: string, mimeType: string, fileName: string) {
-
-  const byteCharacters = atob(base64Data);
-  const byteNumbers = new Array(byteCharacters.length);
-
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  private convertBlobToBase64(blob: Blob, mimeType: string, filename: string): void {
+    const reader = new FileReader();
+    
+    reader.onloadend = () => {
+      // Get base64 string (remove the data URL prefix)
+      const base64Data = (reader.result as string).split(',')[1];
+      
+      // Call your existing showPreview method
+      this.showPreview(base64Data, mimeType, filename);
+    };
+    
+    reader.onerror = () => {
+      this.openAlertMod(this.alertTemplate, 'Error reading file data.');
+    };
+    
+    reader.readAsDataURL(blob);
   }
 
-  const blob = new Blob(
-    [new Uint8Array(byteNumbers)],
-    { type: mimeType }
-  );
-
-  const url = window.URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  a.click();
-
-  window.URL.revokeObjectURL(url);
-}
+  private handleErrorBlob(blob: Blob): void {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const errorText = reader.result as string;
+        // Try to parse as JSON if it's a JSON error response
+        const errorJson = JSON.parse(errorText);
+        this.openAlertMod(this.alertTemplate, errorJson.message || 'Error loading document');
+      } catch {
+        // If not JSON, show as text
+        this.openAlertMod(this.alertTemplate, reader.result as string || 'Error loading document');
+      }
+    };
+    reader.readAsText(blob);
+  }
 
 }

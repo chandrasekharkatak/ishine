@@ -2,26 +2,59 @@ package com.apmosys.employeeportal.dto;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.Date;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
+//import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * Main Timesheet DTO - Wrapper for hierarchical timesheet structure.
+ * 
+ * NEW STRUCTURE (Hierarchical):
+ * - employeeTimesheet: One per day per employee
+ * - projectTimesheets: Multiple per day (one per project)
+ *   - activities: Multiple per project (nested)
+ * 
+ * OLD STRUCTURE (Flat - maintained for backward compatibility):
+ * - All existing fields remain for backward compatibility
+ * 
+ * @author System
+ * @version 2.0
+ */
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
 public class TimesheetDTO {
+	
+	// ========== NEW HIERARCHICAL STRUCTURE ==========
+	
+	/**
+	 * Employee-level timesheet data (one per day)
+	 * NEW: Primary structure for timesheet creation/update
+	 */
+	@JsonProperty("employeeTimesheet")
+	private EmployeeTimesheetDTO employeeTimesheet;
+	
+	/**
+	 * Project-level timesheet data (multiple per day)
+	 * NEW: Contains project-specific data and activities
+	 */
+	@JsonProperty("projectTimesheets")
+	private List<ProjectTimesheetDTO> projectTimesheets;
+	
+	// ========== OLD STRUCTURE (Backward Compatibility) ==========
+	// These fields are maintained for backward compatibility with existing APIs
+	// Will be deprecated gradually
 	
 	private Integer projectId;
 	private Integer clientId;
@@ -139,7 +172,7 @@ public class TimesheetDTO {
 	private Long shadowEmpId;
 	 
 	private List<TimesheetDocumentDetailsDTO> documentData;
-	private TimesheetDocumentDetails documentEntityData;
+//	private TimesheetDocumentDetails documentEntityData;
 	
 	private Long docId;
 	private String fromDate;
@@ -186,6 +219,7 @@ public class TimesheetDTO {
 	private Boolean client;	
 
 	private String shadowFor;
+	private Long bulkApprovedDocId;
 	private List<Long> empIds;
 	private String monthYear;
 	private String clientSideFilter;
@@ -356,4 +390,64 @@ public class TimesheetDTO {
 		    this.isConsultant = isConsultant;
 		    this.isApprenticeship = isApprenticeship;
 		    this.empId = empId;
-		}}
+		}
+	
+	// ========== NEW CONSTRUCTOR FOR HIERARCHICAL STRUCTURE ==========
+	
+	/**
+	 * Constructor for new hierarchical structure
+	 */
+	public TimesheetDTO(EmployeeTimesheetDTO employeeTimesheet, List<ProjectTimesheetDTO> projectTimesheets) {
+		this.employeeTimesheet = employeeTimesheet;
+		this.projectTimesheets = projectTimesheets;
+	}
+	
+	/**
+	 * Constructor for JPQL query using EmployeeTimesheetsNew entity
+	 * Matches query: getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise
+	 * Parameters: employeementId, name, date, dayType, description, status, leaveType, 
+	 *             managerName, departmentName, createdOn (LocalDateTime), updatedOn, 
+	 *             statusUpdatedBy (name), isConsultant, isApprenticeship, managerId, 
+	 *             updatedBy (ID), empId, isApmosysProduct
+	 */
+	public TimesheetDTO(
+			Long employeementId,
+			String employeeName,
+			LocalDate date,
+			String dayType,
+			String description,
+			String status,
+			String leaveType,
+			String managerName,
+			String departmentName,
+			LocalDateTime createdOn,
+			LocalDateTime updatedOn,
+			String statusUpdatedBy,
+			String isConsultant,
+			String isApprenticeship,
+			Long managerId,
+			Long updatedBy,
+			Long empId,
+			String isApmosysProduct) {
+
+		this.employeementId = employeementId;
+		this.employeeName = employeeName;
+		this.date = (date != null) ? date.toString() : null;
+		this.dayType = dayType;
+		this.description = description;
+		this.status = status;
+		this.leaveType = leaveType;
+		this.managerName = managerName;
+		this.departmentName = departmentName;
+		this.createdOn = (createdOn != null) ? createdOn.toString() : null;
+		this.updatedOn = (updatedOn != null) ? updatedOn.toString() : null;
+		this.statusUpdatedBy = statusUpdatedBy;
+		this.isConsultant = isConsultant;
+		this.isApprenticeship = isApprenticeship;
+		this.managerId = managerId;
+		this.updatedBy = updatedBy;
+		this.timesheetStatusUpdatedBy = updatedBy; // Also set for backward compatibility
+		this.empId = empId;
+		this.isApmosysProduct = isApmosysProduct;
+	}
+}

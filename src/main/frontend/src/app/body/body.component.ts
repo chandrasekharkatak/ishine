@@ -7,6 +7,8 @@ import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { EmployeeService } from '../services/employee.service';
 import { ValidationService } from '../services/validation.service';
+import { MatSidenav } from '@angular/material/sidenav';
+import { GlobalRightDrawerService } from '../services/global-right-drawer.service';
 
 @Component({
   standalone: false,
@@ -20,6 +22,9 @@ export class BodyComponent implements OnInit {
   @Input() screenWidth = 0;
   currentUser:User = new User();
   currentUserName = "";
+
+  @ViewChild('rightDrawer') rightDrawer!: MatSidenav;
+  drawerTemplate!: TemplateRef<any>;
 
   @ViewChild("change_password")
   changePasswordTemplate: TemplateRef<any>;
@@ -60,6 +65,7 @@ export class BodyComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private employeeService: EmployeeService,
     private router: Router,
+    private drawerService: GlobalRightDrawerService    
   ){
     this.authenticationService.currentUser.subscribe(x => {
       this.currentUser = x;
@@ -83,6 +89,7 @@ export class BodyComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.drawerService.register(this);
     this.extractFeatures();
     this.isHome = this.router.url === '/home';
 
@@ -400,4 +407,12 @@ export class BodyComponent implements OnInit {
 
   }
 
+  openDrawer(template: TemplateRef<any>) {
+    this.drawerTemplate = template;
+    this.rightDrawer.open();
+  }
+
+  closeDrawer() {
+    this.rightDrawer.close();
+  }
 }

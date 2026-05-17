@@ -17,7 +17,8 @@ import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
-import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
+import com.apmosys.employeeportal.repository.TimesheetActivityMapNewRepository;
+//import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -33,8 +34,11 @@ public class ActivitiesService {
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
 	
+//	@Autowired
+//	TimesheetActivityMapRepository timesheetActivityMapRepository;
+	
 	@Autowired
-	TimesheetActivityMapRepository timesheetActivityMapRepository;
+	TimesheetActivityMapNewRepository timesheetActivityMapRepository;
 
 	@Autowired
 	private LogService logService;

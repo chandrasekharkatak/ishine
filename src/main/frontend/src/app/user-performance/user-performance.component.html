@@ -304,7 +304,7 @@
                     <div class="pms-search-input-wrap">
                       <input id="pms-employee-search-input" type="search" autocomplete="off"
                         class="pms-search-input" placeholder="Search…"
-                        [(ngModel)]="searchTableText" (ngModelChange)="onSearchTable()" (keyup.enter)="onSearchTable()" />
+                        [(ngModel)]="searchTableText" (ngModelChange)="onSearchTable()" (keyup.enter)="onSearchTable()"  (keypress)="allowOnlyLetters($event)"/>
                     </div>
                     <button type="button" class="pms-search-btn pms-search-btn--icon-only" (click)="onSearchTable()"
                       title="Search" aria-label="Search">
@@ -317,10 +317,10 @@
                     <input type="text" class="pms-bulk-remark-input" placeholder="HR remark for bulk action"
                       [(ngModel)]="bulkHrRemark" />
                     <button type="button" class="pms-bulk-btn pms-bulk-accept"
-                      [disabled]="bulkActionInProgress || selectedBulkEmpIds.size === 0"
+                      [disabled]="bulkActionInProgress || selectedBulkEmpIds.size < 2"
                       (click)="submitBulkHrAction('Accepted')">Bulk Accept</button>
                     <button type="button" class="pms-bulk-btn pms-bulk-reject"
-                      [disabled]="bulkActionInProgress || selectedBulkEmpIds.size === 0"
+                      [disabled]="bulkActionInProgress || selectedBulkEmpIds.size < 2"
                       (click)="submitBulkHrAction('Rejected')">Bulk Reject</button>
                   </div>
                   <div class="pms-hod-toolbar-queue" *ngIf="userMapping?.performance_action_by_hod && hodPendingAcceptCount > 0" role="status"
@@ -700,7 +700,7 @@
             <div *ngIf="((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Not Started' || currentStatus === 'Pending HOD' || currentStatus === 'Pending' )
             && (userMapping.performance_action_by_approvals_tos))
             || ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Pending HOD' || currentStatus === 'Pending' || currentStatus === 'Submitted')
-            && userMapping.performance_action_by_approvals_to)
+            && userMapping.performance_action_by_approvals_tos)
             || ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Pending HOD' || currentStatus === 'Pending')
             && userMapping.performance_action_by_hod)
             || ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Pending')
@@ -796,7 +796,8 @@
               </div>
 
               <!-- Feedback card: title and label by role; remarks stored in manager_remarks / hod_remarks / hr_remarks by role. For HR, edit and update here. -->
-              <div class="manager-feedback-card">
+                <div class="manager-feedback-card">
+                  @if ((userMapping.performance_action_by_hr && !userMapping.performance_action_by_hod)|| (userMapping.performance_action_by_hod && !userMapping.performance_action_by_hr) ) {
                 <h3 class="section-card-title"><span class="section-card-title-bar"></span> {{ getFeedbackSectionTitle() }}</h3>
                 <div class="manager-feedback-field">
                   <label for="justification"><span class="text-danger">*</span>{{ getFeedbackSectionLabel() }}</label>
@@ -807,7 +808,7 @@
                     placeholder="Enter remarks..."></textarea>
                   <span class="manager-feedback-counter">{{ ((userMapping.performance_action_by_hr ? hrRemarks : hodRemarks) || '').length }} / 2000 characters</span>
                 </div>
-                <div class="d-flex justify-content-end mt-2 cycle-review-actions flex-wrap" *ngIf="(currentStatus == 'Completed' || currentStatus == 'Ongoing' || currentStatus == 'Pending') && userMapping.performance_action_by_hr">
+                <div class="d-flex justify-content-end mt-2 cycle-review-actions flex-wrap" *ngIf="(currentStatus == 'Completed' || currentStatus == 'Ongoing' || currentStatus == 'Pending') && userMapping.performance_action_by_hr && !userMapping.performance_action_by_hod">
                   <button class="btn cycle-btn cycle-btn-primary" (click)="updateReviewByHr(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())" *ngIf="isEditMode">Update</button>
                   <button type="button" class="btn cycle-btn cycle-btn-primary ml-2"
                     [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected'"
@@ -816,33 +817,65 @@
                     [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected'"
                     (click)="onHrReject(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Reject</button>
                 </div>
+              } @else if(userMapping.performance_action_by_hr && userMapping.performance_action_by_hod){
+                <h3 class="section-card-title"><span class="section-card-title-bar"></span> {{ getFeedbackSectionTitle() }}</h3>
+                <div class="manager-feedback-field">
+                  <label for="justification"><span class="text-danger">*</span>{{ getFeedbackSectionLabel() }}</label>
+                  <textarea id="justification" class="manager-feedback-textarea" maxlength="2000"
+                    [ngModel]="hrRemarks"
+                    (ngModelChange)="hrRemarks = $event"
+                    [disabled]="getFeedbackTextareaDisabled()"
+                    placeholder="Enter remarks..."></textarea>
+                  <span class="manager-feedback-counter">{{ (hrRemarks || '').length }} / 2000 characters</span>
+                </div>
+                <div class="d-flex justify-content-end mt-2 cycle-review-actions flex-wrap" *ngIf="(currentStatus == 'Completed' || currentStatus == 'Ongoing' || currentStatus == 'Pending') && userMapping.performance_action_by_hr && userMapping.performance_action_by_hod">
+                  <button class="btn cycle-btn cycle-btn-primary" (click)="updateReviewByHr(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())" *ngIf="isEditMode">Update</button>
+                  <button type="button" class="btn cycle-btn cycle-btn-primary ml-2"
+                    [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected'"
+                    (click)="onHrAccept(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Accept</button>
+                  <button type="button" class="btn cycle-btn cycle-btn-danger ml-2"
+                    [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected'"
+                    (click)="onHrReject(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Reject</button>
+                </div>
+              }@else {
+                <h3 class="section-card-title"><span class="section-card-title-bar"></span> {{ getFeedbackSectionTitle() }}</h3>
+                <div class="manager-feedback-field">
+                  <label for="justification"><span class="text-danger">*</span>{{ getFeedbackSectionLabel() }}</label>
+                  <textarea id="justification" class="manager-feedback-textarea" maxlength="2000"
+                    [ngModel]="hodRemarks"
+                    (ngModelChange)="hodRemarks = $event"
+                    [disabled]="getFeedbackTextareaDisabled()"
+                    placeholder="Enter remarks..."></textarea>
+                  <span class="manager-feedback-counter">{{ (hodRemarks || '').length }} / 2000 characters</span>
+                </div>
+              }
               </div>
 
               <!-- Action buttons by role: Manager = Submit + Cancel; HOD = Accept + Reject (or Resubmit when HR rejected); HR = in feedback card -->
               <div class="cycle-review-actions">
                 <!-- Manager (Not Started): Submit, Cancel -->
-                <ng-container *ngIf="currentStatus === 'Not Started' && (userMapping.performance_action_by_approvals_tos || userMapping.performance_action_by_approvals_to)">
+                <ng-container *ngIf="currentStatus === 'Not Started' && (userMapping.performance_action_by_approvals_tos)">
                   <button type="button" class="btn cycle-btn cycle-btn-primary"
                     (click)="submitReviewEmployee(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Submit</button>
                   <button type="button" class="btn cycle-btn cycle-btn-secondary ml-2"
                     (click)="cancelReview(getSelectedQuarterIndex())">Cancel</button>
                 </ng-container>
                 <!-- Manager (Rejected by HOD): Resubmit, Cancel -->
-                <ng-container *ngIf="currentStatus === 'Rejected' && rejectStatus === true && (userMapping.performance_action_by_approvals_to || userMapping.performance_action_by_approvals_tos)">
+                <ng-container *ngIf="currentStatus === 'Rejected' && rejectStatus === true && (userMapping.performance_action_by_approvals_tos)">
                   <button type="button" class="btn cycle-btn cycle-btn-primary"
                     (click)="updateReviewEmployee(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Resubmit</button>
                   <button type="button" class="btn cycle-btn cycle-btn-secondary ml-2"
                     (click)="cancelReview(getSelectedQuarterIndex())">Cancel</button>
                 </ng-container>
                 <!-- HOD (Ongoing or Pending HOD): Accept, Reject (Reject hidden after manager resubmit) -->
-                <ng-container *ngIf="(currentStatus == 'Ongoing' || currentStatus == 'Pending HOD') && userMapping.performance_action_by_hod">
+                <ng-container *ngIf="(currentStatus == 'Ongoing' || currentStatus == 'Pending HOD') && userMapping.performance_action_by_hod && !userMapping.performance_action_by_hr">
                   <button type="button" class="btn cycle-btn cycle-btn-primary" *ngIf="enableDisableSubmit"
                     (click)="onHodAccept(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Accept</button>
                   <button type="button" class="btn cycle-btn cycle-btn-danger ml-2" *ngIf="enableDisableSubmit && (rejectStatus != true)"
                     (click)="onHodReject(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Reject</button>
                 </ng-container>
                 <!-- HOD (Rejected by HR): Resubmit so HR can review again -->
-                <ng-container *ngIf="currentStatus === 'Rejected' && userMapping.performance_action_by_hod && hrReviewStatus === 'Rejected'">
+                <ng-container *ngIf="currentStatus === 'Rejected' && userMapping.performance_action_by_hod && !userMapping.performance_action_by_hr && hrReviewStatus === 'Rejected'">
                   <button type="button" class="btn cycle-btn cycle-btn-primary"
                     (click)="updateReviewEmployee(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Resubmit</button>
                 </ng-container>
@@ -857,7 +890,7 @@
                 <label for="rejectReason"><span class="text-danger">*</span>Provide Reject Reason:</label>
                 <textarea id="rejectReason" [(ngModel)]="rejectReason" class="form-control" placeholder="Enter reason"></textarea>
               </div>
-              <div *ngIf="hrReviewStatus == 'Rejected' && !userMapping.performance_action_by_hod">
+              <div *ngIf="hrReviewStatus == 'Rejected' && !userMapping.performance_action_by_hod && !userMapping.performance_action_by_hr">
                 <label for="rejectReason">Reject Reason(s):</label>
                 <textarea id="rejectReason" [(ngModel)]="acceptReason" class="form-control" [disabled]="userMapping.performance_action_by_hr" placeholder="Enter reason"></textarea>
               </div>

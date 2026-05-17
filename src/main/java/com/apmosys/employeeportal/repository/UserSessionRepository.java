@@ -14,6 +14,8 @@ public interface UserSessionRepository extends JpaRepository<UserSession, Long>{
 	UserSession findByEmpId(Long empId);
 
 	UserSession findBySessionKey(String checkToken);
+
+	UserSession findByPoToken(String poToken);
 	    
 
     @Query("SELECT new com.apmosys.employeeportal.dto.EmployeeSessionDTO(e.empId, e.name, e.role, s.userSessionId) " +

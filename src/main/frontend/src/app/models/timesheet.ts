@@ -1,3 +1,4 @@
+import { ProjectItem } from "../helpers/calendar/calendar.component";
 import { TimesheetDoc } from "./timesheetDoc";
 
 export class Timesheet{
@@ -114,7 +115,9 @@ export class Timesheet{
     filters?: { [key: string]: string };
     client?: any;
     // shadowFor :any;
+    bulkApprovedDocId?:number = null;
 
     empIds:any[];
     monthYear:any;
+    projects?: ProjectItem[]
 }

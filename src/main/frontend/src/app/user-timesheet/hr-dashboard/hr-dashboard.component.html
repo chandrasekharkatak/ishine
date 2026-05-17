@@ -1,492 +1,814 @@
-<div class="container-fluid p-4">
+<div class="db-page-wrapper" [class.db-page-wrapper--ro]="repeatedOffenderMode">
+  <!-- ── Single Combined Bar: Toggles + Filters ── -->
+  <div class="db-top-bar" [class.db-top-bar--ro]="repeatedOffenderMode">
 
-    <!-- Toggle Switch -->
-    <div class="row mb-4">
-        <div class="col-auto d-flex align-items-center">
-            <label class="switch mb-0" [title]="toggleValue ? 'Toggle to Employee View' : 'Toggle to Project View'">
-                <input type="checkbox" checked (change)="onToggleChange($event)">
-                <span class="slider round"></span>
-            </label>
-            <h5 class="ms-3 mb-0 text-primary">{{ toggleValue ? 'Project View' : 'Employee View' }}</h5>
+    <!-- Left: Both Toggles -->
+    <div class="db-top-bar-left">
+
+      <!-- Toggle 1: Employee / Project View -->
+      <div class="db-toggle-group">
+        <label class="switch mb-0" [title]="toggleValue ? 'Toggle to Employee View' : 'Toggle to Project View'">
+          <input type="checkbox" checked (change)="onToggleChange($event)">
+          <span class="slider round"></span>
+        </label>
+        <h5 class="mb-0">{{ toggleValue ? 'Project View' : 'Employee View' }}</h5>
+        <app-info-tooltip *ngIf="!toggleValue" iconBgColor="#6c757d" [content]="employeeViewBullet"></app-info-tooltip>
+        <app-info-tooltip *ngIf="toggleValue" iconBgColor="#0d6efd" [content]="projectViewBullet"></app-info-tooltip>
+      </div>
+
+      <div class="db-top-bar-divider"></div>
+
+      <!-- Toggle 2: All Employee / Client-Side Dashboard -->
+      <div class="d-flex align-items-center">
+        <i class="fas fa-user-check db-dashboard-icon"></i>
+        <label class="switch mb-0"
+          [title]="isClientDashboard ? 'Toggle to All Employee Attendance Dashboard' : 'Toggle to Client-Side Attendance Dashboard'">
+          <input type="checkbox" checked (change)="onDashboardToggleChange()">
+          <span class="slider round"></span>
+        </label>
+        <h5 class="mb-0">
+          {{ isClientDashboard ? 'Client-Side Attendance Dashboard' : 'All Employee Attendance Dashboard' }}
+        </h5>
+      </div>
+
+      <ng-container *ngIf="isClientDashboard && !toggleValue">
+        <div class="db-top-bar-divider"></div>
+
+        <div class="db-toggle-group db-toggle-group--ro">
+          <i class="fas fa-exclamation-triangle db-dashboard-icon db-dashboard-icon--ro"></i>
+          <label class="switch mb-0 switch--ro" [class.switch--ro-active]="repeatedOffenderMode"
+            title="Repeated offender view (Employee View + client-side dashboard only)">
+            <input type="checkbox" [(ngModel)]="repeatedOffenderMode" (ngModelChange)="onRepeatedOffenderModeChange()">
+            <span class="slider round"></span>
+          </label>
+          <h5 class="mb-0">Repeated Offender</h5>
         </div>
-
-        <!-- <div class="anomaly-toggle-wrapper" *ngIf="!isClientDashboard && !toggleValue">
-            <button class="toggle-btn" (click)="toggleTabs()">
-                {{ showTabs ? 'Hide Data Anomalies' : 'Show Data Anomalies' }}
-            </button>
-
-
-            <div class="tabs-container" *ngIf="showTabs">
-                <div class="tab-box" *ngFor="let item of anomalyTabs">
-                    <div class="tab-title">{{ item.title }}</div>
-                    <div class="tab-count">{{ item.count }}</div>
-                </div>
-            </div>
-        </div> -->
-
-        <!-- <div class="info-button-wrapper" *ngIf="!toggleValue">
-            <button class="info-btn" title="More info">
-                <span class="info-icon">i</span>
-            </button>
-
-            <div class="tooltip-popup">
-                <p>
-                    Resource counts in this section may differ from those in the Reports module
-                    because the Reports section reflects live data, while this view displays
-                    month-wise timesheet data. For example, a resource who contributed earlier
-                    in the month but is no longer active will still appear in the monthly
-                    timesheet records.
-                </p>
-                <div class="tooltip-arrow"></div>
-            </div>
-        </div> -->
-
-        <app-info-tooltip *ngIf="!toggleValue" class="ms-2"  iconBgColor="#6c757d"
-            [content]="employeeViewBullet"></app-info-tooltip>
-
-        <app-info-tooltip *ngIf="toggleValue" class="ms-2"  iconBgColor="#0d6efd"
-            [content]="projectViewBullet"></app-info-tooltip>
-
+      </ng-container>
 
     </div>
 
-    <div class="dashboard">
-        <div class="header d-flex justify-content-between align-items-center">
-            <!-- <div class="title d-flex align-items-center">
-                <img src="/assets/immigration.png" alt="Dashboard Icon" style="width: 32px; height: 32px;" />
-                <span class="ml-2">Client-Side Attendance Dashboard</span>
-            </div> -->
-            <div class="title d-flex align-items-center">
-                <i class="fas fa-user-check" style="font-size: 32px;"></i>
-                <label class="switch ml-2 mb-0"
-                    [title]="isClientDashboard ? 'Toggle to All Employee Attendance Dashboard' : 'Toggle to Client-Side Attendance Dashboard'">
-                    <input type="checkbox" checked (change)="onDashboardToggleChange()">
-                    <span class="slider round"></span>
-                </label>
-                <h5 class="ms-3 mb-0 text-primary">
-                    {{ isClientDashboard ? 'Client-Side Attendance Dashboard' : 'All Employee Attendance Dashboard' }}
-                </h5>
-            </div>
+    <!-- Right: Last Updated -->
+    <div class="db-updated-chip">
+      <i class="fas fa-circle-check db-updated-dot"></i>
+      <span>Updated: {{ lastUpdated }}</span>
+      <button class="db-refresh-btn" (click)="refreshDashboard()"
+        [title]="repeatedOffenderMode ? 'Restore defaults and refresh data' : 'Refresh'">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+    </div>
+    <!-- Chips row above the field -->
+    <!-- <div class="db-chips-bar" *ngIf="selectedBillableTypes.length > 0">
+    <span class="db-filter-label">Billable Type:</span>
+    <ng-container *ngFor="let item of selectedBillableTypes | slice:0:3">
+      <span class="db-chip" [title]="item">{{ item.length > 12 ? (item | slice:0:12) + '...' : item }}</span>
+    </ng-container>
+    <span class="db-chip db-chip--overflow" *ngIf="selectedBillableTypes.length > 3"
+      [matTooltip]="selectedBillableTypes.slice(3).join(', ')" matTooltipPosition="above">
+      +{{ selectedBillableTypes.length - 3 }}
+    </span>
+  </div> -->
+    <div class="db-chips-bar" *ngIf="roToolbarBillableChips.length > 0 && (repeatedOffenderMode || !(isClientDashboard && toggleValue))">
 
-            <!-- <div class="ms-3" *ngIf="!isClientDashboard">
-  <label class="info-label mb-1 fw-bold">Billable Type</label>
-  <br>
-  <select class="form-select form-select-sm" [(ngModel)]="selectedBillableType" (change)="onBillableTypeChange($event)">
-    <option value="" disabled selected>Select Billable Model</option>
-    <option value="All">All</option>
-    <option value="TNM">TNM</option>
-    <option value="Fixed Cost">Fixed Cost</option>
-    <option value="Shadow">Shadow</option>
-    <option value="InternalRNDProducts">Internal_RND_Products</option>
-  </select>
-</div> -->
+      <span class="db-filter-label">Billable Type:</span>
 
-            <div class="ms-3" *ngIf="!(isClientDashboard && toggleValue)">
-                <label class="info-label mb-1 fw-bold">Billable Type</label>
-                <div class="billable-type-field">
-                    <mat-form-field appearance="outline" class="w-100">
-                        <mat-select [(ngModel)]="selectedBillableTypes" multiple placeholder="Select Billable Types"
-                            (ngModelChange)="onBillableTypeChange($event)">
-                            <!-- Select All Option -->
-                            <mat-option class="select-all-row" [value]="'AllButton'" (click)="selectAllBillableTypes()" [disabled]="selectedBillableTypes.length === billableTypes.length">
-                                Select All
-                            </mat-option>
+      <!-- Chips -->
+      <ng-container
+        *ngFor="let item of (showAllBillableTypes ? roToolbarBillableChips : (roToolbarBillableChips | slice:0:3))">
+        <span class="db-chip" [title]="item">
+          {{ item.length > 12 ? (item | slice:0:12) + '...' : item }}
+        </span>
+      </ng-container>
 
-                            <!-- <mat-option (click)="deselectAllBillableTypes()" [disabled]="selectedBillableTypes.length === 0">
-        Deselect All
-    </mat-option> -->
+      <!-- +N button -->
+      <span class="db-chip db-chip--overflow" *ngIf="!showAllBillableTypes && roToolbarBillableChips.length > 3"
+        (click)="toggleBillableTypes()">
+        +{{ roToolbarBillableChips.length - 3 }}
+      </span>
 
-                            <!-- Individual billable types -->
-                            <mat-option *ngFor="let type of billableTypes" [value]="type">
-                                {{ type }}
-                            </mat-option>
-                        </mat-select>
-                    </mat-form-field>
+      <!-- Show Less button -->
+      <span class="db-chip db-chip--overflow" *ngIf="showAllBillableTypes && roToolbarBillableChips.length > 3"
+        (click)="toggleBillableTypes()">
+        Show Less
+      </span>
 
-                </div>
-            </div>
+    </div>
+    <!-- Full-width filter row inside the same card -->
+    <div class="db-filters-row" *ngIf="!repeatedOffenderMode">
+
+      <!-- Billable Type: chips above + dropdown below -->
+      <div class="db-filter-item" *ngIf="!(isClientDashboard && toggleValue)">
+        <label class="db-filter-label">Billable Type</label>
 
 
 
+        <mat-form-field appearance="outline" class="db-mat-field">
+          <mat-select [(ngModel)]="selectedBillableTypes" multiple (ngModelChange)="onBillableTypeChange($event)"
+            placeholder="Select types">
+            <mat-option [value]="'AllButton'" (click)="selectAllBillableTypes()"
+              [disabled]="selectedBillableTypes.length === billableTypes.length">
+              Select All
+            </mat-option>
+            <mat-option *ngFor="let type of billableTypes" [value]="type">
+              {{ type }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
+      <!-- Project Status -->
+      <div class="db-filter-item" *ngIf="!isClientDashboard && toggleValue">
+        <label class="db-filter-label">Project Status</label>
+        <mat-form-field appearance="outline" class="db-mat-field">
+          <mat-select [(ngModel)]="selectedProjectStatus" (ngModelChange)="onProjectStatusChange($event)"
+            placeholder="All">
+            <mat-option value="All">All</mat-option>
+            <mat-option value="true">
+              <span class="db-status-dot db-status-dot--active"></span> Active
+            </mat-option>
+            <mat-option value="false">
+              <span class="db-status-dot db-status-dot--inactive"></span> In-Active
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
+      <!-- Employee Status -->
+      <div class="db-filter-item" *ngIf="!toggleValue">
+        <label class="db-filter-label">Employee Status</label>
+        <mat-form-field appearance="outline" class="db-mat-field">
+          <mat-select [(ngModel)]="selectedEmployeeStatus" (ngModelChange)="onEmployeeStatusChange($event)"
+            placeholder="All">
+            <mat-option value="All">All</mat-option>
+            <mat-option value="Active">
+              <span class="db-status-dot db-status-dot--active"></span> Active
+            </mat-option>
+            <mat-option value="InActive">
+              <span class="db-status-dot db-status-dot--inactive"></span> In-Active
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
-            <div class="ms-3" *ngIf="!isClientDashboard && toggleValue">
-                <label class="info-label mb-1 fw-bold">Project Status</label>
-                <br>
-                <select class="form-select form-select-sm" style="margin-bottom: 22px; min-height: 58px;"
-                    [(ngModel)]="selectedProjectStatus" (change)="onProjectStatusChange($event)">
-                    <option value="" disabled selected>Select Project Status</option>
-                    <option value="All">All</option>
-                    <option value="true">Active</option>
-                    <option value="false">In-Active</option>
-                </select>
-            </div>
+      <!-- Month Picker -->
+      <div class="db-filter-item">
+        <label class="db-filter-label">Month</label>
+        <mat-form-field appearance="outline" class="db-mat-field">
+          <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
+            (dateChange)="changeMonth1($event.value)" [placeholder]="formattedMonthLabel || 'Select month'" readonly />
+          <mat-datepicker-toggle matIconSuffix [for]="monthPicker">
+            <mat-icon matDatepickerToggleIcon>calendar_month</mat-icon>
+          </mat-datepicker-toggle>
+          <mat-datepicker #monthPicker startView="year" [startAt]="currentDate"
+            (monthSelected)="monthSelected1($event, monthPicker)" panelClass="month-picker">
+          </mat-datepicker>
+        </mat-form-field>
+      </div>
 
-            <div class="ms-3" *ngIf="!toggleValue">
-                <label class="info-label mb-1 fw-bold">Employee Status</label>
-                <br>
-                <select class="form-select form-select-sm" style="margin-bottom: 22px; min-height: 58px;"
-                    [(ngModel)]="selectedEmployeeStatus" (change)="onEmployeeStatusChange($event)">
-                    <option value="" disabled selected>Select Employee Status</option>
-                    <option value="All">All</option>
-                    <option value="Active">Active</option>
-                    <option value="InActive">In-Active</option>
-                </select>
-            </div>
+      <!-- Apply -->
+      <div class="db-filter-item db-filter-item--action">
+        <button type="button" class="db-apply-btn" (click)="onBillableTypeChangeManual()">
+          <i class="fas fa-sliders"></i>
+          <span>Apply</span>
+        </button>
+      </div>
 
+    </div><!-- /db-filters-row -->
 
-            <div class="calendar-header mb-2 d-flex align-items-end">
-                <!-- <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
-                    <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
-                        (dateChange)="changeMonth1($event.value)" placeholder="Select month" readonly>
-                    <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
-                    <mat-datepicker #monthPicker startView="multi-year" (monthSelected)="monthSelected1($event, monthPicker)"
-                        panelClass="month-picker">
-                    </mat-datepicker>
-                </mat-form-field> -->
-                <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
-                    <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
-                        (dateChange)="changeMonth1($event.value)" placeholder="Select month" readonly>
+    <!-- Repeated offender filters (bordered shell + inner row — matches dashboard mock) -->
+    <div class="ro-filter-shell" *ngIf="repeatedOffenderMode">
+    <div class="db-filters-row db-filters-row--ro">
+      <div class="db-filter-item">
+        <label class="db-filter-label">Billable Type</label>
+        <mat-form-field appearance="outline" class="db-mat-field">
+          <mat-select [(ngModel)]="roDraftBillableTypes" multiple placeholder="Select types">
+            <mat-option [value]="'AllButton'" (click)="selectAllBillableTypes()"
+              [disabled]="roDraftBillableTypes.length === billableTypes.length">Select All</mat-option>
+            <mat-option *ngFor="let type of billableTypes" [value]="type">{{ type }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
-                    <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+      <div class="db-filter-item">
+        <label class="db-filter-label">Employee Status</label>
+        <mat-form-field appearance="outline" class="db-mat-field">
+          <mat-select [(ngModel)]="roDraftEmployeeStatus" placeholder="All">
+            <mat-option value="All">All</mat-option>
+            <mat-option value="Active"><span class="db-status-dot db-status-dot--active"></span> Active</mat-option>
+            <mat-option value="InActive"><span class="db-status-dot db-status-dot--inactive"></span> In-Active</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
-                    <mat-datepicker #monthPicker startView="year" [startAt]="currentDate"
-                        (monthSelected)="monthSelected1($event, monthPicker)" panelClass="month-picker">
-                    </mat-datepicker>
-                </mat-form-field>
+      <div class="db-filter-item">
+        <label class="db-filter-label">Period</label>
+        <mat-form-field appearance="outline" class="db-mat-field">
+          <mat-select [(ngModel)]="roDraftPeriodKey" (selectionChange)="onRoPeriodKeyChange()">
+            <mat-option value="3m">Last 3 Months</mat-option>
+            <mat-option value="6m">Last 6 Months</mat-option>
+            <mat-option value="custom">Custom Range</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
-
-
-                <span class="styled-month-employee-label">
-                    {{ formattedMonthLabel }}
-                </span>
-
-                <!-- <button class="btn btn-link p-0 ml-2" (click)="refreshDashboard()" title="Refresh">
-                    <i class="fas fa-sync-alt"></i>
-                </button> -->
-
-            </div>
-
-            <div class="last-updated d-flex align-items-center">
-                <span>Updated: {{ lastUpdated }}</span>
-                <button class="btn btn-link p-0 ml-2" (click)="refreshDashboard()" title="Refresh">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-            </div>
+      <div class="db-filter-item db-filter-item--range" *ngIf="roIsCustomPeriod">
+        <div class="ro-range-heading">
+          <span class="db-filter-label ro-range-heading__lbl">From</span>
+          <span class="ro-range-heading__spacer"></span>
+          <span class="db-filter-label ro-range-heading__lbl">To</span>
         </div>
+        <div class="ro-range-card" tabindex="-1">
+          <div class="ro-range-segment">
+            <app-ro-month-year-field
+              fieldId="from"
+              [value]="roDraftStartDate"
+              [hideOutline]="true"
+              (valueChange)="onRoStartMonthPicked($event)"
+              [minDate]="roPickerMinDate"
+              [maxDate]="roPickerMaxDate"
+            />
+          </div>
+          <div class="ro-range-divider" aria-hidden="true">
+            <span class="ro-range-divider__dash">–</span>
+          </div>
+          <div class="ro-range-segment">
+            <app-ro-month-year-field
+              fieldId="to"
+              [value]="roDraftEndDate"
+              [hideOutline]="true"
+              [endOfMonth]="true"
+              (valueChange)="onRoEndMonthPicked($event)"
+              [minDate]="roPickerMinDate"
+              [maxDate]="roPickerMaxDate"
+            />
+          </div>
+        </div>
+        <div class="text-danger small mt-1" *ngIf="roIsCustomPeriod && roDraftCustomRangeError" role="alert">
+          {{ roDraftCustomRangeError }}
+        </div>
+      </div>
 
+      <div class="db-filter-item">
+        <label class="db-filter-label">Defaulted in N months</label>
+        <mat-form-field appearance="outline" class="db-mat-field">
+          <mat-select [(ngModel)]="roDraftDefaultedThreshold" [disabled]="!roDraftThresholdSelectEnabled">
+            <mat-option *ngFor="let n of roDraftThresholdOptions" [value]="n">{{ n }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
-       
-        <!-- Key Metrics -->
+      <div class="db-filter-item db-filter-item--ro-actions">
+        <label class="db-filter-label ro-action-label-spacer" aria-hidden="true">&nbsp;</label>
+        <div class="ro-actions-inline">
+          <button type="button" class="db-reset-btn db-reset-btn--ro" (click)="resetRepeatedOffenderDraftFilters()">
+            <i class="fas fa-rotate-left" aria-hidden="true"></i>
+            <span>Reset</span>
+          </button>
+          <button type="button" class="db-apply-btn db-apply-btn--ro" [disabled]="!isRoDraftDirty() || !isRoApplyRangeValid()"
+            (click)="applyRepeatedOffenderFilters()">
+            <i class="fas fa-sliders"></i>
+            <span>Apply</span>
+          </button>
+          <div class="ro-filter-summary ro-filter-summary--inline">
+            <div class="ro-filter-summary__stack">
+              <div class="ro-filter-summary__row">
+                <i class="fas fa-calendar-alt ro-filter-summary__icon" aria-hidden="true"></i>
+                <span class="ro-filter-summary__range">{{ getRoDraftRangeTitle() }}</span>
+              </div>
+              <div class="ro-filter-summary__threshold">Threshold: {{ roDraftDefaultedThreshold }} of {{ countRoDraftMonthsSpan() }} months</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
 
-        <div class="row g-4">
-        
-            <div class="w-100 d-flex justify-content-end mb-2" *ngIf="!toggleValue && isClientDashboard">
-                <div class="po-global-filter" (click)="$event.stopPropagation()">
-                    <button type="button" class="po-filter-btn" (click)="toggleGlobalPoConflictDropdown($event)"
-                        [title]="getGlobalPoConflictLabel()">
-                        <span class="po-filter-text">{{ getGlobalPoConflictLabel() }}</span>
-                        <i class="fa fa-caret-down"></i>
-                    </button>
-        
-                    <!-- <button type="button" class="po-clear-btn" *ngIf="globalPoConflictSelection !== 'All'"
+  </div><!-- /db-top-bar -->
+
+  <div class="ro-dashboard" *ngIf="repeatedOffenderMode">
+    <div class="ro-metrics">
+      <div
+        class="ro-metric ro-metric--primary ro-metric--clickable"
+        role="button"
+        tabindex="0"
+        [class.ro-metric--active]="roTableSegment === 'totalApplicable'"
+        (click)="onRoMetricCardClick('totalApplicable')"
+        (keydown)="onRoMetricCardKeydown($event, 'totalApplicable')"
+        title="Employees with at least one defaulted month in the selected range"
+      >
+        <span class="ro-metric__label">Total defaulters</span>
+        <span class="ro-metric__value">{{ roSummary.totalApplicable }}</span>
+        <span class="ro-metric__subtitle">Defaulted in ≥ 1 month</span>
+      </div>
+      <div
+        class="ro-metric ro-metric--danger ro-metric--clickable"
+        role="button"
+        tabindex="0"
+        [class.ro-metric--active]="roTableSegment === 'repeatedOffenders'"
+        (click)="onRoMetricCardClick('repeatedOffenders')"
+        (keydown)="onRoMetricCardKeydown($event, 'repeatedOffenders')"
+        title="Employees defaulted in 2 or more months in the selected range"
+      >
+        <span class="ro-metric__label">Defaulters for more than 1 month</span>
+        <span class="ro-metric__value">{{ roSummary.repeatedOffenders }}</span>
+        <span class="ro-metric__subtitle">{{ roSummary.repeatedPct }}% of defaulters</span>
+      </div>
+      <div
+        class="ro-metric ro-metric--streak ro-metric--clickable"
+        role="button"
+        tabindex="0"
+        [class.ro-metric--active]="roTableSegment === 'allMonthsStreak'"
+        (click)="onRoMetricCardClick('allMonthsStreak')"
+        (keydown)="onRoMetricCardKeydown($event, 'allMonthsStreak')"
+        title="Employees who defaulted in every month of the range"
+      >
+        <span class="ro-metric__label">All-months streak</span>
+        <span class="ro-metric__value">{{ roSummary.allMonthsStreak }}</span>
+        <span class="ro-metric__subtitle">Defaulted all {{ roRangeMonthCount }} month<span *ngIf="roRangeMonthCount !== 1">s</span></span>
+      </div>
+      <div
+        class="ro-metric ro-metric--exact ro-metric--clickable"
+        role="button"
+        tabindex="0"
+        [class.ro-metric--active]="roTableSegment === 'thresholdBucket'"
+        (click)="onRoMetricCardClick('thresholdBucket')"
+        (keydown)="onRoMetricCardKeydown($event, 'thresholdBucket')"
+        title="Employees defaulted in exactly the threshold number of months"
+      >
+        <span class="ro-metric__label">Exactly {{ roDefaultedThreshold }} month<span *ngIf="roDefaultedThreshold !== 1">s</span></span>
+        <span class="ro-metric__value">{{ roSummary.thresholdBucket }}</span>
+        <span class="ro-metric__subtitle">Defaulted in exactly {{ roDefaultedThreshold }} of {{ roRangeMonthCount }} month<span *ngIf="roRangeMonthCount !== 1">s</span></span>
+      </div>
+    </div>
+
+    <div class="ro-table-card">
+      <div class="ro-table-card__head">
+        <div>
+          <h4 class="ro-table-card__title">Repeated offender list <span class="text-muted small" *ngIf="roLoading">(loading…)</span></h4>
+          <p class="ro-table-card__subtitle">
+            <ng-container *ngIf="roEmployeeTotalCount === 0 && !roLoading">
+              No rows for the <strong>applied</strong> filters (defaults load when you turn on Repeated Offender).
+              Change the filter bar and click <strong>Apply</strong> to refresh.
+            </ng-container>
+            <ng-container *ngIf="roEmployeeTotalCount > 0">
+              <strong>{{ getRoTableMetricTitle() }}</strong> — {{ roEmployeeTotalCount }} employee(s). Page {{ roPage }} of {{ roTotalPages }}.
+            </ng-container>
+            {{ getRoRangeTitle() }}.
+          </p>
+        </div>
+        <div class="ro-table-card__actions">
+          <button type="button" class="eo-icon-btn" [class.eo-icon-btn--active]="isRoSearchEnabled"
+            (click)="toggleRoSearch()" title="Toggle search">
+            <i class="fa fa-search" *ngIf="!isRoSearchEnabled"></i>
+            <i class="fa-solid fa-xmark" *ngIf="isRoSearchEnabled"></i>
+          </button>
+          <button type="button" class="btn btn-outline-primary btn-sm" *ngIf="isRoSearchEnabled" (click)="onRoGridSearch()">
+            Apply search
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-sm ro-export-btn" (click)="exportRepeatedOffenderList()">
+            <i class="fas fa-file-export"></i> Export
+          </button>
+        </div>
+      </div>
+
+      <div class="ro-table-eo-wrap eo-table-container">
+        <table
+          class="eo-table ro-employee-grid-table"
+          matSort
+          matSortDisableClear
+          [matSortActive]="roSortBy"
+          [matSortDirection]="roSortDirection"
+          (matSortChange)="onRoMatSort($event)"
+        >
+          <thead class="eo-thead">
+            <tr>
+              <th>Sl. No.</th>
+              <th mat-sort-header="employmentId" class="ro-sort-th">Emp Id</th>
+              <th mat-sort-header="employeeName" class="ro-sort-th">Employee name</th>
+              <th mat-sort-header="department" class="ro-sort-th">Department</th>
+              <th mat-sort-header="projectName" class="ro-sort-th">Project Name</th>
+              <th mat-sort-header="poName" class="ro-sort-th">PO Name</th>
+              <th mat-sort-header="teamName" class="ro-sort-th">Team name</th>
+              <th mat-sort-header="billableType" class="ro-sort-th">Billable Type</th>
+              <th mat-sort-header="employmentStatus" class="ro-sort-th">Employment status</th>
+              <th mat-sort-header="managerName" class="ro-sort-th">RM Name</th>
+              <th mat-sort-header="projectMapping" class="ro-sort-th">Project mapping</th>
+              <th mat-sort-header="teamStartDate" class="ro-sort-th">Start date</th>
+              <th mat-sort-header="teamEndDate" class="ro-sort-th">End date</th>
+              <th mat-sort-header="defaultedInPeriod" class="ro-sort-th"
+                title="Months in the selected range where this mapping was a defaulter (full month names)">Defaulted in period</th>
+            </tr>
+            <tr class="eo-search-row" *ngIf="isRoSearchEnabled">
+              <td class="eo-search-row__sl" aria-hidden="true"></td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.employmentId"
+                    (keydown.enter)="onRoGridSearch('employmentId')">
+                  <i class="fa fa-search eo-search-icon" title="Search Emp Id only"
+                    (click)="onRoGridSearch('employmentId')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.employeeName"
+                    (keydown.enter)="onRoGridSearch('employeeName')">
+                  <i class="fa fa-search eo-search-icon" title="Search Employee name only"
+                    (click)="onRoGridSearch('employeeName')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.department"
+                    (keydown.enter)="onRoGridSearch('department')">
+                  <i class="fa fa-search eo-search-icon" title="Search Department only"
+                    (click)="onRoGridSearch('department')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.projectName"
+                    (keydown.enter)="onRoGridSearch('projectName')">
+                  <i class="fa fa-search eo-search-icon" title="Search Project name only"
+                    (click)="onRoGridSearch('projectName')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.poName"
+                    (keydown.enter)="onRoGridSearch('poName')">
+                  <i class="fa fa-search eo-search-icon" title="Search PO name only"
+                    (click)="onRoGridSearch('poName')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.teamName"
+                    (keydown.enter)="onRoGridSearch('teamName')">
+                  <i class="fa fa-search eo-search-icon" title="Search Team name only"
+                    (click)="onRoGridSearch('teamName')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.billableType"
+                    (keydown.enter)="onRoGridSearch('billableType')">
+                  <i class="fa fa-search eo-search-icon" title="Search Billable type only"
+                    (click)="onRoGridSearch('billableType')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.employmentStatus"
+                    (keydown.enter)="onRoGridSearch('employmentStatus')">
+                  <i class="fa fa-search eo-search-icon" title="Search Employment status only"
+                    (click)="onRoGridSearch('employmentStatus')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.managerName"
+                    (keydown.enter)="onRoGridSearch('managerName')">
+                  <i class="fa fa-search eo-search-icon" title="Search Manager name only"
+                    (click)="onRoGridSearch('managerName')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.projectMapping"
+                    (keydown.enter)="onRoGridSearch('projectMapping')">
+                  <i class="fa fa-search eo-search-icon" title="Search Project mapping only"
+                    (click)="onRoGridSearch('projectMapping')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.teamStartDate"
+                    (keydown.enter)="onRoGridSearch('teamStartDate')">
+                  <i class="fa fa-search eo-search-icon" title="Search Start date (dd-mm-yyyy)"
+                    (click)="onRoGridSearch('teamStartDate')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.teamEndDate"
+                    (keydown.enter)="onRoGridSearch('teamEndDate')">
+                  <i class="fa fa-search eo-search-icon" title="Search End date (dd-mm-yyyy)"
+                    (click)="onRoGridSearch('teamEndDate')"></i>
+                </div>
+              </td>
+              <td>
+                <div class="eo-search-cell">
+                  <input type="text" class="eo-search-input" placeholder="Search"
+                    [(ngModel)]="roColumnFilter.defaultedInPeriod"
+                    (keydown.enter)="onRoGridSearch('defaultedInPeriod')">
+                  <i class="fa fa-search eo-search-icon" title="Search Defaulted in period"
+                    (click)="onRoGridSearch('defaultedInPeriod')"></i>
+                </div>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="!roLoading && roEmployeeTotalCount === 0">
+              <td colspan="14" class="text-muted text-center py-4">
+                No Records Found
+              </td>
+            </tr>
+            <tr *ngIf="!roLoading && roEmployeeTotalCount > 0 && roAllRows.length === 0">
+              <td colspan="14" class="text-muted text-center py-4">
+                No employees match this metric for the current period.
+              </td>
+            </tr>
+            <ng-container *ngFor="let row of roPagedRows; let ri = index">
+              <ng-container *ngFor="let proj of roProjectRowsForEmployee(row); let pi = index">
+                <tr class="eo-row" [class.eo-row--child]="pi > 0"
+                  *ngIf="pi === 0 || (row.empDbId != null && isEmployeeExpanded(row.empDbId))">
+                  <td [class.eo-td--hidden]="pi > 0">{{ (roPage - 1) * roPageSize + ri + 1 }}</td>
+                  <td [class.eo-td--hidden]="pi > 0">{{ row.empId }}</td>
+                  <td class="eo-name-cell" [class.eo-td--hidden]="pi > 0">
+                    <div class="eo-name-wrap">
+                      <button *ngIf="roCanExpandEmployee(row)" type="button" class="eo-expand-btn"
+                        [class.eo-expand-btn--open]="row.empDbId != null && isEmployeeExpanded(row.empDbId)"
+                        (click)="row.empDbId != null && toggleEmployeeExpand(row.empDbId); $event.stopPropagation()"
+                        [title]="row.empDbId != null && isEmployeeExpanded(row.empDbId) ? 'Collapse' : 'Expand'">
+                        <i class="fa"
+                          [ngClass]="row.empDbId != null && isEmployeeExpanded(row.empDbId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                      </button>
+                      <span *ngIf="!roCanExpandEmployee(row)" class="eo-expand-placeholder"></span>
+                      <span *ngIf="row.empDbId != null" class="eo-emp-name" (click)="cancelRequest()"
+                        [navigateToEmployee360]="row.empDbId" title="Click to view Employee 360">
+                        {{ row.employeeName }}
+                      </span>
+                      <span *ngIf="row.empDbId == null" class="text-muted">{{ row.employeeName }}</span>
+                    </div>
+                  </td>
+                  <td [class.eo-td--hidden]="pi > 0">{{ row.department }}</td>
+                  <td>{{ proj.projectName }}</td>
+                  <td>{{ proj.poName || '—' }}</td>
+                  <td>{{ proj.teamName }}</td>
+                  <td>{{ proj.billableType }}</td>
+                  <td>{{ proj.employmentStatus }}</td>
+                  <td>{{ proj.managerName }}</td>
+                  <td>{{ proj.projectMapping }}</td>
+                  <td>{{ proj.teamStartDate || '—' }}</td>
+                  <td>{{ proj.teamEndDate || '—' }}</td>
+                  <td>{{ proj.defaultedPeriodDisplay || '—' }}</td>
+                </tr>
+              </ng-container>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ro-paginator">
+        <span class="ro-paginator__label">Items per page:</span>
+        <select class="form-control form-control-sm ro-page-size" [(ngModel)]="roPageSize" (ngModelChange)="onRoPageSizeChange()">
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="20">20</option>
+          <option [ngValue]="50">50</option>
+        </select>
+        <span class="ro-paginator__range">{{ roPageRangeLabel }}</span>
+        <button type="button" class="btn btn-sm btn-light ro-page-btn" (click)="roPrevPage()" [disabled]="roPage <= 1">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-light ro-page-btn" (click)="roNextPage()" [disabled]="roPage >= roTotalPages">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="db-dashboard" *ngIf="!repeatedOffenderMode">
+    <!-- Key Metrics -->
+
+    <div class="db-dashboard-body">
+      <div class="d-flex justify-content-end mb-2" *ngIf="!toggleValue && isClientDashboard">
+        <div class="po-global-filter" (click)="$event.stopPropagation()">
+          <button type="button" class="po-filter-btn" (click)="toggleGlobalPoConflictDropdown($event)"
+            [title]="getGlobalPoConflictLabel()">
+            <span class="po-filter-text">{{ getGlobalPoConflictLabel() }}</span>
+            <i class="fa fa-caret-down"></i>
+          </button>
+          <!-- <button type="button" class="po-clear-btn" *ngIf="globalPoConflictSelection !== 'All'"
                         (click)="clearGlobalPoConflict($event)" title="Clear">
                         <i class="fa fa-times"></i>
                     </button> -->
-        
-                    <div class="po-dropdown" *ngIf="isGlobalPoDropdownOpen">
-                        <button type="button" class="po-option" (click)="selectGlobalPoConflict('Yes', $event)">
-                            With PO Conflict
-                        </button>
-                        <button type="button" class="po-option" (click)="selectGlobalPoConflict('No', $event)">
-                            Without PO Conflict
-                        </button>
-                        <button type="button" class="po-option" (click)="selectGlobalPoConflict('All', $event)">
-                            All
-                        </button>
-                    </div>
-                </div>
+          <div class="po-dropdown" *ngIf="isGlobalPoDropdownOpen">
+            <button type="button" class="po-option" (click)="selectGlobalPoConflict('Yes', $event)">
+              With PO Conflict
+            </button>
+            <button type="button" class="po-option" (click)="selectGlobalPoConflict('No', $event)">
+              Without PO Conflict
+            </button>
+            <button type="button" class="po-option" (click)="selectGlobalPoConflict('All', $event)">
+              All
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="db-tiles-card">
+        <!-- Employee View Tiles -->
+        <div class="tile-group" *ngIf="!toggleValue">
+          <ng-container *ngFor="let group of tileGroups">
+            <div class="tile-card" *ngFor="let tile of group" [ngClass]="tile.class"
+              [class.tile-card--selected]="isTileSelected(tile.status)" (click)="onTileClick(tile)">
+
+              <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                [iconBgColor]="getTileColor(tile.class)" [content]="getTileInfo(tile.status)" [size]="16">
+              </app-info-tooltip>
+
+              <div class="tile-card__icon" [style.background]="getTileColor(tile.class) + '20'">
+                <i [class]="tile.icon" [ngClass]="tile.icon" [style.color]="getTileColor(tile.class)"></i>
+              </div>
+
+              <div class="tile-card__body">
+                <span class="tile-card__label">{{ tile.label }}</span>
+                <span class="tile-card__value">{{ tile.value }}</span>
+              </div>
+
             </div>
-            <div class="tile-group-box w-100" *ngIf="!toggleValue">
-                <div *ngFor="let group of tileGroups" class="tile-group-box w-100">
-                    <div class="row g-1 d-flex flex-wrap flex-lg-nowrap w-100 justify-content-center">
-                        <div class="col-4 tile-col " *ngFor="let tile of group">
-                            <div class="metric-tile hover-tile mb-2" [ngClass]="tile.class"
-                                [class.selected-tile]="isTileSelected(tile.status)" (click)="onTileClick(tile)">
-        
-                                <app-info-tooltip class="tile-info-icon" [shouldShine]="false"
-                                    [iconBgColor]="getTileColor(tile.class)" [content]="getTileInfo(tile.status)" [size]="18">
-                                </app-info-tooltip>
-        
-                                <div class="tile-header">
-                                    <i [class]="tile.icon"></i>
-                                    <span>{{ tile.label }}</span>
-                                </div>
-        
-                                <div class="tile-value">{{ tile.value }}</div>
-        
-                                <!-- <div class="tile-footer" (click)="$event.stopPropagation()">
-                                    <div class="po-conflict-filter">
-                                        <button type="button" class="po-filter-btn"
-                                            (click)="togglePoConflictDropdown(tile.status, $event)"
-                                            [title]="getPoConflictLabel(tile.status)">
-                                            <span class="po-filter-text">
-                                                {{ getPoConflictLabel(tile.status) }}
-                                            </span>
-                                            <i class="fa fa-caret-down"></i>
-                                        </button>
-        
-                                        <button type="button" class="po-clear-btn"
-                                            *ngIf="poConflictSelectionByTile[tile.status]"
-                                            (click)="clearPoConflict(tile.status, $event)" title="Clear">
-                                            <i class="fa fa-times"></i>
-                                        </button>
-        
-                                        <div class="po-dropdown" *ngIf="openPoConflictDropdownTileKey === tile.status">
-                                            <button type="button" class="po-option"
-                                                (click)="selectPoConflict(tile.status, 'Yes', $event)">
-                                                With PO Conflict
-                                            </button>
-                                            <button type="button" class="po-option"
-                                                (click)="selectPoConflict(tile.status, 'No', $event)">
-                                                Without PO Conflict
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div> -->
-        
-                            </div>
-                        </div>
-                    </div>
-                </div>
+          </ng-container>
+        </div>
+
+
+        <!-- Project View Tiles -->
+        <div class="tile-group tile-group--project" *ngIf="toggleValue">
+          <ng-container *ngFor="let group of tileGroups">
+            <div class="tile-card" *ngFor="let tile of group" [ngClass]="tile.class"
+              [class.tile-card--selected]="isTileSelected(tile.status)" (click)="scrollToTable(tile.status)">
+
+              <div class="tile-card__icon" [style.background]="getTileColor(tile.class) + '20'">
+                <i [class]="tile.icon" [ngClass]="tile.icon" [style.color]="getTileColor(tile.class)"></i>
+              </div>
+
+              <div class="tile-card__body">
+                <span class="tile-card__label">{{ tile.label }}</span>
+                <span class="tile-card__value">{{ tile.value }}</span>
+              </div>
+
             </div>
-        
-            <div class="tile-group-box-project w-100" *ngIf="toggleValue">
-                <div *ngFor="let group of tileGroups" class="tile-group-box-project w-100">
-                    <div class="row g-1 justify-content-center  w-100 d-flex  flex-wrap">
-                        <div class="col-12 col-md-6 col-xl-6 col-xxl-3  tile-col" style="min-width:250px"
-                            *ngFor="let tile of group">
-                            <div class="metric-tile-project hover-tile mb-2" [ngClass]="tile.class"
-                                [class.selected-tile]="isTileSelected(tile.status)" (click)="scrollToTable(tile.status)">
-        
-                                <div class="tile-header">
-                                    <i [class]="tile.icon"></i>
-                                    <span>{{ tile.label }}</span>
-                                </div>
-        
-                                <div class="tile-value">{{ tile.value }}</div>
-        
-                                <!-- <div class="tile-footer" (click)="$event.stopPropagation()">
-                                    <div class="po-conflict-filter">
-                                        <button type="button" class="po-filter-btn"
-                                            (click)="togglePoConflictDropdown(tile.status, $event)"
-                                            [title]="getPoConflictLabel(tile.status)">
-                                            <span class="po-filter-text">
-                                                {{ getPoConflictLabel(tile.status) }}
-                                            </span>
-                                            <i class="fa fa-caret-down"></i>
-                                        </button>
-        
-                                        <button type="button" class="po-clear-btn"
-                                            *ngIf="poConflictSelectionByTile[tile.status]"
-                                            (click)="clearPoConflict(tile.status, $event)" title="Clear">
-                                            <i class="fa fa-times"></i>
-                                        </button>
-        
-                                        <div class="po-dropdown" *ngIf="openPoConflictDropdownTileKey === tile.status">
-                                            <button type="button" class="po-option"
-                                                (click)="selectPoConflict(tile.status, 'Yes', $event)">
-                                                With PO Conflict
-                                            </button>
-                                            <button type="button" class="po-option"
-                                                (click)="selectPoConflict(tile.status, 'No', $event)">
-                                                Without PO Conflict
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div> -->
-        
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        
-            <!-- Department Breakdown Container -->
-            <!-- <div class="title-group-box-project w-100" *ngIf="isClientDashboard && !toggleValue">
+          </ng-container>
+        </div>
+      </div>
+      <!-- Department Breakdown Container -->
+      <!-- <div class="title-group-box-project w-100" *ngIf="isClientDashboard && !toggleValue">
                                 <div class="dept-container" *ngIf="selectedDepartments?.length">
-                            
-                                    
+
+
                                     <div class="dept-header-bar" (click)="toggleDeptCollapse()">
-                            
+
                                         <div class="dept-title-wrap">
                                             <span class="dept-title">Department Breakdown</span>
                                             <span class="dept-subtitle">
                                                 {{ selectedTile?.label }}
                                             </span>
-                                            
+
                                         </div>
                                         <span class="collapse-arrow" [class.rotate]="!isDeptCollapsed">
                                             </span>
-                            
+
                                     </div>
-                            
-                                    
+
+
                                     <div class="dept-body" [class.collapsed]="isDeptCollapsed">
-                            
+
                                         <div class="dept-scroll">
-                            
+
                                             <div class="dept-card" *ngFor="let dept of selectedDepartments"
                                                 (click)="onDepartmentClick(selectedTile.status, dept.deptId)">
-                            
+
                                                 <div class="dept-card-header">
                                                     {{ dept.deptName }}
                                                 </div>
-                            
+
                                                 <div class="dept-card-count">
                                                     {{ dept.count }}
                                                 </div>
-                            
+
                                             </div>
-                            
+
                                         </div>
                                     </div>
-                            
+
                                 </div>
-                            
+
                             </div>  -->
-        
-        
-            <!-- /* //Pivot table changes dept wise */ -->
-        
-            <div class="title-group-box-project w-100" *ngIf="isClientDashboard && !toggleValue ">
-        
-                <div class="dept-table-container">
-        
-                    <!-- Header -->
-                    <div class="dept-header-bar" (click)="toggleDeptTableCollapse()">
-                        <div class="dept-title-wrap">
-                            <span class="dept-title">Department Wise Status Summary</span>
-                            <span class="dept-subtitle">Timesheet Overview</span>
-                        </div>
-        
-                        <span class="collapse-arrow" [class.rotate]="!isDeptTableCollapsed"></span>
-                    </div>
-        
-                    <!-- Table Body -->
-                    <div class="dept-table-body" [class.collapsed]="isDeptTableCollapsed">
-        
-                        <div class="table-scroll">
-        
-                            <table class="futuristic-table">
-                                <thead>
-                                    <tr>
-                                        <th>Dept</th>
-                                        <th>Total Applicable</th>
-                                        <th>Ready For Invoicing</th>
-                                        <th>Defaulter</th>
-                                        <th>Pending Approval</th>
-                                        <th>Not Filled</th>
-                                    </tr>
-                                </thead>
-        
-                                <tbody>
-                                    <tr *ngFor="let row of departmentTableData" class="table-row">
-        
-                                        <td class="dept-name">{{ row.dept }}</td>
-        
-                                        <td>
-                                            <div class="count-card total clickable" (click)="onDeptCountClick(row, 'TOTAL')">
-                                                {{ row.total }}
-                                            </div>
-                                        </td>
-        
-                                        <td>
-                                            <div class="count-card success clickable" (click)="onDeptCountClick(row, 'READY')">
-        
-                                                <div class="count-main">
-                                                    {{ row.ready }}
-                                                </div>
-        
-                                                <div class="repeat-indicator" *ngIf="row.approvedRepeat > 0"
-                                                    title="Repeated entries"
-                                                    (click)="onRepeatClick($event, row, 'APPROVED_REPEAT')">
-                                                    <i class="fa-solid fa-user-group"></i>
-                                                    <span>{{ row.approvedRepeat }}</span>
-                                                </div>
-        
-                                            </div>
-        
-                                        </td>
-        
-                                        <td>
-                                            <div class="count-card danger clickable"
-                                                (click)="onDeptCountClick(row, 'DEFAULTER')">
-        
-                                                <div class="count-main">
-                                                    {{ row.defaulter }}
-                                                </div>
-        
-                                                <div class="repeat-indicator" *ngIf="row.defaulterRepeat > 0"
-                                                    title="Repeated entries"
-                                                    (click)="onRepeatClick($event, row, 'DEFAULTER_REPEAT')">
-                                                    <i class="fa-solid fa-user-group"></i>
-                                                    <span>{{ row.defaulterRepeat }}</span>
-                                                </div>
-        
-                                            </div>
-        
-                                        </td>
-        
-                                        <td>
-                                            <div class="count-card warning clickable"
-                                                (click)="onDeptCountClick(row, 'PENDING')">
-        
-                                                <div class="count-main">
-                                                    {{ row.pending }}
-                                                </div>
-        
-                                                <div class="repeat-indicator" *ngIf="row.pendingRepeat > 0"
-                                                    title="Repeated entries"
-                                                    (click)="onRepeatClick($event, row, 'PENDING_REPEAT')">
-                                                    <i class="fa-solid fa-user-group"></i>
-                                                    <span>{{ row.pendingRepeat }}</span>
-                                                </div>
-        
-                                            </div>
-        
-                                        </td>
-        
-        
-                                        <td>
-                                            <div class="count-card neutral clickable"
-                                                (click)="onDeptCountClick(row, 'NOT_FILLED')">
-                                                {{ row.notFilled }}
-                                            </div>
-                                        </td>
-        
-        
-                                    </tr>
-                                </tbody>
-                            </table>
-        
-                        </div>
-                    </div>
-        
-                </div>
+
+
+      <!-- /* //Pivot table changes dept wise */ -->
+
+      <div class="title-group-box-project" *ngIf="isClientDashboard && !toggleValue ">
+        <section class="dept-status-summary" aria-labelledby="dept-summary-heading">
+          <div class="dept-table-container">
+
+            <!-- Header: collapsible, keyboard accessible -->
+            <div class="dept-header-bar" id="dept-summary-heading" role="button" tabindex="0"
+              [attr.aria-expanded]="!isDeptTableCollapsed" aria-controls="dept-summary-table-body"
+              (click)="toggleDeptTableCollapse()" (keydown)="onDeptSummaryHeaderKeydown($event)">
+              <div class="dept-title-wrap">
+                <span class="dept-title">Department Wise Status Summary</span>
+                <span class="dept-subtitle">Timesheet overview by department and status</span>
+              </div>
+              <span class="collapse-arrow" [class.rotate]="!isDeptTableCollapsed" aria-hidden="true"></span>
             </div>
-        
-        
-        
-        
-        
-        </div>
+
+            <!-- Table Body: fixed header + inner body-only scroller -->
+            <div class="dept-table-body" id="dept-summary-table-body" [class.collapsed]="isDeptTableCollapsed">
+              <div class="dept-table-outer">
+                <div class="dept-table-inner">
+                  <!-- Fixed header (outside scroll) -->
+                  <table class="futuristic-table dept-table-header" role="grid" aria-readonly="true">
+                    <caption class="sr-only">Department-wise timesheet counts: Total Applicable, Ready For Invoicing,
+                      Defaulter, Pending Approval, Not Filled</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Department</th>
+                        <th scope="col">Total Applicable</th>
+                        <th scope="col">Ready For Invoicing</th>
+                        <th scope="col">Defaulter</th>
+                        <th scope="col">Pending Approval</th>
+                        <th scope="col">Not Filled</th>
+                      </tr>
+                    </thead>
+                  </table>
+                  <!-- Inner scroller: body rows only -->
+                  <div class="dept-table-body-scroll">
+                    <table class="futuristic-table dept-table-body-table" role="grid" aria-readonly="true">
+                      <tbody>
+                        <tr *ngFor="let row of departmentTableData" class="table-row">
+                          <td class="dept-name">{{ row.dept }}</td>
+                          <td>
+                            <div class="count-card total clickable" (click)="onDeptCountClick(row, 'TOTAL')">
+                              {{ row.total }}
+                            </div>
+                          </td>
+                          <td>
+                            <div class="count-card success clickable" (click)="onDeptCountClick(row, 'READY')"
+                              tabindex="0" role="button" (keydown)="onDeptCountKeydown($event, row, 'READY')">
+                              <div class="count-main">{{ row.ready }}</div>
+                              <div class="repeat-indicator" *ngIf="row.approvedRepeat > 0" title="Repeated entries"
+                                (click)="onRepeatClick($event, row, 'APPROVED_REPEAT')">
+                                <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                                <span>{{ row.approvedRepeat }}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="count-card danger clickable" (click)="onDeptCountClick(row, 'DEFAULTER')">
+                              <div class="count-main">{{ row.defaulter }}</div>
+                              <div class="repeat-indicator" *ngIf="row.defaulterRepeat > 0" title="Repeated entries"
+                                (click)="onRepeatClick($event, row, 'DEFAULTER_REPEAT')">
+                                <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                                <span>{{ row.defaulterRepeat }}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="count-card warning clickable" (click)="onDeptCountClick(row, 'PENDING')">
+                              <div class="count-main">{{ row.pending }}</div>
+                              <div class="repeat-indicator" *ngIf="row.pendingRepeat > 0" title="Repeated entries"
+                                (click)="onRepeatClick($event, row, 'PENDING_REPEAT')">
+                                <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                                <span>{{ row.pendingRepeat }}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="count-card neutral clickable" (click)="onDeptCountClick(row, 'NOT_FILLED')">
+                              {{ row.notFilled }}
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
 
 
 
-        <!-- Status Overview -->
-        <!-- <div class="status-grid">
+
+
+    </div>
+
+
+
+    <!-- Status Overview -->
+    <!-- <div class="status-grid">
                 <div class="status-card">
                     <div class="status-title">VMS Not Approved</div>
                     <div class="status-value">156 <span class="badge badge-warning">12.5%</span></div>
@@ -555,135 +877,121 @@
             </div>  -->
 
 
+  </div>
+
+
+
+  <div class="insight-container" *ngIf="isClientDashboard && !repeatedOffenderMode">
+    <div class="insight-container__header">
+      <h5 class="insight-container__title">Individual {{ toggleValue ? 'Project' : 'Employee' }} Insight</h5>
+      <p class="insight-container__subtitle">Search by {{ toggleValue ? 'project / PO' : 'employee' }} and date range to
+        view timesheet details</p>
     </div>
-    <br>
 
+    <!-- Employee View Fields -->
+    <div class="insight-card__body" *ngIf="!toggleValue">
 
-    <div class="insight-container p-2 rounded shadow-effect" *ngIf="isClientDashboard">
-        <!-- Subtitle -->
-        <div class="mb-3">
-            <h5 class="ms-1 fw-semibold text-secondary">
-                Individual {{ toggleValue ? 'Project' : 'Employee' }} Insight
-            </h5>
-        </div>
+      <div class="insight-field insight-field--wide">
+        <label class="insight-label">Search Employee</label>
+        <mat-form-field appearance="outline" class="insight-mat-field">
+          <input matInput placeholder="Name or Emp ID" [formControl]="employeeCtrl" required [matAutocomplete]="auto"
+            (input)="onEmployeeInputChange()">
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
+            [displayWith]="displayEmployee">
+            <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
+              {{ emp.name }}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-error *ngIf="employeeCtrl.invalid && employeeCtrl.touched">Employee is required</mat-error>
+        </mat-form-field>
+      </div>
 
-        <!-- Employee View Fields -->
-        <div class="row g-3 align-items-center" *ngIf="!toggleValue">
-            <!-- Employee Search -->
-            <div class="col-md-7">
-                <mat-form-field appearance="fill" class="w-100">
-                    <mat-label>Search Employee</mat-label>
-                    <input matInput placeholder="Name or Emp ID" [formControl]="employeeCtrl" required
-                        [matAutocomplete]="auto" (input)="onEmployeeInputChange()">
-                    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
-                        [displayWith]="displayEmployee">
-                        <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
-                            {{ emp.name }}
-                        </mat-option>
-                    </mat-autocomplete>
-                    <mat-error *ngIf="employeeCtrl.invalid && employeeCtrl.touched">
-                        Employee is required
-                    </mat-error>
-                </mat-form-field>
-            </div>
+      <div class="insight-field">
+        <label class="insight-label">From Date</label>
+        <mat-form-field appearance="outline" class="insight-mat-field">
+          <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate" name="fromDate"
+            [max]="today" required #fromDateRef="ngModel">
+          <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #fromDatePicker></mat-datepicker>
+          <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">From Date is required</mat-error>
+        </mat-form-field>
+      </div>
 
-            <!-- From Date -->
-            <div class="col-md-2">
-                <mat-form-field appearance="fill" class="w-100">
-                    <mat-label>From Date</mat-label>
-                    <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate"
-                        name="fromDate" [max]="today" required #fromDateRef="ngModel">
-                    <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
-                    <mat-datepicker #fromDatePicker></mat-datepicker>
-                    <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">
-                        From Date is required
-                    </mat-error>
-                </mat-form-field>
-            </div>
+      <div class="insight-field">
+        <label class="insight-label">To Date</label>
+        <mat-form-field appearance="outline" class="insight-mat-field">
+          <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate"
+            [max]="today" [min]="fromDate" required #toDateRef="ngModel">
+          <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #toDatePicker></mat-datepicker>
+          <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">To Date is required</mat-error>
+        </mat-form-field>
+      </div>
 
-            <!-- To Date -->
-            <div class="col-md-2">
-                <mat-form-field appearance="fill" class="w-100">
-                    <mat-label>To Date</mat-label>
-                    <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate"
-                        [max]="today" [min]="fromDate" required #toDateRef="ngModel">
-                    <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
-                    <mat-datepicker #toDatePicker></mat-datepicker>
-                    <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">
-                        To Date is required
-                    </mat-error>
-                </mat-form-field>
-            </div>
+      <div class="insight-field insight-field--action">
+        <!--<label class="insight-label">&nbsp;</label>-->
+        <button type="button" class="insight-search-btn"
+          (click)="searchTimesheet(timesheet_details, alert_message, true)" title="Search">
+          <i class="fas fa-search"></i>
+          <span>Search</span>
+        </button>
+      </div>
 
-            <!-- Search Button -->
-            <div class="col-md-1 d-flex justify-content-end align-items-end" style="padding-bottom: 22px;">
-                <button type="button" class="btn btn-icon"
-                    (click)="searchTimesheet(timesheet_details, alert_message, true)" title="Search">
-                    <i class="fa fa-search"></i>
-                </button>
-            </div>
-
-        </div>
-
-        <!-- Project View Fields -->
-        <div class="row g-3 align-items-center" *ngIf="toggleValue">
-            <!-- Project Search -->
-            <div class="col-md-7">
-                <mat-form-field appearance="fill" class="w-100">
-                    <mat-label>Search By Project/PoNo</mat-label>
-                    <input matInput placeholder="Search By Project Name or PoNo" [formControl]="projectPoCtrl" required
-                        [matAutocomplete]="auto" (input)="onProjectInputChange()">
-                    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onProjectSelected($event)"
-                        [displayWith]="displayProject">
-                        <mat-option *ngFor="let emp of filteredProject" [value]="emp">
-                            {{ emp.projectName }}
-                        </mat-option>
-                    </mat-autocomplete>
-                    <mat-error *ngIf="projectPoCtrl.invalid && projectPoCtrl.touched">
-                        Project/PoNo is required
-                    </mat-error>
-                </mat-form-field>
-            </div>
-
-            <!-- From Date -->
-            <div class="col-md-2">
-                <mat-form-field appearance="fill" class="w-100">
-                    <mat-label>From Date</mat-label>
-                    <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate"
-                        name="fromDate" [max]="today" required #fromDateRef="ngModel">
-                    <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
-                    <mat-datepicker #fromDatePicker></mat-datepicker>
-                    <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">
-                        From Date is required
-                    </mat-error>
-                </mat-form-field>
-            </div>
-
-            <!-- To Date -->
-            <div class="col-md-2">
-                <mat-form-field appearance="fill" class="w-100">
-                    <mat-label>To Date</mat-label>
-                    <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate"
-                        [min]="fromDate" [max]="today" required #toDateRef="ngModel">
-                    <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
-                    <mat-datepicker #toDatePicker></mat-datepicker>
-                    <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">
-                        To Date is required
-                    </mat-error>
-                </mat-form-field>
-            </div>
-
-            <!-- Search Button -->
-            <div class="col-md-1 d-flex justify-content-end align-items-end" style="padding-bottom: 22px;">
-                <button type="button" class="btn btn-icon" (click)="openProjectInsightModal()" title="Search">
-                    <i class="fa fa-search"></i>
-                </button>
-            </div>
-        </div>
     </div>
-    <br>
+    <!-- Project View Fields -->
+    <!-- Project View Fields -->
+    <div class="insight-card__body" *ngIf="toggleValue">
 
-    <!-- <div class="row">
+      <div class="insight-field insight-field--wide">
+        <label class="insight-label">Search By Project / PO No.</label>
+        <mat-form-field appearance="outline" class="insight-mat-field">
+          <input matInput placeholder="Project name or PO No." [formControl]="projectPoCtrl" required
+            [matAutocomplete]="auto" (input)="onProjectInputChange()">
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onProjectSelected($event)"
+            [displayWith]="displayProject">
+            <mat-option *ngFor="let emp of filteredProject" [value]="emp">
+              {{ emp.projectName }}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-error *ngIf="projectPoCtrl.invalid && projectPoCtrl.touched">Project/PoNo is required</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="insight-field">
+        <label class="insight-label">From Date</label>
+        <mat-form-field appearance="outline" class="insight-mat-field">
+          <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate" name="fromDate"
+            [max]="today" required #fromDateRef="ngModel">
+          <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #fromDatePicker></mat-datepicker>
+          <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">From Date is required</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="insight-field">
+        <label class="insight-label">To Date</label>
+        <mat-form-field appearance="outline" class="insight-mat-field">
+          <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate"
+            [min]="fromDate" [max]="today" required #toDateRef="ngModel">
+          <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #toDatePicker></mat-datepicker>
+          <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">To Date is required</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="insight-field insight-field--action">
+        <label class="insight-label">&nbsp;</label>
+        <button type="button" class="insight-search-btn" (click)="openProjectInsightModal()" title="Search">
+          <i class="fas fa-search"></i>
+          <span>Search</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- <div class="row">
             <div class="col-md-12">
                 <div class="row">
                     <div class="col-md-12">
@@ -702,7 +1010,16 @@
                                 <thead class="thead-light">
                                     <tr id="projectInfoTHeadTr">
                                         <th scope="col" class="info-label" style="max-width: fit-content;min-width: 300px;"
-                                            mat-sort-header="name|string">Project Name</th>
+                                            mat-sort-header="name|string">
+                                            <span class="d-inline-flex align-items-center flex-wrap gap-1">
+                                                Project Name
+                                                <app-info-tooltip *ngIf="allProjectTable && isSearchEnabled"
+                                                    class="table-header-info-tooltip" [shouldShine]="false"
+                                                    [iconBgColor]="'#ca8a04'" [content]="projectNameSearchInfoTooltip"
+                                                    [size]="16">
+                                                </app-info-tooltip>
+                                            </span>
+                                        </th>
                                         <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
                                             mat-sort-header="poNo|string">PO Number</th>
                                         <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
@@ -739,6 +1056,20 @@
                                                 <span style="cursor: pointer; color: blue;" id="clickablefor360"
                                                     (click)="cancelRequest()"
                                                     [navigateToProjectView]="project.projectViewId">
+                                                    <ng-container
+                                                        *ngIf="projectViewResolveMap?.[project.projectId]?.redirected">
+                                                        <span class="me-1 rounded-circle text-dark border border-warning-subtle"
+                                                            style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
+                                                            [title]="'Linked to project: ' + (projectViewResolveMap?.[project.projectId]?.resolvedProjectName || 'Primary project')">
+                                                            <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;"
+                                                                aria-hidden="true"></i>
+                                                        </span>
+                                                        <button type="button" class="btn btn-sm btn-link p-0 me-1"
+                                                            [title]="'Copy primary project name: ' + (projectViewResolveMap?.[project.projectId]?.resolvedProjectName || '')"
+                                                            (click)="$event.stopPropagation(); copyPrimaryProjectName(project.projectId)">
+                                                            <i class="bi bi-clipboard" aria-hidden="true"></i>
+                                                        </button>
+                                                    </ng-container>
                                                     {{project.name ? project.name : 'NA' }}
                                                 </span>
                                             </td>
@@ -769,839 +1100,405 @@
             </div>
         </div> -->
 
-    <div id="table-section">
-        <div class="row" *ngIf="!toggleValue">
-            <div class="col-md-12">
-                <div class="row">
-                    <!-- <div class="col-md-12">
-                                <h5>Employee Overview</h5>
-                                <div class="row mb-2 mt-2">
-                                    <div class="col-md-1" [hidden]="employeeView.length == 0" style="display: flex;
-                                    justify-content: left;
-                                    max-width: fit-content; cursor: pointer;">
-                                        <a (click)="toggleSearch()" style="color: #193d8a; background-color: #fff;">
-                                            <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
-                                            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-                                        </a>
-                                    </div>
-                                    <div class="col-md-1" style="display: flex;
-                                                            justify-content: left;
-                                                            max-width: fit-content;  cursor: pointer;">
-                                        <i class="fa fa-download" style="color: #053885;display: flex;
-                                                                justify-content: left;
-                                                                max-width: fit-content;" [hidden]="employeeView.length == 0"
-                                            (click)="exportToExcel()"></i>
-                                    </div>
-                                </div>
-                                <div class="col d-flex align-items-center ">
-                                    <span class="font-weight-bold text-muted small">
-                                        Displaying:
-                                        {{ (employeeView | colFilter : filters : false).length }} of
-                                        {{ employeeView.length }} employees
-                                    </span>
-                                </div>
-        
-                                <div class="table-container" bassHorizontalScroll [tableId]="'employeeInfo'"
-                                    [tableTHeadId]="'employeeInfoTHead'" [tableTHeadTrId]="'employeeInfoTHeadTr'">
-                                    <table class="table" id="employee-info" matSort (matSortChange)="sortData($event)">
-                                        <thead class="thead-light">
-                                            <tr id="employeeInfoTHeadTr">
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 150px;"
-                                                    mat-sort-header="employement_id|string">Emp ID</th>
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 200px;"
-                                                    mat-sort-header="name|string">Employee</th>
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 100px;"
-                                                    mat-sort-header="billable|string">Billable</th>
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 200px;"
-                                                    mat-sort-header="billable_type|string">Billable Type</th>
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 200px;"
-                                                    mat-sort-header="mobile_no|string">Mobile No</th>
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 300px;"
-                                                    mat-sort-header="email|string">Email</th>
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 200px;"
-                                                    mat-sort-header="departmentName|string">Department</th>
-                                                <th *ngIf ="isClientDashboard" scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 100px;"
-                                                    mat-sort-header="expected_client_side_dsr|string">Expected DSR</th>
-                                                <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 100px;"
-                                                    mat-sort-header="expected_ishine_timesheet_days|string">Expected iShine DSR</th>
-        
-                                                <th *ngIf ="isClientDashboard" scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 100px;"
-                                                    mat-sort-header="ClientSideNotFilledTimesheets_count|string">Clinet Approval Pending</th>
-                                                <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 100px;"
-                                                    mat-sort-header="ishine_pending_Days|string">iShine Pending</th>
-        
-                                                <th *ngIf ="isClientDashboard" scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 100px;"
-                                                    mat-sort-header="Client_Approved_count|string">Clinet Approved
-                                                </th>
-                                                <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 100px;"
-                                                    mat-sort-header="ishine_approved_Days|string">iShine Approved
-                                                </th>
-        
-                                                <th *ngIf ="isClientDashboard" scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 100px;"
-                                                    mat-sort-header="ClientSideNotFilledTimesheets_count|string">Clinet Attendance Not
-                                                    Filled
-                                                </th>
-                                                <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 100px;"
-                                                    mat-sort-header="not_filled_ishine_timesheet_days|string">iShine Not
-                                                    Filled
-                                                </th>
-        
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 300px;"
-                                                    mat-sort-header="project_name|string">Project</th>
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 200px;"
-                                                    mat-sort-header="po_no|string">PO No</th>
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 200px;"
-                                                    mat-sort-header="project_type|string">Project Type</th>
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 300px;"
-                                                    mat-sort-header="Project_Manager|string">Manager</th>
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 200px;"
-                                                    mat-sort-header="client_name|string">Client</th>
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 200px;"
-                                                    mat-sort-header="apmosysrm|string">Apmosys RM</th>
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 300px;"
-                                                    mat-sort-header="apmosys_rm_email|string">RM Email</th>
-                                                <th *ngIf ="isClientDashboard" scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 200px;"
-                                                    mat-sort-header="clientrm|string">Client RM</th>
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 300px;"
-                                                    mat-sort-header="team|string">Team</th>
-                                                <th scope="col" class="info-label"
-                                                    style="max-width: fit-content;min-width: 200px;"
-                                                    mat-sort-header="team_lead_name|string">Team Lead</th>
-                                            </tr>
-                                            <tr *ngIf="isSearchEnabled">
-                                                <ng-container *ngFor="let column of employeeViewColumns">
-                                                    <td>
-                                                    <div *ngIf="column != 'blank'" id="custom-search" class="form-group">
-                                                        <div class="relative-input">
-                                                            <input type="text"
-                                                                class="form-control"
-                                                                placeholder="Search"
-                                                                [(ngModel)]="currentColumnFilter[column]"
-                                                                oninput="this.value = this.value.replace(/^\s+/g, '')"
-                                                                (keydown.enter)="onEmployeeViewSearch()">
-                                                            <i class="fa fa-search search-icon" (click)="onEmployeeViewSearch()" title="Search"></i>
-                                                        </div>
-                                                    </div>
-                                                    </td>
-                                                </ng-container>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <ng-container *ngIf="employeeView.length ==0">
-                                                <tr>
-                                                    <th colspan="9" class="text-center info-label">No details to display...</th>
-                                                </tr>
-                                            </ng-container>
-                                            <ng-container
-                                                *ngFor="let project of employeeView | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]; let i = index">
-                                                <tr>
-                                                    <td>{{project.employmentId || 'NA'}}</td>
-        
-        
-                                                    <td class="position-relative">
-                                                        <span (mouseenter)="showPopup(project.empId)"
-                                                            (mouseleave)="scheduleHidePopup()"
-                                                            style="cursor: pointer; color: blue; text-decoration: underline;">
-                                                            {{ project.name ? project.name : 'NA' }}
-                                                        </span>
-        
-                                                        <div *ngIf="hoveredEmpId === project.empId && isFirstOccurrence(project.empId, i)"
-                                                            class="hover-popup bg-white border shadow rounded p-2"
-                                                            (mouseenter)="cancelHidePopup()" (mouseleave)="scheduleHidePopup()">
-        
-                                                            <div class="button-group-custom">
-        
-        
-                                                                <button class="custom-btn emp360-btn"
-                                                                    [navigateToEmployee360]="project.empId"
-                                                                    (click)="cancelRequest()"
-                                                                    title="Click to navigate to Employee 360">
-                                                                    <i class="fa fa-user-circle"></i>
-                                                                    <span>360 View</span>
-                                                                </button>
-        
-                                                                <button class="custom-btn calendar-btn"
-                                                                    [appNavigateToCalenderView]="project.projectId"
-                                                                    [empId]="project.empId"
-                                                                    [formattedMonthLabel]="selectedMonth1.toISOString()">
-                                                                    <i class="fa fa-calendar"></i>
-                                                                    <span>View in Calendar</span>
-                                                                </button>
-        
-        
-        
-        
-        
-                                                            </div>
-        
-                                                        </div>
-                                                    </td>
-        
-                                                    <td>{{project.billable || 'NA'}}</td>
-                                                    <td>{{project.billableType || 'NA'}}</td>
-                                                    <td>{{project.mobileNo || 'NA'}}</td>
-                                                    <td>{{project.email || 'NA'}}</td>
-                                                    <td>{{project.departmentName || 'NA'}}</td>
-                                                    <td *ngIf ="isClientDashboard">{{project.expectedFillCount || 0}}</td>
-                                                    <td *ngIf ="isClientDashboard">{{project.clientSideAttendancePendingCount || 0}}</td>
-                                                    <td *ngIf ="isClientDashboard">{{project.clientSideAttendanceApprovedCount || 0}}</td>
-                                                    <td *ngIf ="isClientDashboard">{{project.clientSideAttendanceNotFilledCount || 0}}</td>
-                                                    <td *ngIf ="!isClientDashboard">{{project.expectedIshineFillCount || 0}}</td>
-                                                    <td *ngIf ="!isClientDashboard">{{project.ishinePendingTimesheetCount || 0}}</td>
-                                                    <td *ngIf ="!isClientDashboard">{{project.ishineApprovedTimesheetCount || 0}}</td>
-                                                    <td *ngIf ="!isClientDashboard">{{project.ishineNotFilledTimesheetCount || 0}}</td>
-        
-                                                    <td title="Click to view Team Details">
-                                                        <span id="clickablefor360"
-                                                            [navigateToTeamEmployeeTimesheet]="project.projectId"
-                                                            [formattedMonthLabel]="formattedMonthLabel">
-                                                            {{project.projectName ? project.projectName : 'NA'
-                                                            }}{{project.projectId}}
-                                                        </span>
-                                                    </td>
-                                                    <td>{{project.poNo ? project.poNo : 'NA' }}</td>
-                                                    <td> {{ project.projectType ? project.projectType : 'NA' }}</td>
-                                                    <td>{{project.projectManagers || 'NA'}}</td>
-        
-                                                    <td>{{project.clientName ? project.clientName:'NA'}}</td>
-                                                    <td>{{project.apmosysRM ? project.apmosysRM:'NA'}}</td>
-                                                    <td>{{project.apmosysRmEmail || 'NA'}}</td>
-                                                    <td *ngIf ="isClientDashboard">{{project.clientRM ? project.clientRM:'NA'}}</td>
-                                                    <td>{{project.team || 'NA'}}</td>
-                                                    <td>{{project.teamLeadName || 'NA'}}</td>
-                                                </tr>
-                                            </ng-container>
-                                        </tbody>
-                                    </table>
-                                    <div class="row col-md-12">
-        
-                                        <mat-paginator   *ngIf="employeeView.length > 0"
-                                          [length]="totalItems"
-                                          [pageSize]="pageSize"
-                                          [pageIndex]="page-1"
-                                          [pageSizeOptions]="[5, 10, 20, 50]"
-                                          (page)="handlePageChange($event)">
-                                        </mat-paginator>
-        
-                                    </div>
-                                </div>
-                            </div> -->
-        
-                    <div class="col-md-12 mt-2">
-                        <h5>Employee Overview</h5>
-                        <div class="d-flex justify-content-end w-100">
-                            <div *ngIf="isClientDashboard" class="col-auto d-flex align-items-center me-auto">
-                                <!-- <label for="clientIdFilter" class="form-label mb-0 me-2 fw-bold text-primary">Filter:</label> -->
-                                <select class="form-select border-primary text-primary" id="clientIdFilter"
-                                    [(ngModel)]="viewClientIdFlag" (change)="onClientIdFilterChange($event)"
-                                    style="width: auto; min-width: 200px; border-width: 2px;">
-                                    <option value="ALL">All</option>
-                                    <option value="true">With Client Side ID</option>
-                                    <option value="false">Without Client Side ID</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row mb-2 mt-2">
-                            <div class="col-md-1" [hidden]="filteredTimesheetData.length == 0"
-                                style="display: flex; justify-content: left; max-width: fit-content; cursor: pointer;">
-                                <a (click)="toggleSearch()" style="color: #193d8a; background-color: #fff;">
-                                    <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
-                                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-                                </a>
-                            </div>
-                            <div class="col-md-1" *ngIf="userMapping.export_timesheet_details"
-                                style="display: flex; justify-content: left; max-width: fit-content;  cursor: pointer;">
-                                <i class="fa fa-download"
-                                    style="color: #053885;display: flex; justify-content: left; max-width: fit-content;"
-                                    [hidden]="filteredTimesheetData.length == 0" (click)="exportToExcel()"></i>
-                            </div>
-                            <div class="col d-flex align-items-center " *ngIf="timesheetData?.length > 0">
-                                <span class="font-weight-bold text-muted small">
-                                    <!-- Displaying:{{ (filteredTimesheetData | colFilter : filters : false).length }} of {{ filteredTimesheetData.length }} employees -->
-                                    Displaying: {{ timesheetData.length }} of {{ totalItems }} employees
-                                </span>
-                            </div>
-                            <div class="table-container">
-                                <table class="table" id="timesheet-view-table" matSort (matSortChange)="sortData($event)">
-                                    <thead class="thead-light">
-                                        <tr>
-                                            <th class="info-label" style="min-width: 120px;" mat-sort-header="employmentId">
-                                                Emp ID</th>
-                                            <th class="info-label" style="min-width: 200px;" mat-sort-header="employeeName">
-                                                Employee</th>
-                                            <th class="info-label" style="min-width: 150px;" mat-sort-header="employmentStatus">
-                                                Employment Status</th>
-                                            <th class="info-label" style="min-width: 150px;" mat-sort-header="projectStatus">
-                                                Project Mapping</th>
-                                            <th class="info-label" style="min-width: 200px;" mat-sort-header="department">
-                                                Department</th>
-                                            <th class="info-label" style="min-width: 150px;" mat-sort-header="billableType">
-                                                Billable Type</th>
-                                            <th class="info-label" style="min-width: 140px;" mat-sort-header="clientSideId">
-                                                Client Side ID</th>
-                                            <th class="info-label" style="min-width: 300px;" mat-sort-header="clientName">
-                                                Client</th>
-                                            <th class="info-label" style="min-width: 150px;" mat-sort-header="poNo">PO No
-                                            </th>
-                                            <th class="info-label" style="min-width: 300px;" mat-sort-header="projectName">
-                                                Project</th>
-                                            <!-- <th class="info-label" style="min-width: 300px;" mat-sort-header="projectActive">Project Active</th> -->
-                                            <th class="info-label" style="min-width: 200px;"
-                                                mat-sort-header="projectManagerName">Manager</th>
-                                            <th class="info-label" style="min-width: 200px;" mat-sort-header="teamName">Team
-                                            </th>
-                                            <th class="info-label" style="min-width: 150px;" mat-sort-header="startDate">
-                                                Start Date</th>
-                                            <th class="info-label" style="min-width: 150px;" mat-sort-header="endDate">End
-                                                Date</th>
-                                            <th class="info-label" style="min-width: 80px;"
-                                                mat-sort-header="expectedTimesheetFillCount">Client Attendance Expected</th>
-                                            <th class="info-label" style="min-width: 80px;"
-                                                mat-sort-header="apmosysTimesheetFilledCount">Filled</th>
-                                            <th class="info-label" style="min-width: 120px;"
-                                                mat-sort-header="clientSideNotFilledCount">Client Attendance Not Filled</th>
-                                            <th class="info-label" style="min-width: 80px;"
-                                                mat-sort-header="clientSidePendingCount">Client Not-Approved</th>
-                                            <th class="info-label" style="min-width: 80px;"
-                                                mat-sort-header="clientSideApprovedCount">Client Approved</th>
-                                            <ng-container *ngFor="let day of daysInMonth; let d = index">
-                                                <th class="info-label text-center"
-                                                    [ngClass]="{'bg-light': day.dayName === 'Sun'}" [ngStyle]="{
-                                                    'color': day.dayName === 'Sun' ? '#9ba6b1' : '',
-                                                    'min-width': '65px'
-                                                    }" style="min-width: 65px;" [mat-sort-header]="'d' + day.dayNumber">
-                                                    {{ day.dayName }}<br>{{ day.dayNumber }}
-                                                </th>
-                                            </ng-container>
-                                            <th class="info-label" style="min-width: 80px;" mat-sort-header="present">
-                                                Present</th>
-                                            <th class="info-label" style="min-width: 80px;" mat-sort-header="readyForInvoicing">
-                                                Ready For Invoicing</th>
-                                            <th class="info-label" style="min-width: 80px;" mat-sort-header="weekOff">
-                                                WeekOff</th>
-                                            <th class="info-label" style="min-width: 80px;" mat-sort-header="holiday">
-                                                Holiday</th>
-                                            <th class="info-label" style="min-width: 80px;" mat-sort-header="leave">Leave
-                                            </th>
-                                            <th class="info-label" style="min-width: 80px;" mat-sort-header="compOff">
-                                                CompOff</th>
-                                            <th class="info-label" style="min-width: 80px;" mat-sort-header="na">
-                                                Absent/OtherProject</th>
-                                            <th class="info-label" style="min-width: 80px;" mat-sort-header="halfDay">
-                                                HalfDay</th>
-                                            <th class="info-label" style="min-width: 80px;" mat-sort-header="totalNoOfDays">
-                                                TotalNoOfDays</th>
-                                        </tr>
-                                        <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetDataColumns"
-                                                (onSearch)="onSearch($event);page=1"></tr> -->
-        
-                                        <tr *ngIf="isSearchEnabled">
-                                            <ng-container *ngFor="let column of employeeViewColumns">
-                                                <td>
-                                                    <div *ngIf="column != 'blank' && column!= 'startDate' && column != 'endDate'
-                                                     && !((column == 'employmentStatus' || column == 'billableType') && !isClientDashboard)"
-                                                        id="custom-search" class="form-group">
-                                                        <div class="relative-input">
-                                                            <input type="text" class="form-control" placeholder="Search"
-                                                                [(ngModel)]="currentColumnFilter[column]"
-                                                                oninput="this.value = this.value.replace(/^\s+/g, '')"
-                                                                (keydown.enter)="onEmployeeViewSearch()">
-                                                            <i class="fa fa-search search-icon" (click)="onEmployeeViewSearch()"
-                                                                title="Search"></i>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </ng-container>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <ng-container *ngFor="let emp of timesheetData">
-        
-                                            <!-- Initial row - only show first project row initially -->
-                                            <ng-container *ngFor="let proj of emp.projectTimesheet; let i = index">
-        
-                                                <!-- Show first row always, show other rows only if expanded -->
-                                                <tr class="row-hover" *ngIf="i === 0 || isEmployeeExpanded(emp.empId)">
-        
-                                                    <td *ngIf="i === 0"
-                                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-                                                        {{ emp.employmentId || 'NA' }}
-                                                    </td>
-        
-                                                    <!-- EMPLOYEE DETAILS – Only for first project row -->
-                                                    <td *ngIf="i === 0"
-                                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1"
-                                                        class="position-relative">
-        
-                                                        <div class="flex items-center gap-2">
-                                                            <!-- Expand/Collapse Button -->
-                                                            <button *ngIf="emp.projectTimesheet.length > 1"
-                                                                (click)="toggleEmployeeExpand(emp.empId)" class="expand-btn"
-                                                                [class.expanded]="isEmployeeExpanded(emp.empId)"
-                                                                [title]="isEmployeeExpanded(emp.empId) ? 'Collapse' : 'Expand'">
-                                                                <i class="fa"
-                                                                    [ngClass]="isEmployeeExpanded(emp.empId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
-                                                            </button>
-        
-                                                            <span *ngIf="emp.projectTimesheet.length === 1"
-                                                                class="expand-btn-placeholder"></span>
-        
-                                                            <span (mouseenter)="showPopup(emp.empId)"
-                                                                (mouseleave)="scheduleHidePopup()"
-                                                                style="cursor: pointer; color: blue; text-decoration: underline;">
-                                                                {{ emp.employeeName || 'NA' }}
-                                                            </span>
-        
-                                                            <!-- Hover Popup -->
-                                                            <div *ngIf="hoveredEmpId === emp.empId"
-                                                                (mouseenter)="cancelHidePopup()"
-                                                                (mouseleave)="scheduleHidePopup()"
-                                                                class="hover-popup bg-white border shadow rounded p-2"
-                                                                style="position: absolute; z-index: 999;">
-        
-                                                                <div class="button-group-custom">
-        
-                                                                    <!-- Employee 360 Navigation -->
-                                                                    <button class="custom-btn emp360-btn"
-                                                                        [navigateToEmployee360]="emp.empId"
-                                                                        (click)="cancelRequest()"
-                                                                        title="Click to navigate to Employee 360">
-                                                                        <i class="fa fa-user-circle"></i>
-                                                                        <span>360 View</span>
-                                                                    </button>
-        
-                                                                    <!-- Calendar View Navigation -->
-                                                                    <button class="custom-btn calendar-btn"
-                                                                        [appNavigateToCalenderView]="proj.projectId"
-                                                                        [empId]="emp.empId"
-                                                                        [clientSideFilter]="isClientDashboard"
-                                                                        [formattedMonthLabel]="selectedMonth1.toISOString()">
-                                                                        <i class="fa fa-calendar"></i>
-                                                                        <span>View in Calendar</span>
-                                                                    </button>
-        
-                                                                </div>
-                                                            </div>
-        
-                                                        </div>
-        
-                                                    </td>
-        
-                                                    <td *ngIf="i === 0"
-                                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-                                                        {{ proj.employmentStatus || 'NA' }}
-                                                    </td>
-        
-                                                    <td>
-                                                        {{ proj.projectStatus || 'NA' }}
-                                                    </td>
-        
-                                                    <td *ngIf="i === 0"
-                                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-                                                        {{ emp.department || 'NA' }}
-                                                    </td>
-        
-                                                    <td>
-                                                        {{ proj.billableType || 'NA' }}
-                                                    </td>
-        
-                                                    <!-- PROJECT LEVEL DETAILS -->
-                                                    <td>
-                                                        {{ proj.clientSideId || 'NA' }}
-                                                    </td>
-                                                    <td>
-                                                        {{ proj.clientName || 'NA' }}
-                                                    </td>
-        
-                                                    <td>
-                                                        {{ proj.poNo || 'NA' }}
-                                                    </td>
-        
-                                                    <td>
-                                                        {{ proj.projectName || 'NA' }}
-                                                    </td>
-        
-                                                    <td>
-                                                        {{ proj.projectManagerName || 'NA' }}
-                                                    </td>
-        
-                                                    <td>
-                                                        {{ proj.teamName || 'NA' }}
-                                                    </td>
-        
-                                                    <!-- <<<<<<< Updated upstream
-                                            <td>
-                                            {{ proj.startDate || 'NA' }}
-                                            </td>
-        
-                                            <td>
-                                            {{ proj.endDate || 'NA' }}
-                                            </td>
-        ======= -->
-                                                    <td>
-                                                        {{ (proj.startDate ? (proj.startDate | date:'dd-MM-yyyy') : 'NA') }}
-                                                    </td>
-        
-                                                    <td>
-                                                        <!-- {{ proj.endDate || 'NA' }} -->
-                                                        {{ (proj.endDate ? (proj.endDate | date:'dd-MM-yyyy') : 'NA') }}
-                                                    </td>
-                                                    <!-- >>>>>>> Stashed changes -->
-        
-                                                    <td>
-                                                        {{ proj.expectedTimesheetFillCount || 0 }}
-                                                    </td>
-        
-                                                    <td>
-                                                        {{ proj.apmosysTimesheetFilledCount || 0 }}
-                                                    </td>
-        
-                                                    <td>
-                                                        {{ proj.clientSideNotFilledCount || 0 }}
-                                                    </td>
-        
-                                                    <td>
-                                                        {{ proj.clientSidePendingCount || 0 }}
-                                                    </td>
-        
-                                                    <td>
-                                                        {{ proj.clientSideApprovedCount || 0 }}
-                                                    </td>
-        
-                                                    <!-- DAILY STATUS CELLS 1..31 -->
-                                                    <ng-container *ngFor="let day of daysInMonth; let d = index">
-                                                        <td [title]="
-                                                (legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.label || '') +
-                                                (
-                                                    ['P','DA','DP'].includes(proj.timesheetData?.['d' + day.dayNumber]?.status)
-                                                    ? ' | In: ' + (proj.timesheetData?.['d' + day.dayNumber]?.inTime || '-') +
-                                                        ', Out: ' + (proj.timesheetData?.['d' + day.dayNumber]?.outTime || '-')
-                                                    : ''
-                                                )
-                                                ">
-                                                            <span class="status-pill-filled" [ngStyle]="{
-                                                    'background-color': legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.color || '#999',
-                                                    'color': '#fff',
-                                                    'padding': '4px 6px',
-                                                    'border-radius': '4px',
-                                                    'font-weight': '600'
-                                                }">
-                                                                {{ proj.timesheetData?.['d' + day.dayNumber]?.status || ''
-                                                                }}
-                                                            </span>
-                                                        </td>
-                                                    </ng-container>
-        
-                                                    <!-- SUMMARY COUNTS -->
-                                                    <td>{{ proj.present || 0 }}</td>
-                                                    <td>{{ proj.readyForInvoicing || 0 }}</td>
-                                                    <td>{{ proj.weekOff || 0 }}</td>
-                                                    <td>{{ proj.holiday || 0 }}</td>
-                                                    <td>{{ proj.leave || 0 }}</td>
-                                                    <td>{{ proj.compOff || 0 }}</td>
-                                                    <td>{{ proj.na || 0 }}</td>
-                                                    <td>{{ proj.halfDay || 0 }}</td>
-                                                    <td>{{ proj.totalNoOfDays || 0 }}</td>
-        
-                                                </tr>
-        
-                                            </ng-container>
-        
-                                        </ng-container>
-        
-                                    </tbody>
-        
-                                </table>
-                            </div>
-                            <div class="row col-md-12" *ngIf="timesheetData?.length > 0">
-                                <mat-paginator [hidden]="filteredTimesheetData.length == 0" [length]="totalItems"
-                                    [pageSize]="pageSize" [pageIndex]="page-1" [pageSizeOptions]="[10, 20, 50 ,100]"
-                                    (page)="handlePageChange($event)">
-                                </mat-paginator>
-                            </div>
-        
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="eo-section" *ngIf="!toggleValue && !repeatedOffenderMode">
 
-        <div class="row" *ngIf="toggleValue">
-            <div class="col-md-12">
-                <div class="row">
-                    <div class="col-md-12">
-                        <h5>Project Overview</h5>
-                        <div class="row mb-2 mt-2">
-                            <div class="col-md-1" [hidden]="projectView.length == 0" style="display: flex;
-                            justify-content: left; max-width: fit-content; cursor: pointer;">
-                                <a (click)="toggleSearch()" style="color: #193d8a; background-color: #fff;">
-                                    <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
-                                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-                                </a>
-                            </div>
-                            <div *ngIf="userMapping.export_timesheet_details" class="col-md-1" style="display: flex; justify-content: left; max-width: fit-content; position: relative;">
+    <!-- Section Header -->
+    <div class="eo-header">
+      <div class="eo-header__left">
+        <span class="eo-header__title">Employee Overview</span>
+        <span class="eo-header__count" *ngIf="timesheetData?.length > 0">
+          Showing {{ timesheetData.length }} of {{ totalItems }} employees
+        </span>
+      </div>
+      <div class="eo-header__right">
+        <!-- Client ID Filter -->
+        <app-my-select *ngIf="isClientDashboard" class="eo-select" placeholder="All" [(ngModel)]="viewClientIdFlag"
+          [options]="clientIdFilterOptions" displayKey="label" valueKey="value" [multiple]="false"
+          (ngModelChange)="onClientIdFilterChangeWrapper($event)">
+        </app-my-select>
 
-                                <!-- Download Icon -->
-                                <i class="fa fa-download" style="color: #053885; cursor: pointer; font-size: 18px;"
-                                    [hidden]="projectView.length == 0" (click)="toggleMenu()">
-                                </i>
+        <!-- Search Toggle -->
+        <button class="eo-icon-btn" [class.eo-icon-btn--active]="isSearchEnabled"
+          [hidden]="filteredTimesheetData.length == 0" (click)="toggleSearch()" title="Toggle search">
+          <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
+          <i class="fa-solid fa-xmark" *ngIf="isSearchEnabled"></i>
+        </button>
 
-                                <!-- Custom Menu -->
-                                <div class="custom-menu" *ngIf="menuVisible">
-                                    <div class="menu-item" (click)="exportToExcelMenu('project')">
-                                        <i style="color: #053885; cursor: pointer; font-size: 18px;"
-                                            class="fa-solid fa-chart-simple"></i>
-                                        Project Summary
-                                    </div>
-                                    <div *ngIf="toggleValue" class="menu-item"
-                                        (click)="exportToExcelMenu('projectWithEmployee')">
-                                        <i style="color: #053885; cursor: pointer; font-size: 18px;"
-                                            class="fa-solid fa-users-between-lines"></i>
-                                        Applicable Employee Summary
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col d-flex align-items-center " *ngIf="projectView?.length > 0">
-                            <span class="font-weight-bold text-muted small">
-                                Displaying:
-                                {{ (projectView | colFilter : filters : false).length }} of
-                                {{ projectView.length }} projects
-                            </span>
-                        </div>
-
-                        <div class="table-container">
-                            <table class="table" id="project-view-table" matSort (matSortChange)="sortData($event)">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th class="info-label" style="min-width: 300px;"
-                                            mat-sort-header="projectName|string">Project</th>
-                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="po_No|string">
-                                            PO No
-                                        </th>
-                                        <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="project_start_date|string">
-                                            Start Date
-                                        </th>
-                                        <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="project_end_date|string">
-                                            End Date
-                                        </th>
-                                        <th class="info-label" style="min-width: 170px;"
-                                            mat-sort-header="totalEmployees|string">
-                                            Resources Count
-                                        </th>
-                                        <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="Project_Manager|string">Manager</th>
-                                        <th class="info-label" style="min-width: 150px;"
-                                            mat-sort-header="project_type|string">Type</th>
-                                        <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="client_name|string">Client</th>
-                                        <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="apmosysRM|string">
-                                            Apmosys RM</th>
-                                        <th class="info-label" style="min-width: 300px;"
-                                            mat-sort-header="apmosys_rm_email|string">RM Email</th>
-                                        <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="clientRM|string">
-                                            Client RM</th>
-                                        <th class="info-label" style="min-width: 150px;"
-                                            mat-sort-header="total_expected_fill_count|string">Expected DSR</th>
-                                        <!-- <th class="info-label" style="min-width: 150px;"
-                                            mat-sort-header="totalIshineFilledCount|string">iShine Filled</th> -->
-                                        <th class="info-label" style="min-width: 160px;"
-                                            mat-sort-header="total_client_approved|string">Client Approved</th>
-                                        <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="ClientSideApproved_Percent|string">Approved %</th>
-                                        <th class="info-label" style="min-width: 150px;"
-                                            mat-sort-header="total_client_side_pending|string">Clinet Not Approved</th>
-                                        <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="ClientSidePending_Percent|string">Pending %</th>
-                                        <th class="info-label" style="min-width: 170px;"
-                                            mat-sort-header="total_client_side_not_filled|string">Client Attendance Not
-                                            Filled
-                                        </th>
-                                        <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="NotFilled_Percent|string">Not Filled %</th>
-                                        <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="active|string">Project Status</th>
-                                    </tr>
-                                    <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectViewColumns"
-                                        (onSearch)="onProjectViewSearch($event);page=1"></tr> -->
-                                    <tr *ngIf="isSearchEnabled">
-                                        <ng-container *ngFor="let column of projectViewColumns">
-                                            <td>
-                                                <div *ngIf="column != 'blank' && !(!isClientDashboard && column=='active')"
-                                                    class="form-group" id="custom-search">
-                                                    <div class="relative-input">
-                                                        <input type="text" class="form-control" placeholder="Search"
-                                                            [(ngModel)]="currentColumnFilter[column]"
-                                                            oninput="this.value = this.value.replace(/^\s+/g, '')"
-                                                            (keydown.enter)="onProjectViewSearch()">
-                                                        <i class="fa fa-search search-icon"
-                                                            (click)="onProjectViewSearch()" title="Search"></i>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </ng-container>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <ng-container *ngIf="projectView.length === 0">
-                                        <tr>
-                                            <td colspan="17" class="text-center info-label">No details to display...
-                                            </td>
-                                        </tr>
-                                    </ng-container>
-                                    <ng-container
-                                        *ngFor="let project of projectView | multicolFilter:filters:false | sort: [sortColumn, sortColumnType, sortDirection]; let i = index">
-                                        <tr>
-                                            <td class="position-relative">
-                                                <span (mouseenter)="showProjectPopup(project.projectId)"
-                                                    (mouseleave)="scheduleHideProjectPopup()" style="color: #043870;">
-                                                    {{ project.projectName ? project.projectName : 'NA' }}
-                                                </span>
-                                                <!-- <div *ngIf="hoveredProjectId === project.projectId" class="hover-popup bg-white border shadow rounded p-2 position-absolute" (mouseenter)="cancelHideProjectPopup()"
-                                                    (mouseleave)="scheduleHideProjectPopup()" style="top: 100%; left: 0; z-index: 10;" >
-                                                    <button class="btn btn-sm btn-outline-primary mr-1" [navigateToProjectView]="project.projectId" title="Project Details"><i class="fa fa-users"></i></button>
-                                                    <button class="btn btn-sm btn-outline-primary" [navigateToTeamEmployeeTimesheet]="project.projectId" title="Team Attendance"><i class="fa fa-calendar-days"></i></button>
-                                                </div> -->
-
-                                                <div *ngIf="hoveredProjectId === project.projectId"
-                                                    class="hover-popup bg-white border shadow rounded p-2"
-                                                    (mouseenter)="cancelHideProjectPopup()"
-                                                    (mouseleave)="scheduleHideProjectPopup()">
-                                                    <div class="button-group-custom">
-                                                        <!-- Project View Button -->
-                                                        <button class="custom-btn project-btn"
-                                                            [navigateToProjectView]="project.projectId"
-                                                            title="Project Details">
-                                                            <i class="fa fa-users"></i>
-                                                            <span>Project View</span>
-                                                        </button>
-
-                                                        <!-- Team Timesheet Button -->
-                                                        <!-- <button class="custom-btn timesheet-btn"
-                                                        [navigateToTeamEmployeeTimesheet]="project.projectId"
-                                                        [formattedMonthLabel]="formattedMonthLabel"
-                                                        title="Team Attendance">
-                                                        <i class="fa fa-calendar-days"></i>
-                                                        <span>View Team Attendance</span>
-                                                    </button> -->
-                                                        <!-- <button class="custom-btn timesheet-btn" [navigateToTeamEmployeeTimesheet]="project.projectId"
-                                                        [formattedMonthLabel]="formattedMonthLabel" [isClientDashboard]="isClientDashboard" title="Team Attendance">
-                                                        <i class="fa fa-calendar-days"></i>
-                                                        <span>View Team Attendance</span>
-                                                    </button> -->
-                                                        <button class="custom-btn timesheet-btn"
-                                                            [navigateToTeamEmployeeTimesheet]="project.projectId"
-                                                            [formattedMonthLabel]="formattedMonthLabel"
-                                                            [isClientDashboard]="isClientDashboard"
-                                                            title="Team Attendance">
-                                                            <i class="fa fa-calendar-days"></i>
-                                                            <span>View Team Attendance</span>
-                                                        </button>
-
-
-                                                    </div>
-                                                </div>
-
-
-                                            </td>
-                                            <td>{{project.poNo ? project.poNo : 'NA'}}</td>
-                                            <td>{{project.poNo ? project.startDate : 'NA'}}</td>
-                                            <td>{{project.poNo ? project.endDate : 'NA'}}</td>
-                                            <td>{{project.totalEmployees ? project.totalEmployees : 'NA'}}</td>
-                                            <td>{{ project.projectManagerName || 'NA' }}</td>
-                                            <td>{{ project.projectType || 'NA' }}</td>
-                                            <td>{{ project.clientName || 'NA' }}</td>
-                                            <td>{{ project.apmosysRM || 'NA' }}</td>
-                                            <td>{{ project.apmosysRMEmail || 'NA' }}</td>
-                                            <td>{{ project.clientRM || 'NA' }}</td>
-                                            <td>{{ project.totalExpectedFillCount || 0 }}</td>
-                                            <!-- <td>{{ project.totalIshineFilledCount || 0 }}</td> -->
-                                            <td>{{ project.totalClientSideApprovedCount || 0 }}</td>
-                                            <td>
-                                                <div class="progress profileCompleted">
-                                                    <div class="progress-bar progress-bar-approved" role="progressbar"
-                                                        [style.width.%]="project.clientSideApprovedPercent || 0"
-                                                        aria-valuemin="0" aria-valuemax="100">
-                                                        {{ project.clientSideApprovedPercent || 0 }}%
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>{{ project.totalClientSidePendingCount || 0 }}</td>
-                                            <td>
-                                                <div class="progress profileCompleted">
-                                                    <div class="progress-bar progress-bar-pending" role="progressbar"
-                                                        [style.width.%]="project.clientSidePendingPercent || 0"
-                                                        aria-valuemin="0" aria-valuemax="100">
-                                                        {{ project.clientSidePendingPercent || 0 }}%
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>{{ project.totalClientSideNotFilledCount || 0 }}</td>
-                                            <td>
-                                                <div class="progress profileCompleted">
-                                                    <div class="progress-bar progress-bar-notFilled" role="progressbar"
-                                                        [style.width.%]="project.clientSideNotFilledPercent || 0"
-                                                        aria-valuemin="0" aria-valuemax="100">
-                                                        {{ project.clientSideNotFilledPercent || 0 }}%
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span [ngStyle]="{
-                                                  'color': project.active === 'true' || project.active === true ? 'green' : 'red',
-                                                  'font-weight': '600'
-                                                }">
-                                                    {{ project.active === 'true' || project.active === true ? 'Active' :
-                                                    'Inactive' }}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    </ng-container>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="row col-md-12">
-                            <!-- <pagination-controls class="my-pagination" [hidden]="projectView.length == 0"
-                              (pageChange)="handlePageChange($event)"></pagination-controls> -->
-                            <mat-paginator *ngIf="projectView.length > 0" [length]="totalItems" [pageSize]="pageSize"
-                                [pageIndex]="page-1" [pageSizeOptions]="[5, 10, 20, 50]"
-                                (page)="handlePageChange($event)">
-                            </mat-paginator>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Export -->
+        <button class="eo-icon-btn" *ngIf="userMapping.export_timesheet_details"
+          [hidden]="filteredTimesheetData.length == 0" (click)="exportToExcel()" title="Export to Excel">
+          <i class="fa fa-download"></i>
+        </button>
+      </div>
     </div>
 
+    <!-- Table Card -->
+    <div class="eo-table-card">
+      <div class="eo-table-container">
+        <table class="eo-table" id="timesheet-view-table" matSort (matSortChange)="sortData($event)">
+          <thead class="eo-thead">
+            <tr>
+              <th mat-sort-header="employmentId">Emp ID</th>
+              <th mat-sort-header="employeeName">Employee</th>
+              <th mat-sort-header="employmentStatus">Employment Status</th>
+              <th mat-sort-header="projectStatus">Project Mapping</th>
+              <th mat-sort-header="department">Department</th>
+              <th mat-sort-header="billableType">Billable Type</th>
+              <th mat-sort-header="clientSideId">Client Side ID</th>
+              <th mat-sort-header="clientName">Client</th>
+              <th mat-sort-header="poNo">PO No</th>
+              <th mat-sort-header="projectName">Project</th>
+              <th mat-sort-header="projectManagerName">Manager</th>
+              <th mat-sort-header="teamName">Team</th>
+              <th mat-sort-header="startDate">Start Date</th>
+              <th mat-sort-header="endDate">End Date</th>
+              <th mat-sort-header="expectedTimesheetFillCount">Client Attendance Expected</th>
+              <th mat-sort-header="apmosysTimesheetFilledCount">Filled</th>
+              <th mat-sort-header="clientSideNotFilledCount">Client Attendance Not Filled</th>
+              <th mat-sort-header="clientSidePendingCount">Client Not-Approved</th>
+              <th mat-sort-header="clientSideApprovedCount">Client Approved</th>
+              <ng-container *ngFor="let day of daysInMonth">
+                <th class="eo-day-th" [ngClass]="{'eo-day-th--sunday': day.dayName === 'Sun'}"
+                  [mat-sort-header]="'d' + day.dayNumber">
+                  {{ day.dayName }}<br>{{ day.dayNumber }}
+                </th>
+              </ng-container>
+              <th mat-sort-header="present">Present</th>
+              <th mat-sort-header="readyForInvoicing">Ready For Invoicing</th>
+              <th mat-sort-header="weekOff">WeekOff</th>
+              <th mat-sort-header="holiday">Holiday</th>
+              <th mat-sort-header="leave">Leave</th>
+              <th mat-sort-header="compOff">CompOff</th>
+              <th mat-sort-header="na">Absent/OtherProject</th>
+              <th mat-sort-header="halfDay">HalfDay</th>
+              <th mat-sort-header="totalNoOfDays">TotalNoOfDays</th>
+            </tr>
+
+            <!-- Search Row -->
+            <tr class="eo-search-row" *ngIf="isSearchEnabled">
+              <ng-container *ngFor="let column of employeeViewColumns">
+                <td>
+                  <div *ngIf="column != 'blank' && column != 'startDate' && column != 'endDate'
+                      && !((column == 'employmentStatus' || column == 'billableType') && !isClientDashboard)"
+                    class="eo-search-cell">
+                    <input type="text" class="eo-search-input" placeholder="Search"
+                      [(ngModel)]="currentColumnFilter[column]" oninput="this.value = this.value.replace(/^\s+/g, '')"
+                      (keydown.enter)="onEmployeeViewSearch()">
+                    <i class="fa fa-search eo-search-icon" (click)="onEmployeeViewSearch()"></i>
+                  </div>
+                </td>
+              </ng-container>
+            </tr>
+          </thead>
+
+          <tbody>
+            <ng-container *ngFor="let emp of timesheetData">
+              <ng-container *ngFor="let proj of emp.projectTimesheet; let i = index">
+                <tr class="eo-row" [class.eo-row--child]="i > 0" *ngIf="i === 0 || isEmployeeExpanded(emp.empId)">
+
+                  <td [class.eo-td--hidden]="i > 0">
+                    {{ emp.employmentId || 'NA' }}
+                  </td>
+
+                  <td class="eo-name-cell" [class.eo-td--hidden]="i > 0">
+                    <div class="eo-name-wrap">
+                      <button *ngIf="emp.projectTimesheet.length > 1" class="eo-expand-btn"
+                        [class.eo-expand-btn--open]="isEmployeeExpanded(emp.empId)"
+                        (click)="toggleEmployeeExpand(emp.empId)"
+                        [title]="isEmployeeExpanded(emp.empId) ? 'Collapse' : 'Expand'">
+                        <i class="fa"
+                          [ngClass]="isEmployeeExpanded(emp.empId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                      </button>
+                      <span *ngIf="emp.projectTimesheet.length === 1" class="eo-expand-placeholder"></span>
+
+                      <span class="eo-emp-name" (mouseenter)="showPopup(emp.empId)" (mouseleave)="scheduleHidePopup()">
+                        {{ emp.employeeName || 'NA' }}
+                      </span>
+
+                      <div class="eo-hover-popup" *ngIf="hoveredEmpId === emp.empId" (mouseenter)="cancelHidePopup()"
+                        (mouseleave)="scheduleHidePopup()">
+                        <button class="eo-popup-btn eo-popup-btn--360" [navigateToEmployee360]="emp.empId"
+                          (click)="cancelRequest()" title="Employee 360 View">
+                          <i class="fa fa-user-circle"></i>
+                          <span>360 View</span>
+                        </button>
+                        <button class="eo-popup-btn eo-popup-btn--cal" [appNavigateToCalenderView]="proj.projectId"
+                          [empId]="emp.empId" [clientSideFilter]="isClientDashboard"
+                          [formattedMonthLabel]="selectedMonth1.toISOString()">
+                          <i class="fa fa-calendar"></i>
+                          <span>Calendar</span>
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td [class.eo-td--hidden]="i > 0">{{ proj.employmentStatus || 'NA' }}</td>
+                  <td>{{ proj.projectStatus || 'NA' }}</td>
+                  <td [class.eo-td--hidden]="i > 0">{{ emp.department || 'NA' }}</td>
+                  <td>{{ proj.billableType || 'NA' }}</td>
+                  <td>{{ proj.clientSideId || 'NA' }}</td>
+                  <td>{{ proj.clientName || 'NA' }}</td>
+                  <td>{{ proj.poNo || 'NA' }}</td>
+                  <td>{{ proj.projectName || 'NA' }}</td>
+                  <td>{{ proj.projectManagerName || 'NA' }}</td>
+                  <td>{{ proj.teamName || 'NA' }}</td>
+                  <td>{{ proj.startDate ? (proj.startDate | date:'dd-MM-yyyy') : 'NA' }}</td>
+                  <td>{{ proj.endDate ? (proj.endDate | date:'dd-MM-yyyy') : 'NA' }}</td>
+                  <td>{{ proj.expectedTimesheetFillCount || 0 }}</td>
+                  <td>{{ proj.apmosysTimesheetFilledCount || 0 }}</td>
+                  <td>{{ proj.clientSideNotFilledCount || 0 }}</td>
+                  <td>{{ proj.clientSidePendingCount || 0 }}</td>
+                  <td>{{ proj.clientSideApprovedCount || 0 }}</td>
+
+                  <ng-container *ngFor="let day of daysInMonth">
+                    <td [title]="
+                      (legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.label || '') +
+                      (['P','DA','DP'].includes(proj.timesheetData?.['d' + day.dayNumber]?.status)
+                        ? ' | In: ' + (proj.timesheetData?.['d' + day.dayNumber]?.inTime || '-') +
+                          ', Out: ' + (proj.timesheetData?.['d' + day.dayNumber]?.outTime || '-')
+                        : '')">
+                      <span class="eo-status-pill" [ngStyle]="{
+                        'background-color': legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.color || 'transparent'
+                      }">
+                        {{ proj.timesheetData?.['d' + day.dayNumber]?.status || '' }}
+                      </span>
+                    </td>
+                  </ng-container>
+
+                  <td>{{ proj.present || 0 }}</td>
+                  <td>{{ proj.readyForInvoicing || 0 }}</td>
+                  <td>{{ proj.weekOff || 0 }}</td>
+                  <td>{{ proj.holiday || 0 }}</td>
+                  <td>{{ proj.leave || 0 }}</td>
+                  <td>{{ proj.compOff || 0 }}</td>
+                  <td>{{ proj.na || 0 }}</td>
+                  <td>{{ proj.halfDay || 0 }}</td>
+                  <td>{{ proj.totalNoOfDays || 0 }}</td>
+
+                </tr>
+              </ng-container>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginator -->
+      <div class="eo-paginator-wrap" *ngIf="timesheetData?.length > 0">
+        <mat-paginator [hidden]="filteredTimesheetData.length == 0" [length]="totalItems" [pageSize]="pageSize"
+          [pageIndex]="page - 1" [pageSizeOptions]="[10, 20, 50, 100]" (page)="handlePageChange($event)">
+        </mat-paginator>
+      </div>
+    </div>
+
+  </div>
+  <div class="po-section" *ngIf="toggleValue && !repeatedOffenderMode">
+
+    <!-- Section Header -->
+    <div class="po-header">
+      <div class="po-header__left">
+        <span class="po-header__title">Project Overview</span>
+        <span class="po-header__count" *ngIf="projectView?.length > 0">
+          Showing {{ (projectView | colFilter : filters : false).length }} of {{ projectView.length }} projects
+        </span>
+      </div>
+      <div class="po-header__right">
+
+        <!-- Search Toggle -->
+        <button class="po-icon-btn" [class.po-icon-btn--active]="isSearchEnabled" [hidden]="projectView.length == 0"
+          (click)="toggleSearch()" title="Toggle search">
+          <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
+          <i class="fa-solid fa-xmark" *ngIf="isSearchEnabled"></i>
+        </button>
+
+        <!-- Export with dropdown -->
+        <div class="po-export-wrap" *ngIf="userMapping.export_timesheet_details">
+          <button class="po-icon-btn" [hidden]="projectView.length == 0" (click)="toggleMenu()" title="Export">
+            <i class="fa fa-download"></i>
+          </button>
+          <div class="po-export-menu" *ngIf="menuVisible">
+            <div class="po-export-item" (click)="exportToExcelMenu('project')">
+              <i class="fa-solid fa-chart-simple"></i>
+              <span>Project Summary</span>
+            </div>
+            <div class="po-export-item" *ngIf="toggleValue" (click)="exportToExcelMenu('projectWithEmployee')">
+              <i class="fa-solid fa-users-between-lines"></i>
+              <span>Applicable Employee Summary</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="po-table-card">
+      <div class="po-table-container">
+        <table class="po-table" id="project-view-table" matSort (matSortChange)="sortData($event)">
+          <thead class="po-thead">
+            <tr>
+              <th mat-sort-header="projectName|string">
+                <span class="d-inline-flex align-items-center flex-wrap gap-1">
+                  Project
+                  <app-info-tooltip *ngIf="isSearchEnabled" class="table-header-info-tooltip" [shouldShine]="false"
+                    [iconBgColor]="'#ca8a04'" [content]="projectNameSearchInfoTooltip" [size]="16">
+                  </app-info-tooltip>
+                </span>
+              </th>
+              <th mat-sort-header="po_No|string">PO No</th>
+              <th mat-sort-header="project_start_date|string">Start Date</th>
+              <th mat-sort-header="project_end_date|string">End Date</th>
+              <th mat-sort-header="totalEmployees|string">Resources Count</th>
+              <th mat-sort-header="Project_Manager|string">Manager</th>
+              <th mat-sort-header="project_type|string">Type</th>
+              <th mat-sort-header="client_name|string">Client</th>
+              <th mat-sort-header="apmosysRM|string">ApMoSys RM</th>
+              <th mat-sort-header="apmosys_rm_email|string">RM Email</th>
+              <th mat-sort-header="clientRM|string">Client RM</th>
+              <th mat-sort-header="total_expected_fill_count|string">Expected DSR</th>
+              <th mat-sort-header="total_client_approved|string">Client Approved</th>
+              <th mat-sort-header="ClientSideApproved_Percent|string">Approved %</th>
+              <th mat-sort-header="total_client_side_pending|string">Client Not Approved</th>
+              <th mat-sort-header="ClientSidePending_Percent|string">Pending %</th>
+              <th mat-sort-header="total_client_side_not_filled|string">Client Attendance Not Filled</th>
+              <th mat-sort-header="NotFilled_Percent|string">Not Filled %</th>
+              <th mat-sort-header="active|string">Project Status</th>
+            </tr>
+
+            <!-- Search Row -->
+            <tr class="po-search-row" *ngIf="isSearchEnabled">
+              <ng-container *ngFor="let column of projectViewColumns">
+                <td>
+                  <div *ngIf="column != 'blank' && !(!isClientDashboard && column == 'active')" class="po-search-cell">
+                    <input type="text" class="po-search-input" placeholder="Search"
+                      [(ngModel)]="currentColumnFilter[column]" oninput="this.value = this.value.replace(/^\s+/g, '')"
+                      (keydown.enter)="onProjectViewSearch()">
+                    <i class="fa fa-search po-search-icon" (click)="onProjectViewSearch()"></i>
+                  </div>
+                </td>
+              </ng-container>
+            </tr>
+          </thead>
+
+          <tbody>
+            <!-- Empty state -->
+            <ng-container *ngIf="projectView.length === 0">
+              <tr>
+                <td colspan="19" class="po-empty">
+                  <i class="fa fa-folder-open"></i>
+                  <span>No projects to display</span>
+                </td>
+              </tr>
+            </ng-container>
+
+            <ng-container
+              *ngFor="let project of projectView | multicolFilter:filters:false | sort: [sortColumn, sortColumnType, sortDirection]; let i = index">
+              <tr class="po-row">
+
+                <!-- Project Name with hover popup -->
+                <td class="po-name-cell">
+                  <span class="po-name-anchor">
+                  <span class="po-project-name" (mouseenter)="showProjectPopup(project.projectId)"
+                    (mouseleave)="scheduleHideProjectPopup()">
+                    {{ project.projectName || 'NA' }}
+                  </span>
+                 
+
+                  <div class="po-hover-popup" *ngIf="hoveredProjectId === project.projectId"
+                    (mouseenter)="cancelHideProjectPopup()" (mouseleave)="scheduleHideProjectPopup()">
+                    <button class="po-popup-btn po-popup-btn--project" [navigateToProjectView]="project.projectId"
+                      title="Project Details">
+                      <i class="fa fa-users"></i>
+                      <span>Project View</span>
+                    </button>
+                    <button class="po-popup-btn po-popup-btn--timesheet"
+                      [navigateToTeamEmployeeTimesheet]="project.projectId" [formattedMonthLabel]="formattedMonthLabel"
+                      [isClientDashboard]="isClientDashboard" [fromDate]="fromDate" [toDate]="toDate"
+                      [poNo]="project.poNo" title="Team Attendance">
+                      <i class="fa fa-calendar-days"></i>
+                      <span>Team Attendance</span>
+                    </button>
+                  </div>
+                  </span>
+
+                   <span *ngIf="linkedProjectSearchInfo && isLinkedSearchPrimaryRow(project)" class="ms-2 rounded-circle text-dark border border-warning-subtle"
+                    style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
+                    [title]="getLinkedSearchRowTooltip(project)">
+                    <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;" aria-hidden="true"></i>
+                  </span>
+                </td>
+
+                <td>{{ project.poNo || 'NA' }}</td>
+                <td>{{ project.startDate || 'NA' }}</td>
+                <td>{{ project.endDate || 'NA' }}</td>
+                <td>{{ project.totalEmployees || 'NA' }}</td>
+                <td>{{ project.projectManagerName || 'NA' }}</td>
+                <td>{{ project.projectType || 'NA' }}</td>
+                <td>{{ project.clientName || 'NA' }}</td>
+                <td>{{ project.apmosysRM || 'NA' }}</td>
+                <td>{{ project.apmosysRMEmail || 'NA' }}</td>
+                <td>{{ project.clientRM || 'NA' }}</td>
+                <td>{{ project.totalExpectedFillCount || 0 }}</td>
+                <td>{{ project.totalClientSideApprovedCount || 0 }}</td>
+
+                <!-- Approved % -->
+                <td>
+                  <div class="po-progress-wrap">
+                    <div class="po-progress-bar po-progress-bar--approved"
+                      [style.width.%]="project.clientSideApprovedPercent || 0">
+                    </div>
+                    <span class="po-progress-label">{{ project.clientSideApprovedPercent || 0 }}%</span>
+                  </div>
+                </td>
+
+                <td>{{ project.totalClientSidePendingCount || 0 }}</td>
+
+                <!-- Pending % -->
+                <td>
+                  <div class="po-progress-wrap">
+                    <div class="po-progress-bar po-progress-bar--pending"
+                      [style.width.%]="project.clientSidePendingPercent || 0">
+                    </div>
+                    <span class="po-progress-label">{{ project.clientSidePendingPercent || 0 }}%</span>
+                  </div>
+                </td>
+
+                <td>{{ project.totalClientSideNotFilledCount || 0 }}</td>
+
+                <!-- Not Filled % -->
+                <td>
+                  <div class="po-progress-wrap">
+                    <div class="po-progress-bar po-progress-bar--notfilled"
+                      [style.width.%]="project.clientSideNotFilledPercent || 0">
+                    </div>
+                    <span class="po-progress-label">{{ project.clientSideNotFilledPercent || 0 }}%</span>
+                  </div>
+                </td>
+
+                <!-- Project Status -->
+                <td>
+                  <span class="po-status-badge"
+                    [class.po-status-badge--active]="project.active === 'true' || project.active === true"
+                    [class.po-status-badge--inactive]="project.active !== 'true' && project.active !== true">
+                    {{ (project.active === 'true' || project.active === true) ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginator -->
+      <div class="po-paginator-wrap" *ngIf="projectView.length > 0">
+        <mat-paginator [length]="totalItems" [pageSize]="pageSize" [pageIndex]="page - 1"
+          [pageSizeOptions]="[5, 10, 20, 50]" (page)="handlePageChange($event)">
+        </mat-paginator>
+      </div>
+    </div>
+
+  </div>
+</div>
     <!-- Time Sheet Distribution -->
     <!-- <h4 class="mb-3 fw-bold">Time Sheet Distribution</h4>
         <div class="row g-3 mb-4">
@@ -1705,7 +1602,6 @@
                 </div>
             </div>
         </div> -->
-</div>
 
 
 
@@ -1739,76 +1635,62 @@
 
     <div class="modal-body">
         <div *ngIf="employeeTimesheet && employeeTimesheet.length > 0">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>Sr No.</th>
-                            <th style="min-width: 120px">Date</th>
-                            <th style="min-width: 100px">Day Type</th>
-                            <th style="min-width: 200px">Employee Name</th>
-                            <th style="min-width: 200px">Project Name</th>
-                            <th style="min-width: 200px">Team Name</th>
-                            <th style="min-width: 200px">Activity</th>
-                            <th style="min-width: 200px">Description</th>
-                            <th style="min-width: 150px">Total Time (hrs)</th>
-                            <th style="min-width: 200px">Manager</th>
-                            <th style="min-width: 200px">Filled Client Attendance Preview </th>
-                            <th style="min-width: 200px">Approved Client Attendance Preview </th>
-                            <!-- <th style="min-width: 100px">Action</th> -->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let entry of employeeTimesheet; let i = index">
-                            <td>{{ (insightPage - 1) * insightPageSize + i + 1 }}</td>
-                            <td>{{ entry.date | date: 'dd-MM-yyyy' }}</td>
-                            <td>{{ entry.dayType }}</td>
-                            <td>{{ entry.employeeName }}</td>
-                            <td>{{ entry.projectName }}</td>
-                            <td>{{ entry.teamName }}</td>
-                            <td>{{ entry.activity }}</td>
-                            <td>{{ entry.description }}</td>
-                            <td>{{ entry.totalTime }}</td>
-                            <td>{{ entry.managerName }}</td>
-                            <td *ngIf="entry.filledDocument">
-                                <button *ngIf="entry.filledDocument" class="btn btn-sm btn-outline-primary mb3"
-                                    type="submit" title="copy timesheet"
-                                    (click)="getDoscForPreview(entry.filledDocument)"><em>View
-                                        Doc</em></button>&nbsp;
-                            </td>
-                            <td *ngIf="!entry.filledDocument">
-                                {{entry.filledDocument || "NA"}}
-                            </td>
-                            <td *ngIf="entry.approvedDocument">
-                                <button *ngIf="entry.approvedDocument" class="btn btn-sm btn-outline-primary mb3"
-                                    type="submit" title="copy timesheet"
-                                    (click)="getDoscForPreview(entry.approvedDocument)"><em>View
-                                        Doc</em></button>&nbsp;
-                            </td>
-                            <td *ngIf="!entry.approvedDocument">
-                                {{entry.approvedDocument || "NA"}}
-                            </td>
-                            <!-- <td>
-                                <button class="btn btn-sm btn-success mr-1" (click)="approveTimesheet(entry)"><i
-                                        class="fa-solid fa-check"></i></button>
-                                <button class="btn btn-sm btn-danger" (click)="rejectTimesheet(entry)"><i
-                                        class="fa-solid fa-circle-xmark"></i></button>
-                            </td> -->
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="insight-table-wrap">
+                <div class="table-responsive">
+                    <table class="table insight-timesheet-table">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Sr No.</th>
+                                <th>Date</th>
+                                <th>Day Type</th>
+                                <th>Employee Name</th>
+                                <th>Project Name</th>
+                                <th>Team Name</th>
+                                <th>Activity</th>
+                                <th>Description</th>
+                                <th>Total Time (hrs)</th>
+                                <th>Manager</th>
+                                <th>Filled Client Attendance</th>
+                                <th>Approved Client Attendance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let entry of employeeTimesheet; let i = index" class="insight-table-row">
+                                <td>{{ (insightPage - 1) * insightPageSize + i + 1 }}</td>
+                                <td>{{ entry.date | date: 'dd-MM-yyyy' }}</td>
+                                <td>{{ entry.dayType }}</td>
+                                <td>{{ entry.employeeName }}</td>
+                                <td>{{ entry.projectName }}</td>
+                                <td>{{ entry.teamName }}</td>
+                                <td>{{ entry.activity }}</td>
+                                <td>{{ entry.description }}</td>
+                                <td>{{ entry.totalTime }}</td>
+                                <td>{{ entry.managerName }}</td>
+                                <td>
+                                    <button *ngIf="entry.filledDocument" class="btn btn-sm btn-outline-primary insight-doc-btn"
+                                        type="button" title="View document"
+                                        (click)="getDoscForPreview(entry.filledDocument)">View Doc</button>
+                                    <span *ngIf="!entry.filledDocument">NA</span>
+                                </td>
+                                <td>
+                                    <button *ngIf="entry.approvedDocument" class="btn btn-sm btn-outline-primary insight-doc-btn"
+                                        type="button" title="View document"
+                                        (click)="getDoscForPreview(entry.approvedDocument)">View Doc</button>
+                                    <span *ngIf="!entry.approvedDocument">NA</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <!-- Pagination -->
-            <!-- <pagination-controls class="my-pagination" [hidden]="employeeTimesheet.length == 0"
-                (pageChange)="handlePageChange($event)"></pagination-controls> -->
-            <mat-paginator *ngIf="employeeTimesheet.length > 0" [length]="insightPageTotalItems"
+            <mat-paginator *ngIf="employeeTimesheet.length > 0" class="insight-paginator" [length]="insightPageTotalItems"
                 [pageSize]="insightPageSize" [pageIndex]="insightPage-1" [pageSizeOptions]="[5, 10, 20]"
                 (page)="handleInsightPageChange($event,'empTimeSheetSearch')">
             </mat-paginator>
         </div>
 
-        <div *ngIf="employeeTimesheet?.length === 0">
+        <div *ngIf="employeeTimesheet?.length === 0" class="insight-empty">
             <p class="text-center text-muted">No timesheet data found for the selected employee and date range.</p>
         </div>
     </div>

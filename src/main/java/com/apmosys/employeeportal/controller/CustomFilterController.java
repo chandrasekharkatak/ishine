@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.apmosys.employeeportal.dto.*;
+import com.apmosys.employeeportal.service.LogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,13 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.apmosys.employeeportal.dto.CustomFilterDTO;
-import com.apmosys.employeeportal.dto.EmployeeDTO;
-import com.apmosys.employeeportal.dto.LeaveDTO;
-import com.apmosys.employeeportal.dto.NewsletterDTO;
-import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.service.CustomFilterService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api")
@@ -30,6 +29,11 @@ public class CustomFilterController {
 
 	@Autowired
 	CustomFilterService customFilterService;
+	@Autowired
+	private HttpServletRequest httpRequest;
+
+	@Autowired
+	private LogService logService;
 
 	@RequestMapping(value = "/customQueryForLeaveReport", method = RequestMethod.POST)
 	public ServiceResponse customQueryForLeaveReport(@RequestBody LeaveDTO leaveDTO) {
@@ -102,6 +106,114 @@ public class CustomFilterController {
 	public ServiceResponse customQueryForDocument(@RequestBody NewsletterDTO newsletterDto) {
 		ServiceResponse response = customFilterService.customQueryForDocument(newsletterDto);
 		return response;
+	}
+
+
+	//get Custom Query Filtered Data
+	@PostMapping("/getFilteredQueryData")
+	public ServiceResponse getFilteredQueryData(@RequestBody QueryRequestDTO requestDTO) {
+
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+
+		apiLogInfo.setApiUrl("/api/getFilteredQueryData");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+
+		try {
+
+			// Validation
+			if (requestDTO == null || requestDTO.getCustomQuery() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request or query cannot be null");
+
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("Invalid request payload");
+
+				return response;
+			}
+			logBuilder.append("Request Query: ").append(requestDTO.getCustomQuery());
+			// Call Service
+			response = customFilterService.getFilteredQueryData(requestDTO);
+
+			apiLogInfo.setApiStatus(response.getServiceStatus());
+			apiLogInfo.setApiResponse("Execution completed");
+
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong while processing request.");
+			response.setServiceError(e.getMessage());
+
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiResponse(e.getMessage());
+		} finally {
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+		}
+
+		return response;
+	}
+
+	// ===== Custom Query: server-side paging/sort/search =====
+	@PostMapping("/getCustomQueryDataPaged")
+	public ServiceResponse getCustomQueryDataPaged(@RequestBody QueryRequestDTO requestDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (requestDTO == null || requestDTO.getCustomQuery() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request or query cannot be null");
+				return response;
+			}
+			return customFilterService.getCustomQueryDataPaged(requestDTO);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong while processing request.");
+			response.setServiceError(e.getMessage());
+			return response;
+		}
+	}
+
+	@PostMapping("/getFilteredQueryDataPaged")
+	public ServiceResponse getFilteredQueryDataPaged(@RequestBody QueryRequestDTO requestDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (requestDTO == null || requestDTO.getCustomQuery() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request or query cannot be null");
+				return response;
+			}
+			return customFilterService.getFilteredQueryDataPaged(requestDTO);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong while processing request.");
+			response.setServiceError(e.getMessage());
+			return response;
+		}
+	}
+
+	@PostMapping("/getCustomQueryDistinctValues")
+	public ServiceResponse getCustomQueryDistinctValues(@RequestBody QueryDistinctValuesRequestDTO requestDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (requestDTO == null || requestDTO.getCustomQuery() == null || requestDTO.getColumn() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request, query and column cannot be null");
+				return response;
+			}
+			return customFilterService.getCustomQueryDistinctValues(requestDTO);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong while processing request.");
+			response.setServiceError(e.getMessage());
+			return response;
+		}
 	}
 	
 	

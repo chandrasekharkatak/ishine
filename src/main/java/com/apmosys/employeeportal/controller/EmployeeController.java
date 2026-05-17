@@ -34,6 +34,7 @@ import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
+import com.apmosys.employeeportal.dto.GetTeamAndTimesheetDetailsDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.SearchEmpPayloadDTO;
 import com.apmosys.employeeportal.dto.SkillCertConfigDTO;
@@ -311,6 +312,13 @@ public class EmployeeController {
 
 		ServiceResponse response = employeeService.getHierarchyChartByEmpId(employeedto);
 		return response;
+	}
+
+	/** Full upward management spine for org-wide roles (SuperAdmin, HOD, HR, …); empty list for others. */
+	@JobRoleAccess(featureIds = {14})
+	@RequestMapping(value = "/getManagementSpineForHierarchy", method = RequestMethod.POST)
+	public ServiceResponse getManagementSpineForHierarchy(@RequestBody EmployeeDTO employeedto) {
+		return employeeService.getManagementSpineForHierarchy(employeedto);
 	}
 	@JobRoleAccess(featureIds = {3,7})
 	@RequestMapping(value = "/revokeAccount", method = RequestMethod.POST)
@@ -682,9 +690,9 @@ public class EmployeeController {
 	 }
 
 	 @PostMapping("/getTeamAndTimeSheetDetails")
-	 public ServiceResponse getTeamAndTimeSheetDetails(HttpServletRequest request,@RequestBody Long id) {
+	 public ServiceResponse getTeamAndTimeSheetDetails(HttpServletRequest request,@RequestBody GetTeamAndTimesheetDetailsDTO teamAndTimesheetDetailsDTO) {
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
-		return employeeService.getTeamAndTimeSheetDetails(id);
+		return employeeService.getTeamAndTimeSheetDetails(teamAndTimesheetDetailsDTO);
 	 }
 	 
 	 @PostMapping("/getProjectDetailsByEmpIdAndDateRange")
@@ -706,6 +714,7 @@ public class EmployeeController {
 	public ServiceResponse fetchInactivePOListOfEmployee(@RequestBody GetEmployeeProjectReportPayloadDTO employeeDTO) {
 	    return employeeService.fetchInactivePOListOfEmployee(employeeDTO);
 	}
+	
 	@Encrypted
 	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value="/fetchactivePOCounts",method=RequestMethod.POST)
@@ -908,4 +917,42 @@ public class EmployeeController {
 		return serviceResponse;
 	}
 	
+	@PostMapping("/api/getPoRequirementDataByTeamAndPoId")
+	public ServiceResponse getPoRequirementDataByTeamAndPoId(@RequestBody Map<String, Long> requestBody) {
+	    Long teamId = requestBody.get("teamId");
+	    Long poId = requestBody.get("poId");
+	    return employeeService.getPoRequirementDataByTeamAndPoId(teamId, poId);
+	}
+	
+	// @Encrypted
+	@GetMapping("/getAllActiveEmployeeInformation")
+	public ServiceResponse getAllActiveEmployeeInformation() {
+		return employeeService.getAllActiveEmployeeInformation();
+	}
+	
+	@GetMapping("/getInActiveableOrNot/{empId}")
+	public ServiceResponse getInActiveableOrNot(@PathVariable Long empId) {
+	    return employeeService.getInActiveableOrNot(empId);
+	}
+	
+	// @PostMapping("/getEmployeeBillableType")
+	// public ServiceResponse getEmployeeBillableType(@RequestBody Long empId) {
+	//     return employeeService.getEmployeeBillableType(empId);
+	// }
+	
+	@Encrypted
+    @GetMapping("/getDefaulterStatus")
+    public ServiceResponse getDefaulterStatus(@RequestParam("empId") Long empId) {
+
+        ServiceResponse response = employeeService.getDefaulterStatus(empId);
+
+        return response;
+    }
+    
+    @Encrypted
+    @PostMapping("/saveDefaulterConsent")
+    public ServiceResponse saveDefaulterConsent(@RequestBody Map<String, Long> payload) {
+        return employeeService.saveDefaulterConsent(payload.get("empId"));
+    }
+
 }

@@ -54,6 +54,20 @@ public class EmployeeLeaveController {
 		ServiceResponse response = employeeLeaveService.updateLeaveStatus(leaveDTO);
 		return response;
 	}
+
+	@PostMapping("/rejectLeaveWithReasons")
+public ServiceResponse rejectLeaveWithReasons(
+        @RequestBody LeaveDTO leaveDTO) {
+
+    return employeeLeaveService.rejectLeaveWithReasons(leaveDTO);
+}
+
+@PostMapping("/bulkRejectLeaveRequestNew")
+public ServiceResponse bulkRejectLeaveRequestNew(
+        @RequestBody LeaveDTO leaveDTO) {
+
+    return employeeLeaveService.bulkRejectLeaveRequestNew(leaveDTO);
+}
 	@JobRoleAccess(featureIds = {9,14,15,16})
 	@RequestMapping(value = "/getAllMyLeaveApplicationsByEmpId" ,method = RequestMethod.POST)
 	public ServiceResponse getAllMyLeaveApplicationsByEmpId(@RequestBody LeaveDTO leaveDTO) {
@@ -277,13 +291,7 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
-	/* Timesheet reconsilation */
-	@RequestMapping(value = "/fillTimesheetForOldLeaves" ,method = RequestMethod.GET)
-	public ServiceResponse fillTimesheetForOldLeaves() {
-		
-		ServiceResponse response = employeeLeaveService.fillTimesheetForOldLeaves();
-		return response;
-	}
+
 	
 	@RequestMapping(value = "/pendingForApprovalReconsilation" ,method = RequestMethod.GET)
 	public ServiceResponse pendingForApprovalReconsilation() {

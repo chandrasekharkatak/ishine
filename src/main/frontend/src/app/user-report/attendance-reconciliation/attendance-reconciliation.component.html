@@ -182,12 +182,14 @@
               <tr id="attendanceIDHeadTr">
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeeCode|string">Emp Id</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Full Name</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="employeeEmail|string">Email</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="inTime|string">In Time</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="outTime|string">Out Time</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="totalDuration|string">Total Working Hours</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="logDate|string">LogDate</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="reportingManagerName|string">Reporting Manager</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="reportingManagerEmail|string">Manager Email</th>
                 <th scope="col" class="info-label wide-col">Status</th>
               </tr>
               <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="AttendancereConciliation"
@@ -195,7 +197,7 @@
             </thead>
             <tbody *ngIf="!clickFilter">
               <tr *ngIf="tableRowsSource.length === 0 || (tableRowsSource | colFilter:filters:false).length === 0">
-                <th colspan="9" class="text-center info-label">No details to display...</th>
+                <th colspan="11" class="text-center info-label">No details to display...</th>
               </tr>
               <tr
                 *ngFor="let attendance of tableRowsSource | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: paginateConfig; let i = index">
@@ -203,12 +205,14 @@
                 <td id="clickablefor360" *ngIf="userMapping.reports_employee_360" [navigateToEmployee360]="attendance.emp360"
                   style="cursor: pointer;" title="Click to view Employee 360">{{ attendance.employeeName || 'N/A' }}</td>
                 <td *ngIf="!userMapping.reports_employee_360">{{ attendance.employeeName || 'N/A' }}</td>
+                <td>{{ attendance.employeeEmail || 'N/A' }}</td>
                 <td>{{ attendance.inTime || 'N/A' }}</td>
                 <td>{{ attendance.outTime || 'N/A' }}</td>
                 <td>{{ attendance.totalDuration || 'N/A' }}{{ attendance.totalDuration ? ' hrs' : '' }}</td>
                 <td>{{ attendance.logDate }}</td>
                 <td>{{ attendance.departmentName || 'N/A' }}</td>
                 <td>{{ attendance.reportingManagerName || 'N/A' }}</td>
+                <td>{{ attendance.reportingManagerEmail || 'N/A' }}</td>
                 <td>
                   <span [class]="getAttendanceStatusClass(attendance)">{{ getAttendanceStatus(attendance) }}</span>
                 </td>
@@ -216,12 +220,13 @@
             </tbody>
             <tbody *ngIf="clickFilter">
               <tr *ngIf="allAttendanceRepostList.length === 0 || (allAttendanceRepostList | colFilter:filters:false).length === 0">
-                <th colspan="9" class="text-center info-label">No details to display...</th>
+                <th colspan="11" class="text-center info-label">No details to display...</th>
               </tr>
               <tr
                 *ngFor="let attendance of allAttendanceRepostList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: pageSize, currentPage: page, totalItems: totalRecords }; let i = index">
                 <td>{{ attendance.employeeCode }}</td>
                 <td>{{ attendance.employeeName || 'NA' }}</td>
+                <td>{{ attendance.employeeEmail || 'NA' }}</td>
                 <td>{{ attendance.inTime }}</td>
                 <td>{{ attendance.outTime }}</td>
                 <td>{{ attendance.totalDuration || 'NA' }}{{ attendance.totalDuration ? ' hrs' : '' }}</td>
@@ -229,6 +234,7 @@
                 <td>{{ attendance.logDate }}</td>
                 <td>{{ attendance.departmentName || 'NA' }}</td>
                 <td>{{ attendance.reportingManagerName || 'NA' }}</td>
+                <td>{{ attendance.reportingManagerEmail || 'NA' }}</td>
               </tr>
             </tbody>
           </table>

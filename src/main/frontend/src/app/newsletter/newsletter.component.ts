@@ -65,12 +65,20 @@ export class NewsletterComponent implements OnInit {
   newsletterColumns:any[] = ['blank','displayName','name','createdOn'];
   newsletterCol:any[] = ['displayName','createdOn'];
 
+  // newsletterModalConfiguration = {
+  //   backdrop: true,
+  //   ignoreBackdropClick: true,
+  //   keyboard: false,
+  //   class : 'modal-xl'
+  // }
+
   newsletterModalConfiguration = {
+    size: 'lg',
     backdrop: true,
-    ignoreBackdropClick: true,
-    keyboard: false,
-    class : 'modal-xl'
+    centered: true,
+    windowClass: 'a4-modal'
   }
+
 
   userMapping: any = {};
 

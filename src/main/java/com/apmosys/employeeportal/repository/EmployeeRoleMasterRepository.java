@@ -5,6 +5,10 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import com.apmosys.employeeportal.dto.CertificateDTO;
+import com.apmosys.employeeportal.dto.EmployeeRoleDTO;
+import com.apmosys.employeeportal.dto.MappedSubFeatureDTO;
+import com.apmosys.employeeportal.dto.MappedSubFeatureDTO;
 import com.apmosys.employeeportal.model.EmployeeRole;
 
 public interface EmployeeRoleMasterRepository extends JpaRepository<EmployeeRole, Integer> {
@@ -15,9 +19,32 @@ public interface EmployeeRoleMasterRepository extends JpaRepository<EmployeeRole
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllSubFeatureList();
+	
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.EmployeeRoleDTO("
+			+ "sfm.subFeatureMasterId, sfm.subFeatureName, fm.featureId, "
+			+ "fm.featureName, tm.tabId, tm.tabName) FROM SubFeatureMaster sfm "
+			+ "LEFT JOIN FeatureMaster fm on sfm.featureId = fm.featureId "
+			+ "LEFT JOIN TabMaster tm ON tm.tabId = fm.tabId "
+			+ "WHERE "
+		     + "(COALESCE(:tabNames, NULL) IS NULL OR tm.tabName IN :tabNames) "
+		     + "AND (COALESCE(:featureNames, NULL) IS NULL OR fm.featureName IN :featureNames) "
+		     + "AND (COALESCE(:subFeatureNames, NULL) IS NULL OR sfm.subFeatureName IN :subFeatureNames)")
+	List<EmployeeRoleDTO> getAllSubFeatureList(List<String> tabNames,List<String> featureNames,List<String> subFeatureNames);
+
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getMappedSubFeatureByJobRoleId(Long jobRoleId);
+	
+	@Query(value = "SELECT new com.apmosys.employeeportal.dto.MappedSubFeatureDTO( " +
+	        "jr.jobRoleId, jr.name, jr.employeeRole, " +
+	        "sfm.subFeatureMasterId, sfm.subFeatureName, fm.featureId, fm.featureName) " +
+	        "FROM RoleFeatureMap rsm " +
+	        "JOIN JobRole jr ON jr.jobRoleId = rsm.jobRoleId " +
+	        "LEFT JOIN SubFeatureMaster sfm ON sfm.subFeatureMasterId = rsm.subFeatureMasterId " +
+	        "LEFT JOIN FeatureMaster fm ON fm.featureId = sfm.featureId " +
+	        "WHERE jr.jobRoleId IN :jobRoleIds")
+	List<MappedSubFeatureDTO> getMappedSubFeatureByJobRoleIds(List<Long> jobRoleIds);
+
 	
 	@Query(nativeQuery = true)
 	public List<EmployeeRole> findBySubFeatureMasterId(Long subFeatureMasterId);

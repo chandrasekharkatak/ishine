@@ -19,7 +19,6 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import OrgChart from '@balkangraph/orgchart.js';
 
 
 @Component({
@@ -88,7 +87,27 @@ export class MyTeamComponent implements OnInit {
   isHierarchyTable:boolean = false;
 
   nodes: any = [];
-  chart: any;
+  /** Expand/collapse keys (uses node.nodeUid so duplicate empIds do not share state). */
+  expandedNodeKeys = new Set<string>();
+  private hierarchyNodeUidSeq = 0;
+  private childrenCache = new Map<any, HierarchyUser[]>(); // empId -> direct reportees
+  private loadingChildren = new Set<any>();
+  private readonly childrenBatchSize = 10;
+  private childrenVisibleCount = new Map<any, number>(); // empId -> number of children currently rendered
+
+  // Pan + zoom + focus
+  @ViewChild('orgChartViewport', { static: false }) orgChartViewport?: ElementRef<HTMLElement>;
+  chartScale = 1;
+  private isChartDragging = false;
+  private dragStartX = 0;
+  private dragStartY = 0;
+  private dragStartScrollLeft = 0;
+  private dragStartScrollTop = 0;
+
+  hierarchySearchText = '';
+  hierarchySearchResults: HierarchyUser[] = [];
+  selectedHierarchyEmpId: any = null;
+  selectedHierarchyPath: HierarchyUser[] = [];
 
   isLeaveHistoryOfDepartment:boolean = false;
   departmentLeaveHistoryList:any[] = [];
@@ -145,9 +164,7 @@ export class MyTeamComponent implements OnInit {
 
   selectedNode: HierarchyUser | null = null;
 
-  @ViewChild('orgChartContainer', { static: false }) orgChartContainer!: ElementRef;
-  nodeLookup:any={}
-  selectedNodeId: string | null = null;
+  // Custom hierarchy chart (no paid dependency)
 
 
 
@@ -211,9 +228,7 @@ export class MyTeamComponent implements OnInit {
 
 
 ngOnDestroy(): void {
-  if (this.chart) {
-    this.chart.destroy();
-  }
+  // no-op (custom hierarchy uses Angular template)
 }
 
   onNameClick(teamView: any): void {
@@ -1366,6 +1381,16 @@ else if(employee.employeementId &&
 
   myTeamHierarchyChart(employeeObj:Employee) {
     this.nodes = [];
+    this.expandedNodeKeys.clear();
+    this.hierarchyNodeUidSeq = 0;
+    this.childrenVisibleCount.clear();
+    this.childrenCache.clear();
+    this.loadingChildren.clear();
+    this.selectedHierarchyEmpId = null;
+    this.selectedHierarchyPath = [];
+    this.hierarchySearchResults = [];
+    this.hierarchySearchText = '';
+    this.resetView();
     let employee = Object.assign({}, employeeObj);
     employee.employeementId = employee.employeementId;
 
@@ -1401,6 +1426,10 @@ else if(employee.employeementId &&
           managerNode.title = `${manager.jobRoleName}, ${manager.departmentName} ${(manager.reporteeCount !== 0)? `, ${manager.reporteeCount} reportee(s)`: ``}`;
           managerNode.empId = manager.empId;
           managerNode.managerId = manager.managerId;
+          if (this.isSelfReportEmployeeRow(manager)) {
+            managerNode.disabled = true;
+          }
+          this.ensureHierarchyNodeUid(managerNode);
         }else {
           console.error("Manager Not found.");
         }
@@ -1413,7 +1442,12 @@ else if(employee.employeementId &&
               const title = `${employee.jobRoleName}, ${employee.departmentName} ${(employee.reporteeCount !== 0)? `, ${employee.reporteeCount} reportee(s)`: ``}`;
               const empId = employee.empId;
               const managerId = employee.managerId;
-              return new HierarchyUser(name, cssClass, title, empId, managerId);
+              const u = new HierarchyUser(name, cssClass, title, empId, managerId);
+              if (this.isSelfReportEmployeeRow(employee)) {
+                u.disabled = true;
+              }
+              this.ensureHierarchyNodeUid(u);
+              return u;
             });
           }else{
             console.error("Co-Workers Not found.");
@@ -1426,6 +1460,10 @@ else if(employee.employeementId &&
             user.empId = self.empId;
             user.managerId = self.managerId;
             user.id = "self-node";
+            if (this.isSelfReportEmployeeRow(self)) {
+              user.disabled = true;
+            }
+            this.ensureHierarchyNodeUid(user);
           }else{
             console.error("User Not found.");
           }
@@ -1437,7 +1475,12 @@ else if(employee.employeementId &&
               const title = `${employee.jobRoleName}, ${employee.departmentName} ${(employee.reporteeCount !== 0)? `, ${employee.reporteeCount} reportee(s)`: ``}`;
               const empId = employee.empId;
               const managerId = employee.managerId;
-              return new HierarchyUser(name, cssClass, title, empId, managerId);
+              const u = new HierarchyUser(name, cssClass, title, empId, managerId);
+              if (this.isSelfReportEmployeeRow(employee)) {
+                u.disabled = true;
+              }
+              this.ensureHierarchyNodeUid(u);
+              return u;
             });
           }else{
             console.error("Reportees Not found.");
@@ -1448,10 +1491,230 @@ else if(employee.employeementId &&
           managerNode.childs.push(...coWorkerList);
 
         this.nodes.push(managerNode);
-        this.renderBalkanChart();
+
+        const finishChartLayout = () => {
+          this.applyDuplicateChildDisabled(this.nodes?.[0]);
+          this.applyDefaultHierarchyExpansion(this.nodes?.[0], user);
+          const focusId = user?.empId ?? managerNode?.empId;
+          if (focusId != null) {
+            this.setFocusNode(focusId);
+          }
+        };
+
+        this.employeeService.getManagementSpineForHierarchy(employee).pipe(first()).subscribe({
+          next: (spineRes: any) => {
+            const spineRaw = spineRes?.serviceResponse as any[] | undefined;
+            const spine = this.dedupeManagementSpineByEmpId(spineRaw);
+            if (
+              spineRes?.serviceStatus === 'Success' &&
+              spine?.length > 1 &&
+              manager?.empId != null &&
+              managerNode?.empId != null
+            ) {
+              const last = spine[spine.length - 1];
+              if (last != null && String(last.empId) === String(managerNode.empId)) {
+                // Org-wide: one level = all direct reportees of each parent, not a single vertical line.
+                let level = spine.length - 2;
+                const stepUp = (cur: HierarchyUser) => {
+                  if (level < 0) {
+                    this.nodes = [cur];
+                    finishChartLayout();
+                    return;
+                  }
+                  const row = spine[level];
+                  level -= 1;
+                  this.wrapParentWithAllReporteesForOrgChart(row, cur).then((parent) => stepUp(parent));
+                };
+                stepUp(managerNode);
+                return;
+              }
+            }
+            finishChartLayout();
+          },
+          error: () => finishChartLayout()
+        });
       } else {
         console.error(response.serviceResponse);
       }
+    });
+  }
+
+  /**
+   * Expand every node on the path from root to the logged-in user so multi-branch levels (e.g. all
+   * reportees of a director) stay open for the path to "self".
+   */
+  private applyDefaultHierarchyExpansion(root: HierarchyUser | undefined, selfNode: HierarchyUser | null): void {
+    const selfId = selfNode?.empId;
+    if (root && selfId != null) {
+      const path = this.findPathToEmpId(root, selfId);
+      if (path?.length) {
+        path.forEach((n) => {
+          const k = this.expandNodeKey(n);
+          if (k) {
+            this.expandedNodeKeys.add(k);
+          }
+        });
+        return;
+      }
+    }
+    let n: HierarchyUser | undefined = root;
+    while (n && (n.childs?.length === 1)) {
+      const k = this.expandNodeKey(n);
+      if (k) {
+        this.expandedNodeKeys.add(k);
+      }
+      n = n.childs[0];
+    }
+    const nk = this.expandNodeKey(n);
+    if (nk) {
+      this.expandedNodeKeys.add(nk);
+    }
+    const sk = this.expandNodeKey(selfNode ?? undefined);
+    if (sk) {
+      this.expandedNodeKeys.add(sk);
+    }
+  }
+
+  /** DB anomaly manager_id = emp_id — show node but keep non-interactive. */
+  private isSelfReportEmployeeRow(row: any): boolean {
+    return row?.empId != null && row?.managerId != null && String(row.empId) === String(row.managerId);
+  }
+
+  /** Same person as immediate parent (e.g. manager listed again under own reportees) — show but not clickable. */
+  private applyDuplicateChildDisabled(root: HierarchyUser | undefined): void {
+    if (!root?.childs?.length) return;
+    const pid = root.empId;
+    for (const c of root.childs) {
+      if (c?.empId != null && pid != null && String(c.empId) === String(pid)) {
+        c.disabled = true;
+      }
+      this.applyDuplicateChildDisabled(c);
+    }
+  }
+
+  private ensureHierarchyNodeUid(node: HierarchyUser | undefined | null): void {
+    if (node && !node.nodeUid) {
+      node.nodeUid = 'h' + (++this.hierarchyNodeUidSeq);
+    }
+  }
+
+  /** Expand/collapse map key (distinct per rendered card even when empId repeats). */
+  private expandNodeKey(node: HierarchyUser | undefined | null): string {
+    if (!node) {
+      return '';
+    }
+    this.ensureHierarchyNodeUid(node);
+    return node.nodeUid as string;
+  }
+
+  /** Removes duplicate spine rows (same empId) — prevents stacked duplicate parents in org-wide chart. */
+  private dedupeManagementSpineByEmpId(spine: any[] | undefined): any[] {
+    if (!spine?.length) {
+      return [];
+    }
+    const seen = new Set<string>();
+    const out: any[] = [];
+    for (const row of spine) {
+      const id = row?.empId != null ? String(row.empId) : '';
+      if (!id || seen.has(id)) {
+        continue;
+      }
+      seen.add(id);
+      out.push(row);
+    }
+    return out;
+  }
+
+  /** Breadcrumb path: one entry per empId (tree can repeat same person if data is inconsistent). */
+  private dedupeHierarchyPathByEmpId(path: HierarchyUser[]): HierarchyUser[] {
+    const seen = new Set<string>();
+    const out: HierarchyUser[] = [];
+    for (const n of path) {
+      const id = n?.empId != null ? String(n.empId) : '';
+      if (!id) {
+        out.push(n);
+        continue;
+      }
+      if (seen.has(id)) {
+        continue;
+      }
+      seen.add(id);
+      out.push(n);
+    }
+    return out;
+  }
+
+  private wrapParentWithAllReporteesForOrgChart(parentMeta: any, childSubtree: HierarchyUser): Promise<HierarchyUser> {
+    return new Promise((resolve) => {
+      const emp = new Employee();
+      emp.empId = parentMeta.empId;
+      emp.managerId = parentMeta.managerId;
+      emp.employeementId = parentMeta.empId;
+      const fallbackSingleChild = () => {
+        const parent = new HierarchyUser();
+        parent.name = parentMeta.name;
+        parent.cssClass = 'Manager';
+        parent.title = `${parentMeta.jobRoleName || ''}, ${parentMeta.departmentName || ''}`;
+        parent.empId = parentMeta.empId;
+        parent.managerId = parentMeta.managerId;
+        parent.childs = [childSubtree];
+        this.ensureHierarchyNodeUid(parent);
+        this.ensureHierarchyNodeUid(childSubtree);
+        resolve(parent);
+      };
+      this.employeeService.getHierarchyChartByEmpId(emp).pipe(first()).subscribe({
+        next: (res: any) => {
+          const parent = new HierarchyUser();
+          parent.name = parentMeta.name;
+          parent.cssClass = 'Manager';
+          const rc = parentMeta.reporteeCount;
+          parent.title = `${parentMeta.jobRoleName || ''}, ${parentMeta.departmentName || ''}` +
+            (rc != null && rc !== 0 ? `, ${rc} reportee(s)` : '');
+          parent.empId = parentMeta.empId;
+          parent.managerId = parentMeta.managerId;
+          if (this.isSelfReportEmployeeRow(parentMeta)) {
+            parent.disabled = true;
+          }
+
+          if (res?.serviceStatus !== 'Success') {
+            parent.childs = [childSubtree];
+            this.ensureHierarchyNodeUid(parent);
+            this.ensureHierarchyNodeUid(childSubtree);
+            resolve(parent);
+            return;
+          }
+          const list = (res.serviceResponse ?? []) as any[];
+          const reportees = list.filter((x) => (x?.hierarchyType ?? '').toLowerCase() === 'reportee');
+          const childKey = String(childSubtree.empId);
+          const sorted = reportees.slice().sort((a, b) =>
+            String(a.name ?? '').localeCompare(String(b.name ?? ''))
+          );
+          const nodes: HierarchyUser[] = sorted.map((r) => {
+            if (String(r.empId) === childKey) {
+              this.ensureHierarchyNodeUid(childSubtree);
+              return childSubtree;
+            }
+            const title =
+              `${r.jobRoleName ?? ''}, ${r.departmentName ?? ''}` +
+              (r.reporteeCount != null && r.reporteeCount !== 0 ? `, ${r.reporteeCount} reportee(s)` : '');
+            const u = new HierarchyUser(r.name, 'Reportee', title, r.empId, r.managerId);
+            if (this.isSelfReportEmployeeRow(r)) {
+              u.disabled = true;
+            }
+            this.ensureHierarchyNodeUid(u);
+            return u;
+          });
+          if (!nodes.some((n) => String(n.empId) === childKey)) {
+            this.ensureHierarchyNodeUid(childSubtree);
+            nodes.push(childSubtree);
+            nodes.sort((a, b) => String(a.name ?? '').localeCompare(String(b.name ?? '')));
+          }
+          parent.childs = nodes;
+          this.ensureHierarchyNodeUid(parent);
+          resolve(parent);
+        },
+        error: () => fallbackSingleChild()
+      });
     });
   }
 
@@ -1461,6 +1724,393 @@ else if(employee.employeementId &&
     employeeObj.managerId =  event.managerId;
     employeeObj.employeementId =  event.empId;
     this.myTeamHierarchyChart(employeeObj);
+  }
+
+  private fetchDirectReportees(empId: any, managerId: any): Promise<HierarchyUser[]> {
+    if (!empId) return Promise.resolve([]);
+    const cached = this.childrenCache.get(empId);
+    if (cached) return Promise.resolve(cached);
+
+    if (this.loadingChildren.has(empId)) return Promise.resolve([]);
+    this.loadingChildren.add(empId);
+
+    const employeeObj = new Employee();
+    employeeObj.empId = empId;
+    employeeObj.managerId = managerId;
+    employeeObj.employeementId = empId;
+
+    return new Promise((resolve) => {
+      this.employeeService.getHierarchyChartByEmpId(employeeObj).pipe(first()).subscribe((response: any) => {
+        this.loadingChildren.delete(empId);
+        if (response?.serviceStatus !== 'Success') {
+          this.childrenCache.set(empId, []);
+          return resolve([]);
+        }
+
+        const list = (response.serviceResponse ?? []) as any[];
+        const reportees = list.filter((x) => (x?.hierarchyType ?? '').toLowerCase() === 'reportee');
+        const mapped = reportees.map(employee => {
+          const name = employee.name;
+          const cssClass = employee.hierarchyType;
+          const title = `${employee.jobRoleName}, ${employee.departmentName} ${(employee.reporteeCount !== 0) ? `, ${employee.reporteeCount} reportee(s)` : ``}`;
+          const childEmpId = employee.empId;
+          const childManagerId = employee.managerId;
+          const u = new HierarchyUser(name, cssClass, title, childEmpId, childManagerId);
+          if (this.isSelfReportEmployeeRow(employee)) {
+            u.disabled = true;
+          }
+          this.ensureHierarchyNodeUid(u);
+          return u;
+        });
+
+        this.childrenCache.set(empId, mapped);
+        resolve(mapped);
+      }, _err => {
+        this.loadingChildren.delete(empId);
+        this.childrenCache.set(empId, []);
+        resolve([]);
+      });
+    });
+  }
+
+  isExpanded(node: HierarchyUser): boolean {
+    const k = this.expandNodeKey(node);
+    return !!k && this.expandedNodeKeys.has(k);
+  }
+
+  toggleExpand(node: HierarchyUser, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    if (!node?.empId || node.disabled) return;
+    const key = this.expandNodeKey(node);
+    if (!key) return;
+    if (this.expandedNodeKeys.has(key)) {
+      this.expandedNodeKeys.delete(key);
+      this.childrenVisibleCount.delete(key);
+    } else {
+      this.expandedNodeKeys.add(key);
+      if (node?.childs?.length) {
+        this.childrenVisibleCount.set(key, Math.min(this.childrenBatchSize, node.childs.length));
+      }
+    }
+  }
+
+  onHierarchyNodeClick(node: HierarchyUser): void {
+    if (!node?.empId || node.disabled) return;
+
+    // Always keep parent/child context: expand in-place.
+    // If we already have children, just expand.
+    if (node?.childs?.length > 0) {
+      const key = this.expandNodeKey(node);
+      if (key) {
+        this.expandedNodeKeys.add(key);
+        this.childrenVisibleCount.set(key, Math.min(this.childrenBatchSize, node.childs.length));
+      }
+      this.setFocusNode(node.empId);
+      return;
+    }
+
+    // Lazy-load this node's direct reportees and attach under it.
+    this.fetchDirectReportees(node.empId, node.managerId).then(children => {
+      node.childs = children ?? [];
+      this.applyDuplicateChildDisabled(node);
+      if (node.childs.length > 0) {
+        const key = this.expandNodeKey(node);
+        if (key) {
+          this.expandedNodeKeys.add(key);
+          this.childrenVisibleCount.set(key, Math.min(this.childrenBatchSize, node.childs.length));
+        }
+      }
+      this.setFocusNode(node.empId);
+    });
+  }
+
+  getVisibleChildren(node: HierarchyUser): HierarchyUser[] {
+    if (!node?.childs?.length) return [];
+    const nk = this.expandNodeKey(node);
+    const count = this.childrenVisibleCount.get(nk) ?? Math.min(this.childrenBatchSize, node.childs.length);
+    return node.childs.slice(0, count);
+  }
+
+  canShowMoreChildren(node: HierarchyUser): boolean {
+    if (!node?.childs?.length) return false;
+    const nk = this.expandNodeKey(node);
+    const count = this.childrenVisibleCount.get(nk) ?? Math.min(this.childrenBatchSize, node.childs.length);
+    return count < node.childs.length;
+  }
+
+  showMoreChildren(node: HierarchyUser, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    if (!node?.childs?.length) return;
+    const nk = this.expandNodeKey(node);
+    const current = this.childrenVisibleCount.get(nk) ?? Math.min(this.childrenBatchSize, node.childs.length);
+    const next = Math.min(node.childs.length, current + this.childrenBatchSize);
+    this.childrenVisibleCount.set(nk, next);
+  }
+
+  showLessChildren(node: HierarchyUser, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    if (!node?.childs?.length) return;
+    const nk = this.expandNodeKey(node);
+    this.childrenVisibleCount.set(nk, Math.min(this.childrenBatchSize, node.childs.length));
+  }
+
+  // ---------- Pan / zoom ----------
+  onChartWheel(event: WheelEvent): void {
+    event.preventDefault();
+    const delta = event.deltaY;
+    const factor = delta > 0 ? 0.9 : 1.1;
+    const next = Math.min(1.8, Math.max(0.6, this.chartScale * factor));
+    this.chartScale = Number(next.toFixed(3));
+  }
+
+  onChartMouseDown(event: MouseEvent): void {
+    // only left button
+    if (event.button !== 0) return;
+    const viewport = this.orgChartViewport?.nativeElement;
+    if (!viewport) return;
+    this.isChartDragging = true;
+    this.dragStartX = event.clientX;
+    this.dragStartY = event.clientY;
+    this.dragStartScrollLeft = viewport.scrollLeft;
+    this.dragStartScrollTop = viewport.scrollTop;
+  }
+
+  onChartMouseMove(event: MouseEvent): void {
+    if (!this.isChartDragging) return;
+    const viewport = this.orgChartViewport?.nativeElement;
+    if (!viewport) return;
+    const dx = event.clientX - this.dragStartX;
+    const dy = event.clientY - this.dragStartY;
+    viewport.scrollLeft = this.dragStartScrollLeft - dx;
+    viewport.scrollTop = this.dragStartScrollTop - dy;
+  }
+
+  onChartMouseUp(): void {
+    this.isChartDragging = false;
+  }
+
+  zoomIn(): void {
+    this.chartScale = Math.min(1.8, Number((this.chartScale * 1.15).toFixed(3)));
+  }
+
+  zoomOut(): void {
+    this.chartScale = Math.max(0.6, Number((this.chartScale / 1.15).toFixed(3)));
+  }
+
+  resetView(): void {
+    this.chartScale = 1;
+    const viewport = this.orgChartViewport?.nativeElement;
+    if (viewport) {
+      viewport.scrollLeft = 0;
+      viewport.scrollTop = 0;
+    }
+
+    // After reset, center back to self (preferred) or root.
+    const root = this.nodes?.[0] as HierarchyUser | undefined;
+    const selfNode = this.findFirstNodeByPredicate(root, (n) => n?.id === 'self-node');
+    const anchorId = selfNode?.empId ?? root?.empId ?? this.selectedHierarchyEmpId;
+    if (anchorId != null) {
+      setTimeout(() => this.centerOnEmpId(anchorId), 0);
+    }
+  }
+
+  // ---------- Jump navigation (start/end) ----------
+  goToStart(): void {
+    const viewport = this.orgChartViewport?.nativeElement;
+    if (!viewport) return;
+    viewport.scrollLeft = 0;
+    viewport.scrollTop = 0;
+  }
+
+  goToEnd(): void {
+    const viewport = this.orgChartViewport?.nativeElement;
+    if (!viewport) return;
+    viewport.scrollLeft = viewport.scrollWidth;
+    viewport.scrollTop = viewport.scrollHeight;
+  }
+
+  private findFirstNodeByPredicate(
+    node: HierarchyUser | undefined,
+    predicate: (n: HierarchyUser) => boolean
+  ): HierarchyUser | null {
+    if (!node) return null;
+    if (predicate(node)) return node;
+    const kids = node.childs ?? [];
+    for (const child of kids) {
+      const found = this.findFirstNodeByPredicate(child, predicate);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  // ---------- Search + focus ----------
+  onHierarchySearchChange(): void {
+    const q = (this.hierarchySearchText || '').trim().toLowerCase();
+    if (!q) {
+      this.hierarchySearchResults = [];
+      return;
+    }
+    const results: HierarchyUser[] = [];
+    const seen = new Set<any>();
+    this.walkLoadedHierarchy(this.nodes?.[0], (n) => {
+      if (!n?.empId || seen.has(n.empId)) return;
+      const hay = `${n.name ?? ''} ${n.title ?? ''} ${n.empId ?? ''}`.toLowerCase();
+      if (hay.includes(q)) {
+        results.push(n);
+        seen.add(n.empId);
+      }
+    });
+    this.hierarchySearchResults = results.slice(0, 20);
+  }
+
+  focusHierarchyResult(node: HierarchyUser): void {
+    if (!node?.empId) return;
+    this.hierarchySearchResults = [];
+    this.hierarchySearchText = node.name;
+    this.setFocusNode(node.empId);
+  }
+
+  private setFocusNode(empId: any): void {
+    this.selectedHierarchyEmpId = empId;
+    const path = this.findPathToEmpId(this.nodes?.[0], empId);
+    this.selectedHierarchyPath = this.dedupeHierarchyPathByEmpId(path ?? []);
+    // expand ancestors
+    this.selectedHierarchyPath.forEach((p) => {
+      const ek = this.expandNodeKey(p);
+      if (ek) {
+        this.expandedNodeKeys.add(ek);
+      }
+    });
+
+    // If the target is inside a "Show more" slice, widen the slice so it becomes visible.
+    for (let i = 0; i < this.selectedHierarchyPath.length - 1; i++) {
+      const parent = this.selectedHierarchyPath[i];
+      const child = this.selectedHierarchyPath[i + 1];
+      if (!parent?.empId || !parent?.childs?.length || !child?.empId) continue;
+      const idx = parent.childs.findIndex((c: any) => String(c?.empId) === String(child.empId));
+      if (idx >= 0) {
+        const pk = this.expandNodeKey(parent);
+        const current = this.childrenVisibleCount.get(pk) ?? Math.min(this.childrenBatchSize, parent.childs.length);
+        this.childrenVisibleCount.set(pk, Math.max(current, idx + 1));
+      }
+    }
+    // center on node
+    setTimeout(() => this.centerOnEmpId(empId), 0);
+  }
+
+  onBreadcrumbClick(node: HierarchyUser): void {
+    if (!node?.empId) return;
+    this.setFocusNode(node.empId);
+  }
+
+  isFocusedNode(node: HierarchyUser): boolean {
+    if (this.selectedHierarchyEmpId == null || !node?.empId) return false;
+    return String(this.selectedHierarchyEmpId) === String(node.empId);
+  }
+
+  private centerOnEmpId(empId: any): void {
+    const viewport = this.orgChartViewport?.nativeElement;
+    if (!viewport) return;
+    const target = viewport.querySelector(`[data-emp-id="${String(empId)}"]`) as HTMLElement | null;
+    if (!target) return;
+
+    const vRect = viewport.getBoundingClientRect();
+    const tRect = target.getBoundingClientRect();
+    const vCx = vRect.left + vRect.width / 2;
+    const vCy = vRect.top + vRect.height / 2;
+    const tCx = tRect.left + tRect.width / 2;
+    const tCy = tRect.top + tRect.height / 2;
+
+    viewport.scrollLeft += (tCx - vCx);
+    viewport.scrollTop += (tCy - vCy);
+  }
+
+  private walkLoadedHierarchy(root: HierarchyUser | undefined, visit: (n: HierarchyUser) => void): void {
+    if (!root) return;
+    visit(root);
+    if (root.childs && root.childs.length > 0) {
+      root.childs.forEach((c: any) => this.walkLoadedHierarchy(c, visit));
+    }
+  }
+
+  private findPathToEmpId(root: HierarchyUser | undefined, empId: any): HierarchyUser[] | null {
+    return this.findPathToEmpIdImpl(root, empId, new Set<string>());
+  }
+
+  /**
+   * Path to target empId; pathStack tracks current chain (add/remove on backtrack) so shared
+   * empIds in the tree do not block searching sibling branches, but true cycles on one path stop.
+   */
+  private findPathToEmpIdImpl(
+    root: HierarchyUser | undefined,
+    empId: any,
+    pathStack: Set<string>
+  ): HierarchyUser[] | null {
+    if (!root) return null;
+    const k = root.empId != null ? String(root.empId) : '';
+    if (k) {
+      if (pathStack.has(k)) {
+        return null;
+      }
+      pathStack.add(k);
+    }
+    if (String(root.empId) === String(empId)) {
+      if (k) {
+        pathStack.delete(k);
+      }
+      return [root];
+    }
+    const kids = root.childs ?? [];
+    for (const child of kids) {
+      const found = this.findPathToEmpIdImpl(child, empId, pathStack);
+      if (found) {
+        if (k) {
+          pathStack.delete(k);
+        }
+        return [root, ...found];
+      }
+    }
+    if (k) {
+      pathStack.delete(k);
+    }
+    return null;
+  }
+
+  // ---------- Export ----------
+  exportVisibleHierarchyToExcel(): void {
+    if (!this.nodes?.length) return;
+    const rows: any[] = [];
+    const walk = (node: HierarchyUser, parentEmpId: any, level: number, pathNames: string[]) => {
+      const role = (node?.cssClass ?? '').toString();
+      const currentPath = [...pathNames, (node?.name ?? '').toString()].filter(Boolean);
+      rows.push({
+        'Employee Id': node.empId ?? '',
+        'Employee Name': node.name ?? '',
+        'Role (Hierarchy)': role || '',
+        'Title / Dept': node.title ?? '',
+        'Manager Id': node.managerId ?? '',
+        'Parent Employee Id': parentEmpId ?? '',
+        'Level': level,
+        'Path': currentPath.join(' > '),
+      });
+
+      // "Visible" = what is currently expanded on screen
+      if (node.childs?.length && this.expandedNodeKeys.has(this.expandNodeKey(node))) {
+        node.childs.forEach((c: any) => walk(c, node.empId, level + 1, currentPath));
+      }
+    };
+
+    walk(this.nodes[0], '', 0, []);
+    this.exportExcelService.exportTableDataToExcel(rows, 'MyTeam_Hierarchy_Visible.xlsx');
   }
   toggleLeaveHistoryView(event){
     if(event.target.checked){
@@ -2164,199 +2814,7 @@ setPipExtendsDays(template:TemplateRef<any>){
     }
   }
 
-renderBalkanChart(): void {
-  if (!this.orgChartContainer) {
-    return;
-  }
-
-  if (this.chart) {
-    this.chart.destroy();
-  }
-
-  if (this.nodes.length === 0) {
-    return;
-  }
-
-  this.nodeLookup = {};
-  var balkanData = this.convertToBalkanFormat(this.nodes[0]);
-  balkanData.forEach(node => {
-    this.nodeLookup[node.id] = node;
-  });
-
-  OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
-  OrgChart.templates.myTemplate.size = [220, 120];
-
-  OrgChart.templates.myTemplate.node =
-    '<rect x="0" y="0" height="{h}" width="{w}" fill="url(#gradientBlue)" stroke-width="2" stroke="#64B5F6" rx="8" ry="8"></rect>' +
-    '<defs>' +
-    '<linearGradient id="gradientBlue" x1="0%" y1="0%" x2="0%" y2="100%">' +
-    '<stop offset="0%" style="stop-color:#E3F2FD;stop-opacity:1" />' +
-    '<stop offset="100%" style="stop-color:#BBDEFB;stop-opacity:1" />' +
-    '</linearGradient>' +
-    '</defs>';
-
-  // Highlight Selected node
-  OrgChart.templates.myTemplate.nodeMenuButton =
-    '<rect x="0" y="0" height="{h}" width="{w}" fill="url(#gradientBlueActive)" stroke-width="3" stroke="#1976D2" rx="8" ry="8"></rect>' +
-    '<defs>' +
-    '<linearGradient id="gradientBlueActive" x1="0%" y1="0%" x2="0%" y2="100%">' +
-    '<stop offset="0%" style="stop-color:#BBDEFB;stop-opacity:1" />' +
-    '<stop offset="100%" style="stop-color:#90CAF9;stop-opacity:1" />' +
-    '</linearGradient>' +
-    '</defs>';
-
-  OrgChart.templates.myTemplate.field_0 =
-    '<foreignObject x="10" y="20" width="200" height="45">' +
-    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 16px; font-weight: 700; color: #0D47A1; text-align: center; overflow: hidden; line-height: 1.3; text-shadow: 0 1px 2px rgba(255,255,255,0.8);">{val}</div>' +
-    '</foreignObject>';
-
-  OrgChart.templates.myTemplate.field_1 =
-    '<foreignObject x="10" y="65" width="200" height="45">' +
-    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 13px; font-weight: 500; color: #424242; text-align: center; overflow: hidden; line-height: 1.3;">{val}</div>' +
-    '</foreignObject>';
-
-  // Self-node
-  OrgChart.templates.selfNode = Object.assign({}, OrgChart.templates.myTemplate);
-  OrgChart.templates.selfNode.node =
-    '<rect x="0" y="0" height="{h}" width="{w}" fill="url(#gradientGreen)" stroke-width="3" stroke="#66BB6A" rx="8" ry="8"></rect>' +
-    '<defs>' +
-    '<linearGradient id="gradientGreen" x1="0%" y1="0%" x2="0%" y2="100%">' +
-    '<stop offset="0%" style="stop-color:#E8F5E9;stop-opacity:1" />' +
-    '<stop offset="100%" style="stop-color:#C8E6C9;stop-opacity:1" />' +
-    '</linearGradient>' +
-    '</defs>';
-
-  OrgChart.templates.selfNode.field_0 =
-    '<foreignObject x="10" y="20" width="200" height="45">' +
-    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 16px; font-weight: 700; color: #1B5E20; text-align: center; overflow: hidden; line-height: 1.3; text-shadow: 0 1px 2px rgba(255,255,255,0.8);">{val}</div>' +
-    '</foreignObject>';
-
-  OrgChart.templates.selfNode.field_1 =
-    '<foreignObject x="10" y="65" width="200" height="45">' +
-    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 13px; font-weight: 500; color: #2E7D32; text-align: center; overflow: hidden; line-height: 1.3;">{val}</div>' +
-    '</foreignObject>';
-
-  OrgChart.templates.managerNode = Object.assign({}, OrgChart.templates.myTemplate);
-  OrgChart.templates.managerNode.node =
-  '<rect x="0" y="0" height="{h}" width="{w}" fill="url(#gradientPastelBlue)" stroke-width="2" stroke="#8AB6F9" rx="8" ry="8"></rect>' +
-  '<defs>' +
-    '<linearGradient id="gradientPastelBlue" x1="0%" y1="0%" x2="0%" y2="100%">' +
-      '<stop offset="0%" style="stop-color:#DCEBFF;stop-opacity:1" />' +
-      '<stop offset="100%" style="stop-color:#A8C8FF;stop-opacity:1" />' +
-    '</linearGradient>' +
-  '</defs>';
-
-  OrgChart.templates.managerNode.field_0 =
-    '<foreignObject x="10" y="20" width="200" height="45">' +
-    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 16px; font-weight: 700; color: #4A148C; text-align: center; overflow: hidden; line-height: 1.3; text-shadow: 0 1px 2px rgba(255,255,255,0.8);">{val}</div>' +
-    '</foreignObject>';
-
-  OrgChart.templates.managerNode.field_1 =
-    '<foreignObject x="10" y="65" width="200" height="45">' +
-    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 13px; font-weight: 500; color: #6A1B9A; text-align: center; overflow: hidden; line-height: 1.3;">{val}</div>' +
-    '</foreignObject>';
-
-  this.chart = new OrgChart(this.orgChartContainer.nativeElement, {
-    nodes: balkanData,
-    nodeBinding: {
-      field_0: 'name',
-      field_1: 'title'
-    },
-    tags: {
-      'self-node': {
-        template: 'selfNode'
-      },
-      'manager': {
-        template: 'managerNode'
-      }
-    },
-    layout: OrgChart.normal,
-    enableSearch: false,
-    orientation: OrgChart.orientation.top,
-    template: 'myTemplate',
-    collapse: {
-      level: 3
-    },
-    mouseScrool: OrgChart.action.scroll,
-    nodeMouseClick: OrgChart.action.details,
-    keyNavigation: true,
-    scaleInitial: 0.85,
-    padding: 50,
-    siblingSeparation: 80,
-    subtreeSeparation: 100
-  });
-
-  // Handle click events
-  this.chart.on('click', (sender: any, args: any) => {
-    if (args.node) {
-      const fullNodeData = this.nodeLookup[args.node.id];
-      console.log('Clicked node full data:', fullNodeData);
-
-      this.createHierarchyNodes({
-        empId: fullNodeData.empId,
-        managerId: fullNodeData.managerId,
-      });
-    }
-    return false;
-  });
-
-  console.log("balkanData:", balkanData);
-  balkanData = balkanData.filter(n => !n.pid || balkanData.some(p => p.id === n.pid));
-  let centeredOnce = false;
-
-  this.chart.on('render', () => {
-  if (centeredOnce) return;
-  const selfNode = balkanData.find((n: any) => n.tags?.includes('self-node'));
-  if (selfNode) {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        this.chart?.center(selfNode.id);
-        centeredOnce = true;
-      });
-    });
-  }
-});
-
-}
-
-convertToBalkanFormat(rootNode: HierarchyUser, parentId: string | null = null): any[] {
-  const result: any[] = [];
-
-  const addNode = (node: HierarchyUser, pid: string | null) => {
-    const balkanNode: any = {
-      id: node.empId,
-      pid: pid,
-      name: node.name,
-      title: node.title || '',
-      empId: node.empId,
-      managerId: node.managerId,
-      tags: [],
-    };
-
-    if (node.cssClass) {
-      balkanNode.tags.push(node.cssClass.toLowerCase());
-    }
-
-    if (node.id === 'self-node' || node.cssClass?.toLowerCase() === 'self-node') {
-      balkanNode.tags.push('self-node');
-    }
-
-    if (pid === null && node.id !== 'self-node') {
-      balkanNode.tags.push('manager');
-    }
-
-    result.push(balkanNode);
-
-    if (node.childs && node.childs.length > 0) {
-      node.childs.forEach(child => {
-        addNode(child, node.empId);
-      });
-    }
-  };
-
-  addNode(rootNode, parentId);
-  return result;
-}
+// Balkan OrgChart removed (license expired). Custom hierarchy chart is rendered in the template.
 
 
 }

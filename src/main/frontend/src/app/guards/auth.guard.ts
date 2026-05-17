@@ -30,15 +30,23 @@ export class AuthGuard  {
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+      const routePath = route.routeConfig?.path;
+
+      // Always allow login route to open.
+      if (routePath === 'login') {
+        return true;
+      }
+
       const currentUser:User = this.authenticationService.currentUserValue;
       if (currentUser) {
-        const routeRoot = route.routeConfig.path?.split("/")[0];
+        const routeRoot = routePath?.split('/')[0];
+        const normalizedRoutePath = this.getAuthorizationRoutePath(routePath || '');
         // If role has no tab mappings (data gap), still allow training routes so mandatory training / post-login redirect works.
         if ((!currentUser.tabList || currentUser.tabList.length === 0) &&
             (routeRoot === 'training' || routeRoot === 'user-training')) {
           return true;
         }
-        if(!currentUser.tabList.find(tab => tab.tabRouteName == route.routeConfig.path?.split("/")[0])){
+        if (!currentUser.tabList.find(tab => tab.tabRouteName == normalizedRoutePath)) {
           // role not authorised so redirect to home page
           this.router.navigate(['/home']);
           return false;
@@ -110,9 +118,19 @@ export class AuthGuard  {
           this.currentUrl = url;
         }
 
-          this.router.navigate(['/login'], { queryParams: { }});
+          sessionStorage.setItem('postLoginRedirect', state.url);
+          this.router.navigate(['/login'], { queryParams: { returnUrl: state.url }});
           return false;
       }
+  }
+
+  private getAuthorizationRoutePath(routePath: string): string {
+    const routeAuthMap: { [key: string]: string } = {
+      'team-employee-timesheet': 'user-timesheet',
+      'calendar-view': 'user-timesheet'
+    };
+    const baseRoute = routePath.split('/')[0];
+    return routeAuthMap[baseRoute] || baseRoute;
   }
   
 }
