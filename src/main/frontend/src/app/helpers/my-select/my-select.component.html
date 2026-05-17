@@ -1,9 +1,21 @@
-<mat-select disableOptionCentering [multiple]="multiple" [(ngModel)]="selectedValue"
-  (selectionChange)="onSelectionChange($event.value)" (openedChange)="onDropdownOpened($event)"
-  [compareWith]="compareObjects" [placeholder]="placeholder">
+<mat-select [panelClass]="selectPanelClass"
+  disableOptionCentering
+  [multiple]="multiple"
+  [(ngModel)]="selectedValue"
+  (selectionChange)="onSelectionChange($event.value)"
+  (openedChange)="onDropdownOpened($event)"
+  [compareWith]="compareObjects"
+  [placeholder]="multiple ? '' : placeholder"
+>
+  <mat-select-trigger *ngIf="multiple" class="my-select__multi-trigger">
+    <span class="my-select__multi-trigger-text">{{ multiTriggerLabel() }}</span>
+  </mat-select-trigger>
   <mat-option>
-    <ngx-mat-select-search [(ngModel)]="searchText" placeholderLabel="Search ..."
-      noEntriesFoundLabel="No data to display" [disabled]="disable || readonly">
+    <ngx-mat-select-search
+      [(ngModel)]="searchText"
+      placeholderLabel="Search ..."
+      noEntriesFoundLabel="No data to display"
+      [disabled]="disable || readonly">
     </ngx-mat-select-search>
   </mat-option>
 
@@ -13,14 +25,14 @@
     {{ filterActionLabel }}
   </mat-option>
 
-  <mat-option class="mat-option" *ngIf="multiple && filteredOptions.length > 0" (click)="toggleSelectAll($event)"
+  <mat-option class="mat-option" *ngIf="multiple && showSelectAll && filteredOptions.length > 0" (click)="toggleSelectAll($event)"
     [disabled]="disable || readonly">
     <strong>
       {{ isAllSelected() ? 'Deselect All' : 'Select All' }}
     </strong>
   </mat-option>
 
-  <mat-option *ngFor="let opt of filteredOptions" [value]="valueKey?opt[valueKey]:opt"
+  <mat-option *ngFor="let opt of filteredOptions; trackBy: trackByOption" [value]="valueKey?opt[valueKey]:opt"
     [disabled]="isDisabledOption(opt)" [title]="getDisplayText(opt)">
     {{ getDisplayText(opt) }}
   </mat-option>

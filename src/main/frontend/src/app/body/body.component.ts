@@ -90,7 +90,9 @@ export class BodyComponent implements OnInit {
 
   ngOnInit(): void {
     this.drawerService.register(this);
-    this.extractFeatures();
+    if (this.currentUser?.userMapping?.length) {
+      this.extractFeatures();
+    }
     this.isHome = this.router.url === '/home';
 
     // Also handle navigation events
@@ -103,8 +105,9 @@ export class BodyComponent implements OnInit {
   }
 
   extractFeatures() {
-    // Loop through userMapping to find the required features
-    console.log("Current user",this.currentUser);
+    if (!this.currentUser?.userMapping?.length) {
+      return;
+    }
     this.currentUser.userMapping.forEach(feature => {
       console.log(feature.featureName);
       if (feature.featureName === 'Resource Management') {

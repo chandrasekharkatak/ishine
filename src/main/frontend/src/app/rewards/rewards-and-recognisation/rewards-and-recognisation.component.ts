@@ -17,6 +17,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { SortPipe } from 'src/app/sort.pipe';
 import * as XLSX from 'xlsx';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -104,7 +105,8 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
     private exportExcelService: ExportExcelService,
     private validationService: ValidationService,
     private employeeService: EmployeeService,
-    private utilityService: UtilityService
+    private utilityService: UtilityService,
+    private router : Router
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -1093,4 +1095,9 @@ onEnableQuarterClick(template: TemplateRef<any>) {
     }
   });
 }
+
+
+
+
+  
   }

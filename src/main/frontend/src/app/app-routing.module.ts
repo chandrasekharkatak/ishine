@@ -12,6 +12,9 @@ import { ProjectViewComponent } from './project-view/project-view.component';
 import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
 import { RecruitmentComponent } from './recruitment/recruitment.component';
 import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-view/team-employee-timesheet-view.component';
+import { GrievanceComponent } from './grievance/grievance.component';
+import { GrievanceEditComponent } from './grievance/grievance-edit.component';
+import { GrievanceIssueScenarioAdminComponent } from './grievance/grievance-issue-scenario-admin.component';
 import { UserAppreciationComponent } from './user-appreciation/user-appreciation.component';
 import { UserAttendanceComponent } from './user-attendance/user-attendance.component';
 import { UserPoliciesComponent } from './user-policies/user-policies.component';
@@ -105,6 +108,11 @@ const routes: Routes = [
     loadChildren: () => import('./module-routing/user-performance/user-performance.module').then(m => m.UserPerformanceModule),
     canActivate: [AuthGuard]
   },
+  {
+    path: 'skill-matrix',
+    loadChildren: () => import('./module-routing/skill-matrix/skill-matrix.module').then(m => m.SkillMatrixModule),
+    canActivate: [AuthGuard]
+  },
   { path: 'hr-policies', component: HrPoliciesComponent, canActivate: [AuthGuard] },
   { path: 'helpdesk', component: HelpdeskComponent },
   { path: 'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard] },
@@ -112,6 +120,10 @@ const routes: Routes = [
   { path: 'newsletters', component: NewsletterComponent, canActivate: [AuthGuard] },
   { path: 'training', component: TrainingComponent, canActivate: [AuthGuard] },
   { path: 'user-training', component: TrainingComponent, canActivate: [AuthGuard] },
+  { path: 'grievance/issue-scenarios', component: GrievanceIssueScenarioAdminComponent, canActivate: [AuthGuard] },
+  { path: 'grievance/:ticketId/edit', component: GrievanceEditComponent, canActivate: [AuthGuard] },
+  { path: 'grievance', component: GrievanceComponent, canActivate: [AuthGuard] },
+  { path: 'tgrievance/:category/:subcategory', component: GrievanceComponent },
   {
     path: 'travelDesk',
     loadChildren: () => import('./module-routing/travel-desk/travel-desk.module').then(m => m.TravelDeskModule),

@@ -29,6 +29,7 @@ import { BodyComponent } from './body/body.component';
 import { SidenavComponent } from './sidenav/sidenav.component';
 
 import { ColFilterPipe } from './col-filter.pipe';
+import { RmbCamelCaseDisplayPipe } from './rmb-camel-case-display.pipe';
 import { ResourceManagementComponent } from './user-team/resource-management/resource-management.component';
 
 import { ColumnFilterBarComponent } from './helpers/column-filter-bar/column-filter-bar.component';
@@ -56,6 +57,10 @@ import { SurveyConfigComponent } from './configuration/survey-config/survey-conf
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 
 import { HelpdeskComponent } from './helpdesk/helpdesk.component';
+import { GrievanceComponent } from './grievance/grievance.component';
+import { GrievanceAuditTimelineComponent } from './grievance/grievance-audit-timeline.component';
+import { GrievanceEditComponent } from './grievance/grievance-edit.component';
+import { GrievanceIssueScenarioAdminComponent } from './grievance/grievance-issue-scenario-admin.component';
 import { CalendarComponent } from './helpers/calendar/calendar.component';
 
 import { CustomFilterComponent } from './helpers/custom-filter/custom-filter.component';
@@ -71,6 +76,7 @@ import { RecruitmentComponent } from './recruitment/recruitment.component';
 import { RewardFilterPipe } from './reward-filter.pipe';
 
 import { Employee360AppreciationComponent } from './employee360/employee360-appreciation/employee360-appreciation.component';
+import { Employee360GrievanceComponent } from './employee360/employee360-grievance/employee360-grievance.component';
 import { Employee360BiomaxComponent } from './employee360/employee360-biomax/employee360-biomax.component';
 import { Employee360LeaveComponent } from './employee360/employee360-leave/employee360-leave.component';
 import { Employee360ProfileComponent } from './employee360/employee360-profile/employee360-profile.component';
@@ -93,6 +99,11 @@ import { HolidaysComponent } from './user-leaves/holidays/holidays.component';
 import { LeaveComponent } from './user-leaves/leave/leave.component';
 import { UserLeavesComponent } from './user-leaves/user-leaves.component';
 import { UserPerformanceComponent } from './user-performance/user-performance.component';
+import { SkillMatrixContainerComponent } from './skill-matrix/skill-matrix-container.component';
+import { SkillMatrixSubmitComponent } from './skill-matrix/skill-matrix-submit.component';
+import { SkillMatrixMySubmissionsComponent } from './skill-matrix/skill-matrix-my-submissions.component';
+import { SkillMatrixApproveRequestsComponent } from './skill-matrix/skill-matrix-approve-requests.component';
+import { SkillMatrixMasterConfigurationComponent } from './skill-matrix/skill-matrix-master-configuration.component';
 import { UserPoliciesComponent } from './user-policies/user-policies.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { UserRequestsComponent } from './user-requests/user-requests.component';
@@ -148,11 +159,13 @@ import { PerformanceManagementSystemComponent } from './user-performance/perform
 import { FilterEmployeePipe } from './filter-employee.pipe';
 import { ViewEmployeeComponent } from './user-team/resource-management/view-employee/view-employee.component';
 import { TotalReimbursementrequestComponent } from './reimbursement/total-reimbursementrequest/total-reimbursementrequest.component';
+import { ReimbursementDashboardComponent } from './reimbursement/reimbursement-dashboard/reimbursement-dashboard.component';
 import { SafePipe } from './safe.pipe';
 import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequest/total-travelrequest.component';
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
+import { ReimbursementRuleSetConfigComponent } from './configuration/reimbursement-rule-set-config/reimbursement-rule-set-config.component';
 import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
 import { RoMonthYearFieldComponent } from './user-timesheet/hr-dashboard/ro-month-year-field/ro-month-year-field.component';
 import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
@@ -232,6 +245,7 @@ import { MyTableComponent } from './helpers/my-table/my-table.component';
 import { RmgStatusCardsComponent } from './user-team/resource-management/rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
+import { ReimbursementTicketModalComponent } from './reimbursement/reimbursement-ticket-modal/reimbursement-ticket-modal.component';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
 import { RmgModalHostComponent } from './user-team/resource-management/rmg-modal-host/rmg-modal-host.component';
@@ -255,8 +269,17 @@ registerLocaleData(localeGb);
     UserSalaryComponent,
     UserRequestsComponent,
     UserPerformanceComponent,
+    SkillMatrixContainerComponent,
+    SkillMatrixSubmitComponent,
+    SkillMatrixMySubmissionsComponent,
+    SkillMatrixApproveRequestsComponent,
+    SkillMatrixMasterConfigurationComponent,
     HrPoliciesComponent,
     HelpdeskComponent,
+    GrievanceComponent,
+    GrievanceEditComponent,
+    GrievanceAuditTimelineComponent,
+    GrievanceIssueScenarioAdminComponent,
     ConfigurationComponent,
     RoleConfigComponent,
     DeptConfigComponent,
@@ -300,6 +323,7 @@ registerLocaleData(localeGb);
     ProjectConfigComponent,
     ResourceManagementComponent,
     ColFilterPipe,
+    RmbCamelCaseDisplayPipe,
     SortPipe,
     ColumnFilterBarComponent,
     MultiColFilterPipe,
@@ -328,6 +352,7 @@ registerLocaleData(localeGb);
     Employee360BiomaxComponent,
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
+    Employee360GrievanceComponent,
     DomainComponent,
     AllProjectInsightDomainsComponent,
     SafeHtmlPipe,
@@ -336,8 +361,6 @@ registerLocaleData(localeGb);
     SubDomainComponent,
     FilterProjectInsightComponent,
     SubServiceComponent,
-    FilterProjectInsightComponent,
-    Employee360BiomaxComponent,
     AppreciationComponent,
     QrCodeGeneratorComponent,
     ExpiedPoAndProjectComponent,
@@ -359,9 +382,12 @@ registerLocaleData(localeGb);
     ViewEmployeeComponent,
     TotalTravelrequestComponent,
     TotalReimbursementrequestComponent,
+    ReimbursementDashboardComponent,
+    ReimbursementTicketModalComponent,
     SafePipe,
     TravelConfigComponent,
     ReimbursmentConfigComponent,
+    ReimbursementRuleSetConfigComponent,
     HrDashboardComponent,
     TimesheetConfigComponent,
     TeamEmployeeTimesheetViewComponent,
@@ -376,35 +402,14 @@ registerLocaleData(localeGb);
     TrainingConfigComponent,
     TrainingComponent,
     ViewImageComponent,
-    SafeHtmlPipe,
     ConnectionLostComponent,
-    AppreciationComponent,
     PerformanceDashboardComponent,
     TeamDashboardComponent,
     AddDomainDataModalComponent,
     TemplatesComponent,
     QuarterCycleComponent,
     ViewPerformanceComponent,
-    NavigateToProjectViewDirective,
-    ProjectViewComponent,
-    PerformanceConfigComponent,
     PerformanceManagementSystemComponent,
-    QrCodeGeneratorComponent,
-    ExpiedPoAndProjectComponent,
-    NavigateToProjectViewDirective,
-    ProjectViewComponent,
-    PerformanceConfigComponent,
-    TravelAllowanceComponent,
-    ReimbursementComponent,
-    MyReimbursementComponent,
-    ViewReimbursementComponent,
-    ReimbursementapprovalComponent,
-    MyTravelrequestComponent,
-    TravelrequestapprovalComponent,
-    ViewTravelrequestComponent,
-    LMSComponent,
-    BiomaxApprovalComponent,
-    LmstabComponent,
     HighlightPipe,
     FormBuilderComponent,
     FormRendererComponent,

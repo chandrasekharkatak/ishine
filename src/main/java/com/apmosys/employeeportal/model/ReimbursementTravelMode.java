@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -15,8 +17,9 @@ public class ReimbursementTravelMode {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long travelModeId;
 
-    // Proper ManyToOne relationship
+    // ManyToOne: DB may contain orphan expenditure_type_id rows; do not fail entire list load.
     @ManyToOne(fetch = FetchType.EAGER)
+    @NotFound(action = NotFoundAction.IGNORE)
     @JoinColumn(name = "expenditure_type_id", nullable = false)
     private ExpenditureType expenditureType;
 

@@ -17,7 +17,7 @@ import { MatSelect } from '@angular/material/select';
     }
   ]
 })
-export class MySelectComponent implements ControlValueAccessor, OnInit {
+export class MySelectComponent implements ControlValueAccessor, OnInit, OnChanges {
   
   @Input() disable = false;
   @Input() readonly = false;
@@ -31,9 +31,10 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   @Input() isOptionDisabled?: (option: any) => boolean;
   @Input() showFilterAction: boolean = false;
   @Input() filterActionLabel: string = 'Filter List';
-
   @Input() wrapOptions = false;
   @Input() showSelectAll = true;
+  /** When true, option labels wrap in the overlay panel (long project names, reimbursement, etc.). */
+  @Input() wrapOptionLines = false;
   @Output() selectionChange = new EventEmitter<any>();
   @Output() change = new EventEmitter<any>();
   @Output() dropdownClosed = new EventEmitter<void>();
@@ -61,6 +62,17 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   ngDoCheck() {
     // manually trigger filtering when searchText changes (ngModel doesn't auto-pipe)
     this.onSearchChange();
+  }
+
+  get selectPanelClass(): string {
+    const classes = ['custom-select-panel'];
+    if (this.wrapOptionLines) {
+      classes.push('my-select-panel--wrap');
+    }
+    if (this.wrapOptions) {
+      classes.push('wrapped-select-panel');
+    }
+    return classes.join(' ');
   }
 
   openWithDynamicPosition(triggerElement: HTMLElement) {
@@ -112,9 +124,22 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
 
 
   sort(value: any) {
-    return Array.isArray(value)
-      ? value.sort((x, y) => this.getIndex(this.options, x) - this.getIndex(this.options, y))
-      : value ?? undefined;
+    if (!Array.isArray(value)) {
+      return value ?? undefined;
+    }
+    const copy = [...value];
+    return copy.sort((a, b) => this.sortIndexForItem(a) - this.sortIndexForItem(b));
+  }
+
+  /** Order multiselect values by option list order (supports primitive ids when {@link #valueKey} is set). */
+  private sortIndexForItem(item: any): number {
+    if (!this.options?.length) {
+      return 0;
+    }
+    if (this.valueKey) {
+      return this.options.findIndex((o) => o[this.valueKey] === item);
+    }
+    return this.getIndex(this.options, item);
   }
 
 
@@ -227,7 +252,18 @@ deepEqual(obj1: any, obj2: any): boolean {
   });
 }
 
-getDisplayText(option: any): string {
+  /**
+   * Closed state for multiselect: always show the placeholder only — selection is visible as
+   * checkmarks in the panel and typically as chips below the field on the parent screen.
+   */
+  multiTriggerLabel(): string {
+    if (!this.multiple) {
+      return '';
+    }
+    return this.placeholder || 'Select';
+  }
+
+  getDisplayText(option: any): string {
   if (!option) return '';
 
   // If displayKey is array → join multiple keys

@@ -13,6 +13,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { NewsletterService } from 'src/app/services/newsletter.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -66,6 +67,7 @@ export class DocumentComponent implements OnInit {
     private validationService : ValidationService,
     private locationStrategy : LocationStrategy,
     private utilityService: UtilityService,
+    private router : Router
   ) { }
 
   async ngOnInit(): Promise<void> {
@@ -524,9 +526,6 @@ checkDocumentName(documentName,template:TemplateRef<any>){
 
 
 }
-
-
-
 
 
 }

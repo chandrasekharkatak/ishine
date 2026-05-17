@@ -16,10 +16,21 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ExpenditureTypeDTO;
+import com.apmosys.employeeportal.dto.ReimbursementApprovalMatrixDTO;
+import com.apmosys.employeeportal.dto.ReimbursementApprovalMatrixSaveRequestDTO;
+import com.apmosys.employeeportal.dto.ReimbursementDashboardFilterDTO;
 import com.apmosys.employeeportal.dto.ReimbursementDTO;
+import com.apmosys.employeeportal.dto.ReimbursementFinanceTicketActionDTO;
+import com.apmosys.employeeportal.dto.ReimbursementTicketActorDTO;
+import com.apmosys.employeeportal.dto.ReimbursementTicketStageActionDTO;
+import com.apmosys.employeeportal.dto.ReimbursementSubmissionSettingsDTO;
+import com.apmosys.employeeportal.dto.ReimbursementTicketSubmitRequestDTO;
 import com.apmosys.employeeportal.dto.TravelBasedReimbursementRequestDTO;
 import com.apmosys.employeeportal.dto.TravelModeDTO;
+import com.apmosys.employeeportal.service.ReimbursementApprovalMatrixService;
 import com.apmosys.employeeportal.service.ReimbursementService;
+import com.apmosys.employeeportal.service.ReimbursementSubmissionSettingsService;
+import com.apmosys.employeeportal.service.ReimbursementTicketService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
@@ -28,6 +39,15 @@ public class ReimbursementController {
 
 	@Autowired
 	private ReimbursementService reimbursementService;
+
+	@Autowired
+	private ReimbursementTicketService reimbursementTicketService;
+
+	@Autowired
+	private ReimbursementApprovalMatrixService reimbursementApprovalMatrixService;
+
+	@Autowired
+	private ReimbursementSubmissionSettingsService reimbursementSubmissionSettingsService;
 
 	@PostMapping("/fetchReimbursementData")
 	public ServiceResponse fetchReimbursementData(@RequestBody ReimbursementDTO reimbursementObj) {
@@ -138,5 +158,130 @@ public class ReimbursementController {
 		return reimbursementService.getAllFoodType();
 	}
 
+	@PostMapping("/deleteExpenditureType")
+	public ServiceResponse deleteExpenditureType(@RequestBody ExpenditureTypeDTO dto) {
+		return reimbursementService.deleteExpenditureType(dto.getId());
+	}
+
+	@PostMapping("/deleteReimbursementTravelMode")
+	public ServiceResponse deleteReimbursementTravelMode(@RequestBody TravelModeDTO dto) {
+		return reimbursementService.deleteTravelMode(dto.getTravelModeId());
+	}
+
+	@PostMapping("/deleteVehicleType")
+	public ServiceResponse deleteVehicleType(@RequestBody TravelModeDTO dto) {
+		return reimbursementService.deleteVehicleType(dto.getVehicleTypeId());
+	}
+
+	@PostMapping("/deleteFoodType")
+	public ServiceResponse deleteFoodType(@RequestBody TravelModeDTO dto) {
+		return reimbursementService.deleteFoodType(dto.getFoodTypeId());
+	}
+
+	@GetMapping("/getReimbursementSubmissionSettings")
+	public ServiceResponse getReimbursementSubmissionSettings() {
+		return reimbursementSubmissionSettingsService.fetchSettings();
+	}
+
+	@PostMapping("/saveReimbursementSubmissionSettings")
+	public ServiceResponse saveReimbursementSubmissionSettings(@RequestBody ReimbursementSubmissionSettingsDTO body) {
+		return reimbursementSubmissionSettingsService.saveSettings(body);
+	}
+
+	@GetMapping("/getReimbursementSubmissionWindowStatus")
+	public ServiceResponse getReimbursementSubmissionWindowStatus() {
+		return reimbursementSubmissionSettingsService.fetchSubmissionWindowStatus();
+	}
+
+	@PostMapping("/saveReimbursementTicket")
+	public ServiceResponse saveReimbursementTicket(@RequestBody ReimbursementTicketSubmitRequestDTO body) {
+		return reimbursementTicketService.submitTicket(body);
+	}
+
+	@PostMapping("/fetchReimbursementClaimProjectOptions")
+	public ServiceResponse fetchReimbursementClaimProjectOptions(@RequestBody ReimbursementTicketActorDTO body) {
+		return reimbursementTicketService.fetchClaimProjectOptions(body);
+	}
+
+	@PostMapping("/fetchReimbursementClientsFromMaster")
+	public ServiceResponse fetchReimbursementClientsFromMaster(
+			@RequestBody(required = false) java.util.Map<String, Object> body) {
+		return reimbursementTicketService.fetchReimbursementClientsFromMaster();
+	}
+
+	@PostMapping("/fetchMyReimbursementTickets")
+	public ServiceResponse fetchMyReimbursementTickets(@RequestBody ReimbursementTicketActorDTO body) {
+		return reimbursementTicketService.fetchMyTickets(body.getEmpId());
+	}
+
+	@PostMapping("/fetchReimbursementTicketsForApproval")
+	public ServiceResponse fetchReimbursementTicketsForApproval(@RequestBody ReimbursementTicketActorDTO body) {
+		return reimbursementTicketService.fetchTicketsForApproval(body);
+	}
+
+	@PostMapping("/fetchReimbursementTicketsAssignedAll")
+	public ServiceResponse fetchReimbursementTicketsAssignedAll(@RequestBody ReimbursementTicketActorDTO body) {
+		return reimbursementTicketService.fetchAllTicketsAssignedToActor(body);
+	}
+
+	@PostMapping("/processReimbursementTicketHod")
+	public ServiceResponse processReimbursementTicketHod(@RequestBody ReimbursementTicketStageActionDTO body) {
+		return reimbursementTicketService.processHodAction(body);
+	}
+
+	@PostMapping("/processReimbursementTicketHr")
+	public ServiceResponse processReimbursementTicketHr(@RequestBody ReimbursementTicketStageActionDTO body) {
+		return reimbursementTicketService.processHrAction(body);
+	}
+
+	@PostMapping("/processReimbursementTicketFinance")
+	public ServiceResponse processReimbursementTicketFinance(@RequestBody ReimbursementFinanceTicketActionDTO body) {
+		return reimbursementTicketService.processFinanceAction(body);
+	}
+
+	@PostMapping("/fetchReimbursementTicketAuditByTicketId")
+	public ServiceResponse fetchReimbursementTicketAuditByTicketId(
+			@RequestBody(required = false) java.util.Map<String, Long> body) {
+		Long ticketId = body != null ? body.get("ticketId") : null;
+		if (ticketId == null) {
+			ServiceResponse r = new ServiceResponse();
+			r.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			r.setServiceError("ticketId is required.");
+			return r;
+		}
+		return reimbursementTicketService.fetchAuditLog(ticketId);
+	}
+
+	@PostMapping("/fetchReimbursementDashboard")
+	public ServiceResponse fetchReimbursementDashboard(@RequestBody(required = false) ReimbursementDashboardFilterDTO filter) {
+		return reimbursementTicketService.dashboard(filter != null ? filter : new ReimbursementDashboardFilterDTO());
+	}
+
+	@GetMapping("/getAllReimbursementApprovalMatrices")
+	public ServiceResponse getAllReimbursementApprovalMatrices() {
+		return reimbursementApprovalMatrixService.getAllApprovalMatrices();
+	}
+
+	@GetMapping("/resolveReimbursementApprovalMatrixForEmployee")
+	public ServiceResponse resolveReimbursementApprovalMatrixForEmployee(@RequestParam Long empId) {
+		return reimbursementApprovalMatrixService.resolveForEmployee(empId);
+	}
+
+	@PostMapping("/saveAllReimbursementApprovalMatrices")
+	public ServiceResponse saveAllReimbursementApprovalMatrices(
+			@RequestBody ReimbursementApprovalMatrixSaveRequestDTO request) {
+		return reimbursementApprovalMatrixService.saveAllApprovalMatrices(request);
+	}
+
+	@PostMapping("/saveReimbursementApprovalMatrix")
+	public ServiceResponse saveReimbursementApprovalMatrix(
+			@RequestBody ReimbursementApprovalMatrixSaveRequestDTO request) {
+		return reimbursementApprovalMatrixService.saveApprovalMatrix(request);
+	}
+
+	@PostMapping("/deleteReimbursementApprovalMatrix")
+	public ServiceResponse deleteReimbursementApprovalMatrix(@RequestBody ReimbursementApprovalMatrixDTO dto) {
+		return reimbursementApprovalMatrixService.deleteApprovalMatrix(dto != null ? dto.getMatrixId() : null);
+	}
 
 }

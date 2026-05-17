@@ -39,8 +39,14 @@ export class AuthGuard  {
 
       const currentUser:User = this.authenticationService.currentUserValue;
       if (currentUser) {
+        const routeRoot = routePath?.split('/')[0];
         const normalizedRoutePath = this.getAuthorizationRoutePath(routePath || '');
-        if(!currentUser.tabList.find(tab => tab.tabRouteName == normalizedRoutePath)){
+        // If role has no tab mappings (data gap), still allow training routes so mandatory training / post-login redirect works.
+        if ((!currentUser.tabList || currentUser.tabList.length === 0) &&
+            (routeRoot === 'training' || routeRoot === 'user-training')) {
+          return true;
+        }
+        if (!currentUser.tabList.find(tab => tab.tabRouteName == normalizedRoutePath)) {
           // role not authorised so redirect to home page
           this.router.navigate(['/home']);
           return false;
