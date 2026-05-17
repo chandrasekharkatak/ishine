@@ -270,6 +270,8 @@ public class TeamsService {
 	@Value("${maximum.timesheetCanBeFilledByMember}")
 	private String maximumTimesheetCanBeFilledByTeamMember;
 
+    private static final long DEFAULT_MAPPING_SCHEDULER_USER = 1L;
+
 	public ServiceResponse getAllProjectListByProjectManagerId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -5346,7 +5348,7 @@ public class TeamsService {
                         .collect(Collectors.groupingBy(EmpPrimaryProjectMapping::getEmpId));
 
         List<EmpPrimaryProjectMapping> updates = new ArrayList<>();
-        
+
         List<MultiProjectEmployeeDTO> multiProjectEmployees = new ArrayList<>();
         Map<String, Set<MultiProjectEmployeeDTO>> hodNoDefaultEmployees = new HashMap<>();
         List<EmployeeBillableUpdateDTO> billableUpdates = new ArrayList<>();
@@ -5397,6 +5399,15 @@ public class TeamsService {
                     new ArrayList<>(
                             mappingsByEmpId.getOrDefault(empId, Collections.emptyList()));
 
+            if (hasDuplicateActiveDefaults(empMappings)) {
+                log.warn(
+                        "Skipping default-project mapping update for empId={}: multiple is_mapped='Y' rows in emp_primary_project_mapping",
+                        empId);
+                queueHodNotificationForMappingIntegrityIssue(
+                        empId, empProjects, multiProjectEmployees, hodNoDefaultEmployees);
+                continue;
+            }
+
             // Demote any existing default mapping that is not the current single active project
             for (EmpPrimaryProjectMapping existing : empMappings) {
                 if ("Y".equalsIgnoreCase(existing.getIsMapped())
@@ -5404,7 +5415,7 @@ public class TeamsService {
 
                     existing.setIsMapped("N");
                     existing.setUpdatedOn(now);
-                    existing.setUpdatedBy(1L);
+                    existing.setUpdatedBy(DEFAULT_MAPPING_SCHEDULER_USER);
                     updates.add(existing);
                 }
             }
@@ -5416,14 +5427,18 @@ public class TeamsService {
                             .orElse(null);
 
             if (target == null) {
-                target = new EmpPrimaryProjectMapping();
-                target.setEmpId(empId);
-                target.setPrimaryProjectId(projectId);
-                target.setPrimaryProjectName(projectName);
-                target.setIsMapped("Y");
-                target.setUpdatedOn(now);
-                target.setUpdatedBy(1L);
-                updates.add(target);
+                boolean hasActiveDefault = empMappings.stream()
+                        .anyMatch(m -> "Y".equalsIgnoreCase(m.getIsMapped()));
+                if (!hasActiveDefault) {
+                    target = new EmpPrimaryProjectMapping();
+                    target.setEmpId(empId);
+                    target.setPrimaryProjectId(projectId);
+                    target.setPrimaryProjectName(projectName);
+                    target.setIsMapped("Y");
+                    target.setUpdatedOn(now);
+                    target.setUpdatedBy(DEFAULT_MAPPING_SCHEDULER_USER);
+                    updates.add(target);
+                }
             } else {
                 boolean needsUpdate =
                         !"Y".equalsIgnoreCase(target.getIsMapped())
@@ -5433,20 +5448,20 @@ public class TeamsService {
                     target.setPrimaryProjectName(projectName);
                     target.setIsMapped("Y");
                     target.setUpdatedOn(now);
-                    target.setUpdatedBy(1L);
+                    target.setUpdatedBy(DEFAULT_MAPPING_SCHEDULER_USER);
                     updates.add(target);
                 }
             }
-            
+			
             billableUpdates.add(
                     computeBillableUpdate(empId, project)
             );
         }
-        
+
         notifyManagersForMultipleProjectsGrouped(multiProjectEmployees);
 
         notifyHodsForMissingDefaultMapping(hodNoDefaultEmployees);
-        
+
         if (!billableUpdates.isEmpty()) {
 
             bulkUpdateBillableType(billableUpdates);
@@ -5454,9 +5469,44 @@ public class TeamsService {
         }
 
         if (!updates.isEmpty()) {
+            List<EmpPrimaryProjectMapping> existingMappings = updates.stream()
+                    .filter(m -> m.getMappingId() != null)
+                    .collect(Collectors.toList());
+            List<EmpPrimaryProjectMapping> newMappings = updates.stream()
+                    .filter(m -> m.getMappingId() == null)
+                    .collect(Collectors.toList());
 
-            empPrimaryProjectMappingRepository.saveAll(updates);
+            if (!existingMappings.isEmpty()) {
+                empPrimaryProjectMappingRepository.saveAll(existingMappings);
+            }
+            for (EmpPrimaryProjectMapping row : newMappings) {
+                empPrimaryProjectMappingRepository.save(row);
+            }
         }
+    }
+
+    private void queueHodNotificationForMappingIntegrityIssue(
+            Long empId,
+            List<ProjectEmpInfoDTO> empProjects,
+            List<MultiProjectEmployeeDTO> multiProjectEmployees,
+            Map<String, Set<MultiProjectEmployeeDTO>> hodNoDefaultEmployees) {
+
+        MultiProjectEmployeeDTO dto = buildMultiProjectEmployee(empId, empProjects);
+        multiProjectEmployees.add(dto);
+
+        String hodEmail = employeeRepository.findHodMail(empId);
+        if (hodEmail != null && !hodEmail.isBlank()) {
+            hodNoDefaultEmployees
+                    .computeIfAbsent(hodEmail, k -> new HashSet<>())
+                    .add(dto);
+        }
+    }
+
+    private boolean hasDuplicateActiveDefaults(List<EmpPrimaryProjectMapping> empMappings) {
+        long activeDefaultCount = empMappings.stream()
+                .filter(m -> "Y".equalsIgnoreCase(m.getIsMapped()))
+                .count();
+        return activeDefaultCount > 1;
     }
 
     private void notifyHodsForMissingDefaultMapping(
