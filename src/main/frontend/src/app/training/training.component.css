@@ -26,6 +26,7 @@
 
 .container {
   max-width: 1400px; /* Increased to accommodate wider cards */
+  padding-right: 20px;
 }
 
 .card {
@@ -1354,4 +1355,34 @@
 .slide-nav.right {
   right: 0;
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M8 18L16 12L8 6V18Z" fill="black"/></svg>') 12 12, pointer;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.fa-external-link-alt:hover {
+  color: #0d6efd;
+}
+
+.action-icon {
+  font-size: 16px;
+  color: #0d6efd;
+  background-color: #e7f1ff;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+}
+
+.action-icon:hover {
+  background-color: #0d6efd;
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.table-header {
+  min-height: 50px;
 }

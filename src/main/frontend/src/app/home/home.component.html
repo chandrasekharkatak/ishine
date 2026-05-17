@@ -1142,9 +1142,14 @@
     <ng-template #TimesheetReq>
         <div class="modal-header">
             <h1 class="table-header-title">My Reportee Timesheet Applications</h1>
+            
             <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
                 <span aria-hidden="true">&times;</span>
             </button>
+
+             
+
+
         </div>
         <div class="modal-body px-4">
             <div *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group ml-4">

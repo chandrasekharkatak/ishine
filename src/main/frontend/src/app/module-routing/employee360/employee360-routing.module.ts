@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { Employee360AppreciationComponent } from 'src/app/employee360/employee360-appreciation/employee360-appreciation.component';
+import { Employee360GrievanceComponent } from 'src/app/employee360/employee360-grievance/employee360-grievance.component';
 import { Employee360BiomaxComponent } from 'src/app/employee360/employee360-biomax/employee360-biomax.component';
 import { Employee360LeaveComponent } from 'src/app/employee360/employee360-leave/employee360-leave.component';
 import { Employee360ProfileComponent } from 'src/app/employee360/employee360-profile/employee360-profile.component';
@@ -21,6 +22,7 @@ const routes: Routes = [{
     { path: 'biomax', component: Employee360BiomaxComponent },
     { path: 'rewards', component: Employee360RewardsComponent },
     { path: 'appreciation', component: Employee360AppreciationComponent },
+    { path: 'grievance', component: Employee360GrievanceComponent },
     { path: 'lms', component: LMSComponent },
   ],
 },];

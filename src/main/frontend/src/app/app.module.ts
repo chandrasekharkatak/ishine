@@ -57,6 +57,10 @@ import { SurveyConfigComponent } from './configuration/survey-config/survey-conf
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 
 import { HelpdeskComponent } from './helpdesk/helpdesk.component';
+import { GrievanceComponent } from './grievance/grievance.component';
+import { GrievanceAuditTimelineComponent } from './grievance/grievance-audit-timeline.component';
+import { GrievanceEditComponent } from './grievance/grievance-edit.component';
+import { GrievanceIssueScenarioAdminComponent } from './grievance/grievance-issue-scenario-admin.component';
 import { CalendarComponent } from './helpers/calendar/calendar.component';
 
 import { CustomFilterComponent } from './helpers/custom-filter/custom-filter.component';
@@ -72,6 +76,7 @@ import { RecruitmentComponent } from './recruitment/recruitment.component';
 import { RewardFilterPipe } from './reward-filter.pipe';
 
 import { Employee360AppreciationComponent } from './employee360/employee360-appreciation/employee360-appreciation.component';
+import { Employee360GrievanceComponent } from './employee360/employee360-grievance/employee360-grievance.component';
 import { Employee360BiomaxComponent } from './employee360/employee360-biomax/employee360-biomax.component';
 import { Employee360LeaveComponent } from './employee360/employee360-leave/employee360-leave.component';
 import { Employee360ProfileComponent } from './employee360/employee360-profile/employee360-profile.component';
@@ -271,6 +276,10 @@ registerLocaleData(localeGb);
     SkillMatrixMasterConfigurationComponent,
     HrPoliciesComponent,
     HelpdeskComponent,
+    GrievanceComponent,
+    GrievanceEditComponent,
+    GrievanceAuditTimelineComponent,
+    GrievanceIssueScenarioAdminComponent,
     ConfigurationComponent,
     RoleConfigComponent,
     DeptConfigComponent,
@@ -343,6 +352,7 @@ registerLocaleData(localeGb);
     Employee360BiomaxComponent,
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
+    Employee360GrievanceComponent,
     DomainComponent,
     AllProjectInsightDomainsComponent,
     SafeHtmlPipe,

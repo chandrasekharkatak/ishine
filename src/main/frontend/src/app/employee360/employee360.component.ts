@@ -322,6 +322,8 @@ export class Employee360Component implements OnInit {
         activeRouteLink = 'rewards';
       }else if(employee360title.includes("Appreciation")){
         activeRouteLink = 'appreciation';
+      }else if(employee360title.includes("Grievance")){
+        activeRouteLink = 'grievance';
       }else{
         activeRouteLink = 'profile';
       }
