@@ -252,15 +252,40 @@ deepEqual(obj1: any, obj2: any): boolean {
   });
 }
 
-  /**
-   * Closed state for multiselect: always show the placeholder only — selection is visible as
-   * checkmarks in the panel and typically as chips below the field on the parent screen.
-   */
+  /** Closed multiselect label: comma-separated selected options (matches Material default on main). */
   multiTriggerLabel(): string {
     if (!this.multiple) {
       return '';
     }
-    return this.placeholder || 'Select';
+    const selected = this.selectedValue;
+    if (!Array.isArray(selected) || selected.length === 0) {
+      return this.placeholder || 'Select';
+    }
+    const labels = selected
+      .map((item) => this.labelForSelectedItem(item))
+      .filter((label) => label !== '');
+    if (labels.length === 0) {
+      return this.placeholder || 'Select';
+    }
+    return labels.join(', ');
+  }
+
+  private labelForSelectedItem(item: any): string {
+    if (item == null) {
+      return '';
+    }
+    if (this.options?.length) {
+      const opt = this.options.find((o) =>
+        this.valueKey ? o?.[this.valueKey] === item : o === item || this.compareObjects(o, item)
+      );
+      if (opt != null) {
+        return this.getDisplayText(opt);
+      }
+    }
+    if (typeof item === 'string' || typeof item === 'number') {
+      return String(item);
+    }
+    return this.getDisplayText(item);
   }
 
   getDisplayText(option: any): string {
