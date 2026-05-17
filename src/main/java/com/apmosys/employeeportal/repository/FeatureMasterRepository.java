@@ -12,6 +12,8 @@ import com.apmosys.employeeportal.model.FeatureMaster;
 @Repository
 public interface FeatureMasterRepository extends JpaRepository<FeatureMaster, Long> {
 
+	List<FeatureMaster> findByTabId(Long tabId);
+
 	@Query("SELECT distinct fm.featureId FROM FeatureMaster fm "
 			+ "INNER JOIN SubFeatureMaster sfm on sfm.featureId = fm.featureId "
 			+ "INNER JOIN RoleFeatureMap rfm on rfm.subFeatureMasterId = sfm.subFeatureMasterId "

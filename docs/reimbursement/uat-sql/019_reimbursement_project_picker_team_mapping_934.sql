@@ -1,0 +1,33 @@
+-- UAT emp_portal_db: Reimbursement project picker uses employee_team_mapping → teams → projects
+-- with client_locations (see EmployeeTeamMap.findProjectsByTeamId). If the employee has no active
+-- mapping to an active team on an active project, the dropdown is empty even when a primary
+-- project is set (merge path can still fail if project/client data is inconsistent).
+--
+-- Fix pattern for emp_id = 934 (adjust ids/names for other users):
+-- 1) Create a team on the desired project_id (must exist in projects, active = 'true', client_locations present).
+-- 2) Insert employee_team_mapping with active = 1, is_active on team = 'Y'.
+-- 3) Optionally deactivate orphan mappings whose team_id no longer exists in teams.
+
+-- Example applied for emp 934 + project 9846 (team_id 1456, map_id 9204 — your DB may auto-assign team_id):
+
+-- INSERT INTO teams (project_id, team_name, team_lead_id, team_lead_name, is_active, dept_id, created_by)
+-- VALUES (9846, 'DEV-TNM-wcdbat-dev@test — UAT', 934, 'Asutosh Maharana', 'Y', 7, 934);
+-- SET @new_team_id = LAST_INSERT_ID();
+-- INSERT INTO employee_team_mapping (
+--   employee_team_map_id, emp_id, team_id, job_role_id, active, employee_role,
+--   emp_team_department_id, created_by, is_shadow
+-- ) VALUES (
+--   (SELECT COALESCE(MAX(employee_team_map_id),0)+1 FROM employee_team_mapping etm2),
+--   934, @new_team_id, (SELECT job_role_id FROM employee WHERE emp_id = 934), 1, 'Employee',
+--   (SELECT jr.dept_id FROM employee e JOIN job_role jr ON jr.job_role_id = e.job_role_id WHERE e.emp_id = 934),
+--   934, 0
+-- );
+
+-- Preview picker rows for an emp_id:
+-- SELECT c.client_id, c.client_name, t.project_id, p.project_name, t.team_id
+-- FROM teams t
+-- INNER JOIN projects p ON p.project_id = t.project_id
+-- INNER JOIN clients c ON c.client_id = p.client_id
+-- INNER JOIN client_locations cl ON cl.client_id = c.client_id
+-- INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id
+-- WHERE etm.emp_id = :empId AND p.active = 'true' AND etm.active != 0 AND etm.active != 2 AND t.is_active = 'Y';

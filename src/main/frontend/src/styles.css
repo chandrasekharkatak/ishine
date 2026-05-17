@@ -51,6 +51,34 @@ body {
     background: var(--ghost-white);
 }
 
+/* SweetAlert: Rejection reasons popup (professional, no icon) */
+.smSwalRejection {
+  border-radius: 14px !important;
+  padding: 18px 18px 14px !important;
+}
+.smSwalRejection .swal2-title {
+  margin: 2px 0 10px !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  color: var(--dark-cornflower-blue) !important;
+}
+.smSwalRejection .swal2-html-container {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.smSwalRejection .swal2-icon {
+  display: none !important;
+}
+.smSwalRejection .swal2-actions {
+  margin: 14px 0 0 !important;
+}
+.smSwalRejection .swal2-confirm {
+  border-radius: 8px !important;
+  padding: 8px 18px !important;
+  font-weight: 800 !important;
+  font-size: 12px !important;
+}
+
 img{
     max-width: 100%;
     display: block;
@@ -370,6 +398,186 @@ ngb-modal-window {
   color: #222 !important;
 }
 
+.milestone-tooltip {
+  white-space: pre-line !important;
+  max-width: 260px !important;
+}
+
+/* Approve reimbursement: multi-line partial rejection details (matTooltipClass) */
+.rmb-partial-tooltip {
+  white-space: pre-wrap !important;
+  max-width: 22rem !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.35 !important;
+}
+
+/* Reimbursement: human-readable tables (used with .rmb-page on views) */
+.rmb-page {
+  font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--raisin-black);
+  -webkit-font-smoothing: antialiased;
+}
+
+.rmb-page .table-header-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--dark-cornflower-blue);
+}
+
+.rmb-page table.table thead th {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: #334155;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.rmb-page table.table td {
+  vertical-align: middle;
+}
+
+.rmb-page .rmb-approve-subnav .btn {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/*
+ * Reimbursement: approval history (stacked NgbModal).
+ * 1) Shell: windowClass + modalDialogClass on ng-bootstrap wrappers.
+ * 2) Inner: .rmbtm-hist-dialog is unique to this template — use it so styles win over
+ *    component CSS order / teleported-view encapsulation quirks.
+ */
+ngb-modal-window.rmbtm-history-modal .modal-content,
+.rmbtm-history-modal-dialog .modal-content {
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 18px 48px rgba(19, 43, 103, 0.35);
+}
+
+ngb-modal-window.rmbtm-history-modal .modal-body,
+.rmbtm-history-modal-dialog .modal-body {
+  padding: 0 !important;
+}
+
+/* —— Inner layout: scoped by .rmbtm-hist-dialog (only approval-history template) —— */
+.rmbtm-hist-dialog > .rmbtm-hist-header {
+  display: flex !important;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 1.1rem 1.25rem 0.75rem !important;
+  background: linear-gradient(135deg, #193d8a 0%, #132b67 55%, #193d8a 100%) !important;
+  color: #fff !important;
+}
+
+.rmbtm-hist-dialog > .rmbtm-hist-header .rmbtm-hist-kicker,
+.rmbtm-hist-dialog > .rmbtm-hist-header .rmbtm-hist-title,
+.rmbtm-hist-dialog > .rmbtm-hist-header .rmbtm-hist-sub {
+  color: #fff !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.rmbtm-hist-dialog > .rmbtm-hist-header .rmbtm-hist-kicker {
+  opacity: 0.95;
+}
+
+.rmbtm-hist-dialog > .rmbtm-hist-header .rmbtm-hist-title {
+  margin: 0 0 6px !important;
+}
+
+.rmbtm-hist-dialog > .rmbtm-hist-header .rmbtm-hist-sub {
+  opacity: 0.96;
+}
+
+.rmbtm-hist-dialog > .rmbtm-hist-header .rmbtm-hist-close {
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: #fff !important;
+}
+
+.rmbtm-hist-dialog > .rmbtm-hist-header .rmbtm-hist-close:hover {
+  background: rgba(255, 255, 255, 0.26) !important;
+}
+
+.rmbtm-hist-dialog > .rmbtm-hist-body {
+  background: linear-gradient(180deg, #f1f5f9 0%, #ffffff 56px) !important;
+  color: #212227 !important;
+}
+
+.rmbtm-hist-dialog .rmbtm-timeline-card {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+.rmbtm-hist-dialog .rmbtm-timeline-time {
+  color: #1e293b !important;
+  font-weight: 800 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.rmbtm-hist-dialog .rmbtm-timeline-badge {
+  color: #fff !important;
+  background: linear-gradient(135deg, #2d6bc4 0%, #193d8a 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.rmbtm-hist-dialog .rmbtm-timeline-actor {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.rmbtm-hist-dialog .rmbtm-timeline-actor__label {
+  color: #475569 !important;
+  font-weight: 800 !important;
+  background: transparent !important;
+}
+
+.rmbtm-hist-dialog .rmbtm-timeline-claim {
+  color: #193d8a !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.rmbtm-hist-dialog .rmbtm-timeline-remarks {
+  color: #0f172a !important;
+  font-weight: 500 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.rmbtm-hist-dialog > .rmbtm-hist-footer {
+  background: #f8fafc !important;
+}
+
+.rmbtm-hist-dialog > .rmbtm-hist-footer .btn-primary {
+  background: linear-gradient(135deg, #2d6bc4 0%, #193d8a 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  padding: 0.55rem 1.35rem !important;
+  box-shadow: 0 4px 14px rgba(30, 77, 139, 0.35) !important;
+}
+
+.rmbtm-hist-dialog > .rmbtm-hist-footer .btn-primary:hover {
+  filter: brightness(1.05);
+  color: #fff !important;
+}
+
+.rmbtm-hist-dialog > .rmbtm-hist-body > .rmbtm-hist-state {
+  color: #334155 !important;
+  font-weight: 500 !important;
+  background: transparent !important;
+}
+
 /* Document preview modal (team-timesheet) – enterprise look when rendered in overlay */
 .doc-modal-enterprise.doc-modal-lg {
   display: flex;
@@ -477,5 +685,3 @@ ngb-modal-window {
 .doc-modal-enterprise .no-doc-icon { font-size: 2.5rem; color: #cbd5e1; }
 .doc-modal-enterprise .no-doc-title { margin: 0; font-weight: 600; color: #475569; font-size: 1rem; }
 .doc-modal-enterprise .no-doc-hint { margin: 0; font-size: 0.8125rem; color: #94a3b8; }
-.milestone-tooltip { white-space: pre-line !important;  max-width: 260px !important;}
-

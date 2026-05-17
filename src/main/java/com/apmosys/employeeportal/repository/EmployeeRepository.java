@@ -326,6 +326,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("SELECT e FROM Employee e WHERE LOWER(e.name) = :name")
 	Employee findByNameIgnoreCase(@Param("name") String name);
 
+	/** For grievance audit: resolve display name back to portal {@code emp_id} when snapshots stored names under *EmpId keys. */
+	@Query("SELECT e.empId FROM Employee e WHERE LOWER(TRIM(e.name)) = LOWER(TRIM(:name)) ORDER BY e.empId ASC")
+	List<Long> findEmpIdsByNameIgnoreCaseTrim(@Param("name") String name);
+
 	public List<Employee> findByJobRoleId(Long oldJobRoleId);
 
 	@Query(nativeQuery = true)
@@ -544,6 +548,21 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "inner join department d on d.dept_id = jr.dept_id \n"
 			+ "where jr.name like '%VP%' and jr.employee_role='HOD' and e.employmentstatus != 'InActive'")
 	public List<Object[]> findAllVPsEmail();
+
+	/** VP role per org convention (same filter as VP notification list). */
+	@Query(nativeQuery = true, value = "SELECT 1 FROM employee e INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+			+ "WHERE e.emp_id = :empId AND jr.name LIKE '%VP%' AND jr.employee_role = 'HOD' "
+			+ "AND e.employmentstatus != 'InActive' LIMIT 1")
+	List<Integer> findOneIfVpHodEmployee(@Param("empId") Long empId);
+
+	@Query(nativeQuery = true, value = "SELECT jr.dept_id FROM employee e INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+			+ "WHERE e.emp_id = :empId AND e.employmentstatus != 'InActive' LIMIT 1")
+	Long findJobRoleDeptIdByEmpId(@Param("empId") Long empId);
+
+	@Query(nativeQuery = true, value = "SELECT 1 FROM employee e INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
+			+ "WHERE e.emp_id = :empId AND jr.employee_role = 'HOD' "
+			+ "AND e.employmentstatus != 'InActive' LIMIT 1")
+	List<Integer> findOneIfJobRoleHodEmployee(@Param("empId") Long empId);
 
 	// @Query(nativeQuery = true , value = "select e.employeement_id,e.email,e.name
 	// , em.name as managerName,d.name as departmentName, hd.name as
@@ -3711,6 +3730,29 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.empId, e.name )"
 			+ "FROM Employee e")
 	public List<EmployeeDTO> getAllEmployeeAsApiSource();
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.empId, e.name) "
+			+ "FROM Employee e "
+			+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId "
+			+ "INNER JOIN Department d ON d.deptId = jr.deptId "
+			+ "WHERE e.employmentstatus <> 'InActive' "
+			+ "AND REPLACE(LOWER(d.name), ' ', '') = REPLACE(LOWER(:deptName), ' ', '') "
+			+ "ORDER BY e.name")
+	public List<EmployeeDTO> getActiveEmployeesByDepartmentName(@Param("deptName") String deptName);
+
+	/** Active employees in Development (exact name match) or HR (name is hr, contains human resource, etc.). */
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.EmployeeDTO(e.empId, e.name) "
+			+ "FROM Employee e "
+			+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId "
+			+ "INNER JOIN Department d ON d.deptId = jr.deptId "
+			+ "WHERE e.employmentstatus <> 'InActive' "
+			+ "AND ("
+			+ "REPLACE(LOWER(d.name), ' ', '') = REPLACE(LOWER(:developmentDeptName), ' ', '') "
+			+ "OR LOWER(TRIM(d.name)) = 'hr' "
+			+ "OR LOWER(TRIM(d.name)) LIKE '%human resource%'"
+			+ ") "
+			+ "ORDER BY e.name")
+	List<EmployeeDTO> getActiveEmployeesForGrievanceAssigneeList(@Param("developmentDeptName") String developmentDeptName);
 	
 	@Query("SELECT e.name from Employee e where e.empId=:empId")
 	String getEmployeeName(@Param("empId")Long empId);

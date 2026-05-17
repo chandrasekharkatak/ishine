@@ -1,0 +1,836 @@
+/* Match portal theme: styles.css --dark-cornflower-blue, --ghost-white */
+
+.grievance-page-container {
+  min-height: 100%;
+  background-color: var(--ghost-white);
+  padding-top: 3.6rem;
+}
+
+.grievance-page-header {
+  background-color: var(--dark-cornflower-blue);
+  color: var(--cultured);
+  box-shadow: 0 0.125rem 0.5rem rgba(25, 61, 138, 0.25);
+}
+
+.grievance-page-header h4 {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Portal list pattern (aligned with My Timesheets / user-timesheet) */
+.table-header {
+  width: 100%;
+  min-height: 50px;
+  background: var(--ghost-white);
+  margin-bottom: 1em;
+}
+
+.table-header-title {
+  font-size: 2rem;
+  padding: 0.2em;
+  margin-bottom: 0;
+  color: var(--raisin-black);
+}
+
+/* —— Single shell card: tabs + raise form OR list —— */
+.grievance-shell-card {
+  background: #fff;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(25, 61, 138, 0.1);
+  box-shadow: 0 0.125rem 0.85rem rgba(25, 61, 138, 0.08);
+  overflow: hidden;
+}
+
+.grievance-shell-header {
+  padding: 1rem 1.25rem 0.9rem;
+  background: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.grievance-shell-tabs {
+  margin-bottom: 0;
+}
+
+.grievance-shell-body {
+  padding: 1.5rem 1.25rem 1.75rem;
+  background: #fff;
+}
+
+@media (min-width: 768px) {
+  .grievance-shell-header {
+    padding: 1.15rem 1.75rem 1rem;
+  }
+
+  .grievance-shell-body {
+    padding: 1.75rem 1.75rem 2rem;
+  }
+}
+
+.grievance-shell-body--list {
+  padding-top: 1.35rem;
+}
+
+.grievance-shell-title-block {
+  margin-bottom: 1.75rem;
+}
+
+.grievance-shell-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--raisin-black, #1a1d24);
+  letter-spacing: -0.01em;
+}
+
+.grievance-shell-title-row .grievance-shell-title {
+  font-size: 1.65rem;
+}
+
+.grievance-list-top-actions > * + * {
+  margin-left: 0.65rem;
+}
+
+.grievance-search-toggle-btn {
+  min-width: 2.15rem;
+  padding-left: 0.55rem;
+  padding-right: 0.55rem;
+}
+
+/* —— Raise Grievance form (professional layout) —— */
+.grievance-raise-subtitle {
+  font-size: 0.9rem;
+  color: #5c6370;
+  margin-top: 0.4rem;
+  max-width: 48rem;
+  line-height: 1.45;
+}
+
+.grievance-raise-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dark-cornflower-blue, #193d8a);
+  margin-bottom: 0.85rem;
+}
+
+/* Extra air before the auto-captured card */
+.grievance-raise-section-label--before-capture {
+  margin-bottom: 1rem;
+}
+
+.grievance-raise-section-label--spaced {
+  margin-top: 0.25rem;
+}
+
+.grievance-raise-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dark-cornflower-blue, #193d8a);
+  background: rgba(25, 61, 138, 0.08);
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.grievance-raise-meta {
+  padding: 1rem 1.15rem;
+  background: linear-gradient(180deg, rgba(25, 61, 138, 0.04) 0%, rgba(248, 249, 252, 0.95) 100%);
+  border: 1px solid rgba(25, 61, 138, 0.1);
+  border-radius: 0.4rem;
+}
+
+/* —— Auto-captured profile: two bands + divider (no cramped labels) —— */
+.grievance-raise-capture {
+  padding: 1.25rem 1.25rem 1.35rem;
+  background: linear-gradient(165deg, rgba(25, 61, 138, 0.055) 0%, rgba(255, 255, 255, 0.92) 42%, rgba(248, 250, 253, 1) 100%);
+  border: 1px solid rgba(25, 61, 138, 0.12);
+  border-radius: 0.5rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.grievance-raise-capture-row {
+  display: grid;
+  gap: 1rem 1.25rem;
+}
+
+.grievance-raise-capture-row--identity {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .grievance-raise-capture-row--identity {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.grievance-raise-capture-row--context {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .grievance-raise-capture-row--context {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .grievance-raise-capture-row--context {
+    grid-template-columns: minmax(7rem, 0.85fr) minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.grievance-raise-capture-divider {
+  height: 0;
+  margin: 1.35rem 0 1.25rem;
+  border: 0;
+  border-top: 1px solid rgba(25, 61, 138, 0.14);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.grievance-capture-item {
+  min-width: 0;
+}
+
+.grievance-capture-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(25, 61, 138, 0.72);
+  margin-bottom: 0.55rem;
+  line-height: 1.3;
+}
+
+.grievance-capture-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1a1f28;
+  line-height: 1.45;
+  padding: 0.65rem 0.85rem;
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(25, 61, 138, 0.1);
+  box-shadow: 0 1px 2px rgba(25, 61, 138, 0.04);
+  border-left: 3px solid rgba(25, 61, 138, 0.35);
+  word-break: break-word;
+}
+
+.grievance-capture-value--multiline {
+  align-items: flex-start;
+  min-height: 3.25rem;
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+}
+
+.grievance-raise-divider {
+  margin: 1.75rem 0 1.5rem;
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  opacity: 1;
+}
+
+/* Explicit vertical rhythm: each group clears the one above (avoids labels touching inputs) */
+.grievance-field-group {
+  margin-bottom: 1.75rem;
+}
+
+.grievance-field-row {
+  margin-bottom: 1.75rem;
+}
+
+.grievance-proof-block {
+  margin-top: 2rem;
+  margin-bottom: 0;
+  padding-top: 0;
+  clear: both;
+}
+
+.grievance-field-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #3d4450;
+  margin-bottom: 0.5rem;
+}
+
+.grievance-readonly-field {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #1a1d24;
+  padding: 0.55rem 0.75rem;
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  border-radius: 0.375rem;
+}
+
+.grievance-input {
+  border-radius: 0.375rem;
+  border: 1px solid rgba(25, 61, 138, 0.22);
+  padding: 0.55rem 0.85rem;
+  font-size: 0.9375rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.grievance-input:hover:not(:disabled) {
+  border-color: rgba(25, 61, 138, 0.35);
+}
+
+.grievance-input:focus {
+  border-color: var(--dark-cornflower-blue, #193d8a);
+  box-shadow: 0 0 0 0.2rem rgba(25, 61, 138, 0.12);
+}
+
+.grievance-textarea {
+  resize: vertical;
+  min-height: 7.5rem;
+  line-height: 1.5;
+}
+
+.grievance-char-hint {
+  font-size: 0.72rem;
+  color: #868e96;
+  margin-top: 0.45rem;
+  margin-bottom: 0.15rem;
+  text-align: right;
+}
+
+.grievance-help-text {
+  font-size: 0.78rem;
+  color: #6c757d;
+}
+
+.grievance-help-text--below-file {
+  display: block;
+  margin-top: 0.85rem;
+  line-height: 1.45;
+}
+
+/* File input: min-height + padding so "Choose file" is never clipped */
+input[type='file'].form-control.grievance-file-input,
+.form-control.grievance-file-input[type='file'] {
+  min-height: 3.1rem;
+  padding: 0.45rem 0.65rem;
+  line-height: 1.5;
+  overflow: visible;
+}
+
+.grievance-file-input::file-selector-button {
+  margin-right: 0.85rem;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(25, 61, 138, 0.35);
+  border-radius: 0.3rem;
+  background: rgba(25, 61, 138, 0.06);
+  color: var(--dark-cornflower-blue, #193d8a);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.grievance-file-input::file-selector-button:hover {
+  background: rgba(25, 61, 138, 0.12);
+}
+
+/* Safari / older WebKit */
+.grievance-file-input::-webkit-file-upload-button {
+  margin-right: 0.85rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(25, 61, 138, 0.35);
+  border-radius: 0.3rem;
+  background: rgba(25, 61, 138, 0.06);
+  color: var(--dark-cornflower-blue, #193d8a);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.grievance-file-pill {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--dark-cornflower-blue, #193d8a);
+  background: rgba(25, 61, 138, 0.06);
+  border: 1px dashed rgba(25, 61, 138, 0.25);
+  border-radius: 0.35rem;
+  word-break: break-all;
+}
+
+/* Compact proof files: small chips in one horizontal row (wrap only if needed) */
+.grievance-proof-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.45rem;
+}
+
+.grievance-proof-clear {
+  border: 0;
+  background: none;
+  padding: 0.15rem 0.35rem 0.15rem 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-decoration: underline;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.grievance-proof-clear:hover {
+  color: var(--dark-cornflower-blue, #193d8a);
+}
+
+.grievance-proof-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  max-width: 9.5rem;
+  padding: 0.15rem 0.25rem 0.15rem 0.4rem;
+  font-size: 0.6875rem;
+  line-height: 1.25;
+  color: var(--dark-cornflower-blue, #193d8a);
+  background: rgba(25, 61, 138, 0.07);
+  border: 1px solid rgba(25, 61, 138, 0.18);
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.grievance-proof-chip-icon {
+  font-size: 0.6rem;
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.grievance-proof-chip-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grievance-proof-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  padding: 0;
+  margin-left: 0.05rem;
+  border: none;
+  border-radius: 50%;
+  background: rgba(25, 61, 138, 0.12);
+  color: var(--dark-cornflower-blue, #193d8a);
+  font-size: 0.55rem;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.grievance-proof-chip-remove:hover {
+  background: rgba(25, 61, 138, 0.22);
+}
+
+/* Primary action: bottom-left, spaced from fields (like Leave Application) */
+.grievance-submit-actions {
+  margin-top: 2.75rem;
+  padding-top: 0.75rem;
+  text-align: left;
+}
+
+.grievance-submit-btn {
+  padding: 0.65rem 1.75rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  letter-spacing: 0.02em;
+  border-radius: 0.375rem;
+  box-shadow: 0 0.125rem 0.35rem rgba(25, 61, 138, 0.25);
+  width: auto;
+  min-width: 11rem;
+}
+
+.grievance-submit-btn:hover:not(:disabled) {
+  box-shadow: 0 0.25rem 0.5rem rgba(25, 61, 138, 0.3);
+}
+
+.grievance-submit-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.grievance-list-scroll {
+  position: relative;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.grievance-portal-table .info-label {
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.grievance-portal-table thead.thead-light th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.grievance-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.module-action-btn {
+  border: 1px solid var(--dark-cornflower-blue);
+  color: var(--dark-cornflower-blue);
+  background: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.35rem 0.85rem;
+}
+
+.module-action-btn:hover {
+  background: rgba(25, 61, 138, 0.08);
+}
+
+.module-action-btn--active {
+  background: var(--dark-cornflower-blue);
+  color: #fff;
+}
+
+.priority-select-wrap {
+  position: relative;
+}
+
+.priority-dot {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+.priority-dot--low {
+  background-color: var(--dark-cornflower-blue);
+}
+
+.priority-dot--med {
+  background-color: var(--pacific-blue);
+}
+
+.priority-dot--high {
+  background-color: var(--dark-red);
+}
+
+.priority-select {
+  padding-left: 2rem;
+  font-weight: 500;
+  border-color: rgba(25, 61, 138, 0.35);
+}
+
+.grievance-select:focus,
+.priority-select:focus {
+  border-color: var(--dark-cornflower-blue);
+  box-shadow: 0 0 0 0.2rem rgba(25, 61, 138, 0.15);
+}
+
+.grievance-select {
+  height: calc(1.5em + 0.75rem + 2px);
+}
+
+.grievance-portal-table tbody td {
+  vertical-align: middle;
+}
+
+.sortable-th {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.grievance-action-icon-btn {
+  min-width: 2rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grievance-action-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 11rem;
+}
+
+.grievance-action-rate-btn .fa-star {
+  color: #b8860b;
+}
+
+::ng-deep .grievance-feedback-modal-root .grievance-feedback-lead {
+  font-size: 0.9rem;
+  color: #4a5568;
+  line-height: 1.45;
+  max-width: 32rem;
+}
+
+::ng-deep .grievance-feedback-modal-root .grievance-feedback-star-btn {
+  text-decoration: none;
+  line-height: 1;
+  color: inherit;
+}
+
+::ng-deep .grievance-feedback-modal-root .grievance-feedback-star-btn:focus {
+  box-shadow: none;
+}
+
+/* FA6: outline stars (far); fa-star-o is not in FA5+ so empty stars were invisible */
+::ng-deep .grievance-feedback-modal-root .grievance-feedback-star-empty {
+  color: #6c757d !important;
+}
+
+::ng-deep .grievance-feedback-modal-root .grievance-feedback-star-btn:hover .grievance-feedback-star-empty {
+  color: #495057 !important;
+}
+
+/* Scrollable ticket modal: cap height and scroll body only */
+::ng-deep .modal-dialog.grievance-ticket-modal-dialog {
+  max-height: calc(100vh - 2rem);
+  margin: 1rem auto;
+}
+
+::ng-deep .modal-dialog.grievance-ticket-modal-dialog .modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 2rem);
+  overflow: hidden;
+}
+
+::ng-deep .modal-dialog.grievance-ticket-modal-dialog .grievance-ticket-modal-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+::ng-deep .modal-dialog.grievance-ticket-modal-dialog .grievance-ticket-modal-header {
+  flex-shrink: 0;
+}
+
+::ng-deep .modal-dialog.grievance-ticket-modal-dialog .grievance-ticket-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+::ng-deep .modal-dialog.grievance-ticket-modal-dialog .grievance-ticket-modal-footer {
+  flex-shrink: 0;
+}
+
+/* Modal is often rendered outside component host — pierce encapsulation */
+::ng-deep .grievance-ticket-modal-root .grievance-ticket-modal-header {
+  background: linear-gradient(135deg, #e8eeff 0%, #f5f8ff 45%, #ffffff 100%);
+  border-bottom: 1px solid rgba(25, 61, 138, 0.2);
+  padding: 1rem 1.25rem;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-modal-kicker {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dark-cornflower-blue, #193d8a);
+  opacity: 0.85;
+  margin-bottom: 0.2rem;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-modal-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1a2233;
+  letter-spacing: -0.02em;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-modal-close-btn {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 2px solid rgba(25, 61, 138, 0.35);
+  border-radius: 0.4rem;
+  background: #fff;
+  color: var(--dark-cornflower-blue, #193d8a);
+  font-size: 1.15rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(25, 61, 138, 0.12);
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-modal-close-btn:hover {
+  background: rgba(25, 61, 138, 0.1);
+  border-color: var(--dark-cornflower-blue, #193d8a);
+  color: #142a66;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-modal-close-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(25, 61, 138, 0.25);
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-ticket-modal-body {
+  background: linear-gradient(180deg, #f9fbff 0%, #f4f6fb 100%);
+  padding: 1.25rem 1.35rem 1.5rem;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-ticket-modal-footer {
+  border-top: 1px solid rgba(25, 61, 138, 0.12);
+  background: #f0f4ff;
+  padding: 0.85rem 1.25rem;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-view-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 1.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.5rem;
+  background: #fff;
+  border: 1px solid rgba(25, 61, 138, 0.12);
+  box-shadow: 0 2px 8px rgba(25, 61, 138, 0.06);
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-view-ticket-chip {
+  display: inline-block;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(25, 61, 138, 0.12) 0%, rgba(25, 61, 138, 0.06) 100%);
+  border: 1px solid rgba(25, 61, 138, 0.28);
+  color: var(--dark-cornflower-blue, #193d8a);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-view-status-chip {
+  display: inline-block;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(25, 61, 138, 0.22);
+  color: #1e3a5f;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-view-section {
+  margin-bottom: 1rem;
+  padding: 1rem 1.05rem;
+  border-radius: 0.5rem;
+  background: #fff;
+  border: 1px solid rgba(25, 61, 138, 0.1);
+  box-shadow: 0 1px 4px rgba(25, 61, 138, 0.05);
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-view-section--resolution {
+  border-left: 4px solid rgba(25, 61, 138, 0.45);
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-view-section--feedback {
+  border-left: 4px solid rgba(212, 168, 75, 0.85);
+  background: linear-gradient(180deg, #fffefb 0%, #fff 100%);
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-view-section-head {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dark-cornflower-blue, #193d8a);
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(25, 61, 138, 0.1);
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-view-field {
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.35rem;
+  background: #f8f9fc;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  min-height: 3.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-view-field--block {
+  min-height: auto;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-view-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5c6575;
+  margin-bottom: 0.35rem;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-view-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1c2433;
+  line-height: 1.35;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-view-value--emph {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #141b28;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-view-prose {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #2b3545;
+  line-height: 1.55;
+  margin-top: 0.15rem;
+}
+
+::ng-deep .grievance-ticket-modal-root .grievance-view-feedback-meta {
+  font-size: 0.78rem;
+  color: #6c757d;
+}

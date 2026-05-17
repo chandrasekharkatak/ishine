@@ -36,6 +36,15 @@ import com.apmosys.employeeportal.model.Project;
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
+	/** Active projects linked to any of the given departments (reimbursement picker for HOD / VP). */
+	@Query(value = "SELECT DISTINCT p.project_id, p.project_name, c.client_name, p.client_id "
+			+ "FROM projects p "
+			+ "INNER JOIN clients c ON c.client_id = p.client_id "
+			+ "INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id "
+			+ "WHERE p.active = 'true' AND pdm.dept_id IN (:deptIds) "
+			+ "ORDER BY p.project_name ASC", nativeQuery = true)
+	List<Object[]> findActiveProjectsForReimbursementByDeptIds(@Param("deptIds") List<Long> deptIds);
+
 	public List<Project> findAllByProjectManagerId(Long projectManagerId);
 
 	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectIdAndNameDTO(p.projectId, p.projectName) FROM Project p")

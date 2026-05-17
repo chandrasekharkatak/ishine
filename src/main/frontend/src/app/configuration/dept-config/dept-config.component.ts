@@ -16,6 +16,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 @Component({
@@ -80,6 +81,7 @@ export class DeptConfigComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private locationStrategy:LocationStrategy,
     private utilityService: UtilityService,
+    private router: Router
 ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 

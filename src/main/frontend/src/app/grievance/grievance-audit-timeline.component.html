@@ -1,0 +1,160 @@
+<div class="grievance-audit-root" *ngIf="ticketId" [class.mt-4]="!modalMode" [class.grievance-audit-modal-root]="modalMode">
+  <button
+    *ngIf="!modalMode"
+    type="button"
+    class="btn btn-link grievance-audit-toggle px-0 text-left d-flex align-items-center"
+    (click)="toggleSection()"
+    [attr.aria-expanded]="sectionOpen"
+  >
+    <i class="fa mr-2" [ngClass]="sectionOpen ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></i>
+    <span class="font-weight-bold">Ticket activity &amp; audit timeline</span>
+    <span class="badge badge-secondary ml-2 small" *ngIf="totalElements > 0">{{ totalElements }} event(s)</span>
+  </button>
+
+  <div *ngIf="modalMode || sectionOpen" class="grievance-audit-body border rounded p-3" [class.mt-2]="!modalMode" [class.border-0]="modalMode" [class.p-0]="modalMode">
+    <div class="grievance-audit-toolbar">
+      <label class="grievance-audit-toolbar-label" [attr.for]="'grievAuditFilter-' + ticketId">Filter by field <span class="grievance-audit-optional">(optional)</span></label>
+      <div class="grievance-audit-toolbar-row">
+        <input
+          [id]="'grievAuditFilter-' + ticketId"
+          type="text"
+          class="form-control grievance-audit-filter-input"
+          [(ngModel)]="fieldFilter"
+          (keyup.enter)="applyFieldFilter()"
+          placeholder="e.g. status, assignedToName"
+          autocomplete="off"
+        />
+        <button type="button" class="btn btn-sm grievance-audit-btn-apply" (click)="applyFieldFilter()">
+          <i class="fa fa-filter mr-1" aria-hidden="true"></i>Apply
+        </button>
+        <button type="button" class="btn btn-sm grievance-audit-btn-clear" (click)="fieldFilter = ''; applyFieldFilter()">Clear</button>
+      </div>
+    </div>
+
+    <div *ngIf="error" class="grievance-audit-alert">{{ error }}</div>
+    <div *ngIf="loading && entries.length === 0" class="grievance-audit-loading">
+      <i class="fa fa-spinner fa-spin grievance-audit-loading-icon" aria-hidden="true"></i>
+      <span>Loading activity…</span>
+    </div>
+
+    <ul class="grievance-audit-timeline list-unstyled mb-0" *ngIf="entries.length">
+      <li *ngFor="let e of entries" class="grievance-audit-item">
+        <div class="grievance-audit-node" aria-hidden="true">
+          <span class="grievance-audit-node-inner"></span>
+        </div>
+        <div class="grievance-audit-card">
+          <div class="grievance-audit-card-head">
+            <div class="grievance-audit-card-head-text">
+              <span class="grievance-audit-event">{{ eventLabel(e.eventType) }}</span>
+              <span class="grievance-audit-version-pill">v{{ e.versionNo }}</span>
+            </div>
+            <time class="grievance-audit-ts">{{ e.changedAt | date : 'dd MMM yyyy · HH:mm' }}</time>
+          </div>
+          <p class="grievance-audit-summary">{{ e.summary }}</p>
+          <div class="grievance-audit-actor">
+            <span class="grievance-audit-avatar" [attr.aria-label]="e.changedByName || 'Unknown'">{{ actorInitials(e.changedByName) }}</span>
+            <div class="grievance-audit-actor-meta">
+              <span class="grievance-audit-actor-name">{{ e.changedByName || '—' }}</span>
+              <span *ngIf="e.reason" class="grievance-audit-actor-reason">Reason: {{ e.reason }}</span>
+            </div>
+          </div>
+          <button
+            *ngIf="e.hasFieldDetails"
+            type="button"
+            class="btn btn-sm grievance-audit-field-toggle mt-2"
+            (click)="toggleExpand(e.auditId)"
+            [attr.aria-expanded]="isExpanded(e.auditId)"
+          >
+            <i class="fa mr-1" [ngClass]="isExpanded(e.auditId) ? 'fa-chevron-up' : 'fa-chevron-down'" aria-hidden="true"></i>
+            {{ isExpanded(e.auditId) ? 'Hide' : 'Show' }} field changes
+          </button>
+          <div *ngIf="e.hasFieldDetails && isExpanded(e.auditId)" class="grievance-audit-details">
+            <table class="table table-sm grievance-audit-diff-table mb-0">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Old</th>
+                  <th>New</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of e.fieldChanges">
+                  <td class="text-nowrap">{{ c.fieldName }}</td>
+                  <td class="grievance-audit-old text-break">{{ c.oldValue || '—' }}</td>
+                  <td class="grievance-audit-new text-break">{{ c.newValue || '—' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="grievance-audit-load-more-wrap" *ngIf="entries.length < totalElements">
+      <button type="button" class="btn btn-sm grievance-audit-load-more" [disabled]="loading" (click)="loadMore()">
+        {{ loading ? 'Loading…' : 'Load more events' }}
+      </button>
+    </div>
+
+    <div class="grievance-audit-section-divider" role="presentation"></div>
+
+    <button
+      type="button"
+      class="grievance-audit-section-toggle"
+      (click)="toggleCompare()"
+      [attr.aria-expanded]="compareOpen"
+    >
+      <i class="fa mr-2" [ngClass]="compareOpen ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"></i>
+      <span>Compare versions</span>
+    </button>
+
+    <div *ngIf="compareOpen" class="grievance-compare-panel">
+      <div class="grievance-compare-panel-inner">
+        <div class="form-row align-items-end">
+          <div class="col-auto mb-2">
+            <label class="grievance-audit-compare-label">Version A</label>
+            <select class="form-control form-control-sm grievance-audit-select" [(ngModel)]="compareV1">
+              <option *ngFor="let v of versions" [ngValue]="v.versionNo">v{{ v.versionNo }} — {{ v.changedAt | date : 'dd-MMM-yyyy' }}</option>
+            </select>
+          </div>
+          <div class="col-auto mb-2">
+            <label class="grievance-audit-compare-label">Version B</label>
+            <select class="form-control form-control-sm grievance-audit-select" [(ngModel)]="compareV2">
+              <option *ngFor="let v of versions" [ngValue]="v.versionNo">v{{ v.versionNo }} — {{ v.changedAt | date : 'dd-MMM-yyyy' }}</option>
+            </select>
+          </div>
+          <div class="col-auto mb-2">
+            <button
+              type="button"
+              class="btn btn-sm grievance-audit-btn-compare"
+              [disabled]="diffLoading || compareV1 == null || compareV2 == null"
+              (click)="runCompare()"
+            >
+              Compare
+            </button>
+          </div>
+        </div>
+        <p *ngIf="diffError" class="grievance-audit-diff-error mb-2">{{ diffError }}</p>
+        <div *ngIf="diffLoading" class="grievance-audit-diff-loading text-muted small">Comparing…</div>
+        <div *ngIf="!diffLoading && diffChanges.length" class="grievance-audit-diff-table-wrap">
+          <table class="table table-sm grievance-audit-diff-table mb-0">
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>At version A</th>
+                <th>At version B</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of diffChanges">
+                <td>{{ c.fieldName }}</td>
+                <td class="grievance-audit-old text-break">{{ c.oldValue || '—' }}</td>
+                <td class="grievance-audit-new text-break">{{ c.newValue || '—' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

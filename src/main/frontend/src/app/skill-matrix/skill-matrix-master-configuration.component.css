@@ -1,0 +1,887 @@
+/* Match reimbursement / timesheet list patterns (see reimbursment-config, my-timesheet). */
+.skill-matrix-master-config .table-header {
+  width: 100%;
+  height: 50px;
+  background: var(--ghost-white);
+  margin-bottom: 1em;
+}
+
+.skill-matrix-master-config .table-header-title {
+  font-size: 2rem;
+  padding: 0.2em;
+  margin-bottom: 0;
+  color: var(--raisin-black);
+}
+
+.skill-matrix-master-config thead.info-label,
+.skill-matrix-master-config th.info-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* MatSort headers (same pattern as dept-config / project-config tables) */
+.skill-matrix-master-config__sort-table .mat-sort-header-content {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.skill-matrix-master-config__sort-table .mat-sort-header-arrow {
+  color: #193d8a;
+}
+
+/* Bulk upload modal */
+.skill-matrix-bulk-upload-modal__file-name {
+  max-width: 14rem;
+}
+
+.skill-matrix-bulk-upload-modal__progress .card-body {
+  border-radius: 8px;
+}
+
+.skill-matrix-bulk-upload-modal__progress-bar {
+  height: 10px;
+  border-radius: 6px;
+}
+
+.skill-matrix-bulk-upload-modal__errors {
+  max-height: 220px;
+}
+
+.skill-matrix-master-config .my-pagination::ng-deep .ngx-pagination .current {
+  background: #193d8a !important;
+}
+
+.skill-matrix-master-config .my-pagination::ng-deep {
+  padding-top: 10px;
+}
+
+/* Align with rewards-config / list tables: outline edit + danger delete */
+.skill-matrix-master-config__actions .btn {
+  vertical-align: middle;
+}
+
+/* app-my-select (Material mat-select + search) full width in Bootstrap modals */
+.skill-matrix-master-config__search-select {
+  display: block;
+  width: 100%;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Master modals: content is rendered under body; windowClass + ::ng-deep       */
+/* -------------------------------------------------------------------------- */
+::ng-deep .skill-matrix-master-modal .modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.35rem;
+  background: linear-gradient(145deg, #f8fafc 0%, #eef2f9 100%);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1e293b;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__subtitle {
+  margin-top: 0.35rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.4;
+  max-width: 36rem;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__close {
+  opacity: 0.55;
+  font-size: 1.5rem;
+  font-weight: 300;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+  margin: -0.25rem -0.5rem 0 0;
+  transition: opacity 0.15s ease;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__close:hover {
+  opacity: 1;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__body {
+  padding: 1.15rem 1.35rem 1.25rem;
+  background: #fafbfc;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__field {
+  margin-bottom: 0.85rem;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.35rem;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__input {
+  border-radius: 8px;
+  border: 1px solid #d1d9e3;
+  font-size: 0.9375rem;
+  padding: 0.45rem 0.75rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__input:focus {
+  border-color: #193d8a;
+  box-shadow: 0 0 0 3px rgba(25, 61, 138, 0.15);
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-config__search-select {
+  border: 1px solid #d1d9e3;
+  border-radius: 8px;
+  padding: 2px 6px;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-config__search-select:focus-within {
+  border-color: #193d8a;
+  box-shadow: 0 0 0 3px rgba(25, 61, 138, 0.12);
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__active-wrap {
+  padding: 0.65rem 0.85rem;
+  background: #fff;
+  border: 1px solid #e8ecf1;
+  border-radius: 8px;
+  margin-top: 0.15rem;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__active-label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__hint {
+  display: block;
+  margin-top: 0.35rem;
+  padding-left: 1.5rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.25rem 1.1rem;
+  background: #fff;
+  border-top: 1px solid #e8ecf1;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__btn-cancel {
+  border-radius: 8px;
+  font-weight: 500;
+  padding: 0.45rem 1.1rem;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__btn-save {
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0.45rem 1.35rem;
+  min-width: 5.5rem;
+  background: #193d8a;
+  border-color: #193d8a;
+}
+
+::ng-deep .skill-matrix-master-modal .skill-matrix-master-modal__btn-save:hover {
+  background: #152f6e;
+  border-color: #152f6e;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Hierarchy View (read-only)                                                 */
+/* -------------------------------------------------------------------------- */
+
+.skill-matrix-master-config .smhv {
+  position: relative;
+  padding: 8px 0;
+  font-size: 12px;
+  color: var(--raisin-black, #212227);
+  --color-text-primary: var(--raisin-black, #212227);
+  --color-text-secondary: var(--middle-grey, #857c6f);
+  --color-border-secondary: rgba(25, 61, 138, 0.25);
+  --color-border-tertiary: rgba(25, 61, 138, 0.18);
+  --color-background-primary: #ffffff;
+  --color-background-secondary: var(--ghost-white, #eef2fc);
+  --smhv-primary: var(--dark-cornflower-blue, #193d8a);
+  --smhv-accent: #534AB7;
+}
+
+.skill-matrix-master-config .smhv__ctrl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  max-width: 100%;
+  padding-bottom: 2px;
+}
+
+.skill-matrix-master-config .smhv__vtab {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 0.5px solid var(--color-border-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+  transition: all 0.15s ease;
+}
+
+.skill-matrix-master-config .smhv__vtab.act {
+  background: var(--smhv-accent);
+  color: #fff;
+  border-color: var(--smhv-accent);
+}
+
+.skill-matrix-master-config .smhv__tctr {
+  display: none;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  max-width: 100%;
+  padding-bottom: 2px;
+}
+
+.skill-matrix-master-config .smhv__tctr.show {
+  display: flex;
+}
+
+.skill-matrix-master-config .smhv__lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.skill-matrix-master-config .smhv__sel {
+  min-width: 220px;
+}
+
+/* app-my-select is globally styled as block/100% width; override for single-row toolbar */
+.skill-matrix-master-config .smhv__tctr .skill-matrix-master-config__search-select {
+  display: inline-block;
+  width: 240px;
+  max-width: 240px;
+}
+
+.skill-matrix-master-config .smhv__sbtn {
+  padding: 5px 10px;
+  font-size: 10px;
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: 8px;
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.skill-matrix-master-config .smhv__sbtn:hover {
+  border-color: var(--smhv-accent);
+  color: #3C3489;
+}
+
+.skill-matrix-master-config .smhv__wrap {
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-background-primary);
+}
+
+.skill-matrix-master-config .smhv__wrap--tree {
+  /* allow pan/zoom without clipping; scroll container handles overflow */
+  overflow: visible;
+}
+
+.skill-matrix-master-config .smhv__svg {
+  display: block;
+}
+
+.skill-matrix-master-config .smhv__treeScroll {
+  overflow: auto;
+  max-height: 540px;
+  max-width: 100%;
+}
+
+.skill-matrix-master-config .smhv__wrap--tree .smhv__svg {
+  /* do not clip translated <g> when panning */
+  overflow: visible;
+}
+
+.skill-matrix-master-config .smhv__tooltip {
+  position: absolute;
+  pointer-events: none;
+  display: none;
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 10px;
+  z-index: 10;
+  max-width: 220px;
+  line-height: 1.5;
+}
+
+.skill-matrix-master-config .smhv__legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--color-text-secondary);
+}
+
+.skill-matrix-master-config .smhv__li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.skill-matrix-master-config .smhv__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skill-matrix-master-config {
+  --sm-tree-line: #b6c2d1;
+  --sm-tree-line-strong: #9aa9bd;
+  --sm-tree-bg: #f6f8fc;
+  --sm-tree-surface: #ffffff;
+  --sm-tree-surface-2: #f8fafc;
+  --sm-tree-text: #0f172a;
+  --sm-tree-muted: #64748b;
+  --sm-tree-border: #dde6f1;
+  --sm-tree-border-strong: #c7d2fe;
+  --sm-tree-accent: #2563eb;
+}
+
+.skill-matrix-master-config .sm-hv-menu {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.skill-matrix-master-config .sm-hv-pane {
+  background: var(--sm-tree-surface);
+  border: 1px solid var(--sm-tree-border);
+  border-radius: 10px;
+  overflow: hidden;
+  min-height: 280px;
+}
+
+.skill-matrix-master-config .sm-hv-pane__head {
+  font-weight: 600;
+  font-size: 13px;
+  padding: 10px 12px;
+  background: var(--sm-tree-surface-2);
+  border-bottom: 1px solid var(--sm-tree-border);
+}
+
+.skill-matrix-master-config .sm-hv-pane__head--with-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.skill-matrix-master-config .sm-hv-pane__controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 520px;
+}
+
+.skill-matrix-master-config .sm-hv-pane__controls--compact {
+  min-width: auto;
+}
+
+.skill-matrix-master-config .sm-hv-pane__filter-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  width: 100%;
+}
+
+.skill-matrix-master-config .sm-hv-pane__filter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.skill-matrix-master-config .sm-hv-pane__export {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.skill-matrix-master-config .sm-hv-pane__export .btn.btn-outline-secondary {
+  border-color: var(--dark-cornflower-blue, #193d8a);
+  color: var(--dark-cornflower-blue, #193d8a);
+}
+
+.skill-matrix-master-config .sm-hv-pane__export .btn.btn-outline-secondary:hover,
+.skill-matrix-master-config .sm-hv-pane__export .btn.btn-outline-secondary:active,
+.skill-matrix-master-config .sm-hv-pane__export .btn.btn-outline-secondary:focus {
+  background: var(--dark-cornflower-blue, #193d8a);
+  border-color: var(--dark-cornflower-blue, #193d8a);
+  color: #fff;
+}
+
+.skill-matrix-master-config .sm-hv-pane__export .btn.btn-outline-secondary:focus {
+  box-shadow: 0 0 0 0.2rem rgba(25, 61, 138, 0.2);
+}
+
+.skill-matrix-master-config .sm-hv-pane__select-label {
+  font-weight: 600;
+  font-size: 12px;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.skill-matrix-master-config .sm-hv-pane__select {
+  width: 100%;
+}
+
+@media (max-width: 575px) {
+  .skill-matrix-master-config .sm-hv-pane__head--with-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .skill-matrix-master-config .sm-hv-pane__controls {
+    align-items: stretch;
+    min-width: 0;
+  }
+  .skill-matrix-master-config .sm-hv-pane__filter-row {
+    grid-template-columns: 1fr;
+  }
+  .skill-matrix-master-config .sm-hv-pane__filter {
+    justify-content: space-between;
+  }
+  .skill-matrix-master-config .sm-hv-pane__export {
+    justify-content: flex-start;
+  }
+}
+
+.skill-matrix-master-config .sm-hv-pane__body {
+  padding: 10px 12px;
+  max-height: 520px;
+  overflow: auto;
+  background: var(--sm-tree-bg);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Table-style hierarchy (enterprise)                                         */
+/* -------------------------------------------------------------------------- */
+
+.skill-matrix-master-config .sm-hv-pane--table .sm-hv-pane__body {
+  padding: 0;
+}
+
+.skill-matrix-master-config .sm-hv-pane--table .sm-hv-node {
+  border: none;
+  border-radius: 0;
+  margin-bottom: 0;
+  background: transparent;
+}
+
+.skill-matrix-master-config .sm-hv-pane--table details.sm-hv-node {
+  border-bottom: 1px solid var(--sm-tree-border);
+}
+
+.skill-matrix-master-config .sm-hv-pane--table details.sm-hv-node:last-child {
+  border-bottom: none;
+}
+
+.skill-matrix-master-config .sm-hv-pane--table .sm-hv-sum {
+  background: var(--sm-tree-surface);
+  padding: 10px 14px;
+  display: grid;
+  grid-template-columns: 44px 1fr auto 28px;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.skill-matrix-master-config .sm-hv-pane--table .sm-hv-sum:hover {
+  background: #f5f9ff;
+}
+
+.skill-matrix-master-config .sm-hv-pane--table details.sm-hv-node[open] > summary.sm-hv-sum {
+  background: #f3f7ff;
+}
+
+.skill-matrix-master-config .sm-hv-pane--table .sm-ent-node {
+  display: contents; /* allow grid columns to align like a table */
+}
+
+.skill-matrix-master-config .sm-hv-pane--table .sm-ent-node__circle {
+  grid-column: 1;
+}
+
+.skill-matrix-master-config .sm-hv-pane--table .sm-ent-node__text {
+  grid-column: 2;
+}
+
+.skill-matrix-master-config .sm-hv-pane--table .sm-hv-count {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.skill-matrix-master-config .sm-hv-pane--table details.sm-hv-node.sm-hv-node--toggle > summary.sm-hv-sum::after {
+  grid-column: 4;
+  justify-self: end;
+  margin-left: 0;
+}
+
+.skill-matrix-master-config .sm-hv-pane--table .sm-hv-children-wrap {
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.skill-matrix-master-config .sm-hv-pane--table .sm-hv-children {
+  margin-left: 22px;
+  padding: 8px 12px 12px 16px;
+  border-left: 2px solid var(--sm-tree-line);
+  border-radius: 0;
+}
+
+.skill-matrix-master-config .sm-hv-pane--table .sm-hv-leaf {
+  padding: 6px 0;
+}
+
+.skill-matrix-master-config .sm-hv-pane--table .sm-hv-leaf .sm-ent-node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.skill-matrix-master-config .sm-hv-pane--table .sm-hv-leaf .sm-ent-node__title {
+  font-weight: 500;
+}
+
+.skill-matrix-master-config .sm-hv-orgchart {
+  height: 520px;
+  background: #fff;
+  border-top: 1px solid var(--sm-tree-border);
+}
+
+.skill-matrix-master-config .sm-hv-pane__center {
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.skill-matrix-master-config .sm-hv-node {
+  border: 1px solid var(--sm-tree-border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: var(--sm-tree-surface);
+  box-shadow: none;
+  overflow: hidden;
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+
+.skill-matrix-master-config .sm-hv-node:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(25, 61, 138, 0.28);
+}
+
+.skill-matrix-master-config details.sm-hv-node[open] {
+  border-color: var(--sm-tree-border-strong);
+}
+
+.skill-matrix-master-config .sm-hv-sum {
+  cursor: pointer;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sm-tree-text);
+  background: var(--sm-tree-surface);
+  user-select: none;
+}
+
+.skill-matrix-master-config .sm-hv-sum:hover {
+  background: #f8fbff;
+}
+
+.skill-matrix-master-config details.sm-hv-node[open] > summary.sm-hv-sum {
+  background: #f6f9ff;
+}
+
+.skill-matrix-master-config details.sm-hv-node > summary.sm-hv-sum::-webkit-details-marker {
+  display: none;
+}
+.skill-matrix-master-config details.sm-hv-node > summary.sm-hv-sum::marker {
+  content: "";
+}
+
+.skill-matrix-master-config details.sm-hv-node.sm-hv-node--toggle > summary.sm-hv-sum::after {
+  content: "+";
+  color: var(--sm-tree-muted);
+  font-size: 16px;
+  margin-left: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px; /* enterprise: squared control */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  border: 1px solid var(--sm-tree-border);
+  transform: translateY(-0.5px);
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.skill-matrix-master-config details.sm-hv-node.sm-hv-node--toggle[open] > summary.sm-hv-sum::after {
+  content: "–";
+  color: #334155;
+  background: #eaf1ff;
+  border-color: #cfe0f4;
+}
+
+.skill-matrix-master-config .sm-hv-children-wrap {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: max-height 0.28s ease, opacity 0.18s ease, transform 0.18s ease;
+}
+
+.skill-matrix-master-config details.sm-hv-node[open] > .sm-hv-children-wrap {
+  max-height: 1400px; /* enough for typical trees */
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.skill-matrix-master-config .sm-hv-children {
+  padding: 8px 12px 12px;
+  margin-left: 18px;
+  padding-left: 14px;
+  border-left: 2px solid var(--sm-tree-line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.skill-matrix-master-config .sm-hv-children > .sm-hv-node,
+.skill-matrix-master-config .sm-hv-children > .sm-hv-leaf,
+.skill-matrix-master-config .sm-hv-children > .sm-hv-group {
+  position: relative;
+}
+
+.skill-matrix-master-config .sm-hv-children > .sm-hv-node::before,
+.skill-matrix-master-config .sm-hv-children > .sm-hv-leaf::before,
+.skill-matrix-master-config .sm-hv-children > .sm-hv-group::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 18px;
+  width: 14px;
+  border-top: 2px solid var(--sm-tree-line);
+}
+
+.skill-matrix-master-config .sm-hv-children > .sm-hv-node::after,
+.skill-matrix-master-config .sm-hv-children > .sm-hv-leaf::after,
+.skill-matrix-master-config .sm-hv-children > .sm-hv-group::after {
+  content: "";
+  position: absolute;
+  left: -17px;
+  top: 15px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sm-tree-surface);
+  border: 2px solid var(--sm-tree-line-strong);
+  box-shadow: none;
+}
+
+.skill-matrix-master-config .sm-hv-node > .sm-hv-sum {
+  position: relative;
+}
+
+.skill-matrix-master-config .sm-hv-node > .sm-hv-sum::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: rgba(25, 61, 138, 0.18);
+}
+
+.skill-matrix-master-config .sm-hv-node[open] > .sm-hv-sum::before {
+  background: rgba(25, 61, 138, 0.38);
+}
+
+.skill-matrix-master-config .sm-hv-leaf {
+  padding: 6px 0;
+  font-size: 13px;
+  color: #334155;
+}
+
+.skill-matrix-master-config .sm-hv-bdg {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px; /* enterprise: squared tags */
+  background: #e8ecf8;
+  color: #193d8a;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: none;
+}
+
+.skill-matrix-master-config .sm-hv-bdg--skill {
+  background: #eaf3de;
+  color: #27500a;
+}
+.skill-matrix-master-config .sm-hv-bdg--sub {
+  background: #fff1db;
+  color: #633806;
+}
+.skill-matrix-master-config .sm-hv-bdg--dom {
+  background: #f1e8ff;
+  color: #5b21b6;
+}
+.skill-matrix-master-config .sm-hv-bdg--subdom {
+  background: #e0f2fe;
+  color: #075985;
+}
+.skill-matrix-master-config .sm-hv-bdg--feat {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.skill-matrix-master-config .sm-hv-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: #0f172a;
+  background: #eef2ff;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  padding: 1px 8px;
+  line-height: 18px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Enterprise "circle node" styling                                           */
+/* -------------------------------------------------------------------------- */
+
+.skill-matrix-master-config .sm-ent-node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.skill-matrix-master-config .sm-ent-node__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.skill-matrix-master-config .sm-ent-node__title {
+  font-weight: 600;
+  color: var(--sm-tree-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 58ch;
+}
+
+.skill-matrix-master-config .sm-ent-node__circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #0f172a;
+  background: #ffffff;
+  border: 2px solid var(--dark-cornflower-blue, #193d8a);
+  box-shadow: none; /* standard tree: flatter */
+}
+
+.skill-matrix-master-config .sm-ent-node__circle--dept {
+  border-color: var(--dark-cornflower-blue, #193d8a);
+  box-shadow: none;
+}
+.skill-matrix-master-config .sm-ent-node__circle--skill {
+  border-color: var(--pacific-blue, #00a8b8);
+  box-shadow: none;
+}
+.skill-matrix-master-config .sm-ent-node__circle--sub {
+  border-color: var(--royal-blue-dark, #132b67);
+  box-shadow: none;
+}
+.skill-matrix-master-config .sm-ent-node__circle--dom {
+  border-color: var(--dark-cornflower-blue, #193d8a);
+  box-shadow: none;
+}
+.skill-matrix-master-config .sm-ent-node__circle--subdom {
+  border-color: var(--pacific-blue, #00a8b8);
+  box-shadow: none;
+}
+.skill-matrix-master-config .sm-ent-node__circle--feat {
+  border-color: var(--royal-blue-dark, #132b67);
+  box-shadow: none;
+}
+
+.skill-matrix-master-config .sm-hv-leaf .sm-ent-node__circle {
+  width: 30px;
+  height: 30px;
+  font-size: 9px;
+}
+
+.skill-matrix-master-config .sm-hv-group {
+  padding: 6px 0 10px;
+}
+
+.skill-matrix-master-config .sm-hv-group__title {
+  margin-bottom: 4px;
+}

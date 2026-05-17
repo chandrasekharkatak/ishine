@@ -1401,6 +1401,7 @@ onDropdownOpen(isOpen: boolean) {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
+
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {

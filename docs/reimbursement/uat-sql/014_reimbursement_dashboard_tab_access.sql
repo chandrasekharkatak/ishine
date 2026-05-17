@@ -1,0 +1,32 @@
+-- Reimbursement UI: "Dashboard" tab visibility (UAT / emp_portal_db)
+-- =============================================================================
+-- The Angular tab uses the SAME flag as "Approve Reimbursements":
+--   userMapping.approve_reimbursement
+-- That key is built from sub_feature_master.sub_feature_name by lowercasing and
+-- replacing spaces with underscores, e.g. "Approve Reimbursement" -> approve_reimbursement.
+--
+-- No new sub-feature is required for the Dashboard tab.
+--
+-- To grant approvers access (if a role should see Approve + Dashboard but currently cannot):
+--
+-- 1) Resolve the Reimbursement feature and Approve sub-feature (names may vary slightly in your DB):
+--    SELECT fm.feature_id, fm.feature_name, sfm.sub_feature_master_id, sfm.sub_feature_name
+--    FROM sub_feature_master sfm
+--    JOIN feature_master fm ON fm.feature_id = sfm.feature_id
+--    WHERE fm.feature_name = 'Reimbursement'
+--      AND LOWER(TRIM(sfm.sub_feature_name)) LIKE '%approve%reimburse%';
+--
+-- 2) Map that sub_feature_master_id to the job role(s) that should approve reimbursement.
+--    Table name in this codebase is typically: role_subfeature_mapping (see e.g. skill_matrix seeds).
+--    Example pattern (adjust column names / PK to match your schema):
+--
+--    INSERT INTO role_subfeature_mapping (job_role_id, sub_feature_master_id)
+--    SELECT jr.job_role_id, :sub_feature_master_id
+--    FROM job_role_master jr
+--    WHERE jr.job_role_name = 'HR Manager'   -- example only
+--    ON DUPLICATE KEY UPDATE sub_feature_master_id = VALUES(sub_feature_master_id);
+--
+-- 3) Ensure affected users have that job role via your normal employee_role / assignment tables.
+--
+-- API used by the dashboard: POST /api/fetchReimbursementDashboard
+-- (no extra DB objects; reads reimbursement_ticket + claims already in UAT.)
