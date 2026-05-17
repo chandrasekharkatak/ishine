@@ -205,8 +205,10 @@ public class ProjectCustomRepository {
             Pageable page) {
 
         String query2 = "";
-        if (rmgDashboardProjectRequest.getFixedCostFilter() != null
-                && "all".equals(rmgDashboardProjectRequest.getFixedCostFilter())) {
+        if(rmgDashboardProjectRequest.getFixedCostFilter() == null){
+            rmgDashboardProjectRequest.setFixedCostFilter("all");
+        }
+        if ("all".equals(rmgDashboardProjectRequest.getFixedCostFilter())) {
             query2 = getAllProjectsQueryByProjectType(rmgDashboardProjectRequest, sortBy, sortDirection,
                     projectNames, "Fixed Cost");
         } else {
@@ -469,8 +471,10 @@ public class ProjectCustomRepository {
             List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection) {
 
         String query2 = "";
-        if (rmgDashboardProjectRequest.getFixedCostFilter() != null
-                && "all".equals(rmgDashboardProjectRequest.getFixedCostFilter())) {
+        if(rmgDashboardProjectRequest.getFixedCostFilter() == null){
+            rmgDashboardProjectRequest.setFixedCostFilter("all");
+        }
+        if ("all".equals(rmgDashboardProjectRequest.getFixedCostFilter())) {
             query2 = getAllProjectsQueryByProjectType(rmgDashboardProjectRequest, sortBy, sortDirection,
                     projectNames, "Fixed Cost");
         } else {

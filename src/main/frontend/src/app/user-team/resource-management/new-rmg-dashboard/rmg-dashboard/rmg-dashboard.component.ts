@@ -501,9 +501,7 @@ export class RmgDashboardComponent implements OnInit {
     },
     {
       label: 'EMPLOYEES ONBOARDED', value: this.workforceOverview[0]?.value, change: null, period: 'vs last week', status: null, icon: 'bi-people', key: 'TOTAL', extraValue: null, tooltip: [
-        'Total employees currently mapped to active projects.',
-        'Includes only onboarded (active) resources.',
-        'Excludes deboarded or inactive employees.'
+        'Total active employees in the organisation.',
       ]
     },
     {
