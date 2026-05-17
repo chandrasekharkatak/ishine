@@ -5551,14 +5551,26 @@ public class TeamsService {
 
         body.append("<table border='1' cellpadding='5'>")
             .append("<tr>")
-            .append("<th>Employee ID</th>")
+            .append("<th>Emp ID</th>")
+            .append("<th>Name</th>")
             .append("<th>Projects</th>")
             .append("</tr>");
 
         for (MultiProjectEmployeeDTO emp : employees) {
+            String employmentId = emp.getEmployeeCode() != null && !emp.getEmployeeCode().isBlank()
+                    ? emp.getEmployeeCode()
+                    : (emp.getEmpId() != null ? String.valueOf(emp.getEmpId()) : "--");
+            String employeeName = emp.getEmployeeName() != null && !emp.getEmployeeName().isBlank()
+                    ? emp.getEmployeeName()
+                    : "--";
+            String projects = emp.getProjectNames() != null && !emp.getProjectNames().isEmpty()
+                    ? String.join(", ", emp.getProjectNames())
+                    : "--";
+
             body.append("<tr>")
-                .append("<td>").append(emp.getEmpId()).append("</td>")
-                .append("<td>").append(String.join(", ", emp.getProjectNames())).append("</td>")
+                .append("<td>").append(employmentId).append("</td>")
+                .append("<td>").append(employeeName).append("</td>")
+                .append("<td>").append(projects).append("</td>")
                 .append("</tr>");
         }
 
@@ -5581,8 +5593,16 @@ public class TeamsService {
         TNMConflictDTO dto = new TNMConflictDTO();
 
         dto.setEmpId(candidate.getEmpId());
-        dto.setEmployeeCode(candidate.getEmployeeCode());
-        dto.setEmpName(candidate.getEmpName());
+        Employee employee = candidate.getEmpId() != null
+                ? employeeRepository.findByEmpId(candidate.getEmpId())
+                : null;
+        if (employee != null) {
+            dto.setEmployeeCode(formatEmploymentIdWithPrefix(employee));
+            dto.setEmpName(employee.getName() != null ? employee.getName() : "--");
+        } else {
+            dto.setEmployeeCode(candidate.getEmployeeCode());
+            dto.setEmpName(candidate.getEmpName() != null ? candidate.getEmpName() : "--");
+        }
         dto.setProjectId(candidate.getProjectId());
         dto.setNewProjectName(candidate.getProjectName());
         dto.setStartDate(candidate.getStartDate().toLocalDate());
@@ -5766,10 +5786,49 @@ public class TeamsService {
         dto.setProjectNames(
                 projects.stream()
                         .map(ProjectEmpInfoDTO::getProjectName)
+                        .filter(Objects::nonNull)
                         .collect(Collectors.toList())
         );
 
+        Employee employee = empId != null ? employeeRepository.findByEmpId(empId) : null;
+        enrichMultiProjectEmployeeDisplay(dto, employee);
+
         return dto;
+    }
+
+    private void enrichMultiProjectEmployeeDisplay(MultiProjectEmployeeDTO dto, Employee employee) {
+        if (employee == null) {
+            dto.setEmployeeName(dto.getEmpId() != null ? "EMP-" + dto.getEmpId() : "--");
+            dto.setEmployeeCode(dto.getEmpId() != null ? String.valueOf(dto.getEmpId()) : "--");
+            return;
+        }
+        dto.setEmployeeName(employee.getName() != null ? employee.getName() : "--");
+        dto.setEmployeeCode(formatEmploymentIdWithPrefix(employee));
+    }
+
+    private String formatEmploymentIdWithPrefix(Employee employee) {
+        if (employee.getEmployeementId() == null) {
+            return employee.getEmpId() != null ? "EMP-" + employee.getEmpId() : "--";
+        }
+        String employmentId = String.valueOf(employee.getEmployeementId());
+        if (isTruthyFlag(employee.getIsConsultant())) {
+            return "CS-" + employmentId;
+        }
+        if (isTruthyFlag(employee.getIsApmosysProduct())) {
+            return "AP-" + employmentId;
+        }
+        return "A-" + employmentId;
+    }
+
+    private boolean isTruthyFlag(String value) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+        String normalized = value.trim();
+        return "true".equalsIgnoreCase(normalized)
+                || "y".equalsIgnoreCase(normalized)
+                || "yes".equalsIgnoreCase(normalized)
+                || "1".equals(normalized);
     }
     
     public void bulkUpdateBillableType(List<EmployeeBillableUpdateDTO> updates) {
@@ -5921,17 +5980,27 @@ public class TeamsService {
 
         body.append("<table border='1' cellpadding='5'>");
         body.append("<tr>");
-        body.append("<th>Employee ID</th>");
+        body.append("<th>Emp ID</th>");
+        body.append("<th>Name</th>");
         body.append("<th>Projects</th>");
         body.append("</tr>");
 
         for (MultiProjectEmployeeDTO emp : employees) {
 
+            String employmentId = emp.getEmployeeCode() != null && !emp.getEmployeeCode().isBlank()
+                    ? emp.getEmployeeCode()
+                    : (emp.getEmpId() != null ? String.valueOf(emp.getEmpId()) : "--");
+            String employeeName = emp.getEmployeeName() != null && !emp.getEmployeeName().isBlank()
+                    ? emp.getEmployeeName()
+                    : "--";
+            String projects = emp.getProjectNames() != null && !emp.getProjectNames().isEmpty()
+                    ? String.join(", ", emp.getProjectNames())
+                    : "--";
+
             body.append("<tr>");
-            body.append("<td>").append(emp.getEmpId()).append("</td>");
-            body.append("<td>")
-                    .append(String.join(", ", emp.getProjectNames()))
-                    .append("</td>");
+            body.append("<td>").append(employmentId).append("</td>");
+            body.append("<td>").append(employeeName).append("</td>");
+            body.append("<td>").append(projects).append("</td>");
             body.append("</tr>");
         }
 
