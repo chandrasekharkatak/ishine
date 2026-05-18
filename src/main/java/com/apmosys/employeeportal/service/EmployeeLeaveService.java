@@ -244,7 +244,7 @@ public class EmployeeLeaveService {
             log.error("applyLeave failed", e);
             response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
             response.setServiceResponse("Something Went Wrong.");
-            response.setServiceError(e.getMessage());
+            response.setServiceError("Something went wrong, please try again later or contact Admin or manager.");
 
             apiLogInfo.setApiError(e.getMessage());
             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -1299,7 +1299,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 			log.error("Error updating pending leave", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
+			 response.setServiceError("Something went wrong, please try again later or contact Admin or manager.");
 			
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
