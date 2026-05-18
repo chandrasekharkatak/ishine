@@ -1,4 +1,5 @@
-<mat-select [panelClass]="selectPanelClass"
+<mat-select
+  [panelClass]="selectPanelClass"
   disableOptionCentering
   [multiple]="multiple"
   [(ngModel)]="selectedValue"
@@ -13,6 +14,7 @@
   <mat-option>
     <ngx-mat-select-search
       [(ngModel)]="searchText"
+      (ngModelChange)="onSearchChange()"
       placeholderLabel="Search ..."
       noEntriesFoundLabel="No data to display"
       [disabled]="disable || readonly">

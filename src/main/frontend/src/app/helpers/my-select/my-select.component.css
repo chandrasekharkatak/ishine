@@ -33,11 +33,11 @@
 }
 
 .mat-icon {
-    vertical-align: unset !important;
+  vertical-align: unset !important;
 }
 
 ::ng-deep .mat-button .mat-button-wrapper>*, .mat-flat-button .mat-button-wrapper>*, .mat-stroked-button .mat-button-wrapper>*, .mat-raised-button .mat-button-wrapper>*, .mat-icon-button .mat-button-wrapper>*, .mat-fab .mat-button-wrapper>*, .mat-mini-fab .mat-button-wrapper>* {
-    vertical-align: unset !important;
+  vertical-align: unset !important;
 }
 
 .my-select__multi-trigger {
@@ -55,7 +55,7 @@
   color: #334155;
 }
 
-::ng-deep .mdc-list-item__primary-text  {
+::ng-deep .mdc-list-item__primary-text {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: clip !important;
@@ -67,13 +67,13 @@
   display: none !important;
 }
 
-/* Wrapped option text (panel gets this class when [wrapOptionLines]="true") — must beat rules above */
-::ng-deep .custom-select-panel.my-select-panel--wrap {
+::ng-deep .my-select-panel--wrap.mat-mdc-select-panel,
+::ng-deep .my-select-panel--wrap.mat-select-panel {
   max-width: min(100vw - 32px, 640px) !important;
   min-width: min(100%, 280px) !important;
 }
 
-::ng-deep .custom-select-panel.my-select-panel--wrap .mat-mdc-option {
+::ng-deep .my-select-panel--wrap .mat-mdc-option {
   height: auto !important;
   min-height: 40px !important;
   line-height: 1.4 !important;
@@ -83,7 +83,7 @@
   padding-bottom: 10px !important;
 }
 
-::ng-deep .custom-select-panel.my-select-panel--wrap .mdc-list-item__primary-text {
+::ng-deep .my-select-panel--wrap .mdc-list-item__primary-text {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: clip !important;
@@ -107,4 +107,10 @@
   text-overflow: clip !important;
   word-break: break-word !important;
   line-height: 1.35 !important;
+}
+
+/* Material flips panel above trigger; tighten spacing (feat / RMG) */
+::ng-deep .cdk-overlay-pane .mat-mdc-select-panel-above {
+  margin-bottom: 4px !important;
+  margin-top: 0 !important;
 }
