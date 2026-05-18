@@ -1,4 +1,4 @@
-import { LOCALE_ID, NgModule } from '@angular/core';
+import { LOCALE_ID, NgModule, isDevMode } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { DragDropModule } from '@angular/cdk/drag-drop';
@@ -253,6 +253,7 @@ import { RmgDashboardComponent } from './user-team/resource-management/new-rmg-d
 import { RmgProjectTableComponent } from './user-team/resource-management/rmg-project-table/rmg-project-table.component';
 import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { ResizableDirective } from './resizable.directive';
+import { ServiceWorkerModule } from '@angular/service-worker';
 
 registerLocaleData(localeGb);
 
@@ -497,7 +498,13 @@ registerLocaleData(localeGb);
     MatSidenavModule,
     // MatMomentDateModule
     ExperienceDurationPipe,
-    NgxEditorModule
+    NgxEditorModule,
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      // Register the ServiceWorker as soon as the application is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: 'registerWhenStable:30000'
+    })
   ],
   providers: [
     DatePipe,
