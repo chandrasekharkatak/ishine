@@ -1894,7 +1894,7 @@ storePreviousStatus(){
           employeeObj.isEndDateVisible = false;
           employeeObj.memberMaxEndDate = null;
           const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
-          if (response?.type === 'NO_CONFLICT' && response?.type == 'PROJECT_GAP') {
+          if (response?.type === 'NO_CONFLICT' || response?.type == 'PROJECT_GAP') {
             return true;
           } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT' || response?.type === 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT') {
             employeeObj.isEndDateVisible = true;
