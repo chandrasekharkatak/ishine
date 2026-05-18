@@ -146,15 +146,39 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
     this.lifecyclePage = Math.min(this.lifecycleTotalPages() - 1, this.lifecyclePage + 1);
   }
 
+  /** Indian rupee display: show up to 2 decimals when the value has a fractional part. */
   formatRupee(v: any): string {
     if (v == null || v === '') {
       return '0';
     }
-    const n = typeof v === 'string' ? Number(v.replace(/,/g, '')) : Number(v);
+    const raw = typeof v === 'string' ? v.replace(/,/g, '').trim() : v;
+    const n = Number(raw);
     if (Number.isNaN(n)) {
       return String(v);
     }
-    return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(n);
+    const hasDecimals =
+      (typeof raw === 'string' && raw.includes('.')) ||
+      Math.abs(n - Math.round(n)) > 1e-9;
+    return new Intl.NumberFormat('en-IN', {
+      minimumFractionDigits: hasDecimals ? 2 : 0,
+      maximumFractionDigits: 2
+    }).format(n);
+  }
+
+  /** Compact axis label (k / L) while preserving decimals when present. */
+  private rupeeAxisLabel(value: number): string {
+    const v = Number(value);
+    if (!Number.isFinite(v)) {
+      return '₹0';
+    }
+    const abs = Math.abs(v);
+    if (abs >= 100000) {
+      return '₹' + this.formatRupee(v / 100000) + 'L';
+    }
+    if (abs >= 1000) {
+      return '₹' + this.formatRupee(v / 1000) + 'k';
+    }
+    return '₹' + this.formatRupee(v);
   }
 
   formatNumber(v: any): string {
@@ -529,18 +553,10 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
             title: { text: undefined },
             labels: {
               style: { fontSize: '10px' },
-              formatter(): string {
-                const v = (this as any).value as number;
-                if (v >= 100000) {
-                  return '₹' + v / 100000 + 'L';
-                }
-                if (v >= 1000) {
-                  return '₹' + v / 1000 + 'k';
-                }
-                return '₹' + v;
-              }
+              formatter: this.rupeeAxisShortFmt()
             }
           },
+          tooltip: this.rupeeTooltipOptions(),
           plotOptions: { column: { borderRadius: 3, groupPadding: 0.08 } },
           series: [
             { type: 'column', name: 'Requested', color: 'rgba(27,52,97,0.85)', data: trend.map((t) => t.requested) },
@@ -568,12 +584,10 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
             title: { text: undefined },
             labels: {
               style: { fontSize: '10px' },
-              formatter(): string {
-                const v = (this as any).value as number;
-                return v >= 100000 ? '₹' + v / 100000 + 'L' : '₹' + v / 1000 + 'k';
-              }
+              formatter: this.rupeeAxisShortFmt()
             }
           },
+          tooltip: this.rupeeTooltipOptions(),
           plotOptions: { bar: { borderRadius: 3, dataLabels: { enabled: false } } },
           series: [{ type: 'bar', name: 'Submitted', color: '#1B3461', data: pairs.map((p) => p.y) }],
           credits: { enabled: false },
@@ -676,16 +690,18 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
     this.renderTopEmployeesHorizontalBar(topEmpId, d.employeeLeaderboard || [], 8);
   }
 
-  private rupeeAxisShortFmt(): any {
-    return function (this: any): string {
-      const v = Number(this.value);
-      if (v >= 100000) {
-        return '₹' + v / 100000 + 'L';
-      }
-      if (v >= 1000) {
-        return '₹' + v / 1000 + 'k';
-      }
-      return '₹' + v;
+  private rupeeAxisShortFmt(): Highcharts.AxisLabelsFormatterCallbackFunction {
+    return (ctx) => this.rupeeAxisLabel(Number(ctx.value));
+  }
+
+  private rupeeTooltipOptions(): Highcharts.TooltipOptions {
+    return {
+      shared: true,
+      valueDecimals: 2,
+      valuePrefix: '₹',
+      backgroundColor: 'rgba(255,255,255,0.97)',
+      borderColor: '#E2E8F0',
+      borderRadius: 6
     };
   }
 
@@ -718,6 +734,7 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
           stackLabels: { enabled: false },
           labels: { style: { fontSize: '10px' }, formatter: rupeeFmt }
         },
+        tooltip: this.rupeeTooltipOptions(),
         plotOptions: { column: { stacking: 'normal', borderRadius: 2, groupPadding: 0.06 } },
         series: [
           { type: 'column', name: 'Raised', color: 'rgba(27,52,97,0.9)', data: raised },
@@ -832,14 +849,7 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
           gridLineColor: yGrid,
           labels: { style: { fontSize: '9px', color: '#64748B' }, formatter: rupeeFmt }
         },
-        tooltip: {
-          shared: true,
-          valueDecimals: 0,
-          valuePrefix: '₹',
-          backgroundColor: 'rgba(255,255,255,0.97)',
-          borderColor: '#E2E8F0',
-          borderRadius: 6
-        },
+        tooltip: this.rupeeTooltipOptions(),
         plotOptions: {
           spline: {
             lineWidth,
@@ -930,6 +940,7 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
         title: { text: undefined },
         xAxis: { min: 0, title: { text: undefined }, labels: { style: { fontSize: '10px' }, formatter: rupeeFmt } },
         yAxis: { categories, title: { text: undefined }, labels: { style: { fontSize: '10px' } } },
+        tooltip: this.rupeeTooltipOptions(),
         plotOptions: { bar: { borderRadius: 3, dataLabels: { enabled: false } } },
         series: [{ type: 'bar', name: 'Raised (₹)', color: 'rgba(27,52,97,0.88)', data }],
         credits: { enabled: false },
@@ -958,6 +969,7 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
         title: { text: undefined },
         xAxis: { min: 0, title: { text: undefined }, labels: { style: { fontSize: '10px' }, formatter: rupeeFmt } },
         yAxis: { categories, title: { text: undefined }, labels: { style: { fontSize: '10px' } } },
+        tooltip: this.rupeeTooltipOptions(),
         plotOptions: { bar: { borderRadius: 3, dataLabels: { enabled: false } } },
         series: [{ type: 'bar', name: 'Raised (₹)', color: 'rgba(22,101,52,0.88)', data }],
         credits: { enabled: false },

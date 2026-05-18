@@ -63,9 +63,9 @@
                 <td class="font-weight-bold">{{ t.ticketNo || t.ticketId }}</td>
                 <td>{{ t.fullName | rmbCamelDisplay }}</td>
                 <td>{{ t.displayStatus | rmbCamelDisplay }}</td>
-                <td class="text-right">{{ t.totalClaimAmount | number:'1.0-0' }}</td>
-                <td class="text-right">{{ (t.paidClaimAmount != null && t.paidClaimAmount !== '' ? +t.paidClaimAmount : 0) | number:'1.0-0' }}</td>
-                <td class="text-right">{{ (t.rejectedTotalAmount != null ? +t.rejectedTotalAmount : 0) | number:'1.0-0' }}</td>
+                <td class="text-right">{{ t.totalClaimAmount | number:'1.0-2' }}</td>
+                <td class="text-right">{{ (t.paidClaimAmount != null && t.paidClaimAmount !== '' ? +t.paidClaimAmount : 0) | number:'1.0-2' }}</td>
+                <td class="text-right">{{ (t.rejectedTotalAmount != null ? +t.rejectedTotalAmount : 0) | number:'1.0-2' }}</td>
                 <td>{{ t.submittedOn | date:'medium' }}</td>
                 <ng-container *ngFor="let col of tableLevelColumns; let li = index">
                   <td>{{ approvalLevelCell(t, li, 'approverName') | rmbCamelDisplay }}</td>

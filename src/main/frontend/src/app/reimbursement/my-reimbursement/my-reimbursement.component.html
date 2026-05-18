@@ -305,7 +305,9 @@
                         <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType != 'Food'">
                             <label class="rmb-label" for="fromDate"><span class="rmb-req">*</span>From date</label>
                             <input class="form-control rmb-control" id="fromDate" [(ngModel)]="reimbursementObj.fromDate"
-                                (ngModelChange)="onFromDateChange($event)" type="date" [min]="claimDateMin" [max]="claimDateMax" autocomplete="off">
+                                (ngModelChange)="onFromDateChange($event)" type="date" [min]="claimDateMin" [max]="claimDateMax"
+                                (keydown)="onClaimDateKeydown($event)" (paste)="onClaimDatePaste($event)"
+                                (click)="openClaimDatePicker($event)" (focus)="openClaimDatePicker($event)" autocomplete="off">
                             <div *ngIf="invalidFromDate" class="rmb-field-error">Pick a date in the previous calendar month only (not the current month or earlier months).</div>
                         </div>
 
@@ -314,7 +316,9 @@
                             <input class="form-control rmb-control" id="toDate2" [(ngModel)]="reimbursementObj.toDate" type="date"
                                 (ngModelChange)="onToDateChange($event)"
                                 [min]="reimbursementObj.fromDate || claimDateMin" [max]="claimDateMax"
-                                [disabled]="!reimbursementObj.fromDate" autocomplete="off">
+                                [disabled]="!reimbursementObj.fromDate"
+                                (keydown)="onClaimDateKeydown($event)" (paste)="onClaimDatePaste($event)"
+                                (click)="openClaimDatePicker($event)" (focus)="openClaimDatePicker($event)" autocomplete="off">
                             <div *ngIf="invalidToDate" class="rmb-field-error">Pick a To date on or after From date, within the previous calendar month only.</div>
                         </div>
 

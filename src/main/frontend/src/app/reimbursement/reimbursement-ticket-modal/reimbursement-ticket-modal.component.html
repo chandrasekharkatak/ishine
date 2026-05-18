@@ -37,7 +37,7 @@
       </div>
       <div class="rmbtm-meta__item rmbtm-meta__item--right">
         <div class="rmbtm-meta__label">{{ isFinanceStage ? 'Ticket total (all claims)' : 'Total (₹)' }}</div>
-        <div class="rmbtm-meta__value rmbtm-meta__value--total">₹ {{ ticket?.totalClaimAmount }}</div>
+        <div class="rmbtm-meta__value rmbtm-meta__value--total">₹ {{ ticket?.totalClaimAmount | number:'1.0-2' }}</div>
         <div class="rmbtm-meta__hint" *ngIf="isFinanceStage">Payable amount considers claims still pending finance.</div>
       </div>
     </div>
@@ -65,7 +65,7 @@
           <td>{{ c.expenditureType | rmbCamelDisplay }}</td>
           <td class="small">{{ c.projectName ? (c.projectName | rmbCamelDisplay) : ('#' + c.projectId) }}</td>
           <td class="small">{{ (c.clientName || '—') | rmbCamelDisplay }}</td>
-          <td class="text-right">{{ c.amount }}</td>
+          <td class="text-right">{{ c.amount | number:'1.0-2' }}</td>
           <td class="text-nowrap">
             <span class="rmbtm-status"
               [ngClass]="{
@@ -145,7 +145,7 @@
   <div class="rmbtm-footer">
     <div class="rmbtm-footer__summary">
       <div class="rmbtm-footer__label">{{ isFinanceStage ? 'Amount payable (finance)' : 'Approved total (₹)' }}</div>
-      <div class="rmbtm-footer__value">₹ {{ approvedAmount() | number:'1.0-0' }}</div>
+      <div class="rmbtm-footer__value">₹ {{ approvedAmount() | number:'1.0-2' }}</div>
       <div class="rmbtm-footer__sub rmbtm-footer__sub--info" *ngIf="isFinanceStage && financePendingClaims().length">
         {{ financePendingClaims().length }} claim(s) pending finance
       </div>

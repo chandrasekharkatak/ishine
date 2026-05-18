@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS reimbursement_ticket_claim (
   line_no INT NULL,
   expenditure_type VARCHAR(128) NULL,
   expenditure_type_description VARCHAR(255) NULL,
-  amount BIGINT NULL,
+  amount DECIMAL(15, 2) NULL,
   travel_mode VARCHAR(128) NULL,
   distance BIGINT NULL,
   vehicle_type VARCHAR(128) NULL,
