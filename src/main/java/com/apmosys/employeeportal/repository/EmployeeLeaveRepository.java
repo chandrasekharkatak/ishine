@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
@@ -82,6 +83,9 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 
 	@Query(nativeQuery = true)
 	public List<Object[]> findLeaveTypeFromEmpIdAndDate(Long empId, String date);
+	
+	// @Query(nativeQuery = true)
+	// public List<Object[]> findLeaveTypeFromEmpIdAndDateNew(Long empId, String date);
 
 	public EmployeeLeave findByLeaveId(Long leaveId);
 
@@ -187,7 +191,9 @@ public List<EmployeeLeave> findEmployeeIsOnLeaveToday();
 List<Object[]> reportingManagerIsOnLeave(@Param("empId") Long empId);
 
 
-@Query("SELECT e FROM EmployeeLeave e WHERE e.empId = :empId AND " +
+@Query("SELECT e FROM EmployeeLeave e \n"+
+		// "INNER JOIN LeaveTypeMaster ltm ON ltm.leaveTypeMasterId = e.leaveTypeMasterId \n"+
+		   "WHERE e.empId = :empId AND e.leaveStatusId NOT IN (3,5) AND " +
 	       "((e.fromDate BETWEEN :startOfMonth AND :endOfMonth) OR " +
 	       " (e.toDate BETWEEN :startOfMonth AND :endOfMonth))")
 	List<EmployeeLeave> findLeavesInCurrentMonth(
@@ -290,6 +296,61 @@ public List<Object[]> getAllTeamCompOffHistoryViewHirarchy(List<Long> empIds, Lo
 	        @Param("year") int year,
 	        @Param("month") int month);
 
+
+@Query(
+	    "select l " +
+	    "from EmployeeLeave l " +
+	    "where l.empId = :empId " +
+	    "and l.leaveStatusId not in (3, 5) " +
+	    "and (l.fromDate = :timesheetDate or l.toDate = :timesheetDate)"
+	)
+	List<EmployeeLeave> findActiveLeavesByEmpIdAndDate(
+	        @Param("empId") Long empId,
+	        @Param("timesheetDate") LocalDate timesheetDate);
+
+	@Query(value = "SELECT COUNT(1) " +
+               "FROM employee_leave el " +
+               "WHERE el.emp_id = :empId " +
+               "AND :date BETWEEN el.from_date AND el.to_date " +
+               "AND el.leave_status_id IN (1,2)",
+       nativeQuery = true)
+		Integer existsLeaveForDate(@Param("empId") Long empId,
+                           @Param("date") LocalDate date);
+
+
+		@Query(value =
+		"SELECT DISTINCT dates FROM ( " +
+		"    SELECT from_date AS dates " +
+		"    FROM employee_leave " +
+		"    WHERE emp_id = :empId " +
+		"      AND (leave_status_id not in (3,5)) " +
+		"      AND from_date_day_type = 0.5 " +
+		"      AND from_date >= :startDate " +
+		"      AND from_date <= :endDate " +
+		"    UNION " +
+		"    SELECT to_date AS dates " +
+		"    FROM employee_leave " +
+		"    WHERE emp_id = :empId " +
+		"      AND (leave_status_id not in (3,5)) " +
+		"      AND to_date_day_type = 0.5 " +
+		"      AND to_date >= :startDate " +
+		"      AND to_date <= :endDate " +
+		") AS half_day_dates " +
+		"ORDER BY dates",
+		nativeQuery = true
+	)
+	List<Date> getAllHalfDayLeaves(
+		@Param("empId") Long empId,
+		@Param("startDate") LocalDate startDate,
+		@Param("endDate") LocalDate endDate
+	);	
+		
+		@Query(value = "SELECT el.emp_id, COUNT(*) FROM emp_portal_db.employee_leave el "
+				+ "	  WHERE el.emp_id IN (:empIds) "
+				+ "	  AND el.leave_type_master_id IN (1,2,3,4) "
+				+ "	  AND el.from_date <= :endDate AND el.to_date >= :startDate\n"
+				+ "	 GROUP BY el.emp_id", nativeQuery = true)
+	List<Object[]> findLeaveCountByEmpIdsAndDateRange(List<Long> empIds,LocalDate startDate,LocalDate endDate);
 
 }
 

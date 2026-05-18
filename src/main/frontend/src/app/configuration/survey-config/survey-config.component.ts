@@ -998,6 +998,9 @@ export class SurveyConfigComponent implements OnInit {
     this.backToTraining();
   }
 
+
+
+
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {

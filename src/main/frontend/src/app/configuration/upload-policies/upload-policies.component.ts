@@ -15,6 +15,7 @@ import { NotificationService } from 'src/app/services/notification.service';
 import { UploadPoliciesService } from 'src/app/services/upload-policies.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 
@@ -76,6 +77,7 @@ export class UploadPoliciesComponent implements OnInit {
     private notificationService: NotificationService,
     private locationStrategy: LocationStrategy,
     private utilityService: UtilityService,
+    private router :Router
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -353,9 +355,17 @@ export class UploadPoliciesComponent implements OnInit {
     this.modalRef?.close();
   }
 
+  // openPreviewDocument(template: TemplateRef<any>) {
+  //   this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
+  // }
+
   openPreviewDocument(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
-  }
+  this.modalRef = this.modalService.open(template, {
+    windowClass: 'a4-modal',
+    backdrop: true,
+    centered: true
+  });
+}
 
 
   fileObjj :any;
@@ -447,7 +457,14 @@ export class UploadPoliciesComponent implements OnInit {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
+
+
+
+
+
 }
+
+
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 

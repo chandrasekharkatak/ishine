@@ -9,11 +9,14 @@
         <div class="row">
           <div class="col-md-12">
             <div class="row">
-              <div class="col-md-12 table-header">
-                <h1 class="table-header-title">Policies</h1> 
+              <div class="col-md-12 table-header d-flex align-items-center justify-content-between">
+            
+                <h1 class="table-header-title mb-0">Policies</h1>
+            
+
+            
               </div>
-            </div>
-      
+            </div>  
             <!-- <div class="row">
               <div class="form-group ml-auto col-md-3">
                 <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
@@ -91,7 +94,7 @@
 </ng-template>
 
 <ng-template #preview_document>
-  <div class="modal-body">
+  <div class="modal-body"> 
 
     <div class="row">
       <div class="card col-12 p-0">
@@ -103,7 +106,7 @@
         </div>
         <div class="card-body p-2 p-md-3">
           <div id="outerContainer">
-            <div class="pdf-container">
+            <div class="pdf-container" (contextmenu)="$event.preventDefault()">
               <pdf-viewer [src]="src" [rotation]="0" [original-size]="false" [show-all]="true" [fit-to-page]="false"
                 [zoom]="1" [zoom-scale]="'page-width'" [stick-to-page]="false" [render-text]="true"
                 [external-link-target]="'blank'" [autoresize]="true" [show-borders]="false"
@@ -114,7 +117,7 @@
       </div>
     </div>
 
-    <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center justify-content-sm-start mt-2">
+    <!-- <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center justify-content-sm-start mt-2">
       <button class="btn btn-sm btn-outline-primary"
         *ngIf="isDocumentScrolledToBottom && currentDoc.readEnabled == 'true' && !currentDoc.isRead" type="submit"
         (click)="openReadEnabledMod(read_enabled, currentDoc)">
@@ -125,6 +128,24 @@
         (click)="cancelRequest()">
         Close
       </button>
-    </div>
+    </div> -->
+    
+    <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center mt-2">
+
+  <button class="btn btn-sm btn-outline-primary highlight-btn"
+    *ngIf="isDocumentScrolledToBottom && currentDoc.readEnabled == 'true' && !currentDoc.isRead"
+    type="submit"
+    (click)="openReadEnabledMod(read_enabled, currentDoc)">
+    Mark As Read
+  </button>
+
+  <button type="button" class="btn btn-outline-primary btn-sm"
+    *ngIf="(currentDoc.readEnabled == 'true' && currentDoc.isRead) || currentDoc.readEnabled == 'false'"
+    (click)="cancelRequest()">
+    Close
+  </button>
+
+</div>
+  
   </div>
 </ng-template>

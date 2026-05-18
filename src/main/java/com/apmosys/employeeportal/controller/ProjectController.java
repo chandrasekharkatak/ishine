@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -9,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,25 +20,27 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
+import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
-import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectDto;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
-import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
-import com.apmosys.employeeportal.request.ProjectRequest;
+import com.apmosys.employeeportal.dto.RmgProjectDto;
+import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.request.ProjectRequest;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.service.PoPortalAPIService;
 import com.apmosys.employeeportal.service.ProjectService;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping(path = "/api")
@@ -159,9 +161,9 @@ public class ProjectController {
 	}
 	
 	@PostMapping(value = "/poProjectTimesheetSync")
-	public ServiceResponse poProjectTimesheetSync(HttpServletRequest httpRequest,@RequestBody Set<Long> projectIdList) {
+	public ServiceResponse poProjectTimesheetSync(HttpServletRequest httpRequest,@RequestBody Set<Long> poIdList) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		return projectService.poProjectTimesheetSync(projectIdList);
+		return projectService.poProjectTimesheetSync(poIdList);
 	}
 
 	@Encrypted
@@ -180,8 +182,11 @@ public class ProjectController {
 	@RequestMapping(value = "/updateMilestoneById", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ServiceResponse> updateMilestoneById(
 			@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
-			@RequestPart(value = "file", required = false) MultipartFile file) {
-		return ResponseEntity.ok(poPortalApiService.updateMilestoneById(fcProjectMilestoneDTO, file));
+			@RequestPart(value = "file", required = false) MultipartFile file,
+			@RequestPart("projectName") String projectNameForMilestoneUpdate,
+			@RequestPart("previousStatus") String previousStatus
+		) {
+		return ResponseEntity.ok(poPortalApiService.updateMilestoneById(fcProjectMilestoneDTO, file , projectNameForMilestoneUpdate , previousStatus));
 	}
 
 	@JobRoleAccess(featureIds = {34})
@@ -209,9 +214,15 @@ public class ProjectController {
 	}
 
 	@JobRoleAccess(featureIds = {24})
-	@PutMapping(value = "/updateMilestoneExtendedDate")
-	public ServiceResponse updateMilestoneExtendedDate(@RequestBody MilestoneUpdatedLogDto milestoneUpdatedLogDto) {
-		return poPortalApiService.updateMilestoneExtendedDate(milestoneUpdatedLogDto);
+	@PostMapping(value = "/updateMilestoneExtendedDate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ServiceResponse updateMilestoneExtendedDate(@RequestPart("milestoneData") String milestoneData,
+	        @RequestPart(value = "extensionFile", required = false) MultipartFile extensionFile) throws Exception {
+
+	    ObjectMapper mapper = new ObjectMapper();
+	    MilestoneUpdatedLogDto milestoneUpdatedLogDto =
+	            mapper.readValue(milestoneData, MilestoneUpdatedLogDto.class);
+
+	    return poPortalApiService.updateMilestoneExtendedDate(milestoneUpdatedLogDto, extensionFile);
 	}
 
 	@JobRoleAccess(featureIds = {24})
@@ -220,15 +231,15 @@ public class ProjectController {
 		return poPortalApiService.getAllMilestoneExtendReason();
 	}
 	
-	@GetMapping(value = "/getPodetailsPromPOPortal")
-	public ServiceResponse getPodetailsPromPOPortal() {
+	@GetMapping(value = "/getPodetailsFromPOPortal")
+	public ServiceResponse getPodetailsFromPOPortal() {
 		return poPortalApiService.syncProjectPoFromPoPortal();
 	}
 	
-	@GetMapping(value = "/getProjectSDEDFromPOPortal")
-	public ServiceResponse getProjectSDEDFromPOPortal() {
-		return poPortalApiService.updateSDEDOfproject();
-	} 
+//	@GetMapping(value = "/getProjectSDEDFromPOPortal")
+//	public ServiceResponse getProjectSDEDFromPOPortal() {
+//		return poPortalApiService.updateSDEDOfproject();
+//	} 
 	
 
 	@GetMapping(value = "/getMilestoneProjectWise")
@@ -284,13 +295,11 @@ public class ProjectController {
 	}
 	
 	@RequestMapping(value = "/getResourceCountListByPoprojectName", method = RequestMethod.POST)
-	public ServiceResponse getResourceCountListByPoprojectName(HttpServletRequest httpRequest,
-			@RequestBody List<String> projectNames) {
+	public ServiceResponse getResourceListByPoNumbers(HttpServletRequest httpRequest,
+			@RequestBody List<String> poNumbers) {
 
-//	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-
-		ServiceResponse response = poPortalApiService.getResourceCountListByPoprojectName(projectNames);
-		return response;
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return poPortalApiService.getResourceListByPoNumbers(poNumbers);
 	}
 	
 
@@ -299,5 +308,38 @@ public class ProjectController {
 		ServiceResponse response = projectService.getProjectByName(projectDto);
 		return response;
 	}
+	
+	// @Encrypted
+	@PostMapping("/saveProjectInformation")
+	public ServiceResponse saveProjectInformation(@RequestBody RmgProjectDto rmgProjectDto) {
+		return projectService.saveProjectInformation(rmgProjectDto);
+	}
+
+	// @Encrypted
+	@PostMapping(value = "/updateProjectStartDate")
+	public ServiceResponse updateProjectStartDate(@RequestBody ProjectDto projectDto) {
+		// employeeService.clearEmployeeCache();
+		return projectService.updateProjectStartDate(projectDto);
+	}
+
+	@PostMapping("/getExtensionDocumentByName")
+	public ResponseEntity<FCProjectMilestoneDTO> getExtensionDocumentById(@RequestBody Map<String, String> request) {
+	    String uniquefile = request.get("uniquefile");
+	    return ResponseEntity.ok(projectService.getExtensionDocumentByName(uniquefile));
+	}
+	
+	@PostMapping("/validateDocName")
+	public ServiceResponse validateDocName(@RequestBody Map<String, String> request) {
+	    String uniquefile = request.get("uniquefile");
+		ServiceResponse response = projectService.validateDocName(uniquefile);
+		return response;
+	}
+
+	@PostMapping(value = "/completeProjectReminder")
+	public ResponseEntity<ServiceResponse> completeProjectReminder(@RequestParam("poProjectId") Long poProjectId) {
+		return ResponseEntity.ok(poPortalApiService.completeProjectReminder(poProjectId));
+	}
+
+
 	
 }

@@ -57,8 +57,10 @@
 <div class="row" *ngIf="isTable">
     <div class="col-md-12">
         <div class="row">
-            <div class="col-md-12 table-header">
+            <div class="col-md-12 table-header d-flex align-items-center justify-content-between">
                 <h1 class="table-header-title">Document(s)</h1>
+
+                
             </div>
         </div>
 
@@ -277,7 +279,7 @@
                 </div>
                 <div class="card-body">
                     <div id="outerContainer">
-                        <div class="pdf-container">
+                        <div class="pdf-container" (contextmenu)="$event.preventDefault()">
                             <pdf-viewer [src]="src" [rotation]="0" [original-size]="false" [show-all]="true"
                                 [fit-to-page]="false" [zoom]="1" [zoom-scale]="'page-width'" [stick-to-page]="false"
                                 [render-text]="true" [external-link-target]="'blank'" [autoresize]="true"

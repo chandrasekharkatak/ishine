@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
@@ -11,7 +11,8 @@ import { Query } from 'src/app/models/query';
 import { LeaveService } from 'src/app/services/leave.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { AppComponent } from 'src/app/app.component';
-import { first } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { finalize, first } from 'rxjs/operators';
 import { Biomax } from 'src/app/models/biomax';
 import * as Highcharts from 'highcharts';
 import { EmployeeService } from 'src/app/services/employee.service';
@@ -23,6 +24,30 @@ class FilterData {
   title: any;
   columns: any;
   queryList: any;
+}
+
+interface AttendanceSummary {
+  totalEmployees: number;
+  presentToday: number;
+  lateArrivals: number;
+  underNineHours: number;
+  absentToday: number;
+}
+
+interface AttendanceStatusDistribution {
+  onTime: number;
+  late: number;
+  /** Rows with no in-time (matches Detailed Log "Absent" filter). */
+  absent: number;
+  /** Employees in headcount with no row for the reference day (not the same as Absent in the log). */
+  noRecord: number;
+  total: number;
+}
+
+interface AttendanceTrendPoint {
+  date: string;
+  presentCount: number;
+  absentCount: number;
 }
 @Component({
   standalone: false,
@@ -59,18 +84,40 @@ export class AttendanceReconciliationComponent implements OnInit {
   endDate: string;
   name: string;
   page = 1;
+  totalRecords: number = 0;
+  pageSize: number = 20;
+  readonly pageSizeOptions = [10, 20, 50, 100, 200];
+  /** Max rows fetched when column filters are on (client-side slice + paginate). */
+  private readonly tableFetchPageSize = 10000;
+
+  /** Tracks column filter presence for switching server vs full fetch (avoid refetch on every keystroke). */
+  private prevColumnFiltersActive = false;
+
+  /** KPI card filter: table shows matching rows (client-paged from full fetch). */
+  cardFilter: 'all' | 'presentToday' | 'late' | 'underNine' | 'absent' = 'all';
+  /** True when a KPI card filter is applied (full client-side slice of cached rows). Exposed for template. */
+  tableClientPaging = false;
+  private fullTableRowsCache: any[] | null = null;
+  /**
+   * Real row count from a large data fetch (count query totalRecords can be higher, e.g. 508 vs 270).
+   * Used only for pagination footer + ngx totalItems; page requests still use the server.
+   */
+  actualTotalRecords: number | null = null;
   formattedDate: string;
   startformattedDate: string;
   endformattedDate: string;
   maxTodayDate: any;
-  AttendancereConciliation: any[] = ['employeeCode', 'employeeName', 'inTime', 'outTime', 'totalDuration', 'shiftDuration', 'shiftName', 'beginTime', 'endTime', 'logDate', 'earlyBy', 'lateBy', 'duration', 'status',];
-  timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
+  AttendancereConciliation: any[] = ['employeeCode', 'employeeName', 'employeeEmail', 'inTime', 'outTime', 'totalDuration', 'logDate', 'departmentName', 'reportingManagerName', 'reportingManagerEmail'];
+  timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Email Id', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
 
   filters: any = {};
   fromDate: string = '';
   toDate: string = '';
   currentDate: string;
+  Math = Math;
 
+  /** True while a full-dataset Excel export is running. */
+  exportInProgress = false;
 
   feature = 'Reports';
   userMapping: any = {};
@@ -83,7 +130,8 @@ export class AttendanceReconciliationComponent implements OnInit {
     private datePipe: DatePipe,
     private leaveService: LeaveService,
     private utilityService: UtilityService,
-    private employeeService: EmployeeService
+    private employeeService: EmployeeService,
+    private cdr: ChangeDetectorRef
   ) {
     this.maxTodayDate = new Date().toISOString().split('T')[0];
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x)
@@ -97,6 +145,20 @@ export class AttendanceReconciliationComponent implements OnInit {
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return this.datePipe.transform(date, 'dd-MMM-yyyy')!;
+  }
+
+  private applyEmployeeRowFormatting(list: any[]): void {
+    if (!list?.length) {
+      return;
+    }
+    list.forEach((employee) => {
+      employee.emp360 = employee.empId;
+      employee.employeementId = String(employee.employeeCode);
+      // if (employee.employeementId.startsWith('A')) {
+      //   employee.employeementId = employee.employeementId.substring(1);
+      // }
+      // employee.employeementId = 'A-'.concat(employee.employeementId);
+    });
   }
 
   ngOnInit(): void {
@@ -115,16 +177,144 @@ export class AttendanceReconciliationComponent implements OnInit {
     // console.log("ckeck date =======", this.startDate);
     // console.log("ckeck date =======", this.endDate);
     this.getBioMatricData(this.startformattedDate, this.endformattedDate);
-
   }
 
-  onSearch(searchData) {
+  onSearch(searchData: any) {
     this.filters = searchData;
+    this.page = 1; // Reset to first page when searching
+    
+    // Check if any filter has value
+    const hasFilters = searchData && Object.values(searchData).some(value => value && (value as string).trim() !== '');
+    
+    if (hasFilters) {
+      // If there are active filters, search with filters
+      this.getBioMatricData(this.startDate, this.endDate);
+    } else {
+      // If all filters are empty, get all data
+      this.filters = {};
+      this.getBioMatricData(this.startDate, this.endDate);
+    }
   }
 
-  //pagination
-  handlePageChange(event) {
+  /** True when any column filter input has non-empty text (matches colFilter pipe behavior). */
+  hasActiveColumnFilters(): boolean {
+    if (!this.filters || typeof this.filters !== 'object') {
+      return false;
+    }
+    return Object.keys(this.filters).some(
+      (k) => this.filters[k] != null && String(this.filters[k]).trim() !== ''
+    );
+  }
+
+  get paginateConfig(): { itemsPerPage: number; currentPage: number; totalItems?: number } {
+    const base: { itemsPerPage: number; currentPage: number; totalItems?: number } = {
+      itemsPerPage: this.pageSize,
+      currentPage: this.page
+    };
+    if (this.tableClientPaging) {
+      const n = this.cardFilteredRowCount;
+      return { ...base, totalItems: n };
+    }
+    return { ...base, totalItems: this.displayTotalRecordsForPagination };
+  }
+
+  /**
+   * Total shown in footer / paginator for server-paged "All" view (prefers measured row count).
+   */
+  get displayTotalRecordsForPagination(): number {
+    if (this.tableClientPaging) {
+      return this.cardFilteredRowCount;
+    }
+    if (this.actualTotalRecords !== null && this.actualTotalRecords >= 0) {
+      return this.actualTotalRecords;
+    }
+    return this.totalRecords;
+  }
+
+  /** Rows matching the active KPI card (for pagination totalItems + footer text). */
+  get cardFilteredRowCount(): number {
+    if (!this.tableClientPaging || !this.fullTableRowsCache?.length) {
+      return 0;
+    }
+    return this.fullTableRowsCache.filter((r) => this.rowMatchesCardFilter(r)).length;
+  }
+
+  handlePageChange(event: number): void {
     this.page = event;
+    if (this.tableClientPaging) {
+      return;
+    }
+    this.getBioMatricData(this.startDate, this.endDate);
+  }
+
+  onPageSizeChange(): void {
+    this.pageSize = Number(this.pageSize);
+    this.page = 1;
+    if (this.tableClientPaging) {
+      return;
+    }
+    this.getBioMatricData(this.startDate, this.endDate);
+  }
+
+  /** Rows for the table + paginate pipe (server list or card-filtered full list). */
+  get tableRowsSource(): any[] {
+    if (this.tableClientPaging) {
+      if (!this.fullTableRowsCache?.length) {
+        return [];
+      }
+      return this.fullTableRowsCache.filter((r) => this.rowMatchesCardFilter(r));
+    }
+    return this.attendanceReconciliationList;
+  }
+
+  selectCardFilter(filter: 'all' | 'presentToday' | 'late' | 'underNine' | 'absent'): void {
+    this.cardFilter = filter;
+    this.page = 1;
+    if (filter === 'all') {
+      this.tableClientPaging = false;
+      this.fullTableRowsCache = null;
+      this.getBioMatricData(this.startDate, this.endDate);
+      return;
+    }
+    this.tableClientPaging = true;
+    this.fullTableRowsCache = null;
+    // Always request max page size — do not tie to totalRecords alone (it can match current
+    // page size and only 20 rows would load, while KPI counts use the full dataset).
+    const size = this.tableFetchPageSize;
+    const startFmt = this.formatDate(this.startDate);
+    const endFmt = this.formatDate(this.endDate);
+    this.attendanceReconciliationService.getBiomatricData(startFmt, endFmt, 1, size).subscribe((response: any) => {
+      const rows: any[] = response?.serviceResponse?.data || [];
+      this.applyEmployeeRowFormatting(rows);
+      this.fullTableRowsCache = rows;
+      this.cdr.markForCheck();
+    });
+  }
+
+  rowMatchesCardFilter(row: any): boolean {
+    switch (this.cardFilter) {
+      case 'all':
+        return true;
+      case 'presentToday':
+        return this.getAttendanceStatus(row) !== 'Absent';
+      case 'late':
+        return this.getAttendanceStatus(row) === 'Late';
+      case 'underNine': {
+        if (this.getAttendanceStatus(row) === 'Absent') {
+          return false;
+        }
+        const m = this.getWorkedMinutes(row?.totalDuration);
+        return m > 0 && m < 540;
+      }
+      case 'absent':
+        return this.getAttendanceStatus(row) === 'Absent';
+      default:
+        return true;
+    }
+  }
+
+  isCardActive(filter: 'all' | 'presentToday' | 'late' | 'underNine' | 'absent'): boolean {
+    return this.cardFilter === filter;
   }
 
   sortData(sort: Sort) {
@@ -137,26 +327,98 @@ export class AttendanceReconciliationComponent implements OnInit {
     }
   }
 
+  // getBioMatricData(startDate: string, endDate: string) {
+  //   const startdateformat = this.formatDate(startDate);
+  //   const enddateformat = this.formatDate(endDate);
+
+  //   this.attendanceReconciliationService.getBiomatricData(startdateformat, enddateformat, this.page, this.pageSize).subscribe((response: any) => {
+  //     this.attendanceReconciliationList = response.serviceResponse.data;
+  //     this.totalRecords = response.serviceResponse.totalRecords;
+  //     this.attendanceReconciliationList.forEach(employee => {
+
+  //       employee.emp360 = employee.empId;
+
+  //       employee.employeementId = String(employee.employeeCode);
+  //       if (employee.employeementId.startsWith('A'))
+  //         employee.employeementId = employee.employeementId.substring(1);
+  //       employee.employeementId = "A-".concat(employee.employeementId);
+  //     });
+
+  //     // console.log("this.attendanceReconciliationList" , this.attendanceReconciliationList);
+  //     this.attendanceReconciliationOriginaldata = [... this.attendanceReconciliationList];
+  //     this.modalRef?.close();
+  //   });
+  // }
+
   getBioMatricData(startDate: string, endDate: string) {
     const startdateformat = this.formatDate(startDate);
     const enddateformat = this.formatDate(endDate);
+    const searchParams = this.getActiveBiometricSearchParams();
 
-    this.attendanceReconciliationService.getBiomatricData(startdateformat, enddateformat).subscribe((response: any) => {
-      this.attendanceReconciliationList = response.serviceResponse;
-      this.attendanceReconciliationList.forEach(employee => {
+    this.attendanceReconciliationService.getBiomatricDataWithSearch(
+      startdateformat, 
+      enddateformat, 
+      this.page, 
+      this.pageSize,
+      searchParams
+    ).subscribe((response: any) => {
+      this.attendanceReconciliationList = response.serviceResponse.data;
+      this.totalRecords = response.serviceResponse.totalRecords;
+      this.applyEmployeeRowFormatting(this.attendanceReconciliationList);
 
-        employee.emp360 = employee.empId;
-
-        employee.employeementId=String(employee.employeeCode);
-        if(employee.employeementId.startsWith('A'))
-          employee.employeementId = employee.employeementId.substring(1);
-          employee.employeementId = "A-".concat(employee.employeementId);
-      });
-
-      // console.log("this.attendanceReconciliationList" , this.attendanceReconciliationList);
-      this.attendanceReconciliationOriginaldata = [... this.attendanceReconciliationList];
+      this.attendanceReconciliationOriginaldata = [...this.attendanceReconciliationList];
+      if (this.isAttendanceVisible) {
+        this.loadAttendanceDashboardData();
+        this.loadFullDatasetForCharts();
+      } else {
+        this.reconcileActualTotalRecordsForPagination();
+      }
       this.modalRef?.close();
     });
+  }
+
+  /**
+   * One large page-1 fetch (same filters as grid) to learn true row count when dashboard is off.
+   */
+  private reconcileActualTotalRecordsForPagination(): void {
+    const startFmt = this.formatDate(this.startDate);
+    const endFmt = this.formatDate(this.endDate);
+    const searchParams = this.getActiveBiometricSearchParams();
+    this.attendanceReconciliationService
+      .getBiomatricDataWithSearch(startFmt, endFmt, 1, this.tableFetchPageSize, searchParams)
+      .subscribe((response: any) => {
+        const rows: any[] = response?.serviceResponse?.data || [];
+        this.setActualTotalFromFullFetchSample(rows);
+      });
+  }
+
+  /**
+   * If the response fits in one max-size page, row count is the true total; otherwise keep API total.
+   */
+  private setActualTotalFromFullFetchSample(rows: any[]): void {
+    if (rows.length >= this.tableFetchPageSize) {
+      this.actualTotalRecords = null;
+      this.cdr.markForCheck();
+      return;
+    }
+    this.applyActualTotalRecordsForPagination(rows.length);
+  }
+
+  /** Store corrected total and clamp current page if it was valid only under inflated API total. */
+  private applyActualTotalRecordsForPagination(rowCount: number): void {
+    this.actualTotalRecords = rowCount;
+    const maxPage = Math.max(1, Math.ceil(rowCount / Math.max(1, this.pageSize)));
+    const prev = this.page;
+    if (this.page > maxPage) {
+      this.page = maxPage;
+    }
+    this.cdr.markForCheck();
+    if (
+      prev > maxPage &&
+      !this.tableClientPaging
+    ) {
+      this.getBioMatricData(this.startDate, this.endDate);
+    }
   }
 
   getviewMoreData(template: TemplateRef<any>, punchrecords: any, name: any) {
@@ -232,10 +494,44 @@ export class AttendanceReconciliationComponent implements OnInit {
     this.sortColumn = [];
     this.sortColumnType = [];
     this.sortDirection = '';
+    const hadColumnFilters = this.hasActiveColumnFilters();
     this.isSearchEnabled = !this.isSearchEnabled;
+    
     if (!this.isSearchEnabled) {
+      // Clear all filters
       this.filters = {};
+      // Reset to first page
+      this.page = 1;
+      // Reload data without filters
+      this.getBioMatricData(this.startDate, this.endDate);
+    } else {
+      // When opening search, clear any existing filters and keep current data
+      this.filters = {};
+      this.page = 1;
+      this.prevColumnFiltersActive = false;
+      if (hadColumnFilters && !this.tableClientPaging) {
+        this.getBioMatricData(this.startDate, this.endDate);
+      }
     }
+  }
+
+  resetFilters() {
+    this.filters = {};
+    this.isSearchEnabled = false;
+    this.cardFilter = 'all';
+    this.tableClientPaging = false;
+    this.fullTableRowsCache = null;
+    this.actualTotalRecords = null;
+    this.page = 1;
+    this.sortColumn = [];
+    this.sortColumnType = [];
+    this.sortDirection = '';
+
+    if (this.isAttendanceVisible) {
+      this.syncSingleDateForDashboard();
+    }
+
+    this.getBioMatricData(this.startDate, this.endDate);
   }
 
   cancelRequest() {
@@ -245,36 +541,147 @@ export class AttendanceReconciliationComponent implements OnInit {
   exportToExcel(): void {
     this.excelName = 'attendanceReconciliation.xlsx';
 
-    const convertMinutesToHours = (value: number): string => {
-      if (value === null || value === undefined) {
-        return 'NA'; // Handle null or undefined value
+    if (this.tableClientPaging && this.fullTableRowsCache?.length) {
+      const filtered = this.fullTableRowsCache.filter((r) => this.rowMatchesCardFilter(r));
+      this.applyEmployeeRowFormatting(filtered);
+      this.exportExcelService.exportTableDataToExcel(
+        this.mapAttendanceRowsForExport(filtered),
+        this.excelName
+      );
+      return;
+    }
+
+    const startFmt = this.formatDate(this.startDate);
+    const endFmt = this.formatDate(this.endDate);
+    const searchParams = this.getActiveBiometricSearchParams();
+    /** Chunked pages so we never rely on one huge LIMIT (some stacks cap rows per response). */
+    const chunkSize = 500;
+
+    this.exportInProgress = true;
+    this.fetchAllBioRowsForExport(startFmt, endFmt, searchParams, chunkSize)
+      .pipe(finalize(() => (this.exportInProgress = false)))
+      .subscribe({
+        next: (fullRows: any[]) => {
+          this.applyEmployeeRowFormatting(fullRows);
+          this.exportExcelService.exportTableDataToExcel(
+            this.mapAttendanceRowsForExport(fullRows),
+            this.excelName
+          );
+        },
+        error: () => {}
+      });
+  }
+
+  /** Column filters for biomatric API — must match getBioMatricData. */
+  private getActiveBiometricSearchParams(): Record<string, string> {
+    if (!this.isSearchEnabled || !this.filters || Object.keys(this.filters).length === 0) {
+      return {};
+    }
+    const activeFilters: Record<string, string> = {};
+    Object.keys(this.filters).forEach((key) => {
+      const v = this.filters[key];
+      if (v != null && String(v).trim() !== '') {
+        activeFilters[key] = String(v);
       }
-      const hours = Math.floor(value / 60);
-      const mins = value % 60;
-      const convertedValue = `${hours} hour${hours !== 1 ? 's' : ''} ${mins} min${mins !== 1 ? 's' : ''}`;
-      // console.log(`Converted value for ${value} minutes: ${convertedValue}`);  // Debugging log
-      return convertedValue;
-    };
+    });
+    return Object.keys(activeFilters).length > 0 ? activeFilters : {};
+  }
 
-    const onlySpecificDataArr = this.attendanceReconciliationList.map(
-      x => ({
-        "Employee Id": x.employeeCode,
-        "Employee Name": x.employeeName,
-        "Log IN": x.inTime,
-        "Log Out": x.outTime,
-        "Total Working Hours": convertMinutesToHours(x.totalDuration),
-        "Shift Duration": convertMinutesToHours(x.shiftDuration),
-        "Shift Name": x.shiftName,
-        "Begin Time": x.beginTime,
-        "endTime": x.endTime,
-        "Log Date": x.logDate,
-        "Early By": convertMinutesToHours(x.earlyBy),
-        "Late By": convertMinutesToHours(x.lateBy),
-        "Status": x.status
-      })
-    );
+  /**
+   * Walks all API pages until totalRecords (or dashboard headcount) is reached or a page is empty.
+   * Do not stop on a short page when totalTarget is still higher — avoids 271 vs 508 exports.
+   */
+  private fetchAllBioRowsForExport(
+    startFmt: string,
+    endFmt: string,
+    searchParams: Record<string, string>,
+    chunkSize: number
+  ): Observable<any[]> {
+    return new Observable<any[]>((subscriber) => {
+      const acc: any[] = [];
+      let totalTarget =
+        this.actualTotalRecords != null && this.actualTotalRecords >= 0
+          ? this.actualTotalRecords
+          : Math.max(
+              Number(this.totalRecords) || 0,
+              Number(this.attendanceSummary?.totalEmployees) || 0
+            );
+      const maxPages = 400;
 
-    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+      const run = (page: number) => {
+        if (page > maxPages) {
+          subscriber.next(acc);
+          subscriber.complete();
+          return;
+        }
+        this.attendanceReconciliationService
+          .getBiomatricDataWithSearch(startFmt, endFmt, page, chunkSize, searchParams)
+          .subscribe({
+            next: (response: any) => {
+              const data: any[] = response?.serviceResponse?.data || [];
+              const tr = Number(response?.serviceResponse?.totalRecords);
+              if (Number.isFinite(tr) && tr > 0) {
+                totalTarget = Math.max(totalTarget, tr);
+              }
+              acc.push(...data);
+              const empty = data.length === 0;
+              const reachedCount = totalTarget > 0 && acc.length >= totalTarget;
+              const shortPageUnknownTotal = data.length < chunkSize && totalTarget === 0;
+              if (empty || reachedCount || shortPageUnknownTotal) {
+                subscriber.next(acc);
+                subscriber.complete();
+                return;
+              }
+              run(page + 1);
+            },
+            error: (err) => subscriber.error(err)
+          });
+      };
+      run(1);
+    });
+  }
+
+  private mapAttendanceRowsForExport(rows: any[]): any[] {
+    return rows.map((x: any) => ({
+      'Employee Id': x.employeeCode,
+      'Employee Name': x.employeeName,
+      'Email': x.employeeEmail ?? 'NA',
+      'Department': x.departmentName ?? 'NA',
+      'Reporting Manager': x.reportingManagerName ?? 'NA',
+      'Manager Email': x.reportingManagerEmail ?? 'NA',
+      'Log Date': x.logDate,
+      'Log IN': x.inTime,
+      'Log Out': x.outTime,
+      'Total Working Hours': this.minutesToReadable(x.totalDuration),
+      'Shift Duration': this.minutesToReadable(x.shiftDuration),
+      'Shift Name': x.shiftName ?? 'NA',
+      'Begin Time': x.beginTime ?? 'NA',
+      'End Time': x.endTime ?? 'NA',
+      'Early By': this.minutesToReadable(x.earlyBy),
+      'Late By': this.minutesToReadable(x.lateBy),
+      'API Status': x.status ?? 'NA',
+      'Attendance Status': this.getAttendanceStatus(x)
+    }));
+  }
+
+  private minutesToReadable(value: any): string {
+    if (value === null || value === undefined || value === '') {
+      return 'NA';
+    }
+
+    // Value may already be HH:mm format from API.
+    if (typeof value === 'string' && value.includes(':')) {
+      return value;
+    }
+
+    const totalMinutes = Number(value);
+    if (Number.isNaN(totalMinutes)) {
+      return String(value);
+    }
+
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    return `${hours} hour${hours !== 1 ? 's' : ''} ${mins} min${mins !== 1 ? 's' : ''}`;
   }
 
   exportToExcelviewMore(): void {
@@ -292,10 +699,17 @@ export class AttendanceReconciliationComponent implements OnInit {
   searchRecords() {
     console.log('Searching records from:', this.startDate, 'to:', this.endDate);
     if (this.startDate && this.endDate) {
+      if (this.isAttendanceVisible) {
+        this.onDashboardSingleDateChange();
+      }
+      this.page = 1;
+      this.cardFilter = 'all';
+      this.tableClientPaging = false;
+      this.fullTableRowsCache = null;
+      this.actualTotalRecords = null;
       this.getBioMatricData(this.startDate, this.endDate);
     } else {
       console.error('Start date or end date is missing');
-      // Optionally, show an alert or error message to the user
     }
   }
 
@@ -484,108 +898,511 @@ export class AttendanceReconciliationComponent implements OnInit {
   // }
 
   biomaxList: Biomax[] = [];
-chartdata = {
-  completed9Hours: 0,
-  above9Hours: 0,
-  lessThan9Hours: 0
-};
+  isAttendanceVisible = false;
+  attendanceSummary: AttendanceSummary = {
+    totalEmployees: 0,
+    presentToday: 0,
+    lateArrivals: 0,
+    underNineHours: 0,
+    absentToday: 0
+  };
+  statusDistribution: AttendanceStatusDistribution = {
+    onTime: 0,
+    late: 0,
+    absent: 0,
+    noRecord: 0,
+    total: 0
+  };
+  weeklyTrend: AttendanceTrendPoint[] = [];
+  private dashboardChartsLoading = false;
+  private dashboardFullDataRequestSeq = 0;
 
-getBiomatrixFilter() {
-  let completed9HoursCount = 0;
-  let above9HoursCount = 0;
-  let lessThan9HoursCount = 0;
+  onAttendanceDashboardVisibilityChange(): void {
+    this.filters = {};
+    this.isSearchEnabled = false;
+    this.cardFilter = 'all';
+    this.tableClientPaging = false;
+    this.fullTableRowsCache = null;
+    this.actualTotalRecords = null;
+    this.page = 1;
+    this.sortColumn = [];
+    this.sortColumnType = [];
+    this.sortDirection = '';
+    
+    this.startDate = moment().format("YYYY-MM-DD");
+    this.endDate = moment().format("YYYY-MM-DD");
 
-  const startdateformat = this.formatDate(this.startDate);
-  const enddateformat = this.formatDate(this.endDate);
+    if (this.isAttendanceVisible) {
+      this.syncSingleDateForDashboard();
+    }
+    
+    this.getBioMatricData(this.startDate, this.endDate);
+  }
 
-  this.attendanceReconciliationService.getBiomatricData(startdateformat, enddateformat).subscribe((response: any) => {
-    this.biomaxList = response.serviceResponse;
-    console.log("Fetched Data ============>", this.biomaxList);
+  /** Dashboard mode uses one day: keep To in sync with From. */
+  onDashboardSingleDateChange(): void {
+    if (this.isAttendanceVisible) {
+      this.endDate = this.startDate;
+    }
+  }
 
-    // Iterate through all records and classify by work hours
-    this.biomaxList.forEach((entry) => {
-      const workingHours = parseInt(entry.totalDuration, 9);
+  /** When enabling dashboard, pick one calendar day (use "To" if set) for both bounds. */
+  private syncSingleDateForDashboard(): void {
+    const d = this.endDate || this.startDate;
+    this.startDate = d;
+    this.endDate = d;
+  }
 
-      if (workingHours === 9) {
-        completed9HoursCount++; // Count employees with exactly 9 hours
-      } else if (workingHours > 9) {
-        above9HoursCount++; // Count employees with more than 9 hours
-      } else if (workingHours < 9) {
-        lessThan9HoursCount++; // Count employees with less than 9 hours
+  private loadAttendanceDashboardData(): void {
+    if (this.totalRecords <= 0 && this.attendanceReconciliationList.length === 0) {
+      this.attendanceSummary = { totalEmployees: 0, presentToday: 0, lateArrivals: 0, underNineHours: 0, absentToday: 0 };
+      this.statusDistribution = { onTime: 0, late: 0, absent: 0, noRecord: 0, total: 0 };
+      this.weeklyTrend = [];
+      this.retryRenderDashboardCharts();
+      return;
+    }
+
+    // Immediate UI population from already-loaded page rows.
+    if (this.attendanceReconciliationList.length > 0) {
+      const localSummary = this.buildSummaryFromList(this.attendanceReconciliationList);
+      this.attendanceSummary = localSummary.summary;
+      this.statusDistribution = localSummary.distribution;
+      this.weeklyTrend = this.buildTrendFromList(this.attendanceReconciliationList);
+      this.retryRenderDashboardCharts();
+    }
+  }
+
+  /** Fetch all rows in date range (capped) so trend/pie are not limited to current page. */
+  private loadFullDatasetForCharts(): void {
+    this.dashboardChartsLoading = true;
+    const reqId = ++this.dashboardFullDataRequestSeq;
+    const size = Math.min(
+      this.totalRecords > 0 ? this.totalRecords : Math.max(this.tableFetchPageSize, this.attendanceReconciliationList.length || 0),
+      10000
+    );
+    const startFmt = this.formatDate(this.startDate);
+    const endFmt = this.formatDate(this.endDate);
+
+    this.attendanceReconciliationService.getBiomatricData(startFmt, endFmt, 1, Math.max(size, 1)).subscribe({
+      next: (response: any) => {
+        if (reqId !== this.dashboardFullDataRequestSeq) {
+          return;
+        }
+        const rows: any[] = response?.serviceResponse?.data || [];
+        this.applyEmployeeRowFormatting(rows);
+        this.setActualTotalFromFullFetchSample(rows);
+
+        this.weeklyTrend = this.buildTrendFromList(rows);
+
+        const fromRows = this.buildSummaryFromList(rows);
+        this.attendanceSummary = fromRows.summary;
+        this.statusDistribution = fromRows.distribution;
+
+        this.dashboardChartsLoading = false;
+        this.cdr.markForCheck();
+        this.retryRenderDashboardCharts();
+      },
+      error: () => {
+        if (reqId !== this.dashboardFullDataRequestSeq) {
+          return;
+        }
+        // Keep non-zero view from currently loaded table page when full fetch fails.
+        if (this.attendanceReconciliationList.length > 0) {
+          const localSummary = this.buildSummaryFromList(this.attendanceReconciliationList);
+          this.attendanceSummary = localSummary.summary;
+          this.statusDistribution = localSummary.distribution;
+          this.weeklyTrend = this.buildTrendFromList(this.attendanceReconciliationList);
+        }
+        this.dashboardChartsLoading = false;
+        this.retryRenderDashboardCharts();
+      }
+    });
+  }
+
+  private formatTrendLabel(raw: string): string {
+    if (!raw) {
+      return '';
+    }
+    const m = moment(raw, [moment.ISO_8601, 'YYYY-MM-DD', 'DD-MM-YYYY', 'DD-MMM-YYYY'], true);
+    return m.isValid() ? m.format('DD-MMM') : String(raw);
+  }
+
+  private destroyHighchart(el: HTMLElement | null): void {
+    const chart = (el as any)?.__hcChart;
+    if (chart && typeof chart.destroy === 'function') {
+      chart.destroy();
+      (el as any).__hcChart = null;
+    }
+  }
+
+  /**
+   * KPI totals use the reference-day slice only. Total employees = rows in that slice (matches list/export),
+   * not API totalRecords (count query can disagree with the data query).
+   */
+  private buildSummaryFromList(records: any[]): { summary: AttendanceSummary; distribution: AttendanceStatusDistribution } {
+    const dayRows = this.getReferenceDayRows(records);
+    let present = 0;
+    let late = 0;
+    let underNine = 0;
+    let explicitAbsent = 0;
+
+    dayRows.forEach((row: any) => {
+      const status = this.getAttendanceStatus(row);
+      if (status === 'Absent') {
+        explicitAbsent++;
+      } else {
+        present++;
+      }
+      if (status === 'Late') {
+        late++;
+      }
+      const workedMinutes = this.getWorkedMinutes(row?.totalDuration);
+      if (workedMinutes > 0 && workedMinutes < 540) {
+        underNine++;
       }
     });
 
-    if (this.biomaxList.length > 0) {
-      // Set the chart data with counts
-      this.chartdata.completed9Hours = completed9HoursCount;
-      this.chartdata.above9Hours = above9HoursCount;
-      this.chartdata.lessThan9Hours = lessThan9HoursCount;
+    const employeeTotal = dayRows.length;
+    const onTime = Math.max(present - late, 0);
+    const noRecord = Math.max(employeeTotal - onTime - late - explicitAbsent, 0);
 
-      // Update the chart with new data
-      this.updateChartData(this.chartdata);
+    return {
+      summary: {
+        totalEmployees: employeeTotal,
+        presentToday: present,
+        lateArrivals: late,
+        underNineHours: underNine,
+        absentToday: explicitAbsent
+      },
+      distribution: {
+        onTime,
+        late,
+        absent: explicitAbsent,
+        noRecord,
+        total: employeeTotal
+      }
+    };
+  }
+
+  private getReferenceDayRows(records: any[]): any[] {
+    if (!records?.length) {
+      return [];
     }
-  });
-}
 
-private updateChartData(data: any): void {
-  this.chartOptions = {
-    chart: {
-      type: 'pie'
-    },
-    title: {
-      text: 'Work Hours Distribution (All Employees)'
-    },
-    credits: {
-      enabled: false
-    },
-    colors: ['#33FF57','#FF5733', '#3357FF'],
-    series: [
-      {
+    const endMoment = moment(this.endDate, 'YYYY-MM-DD', true).isValid()
+      ? moment(this.endDate, 'YYYY-MM-DD')
+      : moment(this.endDate);
+
+    const sameAsEnd = records.filter((row: any) => {
+      const rowMoment = this.parseLogDate(row?.logDate);
+      return rowMoment != null && rowMoment.isValid() && rowMoment.isSame(endMoment, 'day');
+    });
+
+    if (sameAsEnd.length) {
+      return sameAsEnd;
+    }
+
+    // If end date has no punches, use latest available date in range.
+    const sorted = [...records]
+      .filter((row: any) => !!row?.logDate)
+      .sort((a: any, b: any) => {
+        const ma = this.parseLogDate(a.logDate);
+        const mb = this.parseLogDate(b.logDate);
+        const va = ma?.isValid() ? ma.valueOf() : 0;
+        const vb = mb?.isValid() ? mb.valueOf() : 0;
+        return vb - va;
+      });
+
+    if (!sorted.length) {
+      return [];
+    }
+
+    const latest = this.parseLogDate(sorted[0].logDate);
+    if (!latest?.isValid()) {
+      return [];
+    }
+
+    return records.filter((row: any) => {
+      const rowMoment = this.parseLogDate(row?.logDate);
+      return rowMoment != null && rowMoment.isValid() && rowMoment.isSame(latest, 'day');
+    });
+  }
+
+  /** Parse attendance log date from API (AttendanceDate / logDate). */
+  private parseLogDate(raw: any): moment.Moment | null {
+    if (raw == null || raw === '') {
+      return null;
+    }
+    const s = String(raw).trim();
+    const formats = [
+      'DD-MM-YYYY',
+      'DD/MM/YYYY',
+      'YYYY-MM-DD',
+      'DD-MMM-YYYY',
+      'DD-MMM-YY',
+      'MMM DD, YYYY',
+      moment.ISO_8601
+    ];
+    for (const f of formats) {
+      const m = moment(s, f, true);
+      if (m.isValid()) {
+        return m;
+      }
+    }
+    const loose = moment(s, formats, false);
+    return loose.isValid() ? loose : null;
+  }
+
+  private getWorkedMinutes(duration: string): number {
+    if (!duration) {
+      return 0;
+    }
+    const chunks = duration.split(':');
+    if (chunks.length < 2) {
+      return 0;
+    }
+    const hours = Number(chunks[0]);
+    const minutes = Number(chunks[1]);
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+      return 0;
+    }
+    return (hours * 60) + minutes;
+  }
+
+  private hasMeaningfulTrend(trend: AttendanceTrendPoint[]): boolean {
+    if (!trend || !trend.length) {
+      return false;
+    }
+    return trend.some(point => (point.presentCount || 0) > 0 || (point.absentCount || 0) > 0);
+  }
+
+  private buildTrendFromList(records: any[]): AttendanceTrendPoint[] {
+    if (!records || !records.length) {
+      return [];
+    }
+
+    const dayMap = new Map<string, any[]>();
+    records.forEach((row: any) => {
+      const dateKey = row?.logDate;
+      if (!dateKey) {
+        return;
+      }
+      if (!dayMap.has(dateKey)) {
+        dayMap.set(dateKey, []);
+      }
+      dayMap.get(dateKey)!.push(row);
+    });
+
+    const sortedEntries = Array.from(dayMap.entries()).sort((a, b) => {
+      const ma = moment(a[0], ['DD-MM-YYYY', 'DD-MMM-YYYY', 'YYYY-MM-DD'], true);
+      const mb = moment(b[0], ['DD-MM-YYYY', 'DD-MMM-YYYY', 'YYYY-MM-DD'], true);
+      return (ma.isValid() ? ma.valueOf() : 0) - (mb.isValid() ? mb.valueOf() : 0);
+    });
+
+    return sortedEntries.map(([date, rowsForDay]) => {
+      const presentCount = rowsForDay.filter((r: any) => this.getAttendanceStatus(r) !== 'Absent').length;
+      const absentCount = rowsForDay.filter((r: any) => this.getAttendanceStatus(r) === 'Absent').length;
+      return { date: this.formatTrendLabel(date), presentCount, absentCount };
+    });
+  }
+
+  private retryRenderDashboardCharts(retryCount: number = 0): void {
+    const trendContainer = document.getElementById('attendanceTrendContainer');
+    const statusContainer = document.getElementById('statusDistributionContainer');
+    const maxRetries = 8;
+
+    const trendReady = !!trendContainer && trendContainer.offsetWidth > 0;
+    const statusReady = !!statusContainer && statusContainer.offsetWidth > 0;
+
+    if (trendReady && statusReady) {
+      this.renderWeeklyTrendChart();
+      this.renderStatusDistributionChart();
+      return;
+    }
+
+    if (retryCount < maxRetries) {
+      setTimeout(() => this.retryRenderDashboardCharts(retryCount + 1), 120);
+      return;
+    }
+
+    // Final attempt even if width is 0, to avoid no-chart state.
+    this.renderWeeklyTrendChart();
+    this.renderStatusDistributionChart();
+  }
+
+  private renderWeeklyTrendChart(): void {
+    const trendContainer = document.getElementById('attendanceTrendContainer');
+    if (!trendContainer) {
+      return;
+    }
+
+    this.destroyHighchart(trendContainer);
+
+    // Always render as weekday view (last 7 days ending selected end date).
+    const endMoment = moment(this.endDate, 'YYYY-MM-DD', true).isValid() ? moment(this.endDate, 'YYYY-MM-DD') : moment();
+    const datesLast7 = Array.from({ length: 7 }, (_, i) => endMoment.clone().subtract(6 - i, 'days'));
+    const categories = datesLast7.map(d => d.format('ddd'));
+
+    const trendMap = new Map<string, AttendanceTrendPoint>();
+    this.weeklyTrend.forEach(point => {
+      const normalized = moment(point.date, ['DD-MMM', 'DD-MM-YYYY', 'DD-MMM-YYYY', 'YYYY-MM-DD'], true);
+      if (normalized.isValid()) {
+        trendMap.set(normalized.format('DD-MMM'), point);
+      }
+    });
+
+    const presentSeries = datesLast7.map(d => {
+      const row = trendMap.get(d.format('DD-MMM'));
+      return row ? Number(row.presentCount || 0) : 0;
+    });
+    const absentSeries = datesLast7.map(d => {
+      const row = trendMap.get(d.format('DD-MMM'));
+      return row ? Number(row.absentCount || 0) : 0;
+    });
+
+    const chart = Highcharts.chart(trendContainer, {
+      chart: { type: 'column', backgroundColor: 'transparent' },
+      title: { text: '' },
+      credits: { enabled: false },
+      xAxis: {
+        categories,
+        crosshair: true,
+        labels: { style: { color: '#64748b', fontSize: '11px' } },
+        lineColor: '#cbd5e1'
+      },
+      yAxis: {
+        min: 0,
+        allowDecimals: false,
+        title: { text: 'Employees', style: { color: '#64748b' } },
+        labels: { style: { color: '#64748b' } },
+        gridLineColor: '#e2e8f0'
+      },
+      legend: { align: 'center', verticalAlign: 'bottom' },
+      tooltip: { shared: true },
+      plotOptions: {
+        column: {
+          borderRadius: 6,
+          pointPadding: 0.12,
+          groupPadding: 0.08
+        }
+      },
+      series: [
+        { type: 'column', name: 'Present', data: presentSeries, color: '#6366f1' },
+        { type: 'column', name: 'Absent', data: absentSeries, color: '#ef4444' }
+      ]
+    } as Highcharts.Options);
+
+    (trendContainer as any).__hcChart = chart;
+  }
+
+  private renderStatusDistributionChart(): void {
+    const statusContainer = document.getElementById('statusDistributionContainer');
+    if (!statusContainer) {
+      return;
+    }
+
+    this.destroyHighchart(statusContainer);
+
+    const onTime = Number(this.statusDistribution.onTime || 0);
+    const late = Number(this.statusDistribution.late || 0);
+    const absent = Number(this.statusDistribution.absent || 0);
+    const noRecord = Number(this.statusDistribution.noRecord || 0);
+
+    const chart = Highcharts.chart(statusContainer, {
+      chart: { type: 'pie', backgroundColor: 'transparent' },
+      title: { text: '' },
+      credits: { enabled: false },
+      tooltip: { pointFormat: '<b>{point.y}</b> employees' },
+      plotOptions: {
+        pie: {
+          innerSize: '65%',
+          size: '85%',
+          borderWidth: 0,
+          dataLabels: {
+            enabled: true,
+            format: '{point.y}',
+            style: { textOutline: 'none', fontSize: '11px', fontWeight: '600' },
+            distance: 12
+          },
+          showInLegend: true
+        }
+      },
+      series: [{
         type: 'pie',
-        name: 'Employee Count',
+        name: 'Employees',
         data: [
-          { name: 'Completed 9 Hours', y: data.completed9Hours },
-          { name: 'Above 9 Hours', y: data.above9Hours },
-          { name: 'Less Than 9 Hours', y: data.lessThan9Hours }
-        ]
-      }
-    ]
-  };
+          { name: 'On Time', y: onTime, color: '#10b981' },
+          { name: 'Late', y: late, color: '#f59e0b' },
+          { name: 'Absent', y: absent, color: '#ef4444' },
+          { name: 'No record', y: noRecord, color: '#94a3b8' }
+        ].filter(d => d.y > 0)
+      }]
+    } as Highcharts.Options);
 
-  // Update chart with new options
-  Highcharts.chart('biomaxfiterContainer', this.chartOptions);
-}
+    (statusContainer as any).__hcChart = chart;
+  }
 
-
-
-  chartOptions: Highcharts.Options = {
-    chart: {
-      type: 'pie'
-    },
-    title: {
-      text: 'Work Hours Distribution'
-    },
-    series: [
-      {
-        type: 'pie',
-        name: 'Work Hours',
-        data: []
-      }
-    ]
-  };
-
-  isAttendanceVisible = false; // Default: hide the attendance dashboard
-
-  // Toggles the visibility of the attendance dashboard
-  toggleAttendanceDashboard(event: any): void {
-    this.isAttendanceVisible = event.target.checked;
-
-    if (this.isAttendanceVisible) {
-      this.getBiomatrixFilter();
-    } else {
-      // Optionally clear the chart when hidden
-      Highcharts.chart('biomaxfiterContainer', {});
+  /**
+   * Late = first punch strictly after 10:00:00 (same calendar day as parsed time).
+   * Handles API formats like "10:13AM", "10:13 AM", "22:30", HH:mm:ss.
+   */
+  getAttendanceStatus(attendance: any): string {
+    const rawIn = attendance?.inTime ?? attendance?.firstIn ?? attendance?.beginTime;
+    if (rawIn == null || rawIn === '' || String(rawIn).trim() === '' || String(rawIn).toUpperCase() === 'NA') {
+      return 'Absent';
     }
+
+    const parsed = this.parseInTime(String(rawIn));
+    if (!parsed) {
+      return 'Present';
+    }
+
+    const minutes = parsed.hours() * 60 + parsed.minutes() + parsed.seconds() / 60;
+    const tenAmMinutes = 10 * 60;
+    return minutes > tenAmMinutes ? 'Late' : 'Present';
+  }
+
+  /** Parse in-time string to a moment (today’s date); null if invalid. */
+  private parseInTime(raw: string): moment.Moment | null {
+    if (raw == null || raw === '') {
+      return null;
+    }
+    let s = String(raw).trim();
+    if (!s || s.toUpperCase() === 'NA') {
+      return null;
+    }
+    // "10:13AM" / "9:44AM" -> insert space before AM/PM for strict parsers
+    s = s.replace(/^(\d{1,2}:\d{2}(?::\d{2})?)(AM|PM)$/i, '$1 $2');
+
+    const strictFormats = [
+      'hh:mm A',
+      'h:mm A',
+      'hh:mm:ss A',
+      'HH:mm',
+      'H:mm',
+      'HH:mm:ss',
+      'hh:mmA',
+      'h:mmA'
+    ];
+    for (const fmt of strictFormats) {
+      const m = moment(s, fmt, true);
+      if (m.isValid()) {
+        return m;
+      }
+    }
+    const loose = moment(s, strictFormats, false);
+    return loose.isValid() ? loose : null;
+  }
+
+  getAttendanceStatusClass(attendance: any): string {
+    const status = this.getAttendanceStatus(attendance);
+    if (status === 'Late') {
+      return 'status-chip late';
+    }
+    if (status === 'Absent') {
+      return 'status-chip absent';
+    }
+    return 'status-chip present';
   }
 
 

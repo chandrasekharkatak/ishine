@@ -110,6 +110,15 @@ if (encryptedUser) {
     return this.http.post(`${this.baseUrl}api/resendOTP`, user);
   }
 
+  /** Po backend: fetch or issue po_token (no deep link at this step). */
+  authenticateFromPoSession(payload: { empId: number }) {
+    return this.http.post(`${this.baseUrl}api/auth/po/session-login`, payload);
+  }
+
+  verifyPoPortalTokenForDirectAccess(payload: { empId: number; poToken: string; deepLink: string }) {
+    return this.http.post(`${this.baseUrl}api/auth/po/verifyTokenOfPoPortalForDirectAccess`, payload);
+  }
+
   /** Session Check Logic */
   checkSession() {
     if (!this.currentUserValue) return;

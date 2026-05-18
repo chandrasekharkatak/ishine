@@ -1,6 +1,6 @@
 import { ConnectedPosition, Overlay, OverlayRef, ViewportRuler } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { Component, Input, Output, EventEmitter, forwardRef, OnInit, ViewChild, ElementRef, ViewContainerRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, forwardRef, OnInit, ViewChild, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatSelect } from '@angular/material/select';
 
@@ -17,18 +17,32 @@ import { MatSelect } from '@angular/material/select';
     }
   ]
 })
-export class MySelectComponent implements ControlValueAccessor, OnInit {
+export class MySelectComponent implements ControlValueAccessor, OnInit, OnChanges {
+  
+  @Input() disable = false;
+  @Input() readonly = false;
   @Input() placeholder = 'Select';
   @Input() multiple = false;
   @Input() options: any[] = [];
   @Input() displayKey: string | string[] = '';
   @Input() displaySeparator: string = ' ';
   @Input() valueKey;
+  @Input() optionDisabledKey?: string; // e.g. 'disabled'
+  @Input() isOptionDisabled?: (option: any) => boolean;
+  @Input() showFilterAction: boolean = false;
+  @Input() filterActionLabel: string = 'Filter List';
+  @Input() wrapOptions = false;
+  @Input() showSelectAll = true;
+  /** When true, option labels wrap in the overlay panel (long project names, reimbursement, etc.). */
+  @Input() wrapOptionLines = false;
   @Output() selectionChange = new EventEmitter<any>();
   @Output() change = new EventEmitter<any>();
   @Output() dropdownClosed = new EventEmitter<void>();
+  @Output() filterAction = new EventEmitter<void>();  
+  
   @ViewChild(MatSelect) matSelect!: MatSelect;
   @ViewChild('search') searchInputBox!: ElementRef<HTMLInputElement>;
+  
   searchText = '';
   filteredOptions: any[] = [];
   selectedValue: any=null;
@@ -39,24 +53,93 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
     this.filteredOptions = this.options || [];
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['options']) {
+      this.onSearchChange();
+    }
+  }
+
+  ngDoCheck() {
+    // manually trigger filtering when searchText changes (ngModel doesn't auto-pipe)
+    this.onSearchChange();
+  }
+
+  get selectPanelClass(): string {
+    const classes = ['custom-select-panel'];
+    if (this.wrapOptionLines) {
+      classes.push('my-select-panel--wrap');
+    }
+    if (this.wrapOptions) {
+      classes.push('wrapped-select-panel');
+    }
+    return classes.join(' ');
+  }
+
   openWithDynamicPosition(triggerElement: HTMLElement) {
     if (!this.matSelect) return;
     setTimeout(() => this.matSelect.open());
   }
 
   // Called when selection changes
-  onSelectionChange(value: any): void {
-    this.selectedValue = value;
-    this.onChange(value);
-    this.onTouched();
-    this.selectionChange.emit(this.sort(value));
-    this.change.emit(this.sort(value));
+ onSelectionChange(value: any): void {
+
+  // Block readonly / disabled component
+  if (this.disable || this.readonly) {
+    this.writeValue(this.selectedValue);
+    return;
   }
 
+  // Block disabled options (single & multi)
+  if (this.multiple) {
+    const invalid = (value || []).some(v =>
+      this.isDisabledOption(
+        this.options.find(o =>
+          this.valueKey ? o[this.valueKey] === v : o === v
+        )
+      )
+    );
+
+    if (invalid) {
+      this.writeValue(this.selectedValue);
+      return;
+    }
+  } else {
+    const opt = this.options.find(o =>
+      this.valueKey ? o[this.valueKey] === value : o === value
+    );
+
+    if (this.isDisabledOption(opt)) {
+      this.writeValue(this.selectedValue);
+      return;
+    }
+  }
+
+  this.selectedValue = value;
+  this.onChange(value);
+  this.onTouched();
+  this.selectionChange.emit(this.sort(value));
+  this.change.emit(this.sort(value));
+}
+
+
+
   sort(value: any) {
-    return Array.isArray(value)
-      ? value.sort((x, y) => this.getIndex(this.options, x) - this.getIndex(this.options, y))
-      : value ?? undefined;
+    if (!Array.isArray(value)) {
+      return value ?? undefined;
+    }
+    const copy = [...value];
+    return copy.sort((a, b) => this.sortIndexForItem(a) - this.sortIndexForItem(b));
+  }
+
+  /** Order multiselect values by option list order (supports primitive ids when {@link #valueKey} is set). */
+  private sortIndexForItem(item: any): number {
+    if (!this.options?.length) {
+      return 0;
+    }
+    if (this.valueKey) {
+      return this.options.findIndex((o) => o[this.valueKey] === item);
+    }
+    return this.getIndex(this.options, item);
   }
 
 
@@ -89,19 +172,21 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   //   this.onSearchChange();
   // }
 
-  toggleSelectAll(event: Event): void {
-    event.stopPropagation(); // prevent dropdown from closing
+ toggleSelectAll(event: Event): void {
+  if (this.readonly || this.disable) {
+    event.stopPropagation();
+    return;
+  }
 
-    if (this.isAllSelected()) {
-      this.selectedValue = [];
-    } else {
-      // Only select filtered options
-      if (!this.valueKey) {
-        this.selectedValue = [...this.filteredOptions];
-      } else {
-        this.selectedValue = this.filteredOptions?.map(options => options[this.valueKey]);
-      }
-    }
+  event.stopPropagation();
+
+  if (this.isAllSelected()) {
+    this.selectedValue = [];
+  } else {
+    this.selectedValue = this.valueKey
+      ? this.filteredOptions.map(o => o[this.valueKey])
+      : [...this.filteredOptions];
+  }
 
   // Emit selection change
   this.onChange(this.selectedValue);
@@ -109,6 +194,7 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   this.selectionChange?.emit(this.selectedValue);
   this.change?.emit(this.sort(this.selectedValue));
 }
+
 
 isAllSelected(): boolean {
   if (!this.selectedValue || !Array.isArray(this.selectedValue)) return false;
@@ -127,18 +213,9 @@ isAllSelected(): boolean {
   }
 
     let text = (this.searchText || '').toLowerCase();
-    this.filteredOptions = this.options.filter(opt =>
-      this.getDisplayText(opt).toLowerCase().includes(text)
+    this.filteredOptions = this.options?.filter(opt =>
+      this.getDisplayText(opt)?.toLowerCase().includes(text)
     );
-  }
-
-ngOnChanges() {
-    this.onSearchChange();
-  }
-
-  ngDoCheck() {
-    // manually trigger filtering when searchText changes (ngModel doesn't auto-pipe)
-    this.onSearchChange();
   }
 
   getIndex(list: any[], item: any): number {
@@ -175,7 +252,43 @@ deepEqual(obj1: any, obj2: any): boolean {
   });
 }
 
-getDisplayText(option: any): string {
+  /** Closed multiselect label: comma-separated selected options (matches Material default on main). */
+  multiTriggerLabel(): string {
+    if (!this.multiple) {
+      return '';
+    }
+    const selected = this.selectedValue;
+    if (!Array.isArray(selected) || selected.length === 0) {
+      return this.placeholder || 'Select';
+    }
+    const labels = selected
+      .map((item) => this.labelForSelectedItem(item))
+      .filter((label) => label !== '');
+    if (labels.length === 0) {
+      return this.placeholder || 'Select';
+    }
+    return labels.join(', ');
+  }
+
+  private labelForSelectedItem(item: any): string {
+    if (item == null) {
+      return '';
+    }
+    if (this.options?.length) {
+      const opt = this.options.find((o) =>
+        this.valueKey ? o?.[this.valueKey] === item : o === item || this.compareObjects(o, item)
+      );
+      if (opt != null) {
+        return this.getDisplayText(opt);
+      }
+    }
+    if (typeof item === 'string' || typeof item === 'number') {
+      return String(item);
+    }
+    return this.getDisplayText(item);
+  }
+
+  getDisplayText(option: any): string {
   if (!option) return '';
 
   // If displayKey is array → join multiple keys
@@ -189,4 +302,40 @@ getDisplayText(option: any): string {
   // If it's a single key
   return this.displayKey ? option[this.displayKey] ?? '' : option;
 }
+setDisabledState(isDisabled: boolean): void {
+  this.disable = isDisabled;
+}
+
+isDisabledOption(option: any): boolean {
+  if (this.disable || this.readonly) {
+    return true;
+  }
+
+  // Function-based disabling (highest priority)
+  if (this.isOptionDisabled) {
+    return this.isOptionDisabled(option);
+  }
+
+  // Key-based disabling
+  if (this.optionDisabledKey) {
+    return !!option?.[this.optionDisabledKey];
+  }
+
+  return false;
+}
+
+  triggerFilter(event: Event) {
+    event.stopPropagation();
+    event.preventDefault();
+    this.filterAction.emit();
+  }
+
+
+trackByOption = (_: number, opt: any): any => this.valueKey ? opt?.[this.valueKey] : this.getDisplayText(opt);
+
+getPanelClass(): string[] {
+  return this.wrapOptions ? ['custom-select-panel', 'wrapped-select-panel'] : ['custom-select-panel'];
+}
+
+  
 }

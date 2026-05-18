@@ -1,0 +1,87 @@
+<div class="dt-wrapper form-group">
+
+  <label class="dt-label" style="font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+  font-size: 0.85rem;margin-bottom: 4px;" *ngIf="label">
+    <span *ngIf="required" class="text-danger">*</span>
+    {{ label }}
+  </label>
+
+  <div class="row d-flex align-items-center">
+  <div class="col-12 pr-0">
+  <!-- col-md-11 when clear button is shown -->
+  <!-- Angular Material Datepicker for date mode -->
+  <mat-form-field *ngIf="mode === 'date'" style="display: contents; width: 100%;">
+    <input 
+      matInput 
+      [matDatepicker]="picker"
+      [matDatepickerFilter]="dateFilter"
+      [min]="minDateForMaterial"
+      [max]="maxDateForMaterial"
+      [(ngModel)]="materialDateValue"
+      (dateChange)="onMaterialDateChange($event)"
+      [disabled]="disabled"
+      [required]="required"
+      readonly
+      style="width: 100%;"
+    />
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
+
+  <!-- 12-hour time: Hour, Minute, AM/PM dropdowns (user-friendly, no 24h conversion) -->
+  <div *ngIf="mode === 'time'" class="dt-time-12h">
+    <select
+      class="form-control dt-time-select dt-hour"
+      [ngModel]="timeHour"
+      (ngModelChange)="timeHour = $event; onTimePartChange('hour')"
+      [disabled]="disabled"
+      [required]="required"
+      aria-label="Hour">
+      <option [ngValue]="null" disabled>HH</option>
+      <option *ngFor="let h of hourOptions" [ngValue]="h">{{ h < 10 ? '0' + h : h }}</option>
+    </select>
+    <span class="dt-time-sep">:</span>
+    <select
+      class="form-control dt-time-select dt-minute"
+      [ngModel]="timeMinute"
+      (ngModelChange)="timeMinute = $event; onTimePartChange('minute')"
+      [disabled]="disabled"
+      [required]="required"
+      aria-label="Minute">
+      <option [ngValue]="null" disabled>MM</option>
+      <option *ngFor="let m of minuteOptions" [ngValue]="m">{{ m < 10 ? '0' + m : m }}</option>
+    </select>
+    <select
+      class="form-control dt-time-select dt-ampm"
+      [ngModel]="timeAmPm"
+      (ngModelChange)="timeAmPm = $event; onTimePartChange('ampm')"
+      [disabled]="disabled"
+      aria-label="AM or PM">
+      <option value="AM">AM</option>
+      <option value="PM">PM</option>
+    </select>
+  </div>
+
+  <input
+    *ngIf="mode === 'datetime'"
+    type="datetime-local"
+    class="form-control"
+    [(ngModel)]="modelValue"
+    (ngModelChange)="onModelChange($event)"
+    [disabled]="disabled"
+  />
+</div>
+<!-- Clear button (commented out for now)
+<div class="col-md-1 pl-0">
+  <button
+    *ngIf="(mode === 'date' ? materialDateValue : modelValue) && !disabled"
+    type="button"
+    class="btn btn-sm btn-link text-danger dt-clear-btn"
+    (click)="clearValue()">
+      ✖
+    </button>
+  </div>
+-->
+</div>
+</div>

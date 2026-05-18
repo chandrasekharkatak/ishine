@@ -35,9 +35,9 @@
                                     <!-- <div class="col-md-4 mb-0"> -->
                                     <!-- <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Is Employee a Consultant</label>
-                                            <select class="form-control" [(ngModel)]="employeeObj.isConsultant" 
+                                            <select class="form-control" [(ngModel)]="employeeObj.isConsultant"
                                                     [disabled]="isUpdation && (employeeObj.isConsultant == null || isUpdation)">
-         
+
                                                 <option *ngIf="!isUpdation" value="true">Yes</option>
                                                 <option *ngIf="!isUpdation" value="false">No</option>
                                                 <option *ngIf="isUpdation && employeeObj.isConsultant === true" selected value="true">Yes</option>
@@ -74,13 +74,13 @@
                                                     [(ngModel)]="employeeObj.employeementId"
                                                     (blur)="checkEmployeementId(alert_message)" [disabled]="isUpdation">
                                                 <input *ngIf="!isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> 
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
                                                 <input *ngIf="!isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
                                                 <input *ngIf="isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" readonly>
                                                  <input *ngIf="isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" readonly> 
+                                                [(ngModel)]="employeeObj.employeementId" readonly>
                                             </div>
                                         </div>
                                     </div> -->
@@ -97,7 +97,7 @@
                                                             {{ getEmpIdPrefix(employeeObj.employeeType) }}
                                                         </span>
                                                     </div>
-                                                    <input type="text" 
+                                                    <input type="text"
                                                     (keypress)="fieldRestictCharacter($event)"
                                                         class="form-control" maxlength="8" autocomplete="none"
                                                         [(ngModel)]="employeeObj.employeementId"
@@ -671,6 +671,7 @@
                                                     Status</label>
                                                 <select class="form-control" aria-hidden="true"
                                                     [(ngModel)]="employeeObj.employmentstatus"
+                                                    (focus)="storePreviousStatus()"
                                                     (change)="retainStatus()">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="Probation">Probation</option>
@@ -745,7 +746,7 @@
 
                                     <!-- <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.employmentstatus == 'InActive' " >   by priyadarshini -->
 
-                                    <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.employmentstatus == 'InActive' " >    
+                                    <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.employmentstatus == 'InActive' " >
                                     <div class="info-wrapper">
                                     <div class="form-group">
                                     <label class="info-label"><span class="text-danger">*</span>Employment Release Status</label>
@@ -755,7 +756,7 @@
                                     <option value="Terminated">Terminated</option>
                                     <option value="Absconded">Absconded</option>
                                     <option value="askToResign">Ask To Resign</option>
-                                    
+
                                     </select>
                                     </div>
                                     </div>
@@ -773,7 +774,7 @@
             <label class="info-label"><span class="text-danger">*</span>Mapping Update Type</label>
             <small class="text-danger">(Please select for employment status)</small>
             <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.updateType" (change)="resetFieldOnChange(employeeObj)">
-                 <option selected="selected" value="" disabled>Select</option> 
+                 <option selected="selected" value="" disabled>Select</option>
                 <option value="automatic">Automatic</option>
                 <option value="manual">Manual</option>
             </select>
@@ -796,7 +797,7 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    </div> 
+                                    </div>
 
 <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'manual'">
     <div class="info-wrapper">
@@ -845,6 +846,7 @@
                                                     <option value="Terminated">Terminated</option>
                                                     <option value="Absconded">Absconded</option>
                                                     <option value="askToResign">Ask To Resign</option>
+                                                    <option value="Death">Death</option>
 
                                                 </select>
                                             </div>
@@ -1258,19 +1260,16 @@
                                         </div>
                                     </div>
 
+
                                     <div class="col-md-4 mb-0" *ngIf="showProjectDropdown && (isCreation || this.employeeObj.isUpdateDefaultProject)">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                <label class="info-label"><span class="text-danger">*</span>{{
                                                     isUpdation ? 'New Default Project' : 'Default Project' }}</label>
-
-                                                <select class="form-control" aria-hidden="true"
-                                                    [(ngModel)]="employeeObj.defaultProjectId"
-                                                    (change)="onProjectChange($event)">
-                                                    <option selected="selected" value="" disabled>Select</option>
-                                                    <option *ngFor="let project of projectList"
-                                                        value="{{project.projectId}}">{{project.projectName}}</option>
-                                                </select>
+                                                <app-my-select #newDefaultProjectSelect class="form-control" placeholder="Select Project"
+                                                    [(ngModel)]="employeeObj.defaultProjectId" [options]="projectList" displayKey="projectName" valueKey="projectId"
+                                                    [multiple]="false" (change)="onProjectChange($event)">
+                                                </app-my-select>
                                             </div>
                                         </div>
                                     </div>
@@ -1282,16 +1281,11 @@
                                             <div class="form-group">
                                                  <label class="info-label"><span class="text-danger">*</span>{{
                                                     isUpdation ? 'New Default Team' : 'Default Team' }}</label>
-
                                                 <div class="d-flex align-items-center justify-content-between">
-                                                    <select class="form-control me-2" style="width: 75%;"
-                                                        [(ngModel)]="employeeObj.defaultTeamId"
-                                                        (click)="onTeamChange($event)">
-                                                        <option selected value="" disabled>Select</option>
-                                                        <option *ngFor="let team of teamList" [value]="team.teamId">
-                                                            {{ team.teamName }}
-                                                        </option>
-                                                    </select>
+                                                    <app-my-select #newDefaultProjectSelect class="form-control me-2" style="width: 75%;" placeholder="Select Team"
+                                                        [(ngModel)]="employeeObj.defaultTeamId" [options]="teamList" displayKey="teamName" valueKey="teamId"
+                                                        [multiple]="false" (change)="onTeamChange($event)">
+                                                    </app-my-select>
 
                                                     <!-- Shadow Resource Checkbox -->
                                                     <div class="form-check">
@@ -1310,44 +1304,82 @@
                                         </div>
                                     </div>
 
-
-                                    <!-- Resource Requirement Dropdown -->
-                                    <div class="col-md-4 mb-0" *ngIf="showResourceRequirementDropdown && (isCreation || this.employeeObj.isUpdateDefaultProject)">
-                                        <div class="info-wrapper">
-                                            <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Resource
-                                                    Requirement</label>
-                                                <select class="form-control"
-                                                    [(ngModel)]="employeeObj.selectedResourceOverviewId">
-                                                    <option value="" disabled selected>Select</option>
-                                                    <option *ngFor="let requirement of resourceRequirements"
-                                                        [value]="requirement.resourceOverviewId">
-                                                        Role - {{ requirement.role }} || Dept - {{
-                                                        requirement.department }} || Exp - {{ requirement.experience }}
-                                                    </option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-
-
-
                                     <div class="col-md-4 mb-0" *ngIf="showEmployeeRoleDropdown && (isCreation || this.employeeObj.isUpdateDefaultProject)">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Employee
-                                                    Role</label>
-                                                <mat-select class="form-control" multiple
-                                                    [(ngModel)]="employeeObj.defaultTeamEmployeeRole">
-                                                    <mat-option selected="selected" value=""
-                                                        disabled>Select</mat-option>
-                                                    <mat-option *ngFor="let role of employeeRole"
-                                                        [value]="role">{{role}}</mat-option>
-                                                </mat-select>
+                                                <label class="info-label"><span class="text-danger">*</span>Employee Role</label>
+                                                 <app-my-select #newDefaultProjectEmployeeRoleSelect class="form-control" placeholder="Select Employee Role"
+                                                    [(ngModel)]="employeeObj.defaultTeamEmployeeRole" [options]="employeeRole"
+                                                    [multiple]="true">
+                                                </app-my-select>
                                             </div>
                                         </div>
                                     </div>
 
+                                    <!-- PO -->
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="showPoDropdown && (isCreation || this.employeeObj.isUpdateDefaultProject)">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>PO</label>
+                                                <app-my-select #newMemberPOSelect class="form-control" placeholder="Select PO"
+                                                    [(ngModel)]="employeeObj.poId" [options]="filteredPoDetailsList" displayKey="poNo" valueKey="poId"
+                                                    [multiple]="false" (change)="getResourceRequirementByPoId($event)" [showFilterAction]="true"
+                                                    [filterActionLabel]="poFilterActionLabel" (filterAction)="filterActivePoDetails()">
+                                                </app-my-select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Resource Requirement -->
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="showPoRoleDropdown && (isCreation || this.employeeObj.isUpdateDefaultProject)">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>PO Role</label>
+                                                <app-my-select #newMemberRequirementSelect class="form-control" placeholder="Select PO Role"
+                                                    [(ngModel)]="employeeObj.poRoleId" [options]="filteredActiveResourceRequirement"
+                                                    displayKey="displayRequirement" valueKey="roleId" [multiple]="false" [showFilterAction]="true"
+                                                    [filterActionLabel]="roleFilterActionLabel" (filterAction)="filterActiveResourceRequirement()">
+                                                </app-my-select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Current Project End Date -->
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="this.employeeObj.isUpdateDefaultProject">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger" *ngIf="defaultProjectUpdationProjectType == 'TNM'">*</span>Current Project Mapping End Date</label>
+                                                <div class="date-input-wrapper">
+                                                    <input class="form-control date-input" readonly [matDatepicker]="projectMappingEndDatepicker"
+                                                        [(ngModel)]="employeeObj.oldEtmEndDate"
+                                                        [disabled]="!employeeObj.empId" (click)="projectMappingEndDatepicker.open()" />
+                                                    <mat-icon class="calendar-icon" (click)="projectMappingEndDatepicker.open()">calendar_today</mat-icon>
+                                                    <mat-datepicker #projectMappingEndDatepicker></mat-datepicker>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- New Project Start Date -->
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="(isCreation || this.employeeObj.isUpdateDefaultProject)">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>New Project Mapping Start Date</label>
+                                                <div class="date-input-wrapper">
+                                                    <input class="form-control date-input" readonly [matDatepicker]="projectMappingStartDatepicker"
+                                                        (dateChange)="validateEmployeeProjectStartDate(alert_message)"
+                                                        [(ngModel)]="employeeObj.newEtmStartDate"
+                                                        [disabled]="this.employeeObj.isUpdateDefaultProject && !employeeObj.empId" (click)="projectMappingStartDatepicker.open()" />
+                                                    <mat-icon class="calendar-icon" (click)="projectMappingStartDatepicker.open()">calendar_today</mat-icon>
+                                                    <mat-datepicker #projectMappingStartDatepicker></mat-datepicker>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <div class="col-md-4 mb-0" *ngIf="!isCreation && employeeObj.defaultProjectName ">
                                         <div class="info-wrapper">
@@ -1574,11 +1606,13 @@
 <div class="row" *ngIf="isTable || isDraftTable">
     <div class="col-md-12">
         <div class="row">
-            <div class="col-md-12 table-header">
-                <h1 *ngIf="!isDraftTable" class="table-header-title">Employee(s)</h1>
-                <h1 *ngIf="isDraftTable" class="table-header-title">Employee(s) Draft</h1>
+            <div class="col-md-12 table-header d-flex align-items-center justify-content-between">
+            
+                <h1 class="table-header-title mb-0">
+                    {{ isDraftTable ? 'Employee(s) Draft' : 'Employee(s)' }}
+                </h1>           
             </div>
-        </div>
+            </div>
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-6 ml-auto d-flex justify-content-end align-items-start mb-1 px-0">
@@ -1787,6 +1821,7 @@
                 (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp; -->
 
                                     <button class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                                        title="View employee audit trail"
                                         (click)="getEmployeeAuditInfo(employee,audit_template,alert_message)"><em><i
                                                 class="fa-solid fa-clock-rotate-left"></i></em></button>&nbsp;
 
@@ -3742,7 +3777,7 @@
                                 <tbody>
 
                                     <tr
-                                        *ngIf="employeeWorkingHistory.length == 0 || (employeeWorkingHistory | colFilter:auditFilter:false).length == 0">
+                                        *ngIf="employeeWorkingHistory.length == 0 || (employeeWorkingHistory | colFilter:filterOnhistory:false).length == 0">
                                         <th colspan="11" class="text-center info-label">No details to display...</th>
                                     </tr>
 
@@ -4585,6 +4620,48 @@
         <button class="btn btn-success" (click)="confirmUpdateDefaultProject(true)">Yes</button>&nbsp;
 
             <button class="btn btn-danger" (click)="confirmUpdateDefaultProject(false)">No</button>
-        
+
     </div>
 </ng-template>
+<ng-template #inactiveTemplate>
+  <div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-semibold text-dark">
+      Change Employment Status
+    </h5>
+    <!-- <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button> -->
+  </div>
+
+  <div class="modal-body pt-2">
+    <div class="d-flex align-items-start">
+      <div class="me-3">
+        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center"
+             style="width:40px;height:40px;">
+          <i class="fa fa-exclamation text-danger"></i>
+        </div>
+      </div>
+
+      <div>
+        <p class="mb-2 text-muted">
+          This employee has pending timesheets or is currently assigned to an active TNM project.
+        </p>
+
+        <p class="mb-0 fw-medium">
+          Do you want to proceed with marking the employee as
+          <span class="text-danger">Inactive</span>?
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer border-0 pt-3">
+    <button class="btn btn-light px-4" (click)="onCancel()">
+      Cancel
+    </button>
+    <button class="btn btn-danger px-4" (click)="cancelRequest()">
+      Confirm
+    </button>
+  </div>
+</ng-template>
+
+
+

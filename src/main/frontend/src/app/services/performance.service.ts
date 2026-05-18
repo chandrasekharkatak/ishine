@@ -38,6 +38,12 @@ export class PerformanceService {
   getCurrentUserDepartment(empId:number) {
     return this.http.get(`${this.baseUrl}` + `api/getCurrentUserDepartment/${empId}`);
   }
+
+  getApprovalDetails(empId: number, quarterId: number) {
+    return this.http.get(`${this.baseUrl}api/getApprovalDetails`, {
+      params: { empId: empId.toString(), quarterId: quarterId.toString() }
+    });
+  }
   getAllEmployee() {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }
@@ -106,6 +112,10 @@ export class PerformanceService {
 
   submitEmployeePerformanceHR(performance: any) {
     return this.http.post(`${this.baseUrl}` + `api/submitEmployeePerformanceHR`, performance);
+  }
+
+  submitRemarksByHOD(performance: any) {
+    return this.http.post(`${this.baseUrl}` + `api/submitRemarksByHOD`, performance);
   }
 
   updateEmployeePerformanceHOD(performance: any) {
@@ -250,6 +260,10 @@ export class PerformanceService {
   }
   updateEmployeePerformanceHr(performance: any) {
     return this.http.post(`${this.baseUrl}` + `api/updateEmployeePerformanceHr`, performance);
+  }
+
+  bulkSubmitEmployeePerformanceHR(performance: any) {
+    return this.http.post(`${this.baseUrl}` + `api/bulkSubmitEmployeePerformanceHR`, performance);
   }
 }
 

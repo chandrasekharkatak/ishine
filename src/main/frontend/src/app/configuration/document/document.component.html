@@ -4,7 +4,7 @@
         </div>
 </div>
 <div class="row" *ngIf="type">
-    <div class="col-md-12 table-header">
+    <div class="col-md-12 table-header d-flex align-items-center justify-content-between">
             <strong class="table-header-title">Type(s) Table</strong>
         </div>
 </div>
@@ -247,7 +247,7 @@
                 </div>
                 <div class="card-body">
                     <div id="outerContainer">
-                        <div class="pdf-container">
+                        <div class="pdf-container" (contextmenu)="$event.preventDefault()">
                           <pdf-viewer
                             [src]="src"
                             [rotation]="0"
@@ -267,8 +267,8 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-12">
-                            <button type="button" class="btn btn-outline-primary" (click)="cancelRequest()">Close</button>&nbsp;
+                        <div class="col-md-12 d-flex justify-content-center" >
+                            <button type="button" class="btn btn-sm btn-outline-primary highlight-btn mt-1" (click)="cancelRequest()">Close</button>&nbsp;
                         </div>
                     </div>
                 </div>

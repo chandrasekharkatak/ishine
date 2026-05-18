@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,11 +22,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 
+import com.apmosys.employeeportal.dto.*;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.exception.SQLGrammarException;
 import org.hibernate.query.NativeQuery;
-import org.hibernate.transform.AliasToBeanResultTransformer;
 import org.hibernate.transform.Transformers;
 import org.hibernate.type.StandardBasicTypes;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,18 +40,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.apmosys.employeeportal.dto.BioMaTO;
-import com.apmosys.employeeportal.dto.CustomFilterDTO;
-import com.apmosys.employeeportal.dto.CustomTimesheetReportDTO;
-import com.apmosys.employeeportal.dto.EmployeeDTO;
-import com.apmosys.employeeportal.dto.EmployeeProjection;
-import com.apmosys.employeeportal.dto.LeaveDTO;
-import com.apmosys.employeeportal.dto.LogDTO;
-import com.apmosys.employeeportal.dto.NewsletterDTO;
-import com.apmosys.employeeportal.dto.PieParamDTO;
-import com.apmosys.employeeportal.dto.ProjectDTO;
-import com.apmosys.employeeportal.dto.ReportsQueryDTO;
-import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Designation;
@@ -865,12 +852,12 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				break;
 			}
 			case "Po Start Date": {
-				query = query.append("  emp_proj_client.po_start_date ").append(dto.getOperator() + " '")
+				query = query.append("  emp_proj_client.start_date ").append(dto.getOperator() + " '")
 						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				break;
 			}
 			case "Po End Date": {
-				query = query.append("  emp_proj_client.po_end_date ").append(dto.getOperator() + " '")
+				query = query.append("  emp_proj_client.end_date ").append(dto.getOperator() + " '")
 						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				break;
 			}
@@ -1040,7 +1027,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 						+ "    e4.name AS createdByName, e3.name AS updatedByName, e.designation_id, de.designation_name, \n"
 						+ "    e.updated_by, e.billable_type, emp_proj_client.team_name,e.is_consultant, e.is_apprenticeship, \n"  // Added comma here
 						+ "    emp_proj_client.po_no, \n"
-						+ "    emp_proj_client.po_start_date, emp_proj_client.po_end_date, emp_proj_client.po_project_type, \n"
+						+ "    emp_proj_client.start_date, emp_proj_client.end_date, emp_proj_client.po_project_type, \n"
 						+ " \n"
 						+ "    (SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) \n"
 						+ "     FROM employee e_profile \n"
@@ -1060,13 +1047,17 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 						+ "        GROUP_CONCAT(DISTINCT pr.project_name ORDER BY pr.project_id SEPARATOR ',') AS project_name, \n"
 						+ "        GROUP_CONCAT(DISTINCT cl.client_name ORDER BY pr.project_id SEPARATOR ',') AS client_name,  \n"
 						+ "        GROUP_CONCAT(DISTINCT t.team_name ORDER BY pr.project_id SEPARATOR ',') AS team_name,\n"
-						+ "        GROUP_CONCAT(DISTINCT pr.po_no ORDER BY pr.project_id SEPARATOR ',') AS po_no,\n"
-						+ "        GROUP_CONCAT(DISTINCT pr.po_start_date ORDER BY pr.project_id SEPARATOR ',') AS po_start_date,\n"
-						+ "        GROUP_CONCAT(DISTINCT pr.po_end_date ORDER BY pr.project_id SEPARATOR ',') AS po_end_date,\n"
+						+ "        GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY pr.project_id SEPARATOR ',') AS po_no,\n"
+						+ "        GROUP_CONCAT(DISTINCT pr.start_date ORDER BY pr.project_id SEPARATOR ',') AS start_date,\n"
+						+ "        GROUP_CONCAT(DISTINCT pr.end_date ORDER BY pr.project_id SEPARATOR ',') AS end_date,\n"
 						+ "        GROUP_CONCAT(DISTINCT pr.po_project_type ORDER BY pr.project_id SEPARATOR ',') AS po_project_type \n"
 						+ "    FROM employee_team_mapping etm \n"
 						+ "    LEFT JOIN teams t ON t.team_id = etm.team_id \n"
 						+ "    LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
+						+ "LEFT JOIN project_po_details ppd \n"
+						+ "ON ppd.project_id = pr.project_id and ppd.active = true \n"
+   						+ "AND ppd.po_start_date <= current_timestamp \n" 
+						+ "AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp)\n"
 						+ "    LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
 						+ "    WHERE etm.active != 0 \n"
 						+ "      AND t.is_active != 'N' \n"
@@ -1090,7 +1081,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 								+ "    e4.name AS createdByName, e3.name AS updatedByName, e.designation_id, de.designation_name, \n"
 								+ "    e.updated_by, e.billable_type, emp_proj_client.team_name, e.is_consultant, e.is_apprenticeship, \n"
 								+ "    emp_proj_client.po_no, \n"
-								+ "    emp_proj_client.po_start_date, emp_proj_client.po_end_date, emp_proj_client.po_project_type, \n"
+								+ "    emp_proj_client.start_date, emp_proj_client.end_date, emp_proj_client.po_project_type, \n"
 								+ "\n"
 								+ "    (SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) \n"
 								+ "     FROM employee e_profile \n"
@@ -1111,12 +1102,16 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 								+ "        GROUP_CONCAT(DISTINCT cl.client_name ORDER BY pr.project_id SEPARATOR ',') AS client_name,  \n"
 								+ "        GROUP_CONCAT(DISTINCT t.team_name ORDER BY pr.project_id SEPARATOR ',') AS team_name,\n"
 								+ "        GROUP_CONCAT(DISTINCT pr.po_no ORDER BY pr.project_id SEPARATOR ',') AS po_no,\n"
-								+ "        GROUP_CONCAT(DISTINCT pr.po_start_date ORDER BY pr.project_id SEPARATOR ',') AS po_start_date,\n"
-								+ "        GROUP_CONCAT(DISTINCT pr.po_end_date ORDER BY pr.project_id SEPARATOR ',') AS po_end_date,\n"
+								+ "        GROUP_CONCAT(DISTINCT pr.start_date ORDER BY pr.project_id SEPARATOR ',') AS start_date,\n"
+								+ "        GROUP_CONCAT(DISTINCT pr.end_date ORDER BY pr.project_id SEPARATOR ',') AS end_date,\n"
 								+ "        GROUP_CONCAT(DISTINCT pr.po_project_type ORDER BY pr.project_id SEPARATOR ',') AS po_project_type \n"
 								+ "    FROM employee_team_mapping etm \n"
 								+ "    LEFT JOIN teams t ON t.team_id = etm.team_id \n"
 								+ "    LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
+								+ "LEFT JOIN project_po_details ppd \n"
+								+ "ON ppd.project_id = pr.project_id and ppd.active = true \n"
+   								+ "AND ppd.po_start_date <= current_timestamp \n" 
+								+ "AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp ) \n"
 								+ "    LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
 								+ "    WHERE etm.active != 0 \n"
 								+ "      AND t.is_active != 'N' \n"
@@ -1501,8 +1496,8 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					empDTO.setIsConsultant(object[71] != null ? object[71].toString() : null);
 					empDTO.setIsApprenticeship(object[72] != null ? object[72].toString() : null);
 					empDTO.setPoNo(object[73] != null ? object[73].toString() : null);
-                    empDTO.setPoStartDate(object[74] != null ? object[74].toString() : null);
-					empDTO.setPoEndDate(object[75] != null ? object[75].toString() : null);
+                    empDTO.setProjectStartDate(object[74] != null ? object[74].toString() : null);
+					empDTO.setProjectEndDate(object[75] != null ? object[75].toString() : null);
 					empDTO.setPoProjectType(object[76] != null ? object[76].toString() : null);
 					empDTO.setIsApmosysProduct(object[78] != null ? object[78].toString() : null);	
 					
@@ -1627,7 +1622,16 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			hasCondition = true;
 
 			switch (column) {
-
+				case "Employment Status":
+					query.append("LOWER(e1.employmentstatus) ");
+					if (operator.equalsIgnoreCase("like")) {
+						query.append("LIKE LOWER('%").append(value).append("%')");
+					} else if (operator.equals("=")) {
+						query.append("= LOWER('").append(value).append("')");
+					} else {
+						query.append(operator).append(" '").append(value).append("'");
+					}
+					break;
 				case "Employee Id":
 					if (operator.equals("=")) {
 						if (value.startsWith("AP-")) {
@@ -1642,6 +1646,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 							query.append("e1.employeement_id = '").append(value).append("'");
 						}
 					}
+					else if (operator.equalsIgnoreCase("LIKE")) {
+				        query.append("e1.employeement_id LIKE '%").append(value).append("%'");
+				    }
 					break;
 
 				case "Full Name":
@@ -1659,12 +1666,26 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				case "Date":
 				case "From Date":
 				case "To Date":
-					query.append("DATE(et.date) ").append(operator)
-							.append(" '").append(value).append("'");
+					if (operator.equalsIgnoreCase("LIKE")) {
+			            query.append("CAST(et.date AS CHAR) LIKE '%").append(value).append("%'");
+			        } else {
+			            query.append("DATE(et.date) ").append(operator).append(" '").append(value).append("'");
+			        }
 					break;
+				case "Day Type": 
+			        query.append("LOWER(dtm.day_type) LIKE LOWER('%").append(value).append("%')");
+			        break;
+
+			    case "Description": 
+			        query.append("LOWER(et.description) LIKE LOWER('%").append(value).append("%')");
+			        break;
 
 				case "Created On":
-					appendDateFilter(query, "et.created_on", operator, value);
+					if (operator.equalsIgnoreCase("LIKE")) {
+			            query.append("CAST(et.created_on AS CHAR) LIKE '%").append(value).append("%'");
+			        } else {
+			            appendDateFilter(query, "et.created_on", operator, value);
+			        }
 					break;
 
 				case "Updated On":
@@ -1672,7 +1693,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					break;
 
 				case "Status":
-					query.append("et.status ").append(operator.equalsIgnoreCase("like") ? "LIKE" : operator)
+					query.append("sm.status ").append(operator.equalsIgnoreCase("like") ? "LIKE" : operator)
 							.append(" '%").append(value).append("%'");
 					break;
 
@@ -1698,6 +1719,44 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				        query.append(operator).append(" '").append(value).append("'");
 				    }
 				    break;
+				case "Total Working Hour":
+					query.append("(et.total_working_minutes / 60) ")
+						.append(operator)
+						.append(" ")
+						.append(value);
+					break;
+				case "Team Name":
+					query.append("LOWER(t.team_name) ");
+					if (operator.equalsIgnoreCase("like")) {
+						query.append("LIKE LOWER('%").append(value).append("%')");
+					} else {
+						query.append(operator).append(" LOWER('").append(value).append("')");
+					}
+					break;
+				case "Project Name":
+					query.append("LOWER(p.project_name) ");
+					if (operator.equalsIgnoreCase("like")) {
+						query.append("LIKE LOWER('%").append(value).append("%')");
+					} else {
+						query.append(operator).append(" LOWER('").append(value).append("')");
+					}
+					break;
+				case "Client Name":
+					query.append("LOWER(c.client_name) ");
+					if (operator.equalsIgnoreCase("like")) {
+						query.append("LIKE LOWER('%").append(value).append("%')");
+					} else {
+						query.append(operator).append(" LOWER('").append(value).append("')");
+					}
+					break;
+				case "Updated By":
+					query.append("LOWER(e2.name) ");
+					if (operator.equalsIgnoreCase("like")) {
+						query.append("LIKE LOWER('%").append(value).append("%')");
+					} else {
+						query.append(operator).append(" LOWER('").append(value).append("')");
+					}
+					break;
 
 
 				default:
@@ -1763,24 +1822,40 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	public Page<CustomTimesheetReportDTO> getCustomTimesheetReport(String filterQuery, Long empId, Pageable pageable) {
 		Session session = entityManager.unwrap(Session.class);
 		String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
-
+// in the where clause the conditions are temporarily removed for timesheet report
 		String whereClause = " WHERE " + filterQuery +
-				" AND jr.dept_id IN (" + deptList + ")" +
-				" AND etm.active != 0 " +
-				" AND t.is_active != 'N' " +
-				" AND p.active != 'false' ";
-
-		String countQueryStr = "SELECT COUNT(DISTINCT e1.employeement_id, et.date) " +
-				"FROM employee_timesheets et " +
-				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
-				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
-				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
-				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
-				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
-				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
-				"LEFT JOIN projects p ON p.project_id = t.project_id " +
-				whereClause;
-
+				" AND jr.dept_id IN (" + deptList + ")" ;
+				// " AND etm.active != 0 " +
+				// " AND t.is_active != 'N' " +
+				// " AND p.active != 'false' ";
+//		this below old query is replaced with the new table structure of timesheet
+		
+//		String countQueryStr = "SELECT COUNT(DISTINCT e1.employeement_id, et.date) " +
+//				"FROM employee_timesheets et " +
+//				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
+//				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
+//				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+//				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
+//				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
+//				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
+//				"LEFT JOIN projects p ON p.project_id = t.project_id " +
+//				whereClause;
+		
+		String countQueryStr = "SELECT COUNT(DISTINCT e1.employeement_id, et.date)  \n"
+				+ "FROM employee_timesheets_new et  \n"
+				+ "INNER JOIN employee e1 ON et.emp_id = e1.emp_id  \n"
+				+ "LEFT JOIN status_master_new sm ON et.status = sm.status_id \n"
+				+ "LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id \n"
+				+ "LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id  \n"
+				+ "LEFT JOIN department d ON jr.dept_id = d.dept_id  \n"
+				+ "LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id \n"
+			    + "LEFT JOIN projects p ON p.project_id = pts.project_id \n"
+			    + "LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id \n"
+				+ "LEFT JOIN teams t ON t.team_id = etm.team_id  \n"
+				+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id  \n"
+				+ whereClause;
+		
+		// System.out.println("=====query of count" + countQueryStr);
 		Number totalElements = ((Number) session.createNativeQuery(countQueryStr).getSingleResult());
 
 		String orderBy = pageable.getSort().isSorted()
@@ -1788,33 +1863,77 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 						.map(order -> mapSortColumn(order.getProperty()) + " " + order.getDirection().name())
 						.collect(Collectors.joining(", "))
 				: "et.date DESC";
-		String dataQueryStr = "SELECT " +
-				"e1.employeement_id AS employeementId, " + "e1.name AS employeeName, " +
-				"et.date AS date, " +
-				"et.day_type AS dayType, " +
-				"et.description AS description, " +
-				"et.status AS status, " +
-				"et.total_time AS totalTime, " +
-				"DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn, " +
-				"DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn, " +
-				"e2.name AS statusUpdatedBy, " +
-				"t.team_name AS teamName, " +
-				"p.project_name AS projectName, " +
-				"p.client_name AS clientName, " +
-				"ltm.leave_type AS leaveType, " +
-				"e1.is_apmosys_product AS isApmosysProduct " +
-				"FROM employee_timesheets et " +
-				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
-				"LEFT JOIN employee e2 ON et.timesheet_status_updated_by = e2.emp_id " +
-				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
-				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
-				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
-				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
-				"LEFT JOIN projects p ON p.project_id = t.project_id " +
-				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
-				whereClause +
-				" GROUP BY e1.employeement_id, et.date " +
-				" ORDER BY " + orderBy;
+//		String dataQueryStr = "SELECT " +
+//				"e1.employeement_id AS employeementId, " + "e1.name AS employeeName, " +
+//				"et.date AS date, " +
+//				"et.day_type AS dayType, " +
+//				"et.description AS description, " +
+//				"et.status AS status, " +
+//				"et.total_time AS totalTime, " +
+//				"DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn, " +
+//				"DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn, " +
+//				"e2.name AS statusUpdatedBy, " +
+//				"t.team_name AS teamName, " +
+//				"p.project_name AS projectName, " +
+//				"p.client_name AS clientName, " +
+//				"ltm.leave_type AS leaveType, " +
+//				"e1.is_apmosys_product AS isApmosysProduct " +
+//				"FROM employee_timesheets et " +
+//				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
+//				"LEFT JOIN employee e2 ON et.timesheet_status_updated_by = e2.emp_id " +
+//				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
+//				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+//				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
+//				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
+//				"LEFT JOIN projects p ON p.project_id = t.project_id " +
+//				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
+//				whereClause +
+//				" GROUP BY e1.employeement_id, et.date " +
+//				" ORDER BY " + orderBy;
+		
+		
+		String dataQueryStr ="SELECT DISTINCT \n"
+				+ "e1.employeement_id AS employeementId,  \n"
+				+ "e1.name AS employeeName,  \n"
+				+ "et.date AS date,  \n"
+				+ "dtm.day_type AS dayType,  \n"
+				+ "GROUP_CONCAT(DISTINCT TRIM(REPLACE(REPLACE(pts.description, '<br>', ''), '<br/>', '')) SEPARATOR ' | ') AS description,  \n"
+				+ "sm.status AS status,  \n"
+				+ "ROUND(et.total_working_minutes /60 , 2 ) AS totalTime,  \n"
+                + "DATE_FORMAT(et.work_in_time, '%Y-%m-%d %H:%i:%s') as officeInTime,\n" 
+                + "DATE_FORMAT(et.work_out_time,'%Y-%m-%d %H:%i:%s') as officeOutTime, \n" 
+                + "CONCAT(LPAD(FLOOR(pts.total_client_working_minutes / 60), 2, '0'), ':', "
+                +"LPAD(pts.total_client_working_minutes % 60, 2, '0')) AS totalWorkingHours, "        
+				+ "DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn,  \n"
+				+ "DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn,  \n"
+				+ "e2.name AS statusUpdatedBy,  \n"
+				+ "GROUP_CONCAT(DISTINCT t.team_name SEPARATOR ', ') AS teamName,  \n"
+				+ "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS projectName,  \n"
+				+ "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS clientName,  \n"
+				+ "ltm.leave_type AS leaveType,  \n"
+				+ "e1.is_apmosys_product AS isApmosysProduct  \n"
+				+ "FROM employee_timesheets_new et  \n"
+				+ "INNER JOIN employee e1 ON et.emp_id = e1.emp_id  \n"
+				+ "LEFT JOIN status_master_new sm ON et.status = sm.status_id \n"
+				+ "LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id \n"
+				+ "LEFT JOIN timesheet_action_audit taa ON et.timesheet_id = taa.timesheet_id AND taa.audit_id = (select max(taa1.audit_id) from timesheet_action_audit taa1 where taa.timesheet_id = taa1.timesheet_id) \n"
+				+ "LEFT JOIN employee e2 ON taa.action_by = e2.emp_id  \n"
+				+ "LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id  \n"
+				+ "LEFT JOIN department d ON jr.dept_id = d.dept_id  \n"
+				+ "LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id\n"
+				+ "LEFT JOIN projects p ON p.project_id = pts.project_id\n"
+				+ "LEFT JOIN clients c ON c.client_id = p.client_id\n"
+				+ "LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id \n"
+				+ "AND (etm.end_date IS NULL OR etm.end_date >= et.date)\n"
+				+ "LEFT JOIN teams t ON t.team_id = etm.team_id AND t.project_id = p.project_id\n"
+				+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id  \n"
+				+  whereClause 
+				+ "GROUP BY \n"
+				+ "    e1.employeement_id, et.date, dtm.day_type, \n"
+				+ "    sm.status, et.total_working_minutes, et.created_on, \n"
+				+ "    et.updated_on, e2.name, ltm.leave_type, e1.is_apmosys_product\n"
+				+ "ORDER BY " + orderBy ;
+		
 		@SuppressWarnings("unchecked")
 		NativeQuery<CustomTimesheetReportDTO> query = (NativeQuery<CustomTimesheetReportDTO>) session
 				.createNativeQuery(dataQueryStr)
@@ -1825,6 +1944,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				.addScalar("description", StandardBasicTypes.STRING)
 				.addScalar("status", StandardBasicTypes.STRING)
 				.addScalar("totalTime", StandardBasicTypes.STRING)
+				.addScalar("officeInTime", StandardBasicTypes.STRING)
+				.addScalar("officeOutTime", StandardBasicTypes.STRING)
+				.addScalar("totalWorkingHours", StandardBasicTypes.STRING)
 				.addScalar("createdOn", StandardBasicTypes.STRING)
 				.addScalar("updatedOn", StandardBasicTypes.STRING)
 				.addScalar("statusUpdatedBy", StandardBasicTypes.STRING)
@@ -1896,10 +2018,10 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
 
 		String whereClause = " WHERE " + filterQuery +
-				" AND jr.dept_id IN (" + deptList + ")" +
-				" AND etm.active != 0 " +
-				" AND t.is_active != 'N' " +
-				" AND p.active != 'false' ";
+				" AND jr.dept_id IN (" + deptList + ")" ;
+				// " AND etm.active != 0 " +
+				// " AND t.is_active != 'N' " +
+				// " AND p.active != 'false' ";
 
 		String orderBy = (sort != null && sort.isSorted())
 				? sort.stream()
@@ -1907,35 +2029,74 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 						.collect(Collectors.joining(", "))
 				: "et.date DESC";
 
-		String queryStr = "SELECT " +
-				"e1.employeement_id AS employeementId, " +
-				"e1.name AS employeeName, " +
-				"et.date AS date, " +
-				"et.day_type AS dayType, " +
-				"et.description AS description, " +
-				"et.status AS status, " +
-				"et.total_time AS totalTime, " +
-				"DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn, " +
-				"DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn, " +
-				"e2.name AS statusUpdatedBy, " +
-				"t.team_name AS teamName, " +
-				"p.project_name AS projectName, " +
-				"p.client_name AS clientName, " +
-				"ltm.leave_type AS leaveType, " +
-				"e1.is_apmosys_product AS isApmosysProduct " +
-				"FROM employee_timesheets et " +
-				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
-				"LEFT JOIN employee e2 ON et.timesheet_status_updated_by = e2.emp_id " +
-				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
-				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
-				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
-				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
-				"LEFT JOIN projects p ON p.project_id = t.project_id " +
-				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
-				whereClause +
-				" GROUP BY e1.employeement_id, et.date " +
-				" ORDER BY " + orderBy;
-
+//		String queryStr = "SELECT " +
+//				"e1.employeement_id AS employeementId, " +
+//				"e1.name AS employeeName, " +
+//				"et.date AS date, " +
+//				"et.day_type AS dayType, " +
+//				"et.description AS description, " +
+//				"et.status AS status, " +
+//				"et.total_time AS totalTime, " +
+//				"DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn, " +
+//				"DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn, " +
+//				"e2.name AS statusUpdatedBy, " +
+//				"t.team_name AS teamName, " +
+//				"p.project_name AS projectName, " +
+//				"p.client_name AS clientName, " +
+//				"ltm.leave_type AS leaveType, " +
+//				"e1.is_apmosys_product AS isApmosysProduct " +
+//				"FROM employee_timesheets et " +
+//				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
+//				"LEFT JOIN employee e2 ON et.timesheet_status_updated_by = e2.emp_id " +
+//				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
+//				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+//				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
+//				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
+//				"LEFT JOIN projects p ON p.project_id = t.project_id " +
+//				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
+//				whereClause +
+//				" GROUP BY e1.employeement_id, et.date " +
+//				" ORDER BY " + orderBy;
+		
+		String queryStr ="SELECT DISTINCT \n"
+				+ "e1.employeement_id AS employeementId,  \n"
+				+ "e1.name AS employeeName,  \n"
+				+ "et.date AS date,  \n"
+				+ "dtm.day_type AS dayType,  \n"
+				// + "pts.description AS description,  \n"
+				+ "GROUP_CONCAT(DISTINCT TRIM(REPLACE(REPLACE(pts.description, '<br>', ''), '<br/>', '')) SEPARATOR ' | ') AS description, "
+				+ "sm.status AS status,  \n"
+				+ "ROUND(et.total_working_minutes /60 , 2 ) AS totalTime,  \n"
+				+ "DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn,  \n"
+				+ "DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn,  \n"
+				+ "e2.name AS statusUpdatedBy,  \n"
+				+ "GROUP_CONCAT(DISTINCT t.team_name SEPARATOR ', ') AS teamName,  \n"
+				+ "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS projectName,  \n"
+				+ "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS clientName,  \n"
+				+ "ltm.leave_type AS leaveType,  \n"
+				+ "e1.is_apmosys_product AS isApmosysProduct  \n"
+				+ "FROM employee_timesheets_new et  \n"
+				+ "INNER JOIN employee e1 ON et.emp_id = e1.emp_id  \n"
+				+ "LEFT JOIN status_master_new sm ON et.status = sm.status_id \n"
+				+ "LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id \n"
+				+ "LEFT JOIN timesheet_action_audit taa ON et.timesheet_id = taa.timesheet_id AND taa.audit_id = (select max(taa1.audit_id) from timesheet_action_audit taa1 where taa.timesheet_id = taa1.timesheet_id) \n"
+				+ "LEFT JOIN employee e2 ON taa.action_by = e2.emp_id  \n"
+				+ "LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id  \n"
+				+ "LEFT JOIN department d ON jr.dept_id = d.dept_id  \n"
+				+ "LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id\n"
+				+ "LEFT JOIN projects p ON p.project_id = pts.project_id\n"
+				+ "LEFT JOIN clients c ON c.client_id = p.client_id\n"
+				+ "LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id \n"
+				+ "AND (etm.end_date IS NULL OR etm.end_date >= et.date)\n"
+				+ "LEFT JOIN teams t ON t.team_id = etm.team_id AND t.project_id = p.project_id\n"
+				+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id  \n"
+				+  whereClause 
+				+ "GROUP BY \n"
+				+ "    e1.employeement_id, et.date, dtm.day_type, \n"
+				+ "    sm.status, et.total_working_minutes, et.created_on, \n"
+				+ "    et.updated_on, e2.name, ltm.leave_type, e1.is_apmosys_product\n"
+				+ "ORDER BY " + orderBy ;
+		
 		@SuppressWarnings("unchecked")
 		NativeQuery<CustomTimesheetReportDTO> query = (NativeQuery<CustomTimesheetReportDTO>) session
 				.createNativeQuery(queryStr)
@@ -2009,7 +2170,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 	        StringBuilder subQuery = createQueryForTimesheetReport(timesheetDTO.getQueryList());
 	        logBuilder.append(" | Query: ").append(subQuery);
-
+	        // System.out.println("===================="+subQuery);
 	        Page<CustomTimesheetReportDTO> page;
 	        Pageable pageable;
 
@@ -3431,6 +3592,567 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		return response;
 	}
 
+	// ===== Custom Query: server-side paging/sort/search =====
+	public ServiceResponse getCustomQueryDataPaged(QueryRequestDTO requestDTO) {
+		return executePagedQuery(requestDTO, false);
+	}
+
+	public ServiceResponse getFilteredQueryDataPaged(QueryRequestDTO requestDTO) {
+		return executePagedQuery(requestDTO, true);
+	}
+
+	public ServiceResponse getCustomQueryDistinctValues(QueryDistinctValuesRequestDTO requestDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getCustomQueryDistinctValues");
+		apiLogInfo.setLogLevel("INFO");
+
+		Connection con = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			String baseQuery = requestDTO.getCustomQuery();
+			if (baseQuery == null || !baseQuery.trim().toLowerCase().startsWith("select")) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Only SELECT query allowed.");
+				return response;
+			}
+
+			String column = requestDTO.getColumn();
+			if (column == null || !column.matches("^[a-zA-Z0-9_]+$")) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid column.");
+				return response;
+			}
+
+			int limit = requestDTO.getLimit() != null && requestDTO.getLimit() > 0 ? requestDTO.getLimit() : 2000;
+			limit = Math.min(limit, 5000);
+
+			StringBuilder sql = new StringBuilder();
+			sql.append("SELECT DISTINCT temp.").append(column)
+					.append(" FROM (").append(baseQuery).append(") AS temp WHERE 1=1 ");
+
+			// optional filters (same shape as custom filter)
+			if (requestDTO.getCustomQueryFilters() != null && !requestDTO.getCustomQueryFilters().isEmpty()) {
+				sql.append(buildWhereClauseFromFilters(requestDTO.getCustomQueryFilters()));
+			}
+
+			sql.append(" AND temp.").append(column).append(" IS NOT NULL ");
+			sql.append(" ORDER BY temp.").append(column).append(" ASC ");
+			sql.append(" LIMIT ").append(limit);
+
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			con = DriverManager.getConnection(dbURL, dbUsername, dbPassword);
+			stmt = con.prepareStatement(sql.toString());
+			rs = stmt.executeQuery();
+
+			List<String> values = new ArrayList<>();
+			while (rs.next()) {
+				Object v = rs.getObject(1);
+				if (v == null) continue;
+				String s = String.valueOf(v).trim();
+				if (s.isEmpty()) continue;
+				values.add(s);
+			}
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(values);
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("distinct values size : " + values.size());
+			return response;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong while fetching distinct values.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
+			return response;
+		} finally {
+			try {
+				if (stmt != null) stmt.close();
+				if (rs != null) rs.close();
+				if (con != null) con.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			logService.logMyInfo(httpRequest, apiLogInfo);
+		}
+	}
+
+	private ServiceResponse executePagedQuery(QueryRequestDTO requestDTO, boolean applyFilters) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl(applyFilters ? "/api/getFilteredQueryDataPaged" : "/api/getCustomQueryDataPaged");
+		apiLogInfo.setLogLevel("INFO");
+
+		Connection con = null;
+		PreparedStatement stmt = null;
+		PreparedStatement stmtCount = null;
+		ResultSet rs = null;
+		ResultSet rsCount = null;
+
+		try {
+			String baseQuery = requestDTO.getCustomQuery();
+			if (baseQuery == null || !baseQuery.trim().toLowerCase().startsWith("select")) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Only SELECT query allowed.");
+				return response;
+			}
+
+			int page = requestDTO.getPage() != null && requestDTO.getPage() > 0 ? requestDTO.getPage() : 1;
+			int size = requestDTO.getSize() != null && requestDTO.getSize() > 0 ? requestDTO.getSize() : 10;
+			size = Math.min(size, 500);
+			int offset = (page - 1) * size;
+
+			String selectedCols = requestDTO.getSelectedColumns();
+			selectedCols = (selectedCols != null && !selectedCols.trim().isEmpty()) ? selectedCols.trim() : "*";
+
+			String sortColumn = requestDTO.getSortColumn();
+			String sortDirection = requestDTO.getSortDirection();
+			sortDirection = (sortDirection != null && sortDirection.equalsIgnoreCase("desc")) ? "DESC" : "ASC";
+			if (sortColumn != null && !sortColumn.matches("^[a-zA-Z0-9_]+$")) {
+				sortColumn = null;
+			}
+
+			String searchText = requestDTO.getSearchText();
+			searchText = (searchText != null) ? searchText.trim() : "";
+			java.util.Map<String, String> columnSearch = requestDTO.getColumnSearch();
+
+			// Discover available columns from metadata (for search across columns and to validate sort column)
+			List<String> availableColumns = discoverColumns(baseQuery);
+			if (availableColumns.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No columns found for the query.");
+				return response;
+			}
+			if (sortColumn != null && !availableColumns.contains(sortColumn)) {
+				sortColumn = null;
+			}
+
+			// Build WHERE clause: filters + search
+			StringBuilder where = new StringBuilder(" WHERE 1=1 ");
+			if (applyFilters && requestDTO.getCustomQueryFilters() != null && !requestDTO.getCustomQueryFilters().isEmpty()) {
+				where.append(buildWhereClauseFromFilters(requestDTO.getCustomQueryFilters()));
+			}
+			if (!searchText.isEmpty()) {
+				String escaped = escapeSqlLiteral(searchText);
+				List<String> searchCols = selectedCols.equals("*") ? availableColumns : parseSelectedColumns(selectedCols, availableColumns);
+				if (!searchCols.isEmpty()) {
+					where.append(" AND (");
+					for (int i = 0; i < searchCols.size(); i++) {
+						if (i > 0) where.append(" OR ");
+						where.append("CAST(temp.").append(searchCols.get(i)).append(" AS CHAR) LIKE '%").append(escaped).append("%'");
+					}
+					where.append(") ");
+				}
+			}
+
+			// Column-wise search (same as column filter bar)
+			if (columnSearch != null && !columnSearch.isEmpty()) {
+				for (java.util.Map.Entry<String, String> e : columnSearch.entrySet()) {
+					if (e == null) continue;
+					String k = e.getKey();
+					String v = e.getValue();
+					if (k == null || v == null) continue;
+					k = k.trim();
+					v = v.trim();
+					if (k.isEmpty() || v.isEmpty()) continue;
+					if (!k.matches("^[a-zA-Z0-9_]+$")) continue;
+					if (!availableColumns.contains(k)) continue;
+					String escaped = escapeSqlLiteral(v);
+					where.append(" AND CAST(temp.").append(k).append(" AS CHAR) LIKE '%").append(escaped).append("%'");
+				}
+			}
+
+			String from = " FROM (" + baseQuery + ") AS temp ";
+
+			String countSql = "SELECT COUNT(1) " + from + where;
+
+			StringBuilder dataSql = new StringBuilder();
+			dataSql.append("SELECT ").append(selectedCols).append(from).append(where);
+			if (sortColumn != null) {
+				dataSql.append(" ORDER BY temp.").append(sortColumn).append(" ").append(sortDirection);
+			}
+			dataSql.append(" LIMIT ").append(size).append(" OFFSET ").append(offset);
+
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			con = DriverManager.getConnection(dbURL, dbUsername, dbPassword);
+
+			stmtCount = con.prepareStatement(countSql);
+			rsCount = stmtCount.executeQuery();
+			long total = 0;
+			if (rsCount.next()) {
+				total = rsCount.getLong(1);
+			}
+
+			stmt = con.prepareStatement(dataSql.toString());
+			rs = stmt.executeQuery();
+			ResultSetMetaData rsmd = rs.getMetaData();
+			int columnsNumber = rsmd.getColumnCount();
+
+			List<String> headers = new ArrayList<>();
+			for (int i = 1; i <= columnsNumber; i++) {
+				headers.add(rsmd.getColumnLabel(i));
+			}
+
+			List<List<Object>> rows = new ArrayList<>();
+			while (rs.next()) {
+				List<Object> row = new ArrayList<>();
+				for (int i = 1; i <= columnsNumber; i++) {
+					row.add(rs.getObject(i));
+				}
+				rows.add(row);
+			}
+
+			QueryPageResponseDTO out = new QueryPageResponseDTO();
+			out.setHeaders(headers);
+			out.setRows(rows);
+			out.setTotalElements(total);
+			out.setPage(page);
+			out.setSize(size);
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(out);
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("paged query ok, total=" + total + ", rows=" + rows.size());
+			return response;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Invalid Query, Please Check entered query.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong while executing query.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
+			return response;
+		} finally {
+			try {
+				if (rs != null) rs.close();
+				if (rsCount != null) rsCount.close();
+				if (stmt != null) stmt.close();
+				if (stmtCount != null) stmtCount.close();
+				if (con != null) con.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			logService.logMyInfo(httpRequest, apiLogInfo);
+		}
+	}
+
+	private List<String> discoverColumns(String baseQuery) {
+		List<String> cols = new ArrayList<>();
+		Connection con = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			con = DriverManager.getConnection(dbURL, dbUsername, dbPassword);
+			String sql = "SELECT * FROM (" + baseQuery + ") AS temp WHERE 1=0";
+			stmt = con.prepareStatement(sql);
+			rs = stmt.executeQuery();
+			ResultSetMetaData rsmd = rs.getMetaData();
+			int n = rsmd.getColumnCount();
+			for (int i = 1; i <= n; i++) {
+				String label = rsmd.getColumnLabel(i);
+				if (label != null && label.matches("^[a-zA-Z0-9_]+$")) {
+					cols.add(label);
+				}
+			}
+		} catch (Exception ignored) {
+			// best-effort; fall back to empty
+		} finally {
+			try {
+				if (rs != null) rs.close();
+				if (stmt != null) stmt.close();
+				if (con != null) con.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return cols;
+	}
+
+	private List<String> parseSelectedColumns(String selectedColumns, List<String> availableColumns) {
+		if (selectedColumns == null || selectedColumns.trim().isEmpty() || selectedColumns.trim().equals("*")) {
+			return availableColumns;
+		}
+		String[] parts = selectedColumns.split(",");
+		List<String> out = new ArrayList<>();
+		for (String p : parts) {
+			String c = p.trim();
+			if (c.startsWith("temp.")) {
+				c = c.substring(5);
+			}
+			if (availableColumns.contains(c)) {
+				out.add(c);
+			}
+		}
+		return out;
+	}
+
+	private String escapeSqlLiteral(String val) {
+		if (val == null) return "";
+		return val.replace("'", "''");
+	}
+
+	private String buildWhereClauseFromFilters(List<QueryFilterDTO> filters) {
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for (QueryFilterDTO filter : filters) {
+			if (filter == null) continue;
+			if (filter.getColumn() == null || !filter.getColumn().matches("^[a-zA-Z0-9_]+$")) {
+				continue;
+			}
+			String conj = filter.getConjunction();
+			conj = (conj != null && conj.equalsIgnoreCase("OR")) ? "OR" : "AND";
+			if (first) {
+				conj = "AND";
+				first = false;
+			}
+			String col = filter.getColumn();
+			String op = filter.getOperator();
+			String val = escapeSqlLiteral(filter.getValue());
+
+			switch (op) {
+				case "equals":
+					sb.append(" ").append(conj).append(" temp.").append(col).append(" = '").append(val).append("'");
+					break;
+				case "not_equals":
+					sb.append(" ").append(conj).append(" temp.").append(col).append(" != '").append(val).append("'");
+					break;
+				case "contains":
+					sb.append(" ").append(conj).append(" CAST(temp.").append(col).append(" AS CHAR) LIKE '%").append(val).append("%'");
+					break;
+				case "not_contains":
+					sb.append(" ").append(conj).append(" CAST(temp.").append(col).append(" AS CHAR) NOT LIKE '%").append(val).append("%'");
+					break;
+				case "starts_with":
+					sb.append(" ").append(conj).append(" CAST(temp.").append(col).append(" AS CHAR) LIKE '").append(val).append("%'");
+					break;
+				case "ends_with":
+					sb.append(" ").append(conj).append(" CAST(temp.").append(col).append(" AS CHAR) LIKE '%").append(val).append("'");
+					break;
+				case "gt":
+					sb.append(" ").append(conj).append(" temp.").append(col).append(" > '").append(val).append("'");
+					break;
+				case "gte":
+					sb.append(" ").append(conj).append(" temp.").append(col).append(" >= '").append(val).append("'");
+					break;
+				case "lt":
+					sb.append(" ").append(conj).append(" temp.").append(col).append(" < '").append(val).append("'");
+					break;
+				case "lte":
+					sb.append(" ").append(conj).append(" temp.").append(col).append(" <= '").append(val).append("'");
+					break;
+				case "between":
+					String v2 = escapeSqlLiteral(filter.getValueTo());
+					if (filter.getValue() != null && filter.getValueTo() != null) {
+						sb.append(" ").append(conj).append(" temp.").append(col).append(" BETWEEN '").append(val).append("' AND '").append(v2).append("'");
+					}
+					break;
+				case "in":
+					sb.append(" ").append(conj).append(" temp.").append(col).append(" IN (").append(formatInClause(escapeSqlLiteral(filter.getValue()))).append(")");
+					break;
+				case "not_in":
+					sb.append(" ").append(conj).append(" temp.").append(col).append(" NOT IN (").append(formatInClause(escapeSqlLiteral(filter.getValue()))).append(")");
+					break;
+				case "is_null":
+					sb.append(" ").append(conj).append(" temp.").append(col).append(" IS NULL");
+					break;
+				case "is_not_null":
+					sb.append(" ").append(conj).append(" temp.").append(col).append(" IS NOT NULL");
+					break;
+				default:
+					break;
+			}
+		}
+		return sb.toString();
+	}
+
+	//get Filtered Query Data
+	public ServiceResponse getFilteredQueryData(QueryRequestDTO requestDTO) {
+
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getFilteredQueryData");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+
+		try {
+			String baseQuery = requestDTO.getCustomQuery();
+
+			// Validate (only SELECT allowed)
+			if (baseQuery == null || !baseQuery.trim().toLowerCase().startsWith("select")) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Only SELECT query allowed.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				return response;
+			}
+
+			// Wrap query
+			StringBuilder finalQuery = new StringBuilder();
+			if (requestDTO.getSelectedColumns()!=null && !requestDTO.getSelectedColumns().isEmpty()){
+				finalQuery.append("SELECT "+requestDTO.getSelectedColumns()+" FROM (");
+			}else {
+				finalQuery.append("SELECT * FROM (");
+			}
+			finalQuery.append(baseQuery);
+			finalQuery.append(") AS temp WHERE 1=1 ");
+
+			// Apply filters
+			if (requestDTO.getCustomQueryFilters() != null) {
+
+				for (QueryFilterDTO filter : requestDTO.getCustomQueryFilters()) {
+
+					if (filter.getColumn() == null || !filter.getColumn().matches("^[a-zA-Z0-9_]+$")) {
+						continue;
+					}
+
+					String val = filter.getValue();
+
+					switch (filter.getOperator()) {
+
+						case "equals":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" = '").append(val).append("'");
+							break;
+
+						case "not_equals":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" != '").append(val).append("'");
+							break;
+
+						case "contains":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" LIKE '%").append(val).append("%'");
+							break;
+
+						case "not_contains":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" NOT LIKE '%").append(val).append("%'");
+							break;
+
+						case "starts_with":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" LIKE '").append(val).append("%'");
+							break;
+
+						case "ends_with":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" LIKE '%").append(val).append("'");
+							break;
+
+						case "gt":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" > '").append(val).append("'");
+							break;
+
+						case "gte":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" >= '").append(val).append("'");
+							break;
+
+						case "lt":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" < '").append(val).append("'");
+							break;
+
+						case "lte":
+							finalQuery.append(" AND temp.")
+									.append(filter.getColumn()).append(" <= '").append(val).append("'");
+							break;
+
+						case "between":
+							if (filter.getValue() != null && filter.getValueTo() != null) {
+								finalQuery.append(" AND temp.").append(filter.getColumn())
+										.append(" BETWEEN '")
+										.append(filter.getValue())
+										.append("' AND '")
+										.append(filter.getValueTo())
+										.append("'");
+							}
+							break;
+
+						case "in":
+							finalQuery.append(" AND temp.").append(filter.getColumn())
+									.append(" IN (").append(formatInClause(val)).append(")");
+							break;
+
+						case "not_in":
+							finalQuery.append(" AND temp.").append(filter.getColumn())
+									.append(" NOT IN (").append(formatInClause(val)).append(")");
+							break;
+
+						case "is_null":
+							finalQuery.append(" AND temp.").append(filter.getColumn())
+									.append(" IS NULL");
+							break;
+
+						case "is_not_null":
+							finalQuery.append(" AND temp.").append(filter.getColumn())
+									.append(" IS NOT NULL");
+							break;
+						case "group":
+							finalQuery.append(" GROUP BY temp.").append(filter.getColumn());
+							break;
+						case "order":
+							finalQuery.append(" ORDER BY temp.").append(filter.getColumn())
+									.append(" ").append(filter.getValue());
+							break;
+						default:
+							break;
+					}
+				}
+			}
+
+			String finalSql = finalQuery.toString();
+			logBuilder.append("Final Query: ").append(finalSql);
+
+			// use your existing method to execute query
+			CustomFilterDTO customDTO = new CustomFilterDTO();
+			//pass the final SQL Query to get filtered data
+			customDTO.setCustomQuery(finalSql);
+			response = getCustomQueryData(customDTO);
+
+			apiLogInfo.setApiStatus(response.getServiceStatus());
+			apiLogInfo.setApiResponse("Filtered query executed");
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong while filtering data.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	private String formatInClause(String value) {
+		if (value == null || value.isEmpty()) return "";
+
+		String[] values = value.split(",");
+
+		return Arrays.stream(values)
+				.map(v -> "'" + v.trim() + "'")
+				.collect(Collectors.joining(","));
+	}
+
+
+
 	public ServiceResponse customQueryForDocument(NewsletterDTO newsletterDto) {
 
 		ServiceResponse response = new ServiceResponse();
@@ -3969,7 +4691,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 	        // Call getEmpBioData to fetch biometric data
 	        BioMaxService bioMaxService = new BioMaxService();
-	        ServiceResponse bioDataResponse = bioMaxService.getEmpBioData(sDate, eDate);
+	        ServiceResponse bioDataResponse = bioMaxService.getEmpBioDataFromIshine(sDate, eDate, null, null);
 	        List<BioMaTO> bioDataList = bioDataResponse.getServiceResponse() != null
 	            ? (List<BioMaTO>) bioDataResponse.getServiceResponse()
 	            : new ArrayList<>();
@@ -4534,26 +5256,50 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			String customFilterConditions = createQueryForEmployeeDashboard(request.getQueryList()).toString();
 
 			// 2. Construct the full native SQL query
-			String q = "SELECT distinct cl.client_location, count(distinct e.emp_id) "
-					+ "FROM employee e "
-					+ "INNER JOIN employee_team_mapping etm on etm.emp_id = e.emp_id "
-					+ "INNER JOIN employee_timesheets et ON et.emp_id = etm.emp_id "
-					+ "INNER JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id "
-					+ "INNER JOIN activities a ON a.activity_id = etam.activity_id "
-					+ "INNER JOIN teams t on etm.team_id = t.team_id and etm.team_id = a.team_id "
-					+ "INNER JOIN projects p on p.project_id = t.project_id "
-					+ "INNER JOIN client_locations cl on cl.client_location_id = etam.client_location_id "
-					// Other necessary joins for filtering
-					+ "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id "
-					+ "LEFT JOIN department d on jr.dept_id = d.dept_id "
-					+ "LEFT JOIN employee m on m.emp_id = e.manager_id "
-					+ "LEFT JOIN clients c on p.client_id = c.client_id "
-					+ "WHERE e.employmentstatus != 'InActive' and etm.active != 0 "
-					+ "AND t.is_active = 'Y' and p.active = 'true' "
-					+ "AND e.emp_id not between 1 and 6 "
-					// 3. Inject the dynamic filter conditions here.
-					+ customFilterConditions
-					+ "GROUP BY cl.client_location";
+			// String q = "SELECT distinct cl.client_location, count(distinct e.emp_id) "
+			// 		+ "FROM employee e "
+			// 		+ "INNER JOIN employee_team_mapping etm on etm.emp_id = e.emp_id "
+			// 		+ "INNER JOIN employee_timesheets et ON et.emp_id = etm.emp_id "
+			// 		+ "INNER JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id "
+			// 		+ "INNER JOIN activities a ON a.activity_id = etam.activity_id "
+			// 		+ "INNER JOIN teams t on etm.team_id = t.team_id and etm.team_id = a.team_id "
+			// 		+ "INNER JOIN projects p on p.project_id = t.project_id "
+			// 		+ "INNER JOIN client_locations cl on cl.client_location_id = etam.client_location_id "
+			// 		// Other necessary joins for filtering
+			// 		+ "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id "
+			// 		+ "LEFT JOIN department d on jr.dept_id = d.dept_id "
+			// 		+ "LEFT JOIN employee m on m.emp_id = e.manager_id "
+			// 		+ "LEFT JOIN clients c on p.client_id = c.client_id "
+			// 		+ "WHERE e.employmentstatus != 'InActive' and etm.active != 0 "
+			// 		+ "AND t.is_active = 'Y' and p.active = 'true' "
+			// 		+ "AND e.emp_id not between 1 and 6 "
+			// 		// 3. Inject the dynamic filter conditions here.
+			// 		+ customFilterConditions
+			// 		+ "GROUP BY cl.client_location";
+
+			String q = 	"SELECT cl.client_location, COUNT(DISTINCT e.emp_id) "
+						+ "FROM employee e "
+						+ "INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id "
+						+ "INNER JOIN employee_timesheets_new et ON et.emp_id = e.emp_id  "
+						+ "INNER JOIN employee_timesheet_location_mapping etlm ON etlm.timesheet_id = et.timesheet_id "
+						+ "INNER JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.location_mapping_id = etlm.location_mapping_id "
+						+ "INNER JOIN employee_timesheet_activities_mapping_new etamn ON etamn.timesheet_id = et.timesheet_id "
+						+ "    AND etamn.location_mapping_id = etlm.location_mapping_id AND etamn.project_id = pts.project_id "
+						+ "INNER JOIN activities a ON a.activity_id = etamn.activity_id "
+						+ "INNER JOIN teams t ON etm.team_id = t.team_id AND a.team_id = t.team_id "
+						+ " INNER JOIN projects p ON p.project_id = t.project_id AND pts.project_id = p.project_id "
+  						+ " INNER JOIN client_locations cl ON cl.client_location_id = pts.client_location_id "
+  						+ " LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id "
+  						+ " LEFT JOIN department d ON jr.dept_id = d.dept_id "
+  						+ " LEFT JOIN employee m ON m.emp_id = e.manager_id "
+  						+ " LEFT JOIN clients c ON p.client_id = c.client_id "
+						+ " WHERE e.employmentstatus != 'InActive' "
+						+ "   AND etm.active != 0 "
+						+ "   AND t.is_active = 'Y' " 
+						+ "   AND p.active = 'true' "
+ 						+ "  AND e.emp_id NOT BETWEEN 1 AND 6 "
+						+ 	 customFilterConditions
+						+ " GROUP BY cl.client_location ";
 
 			System.out.println("Executing Work Location Query: " + q);
 			Query query = session.createSQLQuery(q);

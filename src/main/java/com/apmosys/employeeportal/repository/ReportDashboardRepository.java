@@ -1282,21 +1282,20 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         	    	
         	    	//Added by Dibya
         	    	
-        	    	@Query("SELECT DISTINCT cl.clientLocation, COUNT(DISTINCT e.empId) " +
-        	    		       "FROM Employee e " +
-        	    		       "JOIN EmployeeTeamMap etm ON etm.empId = e.empId " +
-        	    		       "JOIN Timesheet et ON et.empId = etm.empId " +
-        	    		       "JOIN TimesheetActivityMap etam ON etam.timesheetId = et.timesheetId " +
-        	    		       "JOIN Activity a ON a.activityId = etam.activityId " +
-        	    		       "JOIN Team t ON etm.teamId = t.teamId AND a.teamId = t.teamId " +
-        	    		       "JOIN ClientLocation cl ON cl.clientLocationId = etam.clientLocationId " +
-        	    		       "WHERE e.employmentstatus <> 'InActive' " +
-        	    		       "AND etm.active <> 0 " +
-        	    		       "AND t.isActive = 'Y' " +
-        	    		       "AND e.empId NOT BETWEEN 1 AND 6 " +
-        	    		       "GROUP BY cl.clientLocation")
-        	    		List<Object[]> getWorkLocation();
-
+//        	    	@Query("SELECT DISTINCT cl.clientLocation, COUNT(DISTINCT e.empId) " +
+//        	    		       "FROM Employee e " +
+//        	    		       "JOIN EmployeeTeamMap etm ON etm.empId = e.empId " +
+//        	    		       "JOIN Timesheet et ON et.empId = etm.empId " +
+//        	    		       "JOIN TimesheetActivityMap etam ON etam.timesheetId = et.timesheetId " +
+//        	    		       "JOIN Activity a ON a.activityId = etam.activityId " +
+//        	    		       "JOIN Team t ON etm.teamId = t.teamId AND a.teamId = t.teamId " +
+//        	    		       "JOIN ClientLocation cl ON cl.clientLocationId = etam.clientLocationId " +
+//        	    		       "WHERE e.employmentstatus <> 'InActive' " +
+//        	    		       "AND etm.active <> 0 " +
+//        	    		       "AND t.isActive = 'Y' " +
+//        	    		       "AND e.empId NOT BETWEEN 1 AND 6 " +
+//        	    		       "GROUP BY cl.clientLocation")
+        	    		    	    		
         	    	
 //        	    	@Query(nativeQuery = true, value = "SELECT \n"
 //        	    			+ "	CONCAT('A-', REPLACE(e.employeement_id, '-', '')) as EMP_ID,\n"
@@ -1344,54 +1343,54 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 //            	    	    @Param("work_location") String workLocation
 //            	    	    );
         	    		
-        	    		@Query(nativeQuery = true, value = "SELECT \n"
-            	    			+ "	CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', REPLACE(e.employeement_id, '-', ''))\n"
-            	    			+ "		 ELSE CONCAT('A-', REPLACE(e.employeement_id, '-', ''))\n"
-            	    			+ "	END as EMP_ID,\n"
-            	    			+ "    CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'Apmosys Product'\n"
-            	    			+ "		 WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
-            	    			+ "		 WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
-            	    			+ "         WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
-            	    			+ "	END AS EMPLOYMENT_TYPE,\n"
-            	    			+ "    e.name NAME,\n"
-            	    			+ "    e.experience EXPERIENCE, \n"
-            	    			+ "    d.name DEPARTMENT_NAME, \n"
-            	    			+ "    e.email EMAIL_ID, \n"
-            	    			+ "    m.name MANAGER_NAME, \n"
-            	    			+ "    e.billable BILLABLE, \n"
-            	    	  		+ "    e.billable_type BILLABLE_TYPE, \n"
-            	    			+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
-            	    			+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
-            	    			+ "    e.date_of_joining DATE_OF_JOINING,\n"
-            	    			+ "    e.mobile_no MOBILE_NO,\n"
-            	    			+ "	e.employmentstatus STATUS,\n"
-            	    			+ "	e.total_experience TOTAL_EXPERIENCE,\n"
-            	    			+ "    e.gender GENDER,\n"
-            	    			+ "    e.work_location WORK_LOCATION,\n"
-            	    			+ "    cl.client_location,\n"
-            	    			+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
-            	    			+ "    e.is_user_info_updated KYC\n"
-            	    			+ "from employee e\n"
-            	    			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id\n"
-            	    			+ "INNER JOIN department d on jr.dept_id = d.dept_id\n"
-            	    			+ "INNER JOIN employee_team_mapping etm on etm.emp_id = e.emp_id\n"
-            	    			+ "INNER JOIN employee_timesheets et ON et.emp_id = etm.emp_id\n"
-            	    			+ "INNER JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id \n"
-            	    			+ "INNER JOIN activities a ON a.activity_id = etam.activity_id\n"
-            	    			+ "INNER JOIN teams t on etm.team_id = t.team_id and etm.team_id = a.team_id\n"
-            	    			+ "INNER JOIN projects p on p.project_id = t.project_id \n"
-            	    			+ "INNER JOIN clients c on c.client_id = p.client_id\n"
-            	    			+ "INNER JOIN employee m on m.emp_id = e.manager_id\n"
-            	    			+ "INNER JOIN client_locations cl on cl.client_location_id = etam.client_location_id\n"
-            	    			+ "where e.employmentstatus != 'InActive' and etm.active != 0\n"
-            	    			+ "and t.is_active = 'Y' and p.active = 'true'\n"
-            	    			+ "and e.emp_id not between 1 and 6 \n"
-            	    			+ "and cl.client_location = :work_location\n"
-            	    			+ "group by e.emp_id\n"
-            	    			+ ";")
-            	    	List<Object[]> workLocationSummary(
-                	    	    @Param("work_location") String workLocation
-                	    	    );
+        	    		// @Query(nativeQuery = true, value = "SELECT \n"
+            	    	// 		+ "	CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', REPLACE(e.employeement_id, '-', ''))\n"
+            	    	// 		+ "		 ELSE CONCAT('A-', REPLACE(e.employeement_id, '-', ''))\n"
+            	    	// 		+ "	END as EMP_ID,\n"
+            	    	// 		+ "    CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'Apmosys Product'\n"
+            	    	// 		+ "		 WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
+            	    	// 		+ "		 WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
+            	    	// 		+ "         WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
+            	    	// 		+ "	END AS EMPLOYMENT_TYPE,\n"
+            	    	// 		+ "    e.name NAME,\n"
+            	    	// 		+ "    e.experience EXPERIENCE, \n"
+            	    	// 		+ "    d.name DEPARTMENT_NAME, \n"
+            	    	// 		+ "    e.email EMAIL_ID, \n"
+            	    	// 		+ "    m.name MANAGER_NAME, \n"
+            	    	// 		+ "    e.billable BILLABLE, \n"
+            	    	//   		+ "    e.billable_type BILLABLE_TYPE, \n"
+            	    	// 		+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
+            	    	// 		+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
+            	    	// 		+ "    e.date_of_joining DATE_OF_JOINING,\n"
+            	    	// 		+ "    e.mobile_no MOBILE_NO,\n"
+            	    	// 		+ "	e.employmentstatus STATUS,\n"
+            	    	// 		+ "	e.total_experience TOTAL_EXPERIENCE,\n"
+            	    	// 		+ "    e.gender GENDER,\n"
+            	    	// 		+ "    e.work_location WORK_LOCATION,\n"
+            	    	// 		+ "    cl.client_location,\n"
+            	    	// 		+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
+            	    	// 		+ "    e.is_user_info_updated KYC\n"
+            	    	// 		+ "from employee e\n"
+            	    	// 		+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id\n"
+            	    	// 		+ "INNER JOIN department d on jr.dept_id = d.dept_id\n"
+            	    	// 		+ "INNER JOIN employee_team_mapping etm on etm.emp_id = e.emp_id\n"
+            	    	// 		+ "INNER JOIN employee_timesheets et ON et.emp_id = etm.emp_id\n"
+            	    	// 		+ "INNER JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id \n"
+            	    	// 		+ "INNER JOIN activities a ON a.activity_id = etam.activity_id\n"
+            	    	// 		+ "INNER JOIN teams t on etm.team_id = t.team_id and etm.team_id = a.team_id\n"
+            	    	// 		+ "INNER JOIN projects p on p.project_id = t.project_id \n"
+            	    	// 		+ "INNER JOIN clients c on c.client_id = p.client_id\n"
+            	    	// 		+ "INNER JOIN employee m on m.emp_id = e.manager_id\n"
+            	    	// 		+ "INNER JOIN client_locations cl on cl.client_location_id = etam.client_location_id\n"
+            	    	// 		+ "where e.employmentstatus != 'InActive' and etm.active != 0\n"
+            	    	// 		+ "and t.is_active = 'Y' and p.active = 'true'\n"
+            	    	// 		+ "and e.emp_id not between 1 and 6 \n"
+            	    	// 		+ "and cl.client_location = :work_location\n"
+            	    	// 		+ "group by e.emp_id\n"
+            	    	// 		+ ";")
+            	    	// List<Object[]> workLocationSummary(
+                	    // 	    @Param("work_location") String workLocation
+                	    // 	    );
             	    	
             	    	
             	    	
@@ -1423,4 +1422,20 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
             	    		       "WHERE e.employmentstatus = 'Resigned' " +
             	    		       "ORDER BY e.name")
             	    	Page<EmployeeDTO> getAllResignedEmployees(Pageable pageable);
+
+		@Query("SELECT cl.clientLocation, COUNT(DISTINCT e.empId) " +
+        	        "FROM Employee e " +
+        	        "JOIN EmployeeTeamMap etm ON etm.empId = e.empId " +
+        	        "JOIN Team t ON t.teamId = etm.teamId " +
+        	        "JOIN Project p ON p.projectId = t.projectId " + 
+        	        "JOIN EmployeeTimesheetsNew et ON et.empId = e.empId " +
+        	        "JOIN ProjectTimesheetStatusNew pts ON pts.id.timesheetId = et.timesheetId " +
+        	        "AND pts.id.projectId = p.projectId " + 
+        	        "JOIN ClientLocation cl ON cl.clientLocationId = pts.clientLocationId " +
+        	        "WHERE e.employmentstatus <> 'InActive' " +
+        	        "AND etm.active <> 0 " +
+        	        "AND t.isActive = 'Y' " +
+        	        "AND e.empId NOT BETWEEN 1 AND 6 " +
+        	        "GROUP BY cl.clientLocation")
+        	    	List<Object[]> getWorkLocation();
 }

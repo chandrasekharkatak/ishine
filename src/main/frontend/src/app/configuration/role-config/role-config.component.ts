@@ -16,6 +16,8 @@ import { JobRoleService } from 'src/app/services/job-role.service';
 import { SubfeatureService } from 'src/app/services/subfeature.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ActivatedRoute, Router } from '@angular/router';
+
 
 @Component({
   standalone: false,
@@ -88,6 +90,7 @@ export class RoleConfigComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private locationStrategy: LocationStrategy,
     private utilityService: UtilityService,
+    private router : Router
 ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -580,6 +583,7 @@ export class RoleConfigComponent implements OnInit {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
+
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

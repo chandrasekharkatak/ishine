@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
@@ -58,14 +59,19 @@ import com.apmosys.employeeportal.dto.MilestoneExpireDto;
 import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;
 import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
+import com.apmosys.employeeportal.dto.PoPortalDTO;
+import com.apmosys.employeeportal.dto.PoPortalEmpIdDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
+import com.apmosys.employeeportal.dto.ProjectResourceByPoRowDto;
 import com.apmosys.employeeportal.dto.ProjectWiseMilestoneDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.model.ApiLog;
+import com.apmosys.employeeportal.model.Client;
+import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.JobRole;
@@ -74,7 +80,9 @@ import com.apmosys.employeeportal.model.PoDepartmentMapping;
 import com.apmosys.employeeportal.model.PoRequirementMapping;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
+import com.apmosys.employeeportal.model.RoleDetails;
 import com.apmosys.employeeportal.model.UserSession;
+import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
@@ -84,22 +92,38 @@ import com.apmosys.employeeportal.repository.PoDepartmentMappingRepository;
 import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.RoleDetailsRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.response.ResourceRequirementResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
+import com.apmosys.employeeportal.utility.ExceptionLogContext;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.PoportalApiException;
 import com.apmosys.employeeportal.utility.ServiceResponse;
-import com.apmosys.employeeportal.utility.ToLong_helper;
 
 @Service
 public class PoPortalAPIService {
-	
+
 	@Value("${poPortal.api.getFCLineItemDetails}")
 	private String getFCLineItemDetailsURL;
 	
 	@Value("${poPortal.api.updateMilestones}")
 	private String sendFileUrl;
+	
+	@Autowired
+	ClientsRepository clientRepository;
+	
+	@Autowired
+	RoleDetailsRepository roleDetailsRepository;
+	
+	@Value("${exceptiondataReconcile.maildev}")
+	private String exceptionMaildev;
+	
+	@Value("${exceptiondataReconcile.mailplsql}")
+	private String exceptionMailplsql;
+	
+	@Autowired
+	ClientService clientService;
 	
 	@Value("${poPortal.api.allProjects}")
 	private String allPoPortalProjects;
@@ -153,6 +177,18 @@ public class PoPortalAPIService {
     @Value("${poPortal.api.getSDEDOfProjects}")
     private String getStartDateEndDateOfProjectsFromPO;
     
+    @Value("${poPortal.api.getExtensionDocumentByName}")
+	private String getExtensionDocumentByName;
+    
+    @Value("${poPortal.api.validateDocName}")
+	private String validateDocName;
+
+	@Value("${poPortal.api.getAllExpiryMilestone}")
+	private String getAllExpiredMilestonesUrl;
+
+	@Value("${poPortal.api.getRmEmailUrl}")
+	private String getRmEmailUrl;
+    
     @Autowired
     private PoRequirementMappingRepository poRequirementMappingRepository;
 	
@@ -191,6 +227,8 @@ public class PoPortalAPIService {
 	@Autowired
 	MailService mailService;
 	
+
+	
 	@Autowired
 	ProjectRepository projectRepository;
 	
@@ -214,51 +252,73 @@ public class PoPortalAPIService {
 		String traceId = UUID.randomUUID().toString();
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		String exceptionDetailsForLog = null;
-		initialLog = apiLogUtility.startLog(traceId, "getFcLineItemDetails", "Ishine", getCurrentUserId(),httpRequest);
-
-		if (initialLog == null || initialLog.getId() == null) {
-			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
-			return serviceResponse;
-		}
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.set("X-Trace-Id", traceId);
-		headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
-		HttpEntity<?> entity = new HttpEntity<>(headers);
 		String url = getFCLineItemDetailsURL + poProjectId;
-		ResponseEntity<List<FCLineItemDTO>> apiResponse = null;
+
+		initialLog = apiLogUtility.startLog(traceId, "getFcLineItemDetails", "Ishine", getCurrentUserId(),
+				httpRequest);
+
 		try {
- 	        apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity,new ParameterizedTypeReference<List<FCLineItemDTO>>() {});
+			if (initialLog == null || initialLog.getId() == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
+				exceptionDetailsForLog = "api log start failed";
+				finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+				return serviceResponse;
+			}
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("X-Trace-Id", traceId);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+			HttpEntity<?> entity = new HttpEntity<>(headers);
+			ResponseEntity<List<FCLineItemDTO>> apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity,
+					new ParameterizedTypeReference<List<FCLineItemDTO>>() {
+					});
 			if (apiResponse.getStatusCode() == HttpStatus.OK) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			
+
 				serviceResponse.setServiceResponse(apiResponse.getBody());
 				finalHttpStatusCode = HttpStatus.OK.value();
 			} else {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("Error fetching Milestones for Project.");
+				finalHttpStatusCode = apiResponse.getStatusCodeValue();
 			}
 		} catch (Exception e) {
+			logger.error("getFcLineItemDetails failed poProjectId={}", poProjectId, e);
+			ExceptionLogContext.add(e);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			serviceResponse.setServiceResponse("Error fetching Milestones for Project.");
-			exceptionDetailsForLog = e.toString();
-			return serviceResponse;
+			exceptionDetailsForLog = String.valueOf(e);
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		} finally {
-			String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-			apiLogUtility.endLog(initialLog.getId(),url ,finalHttpStatusCode, finalLogDetails, httpRequest);
+			if (initialLog != null && initialLog.getId() != null) {
+				String finalLogDetails = exceptionDetailsForLog != null ? exceptionDetailsForLog
+						: ExceptionLogContext.get();
+				apiLogUtility.endLog(initialLog.getId(), url, finalHttpStatusCode, finalLogDetails, httpRequest);
+			}
 		}
 		return serviceResponse;
 	}
 	
 	
-	public ServiceResponse updateMilestoneById(FCProjectMilestoneDTO dto, MultipartFile file) {
+	public ServiceResponse updateMilestoneById(FCProjectMilestoneDTO dto, MultipartFile file ,  String projectName , String previousStatus) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		ApiLog initialLog = null;
 		String traceId = UUID.randomUUID().toString();
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		String exceptionDetailsForLog = null;
 		try {
+			initialLog = apiLogUtility.startLog(traceId, "updateMilestoneById", "Ishine", getCurrentUserId(),
+					httpRequest);
+			if (initialLog == null || initialLog.getId() == null) {
+				String msg = "Critical Error: Could not initialize logging for the update process.";
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse(msg);
+				finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+				exceptionDetailsForLog = msg;
+				return serviceResponse;
+			}
+
 			if (dto == null || dto.getId() == null) {
 				String msg = "Milestone DTO and ID cannot be null.";
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -269,20 +329,20 @@ public class PoPortalAPIService {
 			}
 
 			if (dto.getStatus() != null && dto.getStatus().equalsIgnoreCase("COMPLETED")) {
-			    if (file == null || file.isEmpty()) {
-			        String msg = "Milestone document file is required when marking milestone as COMPLETED.";
-			        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			        serviceResponse.setServiceResponse(msg);
-			        finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-			        exceptionDetailsForLog = msg;
-			        return serviceResponse;
-			    }
+				if (file == null || file.isEmpty()) {
+					String msg = "Milestone document file is required when marking milestone as COMPLETED.";
+					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					serviceResponse.setServiceResponse(msg);
+					finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+					exceptionDetailsForLog = msg;
+					return serviceResponse;
+				}
 			}
-			
+
 			if (file != null && !file.isEmpty()) {
-			    List<String> allowedContentTypes = Arrays.asList("image/jpeg", "image/png");
+			    List<String> allowedContentTypes = Arrays.asList("image/jpeg", "image/png","application/pdf");
 			    if (!allowedContentTypes.contains(file.getContentType())) {
-			        String msg = "Invalid file type. Only JPG, JPEG, or PNG files are allowed.";
+			        String msg = "Invalid file type. Only JPG, JPEG, PNG or PDF files are allowed.";
 			        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			        serviceResponse.setServiceResponse(msg);
 			        finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
@@ -298,18 +358,6 @@ public class PoPortalAPIService {
 				serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the update process.");
 				return serviceResponse;
 			}
-//			HttpHeaders headers = new HttpHeaders();
-//			headers.set("X-Trace-Id", traceId);
-//			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());	
-//			headers.setContentType(MediaType.valueOf(file.getContentType()));
-//			headers.setContentDisposition(ContentDisposition.builder("attachment").filename(file.getOriginalFilename()).build());
-//			HttpEntity<FCProjectMilestoneDTO> dtoEntity = new HttpEntity<>(dto, headers);
-//		    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-//		    body.add("milestoneData", dtoEntity);
-//		    ByteArrayResource fileResource = new ByteArrayResource(file.getBytes());
-//	        body.add("File",fileResource); 
-//	        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-//			ResponseEntity<String> apiResponse = restTemplate.exchange(sendFileUrl, HttpMethod.PUT, requestEntity, String.class);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("X-Trace-Id", traceId);
@@ -319,10 +367,6 @@ public class PoPortalAPIService {
 			HttpHeaders jsonHeaders = new HttpHeaders();
 			jsonHeaders.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<FCProjectMilestoneDTO> jsonPart = new HttpEntity<>(dto, jsonHeaders);
-
-			
-		
-
 			
 			MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 			body.add("dto", jsonPart);
@@ -338,6 +382,7 @@ public class PoPortalAPIService {
 			    body.add("file", fileResource);
 			}
 
+
 			HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
 			RestTemplate restTemplate = new RestTemplate();
@@ -351,6 +396,12 @@ public class PoPortalAPIService {
 				serviceResponse.setServiceResponse(apiResponse.getBody());
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				finalHttpStatusCode = HttpStatus.OK.value();
+
+				boolean emailSent =  sendEmailForMileStoneUpdate(dto , file , projectName , previousStatus);
+				serviceResponse.setServiceMessage(emailSent
+					? "Milestone updated and email notification sent."
+					: "Milestone updated, but email notification could not be sent.");
+
 			} else {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("Failed to update milestone via external service. Status: " + apiResponse.getStatusCode());
@@ -359,15 +410,18 @@ public class PoPortalAPIService {
 			}
 		} catch (Exception e) {
 			String errorMsg = "An unexpected error occurred during the milestone update process.";
+			logger.error("updateMilestoneById failed", e);
+			ExceptionLogContext.add(e);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			serviceResponse.setServiceResponse(errorMsg);
 			serviceResponse.setServiceError(e.getMessage());
-			exceptionDetailsForLog = e.toString();
-			e.printStackTrace();
+			exceptionDetailsForLog = String.valueOf(e);
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		} finally {
 			if (initialLog != null && initialLog.getId() != null) {
-				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-				apiLogUtility.endLog(initialLog.getId(),sendFileUrl ,finalHttpStatusCode, finalLogDetails, httpRequest);
+				String finalLogDetails = exceptionDetailsForLog != null ? exceptionDetailsForLog
+						: ExceptionLogContext.get();
+				apiLogUtility.endLog(initialLog.getId(), sendFileUrl, finalHttpStatusCode, finalLogDetails, httpRequest);
 			}
 		}
 		return serviceResponse;
@@ -525,11 +579,26 @@ public class PoPortalAPIService {
 			// Sync Deleted Dept with PoPortal
 			Department deptObj = departmentRepository.findByDeptId(departmentDTO.getDeptId());
 			if (deptObj != null) {
-				Employee empObj = employeeRepository.findByEmpId(deptObj.getHodId());
-				DepartmentDTO syncObject = new DepartmentDTO();
+//				Employee empObj = employeeRepository.findByEmpId(deptObj.getHodId());
+//				DepartmentDTO syncObject = new DepartmentDTO();
+//				syncObject.setDeptId(deptObj.getDeptId());
+//				syncObject.setDeptName(deptObj.getName());
+////				syncObject.setHodEmploymentId("A-".concat(empObj.getEmployeementId().toString()));
+//				syncObject.setHodId(deptObj.getHodId());
+//				syncObject.setBillable(deptObj.getIsBillable());
+//				syncObject.setTnm(deptObj.getIsTnm());
+				
+				
+				PoPortalEmpIdDTO syncObject = new PoPortalEmpIdDTO();
 				syncObject.setDeptId(deptObj.getDeptId());
 				syncObject.setDeptName(deptObj.getName());
-				syncObject.setHodEmploymentId("A-".concat(empObj.getEmployeementId().toString()));
+				syncObject.setHodId(deptObj.getHodId());
+				syncObject.setDeptAbbreviation(deptObj.getDeptAbbreviation());
+				syncObject.setIsBillable(deptObj.getIsBillable());
+				syncObject.setIsTnm(deptObj.getIsTnm());
+				
+				
+				
 				
 				final String syncUrl = syncDepartmentWithPoPortal;
 				HttpHeaders headers = new HttpHeaders();
@@ -658,11 +727,13 @@ public class PoPortalAPIService {
 			}
 			// Sync Deleted JobRole with PoPortal
 			JobRole jobRoleObject = jobRoleRepository.findByjobRoleId(jobRoleDTO.getJobRoleId());
+			Department dept = departmentRepository.findByDeptId(jobRoleObject.getDeptId());
 			if(jobRoleObject != null) {
 				JobRoleDTO syncObject = new JobRoleDTO();
 				syncObject.setRoleId(jobRoleObject.getJobRoleId());
 				syncObject.setRoleName(jobRoleObject.getName());
 				syncObject.setDeptId(jobRoleObject.getDeptId());
+				syncObject.setDeptName(dept.getName());
 				
 				final String syncUrl = syncJobRoleWithPoPortal;
 				HttpHeaders headers = new HttpHeaders();
@@ -850,7 +921,7 @@ public class PoPortalAPIService {
 	        }
 
 	        initialLog = apiLogUtility.startLog(traceId, "getMilestoneDocument", "Ishine", getCurrentUserId(), httpRequest);
-	
+			
 	        HttpHeaders headers = new HttpHeaders();
 	        headers.set("X-Trace-Id", traceId);
 	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
@@ -898,8 +969,6 @@ public class PoPortalAPIService {
 		@Async
 		@Scheduled(cron = "${milestoneExpiryNotifier.time}")
 		public void milestoneExpiryNotifierMail() {
-		    System.out.println("======= Project Expiry Job Started =======");
-	
 		    String traceId = UUID.randomUUID().toString();
 		    HttpHeaders headers = new HttpHeaders();
 		    headers.setContentType(MediaType.APPLICATION_JSON);
@@ -925,10 +994,7 @@ public class PoPortalAPIService {
 	
 		        List<MilestoneExpireDto> milestones = Arrays.asList(
 		            milestoneArray != null ? milestoneArray : new MilestoneExpireDto[0]
-		        );
-	
-		        System.out.println("Fetched " + milestones.size() + " expiring milestones.");
-		        
+		        );	        
 		        SimpleDateFormat sdf = new SimpleDateFormat("d/MM/yyyy");
 	
 		        for (MilestoneExpireDto milestone : milestones) {
@@ -954,7 +1020,6 @@ public class PoPortalAPIService {
 		            Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(projectId);
 
 		            if (!optionalEmails.isPresent()) {
-		                System.out.println("Skipping milestone due to missing RM/HOD data: " + milestoneName);
 		                continue;
 		            }
 
@@ -977,7 +1042,7 @@ public class PoPortalAPIService {
 		                    .collect(Collectors.toList());
 
 		            if (toRecipients.isEmpty()) {
-		                System.out.println("Skipping milestone due to all emails being empty: " + milestoneName);
+						logger.warn("Skipping milestone due to all emails being empty: " + milestoneName);
 		                continue;
 		            }
 
@@ -1000,10 +1065,10 @@ public class PoPortalAPIService {
 
 		            try {
 		                mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
-		                System.out.println("Mail sent for project: " + projectName);
+						logger.info("Mail sent for project: " + projectName);
 
 		            } catch (Exception e) {
-		                System.err.println("Error sending mail for project: " + projectName);
+						logger.warn("Error sending mail for project: " + projectName);
 		                e.printStackTrace();
 		                exceptionDetails = "Mail Error: " + e.getMessage();
 		            }
@@ -1026,21 +1091,8 @@ public class PoPortalAPIService {
 		            );
 		        }
 		    }
-	
-		    System.out.println("======= Project Expiry Job Completed =======");
+			logger.info("======= Project Milestone Expiry Job Completed =======");
 		}
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	public ServiceResponse getAllMilestoneToBeExpired(Long rmId) {
@@ -1050,21 +1102,8 @@ public class PoPortalAPIService {
 	    ApiLog initialLog = null;
 	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 	    String exceptionDetailsForLog = null;
-	    boolean isLogEnded = false;
 
 	    try {
-	       
-	    	System.out.println("rmMail"+" "+rmId);
-	        if (rmId == null || Objects.isNull(rmId)) {
-	            String message = "rmId is null or empty.";
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse(message);
-	            response.setServiceError(message);
-	            response.setServiceMessage(message);
-	            return response;
-	        }
-
-	      
 	        initialLog = apiLogUtility.startLog(
 	            traceId,
 	            "getAllMilestoneToBeExpired",
@@ -1073,10 +1112,18 @@ public class PoPortalAPIService {
 	            httpRequest
 	        );
 
-	        
+	        if (rmId == null || Objects.isNull(rmId)) {
+	            String message = "rmId is null or empty.";
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse(message);
+	            response.setServiceError(message);
+	            response.setServiceMessage(message);
+	            exceptionDetailsForLog = message;
+	            finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+	            return response;
+	        }
+
 	        List<Long> projectIds = projectRepository.findPoProjectIdsByProjectManagerIdWithJoin(rmId);
-	        
-	        System.out.println("projectIds="+projectIds);
 	        
 	        if (projectIds == null || projectIds.isEmpty()) {
 	            String message = "No project IDs found for RM: " + rmId;
@@ -1118,58 +1165,58 @@ public class PoPortalAPIService {
 	        }
 
 	    } catch (Exception e) {
-	        e.printStackTrace();
-	        exceptionDetailsForLog = e.toString();
+	        logger.error("getAllMilestoneToBeExpired failed rmId={}", rmId, e);
+	        ExceptionLogContext.add(e);
+	        exceptionDetailsForLog = String.valueOf(e);
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceResponse("Unexpected error occurred.");
 	        response.setServiceError(e.getMessage());
 	        response.setServiceMessage(e.getMessage());
+	        finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 	    } finally {
 	        try {
-	            if (initialLog != null && initialLog.getId() != null && !isLogEnded) {
-	                String logMsg = (exceptionDetailsForLog != null)
-	                        ? exceptionDetailsForLog
+	            if (initialLog != null && initialLog.getId() != null) {
+	                String logMsg = exceptionDetailsForLog != null ? exceptionDetailsForLog
 	                        : "Fetched " + milestones.size() + " milestones.";
-	                apiLogUtility.endLog(initialLog.getId(), getExpiryMilestoneUrl, finalHttpStatusCode, logMsg, httpRequest);
+	                apiLogUtility.endLog(initialLog.getId(), getExpiryMilestoneUrl, finalHttpStatusCode, logMsg,
+	                        httpRequest);
 	            }
 	        } catch (Exception logEx) {
-	            logEx.printStackTrace();
+	            logger.error("getAllMilestoneToBeExpired: endLog failed", logEx);
 	        }
 	    }
 
 	    return response;
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
 
 	@Transactional(rollbackFor = PoportalApiException.class)
-	public ServiceResponse updateMilestoneExtendedDate(MilestoneUpdatedLogDto dto) {
+	public ServiceResponse updateMilestoneExtendedDate(MilestoneUpdatedLogDto dto,MultipartFile extensionFile) {
 		ServiceResponse response = new ServiceResponse();
 		String traceId = UUID.randomUUID().toString();
 		ApiLog initialLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		String exceptionDetailsForLog = null;
-
 		try {
+			initialLog = apiLogUtility.startLog(traceId, "updateMilestoneExtendedDate", "poPortal", getCurrentUserId(),
+					httpRequest);
+
 			if (dto == null || dto.getMilestoneId() == null || dto.getExtendedDate() == null) {
 				String message = "Milestone ID or extended date is missing.";
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse(message);
 				response.setServiceError(message);
 				response.setServiceMessage(message);
+				exceptionDetailsForLog = message;
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 				return response;
 			}
-
-			initialLog = apiLogUtility.startLog(traceId, "updateMilestoneExtendedDate", "poPortal", getCurrentUserId(),
-					httpRequest);
-
+			
+			Optional<ProjectPoDetails> projectDetails = projectPoDetailsRepository.findByPoProjectId(dto.getProjectId());
+			if(projectDetails.isPresent()) {
+				dto.setPoNumber(projectDetails.get().getPoNo());
+			}
+			
 			MilestoneUpdatedLog log = MilestoneUpdatedLog.builder()
 					.milestoneId(dto.getMilestoneId())
 					.poId(dto.getPoId())
@@ -1184,6 +1231,7 @@ public class PoPortalAPIService {
 					.lineItemName(dto.getLineItemName())
 					.projectName(dto.getProjectName())
 					.poNumber(dto.getPoNumber())
+					.customReason(dto.getMilestoneExtensionReasonText()!=null?dto.getMilestoneExtensionReasonText():"")
 					.extendedDate(dto.getExtendedDate())
 					.updatedBy(dto.getUpdatedBy())
 					.updatedOn(new Date())
@@ -1192,24 +1240,35 @@ public class PoPortalAPIService {
 			if (dto.getMilestoneExtensionReasonId() != null) {
 				milestoneExtensionReasonRepository.findById(dto.getMilestoneExtensionReasonId())
 						.ifPresent(log::setMilestoneExtensionReason);
-			}
+				 }
 
 			milestoneUpdatedLogRepository.save(log);
 
 			MilestoneExpireDto updateRequest = new MilestoneExpireDto();
 			updateRequest.setId(dto.getMilestoneId());
-			updateRequest.setEndDate(dto.getExtendedDate());
+			updateRequest.setEndDate(dto.getExtendedDate()!=null?dto.getExtendedDate():dto.getMilestoneEndDate());
+			updateRequest.setStartDate(dto.getMilestoneStartDate());
 			updateRequest.setUpdatedBy(dto.getUpdatedBy());
+			updateRequest.setUpdatedByName(dto.getUpdatedByName());
+
 
 			String milestoneExtensionReason = (log.getMilestoneExtensionReason() != null)
 					? log.getMilestoneExtensionReason().getMilestoneExtensionReason()
 					: null;
 
-			updateRequest.setMilestoneExtensionReason(
-					"Other".equalsIgnoreCase(milestoneExtensionReason)
-							? dto.getMilestoneExtensionReasonText()
-							: milestoneExtensionReason);
+			updateRequest.setMilestoneExtensionReason(milestoneExtensionReason);
+			
+			if("Other".equalsIgnoreCase(milestoneExtensionReason))
+			{updateRequest.setOthersReason(dto.getMilestoneExtensionReasonText());}
+			
+			if (extensionFile != null && !extensionFile.isEmpty()) {
+		    	updateRequest.setDocumentContent(extensionFile.getBytes());
+		    	updateRequest.setDocumentName(extensionFile.getOriginalFilename());
+		    	updateRequest.setDocumentType(extensionFile.getContentType());
+				updateRequest.setUpdatedByName(dto.getUpdatedByName());
 
+
+		    }
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			headers.set("X-Trace-Id", traceId);
@@ -1225,41 +1284,47 @@ public class PoPortalAPIService {
 				throw new PoportalApiException("External API failed with status: " + externalResponse.getStatusCode());
 			}
 
-			boolean emailSent = sendMilestoneUpdateMail(dto, log);
+			boolean emailSent = sendMilestoneUpdateMail(dto, log , extensionFile) ;
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceMessage(emailSent
 					? "Milestone updated and email notification sent."
 					: "Milestone updated, but email notification could not be sent.");
+			finalHttpStatusCode = HttpStatus.OK.value();
 
 		} catch (PoportalApiException apiEx) {
-			exceptionDetailsForLog = apiEx.toString();
+			exceptionDetailsForLog = String.valueOf(apiEx);
+			ExceptionLogContext.add(apiEx);
 			logger.error("External API failed: {}", exceptionDetailsForLog);
 
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Failed to update milestone due to external API error.");
 			response.setServiceError(apiEx.getMessage());
 			response.setServiceMessage(apiEx.getMessage());
+			finalHttpStatusCode = HttpStatus.BAD_GATEWAY.value();
 
 			throw apiEx;
 
 		} catch (Exception e) {
-			exceptionDetailsForLog = e.toString();
-			logger.error("Error in updateMilestoneExtendedDate: {}", exceptionDetailsForLog);
+			exceptionDetailsForLog = String.valueOf(e);
+			ExceptionLogContext.add(e);
+			logger.error("Error in updateMilestoneExtendedDate", e);
 
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceMessage("Milestone updated, but with warnings: " + e.getMessage());
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Failed to extend milestone date: " + e.getMessage());
+			response.setServiceError(e.getMessage());
+			response.setServiceMessage(e.getMessage());
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		} finally {
 			try {
-				if (initialLog != null) {
-					String logMsg = (exceptionDetailsForLog != null)
-							? exceptionDetailsForLog
+				if (initialLog != null && initialLog.getId() != null) {
+					String logMsg = exceptionDetailsForLog != null ? exceptionDetailsForLog
 							: "Milestone extended successfully.";
 					apiLogUtility.endLog(initialLog.getId(), updateMilestoneEndDateExternalUrl,
 							finalHttpStatusCode, logMsg, httpRequest);
 				}
 			} catch (Exception logEx) {
-				logger.error("Failed to end log: {}", logEx.getMessage());
+				logger.error("updateMilestoneExtendedDate: endLog failed", logEx);
 			}
 		}
 
@@ -1271,28 +1336,55 @@ public class PoPortalAPIService {
 	
 	
 
-	private boolean sendMilestoneUpdateMail(MilestoneUpdatedLogDto dto, MilestoneUpdatedLog log) {
+	private boolean sendMilestoneUpdateMail(MilestoneUpdatedLogDto dto, MilestoneUpdatedLog log ,MultipartFile extensionFile) {
 		try {
-			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
-			if (optionalEmails.isEmpty()) {
-				logger.warn("No email addresses found for project: {}", dto.getProjectId());
-				return false;
-			}
+			
+			String traceId = UUID.randomUUID().toString();
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("X-Trace-Id", traceId);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
 
-			RmAndHodEmailDto emailDto = optionalEmails.get();
-			List<String> rmEmails = emailDto.getRmEmails() != null ? emailDto.getRmEmails() : Collections.emptyList();
-			List<String> hodEmails = emailDto.getHodEmails() != null ? emailDto.getHodEmails()
-					: Collections.emptyList();
+			HttpEntity<?> entity = new HttpEntity<>(headers);
+
+			String url = getRmEmailUrl + dto.getProjectId();
+
+			ResponseEntity<List<String>> apiResponse = restTemplate.exchange(
+        		url,
+        		HttpMethod.GET,
+        		entity,
+        		new ParameterizedTypeReference<List<String>>() {}
+			);
+
+			List<String> RmEmailsFromPO = apiResponse.getBody();
+			int finalHttpStatusCode = apiResponse.getStatusCodeValue();
+			
+			
+			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
+			List<String> rmEmails = Collections.emptyList();
+			List<String> hodEmails = Collections.emptyList();
+			List<String> missingRecipients = new ArrayList<>();
+			if (optionalEmails.isPresent()) {
+				RmAndHodEmailDto emailDto = optionalEmails.get();
+				rmEmails = emailDto.getRmEmails() != null ? emailDto.getRmEmails() : Collections.emptyList();
+				hodEmails = emailDto.getHodEmails() != null ? emailDto.getHodEmails() : Collections.emptyList();
+			} else {
+				missingRecipients.add("RM/HOD mapping not found for projectId=" + dto.getProjectId());
+			}
 
 		    List<String> directorEmails = projectRepository.findDirectorEmails();
 
-			List<String> toRecipients = Stream.concat(rmEmails.stream(), hodEmails.stream())
-					.filter(e -> e != null && !e.trim().isEmpty())
-					.distinct()
-					.collect(Collectors.toList());
+			List <String> accountsEmails = projectRepository.getAccountsTeamEmails();
+
+			List<String> toCandidates = new ArrayList<>();
+			addEmailsWithAudit(rmEmails, "RM", toCandidates, missingRecipients);
+			addEmailsWithAudit(hodEmails, "HOD", toCandidates, missingRecipients);
+			addEmailsWithAudit(accountsEmails, "Accounts", toCandidates, missingRecipients);
+			addEmailsWithAudit(RmEmailsFromPO, "PO RM", toCandidates, missingRecipients);
+			List<String> toRecipients = toCandidates.stream().distinct().collect(Collectors.toList());
 
 			if (toRecipients.isEmpty()) {
-				logger.warn("Skipping milestone email due to empty RM/HOD emails: {}", dto.getMilestoneName());
+				logger.warn("Skipping milestone extension mail for '{}' due to no valid recipients. Missing/invalid: {}",
+						dto.getMilestoneName(), missingRecipients);
 				return false;
 			}
 
@@ -1305,12 +1397,18 @@ public class PoPortalAPIService {
 			String extendedDate = formatter.format(dto.getExtendedDate());
 			String endDate = formatter.format(dto.getMilestoneEndDate());
 			String startDate = formatter.format(dto.getMilestoneStartDate());
+			String extensionReason = log.getMilestoneExtensionReason() != null
+					? log.getMilestoneExtensionReason().getMilestoneExtensionReason()
+					: null;
+			boolean isOtherReasonSelected = extensionReason != null
+					&& "Other".equalsIgnoreCase(extensionReason.trim());
+			String customReason = dto.getMilestoneExtensionReasonText();
 
 			String subject = "Project Milestone Extend Notification: " + dto.getProjectName();
 			String body = "<html><body>"
 					+ "<p>Dear Team,</p>"
 					+ "<p>The following project milestone end date has been extended from " + endDate + " to "
-					+ extendedDate + ".</p>"
+					+ extendedDate + " by "+ dto.getUpdatedByName()+ ".</p>"
 					+ "<table border='1' style='border-collapse: collapse;'>"
 					+ "<tr><th>PO Number</th><td>" + dto.getPoNumber() + "</td></tr>"
 					+ "<tr><th>Project Name</th><td>" + dto.getProjectName() + "</td></tr>"
@@ -1320,13 +1418,21 @@ public class PoPortalAPIService {
 					+ "<tr><th>Milestone End Date</th><td>" + endDate + "</td></tr>"
 					+ "<tr><th>Milestone Extended Date</th><td>" + extendedDate + "</td></tr>"
 					+ "<tr><th>Status</th><td>" + dto.getMilestoneStatus() + "</td></tr>"
+					+ (extensionReason != null && !extensionReason.trim().isEmpty()
+						? "<tr><th>Extension Reason</th><td>" + extensionReason + "</td></tr>"
+						: "")
+					+ (isOtherReasonSelected && customReason != null && !customReason.trim().isEmpty()
+						? "<tr><th>Custom Reason</th><td>" + customReason + "</td></tr>"
+						: "")
 					+ "</table>"
 					+ "<p>Please take the necessary actions.</p>"
 					+ "<p>Regards,<br>ApMoSys Technologies</p>"
 					+ "</body></html>";
 
-			mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
-			logger.info("Email sent successfully for milestone: {}", dto.getMilestoneName());
+			mailService.sendMailToMultipleRecipientsWithFile(toRecipients, ccRecipients, subject, body , extensionFile);
+			logger.info(
+					"Milestone extension mail sent for '{}'. To: {}, CC: {}, Missing/invalid recipients: {}",
+					dto.getMilestoneName(), toRecipients, ccRecipients, missingRecipients);
 			return true;
 
 		} catch (Exception e) {
@@ -1334,25 +1440,6 @@ public class PoPortalAPIService {
 			return false;
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 		
 	public ServiceResponse getAllMilestoneExtendReason() {
@@ -1509,7 +1596,7 @@ public class PoPortalAPIService {
 	
 
 	
-	public ServiceResponse getResourceCountByPoprojectId(List<String> projectNames) {
+	public ServiceResponse getResourceCountByPoprojectId(List<String> poNos) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("Resource Count");
@@ -1517,12 +1604,12 @@ public class PoPortalAPIService {
 	    apiLogInfo.setLogLevel("INFO");
 
 	    try {
-	        if (projectNames == null || projectNames.isEmpty()) {
-	            throw new IllegalArgumentException("poProjectId list is required");
+	        if (poNos == null || poNos.isEmpty()) {
+	            throw new IllegalArgumentException("poNo list is required");
 	        }
 
 	        Map<String, Integer> resourceCounts = new HashMap<>();
-	        List<Object[]> results = projectRepository.getResourceCountsByProjectType(projectNames);
+	        List<Object[]> results = projectRepository.getResourceCountsByProjectType(poNos);
 
 	        for (Object[] row : results) {
 	            if (row[0] == null) continue;
@@ -1576,58 +1663,87 @@ public class PoPortalAPIService {
 	}
 
 
-	public ServiceResponse getResourceCountListByPoprojectName(List<String> projectNames) {
+	/**
+	 * Returns resource rows for the given PO numbers ({@code po_no}). REST path remains
+	 * {@code /getResourceCountListByPoprojectName} for backward compatibility.
+	 */
+	public ServiceResponse getResourceListByPoNumbers(List<String> poNumbers) {
 		ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("Resource List");
-	    apiLogInfo.setApiUrl("/api/getResourceCountListByPoprojectName");
-	    apiLogInfo.setLogLevel("INFO");
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Resource List");
+		apiLogInfo.setApiUrl("/api/getResourceCountListByPoprojectName");
+		apiLogInfo.setLogLevel("INFO");
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String sourceSystem = httpRequest.getRequestURI() != null ? httpRequest.getRequestURI() : "";
 
-	    try {
-	        if (projectNames == null || projectNames.isEmpty()) {
-	            throw new IllegalArgumentException("poProjectName list is required");
-	        }
+		try {
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					"getResourceListByPoNumbers", "PoPortal", null, httpRequest);
 
-	        List<Map<String, Object>> resourceList = new ArrayList<Map<String, Object>>();
-	        List<Object[]> results = projectRepository.getResourceListByProjectType(projectNames);
-	        for (Object[] row : results) {
-	            Map<String, Object> map = new HashMap<String, Object>();
-	            map.put("empId", row[0]);
-	            map.put("employementId", row[1]);
-	            map.put("empName", row[2]);
-	            map.put("department", row[3]);
-	            map.put("role", row[4]);
-	            map.put("teamName", row[5]);
-	            map.put("projectManagerName", row[6]);
-	            map.put("projectName", row[7]); 
-	            map.put("poName", row[8]);
-	            resourceList.add(map);
-	        }	       
+			logger.info("getResourceListByPoNumbers: request poNumberCount={}",
+					poNumbers == null ? 0 : poNumbers.size());
 
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse(resourceList);
-	        response.setServiceMessage("Resource list fetched successfully");
-	        response.setStatusCode(200);
-	        apiLogInfo.setApiResponse("Success");
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			if (poNumbers == null || poNumbers.isEmpty()) {
+				throw new IllegalArgumentException("Po No list is required");
+			}
 
-	    } catch (IllegalArgumentException ex) {
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceResponse(ex.getMessage());
-	        apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			List<Object[]> rawRows = projectRepository.getResourceListByProjectType(poNumbers);
+			if (rawRows == null) {
+				rawRows = Collections.emptyList();
+			}
 
-	    } catch (Exception ex) {
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceResponse("Unexpected error: " + ex.getMessage());
-	        apiLogInfo.setApiResponse("Unexpected Error: " + ex.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			List<ProjectResourceByPoRowDto> resourceList = new ArrayList<>();
+			for (Object[] row : rawRows) {
+				ProjectResourceByPoRowDto rowDto = ProjectResourceByPoRowDto.fromNativeQueryRow(row);
+				if (rowDto != null) {
+					resourceList.add(rowDto);
+				}
+			}
 
-	    } finally {
-	        logService.logMyInfo(httpRequest, apiLogInfo);
-	    }
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(resourceList);
+			response.setServiceMessage("Resource list fetched successfully");
+			response.setStatusCode(200);
+			apiLogInfo.setApiResponse("Success");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			finalHttpStatusCode = HttpStatus.OK.value();
+			logger.info("getResourceListByPoNumbers: success rowCount={} poNumberCount={}", resourceList.size(),
+					poNumbers.size());
 
-	    return response;
+		} catch (IllegalArgumentException ex) {
+			logger.info("getResourceListByPoNumbers: validation failed poNumberCount={} message={}",
+					poNumbers == null ? 0 : poNumbers.size(), ex.getMessage());
+			exceptionDetailsForLog = ex.getMessage();
+			ExceptionLogContext.add(ex);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(ex.getMessage());
+			apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+
+		} catch (Exception ex) {
+			logger.error("getResourceListByPoNumbers: unexpected error poNumberCount={}",
+					poNumbers == null ? 0 : poNumbers.size(), ex);
+			exceptionDetailsForLog = String.valueOf(ex);
+			ExceptionLogContext.add(ex);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Unexpected error: " + ex.getMessage());
+			apiLogInfo.setApiResponse("Unexpected Error: " + ex.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,
+						exceptionDetailsForLog != null ? exceptionDetailsForLog : ExceptionLogContext.get(),
+						httpRequest);
+			}
+			logService.logMyInfo(httpRequest, apiLogInfo);
+		}
+
+		return response;
 	}
 
 
@@ -1639,23 +1755,15 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
         String traceId = UUID.randomUUID().toString();
         int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
         String exceptionDetailsForLog = null;
-        ResponseEntity<List<String>> apiResponse = null;
+        String url = getAllMailsByProjectId + projectId;
         try {
-        	
-        	String url;
-//        	initialLog = apiLogUtility.startLog(traceId, "getAllMailsByProjectId", "Ishine", getCurrentUserId(), httpRequest);
-//	        if (initialLog == null || initialLog.getId() == null) {
-//	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//	            serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the API call.");
-//	            return serviceResponse;
-//	        }
+	        initialLog = apiLogUtility.startLog(traceId, "getAllMailsByProjectId", "Ishine", getCurrentUserId(), httpRequest);
 
 	        HttpHeaders headers = new HttpHeaders();
 	        headers.set("X-Trace-Id", traceId);
 	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
 	        HttpEntity<?> entity = new HttpEntity<>(headers);
-	        url = getAllMailsByProjectId + projectId;
-			apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<List<String>>() {});
+			ResponseEntity<List<String>> apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<List<String>>() {});
             finalHttpStatusCode = apiResponse.getStatusCodeValue();
             
             if (apiResponse.getStatusCode() == HttpStatus.OK) {
@@ -1666,14 +1774,16 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
                 serviceResponse.setServiceResponse("Error fetching project details from PO Portal. Status: " + apiResponse.getStatusCode());
             }
         } catch (Exception e) {
+            logger.error("getAllMailsByProjectId failed projectId={}", projectId, e);
+            ExceptionLogContext.add(e);
             serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
             serviceResponse.setServiceResponse("Failed to communicate with PO Portal to fetch project details.");
-            exceptionDetailsForLog = e.toString();
-            e.printStackTrace();
+            exceptionDetailsForLog = String.valueOf(e);
+            finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
         } finally {
-        	if (initialLog != null) {
-				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-				apiLogUtility.endLog(initialLog.getId(),poPortalProjectByIdURL,finalHttpStatusCode, finalLogDetails, httpRequest);
+        	if (initialLog != null && initialLog.getId() != null) {
+				String finalLogDetails = exceptionDetailsForLog != null ? exceptionDetailsForLog : ExceptionLogContext.get();
+				apiLogUtility.endLog(initialLog.getId(), url, finalHttpStatusCode, finalLogDetails, httpRequest);
 			}
         }
         return serviceResponse;
@@ -1687,7 +1797,508 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	}
 	
 	
-	@Transactional(rollbackFor = PoportalApiException.class)
+//	@Transactional(rollbackFor = PoportalApiException.class)
+//	public ServiceResponse syncProjectPoFromPoPortal() {
+//
+//	    ServiceResponse response = new ServiceResponse();
+//	    String traceId = UUID.randomUUID().toString();
+//	    ApiLog initialLog = null;
+//	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+//	    StringBuilder exceptionDetailsForLog = new StringBuilder();
+//
+//	    List<ProjectPoMappingWithResourceDTO> externalApiResponse = new ArrayList<ProjectPoMappingWithResourceDTO>();
+//
+//	    try {
+//	        initialLog = apiLogUtility.startLog(
+//	                traceId,
+//	                "syncProjectPoFromPoPortal",
+//	                "Ishine",
+//	                6l,
+//	                httpRequest
+//	        );
+//	        
+//	        poRequirementMappingRepository.deleteAllRecords();
+//	        poDepartmentMappingRepository.deleteAllRecords();
+//	        projectPoDetailsRepository.deleteAllRecords();
+//
+//	        logger.info("Old PO data cleared before sync");
+//	        System.out.println("Old PO data cleared before sync \n");
+//
+//	        HttpHeaders headers = new HttpHeaders();
+//	        headers.set("Authorization",
+//	                poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+//	        headers.set("X-Trace-Id", traceId);
+//	        logger.info("header created \n");
+//	        HttpEntity<?> entity = new HttpEntity<>(headers);
+//	        logger.info("Initiating call to Shankh Portal \n");
+//	        ResponseEntity<List<ProjectPoMappingWithResourceDTO>> apiResponse =
+//	                restTemplate.exchange(
+//	                        getAllPoOfProjects,
+//	                        HttpMethod.GET,
+//	                        entity,
+//	                        new ParameterizedTypeReference<List<ProjectPoMappingWithResourceDTO>>() {}
+//	                );
+//
+//	        logger.info("Completed call with Shankh Portal \n");
+//	        finalHttpStatusCode = apiResponse.getStatusCodeValue();
+//	        externalApiResponse = apiResponse.getBody();
+//
+//	        logger.info("Recieved body with data \n"+externalApiResponse);
+//	        if (apiResponse.getStatusCode() != HttpStatus.OK || apiResponse.getBody() == null) {
+//		        System.out.println("PO Portal API failed or returned empty response");
+//	            throw new PoportalApiException("PO Portal API failed or returned empty response");
+//	        }
+//
+//	        for (ProjectPoMappingWithResourceDTO projectDto : apiResponse.getBody()) {
+//
+//	            
+//	            if (projectDto.getPoDetailsList() == null) {
+//	                exceptionDetailsForLog.append(
+//	                        "poDetailsList NULL | poProjectId=")
+//	                        .append(projectDto.getProjectId())
+//	                        .append(" || ");
+//
+//			        System.out.println("poDetailsList NULL | poProjectId= "+ projectDto.getProjectId());
+//			        logger.info("poDetailsList NULL | poProjectId= \n"+ projectDto.getProjectId());
+//	                continue;
+//	            }
+//
+//		        logger.info("Initiated query to project repo \n");
+//	            Project project = projectRepository
+//	                    .findByPoProjectId(projectDto.getProjectId());
+//
+//	            if (project == null) {
+//	                exceptionDetailsForLog.append(
+//	                        "Project not found | poProjectId=")
+//	                        .append(projectDto.getProjectId())
+//	                        .append(" || ");
+//	                logger.info("Project not found  | poProjectId= \n" + projectDto.getProjectId());
+//	                System.out.println("Project not found  | poProjectId= "+ projectDto.getProjectId());
+//	                continue;
+//	            }
+//	            
+//	            Client client = clientRepository.findByClientId(project.getClientId());            
+//	            Date minPoStartDate = null;
+//	            Date maxPoEndDate = null;
+//
+//	            for (PoDetailsForProjectPoMappingDTO poDto : projectDto.getPoDetailsList()) {
+//	            	
+//	            	
+//	            	
+//	            	if (poDto.getPoStartDate() != null) {
+//	                    if (minPoStartDate == null || poDto.getPoStartDate().before(minPoStartDate)) {
+//	                        minPoStartDate = poDto.getPoStartDate();
+//	                    }
+//	                }
+//
+//	                if (poDto.getPoEndDate() != null) {
+//	                    if (maxPoEndDate == null || poDto.getPoEndDate().after(maxPoEndDate)) {
+//	                        maxPoEndDate = poDto.getPoEndDate();
+//	                    }
+//	                }
+//	                try {
+//	                	logger.info("call to saveSinglePoTransactional \n");
+//	                    saveSinglePoTransactional(projectDto, poDto, project,client);
+//	                } catch (PoportalApiException ex) {
+//	                	ex.printStackTrace();
+//						logger.info("catch for saveSinglePoTransactional \n");
+//	                    exceptionDetailsForLog.append(
+//	                            "Rollback PO | poProjectId=")
+//	                            .append(projectDto.getProjectId())
+//	                            .append(", poId=")
+//	                            .append(poDto.getPoId())
+//	                            .append(", reason=")
+//	                            .append(ex.getMessage())
+//	                            .append(" || ");
+//	                }
+//	            }
+//	            if (minPoStartDate != null && maxPoEndDate != null) {
+//
+//	                Date projectStartDate = projectDto.getProjectStartDate();
+//	                Date projectEndDate = projectDto.getProjectEndDate();
+//
+//	                boolean mismatch = false;
+//
+//	                if (projectStartDate == null || !projectStartDate.equals(minPoStartDate)) {
+//	                    mismatch = true;
+//	                }
+//
+//	                if (projectEndDate == null || !projectEndDate.equals(maxPoEndDate)) {
+//	                    mismatch = true;
+//	                }
+//
+//	                if (mismatch) {
+//	                    exceptionDetailsForLog.append(
+//	                            "Project-PO date mismatch | poProjectId=")
+//	                            .append(projectDto.getProjectId())
+//	                            .append(", projectStartDate=")
+//	                            .append(projectStartDate)
+//	                            .append(", expectedStartDate=")
+//	                            .append(minPoStartDate)
+//	                            .append(", projectEndDate=")
+//	                            .append(projectEndDate)
+//	                            .append(", expectedEndDate=")
+//	                            .append(maxPoEndDate)
+//	                            .append(" || ");
+//
+//	                    logger.info("Project-PO date mismatch | poProjectId=" + projectDto.getProjectId());
+//	                }
+//	            }
+//	        }
+//
+//	        response.setServiceResponse(externalApiResponse);
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceMessage("PO sync completed with partial validations.");
+//
+//	    } catch (PoportalApiException ex) {
+//	        exceptionDetailsForLog.append(ex.getMessage());
+//			logger.info("catch for PoportalApiException \n");
+//	        ex.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	        response.setServiceMessage("PO sync failed due to external API error.");
+//	        response.setServiceError(ex.getMessage());
+//
+//	        throw ex; 
+//
+//	    } catch (Exception e) {
+//	        exceptionDetailsForLog.append(e.getMessage());
+//			logger.info("catch for Exception \n");
+//	        e.printStackTrace();
+//            response.setServiceResponse(externalApiResponse);      
+//            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceMessage("PO sync completed with warnings.");
+//	        return response;
+//	    } finally {
+//	        try {
+//	            if (initialLog != null) {
+//	                apiLogUtility.endLog(
+//	                        initialLog.getId(),
+//	                        getAllPoOfProjects,
+//	                        finalHttpStatusCode,
+//	                        exceptionDetailsForLog.toString(),
+//	                        httpRequest
+//	                );
+//	            }
+//	        } catch (Exception logEx) {
+//	        	logEx.printStackTrace();
+//			logger.info("catch for Exception logEx \n");
+//	            logger.error("Failed to end API log", logEx);
+//	        }
+//	        try {
+//	            if (exceptionDetailsForLog.length() > 0) {
+//
+//	                String mailBody =
+//	                        "<b>Trace ID:</b> " + traceId + "<br/><br/>"
+//	                      + "<b>API:</b> syncProjectPoFromPoPortal<br/><br/>"
+//	                      + "<b>Exception Details:</b><br/>"
+//	                      + "<pre>" + exceptionDetailsForLog.toString() + "</pre>";
+//
+//	                mailService.sendMail(
+//	                        "prarthana.lenka@apmosys.com",
+//	                        "PO Sync Issues | TraceId : " + traceId,
+//	                        mailBody
+//	                );
+//	            }
+//	        } catch (Exception mailEx) {
+//	          
+//	            mailEx.printStackTrace();
+//	            logger.error("Failed to send exception mail", mailEx);
+//	        }
+//	    }
+//
+//	    return response;
+//	}
+//
+//	
+//	
+//	@Transactional(rollbackFor = PoportalApiException.class)
+//	public void saveSinglePoTransactional(
+//	        ProjectPoMappingWithResourceDTO projectDto,
+//	        PoDetailsForProjectPoMappingDTO poDto,
+//	        Project project,Client client) {
+//
+//	   
+//	    if (poDto.getDepartmentList() == null) {
+//	        throw new PoportalApiException("Department list is NULL");
+//	    }
+//	    logger.info("department list is not null \n");
+//	    
+//	    if ("TNM".equalsIgnoreCase(projectDto.getProjectType())
+//	            && poDto.getResourceRequirementList() == null) {
+//	        throw new PoportalApiException("TNM project missing resources");
+//	    }
+//
+//	    logger.info("TNM project not missing resources \n");
+//	    
+//	    ClientLocation cl = clientService.resolveClientLocation(client.getClientId(), poDto.getClientLocation(),
+//				poDto.getClientState(),poDto.getClientAddressId());
+//	   
+//	    ProjectPoDetails poDetails = new ProjectPoDetails();
+//	    poDetails.setPoId(poDto.getPoId());
+//	    poDetails.setProjectId(project.getProjectId());
+//	    poDetails.setPoNo(poDto.getPoNo());
+//	    
+//        
+//        poDetails.setPoStartDate(convert(poDto.getPoStartDate()));
+//        poDetails.setPoEndDate(convert(poDto.getPoEndDate()));
+//	   
+//	   
+////	    poDetails.setClientLocationId(poDto.getClientAddressId());
+//	    poDetails.setMsg(poDto.getCommentForRmg());
+//	    poDetails.setApmosysRM(poDto.getApmosysRmEmpName());
+//	    poDetails.setApmosysRmEmail(poDto.getApmosysRmEmail());
+//	    poDetails.setClientRm(poDto.getClientRmName());
+//	    poDetails.setPrevPO(poDto.getPrevPo());
+//	    poDetails.setNextPO(poDto.getNextPO());
+//	    poDetails.setActive(poDto.isActive());
+//	    poDetails.setPoProjectId(projectDto.getProjectId());
+//	    poDetails.setClientLocationId(Long.valueOf(cl.getClientLocationId()));	
+//	    poDetails.setClientAddressId(poDto.getClientAddressId());
+////	    Long createdByEmpPk = validateAndGetCreatedByEmpId(
+////	            poDto.getCreatedByEmpId(),
+////	            poDto.getCreatedByEmpName()
+////	    );
+////	    poDetails.setCreatedBy(createdByEmpPk);
+//
+////	    poDetails.setCreatedBy(123l);
+//	  
+//
+//
+//	    
+//	    
+//	    
+//	    System.out.println("saved in po details");
+//	    logger.info("saved in po details");
+//	    projectPoDetailsRepository.save(poDetails);
+//
+//	   
+//	    for (DepartmentIdAndNameDto dept : poDto.getDepartmentList()) {
+//	        PoDepartmentMapping map = new PoDepartmentMapping();
+//	        map.setPoId(poDto.getPoId());
+//	        map.setDeptId(dept.getDeptId());
+//	        map.setActive(true);
+//	        map.setProjectId(project.getProjectId());
+//	        System.out.println("saved in poDepartmentMappingRepository");
+//	        logger.info("saved in poDepartmentMappingRepository");
+//	        poDepartmentMappingRepository.save(map);
+//	    }
+//
+//	   
+//	    if (poDto.getResourceRequirementList() != null) {
+//	        for (POResourceRequirementDTO req : poDto.getResourceRequirementList()) {
+//	            PoRequirementMapping prm = new PoRequirementMapping();
+//	            prm.setPoId(poDto.getPoId());
+//	            prm.setRole(req.getRole());
+//	            prm.setExperience(req.getExperience());
+//	            prm.setCount(req.getCount());
+//	            prm.setClientRoleId(req.getClientRoleId());
+//	            prm.setDepartment(req.getDepartment());            
+//	            prm.setActive(true);
+//	            prm.setLineItemEndDate(convert(req.getLineItemEndDate()));
+//	            prm.setLineItemStartDate(convert(req.getLineItemStartDate()));
+//	            prm.setYearWiseRateCartStartDate(convert(req.getYearWiseRateCartStartDate()));   
+//	            prm.setYearWiseRateCartEndDate(convert(req.getYearWiseRateCartEndDate()));            
+//	            
+//		        System.out.println("saved in poRequirementMappingRepository");
+//		        logger.info("saved in poRequirementMappingRepository");
+//	            poRequirementMappingRepository.save(prm);
+//	        }
+//	    }
+//	}
+	
+	
+//	@Transactional(rollbackFor = PoportalApiException.class)
+//	public ServiceResponse syncProjectPoFromPoPortal() {
+//
+//	    ServiceResponse response = new ServiceResponse();
+//	    String traceId = UUID.randomUUID().toString();
+//	    ApiLog initialLog = null;
+//	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+//	    StringBuilder exceptionDetailsForLog = new StringBuilder();
+//
+//	    List<ProjectPoMappingWithResourceDTO> externalApiResponse = new ArrayList<ProjectPoMappingWithResourceDTO>();
+//
+//	    try {
+//	        initialLog = apiLogUtility.startLog(
+//	                traceId,
+//	                "syncProjectPoFromPoPortal",
+//	                "Ishine",
+//	                null,
+//	                httpRequest
+//	        );
+//	        
+//	       
+//
+//	        
+//
+//	        HttpHeaders headers = new HttpHeaders();
+//	        headers.set("Authorization",
+//	                poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+//	        headers.set("X-Trace-Id", traceId);
+//	        logger.info("header created \n");
+//	        HttpEntity<?> entity = new HttpEntity<>(headers);
+//	        logger.info("Initiating call to Shankh Portal \n");
+//	        ResponseEntity<List<ProjectPoMappingWithResourceDTO>> apiResponse =
+//	                restTemplate.exchange(
+//	                        getAllPoOfProjects,
+//	                        HttpMethod.GET,
+//	                        entity,
+//	                        new ParameterizedTypeReference<List<ProjectPoMappingWithResourceDTO>>() {}
+//	                );
+//
+//	        logger.info("Completed call with Shankh Portal \n");
+//	        finalHttpStatusCode = apiResponse.getStatusCodeValue();
+//	        externalApiResponse = apiResponse.getBody();
+//
+//	        logger.info("Recieved body with data \n"+externalApiResponse);
+//	        if (apiResponse.getStatusCode() != HttpStatus.OK || apiResponse.getBody() == null) {
+//	        	 exceptionDetailsForLog.append("PO Portal API failed or returned empty response");
+//		        System.out.println("PO Portal API failed or returned empty response");
+//	            throw new PoportalApiException("PO Portal API failed or returned empty response");
+//	        }
+//	        
+//	        
+////	        clearOldData();
+//	        poRequirementMappingRepository.deleteAllRecords();
+//	        poDepartmentMappingRepository.deleteAllRecords();
+//	        projectPoDetailsRepository.deleteAllRecords();
+//	        
+//	        logger.info("Old PO data cleared before sync");
+//	        System.out.println("Old PO data cleared before sync \n");
+//
+//	        for (ProjectPoMappingWithResourceDTO projectDto : apiResponse.getBody()) {
+//	        	
+////	        	System.out.println("Processing Project | poProjectId={} | projectName={}"+
+////	        	        projectDto.getProjectId());
+//	        	
+//	        	 logger.info("Processing Project | poProjectId={} | projectName={}",
+//	        	            projectDto.getProjectId(),
+//	        	            projectDto.getProjectName());
+//
+//	            
+//	            if (projectDto.getPoDetailsList() == null) {
+//	                exceptionDetailsForLog.append(
+//	                        "poDetailsList NULL | poProjectId=")
+//	                        .append(projectDto.getProjectId())
+//	                        .append(" || ");
+//
+//			        System.out.println("poDetailsList NULL | poProjectId= "+ projectDto.getProjectId());
+//			        logger.info("poDetailsList NULL | poProjectId= \n"+ projectDto.getProjectId());
+//	                continue;
+//	            }
+//
+//		        logger.info("Initiated query to project repo \n");
+//	            Project project = projectRepository
+//	                    .findByPoProjectId(projectDto.getProjectId());
+//
+//	            if (project == null) {
+//	                exceptionDetailsForLog.append(
+//	                        "Project not found | poProjectId=")
+//	                        .append(projectDto.getProjectId())
+//	                        .append(" || ");
+//	                logger.info("Project not found  | poProjectId= \n" + projectDto.getProjectId());
+//	                System.out.println("Project not found  | poProjectId= "+ projectDto.getProjectId());
+//	                continue;
+//	            }
+//	            
+//	            Client client = clientRepository.findByClientId(project.getClientId());            
+//	            
+//	            boolean allPoSuccess = true;
+//	            for (PoDetailsForProjectPoMappingDTO poDto : projectDto.getPoDetailsList()) { 
+//	            	
+//	            	System.out.println("Processing PO | poProjectId={} | projectName={}"+
+//	            			poDto.getPoId());
+//		        	
+//	            	
+//	            	 logger.info("Processing PO | poProjectId={} | poId={} | poNo={}",
+//	            	            projectDto.getProjectId(),
+//	            	            poDto.getPoId());
+//	                try {
+//	                	logger.info("call to saveSinglePoTransactional \n");
+//	                    saveSinglePoTransactional(projectDto, poDto, project,client);
+//	                } catch (PoportalApiException ex) {
+//	                	ex.printStackTrace();
+//	                	allPoSuccess = false;
+//						logger.info("catch for saveSinglePoTransactional \n");
+//	                    exceptionDetailsForLog.append(
+//	                            "Rollback PO | poProjectId=")
+//	                            .append(projectDto.getProjectId())
+//	                            .append(", poId=")
+//	                            .append(poDto.getPoId())
+//	                            .append(", reason=")
+//	                            .append(ex.getMessage())
+//	                            .append(" || ");
+//	                }
+//	            }
+//	            if (allPoSuccess) {
+//	            	clientService.updateProjectAfterSuccessfulSync(project, projectDto);
+//	            }
+//	            
+//	        }
+//
+//	        response.setServiceResponse(externalApiResponse);
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceMessage("PO sync completed with partial validations.");
+//
+//	    } catch (PoportalApiException ex) {
+//	        exceptionDetailsForLog.append(ex.getMessage());
+//			logger.info("catch for PoportalApiException \n");
+//	        ex.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	        response.setServiceMessage("PO sync failed due to external API error.");
+//	        response.setServiceError(ex.getMessage());
+//
+//	        throw ex; 
+//
+//	    } catch (Exception e) {
+//	        exceptionDetailsForLog.append(e.getMessage());
+//			logger.info("catch for Exception \n");
+//	        e.printStackTrace();
+//            response.setServiceResponse(externalApiResponse);      
+//            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceMessage("PO sync completed with warnings.");
+//	        return response;
+//	    } finally {
+//	        try {
+//	            if (initialLog != null) {
+//	                apiLogUtility.endLog(
+//	                        initialLog.getId(),
+//	                        getAllPoOfProjects,
+//	                        finalHttpStatusCode,
+//	                        exceptionDetailsForLog.toString(),
+//	                        httpRequest
+//	                );
+//	            }
+//	        } catch (Exception logEx) {
+//	        	logEx.printStackTrace();
+//			logger.info("catch for Exception logEx \n");
+//	            logger.error("Failed to end API log", logEx);
+//	        }
+//	        try {
+//	            if (exceptionDetailsForLog.length() > 0) {
+//
+//	                String mailBody =
+//	                        "<b>Trace ID:</b> " + traceId + "<br/><br/>"
+//	                      + "<b>API:</b> syncProjectPoFromPoPortal<br/><br/>"
+//	                      + "<b>Exception Details:</b><br/>"
+//	                      + "<pre>" + exceptionDetailsForLog.toString() + "</pre>";
+//
+//	                mailService.sendMailWithCC(
+//	                		exceptionMaildev,exceptionMaildev,
+//	                        "PO Sync Issues | TraceId : " + traceId,
+//	                        mailBody
+//	                );
+//	            }
+//	        } catch (Exception mailEx) {
+//	          
+//	            mailEx.printStackTrace();
+//	            logger.error("Failed to send exception mail", mailEx);
+//	        }
+//	    }
+//
+//	    return response;
+//	}
+	
 	public ServiceResponse syncProjectPoFromPoPortal() {
 
 	    ServiceResponse response = new ServiceResponse();
@@ -1696,103 +2307,243 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 	    StringBuilder exceptionDetailsForLog = new StringBuilder();
 
-	    List<ProjectPoMappingWithResourceDTO> externalApiResponse = new ArrayList<ProjectPoMappingWithResourceDTO>();
+	    List<ProjectPoMappingWithResourceDTO> externalApiResponse =
+	            new ArrayList<ProjectPoMappingWithResourceDTO>();
+
+
+	    // =========================================================
+	    // COUNTERS
+	    // =========================================================
+	    int totalProjectsFromPayload = 0;
+	    int totalProjectsProcessed = 0;
+	    int totalProjectsFailed = 0;
+
+	    int totalPoReceived = 0;
+	    int totalPoProcessed = 0;
+	    int totalPoFailed = 0;
+
 
 	    try {
+
 	        initialLog = apiLogUtility.startLog(
 	                traceId,
 	                "syncProjectPoFromPoPortal",
 	                "Ishine",
-	                6l,
+	                null,
 	                httpRequest
 	        );
-	        
-	        poRequirementMappingRepository.deleteAllRecords();
-	        poDepartmentMappingRepository.deleteAllRecords();
-	        projectPoDetailsRepository.deleteAllRecords();
-
-	        logger.info("Old PO data cleared before sync");
-	        System.out.println("Old PO data cleared before sync \n");
 
 	        HttpHeaders headers = new HttpHeaders();
-	        headers.set("Authorization",
-	                poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+
+	        headers.set(
+	                "Authorization",
+	                poPortalAPIAuthenticationJWTUtility.generateAccessToken()
+	        );
+
 	        headers.set("X-Trace-Id", traceId);
+
 	        logger.info("header created \n");
+
 	        HttpEntity<?> entity = new HttpEntity<>(headers);
+
 	        logger.info("Initiating call to Shankh Portal \n");
+
 	        ResponseEntity<List<ProjectPoMappingWithResourceDTO>> apiResponse =
 	                restTemplate.exchange(
 	                        getAllPoOfProjects,
 	                        HttpMethod.GET,
 	                        entity,
-	                        new ParameterizedTypeReference<List<ProjectPoMappingWithResourceDTO>>() {}
+	                        new ParameterizedTypeReference<List<ProjectPoMappingWithResourceDTO>>() {
+	                        }
 	                );
 
 	        logger.info("Completed call with Shankh Portal \n");
+
 	        finalHttpStatusCode = apiResponse.getStatusCodeValue();
+
 	        externalApiResponse = apiResponse.getBody();
 
-	        logger.info("Recieved body with data \n"+externalApiResponse);
-	        if (apiResponse.getStatusCode() != HttpStatus.OK || apiResponse.getBody() == null) {
-		        System.out.println("PO Portal API failed or returned empty response");
-	            throw new PoportalApiException("PO Portal API failed or returned empty response");
+	        logger.info("Recieved body with data \n" + externalApiResponse);
+
+	        if (apiResponse.getStatusCode() != HttpStatus.OK
+	                || apiResponse.getBody() == null) {
+
+	            exceptionDetailsForLog.append(
+	                    "PO Portal API failed or returned empty response"
+	            );
+
+	            System.out.println(
+	                    "PO Portal API failed or returned empty response"
+	            );
+
+	            throw new PoportalApiException(
+	                    "PO Portal API failed or returned empty response"
+	            );
 	        }
 
-	        for (ProjectPoMappingWithResourceDTO projectDto : apiResponse.getBody()) {
 
-	            
-	            if (projectDto.getPoDetailsList() == null) {
+	        // =========================================================
+	        // TOTAL PROJECT COUNT
+	        // =========================================================
+	        totalProjectsFromPayload =
+	                externalApiResponse != null
+	                        ? externalApiResponse.size()
+	                        : 0;
+
+
+	        // =========================================================
+	        // TOTAL PO COUNT
+	        // =========================================================
+	        for (ProjectPoMappingWithResourceDTO dto : apiResponse.getBody()) {
+
+	            if (dto.getPoDetailsList() != null) {
+	                totalPoReceived += dto.getPoDetailsList().size();
+	            }
+	        }
+
+
+	        // =========================================================
+	        // CLEAR OLD DATA
+	        // =========================================================
+	        poRequirementMappingRepository.deleteAllRecords();
+	        poDepartmentMappingRepository.deleteAllRecords();
+	        projectPoDetailsRepository.deleteAllRecords();
+
+	        logger.info("Old PO data cleared before sync");
+
+	        System.out.println("Old PO data cleared before sync \n");
+
+
+	        // =========================================================
+	        // MAIN LOOP
+	        // =========================================================
+	        for (ProjectPoMappingWithResourceDTO projectDto
+	                : apiResponse.getBody()) {
+
+	            logger.info(
+	                    "Processing Project | poProjectId={} | projectName={}",
+	                    projectDto.getProjectId(),
+	                    projectDto.getProjectName()
+	            );
+
+
+	            // =====================================================
+	            // NULL PO DETAILS
+	            // =====================================================
+	            if (projectDto.getPoDetailsList() == null || projectDto.getPoDetailsList().isEmpty()){
+
+	                totalProjectsFailed++;
+
 	                exceptionDetailsForLog.append(
-	                        "poDetailsList NULL | poProjectId=")
+	                        "poDetailsList NULL | poProjectId="
+	                )
 	                        .append(projectDto.getProjectId())
 	                        .append(" || ");
 
-			        System.out.println("poDetailsList NULL | poProjectId= "+ projectDto.getProjectId());
-			        logger.info("poDetailsList NULL | poProjectId= \n"+ projectDto.getProjectId());
+	                System.out.println(
+	                        "poDetailsList NULL | poProjectId= "
+	                                + projectDto.getProjectId()
+	                );
+
+	                logger.info(
+	                        "poDetailsList NULL | poProjectId= \n"
+	                                + projectDto.getProjectId()
+	                );
+
 	                continue;
 	            }
 
-		        logger.info("Initiated query to project repo \n");
+
+	            logger.info("Initiated query to project repo \n");
+
 	            Project project = projectRepository
 	                    .findByPoProjectId(projectDto.getProjectId());
 
+
+	            // =====================================================
+	            // PROJECT NOT FOUND
+	            // =====================================================
 	            if (project == null) {
+
+	                totalProjectsFailed++;
+
 	                exceptionDetailsForLog.append(
-	                        "Project not found | poProjectId=")
+	                        "Project not found | poProjectId="
+	                )
 	                        .append(projectDto.getProjectId())
 	                        .append(" || ");
-	                logger.info("Project not found  | poProjectId= \n" + projectDto.getProjectId());
-	                System.out.println("Project not found  | poProjectId= "+ projectDto.getProjectId());
+
+	                logger.info(
+	                        "Project not found  | poProjectId= \n"
+	                                + projectDto.getProjectId()
+	                );
+
+	                System.out.println(
+	                        "Project not found  | poProjectId= "
+	                                + projectDto.getProjectId()
+	                );
+
 	                continue;
 	            }
-	            
-	            Date minPoStartDate = null;
-	            Date maxPoEndDate = null;
 
-	            for (PoDetailsForProjectPoMappingDTO poDto : projectDto.getPoDetailsList()) {
-	            	
-	            	
-	            	
-	            	if (poDto.getPoStartDate() != null) {
-	                    if (minPoStartDate == null || poDto.getPoStartDate().before(minPoStartDate)) {
-	                        minPoStartDate = poDto.getPoStartDate();
-	                    }
-	                }
 
-	                if (poDto.getPoEndDate() != null) {
-	                    if (maxPoEndDate == null || poDto.getPoEndDate().after(maxPoEndDate)) {
-	                        maxPoEndDate = poDto.getPoEndDate();
-	                    }
-	                }
+	            Client client =
+	                    clientRepository.findByClientId(project.getClientId());
+
+	            boolean allPoSuccess = true;
+
+
+	            // =====================================================
+	            // PO LOOP
+	            // =====================================================
+	            for (PoDetailsForProjectPoMappingDTO poDto
+	                    : projectDto.getPoDetailsList()) {
+
+	                System.out.println(
+	                        "Processing PO | poProjectId={} | projectName={}"
+	                                + poDto.getPoId()
+	                );
+
+	                logger.info(
+	                        "Processing PO | poProjectId={} | poId={} | poNo={}",
+	                        projectDto.getProjectId(),
+	                        poDto.getPoId()
+	                );
+
 	                try {
-	                	logger.info("call to saveSinglePoTransactional \n");
-	                    saveSinglePoTransactional(projectDto, poDto, project);
+
+	                    logger.info("call to saveSinglePoTransactional \n");
+
+	                    saveSinglePoTransactional(
+	                            projectDto,
+	                            poDto,
+	                            project,
+	                            client
+	                    );
+
+	                    // =============================================
+	                    // SUCCESS PO COUNT
+	                    // =============================================
+	                    totalPoProcessed++;
+
 	                } catch (PoportalApiException ex) {
-	                	ex.printStackTrace();
-						logger.info("catch for saveSinglePoTransactional \n");
+
+	                    ex.printStackTrace();
+
+	                    allPoSuccess = false;
+
+	                    // =============================================
+	                    // FAILED PO COUNT
+	                    // =============================================
+	                    totalPoFailed++;
+
+	                    logger.info(
+	                            "catch for saveSinglePoTransactional \n"
+	                    );
+
 	                    exceptionDetailsForLog.append(
-	                            "Rollback PO | poProjectId=")
+	                            "Rollback PO | poProjectId="
+	                    )
 	                            .append(projectDto.getProjectId())
 	                            .append(", poId=")
 	                            .append(poDto.getPoId())
@@ -1801,65 +2552,77 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                            .append(" || ");
 	                }
 	            }
-	            if (minPoStartDate != null && maxPoEndDate != null) {
 
-	                Date projectStartDate = projectDto.getProjectStartDate();
-	                Date projectEndDate = projectDto.getProjectEndDate();
 
-	                boolean mismatch = false;
+	            // =====================================================
+	            // PROJECT SUCCESS / FAILURE COUNT
+	            // =====================================================
+	            if (allPoSuccess) {
 
-	                if (projectStartDate == null || !projectStartDate.equals(minPoStartDate)) {
-	                    mismatch = true;
-	                }
+	                clientService.updateProjectAfterSuccessfulSync(
+	                        project,
+	                        projectDto
+	                );
 
-	                if (projectEndDate == null || !projectEndDate.equals(maxPoEndDate)) {
-	                    mismatch = true;
-	                }
+	                totalProjectsProcessed++;
 
-	                if (mismatch) {
-	                    exceptionDetailsForLog.append(
-	                            "Project-PO date mismatch | poProjectId=")
-	                            .append(projectDto.getProjectId())
-	                            .append(", projectStartDate=")
-	                            .append(projectStartDate)
-	                            .append(", expectedStartDate=")
-	                            .append(minPoStartDate)
-	                            .append(", projectEndDate=")
-	                            .append(projectEndDate)
-	                            .append(", expectedEndDate=")
-	                            .append(maxPoEndDate)
-	                            .append(" || ");
+	            } else {
 
-	                    logger.info("Project-PO date mismatch | poProjectId=" + projectDto.getProjectId());
-	                }
+	                totalProjectsFailed++;
 	            }
 	        }
 
+
 	        response.setServiceResponse(externalApiResponse);
+
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceMessage("PO sync completed with partial validations.");
+
+	        response.setServiceMessage(
+	                "PO sync completed with partial validations."
+	        );
 
 	    } catch (PoportalApiException ex) {
+
 	        exceptionDetailsForLog.append(ex.getMessage());
-			logger.info("catch for PoportalApiException \n");
+
+	        logger.info("catch for PoportalApiException \n");
+
 	        ex.printStackTrace();
+
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceMessage("PO sync failed due to external API error.");
+
+	        response.setServiceMessage(
+	                "PO sync failed due to external API error."
+	        );
+
 	        response.setServiceError(ex.getMessage());
 
-	        throw ex; 
+	        throw ex;
 
 	    } catch (Exception e) {
+
 	        exceptionDetailsForLog.append(e.getMessage());
-			logger.info("catch for Exception \n");
+
+	        logger.info("catch for Exception \n");
+
 	        e.printStackTrace();
-            response.setServiceResponse(externalApiResponse);      
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceMessage("PO sync completed with warnings.");
+
+	        response.setServiceResponse(externalApiResponse);
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+
+	        response.setServiceMessage(
+	                "PO sync completed with warnings."
+	        );
+
 	        return response;
+
 	    } finally {
+
 	        try {
+
 	            if (initialLog != null) {
+
 	                apiLogUtility.endLog(
 	                        initialLog.getId(),
 	                        getAllPoOfProjects,
@@ -1868,29 +2631,80 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                        httpRequest
 	                );
 	            }
+
 	        } catch (Exception logEx) {
-	        	logEx.printStackTrace();
-			logger.info("catch for Exception logEx \n");
+
+	            logEx.printStackTrace();
+
+	            logger.info("catch for Exception logEx \n");
+
 	            logger.error("Failed to end API log", logEx);
 	        }
+
+
+	        // =========================================================
+	        // MAIL
+	        // =========================================================
 	        try {
-	            if (exceptionDetailsForLog.length() > 0) {
 
-	                String mailBody =
-	                        "<b>Trace ID:</b> " + traceId + "<br/><br/>"
-	                      + "<b>API:</b> syncProjectPoFromPoPortal<br/><br/>"
-	                      + "<b>Exception Details:</b><br/>"
-	                      + "<pre>" + exceptionDetailsForLog.toString() + "</pre>";
+	            String formattedFailures =
+	                    exceptionDetailsForLog.toString()
+	                            .replace("||", "<br/><br/>");
 
-	                mailService.sendMail(
-	                        "prarthana.lenka@apmosys.com",
-	                        "PO Sync Issues | TraceId : " + traceId,
-	                        mailBody
-	                );
-	            }
+	            String mailBody =
+
+	                    "<b>Trace ID:</b> "
+	                            + traceId
+	                            + "<br/><br/>"
+
+	                            + "<b>API:</b> syncProjectPoFromPoPortal<br/><br/>"
+
+	                            + "<b>Summary:</b><br/>"
+
+	                            + "Total Projects From Payload: "
+	                            + totalProjectsFromPayload
+	                            + "<br/>"
+
+	                            + "Projects Processed Successfully: "
+	                            + totalProjectsProcessed
+	                            + "<br/>"
+
+	                            + "Projects Failed: "
+	                            + "<span style='color:red;'>"
+	                            + totalProjectsFailed
+	                            + "</span><br/><br/>"
+
+	                            + "Total PO Received: "
+	                            + totalPoReceived
+	                            + "<br/>"
+
+	                            + "PO Processed Successfully: "
+	                            + totalPoProcessed
+	                            + "<br/>"
+
+	                            + "PO Failed: "
+	                            + "<span style='color:red;'>"
+	                            + totalPoFailed
+	                            + "</span><br/><br/>"
+
+	                            + "<b>Failure Details:</b><br/><br/>"
+
+	                            + (formattedFailures.isEmpty()
+	                            ? "No Failures"
+	                            : formattedFailures);
+
+
+	            mailService.sendMailWithCC(
+	            		exceptionMailplsql,
+	                    exceptionMaildev,
+	                    "PO Sync Summary | TraceId : " + traceId,
+	                    mailBody
+	            );
+
 	        } catch (Exception mailEx) {
-	          
+
 	            mailEx.printStackTrace();
+
 	            logger.error("Failed to send exception mail", mailEx);
 	        }
 	    }
@@ -1904,32 +2718,66 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	public void saveSinglePoTransactional(
 	        ProjectPoMappingWithResourceDTO projectDto,
 	        PoDetailsForProjectPoMappingDTO poDto,
-	        Project project) {
+	        Project project,Client client) {
 
 	   
-	    if (poDto.getDepartmentList() == null) {
+		if (project == null || client == null) {
+			throw new PoportalApiException("Project or Client cannot be null");
+		}
+	    if (poDto.getDepartmentList() == null  || poDto.getDepartmentList().isEmpty()) {
 	        throw new PoportalApiException("Department list is NULL");
 	    }
-	    logger.info("department list is not null \n");
+	    logger.info("department list is not null ");
 	    
 	    if ("TNM".equalsIgnoreCase(projectDto.getProjectType())
-	            && poDto.getResourceRequirementList() == null) {
+	            && (poDto.getResourceRequirementList() == null || poDto.getResourceRequirementList().isEmpty())) {
 	        throw new PoportalApiException("TNM project missing resources");
 	    }
+	    
+	    if(poDto.getCreatedByEmpId()!= null) {
+	    boolean createdExists = employeeRepository
+                .existsByEmpIdAndEmployeeName(
+                        poDto.getCreatedByEmpId(),
+                        poDto.getCreatedByEmpName());
+	    
 
-	    logger.info("TNM project not missing resources \n");
+        if (!createdExists) {
+            throw new PoportalApiException(
+                    "Employee not found for createdBy | empId="
+                            + poDto.getCreatedByEmpId()
+                            + ", name=" + poDto.getCreatedByEmpName());
+        }
+	    }
+
+      
+	    if(poDto.getUpdatedByEmpId() != null) {
+        boolean updatedExists = employeeRepository
+                .existsByEmpIdAndEmployeeName(
+                        poDto.getUpdatedByEmpId(),
+                        poDto.getUpdatedByEmpName());
+
+        if (!updatedExists) {
+            throw new PoportalApiException(
+                    "Employee not found for updatedBy | empId="
+                            + poDto.getUpdatedByEmpId()
+                            + ", name=" + poDto.getUpdatedByEmpName());
+        }
+	    }
+	    
+	    
+
+	    logger.info("TNM project not missing resources ");
+	    ClientLocation cl = clientService.resolveClientLocation(client.getClientId(), poDto.getClientLocation(),
+				poDto.getClientState(),poDto.getClientAddressId());
 	   
 	    ProjectPoDetails poDetails = new ProjectPoDetails();
-	    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	    poDetails.setPoId(poDto.getPoId());
 	    poDetails.setProjectId(project.getProjectId());
 	    poDetails.setPoNo(poDto.getPoNo());
 	    
-        String formattedStartDate = dateFormat.format(poDto.getPoStartDate());
-        poDetails.setPoStartDate(formattedStartDate);
-      
-        String formattedEndDate = dateFormat.format(poDto.getPoEndDate());
-        poDetails.setPoEndDate(formattedEndDate);
+        
+        poDetails.setPoStartDate(convert(poDto.getPoStartDate()));
+        poDetails.setPoEndDate(convert(poDto.getPoEndDate()));
 	   
 	   
 //	    poDetails.setClientLocationId(poDto.getClientAddressId());
@@ -1939,57 +2787,131 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    poDetails.setClientRm(poDto.getClientRmName());
 	    poDetails.setPrevPO(poDto.getPrevPo());
 	    poDetails.setNextPO(poDto.getNextPO());
-	    poDetails.setActive(poDto.isActive());
+	    poDetails.setActive(true);
 	    poDetails.setPoProjectId(projectDto.getProjectId());
-	    
-	    
-	    
-	    Long createdByEmpPk = validateAndGetCreatedByEmpId(
-	            poDto.getCreatedByEmpId(),
-	            poDto.getCreatedByEmpName()
-	    );
-	    poDetails.setCreatedBy(createdByEmpPk);
-
-//	    poDetails.setCreatedBy(123l);
-	  
-
+	    poDetails.setClientLocationId(Long.valueOf(cl.getClientLocationId()));	
+	    poDetails.setClientAddressId(poDto.getClientAddressId());
 
 	    
+	    poDetails.setCreatedBy(poDto.getCreatedByEmpId());
+        poDetails.setUpdatedBy(poDto.getUpdatedByEmpId());
+        poDetails.setPoCreatedOn(convert(poDto.getCreatedOn()));
+        poDetails.setPoUpdatedOn(convert(poDto.getUpdatedOn()));
 	    
 	    
-	    System.out.println("saved in po details");
-	    logger.info("saved in po details");
 	    projectPoDetailsRepository.save(poDetails);
-
+		logger.info("PO details saved successfully, poId={}", poDto.getPoId());
 	   
+		List<PoDepartmentMapping> deptMappings = new ArrayList<>();
 	    for (DepartmentIdAndNameDto dept : poDto.getDepartmentList()) {
 	        PoDepartmentMapping map = new PoDepartmentMapping();
-	        map.setPoId(poDto.getPoId().intValue());
+	        map.setPoId(poDto.getPoId());
 	        map.setDeptId(dept.getDeptId());
 	        map.setActive(true);
-	        System.out.println("saved in poDepartmentMappingRepository");
+	        map.setProjectId(project.getProjectId());
+	        map.setCreatedBy(poDto.getCreatedByEmpId());
+	        // System.out.println("saved in poDepartmentMappingRepository");
 	        logger.info("saved in poDepartmentMappingRepository");
-	        poDepartmentMappingRepository.save(map);
+			deptMappings.add(map);
+	        // poDepartmentMappingRepository.save(map);
 	    }
+		poDepartmentMappingRepository.saveAll(deptMappings);
 
 	   
 	    if (poDto.getResourceRequirementList() != null) {
-	        for (POResourceRequirementDTO req : poDto.getResourceRequirementList()) {
-	            PoRequirementMapping prm = new PoRequirementMapping();
-	            prm.setPoId(poDto.getPoId());
-	            prm.setRole(req.getRole());
-	            prm.setExperience(req.getExperience());
-	            prm.setCount(req.getCount());
-	            prm.setClientRoleId(req.getClientRoleId());
-	            prm.setDepartment(req.getDepartment());            
-	            prm.setActive(true);
-		        System.out.println("saved in poRequirementMappingRepository");
-		        logger.info("saved in poRequirementMappingRepository");
-	            poRequirementMappingRepository.save(prm);
-	        }
-	    }
+			 List<PoRequirementMapping> requirementMappings = new ArrayList<>();
+            for (POResourceRequirementDTO req : poDto.getResourceRequirementList()) {
+            	
+            	if (req.getRole() == null
+                        || req.getDepartment() == null
+                        || req.getExperience() == null) {
+
+                    throw new PoportalApiException(
+                            "Role/Department/Experience is NULL in PO payload"
+                    );
+                }
+
+              
+                RoleDetails roleDetails = roleDetailsRepository
+                        .findByRoleAndDepartmentAndExperience(
+                                req.getRole(),
+                                req.getDepartment(),
+                                req.getExperience())
+                        .orElseGet(() -> {
+
+                            try {
+
+                                RoleDetails role = new RoleDetails();
+
+                                role.setRole(req.getRole());
+                                role.setDepartment(req.getDepartment());
+                                role.setExperience(req.getExperience());
+
+                                return roleDetailsRepository.saveAndFlush(role);
+
+                            } catch (DataIntegrityViolationException ex) {
+
+                                logger.warn(
+                                    "Duplicate RoleDetails detected after constraint hit. Fetching existing record."
+                                );
+
+                                return roleDetailsRepository
+                                        .findByRoleAndDepartmentAndExperience(
+                                                req.getRole(),
+                                                req.getDepartment(),
+                                                req.getExperience()
+                                        )
+                                        .orElseThrow(() ->
+                                                new PoportalApiException(
+                                                        "Failed fetching RoleDetails after duplicate constraint."
+                                                )
+                                        );
+                            }
+                        });
+
+                PoRequirementMapping prm = new PoRequirementMapping();
+
+                prm.setPoId(poDto.getPoId());
+                prm.setRoleId(roleDetails.getRoleId());
+                prm.setCount(req.getCount());
+                prm.setActive(true);
+
+                prm.setLineItemStartDate(convert(req.getLineItemStartDate()));
+                prm.setLineItemEndDate(convert(req.getLineItemEndDate()));
+                prm.setYearWiseRateCartStartDate(convert(req.getYearWiseRateCartStartDate()));
+                prm.setYearWiseRateCartEndDate(convert(req.getYearWiseRateCartEndDate()));
+
+                prm.setCreatedBy(poDto.getCreatedByEmpId());
+
+                // poRequirementMappingRepository.save(prm);
+				requirementMappings.add(prm);
+            }
+			poRequirementMappingRepository.saveAll(requirementMappings);
+        }
+		logger.info("PO sync completed for poId={}", poDto.getPoId());
 	}
 	
+	
+	@Transactional(rollbackFor = Exception.class)
+	public void clearOldData() {
+	    poRequirementMappingRepository.deleteAllRecords();
+	    poDepartmentMappingRepository.deleteAllRecords();
+	    projectPoDetailsRepository.deleteAllRecords();
+	}
+	
+	private LocalDateTime convert(Date date) {
+	    if (date == null) return null;
+
+	    if (date instanceof java.sql.Date) {
+	        return ((java.sql.Date) date)
+	                .toLocalDate()
+	                .atStartOfDay();
+	    }
+
+	    return date.toInstant()
+	            .atZone(ZoneId.systemDefault())
+	            .toLocalDateTime();
+	}
 	
 	private Long validateAndGetCreatedByEmpId(String createdByEmpId,
             String createdByEmpName) {
@@ -2021,186 +2943,670 @@ return empId;
 	
 	
 	
-	@Transactional(rollbackFor = PoportalApiException.class)
-	public ServiceResponse updateSDEDOfproject() {
-
-	    ServiceResponse response = new ServiceResponse();
-	    String traceId = UUID.randomUUID().toString();
+//	@Transactional(rollbackFor = PoportalApiException.class)
+//	public ServiceResponse updateSDEDOfproject() {
+//
+//	    ServiceResponse response = new ServiceResponse();
+//	    String traceId = UUID.randomUUID().toString();
+//	    ApiLog initialLog = null;
+//	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+//	    StringBuilder exceptionDetailsForLog = new StringBuilder();
+//
+//	    List<ProjectPoMappingWithResourceDTO> externalApiResponse = new ArrayList<ProjectPoMappingWithResourceDTO>();
+//
+//	    try {
+//	        initialLog = apiLogUtility.startLog(
+//	                traceId,
+//	                "syncStartDateEndDateOfProjectFromPo",
+//	                "Ishine",
+//	                6l,
+//	                httpRequest
+//	        );
+//	        
+//	        logger.info("log table set start");
+//	        
+//
+//	        HttpHeaders headers = new HttpHeaders();
+//	        headers.set("Authorization",
+//	                poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+//	        headers.set("X-Trace-Id", traceId);
+//
+//	        HttpEntity<?> entity = new HttpEntity<>(headers);
+//	        
+//	        logger.info("header set");
+//
+//	        ResponseEntity<List<ProjectPoMappingWithResourceDTO>> apiResponse =
+//	                restTemplate.exchange(
+//	                		getStartDateEndDateOfProjectsFromPO,
+//	                        HttpMethod.GET,
+//	                        entity,
+//	                        new ParameterizedTypeReference<List<ProjectPoMappingWithResourceDTO>>() {}
+//	                );
+//
+//	        finalHttpStatusCode = apiResponse.getStatusCodeValue();
+//	        externalApiResponse = apiResponse.getBody();
+//
+//	        if (apiResponse.getStatusCode() != HttpStatus.OK || apiResponse.getBody() == null) {
+//		        System.out.println("PO Portal API failed or returned empty response");
+//	            throw new PoportalApiException("PO Portal API failed or returned empty response");
+//	        }
+//	        
+//	    	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+//
+//	        for (ProjectPoMappingWithResourceDTO projectDto : apiResponse.getBody()) {
+//	        		            
+//	        	 try {
+//	                 Project project = projectRepository
+//	                         .findByPoProjectId(projectDto.getProjectId());
+//
+//	                 if (project == null) {
+//	                     exceptionDetailsForLog.append(
+//	                             "Project not found | poProjectId=")
+//	                             .append(projectDto.getProjectId())
+//	                             .append(" || ");
+//	                     continue;
+//	                 }
+//
+//	                 if (projectDto.getProjectStartDate() == null &&
+//	                		    projectDto.getProjectEndDate() == null) {
+//
+//	                		    exceptionDetailsForLog.append(
+//	                		            "Start & End date missing | poProjectId=")
+//	                		            .append(projectDto.getProjectId())
+//	                		            .append(" || ");
+//	                		    continue;
+//	                		}
+//
+//	                		if (projectDto.getProjectStartDate() == null) {
+//	                		    exceptionDetailsForLog.append(
+//	                		            "Start date missing | poProjectId=")
+//	                		            .append(projectDto.getProjectId())
+//	                		            .append(" || ");
+//	                		    continue;
+//	                		}
+//
+//	                		if (projectDto.getProjectEndDate() == null) {
+//	                		    exceptionDetailsForLog.append(
+//	                		            "End date missing | poProjectId=")
+//	                		            .append(projectDto.getProjectId())
+//	                		            .append(" || ");
+//	                		    continue;
+//	                		}
+//
+//
+//	                 project.setStartDate(
+//	                         dateFormat.format(projectDto.getProjectStartDate()));
+//	                 project.setEndDate(
+//	                         dateFormat.format(projectDto.getProjectEndDate()));
+//
+//	                 projectRepository.save(project);
+//	                 logger.info("saved in proj table");
+//
+//	             } catch (Exception ex) {
+//	                 exceptionDetailsForLog.append(
+//	                         "Update failed | poProjectId=")
+//	                         .append(projectDto.getProjectId())
+//	                         .append(", reason=")
+//	                         .append(ex.getMessage())
+//	                         .append(" || ");
+//	             }
+//	         }
+//
+//
+//	        response.setServiceResponse(externalApiResponse);
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceMessage("Project SD ED update completed  ");
+//
+//	    } catch (PoportalApiException ex) {
+//	        exceptionDetailsForLog.append(ex.getMessage());
+//
+//	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	        response.setServiceMessage("Project SD ED update failed due to external API error.");
+//	        response.setServiceError(ex.getMessage());
+//
+//	        throw ex; 
+//
+//	    } catch (Exception e) {
+//	        exceptionDetailsForLog.append(e.getMessage());
+//            response.setServiceResponse(externalApiResponse);      
+//            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceMessage("Project SD ED update completed with warnings.");
+//	        return response;
+//	    } finally {
+//	        try {
+//	            if (initialLog != null) {
+//	                apiLogUtility.endLog(
+//	                        initialLog.getId(),
+//	                        getStartDateEndDateOfProjectsFromPO,
+//	                        finalHttpStatusCode,
+//	                        exceptionDetailsForLog.toString(),
+//	                        httpRequest
+//	                );
+//	            }
+//	        } catch (Exception logEx) {
+//	            logger.error("Failed to end API log", logEx);
+//	        }
+//	        try {
+//	            if (exceptionDetailsForLog.length() > 0) {
+//
+//	                String mailBody =
+//	                        "<b>Trace ID:</b> " + traceId + "<br/><br/>"
+//	                      + "<b>API:</b> updateSDEDOfproject <br/><br/>"
+//	                      + "<b>Exception Details:</b><br/>"
+//	                      + "<pre>" + exceptionDetailsForLog.toString() + "</pre>";
+//
+//	                mailService.sendMail(
+//	                        "prarthana.lenka@apmosys.com",
+//	                        "Project Start Date  end Date Update Issues | TraceId : " + traceId,
+//	                        mailBody
+//	                );
+//	            }
+//	        } catch (Exception mailEx) {
+//	          
+//	            mailEx.printStackTrace();
+//	            logger.error("Failed to send exception mail", mailEx);
+//	        }
+//	    }
+//
+//	    return response;
+//	}
+	
+	public FCProjectMilestoneDTO getExtendedDocFromExternalApi(String uniquefile) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
 	    ApiLog initialLog = null;
+	    String traceId = UUID.randomUUID().toString();
 	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-	    StringBuilder exceptionDetailsForLog = new StringBuilder();
-
-	    List<ProjectPoMappingWithResourceDTO> externalApiResponse = new ArrayList<ProjectPoMappingWithResourceDTO>();
+	    String exceptionDetailsForLog = null;
 
 	    try {
-	        initialLog = apiLogUtility.startLog(
-	                traceId,
-	                "syncStartDateEndDateOfProjectFromPo",
-	                "Ishine",
-	                6l,
-	                httpRequest
-	        );
-	        
-	        logger.info("log table set start");
-	        
-
-	        HttpHeaders headers = new HttpHeaders();
-	        headers.set("Authorization",
-	                poPortalAPIAuthenticationJWTUtility.generateAccessToken());
-	        headers.set("X-Trace-Id", traceId);
-
-	        HttpEntity<?> entity = new HttpEntity<>(headers);
-	        
-	        logger.info("header set");
-
-	        ResponseEntity<List<ProjectPoMappingWithResourceDTO>> apiResponse =
-	                restTemplate.exchange(
-	                		getStartDateEndDateOfProjectsFromPO,
-	                        HttpMethod.GET,
-	                        entity,
-	                        new ParameterizedTypeReference<List<ProjectPoMappingWithResourceDTO>>() {}
-	                );
-
-	        finalHttpStatusCode = apiResponse.getStatusCodeValue();
-	        externalApiResponse = apiResponse.getBody();
-
-	        if (apiResponse.getStatusCode() != HttpStatus.OK || apiResponse.getBody() == null) {
-		        System.out.println("PO Portal API failed or returned empty response");
-	            throw new PoportalApiException("PO Portal API failed or returned empty response");
+	        if (uniquefile == null) {
+	            throw new IllegalArgumentException("Unique File cannot be null.");
 	        }
+
+	        initialLog = apiLogUtility.startLog(traceId, "getMilestoneDocument", "Ishine", getCurrentUserId(), httpRequest);
+	
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.set("X-Trace-Id", traceId);
+	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+	        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+	       
+	        String fullUrl = getExtensionDocumentByName + uniquefile; 
 	        
-	    	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	        RestTemplate restTemplate = new RestTemplate();
+	        ResponseEntity<FCProjectMilestoneDTO> apiResponse = restTemplate.exchange(
+	            fullUrl,
+	            HttpMethod.GET,
+	            requestEntity,
+	            FCProjectMilestoneDTO.class 
+	        );
 
-	        for (ProjectPoMappingWithResourceDTO projectDto : apiResponse.getBody()) {
-	        		            
-	        	 try {
-	                 Project project = projectRepository
-	                         .findByPoProjectId(projectDto.getProjectId());
-
-	                 if (project == null) {
-	                     exceptionDetailsForLog.append(
-	                             "Project not found | poProjectId=")
-	                             .append(projectDto.getProjectId())
-	                             .append(" || ");
-	                     continue;
-	                 }
-
-	                 if (projectDto.getProjectStartDate() == null &&
-	                		    projectDto.getProjectEndDate() == null) {
-
-	                		    exceptionDetailsForLog.append(
-	                		            "Start & End date missing | poProjectId=")
-	                		            .append(projectDto.getProjectId())
-	                		            .append(" || ");
-	                		    continue;
-	                		}
-
-	                		if (projectDto.getProjectStartDate() == null) {
-	                		    exceptionDetailsForLog.append(
-	                		            "Start date missing | poProjectId=")
-	                		            .append(projectDto.getProjectId())
-	                		            .append(" || ");
-	                		    continue;
-	                		}
-
-	                		if (projectDto.getProjectEndDate() == null) {
-	                		    exceptionDetailsForLog.append(
-	                		            "End date missing | poProjectId=")
-	                		            .append(projectDto.getProjectId())
-	                		            .append(" || ");
-	                		    continue;
-	                		}
-
-
-	                 project.setPoStartDate(
-	                         dateFormat.format(projectDto.getProjectStartDate()));
-	                 project.setPoEndDate(
-	                         dateFormat.format(projectDto.getProjectEndDate()));
-
-	                 projectRepository.save(project);
-	                 logger.info("saved in proj table");
-
-	             } catch (Exception ex) {
-	                 exceptionDetailsForLog.append(
-	                         "Update failed | poProjectId=")
-	                         .append(projectDto.getProjectId())
-	                         .append(", reason=")
-	                         .append(ex.getMessage())
-	                         .append(" || ");
-	             }
-	         }
-
-
-	        response.setServiceResponse(externalApiResponse);
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceMessage("Project SD ED update completed  ");
-
-	    } catch (PoportalApiException ex) {
-	        exceptionDetailsForLog.append(ex.getMessage());
-
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceMessage("Project SD ED update failed due to external API error.");
-	        response.setServiceError(ex.getMessage());
-
-	        throw ex; 
+	        if (apiResponse.getStatusCode() == HttpStatus.OK && apiResponse.getBody() != null) {
+	            finalHttpStatusCode = HttpStatus.OK.value();
+	            return apiResponse.getBody();
+	        } else {
+	            exceptionDetailsForLog = "External API returned non-OK status: " + apiResponse.getStatusCode();
+	            finalHttpStatusCode = apiResponse.getStatusCodeValue();
+	            throw new HttpClientErrorException(apiResponse.getStatusCode(), "Failed to retrieve document from external service.");
+	        }
 
 	    } catch (Exception e) {
-	        exceptionDetailsForLog.append(e.getMessage());
-            response.setServiceResponse(externalApiResponse);      
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceMessage("Project SD ED update completed with warnings.");
-	        return response;
+	        exceptionDetailsForLog = e.toString();
+	        e.printStackTrace();
+	        throw new RuntimeException("An unexpected error occurred.", e);
 	    } finally {
-	        try {
-	            if (initialLog != null) {
-	                apiLogUtility.endLog(
-	                        initialLog.getId(),
-	                        getStartDateEndDateOfProjectsFromPO,
-	                        finalHttpStatusCode,
-	                        exceptionDetailsForLog.toString(),
-	                        httpRequest
-	                );
-	            }
-	        } catch (Exception logEx) {
-	            logger.error("Failed to end API log", logEx);
-	        }
-	        try {
-	            if (exceptionDetailsForLog.length() > 0) {
-
-	                String mailBody =
-	                        "<b>Trace ID:</b> " + traceId + "<br/><br/>"
-	                      + "<b>API:</b> updateSDEDOfproject <br/><br/>"
-	                      + "<b>Exception Details:</b><br/>"
-	                      + "<pre>" + exceptionDetailsForLog.toString() + "</pre>";
-
-	                mailService.sendMail(
-	                        "prarthana.lenka@apmosys.com",
-	                        "Project Start Date  end Date Update Issues | TraceId : " + traceId,
-	                        mailBody
-	                );
-	            }
-	        } catch (Exception mailEx) {
-	          
-	            mailEx.printStackTrace();
-	            logger.error("Failed to send exception mail", mailEx);
+	        if (initialLog != null && initialLog.getId() != null) {
+	            apiLogUtility.endLog(initialLog.getId(),getDocumentUrl ,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
 	        }
 	    }
+	}
+	
+	public Boolean validateDocName(String uniquefile) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    ApiLog initialLog = null;
+	    String traceId = UUID.randomUUID().toString();
+	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+	    String exceptionDetailsForLog = null;
 
-	    return response;
+	    try {
+	        if (uniquefile == null) {
+	            throw new IllegalArgumentException("Unique File cannot be null.");
+	        }
+
+	        initialLog = apiLogUtility.startLog(traceId, "validateDocName", "Ishine", getCurrentUserId(), httpRequest);
+	
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.set("X-Trace-Id", traceId);
+	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+	        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+	       
+	        String fullUrl = validateDocName + uniquefile; 
+	        
+	        RestTemplate restTemplate = new RestTemplate();
+	        ResponseEntity<Boolean> apiResponse = restTemplate.exchange(
+	            fullUrl,
+	            HttpMethod.GET,
+	            requestEntity,
+	            Boolean.class 
+	        );
+	        
+	        if (apiResponse.getStatusCode() == HttpStatus.OK && apiResponse.getBody() != null) {
+
+	            Boolean isValid = apiResponse.getBody();
+	            finalHttpStatusCode = HttpStatus.OK.value();
+	            return isValid;
+
+	        } else {
+	            exceptionDetailsForLog = "External API returned non-OK status: " + apiResponse.getStatusCode();
+	            finalHttpStatusCode = apiResponse.getStatusCodeValue();
+	            throw new HttpClientErrorException(
+	                    apiResponse.getStatusCode(),
+	                    "External API call failed"
+	            );
+	        }
+
+	    } catch (Exception e) {
+	        exceptionDetailsForLog = e.toString();
+	        e.printStackTrace();
+	        throw new RuntimeException("An unexpected error occurred.", e);
+	    } finally {
+	        if (initialLog != null && initialLog.getId() != null) {
+	            apiLogUtility.endLog(initialLog.getId(),getDocumentUrl ,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+	        }
+	    }
+	}
+
+	@Async
+	@Scheduled(cron = "${milestoneExpiryNotifierAll.time}")
+	public void milestoneExpiredNotifierMail() {
+		logger.info("======= Project Milestone Expiry Job Started With updated API ======");
+
+		String traceId = UUID.randomUUID().toString();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set("X-Trace-Id", traceId);
+		headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+
+		HttpEntity<?> requestEntity = new HttpEntity<>(null, headers);
+
+		ApiLog initialLog = null;
+		int httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String exceptionDetails = null;
+
+		try {
+
+			initialLog = apiLogUtility.startLog(traceId, "/api/milestoneExpiredNotifierMail", "EmployeePortal", 0L,
+					null);
+
+			MilestoneExpireDto[] milestoneArray = restTemplate.exchange(
+					getAllExpiredMilestonesUrl,
+					HttpMethod.POST,
+					requestEntity,
+					MilestoneExpireDto[].class).getBody();
+
+			List<MilestoneExpireDto> milestones = Arrays.asList(
+					milestoneArray != null ? milestoneArray : new MilestoneExpireDto[0]);
+
+			System.out.println("Fetched " + milestones.size() + " expiring milestones.");
+
+			SimpleDateFormat sdf = new SimpleDateFormat("d/MM/yyyy");
+
+			for (MilestoneExpireDto milestone : milestones) {
+				String poNumber = milestone.getPoNo();
+				String projectName = milestone.getProjectName();
+				String milestoneName = milestone.getName();
+				String lineItemName = milestone.getLineItemName();
+				Long projectId = milestone.getProjectId();
+				Date milestoneStartDate = milestone.getStartDate();
+				Date milestoneEndDate = milestone.getEndDate();
+				String milestoneStatus = milestone.getStatus();
+
+				String formattedStartDate = sdf.format(milestoneStartDate);
+				String formattedEndDate = sdf.format(milestoneEndDate);
+
+				Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(projectId);
+
+				if (!optionalEmails.isPresent()) {
+					System.out.println("Skipping milestone due to missing RM/HOD data: " + milestoneName);
+					continue;
+				}
+
+				RmAndHodEmailDto emailDto = optionalEmails.get();
+				List<String> rmEmails = emailDto.getRmEmails();
+				List<String> hodEmails = emailDto.getHodEmails();
+				List<String> directorEmails = projectRepository.findDirectorEmails();
+
+				List<String> toRecipients = new ArrayList<>();
+				if (rmEmails != null) {
+					toRecipients.addAll(
+							rmEmails.stream().filter(e -> e != null && !e.isEmpty()).collect(Collectors.toList()));
+				}
+				if (hodEmails != null) {
+					toRecipients.addAll(
+							hodEmails.stream().filter(e -> e != null && !e.isEmpty()).collect(Collectors.toList()));
+				}
+
+				List<String> ccRecipients = directorEmails.stream()
+						.filter(e -> e != null && !e.trim().isEmpty())
+						.distinct()
+						.collect(Collectors.toList());
+
+				if (toRecipients.isEmpty()) {
+					logger.warn("Skipping milestone due to all emails being empty: " + milestoneName);
+					continue;
+				}
+
+				String subject = "Project Milestone Expiry Notification: " + projectName;
+				String body = "<html><body>"
+						+ "<p>Dear Team,</p>"
+						+ "<p>Action Required: The following project milestone has expired, but the status has not been updated.</p>"
+						+ "<table border='1' style='border-collapse: collapse;'>"
+						+ "<tr><th>PO Number</th><td>" + poNumber + "</td></tr>"
+						+ "<tr><th>Project Name</th><td>" + projectName + "</td></tr>"
+						+ "<tr><th>Milestone Name</th><td>" + milestoneName + "</td></tr>"
+						+ "<tr><th>Line Item</th><td>" + lineItemName + "</td></tr>"
+						+ "<tr><th>Milestone Start Date</th><td>" + formattedStartDate + "</td></tr>"
+						+ "<tr><th>Milestone End Date</th><td>" + formattedEndDate + "</td></tr>"
+						+ "<tr><th>Status</th><td>" + milestoneStatus + "</td></tr>"
+						+ "</table>"
+						+ "<p>Please take the necessary actions.</p>"
+						+ "<p>Regards,<br>ApMoSys Technologies</p>"
+						+ "</body></html>";
+
+				try {
+					mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
+					logger.info("Mail sent for project: " + projectName);
+
+				} catch (Exception e) {
+					logger.error("Error sending mail for project: " + projectName);
+					e.printStackTrace();
+					exceptionDetails = "Mail Error: " + e.getMessage();
+				}
+
+			}
+
+			httpStatusCode = HttpStatus.OK.value();
+		} catch (Exception e) {
+			System.err.println("Exception occurred in milestoneExpiryNotifierMail");
+			e.printStackTrace();
+			exceptionDetails = "Job Failed: " + e.toString();
+		} finally {
+			if (initialLog != null && initialLog.getId() != null) {
+				apiLogUtility.endLog(
+						initialLog.getId(),
+						getExpiryMilestoneUrl,
+						httpStatusCode,
+						exceptionDetails,
+						null);
+			}
+		}
+		logger.info("======= Project Expiry Job Completed =======");
+	}
+
+	private boolean sendEmailForMileStoneUpdate(FCProjectMilestoneDTO dto , MultipartFile file , String projectName , String previousStatus) {
+		try {
+
+			String traceId = UUID.randomUUID().toString();
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("X-Trace-Id", traceId);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+
+			HttpEntity<?> entity = new HttpEntity<>(headers);
+
+			String url = getRmEmailUrl + dto.getProjectId();
+
+			ResponseEntity<List<String>> apiResponse = restTemplate.exchange(
+        		url,
+        		HttpMethod.GET,
+        		entity,
+        		new ParameterizedTypeReference<List<String>>() {}
+			);
+
+			List<String> RmEmailsFormPO = apiResponse.getBody();
+			int finalHttpStatusCode = apiResponse.getStatusCodeValue();
+
+			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
+			List<String> rmEmails = Collections.emptyList();
+			List<String> hodEmails = Collections.emptyList();
+			List<String> missingRecipients = new ArrayList<>();
+			if (optionalEmails.isPresent()) {
+				RmAndHodEmailDto emailDto = optionalEmails.get();
+				rmEmails = emailDto.getRmEmails() != null ? emailDto.getRmEmails() : Collections.emptyList();
+				hodEmails = emailDto.getHodEmails() != null ? emailDto.getHodEmails() : Collections.emptyList();
+			} else {
+				missingRecipients.add("RM/HOD mapping not found for projectId=" + dto.getProjectId());
+			}
+
+		    List <String> accountsEmails = projectRepository.getAccountsTeamEmails();
+			
+			List<String> directorEmails = projectRepository.findDirectorEmails();
+
+
+			List<String> toCandidates = new ArrayList<>();
+			addEmailsWithAudit(rmEmails, "RM", toCandidates, missingRecipients);
+			addEmailsWithAudit(hodEmails, "HOD", toCandidates, missingRecipients);
+			addEmailsWithAudit(accountsEmails, "Accounts", toCandidates, missingRecipients);
+			addEmailsWithAudit(RmEmailsFormPO, "PO RM", toCandidates, missingRecipients);
+			List<String> toRecipients = toCandidates.stream().distinct().collect(Collectors.toList());
+
+			if (toRecipients.isEmpty()) {
+				logger.warn("Skipping milestone status mail for '{}' due to no valid recipients. Missing/invalid: {}",
+						dto.getName(), missingRecipients);
+				return false;
+			}
+
+			List<String> ccRecipients = directorEmails.stream()
+					.filter(e -> e != null && !e.trim().isEmpty())
+					.distinct()
+					.collect(Collectors.toList());
+
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+			//String extendedDate = formatter.format(dto.getExtendedDate());
+			String endDate = formatter.format(dto.getEndDate());
+			String startDate = formatter.format(dto.getStartDate());
+			Optional<ProjectPoDetails> projDetails =projectPoDetailsRepository.findByPoProjectId(dto.getPoProjectId());
+			String poNo="";
+			if(projDetails.isPresent()) {
+				 poNo=projDetails.get().getPoNo();
+			}
+
+			String subject = "Project Milestone Update Notification: " + projectName;
+			String body = "<html><body>"
+					+ "<p>Dear Team,</p>"
+					+ "<p>The following project milestone status has been Updated From <strong>"+ previousStatus + "</strong> to <strong>"  + dto.getStatus() +"</strong> by "+dto.getUpdatedByName()+".</p>"
+					+ "<table border='1' style='border-collapse: collapse;'>"
+					+ "<tr><th>PO Number</th><td>" + poNo + "</td></tr>"
+					+ "<tr><th>Project Name</th><td>" + projectName + "</td></tr>"
+					+ "<tr><th>Milestone Name</th><td>" + dto.getName() + "</td></tr>"
+					+ "<tr><th>Line Item</th><td>" + dto.getLineItemName() + "</td></tr>"
+					+ "<tr><th>Milestone Start Date</th><td>" + startDate + "</td></tr>"
+					+ "<tr><th>Milestone End Date</th><td>" + endDate + "</td></tr>"
+					+ "<tr><th>Previous Status</th><td>" + previousStatus + "</td></tr>"
+					+ "<tr><th>Status</th><td>" + dto.getStatus() + "</td></tr>"
+					+ (dto.getRemarks() != null && !dto.getRemarks().trim().isEmpty()
+						? "<tr><th>Remarks</th><td>" + dto.getRemarks() + "</td></tr>"
+						: "")
+					+ "</table>"
+					+ "<p>Regards,<br>ApMoSys Technologies</p>"
+					+ "</body></html>";
+
+			mailService.sendMailToMultipleRecipientsWithFile(toRecipients, ccRecipients, subject, body ,file);
+			logger.info("Milestone status mail sent for '{}'. To: {}, CC: {}, Missing/invalid recipients: {}",
+					dto.getName(), toRecipients, ccRecipients, missingRecipients);
+			return true;
+
+		} catch (Exception e) {
+			logger.error("Failed to send email for milestone {}: {}", dto.getName(), e.getMessage());
+			return false;
+		}
+	}
+
+	private void addEmailsWithAudit(List<String> sourceEmails, String sourceLabel, List<String> validRecipients,
+			List<String> missingRecipients) {
+		if (sourceEmails == null || sourceEmails.isEmpty()) {
+			missingRecipients.add(sourceLabel + ": no email found");
+			return;
+		}
+
+		int index = 0;
+		for (String email : sourceEmails) {
+			index++;
+			if (email == null || email.trim().isEmpty()) {
+				missingRecipients.add(sourceLabel + "[" + index + "]: missing/blank");
+				continue;
+			}
+			validRecipients.add(email.trim());
+		}
+	}
+	
+	
+	public ServiceResponse completeProjectReminder(Long poProjectId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		String exceptionDetailsForLog = null;
+		try {
+			if (poProjectId == null) {
+				String msg = "poProjectId DTO cannot be null.";
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				exceptionDetailsForLog = msg;
+				return serviceResponse;
+			}
+
+				Project  projDetails  =  projectRepository.findByPoProjectId(poProjectId);
+				Optional<ProjectPoDetails> projPoDetailsOpt = projectPoDetailsRepository.findByPoProjectId(poProjectId);
+
+				if (projPoDetailsOpt.isPresent()) {
+				    boolean emailSent = sendEmailForProjectComplete(projDetails, projPoDetailsOpt.get(), poProjectId);
+					
+				    serviceResponse.setServiceMessage(emailSent? "Email notification sent."
+							: "Email notification could not be sent.");
+					logger.info("Email Sent :"+ emailSent);
+				   
+				} else {
+					String msg = "ProjectPoDetails not found.";
+					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					exceptionDetailsForLog = msg;
+					return serviceResponse;
+				}				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				
+				
+		} catch (Exception e) {
+			String errorMsg = "An unexpected error occurred during the milestone update process.";
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse(errorMsg);
+			serviceResponse.setServiceError(e.getMessage());
+			exceptionDetailsForLog = e.toString();
+			e.printStackTrace();
+		} 
+		return serviceResponse;
 	}
 	
 	
 	
 	
+	private boolean sendEmailForProjectComplete(Project projDetails,ProjectPoDetails projPoDetails,Long poProjectId) {
+		try {
+
+			String traceId = UUID.randomUUID().toString();
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("X-Trace-Id", traceId);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+
+			HttpEntity<?> entity = new HttpEntity<>(headers);
+
+			String url = getRmEmailUrl + poProjectId;
+
+			ResponseEntity<List<String>> apiResponse = restTemplate.exchange(
+        		url,
+        		HttpMethod.GET,
+        		entity,
+        		new ParameterizedTypeReference<List<String>>() {}
+			);
+
+			List<String> RmEmailsFormPO = apiResponse.getBody();
+			int finalHttpStatusCode = apiResponse.getStatusCodeValue();
 
 
+			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(poProjectId);
+			if (optionalEmails.isEmpty()) {
+				logger.warn("No email addresses found for project: {}", poProjectId);
+				return false;
+			}
 
+			RmAndHodEmailDto emailDto = optionalEmails.get();
+			List<String> rmEmails = emailDto.getRmEmails() != null ? emailDto.getRmEmails() : Collections.emptyList();
+			List<String> hodEmails = emailDto.getHodEmails() != null ? emailDto.getHodEmails()
+					: Collections.emptyList();
+
+		    List <String> accountsEmails = projectRepository.getAccountsTeamEmails();
+			
+			List<String> directorEmails = projectRepository.findDirectorEmails();
+
+			
+			List<String> toRecipients = Stream.concat(
+			        Stream.concat(
+			            Stream.concat(rmEmails.stream(), hodEmails.stream()),
+			            accountsEmails.stream()
+			        ),
+			        RmEmailsFormPO.stream()
+			)
+			.filter(e -> e != null && !e.trim().isEmpty())
+			.distinct()
+			.collect(Collectors.toList());
+			if (toRecipients.isEmpty()) {
+				logger.warn("Skipping project email due to empty RM/HOD emails: {}", projDetails.getProjectName());
+				return false;
+			}
+
+			List<String> ccRecipients = directorEmails.stream()
+					.filter(e -> e != null && !e.trim().isEmpty())
+					.distinct()
+					.collect(Collectors.toList());
+
+			
+			SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+
+			String endDate = projDetails.getEndDate() != null 
+			        ? projDetails.getEndDate()
+			        : "";
+
+			String startDate = projDetails.getStartDate() != null 
+			        ? projDetails.getStartDate()
+			        : "";
+
+			String subject = "Project Milestone Update Notification: " + projDetails.getProjectName();
+			String body = "<html><body>"
+			        + "<p>Dear Team,</p>"
+			        + "<p>The following project's all milestone has been <b>completed</b>. Kindly review and mark the project as <b>completed</b>.</p>"
+			        + "<br/>"
+			        + "<table border='1' style='border-collapse: collapse;'>"
+			        + "<tr><th>PO Number</th><td>" + projPoDetails.getPoNo() + "</td></tr>"
+			        + "<tr><th>Project Name</th><td>" + projDetails.getProjectName() + "</td></tr>"
+			        + "<tr><th>Project Status</th><td>" + projDetails.getStatus() + "</td></tr>"
+			        + "<tr><th>State</th><td>" + projDetails.getState() + "</td></tr>"
+			        + "<tr><th>Project Start Date</th><td>" + startDate + "</td></tr>"
+			        + "<tr><th>Project End Date</th><td>" + endDate + "</td></tr>"
+			        + "<tr><th>Project Type</th><td>" + projDetails.getPoProjectType() + "</td></tr>"
+			        + "<tr><th>ApMoSys RM</th><td>" + projPoDetails.getApmosysRM() + "</td></tr>"
+			        + "</table>"
+			        + "<br/>"
+			        + "<p>Please take the necessary action.</p>"
+			        + "<br/>"
+			        + "<p>Regards,<br>ApMoSys Technologies</p>"
+			        + "</body></html>";
+
+			mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body) ;
+			logger.info("Email sent successfully for project: {}", projDetails.getProjectName());
+			return true;
+
+		} catch (Exception e) {
+			logger.error("Failed to send email for project {}: {}", projDetails.getProjectName(), e.getMessage());
+			return false;
+		}
+	}
 
 	
-        	  
-        	
-        	
- 
+
 
 
 }

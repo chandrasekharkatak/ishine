@@ -144,6 +144,12 @@ public class PerformanceController {
 	    ServiceResponse response = performanceService.submitEmployeePerformanceHR(employeePerformanceDTO);
 	    return response;
 	}
+
+	@RequestMapping(value = "/submitRemarksByHOD", method = RequestMethod.POST)
+	public ServiceResponse submitRemarksByHOD(@RequestBody PerformanceDTO employeePerformanceDTO) {
+	    ServiceResponse response = performanceService.submitRemarksByHOD(employeePerformanceDTO);
+	    return response;
+	}
 	
 	@RequestMapping(value = "/updateEmployeePerformanceHOD",  method = RequestMethod.POST)
 	public ServiceResponse updateEmployeePerformanceHOD(@RequestBody PerformanceDTO employeePerformanceDTO) {
@@ -200,6 +206,11 @@ public class PerformanceController {
 	    ServiceResponse response = performanceService.currentStatusForPerformanceTableView();
 	    return response;
 	}
+
+	@RequestMapping(value = "/getApprovalDetails", method = RequestMethod.GET)
+	public ServiceResponse getApprovalDetails(@RequestParam Long empId, @RequestParam Long quarterId) {
+	    return performanceService.getApprovalDetails(empId, quarterId);
+	}
 	
 	@RequestMapping(value = "/getAllEmployeePerformanceForQuarter", method = RequestMethod.GET)
 	public ServiceResponse getAllEmployeePerformanceForQuarter(
@@ -236,5 +247,11 @@ public class PerformanceController {
 	public ServiceResponse updateEmployeePerformanceHr(@RequestBody PerformanceDTO employeePerformanceDTO) {
 	    ServiceResponse response = performanceService.updateEmployeePerformanceHr(employeePerformanceDTO);
 	    return response;
+	}
+
+	@RequestMapping(value = "/bulkSubmitEmployeePerformanceHR", method = RequestMethod.POST)
+	public ServiceResponse bulkSubmitEmployeePerformanceHR(@RequestBody PerformanceDTO employeePerformanceDTO) {
+		ServiceResponse response = performanceService.bulkSubmitEmployeePerformanceHR(employeePerformanceDTO);
+		return response;
 	}
 }

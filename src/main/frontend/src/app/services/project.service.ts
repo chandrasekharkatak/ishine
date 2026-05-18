@@ -1,10 +1,14 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from 'src/environments/environment';
 import { MilestoneUpdatedLog } from '../models/MilestoneUpdatedLog';
 import { Project } from '../models/project';
+import { RmgTeamMember } from '../models/rmgTeamMember';
+import { PoDetails } from '../models/poDetails';
+import { RmgProject } from '../models/rmgProject';
+import { EmployeeOtherActiveProject } from '../models/employeeOtherActiveProject';
 
 
 @Injectable({
@@ -118,14 +122,10 @@ getEmployeeTimesheetsByProject(teamObj: any){
 }
 
 
-updateMilestoneExtendedDate(MilestoneUpdatedLog: MilestoneUpdatedLog): Observable<any> {
-  return this.http.put(`${this.baseUrl}` + `api/updateMilestoneExtendedDate`, MilestoneUpdatedLog);
-
+updateMilestoneExtendedDate(formData: FormData): Observable<any> {
+  return this.http.post(`${this.baseUrl}api/updateMilestoneExtendedDate`, formData);
 }
 
-getClientVsDepartment(payload){
-  return this.http.post(`${this.baseUrl}` + `api/getProjectStructure`, payload)
-}
    getClientAndProjectReport(payload){
        return this.http.post(`${this.baseUrl}` + `api/getClientAndProjectReport`, payload)
    }
@@ -137,4 +137,51 @@ getClientVsDepartment(payload){
    getEmployeeProjectCount(payload){
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeProjectCount`,payload);
    }
+
+  // getEmployeeExistingProjectDetailsByEmpId(empId: any, projectId:any) {
+  //   let httpParams = new HttpParams().append("empId", empId).append("projectId", projectId);
+  //   return this.http.get(`${this.baseUrl}` + `api/getEmployeeExistingProjectDetailsByEmpId`, { params: httpParams });
+  // }
+
+  getEmployeeExistingProjectDetailsByEmpId(empId: any, projectId: any, enforceSingleTeamPerProject: boolean = false, teamId: any) {
+    let httpParams = new HttpParams()
+      .append("empId", empId)
+      .append("projectId", projectId)
+      .append("enforceSingleTeamPerProject", String(enforceSingleTeamPerProject))
+      .append("teamId", teamId);
+    return this.http.get(`${this.baseUrl}` + `api/getEmployeeExistingProjectDetailsByEmpId`, { params: httpParams });
+  }
+
+
+  updateEmployeeProjectMappingAsInActive(rmgTeamMember: RmgTeamMember) {
+    return this.http.post(`${this.baseUrl}` + `api/updateEmployeeProjectMappingAsInActive`, rmgTeamMember);
+  }
+
+  saveProjectInformation(projectObj: RmgProject) {
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInformation`, projectObj);
+  }
+
+  updateMappingToOtherProjectAsDefault(otherActiveProject : EmployeeOtherActiveProject) {
+    return this.http.post(`${this.baseUrl}` + `api/updateMappingToOtherProjectAsDefault`, otherActiveProject);
+  }
+
+  updateProjectStartDate(projectObj: Project) {
+    return this.http.post(`${this.baseUrl}` + `api/updateProjectStartDate`, projectObj);
+  }
+
+  getProjectStructure(payload) {
+    return this.http.post(`${this.baseUrl}` + `api/getProjectStructure`, payload)
+  }
+
+getExtensionDocumentByName(uniquefile: any) {
+  return this.http.post(`${this.baseUrl}api/getExtensionDocumentByName`, { uniquefile });
+} 
+
+validateDocName(uniquefile: any) {
+  return this.http.post(`${this.baseUrl}api/validateDocName`, { uniquefile });
+} 
+
+
+
+ 
 }

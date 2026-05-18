@@ -1,0 +1,22 @@
+.rmb-view-table {
+  width: 100%;
+  table-layout: auto;
+  min-width: 100%;
+}
+
+.view-rmb-reject-cell {
+  min-width: 220px;
+  max-width: 360px;
+  vertical-align: top;
+}
+
+.view-rmb-reject-block {
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.view-rmb-reject-block:last-child {
+  border-bottom: none;
+  margin-bottom: 0 !important;
+  padding-bottom: 0;
+}

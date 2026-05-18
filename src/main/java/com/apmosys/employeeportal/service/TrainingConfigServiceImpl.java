@@ -903,7 +903,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 		try {
 			LocalDate today = LocalDate.now();
-			TrainingContent content = trainingContentRepository.findByTrainingMaster_TrainingId(trainingId, today);
+			TrainingContent content = trainingContentRepository.findByTrainingMaster_TrainingId(trainingId);
 
 			List<TrainingContentDTO> dtoList = new ArrayList<>();
 

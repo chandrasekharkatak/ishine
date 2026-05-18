@@ -673,4 +673,5 @@ export class ProjectInsightDetailsComponent implements OnInit {
   }
   // Modals [End]
 
+
 }

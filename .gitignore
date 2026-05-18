@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+uploads/
+src/main/frontend/package-lock.json
+tomcat-app/tomcat-emp/logs/ishineportal.log
+/.metadata/

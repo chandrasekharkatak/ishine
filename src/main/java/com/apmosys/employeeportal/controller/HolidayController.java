@@ -1,21 +1,16 @@
 package com.apmosys.employeeportal.controller;
 
-import java.time.LocalDate;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.JobRoleAccess;
-import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HolidayDTO;
-import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.service.HolidayService;
+import com.apmosys.employeeportal.service.ReconsileHolidayTimesheetService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
@@ -24,6 +19,9 @@ public class HolidayController {
 
 	@Autowired
 	HolidayService holidayService;
+	
+	@Autowired
+	ReconsileHolidayTimesheetService reconsileHolidayTimesheetService;
 
 	@JobRoleAccess(featureIds = {6})
 	@RequestMapping(value = "/addHoliday", method = RequestMethod.POST)
@@ -93,18 +91,18 @@ public class HolidayController {
 	@RequestMapping(value = "/reconsileHolidayTimesheet" ,method = RequestMethod.POST)
 	public ServiceResponse addTimesheetForHolidays(@RequestBody HolidayDTO holidayDTO) {
 		
-		ServiceResponse response = holidayService.reconsileHolidayTimesheet(holidayDTO);
+		ServiceResponse response = reconsileHolidayTimesheetService.reconsileHolidayTimesheet(holidayDTO);
 		return response;
 	}
 	
-	@PostMapping("/runTheHolidayCron")
-	public ServiceResponse runTheHolidayCron(@RequestBody String date) {
-
-		date = date.replace("\"", "");
-	    LocalDate localDate = LocalDate.parse(date);
-	    
-		ServiceResponse response = holidayService.runTheHolidayCron(localDate);
-		return response;
-	}
+//	@PostMapping("/runTheHolidayCron")
+//	public ServiceResponse runTheHolidayCron(@RequestBody String date) {
+//
+//		date = date.replace("\"", "");
+//	    LocalDate localDate = LocalDate.parse(date);
+//	    
+//		ServiceResponse response = holidayService.runTheHolidayCron(localDate);
+//		return response;
+//	}
 	
 }

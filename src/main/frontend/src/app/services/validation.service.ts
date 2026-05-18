@@ -871,10 +871,32 @@ export class ValidationService {
   }
 
   validateNullUndefinedEmptyList(list: any[]): boolean {
-
     if (list === undefined || list === null || !list || (list && list.length == 0)) {
       return false;
     }
     return true;
   }
+
+  validateNullUndefinedEmptyStringTrim(text: any): boolean {
+    if (text === undefined || text === null || text === "" || (text && text?.toString()?.trim() === "")) {
+      return false;
+    }
+    return true;
+  }
+
+  areArraysEqual(arr1: number[], arr2: number[]): boolean {
+    if (!arr1 || !arr2) {
+      return false;
+    }
+    if (arr1?.length !== arr2?.length) {
+      return false;
+    }
+    for (let i = 0; i < arr1?.length; i++) {
+      if (arr1[i] !== arr2[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 }

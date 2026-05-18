@@ -7,14 +7,19 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,6 +49,7 @@ import com.apmosys.employeeportal.model.EmployeeRatingPerformance;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.ProjectInsightResponse;
 import com.apmosys.employeeportal.model.QuaterCycle;
+import com.apmosys.employeeportal.model.QuaterCycleExcludedEmployeesMap;
 import com.apmosys.employeeportal.model.ReviewType;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -53,6 +59,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightResponseRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
+import com.apmosys.employeeportal.repository.QuaterCycleExcludedEmployeesMapRepo;
 import com.apmosys.employeeportal.repository.ReviewTypeRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -99,6 +106,9 @@ public class PerformanceService {
 
 	@Autowired
 	ProjectInsightResponseRepository projectInsightResponseRepository;
+	
+	@Autowired
+	QuaterCycleExcludedEmployeesMapRepo quaterCycleExcludedEmployeesMapRepo;
 	
 	public ServiceResponse addReviewType(ReviewTypeDTO reviewTypeDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -152,19 +162,32 @@ public class PerformanceService {
 
 	}
 
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse createQuarterCycle(QuarterCycleDTO quarterCycleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 
 			QuaterCycle quar = new QuaterCycle();
-
+			
 			quar.setFinancialYear(quarterCycleDTO.getFinancialYear());
 			quar.setQuarterCycle(quarterCycleDTO.getQuarterCycle());
 			quar.setCreatedBy(quarterCycleDTO.getCreatedBy());
 			quar.setIsActive(quarterCycleDTO.getIsActive());
 			quar.setIsEnable(quarterCycleDTO.getIsEnable());
+			quar.setCycleType(quarterCycleDTO.getCycleType()); // added this to store the cycleType , i.e(monthly , quarterly , halfyearly).
 
 			QuaterCycle quarterCycle = quarterCycleRepository.save(quar);
+			if(!quarterCycleDTO.getExcludedEmployees().isEmpty() && quarterCycle != null) {
+				List<QuaterCycleExcludedEmployeesMap> excludedEmpdata = new ArrayList<QuaterCycleExcludedEmployeesMap>();
+				quarterCycleDTO.getExcludedEmployees().forEach(empId ->{
+					QuaterCycleExcludedEmployeesMap data = new QuaterCycleExcludedEmployeesMap();
+					data.setEmpId(empId);
+					data.setQuarterId(quarterCycle.getQuarterId());
+					data.setCreatedBy(quarterCycle.getCreatedBy());
+					excludedEmpdata.add(data);
+					});
+				quaterCycleExcludedEmployeesMapRepo.saveAll(excludedEmpdata);
+			}
 			if (quarterCycle != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("New Quarter Cycle Created.");
@@ -177,26 +200,26 @@ public class PerformanceService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-
-
-		QuaterCycle quar = new QuaterCycle();
-		
-		quar.setFinancialYear(quarterCycleDTO.getFinancialYear());
-		quar.setQuarterCycle(quarterCycleDTO.getQuarterCycle());
-		quar.setCreatedBy(quarterCycleDTO.getCreatedBy());
-		quar.setIsActive(quarterCycleDTO.getIsActive());
-		quar.setIsEnable(quarterCycleDTO.getIsEnable());
-		quar.setCycleType(quarterCycleDTO.getCycleType()); // added this to store the cycleType , i.e(monthly , quarterly , halfyearly).
-		
-		
-		QuaterCycle quarterCycle = quarterCycleRepository.save(quar);
-		if (quarterCycle != null) {
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("New Cycle Created.");
-		} else {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("New Quarter Cycle creation Failed.");			
-		}
+			throw e;
+//
+//		QuaterCycle quar = new QuaterCycle();
+//		
+//		quar.setFinancialYear(quarterCycleDTO.getFinancialYear());
+//		quar.setQuarterCycle(quarterCycleDTO.getQuarterCycle());
+//		quar.setCreatedBy(quarterCycleDTO.getCreatedBy());
+//		quar.setIsActive(quarterCycleDTO.getIsActive());
+//		quar.setIsEnable(quarterCycleDTO.getIsEnable());
+//		quar.setCycleType(quarterCycleDTO.getCycleType()); // added this to store the cycleType , i.e(monthly , quarterly , halfyearly).
+//		
+//		
+//		QuaterCycle quarterCycle = quarterCycleRepository.save(quar);
+//		if (quarterCycle != null) {
+//			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			response.setServiceResponse("New Cycle Created.");
+//		} else {
+//			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			response.setServiceResponse("New Quarter Cycle creation Failed.");			
+//		}
 
 		}
 		return response;
@@ -281,7 +304,14 @@ public class PerformanceService {
 				quarDTO.setUpdatedByName(object[8] != null ? object[8].toString() : null);
 				quarDTO.setIsActive(object[9] != null ? Boolean.parseBoolean(object[9].toString()) : false);
 				quarDTO.setIsEnable(object[10] != null ? Boolean.parseBoolean(object[10].toString()) : false);
-
+				quarDTO.setCycleType(object[11] != null ? object[11].toString():null);
+				List<QuaterCycleExcludedEmployeesMap> excludedEmpList = quaterCycleExcludedEmployeesMapRepo.findByQuarterId(quarterId);
+				if(!excludedEmpList.isEmpty()) {
+				quarDTO.setExcludedEmployees(excludedEmpList.stream()
+				        .map(QuaterCycleExcludedEmployeesMap::getEmpId)
+				        .filter(Objects::nonNull)
+				        .collect(Collectors.toList()));
+				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(quarDTO);
 			} else {
@@ -362,49 +392,144 @@ public class PerformanceService {
 			List<ReviewType> validReviewDetails = new ArrayList<>();
 			List<ReviewType> reviewDetails=reviewTypeRepository.findAll();
 			logBuilder.append("getAllReview size : "+reviewDetails.size());
-			if(reviewDetails !=null) {
-				reviewDetails.forEach((reviewDetail)->{
-					
-					if (reviewDetail.getFlag()) {
+			if (reviewDetails.isEmpty()) {
 
-						Optional.ofNullable(reviewDetail.getDeptId()).ifPresent(deptId -> {
-							Optional<Department> department = Optional
-									.ofNullable(departmentRepository.findByDeptId(deptId));
-							department.ifPresent(dept -> reviewDetail.setDepartmentName(dept.getName()));
-						});
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No ReviewType found.");
 
-						Optional.ofNullable(reviewDetail.getCreatedBy()).ifPresent(empId -> {
-							Optional<Employee> employee = Optional.ofNullable(employeeRepository.findByEmpId(empId));
-							employee.ifPresent(emp -> reviewDetail.setEmployeeName(emp.getName()));
-						});
+	            return response;
+	        }
+			 // Filter only active records
+	        validReviewDetails = reviewDetails.stream()
+	                .filter(ReviewType::getFlag)
+	                .collect(Collectors.toList());
 
-						Optional.ofNullable(reviewDetail.getUpdatedBy()).ifPresent(empId -> {
-							Optional<Employee> employee = Optional.ofNullable(employeeRepository.findByEmpId(empId));
-							employee.ifPresent(emp -> reviewDetail.setUpdatedByName(emp.getName()));
-						});
+	        // Collect unique IDs
+	        Set<Long> deptIds = validReviewDetails.stream()
+	                .map(ReviewType::getDeptId)
+	                .filter(Objects::nonNull)
+	                .collect(Collectors.toSet());
 
-						Optional.ofNullable(reviewDetail.getQuarterId()).ifPresent(quarterId -> {
-							Optional<QuaterCycle> optionalQuarterCycle = quarterCycleRepository.findById(quarterId);
-							optionalQuarterCycle.ifPresent(quaterCycle -> {
-								reviewDetail.setActive(quaterCycle.getIsActive());
-								reviewDetail.setQuarterCycle(quaterCycle.getQuarterCycle());
-							});
-						});
+	        Set<Long> empIds = new HashSet<>();
 
-						validReviewDetails.add(reviewDetail);
-					}
+	        validReviewDetails.forEach(r -> {
 
-				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(validReviewDetails);
-				apiLogInfo.setApiResponse("ReviewType  Fetched successfully.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Unable to Fetche ReviewType.");
-				apiLogInfo.setApiResponse("Unable to Fetche ReviewType.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
+	            if (r.getCreatedBy() != null) {
+	                empIds.add(r.getCreatedBy());
+	            }
+
+	            if (r.getUpdatedBy() != null) {
+	                empIds.add(r.getUpdatedBy());
+	            }
+	        });
+
+	        Set<Long> quarterIds = validReviewDetails.stream()
+	                .map(ReviewType::getQuarterId)
+	                .filter(Objects::nonNull)
+	                .collect(Collectors.toSet());
+	        
+	        // Bulk fetch
+	        Map<Long, Department> departmentMap =
+	                departmentRepository.findAllById(deptIds)
+	                        .stream()
+	                        .collect(Collectors.toMap(
+	                                Department::getDeptId,
+	                                Function.identity()
+	                        ));
+
+	        Map<Long, Employee> employeeMap =
+	                employeeRepository.findAllById(empIds)
+	                        .stream()
+	                        .collect(Collectors.toMap(
+	                                Employee::getEmpId,
+	                                Function.identity()
+	                        ));
+
+	        Map<Long, QuaterCycle> quarterMap =
+	                quarterCycleRepository.findAllById(quarterIds)
+	                        .stream()
+	                        .collect(Collectors.toMap(
+	                                QuaterCycle::getQuarterId,
+	                                Function.identity()
+	                        ));
+	        
+	     // Populate response data
+	        for (ReviewType reviewDetail : validReviewDetails) {
+
+	            Department department = departmentMap.get(reviewDetail.getDeptId());
+
+	            if (department != null) {
+	                reviewDetail.setDepartmentName(department.getName());
+	            }
+
+	            Employee createdByEmployee =
+	                    employeeMap.get(reviewDetail.getCreatedBy());
+
+	            if (createdByEmployee != null) {
+	                reviewDetail.setEmployeeName(createdByEmployee.getName());
+	            }
+
+	            Employee updatedByEmployee =
+	                    employeeMap.get(reviewDetail.getUpdatedBy());
+
+	            if (updatedByEmployee != null) {
+	                reviewDetail.setUpdatedByName(updatedByEmployee.getName());
+	            }
+
+	            QuaterCycle quaterCycle =
+	                    quarterMap.get(reviewDetail.getQuarterId());
+
+	            if (quaterCycle != null) {
+	                reviewDetail.setActive(quaterCycle.getIsActive());
+	                reviewDetail.setQuarterCycle(quaterCycle.getQuarterCycle());
+	            }
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(validReviewDetails);
+//			if(reviewDetails !=null) {
+//				reviewDetails.forEach((reviewDetail)->{
+//					
+//					if (reviewDetail.getFlag()) {
+//
+//						Optional.ofNullable(reviewDetail.getDeptId()).ifPresent(deptId -> {
+//							Optional<Department> department = Optional
+//									.ofNullable(departmentRepository.findByDeptId(deptId));
+//							department.ifPresent(dept -> reviewDetail.setDepartmentName(dept.getName()));
+//						});
+//
+//						Optional.ofNullable(reviewDetail.getCreatedBy()).ifPresent(empId -> {
+//							Optional<Employee> employee = Optional.ofNullable(employeeRepository.findByEmpId(empId));
+//							employee.ifPresent(emp -> reviewDetail.setEmployeeName(emp.getName()));
+//						});
+//
+//						Optional.ofNullable(reviewDetail.getUpdatedBy()).ifPresent(empId -> {
+//							Optional<Employee> employee = Optional.ofNullable(employeeRepository.findByEmpId(empId));
+//							employee.ifPresent(emp -> reviewDetail.setUpdatedByName(emp.getName()));
+//						});
+//
+//						Optional.ofNullable(reviewDetail.getQuarterId()).ifPresent(quarterId -> {
+//							Optional<QuaterCycle> optionalQuarterCycle = quarterCycleRepository.findById(quarterId);
+//							optionalQuarterCycle.ifPresent(quaterCycle -> {
+//								reviewDetail.setActive(quaterCycle.getIsActive());
+//								reviewDetail.setQuarterCycle(quaterCycle.getQuarterCycle());
+//							});
+//						});
+//
+//						validReviewDetails.add(reviewDetail);
+//					}
+//
+//				});
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse(validReviewDetails);
+//				apiLogInfo.setApiResponse("ReviewType  Fetched successfully.");
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//			} else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Unable to Fetche ReviewType.");
+//				apiLogInfo.setApiResponse("Unable to Fetche ReviewType.");
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -417,6 +542,7 @@ public class PerformanceService {
 		return response;
 	}
 
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse deleteReviewType(Long reviewTypeId) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -449,22 +575,52 @@ public class PerformanceService {
 			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
-
+			throw e;
 		}
 
 		return response;
 	}
 
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse updateQuarterCycle(QuarterCycleDTO quarterCycleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			QuaterCycle quar = quarterCycleRepository.getById(quarterCycleDTO.getQuarterId());
 			quar.setFinancialYear(quarterCycleDTO.getFinancialYear());
 			quar.setQuarterCycle(quarterCycleDTO.getQuarterCycle());
+			quar.setCycleType(quarterCycleDTO.getCycleType());
 			quar.setUpdatedBy(quarterCycleDTO.getUpdatedBy());
 			quar.setUpdatedOn(LocalDateTime.now());
 
 			QuaterCycle quarterCycle = quarterCycleRepository.save(quar);
+			List<QuaterCycleExcludedEmployeesMap> excludedEmployees = quaterCycleExcludedEmployeesMapRepo.findByQuarterId(quarterCycle.getQuarterId());  
+			if(!excludedEmployees.isEmpty()) {
+			quaterCycleExcludedEmployeesMapRepo.deleteAll(excludedEmployees);
+			quaterCycleExcludedEmployeesMapRepo.flush();
+			if(quarterCycleDTO.getExcludedEmployees()!= null && !quarterCycleDTO.getExcludedEmployees().isEmpty() && quarterCycle != null) {
+				List<QuaterCycleExcludedEmployeesMap> newExcludedEmpdata = new ArrayList<QuaterCycleExcludedEmployeesMap>();
+				quarterCycleDTO.getExcludedEmployees().forEach(empId ->{
+					QuaterCycleExcludedEmployeesMap data = new QuaterCycleExcludedEmployeesMap();
+					data.setEmpId(empId);
+					data.setQuarterId(quarterCycle.getQuarterId());
+					data.setCreatedBy(quarterCycle.getCreatedBy());
+					newExcludedEmpdata.add(data);
+					});
+				quaterCycleExcludedEmployeesMapRepo.saveAll(newExcludedEmpdata);
+			}
+			}else {
+				if(quarterCycleDTO.getExcludedEmployees()!= null && !quarterCycleDTO.getExcludedEmployees().isEmpty() && quarterCycle != null) {
+					List<QuaterCycleExcludedEmployeesMap> newExcludedEmpdata = new ArrayList<QuaterCycleExcludedEmployeesMap>();
+					quarterCycleDTO.getExcludedEmployees().forEach(empId ->{
+						QuaterCycleExcludedEmployeesMap data = new QuaterCycleExcludedEmployeesMap();
+						data.setEmpId(empId);
+						data.setQuarterId(quarterCycle.getQuarterId());
+						data.setCreatedBy(quarterCycle.getCreatedBy());
+						newExcludedEmpdata.add(data);
+						});
+					quaterCycleExcludedEmployeesMapRepo.saveAll(newExcludedEmpdata);
+				}
+			}
 			if (quarterCycle != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(" Quarter Cycle Updated.");
@@ -478,11 +634,11 @@ public class PerformanceService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-
+			throw e;
 		}
 		return response;
 	}
-
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse updateReviewType(ReviewTypeDTO reviewTypeDTO) {
 
 		ServiceResponse response = new ServiceResponse();
@@ -538,6 +694,7 @@ public class PerformanceService {
 			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
+			throw e;
 		}
 
 		return response;
@@ -584,23 +741,45 @@ public class PerformanceService {
 	public ServiceResponse submitEmployeePerformanceHOD(PerformanceDTO employeePerformanceDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			EmployeePerformance employeePerformance = new EmployeePerformance();
+			Long empId = employeePerformanceDTO.getEmpId();
+			Long quarterId = employeePerformanceDTO.getQuarterId();
+			String actionBy = employeePerformanceDTO.getActionBy();
 
-			employeePerformance.setEmp_id(employeePerformanceDTO.getEmpId());
+			EmployeePerformance employeePerformance = employeePerformanceRepository
+					.findLatestByEmpIdAndQuarterId(empId, quarterId)
+					.stream().findFirst().orElse(null);
+
+			if (employeePerformance == null) {
+				employeePerformance = new EmployeePerformance();
+				employeePerformance.setEmp_id(empId);
+				employeePerformance.setQuarterId(quarterId);
+			}
+
 			employeePerformance.setFinal_rating(employeePerformanceDTO.getFinalRating());
-			employeePerformance.setHod_id(employeePerformanceDTO.getHodId());
 
-			employeePerformance.setHod_remarks(employeePerformanceDTO.getHodRemarks());
-			employeePerformance.setQuarterId(employeePerformanceDTO.getQuarterId());
-			employeePerformance.setHod_approval_date(LocalDateTime.now());
-			System.out.println(employeePerformanceDTO.getCurrentStatus()+"123456789");
-			if("Not Started".equals(employeePerformanceDTO.getCurrentStatus()) && 
-					   "HOD".equals(employeePerformanceDTO.getActionBy())) {
-					    employeePerformance.setCompletion_status("Completed");
-					} 
-			else {
-					    employeePerformance.setCompletion_status("Ongoing");
-					}
+			if ("RM".equals(actionBy)) {
+				// Manager / Reporting Manager submit: set manager fields
+				Long submitterId = employeePerformanceDTO.getHodId(); // current user (submitter)
+				employeePerformance.setManager_id(submitterId);
+				employeePerformance.setManager_remarks(employeePerformanceDTO.getHodRemarks());
+				employeePerformance.setManager_review_date(LocalDateTime.now());
+				employeePerformance.setCompletion_status("Ongoing");
+				// When Manager and HOD are the same person: auto-complete HOD step so one submit clears both
+				Long employeeDeptHodId = departmentRepository.findHodIdByEmpId(empId);
+				if (employeeDeptHodId != null && employeeDeptHodId.equals(submitterId)) {
+					employeePerformance.setHod_id(submitterId);
+					employeePerformance.setHod_approval_date(LocalDateTime.now());
+					employeePerformance.setHod_remarks(employeePerformanceDTO.getHodRemarks() != null
+							? employeePerformanceDTO.getHodRemarks() : employeePerformance.getManager_remarks());
+				}
+			} else {
+				// HOD submit: set HOD fields. Completed only after HR accepts (see submitEmployeePerformanceHR).
+				employeePerformance.setHod_id(employeePerformanceDTO.getHodId());
+				employeePerformance.setHod_remarks(employeePerformanceDTO.getHodRemarks());
+				employeePerformance.setHod_approval_date(LocalDateTime.now());
+				employeePerformance.setCompletion_status("Pending");
+			}
+
 			EmployeePerformance savedEmployeePerformance = employeePerformanceRepository.save(employeePerformance);
 			if (savedEmployeePerformance != null) {
 
@@ -610,6 +789,7 @@ public class PerformanceService {
 					ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
 					ratingPerformance.setRatingValue(ratingDTO.getRating());
 					ratingPerformance.setEmpId(employeePerformanceDTO.getEmpId());
+					ratingPerformance.setCriteriaRemark(normalizeCriteriaRemark(ratingDTO.getCriteriaRemark()));
 
 					employeeRatingPerformanceRepository.save(ratingPerformance);
 				}
@@ -650,26 +830,29 @@ public class PerformanceService {
 				} else if (employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Rejected")) {
 					optionalEmployeePerformance.setCompletion_status("Rejected");
 					optionalEmployeePerformance.setRejectStatus(true);
+					// Persist edited rating even when HR rejects
+					optionalEmployeePerformance.setFinal_rating(employeePerformanceDTO.getFinalRating());
 				}
 
 				savedEmployeePerformanceHR = employeePerformanceRepository.save(optionalEmployeePerformance);
 
-				if (savedEmployeePerformanceHR != null
-						&& employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Accepted")) {
+				if (savedEmployeePerformanceHR != null && employeePerformanceDTO.getPerformanceRatings() != null
+						&& !employeePerformanceDTO.getPerformanceRatings().isEmpty()) {
 					for (PerformanceRatingDTO ratingDTO : employeePerformanceDTO.getPerformanceRatings()) {
 						EmployeeRatingPerformance ratingPerformance = employeeRatingPerformanceRepository
-								.getById(ratingDTO.getPerformanceRatingId());
+								.findById(ratingDTO.getPerformanceRatingId()).orElse(null);
 						if (ratingPerformance != null) {
 							ratingPerformance.setQuarterId(employeePerformanceDTO.getQuarterId());
 							ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
 							ratingPerformance.setRatingValue(ratingDTO.getRating());
 							ratingPerformance.setEmpId(employeePerformanceDTO.getEmpId());
+							applyCriteriaRemarkUpdate(ratingDTO, ratingPerformance);
 							employeeRatingPerformanceRepository.save(ratingPerformance);
 						}
 					}
 				}
 
-				if (employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Accepted")) {
+			if (employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Accepted")) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Performance review accepted successfully.");
 				} else if (employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Rejected")) {
@@ -688,6 +871,78 @@ public class PerformanceService {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something went wrong while processing the request.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	/** HOD accept/reject: store hod_id, hod_remarks, hod_approval_date (accept) or hod_rejected_date (reject). On Accept, also persist final_rating and criteria ratings. */
+	public ServiceResponse submitRemarksByHOD(PerformanceDTO dto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			EmployeePerformance ep = employeePerformanceRepository.findByPerformanceId(dto.getEmployeePerformanceId());
+			if (ep == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Performance record not found.");
+				return response;
+			}
+			ep.setHod_id(dto.getHodId());
+			ep.setHod_remarks(dto.getHodRemarks());
+			String status = dto.getHodReviewStatus() != null ? dto.getHodReviewStatus().trim() : "";
+			if ("Accepted".equalsIgnoreCase(status)) {
+				ep.setHod_approval_date(LocalDateTime.now());
+				ep.setHod_rejected_date(null);
+				ep.setCompletion_status("Ongoing");
+				// Persist HOD-updated final rating and criteria ratings on accept/reject
+				if (dto.getFinalRating() != null) {
+					ep.setFinal_rating(dto.getFinalRating());
+				}
+				if (dto.getPerformanceRatings() != null && !dto.getPerformanceRatings().isEmpty()) {
+					for (PerformanceRatingDTO ratingDTO : dto.getPerformanceRatings()) {
+						EmployeeRatingPerformance ratingPerformance = employeeRatingPerformanceRepository
+								.findById(ratingDTO.getPerformanceRatingId()).orElse(null);
+						if (ratingPerformance != null) {
+							ratingPerformance.setQuarterId(dto.getQuarterId());
+							ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
+							ratingPerformance.setRatingValue(ratingDTO.getRating());
+							ratingPerformance.setEmpId(dto.getEmpId());
+							applyCriteriaRemarkUpdate(ratingDTO, ratingPerformance);
+							employeeRatingPerformanceRepository.save(ratingPerformance);
+						}
+					}
+				}
+			} else if ("Rejected".equalsIgnoreCase(status)) {
+				ep.setHod_rejected_date(LocalDateTime.now());
+				ep.setCompletion_status("Rejected");
+				ep.setRejectStatus(true);
+				// Persist HOD-edited final rating/criteria even on rejection
+				if (dto.getFinalRating() != null) {
+					ep.setFinal_rating(dto.getFinalRating());
+				}
+				if (dto.getPerformanceRatings() != null && !dto.getPerformanceRatings().isEmpty()) {
+					for (PerformanceRatingDTO ratingDTO : dto.getPerformanceRatings()) {
+						EmployeeRatingPerformance ratingPerformance = employeeRatingPerformanceRepository
+								.findById(ratingDTO.getPerformanceRatingId()).orElse(null);
+						if (ratingPerformance != null) {
+							ratingPerformance.setQuarterId(dto.getQuarterId());
+							ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
+							ratingPerformance.setRatingValue(ratingDTO.getRating());
+							ratingPerformance.setEmpId(dto.getEmpId());
+							applyCriteriaRemarkUpdate(ratingDTO, ratingPerformance);
+							employeeRatingPerformanceRepository.save(ratingPerformance);
+						}
+					}
+				}
+			}
+			employeePerformanceRepository.save(ep);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Accepted".equalsIgnoreCase(status)
+					? "Performance review accepted successfully."
+					: "Performance review rejected successfully.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong.");
 			response.setServiceError(e.getMessage());
 		}
 		return response;
@@ -859,6 +1114,8 @@ public class PerformanceService {
 					performanceDetails.setHrReviewStatus(object[14] != null ? object[14].toString() : null);
 					performanceDetails
 							.setRejectStatus(object[15] != null ? Boolean.parseBoolean(object[15].toString()) : false);
+					performanceDetails.setManagerRemarks(object[16] != null ? object[16].toString() : null);
+					performanceDetails.setCriteriaRemark(object[17] != null ? object[17].toString() : null);
 
 					performance.add(performanceDetails);
 
@@ -881,6 +1138,145 @@ public class PerformanceService {
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 
+		}
+		return response;
+	}
+
+	/**
+	 * Returns approval details for popup: manager, HOD, HR each with name, id, employmentId, rating, feedback.
+	 * Uses latest employee_performance row for given empId and quarterId.
+	 */
+	public ServiceResponse getApprovalDetails(Long empId, Long quarterId) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Object[]> rows = employeePerformanceRepository.findApprovalDetailsByEmpIdAndQuarterId(empId, quarterId);
+			if (rows == null || rows.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No performance record found.");
+				return response;
+			}
+			Object[] row = rows.get(0);
+			// Index: 0 manager_id, 1 manager_remarks, 2 final_rating, 3 manager_name, 4 manager_employment_id,
+			// 5 hod_id, 6 hod_remarks, 7 hod_name, 8 hod_employment_id, 9 hr_id, 10 hr_remarks, 11 hr_name, 12 hr_employment_id
+			Map<String, Object> result = new HashMap<>();
+			Map<String, Object> manager = new HashMap<>();
+			manager.put("name", row[3] != null ? row[3].toString() : null);
+			manager.put("id", row[0] != null ? Long.parseLong(row[0].toString()) : null);
+			manager.put("employmentId", row[4] != null ? row[4].toString() : null);
+			manager.put("rating", row[2] != null ? row[2].toString() : null);
+			manager.put("feedback", row[1] != null ? row[1].toString() : null);
+			manager.put("history", new ArrayList<Map<String, Object>>());
+			result.put("manager", manager);
+			Map<String, Object> hod = new HashMap<>();
+			hod.put("name", row[7] != null ? row[7].toString() : null);
+			hod.put("id", row[5] != null ? Long.parseLong(row[5].toString()) : null);
+			hod.put("employmentId", row[8] != null ? row[8].toString() : null);
+			hod.put("rating", row[2] != null ? row[2].toString() : null);
+			hod.put("feedback", row[6] != null ? row[6].toString() : null);
+			hod.put("history", new ArrayList<Map<String, Object>>());
+			result.put("hod", hod);
+			Map<String, Object> hr = new HashMap<>();
+			hr.put("name", row[11] != null ? row[11].toString() : null);
+			hr.put("id", row[9] != null ? Long.parseLong(row[9].toString()) : null);
+			hr.put("employmentId", row[12] != null ? row[12].toString() : null);
+			hr.put("rating", row[2] != null ? row[2].toString() : null);
+			hr.put("feedback", row[10] != null ? row[10].toString() : null);
+			hr.put("history", new ArrayList<Map<String, Object>>());
+			result.put("hr", hr);
+
+			// Build audit history (all years for this employee) for each role + year-wise rating summary
+			List<Object[]> historyRows = employeePerformanceRepository.findApprovalAuditHistoryByEmpId(empId);
+			if (historyRows != null) {
+				List<Map<String, Object>> managerHistory = new ArrayList<>();
+				List<Map<String, Object>> hodHistory = new ArrayList<>();
+				List<Map<String, Object>> hrHistory = new ArrayList<>();
+				Map<String, List<Double>> fyToRatings = new HashMap<>();
+				Map<String, List<String>> fyToManagers = new HashMap<>();
+				for (Object[] h : historyRows) {
+					String finalRating = h[1] != null ? h[1].toString() : null;
+					String fy = h[3] != null ? h[3].toString() : "N/A";
+					String quarterCycle = h[4] != null ? h[4].toString() : "N/A";
+					if (finalRating != null && !finalRating.isEmpty()) {
+						try {
+							fyToRatings.computeIfAbsent(fy, k -> new ArrayList<>()).add(Double.parseDouble(finalRating));
+						} catch (Exception ignored) {
+						}
+					}
+					if (h[8] != null) {
+						fyToManagers.computeIfAbsent(fy, k -> new ArrayList<>()).add(h[8].toString());
+					}
+					// manager: 5 id,6 remarks,7 date,8 name,9 employmentId
+					if (h[5] != null && (h[6] != null || h[7] != null)) {
+						Map<String, Object> entry = new HashMap<>();
+						entry.put("name", h[8] != null ? h[8].toString() : null);
+						entry.put("id", Long.parseLong(h[5].toString()));
+						entry.put("employmentId", h[9] != null ? h[9].toString() : null);
+						entry.put("feedback", h[6] != null ? h[6].toString() : null);
+						entry.put("rating", finalRating);
+						entry.put("status", h[7] != null ? "Submitted" : "Pending");
+						entry.put("actionDate", h[7] != null ? h[7].toString() : null);
+						entry.put("financialYear", fy);
+						entry.put("quarterCycle", quarterCycle);
+						entry.put("managerName", h[8] != null ? h[8].toString() : null);
+						managerHistory.add(entry);
+					}
+					// hod: 10 id,11 remarks,12 approval date,13 rejected date,14 name,15 employmentId
+					if (h[10] != null && (h[11] != null || h[12] != null || h[13] != null)) {
+						Map<String, Object> entry = new HashMap<>();
+						entry.put("name", h[14] != null ? h[14].toString() : null);
+						entry.put("id", Long.parseLong(h[10].toString()));
+						entry.put("employmentId", h[15] != null ? h[15].toString() : null);
+						entry.put("feedback", h[11] != null ? h[11].toString() : null);
+						entry.put("rating", finalRating);
+						String hodStatus = h[12] != null ? "Accepted" : (h[13] != null ? "Rejected" : "Pending");
+						entry.put("status", hodStatus);
+						entry.put("actionDate", h[12] != null ? h[12].toString() : (h[13] != null ? h[13].toString() : null));
+						entry.put("financialYear", fy);
+						entry.put("quarterCycle", quarterCycle);
+						entry.put("managerName", h[8] != null ? h[8].toString() : null);
+						hodHistory.add(entry);
+					}
+					// hr: 16 id,17 remarks,18 date,19 status,20 name,21 employmentId
+					if (h[16] != null && (h[17] != null || h[18] != null || h[19] != null)) {
+						Map<String, Object> entry = new HashMap<>();
+						entry.put("name", h[20] != null ? h[20].toString() : null);
+						entry.put("id", Long.parseLong(h[16].toString()));
+						entry.put("employmentId", h[21] != null ? h[21].toString() : null);
+						entry.put("feedback", h[17] != null ? h[17].toString() : null);
+						entry.put("rating", finalRating);
+						entry.put("status", h[19] != null ? h[19].toString() : "Pending");
+						entry.put("actionDate", h[18] != null ? h[18].toString() : null);
+						entry.put("financialYear", fy);
+						entry.put("quarterCycle", quarterCycle);
+						entry.put("managerName", h[8] != null ? h[8].toString() : null);
+						hrHistory.add(entry);
+					}
+				}
+				manager.put("history", managerHistory);
+				hod.put("history", hodHistory);
+				hr.put("history", hrHistory);
+
+				List<Map<String, Object>> yearWiseRatings = new ArrayList<>();
+				for (String yearKey : fyToRatings.keySet()) {
+					List<Double> vals = fyToRatings.get(yearKey);
+					double avg = vals.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+					Map<String, Object> y = new HashMap<>();
+					y.put("financialYear", yearKey);
+					y.put("averageRating", String.format("%.2f", avg));
+					y.put("records", vals.size());
+					List<String> managers = fyToManagers.getOrDefault(yearKey, new ArrayList<>()).stream().filter(s -> s != null && !s.trim().isEmpty()).distinct().collect(Collectors.toList());
+					y.put("managerNames", managers);
+					yearWiseRatings.add(y);
+				}
+				result.put("yearWiseRatings", yearWiseRatings);
+			}
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong.");
+			response.setServiceError(e.getMessage());
 		}
 		return response;
 	}
@@ -956,8 +1352,18 @@ public class PerformanceService {
 
 				employeePerformanceDetails.setFinal_rating(employeePerformanceDTO.getFinalRating());
 				employeePerformanceDetails.setHod_remarks(employeePerformanceDTO.getHodRemarks());
-				employeePerformanceDetails.setHod_approval_date(LocalDateTime.now());
-				employeePerformanceDetails.setCompletion_status("Ongoing");
+
+				// Manager resubmit after HOD reject: do not set hod_id/hod_approval_date; status = Pending HOD until HOD accepts
+				boolean isManagerResubmit = Boolean.TRUE.equals(employeePerformanceDetails.getRejectStatus())
+						|| "RM".equalsIgnoreCase(employeePerformanceDTO.getActionBy());
+				if (isManagerResubmit) {
+					employeePerformanceDetails.setCompletion_status("Pending HOD");
+					// do not set hod_id or hod_approval_date – HOD has not accepted yet
+				} else {
+					employeePerformanceDetails.setHod_id(employeePerformanceDTO.getHodId());
+					employeePerformanceDetails.setHod_approval_date(LocalDateTime.now());
+					employeePerformanceDetails.setCompletion_status("Ongoing");
+				}
 				savedEmployeePerformance = employeePerformanceRepository.save(employeePerformanceDetails);
 			}
 
@@ -965,12 +1371,13 @@ public class PerformanceService {
 
 				for (PerformanceRatingDTO ratingDTO : employeePerformanceDTO.getPerformanceRatings()) {
 					EmployeeRatingPerformance ratingPerformance = employeeRatingPerformanceRepository
-							.getById(ratingDTO.getPerformanceRatingId());
+							.findById(ratingDTO.getPerformanceRatingId()).orElse(null);
 					if (ratingPerformance != null) {
 						ratingPerformance.setQuarterId(employeePerformanceDTO.getQuarterId());
 						ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
 						ratingPerformance.setRatingValue(ratingDTO.getRating());
 						ratingPerformance.setEmpId(employeePerformanceDTO.getEmpId());
+						applyCriteriaRemarkUpdate(ratingDTO, ratingPerformance);
 						employeeRatingPerformanceRepository.save(ratingPerformance);
 					}
 
@@ -1220,13 +1627,46 @@ public class PerformanceService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 		List<Object[]> currentStatus = employeePerformanceRepository.currentStatusForPerformanceTableView();
+		List<Object[]> finalRatingList = employeePerformanceRepository.findFinalRatingByEmpId();
+		java.util.Map<Long, String> empIdToFinalRating = new java.util.HashMap<>();
+		if (finalRatingList != null) {
+			for (Object[] row : finalRatingList) {
+				if (row[0] != null && row[1] != null) {
+					Long empId = Long.parseLong(row[0].toString());
+					empIdToFinalRating.put(empId, row[1].toString());
+				}
+			}
+		}
+		List<Object[]> approvalStatusList = employeePerformanceRepository.findApprovalStatusByEmpId();
+		java.util.Map<Long, String> empIdToManagerStatus = new java.util.HashMap<>();
+		java.util.Map<Long, String> empIdToHodStatus = new java.util.HashMap<>();
+		java.util.Map<Long, String> empIdToHrStatus = new java.util.HashMap<>();
+		if (approvalStatusList != null) {
+			for (Object[] row : approvalStatusList) {
+				if (row[0] != null) {
+					Long empId = Long.parseLong(row[0].toString());
+					if (row[1] != null) empIdToManagerStatus.put(empId, row[1].toString());
+					if (row[2] != null) empIdToHodStatus.put(empId, row[2].toString());
+					if (row[3] != null) empIdToHrStatus.put(empId, row[3].toString());
+				}
+			}
+		}
 		List<PerformanceDTO> dtoList = new ArrayList<PerformanceDTO>();
 			if (currentStatus != null) {
 				currentStatus.forEach((object) -> {
 					PerformanceDTO performanceDTO = new PerformanceDTO();
 					
 					performanceDTO.setCompletionStatus(object[0] != null ? object[0].toString() : null);
-					performanceDTO.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+					Long empId = object[1] != null ? Long.parseLong(object[1].toString()) : null;
+					performanceDTO.setEmpId(empId);
+					if (empId != null && empIdToFinalRating.containsKey(empId)) {
+						performanceDTO.setFinalRating(empIdToFinalRating.get(empId));
+					}
+					if (empId != null) {
+						performanceDTO.setManagerReviewStatus(empIdToManagerStatus.get(empId));
+						performanceDTO.setHodReviewStatus(empIdToHodStatus.get(empId));
+						performanceDTO.setHrReviewStatus(empIdToHrStatus.get(empId));
+					}
 					
 					dtoList.add(performanceDTO);
 					
@@ -1730,10 +2170,17 @@ public class PerformanceService {
 			if (employeePerformanceDetails != null) {
 
 				employeePerformanceDetails.setFinal_rating(employeePerformanceDTO.getFinalRating());
+				employeePerformanceDetails.setHr_id(employeePerformanceDTO.getHrId());
 				employeePerformanceDetails.setHr_remarks(employeePerformanceDTO.getHrRemark());
 				employeePerformanceDetails.setHr_review_date(LocalDateTime.now());
 				employeePerformanceDetails.setHod_remarks(employeePerformanceDTO.getHodRemarks());
-				employeePerformanceDetails.setCompletion_status("Completed");
+				// Draft HR update: do not set Completed — only submitEmployeePerformanceHR / bulk HR accept does.
+				String hrSt = employeePerformanceDTO.getHrReviewStatus();
+				if (hrSt != null && "Accepted".equalsIgnoreCase(hrSt.trim())) {
+					employeePerformanceDetails.setCompletion_status("Completed");
+				} else if (hrSt != null && "Rejected".equalsIgnoreCase(hrSt.trim())) {
+					employeePerformanceDetails.setCompletion_status("Rejected");
+				}
 				savedEmployeePerformance = employeePerformanceRepository.save(employeePerformanceDetails);
 			}
 
@@ -1741,12 +2188,13 @@ public class PerformanceService {
 
 				for (PerformanceRatingDTO ratingDTO : employeePerformanceDTO.getPerformanceRatings()) {
 					EmployeeRatingPerformance ratingPerformance = employeeRatingPerformanceRepository
-							.getById(ratingDTO.getPerformanceRatingId());
+							.findById(ratingDTO.getPerformanceRatingId()).orElse(null);
 					if (ratingPerformance != null) {
 						ratingPerformance.setQuarterId(employeePerformanceDTO.getQuarterId());
 						ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
 						ratingPerformance.setRatingValue(ratingDTO.getRating());
 						ratingPerformance.setEmpId(employeePerformanceDTO.getEmpId());
+						applyCriteriaRemarkUpdate(ratingDTO, ratingPerformance);
 						employeeRatingPerformanceRepository.save(ratingPerformance);
 					}
 
@@ -1769,5 +2217,87 @@ public class PerformanceService {
 		return response;
 	}
 
+	public ServiceResponse bulkSubmitEmployeePerformanceHR(PerformanceDTO employeePerformanceDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (employeePerformanceDTO.getEmpIds() == null || employeePerformanceDTO.getEmpIds().isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No employees selected for bulk HR action.");
+				return response;
+			}
+			if (employeePerformanceDTO.getQuarterId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Quarter is required for bulk HR action.");
+				return response;
+			}
+			String status = employeePerformanceDTO.getHrReviewStatus() != null
+					? employeePerformanceDTO.getHrReviewStatus().trim()
+					: "";
+			if (!"Accepted".equalsIgnoreCase(status) && !"Rejected".equalsIgnoreCase(status)) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid bulk HR action. Use Accepted or Rejected.");
+				return response;
+			}
+
+			int updated = 0;
+			int skipped = 0;
+			List<Long> uniqueEmpIds = employeePerformanceDTO.getEmpIds().stream().filter(id -> id != null).distinct()
+					.collect(Collectors.toList());
+			for (Long empId : uniqueEmpIds) {
+				EmployeePerformance ep = employeePerformanceRepository
+						.findLatestByEmpIdAndQuarterId(empId, employeePerformanceDTO.getQuarterId()).stream().findFirst()
+						.orElse(null);
+				if (ep == null) {
+					skipped++;
+					continue;
+				}
+				ep.setHr_id(employeePerformanceDTO.getHrId());
+				ep.setHr_remarks(employeePerformanceDTO.getHrRemark());
+				ep.setHr_review_status(status);
+				ep.setHr_review_date(LocalDateTime.now());
+				if ("Accepted".equalsIgnoreCase(status)) {
+					ep.setCompletion_status("Completed");
+					ep.setRejectStatus(false);
+				} else {
+					ep.setCompletion_status("Rejected");
+					ep.setRejectStatus(true);
+				}
+				employeePerformanceRepository.save(ep);
+				updated++;
+			}
+
+			Map<String, Object> result = new HashMap<>();
+			result.put("updatedCount", updated);
+			result.put("skippedCount", skipped);
+			result.put("status", status);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	/** Trim per-criterion comment; null/blank stored as null. */
+	private static String normalizeCriteriaRemark(String s) {
+		if (s == null) {
+			return null;
+		}
+		String t = s.trim();
+		return t.isEmpty() ? null : t;
+	}
+
+	/** On update: change stored comment only when the client sends criteriaRemark (non-null JSON field). */
+	private static void applyCriteriaRemarkUpdate(PerformanceRatingDTO dto, EmployeeRatingPerformance entity) {
+		if (dto == null || entity == null) {
+			return;
+		}
+		if (dto.getCriteriaRemark() != null) {
+			entity.setCriteriaRemark(normalizeCriteriaRemark(dto.getCriteriaRemark()));
+		}
+	}
 
 }

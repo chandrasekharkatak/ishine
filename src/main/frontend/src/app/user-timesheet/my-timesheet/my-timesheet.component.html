@@ -1,871 +1,115 @@
-<div class="row mb-3">
-    <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_timesheet"
-            [ngClass]="{'active' : isTimesheetForm && isCreation}"
-            (click)="resetTimesheetForm();showCreateTimesheetForm()">Create New
-            Timesheet</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-            *ngIf="userMapping.add_timesheet  && showBulkButtonFlag" [ngClass]="{'active' : isTimesheetBulkForm}"
-            (click)="resetTimesheetForm();showBulkUploadForm()">Bulk Final Document
-            Upload</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-            *ngIf="userMapping.view_my_timesheets || userMapping.update_timesheet"
-            [ngClass]="{'active' : isTimesheetTable}" (click)="resetTimesheetForm();showViewMyTimesheets()">View My
-            Timesheets</button>
+<div class="row mb-3 ml-2 mr-2">
+  <div class="col-md-12 px-0">
+    <div class="timesheet-actions">
+      <button
+        type="button"
+        class="action-btn"
+        *ngIf="userMapping.add_timesheet"
+        [class.active]="isTimesheetForm"
+        (click)="onFormTypeSelect('createTimesheet')"
+      >
+        <i class="fa fa-plus-circle me-1"></i>
+        Create Timesheet
+      </button>
+
+      <button
+        type="button"
+        class="action-btn"
+        *ngIf="userMapping.add_timesheet && clientIdNeeded"
+        [class.active]="isTimesheetBulkForm"
+        (click)="onFormTypeSelect('bulkUpload')"
+      >
+        <i class="fa fa-upload me-1"></i>
+        Bulk Upload
+      </button>
+
+      <button
+        type="button"
+        class="action-btn"
+        *ngIf="userMapping.view_my_timesheets || userMapping.update_timesheet"
+        [class.active]="isTimesheetTable"
+        (click)="onFormTypeSelect('viewMyTimesheet')"
+      >
+        <i class="fa fa-table me-1"></i>
+        My Timesheets
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<div class="row text-center mb-3">
+    <div class="card col-md-12 px-0 shadow-sm">
+        <div class="card-header timesheet-header">
+            <span *ngIf="isTimesheetForm && isCreation">
+                <i class="fa fa-edit me-2"></i> Create Timesheet
+            </span>
+
+            <span *ngIf="isTimesheetForm && isUpdation">
+                <i class="fa fa-edit me-2"></i> Update Timesheet
+            </span>
+
+            <span *ngIf="isTimesheetBulkForm">
+                <i class="fa fa-file-upload me-2"></i> Final Document Bulk Upload
+                <app-info-tooltip class="ms-2" iconBgColor="#127475" [size]="20"
+                    [content]="withVmsbullet"></app-info-tooltip>
+            </span>
+
+            <span *ngIf="isTimesheetTable">
+                <i class="fa fa-list-alt me-2"></i> My Timesheets
+            </span>
+
+            <button type="button" *ngIf="employeeInTNMProject && (isCreation || isUpdation)"
+                (click)="openPolicySidebar()" class="btn rules-btn" title="View Rules">
+                <i class="fa-solid fa-file-circle-question rules-i"></i>
+                <span>View Rules</span>
+            </button>
+        </div>
     </div>
 </div>
 
-<!-- start :: Create & Update Team -->
-<div class="row" *ngIf="isTimesheetForm">
+
+<!-- ============================================ -->
+<!-- END OF OLD TIMESHEET FORM (HIDDEN) -->
+<!-- ============================================ -->
+
+<!-- ============================================ -->
+<!-- CREATE TIMESHEET FORM -->
+<!-- ============================================ -->
+<div class="row" *ngIf="isTimesheetForm && isCreation">
     <div class="card col-md-12 px-0">
-        <div class="card-header text-center ">
-            <strong class="text-uppercase" *ngIf="isCreation">Create Timesheet</strong>
-            <strong class="text-uppercase" *ngIf="isUpdation">Update Timesheet</strong>
-            <app-info-tooltip *ngIf="isCreation && timesheetObj.projectId && projAlertRequireClientId === true"
-                class="me-2" style="margin-left: 8px;" iconBgColor="#A22C29" [size]="19" [content]="tooltipContent"
-                [pdfPath]="tooltipPdf" [pdfCtaText]="tooltipCta">
-            </app-info-tooltip>
-        </div>
         <div class="card-body">
-            <div class="card col-md-12 px-3">
-                <div class="row">
-                    <div class="col-md-4 mb-0">
-                        <div class="info-wrapper">
-                            <div class="row ml-1 mt-5">
-                                <h6><span class="text-danger">*</span>Timesheet Application For</h6>
-                            </div>
-                            <div class="form-group">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="leaveFor" id="forSelf"
-                                        value="self" [(ngModel)]="timesheetObj.timesheetAppliedFor"
-                                        [disabled]="isUpdation"
-                                        (change)="getAllTeamMemberList();getTimesheetMetadata();timesheetObj.isShadowTimesheet = false">
-                                    <label class="form-check-label" for="forSelf">Self</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="leaveFor" id="forSelfAsShadow"
-                                        value="asShadow" [(ngModel)]="timesheetObj.timesheetAppliedFor"
-                                        [disabled]="isUpdation"
-                                        (change)="resetTimesheetFormForAutoFill();timesheetObj.isShadowTimesheet = true">
-                                    <label class="form-check-label" for="forShadow">As Shadow</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="leaveFor" id="forTeamMember"
-                                        value="team" [(ngModel)]="timesheetObj.timesheetAppliedFor"
-                                        [disabled]="isUpdation"
-                                        (change)="resetTimesheetFormForAutoFill();getAllTeamMemberList();timesheetObj.isShadowTimesheet = false">
-                                    <label class="form-check-label" for="forTeamMember">Team member</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div *ngIf="this.timesheetObj.timesheetAppliedFor == 'team'" class="row">
-                    <div class="col-md-4 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label"><span class="text-danger">*</span>Team Member</label>
-                                <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.empId"
-                                    [ngModel]="timesheetObj.empId === currentUser.empId ? '' : timesheetObj.empId"
-                                    [disabled]="isUpdation" (change)="getTimesheetMetadata($event.target)">
-                                    <option selected="selected" value="" disabled>Select</option>
-                                    <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}"
-                                        [disabled]="teamMember.empId === currentUser.empId">
-                                        {{teamMember.name}}</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row" *ngIf="timesheetObj.timesheetAppliedFor">
-                    <div class="col-md-3 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label"><span class="text-danger">*</span>Day Type</label>
-                                <select class="form-control" id="dayTypeCursor" aria-hidden="true"
-                                    [(ngModel)]="timesheetObj.dayType" (change)="onDayTypeChange()">
-                                    <option selected="selected" value="" disabled>Select</option>
-                                    <option value="Working">Working</option>
-                                    <option value="Public Holiday">Public Holiday</option>
-                                    <option value="Client Holiday">Client Holiday</option>
-                                    <option value="Week Off">Week Off</option>
-                                    <option value="Comp Off">Comp Off</option>
-                                    <!-- <option value="Leave">Leave</option> -->
-                                    <option value="Non-working">Working on non-working day</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-0" *ngIf="!shadowForSelf">
-                        <div class="form-group">
-                            <label class="info-label" style="margin-bottom: 0rem;"
-                                *ngIf="!timesheetObj.isNightShift"><span class="text-danger">*</span>Date</label>
-                            <label class="info-label" style="margin-bottom: 0rem;"
-                                *ngIf="timesheetObj.isNightShift"><span class="text-danger">*</span>From Date</label>
-                            <mat-form-field style="display: contents;">
-                                <input matInput [matDatepicker]="picker"
-                                    [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
-                                    [(ngModel)]="fromDate" readonly (dateChange)="onFromDateChange()"
-                                    [disabled]="!timesheetObj.dayType" required />
-                                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                                <mat-datepicker #picker></mat-datepicker>
-                            </mat-form-field>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-0" *ngIf="!shadowForSelf && timesheetObj.isNightShift">
-                        <div class="form-group">
-                            <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>To
-                                Date</label>
-                            <mat-form-field style="display: contents;">
-                                <input matInput [matDatepicker]="picker"
-                                    [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetToDateFilter"
-                                    [(ngModel)]="toDate" readonly [min]="fromDate" [max]="maxToDate"
-                                    (dateChange)="makeApmosysInTime();makeApmosysOutTime();makeClientInTime();makeClientOutTime()"
-                                    [disabled]="!fromDate" required />
-                                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                                <mat-datepicker #picker></mat-datepicker>
-                            </mat-form-field>
-                        </div>
-                    </div>
-                    <div class="col-md-1 mb-0"
-                        *ngIf="timesheetObj.dayType !== 'Public Holiday' && timesheetObj.dayType !== 'Client Holiday' && timesheetObj.dayType !== 'Week Off' && timesheetObj.dayType !== 'Comp Off'">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label">Night Shift</label>
-                                <input class="form-control cell-checkbox" [(ngModel)]="timesheetObj.isNightShift"
-                                    (click)="openNightShiftTemplate(night_shift_template,$event)" type="checkbox" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row"
-                    *ngIf="timesheetObj.timesheetAppliedFor && timesheetObj.date && (timesheetObj.dayType == 'Working'  || timesheetObj.dayType == 'Non-working')">
-                    <div class="col-md-3 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label"><span class="text-danger">*</span>Project</label>
-                                <app-my-select #filterActiveProjects placeholder="Select Project" class="form-control"
-                                    [(ngModel)]="timesheetObj.projectId" [options]="activeProjectList"
-                                    displayKey="projectName" valueKey="projectId" [multiple]="false"
-                                    (selectionChange)="onProjectSelect(timesheetObj.projectId)">
-                                </app-my-select>
-                                <!-- <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
-                                    [displayMember]="'projectName'" [valueMember]="'projectId'"
-                                    [source]="activeProjectList" [useInfiniteScroll]="true"
-                                    (selectionChange)="onProjectSelect(timesheetObj.projectId)" [multiple]="false"
-                                    [(ngModel)]="timesheetObj.projectId">
-                                    <mat-option [value]="project.projectId"
-                                        *ngFor="let project of filterActiveProjects.filteredSource">
-                                        {{project.projectName}}
-                                    </mat-option>
-                                </mat-select> -->
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-0"
-                        *ngIf="timesheetObj.isShadowTimesheet == true || timesheetObj.timesheetAppliedFor == 'asShadow'">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label"><span class="text-danger">*</span>Shadow For</label>
-                                <app-my-select #filterShadowFor class="form-control" placeholder="Select Shadow For"
-                                    [(ngModel)]="timesheetObj.shadowEmpId" [options]="employeeList" displayKey="name"
-                                    valueKey="empId" [multiple]="false"
-                                    (selectionChange)="getClientSideIdByProjectIdAndEmpId(timesheetObj.projectId,timesheetObj.shadowEmpId)">
-                                </app-my-select>
-                                <!-- <mat-select ngxMatSelect class="form-control" #filterShadowFor="ngxMatSelect"
-                                    [displayMember]="'name'" [valueMember]="'empId'" [source]="employeeList"
-                                    [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="timesheetObj.shadowEmpId"
-                                    (selectionChange)="onShadowForChange(); getClientSideIdByProjectIdAndEmpId(timesheetObj.projectId,timesheetObj.shadowEmpId)">
-                                    <mat-option [value]="currentUser.empId">Self/Learning</mat-option>
-                                    <mat-option [value]="emp.empId" *ngFor="let emp of filterShadowFor.filteredSource">
-                                        {{emp.name}}
-                                    </mat-option>
-                                </mat-select> -->
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-0"
-                        *ngIf="(timesheetObj.projectId && !clientSideIdNotMandatory) || (isUpdation && timesheetObj.projectId && !clientSideIdNotMandatory)">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label">Client Side ID<span *ngIf="!clientSideIdNotMandatory"
-                                        class="clickable-icon" title="Update Client Side ID"
-                                        (click)="openSelfModal3(update_clientId)"><i
-                                            class="fa-solid fa-user-pen"></i></span></label>
-
-                                <input *ngIf="timesheetObj.timesheetAppliedFor != 'team'" class="form-control"
-                                    autocomplete="none" disabled [(ngModel)]="timesheetObj.clientSideId">
-                                <input *ngIf="timesheetObj.timesheetAppliedFor == 'team'" class="form-control"
-                                    autocomplete="none" disabled [(ngModel)]="empClientSideObj.clientSideId">
-                            </div>
-                        </div>
-                    </div>
-                    <!-- <div class="col-md-3 mb-0"
-                        *ngIf="timesheetObj.projectId && (!timesheetObj.hasClientSideId || clientSideIdNotMandatory)">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label">Employment ID</label>
-                                <input class="form-control" autocomplete="none" disabled
-                                    [(ngModel)]="timesheetObj.employmentId">
-                            </div>
-                        </div>
-                    </div> -->
-                    <div class="col-md-3 mb-0"
-                        *ngIf="timesheetObj.projectId && timesheetFillable && timesheetObj.hasClientSideId && !clientSideIdNotMandatory && docRequiredForShadow">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label">Client DSR Approval Status</label>
-                                <select class="form-control" aria-hidden="true"
-                                    [(ngModel)]="timesheetObj.clientApprovalStatus"
-                                    (change)="onClientApprovalStatusChange($event,noNotAppliedYet)"
-                                    aria-placeholder="Select">
-                                    <option selected="selected" value="" disabled>Select</option>
-                                    <option selected="selected" value="no">Not Filled</option>
-                                    <option selected="selected" value="pending">Filled</option>
-                                    <option selected="selected" value="approved">Approved</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
-            <!-- <div class="card col-md-12 px-3"
-                *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)">
-                <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'"
-                    class="row">
-                    <div class="col-md-3 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label"><span class="text-danger">*</span>Date</label>
-
-                                <div class="d-flex">
-                                    <input class="form-control" #input (focus)="timesheetDate.open()" matInput
-                                        id="timesheetDate" [matDatepicker]="timesheetDate"
-                                        [matDatepickerFilter]="timesheetDateFilter"
-                                        placeholder="Choose a timesheet date" [(ngModel)]="timesheetObj.date"
-                                        (keydown)="disableMannualDateInput()" autocomplete="off">
-                                    <mat-datepicker-toggle matSuffix [for]="timesheetDate"
-                                        style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
-                                </div>
-                                <mat-datepicker #timesheetDate (closed)="input.blur()"></mat-datepicker>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'"
-                    class="row">
-                    <div class="col-md-4 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label">Client DSR Approval Status</label>
-                                <select class="form-control" aria-hidden="true"
-                                    [(ngModel)]="timesheetObj.clientApprovalStatus"
-                                    (change)="onClientApprovalStatusChange($event,noNotAppliedYet)"
-                                    aria-placeholder="Select">
-                                    <option selected="selected" value="" disabled>Select</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="pending">Filled</option>
-                                    <option value="no">Not Filled</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div> -->
-
-            <div class="card col-md-12 px-3"
-                *ngIf="timesheetObj.projectId && timesheetFillable && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || !timesheetObj.hasClientSideId)">
-                <div class="row ml-1 mt-5">
-                    <h6><span class="text-danger">*</span>ApMoSys</h6>
-                </div>
-                <div class="row "
-                    *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || ! timesheetObj.hasClientSideId)">
-                    <div class="col-md-4 mb-0"
-                        *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory && (timesheetObj.clientApprovalStatus === 'approved' || timesheetObj.clientApprovalStatus === 'pending') && timesheetFillable">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label" style="min-width:250px"><span class="text-danger">*</span>
-                                    Filled Attendance Proof</label>
-                                <div class="d-flex align-items-center">
-                                    <input type="file" class="form-control form-control-sm"
-                                        accept=".pdf,.jpg,.jpeg,.png" (change)="onFileSelected($event,'doc1')"
-                                        style="max-width: 200px;">
-                                    <button class="btn btn-outline-primary btn-sm ms-2 p" title="Preview"
-                                        [disabled]="!previewUrl1" (click)="openPreviewModalForTwo('doc1')">
-                                        <i class="fa fa-eye fa-lg text-primary"></i>
-                                    </button>
-                                </div>
-                                <small class="errorMsg text-danger">{{fileError1}}</small>
-                                <small class="pl-2">{{fileName1}}</small>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- View Previous Doc Proof filledDocument-->
-                    <div class="col-md-6"
-                        *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory && (timesheetObj.clientApprovalStatus === 'approved' || timesheetObj.clientApprovalStatus === 'pending') && timesheetFillable && isUpdation && timesheetObj.filledDocument">
-                        <div class="info-wrapper">
-                            <label class="info-label">View Previous Filled Doc Proof</label>
-                            <div class="d-flex align-items-center">
-                                <button *ngIf="timesheetObj.filledDocument" class="btn btn-sm btn-outline-primary"
-                                    (click)="getDoscForPreview(timesheetObj.filledDocument)">
-                                    <em>View Doc</em>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-0"
-                        *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory && timesheetObj.clientApprovalStatus === 'approved' ">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label" style="min-width:250px"><span class="text-danger">*</span>
-                                    Approved Attendance Proof</label>
-                                <div class="d-flex align-items-center">
-                                    <input type="file" class="form-control form-control-sm"
-                                        accept=".pdf,.jpg,.jpeg,.png" (change)="onFileSelected($event,'doc2')"
-                                        style="max-width: 200px;">
-                                    <button class="btn btn-outline-primary btn-sm ms-2 p" title="Preview"
-                                        [disabled]="!previewUrl2" (click)="openPreviewModalForTwo('doc2')">
-                                        <i class="fa fa-eye fa-lg text-primary"></i>
-                                    </button>
-                                </div>
-                                <small class="errorMsg text-danger">{{fileError2}}</small>
-                                <small class="pl-2">{{fileName2}}</small>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- View Previous Doc Proof approvedDocument-->
-                    <div class="col-md-6"
-                        *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory && timesheetObj.clientApprovalStatus === 'approved' && isUpdation && timesheetObj.approvedDocument">
-                        <div class="info-wrapper">
-                            <label class="info-label">View Previous Approved Doc Proof</label>
-                            <div class="d-flex align-items-center">
-                                <button *ngIf="timesheetObj.approvedDocument" class="btn btn-sm btn-outline-primary"
-                                    (click)="getDoscForPreview(timesheetObj.approvedDocument)">
-                                    <em>View Doc</em>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- ApMoSys IN/OUT Time-->
-                <div *ngIf="timesheetFillable" class="row gy-3 align-items-center justify-content-between">
-                    <!-- In Time -->
-                    <div class="col-sm-6 col-md-4 col-lg-3 mb-1">
-                        <div class="info-wrapper">
-                            <label class="info-label" style="margin-bottom: 1px;"><span class="text-danger">*</span>In
-                                Time</label>
-                            <div class="d-flex flex-nowrap gap-2 align-items-center">
-                                <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
-                                    <mat-select [(ngModel)]="selectedInHour" (selectionChange)="makeApmosysInTime()">
-                                        <mat-option *ngFor="let hour of hours" [value]="hour">{{ hour }}</mat-option>
-                                    </mat-select>
-                                </mat-form-field>
-
-                                <span class="align-self-center">:</span>
-
-                                <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
-                                    <mat-select [(ngModel)]="selectedInMinute" (selectionChange)="makeApmosysInTime()">
-                                        <mat-option *ngFor="let minute of minutes" [value]="minute">{{ minute
-                                            }}</mat-option>
-                                    </mat-select>
-                                </mat-form-field>
-
-                                <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
-                                    <mat-select [(ngModel)]="selectedInPeriod" (selectionChange)="makeApmosysInTime()">
-                                        <mat-option *ngFor="let period of periods" [value]="period">{{ period
-                                            }}</mat-option>
-                                    </mat-select>
-                                </mat-form-field>
-                            </div>
-                            <!-- <p *ngIf="timesheetObj.officeInTime" class="mt-1 mb-0 small text-primary">
-                                <strong>In Time:</strong> {{ timesheetObj.officeInTime | date: 'hh:mm a' }}
-                            </p> -->
-                        </div>
-                    </div>
-
-                    <!-- Out Time -->
-                    <div class="col-sm-6 col-md-4 col-lg-3 mb-1">
-                        <div class="info-wrapper">
-                            <label class="info-label" style="margin-bottom: 1px;"><span class="text-danger">*</span>Out
-                                Time</label>
-                            <div class="d-flex flex-nowrap gap-2 align-items-center">
-                                <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
-                                    <mat-select [(ngModel)]="selectedOutHour" (selectionChange)="makeApmosysOutTime()">
-                                        <mat-option *ngFor="let hour of hours" [value]="hour">{{ hour }}</mat-option>
-                                    </mat-select>
-                                </mat-form-field>
-
-                                <span>:</span>
-
-                                <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
-                                    <mat-select [(ngModel)]="selectedOutMinute"
-                                        (selectionChange)="makeApmosysOutTime()">
-                                        <mat-option *ngFor="let minute of minutes" [value]="minute">{{ minute
-                                            }}</mat-option>
-                                    </mat-select>
-                                </mat-form-field>
-
-                                <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
-                                    <mat-select [(ngModel)]="selectedOutPeriod"
-                                        (selectionChange)="makeApmosysOutTime()">
-                                        <mat-option *ngFor="let period of periods" [value]="period">{{ period
-                                            }}</mat-option>
-                                    </mat-select>
-                                </mat-form-field>
-                            </div>
-                            <!-- <p *ngIf="timesheetObj.officeOutTime" class="mt-1 mb-0 small text-primary">
-                                <strong>Out Time:</strong> {{ timesheetObj.officeOutTime | date: 'hh:mm a' }}
-                            </p> -->
-                        </div>
-                    </div>
-
-                    <!-- Total Working Hours -->
-                    <div class="col-sm-6 col-md-4 col-lg-3 mb-1">
-                        <div class="info-wrapper">
-                            <label class="info-label">Total Working Hours</label>
-                            <mat-form-field appearance="fill">
-                                <input matInput [(ngModel)]="timesheetObj.totalWorkingOfficeHours" disabled />
-                            </mat-form-field>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-            <div class="card col-md-12 px-3"
-                *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || !timesheetObj.hasClientSideId)">
-                <div *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory">
-
-                    <div class="form-check my-3" *ngIf="timesheetFillable">
-                        <input type="checkbox" class="form-check-input" id="syncTimes" [(ngModel)]="syncTimes"
-                            (change)="onSyncToggle()" />
-                        <label class="form-check-label" for="syncTimes">
-                            Same as ApMoSys In-time and Out-time
-                        </label>
-                    </div>
-
-                    <div class="row ml-1 mt-5" *ngIf="timesheetFillable">
-                        <h6><span class="text-danger">*</span>Client Side</h6>
-                        <small class="text-muted ml-1">(Ensure that the Client Side in-time and out-time align with the
-                            timings in the Client Side Attendance proof)</small>
-                    </div>
-                    <!-- Client Side IN/OUT Time-->
-                    <div *ngIf="timesheetFillable" class="row gy-3 align-items-center justify-content-between">
-
-                        <!-- In Time -->
-                        <div class="col-sm-6 col-md-4 col-lg-3 mb-1">
-                            <div class="info-wrapper">
-                                <label class="info-label mb-1"><span class="text-danger">*</span>In Time</label>
-                                <div class="d-flex flex-nowrap gap-2 align-items-center">
-                                    <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
-                                        <mat-select [(ngModel)]="selectedClientInHour"
-                                            (selectionChange)="makeClientInTime()">
-                                            <mat-option *ngFor="let hour of hours" [value]="hour">{{ hour
-                                                }}</mat-option>
-                                        </mat-select>
-                                    </mat-form-field>
-
-                                    <span>:</span>
-
-                                    <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
-                                        <mat-select [(ngModel)]="selectedClientInMinute"
-                                            (selectionChange)="makeClientInTime()">
-                                            <mat-option *ngFor="let minute of minutes" [value]="minute">{{ minute
-                                                }}</mat-option>
-                                        </mat-select>
-                                    </mat-form-field>
-
-                                    <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
-                                        <mat-select [(ngModel)]="selectedClientInPeriod"
-                                            (selectionChange)="makeClientInTime()">
-                                            <mat-option *ngFor="let period of periods" [value]="period">{{ period
-                                                }}</mat-option>
-                                        </mat-select>
-                                    </mat-form-field>
-                                </div>
-
-                                <!-- <p *ngIf="timesheetObj.clientInTime" class="mt-1 mb-0 small text-primary">
-                                    <strong>In Time:</strong> {{ timesheetObj.clientInTime | date:'hh:mm a' }}
-                                </p> -->
-                            </div>
-                        </div>
-
-                        <!-- Out Time -->
-                        <div class="col-sm-6 col-md-4 col-lg-3 mb-1">
-                            <div class="info-wrapper">
-                                <label class="info-label mb-1"><span class="text-danger">*</span>Out Time</label>
-                                <div class="d-flex flex-nowrap gap-2 align-items-center">
-                                    <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
-                                        <mat-select [(ngModel)]="selectedClientOutHour"
-                                            (selectionChange)="makeClientOutTime()">
-                                            <mat-option *ngFor="let hour of hours" [value]="hour">{{ hour
-                                                }}</mat-option>
-                                        </mat-select>
-                                    </mat-form-field>
-
-                                    <span>:</span>
-
-                                    <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
-                                        <mat-select [(ngModel)]="selectedClientOutMinute"
-                                            (selectionChange)="makeClientOutTime()">
-                                            <mat-option *ngFor="let minute of minutes" [value]="minute">{{ minute
-                                                }}</mat-option>
-                                        </mat-select>
-                                    </mat-form-field>
-
-                                    <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
-                                        <mat-select [(ngModel)]="selectedClientOutPeriod"
-                                            (selectionChange)="makeClientOutTime()">
-                                            <mat-option *ngFor="let period of periods" [value]="period">{{ period
-                                                }}</mat-option>
-                                        </mat-select>
-                                    </mat-form-field>
-                                </div>
-
-                                <!-- <p *ngIf="timesheetObj.clientOutTime" class="mt-1 mb-0 small text-primary">
-                                    <strong>Out Time:</strong> {{ timesheetObj.clientOutTime | date:'hh:mm a' }}
-                                </p> -->
-                            </div>
-                        </div>
-
-                        <!-- Total Working Hours -->
-                        <div class="col-sm-6 col-md-4 col-lg-3 mb-1">
-                            <div class="info-wrapper">
-                                <label class="info-label">Total Working Hours</label>
-                                <mat-form-field appearance="fill">
-                                    <input matInput [(ngModel)]="timesheetObj.totalClientWorkingHours" disabled />
-                                </mat-form-field>
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
-            </div>
-            <!-- <div class="card col-md-12 px-3" *ngIf="timesheetObj.projectId && !timesheetFillable &&((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)"> -->
-            <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
-            <!-- <div *ngIf="timesheetFillable" class="row">
-                    <div class="col-md-3 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label"><span class="text-danger">*</span>Date</label>
-
-                                <div class="d-flex">
-                                    <input class="form-control" #input (focus)="timesheetDate.open()" matInput
-                                        id="timesheetDate" [matDatepicker]="timesheetDate"
-                                        [matDatepickerFilter]="timesheetDateFilter" placeholder="Choose a timesheet date"
-                                        [(ngModel)]="timesheetObj.date" (keydown)="disableMannualDateInput()"
-                                        autocomplete="off">
-                                    <mat-datepicker-toggle matSuffix [for]="timesheetDate" style="margin-left: -44px; margin-top: 0px;"></mat-datepicker-toggle>
-                                </div>
-                                <mat-datepicker #timesheetDate (closed)="input.blur()"></mat-datepicker>
-                            </div>
-                        </div>
-                    </div>
-                </div> -->
-            <!-- <div *ngIf="!timesheetFillable" class="row">
-                    <div class="col-md-4 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
-                                <textarea class="form-control" id="dayTypeDesc" rows="3"
-                                    [(ngModel)]="timesheetObj.description"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
-
-            <div class="card col-md-12 px-3"
-                *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' || (!timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null)) || clientSideIdNotMandatory || timesheetObj.isShadowTimesheet)">
-                <!-- Add & Update Activities -->
-                <div class="container-fluid px-0"
-                    *ngIf="timesheetObj.projectId  && timesheetFillable && ((timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || timesheetObj.isShadowTimesheet || clientSideIdNotMandatory)">
-                    <div class="row ml-1 mt-5">
-                        <h6>Activities</h6>
-                    </div>
-                    <div *ngFor="let activityObj of allTimesheetActivities; let i = index" class="row">
-                        <div class="col-md-12">
-                            <div class="row">
-                                <div class="col-md-3 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Client
-                                                Name</label>
-                                            <!-- <mat-select ngxMatSelect class="form-control" #clientDetails="ngxMatSelect"
-                                                [displayMember]="'clientDetails'" [valueMember]="'clientId'"
-                                                [source]="clientDropdownList" [(ngModel)]="activityObj.clientId"
-                                                (selectionChange)="onClientChange(activityObj)" [multiple]="false">
-
-                                                <mat-option *ngFor="let client of clientDetails.filteredSource"
-                                                    [value]="client.clientId">
-                                                    {{ client.clientName }}
-                                                </mat-option>
-
-                                            </mat-select> -->
-                                            <app-my-select #clientDetails class="form-control"
-                                                placeholder="Select Client" [(ngModel)]="activityObj.clientId"
-                                                [options]="clientDropdownList" displayKey="clientName"
-                                                valueKey="clientId" [multiple]="false"
-                                                (selectionChange)="onClientChange(activityObj)"
-                                                (closed)="validateClientName($event,activityObj.clientId)">
-                                            </app-my-select>
-                                            <!-- <mat-select ngxMatSelect class="form-control" #clientName="ngxMatSelect" [displayMember]="'clientName'"
-                                                [valueMember]="'clientId'" [source]="clientList"
-                                                (selectionChange)="getClientLocationList(activityObj)"
-                                                (closed)="validateClientName($event,activityObj.clientId)"
-                                                [(ngModel)]="activityObj.clientId" [useInfiniteScroll]="true"
-                                                [multiple]="false">
-                                                <ng-container *ngFor="let client of clientName.filteredSource">
-                                                    <mat-option *ngIf="client.projectId === timesheetObj.projectId"
-                                                        [value]="client.clientId">
-                                                        {{ client.clientName }}
-                                                    </mat-option>
-                                                </ng-container>
-                                            </mat-select> -->
-                                            <!-- [min]="minDate" [max]="maxDate"
-                                                         <select class="form-control" aria-hidden="true"
-                                                                                            [(ngModel)]="activityObj.clientId" (blur)="validateClientName($event,activityObj.clientId)"
-                                                                                            (change)="getClientLocationList(activityObj);" >
-                                                                                            <option selected="selected" value="" disabled>Select</option>
-                                                                                            <option *ngFor="let client of clientList" value="{{client.clientId}}" >
-                                                                                                {{client.clientName}}</option>
-                                                                                        </select> -->
-                                            <small class="errorMsg text-danger"></small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Client
-                                                Location</label>
-                                            <app-my-select #clientLocation class="form-control"
-                                                placeholder="Select Client Location"
-                                                [(ngModel)]="activityObj.clientLocationId"
-                                                [options]="activityObj.clientLocationList" displayKey="clientLocation"
-                                                valueKey="clientLocationId" [multiple]="false"
-                                                (selectionChange)="getProjectList(activityObj)"
-                                                (closed)="validateClientLocation($event,activityObj.clientLocationId)">
-                                            </app-my-select>
-                                            <!-- <mat-select ngxMatSelect class="form-control" #clientLocation="ngxMatSelect"
-                                                [displayMember]="'clientLocation'" [valueMember]="'clientLocationId'"
-                                                [source]="activityObj.clientLocationList"
-                                                [(ngModel)]="activityObj.clientLocationId"
-                                                (selectionChange)="getProjectList(activityObj)" [multiple]="false">
-
-                                                <mat-option *ngFor="let loc of clientLocation.filteredSource"
-                                                    [value]="loc.clientLocationId">
-                                                    {{ loc.clientLocation }}
-                                                </mat-option>
-
-                                            </mat-select>
-
-                                            </mat-select> -->
-                                            <!-- <select class="form-control" aria-hidden="true"
-                                                [(ngModel)]="activityObj.clientLocationId" (blur)="validateClientLocation($event,activityObj.clientLocationId)"
-                                                (change)="getProjectList(activityObj);">
-                                                <option selected="selected" value="" disabled>Select</option>
-                                                <option *ngFor="let clientLocation of activityObj.clientLocationList"
-                                                    value="{{clientLocation.clientLocationId}}">
-                                                    {{clientLocation.clientLocation}}</option>
-                                            </select> -->
-                                            <small class="errorMsg text-danger"></small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-5 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Team
-                                                Name</label>
-                                            <app-my-select #teamName class="form-control" placeholder="Select Team"
-                                                [(ngModel)]="activityObj.teamId" [options]="activityObj.projectList"
-                                                displayKey="displayTeam" valueKey="teamId" [multiple]="false"
-                                                (selectionChange)="getAllActivitiesByProjectIdandEmpId(activityObj)">
-                                            </app-my-select>
-                                            <!-- <mat-select ngxMatSelect class="form-control" id="dayTypeCursor"
-                                                #teamName="ngxMatSelect" [displayMember]="'c'"
-                                                [valueMember]="'teamId'" [source]="activityObj.projectList"
-                                                [useInfiniteScroll]="true"
-                                                (selectionChange)="getAllActivitiesByProjectIdandEmpId(activityObj, $event)
-                                                [multiple]="false" [(ngModel)]="activityObj.teamId">
-                                                <mat-option [value]="project.teamId"
-                                                    *ngFor="let project of teamName.filteredSource">
-                                                    {{project.displayTeam}}
-                                                </mat-option>
-                                            </mat-select> -->
-                                            <!-- <select class="form-control" aria-hidden="true"
-                                                [(ngModel)]="activityObj.teamId"
-                                                (change)="getAllActivitiesByProjectIdandEmpId(activityObj);">
-                                                <option selected="selected" value="" disabled>Select</option>
-                                                <option *ngFor="let project of activityObj.projectList"
-                                                    value="{{project.teamId}}">{{project.projectName}} | {{project.teamName}}</option>
-                                            </select> -->
-                                            <small class="errorMsg text-danger"></small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-3 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Activity</label>
-                                            <select class="form-control" aria-hidden="true" id="dayTypeCursor"
-                                                [(ngModel)]="activityObj.activityId"
-                                                (blur)="validateActivity($event,activityObj.activityId)"
-                                                (change)="setActivity(activityObj)">
-                                                <option selected="selected" value="" disabled>Select</option>
-                                                <option *ngFor="let activity of activityObj.projectActivities"
-                                                    value="{{activity.activityId}}">{{activity.activity}}</option>
-                                            </select>
-                                            <!-- <pre>{{ activityObj.projectActivities | json }}</pre> -->
-                                            <small class="errorMsg text-danger"></small>
-
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label for="leaveDesc">Description</label>
-                                            <textarea class="form-control" id="dayTypeDesc" rows="1"
-                                                [(ngModel)]="activityObj.description"
-                                                (input)="validateDescription($event,activityObj)"></textarea>
-                                            <small class="errorMsg text-danger"></small>
-
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-1 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Time
-                                                <small>(hrs)</small></label>
-                                            <input type="number" step="any" class="form-control" autocomplete="none"
-                                                [(ngModel)]="activityObj.completionTime"
-                                                (blur)="validateTime($event,activityObj.completionTime)"
-                                                (keypress)="omit_special_char($event)" (wheel)="preventScroll($event)">
-
-                                            <small class="errorMsg text-danger"></small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-1 d-flex">
-                                    <div class="m-0 mt-4 pt-2">
-                                        <button type="button" class="btn btn-sm btn-outline-primary mx-1"
-                                            (click)="addInputActivityField(activityObj)"
-                                            [disabled]="(allTimesheetActivities.length > 1 && i !== allTimesheetActivities.length-1) || (activityObj.activityId == null || activityObj.activityId == '')"><i
-                                                class="fa fa-plus" aria-hidden="true"></i></button>
-                                        <button *ngIf="i != 0" type="button" class="btn btn-sm btn-outline-primary mx-1"
-                                            (click)="removeInputActivityField(activityObj)"><i class="fa fa-trash"
-                                                aria-hidden="true"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- end :: Add & Update Activities -->
-                <div class="row mt-3">
-                    <div class="col-md-12" style="padding-bottom: 1.5rem;">
-                        <button *ngIf="isCreation && userMapping.add_timesheet && timesheetObj.dayType" type="submit"
-                            class="btn btn-primary btn-sm mx-1" [disabled]="disableCreateUpdateTimesheet"
-                            (click)="onCreateTimesheet(alert_message)">Create
-                            Timesheet</button>
-                        <button *ngIf="isUpdation && userMapping.update_timesheet && timesheetObj.dayType" type="submit"
-                            class="btn btn-primary btn-sm mx-1"
-                            (click)="openUpdateConfimationModal(update_timesheet_template)">Update Timesheet</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card col-md-12 px-3" *ngIf="!timesheetFillable">
-                <div class="row">
-                    <div class="col-md-4 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
-                                <textarea class="form-control" id="dayTypeDesc" rows="3"
-                                    [(ngModel)]="timesheetObj.description"
-                                    (input)="validateDescription($event,timesheetObj.description)"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- end :: Add & Update Activities -->
-                <div class="row mt-3">
-                    <div class="col-md-12" style="padding-bottom: 1.5rem;">
-                        <button *ngIf="isCreation && userMapping.add_timesheet && timesheetObj.dayType" type="submit"
-                            class="btn btn-primary btn-sm mx-1" [disabled]="disableCreateUpdateTimesheet"
-                            (click)="onCreateTimesheet(alert_message)">Create
-                            Timesheet</button>
-                        <button *ngIf="isUpdation && userMapping.update_timesheet && timesheetObj.dayType" type="submit"
-                            class="btn btn-primary btn-sm mx-1"
-                            (click)="openUpdateConfimationModal(update_timesheet_template)">Update Timesheet</button>
-                    </div>
-                </div>
-            </div>
+            <app-timesheet-form
+                [isCreation]="true"
+                [isUpdation]="false"
+                [selectedDate]="selectedDate"
+                [autoFillEmpId]="selectedEmpIdForCreate"
+                [timesheetId]="null"
+                (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets(); loadTimesheetSummary()"
+                (timesheetUpdated)="onTimesheetUpdated($event)"
+                >
+            </app-timesheet-form>
         </div>
     </div>
+</div>
 
-    <!-- <div *ngIf="employeeInTNMProject">
-        <div class="tnm-rules-wrapper">
-            <button type="button" (click)="openPolicySidebar()" class="tnm-rules" title="View Rules">
-                <div class="tnm-rules-inner">
-                    <img src="assets/Images/transcDragRules.gif" />
-                </div>
-                <span class="rules-label">
-                    <<<< Click To View Rules </span>
-            </button>
-
-            <div class="help-manual-wrapper">
-
-                <span><img src="assets/Images/eye25.gif" /></span>
-                <span class="help-manual-text"> Need help filling the form?</span>
-                <button type="button" (click)="openUserManualPdf()" class="help-manual-btn" title="View User Manual">
-                    <svg class="document-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="12" y1="11" x2="12" y2="17"></line>
-                        <line x1="9" y1="14" x2="15" y2="14"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </div> -->
-
-
-    <div *ngIf="employeeInTNMProject">
-        <div class="tnm-rules-wrapper">
-
-            <button type="button" (click)="openPolicySidebar()" class="tnm-rules" title="View Rules">
-                <div class="tnm-rules-inner">
-                    <img src="assets/Images/transcDragRules.gif" />
-                </div>
-                <span class="rules-label">
-                    <<< Click To View Rules</span>
-            </button>
-
-            <!-- <div class="help-manual-wrapper" *ngIf="!isPolicySidebarOpen">
-                <img src="assets/Images/eye25.gif" />
-                <span class="help-manual-text">Need help filling the form?</span>
-
-                <button type="button" (click)="openUserManualPdf()" class="help-manual-btn" title="View User Manual">
-                    <svg class="document-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="12" y1="11" x2="12" y2="17"></line>
-                        <line x1="9" y1="14" x2="15" y2="14"></line>
-                    </svg>
-                </button>
-            </div> -->
-
-
+<!-- OLD UPDATE FORM - KEEP FOR NOW (can be replaced later) -->
+<div class="row" *ngIf="isTimesheetForm && isUpdation">
+    <div class="card col-md-12 px-0">
+        <div class="card-body">
+            <app-timesheet-form
+                [isCreation]="false"
+                [isUpdation]="true"
+                [selectedDate]="selectedDate"
+                [timesheetId]="selectedTimesheetId"
+                (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets(); loadTimesheetSummary()"
+                (timesheetUpdated)="onTimesheetUpdated($event)"
+               >
+            </app-timesheet-form>
         </div>
     </div>
+</div>
+
 
 
     <div class="policy-sidebar" [class.open]="isPolicySidebarOpen">
@@ -1064,7 +308,7 @@
                                 <div class="step-content">
                                     <strong>Verification</strong>
                                     <p>Please note that the Client Side ID is now mandatory for all TNM employees. If
-                                        any TNM team member does not have a Client Side ID, kindly use their Apmosys ID
+                                        any TNM team member does not have a Client Side ID, kindly use their ApMoSys ID
                                         instead.For teams without access to a client attendance system, please maintain
                                         the timesheet in Excel and attach an image as evidence.
                                         Client SPOC approves correctness.
@@ -1092,406 +336,537 @@
             </div>
         </div>
     </div>
-</div>
+
 <!-- end :: create & update Team -->
 
 <!-- start :: View Timesheets -->
 <div class="row" *ngIf="isTimesheetTable">
     <div class="col-md-12">
-        <div class="row">
-            <div class="col-md-12 table-header">
-                <h1 class="table-header-title">My Timesheets</h1>
+        <!-- Filters: date range + Self/Team at top -->
+        <div class="filter-bar mb-3">
+            <div class="row align-items-end">
+                <div class="col-auto">
+                    <label class="filter-group-label">Date range</label>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary"
+                            [ngClass]="{'active': dateRangeType === 'currentMonth'}"
+                            (click)="dateRangeType = 'currentMonth'; applyDateRangeTypeAndLoad()">Current month</button>
+                        <button type="button" class="btn btn-outline-primary"
+                            [ngClass]="{'active': dateRangeType === 'previousMonth'}"
+                            (click)="dateRangeType = 'previousMonth'; applyDateRangeTypeAndLoad()">Previous month</button>
+                        <button type="button" class="btn btn-outline-primary"
+                            [ngClass]="{'active': dateRangeType === 'custom'}"
+                            (click)="switchToCustomDateRange()">Custom</button>
+                    </div>
+                </div>
+                <div class="col-auto ml-3">
+                    <label class="filter-group-label">View</label>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary"
+                            [ngClass]="{'active': isSelfTimesheets}" (click)="showSelfTimesheets()">Self</button>
+                        <button type="button" class="btn btn-outline-primary"
+                            [ngClass]="{'active': isTeamTimesheets}" (click)="showTeamTimesheets()">For Team</button>
+                    </div>
+                </div>
+                <ng-container *ngIf="dateRangeType === 'custom'">
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label class="info-label"><span class="text-danger">*</span>Start Date</label>
+                            <input [max]="today" id="timesheetStartDate" type="date" OnClick="this.showPicker()"
+                                class="form-control form-control-sm" autocomplete="none" [(ngModel)]="startDate"
+                                (change)="isSelfTimesheets ? getAllMyTimesheetsByEmpId(alert_message) : getMyTeamTimesheets(alert_message)"
+                                (keydown)="disableMannualDateInput()">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label class="info-label"><span class="text-danger">*</span>End Date</label>
+                            <input id="timesheetEndDate" [max]="today" type="date" OnClick="this.showPicker()"
+                                class="form-control form-control-sm" autocomplete="none" [(ngModel)]="endDate"
+                                (change)="isSelfTimesheets ? getAllMyTimesheetsByEmpId(alert_message) : getMyTeamTimesheets(alert_message)"
+                                (keydown)="disableMannualDateInput()">
+                        </div>
+                    </div>
+                </ng-container>
             </div>
-
         </div>
-        <div class="row">
-            <div class="col-md-12">
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-                    [ngClass]="{'active' : isSelfTimesheets}" (click)="showSelfTimesheets()">Self</button>
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-                    [ngClass]="{'active' : isTeamTimesheets}" (click)="showTeamTimesheets()">For Team</button>
+
+        <!-- Summary mini-dashboard -->
+        <div class="summary-dashboard mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="summary-title mb-0">Timesheet Summary</h5>
+                <small class="text-muted d-none d-md-inline">
+                    Snapshot by day type and status for selected dates
+                </small>
+            </div>
+            <div class="summary-card-grid">
+                <!-- Card 1: Day type wise summary -->
+                <div class="summary-card summary-card--daytype">
+                    <div class="summary-card-left">
+                        <div class="summary-card-top">
+                            <div class="summary-card-label">Day Type Summary</div>
+                            <div class="summary-card-value">
+                                {{
+                                    dayTypeSummary.working
+                                    + dayTypeSummary.leave
+                                    + dayTypeSummary.holidayOrWeekoff
+                                    + dayTypeSummary.others
+                                }}
+                                <span class="summary-card-value-suffix">days</span>
+                            </div>
+                        </div>
+
+                        <div class="summary-metric-grid">
+                            <div class="summary-metric summary-metric--working">
+                                <div class="summary-metric-label">Working</div>
+                                <div class="summary-metric-value">{{ dayTypeSummary.working }}</div>
+                            </div>
+                            <div class="summary-metric summary-metric--leave">
+                                <div class="summary-metric-label">Leave</div>
+                                <div class="summary-metric-value">{{ dayTypeSummary.leave }}</div>
+                            </div>
+                            <div class="summary-metric summary-metric--holiday">
+                                <div class="summary-metric-label">Week Off / Holiday</div>
+                                <div class="summary-metric-value">{{ dayTypeSummary.holidayOrWeekoff }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="summary-card-icon">
+                        <i class="fa fa-calendar-day"></i>
+                    </div>
+                </div>
+
+                <!-- Card 2: Status wise summary -->
+                <div class="summary-card summary-card--status">
+                    <div class="summary-card-left">
+                        <div class="summary-card-top">
+                            <div class="summary-card-label">Status Summary</div>
+                            <div class="summary-card-value">
+                                {{
+                                    statusSummary.pending
+                                    + statusSummary.approved
+                                    + statusSummary.rejected
+                                    + statusSummary.others
+                                }}
+                                <span class="summary-card-value-suffix">entries</span>
+                            </div>
+                        </div>
+
+                        <div class="summary-metric-grid">
+                            <div class="summary-metric summary-metric--approved">
+                                <div class="summary-metric-label">Approved</div>
+                                <div class="summary-metric-value">{{ statusSummary.approved }}</div>
+                            </div>
+                            <div class="summary-metric summary-metric--pending">
+                                <div class="summary-metric-label">Pending</div>
+                                <div class="summary-metric-value">{{ statusSummary.pending }}</div>
+                            </div>
+                            <div class="summary-metric summary-metric--rejected">
+                                <div class="summary-metric-label">Rejected</div>
+                                <div class="summary-metric-value">{{ statusSummary.rejected }}</div>
+                            </div>
+                            <div class="summary-metric summary-metric--other" *ngIf="statusSummary.others > 0">
+                                <div class="summary-metric-label">Others</div>
+                                <div class="summary-metric-value">{{ statusSummary.others }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="summary-card-icon">
+                        <i class="fa fa-clipboard-check"></i>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="row">
-            <!-- For Self -->
-            <div *ngIf="isSelfTimesheets" class="col-md-4">
-                <div class="info-wrapper">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                        <input [max]="today" id="timesheetStartDate" type="date" OnClick="this.showPicker()"
-                            class="form-control" autocomplete="none" [(ngModel)]="startDate"
-                            (change)="getAllMyTimesheetsByEmpId(alert_message)" (keydown)="disableMannualDateInput()">
-                    </div>
-                </div>
-            </div>
 
-            <div *ngIf="isSelfTimesheets" class="col-md-4">
-                <div class="info-wrapper">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                        <input id="timesheetEndDate" [max]="today" type="date" OnClick="this.showPicker()"
-                            class="form-control" autocomplete="none" [(ngModel)]="endDate"
-                            (change)="getAllMyTimesheetsByEmpId(alert_message)" (keydown)="disableMannualDateInput()">
-                    </div>
-                </div>
-            </div>
-            <!-- For Team -->
-            <div *ngIf="isTeamTimesheets" class="col-md-4">
-                <div class="info-wrapper">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                        <input id="timesheetStartDate" [max]="today" type="date" OnClick="this.showPicker()"
-                            class="form-control" autocomplete="none" [(ngModel)]="startDate"
-                            (change)="getMyTeamTimesheets(alert_message)" (keydown)="disableMannualDateInput()">
-                    </div>
-                </div>
-            </div>
+      <div class="ts-table-wrapper">
 
-            <div *ngIf="isTeamTimesheets" class="col-md-4">
-                <div class="info-wrapper">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                        <input id="timesheetEndDate" [max]="today" type="date" OnClick="this.showPicker()"
-                            class="form-control" autocomplete="none" [(ngModel)]="endDate"
-                            (change)="getMyTeamTimesheets(alert_message)" (keydown)="disableMannualDateInput()">
-                    </div>
-                </div>
-            </div>
-            <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
-                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
-            </div> -->
+        <!-- Toolbar -->
+        <div class="ts-toolbar">
+          <a class="ts-search-toggle" href="javascript:void(0)" (click)="toggleSearch()"
+            [title]="isSearchEnabled ? 'Close search' : 'Search'">
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+          <button type="button" class="ts-export-btn" [hidden]="allMyTimesheets.length == 0" (click)="exportToExcel()"
+            title="Export to Excel">
+            <i class="fa fa-file-arrow-down"></i>
+            <span>Export</span>
+          </button>
         </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="selector-toggle">
-                    <a href="javascript:void(0)" (click)="toggleSearch()">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-                    </a>
-                </div>
-                <div class="export-button">
-                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-                        [hidden]="allMyTimesheets.length == 0" (click)="exportToExcel()"><em
-                            class="fa fa-file-arrow-down fa-2x"></em></button>
-                </div>
-                <!-- bassHorizontalScroll [tableId]="'myTimesheetInfo'"
-                    [tableTHeadId]="'myTimesheetInfoTHead'" [tableTHeadTrId]="'myTimesheetInfoTHeadTr'" -->
-                <div class="overflow-auto">
-                    <table class="table " id="myTimesheetInfo" matSort (matSortChange)="sortData($event)">
-                        <thead class="thead-light" id="myTimesheetInfoTHead">
-                            <tr id="myTimesheetInfoTHeadTr">
-                                <th scope="col" class="info-label">Sr No.</th>
-                                <th *ngIf="isTeamTimesheets" scope="col" class="info-label column-md"
-                                    mat-sort-header="employeeName|string">Name</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="date|date">Date</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="dayType|string">Day
-                                    Type
-                                </th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="officeInTime|datetime">In
-                                    Time</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="officeOutTime|datetime">
-                                    Out Time</th>
-                                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">
-                                    Total Working Hours</th>
-                                <th scope="col" style="min-width: 250px;" class="info-label column-md"
-                                    mat-sort-header="projectName|string">Project Name</th>
-                                <th scope="col" style="min-width: 250px;" class="info-label column-md"
-                                    mat-sort-header="description|string">Activity</th>
-                                <th scope="col" colspan="info-label" class="info-label"
-                                    mat-sort-header="totalTime|number">Total Activity Time</th>
-                                <th scope="col" class="info-label" style="min-width:150px"
-                                    mat-sort-header="clientInTime|datetime">Client Office In Time
-                                </th>
-                                <th scope="col" class="info-label" style="min-width:150px"
-                                    mat-sort-header="clientOutTime|datetime">Client Office Out Time
-                                </th>
-                                <th scope="col" class="info-label" style="min-width:150px"
-                                    mat-sort-header="totalClientWorkingHours|string"> Total Client Office Working
-                                    Hours
-                                </th>
-                                <th scope="col" class="info-label" style="min-width:150px"
-                                    mat-sort-header="clientApprovalStatus|string">client Approval Status
-                                </th>
-                                <th scope="col" class="info-label" style="min-width:150px"
-                                    mat-sort-header="clientApprovalStatus|string">Filled VMS Preview
-                                </th>
-                                <th scope="col" class="info-label" style="min-width:150px"
-                                    mat-sort-header="clientApprovalStatus|string">Approved VMS Preview
-                                </th>
 
-                                <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
-                                <th *ngIf="isSelfTimesheets" scope="col" class="info-label column-md"
-                                    mat-sort-header="createdByName|string">Applied By</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="createdOn|datetime">
-                                    Applied On</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="isNightShift|string">
-                                    Shift
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type
-                                </th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="rejectReason|string">
-                                    Reject Reason
-                                </th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="remarks|string">
-                                    Remarks
-                                </th>
-                                <th scope="col" class="info-label column-md">Actions</th>
-                            </tr>
-                            <tr app-column-filter-bar *ngIf="isTimesheetTable && isSelfTimesheets && isSearchEnabled"
-                                [columnList]="selfTimesheetColumns" (onSearch)="onSearch($event);page=1"></tr>
-                            <tr app-column-filter-bar *ngIf="isTimesheetTable && isTeamTimesheets && isSearchEnabled"
-                                [columnList]="teamTimesheetColumns" (onSearch)="onSearch($event);page=1"></tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                *ngIf="allMyTimesheets.length == 0 || (allMyTimesheets| colFilter:filters:false).length == 0">
-                                <th colspan="16" class="text-center info-label">No details to display...</th>
-                            </tr>
-                            <tr *ngFor="let timesheet of allMyTimesheets| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index"
-                                [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
-                                <td>{{20*(page-1)+i+1}}</td>
-                                <td *ngIf="isTeamTimesheets">{{timesheet.employeeName}}</td>
-                                <td>{{timesheet.date}}</td>
-                                <td>{{timesheet.dayType}}</td>
-                                <td>{{timesheet.officeInTime}}</td>
-                                <td>{{timesheet.officeOutTime}}</td>
-                                <td>{{timesheet.totalWorkingOfficeHours}}</td>
-                                <td>{{timesheet.projectName || "NA"}}</td>
-                                <td style="min-width: 250px;" [innerHTML]="timesheet.description | safeHtml"></td>
-                                <td>{{timesheet.totalTime}}</td>
-                                <td>{{timesheet.clientInTime || "NA"}}</td>
-                                <td>{{timesheet.clientOutTime || "NA"}}</td>
-                                <td>{{timesheet.totalClientWorkingHours || "NA"}}</td>
-                                <td class="text-capitalize">{{timesheet.clientApprovalStatus ||"NA"}}</td>
-                                <td *ngIf="timesheet.filledDocument">
-                                    <button class="btn btn-sm btn-outline-primary mb3" type="button"
-                                        title="Open document" (click)="getDoscForPreview(timesheet.filledDocument)">
-                                        <em>Open</em>
-                                    </button>
-                                </td>
+        <!-- Table -->
+        <div class="ts-table-scroll">
+          <table class="ts-table" id="myTimesheetInfo" matSort (matSortChange)="sortData($event)">
+            <thead id="myTimesheetInfoTHead">
+              <tr id="myTimesheetInfoTHeadTr">
+                <th style="width:40px;"></th>
+                <th>Sr No.</th>
+                <th *ngIf="isTeamTimesheets" mat-sort-header="employeeName|string">Name</th>
+                <th mat-sort-header="date|date">Date</th>
+                <th mat-sort-header="dayType|string">Day Type</th>
+                <th mat-sort-header="workCheckIn|datetime">In Time</th>
+                <th mat-sort-header="workCheckOut|datetime">Out Time</th>
+                <th mat-sort-header="totalWorkingHours|number">Total Hours</th>
+                <th mat-sort-header="statusDisplay|string">Status</th>
+                <th *ngIf="isSelfTimesheets" mat-sort-header="createdByName|string">Applied By</th>
+                <th mat-sort-header="createdOn|datetime">Applied On</th>
+                <th mat-sort-header="isNightShiftDisplay|string">Shift</th>
+                <th mat-sort-header="leaveType|string">Leave Type</th>
+                <th mat-sort-header="rejectReason|string">Reject Reason</th>
+                <!-- <th mat-sort-header="remarks|string">Remarks</th> -->
+                <th>Actions</th>
+              </tr>
+              <tr  app-column-filter-bar *ngIf="isTimesheetTable && isSelfTimesheets && isSearchEnabled"
+                [columnList]="selfTimesheetColumns" (onSearch)="onSearch($event);page=1"></tr>
+              <tr app-column-filter-bar *ngIf="isTimesheetTable && isTeamTimesheets && isSearchEnabled"
+                [columnList]="teamTimesheetColumns" (onSearch)="onSearch($event);page=1"></tr>
+            </thead>
 
-                                <td *ngIf="!timesheet.filledDocument">
-                                    {{ timesheet.filledDocument || 'NA' }}
-                                </td>
+            <tbody>
+              <!-- Empty state -->
+              <tr *ngIf="allMyTimesheets.length == 0 || (allMyTimesheets | colFilter:filters:false).length == 0">
+                <td [attr.colspan]="isTeamTimesheets ? 16 : 15" class="ts-empty">
+                  <i class="fa fa-inbox"></i>
+                  <span>No details to display</span>
+                </td>
+              </tr>
 
-                                <td *ngIf="timesheet.approvedDocument">
-                                <button class="btn btn-sm btn-outline-primary mb3" type="button" title="Open document"
-                                    (click)="getDoscForPreview(timesheet.approvedDocument)">
-                                    <em>Open</em>
+              <ng-container *ngFor="let timesheet of allMyTimesheets
+                | colFilter:filters:false
+                | sort:[sortColumn, sortColumnType, sortDirection]
+                | paginate:{ itemsPerPage: itemsPerPage, currentPage: page };
+                let i = index">
+
+                <!-- Main Row -->
+                <tr class="ts-row" [class.ts-row--night]="timesheet.isNightShift == 'true' || timesheet.isNightShift == true">
+                  <td class="ts-expand-cell">
+                    <button *ngIf="hasLocations(timesheet)" class="ts-expand-btn"
+                      (click)="toggleTimesheetExpansion(timesheet.timesheetId)"
+                      [title]="isTimesheetExpanded(timesheet.timesheetId) ? 'Collapse' : 'Expand'">
+                      <i class="fas" [class.fa-chevron-right]="!isTimesheetExpanded(timesheet.timesheetId)"
+                        [class.fa-chevron-down]="isTimesheetExpanded(timesheet.timesheetId)"></i>
+                    </button>
+                  </td>
+                  <td>{{ itemsPerPage*(page-1)+i+1 }}</td>
+                  <td *ngIf="isTeamTimesheets">{{ timesheet.employeeName || 'NA' }}</td>
+                  <td>{{ timesheet.date }}</td>
+                  <td>{{ timesheet.dayType }}</td>
+                  <td>{{ timesheet.workCheckIn || 'NA' }}</td>
+                  <td>{{ timesheet.workCheckOut || 'NA' }}</td>
+                  <td><strong>{{ timesheet.totalWorkingHours }}</strong></td>
+                  <td>
+                    <span class="ts-badge" [class.ts-badge--pending]="timesheet.status === 1"
+                      [class.ts-badge--approved]="timesheet.status === 2" [class.ts-badge--rejected]="timesheet.status === 3"
+                      [class.ts-badge--info]="timesheet.status === 4">
+                      {{ timesheet.statusDisplay || mapStatusToString(timesheet.status) }}
+                    </span>
+                  </td>
+                  <td *ngIf="isSelfTimesheets">{{ timesheet.createdByName || 'NA' }}</td>
+                  <td>{{ timesheet.createdOn }}</td>
+                  <td>{{ timesheet.isNightShiftDisplay }}</td>
+                  <td>{{ timesheet.leaveType || 'NA' }}</td>
+                  <td>
+                    <!-- {{ timesheet.rejectReason || 'NA' }} -->
+                      @if(timesheet.status === 3){
+                        <button class="ts-reject-info-btn"
+                        (click)="fetchRejectionReasonByTimesheet(timesheet.timesheetId, timesheet_reject_reasons_with_projects)" title="View Rejection Reason(s)">
+                        <i class="fa-solid fa-circle-info fa-bounce"></i>
+                      </button>
+                    }
+                    @else{
+                      NA 
+                    }
+
+                  </td>
+                  <!-- <td>{{ timesheet.remarks || 'NA' }}</td> -->
+                  <td class="ts-actions-cell">
+                    <!-- <button class="ts-action-btn" type="button" title="Copy"
+                      (click)="copyTimesheetDetailsToNotepad(timesheet)">
+                      <i class="fa fa-copy"></i>
+                    </button> -->
+                    <button
+                      *ngIf="userMapping.update_timesheet && (timesheet.statusDisplay === 'Pending' || timesheet.statusDisplay === 'Rejected' || (timesheet.statusDisplay === 'Approved' && !timesheetFillable))"
+                      class="ts-action-btn ts-action-btn--edit" type="button" title="Edit"
+                      (click)="handleEditClick(timesheet)">
+                      <i class="fa fa-edit"></i>
+                    </button>
+                  </td>
+                </tr>
+
+                <!-- Accordion Panel -->
+                <tr *ngIf="isTimesheetExpanded(timesheet.timesheetId)">
+                  <td [attr.colspan]="isTeamTimesheets ? 16 : 15" class="ts-accordion-cell">
+                    <div class="ts-accordion">
+
+                      <!-- Location Cards -->
+                      <div *ngFor="let location of timesheet.locationSessions" class="ts-loc-card">
+                        <div class="ts-loc-header"
+                          (click)="toggleLocationExpansion(timesheet.timesheetId, location.locationMappingId)"
+                          [class.ts-loc-header--expanded]="isLocationExpanded(timesheet.timesheetId, location.locationMappingId)">
+                          <div class="ts-loc-header__left">
+                            <i class="fas fa-map-marker-alt ts-icon--blue"></i>
+                            <strong>{{ location.workLocationType }}</strong>
+                            <span class="ts-meta">
+                              <i class="far fa-clock"></i>
+                              {{ location.locationInTime ? (location.locationInTime | date:'dd-MM-yyyy HH:mm') : '' }} – {{ location.locationOutTime ? (location.locationOutTime | date:'dd-MM-yyyy HH:mm') : '' }}
+                            </span>
+                            <span class="ts-meta">
+                              <strong>Presence At Location:</strong> {{ getTotalLocationHours(location) }}
+                            </span>
+                            <span class="ts-meta" *ngIf="timesheet.compOffForDate && timesheet.compOffForDate != ''">
+                              <strong>Comp Off For:</strong> {{ timesheet.compOffForDate | date:'dd-MM-yyyy' }}
+                            </span>
+                          </div>
+                          <i *ngIf="hasProjects(location)" class="fas ts-chevron"
+                            [class.fa-chevron-down]="isLocationExpanded(timesheet.timesheetId, location.locationMappingId)"
+                            [class.fa-chevron-right]="!isLocationExpanded(timesheet.timesheetId, location.locationMappingId)"></i>
+                        </div>
+
+                        <!-- Project Cards -->
+                        <div class="ts-loc-body"
+                          *ngIf="isLocationExpanded(timesheet.timesheetId, location.locationMappingId) && hasProjects(location)">
+                          <div *ngFor="let project of location.projects" class="ts-proj-card">
+                            <div class="ts-proj-header"
+                              (click)="toggleProjectExpansion(timesheet.timesheetId, location.locationMappingId, project.projectId)"
+                              [class.ts-proj-header--expanded]="isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)">
+                              <div class="ts-proj-header__left">
+                                <i class="fas fa-briefcase ts-icon--teal"></i>
+                                <strong>{{ project.projectName }}</strong>
+                                <span *ngIf="project.clientSideId" class="ts-chip ts-chip--grey">
+                                  Client Side ID: {{ project.clientSideId }}
+                                </span>
+                                <span *ngIf="project.clientLocation" class="ts-chip ts-chip--grey">
+                                  Client Location: {{ project.clientLocation }}
+                                </span>
+                                <span *ngIf="project.shadowEmpId" class="ts-chip ts-chip--grey">
+                                  Shadow For: ({{project.shadowEmployeementId}})-{{ project.shadowName }}
+                                </span>
+                                <span *ngIf="project.clientApprovalStatus" class="ts-chip" title="Client Approval StatusLocation" [class.ts-chip--pending]="project.clientApprovalStatus === 1"
+                                  [class.ts-chip--approved]="project.clientApprovalStatus === 2"
+                                  [class.ts-chip--rejected]="project.clientApprovalStatus === 3">
+                                  CA Status:{{ mapClientApprovalStatusToString(project.clientApprovalStatus) }}
+                                </span>
+                                <span class="ts-meta"><strong>Hours:</strong> {{ getTotalProjectHours(project) }}</span>
+                                <button type="button" class="ts-reject-info-btn"
+                                  *ngIf="project.projectId && project.rejectionDetails?.length > 0 && project.status === 3"
+                                  (click)="openRejectReasonsModal(project.rejectionDetails, timesheet_reject_reasons); $event.stopPropagation()"
+                                  title="View Rejection Reason(s)">
+                                  <i class="fa-solid fa-circle-info fa-bounce"></i>
                                 </button>
-                                </td>
-                                <td *ngIf="!timesheet.approvedDocument">
-                                    {{timesheet.approvedDocument || "NA"}}
-                                </td>
-                                <td>{{timesheet.status}}</td>
-                                <td *ngIf="isSelfTimesheets">{{timesheet.createdByName}}</td>
-                                <td>{{timesheet.createdOn}}</td>
-                                <td>{{timesheet.isNightShiftDisplay}}</td>
-                                <td>{{timesheet.leaveType}}</td>
-                                <td>{{timesheet.rejectReason}}</td>
-                                <td>{{timesheet.remarks}}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary mb3" type="submit" title="view more"
-                                        (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                                    <button class="btn btn-sm btn-outline-primary mb3" type="submit"
-                                        title="copy timesheet"
-                                        (click)="copyTimesheetDetailsToNotepad(timesheet)"><em>copy</em></button>&nbsp;
-                                    <!-- <button *ngIf="timesheet.docId" class="btn btn-sm btn-outline-primary mb3"
-                                        type="submit" title="copy timesheet"
-                                        (click)="getDoscForPreview(timesheet.docId)"><em>View Doc</em></button>&nbsp; -->
-                                    <button
-                                        *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending' || timesheet.status === 'Rejected' || ( timesheet.status === 'Approved' && !timesheetFillable))"
-                                        class="btn btn-sm btn-outline-primary mb3" type="submit"
-                                        (click)="resetTimesheetForm();checkTimesheetForInActiveActivities(timesheet, inactive_update_timesheet_template)"><em
-                                            class="fa fa-edit"></em></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                              </div>
+                              <div class="ts-proj-header__right">
+                                <button *ngIf="findFilledDocumentForProject(timesheet, project.projectId)"
+                                  class="ts-doc-btn ts-doc-btn--filled"
+                                  (click)="getDoscForPreview(findFilledDocumentForProject(timesheet, project.projectId).docId, false)"
+                                  title="View Filled Document">
+                                  <i class="fa-solid fa-eye"></i>
+                                  <span>Filled</span>
+                                </button>
+                                <button *ngIf="findApprovedDocumentForProject(timesheet, project.projectId)"
+                                  class="ts-doc-btn ts-doc-btn--approved"
+                                  (click)="getDoscForPreview(findApprovedDocumentForProject(timesheet, project.projectId).docId, true)"
+                                  title="View Approved Document">
+                                  <i class="fa-solid fa-eye"></i>
+                                  <span>Approved</span>
+                                </button>
+                                <i *ngIf="hasActivities(project)" class="fas ts-chevron"
+                                  [class.fa-chevron-down]="isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)"
+                                  [class.fa-chevron-right]="!isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)"></i>
+                              </div>
+                            </div>
 
-            </div>
-            <pagination-controls class="my-pagination" [hidden]="allMyTimesheets.length == 0"
-                (pageChange)="handlePageChange($event)"></pagination-controls>
+                            <!-- Activities -->
+                            <div class="ts-proj-body"
+                              *ngIf="isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)">
+                              <div class="ts-activity-list" *ngIf="project.activities && hasActivities(project)">
+                                <div *ngFor="let activity of project.activities" class="ts-activity">
+                                  <div class="ts-activity__header">
+                                    <i class="fas fa-tasks ts-icon--green"></i>
+                                    <strong>{{ activity.activity }}</strong>
+                                    <span class="ts-chip ts-chip--light">
+                                      {{ getTotalWorkingHours(activity.durationMinutes, true) }} hrs
+                                    </span>
+                                  </div>
+                                  <div *ngIf="activity.description" class="ts-activity__desc"
+                                    [innerHTML]="activity.description | safeHtml"></div>
+                                </div>
+                              </div>
+                              <div class="ts-activity-list" *ngIf="project.description && !hasActivities(project)">
+                                <div class="ts-activity">
+                                  <div class="ts-activity__header">
+                                    <span class="ts-desc-tag">
+                                      <i class="fa-solid fa-circle-info"></i> Description:
+                                    </span>
+                                    <strong>{{ project.description }}</strong>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- No locations -->
+                      <div *ngIf="!hasLocations(timesheet)" class="ts-no-data">
+                        <i class="fa fa-info-circle"></i>
+                        No location sessions for this timesheet
+                      </div>
+
+                    </div>
+                  </td>
+                </tr>
+
+              </ng-container>
+            </tbody>
+          </table>
         </div>
+
+        <!-- Pagination -->
+<pagination-controls *ngIf="allMyTimesheets.length > 0" class="ts-pagination" [maxSize]="5"
+  (pageChange)="handlePageChange($event)">
+</pagination-controls>
+
+      </div>
     </div>
 </div>
 <!-- end :: View Timesheets -->
 
 <!-- Start :: showBulkUploadForm -->
-<div class="row" *ngIf="isTimesheetBulkForm">
-    <div class="card col-md-12 px-0">
-        <div class="card-header text-center ">
-            <strong class="text-uppercase" style="margin-right: 4px;" *ngIf="isTimesheetBulkForm">Final Document Bulk
-                Upload</strong>
-            <app-info-tooltip class="ms-2" iconBgColor="#127475" [size]="20"
-                [content]="withVmsbullet"></app-info-tooltip>
+<div class="bu-wrapper" *ngIf="isTimesheetBulkForm">
+
+  <!-- Header -->
+  <div class="bu-header">
+    <div class="bu-header-left">
+      <div class="bu-header-icon">
+        <i class="fas fa-file-upload"></i>
+      </div>
+      <div>
+        <div class="bu-header-title">Final Document Bulk Upload</div>
+        <div class="bu-header-sub">Upload bulk approval proof for a project</div>
+      </div>
+    </div>
+    <app-info-tooltip iconBgColor="#127475" [size]="18" [content]="withVmsbullet">
+    </app-info-tooltip>
+  </div>
+
+  <!-- Form Body -->
+  <div class="bu-body">
+
+    <!-- Row 1: Month-Year + Project + From Date + To Date -->
+    <div class="bu-row">
+
+      <div class="bu-field">
+        <label class="bu-label"><span class="bu-required">*</span> Month-Year</label>
+        <input type="month" class="bu-input"
+          [(ngModel)]="timesheetObj.monthYear"
+          (change)="onMonthYearChange()" 
+          [max]="maxMonth" [min] = "minMonth"
+          />
+      </div>
+
+      <div class="bu-field">
+        <label class="bu-label"><span class="bu-required">*</span> Project</label>
+        <app-my-select
+          #filterActiveProjects
+          class="form-control"
+          placeholder="Select Project"
+          [(ngModel)]="timesheetObj.projectId"
+          [options]="projectsInMonthYear"
+          displayKey="projectName"
+          valueKey="projectId"
+          [multiple]="false"
+          (selectionChange)="onProjectSelectBulk($event)">
+        </app-my-select>
+      </div>
+
+<!-- From Date -->
+<div class="bu-field" *ngIf="!clientSideIdNotMandatory">
+  <label class="bu-label"><span class="bu-required">*</span> From Date</label>
+  <mat-form-field class="bu-mat-field">
+    <input matInput [matDatepicker]="picker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalFromDate"
+      (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required placeholder="Select date" readonly />
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker [startAt]="pickerStartDate"></mat-datepicker>
+  </mat-form-field>
+</div>
+
+<!-- To Date -->
+<div class="bu-field" *ngIf="!clientSideIdNotMandatory">
+  <label class="bu-label"><span class="bu-required">*</span> To Date</label>
+  <mat-form-field class="bu-mat-field">
+    <input matInput [matDatepicker]="toPicker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalToDate"
+      name="toDate" required #toDateRef="ngModel" [min]="finalFromDate" [max]="maxDate" [disabled]="!finalFromDate"
+      (dateChange)="checkUploadEligibility()" placeholder="Select date" readonly />
+    <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+    <mat-datepicker #toPicker></mat-datepicker>
+  </mat-form-field>
+</div>
+
+    </div>
+    <!-- ↑ bu-row closes here -->
+
+    <!-- Row 2: File Upload + Upload Button -->
+    <div class="bu-upload-row" *ngIf="!clientSideIdNotMandatory">
+
+      <div class="bu-upload-field">
+        <label class="bu-label"><span class="bu-required">*</span> Bulk Approval Proof</label>
+        <div class="bu-file-row">
+          <input type="file" #fileInput id="bulkFileInput"
+            class="bu-file-hidden"
+            accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
+            (change)="onFinalFileSelected($event)" />
+          <label for="bulkFileInput" class="bu-file-btn">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <span>Choose File</span>
+          </label>
+          @if (fileType2 === 'excel') {
+            <button
+            class="btn-download-excel"
+            title="Download Excel"
+            [disabled]="!rawObjectUrl2"
+            (click)="downloadFile()">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 2v8m0 0L5 7m3 3l3-3M3 13h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Download</span>
+          </button>
+        }
+        @else {
+          <button class="bu-preview-btn"
+            [disabled]="!previewUrl2"
+            (click)="openPreviewModalForTwo('doc2')"
+            title="Preview">
+            <i class="fas fa-eye"></i>
+            <span>Preview</span>
+          </button>
+        }
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3 mb-0">
-                    <label class="info-label"><span class="text-danger">*</span>Month-Year</label>
-                    <div class="info-wrapper">
-                        <input type="month" class="form-control" [(ngModel)]="timesheetObj.monthYear"
-                            (change)="onMonthYearChange()" [max]="maxMonth" />
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-3 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Project</label>
-                            <!-- <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
-                                [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="projectsInMonthYear" -->
-
-                            <app-my-select #filterActiveProjects class="form-control" placeholder="Select Project"
-                                [(ngModel)]="timesheetObj.projectId" [options]="projectsInMonthYear"
-                                displayKey="projectName" valueKey="projectId" [multiple]="false"
-                                (selectionChange)="onProjectSelectBulk($event)">
-                            </app-my-select>
-                            <!-- <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
-                                [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="activeProjectList"
-                                [useInfiniteScroll]="true"
-                                (selectionChange)="onProjectSelectBulk(timesheetObj.projectId)" [multiple]="false"
-                                [(ngModel)]="timesheetObj.projectId">
-                                <mat-option [value]="project.projectId"
-                                    *ngFor="let project of filterActiveProjects.filteredSource">
-                                    {{project.projectName}}
-                                </mat-option>
-                            </mat-select> -->
-                        </div>
-                    </div>
-                </div>
-                <!-- From Date [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"-->
-                <div class="col-md-3 mb-3" *ngIf="!clientSideIdNotMandatory">
-                    <div class="form-group">
-                        <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>From
-                            Date</label>
-                        <mat-form-field style="display: contents;">
-                            <input matInput [matDatepicker]="picker" [matDatepickerFilter]="disableDates"
-                                [(ngModel)]="finalFromDate" (dateChange)="checkUploadEligibility()" [min]="minDate"
-                                [max]="maxDate" required />
-                            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                            <mat-datepicker #picker></mat-datepicker>
-                        </mat-form-field>
-                    </div>
-                </div>
-
-                <!-- To Date -->
-                <div class="col-md-3 mb-3" *ngIf="!clientSideIdNotMandatory">
-                    <div class="form-group">
-                        <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>To
-                            Date</label>
-                        <mat-form-field style="display: contents;">
-                            <input matInput [matDatepicker]="toPicker" [matDatepickerFilter]="disableDates"
-                                [(ngModel)]="finalToDate" name="toDate" required #toDateRef="ngModel"
-                                [min]="finalFromDate" [max]="maxDate" [disabled]="!finalFromDate"
-                                (dateChange)="checkUploadEligibility()" />
-                            <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
-                            <mat-datepicker #toPicker></mat-datepicker>
-                        </mat-form-field>
-                        <!-- <div class="text-danger" *ngIf="toDateRef.invalid && toDateRef.touched">
-                    To Date is required and cannot be earlier than From Date.
-                  </div> -->
-                    </div>
-                </div>
-
-                <div class="col-md-3 mb-3" *ngIf="!clientSideIdNotMandatory">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Bulk Approval Proof</label>
-                        <div class="d-flex align-items-center">
-                            <input type="file" #fileInput class="form-control form-control-sm"
-                                accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls" (change)="onFinalFileSelected($event)">
-
-                            <!-- <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                                [disabled]="!previewUrl2" (click)="openPreviewModalForTwo('doc2')">
-                                <i class="fa fa-eye fa-lg text-primary"></i>
-                            </button> -->
-
-                            <!-- Preview button (PDF & Image only) -->
-                            <button *ngIf="fileType2 === 'pdf' || fileType2 === 'image'"
-                                class="btn btn-outline-primary btn-sm ms-2" title="Preview" [disabled]="!previewUrl2"
-                                (click)="openPreviewModalForTwo('doc2')">
-                                <i class="fa fa-eye fa-lg text-primary"></i>
-                            </button>
-
-                            <!-- Download button (Excel only) -->
-                            <button *ngIf="fileType2 === 'excel'" class="btn btn-outline-success btn-sm ms-2"
-                                title="Download Excel" (click)="downloadSelectedFile()">
-                                <i class="fa fa-download fa-lg text-success"></i>
-                            </button>
-
-
-                        </div>
-                        <div class="text" *ngIf="fileName2">
-                            {{fileName2}}
-                        </div>
-                        <div class="text-danger" *ngIf="fileError2">
-                            {{fileError2}}
-                        </div>
-                    </div>
-                </div>
-                <div class="row justify-content-center" *ngIf="!clientSideIdNotMandatory">
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-                            (click)="bulkFinalDocumentUpload(alert_message)">Upload</button>
-                        <!-- <button
-  class="btn btn-outline-primary btn-sm mx-1"
-  (click)="bulkFinalDocumentUpload(alert_message)"
-  [disabled]="!isUploadAllowed"
-  matTooltip="{{ !isUploadAllowed ? disableUploadTooltip : '' }}"
-  matTooltipPosition="above">
-  Upload
-</button> -->
-
-
-                    </div>
-                </div>
-            </div>
-
+        <div class="bu-file-status" *ngIf="fileName2 && !fileError2">
+          <i class="fas fa-check-circle"></i>
+          <span>{{ fileNameToShow }}</span>
         </div>
+        <div class="bu-file-error" *ngIf="fileError2">
+          <i class="fas fa-exclamation-circle"></i>
+          <span>{{ fileError2 }}</span>
+        </div>
+      </div>
+
+      <div class="bu-action">
+        <button type="button" class="bu-upload-btn"
+          (click)="bulkFinalDocumentUpload(alert_message)">
+          <i class="fas fa-upload"></i>
+          <span>Upload</span>
+        </button>
+      </div>
+
     </div>
+    <!-- ↑ bu-upload-row closes here -->
+
+  </div>
+  <!-- ↑ bu-body closes here -->
+
 </div>
-
-
-<!-- End :: showBulkUploadForm -->
-
-<!-- Advance filter backupcode -->
-
-<!-- <div class="row">
-    <div class="form-group col-md-3 mb-2 mt-4 pt-2">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
-    </div>
-    <div class="form-group col-md-3 mb-2 mt-4 pt-2">
-        <button type="button" class="btn btn-sm btn-outline-primary mx-1" (click)="openFilterModal(filter, timesheetColumns, 'Filter Timesheet')"><i class="fa-solid fa-filter"></i></button>
-    </div>
-</div> -->
-
-
-
-
-<!-- Filter Modal -->
-<!-- <ng-template #filter>
-<div class="modal-header">
-<b>{{filterData.title}}</b>
-<button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-    <span aria-hidden="true">&times;</span>
-</button>
-</div>
-<div class="modal-body ">
-<app-custom-filter (filterSubmitted)="onFilterSubmit($event,alert_message)" [data]="filterData"></app-custom-filter>
-</div>
-</ng-template> -->
-
-
-
-
-
-
-
-
 
 <!-- Modals Template -->
 <ng-template #update_timesheet_template>
@@ -1506,10 +881,10 @@
 <ng-template #night_shift_template>
     <div class="modal-body text-center">
         <p>Do you have required permission for night shift from your manager?</p>
-        <button type="button" class="btn btn-success"
-            (click)="confirmNightShift(true);onFromDateChange()">Yes,proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger"
-            (click)="confirmNightShift(false);onFromDateChange()">No,
+        <button type="button" class="btn btn-success ml-2"
+            (click)="cancelRequest();this.timesheetObj.isNightShift = true;onFromDateChange()">Yes,proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger ml-2"
+            (click)="cancelRequest();this.timesheetObj.isNightShift = false;onFromDateChange()">No,
             Cancel</button>&nbsp;
     </div>
 </ng-template>
@@ -1610,10 +985,9 @@
 <ng-template #update_clientId>
     <form #clientForm="ngForm" (ngSubmit)="hideSelfModal3();updateClientSideIdMapping(alert_message)">
         <div class="modal-body text-center position-relative">
-            <div class="info-modal"> <app-info-tooltip class="me-2" style="margin-right: 8px;"
-                    pdfPath="assets/pdfFiles/Entering client side id.pdf" pdfCtaText="Client Side ID Entry Guide"
-                    iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
-                </app-info-tooltip></div>
+             <div class="info-modal">  <app-info-tooltip class="me-2" style="margin-right: 8px;" pdfPath="assets/pdfFiles/Entering client side id.pdf"
+  pdfCtaText="Client Side ID Entry Guide" iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
+            </app-info-tooltip></div>
 
             <h5>Update Client Side ID Form</h5>
         </div>
@@ -1704,49 +1078,62 @@
         </button>
     </div>
     <div class="modal-body text-center"> -->
-<!-- PDF Preview -->
-<!-- <iframe *ngIf="activeFileType === 'pdf'" [src]="activePreviewUrl" width="100%" height="400px"
+        <!-- PDF Preview -->
+        <!-- <iframe *ngIf="activeFileType === 'pdf'" [src]="activePreviewUrl" width="100%" height="400px"
             style="border: none;"></iframe> -->
 
-<!-- Image Preview -->
-<!-- <img *ngIf="activeFileType === 'image'" [src]="activePreviewUrl" class="img-fluid" alt="Preview"
+        <!-- Image Preview -->
+        <!-- <img *ngIf="activeFileType === 'image'" [src]="activePreviewUrl" class="img-fluid" alt="Preview"
             style="max-height: 400px;">
     </div>
 </ng-template> -->
 
-<ng-template #previewTemplate>
-    <div class="modal-header">
-        <h5 class="modal-title">Document Preview</h5>
-        <div *ngIf="activeFileType === 'image'" class="ml-auto d-flex align-items-center zoom-controls">
-            <button class="zoom-btn" title="Zoom Out" (click)="zoomOut()">
-                <i class="fa fa-search-minus" aria-hidden="true"></i>
-            </button>
+ <ng-template #previewTemplate>
+  <div class="modal-header">
+    <h5 class="modal-title">Document Preview</h5>
+    <div *ngIf="activeFileType === 'image'"
+         class="ml-auto d-flex align-items-center zoom-controls">
+      <button class="zoom-btn" title="Zoom Out" (click)="zoomOut()">
+        <i class="fa fa-search-minus" aria-hidden="true"></i>
+      </button>
 
-            <span class="mx-2 zoom-percent">{{ zoomLevel }}%</span>
+      <span class="mx-2 zoom-percent">{{ zoomLevel }}%</span>
 
-            <button class="zoom-btn" title="Zoom In" (click)="zoomIn()">
-                <i class="fa fa-search-plus" aria-hidden="true"></i>
-            </button>
-        </div>
-
-        <button type="button" class="close" aria-label="Close" (click)="modalRef?.close()">
-            <span aria-hidden="true">&times;</span>
-        </button>
+      <button class="zoom-btn" title="Zoom In" (click)="zoomIn()">
+        <i class="fa fa-search-plus" aria-hidden="true"></i>
+      </button>
     </div>
 
-    <div class="modal-body text-center">
-        <iframe *ngIf="activeFileType === 'pdf'" [src]="activePreviewUrl" width="100%" height="400px"
+    <button type="button"
+            class="close"
+            aria-label="Close"
+            (click)="modalRef?.close()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body text-center">
+    <iframe *ngIf="activeFileType === 'pdf'"
+            [src]="activePreviewUrl"
+            width="100%"
+            height="400px"
             style="border: none;">
-        </iframe>
-        <div *ngIf="activeFileType === 'image'" class="preview-container">
-            <div class="preview-content" [style.transform]="transformStyle" (mousedown)="startDrag($event)"
-                (mousemove)="onDrag($event)" (mouseup)="endDrag()" (mouseleave)="endDrag()">
+    </iframe>
+    <div *ngIf="activeFileType === 'image'" class="preview-container">
+      <div class="preview-content"
+           [style.transform]="transformStyle"
+           (mousedown)="startDrag($event)"
+           (mousemove)="onDrag($event)"
+           (mouseup)="endDrag()"
+           (mouseleave)="endDrag()">
 
-                <img [src]="activePreviewUrl" class="preview-image" alt="Preview">
-            </div>
-        </div>
-
+        <img [src]="activePreviewUrl"
+             class="preview-image"
+             alt="Preview">
+      </div>
     </div>
+
+  </div>
 </ng-template>
 
 <ng-template #noNotAppliedYet>
@@ -1770,12 +1157,12 @@
 
 <ng-template #clientSideIdForm>
     <form #clientSideForm="ngForm" novalidate>
-        <div class="modal-body text-center position-relative">
-            <div class="info-modal"> <app-info-tooltip class="me-2" style="margin-right: 8px;"
-                    pdfPath="assets/pdfFiles/Entering client side id.pdf" pdfCtaText="Client Side ID Entry Guide"
-                    iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
-                </app-info-tooltip></div>
-            <h5>Please provide Client Side ID to continue.</h5>
+         <div class="modal-body text-center position-relative">
+          <h5>Please provide Client Side ID to continue.</h5>   
+          <div class="info-modal"> 
+              <app-info-tooltip class="me-2" style="margin-right: 8px;" pdfPath="assets/pdfFiles/Entering client side id.pdf"
+  pdfCtaText="Client Side ID Entry Guide" iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
+            </app-info-tooltip></div>
 
         </div>
 
@@ -1851,6 +1238,27 @@
     </div>
 </ng-template>
 
+<ng-template #alert_message_for_blank_etm let-modal>
+  
+
+  <div class="modal-body text-center">
+    <p>
+      RMG has deleted your team mapping for this day for the project(s) you have filled the timesheet for. You might see some fields empty and need to refill them again .
+      Do you want to continue?<br>
+    </p>
+  </div>
+
+  <div class="modal-footer justify-content-center">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">
+      Cancel
+    </button>
+
+    <button type="button" class="btn btn-primary" (click)="modal.close('continue')">
+      Continue
+    </button>
+  </div>
+</ng-template>
+
 <!-- <ng-template #editForm>
     <div class="modal-header">
         <h5 class="modal-title">Edit Timesheet</h5>
@@ -1884,4 +1292,156 @@
         <h6>{{alertMessage}}</h6>
         <button type="button" class="btn-yes-alert" (click)="hideNoOtherShadowResource()">OK</button>&nbsp;
     </div>
+</ng-template>
+<ng-template #timesheet_reject_reasons let-modal>
+  <div class="modal-header bg-light">
+    <h5 class="modal-title">
+      Rejection Details
+    </h5>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body">
+
+    <!-- No Rejection -->
+    <div *ngIf="!rejectionReasons || rejectionReasons.length === 0" class="text-center text-muted">
+      <i class="fa fa-info-circle"></i>
+      No rejection details available.
+    </div>
+
+    <!-- Rejection List -->
+
+
+      <!-- Rejection Table -->
+      <table class="table table-sm table-bordered mb-0"
+             *ngIf="rejectionReasons && rejectionReasons.length > 0">
+
+        <thead class="thead-light">
+          <tr>
+            <th style="width: 5%">#</th>
+            <th style="width: 30%; max-width: 20vw;overflow: auto;">Reason</th>
+            <th style="width: 40%">Remarks</th>
+            <th style="width: 25%">Rejected On</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let r of rejectionReasons; let j = index">
+            <td>{{ j + 1 }}</td>
+            <td>{{ r.rejectionReason || '-' }}</td>
+            <td *ngIf="j==0" [attr.rowspan]="rejectionReasons.length" style="padding-left: 15px;">{{ r.remark || '-' }}</td>
+            <td *ngIf="j==0" [attr.rowspan]="rejectionReasons.length" style="padding-left: 15px;">{{ r.rejectedOn || '-' }}</td>
+          </tr>
+        </tbody>
+
+      </table>
+
+    </div>
+
+  <div class="modal-footer text-center">
+    <button type="button" class="btn btn-primary" (click)="modal.close()">
+      OK
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #errorModal let-modal>
+  <div class="apm-modal-wrapper">
+
+    <div class="apm-modal-icon-row">
+      <div class="apm-icon-circle" [ngClass]="{
+        'apm-icon-fail':    popupTitle?.toLowerCase().includes('fail') || popupTitle?.toLowerCase().includes('error'),
+        'apm-icon-success': popupTitle?.toLowerCase().includes('success'),
+        'apm-icon-warn':    popupTitle?.toLowerCase().includes('warn')
+      }">
+        <svg *ngIf="popupTitle?.toLowerCase().includes('fail') || popupTitle?.toLowerCase().includes('error')"
+             xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <svg *ngIf="popupTitle?.toLowerCase().includes('success')"
+             xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/>
+        </svg>
+        <svg *ngIf="!popupTitle?.toLowerCase().includes('fail') && !popupTitle?.toLowerCase().includes('error') && !popupTitle?.toLowerCase().includes('success')"
+             xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="apm-modal-title">{{ popupTitle }}</div>
+    <div class="apm-modal-message">{{ popupMessage }}</div>
+
+    <div class="apm-modal-footer">
+      <button class="apm-btn-ok" [ngClass]="{
+        'apm-btn-fail':    popupTitle?.toLowerCase().includes('fail') || popupTitle?.toLowerCase().includes('error'),
+        'apm-btn-success': popupTitle?.toLowerCase().includes('success')
+      }" (click)="modal.close()">OK</button>
+    </div>
+
+  </div>
+
+
+
+</ng-template>
+
+
+<ng-template #timesheet_reject_reasons_with_projects let-modal>
+  <div class="modal-header bg-light">
+    <h5 class="modal-title">
+      Rejection Details
+    </h5>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body">
+
+    <!-- No Rejection -->
+    <div *ngIf="!rejectiondetails || rejectiondetails.length === 0" class="text-center text-muted">
+      <i class="fa fa-info-circle"></i>
+      No rejection details available.
+    </div>
+
+    <!-- Rejection List -->
+
+
+      <!-- Rejection Table -->
+      <table class="table table-sm table-bordered mb-0"
+             *ngIf="rejectiondetails && rejectiondetails.length > 0">
+
+        <thead class="thead-light">
+          <tr>
+            <th style="width: 5%">#</th>
+            <th style="width: 25%">Project Name</th>
+            <th style="width: 30%;max-width: 20vw;overflow: auto;">Reason</th>
+            <th style="width: 40%">Remarks</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let r of groupedRejections; let j = index">
+            <td>{{ j + 1 }}</td>
+            <td>{{ r.projectName || '-' }}</td>
+            <td>{{ r.rejectionReason || '-' }}</td>
+            <td  *ngIf="r.showRemarks" [attr.rowspan]="r.rowspan" style="margin-left: 15px;">{{ r.remarks || '-' }}</td>
+          </tr>
+        </tbody>
+
+      </table>
+
+    </div>
+
+  <div class="modal-footer text-center">
+    <button type="button" class="btn btn-primary" (click)="modal.close()">
+      OK
+    </button>
+  </div>
 </ng-template>

@@ -13,11 +13,17 @@ import { FilterStateService } from 'src/app/services/filter-state.service';
 export class ColumnFilterBarComponent implements OnInit {
 
 
-  @Input()
-  columnList:any[];
+  @Input() columnList:any[];
+  @Input() searchOnEnter:boolean = false;
+
   displayColumns:any[] = [];
   currentBreadcrumbList: any[] = [];
   projectManagement: any;
+
+
+  /** Optional: pre-fill values by column name (used for server-side column filtering). */
+  @Input()
+  initialValues: any;
 
   @Output()
   onSearch:EventEmitter<any> = new EventEmitter();
@@ -37,16 +43,28 @@ export class ColumnFilterBarComponent implements OnInit {
     && this.router.url.includes('resource-management')
     && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
       this.onSearch.emit({'name' : this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.object?.projectName}); 
+      return;
     }
 
-    const savedFilters = this.filterStateService.projectReportFilters;
-    if (savedFilters) {
+    // Prefer explicit initial values (caller-managed, eg. server-side column filters)
+    if (this.initialValues) {
       this.displayColumns.forEach(col => {
-        if (savedFilters[col.column]) {
-          col.value = savedFilters[col.column];
+        const v = this.initialValues?.[col.column];
+        if (v !== undefined && v !== null && String(v).trim() !== '') {
+          col.value = String(v);
         }
       });
-      this.search(); 
+    } else {
+      // Backward compatible: project report filter persistence
+      const savedFilters = this.filterStateService.projectReportFilters;
+      if (savedFilters) {
+        this.displayColumns.forEach(col => {
+          if (savedFilters[col.column]) {
+            col.value = savedFilters[col.column];
+          }
+        });
+        this.search(); 
+      }
     }
   }
 
@@ -67,7 +85,9 @@ export class ColumnFilterBarComponent implements OnInit {
           if(this.projectManagement == true && columnName == 'name'){
             this.displayColumns.push({column : columnName, value: this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.object?.projectName, isBlank: isBlank});
           }else{
-            this.displayColumns.push({column : columnName, value: '', isBlank: isBlank});
+            const preset = this.initialValues?.[columnName];
+            const presetVal = (preset !== undefined && preset !== null) ? String(preset) : '';
+            this.displayColumns.push({column : columnName, value: presetVal, isBlank: isBlank});
           }
       });
     }else{

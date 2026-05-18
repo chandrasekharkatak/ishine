@@ -90,6 +90,7 @@ export class  PerformanceManagementSystemComponent implements OnInit {
   eligibleEmployeesColumns: any[] = ['employeementId', 'name', 'designationName', 'departmentName','totalExperience', 'employmentstatus', 'dateOfJoining','completionStatus'];
   finalRating: number;
   hodRemarks: any;
+  hrRemarks: any;
   quarterId: any;
   rewardsCount:any;
   appreciationCount:any;
@@ -345,6 +346,11 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           this.eligibleEmployees = mergedData.filter(employee => {
             // Append employee ID using utility service
             employee.employeementId = this.utilityService.appendEmployeementid(employee.isConsultant, employee.employeementId);
+
+            // Calculate experience from date_of_joining
+            if (employee.dateOfJoining) {
+              employee.calculatedExperience = this.calculateExperienceFromDOJ(employee.dateOfJoining);
+            }
 
             const joiningDate = new Date(employee.dateOfJoining);
    return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
@@ -645,7 +651,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           // "Date of Relieving": (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
           "Department Name": x.departmentName,
           "Billable Type": x.billableType,
-          "Experience" :x.totalExperience,
+          "Experience" :x.calculatedExperience ?? x.totalExperience,
           "quarter Cycle":x.quarterycle || 'NULL',
           "financial Year": x.financialYear || 'NULL' ,
           "Current Status":x.completionStatus,
@@ -1045,6 +1051,27 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
 
   currentStatus:any;
   rejectStatus:any;
+
+  private applyPerformanceReviewHeaderFromFirstRow(rows: any[]): void {
+    if (!rows?.length) return;
+    const row = rows[0];
+    this.finalRating = row.finalRating;
+    this.hrRemarks = row.hrRemark != null ? row.hrRemark : '';
+    this.hrReviewStatus = row.hrReviewStatus;
+    this.acceptReason = row.hrRemark;
+    this.rejectStatus = row.rejectStatus;
+    if (this.userMapping?.performance_action_by_hr) {
+      return;
+    }
+    if (this.userMapping?.performance_action_by_hod) {
+      this.hodRemarks = row.hodRemarks != null ? String(row.hodRemarks) : '';
+      return;
+    }
+    const mgr = row.managerRemarks != null ? String(row.managerRemarks).trim() : '';
+    const hod = row.hodRemarks != null ? String(row.hodRemarks).trim() : '';
+    this.hodRemarks = mgr || hod || '';
+  }
+
   HrAndHodView(performance:any){
     this.performanceSerive.hrAndHodEmpoyeePerformanceView(performance).pipe(first()).subscribe((response: any) => {
       this.enableDisableSubmit=false;
@@ -1060,21 +1087,12 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
         this.filterCriteria = this.performnace1.filter(item => item.deptId == this.selectedEmployee.departmentId && item.reviewFieldType === 'Slider' && item.empId == this.selectedEmployee.empId && item.quarterId == this.performnace.quarterId);
         this.filterCriteria.forEach(value => {
           this.myList.push({ reviewLabel: value.reviewLabel, silde: value.ratingValue,performanceRatingId:value.performanceRatingId });
-          this.finalRating=value.finalRating;
-          this.hodRemarks = value.hodRemarks;
-          this.hrReviewStatus=value.hrReviewStatus;
-          this.acceptReason = value.hrRemark;
-          this.rejectStatus =value.rejectStatus;
         });
         this.filterRatingCriteria.forEach(value => {
           this.myRateList.push({ reviewLabel: value.reviewLabel, rate: value.ratingValue,performanceRatingId:value.performanceRatingId });
-          this.finalRating=value.finalRating;
-          this.hodRemarks = value.hodRemarks;
-          this.hrReviewStatus=value.hrReviewStatus;
-           this.acceptReason = value.hrRemark;
-           this.rejectStatus =value.rejectStatus;
-
         });
+        const headerRows = this.filterCriteria.length > 0 ? this.filterCriteria : this.filterRatingCriteria;
+        this.applyPerformanceReviewHeaderFromFirstRow(headerRows);
 
 
       } else {
@@ -1108,6 +1126,10 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
         return '#04724D';
       case 'Rejected':
         return '#931621';
+      case 'Pending HOD':
+        return '#E67E22';
+      case 'Pending':
+        return '#d97706';
       default:
         return '#A8A8A8';
     }
@@ -1284,6 +1306,35 @@ static:any[] = [];
 
     console.log("testing",this.static);
     console.log("testing2",this.eligibleEmployees);
+  }
+
+  /**
+   * Calculate experience in years from date of joining to current date
+   * Formula: current_date - date_of_joining
+   * @param dateOfJoining - Date of joining in string format (YYYY-MM-DD)
+   * @returns Experience in years (rounded to 1 decimal place)
+   */
+  calculateExperienceFromDOJ(dateOfJoining: string): number {
+    if (!dateOfJoining) {
+      return 0;
+    }
+
+    try {
+      const doj = new Date(dateOfJoining);
+      const today = new Date();
+      
+      // Calculate difference in milliseconds
+      const diff = today.getTime() - doj.getTime();
+      
+      // Convert to years (considering leap years: 365.25 days per year)
+      const experienceInYears = diff / (1000 * 60 * 60 * 24 * 365.25);
+      
+      // Round to 1 decimal place
+      return Number(experienceInYears.toFixed(1));
+    } catch (error) {
+      console.error('Error calculating experience:', error);
+      return 0;
+    }
   }
   openMultiGoalModal(employee: any) {
     console.log('Setting up to assign multiple goals to employee:', employee);

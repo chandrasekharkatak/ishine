@@ -5,6 +5,7 @@ import { Employee } from 'src/app/models/employee';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -79,7 +80,8 @@ export class TravelConfigComponent implements OnInit {
   reviewColumns5: any[] = ['blank', 'cityName', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
   constructor(private modalService: NgbModal, private travelDesk: TravelDeskService,
     private employeeService: EmployeeService,
-    private authenticationService: AuthenticationService
+    private authenticationService: AuthenticationService,
+    private router : Router
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x) }
 
   ngOnInit(): void {

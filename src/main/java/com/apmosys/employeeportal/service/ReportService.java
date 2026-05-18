@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,31 +13,42 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.AclColumnDTO;
 import com.apmosys.employeeportal.dto.BulkBillableUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeRoleDTO;
 import com.apmosys.employeeportal.dto.FeatureMasterDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.ProjectEmployeeTeamReportDTO;
+import com.apmosys.employeeportal.dto.ProjectNamesRequestDTO;
+import com.apmosys.employeeportal.dto.MappedSubFeatureDTO;
+import com.apmosys.employeeportal.dto.MappedSubFeatureDTO;
 import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.EmployeeRole;
 import com.apmosys.employeeportal.model.FieldAlteration;
+import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeRoleMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.FieldAlterationRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -45,11 +57,17 @@ public class ReportService {
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;
 	
-	@Autowired
-	TimesheetsRepository timesheetsRepository;
+//	@Autowired
+//	TimesheetsRepository timesheetsRepository;
 	
 	@Autowired
 	EmployeeRoleMasterRepository employeeRoleMasterRepository;
+
+	@Autowired
+	private JobRoleRepository jobRoleRepository;
+
+	@Autowired
+	private RoleFeatureMapRepository roleFeatureMapRepository;
 	
 	@Autowired
 	EmployeeRepository employeeRepository;
@@ -64,18 +82,16 @@ public class ReportService {
 	EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
 	
 	@Autowired
-	CronJobService cronJobService;
-	
-	@Autowired
 	FieldAlterationRepository fieldAlterationRepository;
 	
+	@Autowired
+	MailService mailService;
 	
 	@Autowired
 	private LogService logService;
 	
-	
-	
-	
+	@Value("${billablechange.mail}")
+	private String billablechangeMailAddress;
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
@@ -142,64 +158,64 @@ public class ReportService {
 		return response;
 	}
 
-	public ServiceResponse timesheetReport() {
-		ServiceResponse response = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
-        //apiLogInfo.setSubFeatureName("");
-        apiLogInfo.setApiUrl("/api/timesheetReport");
-        apiLogInfo.setLogLevel("INFO");
-        StringBuilder logBuilder = new StringBuilder();
-		try {
-			List<Object[]> allTimeSheetData = timesheetsRepository.getAllTimesheetData();
-       		logBuilder.append("TimeSheetReport:" + allTimeSheetData.size());
-			List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
-			
-			if(allTimeSheetData != null) {
-				allTimeSheetData.forEach((object) -> {
-					TimesheetDTO timesheetDto = new TimesheetDTO();
-					
-					timesheetDto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					timesheetDto.setEmployeeName(object[1] != null ? object[1].toString() : null);
-					timesheetDto.setDate(object[2] != null ? object[2].toString() : null);
-					timesheetDto.setDayType(object[3] != null ? object[3].toString() : null);
-					timesheetDto.setDescription(object[4] != null ? object[4].toString() : null);
-					timesheetDto.setStatus(object[5] != null ? object[5].toString() : null);
-					timesheetDto.setTotalWorkingHours(object[6] != null ? Float.parseFloat(object[6].toString()) : null);
-					timesheetDto.setCreatedOn(object[7] != null ? object[7].toString() : null);
-					timesheetDto.setUpdatedOn(object[8] != null ? object[8].toString() : null);
-					timesheetDto.setTimesheetStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
-					timesheetDto.setOfficeInTime(object[10] != null ? object[10].toString() : null);
-					timesheetDto.setOfficeOutTime(object[11] != null ? object[11].toString() : null);
-					timesheetDto.setTotalWorkingOfficeHours(object[12] != null ? object[12].toString() : null);
-					timesheetDto.setEmploymentstatus(object[10] != null ? object[10].toString() : null);	
-					timesheetDto.setTimesheetStatusUpdatedBy(object[11] != null ? Long.parseLong(object[11].toString()) : null);
-					
-					dtoList.add(timesheetDto);
-				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				System.out.println("DTOList :" +dtoList);
-                apiLogInfo.setApiResponse("TimeSheetReport: " + dtoList.size());			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Timesheet list is empty.");
-                apiLogInfo.setApiResponse("Timesheet list is empty");			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-		}catch(Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
+//	public ServiceResponse timesheetReport() {
+//		ServiceResponse response = new ServiceResponse();
+//        LogDTO apiLogInfo = new LogDTO();
+//        //apiLogInfo.setSubFeatureName("");
+//        apiLogInfo.setApiUrl("/api/timesheetReport");
+//        apiLogInfo.setLogLevel("INFO");
+//        StringBuilder logBuilder = new StringBuilder();
+//		try {
+//			List<Object[]> allTimeSheetData = time.getAllTimesheetData();
+//       		logBuilder.append("TimeSheetReport:" + allTimeSheetData.size());
+//			List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+//			
+//			if(allTimeSheetData != null) {
+//				allTimeSheetData.forEach((object) -> {
+//					TimesheetDTO timesheetDto = new TimesheetDTO();
+//					
+//					timesheetDto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+//					timesheetDto.setEmployeeName(object[1] != null ? object[1].toString() : null);
+//					timesheetDto.setDate(object[2] != null ? object[2].toString() : null);
+//					timesheetDto.setDayType(object[3] != null ? object[3].toString() : null);
+//					timesheetDto.setDescription(object[4] != null ? object[4].toString() : null);
+//					timesheetDto.setStatus(object[5] != null ? object[5].toString() : null);
+//					timesheetDto.setTotalWorkingHours(object[6] != null ? Float.parseFloat(object[6].toString()) : null);
+//					timesheetDto.setCreatedOn(object[7] != null ? object[7].toString() : null);
+//					timesheetDto.setUpdatedOn(object[8] != null ? object[8].toString() : null);
+//					timesheetDto.setTimesheetStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
+//					timesheetDto.setOfficeInTime(object[10] != null ? object[10].toString() : null);
+//					timesheetDto.setOfficeOutTime(object[11] != null ? object[11].toString() : null);
+//					timesheetDto.setTotalWorkingOfficeHours(object[12] != null ? object[12].toString() : null);
+//					timesheetDto.setEmploymentstatus(object[10] != null ? object[10].toString() : null);	
+//					timesheetDto.setTimesheetStatusUpdatedBy(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+//					
+//					dtoList.add(timesheetDto);
+//				});
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				response.setServiceResponse(dtoList);
+//				System.out.println("DTOList :" +dtoList);
+//                apiLogInfo.setApiResponse("TimeSheetReport: " + dtoList.size());			
+//                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			}else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Timesheet list is empty.");
+//                apiLogInfo.setApiResponse("Timesheet list is empty");			
+//                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			}
+//		}catch(Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
 
 	public ServiceResponse getMappedSubFeatureList(EmployeeDTO employeeDto) {
 		ServiceResponse response = new ServiceResponse();
@@ -208,41 +224,31 @@ public class ReportService {
         apiLogInfo.setApiUrl("/api/getMappedSubFeatureList");
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("JobRoleId : " + employeeDto.getJobRoleId());
+        logBuilder.append("JobRoleId : " + employeeDto.getJobRoleIds());
 		try {
+	        List<Long> jobRoleIds = employeeDto.getJobRoleIds();
+	        if (jobRoleIds == null || jobRoleIds.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Job role list is empty");
+	            return response;
+	        }
+	        
+			List<MappedSubFeatureDTO> mappedSubFeatureByJobRoleId = employeeRoleMasterRepository
+					.getMappedSubFeatureByJobRoleIds(jobRoleIds);
 			
-			List<Object[]> mappedSubFeatureByJobRoleId = employeeRoleMasterRepository
-					.getMappedSubFeatureByJobRoleId(employeeDto.getJobRoleId());
-			
-			List<EmployeeDTO> dtoList = new ArrayList<>();
-			
-			if (!mappedSubFeatureByJobRoleId.isEmpty()) {
-
-				mappedSubFeatureByJobRoleId.forEach((object) -> {
-					EmployeeDTO empDTO = new EmployeeDTO();
-
-					empDTO.setJobRoleId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					empDTO.setJobRoleName(object[1] != null ? object[1].toString() : null);
-					empDTO.setEmployeeRole(object[2] != null ? object[2].toString() : null);
-					empDTO.setSubFeatureId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
-					empDTO.setSubFeatureName(object[4] != null ? object[4].toString() : null);
-					empDTO.setFeatureId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
-					empDTO.setFeatureName(object[6] != null ? object[6].toString() : null);
-					
-					dtoList.add(empDTO);
-				});
-				
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-                apiLogInfo.setApiResponse("MappedRoleList : " + dtoList.size());			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Mapped Role List is Empty.");
-                apiLogInfo.setApiResponse("Mapped Role is Empty");			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
+			 if (mappedSubFeatureByJobRoleId == null || mappedSubFeatureByJobRoleId.isEmpty()) {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("Mapped Role List is Empty.");
+		            apiLogInfo.setApiResponse("Mapped Role List is Empty.");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		            
+		        } else {
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(mappedSubFeatureByJobRoleId);
+		            apiLogInfo.setApiResponse("MappedRoleList : " + mappedSubFeatureByJobRoleId.size());
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		        }		
+			 
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -309,7 +315,7 @@ public class ReportService {
 		return response;
 	}
 
-	public ServiceResponse getDefaultMapping() {
+	public ServiceResponse getDefaultMapping(List<AclColumnDTO> aclColumnDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		//apiLogInfo.setSubFeatureName("");
@@ -319,22 +325,32 @@ public class ReportService {
 		//logBuilder.append("");
 		try {
 			
-			List<Object[]> subFeatureList = employeeRoleMasterRepository.getAllSubFeatureList();
-			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+			List<String> tabNames = null;
+		    List<String> featureNames = null;
+		    List<String> subFeatureNames = null;
+
+		    for (AclColumnDTO f : aclColumnDTO) {
+		        if (f.getValue() == null || f.getValue().isEmpty()) continue;
+
+		        switch (f.getColumn()) {
+		            case "Tab Name":
+		                tabNames = f.getValue();
+		                break;
+		            case "Feature":
+		                featureNames = f.getValue();
+		                break;
+		            case "Sub Feature":
+		                subFeatureNames = f.getValue();
+		                break;
+		        }
+		    }
+		    			
+		    List<EmployeeRoleDTO> subFeatureList = employeeRoleMasterRepository.getAllSubFeatureList(tabNames,featureNames,subFeatureNames);
+			List<EmployeeRoleDTO> dtoList = new ArrayList<EmployeeRoleDTO>();
 			
 			if(!subFeatureList.isEmpty()) {
 				subFeatureList.forEach((object) -> {
-					EmployeeDTO empDTO = new EmployeeDTO();
-
-					empDTO.setSubFeatureId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					empDTO.setSubFeatureName(object[1] != null ? object[1].toString() : null);
-					empDTO.setFeatureId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-					empDTO.setFeatureName(object[3] != null ? object[3].toString() : null);
-					empDTO.setTabId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
-					empDTO.setTabName(object[5] != null ? object[5].toString() : null);
-					
-					Long subFeatureId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
-					List<EmployeeRole> employeeRoleMaster = employeeRoleMasterRepository.findBySubFeatureMasterId(subFeatureId);
+					List<EmployeeRole> employeeRoleMaster = employeeRoleMasterRepository.findBySubFeatureMasterId(object.getSubFeatureId());
 					List<FeatureMasterDTO> permissionList = new ArrayList<FeatureMasterDTO>();
 					
 					if(!employeeRoleMaster.isEmpty()) {
@@ -347,8 +363,8 @@ public class ReportService {
 						});
 					}
 					
-					empDTO.setPermissionList(permissionList);
-					dtoList.add(empDTO);
+					object.setPermissionList(permissionList);
+					dtoList.add(object);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
@@ -467,6 +483,42 @@ public class ReportService {
 //		logService.logMyInfo(httpRequest, apiLogInfo);
 //		return response;
 //	}
+
+	/**
+	 * Left-nav tabs come from {@code role_subfeature_mapping} (per job role). "View Default Role Access"
+	 * only updates {@code employee_role_master}; mirror Y/N to every {@link JobRole} with the same
+	 * {@code employeeRole} persona so menus and login tab lists stay in sync.
+	 */
+	private void syncRoleSubfeatureMappingFromDefault(Long subFeatureMasterId, String employeePersona, String permissionYn) {
+		if (subFeatureMasterId == null || employeePersona == null || employeePersona.isEmpty()) {
+			return;
+		}
+		List<JobRole> jobRoles = jobRoleRepository.findByEmployeeRole(employeePersona.trim());
+		if (jobRoles == null || jobRoles.isEmpty()) {
+			return;
+		}
+		if ("Y".equalsIgnoreCase(permissionYn)) {
+			for (JobRole jr : jobRoles) {
+				RoleFeatureMap existing = roleFeatureMapRepository.findByJobRoleIdAndSubFeatureMasterId(
+						jr.getJobRoleId(), subFeatureMasterId);
+				if (existing == null) {
+					RoleFeatureMap map = new RoleFeatureMap();
+					map.setJobRoleId(jr.getJobRoleId());
+					map.setSubFeatureMasterId(subFeatureMasterId);
+					roleFeatureMapRepository.save(map);
+				}
+			}
+		} else if ("N".equalsIgnoreCase(permissionYn)) {
+			for (JobRole jr : jobRoles) {
+				RoleFeatureMap existing = roleFeatureMapRepository.findByJobRoleIdAndSubFeatureMasterId(
+						jr.getJobRoleId(), subFeatureMasterId);
+				if (existing != null) {
+					roleFeatureMapRepository.delete(existing);
+				}
+			}
+		}
+	}
+
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse updateDefaultFeatureMapping(JobRoleDTO jobRoleDTO) {
 
@@ -520,6 +572,8 @@ public class ReportService {
 	                    EmployeeRole dbResponse = employeeRoleMasterRepository.save(defaultRole);
 
 	                    if (dbResponse != null) {
+	                        syncRoleSubfeatureMappingFromDefault(object.getSubFeatureId(), object.getEmployeeRole(),
+	                                object.getPermission());
 	                        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	                        response.setServiceResponse("Default role sub-feature mapping updated successfully.");
 
@@ -544,6 +598,8 @@ public class ReportService {
 	                    EmployeeRole newEmployeeRoleMapping = employeeRoleMasterRepository.save(employeeRole);
 
 	                    if (newEmployeeRoleMapping != null) {
+	                        syncRoleSubfeatureMappingFromDefault(object.getSubFeatureId(), object.getEmployeeRole(),
+	                                object.getPermission());
 	                        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	                        response.setServiceResponse("New role sub-feature mapping added successfully.");
 
@@ -633,7 +689,7 @@ public class ReportService {
 	        String updatedOn = LocalDateTime.now().format(formatter);
 	        int result = employeeRepository.updateBillableInfo(dto.getEmpId(), dto.getBillableType(), dto.getBillable(), dto.getUpdatedBy(),updatedOn);
 	        		if (result > 0) {
-	        			cronJobService.triggerBillableTypeChangeMail(dto.getEmpId(), dto.getBillableType(), oldBillableType, dto.getUpdatedBy());
+	        			triggerBillableTypeChangeMail(dto.getEmpId(), dto.getBillableType(), oldBillableType, dto.getUpdatedBy());
 	        			 FieldAlteration alterationLog = new FieldAlteration();
 	        	            alterationLog.setEmpId(dto.getEmpId());
 	        	            alterationLog.setField("Billable Type");
@@ -783,7 +839,7 @@ public class ReportService {
 
 	        if (updatedRows > 0) {
 	            // Send emails for changed employees
-	            cronJobService.triggerBulkBillableChangeEmails(
+	        	triggerBulkBillableChangeEmails(
 	                bulkBillableUpdateDTO.getEmpIds(),
 	                oldBillableTypes,
 	                bulkBillableUpdateDTO.getBillableType(),
@@ -1009,9 +1065,153 @@ public class ReportService {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
+	
+	public void triggerBillableTypeChangeMail(Long empId, String newBillableType, String oldBillableType, Long updatedById) {
+	    try {
+	        Object[] details = (Object[]) employeeRepository.findEmployeeDepartmentDetails(empId);
+	        if (details == null) return;
 
-	
-	
+	        Long empIdd = ((Number) details[0]).longValue();
+	        String empName = (String) details[1];
+	        String departmentName = (String) details[2];
+	        Long hodId = ((Number) details[3]).longValue();
+
+	        String updatedByName = employeeRepository.findEmployeeNameById(updatedById);
+	        String hodEmail = employeeRepository.findHodEmailById(hodId);
+
+	        StringBuilder html = new StringBuilder();
+	        html.append("<html><body>");
+	        html.append("<p>Dear HOD,</p>");
+	        html.append("<p>The following billable type change has been made by <b>")
+	            .append(updatedByName)
+	            .append("</b>:</p>");
+
+	        html.append("<div style='overflow-x:auto;'>");
+	        html.append("<table border='1' style='border-collapse: collapse; width: 100%; table-layout: auto;'>");
+	        html.append("<tr>");
+	        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Employee ID</th>");
+	        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Name</th>");
+	        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Billable Type</th>");
+	        html.append("</tr>");
+
+	        html.append("<tr>");
+	        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>A-").append(empIdd).append("</td>");
+	        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>").append(empName).append("</td>");
+	        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>")
+	            .append(oldBillableType).append(" &rarr; ").append(newBillableType).append("</td>");
+	        html.append("</tr>");
+	        html.append("</table>");
+	        html.append("</div>");
+
+	        html.append("<p>Regards,<br/>Ishine Team</p>");
+	        html.append("</body></html>");
+
+	        String subject = "Billable Type Change Notification for " + departmentName + " Department";
+
+	        mailService.sendMailWithCC(hodEmail, billablechangeMailAddress, subject, html.toString());
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        // Optionally log or handle the error here
+	    }
 	}
+
+
+
+	public void triggerBulkBillableChangeEmails(List<Long> empIds, Map<Long, String> oldBillableTypes, String newBillableType, Long updatedById) {
+	    Map<Long, List<Object[]>> deptToEmployeeDetails = new HashMap<>();
+
+	    for (Long empId : empIds) {
+	        Object[] details = (Object[]) employeeRepository.findEmployeeDepartmentDetails(empId);
+	        if (details == null) continue;
+
+	        Long empIdd = ((Number) details[0]).longValue();
+	        String empName = (String) details[1];
+	        String departmentName = (String) details[2];
+	        Long hodId = ((Number) details[3]).longValue();
+
+	        deptToEmployeeDetails.computeIfAbsent(hodId, k -> new ArrayList<>())
+	            .add(new Object[]{empIdd, empName, departmentName, oldBillableTypes.get(empId), newBillableType});
+	    }
+
+	    String updatedByName = employeeRepository.findEmployeeNameById(updatedById);
+
+	    for (Map.Entry<Long, List<Object[]>> entry : deptToEmployeeDetails.entrySet()) {
+	        Long hodId = entry.getKey();
+	        List<Object[]> employees = entry.getValue();
+	        String hodEmail = employeeRepository.findHodEmailById(hodId);
+
+	        // Get department name from first employee (they're all from the same department)
+	        String departmentName = (String) employees.get(0)[2];
+
+	        StringBuilder html = new StringBuilder();
+	        html.append("<html><body>");
+	        html.append("<p>Dear HOD,</p>");
+	        html.append("<p>The following billable type changes have been made by <b>")
+	            .append(updatedByName)
+	            .append("</b>:</p>");
+
+	        html.append("<div style='overflow-x:auto;'>");
+	        html.append("<table border='1' style='border-collapse: collapse; width: 100%; table-layout: auto;'>");
+	        html.append("<tr>");
+	        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Employee ID</th>");
+	        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Name</th>");
+	        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Billable Type</th>");
+	        html.append("</tr>");
+
+	        for (Object[] emp : employees) {
+	            html.append("<tr>");
+	            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>A-").append(emp[0]).append("</td>");
+	            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>").append(emp[1]).append("</td>");
+	            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>")
+	                .append(emp[3]).append(" &rarr; ").append(emp[4]).append("</td>");
+	            html.append("</tr>");
+	        }
+
+	        html.append("</table>");
+	        html.append("</div>");
+	        html.append("<p>Regards,<br/>Ishine Team</p>");
+	        html.append("</body></html>");
+
+	        String subject = "Billable Type Change Notification for " + departmentName + " Department";
+
+	        try {
+	            mailService.sendMailWithCC(hodEmail, billablechangeMailAddress, subject, html.toString());
+	        } catch (MessagingException e) {
+	            e.printStackTrace();
+
+	        }
+	    }
+	}
+
+	public ServiceResponse getEmployeesWorkingInProjects(ProjectNamesRequestDTO request) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (request.getStartDate() == null || request.getEndDate() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceError("startDate and endDate are required (yyyy-MM-dd)");
+				return response;
+			}
+			if (request.getStartDate().isAfter(request.getEndDate())) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceError("startDate must not be after endDate");
+				return response;
+			}
+			LocalDateTime rangeStart = request.getStartDate().atStartOfDay();
+			LocalDateTime rangeEnd = request.getEndDate().atTime(LocalTime.MAX);
+			List<ProjectEmployeeTeamReportDTO> rows = employeeTeamMapRepository
+					.findEmployeesInProjectsByDateRange(rangeStart, rangeEnd);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(rows);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+}
 
 

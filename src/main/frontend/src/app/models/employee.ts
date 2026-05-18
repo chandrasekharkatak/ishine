@@ -232,5 +232,14 @@ export class Employee{
 	certificateNames:any;
 	skillNames:any;
 	totalCurrentExperience:any;
+	poRequirementMappingId : any;
+	poId : any;
 	isUpdateDefaultProject:boolean = false;
+	jobRoleIds:any;
+	poRoleId: any;
+	oldEtmEndDate: any;
+	newEtmStartDate: any;
+	projectStartDate:any;
+	isEndDateVisible:boolean = false;
+	memberMaxEndDate:any;
 }

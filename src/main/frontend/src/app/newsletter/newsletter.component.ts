@@ -14,6 +14,7 @@ import { Document } from '../models/document';
 import { Query } from '../models/query';
 import { UtilityService } from '../services/utility.service';
 import { Feature } from '../models/feature';
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 class FilterData {
@@ -65,12 +66,20 @@ export class NewsletterComponent implements OnInit {
   newsletterColumns:any[] = ['blank','displayName','name','createdOn'];
   newsletterCol:any[] = ['displayName','createdOn'];
 
+  // newsletterModalConfiguration = {
+  //   backdrop: true,
+  //   ignoreBackdropClick: true,
+  //   keyboard: false,
+  //   class : 'modal-xl'
+  // }
+
   newsletterModalConfiguration = {
+    size: 'lg',
     backdrop: true,
-    ignoreBackdropClick: true,
-    keyboard: false,
-    class : 'modal-xl'
+    centered: true,
+    windowClass: 'a4-modal'
   }
+
 
   userMapping: any = {};
 
@@ -80,6 +89,7 @@ export class NewsletterComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private newsletterService : NewsletterService,
     private utilityService: UtilityService,
+    private router : Router
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }

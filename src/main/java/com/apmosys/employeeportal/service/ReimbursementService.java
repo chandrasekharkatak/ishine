@@ -1235,207 +1235,395 @@ public ServiceResponse updateReimbursementDetailsByAccountsTeam(ReimbursementDTO
 }
 
 public ServiceResponse saveExpenditureType(ExpenditureTypeDTO expenditureTypeDTO) {
-    ServiceResponse serviceResponse = new ServiceResponse();
-    try {
-    	ExpenditureType expenditureType = new ExpenditureType();
-    	expenditureType.setExpenditureTypeName(expenditureTypeDTO.getExpenditureTypeName());
-    	expenditureType.setDescription(expenditureTypeDTO.getDescription());
-    	expenditureType.setIsActive("Y");
-    	expenditureType.setCreatedBy(expenditureTypeDTO.getCreatedBy());
-    	System.out.println(expenditureType.toString());
-    	Employee empName = employeeRepository.findByEmpId(expenditureTypeDTO.getCreatedBy());
-    	expenditureType.setCreatedByName(empName.getName());
-    	ExpenditureType savedType = expenditureTypeRepository.save(expenditureType);
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			if (expenditureTypeDTO.getExpenditureTypeName() == null
+					|| expenditureTypeDTO.getExpenditureTypeName().trim().isEmpty()) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceError("Expenditure type name is required.");
+				return serviceResponse;
+			}
+			final String name = expenditureTypeDTO.getExpenditureTypeName().trim();
+			Employee emp = expenditureTypeDTO.getCreatedBy() != null
+					? employeeRepository.findByEmpId(expenditureTypeDTO.getCreatedBy())
+					: null;
+			final String empNameStr = emp != null ? emp.getName() : "System";
 
-        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-        serviceResponse.setServiceResponse(savedType); 
-    } catch (Exception e) {
-        e.printStackTrace();
-        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-        serviceResponse.setServiceError("Failed to save expenditure Type: " + e.getMessage());
-    }
+			if (expenditureTypeDTO.getId() != null) {
+				ExpenditureType existing = expenditureTypeRepository.findById(expenditureTypeDTO.getId())
+						.orElseThrow(() -> new RuntimeException("Expenditure type not found: " + expenditureTypeDTO.getId()));
+				Optional<ExpenditureType> other = expenditureTypeRepository.findByExpenditureTypeName(name);
+				if (other.isPresent() && !other.get().getId().equals(existing.getId())) {
+					throw new RuntimeException("Another expenditure type already uses this name.");
+				}
+				existing.setExpenditureTypeName(name);
+				existing.setDescription(expenditureTypeDTO.getDescription());
+				if (expenditureTypeDTO.getIsActive() != null && !expenditureTypeDTO.getIsActive().trim().isEmpty()) {
+					existing.setIsActive(expenditureTypeDTO.getIsActive().trim());
+				}
+				existing.setUpdatedBy(empNameStr);
+				ExpenditureType saved = expenditureTypeRepository.save(existing);
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(saved);
+			} else {
+				if (expenditureTypeRepository.findByExpenditureTypeName(name).isPresent()) {
+					throw new RuntimeException("Expenditure type name already exists.");
+				}
+				ExpenditureType expenditureType = new ExpenditureType();
+				expenditureType.setExpenditureTypeName(name);
+				expenditureType.setDescription(expenditureTypeDTO.getDescription());
+				expenditureType.setIsActive(
+						expenditureTypeDTO.getIsActive() != null && !expenditureTypeDTO.getIsActive().trim().isEmpty()
+								? expenditureTypeDTO.getIsActive().trim()
+								: "Y");
+				expenditureType.setCreatedBy(expenditureTypeDTO.getCreatedBy());
+				expenditureType.setCreatedByName(empNameStr);
+				ExpenditureType savedType = expenditureTypeRepository.save(expenditureType);
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(savedType);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceError("Failed to save expenditure type: " + e.getMessage());
+		}
 
-    return serviceResponse;
-}
+		return serviceResponse;
+	}
 
-public ServiceResponse getAllExpenditureType() {
-    ServiceResponse serviceResponse = new ServiceResponse();
-    try {
-        List<ExpenditureType> typeList = expenditureTypeRepository.findAll();
+	public ServiceResponse deleteExpenditureType(Long id) {
+		ServiceResponse r = new ServiceResponse();
+		try {
+			if (id == null) {
+				r.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				r.setServiceError("id is required.");
+				return r;
+			}
+			if (reimbursementTravelModeRepository.countByExpenditureType_Id(id) > 0) {
+				List<ReimbursementTravelMode> modes = reimbursementTravelModeRepository
+						.findByExpenditureType_IdOrderByModeTypeAsc(id);
+				List<String> modeLines = new ArrayList<>();
+				for (ReimbursementTravelMode m : modes) {
+					String label = m.getModeType() != null ? m.getModeType().trim() : "(unnamed mode)";
+					modeLines.add(label + "  —  Travel mode ID: " + m.getTravelModeId());
+				}
+				r.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				r.setServiceError(
+						"You cannot delete this expenditure type until the following travel mode(s) are removed or reassigned.");
+				r.setServiceResponse(modeLines);
+				return r;
+			}
+			expenditureTypeRepository.deleteById(id);
+			r.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			r.setServiceResponse("Expenditure type deleted.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			r.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			r.setServiceError(e.getMessage());
+		}
+		return r;
+	}
 
-        if (typeList.isEmpty()) {
-            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            serviceResponse.setServiceError("No travel reasons found.");
-        } else {
-            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            serviceResponse.setServiceResponse(typeList);
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-        serviceResponse.setServiceError("Error fetching travel reasons: " + e.getMessage());
-    }
+	public ServiceResponse getAllExpenditureType() {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			List<ExpenditureType> typeList = expenditureTypeRepository.findAll();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(typeList != null ? typeList : new ArrayList<>());
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			serviceResponse.setServiceError("Error fetching expenditure types: " + e.getMessage());
+		}
 
-    return serviceResponse;
-}
+		return serviceResponse;
+	}
 
-public ServiceResponse saveTravelMode(TravelModeDTO travelModeDTO) {
-    ServiceResponse response = new ServiceResponse();
+	public ServiceResponse saveTravelMode(TravelModeDTO travelModeDTO) {
+		ServiceResponse response = new ServiceResponse();
 
-    try {
-        // Fetch TravelReason entity by name
-        ExpenditureType expenditureType = expenditureTypeRepository
-            .findByExpenditureTypeName(travelModeDTO.getExpenditureType())
-            .orElseThrow(() -> new RuntimeException("Expenditure not found: " + travelModeDTO.getExpenditureType()));
+		try {
+			if (travelModeDTO.getModeType() == null || travelModeDTO.getModeType().trim().isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceError("Mode type is required.");
+				return response;
+			}
+			if (travelModeDTO.getExpenditureType() == null || travelModeDTO.getExpenditureType().trim().isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceError("Expenditure type is required.");
+				return response;
+			}
+			ExpenditureType expenditureType = expenditureTypeRepository
+					.findByExpenditureTypeName(travelModeDTO.getExpenditureType().trim())
+					.orElseThrow(() -> new RuntimeException("Expenditure not found: " + travelModeDTO.getExpenditureType()));
 
-        ReimbursementTravelMode mode = new ReimbursementTravelMode();
-        mode.setExpenditureType(expenditureType); // Set the entity, not the string
-        mode.setModeType(travelModeDTO.getModeType());
-        mode.setDescription(travelModeDTO.getDescription());
-        mode.setIsActive("Y");
-        mode.setRequiresVehicleType(travelModeDTO.getRequiresVehicleType());
-        mode.setCreatedBy(travelModeDTO.getCreatedBy());
-        Employee empName = employeeRepository.findByEmpId(travelModeDTO.getCreatedBy());
-        mode.setCreatedByName(empName.getName());
-        reimbursementTravelModeRepository.save(mode);
+			final String modeName = travelModeDTO.getModeType().trim();
+			Employee emp = travelModeDTO.getCreatedBy() != null ? employeeRepository.findByEmpId(travelModeDTO.getCreatedBy()) : null;
+			final String empNameStr = emp != null ? emp.getName() : "System";
 
-        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-        response.setServiceResponse("Travel Mode saved successfully.");
-    } catch (Exception e) {
-        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-        response.setServiceError(e.getMessage());
-    }
+			if (travelModeDTO.getTravelModeId() != null) {
+				ReimbursementTravelMode mode = reimbursementTravelModeRepository
+						.findById(travelModeDTO.getTravelModeId())
+						.orElseThrow(() -> new RuntimeException("Travel mode not found: " + travelModeDTO.getTravelModeId()));
+				if (reimbursementTravelModeRepository.existsByExpenditureType_IdAndModeTypeIgnoreCaseAndTravelModeIdNot(
+						expenditureType.getId(), modeName, mode.getTravelModeId())) {
+					throw new RuntimeException("This mode type already exists for the selected expenditure type.");
+				}
+				mode.setExpenditureType(expenditureType);
+				mode.setModeType(modeName);
+				mode.setDescription(travelModeDTO.getDescription());
+				mode.setRequiresVehicleType(travelModeDTO.getRequiresVehicleType());
+				reimbursementTravelModeRepository.save(mode);
+			} else {
+				if (reimbursementTravelModeRepository.existsByExpenditureType_IdAndModeTypeIgnoreCase(
+						expenditureType.getId(), modeName)) {
+					throw new RuntimeException("This mode type already exists for the selected expenditure type.");
+				}
+				ReimbursementTravelMode mode = new ReimbursementTravelMode();
+				mode.setExpenditureType(expenditureType);
+				mode.setModeType(modeName);
+				mode.setDescription(travelModeDTO.getDescription());
+				mode.setIsActive("Y");
+				mode.setRequiresVehicleType(travelModeDTO.getRequiresVehicleType());
+				mode.setCreatedBy(travelModeDTO.getCreatedBy());
+				mode.setCreatedByName(empNameStr);
+				reimbursementTravelModeRepository.save(mode);
+			}
 
-    return response;
-}
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Travel Mode saved successfully.");
+		} catch (Exception e) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceError(e.getMessage());
+		}
 
-public ServiceResponse getAllgetTravelModes() {
-    ServiceResponse serviceResponse = new ServiceResponse();
-    try {
-        List<ReimbursementTravelMode> modeList = reimbursementTravelModeRepository.findAll();
-        List<TravelModeDTO> dtoList = new ArrayList<>();
+		return response;
+	}
 
-        for (ReimbursementTravelMode mode : modeList) {
-            TravelModeDTO dto = new TravelModeDTO();
-            dto.setTravelModeId(mode.getTravelModeId());
-            dto.setModeType(mode.getModeType());
-            dto.setRequiresVehicleType(mode.getRequiresVehicleType());
-            dto.setDescription(mode.getDescription());
-            dto.setIsActive(mode.getIsActive());
-            dto.setCreatedBy(mode.getCreatedBy());
-            dto.setCreatedOn(mode.getCreatedOn());
-            dto.setCreatedByName(mode.getCreatedByName());
-            
-            
+	public ServiceResponse deleteTravelMode(Long travelModeId) {
+		ServiceResponse r = new ServiceResponse();
+		try {
+			if (travelModeId == null) {
+				r.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				r.setServiceError("travelModeId is required.");
+				return r;
+			}
+			reimbursementTravelModeRepository.deleteById(travelModeId);
+			r.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			r.setServiceResponse("Travel mode deleted.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			r.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			r.setServiceError(e.getMessage());
+		}
+		return r;
+	}
 
+	public ServiceResponse getAllgetTravelModes() {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			List<ReimbursementTravelMode> modeList = reimbursementTravelModeRepository.findAll();
+			List<TravelModeDTO> dtoList = new ArrayList<>();
 
+			for (ReimbursementTravelMode mode : modeList) {
+				TravelModeDTO dto = new TravelModeDTO();
+				dto.setTravelModeId(mode.getTravelModeId());
+				dto.setModeType(mode.getModeType());
+				dto.setRequiresVehicleType(mode.getRequiresVehicleType());
+				dto.setDescription(mode.getDescription());
+				dto.setIsActive(mode.getIsActive());
+				dto.setCreatedBy(mode.getCreatedBy());
+				dto.setCreatedOn(mode.getCreatedOn());
+				dto.setCreatedByName(mode.getCreatedByName());
+				if (mode.getExpenditureType() != null) {
+					dto.setExpenditureType(mode.getExpenditureType().getExpenditureTypeName());
+				}
 
-            dtoList.add(dto);
-        }
+				dtoList.add(dto);
+			}
 
-        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-        serviceResponse.setServiceResponse(dtoList);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(dtoList);
 
-    } catch (Exception e) {
-        e.printStackTrace();
-        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-        serviceResponse.setServiceError("Error fetching travel reasons: " + e.getMessage());
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			serviceResponse.setServiceError("Error fetching travel modes: " + e.getMessage());
+		}
 
-    return serviceResponse;
-}
+		return serviceResponse;
+	}
 
+	public ServiceResponse saveVehicleType(TravelModeDTO travelModeDTO) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			if (travelModeDTO.getVehicleTypeName() == null || travelModeDTO.getVehicleTypeName().trim().isEmpty()) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceError("Vehicle type name is required.");
+				return serviceResponse;
+			}
+			if (travelModeDTO.getDescription() == null || travelModeDTO.getDescription().trim().isEmpty()) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceError("Description is required.");
+				return serviceResponse;
+			}
+			final String vn = travelModeDTO.getVehicleTypeName().trim();
+			Employee emp = travelModeDTO.getCreatedBy() != null ? employeeRepository.findByEmpId(travelModeDTO.getCreatedBy()) : null;
+			final String empNameStr = emp != null ? emp.getName() : "System";
 
-public ServiceResponse saveVehicleType(TravelModeDTO travelModeDTO) {
-    ServiceResponse serviceResponse = new ServiceResponse();
-    try {
-    	VehicleType vehicleType = new VehicleType();
-    	vehicleType.setVehicleTypeName(travelModeDTO.getVehicleTypeName());
-    	vehicleType.setDescription(travelModeDTO.getDescription());
-    	vehicleType.setIsActive("Y");
-    	vehicleType.setCreatedBy(travelModeDTO.getCreatedBy());
-    	Employee empName = employeeRepository.findByEmpId(travelModeDTO.getCreatedBy());
-    	vehicleType.setCreatedByName(empName.getName());
-    	VehicleType savedType = vehicleTypeRepository.save(vehicleType);
+			if (travelModeDTO.getVehicleTypeId() != null) {
+				VehicleType vehicleType = vehicleTypeRepository.findById(travelModeDTO.getVehicleTypeId())
+						.orElseThrow(() -> new RuntimeException("Vehicle type not found: " + travelModeDTO.getVehicleTypeId()));
+				if (vehicleTypeRepository.existsByVehicleTypeNameIgnoreCaseAndIdNot(vn, vehicleType.getId())) {
+					throw new RuntimeException("Another vehicle type already uses this name.");
+				}
+				vehicleType.setVehicleTypeName(vn);
+				vehicleType.setDescription(travelModeDTO.getDescription().trim());
+				vehicleType.setUpdatedBy(empNameStr);
+				VehicleType saved = vehicleTypeRepository.save(vehicleType);
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(saved);
+			} else {
+				if (vehicleTypeRepository.existsByVehicleTypeNameIgnoreCase(vn)) {
+					throw new RuntimeException("Vehicle type name already exists.");
+				}
+				VehicleType vehicleType = new VehicleType();
+				vehicleType.setVehicleTypeName(vn);
+				vehicleType.setDescription(travelModeDTO.getDescription().trim());
+				vehicleType.setIsActive("Y");
+				vehicleType.setCreatedBy(travelModeDTO.getCreatedBy());
+				vehicleType.setCreatedByName(empNameStr);
+				VehicleType savedType = vehicleTypeRepository.save(vehicleType);
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(savedType);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceError("Failed to save vehicle type: " + e.getMessage());
+		}
 
-        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-        serviceResponse.setServiceResponse(savedType); 
-    } catch (Exception e) {
-        e.printStackTrace();
-        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-        serviceResponse.setServiceError("Failed to save vehicle Type: " + e.getMessage());
-    }
+		return serviceResponse;
+	}
 
-    return serviceResponse;
-}
+	public ServiceResponse deleteVehicleType(Long vehicleTypeId) {
+		ServiceResponse r = new ServiceResponse();
+		try {
+			if (vehicleTypeId == null) {
+				r.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				r.setServiceError("vehicleTypeId is required.");
+				return r;
+			}
+			vehicleTypeRepository.deleteById(vehicleTypeId);
+			r.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			r.setServiceResponse("Vehicle type deleted.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			r.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			r.setServiceError(e.getMessage());
+		}
+		return r;
+	}
 
+	public ServiceResponse getAllVehicleType() {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			List<VehicleType> typeList = vehicleTypeRepository.findAll();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(typeList != null ? typeList : new ArrayList<>());
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			serviceResponse.setServiceError("Error fetching vehicle types: " + e.getMessage());
+		}
 
-public ServiceResponse getAllVehicleType() {
-    ServiceResponse serviceResponse = new ServiceResponse();
-    try {
-        List<VehicleType> typeList = vehicleTypeRepository.findAll();
+		return serviceResponse;
+	}
 
-        if (typeList.isEmpty()) {
-            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            serviceResponse.setServiceError("No travel reasons found.");
-        } else {
-            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            serviceResponse.setServiceResponse(typeList);
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-        serviceResponse.setServiceError("Error fetching travel reasons: " + e.getMessage());
-    }
+	public ServiceResponse saveFoodType(TravelModeDTO travelModeDTO) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			if (travelModeDTO.getFoodTypeName() == null || travelModeDTO.getFoodTypeName().trim().isEmpty()) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceError("Food type name is required.");
+				return serviceResponse;
+			}
+			if (travelModeDTO.getDescription() == null || travelModeDTO.getDescription().trim().isEmpty()) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceError("Description is required.");
+				return serviceResponse;
+			}
+			final String fn = travelModeDTO.getFoodTypeName().trim();
+			Employee emp = travelModeDTO.getCreatedBy() != null ? employeeRepository.findByEmpId(travelModeDTO.getCreatedBy()) : null;
+			final String empNameStr = emp != null ? emp.getName() : "System";
 
-    return serviceResponse;
-}
+			if (travelModeDTO.getFoodTypeId() != null) {
+				FoodType foodType = foodTypeRepository.findById(travelModeDTO.getFoodTypeId())
+						.orElseThrow(() -> new RuntimeException("Food type not found: " + travelModeDTO.getFoodTypeId()));
+				if (foodTypeRepository.existsByFoodTypeNameIgnoreCaseAndIdNot(fn, foodType.getId())) {
+					throw new RuntimeException("Another food allowance type already uses this name.");
+				}
+				foodType.setFoodTypeName(fn);
+				foodType.setDescription(travelModeDTO.getDescription().trim());
+				foodType.setUpdatedBy(empNameStr);
+				FoodType saved = foodTypeRepository.save(foodType);
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(saved);
+			} else {
+				if (foodTypeRepository.existsByFoodTypeNameIgnoreCase(fn)) {
+					throw new RuntimeException("Food type name already exists.");
+				}
+				FoodType foodType = new FoodType();
+				foodType.setFoodTypeName(fn);
+				foodType.setDescription(travelModeDTO.getDescription().trim());
+				foodType.setIsActive("Y");
+				foodType.setCreatedBy(travelModeDTO.getCreatedBy());
+				foodType.setCreatedByName(empNameStr);
+				FoodType savedType = foodTypeRepository.save(foodType);
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(savedType);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceError("Failed to save food type: " + e.getMessage());
+		}
 
-public ServiceResponse saveFoodType(TravelModeDTO travelModeDTO) {
-    ServiceResponse serviceResponse = new ServiceResponse();
-    try {
-    	FoodType foodType = new FoodType();
-    	foodType.setFoodTypeName(travelModeDTO.getFoodTypeName());
-    	foodType.setDescription(travelModeDTO.getDescription());
-    	foodType.setIsActive("Y");
-    	foodType.setCreatedBy(travelModeDTO.getCreatedBy());
-    	Employee empName = employeeRepository.findByEmpId(travelModeDTO.getCreatedBy());
-    	foodType.setCreatedByName(empName.getName());
-    	FoodType savedType = foodTypeRepository.save(foodType);
+		return serviceResponse;
+	}
 
-        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-        serviceResponse.setServiceResponse(savedType); 
-    } catch (Exception e) {
-        e.printStackTrace();
-        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-        serviceResponse.setServiceError("Failed to save food Type: " + e.getMessage());
-    }
+	public ServiceResponse deleteFoodType(Long foodTypeId) {
+		ServiceResponse r = new ServiceResponse();
+		try {
+			if (foodTypeId == null) {
+				r.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				r.setServiceError("foodTypeId is required.");
+				return r;
+			}
+			foodTypeRepository.deleteById(foodTypeId);
+			r.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			r.setServiceResponse("Food type deleted.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			r.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			r.setServiceError(e.getMessage());
+		}
+		return r;
+	}
 
-    return serviceResponse;
-}
+	public ServiceResponse getAllFoodType() {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			List<FoodType> typeList = foodTypeRepository.findAll();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(typeList != null ? typeList : new ArrayList<>());
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			serviceResponse.setServiceError("Error fetching food types: " + e.getMessage());
+		}
 
+		return serviceResponse;
+	}
 
-public ServiceResponse getAllFoodType() {
-    ServiceResponse serviceResponse = new ServiceResponse();
-    try {
-        List<FoodType> typeList = foodTypeRepository.findAll();
-
-        if (typeList.isEmpty()) {
-            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            serviceResponse.setServiceError("No travel reasons found.");
-        } else {
-            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            serviceResponse.setServiceResponse(typeList);
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-        serviceResponse.setServiceError("Error fetching food type " + e.getMessage());
-    }
-
-    return serviceResponse;
-}
-
-
-	
 }

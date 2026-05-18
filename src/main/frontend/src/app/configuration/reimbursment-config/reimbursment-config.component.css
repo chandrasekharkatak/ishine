@@ -1,3 +1,13 @@
 .bg-color{
     background-color:#021b79;
 }
+
+.rmb-action-btn {
+  min-width: 2rem;
+  padding: 0.25rem 0.45rem;
+  line-height: 1.1;
+}
+
+.rmb-actions .rmb-action-btn i {
+  font-size: 0.9rem;
+}

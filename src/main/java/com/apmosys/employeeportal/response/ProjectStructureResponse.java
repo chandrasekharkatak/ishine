@@ -18,9 +18,8 @@ public class ProjectStructureResponse {
 	private String type;
 	private String deptAb;
 	private String deptName;
-	
-	
-	
+	private String[] employeeNames;
+	private String[] employeeDetails;
 	
 	public ProjectStructureResponse(Object[] row)
 	{
@@ -38,6 +37,22 @@ public class ProjectStructureResponse {
 	    } else {
 	        this.deptIds = new Long[5];
 	    }
+		String empNamesStr = row.length > 6 && row[6] != null ? row[6].toString() : "";
+		if (!empNamesStr.isEmpty()) {
+			this.employeeNames = Arrays.stream(empNamesStr.split(","))
+			                           .map(String::trim)
+			                           .toArray(String[]::new);
+		} else {
+			this.employeeNames = new String[0];
+		}
+		String empDetailsStr = row.length > 7 && row[7] != null ? row[7].toString() : "";
+		if (!empDetailsStr.isEmpty()) {
+			this.employeeDetails = Arrays.stream(empDetailsStr.split(","))
+			                           .map(String::trim)
+			                           .toArray(String[]::new);
+		} else {
+			this.employeeDetails = new String[0];
+		}
 	}
 
 	

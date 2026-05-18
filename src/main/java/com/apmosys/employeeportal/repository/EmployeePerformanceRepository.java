@@ -40,7 +40,9 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 			+ "             erp.performance_rating_id,\n"
 			+ "              ep.hr_remarks,\n"
 			+ "             ep.hr_review_status,\n"
-			+ "             ep.reject_status\n"
+			+ "             ep.reject_status,\n"
+			+ "             ep.manager_remarks,\n"
+			+ "             erp.criteria_remark\n"
 			+ "			FROM employee_performance ep\n"
 			+ "			INNER JOIN employee_rating_performance erp \n"
 			+ "			    ON ep.quarter_id = erp.quarter_id \n"
@@ -53,9 +55,50 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 
 	@Query(nativeQuery = true , value="SELECT * from employee_performance ep where ep.employee_performance_id= :employeePerformanceId ")
 	EmployeePerformance findByPerformanceId(@Param("employeePerformanceId")Long employeePerformanceId);
-	
-	
-	
+
+	/** Find latest employee_performance row for given emp and quarter (for manager/HOD submit). */
+	@Query(nativeQuery = true, value = "SELECT * FROM employee_performance ep WHERE ep.emp_id = :empId AND ep.quarter_id = :quarterId ORDER BY ep.employee_performance_id DESC LIMIT 1")
+	List<EmployeePerformance> findLatestByEmpIdAndQuarterId(@Param("empId") Long empId, @Param("quarterId") Long quarterId);
+
+	/** Approval details for popup: manager/HOD/HR name, employment id, final rating, remarks. Latest performance row per emp and quarter. */
+	@Query(nativeQuery = true, value = "SELECT ep.manager_id, ep.manager_remarks, ep.final_rating, e_m.name AS manager_name, e_m.employeement_id AS manager_employment_id, "
+			+ "ep.hod_id, ep.hod_remarks, e_h.name AS hod_name, e_h.employeement_id AS hod_employment_id, "
+			+ "ep.hr_id, ep.hr_remarks, e_hr.name AS hr_name, e_hr.employeement_id AS hr_employment_id "
+			+ "FROM employee_performance ep "
+			+ "LEFT JOIN employee e_m ON ep.manager_id = e_m.emp_id "
+			+ "LEFT JOIN employee e_h ON ep.hod_id = e_h.emp_id "
+			+ "LEFT JOIN employee e_hr ON ep.hr_id = e_hr.emp_id "
+			+ "WHERE ep.emp_id = :empId AND ep.quarter_id = :quarterId "
+			+ "ORDER BY ep.employee_performance_id DESC LIMIT 1")
+	List<Object[]> findApprovalDetailsByEmpIdAndQuarterId(@Param("empId") Long empId, @Param("quarterId") Long quarterId);
+
+	/** Approval audit history rows for popup (all records in quarter, latest first). */
+	@Query(nativeQuery = true, value = "SELECT ep.employee_performance_id, ep.final_rating, "
+			+ "ep.manager_id, ep.manager_remarks, ep.manager_review_date, e_m.name AS manager_name, e_m.employeement_id AS manager_employment_id, "
+			+ "ep.hod_id, ep.hod_remarks, ep.hod_approval_date, ep.hod_rejected_date, e_h.name AS hod_name, e_h.employeement_id AS hod_employment_id, "
+			+ "ep.hr_id, ep.hr_remarks, ep.hr_review_date, ep.hr_review_status, e_hr.name AS hr_name, e_hr.employeement_id AS hr_employment_id "
+			+ "FROM employee_performance ep "
+			+ "LEFT JOIN employee e_m ON ep.manager_id = e_m.emp_id "
+			+ "LEFT JOIN employee e_h ON ep.hod_id = e_h.emp_id "
+			+ "LEFT JOIN employee e_hr ON ep.hr_id = e_hr.emp_id "
+			+ "WHERE ep.emp_id = :empId AND ep.quarter_id = :quarterId "
+			+ "ORDER BY ep.employee_performance_id DESC")
+	List<Object[]> findApprovalAuditHistoryByEmpIdAndQuarterId(@Param("empId") Long empId, @Param("quarterId") Long quarterId);
+
+	/** Approval audit history rows across all years (for year-wise summary in popup). */
+	@Query(nativeQuery = true, value = "SELECT ep.employee_performance_id, ep.final_rating, ep.quarter_id, qc.financial_year, qc.quarter_cycle, "
+			+ "ep.manager_id, ep.manager_remarks, ep.manager_review_date, e_m.name AS manager_name, e_m.employeement_id AS manager_employment_id, "
+			+ "ep.hod_id, ep.hod_remarks, ep.hod_approval_date, ep.hod_rejected_date, e_h.name AS hod_name, e_h.employeement_id AS hod_employment_id, "
+			+ "ep.hr_id, ep.hr_remarks, ep.hr_review_date, ep.hr_review_status, e_hr.name AS hr_name, e_hr.employeement_id AS hr_employment_id "
+			+ "FROM employee_performance ep "
+			+ "LEFT JOIN quater_cycle qc ON ep.quarter_id = qc.quarter_id "
+			+ "LEFT JOIN employee e_m ON ep.manager_id = e_m.emp_id "
+			+ "LEFT JOIN employee e_h ON ep.hod_id = e_h.emp_id "
+			+ "LEFT JOIN employee e_hr ON ep.hr_id = e_hr.emp_id "
+			+ "WHERE ep.emp_id = :empId "
+			+ "ORDER BY ep.employee_performance_id DESC")
+	List<Object[]> findApprovalAuditHistoryByEmpId(@Param("empId") Long empId);
+
 	@Query(nativeQuery = true , value="SELECT  \n"
 			+ "    d.name AS department_name,\n"
 			+ "    COUNT(DISTINCT e.emp_id) AS eligible_employees, \n"
@@ -324,7 +367,27 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 	
 	@Query(value="SELECT completion_status,emp_id FROM employee_performance epm inner join quater_cycle qc on epm.quarter_id = qc.quarter_id where qc.is_enable =1 and qc.is_active=1",nativeQuery = true)
 	List<Object[]>currentStatusForPerformanceTableView();
-	
+
+	/** Final rating per emp_id from employee_performance.final_rating for active quarters only (matches review page). */
+	@Query(nativeQuery = true, value = "SELECT ep.emp_id, ROUND(AVG(CAST(ep.final_rating AS DECIMAL(5,2))), 2) "
+			+ "FROM employee_performance ep "
+			+ "WHERE ep.quarter_id IN (SELECT quarter_id FROM quater_cycle WHERE is_enable = 1 AND is_active = 1) "
+			+ "AND ep.final_rating IS NOT NULL AND ep.final_rating != '' "
+			+ "GROUP BY ep.emp_id")
+	List<Object[]> findFinalRatingByEmpId();
+
+	/**
+	 * Approval status per emp_id for the latest active quarter only (max quarter_id among enabled+active).
+	 * Avoids mixing HOD/manager flags from older cycles — needed so HR bulk select matches “HOD approved this cycle”.
+	 */
+	@Query(nativeQuery = true, value = "SELECT ep.emp_id, "
+			+ "CASE WHEN ep.manager_review_date IS NOT NULL THEN 'Submitted' ELSE 'Pending' END, "
+			+ "CASE WHEN ep.hod_approval_date IS NOT NULL THEN 'Submitted' ELSE 'Pending' END, "
+			+ "COALESCE(CASE WHEN ep.hr_review_status IN ('Accepted','Rejected') THEN ep.hr_review_status ELSE NULL END, 'Pending') "
+			+ "FROM employee_performance ep "
+			+ "WHERE ep.quarter_id = (SELECT MAX(qc.quarter_id) FROM quater_cycle qc WHERE qc.is_enable = 1 AND qc.is_active = 1)")
+	List<Object[]> findApprovalStatusByEmpId();
+
 	@Query(nativeQuery = true , value = "select d.name from employee e "
 			+ "inner join job_role jr on e.job_role_id = jr.job_role_id "
 			+ "inner join department d on d.dept_id = jr.dept_id "

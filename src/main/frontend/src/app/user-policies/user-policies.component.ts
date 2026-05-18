@@ -13,6 +13,7 @@ import { LocationStrategy } from '@angular/common';
 import * as moment from 'moment';
 import { AppComponent } from '../app.component';
 import { UtilityService } from '../services/utility.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 
@@ -39,12 +40,19 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   src:any;
   fileName:any
 
+  // policyModalConfiguration = {
+  //   backdrop: true,
+  //   ignoreBackdropClick: true,
+  //   keyboard: false,
+  //   class : 'modal-xl'
+  // }
+
   policyModalConfiguration = {
-    backdrop: true,
-    ignoreBackdropClick: true,
-    keyboard: false,
-    class : 'modal-xl'
-  }
+  size: 'lg',
+  backdrop: true,
+  centered: true,
+  windowClass: 'a4-modal'
+};
 
   readEnambleModalConfig = {
     backdrop: true,
@@ -62,6 +70,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private locationStrategy: LocationStrategy,
         private utilityService: UtilityService,
+        private router : Router
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -205,7 +214,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   }
 
   openPreviewDocument(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.open(template, this.policyModalConfiguration);
+    this.modalRef = this.modalService.open(template, this.policyModalConfiguration );
     setTimeout(() => {
       if (this.currentDoc.readEnabled == 'false') {
         this.isDocumentScrolledToBottom = true;
@@ -272,6 +281,8 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
+
+  
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

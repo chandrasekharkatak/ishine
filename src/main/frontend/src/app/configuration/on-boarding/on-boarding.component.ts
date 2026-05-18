@@ -8,6 +8,7 @@ import { User } from 'src/app/models/user';
 import { ValidationService } from 'src/app/services/validation.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { Feature } from 'src/app/models/feature';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -39,6 +40,7 @@ export class OnBoardingComponent implements OnInit {
     private validationService:ValidationService,
     private modalService: NgbModal,
     private utilityService: UtilityService,
+    private router : Router
   ) {
      this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     }
@@ -286,5 +288,6 @@ getEmpIdPrefixFromFlags(employee: any): string {
   cancelRequest() {
     this.modalRef?.close();
   }
+
 
 }

@@ -30,8 +30,25 @@ public class BioMaTO {
     private Long employementId;
     private Long departmentId;
     private Long empId;
+	private String departmentName;
+	private String reportingManagerName;
+	private String employeeEmail;
     
     
+    public void setEmployeeEmail(String employeeEmail) {
+    	this.employeeEmail = employeeEmail;
+    }
+    public String getEmployeeEmail() {
+    	return employeeEmail;
+    }
+    private String reportingManagerEmail;
+    
+    public void setReportingManagerEmail(String reportingManagerEmail) {
+    	this.reportingManagerEmail = reportingManagerEmail;
+    }
+    public String getReportingManagerEmail() {
+    	return reportingManagerEmail;
+    }
     public void setDeduct(String deduct) {
     	this.deduct = deduct;
     }
@@ -164,7 +181,19 @@ public class BioMaTO {
 	public void setEmpId(Long empId) {
 		this.empId = empId;
 	}
-    
+	
+	public String getDepartmentName() {
+		return departmentName;
+	}
+	public void setDepartmentName(String departmentName) {
+		this.departmentName = departmentName;
+	}
+	public String getReportingManagerName() {
+		return reportingManagerName;
+	}
+	public void setReportingManagerName(String reportingManagerName) {
+		this.reportingManagerName = reportingManagerName;
+	}
     
 
     

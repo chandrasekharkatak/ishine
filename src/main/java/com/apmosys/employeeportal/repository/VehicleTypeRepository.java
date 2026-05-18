@@ -7,8 +7,9 @@ import com.apmosys.employeeportal.model.VehicleType;
 
 @Repository
 public interface VehicleTypeRepository extends JpaRepository<VehicleType, Long> {
-	
-	//Optional<ExpenditureType> findByExpenditureTypeName(String expenditureType);
 
+	boolean existsByVehicleTypeNameIgnoreCaseAndIdNot(String vehicleTypeName, Long id);
+
+	boolean existsByVehicleTypeNameIgnoreCase(String vehicleTypeName);
 }
 

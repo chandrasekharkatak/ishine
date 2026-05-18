@@ -17,5 +17,7 @@ public class PerformanceRatingDTO {
     private String reviewLabel;
     private Long quarterId;
     private Long performanceRatingId;
+    /** Per-criterion comment (employee_rating_performance.criteria_remark). */
+    private String criteriaRemark;
 
 }

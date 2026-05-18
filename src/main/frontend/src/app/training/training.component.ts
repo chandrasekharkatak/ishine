@@ -797,4 +797,7 @@ export class TrainingComponent implements OnInit, OnDestroy {
       this.modalRef = null;
     }
   }
+
+
+    
 }

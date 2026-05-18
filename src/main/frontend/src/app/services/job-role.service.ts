@@ -53,8 +53,8 @@ export class JobRoleService {
     return this.http.post(`${this.baseUrl}`+`api/getMappedSubFeatureList`, employeeObj);
   }
 
-  getDefaultMapping(){
-    return this.http.get(`${this.baseUrl}`+`api/getDefaultMapping`);
+  getDefaultMapping(payload:any){
+    return this.http.post(`${this.baseUrl}`+`api/getDefaultMapping`,payload);
   }
 
   updateDefaultFeatureMapping(jobRoleObj :JobRole){

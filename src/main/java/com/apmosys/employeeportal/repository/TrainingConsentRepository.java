@@ -151,6 +151,7 @@ List<TrainingResponseDTO> findByTrainingId(@Param("trainingId") Integer training
 				"    where \n" +
 				"  UPPER(e.employmentstatus) != 'INACTIVE'\n" +
 				"  and e.emp_id not between 1 and 6\n" +
+				// "    and e.emp_id in :empIds \n" +
 				"    and not exists (\n" +
 				"    select 1\n" +
 				"        from training_consent tc\n" +

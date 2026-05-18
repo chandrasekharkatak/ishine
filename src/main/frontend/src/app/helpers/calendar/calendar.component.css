@@ -68,20 +68,25 @@
 /* surakshith */
 
 
-.popup {
-    position: fixed; 
-    background-color: rgba(255, 255, 255, 0.9);
+/* .popup {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.95);
     border: 1px solid #ccc;
-    border-radius: 5px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 8px;
-    z-index: 1000;
+    border-radius: 8px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    padding: 10px 12px;
+
+
     transform: translate(-50%, -50%);
-    animation: fadeIn 0.2s ease-in-out;
-    pointer-events: none; 
-    max-width: 250px; 
-    font-size: 15px;
-}
+    animation: fadeIn 0.15s ease-in-out;
+    pointer-events: none;
+
+    max-width: 300px;
+    max-height: 220px;          
+    overflow-y: auto;           
+
+    font-size: 14px;
+} */
 
 @keyframes fadeIn {
     from {
@@ -139,7 +144,7 @@
 
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
   opacity: 0;
-  pointer-events: none;
+  /* pointer-events: none; */
   transition: opacity 0.4s ease, transform 0.3s ease;
 }
 
@@ -148,7 +153,118 @@
   transform: translate(-50%, -50%) scale(1);
 }
 
+/* Popup Styles - Keep positioning but improve internal design */
+.popup {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    z-index: 1000;
+    max-width: 320px;
+    width: 320px;
+    overflow: hidden;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.popup-header {
+    background-color: #f8f9fa;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.popup-date {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.popup-body {
+    padding: 16px;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.popup-project {
+    font-weight: 600;
+    color: #2457ff;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.popup-activity {
+    color: #047857;
+    font-size: 12px;
+    margin-left: 8px;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.popup-description {
+    color: #666;
+    font-size: 11px;
+    margin-left: 16px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.popup-daytype {
+    color: #666;
+    font-size: 12px;
+}
 
 
+.popup-divider {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 10px 0;
+}
 
+.popup-footer {
+    padding: 12px 16px;
+    border-top: 1px solid #e9ecef;
+    text-align: center;
+    background-color: #f8f9fa;
+}
 
+.popup-close-btn {
+    background-color: #2457ff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.popup-close-btn:hover {
+    background-color: #1a45d4;
+}
+
+/* Empty state */
+.popup-empty {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+    font-style: italic;
+    font-size: 13px;
+}
+
+/* Scrollbar styling */
+.popup-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.popup-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.popup-body::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}

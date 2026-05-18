@@ -13,6 +13,7 @@ export class QuarterCycle{
     isActive:any;
     isEnable:any;
     cycleType:any
+    excludedEmployees:any[] = [];
 
 
 

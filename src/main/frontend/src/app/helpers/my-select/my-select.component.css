@@ -1,13 +1,16 @@
-::ng-deep .mat-select-panel {
-  min-width: 100% !important;
-  width: 100% !important;
+::ng-deep .cdk-overlay-pane .mat-mdc-select-panel,
+::ng-deep .cdk-overlay-pane .mat-select-panel {
+  width: auto !important;
+  min-width: 240px !important;
+  max-width: calc(100vw - 24px) !important;
+  margin-top: 2px !important;
 }
 
 ::ng-deep .mat-mdc-option {
-  height: 36px !important;        /* your preferred height */
-  line-height: 36px !important;
+  height: auto !important;
+  line-height: 1.2 !important;
   font-size: 14px !important;
-  padding: 0 12px !important;
+  padding: 8px 12px !important;
 }
 
 ::ng-deep .mat-select-search-input {
@@ -37,9 +40,71 @@
     vertical-align: unset !important;
 }
 
+.my-select__multi-trigger {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+}
+
+.my-select__multi-trigger-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9375rem;
+  color: #334155;
+}
+
 ::ng-deep .mdc-list-item__primary-text  {
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
   display: block !important;
+  word-break: break-word !important;
+}
+
+::ng-deep .no-checkbox-option .mat-pseudo-checkbox {
+  display: none !important;
+}
+
+/* Wrapped option text (panel gets this class when [wrapOptionLines]="true") — must beat rules above */
+::ng-deep .custom-select-panel.my-select-panel--wrap {
+  max-width: min(100vw - 32px, 640px) !important;
+  min-width: min(100%, 280px) !important;
+}
+
+::ng-deep .custom-select-panel.my-select-panel--wrap .mat-mdc-option {
+  height: auto !important;
+  min-height: 40px !important;
+  line-height: 1.4 !important;
+  white-space: normal !important;
+  align-items: flex-start !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+::ng-deep .custom-select-panel.my-select-panel--wrap .mdc-list-item__primary-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  display: block !important;
+  line-height: 1.4 !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+::ng-deep .wrapped-select-panel .mat-mdc-option {
+  height: auto !important;
+  min-height: 36px !important;
+  line-height: 1.35 !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+::ng-deep .wrapped-select-panel .mdc-list-item__primary-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: break-word !important;
+  line-height: 1.35 !important;
 }

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Project } from '../models/project';
@@ -7,12 +7,13 @@ import { ProjectFilterDTO } from '../models/projectFilterDTO';
 import { updateHasClientSideId } from '../models/updateHasClientSideId';
 import { LiftAndShift } from '../models/liftAndShift';
 import { RestoreProjectPayload } from '../models/restoreProjectPayload';
+import { RMGDashboardProjectRequest } from '../models/rmgDashboardProjectRequest';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ResourceManagementService {
-  
+
   private baseUrl:any = environment.baseUrl;
 
   constructor(private http: HttpClient) { }
@@ -69,7 +70,7 @@ export class ResourceManagementService {
   completionDateOfProject(project: Project){
     return this.http.post(`${this.baseUrl}` + `api/completionDateOfProject`,project);
   }
-  
+
   combinedPOINTERNALList(ProjectFilterDTO:ProjectFilterDTO){
     return this.http.post(`${this.baseUrl}` + `api/combinedPOINTERNALList`,ProjectFilterDTO);
   }
@@ -112,7 +113,7 @@ export class ResourceManagementService {
   exceptionEmployeeReport(ProjectFilterDTO:ProjectFilterDTO){
     return this.http.post(`${this.baseUrl}` + `api/exceptionEmployeeReport`,ProjectFilterDTO);
   }
-  
+
   getPreviousDefaultProjectDetails(empId: any){
     return this.http.get(`${this.baseUrl}`+`api/getPreviousDefaultProjectDetails`, {params: { empId: empId }});
   }
@@ -131,7 +132,7 @@ export class ResourceManagementService {
 
   setProjectMappingAndDefaultProject(setDefaultProjectObj: any){
     return this.http.post(`${this.baseUrl}`+`api/setProjectMappingAndDefaultProject`, setDefaultProjectObj);
-  }  
+  }
 
   getEmployeeInformationForDefaultProject(setDefaultProjectObj: any){
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeInformationForDefaultProject`, setDefaultProjectObj);
@@ -226,5 +227,107 @@ export class ResourceManagementService {
     return this.http.get(`${this.baseUrl}`+`api/getProjectAssignedDataByProjectId`,{params:{id:id,totalRequirements:totalRequirements}})
   }
 
+  getProjectConfigurationDetailsByProjectId(projectId: any, isAllProjects:boolean) {
+    let httpParams = new HttpParams().append("projectId", projectId).append("isAllProjects", isAllProjects);
+    return this.http.get(`${this.baseUrl}` + `api/getProjectConfigurationDetailsByProjectId`, { params: httpParams });
+  }
+
+  getEmployeesInformation(empId: any, projectId: any) {
+    let httpParams = new HttpParams().append("empIds", empId).append("projectId", projectId);
+    return this.http.get(`${this.baseUrl}` + `api/getEmployeeInformation`, { params: httpParams });
+  }
+
+  getResourceRequirementByPoId(poId: any) {
+    let httpParams = new HttpParams().append("poId", poId);
+    return this.http.get(`${this.baseUrl}` + `api/getResourceRequirementByPoId`, { params: httpParams });
+  }
+
+  getActivePoDetailsByProjectId(projectId: any) {
+    let httpParams = new HttpParams().append("projectId", projectId);
+    return this.http.get(`${this.baseUrl}` + `api/getActivePoDetailsByProjectId`, { params: httpParams });
+  }
+
+  getAllPosForProjectAndDate(projectId: any, fromDate: string, toDate: string) {
+    let httpParams = new HttpParams()
+      .append("projectId", projectId)
+      .append("fromDate", fromDate)
+      .append("toDate", toDate);
+    return this.http.get(`${this.baseUrl}` + `api/getAllPosForProjectAndDate`, { params: httpParams });
+  }
+
+  getProjectIdByPoNo(poNo: string) {
+    let httpParams = new HttpParams().append("poNo", poNo);
+    return this.http.get(`${this.baseUrl}` + `api/getProjectIdByPoNo`, { params: httpParams });
+  }
+
+  getResourceRequirementByTeamId(teamId: any) {
+    let httpParams = new HttpParams().append("teamId", teamId);
+    return this.http.get(`${this.baseUrl}` + `api/getResourceRequirementByTeamId`, { params: httpParams });
+  }
+
+  getResourceRequirementCountByProjectId(projectId: any, projectType: any) {
+    let httpParams = new HttpParams().append("projectId", projectId).append("projectType", projectType);
+    return this.http.get(`${this.baseUrl}` + `api/getResourceRequirementCountByProjectId`, { params: httpParams });
+  }
+
+  getResourceRequirementDetailsByProjectId(projectId: any, projectType: any, currentActivePO: boolean) {
+    let httpParams = new HttpParams().append("projectId", projectId).append("projectType", projectType).append("currentActivePO", currentActivePO);
+    return this.http.get(`${this.baseUrl}` + `api/getResourceRequirementDetailsByProjectId`, { params: httpParams });
+  }
+
+  fetchProjectDetailsList(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/fetchProjectDetailsList`, rmgProjectRequest);
+  } 
+  
+  getEmployeeCountByEmployeeGroup(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getEmployeeCountByEmployeeGroup`, rmgProjectRequest);
+  }
+
+  getProjectStatusCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getProjectStatusCount`, rmgProjectRequest);
+  }
+
+  getUnfilledTimesheetProjectDetailsList(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getUnfilledTimesheetProjectDetailsList`, rmgProjectRequest);
+  }
+
+  getUnfilledTimesheetProjectDetailsCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getUnfilledTimesheetProjectDetailsCount`, rmgProjectRequest);
+  }
+
+  triggerUnmappedEmployeeProjectNotificationJob() {
+    return this.http.get(`${this.baseUrl}` + `api/triggerUnmappedEmployeeProjectNotificationJob`);
+  }
+
+  getBillingLossRiskScore(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getBillingLossRiskScore`, rmgProjectRequest);
+  }
+
+  getExpiredTNMFilterWiseProjectStatusCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getExpiredTNMFilterWiseProjectStatusCount`, rmgProjectRequest);
+  }
+
+  getAllUnfilledTimesheetProjectDetailsCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllUnfilledTimesheetProjectDetailsCount`, rmgProjectRequest);
+  }
+
+  getFCFilterWiseProjectStatusCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getFCFilterWiseProjectStatusCount`, rmgProjectRequest);
+  }
+
+  getTimesheetApplicableProjectData(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getTimesheetApplicableProjectData`, rmgProjectRequest);
+  }
+
+  getEmployeeMappedToClientPercent() {
+    return this.http.get(`${this.baseUrl}` + `api/getEmployeeMappedToClientPercent`);
+  }
+completeProjectReminder(poProjectId: number) {
+  return this.http.post(`${this.baseUrl}api/completeProjectReminder?poProjectId=${poProjectId}`,{} );
+}
+
+  resolveProjectViewIds(projectViewIds: string[]) {
+    return this.http.post(`${this.baseUrl}` + `api/resolveProjectViewIds`, { projectViewIds });
+  }
 }
 

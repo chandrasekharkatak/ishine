@@ -22,86 +22,84 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EmployeeDTO {
-	
-	
+
 	public EmployeeDTO(Long empId, String name, String jobRoleName,
-            Long departmentId, Long employeementId, String billableType, String employmentId) {
-this.empId = empId;
-this.name = name;
-this.jobRoleName = jobRoleName;
-this.departmentId = departmentId;
-this.employeementId = employeementId;
-this.billableType = billableType;
-this.employmentId = employmentId; // The CS-xxx or A-xxx value
-}
-	
+			Long departmentId, Long employeementId, String billableType, String employmentId) {
+		this.empId = empId;
+		this.name = name;
+		this.jobRoleName = jobRoleName;
+		this.departmentId = departmentId;
+		this.employeementId = employeementId;
+		this.billableType = billableType;
+		this.employmentId = employmentId; // The CS-xxx or A-xxx value
+	}
+
 	public EmployeeDTO(
-		    Long empId,
-		    String name,
-		    String jobRoleName,
-		    Long departmentId,
-		    String departmentName,
-		    Long jobRoleId,
-		    String billableType,
-		    String employmentId
-		) {
-		    this.empId = empId;
-		    this.name = name;
-		    this.jobRoleName = jobRoleName;
-		    this.departmentId = departmentId;
-		    this.departmentName = departmentName;
-		    this.jobRoleId = jobRoleId;
-		    this.billableType = billableType;
-		    this.employmentId = employmentId;
-		}
-	
-	public EmployeeDTO(Long empId,String name,String jobRoleName,Long departmentId,String departmentName,
-		   Long jobRoleId, String billableType,String employmentId,LocalDateTime createdOn,
-		   LocalDateTime updatedOn,String createdByName,String projectName) {
-		
-		    this.empId = empId;
-		    this.name = name;
-		    this.jobRoleName = jobRoleName;
-		    this.departmentId = departmentId;
-		    this.departmentName = departmentName;
-		    this.jobRoleId = jobRoleId;
-		    this.billableType = billableType;
-		    this.employmentId = employmentId;
-		    this.createdOn= (createdOn!=null)?createdOn.toString():null;
-		    this.updatedOn=(updatedOn!=null)?updatedOn.toString():null;
-		    this.createdByName=(createdByName!=null)?createdByName.toString():null;
-		    this.projectName=(projectName!=null)?projectName:null;
-		}
-	
-	
-	 public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
-             Long mobileNo, Long managerId, String managerName,
-             String jobRoleName, String deptName, String name,String isConsultant,String isApprenticeship,String isApmosysProduct) {        
-this.empId = empId;
-this.employeementId = employeementId;
-this.email = email;
-this.employmentstatus = employmentstatus;
-this.mobileNo = mobileNo;
-this.managerId = managerId;
-this.managerName = managerName;
-this.jobRoleName = jobRoleName;
-this.deptName = deptName;
-this.name = name;
-this.isConsultant = isConsultant;
-this.isApprenticeship = isApprenticeship;
-this.isApmosysProduct = isApmosysProduct;
-}
+			Long empId,
+			String name,
+			String jobRoleName,
+			Long departmentId,
+			String departmentName,
+			Long jobRoleId,
+			String billableType,
+			String employmentId) {
+		this.empId = empId;
+		this.name = name;
+		this.jobRoleName = jobRoleName;
+		this.departmentId = departmentId;
+		this.departmentName = departmentName;
+		this.jobRoleId = jobRoleId;
+		this.billableType = billableType;
+		this.employmentId = employmentId;
+	}
+
+	public EmployeeDTO(Long empId, String name, String jobRoleName, Long departmentId, String departmentName,
+			Long jobRoleId, String billableType, String employmentId, LocalDateTime createdOn,
+			LocalDateTime updatedOn, String createdByName, String projectName) {
+
+		this.empId = empId;
+		this.name = name;
+		this.jobRoleName = jobRoleName;
+		this.departmentId = departmentId;
+		this.departmentName = departmentName;
+		this.jobRoleId = jobRoleId;
+		this.billableType = billableType;
+		this.employmentId = employmentId;
+		this.createdOn = (createdOn != null) ? createdOn.toString() : null;
+		this.updatedOn = (updatedOn != null) ? updatedOn.toString() : null;
+		this.createdByName = (createdByName != null) ? createdByName.toString() : null;
+		this.projectName = (projectName != null) ? projectName : null;
+	}
+
+	public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
+			Long mobileNo, Long managerId, String managerName,
+			String jobRoleName, String deptName, String name, String isConsultant, String isApprenticeship,
+			String isApmosysProduct) {
+		this.empId = empId;
+		this.employeementId = employeementId;
+		this.email = email;
+		this.employmentstatus = employmentstatus;
+		this.mobileNo = mobileNo;
+		this.managerId = managerId;
+		this.managerName = managerName;
+		this.jobRoleName = jobRoleName;
+		this.deptName = deptName;
+		this.name = name;
+		this.isConsultant = isConsultant;
+		this.isApprenticeship = isApprenticeship;
+		this.isApmosysProduct = isApmosysProduct;
+	}
 
 	private Long empId;
-	
+
 	private Long employeementId;
 	private Long draftEmpId;
 	private String name;
-	//added by rahul for reffredType
+	// added by rahul for reffredType
 	private String referedType;
 	private String referedName;
-	//end of the code
-	
+	// end of the code
+
 	private Double performanceStatusPercentage;
 	private Long managerId;
 	private String dateOfJoining;
@@ -214,14 +212,14 @@ this.isApmosysProduct = isApmosysProduct;
 	private Long appreciationTo;
 
 	private String managerMail;
-	
+
 	private Long teamId;
 	private String teamName;
 	private Long teamLeadId;
 	private Integer projectId;
 	private String projectName;
-	private String poStartDate;
-	private String poEndDate;
+	private String projectStartDate;
+	private String projectEndDate;
 	private String poNo;
 	private String poProjectType;
 	private String startDate;
@@ -233,15 +231,15 @@ this.isApmosysProduct = isApmosysProduct;
 	private String dateOfRelieving;
 	private String reference;
 	private String backgroundVerificationStatus;
-	
+
 	private Long newManagerId;
 	private Long oldManagerId;
-	private String isAppreciationEnable; 	
-	
-    private String fromDate;	
-		
-	private String toDate;	
-		
+	private String isAppreciationEnable;
+
+	private String fromDate;
+
+	private String toDate;
+
 	private Long appreciationEventId;
 	private String tabName;
 	private Long subFeatureId;
@@ -252,21 +250,21 @@ this.isApmosysProduct = isApmosysProduct;
 	private String isAssigned;
 	private Long tabId;
 	private List<FeatureMasterDTO> permissionList;
-	
+
 	private List<ProjectDTO> projectList;
-	
+
 	private Integer reporteeCount;
 	private String hierarchyType;
-//	private String eventCreatedOn;
+	// private String eventCreatedOn;
 	private List<AssetDTO> deptHeadConsentList;
 	private Double profileCompletedPercent;
-		
+
 	private Long hodId;
 	private String hodName;
 	private String hodEmail;
 	private String updatedByName;
 	private String createdByName;
-	
+
 	private String isTimesheetLockCheckEnable;
 	private String timesheetLockUpdatedOn;
 	private Integer timesheetBackDatedDays;
@@ -279,21 +277,21 @@ this.isApmosysProduct = isApmosysProduct;
 	private String approvalsTo;
 	private String reportingManagerName;
 	private String reportingManagerEmail;
-	
+
 	private Long[] specializationList;
 	private Long[] domainList;
-	
+
 	private String specializationName;
 	private String domainName;
-	
+
 	private Long designationId;
 	private String designationName;
-	
+
 	private String bucketName;
 	private String timesheetStatus;
-	
+
 	private Object policyReadConsent;
-	
+
 	private Object notificationConsent;
 	private Notification releaseNoteNotification;
 	private Notification linkedinPageNotification;
@@ -301,285 +299,294 @@ this.isApmosysProduct = isApmosysProduct;
 	// Training lock status
 	private LockStatusDTO trainingLockStatus;
 	private String poPortalAllProjectApi;
-	
+
 	private String unlockTimesheetFor;
 	private String isTimesheetFilledByMember;
 	private String isDateOfRelievingToday;
-	
+
 	private Float newBalance;
 	private Float oldBalance;
 	private Integer previouseCompOffExpiredCount;
-	
+
 	private Object newsletterReadCheck;
 	private String employmentReleaseStatus;
-	
+
 	// added by anurag countReporties
 	private Long noOfReporties;
-	
-//	added by anurag
+
+	// added by anurag
 	private String updateType;
-	
+
 	private Long pipId;
 	private String pipReason;
 	private String pipFlag;
-	
+
 	private String billableType;
 	private String employeeName;
 	private Long count_of_employees;
 	private String reportiesFlag;
-    
+
 	private String employeeConfirmationDate;
-	
+
 	private String isConsultant;
 	// private String isApprenticeship;
 	private String currentExperienceYear;
 	private String dayOnbench;
 	private String onbenchDate;
-	
-	//by priyadarshini
+
+	// by priyadarshini
 	private String isApprenticeship;
-//	private List<Long> deptId;
-	
-    private String isRetain;
+	// private List<Long> deptId;
+
+	private String isRetain;
 	private String dateOfRetain;
-	
+
 	private Set<String> projects;
-    private Set<String> teams;
-    
-    private Long reporteeCountManager;
-    private Long reporteeCountReportingManager;
-    
-    private String projectIds;
-    private String selectedProjectId;
-    private String hodDepartmentName;
-    private String teamIds;
-    private String employmentId;
-    private String defaultprojectType;
-    private Integer defaultProjectId;
-    private String defaultProjectName;
-    private Long defaultTeamId;
-    private Integer isShadowResource;
-    private String[] defaultTeamEmployeeRole;
-    private Integer inActiveFlag;
-    private Integer lowerAge;
-    private Integer upperAge;
-    private Long selectedResourceOverviewId;
-    private Long timesheetId;
-    private Long totalTimesheetsFilled;
-    private String deptName;
-    private Long daysLeftForFullTime;
-    private Short extendedPeriod;
+	private Set<String> teams;
+
+	private Long reporteeCountManager;
+	private Long reporteeCountReportingManager;
+
+	private String projectIds;
+	private String selectedProjectId;
+	private String hodDepartmentName;
+	private String teamIds;
+	private String employmentId;
+	private String defaultprojectType;
+	private Integer defaultProjectId;
+	private String defaultProjectName;
+	private Long defaultTeamId;
+	private Integer isShadowResource;
+	private String[] defaultTeamEmployeeRole;
+	private Integer inActiveFlag;
+	private Integer lowerAge;
+	private Integer upperAge;
+	private Long selectedResourceOverviewId;
+	private Long timesheetId;
+	private Long totalTimesheetsFilled;
+	private String deptName;
+	private Long daysLeftForFullTime;
+	private Short extendedPeriod;
 	private String reasonOfExtension;
 	private Long isConfirmedClicked;
 	private Long daysToReduce;
-//	private String reasonForReduction;	
+	// private String reasonForReduction;
 	private Long isExtensionClicked;
-    private List<Long> deptId;
-    private Integer days;
-    private Float noOfDays;
-    
-    private String employeeType;
-    
-    //added
-    private String isApmosysProduct;
-    private String employmentIdAcToET;
-    
-    private Boolean isUpdateDefaultProject;
-    
-    private String dateRange;
-    private List<EmployeeDTO> reportees = new ArrayList<>();
-    private Boolean isHierarchy;
-    private Integer page;
-    private Integer size;
-    private String sortColumn;
-    private String sortDirection;
-    private Map<String, String> filters;
-    private Long oldEmployeementId;
-    private String oldEmployeeType;
-    private List<EmployeeSkillProficiencyDTO>  employeeSkills;
-    private List<CertificateDTO> employeeCertificates;
-    private Boolean  hideMaternityLeaveEmps;
+	private List<Long> deptId;
+	private Integer days;
+	private Float noOfDays;
 
-    
-//    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
-    public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
-            Long mobileNo, Long managerId, String managerName, String jobRoleName,
-            String departmentName, String name, String billableType,String isConsultant,String isApprenticeship,String isApmosysProduct) {
-this.empId = empId != null ? empId : null;
-this.employeementId = employeementId !=null ? employeementId : null;
-this.email = email !=null ? email : null;
-this.employmentstatus = employmentstatus != null ? employmentstatus : null;
-this.mobileNo = mobileNo != null ? mobileNo : null;
-this.managerId = managerId !=null ? managerId : null;
-this.managerName = managerName != null ? managerName: null;
-this.jobRoleName = jobRoleName !=null ? jobRoleName : null;
-this.departmentName = departmentName !=null ? departmentName : null;
-this.name = name !=null ? name : null;
-this.billableType = billableType !=null ? billableType : null;
-this.isConsultant = isConsultant;
-this.isApprenticeship = isApprenticeship;
-this.isApmosysProduct = isApmosysProduct;
-} 
- 
-    
+	private String employeeType;
+
+	// added
+	private String isApmosysProduct;
+	private String employmentIdAcToET;
+
+	private Long poRequirementMappingId;
+
+	private Boolean isUpdateDefaultProject;
+
+	private String dateRange;
+	private List<EmployeeDTO> reportees = new ArrayList<>();
+	private Boolean isHierarchy;
+	private Integer page;
+	private Integer size;
+	private String sortColumn;
+	private String sortDirection;
+	private Map<String, String> filters;
+	private Long oldEmployeementId;
+	private String oldEmployeeType;
+	private List<EmployeeSkillProficiencyDTO> employeeSkills;
+	private List<CertificateDTO> employeeCertificates;
+	private Boolean hideMaternityLeaveEmps;
+	private List<Long> jobRoleIds;
+	private Long poId;
+	private Long poRoleId;
+	private LocalDateTime oldEtmEndDate;
+	private LocalDateTime newEtmStartDate;
+
+	// findAllEmployeesWithoutAnyBillable findAllEmployeesWithoutAnyBillableInDeptId
+	public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
+			Long mobileNo, Long managerId, String managerName, String jobRoleName,
+			String departmentName, String name, String billableType, String isConsultant, String isApprenticeship,
+			String isApmosysProduct) {
+		this.empId = empId != null ? empId : null;
+		this.employeementId = employeementId != null ? employeementId : null;
+		this.email = email != null ? email : null;
+		this.employmentstatus = employmentstatus != null ? employmentstatus : null;
+		this.mobileNo = mobileNo != null ? mobileNo : null;
+		this.managerId = managerId != null ? managerId : null;
+		this.managerName = managerName != null ? managerName : null;
+		this.jobRoleName = jobRoleName != null ? jobRoleName : null;
+		this.departmentName = departmentName != null ? departmentName : null;
+		this.name = name != null ? name : null;
+		this.billableType = billableType != null ? billableType : null;
+		this.isConsultant = isConsultant;
+		this.isApprenticeship = isApprenticeship;
+		this.isApmosysProduct = isApmosysProduct;
+	}
 
 	public EmployeeDTO(Long empId,
-            String name,
-            String email,
-            String employmentstatus,
-            Long employeementId,
-            String dateOfJoining,
-            String departmentName,
-            String isApmosysProduct) {
-this.empId = empId;
-this.name = name;
-this.email = email;
-this.employmentstatus = employmentstatus;
-this.employeementId = employeementId;
-this.dateOfJoining = dateOfJoining;
-this.departmentName = departmentName;
-this.isApmosysProduct = isApmosysProduct;
-}
-	 public EmployeeDTO(Long empId, String name, String email, String employmentstatus,
-             Long employeementId, String dateOfJoining, String departmentName,
-             String jobRoleName, String managerName,Long managerId, String dateOfResign,
-             String dateOfRelieving, Short noticePeriod,
-             String isConsultant, String isApprenticeship, String isApmosysProduct) {
-this.empId = empId;
-this.name = name;
-this.email = email;
-this.employmentstatus = employmentstatus;
-this.employeementId = employeementId;
-this.dateOfJoining = dateOfJoining;
-this.departmentName = departmentName;
-this.jobRoleName = jobRoleName;
-this.managerName = managerName;
-this.managerId=managerId;
-this.dateOfResign = dateOfResign;
-this.dateOfRelieving = dateOfRelieving;
-this.noticePeriod = noticePeriod;
-this.isConsultant = isConsultant;
-this.isApprenticeship = isApprenticeship;
-this.isApmosysProduct = isApmosysProduct;
+			String name, String email, String employmentstatus, Long employeementId, String dateOfJoining,
+			String departmentName, String isApmosysProduct) {
+		this.empId = empId;
+		this.name = name;
+		this.email = email;
+		this.employmentstatus = employmentstatus;
+		this.employeementId = employeementId;
+		this.dateOfJoining = dateOfJoining;
+		this.departmentName = departmentName;
+		this.isApmosysProduct = isApmosysProduct;
+	}
 
-}
-	
+	public EmployeeDTO(Long empId, String name, String email, String employmentstatus,
+			Long employeementId, String dateOfJoining, String departmentName,
+			String jobRoleName, String managerName, Long managerId, String dateOfResign,
+			String dateOfRelieving, Short noticePeriod,
+			String isConsultant, String isApprenticeship, String isApmosysProduct) {
+		this.empId = empId;
+		this.name = name;
+		this.email = email;
+		this.employmentstatus = employmentstatus;
+		this.employeementId = employeementId;
+		this.dateOfJoining = dateOfJoining;
+		this.departmentName = departmentName;
+		this.jobRoleName = jobRoleName;
+		this.managerName = managerName;
+		this.managerId = managerId;
+		this.dateOfResign = dateOfResign;
+		this.dateOfRelieving = dateOfRelieving;
+		this.noticePeriod = noticePeriod;
+		this.isConsultant = isConsultant;
+		this.isApprenticeship = isApprenticeship;
+		this.isApmosysProduct = isApmosysProduct;
+
+	}
+
 	private String clientSideId;
 	private Boolean isEmpLeaveExclusion;
 	private Boolean isEmpLeaveInclusion;
 
+	public EmployeeDTO(Long reportingManagerId, Long hodId, Long managerId) {
+		this.reportingManagerId = reportingManagerId;
+		this.hodId = hodId;
+		this.managerId = managerId;
 
-    
-    public EmployeeDTO(Long reportingManagerId, Long hodId, Long managerId) {
-    this.reportingManagerId = reportingManagerId;
-    this.hodId = hodId;
-    this.managerId = managerId;
-    
-}
-    public EmployeeDTO(EmployeeProjection p) {
-        this.empId = p.getEmpId();
-        this.employeementId = p.getEmployeementId();
-        this.aadhar = p.getAadhar();
-        this.aboutMe = p.getAboutMe();
-        this.address = p.getAddress();
-        this.bankAccountNo = p.getBankAccountNo();
-        this.bankIFSCCode = p.getBankIFSCCode();
-        this.bankName = p.getBankName();
-        this.bloodGroup = p.getBloodGroup();
-        this.city = p.getCity();
-        this.country = p.getCountry();
-        this.createdBy = p.getCreatedBy();
-        this.createdOn = p.getCreatedOn();
-        this.dateOfBirth = p.getDateOfBirth();
-        this.dateOfJoining = p.getDateOfJoining();
-        this.email = p.getEmail();
-        this.emergencyContactMobile = p.getEmergencyContactMobile();
-        this.emergencyContactPerson = p.getEmergencyContactPerson();
-        this.employmentstatus = p.getEmploymentstatus();
-        this.esicNumber = p.getEsicNumber();
-        this.fatherName = p.getFatherName();
-        this.gender = p.getGender();
-        this.graduationType = p.getGraduationType();
-        this.pursuing = p.getPursuing();
-        this.jobRoleId = p.getJobRoleId();
-        this.landline = p.getLandline();
-        this.managerId = p.getManagerId();
-        this.maritalStatus = p.getMaritalStatus();
-        this.mobileNo = p.getMobileNo();
-        this.motherTongue = p.getMotherTongue();
-        this.name = p.getName();
-        this.noticePeriod = p.getNoticePeriod();
-        this.alternateMobileNo = p.getAlternateMobileNo();
-        this.panNumber = p.getPanNumber();
-        this.passportNumber = p.getPassportNumber();
-        this.permanentAddress = p.getPermanentAddress();
-        this.pfAccountNumber = p.getPfAccountNumber();
-        this.pincode = p.getPincode();
-        this.placeOfBirth = p.getPlaceOfBirth();
-        this.passingGrade = p.getPassingGrade();
-        this.previousPfAccountNumber = p.getPreviousPfAccountNumber();
-        this.relation = p.getRelation();
-        this.state = p.getState();
-        this.uan = p.getUan();
-        this.viewsOnOrganisation = p.getViewsOnOrganisation();
-        this.yearOfPassing = p.getYearOfPassing();
+	}
 
-        this.departmentId = p.getDeptId();
-        this.jobRoleName = p.getJobRoleName();
-        this.departmentName = p.getDepartmentName();
-        this.workLocation = p.getWorkLocation();
-        this.probationPeriod = p.getProbationPeriod();
-        this.managerName = p.getManager();
-        this.experience = p.getExperience();
-        this.billable = p.getBillable();
-        this.child1 = p.getChild1();
-        this.child2 = p.getChild2();
-        this.child3 = p.getChild3();
-        this.mothersName = p.getMothersName();
-        this.spouse = p.getSpouse();
-        this.totalExperience = p.getTotalExperience();
-        this.dateOfResign = p.getDateOfResign();
-        this.invalidAccessAttempt = p.getInvalidAccessAttempt();
-        this.dateOfRelieving = p.getDateOfRelieving();
-        this.updatedByName = p.getUpdatedByName();
-        this.createdByName = p.getCreatedByName();
-        this.updatedOn = p.getUpdatedOn();
-        this.isTimesheetLockCheckEnable = p.getIsTimesheetLockCheckEnable();
-        this.employmentReleaseStatus = p.getEmploymentReleaseStatus();
-        this.pipFlag = p.getPipFlag();
-        this.pipId = p.getPipId();
-        this.billableType = p.getBillableType();
+	public EmployeeDTO(EmployeeProjection p) {
+		this.empId = p.getEmpId();
+		this.employeementId = p.getEmployeementId();
+		this.aadhar = p.getAadhar();
+		this.aboutMe = p.getAboutMe();
+		this.address = p.getAddress();
+		this.bankAccountNo = p.getBankAccountNo();
+		this.bankIFSCCode = p.getBankIFSCCode();
+		this.bankName = p.getBankName();
+		this.bloodGroup = p.getBloodGroup();
+		this.city = p.getCity();
+		this.country = p.getCountry();
+		this.createdBy = p.getCreatedBy();
+		this.createdOn = p.getCreatedOn();
+		this.dateOfBirth = p.getDateOfBirth();
+		this.dateOfJoining = p.getDateOfJoining();
+		this.email = p.getEmail();
+		this.emergencyContactMobile = p.getEmergencyContactMobile();
+		this.emergencyContactPerson = p.getEmergencyContactPerson();
+		this.employmentstatus = p.getEmploymentstatus();
+		this.esicNumber = p.getEsicNumber();
+		this.fatherName = p.getFatherName();
+		this.gender = p.getGender();
+		this.graduationType = p.getGraduationType();
+		this.pursuing = p.getPursuing();
+		this.jobRoleId = p.getJobRoleId();
+		this.landline = p.getLandline();
+		this.managerId = p.getManagerId();
+		this.maritalStatus = p.getMaritalStatus();
+		this.mobileNo = p.getMobileNo();
+		this.motherTongue = p.getMotherTongue();
+		this.name = p.getName();
+		this.noticePeriod = p.getNoticePeriod();
+		this.alternateMobileNo = p.getAlternateMobileNo();
+		this.panNumber = p.getPanNumber();
+		this.passportNumber = p.getPassportNumber();
+		this.permanentAddress = p.getPermanentAddress();
+		this.pfAccountNumber = p.getPfAccountNumber();
+		this.pincode = p.getPincode();
+		this.placeOfBirth = p.getPlaceOfBirth();
+		this.passingGrade = p.getPassingGrade();
+		this.previousPfAccountNumber = p.getPreviousPfAccountNumber();
+		this.relation = p.getRelation();
+		this.state = p.getState();
+		this.uan = p.getUan();
+		this.viewsOnOrganisation = p.getViewsOnOrganisation();
+		this.yearOfPassing = p.getYearOfPassing();
 
-        this.projectName = p.getProjectName();
-        this.clientName = p.getClientName();
-        this.teamName = p.getTeamName();
-        this.designationName = p.getDesignationName();
-        this.isConsultant = p.getIsConsultant();
-        this.isApprenticeship = p.getIsApprenticeship();
-        this.reportingManagerId = p.getReportingManagerId();
-        this.reportingManagerName = p.getReportingManager();
-        this.employeeRole = p.getEmployeeRole();
-        this.referedType = p.getReferedType();
-        this.referedName = p.getReferedName();
-        this.employeeConfirmationDate = p.getEmployeeConfirmationDate();
-        this.hodId = p.getHodId();
-        this.hodName = p.getHodName();
-        this.hodDepartmentName = p.getHodDepartmentName();
-        this.projectIds = p.getProjectIds();
-        this.updatedBy = p.getUpdatedBy();
-        this.isApmosysProduct = p.getIsApmosysProduct();
-        this.isConfirmedClicked = p.getIsConfirmedClicked();
-        this.isExtensionClicked = p.getIsExtensionClicked();
-        this.noOfDays = p.getNoOfDays();
-        this.onRollDate = p.getOnRollDate();
-    }
+		this.departmentId = p.getDeptId();
+		this.jobRoleName = p.getJobRoleName();
+		this.departmentName = p.getDepartmentName();
+		this.workLocation = p.getWorkLocation();
+		this.probationPeriod = p.getProbationPeriod();
+		this.managerName = p.getManager();
+		this.experience = p.getExperience();
+		this.billable = p.getBillable();
+		this.child1 = p.getChild1();
+		this.child2 = p.getChild2();
+		this.child3 = p.getChild3();
+		this.mothersName = p.getMothersName();
+		this.spouse = p.getSpouse();
+		this.totalExperience = p.getTotalExperience();
+		this.dateOfResign = p.getDateOfResign();
+		this.invalidAccessAttempt = p.getInvalidAccessAttempt();
+		this.dateOfRelieving = p.getDateOfRelieving();
+		this.updatedByName = p.getUpdatedByName();
+		this.createdByName = p.getCreatedByName();
+		this.updatedOn = p.getUpdatedOn();
+		this.isTimesheetLockCheckEnable = p.getIsTimesheetLockCheckEnable();
+		this.employmentReleaseStatus = p.getEmploymentReleaseStatus();
+		this.pipFlag = p.getPipFlag();
+		this.pipId = p.getPipId();
+		this.billableType = p.getBillableType();
 
+		this.projectName = p.getProjectName();
+		this.clientName = p.getClientName();
+		this.teamName = p.getTeamName();
+		this.designationName = p.getDesignationName();
+		this.isConsultant = p.getIsConsultant();
+		this.isApprenticeship = p.getIsApprenticeship();
+		this.reportingManagerId = p.getReportingManagerId();
+		this.reportingManagerName = p.getReportingManager();
+		this.employeeRole = p.getEmployeeRole();
+		this.referedType = p.getReferedType();
+		this.referedName = p.getReferedName();
+		this.employeeConfirmationDate = p.getEmployeeConfirmationDate();
+		this.hodId = p.getHodId();
+		this.hodName = p.getHodName();
+		this.hodDepartmentName = p.getHodDepartmentName();
+		this.projectIds = p.getProjectIds();
+		this.updatedBy = p.getUpdatedBy();
+		this.isApmosysProduct = p.getIsApmosysProduct();
+		this.isConfirmedClicked = p.getIsConfirmedClicked();
+		this.isExtensionClicked = p.getIsExtensionClicked();
+		this.noOfDays = p.getNoOfDays();
+		this.onRollDate = p.getOnRollDate();
+	}
 
-    
-    
-    public EmployeeDTO(Long empId, String name) {
-    	this.empId = empId;
-    	this.name = name;
-    }
-	
+	public EmployeeDTO(Long empId, String name) {
+		this.empId = empId;
+		this.name = name;
+	}
+
+	public EmployeeDTO(String name, Long departmentId, String departmentName,
+			String isConsultant, String isApmosysProduct, String employmentstatus, Long empId, Long employeementId) {
+		this.empId = empId;
+		this.employeementId = employeementId;
+		this.name = name;
+		this.departmentId = departmentId;
+		this.departmentName = departmentName;
+		this.isConsultant = isConsultant;
+		this.isApmosysProduct = isApmosysProduct;
+		this.employmentstatus = employmentstatus;
+	}
+
 }

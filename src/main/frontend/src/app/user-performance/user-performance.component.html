@@ -1,67 +1,228 @@
-<div class="row" style="margin-top: 50px;" *ngIf="isperformanceDsah  ">
-  <div class="col-md-12">
-    <div class="card">
-      <div class="card-header text-center text-uppercase">
-        <strong>Provide Valuable Review</strong>
-      </div>
-      <div class="card-body">
-        <div class="container">
-          <header>
-            <h2>Performance Management System</h2>
-            <!-- <div class="header-right">
-                <button class="cycle-btn">Performance Cycle 24</button>
-                <span class="search-icon">&#128269;</span>
-              </div> -->
-          </header>
+<div class="pms-page-wrap" *ngIf="isperformanceDsah">
+<div class="row pms-section">
+  <div class="col-12 pms-col-full">
+    <div class="pms-header-bar">
+      <h1 class="pms-header-title">Performance Management System</h1>
+    </div>
 
-          <div class="main-content">
-            <div class="cycle-info">
-              <div class="card-header text-center text-uppercase">
-                <h3>Cycle Assigned</h3>
-
+    <div class="container pms-container">
+      <div class="pms-cards-row">
+        <!-- CYCLE ASSIGNED: same width as before (left column); compact styling -->
+        <div class="pms-card pms-cycle-card">
+          <h3 class="pms-card-title"><span class="pms-title-bar"></span> CYCLE ASSIGNED</h3>
+          <div class="pms-card-title-line"></div>
+          <div class="pms-cycle-grid">
+            <div class="pms-stat-card pms-stat-large pms-stat-clickable" (click)="applyCycleFilter('all')" role="button" [attr.aria-label]="'All employees: ' + hrScopedAllCount">
+              <span class="pms-stat-label">ALL EMPLOYEES</span>
+              <span class="pms-stat-value">{{ hrScopedAllCount }}</span>
+            </div>
+            <div class="pms-stat-right">
+              <div class="pms-stat-card pms-stat-clickable" (click)="applyCycleFilter('eligible')" role="button" [attr.aria-label]="'Eligible employees: ' + hrScopedEligibleCount">
+                <span class="pms-stat-label">ELIGIBLE EMPLOYEES</span>
+                <span class="pms-stat-value">{{ hrScopedEligibleCount }}</span>
               </div>
-              <div class="eligible-box">
-                <span class="textdisplay_total">Eligible Employees : 
-                  <br><strong>{{eligibleEmployees.length}}</strong></span>
+              <div class="pms-stat-card pms-stat-clickable" (click)="applyCycleFilter('notEligible')" role="button" [attr.aria-label]="'Not eligible: ' + hrScopedNotEligibleCount">
+                <span class="pms-stat-label">NOT ELIGIBLE</span>
+                <span class="pms-stat-value">{{ hrScopedNotEligibleCount }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="pms-cycle-summary">
+            <h4 class="pms-cycle-summary-title">Performance summary</h4>
+            <div class="pms-cycle-summary-grid">
+              <div class="pms-cycle-summary-item pms-cycle-summary-status pms-cycle-summary-status--not-started pms-cycle-summary-clickable" (click)="applySummaryStatusFilter('notStarted')" role="button" [attr.aria-label]="'Not Started: ' + performanceSummary.notStarted + ' employees'">
+                <span class="pms-cycle-summary-icon" aria-hidden="true"><i class="fas fa-circle"></i></span>
+                <span class="pms-cycle-summary-value">{{ performanceSummary.notStarted }}</span>
+                <span class="pms-cycle-summary-label">Not Started</span>
+              </div>
+              <div class="pms-cycle-summary-item pms-cycle-summary-status pms-cycle-summary-status--pending pms-cycle-summary-clickable" (click)="applySummaryStatusFilter('pendingHod')" role="button" [attr.aria-label]="'Pending: ' + performanceSummary.pendingHod + ' employees'">
+                <span class="pms-cycle-summary-icon" aria-hidden="true"><i class="fas fa-clock"></i></span>
+                <span class="pms-cycle-summary-value">{{ performanceSummary.pendingHod }}</span>
+                <span class="pms-cycle-summary-label">Pending</span>
+              </div>
+              <div class="pms-cycle-summary-item pms-cycle-summary-status pms-cycle-summary-status--ongoing pms-cycle-summary-clickable" (click)="applySummaryStatusFilter('ongoing')" role="button" [attr.aria-label]="'Ongoing: ' + performanceSummary.ongoing + ' employees'">
+                <span class="pms-cycle-summary-icon" aria-hidden="true"><i class="fas fa-spinner"></i></span>
+                <span class="pms-cycle-summary-value">{{ performanceSummary.ongoing }}</span>
+                <span class="pms-cycle-summary-label">Ongoing</span>
+              </div>
+              <div class="pms-cycle-summary-item pms-cycle-summary-status pms-cycle-summary-status--completed pms-cycle-summary-clickable" (click)="applySummaryStatusFilter('completed')" role="button" [attr.aria-label]="'Completed: ' + performanceSummary.completed + ' employees'">
+                <span class="pms-cycle-summary-icon" aria-hidden="true"><i class="fas fa-check-circle"></i></span>
+                <span class="pms-cycle-summary-value">{{ performanceSummary.completed }}</span>
+                <span class="pms-cycle-summary-label">Completed</span>
+              </div>
+              <div class="pms-cycle-summary-item pms-cycle-summary-status pms-cycle-summary-status--rejected pms-cycle-summary-clickable" (click)="applySummaryStatusFilter('rejected')" role="button" [attr.aria-label]="'Rejected: ' + performanceSummary.rejected + ' employees'">
+                <span class="pms-cycle-summary-icon" aria-hidden="true"><i class="fas fa-times-circle"></i></span>
+                <span class="pms-cycle-summary-value">{{ performanceSummary.rejected }}</span>
+                <span class="pms-cycle-summary-label">Rejected</span>
+              </div>
+            </div>
+          </div>
+          <div class="pms-cycle-rating-counts">
+            <h4 class="pms-cycle-summary-title pms-cycle-rating-counts-title">Rating criteria counts</h4>
+            <div class="pms-cycle-rating-counts-grid">
+              <div class="pms-cycle-rating-counts-item pms-cycle-rating-counts-clickable"
+                [class.pms-cycle-rating-counts-active]="ratingCategoryFilter === band.label"
+                *ngFor="let band of getRatingCategoryCounts()"
+                (click)="applyRatingCategoryFilter(band.label, $event)"
+                role="button"
+                [attr.aria-label]="'Filter by rating ' + band.label + ': ' + band.count + ' employees'">
+                <div class="pms-cycle-rating-counts-top">
+                  <span class="pms-rating-counts-badge">{{ band.label }}</span>
+                  <span class="pms-rating-counts-range">{{ band.range }}</span>
+                </div>
+                <div class="pms-cycle-rating-counts-value">{{ band.count }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
+        <!-- Right column for non-HR: rating rules + process instructions -->
+        <div class="pms-dashboard-extra-slot" *ngIf="!userMapping?.performance_action_by_hr">
+          <div class="pms-instruction-card">
+            <div class="pms-instruction-card-head">
+              <h3 class="pms-card-title"><span class="pms-title-bar"></span> APPRAISAL INSTRUCTIONS</h3>
+              <div class="pms-instruction-slide-dots" role="tablist" aria-label="Instruction pages">
+                <button type="button" class="pms-instruction-dot"
+                  [class.pms-instruction-dot--active]="instructionSlideIndex === 0"
+                  (click)="goToInstructionSlide(0)" [attr.aria-selected]="instructionSlideIndex === 0"
+                  aria-label="Slide 1: Rating criteria and styles"></button>
+                <button type="button" class="pms-instruction-dot"
+                  [class.pms-instruction-dot--active]="instructionSlideIndex === 1"
+                  (click)="goToInstructionSlide(1)" [attr.aria-selected]="instructionSlideIndex === 1"
+                  aria-label="Slide 2: Performance flow"></button>
+              </div>
+            </div>
+            <div class="pms-card-title-line"></div>
 
-                <div class="employee-count" >
-                  <span class="textdisplay"  style="width: 250px;">All Employees: <strong>{{allEmployee.length}}</strong></span><br>
-                  <!-- <span class="textdisplay">Eligibility:&nbsp;&nbsp;
-                    <strong>{{eligibleEmployees.length}}</strong></span><br> -->
-                  <span class="textdisplay" style="width: 250px;">Not Eligible:&nbsp;&nbsp;
-                    <strong>{{allEmployee.length-eligibleEmployees.length}}</strong></span><br>
+            <div class="pms-instruction-viewport">
+              <!-- Slide 1: Rating criteria + input styles -->
+              <div class="pms-instruction-slide" [class.pms-instruction-slide--active]="instructionSlideIndex === 0" *ngIf="instructionSlideIndex === 0" id="pms-instruction-slide-0">
+                <p class="pms-instruction-intro">
+                  Use these guidelines while evaluating employees. This includes rating ranges and how to enter scores (slider or stars).
+                </p>
+                <div class="pms-instruction-section">
+                  <h4 class="pms-instruction-heading"><i class="fas fa-ruler-combined"></i> Rating Criteria (0 to 5)</h4>
+                  <div class="pms-rating-rules-list">
+                    <div class="pms-rating-rule-row">
+                      <span class="pms-rating-rule-badge">NI</span>
+                      <span class="pms-rating-rule-text">0 - 1.5</span>
+                      <span class="pms-rating-rule-note">Needs Improvement</span>
+                    </div>
+                    <div class="pms-rating-rule-row">
+                      <span class="pms-rating-rule-badge">M-</span>
+                      <span class="pms-rating-rule-text">1.6 - 2.4</span>
+                      <span class="pms-rating-rule-note">Meets Expectations (Lower Band)</span>
+                    </div>
+                    <div class="pms-rating-rule-row">
+                      <span class="pms-rating-rule-badge">M</span>
+                      <span class="pms-rating-rule-text">2.5 - 3.4</span>
+                      <span class="pms-rating-rule-note">Meets Expectations</span>
+                    </div>
+                    <div class="pms-rating-rule-row">
+                      <span class="pms-rating-rule-badge">M+</span>
+                      <span class="pms-rating-rule-text">3.5 - 4.4</span>
+                      <span class="pms-rating-rule-note">Meets Expectations (Upper Band)</span>
+                    </div>
+                    <div class="pms-rating-rule-row">
+                      <span class="pms-rating-rule-badge">E</span>
+                      <span class="pms-rating-rule-text">4.5 - 5</span>
+                      <span class="pms-rating-rule-note">Exceeds Expectations</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="pms-instruction-section">
+                  <h4 class="pms-instruction-heading"><i class="fas fa-sliders-h"></i> Rating Input Styles</h4>
+                  <div class="pms-rating-style-list">
+                    <div class="pms-rating-style-item">
+                      <i class="fas fa-sliders-h pms-rating-style-icon" aria-hidden="true"></i>
+                      <span class="pms-rating-style-chip">Slider</span>
+                      <span class="pms-rating-style-text">Use range slider from 0 to configured max for criteria-based scoring.</span>
+                    </div>
+                    <div class="pms-rating-style-item">
+                      <i class="fas fa-star pms-rating-style-icon" aria-hidden="true"></i>
+                      <span class="pms-rating-style-chip">Rating</span>
+                      <span class="pms-rating-style-text">Use star rating selection for direct score-based criteria.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Slide 2: Performance flow + note -->
+              <div class="pms-instruction-slide" [class.pms-instruction-slide--active]="instructionSlideIndex === 1" *ngIf="instructionSlideIndex === 1" id="pms-instruction-slide-1">
+                <p class="pms-instruction-intro">
+                  Follow the approval sequence from manager to HOD to HR, including rejections and final completion.
+                </p>
+                <div class="pms-instruction-section">
+                  <h4 class="pms-instruction-heading"><i class="fas fa-project-diagram"></i> Performance Flow (Step by Step)</h4>
+                  <div class="pms-flow-list">
+                    <div class="pms-flow-item">
+                      <span class="pms-flow-step">1</span>
+                      <p><strong>Manager Review:</strong> Manager opens employee evaluation, gives ratings and remarks, then submits.</p>
+                    </div>
+                    <div class="pms-flow-item">
+                      <span class="pms-flow-step">2</span>
+                      <p><strong>HOD Review:</strong> HOD verifies manager inputs, updates remarks/rating if needed, then accepts or rejects.</p>
+                    </div>
+                    <div class="pms-flow-item">
+                      <span class="pms-flow-step">3</span>
+                      <p><strong>HR Review:</strong> HR reviews accepted/rejected records, can edit final remarks/rating, then accepts or rejects.</p>
+                    </div>
+                    <div class="pms-flow-item">
+                      <span class="pms-flow-step">4</span>
+                      <p><strong>Rejected Cases:</strong> If rejected by HOD/HR, updated feedback and rating should be resubmitted in next action.</p>
+                    </div>
+                    <div class="pms-flow-item">
+                      <span class="pms-flow-step">5</span>
+                      <p><strong>Completion:</strong> Review status is marked complete after required approvals are finalized.</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="pms-instruction-note">
+                  <i class="fas fa-info-circle"></i>
+                  <span>Follow the above criteria and approval sequence for consistent and fair performance evaluation.</span>
                 </div>
               </div>
             </div>
 
-            <div class="performance-analysis">
-              <div class="card-header text-center text-uppercase">
-                <h3>Performance Analysis</h3>
-
-
-              </div>
-              <div id="performanceId" style="height: 300px;"></div>
-              <div class="container mt-3 d-flex justify-content-end" >
-                <!-- <label for="department">Select Department:</label> -->
-                <select id="department" class="form-control w-auto d-inline-block" [(ngModel)]="currentUserdepartmentName" (change)="onDepartmentChange($event)" style="cursor: pointer;">
-                  <!-- <option value="" disabled selected>Select a department</option> -->
-                  <option value="all" selected>All</option>
-                  <option *ngFor="let dept of departments" [value]="dept.deptId">{{ dept.name }}</option>
-                </select>
-          
-                <!-- <p *ngIf="selectedDepartment" class="mt-2">You selected: <b>{{ selectedDepartment }}</b></p> -->
-              </div>
-              <div class="custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" id="hierarchy-switch">
-                <!-- (change)="toggleData($event)" -->
-                <!-- <label class="custom-control-label" for="hierarchy-switch">View Pending/Rating Chart</label> -->
-              </div>
+            <div class="pms-instruction-nav">
+              <button type="button" class="pms-instruction-nav-btn" (click)="prevInstructionSlide()"
+                [disabled]="instructionSlideIndex === 0" aria-label="Previous slide">
+                <i class="fas fa-chevron-left"></i> Previous
+              </button>
+              <span class="pms-instruction-nav-label">Page {{ instructionSlideIndex + 1 }} of {{ instructionSlideCount }}</span>
+              <button type="button" class="pms-instruction-nav-btn pms-instruction-nav-btn--primary" (click)="nextInstructionSlide()"
+                [disabled]="instructionSlideIndex >= instructionSlideCount - 1" aria-label="Next slide">
+                Next <i class="fas fa-chevron-right"></i>
+              </button>
             </div>
           </div>
+        </div>
 
-
-
+        <!-- PERFORMANCE ANALYSIS: HR only (department rated vs total chart) -->
+        <div class="pms-card pms-analysis-card" *ngIf="userMapping?.performance_action_by_hr">
+          <div class="pms-analysis-head">
+            <h3 class="pms-card-title"><span class="pms-title-bar"></span> PERFORMANCE ANALYSIS</h3>
+            <div class="pms-analysis-head-filter">
+              <span class="pms-filter-icon"><i class="fas fa-filter"></i></span>
+              <label class="pms-filter-label">Filter:</label>
+              <select id="department" class="pms-dept-select" [(ngModel)]="currentUserdepartmentName" (change)="onDepartmentChange($event)">
+                <option value="all" selected>All Departments</option>
+                <option *ngFor="let dept of departments" [value]="dept.deptId">{{ dept.name }}</option>
+              </select>
+            </div>
+          </div>
+          <p class="pms-chart-subtitle"><i class="fas fa-chart-bar pms-subtitle-icon"></i> Rated vs total employees per department</p>
+          <div class="pms-chart-box">
+            <div id="performanceId" class="pms-chart-inner"></div>
+          </div>
+          <div class="pms-chart-legend">
+            <span class="pms-legend-item"><span class="pms-legend-dot pms-legend-purple"></span> Rated — count / total shown on each bar</span>
+          </div>
+          <div class="custom-control custom-switch d-none">
+            <input type="checkbox" class="custom-control-input" id="hierarchy-switch">
+          </div>
+        </div>
+      </div>
 
           <!-- <div class="row">
               <div class="col d-flex justify-content-end">
@@ -91,11 +252,12 @@
                 </thead>
                 <tbody>
                   <tr *ngFor="let eligiemployee of eligibleEmployees">
-                    <td>{{ eligiemployee.name }}</td>
+                    <td id="clickablefor360" *ngIf="userMapping?.performance_employee_360" [navigateToEmployee360]="eligiemployee.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{ eligiemployee.name }}</td>
+                    <td *ngIf="!userMapping?.performance_employee_360">{{ eligiemployee.name }}</td>
                     <td>{{ eligiemployee.designationName }}</td>
                     <td>{{ eligiemployee.departmentName }}</td>
                     <td>{{ eligiemployee.billableType }}</td>
-                    <td>{{ eligiemployee.totalExperience }}</td>
+                    <td>{{ eligiemployee.calculatedExperience ?? eligiemployee.totalExperience }}</td>
                     <td class="status">✔ {{ eligiemployee.employmentstatus }}</td>
                     <td>
                       <div class="progress-bar">
@@ -113,100 +275,305 @@
             </div> -->
 
 
-          <div class="row">
-            <div class="col-md-12">
-             
-              <!-- <div class="container mt-3 d-flex justify-content-end" >   
-                <select id="department" class="form-control w-auto d-inline-block" (change)="onQuarterChange($event)">      
-                  <option value="all" selected>Select Quarter</option>
-                  <option *ngFor="let dept of EnabledAndActiveQuarterCycle" [value]="dept.quarterId">{{ dept.quarterCycle }}</option>
-                </select>
-              </div> -->
-              <div class="selector-toggle">
+          <div class="row pms-table-row" id="employeeListTableSection">
+            <div class="col-12 pms-col-full">
+              <div class="pms-table-summary-filter-bar" *ngIf="hasTableFilter()">
+                <span class="pms-table-summary-filter-label">Showing: <strong>{{ getTableFilterLabel() }}</strong> ({{ getTableEmployeeList().length }} employees)</span>
+                <button type="button" class="pms-table-summary-filter-clear" (click)="clearSummaryStatusFilter()">
+                  <i class="fas fa-times"></i> Clear filter
+                </button>
+              </div>
+              <div class="pms-table-toolbar">
+                <div class="pms-toolbar-primary" *ngIf="canUsePerformanceHierarchyView()">
+                  <div class="pms-hierarchy-toggle-wrap">
+                    <label class="pms-hierarchy-toggle" for="pms-view-hierarchy-switch"
+                      title="When on: show direct reports and drill down by org. When off: full employee list.">
+                      <span class="pms-hierarchy-toggle-text">View hierarchy</span>
+                      <input type="checkbox" class="pms-hierarchy-toggle-input"
+                        [ngModel]="viewHierarchyEnabled"
+                        (ngModelChange)="onViewHierarchyToggle($event)"
+                        id="pms-view-hierarchy-switch"
+                        aria-label="View hierarchy: show direct reports and drill down by organization" />
+                      <span class="pms-hierarchy-toggle-slider" aria-hidden="true"></span>
+                    </label>
+                  </div>
+                </div>
+                <div class="pms-toolbar-search" role="search" aria-label="Search employees">
+                  <label class="pms-sr-only" for="pms-employee-search-input">Search by name, ID, department, or position</label>
+                  <div class="pms-search-bar">
+                    <div class="pms-search-input-wrap">
+                      <input id="pms-employee-search-input" type="search" autocomplete="off"
+                        class="pms-search-input" placeholder="Search…"
+                        [(ngModel)]="searchTableText" (ngModelChange)="onSearchTable()" (keyup.enter)="onSearchTable()"  (keypress)="allowOnlyLetters($event)"/>
+                    </div>
+                    <button type="button" class="pms-search-btn pms-search-btn--icon-only" (click)="onSearchTable()"
+                      title="Search" aria-label="Search">
+                      <i class="fas fa-search" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="pms-toolbar-end">
+                  <div class="pms-bulk-actions" *ngIf="userMapping?.performance_action_by_hr">
+                    <input type="text" class="pms-bulk-remark-input" placeholder="HR remark for bulk action"
+                      [(ngModel)]="bulkHrRemark" />
+                    <button type="button" class="pms-bulk-btn pms-bulk-accept"
+                      [disabled]="bulkActionInProgress || selectedBulkEmpIds.size < 2"
+                      (click)="submitBulkHrAction('Accepted')">Bulk Accept</button>
+                    <button type="button" class="pms-bulk-btn pms-bulk-reject"
+                      [disabled]="bulkActionInProgress || selectedBulkEmpIds.size < 2"
+                      (click)="submitBulkHrAction('Rejected')">Bulk Reject</button>
+                  </div>
+                  <div class="pms-hod-toolbar-queue" *ngIf="userMapping?.performance_action_by_hod && hodPendingAcceptCount > 0" role="status"
+                    title="Employees waiting for your HOD approval (Accept or Reject)">
+                    <span class="pms-hod-toolbar-queue__badge">
+                      <i class="fas fa-inbox" aria-hidden="true"></i>
+                      <span class="pms-hod-toolbar-queue__count">{{ hodPendingAcceptCount }}</span>
+                      <span class="pms-hod-toolbar-queue__text">pending</span>
+                    </span>
+                    <button type="button" class="pms-hod-toolbar-queue__link" (click)="goToHodEmployeeList()">Review list</button>
+                    <button type="button" class="pms-hod-toolbar-queue__info" (click)="openHodQueueReminderModal()"
+                      title="Show reminder details" aria-label="HOD queue details">
+                      <i class="fas fa-info-circle" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                  <button type="button" class="pms-export-btn" [hidden]="getTableEmployeeList().length == 0" (click)="exportToExcel()" title="Export current list to Excel" aria-label="Export to Excel">
+                    <i class="fa fa-file-arrow-down" aria-hidden="true"></i> Export
+                  </button>
+                </div>
+              </div>
+              <div class="pms-hierarchy-breadcrumb-wrap" *ngIf="canUsePerformanceHierarchyView() && viewHierarchyEnabled && hierarchyBreadCrumbs.length">
+                <span class="pms-hierarchy-breadcrumb-label">Path:</span>
+                <ng-container *ngFor="let crumb of hierarchyBreadCrumbs; let bi = index">
+                  <span class="pms-hierarchy-breadcrumb-item"
+                    (click)="onPerformanceHierarchyBreadcrumbClick(bi)"
+                    role="button"
+                    [attr.tabindex]="0"
+                    (keydown.enter)="onPerformanceHierarchyBreadcrumbClick(bi)">{{ crumb.label }}</span>
+                  <span class="pms-hierarchy-breadcrumb-sep" *ngIf="bi < hierarchyBreadCrumbs.length - 1">&gt;</span>
+                </ng-container>
+              </div>
+              <div class="selector-toggle d-none">
                 <a href="javascript:void(0)" (click)="toggleSearch()">
                   <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                   <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-                </a>             
+                </a>
               </div>
-                       <button type="button" class="btn btn-sm btn-outline-primary float-right ml-auto mr-5 mt-2 mb-2 excel-button"
-                [hidden]="eligibleEmployees.length == 0" (click)="exportToExcel()"><em
-                  class="fa fa-file-arrow-down fa-2x"></em></button>
-              <!-- Table Container with Bootstrap's .table-responsive -->
-              <div class="table-responsive" id="performanceIDContainer">
-                <table class="table table-striped table-bordered" matSort (matSortChange)="sortData($event)"
-                  id="performanceID">
-                  <thead class="thead-light" id="performanceIDTHead">
+              <div class="pms-table-scroll-wrap" id="performanceIDContainer">
+                <div class="pms-table-inner">
+                  <table class="table pms-table pms-table--main-employee" matSort (matSortChange)="sortData($event)" id="performanceID">
+                  <colgroup>
+                    <col *ngIf="userMapping?.performance_action_by_hr" class="pms-col-chk" />
+                    <col class="pms-col-sl" />
+                    <col class="pms-col-action" />
+                    <col class="pms-col-empid" />
+                    <col class="pms-col-name" />
+                    <col class="pms-col-position" />
+                    <col class="pms-col-dept" />
+                    <col class="pms-col-exp" />
+                    <col class="pms-col-estatus" />
+                    <col class="pms-col-doj" />
+                    <col class="pms-col-review" />
+                    <col class="pms-col-rating" />
+                    <col class="pms-col-approval" />
+                    <col class="pms-col-perf" />
+                  </colgroup>
+                  <thead id="performanceIDTHead">
                     <tr id="performanceIDHeadTr">
-                      <th scope="col" class="info-label wide-col" mat-sort-header="employmentIdAcToET|string">Emp Id</th>
-                      <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Full Name</th>
-                      <th scope="col" class="info-label wide-col" mat-sort-header="designationName|string">Position</th>
-                      <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department
+                      <th scope="col" class="pms-th" *ngIf="userMapping?.performance_action_by_hr">
+                        <input type="checkbox" [checked]="areAllBulkSelected()"
+                          (change)="toggleSelectAllBulk($any($event.target).checked)" aria-label="Select all for bulk HR action" />
                       </th>
-                      <!-- <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">Billable Type
-                      </th> -->
-                      <th scope="col" class="info-label wide-col" mat-sort-header="totalExperience|string">Experience
+                      <th scope="col" class="pms-th">Sl. No.</th>
+                      <th scope="col" class="pms-th">ACTION</th>
+                      <th scope="col" class="pms-th pms-th-center" mat-sort-header="employmentIdAcToET|empId">EMP ID</th>
+                      <th scope="col" class="pms-th pms-th-center" mat-sort-header="name|string">FULL NAME</th>
+                      <th scope="col" class="pms-th pms-th-center" mat-sort-header="designationName|string">POSITION</th>
+                      <th scope="col" class="pms-th pms-th-center" mat-sort-header="departmentName|string">DEPARTMENT</th>
+                      <th scope="col" class="pms-th pms-th-center pms-th--stacked" mat-sort-header="experienceTotalCombined|number">
+                        <span class="pms-th-stack">EXPERIENCE</span>
                       </th>
-                      <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Status</th>
-                      <th scope="col" class="info-label wide-col" mat-sort-header="dateOfJoining|string">DateOfJoining
-                      </th>
-                      <th scope="col" class="info-label wide-col" mat-sort-header="completionStatus|string">Review Status</th>
-                      <th scope="col" class="info-label wide-col" mat-sort-header="performanceStatus|string">Performance
-                        Status</th>
-                      <th scope="col" class="info-label wide-col" mat-sort-header="review|string">Review</th>
+                      <th scope="col" class="pms-th pms-th-center" mat-sort-header="employmentstatus|string">EMPLOYEE STATUS</th>
+                      <th scope="col" class="pms-th pms-th-center" mat-sort-header="dateOfJoining|date">DATE OF JOINING</th>
+                      <th scope="col" class="pms-th pms-th-center" mat-sort-header="completionStatus|string">REVIEW STATUS</th>
+                      <th scope="col" class="pms-th pms-th-center">Rating</th>
+                      <th scope="col" class="pms-th pms-th-center">APPROVAL STATUS</th>
+                      <th scope="col" class="pms-th pms-th-center" mat-sort-header="performanceStatusPercentage|number">PERFORMANCE STATUS</th>
                     </tr>
-
-                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="eligibleEmployeesColumns"
-                      [class.blue-bg]="isSearchEnabled" (onSearch)="onSearch($event);page=1"></tr>
+                    <tr class="pms-col-filter-row">
+                      <th class="pms-th pms-th-filter pms-th-filter--muted" *ngIf="userMapping?.performance_action_by_hr"></th>
+                      <th class="pms-th pms-th-filter pms-th-filter--muted"></th>
+                      <th class="pms-th pms-th-filter pms-th-filter--muted"></th>
+                      <th class="pms-th pms-th-filter pms-th-filter--center">
+                        <input type="text" class="pms-col-filter-input pms-col-filter-input--center" [(ngModel)]="pmsColumnFilters.employmentIdAcToET"
+                          (ngModelChange)="rebuildTableFilters()" placeholder="Emp ID…" aria-label="Filter by employee ID" />
+                      </th>
+                      <th class="pms-th pms-th-filter pms-th-filter--left">
+                        <input type="text" class="pms-col-filter-input" [(ngModel)]="pmsColumnFilters.name"
+                          (ngModelChange)="rebuildTableFilters()" placeholder="Name…" aria-label="Filter by name" />
+                      </th>
+                      <th class="pms-th pms-th-filter pms-th-filter--left">
+                        <input type="text" class="pms-col-filter-input" [(ngModel)]="pmsColumnFilters.designationName"
+                          (ngModelChange)="rebuildTableFilters()" placeholder="Position…" aria-label="Filter by position" />
+                      </th>
+                      <th class="pms-th pms-th-filter pms-th-filter--center">
+                        <input type="text" class="pms-col-filter-input pms-col-filter-input--center" [(ngModel)]="pmsColumnFilters.departmentName"
+                          (ngModelChange)="rebuildTableFilters()" placeholder="Department…" aria-label="Filter by department" />
+                      </th>
+                      <th class="pms-th pms-th-filter pms-th-filter--center">
+                        <input type="text" class="pms-col-filter-input pms-col-filter-input--center" [(ngModel)]="pmsColumnFilters.experienceTotalCombined"
+                          (ngModelChange)="rebuildTableFilters()" placeholder="Exp…" aria-label="Filter by experience" />
+                      </th>
+                      <th class="pms-th pms-th-filter pms-th-filter--center">
+                        <input type="text" class="pms-col-filter-input pms-col-filter-input--center" [(ngModel)]="pmsColumnFilters.employmentstatus"
+                          (ngModelChange)="rebuildTableFilters()" placeholder="Status…" aria-label="Filter by employee status" />
+                      </th>
+                      <th class="pms-th pms-th-filter pms-th-filter--center">
+                        <input type="text" class="pms-col-filter-input pms-col-filter-input--center" [(ngModel)]="pmsColumnFilters.dateOfJoining"
+                          (ngModelChange)="rebuildTableFilters()" placeholder="DOJ…" aria-label="Filter by date of joining" />
+                      </th>
+                      <th class="pms-th pms-th-filter pms-th-filter--center">
+                        <input type="text" class="pms-col-filter-input pms-col-filter-input--center" [(ngModel)]="pmsColumnFilters._pmsReviewStatusSearch"
+                          (ngModelChange)="rebuildTableFilters()" placeholder="Review…" aria-label="Filter by review status" />
+                      </th>
+                      <th class="pms-th pms-th-filter pms-th-filter--left">
+                        <input type="text" class="pms-col-filter-input" [(ngModel)]="pmsColumnFilters._pmsRatingSearchBlob"
+                          (ngModelChange)="rebuildTableFilters()" placeholder="Rating…" aria-label="Filter by rating" />
+                      </th>
+                      <th class="pms-th pms-th-filter pms-th-filter--left">
+                        <input type="text" class="pms-col-filter-input" [(ngModel)]="pmsColumnFilters._pmsApprovalSearchBlob"
+                          (ngModelChange)="rebuildTableFilters()" placeholder="Approval…" aria-label="Filter by approval status" />
+                      </th>
+                      <th class="pms-th pms-th-filter pms-th-filter--center">
+                        <input type="text" class="pms-col-filter-input pms-col-filter-input--center" [(ngModel)]="pmsColumnFilters.performanceStatusPercentage"
+                          (ngModelChange)="rebuildTableFilters()" placeholder="%" aria-label="Filter by performance percent" />
+                      </th>
+                    </tr>
                   </thead>
                   <tbody>
-                    <tr
-                      *ngIf="eligibleEmployees.length == 0 || (eligibleEmployees | colFilter:filters:false).length == 0">
-                      <th colspan="16" class="text-center info-label">No details to display...</th>
+                    <tr *ngIf="viewHierarchyEnabled && hierarchyLoading">
+                      <td [attr.colspan]="userMapping?.performance_action_by_hr ? 14 : 13" class="text-center pms-td pms-empty">
+                        <span class="pms-empty-text">Loading hierarchy…</span>
+                      </td>
                     </tr>
-                    <tr
-                      *ngFor="let eligiemployee of eligibleEmployees | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                      <td>{{ eligiemployee.employmentIdAcToET }}</td>
-                      <!-- <td id="clickablefor360" *ngIf="userMapping.performance_employee_360"
-                        [navigateToEmployee360]="eligiemployee.emp360" style="cursor: pointer;"
-                        title="Click to view Employee 360">{{ eligiemployee.name }}</td> -->
-                        <td>{{ eligiemployee.name }}</td>
-                      <!-- <td *ngIf="!userMapping.performance_employee_360">{{ eligiemployee.name }}</td> -->
-                      <td>{{ eligiemployee.designationName }}</td>
-                      <td>{{ eligiemployee.departmentName }}</td>
-                      <!-- <td>{{ eligiemployee.billableType }}</td> -->
-                      <td>{{ eligiemployee.totalExperience }}</td>
-                      <td class="status">✔ {{ eligiemployee.employmentstatus }}</td>
-                      <td>{{ eligiemployee.dateOfJoining }}</td>
-                      <td>{{eligiemployee.completionStatus?eligiemployee.completionStatus:"Not Started"}}</td>
-                      <td>
-                        <div class="progress-bar">
-                          <div class="progress" [style.width.%]="eligiemployee.performanceStatusPercentage">{{
-                            eligiemployee.performanceStatusPercentage }}%</div>
+                    <tr *ngIf="!(viewHierarchyEnabled && hierarchyLoading) && (getTableEmployeeList().length == 0 || (getTableEmployeeList() | colFilter:filters:false).length == 0)">
+                      <td [attr.colspan]="userMapping?.performance_action_by_hr ? 14 : 13" class="text-center pms-td pms-empty">
+                        <span class="pms-empty-icon"><i class="fas fa-inbox"></i></span>
+                        <span class="pms-empty-text">No employees to display.</span>
+                        <span class="pms-empty-hint" *ngIf="searchTableText || hasActivePmsColumnFilters()">Try adjusting your search or column filters.</span>
+                        <span class="pms-empty-hint" *ngIf="viewHierarchyEnabled && !searchTableText">No direct reports at this level.</span>
+                        <span class="pms-empty-hint" *ngIf="hodActionQueueFilter && !searchTableText">No employees in your HOD queue right now.</span>
+                        <span class="pms-empty-hint" *ngIf="!hodActionQueueFilter && !viewHierarchyEnabled && (summaryStatusFilter || tableListMode !== 'eligible') && !searchTableText">No employees match the current filter.</span>
+                      </td>
+                    </tr>
+                    <tr *ngFor="let eligiemployee of getTableEmployeeList() | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                      <td class="pms-td" *ngIf="userMapping?.performance_action_by_hr">
+                        <input type="checkbox" [disabled]="!canBulkHrAction(eligiemployee)"
+                          [title]="canBulkHrAction(eligiemployee) ? '' : 'Available when HOD has submitted and HR action is still pending (manager status does not block selection).'"
+                          [checked]="isBulkSelected(eligiemployee.empId)"
+                          (change)="toggleBulkSelection(eligiemployee, $any($event.target).checked)"
+                          aria-label="Select employee for bulk HR action" />
+                      </td>
+                      <td class="pms-td">{{ (page - 1) * 20 + i + 1 }}</td>
+                      <td class="pms-td">
+                        <button type="button" class="pms-btn-evaluate" [disabled]="!isEligibleEmployee(eligiemployee)" [title]="!isEligibleEmployee(eligiemployee) ? 'Not eligible for this cycle' : ''" (click)="isEligibleEmployee(eligiemployee) && onReview(eligiemployee)">
+                          <i class="fa-solid fa-star"></i> Evaluate
+                        </button>
+                      </td>
+                      <td class="pms-td">{{ eligiemployee.employmentIdAcToET }}</td>
+                      <td class="pms-td pms-td-name-cell pms-td-text-wrap">
+                        <ng-container *ngIf="viewHierarchyEnabled && eligiemployee.isHierarchy">
+                          <span id="clickablefor360" *ngIf="userMapping?.performance_employee_360" [navigateToEmployee360]="eligiemployee.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{ eligiemployee.name }}</span>
+                          <span *ngIf="!userMapping?.performance_employee_360">{{ eligiemployee.name }}</span>
+                          <span class="pms-name-hierarchy pms-hierarchy-icon-only"
+                            (click)="drillPerformanceHierarchy(eligiemployee, $event)"
+                            role="button"
+                            title="Show direct reports"
+                            [attr.aria-label]="'Show direct reports for ' + eligiemployee.name">
+                            <i class="fa-solid fa-sitemap" aria-hidden="true"></i>
+                          </span>
+                        </ng-container>
+                        <ng-container *ngIf="!(viewHierarchyEnabled && eligiemployee.isHierarchy)">
+                          <span id="clickablefor360" *ngIf="userMapping?.performance_employee_360" [navigateToEmployee360]="eligiemployee.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{ eligiemployee.name }}</span>
+                          <span *ngIf="!userMapping?.performance_employee_360">{{ eligiemployee.name }}</span>
+                        </ng-container>
+                      </td>
+                      <td class="pms-td pms-td-left pms-td-text-wrap">{{ eligiemployee.designationName }}</td>
+                      <td class="pms-td pms-td-center pms-td-text-wrap">{{ eligiemployee.departmentName }}</td>
+                      <td class="pms-td pms-td-center pms-td--experience">
+                        <div class="pms-exp-cell">
+                          <span class="pms-exp-value">{{ getCombinedExperienceYears(eligiemployee) }}</span>
+                          <span *ngIf="shouldShowExperienceBreakdownTooltip(eligiemployee)" class="pms-exp-tooltip-host"
+                            [attr.aria-label]="getExperienceTooltipText(eligiemployee)">
+                            <app-info-tooltip
+                              iconBgColor="#2563eb"
+                              [size]="19"
+                              [shouldShine]="false"
+                              [content]="getExperienceTooltipBullets(eligiemployee)">
+                            </app-info-tooltip>
+                          </span>
                         </div>
                       </td>
-                      <td>
-                        <button type="button" class="btn btn-outline-info" (click)="onReview(eligiemployee)">Review <i
-                            class="fa-solid fa-star"></i> </button>
+                      <td class="pms-td pms-td-center">
+                        <span class="pms-badge pms-badge-confirmed" *ngIf="eligiemployee.employmentstatus === 'Confirmed'">
+                          <i class="fas fa-check"></i> Confirmed
+                        </span>
+                        <span class="pms-badge pms-badge-default" *ngIf="eligiemployee.employmentstatus !== 'Confirmed'">{{ eligiemployee.employmentstatus }}</span>
+                      </td>
+                      <td class="pms-td pms-td-center pms-td-doj">{{ eligiemployee.dateOfJoining }}</td>
+                      <td class="pms-td pms-td-center">
+                        <span class="pms-badge pms-badge-review-status" [ngClass]="getReviewStatusBadgeModifier(eligiemployee)">
+                          <i [class]="getReviewStatusIconClass(eligiemployee)" aria-hidden="true"></i>
+                          {{ getReviewStatusLabel(eligiemployee) }}
+                        </span>
+                      </td>
+                      <td class="pms-td">
+                        <div class="pms-final-rating" *ngIf="isEligibleEmployee(eligiemployee)">
+                          <span class="pms-stars">
+                            <i *ngFor="let s of [1,2,3,4,5]" class="fa-star" [class.fas]="s <= getFinalRatingStars(eligiemployee)" [class.far]="s > getFinalRatingStars(eligiemployee)"></i>
+                          </span>
+                          <span class="pms-badge pms-badge-rating">{{ getFinalRatingLabel(eligiemployee) }}</span>
+                        </div>
+                        <span class="pms-dash" *ngIf="!isEligibleEmployee(eligiemployee)">—</span>
+                      </td>
+                      <td class="pms-td">
+                        <div class="pms-approval-status">
+                          <div class="pms-approval-item">
+                            <i class="fas fa-user-tie pms-approval-icon" [class.pms-approval-icon-clickable]="canOpenApprovalDetails(eligiemployee,'manager')" (click)="$event.preventDefault(); $event.stopPropagation(); canOpenApprovalDetails(eligiemployee,'manager') && openApprovalDetails(eligiemployee,'manager')" [title]="canOpenApprovalDetails(eligiemployee,'manager') ? 'View Manager details' : ''"></i>
+                            <span class="pms-approval-label">MANAGER</span>
+                            <span class="pms-badge" [ngClass]="getApprovalStatus(eligiemployee,'manager') === 'Submitted' || getApprovalStatus(eligiemployee,'manager') === 'Accepted' ? 'pms-badge-submitted' : getApprovalStatus(eligiemployee,'manager') === 'Rejected' ? 'pms-badge-rejected' : 'pms-badge-pending'">{{ getApprovalStatus(eligiemployee,'manager') }}</span>
+                          </div>
+                          <div class="pms-approval-item">
+                            <i class="fas fa-user-tie pms-approval-icon" [class.pms-approval-icon-clickable]="canOpenApprovalDetails(eligiemployee,'hod')" (click)="$event.preventDefault(); $event.stopPropagation(); canOpenApprovalDetails(eligiemployee,'hod') && openApprovalDetails(eligiemployee,'hod')" [title]="canOpenApprovalDetails(eligiemployee,'hod') ? 'View HOD details' : ''"></i>
+                            <span class="pms-approval-label">HOD</span>
+                            <span class="pms-badge" [ngClass]="getApprovalStatus(eligiemployee,'hod') === 'Submitted' || getApprovalStatus(eligiemployee,'hod') === 'Accepted' ? 'pms-badge-submitted' : getApprovalStatus(eligiemployee,'hod') === 'Rejected' ? 'pms-badge-rejected' : 'pms-badge-pending'">{{ getApprovalStatus(eligiemployee,'hod') }}</span>
+                          </div>
+                          <div class="pms-approval-item">
+                            <i class="fas fa-user-tie pms-approval-icon" [class.pms-approval-icon-clickable]="canOpenApprovalDetails(eligiemployee,'hr')" (click)="$event.preventDefault(); $event.stopPropagation(); canOpenApprovalDetails(eligiemployee,'hr') && openApprovalDetails(eligiemployee,'hr')" [title]="canOpenApprovalDetails(eligiemployee,'hr') ? 'View HR details' : ''"></i>
+                            <span class="pms-approval-label">HR</span>
+                            <span class="pms-badge" [ngClass]="getApprovalStatus(eligiemployee,'hr') === 'Submitted' || getApprovalStatus(eligiemployee,'hr') === 'Accepted' ? 'pms-badge-submitted' : getApprovalStatus(eligiemployee,'hr') === 'Rejected' ? 'pms-badge-rejected' : 'pms-badge-pending'">{{ getApprovalStatus(eligiemployee,'hr') }}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="pms-td">
+                        <div class="pms-progress-bar" *ngIf="eligiemployee.performanceStatusPercentage != null">
+                          <div class="pms-progress-fill" [style.width.%]="eligiemployee.performanceStatusPercentage">{{ eligiemployee.performanceStatusPercentage }}%</div>
+                        </div>
+                        <span class="pms-dash" *ngIf="eligiemployee.performanceStatusPercentage == null">—</span>
                       </td>
                     </tr>
                   </tbody>
-                </table>
+                  </table>
+                </div>
               </div>
-
-              <pagination-controls class="my-pagination" [hidden]="eligibleEmployees.length == 0"
-                (pageChange)="handlePageChange($event)"></pagination-controls>
-     
+              <div class="pms-pagination-wrap" [hidden]="getTableEmployeeList().length == 0">
+                <pagination-controls class="my-pagination pms-pagination" (pageChange)="handlePageChange($event)"></pagination-controls>
+              </div>
             </div>
           </div>
 
-
-
-
-        </div>
-
-      </div>
     </div>
   </div>
+</div>
 </div>
 
 
@@ -219,213 +586,326 @@
     <i class="fa-solid fa-arrow-left"></i>
   </button>
 
-  <!-- Employee Info -->
-  <div class="employee-info">
-    <div class="row justify-content-between">
-      <div class="col-xs-12 col-sm-12 col-md-4 d-flex flex-column user-card__profile-avatar">
-        <img src="assets/Images/default-user-image.jpeg" id="user-avatar" class="user-card__profile-avatar__img"
-          alt="Avatar" />
+  <!-- Review page: first box = avatar (top-left) + org fields; three more boxes × four fields -->
+  <div class="employee-profile-strip">
+    <div class="employee-profile-strip__grid">
+      <div class="employee-profile-box employee-profile-box--with-avatar">
+        <div class="employee-profile-box__with-avatar-inner">
+          <div class="employee-profile-box__avatar-wrap">
+            <img src="assets/Images/default-user-image.jpeg" id="user-avatar" class="employee-profile-box__avatar" alt="" />
+          </div>
+          <div class="employee-profile-box__fields">
+            <div class="employee-profile-box__field">
+              <span class="employee-profile-box__label">Employee Code</span>
+              <span class="employee-profile-box__value">{{ selectedEmployee?.employmentIdAcToET || selectedEmployee?.employeementId || '-' }}</span>
+            </div>
+            <div class="employee-profile-box__field">
+              <span class="employee-profile-box__label">Department</span>
+              <span class="employee-profile-box__value">{{ selectedEmployee?.departmentName || '-' }}</span>
+            </div>
+            <div class="employee-profile-box__field">
+              <span class="employee-profile-box__label">Employee Since</span>
+              <span class="employee-profile-box__value">{{ selectedEmployee?.dateOfJoining ? (selectedEmployee.dateOfJoining | date : 'yyyy-MM-dd') : '-' }}</span>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <div class="info">
-      <!-- <p *ngIf="userMapping.performance_employee_360"><span>Name: </span><span id="clickablefor360"
-          [navigateToEmployee360]="selectedEmployee.emp360" style="cursor: pointer;"
-          title="Click to view Employee 360">{{selectedEmployee.name}}</span></p>
-      <p *ngIf="!userMapping.performance_employee_360">Name: {{selectedEmployee.name}}</p> -->
-      <p>Name: {{selectedEmployee.name}}</p>
-      <p>Employee Since: {{selectedEmployee.dateOfJoining | date : 'yyyy-MM-dd'}}</p>
-      <p>Reporting Manager: {{selectedEmployee.reportingManagerName}}</p>
-      <p>Manager:{{selectedEmployee.managerName}}</p>
-      <p>Department: {{selectedEmployee.departmentName}}</p>
-      <p>Total Rewards: {{rewardsCount}}</p>
-      <p>Total Appreciation: {{appreciationCount}}</p>
-      <p *ngIf="averageRating>0">Average Rating: {{averageRating}}</p>
+      <div class="employee-profile-box">
+        <div class="employee-profile-box__fields">
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Employee Name</span>
+            <span class="employee-profile-box__value employee-profile-box__value--accent">{{ selectedEmployee?.name || '-' }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Job Title</span>
+            <span class="employee-profile-box__value">{{ selectedEmployee?.designationName || '-' }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Reporting Manager</span>
+            <span class="employee-profile-box__value">{{ selectedEmployee?.reportingManagerName || selectedEmployee?.managerName || '-' }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Total Rewards</span>
+            <span class="employee-profile-box__value">{{ rewardsCount ?? 0 }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="employee-profile-box">
+        <div class="employee-profile-box__fields">
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Average Rating</span>
+            <div class="employee-profile-box__rating">
+              <span class="employee-profile-box__stars" aria-hidden="true">
+                <ng-container *ngFor="let s of [1,2,3,4,5]">
+                  <i *ngIf="getAverageStarDisplayForIndex(s) === 'full'" class="fas fa-star"></i>
+                  <i *ngIf="getAverageStarDisplayForIndex(s) === 'half'" class="fas fa-star-half-stroke"></i>
+                  <i *ngIf="getAverageStarDisplayForIndex(s) === 'empty'" class="far fa-star"></i>
+                </ng-container>
+              </span>
+              <span class="employee-profile-box__rating-text">{{ getAverageRatingLabel() }}</span>
+            </div>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Email ID</span>
+            <span class="employee-profile-box__value employee-profile-box__value--wrap">{{ selectedEmployee?.email || '-' }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Mobile Number</span>
+            <span class="employee-profile-box__value">{{ getProfileMobileNo(selectedEmployee) }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Office</span>
+            <span class="employee-profile-box__value">{{ getProfileWorkLocation(selectedEmployee) }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="employee-profile-box">
+        <div class="employee-profile-box__fields">
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Status Confirmed</span>
+            <span class="employee-profile-box__value">{{ selectedEmployee?.employmentstatus === 'Confirmed' ? 'Yes' : 'No' }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Billable Type</span>
+            <span class="employee-profile-box__value">{{ selectedEmployee?.billableType || '-' }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Total Previous Work Experience</span>
+            <span class="employee-profile-box__value">{{ getPreviousYearExperienceNum(selectedEmployee) }}</span>
+          </div>
+          <div class="employee-profile-box__field">
+            <span class="employee-profile-box__label">Total Experience</span>
+            <span class="employee-profile-box__value">{{ getCombinedExperienceYears(selectedEmployee) }}</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
 
 
-  <div id="accordion" style="margin-top: 3px;">
-    <div class="card" *ngFor="let quarter of EnabledAndActiveQuarterCycle; let i = index">
-      <div class="card-header" [id]="'heading' + i">
-        <h5 class="mb-0">
-          <button class="btn btn-link d-flex justify-content-between w-100" data-toggle="collapse"
-            [attr.data-target]="'#collapse' + i" aria-expanded="true" [attr.aria-controls]="'collapse' + i"
-            (click)="setQuartedId(quarter.quarterId)" [ngClass]="{'no-underline': isClicked}">
-            Year: {{ quarter.financialYear }} | Cycle: {{ quarter.quarterCycle }}
-            <span>&#9662;</span>
-          </button>
-        </h5>
+  <!-- Cycle details only (status bar + Final Review etc.); first cycle auto-selected on load -->
+  <div class="cycle-accordion">
+    <div class="cycle-body-inner" *ngIf="getSelectedQuarter()">
+      <!-- Top status bar: Year|Cycle left, STATUS badge right -->
+      <div class="cycle-status-bar">
+        <span class="cycle-status-cycle">Year: {{ getSelectedQuarter().financialYear }} | Cycle: {{ getSelectedQuarter().quarterCycle }}</span>
+        <span class="cycle-status-badge" [ngStyle]="{'background-color': getStatusColor(currentStatus), 'color': '#fff'}" *ngIf="currentStatus">
+          STATUS: {{ currentStatus }}
+        </span>
       </div>
 
-      <div [id]="'collapse' + i" class="collapse" [attr.aria-labelledby]="'heading' + i" data-parent="#accordion">
-        <!-- <div class="card-body" *ngIf="(currentStatus != 'Ongoing' && currentStatus != 'Completed' && currentStatus != 'Rejected') 
-              && (userMapping.performance_action_by_hod || userMapping.performance_action_by_hr)"> Review has not been given By manager/Reporting Manger
-        </div> -->
-        <div class="card-body">
-          <!-- Final Review -->
-          <div class="final-review" *ngIf="filterRatingCriteria.length > 0 || filterCriteria.length > 0">
-            <div *ngIf="((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Not Started' ) 
-            && (userMapping.performance_action_by_approvals_tos)) 
-            || ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected') 
-            && userMapping.performance_action_by_hod)|| ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected') 
+      <!-- Final Review card: | Final Review + table CRITERIA | RATING | COMMENTS -->
+      <div class="final-review" *ngIf="filterRatingCriteria.length > 0 || filterCriteria.length > 0">
+            <div *ngIf="((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Not Started' || currentStatus === 'Pending HOD' || currentStatus === 'Pending' )
+            && (userMapping.performance_action_by_approvals_tos))
+            || ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Pending HOD' || currentStatus === 'Pending' || currentStatus === 'Submitted')
+            && userMapping.performance_action_by_approvals_tos)
+            || ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Pending HOD' || currentStatus === 'Pending')
+            && userMapping.performance_action_by_hod)
+            || ((currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Rejected' || currentStatus === 'Pending')
             && userMapping.performance_action_by_hr)">
-              <div class="row">
-                <div class="col-lg-12 col-md-8 col-sm-12">
-                  <h3 style="float:right; color: black;">
-                    <b>STATUS: <span [ngStyle]="{'color': getStatusColor(currentStatus)}">{{ currentStatus }}</span></b>
-                  </h3>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-lg-12 col-md-8 col-sm-12">
-
-                  <h4 style="float:left">Final Review</h4>
-                  <h5 style="float:right"> {{ quarter.financialYear }} | Cycle: {{ quarter.quarterCycle }}</h5>
-                </div>
-              </div>
-
-              
-              <table>
-                <thead>
-                  <tr>
-                    <th>Criteria</th>
-                    <th>Rating
-                         <span *ngIf="userMapping.performance_action_by_hr && (currentStatus === 'Ongoing' || currentStatus === 'Completed')" 
-                              class="ml-2"
-                              style="cursor: pointer;"
-                              (click)="toggleEditMode()"
-                              [title]="isEditMode ? 'Lock Editing' : 'Edit Rating'">
-                          <i class="fa" [ngClass]="isEditMode ? 'fa-lock-open text-success' : 'fa-pen text-primary'"></i>
+              <h3 class="final-review-title"><span class="final-review-title-bar"></span> Final Review</h3>
+              <div class="final-review-table-wrap">
+                <table class="final-review-table">
+                  <thead>
+                    <tr>
+                      <th>CRITERIA</th>
+                      <th>RATING
+                        <span *ngIf="userMapping.performance_action_by_hr && (currentStatus === 'Ongoing' || currentStatus === 'Completed' || currentStatus === 'Pending')" 
+                          class="final-review-edit-icon ml-2" (click)="toggleEditMode()"
+                          [title]="isEditMode ? 'Lock Editing' : 'Edit Rating'">
+                          <i class="fa" [ngClass]="isEditMode ? 'fa-lock-open' : 'fa-pen'"></i>
                         </span>
-                    </th>
-                    <!-- <th *ngIf="filterRatingCriteria[0]?.reviewFieldType === 'rating'">Stars</th> -->
-
-                  </tr>
-                </thead>
-                <tbody>
-                  <ng-container *ngIf="filterCriteria.length > 0">
-                    <tr *ngFor="let item of filterCriteria; let j = index">
-                      <td *ngIf="item.reviewFieldType === 'Slider' ">{{ item.reviewLabel }}</td>
-                      <td *ngIf="item.reviewFieldType === 'Slider'">
-                        <span>0</span>
-                        <input type="range" min="0" [max]="item.condition" step="0.5" [(ngModel)]="myList[j].silde"
-                          (input)="updateSlide(j, myList[j].silde)" [disabled]="
-                          (currentStatus === 'Ongoing' && userMapping.performance_action_by_hod) ? false : 
-                          !isEditMode
-                      ">
-                        <span>{{ item.condition }}</span>
-                        <p>{{ myList[j].silde }}</p>
-                      </td>
+                      </th>
+                      <th>COMMENTS <span class="text-danger" title="Required">*</span></th>
                     </tr>
-                  </ng-container>
+                  </thead>
+                  <tbody>
+                    <ng-container *ngIf="filterCriteria.length > 0">
+                      <tr *ngFor="let item of filterCriteria; let j = index">
+                        <td *ngIf="item.reviewFieldType === 'Slider'">
+                          <div class="final-review-criteria-title">{{ item.reviewLabel }}</div>
+                          <div class="final-review-criteria-sub" *ngIf="item.reviewDescription">{{ item.reviewDescription }}</div>
+                        </td>
+                        <td *ngIf="item.reviewFieldType === 'Slider'">
+                          <span class="final-review-slider">
+                            <span>0</span>
+                            <input type="range" min="0" [max]="item.condition" step="0.5" [(ngModel)]="myList[j].silde"
+                              (input)="updateSlide(j, myList[j].silde)" [disabled]="!canEditRating()">
+                            <span>{{ item.condition }}</span>
+                          </span>
+                          <span class="final-review-rating-num">{{ myList[j].silde }}</span>
+                        </td>
+                        <td *ngIf="item.reviewFieldType === 'Slider'">
+                          <textarea class="final-review-comment" placeholder="Enter comments (required)..." [(ngModel)]="myList[j].comment"
+                            [disabled]="!canEditRating()" [attr.aria-required]="true"></textarea>
+                        </td>
+                      </tr>
+                    </ng-container>
+                    <ng-container *ngIf="filterRatingCriteria.length > 0">
+                      <tr *ngFor="let item of filterRatingCriteria; let ri = index">
+                        <td *ngIf="item.reviewFieldType === 'Rating' && item.quarterId === getSelectedQuarter()?.quarterId">
+                          <div class="final-review-criteria-title">{{ item.reviewLabel }}</div>
+                          <div class="final-review-criteria-sub" *ngIf="item.reviewDescription">{{ item.reviewDescription }}</div>
+                        </td>
+                        <td *ngIf="item.reviewFieldType === 'Rating' && item.quarterId === getSelectedQuarter()?.quarterId">
+                          <div class="final-review-stars-row">
+                            <span class="final-review-stars">
+                              <i *ngFor="let star of getRatingList(item.condition); let k = index" class="fa-star"
+                                [class.fas]="k < myRateList[ri].rate" [class.far]="k >= myRateList[ri].rate"
+                                (click)="updateRating(ri, k + 1)" [class.disabled]="!canEditRating()"></i>
+                            </span>
+                            <span class="final-review-rating-num">{{ getCriteriaRatingLabel(myRateList[ri].rate, item.condition) }}</span>
+                          </div>
+                        </td>
+                        <td *ngIf="item.reviewFieldType === 'Rating' && item.quarterId === getSelectedQuarter()?.quarterId">
+                          <textarea class="final-review-comment" placeholder="Enter comments (required)..." [(ngModel)]="myRateList[ri].comment"
+                            [disabled]="!canEditRating()" [attr.aria-required]="true"></textarea>
+                        </td>
+                      </tr>
+                    </ng-container>
+                  </tbody>
+                </table>
+              </div>
 
-
-                 <ng-container *ngIf="filterRatingCriteria.length > 0">
-                <tr *ngFor="let item of filterRatingCriteria; let i = index">
-                  <td *ngIf="item.reviewFieldType === 'Rating'&& item.quarterId === quarter.quarterId">{{
-                    item.reviewLabel }}
-                  </td>
-                  <td *ngIf="item.reviewFieldType === 'Rating'&& item.quarterId === quarter.quarterId">
-                    <div class="stars">
-                      <span *ngFor="let star of getRatingList(item.condition);  let k = index"
-                        (click)="updateRating(i, k + 1)" [ngClass]="{'selected': k < myRateList[i].rate ,'disabled': (currentStatus === 'Ongoing' && userMapping.performance_action_by_hod) ? false : !isEditMode
-                    }">
-                        ★
+              <!-- Overall Rating Summary: calculated from criteria ratings in the table above (updates as you rate) -->
+              <div class="overall-rating-summary">
+                <h3 class="section-card-title"><span class="section-card-title-bar"></span> Overall Rating Summary</h3>
+                <div class="overall-rating-grid">
+                  <div class="overall-rating-left">
+                    <span class="overall-rating-label">Average Rating</span>
+                    <div class="overall-rating-stars-wrap">
+                      <span class="overall-rating-stars">
+                        <i *ngFor="let s of [1,2,3,4,5]" class="fa-star" [class.fas]="s <= getFinalRatingStarsCount()" [class.far]="s > getFinalRatingStarsCount()"></i>
                       </span>
+                      <span class="overall-rating-num">{{ getCriteriaSummaryLabel() }}</span>
                     </div>
-                  </td>
-                </tr>
-              </ng-container>
-
-                </tbody>
-              </table>
-
-
-
-
-              <label for="final-rating">Final Rating</label>
-              <input type="text" id="final-rating" [value]="finalRating || '0' | number:'1.2-2'" disabled
-                placeholder="Enter Final Rating">
-
-              <label for="justification"><span class="text-danger">*</span>Manager/Reporting Manager Remarks</label>
-              <textarea id="justification" [(ngModel)]="hodRemarks"
-                [disabled]="currentStatus === 'Ongoing' || currentStatus === 'Completed' || userMapping.performance_action_by_hr"></textarea>
-
-              <button type="button" class="btn btn-primary float-right"
-                (click)="submitReviewEmployee(quarter,alert_message,i)"
-                *ngIf="!enableDisableSubmit || (currentStatus==='Not Started' && userMapping.performance_action_by_hod)">Submit</button>
-
-
-              <div class="d-flex justify-content-end"
-                *ngIf="currentStatus == 'Ongoing'  && userMapping.performance_action_by_hod">
-                <button type="button" class="btn btn-primary" *ngIf="enableDisableSubmit"
-                  (click)="selectAction('accept')">Accept</button>
-                <button type="button" class="btn btn-danger ml-2" *ngIf="enableDisableSubmit && (rejectStatus !=true )"
-                  (click)="selectAction('reject')">Reject</button>
+                    <span class="overall-rating-label mt-2">Performance Score: {{ getPerformanceScorePercent() }}%</span>
+                    <div class="overall-rating-progress">
+                      <div class="overall-rating-progress-fill" [style.width.%]="getPerformanceScorePercent()"></div>
+                    </div>
+                  </div>
+                  <div class="overall-rating-right">
+                    <span class="overall-rating-label">Performance Category</span>
+                    <span class="overall-rating-badge">{{ getPerformanceCategory() }}</span>
+                    <span class="overall-rating-label mt-2">Final Rating</span>
+                    <span class="overall-rating-value">{{ getFinalRatingFormatted() }}</span>
+                  </div>
+                </div>
               </div>
 
+              <!-- Feedback card: title and label by role; remarks stored in manager_remarks / hod_remarks / hr_remarks by role. For HR, edit and update here. -->
+                <div class="manager-feedback-card">
+                  @if ((userMapping.performance_action_by_hr && !userMapping.performance_action_by_hod)|| (userMapping.performance_action_by_hod && !userMapping.performance_action_by_hr) ) {
+                <h3 class="section-card-title"><span class="section-card-title-bar"></span> {{ getFeedbackSectionTitle() }}</h3>
+                <div class="manager-feedback-field">
+                  <label for="justification"><span class="text-danger">*</span>{{ getFeedbackSectionLabel() }}</label>
+                  <textarea id="justification" class="manager-feedback-textarea" maxlength="2000"
+                    [ngModel]="userMapping.performance_action_by_hr ? hrRemarks : hodRemarks"
+                    (ngModelChange)="userMapping.performance_action_by_hr ? (hrRemarks = $event) : (hodRemarks = $event)"
+                    [disabled]="getFeedbackTextareaDisabled()"
+                    placeholder="Enter remarks..."></textarea>
+                  <span class="manager-feedback-counter">{{ ((userMapping.performance_action_by_hr ? hrRemarks : hodRemarks) || '').length }} / 2000 characters</span>
+                </div>
+                <div class="d-flex justify-content-end mt-2 cycle-review-actions flex-wrap" *ngIf="(currentStatus == 'Completed' || currentStatus == 'Ongoing' || currentStatus == 'Pending') && userMapping.performance_action_by_hr && !userMapping.performance_action_by_hod">
+                  <button class="btn cycle-btn cycle-btn-primary" (click)="updateReviewByHr(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())" *ngIf="isEditMode">Update</button>
+                  <button type="button" class="btn cycle-btn cycle-btn-primary ml-2"
+                    [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected'"
+                    (click)="onHrAccept(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Accept</button>
+                  <button type="button" class="btn cycle-btn cycle-btn-danger ml-2"
+                    [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected'"
+                    (click)="onHrReject(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Reject</button>
+                </div>
+              } @else if(userMapping.performance_action_by_hr && userMapping.performance_action_by_hod){
+                <h3 class="section-card-title"><span class="section-card-title-bar"></span> {{ getFeedbackSectionTitle() }}</h3>
+                <div class="manager-feedback-field">
+                  <label for="justification"><span class="text-danger">*</span>{{ getFeedbackSectionLabel() }}</label>
+                  <textarea id="justification" class="manager-feedback-textarea" maxlength="2000"
+                    [ngModel]="hrRemarks"
+                    (ngModelChange)="hrRemarks = $event"
+                    [disabled]="getFeedbackTextareaDisabled()"
+                    placeholder="Enter remarks..."></textarea>
+                  <span class="manager-feedback-counter">{{ (hrRemarks || '').length }} / 2000 characters</span>
+                </div>
+                <div class="d-flex justify-content-end mt-2 cycle-review-actions flex-wrap" *ngIf="(currentStatus == 'Completed' || currentStatus == 'Ongoing' || currentStatus == 'Pending') && userMapping.performance_action_by_hr && userMapping.performance_action_by_hod">
+                  <button class="btn cycle-btn cycle-btn-primary" (click)="updateReviewByHr(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())" *ngIf="isEditMode">Update</button>
+                  <button type="button" class="btn cycle-btn cycle-btn-primary ml-2"
+                    [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected'"
+                    (click)="onHrAccept(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Accept</button>
+                  <button type="button" class="btn cycle-btn cycle-btn-danger ml-2"
+                    [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected'"
+                    (click)="onHrReject(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Reject</button>
+                </div>
+              }@else {
+                <h3 class="section-card-title"><span class="section-card-title-bar"></span> {{ getFeedbackSectionTitle() }}</h3>
+                <div class="manager-feedback-field">
+                  <label for="justification"><span class="text-danger">*</span>{{ getFeedbackSectionLabel() }}</label>
+                  <textarea id="justification" class="manager-feedback-textarea" maxlength="2000"
+                    [ngModel]="hodRemarks"
+                    (ngModelChange)="hodRemarks = $event"
+                    [disabled]="getFeedbackTextareaDisabled()"
+                    placeholder="Enter remarks..."></textarea>
+                  <span class="manager-feedback-counter">{{ (hodRemarks || '').length }} / 2000 characters</span>
+                </div>
+              }
+              </div>
 
-              <div *ngIf="isAcceptSelected">
+              <!-- Action buttons by role: Manager = Submit + Cancel; HOD = Accept + Reject (or Resubmit when HR rejected); HR = in feedback card -->
+              <div class="cycle-review-actions">
+                <!-- Manager (Not Started): Submit, Cancel -->
+                <ng-container *ngIf="currentStatus === 'Not Started' && (userMapping.performance_action_by_approvals_tos)">
+                  <button type="button" class="btn cycle-btn cycle-btn-primary"
+                    (click)="submitReviewEmployee(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Submit</button>
+                  <button type="button" class="btn cycle-btn cycle-btn-secondary ml-2"
+                    (click)="cancelReview(getSelectedQuarterIndex())">Cancel</button>
+                </ng-container>
+                <!-- Manager (Rejected by HOD): Resubmit, Cancel -->
+                <ng-container *ngIf="currentStatus === 'Rejected' && rejectStatus === true && (userMapping.performance_action_by_approvals_tos)">
+                  <button type="button" class="btn cycle-btn cycle-btn-primary"
+                    (click)="updateReviewEmployee(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Resubmit</button>
+                  <button type="button" class="btn cycle-btn cycle-btn-secondary ml-2"
+                    (click)="cancelReview(getSelectedQuarterIndex())">Cancel</button>
+                </ng-container>
+                <!-- HOD (Ongoing or Pending HOD): Accept, Reject (Reject hidden after manager resubmit) -->
+                <ng-container *ngIf="(currentStatus == 'Ongoing' || currentStatus == 'Pending HOD') && userMapping.performance_action_by_hod && !userMapping.performance_action_by_hr">
+                  <button type="button" class="btn cycle-btn cycle-btn-primary" *ngIf="enableDisableSubmit"
+                    (click)="onHodAccept(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Accept</button>
+                  <button type="button" class="btn cycle-btn cycle-btn-danger ml-2" *ngIf="enableDisableSubmit && (rejectStatus != true)"
+                    (click)="onHodReject(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Reject</button>
+                </ng-container>
+                <!-- HOD (Rejected by HR): Resubmit so HR can review again -->
+                <ng-container *ngIf="currentStatus === 'Rejected' && userMapping.performance_action_by_hod && !userMapping.performance_action_by_hr && hrReviewStatus === 'Rejected'">
+                  <button type="button" class="btn cycle-btn cycle-btn-primary"
+                    (click)="updateReviewEmployee(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Resubmit</button>
+                </ng-container>
+              </div>
+
+              <!-- Comments section (not shown for HR – they use HR remark/feedback section with Accept/Reject) -->
+              <div *ngIf="isAcceptSelected && !userMapping.performance_action_by_hod && !userMapping.performance_action_by_hr">
                 <label for="acceptReason"><span class="text-danger">*</span>Comments:</label>
-                <textarea id="acceptReason" [(ngModel)]="acceptReason" class="form-control"
-                  placeholder="Enter reason"></textarea>
+                <textarea id="acceptReason" [(ngModel)]="acceptReason" class="form-control" placeholder="Enter reason"></textarea>
               </div>
-              <div *ngIf="currentStatus == 'Completed'  && hrReviewStatus == 'Accepted' && !userMapping.performance_action_by_hod">
-                <label for="acceptReason">Accept Reason(s):</label>
-                <textarea id="acceptReason" [(ngModel)]="acceptReason" class="form-control"  [disabled]="userMapping.performance_action_by_hr"
-                  placeholder="Enter reason"></textarea>
-              </div>
-
-
-
-              <div *ngIf="isRejectSelected">
+              <div *ngIf="isRejectSelected && !userMapping.performance_action_by_hod && !userMapping.performance_action_by_hr">
                 <label for="rejectReason"><span class="text-danger">*</span>Provide Reject Reason:</label>
-                <textarea id="rejectReason" [(ngModel)]="rejectReason" class="form-control"
-                  placeholder="Enter reason"></textarea>
+                <textarea id="rejectReason" [(ngModel)]="rejectReason" class="form-control" placeholder="Enter reason"></textarea>
               </div>
-              <div *ngIf="hrReviewStatus == 'Rejected' && !userMapping.performance_action_by_hod">
+              <div *ngIf="hrReviewStatus == 'Rejected' && !userMapping.performance_action_by_hod && !userMapping.performance_action_by_hr">
                 <label for="rejectReason">Reject Reason(s):</label>
-                <textarea id="rejectReason" [(ngModel)]="acceptReason" class="form-control" [disabled]="userMapping.performance_action_by_hr"
-                  placeholder="Enter reason"></textarea>
+                <textarea id="rejectReason" [(ngModel)]="acceptReason" class="form-control" [disabled]="userMapping.performance_action_by_hr" placeholder="Enter reason"></textarea>
               </div>
-
-              <button type="button" class="btn btn-primary float-right mt-1"
-                (click)="updateReviewEmployee(quarter,alert_message,i)"
-                *ngIf="currentStatus == 'Rejected' && userMapping.performance_action_by_approvals_to">Update</button>
-
-              <div class="d-flex justify-content-end" *ngIf="isAcceptSelected || isRejectSelected">
-                <button type="button" (click)="submitRemarksByHR(quarter,alert_message,i)" class="btn btn-success mt-2">
-                  Submit</button>
+              <div class="d-flex justify-content-end" *ngIf="(isAcceptSelected || isRejectSelected) && !userMapping.performance_action_by_hod && !userMapping.performance_action_by_hr">
+                <button type="button" (click)="submitRemarksByHR(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())" class="btn cycle-btn cycle-btn-success mt-2">Submit</button>
               </div>
             </div>
-            <div *ngIf="(currentStatus != 'Ongoing' && currentStatus != 'Completed' && currentStatus != 'Rejected') 
+            <div *ngIf="(currentStatus != 'Ongoing' && currentStatus != 'Completed' && currentStatus != 'Rejected' && currentStatus != 'Pending HOD' && currentStatus != 'Pending' && currentStatus != 'Submitted')
             && (userMapping.performance_action_by_hod || userMapping.performance_action_by_hr)">
-              <p class="text-center">
-                Review has not been given By manager/Reporting Manager
-              </p>
+              <p class="text-center cycle-no-review-msg">Review has not been given By manager/Reporting Manager</p>
             </div>
-            <div *ngIf="userMapping.performance_action_by_hr && isEditMode">
-                <label for="justification"><span class="text-danger">*</span>Hr Edit Remarks</label>
-              <textarea id="justification" [(ngModel)]="hrRemarks"
-                [disabled]="!userMapping.performance_action_by_hr"></textarea>
+            <div *ngIf="filterRatingCriteria.length === 0 && filterCriteria.length === 0">
+              <p class="text-center cycle-no-review-msg">No Data to Display</p>
             </div>
-            <div class="d-flex justify-content-end"
-              *ngIf=" (currentStatus == 'Completed' || currentStatus =='Ongoing') && userMapping.performance_action_by_hr && isEditMode">
-              <button class="btn btn-primary mt-2" (click)="updateReviewByHr(quarter,alert_message,i)">
-                Edit
-              </button>
-            </div>
-          <div *ngIf="filterRatingCriteria.length === 0 && filterCriteria.length === 0 ">
-            <p class="text-center">
-              No Data to Display
-            </p>
           </div>
-
-        </div>
-      </div>
-
     </div>
   </div>
 
@@ -449,9 +929,191 @@
   </div>
 </ng-template>
 
+<!-- One-time per session (HOD): queue reminder -->
+<ng-template #hod_pending_alert>
+  <div class="modal-header pms-hod-queue-modal-header border-0 pb-0">
+    <h5 class="modal-title d-flex align-items-center gap-2">
+      <span class="pms-hod-queue-modal-icon"><i class="fas fa-inbox" aria-hidden="true"></i></span>
+      Reviews waiting for you
+    </h5>
+    <button type="button" class="close" aria-label="Close" (click)="dismissHodQueueAlert()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body pt-2">
+    <p class="mb-2">
+      You have <strong>{{ hodPendingAcceptCount }}</strong> eligible employee<span *ngIf="hodPendingAcceptCount !== 1">s</span> whose performance review is <strong>waiting for your approval</strong> as HOD (reporting manager has submitted, or a resubmit is pending).
+    </p>
+    <p class="text-muted small mb-0">
+      <strong>Go to employee list</strong> scrolls to the table and shows <strong>only</strong> those employees (same as <strong>Review list</strong> in the toolbar). Use <strong>Evaluate</strong> on each row to Accept or Reject as HOD.
+    </p>
+  </div>
+  <div class="modal-footer border-0 pt-0">
+    <button type="button" class="btn btn-outline-secondary" (click)="dismissHodQueueAlert()">Dismiss</button>
+    <button type="button" class="btn btn-primary" (click)="onHodQueueAlertGoToList()">Go to employee list</button>
+  </div>
+</ng-template>
+
 <ng-template #alert_message>
   <div class="modal-body text-center">
     <p>{{alertMessage}}</p>
     <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
   </div>
 </ng-template>
+
+<!-- Approval details popup (Manager / HOD / HR): name, id, rating, feedback -->
+<ng-template #approval_details_modal>
+  <div class="pms-approval-modal">
+    <div class="pms-approval-modal-header">
+      <span class="pms-approval-modal-header-icon"><i class="fas fa-user-tie"></i></span>
+      <h5 class="pms-approval-modal-title">{{ approvalDetailsPopup?.role }} Details</h5>
+      <button type="button" class="pms-approval-modal-close" (click)="closeApprovalDetailsModal()" aria-label="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="pms-approval-modal-body" *ngIf="approvalDetailsPopup">
+      <div class="pms-approval-modal-content" *ngIf="!approvalDetailsLoading">
+        <div class="pms-approval-modal-card">
+          <div class="pms-approval-modal-row">
+            <span class="pms-approval-modal-label"><i class="fas fa-user pms-approval-modal-label-icon"></i> Name</span>
+            <span class="pms-approval-modal-value">{{ approvalDetailsPopup.name }}</span>
+          </div>
+          <div class="pms-approval-modal-row">
+            <span class="pms-approval-modal-label"><i class="fas fa-id-badge pms-approval-modal-label-icon"></i> ID</span>
+            <span class="pms-approval-modal-value">{{ approvalDetailsPopup.employmentId }}</span>
+          </div>
+        </div>
+        <div class="pms-approval-modal-card pms-approval-modal-rating-card">
+          <span class="pms-approval-modal-label"><i class="fas fa-star pms-approval-modal-label-icon"></i> Rating</span>
+          <div class="pms-approval-modal-rating-wrap">
+            <span class="pms-approval-modal-stars" [attr.aria-label]="'Rating ' + approvalDetailsPopup.rating + ' out of 5'">
+              <i *ngFor="let s of [1,2,3,4,5]" class="fas fa-star pms-approval-modal-star" [class.pms-approval-modal-star-filled]="s <= getApprovalDetailRatingNum()" [class.pms-approval-modal-star-empty]="s > getApprovalDetailRatingNum()"></i>
+            </span>
+            <span class="pms-approval-modal-rating-text">{{ approvalDetailsPopup.rating }} out of 5</span>
+          </div>
+        </div>
+        <div class="pms-approval-modal-feedback-card">
+          <span class="pms-approval-modal-label"><i class="fas fa-comment-dots pms-approval-modal-label-icon"></i> Feedback</span>
+          <p class="pms-approval-modal-feedback-text">{{ approvalDetailsPopup.feedback }}</p>
+        </div>
+        <div class="pms-approval-modal-feedback-card pms-approval-modal-history-card">
+          <span class="pms-approval-modal-label"><i class="fas fa-chart-line pms-approval-modal-label-icon"></i> Year-wise Rating Summary</span>
+          <div class="pms-approval-yearwise-empty" *ngIf="getApprovalYearWiseDetailedRows().length === 0">
+            No year-wise rating data available.
+          </div>
+          <div class="pms-approval-yearwise-cards" *ngIf="getApprovalYearWiseDetailedRows().length > 0">
+            <div class="pms-approval-yearwise-card" *ngFor="let y of getApprovalYearWiseDetailedRows()">
+              <div class="pms-approval-yearwise-card-head">
+                <span class="pms-approval-year-badge">{{ y.year || '—' }}</span>
+                <span class="pms-approval-status-badge"
+                  [ngClass]="y.status === 'Accepted' ? 'pms-approval-status-accepted' : (y.status === 'Rejected' ? 'pms-approval-status-rejected' : 'pms-approval-status-submitted')">
+                  {{ y.status || '—' }}
+                </span>
+              </div>
+              <div class="pms-approval-yearwise-grid">
+                <div><strong>Submitted On:</strong> {{ y.actionDate ? (y.actionDate | date:'dd MMM yyyy, hh:mm a') : '—' }}</div>
+                <div><strong>FY / Quarter:</strong> {{ y.financialYear }} / {{ y.quarterCycle }}</div>
+                <div><strong>Employee Name:</strong> {{ y.employeeName }}</div>
+                <div><strong>Rater Name:</strong> {{ y.raterName }}</div>
+                <div><strong>ID:</strong> {{ y.employeeId }}</div>
+                <div><strong>Rating:</strong> {{ y.rating }}</div>
+              </div>
+              <div class="pms-approval-yearwise-feedback"><strong>Feedback:</strong> {{ y.feedback }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pms-approval-modal-loading" *ngIf="approvalDetailsLoading">
+        <span class="spinner-border text-primary" role="status"></span>
+        <p class="mt-2 mb-0">Loading details...</p>
+      </div>
+    </div>
+    <div class="pms-approval-modal-footer">
+      <button type="button" class="btn pms-approval-modal-btn-close" (click)="closeApprovalDetailsModal()">Close</button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Status detail popup: list of employees by review status (Not Started / Pending / Ongoing / Completed / Rejected) -->
+<ng-template #status_detail_modal>
+  <div class="pms-status-detail-modal">
+    <div class="pms-status-detail-header">
+      <h5 class="pms-status-detail-title">{{ summaryStatusTitle }}</h5>
+      <button type="button" class="pms-status-detail-close" (click)="closeStatusDetailPopup()" aria-label="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="pms-status-detail-body">
+      <p class="pms-status-detail-count" *ngIf="summaryStatusEmployees.length === 0">No employees in this status.</p>
+      <div class="pms-status-detail-table-wrap" *ngIf="summaryStatusEmployees.length > 0">
+        <table class="pms-status-detail-table">
+          <thead>
+            <tr>
+              <th>Sl. No.</th>
+              <th>Emp ID</th>
+              <th>Full Name</th>
+              <th>Position</th>
+              <th>Department</th>
+              <th>Experience</th>
+              <th>Status</th>
+              <th>Date of Joining</th>
+              <th>Final Rating</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let emp of summaryStatusEmployees; let idx = index">
+              <td>{{ idx + 1 }}</td>
+              <td>{{ emp.employmentIdAcToET }}</td>
+              <td>{{ emp.name }}</td>
+              <td>{{ emp.designationName }}</td>
+              <td>{{ emp.departmentName }}</td>
+              <td class="pms-td pms-td-center pms-td--experience">
+                <div class="pms-exp-cell">
+                  <span class="pms-exp-value">{{ getCombinedExperienceYears(emp) }}</span>
+                  <span *ngIf="shouldShowExperienceBreakdownTooltip(emp)" class="pms-exp-tooltip-host"
+                    [attr.aria-label]="getExperienceTooltipText(emp)">
+                    <app-info-tooltip
+                      iconBgColor="#2563eb"
+                      [size]="19"
+                      [shouldShine]="false"
+                      [content]="getExperienceTooltipBullets(emp)">
+                    </app-info-tooltip>
+                  </span>
+                </div>
+              </td>
+              <td>{{ emp.employmentstatus }}</td>
+              <td>{{ emp.dateOfJoining }}</td>
+              <td>{{ getFinalRatingLabel(emp) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="pms-status-detail-footer">
+      <button type="button" class="btn pms-status-detail-btn-close" (click)="closeStatusDetailPopup()">Close</button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Confirmation Modal for Discard Changes -->
+<ng-template #confirm_discard_modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Unsaved Changes</h5>
+    <button type="button" class="close" (click)="confirmModalRef.close()">
+      &times;
+    </button>
+  </div>
+  <div class="modal-body text-center">
+    <i class="fa fa-exclamation-triangle text-warning" style="font-size: 48px;"></i>
+    <p class="mt-3">You have unsaved changes. Do you want to discard them?</p>
+  </div>
+  <div class="modal-footer justify-content-center">
+    <button type="button" class="btn btn-danger" (click)="confirmDiscardChanges(true)">
+      <i class="fa fa-trash"></i> Yes, Discard
+    </button>
+    <button type="button" class="btn btn-secondary" (click)="confirmDiscardChanges(false)">
+      <i class="fa fa-times"></i> No, Keep Editing
+    </button>
+  </div>
+</ng-template>
+

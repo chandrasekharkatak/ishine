@@ -45,6 +45,8 @@ public class QuarterCycleDTO {
 	
     private String cycleType;
     
+    private List<Long> excludedEmployees;
+    
 	
 
 }
