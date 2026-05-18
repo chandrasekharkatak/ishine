@@ -5329,17 +5329,19 @@ public class TeamsService {
     public void updateDefaultProjectMappings(Long scopedProjectId) {
 
         List<Long> activeEmployees;
-        List<ProjectEmpInfoDTO> projects;
+        List<ProjectEmpInfoDTO> allActiveProjects;
+        List<ProjectEmpInfoDTO> scopedMappingProjects;
 
         if (scopedProjectId == null) {
             activeEmployees = employeeRepository.findAllActiveEmployees();
             if (activeEmployees.isEmpty()) {
                 return;
             }
-            projects = employeeTeamMapRepository.findActiveProjectsForEmployees(activeEmployees);
+            allActiveProjects = employeeTeamMapRepository.findActiveProjectsForEmployees(activeEmployees);
+            scopedMappingProjects = allActiveProjects;
         } else {
             List<EmployeeTeamMap> projectMembers = employeeTeamMapRepository.findByProjectIdAndActive(
-            		scopedProjectId.intValue(),1L);
+                    scopedProjectId.intValue(), 1L);
             activeEmployees = projectMembers.stream()
                     .map(EmployeeTeamMap::getEmpId)
                     .filter(Objects::nonNull)
@@ -5348,17 +5350,22 @@ public class TeamsService {
             if (activeEmployees.isEmpty()) {
                 return;
             }
-            projects = employeeTeamMapRepository.findActiveProjectsForEmployees(activeEmployees).stream()
+            allActiveProjects = employeeTeamMapRepository.findActiveProjectsForEmployees(activeEmployees);
+            scopedMappingProjects = allActiveProjects.stream()
                     .filter(p -> p.getProjectId() != null
                             && scopedProjectId.equals(p.getProjectId().longValue()))
                     .collect(Collectors.toList());
-            if (projects.isEmpty()) {
+            if (scopedMappingProjects.isEmpty()) {
                 return;
             }
         }
 
+        Map<Long, List<ProjectEmpInfoDTO>> allActiveProjectsByEmp =
+                allActiveProjects.stream()
+                        .collect(Collectors.groupingBy(ProjectEmpInfoDTO::getEmpId));
+
         Map<Long, List<ProjectEmpInfoDTO>> empProjectMap =
-                projects.stream()
+                scopedMappingProjects.stream()
                         .collect(Collectors.groupingBy(
                                 ProjectEmpInfoDTO::getEmpId));
 
@@ -5382,12 +5389,14 @@ public class TeamsService {
                 empProjectMap.entrySet()) {
 
             Long empId = entry.getKey();
-            List<ProjectEmpInfoDTO> empProjects = entry.getValue();
+            List<ProjectEmpInfoDTO> empProjectsForMapping = entry.getValue();
+            List<ProjectEmpInfoDTO> empProjectsForMultiProjectCheck =
+                    allActiveProjectsByEmp.getOrDefault(empId, empProjectsForMapping);
 
-            if (empProjects.size() > 1) {
+            if (empProjectsForMultiProjectCheck.size() > 1) {
 
                 MultiProjectEmployeeDTO dto =
-                        buildMultiProjectEmployee(empId, empProjects);
+                        buildMultiProjectEmployee(empId, empProjectsForMultiProjectCheck);
                 multiProjectEmployees.add(dto);
 
                 boolean hasDefault =
@@ -5407,7 +5416,11 @@ public class TeamsService {
                 continue;
             }
 
-            ProjectEmpInfoDTO project = empProjects.get(0);
+            if (empProjectsForMapping.isEmpty()) {
+                continue;
+            }
+
+            ProjectEmpInfoDTO project = empProjectsForMapping.get(0);
 
             Long projectId = project.getProjectId() != null
                     ? project.getProjectId().longValue()
@@ -5428,7 +5441,7 @@ public class TeamsService {
                         "Skipping default-project mapping update for empId={}: multiple is_mapped='Y' rows in emp_primary_project_mapping",
                         empId);
                 queueHodNotificationForMappingIntegrityIssue(
-                        empId, empProjects, multiProjectEmployees, hodNoDefaultEmployees);
+                        empId, empProjectsForMultiProjectCheck, multiProjectEmployees, hodNoDefaultEmployees);
                 continue;
             }
 
