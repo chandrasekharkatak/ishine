@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.model;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 
@@ -56,8 +57,8 @@ public class ReimbursementTicketClaim {
 	@Column(name = "expenditure_type_description", length = 255)
 	private String expenditureTypeDescription;
 
-	@Column(name = "amount")
-	private BigInteger amount;
+	@Column(name = "amount", precision = 15, scale = 2)
+	private BigDecimal amount;
 
 	@Column(name = "travel_mode")
 	private String travelMode;

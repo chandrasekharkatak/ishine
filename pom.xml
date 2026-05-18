@@ -262,7 +262,9 @@
 						</goals>
 						<configuration>
 							<arguments>run build</arguments>
-							
+							<environmentVariables>
+								<NODE_OPTIONS>--max-old-space-size=8192</NODE_OPTIONS>
+							</environmentVariables>
 						</configuration>
 					</execution>
 				</executions>
