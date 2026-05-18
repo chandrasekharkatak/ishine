@@ -2776,7 +2776,7 @@ public class TimesheetService {
 	        }
 	        
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(clientSideId);
+            response.setServiceResponse(clientSideId.get());
             response.setServiceMessage("Client Side Id fetched successfully!");
 
             apiLogInfo.setApiResponse("Client Side Id fetched successfully!");
@@ -3210,7 +3210,7 @@ public class TimesheetService {
 	        	
 
 	        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            response.setServiceResponse(clientSideId);
+	            response.setServiceResponse(clientSideId.get());
 	            response.setServiceMessage("Client Side Id fetched successfully!");
 	    		logBuilder.append("empId : " +empId+ "Client Side Id :" +clientSideId+"\n");
 

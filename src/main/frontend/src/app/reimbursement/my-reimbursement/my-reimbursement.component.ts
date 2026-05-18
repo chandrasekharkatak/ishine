@@ -79,7 +79,8 @@ vehicleTypeList:any[] = [];
   clientsForOthers: { clientId: number; clientName: string }[] = [];
   readonly RMB_OTHERS_PROJECT_ID = -1;
 
-
+  /** Text binding for total amount (digits and one decimal only; synced to reimbursementObj.amount). */
+  claimAmountInput = '';
 
   constructor(private empService: EmployeeService,
     private authenticationService: AuthenticationService,
@@ -102,6 +103,9 @@ vehicleTypeList:any[] = [];
   ngOnInit(): void {
     this.refreshClaimDateBounds();
     void this.loadSubmissionWindowStatus();
+    if (this.currentUser?.empId != null) {
+      void this.loadMappedProjectsForReimbursement();
+    }
     this.onGetEmployeeInfo();
     this.onGetExpenditureType();
     this.onGetTravelMode();
@@ -143,6 +147,7 @@ vehicleTypeList:any[] = [];
 
   onReasonSelect() {
     this.reimbursementObj.amount = 0;
+    this.claimAmountInput = '';
     this.reimbursementObj.travelMode =null;
     this.reimbursementObj.vehicleType = null;
     console.log(this.reimbursementObj.expenditureType);
@@ -361,11 +366,121 @@ vehicleTypeList:any[] = [];
     } else {
       this.reimbursementObj.amount = 0;
     }
+    this.syncClaimAmountInputFromModel();
+  }
+
+  /** Keep claim amount text in sync when amount is set programmatically (e.g. travel auto-calc). */
+  syncClaimAmountInputFromModel(): void {
+    const a = this.reimbursementObj?.amount;
+    if (a == null || a === 0 || !Number.isFinite(Number(a))) {
+      this.claimAmountInput = '';
+      return;
+    }
+    this.claimAmountInput = String(Number(a));
+  }
+
+  onClaimAmountKeydown(event: KeyboardEvent): void {
+    if (this.reimbursementObj.travelMode === 'Personal Vehicle') {
+      event.preventDefault();
+      return;
+    }
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+      return;
+    }
+    const k = event.key;
+    const nav = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
+    if (nav.includes(k)) {
+      return;
+    }
+    if (k === '.') {
+      const input = event.target as HTMLInputElement;
+      if (input.value.includes('.')) {
+        event.preventDefault();
+      }
+      return;
+    }
+    if (!/^\d$/.test(k)) {
+      event.preventDefault();
+    }
+  }
+
+  onClaimAmountPaste(event: ClipboardEvent): void {
+    if (this.reimbursementObj.travelMode === 'Personal Vehicle') {
+      event.preventDefault();
+      return;
+    }
+    event.preventDefault();
+    const input = event.target as HTMLInputElement;
+    const raw = event.clipboardData?.getData('text') ?? '';
+    const merged = this.sanitizeClaimAmountString(input.value + raw.replace(/[^\d.]/g, ''));
+    this.applyClaimAmountString(merged);
+  }
+
+  onClaimAmountInputChange(value: string): void {
+    if (this.reimbursementObj.travelMode === 'Personal Vehicle') {
+      return;
+    }
+    this.applyClaimAmountString(this.sanitizeClaimAmountString(String(value ?? '')));
+  }
+
+  private sanitizeClaimAmountString(value: string): string {
+    let v = value.replace(/[^\d.]/g, '');
+    const dot = v.indexOf('.');
+    if (dot !== -1) {
+      v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '');
+      const [intPart, decPart = ''] = v.split('.');
+      v = intPart + '.' + decPart.slice(0, 2);
+    }
+    return v;
+  }
+
+  private applyClaimAmountString(v: string): void {
+    this.claimAmountInput = v;
+    if (v === '' || v === '.') {
+      this.reimbursementObj.amount = 0;
+      return;
+    }
+    const n = parseFloat(v);
+    this.reimbursementObj.amount = Number.isFinite(n) ? n : 0;
+  }
+
+  private isValidClaimAmount(amount: unknown): boolean {
+    const n = Number(amount);
+    return Number.isFinite(n) && n > 0;
+  }
+
+  onClaimPurposeKeydown(event: KeyboardEvent): void {
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+      return;
+    }
+    const k = event.key;
+    const nav = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Enter'];
+    if (nav.includes(k)) {
+      return;
+    }
+    if (k.length === 1 && !/^[a-zA-Z0-9\s]$/.test(k)) {
+      event.preventDefault();
+    }
+  }
+
+  onClaimPurposePaste(event: ClipboardEvent): void {
+    event.preventDefault();
+    const raw = (event.clipboardData?.getData('text') ?? '').replace(/[^a-zA-Z0-9\s]/g, '');
+    const el = event.target as HTMLTextAreaElement;
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+    const val = this.reimbursementObj.purpose || '';
+    this.reimbursementObj.purpose = val.slice(0, start) + raw + val.slice(end);
+  }
+
+  onClaimPurposeInputChange(value: string): void {
+    this.reimbursementObj.purpose = String(value ?? '').replace(/[^a-zA-Z0-9\s]/g, '');
   }
 
   async resetForm(template: TemplateRef<any>) {
     this.editingClaimIndex = null;
     this.ticketClaims = [];
+    this.claimAmountInput = '';
     this.reimbursementObj = {
       currencyType: '',
       currentUser: '',
@@ -429,6 +544,7 @@ vehicleTypeList:any[] = [];
     this.onReasonSelect();
     this.reimbursementObj.expenditureTypeDescription = c.expenditureTypeDescription || '';
     this.reimbursementObj.amount = c.amount != null ? Number(c.amount) : 0;
+    this.syncClaimAmountInputFromModel();
     this.reimbursementObj.travelMode = c.travelMode || '';
     this.reimbursementObj.distance = c.distance != null ? c.distance : '';
     this.reimbursementObj.vehicleType = c.vehicleType || '';
@@ -705,8 +821,8 @@ vehicleTypeList:any[] = [];
         return;
       }
     }
-    if (!this.reimbursementObj.amount || this.reimbursementObj.amount <= 0) {
-      this.openAlertMod(template, 'Please enter a valid Total Amount .');
+    if (!this.isValidClaimAmount(this.reimbursementObj.amount)) {
+      this.openAlertMod(template, 'Please enter a valid Total Amount greater than 0 (numbers and decimal only).');
       return;
     }
     if (this.reimbursementObj.expenditureType !== 'Food') {
@@ -732,6 +848,10 @@ vehicleTypeList:any[] = [];
     }
     if (!this.reimbursementObj.purpose || this.reimbursementObj.purpose.trim() === '') {
       this.openAlertMod(template, 'Please enter the Purpose.');
+      return;
+    }
+    if (/[^a-zA-Z0-9\s]/.test(this.reimbursementObj.purpose)) {
+      this.openAlertMod(template, 'Purpose must contain only letters, numbers, and spaces.');
       return;
     }
     const isEdit = this.editingClaimIndex !== null;
@@ -1026,6 +1146,7 @@ vehicleTypeList:any[] = [];
 
 
   async resetAfterSubmit() {
+    this.claimAmountInput = '';
     this.reimbursementObj = {
       currencyType: '',
       currentUser: '',

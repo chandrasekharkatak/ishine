@@ -291,8 +291,13 @@
                             <label class="rmb-label" for="amt"><span class="rmb-req">*</span>Total amount</label>
                             <div class="rmb-input-affix">
                                 <span class="rmb-input-affix__prefix">₹</span>
-                                <input type="number" class="form-control rmb-control rmb-control--affix" id="amt" name="amountInp"
-                                    [(ngModel)]="reimbursementObj.amount" required
+                                <input type="text" inputmode="decimal" autocomplete="off"
+                                    class="form-control rmb-control rmb-control--affix" id="amt" name="amountInp"
+                                    [(ngModel)]="claimAmountInput"
+                                    (ngModelChange)="onClaimAmountInputChange($event)"
+                                    (keydown)="onClaimAmountKeydown($event)"
+                                    (paste)="onClaimAmountPaste($event)"
+                                    required
                                     [disabled]="reimbursementObj.travelMode === 'Personal Vehicle'" />
                             </div>
                         </div>
@@ -316,7 +321,11 @@
                         <div class="col-12 col-lg-6 mb-3">
                             <label class="rmb-label" for="dayTypeDesc"><span class="rmb-req">*</span>Purpose</label>
                             <textarea class="form-control rmb-control rmb-textarea" id="dayTypeDesc" rows="3"
-                                [(ngModel)]="reimbursementObj.purpose" placeholder="Describe the expense clearly for approvers…"></textarea>
+                                [(ngModel)]="reimbursementObj.purpose"
+                                (ngModelChange)="onClaimPurposeInputChange($event)"
+                                (keydown)="onClaimPurposeKeydown($event)"
+                                (paste)="onClaimPurposePaste($event)"
+                                placeholder="Describe the expense clearly for approvers…"></textarea>
                         </div>
 
                         <div class="col-12 mb-3" *ngIf="editingClaimIndex !== null && documentsForEditingClaim().length > 0">
