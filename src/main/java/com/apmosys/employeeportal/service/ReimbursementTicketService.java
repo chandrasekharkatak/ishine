@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -676,7 +677,7 @@ public class ReimbursementTicketService {
 			throw new IllegalArgumentException("Claim " + index
 					+ ": selected project is not allowed for your profile. Pick a project from the list (contact RMG if the list is empty).");
 		}
-		if (c.getAmount() == null || c.getAmount().compareTo(BigInteger.ZERO) <= 0) {
+		if (c.getAmount() == null || c.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
 			throw new IllegalArgumentException("Claim " + index + ": amount must be greater than zero.");
 		}
 		if (c.getDocIds() == null || c.getDocIds().isEmpty()) {
@@ -1358,6 +1359,14 @@ public class ReimbursementTicketService {
 		return b == null ? 0L : b.longValue();
 	}
 
+	private static BigDecimal claimAmountOrZero(ReimbursementTicketClaim c) {
+		return c != null && c.getAmount() != null ? c.getAmount() : BigDecimal.ZERO;
+	}
+
+	private static double bigDecimalToDouble(BigDecimal b) {
+		return b == null ? 0.0 : b.doubleValue();
+	}
+
 	private boolean hasClaimLevelFilters(ReimbursementDashboardFilterDTO filter) {
 		if (filter == null) {
 			return false;
@@ -1510,13 +1519,13 @@ public class ReimbursementTicketService {
 		return true;
 	}
 
-	private Map<String, Long> buildPendingAmountAgingBuckets(List<ReimbursementTicket> tickets,
+	private Map<String, Double> buildPendingAmountAgingBuckets(List<ReimbursementTicket> tickets,
 			ReimbursementDashboardFilterDTO filter) {
-		Map<String, BigInteger> acc = new LinkedHashMap<>();
-		acc.put("0-7", BigInteger.ZERO);
-		acc.put("8-15", BigInteger.ZERO);
-		acc.put("16-30", BigInteger.ZERO);
-		acc.put("30+", BigInteger.ZERO);
+		Map<String, BigDecimal> acc = new LinkedHashMap<>();
+		acc.put("0-7", BigDecimal.ZERO);
+		acc.put("8-15", BigDecimal.ZERO);
+		acc.put("16-30", BigDecimal.ZERO);
+		acc.put("30+", BigDecimal.ZERO);
 		long now = System.currentTimeMillis();
 		for (ReimbursementTicket t : tickets) {
 			if (t.getSubmittedOn() == null) {
@@ -1524,17 +1533,17 @@ public class ReimbursementTicketService {
 			}
 			long days = Math.max(0L, (now - t.getSubmittedOn().getTime()) / 86400000L);
 			String bucket = days <= 7L ? "0-7" : days <= 15L ? "8-15" : days <= 30L ? "16-30" : "30+";
-			BigInteger pend = claimsForMetrics(t, filter)
+			BigDecimal pend = claimsForMetrics(t, filter)
 					.filter(c -> isPipelinePendingClaimStatus(c.getClaimStatus()))
 					.map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
-					.reduce(BigInteger.ZERO, BigInteger::add);
+					.reduce(BigDecimal.ZERO, BigDecimal::add);
 			if (pend.signum() > 0) {
-				acc.merge(bucket, pend, BigInteger::add);
+				acc.merge(bucket, pend, BigDecimal::add);
 			}
 		}
-		Map<String, Long> out = new LinkedHashMap<>();
-		for (Map.Entry<String, BigInteger> e : acc.entrySet()) {
-			out.put(e.getKey(), bigIntegerToLong(e.getValue()));
+		Map<String, Double> out = new LinkedHashMap<>();
+		for (Map.Entry<String, BigDecimal> e : acc.entrySet()) {
+			out.put(e.getKey(), bigDecimalToDouble(e.getValue()));
 		}
 		return out;
 	}
@@ -1549,8 +1558,8 @@ public class ReimbursementTicketService {
 
 	private Map<String, Object> buildProjectEmployeeStackPack(List<ReimbursementTicket> tickets,
 			ReimbursementDashboardFilterDTO filter, int maxProjects, int maxEmpsPerProject) {
-		Map<Long, BigInteger> projTotals = new HashMap<>();
-		Map<Long, Map<String, BigInteger[]>> cell = new HashMap<>();
+		Map<Long, BigDecimal> projTotals = new HashMap<>();
+		Map<Long, Map<String, BigDecimal[]>> cell = new HashMap<>();
 		Map<Long, String> pname = new HashMap<>();
 		for (ReimbursementTicket t : tickets) {
 			String emp = StringUtils.hasText(t.getFullName()) ? t.getFullName().trim()
@@ -1560,15 +1569,15 @@ public class ReimbursementTicketService {
 					continue;
 				}
 				Long pid = c.getProjectId();
-				BigInteger a = c.getAmount() != null ? c.getAmount() : BigInteger.ZERO;
-				projTotals.merge(pid, a, BigInteger::add);
+				BigDecimal a = claimAmountOrZero(c);
+				projTotals.merge(pid, a, BigDecimal::add);
 				if (!pname.containsKey(pid) || !StringUtils.hasText(pname.get(pid))) {
 					pname.put(pid, StringUtils.hasText(c.getProjectName()) ? c.getProjectName().trim()
 							: ("Project #" + pid));
 				}
-				BigInteger[] ar = cell.computeIfAbsent(pid, k -> new HashMap<String, BigInteger[]>())
-						.computeIfAbsent(emp, k -> new BigInteger[] { BigInteger.ZERO, BigInteger.ZERO,
-								BigInteger.ZERO, BigInteger.ZERO });
+				BigDecimal[] ar = cell.computeIfAbsent(pid, k -> new HashMap<String, BigDecimal[]>())
+						.computeIfAbsent(emp, k -> new BigDecimal[] { BigDecimal.ZERO, BigDecimal.ZERO,
+								BigDecimal.ZERO, BigDecimal.ZERO });
 				ar[0] = ar[0].add(a);
 				String st = c.getClaimStatus();
 				if (ReimbursementTicketClaim.STATUS_PAID.equals(st)) {
@@ -1584,23 +1593,23 @@ public class ReimbursementTicketService {
 				.sorted((a, b) -> b.getValue().compareTo(a.getValue())).map(Map.Entry::getKey).limit(maxProjects)
 				.collect(Collectors.toList());
 		List<String> categories = new ArrayList<>();
-		List<Long> raised = new ArrayList<>();
-		List<Long> paid = new ArrayList<>();
-		List<Long> pending = new ArrayList<>();
-		List<Long> rejected = new ArrayList<>();
+		List<Double> raised = new ArrayList<>();
+		List<Double> paid = new ArrayList<>();
+		List<Double> pending = new ArrayList<>();
+		List<Double> rejected = new ArrayList<>();
 		for (Long pid : topProj) {
 			String pn = pname.getOrDefault(pid, "Project #" + pid);
-			Map<String, BigInteger[]> emMap = cell.getOrDefault(pid, Collections.emptyMap());
-			List<Map.Entry<String, BigInteger[]>> sortedEm = emMap.entrySet().stream()
+			Map<String, BigDecimal[]> emMap = cell.getOrDefault(pid, Collections.emptyMap());
+			List<Map.Entry<String, BigDecimal[]>> sortedEm = emMap.entrySet().stream()
 					.sorted((a, b) -> b.getValue()[0].compareTo(a.getValue()[0])).limit(maxEmpsPerProject)
 					.collect(Collectors.toList());
-			for (Map.Entry<String, BigInteger[]> e : sortedEm) {
+			for (Map.Entry<String, BigDecimal[]> e : sortedEm) {
 				categories.add(abbrevLabel(pn, 22) + " · " + abbrevLabel(e.getKey(), 20));
-				BigInteger[] v = e.getValue();
-				raised.add(bigIntegerToLong(v[0]));
-				paid.add(bigIntegerToLong(v[1]));
-				pending.add(bigIntegerToLong(v[2]));
-				rejected.add(bigIntegerToLong(v[3]));
+				BigDecimal[] v = e.getValue();
+				raised.add(bigDecimalToDouble(v[0]));
+				paid.add(bigDecimalToDouble(v[1]));
+				pending.add(bigDecimalToDouble(v[2]));
+				rejected.add(bigDecimalToDouble(v[3]));
 			}
 		}
 		Map<String, Object> out = new LinkedHashMap<>();
@@ -1683,25 +1692,25 @@ public class ReimbursementTicketService {
 	private Map<String, Object> buildClientBarTotalsPack(List<ReimbursementTicket> tickets,
 			ReimbursementDashboardFilterDTO filter, Map<Integer, String> clientNameJpql,
 			Map<Integer, String> clientNameClaims) {
-		Map<Integer, BigInteger> reqByCid = new HashMap<>();
-		Map<Integer, BigInteger> paidByCid = new HashMap<>();
-		Map<Integer, BigInteger> pendByCid = new HashMap<>();
-		Map<Integer, BigInteger> rejByCid = new HashMap<>();
+		Map<Integer, BigDecimal> reqByCid = new HashMap<>();
+		Map<Integer, BigDecimal> paidByCid = new HashMap<>();
+		Map<Integer, BigDecimal> pendByCid = new HashMap<>();
+		Map<Integer, BigDecimal> rejByCid = new HashMap<>();
 		for (ReimbursementTicket t : tickets) {
 			for (ReimbursementTicketClaim c : claimsForMetrics(t, filter).collect(Collectors.toList())) {
 				if (c.getClientId() == null) {
 					continue;
 				}
 				Integer cid = c.getClientId();
-				BigInteger a = c.getAmount() != null ? c.getAmount() : BigInteger.ZERO;
-				reqByCid.merge(cid, a, BigInteger::add);
+				BigDecimal a = claimAmountOrZero(c);
+				reqByCid.merge(cid, a, BigDecimal::add);
 				String st = c.getClaimStatus();
 				if (ReimbursementTicketClaim.STATUS_PAID.equals(st)) {
-					paidByCid.merge(cid, a, BigInteger::add);
+					paidByCid.merge(cid, a, BigDecimal::add);
 				} else if (isPipelinePendingClaimStatus(st)) {
-					pendByCid.merge(cid, a, BigInteger::add);
+					pendByCid.merge(cid, a, BigDecimal::add);
 				} else if (isRejectedClaimStatus(st)) {
-					rejByCid.merge(cid, a, BigInteger::add);
+					rejByCid.merge(cid, a, BigDecimal::add);
 				}
 			}
 		}
@@ -1716,10 +1725,10 @@ public class ReimbursementTicketService {
 			Map<String, Object> row = new LinkedHashMap<>();
 			row.put("label", label);
 			row.put("clientId", cid);
-			row.put("requested", bigIntegerToLong(reqByCid.getOrDefault(cid, BigInteger.ZERO)));
-			row.put("paid", bigIntegerToLong(paidByCid.getOrDefault(cid, BigInteger.ZERO)));
-			row.put("pending", bigIntegerToLong(pendByCid.getOrDefault(cid, BigInteger.ZERO)));
-			row.put("rejected", bigIntegerToLong(rejByCid.getOrDefault(cid, BigInteger.ZERO)));
+			row.put("requested", bigDecimalToDouble(reqByCid.getOrDefault(cid, BigDecimal.ZERO)));
+			row.put("paid", bigDecimalToDouble(paidByCid.getOrDefault(cid, BigDecimal.ZERO)));
+			row.put("pending", bigDecimalToDouble(pendByCid.getOrDefault(cid, BigDecimal.ZERO)));
+			row.put("rejected", bigDecimalToDouble(rejByCid.getOrDefault(cid, BigDecimal.ZERO)));
 			rows.add(row);
 		}
 		sortBarTotalRows(rows);
@@ -1735,25 +1744,25 @@ public class ReimbursementTicketService {
 	private Map<String, Object> buildClientLineChartPack(List<ReimbursementTicket> tickets,
 			ReimbursementDashboardFilterDTO filter, Map<Integer, String> clientNameJpql,
 			Map<Integer, String> clientNameClaims) {
-		Map<Integer, BigInteger> reqByCid = new HashMap<>();
-		Map<Integer, BigInteger> paidByCid = new HashMap<>();
-		Map<Integer, BigInteger> pendByCid = new HashMap<>();
-		Map<Integer, BigInteger> rejByCid = new HashMap<>();
+		Map<Integer, BigDecimal> reqByCid = new HashMap<>();
+		Map<Integer, BigDecimal> paidByCid = new HashMap<>();
+		Map<Integer, BigDecimal> pendByCid = new HashMap<>();
+		Map<Integer, BigDecimal> rejByCid = new HashMap<>();
 		for (ReimbursementTicket t : tickets) {
 			for (ReimbursementTicketClaim c : claimsForMetrics(t, filter).collect(Collectors.toList())) {
 				if (c.getClientId() == null) {
 					continue;
 				}
 				Integer cid = c.getClientId();
-				BigInteger a = c.getAmount() != null ? c.getAmount() : BigInteger.ZERO;
-				reqByCid.merge(cid, a, BigInteger::add);
+				BigDecimal a = claimAmountOrZero(c);
+				reqByCid.merge(cid, a, BigDecimal::add);
 				String st = c.getClaimStatus();
 				if (ReimbursementTicketClaim.STATUS_PAID.equals(st)) {
-					paidByCid.merge(cid, a, BigInteger::add);
+					paidByCid.merge(cid, a, BigDecimal::add);
 				} else if (isPipelinePendingClaimStatus(st)) {
-					pendByCid.merge(cid, a, BigInteger::add);
+					pendByCid.merge(cid, a, BigDecimal::add);
 				} else if (isRejectedClaimStatus(st)) {
-					rejByCid.merge(cid, a, BigInteger::add);
+					rejByCid.merge(cid, a, BigDecimal::add);
 				}
 			}
 		}
@@ -1762,10 +1771,10 @@ public class ReimbursementTicketService {
 				cl -> resolveDashboardClientLabel(cl.getClientId(), cl, clientNameJpql, clientNameClaims),
 				String.CASE_INSENSITIVE_ORDER));
 		List<String> categories = new ArrayList<>();
-		List<Long> raised = new ArrayList<>();
-		List<Long> paid = new ArrayList<>();
-		List<Long> pending = new ArrayList<>();
-		List<Long> rejected = new ArrayList<>();
+		List<Double> raised = new ArrayList<>();
+		List<Double> paid = new ArrayList<>();
+		List<Double> pending = new ArrayList<>();
+		List<Double> rejected = new ArrayList<>();
 		for (Client cl : allClients) {
 			if (cl == null || cl.getClientId() == null) {
 				continue;
@@ -1773,10 +1782,10 @@ public class ReimbursementTicketService {
 			Integer cid = cl.getClientId();
 			String name = resolveDashboardClientLabel(cid, cl, clientNameJpql, clientNameClaims);
 			categories.add(abbrevLabel(name, 40));
-			raised.add(bigIntegerToLong(reqByCid.getOrDefault(cid, BigInteger.ZERO)));
-			paid.add(bigIntegerToLong(paidByCid.getOrDefault(cid, BigInteger.ZERO)));
-			pending.add(bigIntegerToLong(pendByCid.getOrDefault(cid, BigInteger.ZERO)));
-			rejected.add(bigIntegerToLong(rejByCid.getOrDefault(cid, BigInteger.ZERO)));
+			raised.add(bigDecimalToDouble(reqByCid.getOrDefault(cid, BigDecimal.ZERO)));
+			paid.add(bigDecimalToDouble(paidByCid.getOrDefault(cid, BigDecimal.ZERO)));
+			pending.add(bigDecimalToDouble(pendByCid.getOrDefault(cid, BigDecimal.ZERO)));
+			rejected.add(bigDecimalToDouble(rejByCid.getOrDefault(cid, BigDecimal.ZERO)));
 		}
 		Map<String, Object> pack = new LinkedHashMap<>();
 		pack.put("categories", categories);
@@ -1794,10 +1803,10 @@ public class ReimbursementTicketService {
 	 */
 	private Map<String, Object> buildProjectLineChartPack(List<ReimbursementTicket> tickets,
 			ReimbursementDashboardFilterDTO filter) {
-		Map<Long, BigInteger> reqByPid = new HashMap<>();
-		Map<Long, BigInteger> paidByPid = new HashMap<>();
-		Map<Long, BigInteger> pendByPid = new HashMap<>();
-		Map<Long, BigInteger> rejByPid = new HashMap<>();
+		Map<Long, BigDecimal> reqByPid = new HashMap<>();
+		Map<Long, BigDecimal> paidByPid = new HashMap<>();
+		Map<Long, BigDecimal> pendByPid = new HashMap<>();
+		Map<Long, BigDecimal> rejByPid = new HashMap<>();
 		Map<Long, String> labelByPid = new HashMap<>();
 		for (ReimbursementTicket t : tickets) {
 			for (ReimbursementTicketClaim c : claimsForMetrics(t, filter).collect(Collectors.toList())) {
@@ -1805,15 +1814,15 @@ public class ReimbursementTicketService {
 					continue;
 				}
 				Long pid = c.getProjectId();
-				BigInteger a = c.getAmount() != null ? c.getAmount() : BigInteger.ZERO;
-				reqByPid.merge(pid, a, BigInteger::add);
+				BigDecimal a = claimAmountOrZero(c);
+				reqByPid.merge(pid, a, BigDecimal::add);
 				String st = c.getClaimStatus();
 				if (ReimbursementTicketClaim.STATUS_PAID.equals(st)) {
-					paidByPid.merge(pid, a, BigInteger::add);
+					paidByPid.merge(pid, a, BigDecimal::add);
 				} else if (isPipelinePendingClaimStatus(st)) {
-					pendByPid.merge(pid, a, BigInteger::add);
+					pendByPid.merge(pid, a, BigDecimal::add);
 				} else if (isRejectedClaimStatus(st)) {
-					rejByPid.merge(pid, a, BigInteger::add);
+					rejByPid.merge(pid, a, BigDecimal::add);
 				}
 				if (!labelByPid.containsKey(pid) || !StringUtils.hasText(labelByPid.get(pid))) {
 					String lbl = StringUtils.hasText(c.getProjectName()) ? c.getProjectName().trim()
@@ -1832,18 +1841,18 @@ public class ReimbursementTicketService {
 			masterPids.add(p.getProjectId().longValue());
 		}
 		List<String> categories = new ArrayList<>();
-		List<Long> raised = new ArrayList<>();
-		List<Long> paid = new ArrayList<>();
-		List<Long> pending = new ArrayList<>();
-		List<Long> rejected = new ArrayList<>();
+		List<Double> raised = new ArrayList<>();
+		List<Double> paid = new ArrayList<>();
+		List<Double> pending = new ArrayList<>();
+		List<Double> rejected = new ArrayList<>();
 		for (Project p : allProjects) {
 			Long pid = p.getProjectId().longValue();
 			String name = StringUtils.hasText(p.getProjectName()) ? p.getProjectName().trim() : ("Project #" + pid);
 			categories.add(abbrevLabel(name, 40));
-			raised.add(bigIntegerToLong(reqByPid.getOrDefault(pid, BigInteger.ZERO)));
-			paid.add(bigIntegerToLong(paidByPid.getOrDefault(pid, BigInteger.ZERO)));
-			pending.add(bigIntegerToLong(pendByPid.getOrDefault(pid, BigInteger.ZERO)));
-			rejected.add(bigIntegerToLong(rejByPid.getOrDefault(pid, BigInteger.ZERO)));
+			raised.add(bigDecimalToDouble(reqByPid.getOrDefault(pid, BigDecimal.ZERO)));
+			paid.add(bigDecimalToDouble(paidByPid.getOrDefault(pid, BigDecimal.ZERO)));
+			pending.add(bigDecimalToDouble(pendByPid.getOrDefault(pid, BigDecimal.ZERO)));
+			rejected.add(bigDecimalToDouble(rejByPid.getOrDefault(pid, BigDecimal.ZERO)));
 		}
 		List<Long> orphanPids = reqByPid.keySet().stream().filter(id -> !masterPids.contains(id))
 				.sorted(Comparator.comparing(id -> labelByPid.getOrDefault(id, "Project #" + id),
@@ -1851,10 +1860,10 @@ public class ReimbursementTicketService {
 				.collect(Collectors.toList());
 		for (Long pid : orphanPids) {
 			categories.add(abbrevLabel(labelByPid.getOrDefault(pid, "Project #" + pid), 40));
-			raised.add(bigIntegerToLong(reqByPid.getOrDefault(pid, BigInteger.ZERO)));
-			paid.add(bigIntegerToLong(paidByPid.getOrDefault(pid, BigInteger.ZERO)));
-			pending.add(bigIntegerToLong(pendByPid.getOrDefault(pid, BigInteger.ZERO)));
-			rejected.add(bigIntegerToLong(rejByPid.getOrDefault(pid, BigInteger.ZERO)));
+			raised.add(bigDecimalToDouble(reqByPid.getOrDefault(pid, BigDecimal.ZERO)));
+			paid.add(bigDecimalToDouble(paidByPid.getOrDefault(pid, BigDecimal.ZERO)));
+			pending.add(bigDecimalToDouble(pendByPid.getOrDefault(pid, BigDecimal.ZERO)));
+			rejected.add(bigDecimalToDouble(rejByPid.getOrDefault(pid, BigDecimal.ZERO)));
 		}
 		Map<String, Object> pack = new LinkedHashMap<>();
 		pack.put("categories", categories);
@@ -1873,10 +1882,10 @@ public class ReimbursementTicketService {
 	 */
 	private Map<String, Object> buildDepartmentLineChartPack(List<ReimbursementTicket> tickets,
 			ReimbursementDashboardFilterDTO filter) {
-		Map<String, BigInteger> reqByNorm = new HashMap<>();
-		Map<String, BigInteger> paidByNorm = new HashMap<>();
-		Map<String, BigInteger> pendByNorm = new HashMap<>();
-		Map<String, BigInteger> rejByNorm = new HashMap<>();
+		Map<String, BigDecimal> reqByNorm = new HashMap<>();
+		Map<String, BigDecimal> paidByNorm = new HashMap<>();
+		Map<String, BigDecimal> pendByNorm = new HashMap<>();
+		Map<String, BigDecimal> rejByNorm = new HashMap<>();
 		Map<String, String> normToDisplay = new HashMap<>();
 		for (ReimbursementTicket t : tickets) {
 			String displayDept = (t.getDepartment() != null && StringUtils.hasText(t.getDepartment()))
@@ -1884,15 +1893,15 @@ public class ReimbursementTicketService {
 			String nk = displayDept.toLowerCase(Locale.ROOT);
 			normToDisplay.putIfAbsent(nk, displayDept);
 			for (ReimbursementTicketClaim c : claimsForMetrics(t, filter).collect(Collectors.toList())) {
-				BigInteger a = c.getAmount() != null ? c.getAmount() : BigInteger.ZERO;
-				reqByNorm.merge(nk, a, BigInteger::add);
+				BigDecimal a = claimAmountOrZero(c);
+				reqByNorm.merge(nk, a, BigDecimal::add);
 				String st = c.getClaimStatus();
 				if (ReimbursementTicketClaim.STATUS_PAID.equals(st)) {
-					paidByNorm.merge(nk, a, BigInteger::add);
+					paidByNorm.merge(nk, a, BigDecimal::add);
 				} else if (isPipelinePendingClaimStatus(st)) {
-					pendByNorm.merge(nk, a, BigInteger::add);
+					pendByNorm.merge(nk, a, BigDecimal::add);
 				} else if (isRejectedClaimStatus(st)) {
-					rejByNorm.merge(nk, a, BigInteger::add);
+					rejByNorm.merge(nk, a, BigDecimal::add);
 				}
 			}
 		}
@@ -1901,10 +1910,10 @@ public class ReimbursementTicketService {
 				d -> (d != null && d.getName() != null ? d.getName().trim() : ""),
 				String.CASE_INSENSITIVE_ORDER));
 		List<String> categories = new ArrayList<>();
-		List<Long> raised = new ArrayList<>();
-		List<Long> paid = new ArrayList<>();
-		List<Long> pending = new ArrayList<>();
-		List<Long> rejected = new ArrayList<>();
+		List<Double> raised = new ArrayList<>();
+		List<Double> paid = new ArrayList<>();
+		List<Double> pending = new ArrayList<>();
+		List<Double> rejected = new ArrayList<>();
 		Set<String> masterNormKeys = new LinkedHashSet<>();
 		for (Department d : masterDepts) {
 			if (d == null || !StringUtils.hasText(d.getName())) {
@@ -1914,20 +1923,20 @@ public class ReimbursementTicketService {
 			String nk = label.toLowerCase(Locale.ROOT);
 			masterNormKeys.add(nk);
 			categories.add(abbrevLabel(label, 28));
-			raised.add(bigIntegerToLong(reqByNorm.getOrDefault(nk, BigInteger.ZERO)));
-			paid.add(bigIntegerToLong(paidByNorm.getOrDefault(nk, BigInteger.ZERO)));
-			pending.add(bigIntegerToLong(pendByNorm.getOrDefault(nk, BigInteger.ZERO)));
-			rejected.add(bigIntegerToLong(rejByNorm.getOrDefault(nk, BigInteger.ZERO)));
+			raised.add(bigDecimalToDouble(reqByNorm.getOrDefault(nk, BigDecimal.ZERO)));
+			paid.add(bigDecimalToDouble(paidByNorm.getOrDefault(nk, BigDecimal.ZERO)));
+			pending.add(bigDecimalToDouble(pendByNorm.getOrDefault(nk, BigDecimal.ZERO)));
+			rejected.add(bigDecimalToDouble(rejByNorm.getOrDefault(nk, BigDecimal.ZERO)));
 		}
 		List<String> orphanKeys = reqByNorm.keySet().stream().filter(k -> !masterNormKeys.contains(k))
 				.sorted(String.CASE_INSENSITIVE_ORDER).collect(Collectors.toList());
 		for (String nk : orphanKeys) {
 			String disp = normToDisplay.getOrDefault(nk, nk);
 			categories.add(abbrevLabel(disp, 28));
-			raised.add(bigIntegerToLong(reqByNorm.getOrDefault(nk, BigInteger.ZERO)));
-			paid.add(bigIntegerToLong(paidByNorm.getOrDefault(nk, BigInteger.ZERO)));
-			pending.add(bigIntegerToLong(pendByNorm.getOrDefault(nk, BigInteger.ZERO)));
-			rejected.add(bigIntegerToLong(rejByNorm.getOrDefault(nk, BigInteger.ZERO)));
+			raised.add(bigDecimalToDouble(reqByNorm.getOrDefault(nk, BigDecimal.ZERO)));
+			paid.add(bigDecimalToDouble(paidByNorm.getOrDefault(nk, BigDecimal.ZERO)));
+			pending.add(bigDecimalToDouble(pendByNorm.getOrDefault(nk, BigDecimal.ZERO)));
+			rejected.add(bigDecimalToDouble(rejByNorm.getOrDefault(nk, BigDecimal.ZERO)));
 		}
 		Map<String, Object> pack = new LinkedHashMap<>();
 		pack.put("categories", categories);
@@ -1940,10 +1949,10 @@ public class ReimbursementTicketService {
 
 	private Map<String, Object> buildProjectBarTotalsPack(List<ReimbursementTicket> tickets,
 			ReimbursementDashboardFilterDTO filter) {
-		Map<Long, BigInteger> reqByPid = new HashMap<>();
-		Map<Long, BigInteger> paidByPid = new HashMap<>();
-		Map<Long, BigInteger> pendByPid = new HashMap<>();
-		Map<Long, BigInteger> rejByPid = new HashMap<>();
+		Map<Long, BigDecimal> reqByPid = new HashMap<>();
+		Map<Long, BigDecimal> paidByPid = new HashMap<>();
+		Map<Long, BigDecimal> pendByPid = new HashMap<>();
+		Map<Long, BigDecimal> rejByPid = new HashMap<>();
 		Map<Long, String> labelByPid = new HashMap<>();
 		for (ReimbursementTicket t : tickets) {
 			for (ReimbursementTicketClaim c : claimsForMetrics(t, filter).collect(Collectors.toList())) {
@@ -1951,15 +1960,15 @@ public class ReimbursementTicketService {
 					continue;
 				}
 				Long pid = c.getProjectId();
-				BigInteger a = c.getAmount() != null ? c.getAmount() : BigInteger.ZERO;
-				reqByPid.merge(pid, a, BigInteger::add);
+				BigDecimal a = claimAmountOrZero(c);
+				reqByPid.merge(pid, a, BigDecimal::add);
 				String st = c.getClaimStatus();
 				if (ReimbursementTicketClaim.STATUS_PAID.equals(st)) {
-					paidByPid.merge(pid, a, BigInteger::add);
+					paidByPid.merge(pid, a, BigDecimal::add);
 				} else if (isPipelinePendingClaimStatus(st)) {
-					pendByPid.merge(pid, a, BigInteger::add);
+					pendByPid.merge(pid, a, BigDecimal::add);
 				} else if (isRejectedClaimStatus(st)) {
-					rejByPid.merge(pid, a, BigInteger::add);
+					rejByPid.merge(pid, a, BigDecimal::add);
 				}
 				if (!labelByPid.containsKey(pid) || !StringUtils.hasText(labelByPid.get(pid))) {
 					String lbl = StringUtils.hasText(c.getProjectName()) ? c.getProjectName().trim()
@@ -1977,10 +1986,10 @@ public class ReimbursementTicketService {
 			Map<String, Object> row = new LinkedHashMap<>();
 			row.put("label", labelByPid.getOrDefault(pid, "Project #" + pid));
 			row.put("projectId", pid);
-			row.put("requested", bigIntegerToLong(reqByPid.getOrDefault(pid, BigInteger.ZERO)));
-			row.put("paid", bigIntegerToLong(paidByPid.getOrDefault(pid, BigInteger.ZERO)));
-			row.put("pending", bigIntegerToLong(pendByPid.getOrDefault(pid, BigInteger.ZERO)));
-			row.put("rejected", bigIntegerToLong(rejByPid.getOrDefault(pid, BigInteger.ZERO)));
+			row.put("requested", bigDecimalToDouble(reqByPid.getOrDefault(pid, BigDecimal.ZERO)));
+			row.put("paid", bigDecimalToDouble(paidByPid.getOrDefault(pid, BigDecimal.ZERO)));
+			row.put("pending", bigDecimalToDouble(pendByPid.getOrDefault(pid, BigDecimal.ZERO)));
+			row.put("rejected", bigDecimalToDouble(rejByPid.getOrDefault(pid, BigDecimal.ZERO)));
 			rows.add(row);
 		}
 		sortBarTotalRows(rows);
@@ -1991,23 +2000,23 @@ public class ReimbursementTicketService {
 
 	private Map<String, Object> buildDepartmentBarTotalsPack(List<ReimbursementTicket> tickets,
 			ReimbursementDashboardFilterDTO filter) {
-		Map<String, BigInteger> reqByDept = new HashMap<>();
-		Map<String, BigInteger> paidByDept = new HashMap<>();
-		Map<String, BigInteger> pendByDept = new HashMap<>();
-		Map<String, BigInteger> rejByDept = new HashMap<>();
+		Map<String, BigDecimal> reqByDept = new HashMap<>();
+		Map<String, BigDecimal> paidByDept = new HashMap<>();
+		Map<String, BigDecimal> pendByDept = new HashMap<>();
+		Map<String, BigDecimal> rejByDept = new HashMap<>();
 		for (ReimbursementTicket t : tickets) {
 			String dept = (t.getDepartment() != null && StringUtils.hasText(t.getDepartment()))
 					? t.getDepartment().trim() : "Unknown";
 			for (ReimbursementTicketClaim c : claimsForMetrics(t, filter).collect(Collectors.toList())) {
-				BigInteger a = c.getAmount() != null ? c.getAmount() : BigInteger.ZERO;
-				reqByDept.merge(dept, a, BigInteger::add);
+				BigDecimal a = claimAmountOrZero(c);
+				reqByDept.merge(dept, a, BigDecimal::add);
 				String st = c.getClaimStatus();
 				if (ReimbursementTicketClaim.STATUS_PAID.equals(st)) {
-					paidByDept.merge(dept, a, BigInteger::add);
+					paidByDept.merge(dept, a, BigDecimal::add);
 				} else if (isPipelinePendingClaimStatus(st)) {
-					pendByDept.merge(dept, a, BigInteger::add);
+					pendByDept.merge(dept, a, BigDecimal::add);
 				} else if (isRejectedClaimStatus(st)) {
-					rejByDept.merge(dept, a, BigInteger::add);
+					rejByDept.merge(dept, a, BigDecimal::add);
 				}
 			}
 		}
@@ -2020,10 +2029,10 @@ public class ReimbursementTicketService {
 		for (String dept : depts) {
 			Map<String, Object> row = new LinkedHashMap<>();
 			row.put("label", dept);
-			row.put("requested", bigIntegerToLong(reqByDept.getOrDefault(dept, BigInteger.ZERO)));
-			row.put("paid", bigIntegerToLong(paidByDept.getOrDefault(dept, BigInteger.ZERO)));
-			row.put("pending", bigIntegerToLong(pendByDept.getOrDefault(dept, BigInteger.ZERO)));
-			row.put("rejected", bigIntegerToLong(rejByDept.getOrDefault(dept, BigInteger.ZERO)));
+			row.put("requested", bigDecimalToDouble(reqByDept.getOrDefault(dept, BigDecimal.ZERO)));
+			row.put("paid", bigDecimalToDouble(paidByDept.getOrDefault(dept, BigDecimal.ZERO)));
+			row.put("pending", bigDecimalToDouble(pendByDept.getOrDefault(dept, BigDecimal.ZERO)));
+			row.put("rejected", bigDecimalToDouble(rejByDept.getOrDefault(dept, BigDecimal.ZERO)));
 			rows.add(row);
 		}
 		sortBarTotalRows(rows);
@@ -2119,22 +2128,22 @@ public class ReimbursementTicketService {
 					.filter(t -> ticketMatchesDashboardFilters(t, filter, fromTs, toTs)).collect(Collectors.toList());
 
 			long claimCount = tickets.stream().mapToLong(t -> claimsForMetrics(t, filter).count()).sum();
-			BigInteger submittedAmt = tickets.stream().flatMap(t -> claimsForMetrics(t, filter))
+			BigDecimal submittedAmt = tickets.stream().flatMap(t -> claimsForMetrics(t, filter))
 					.map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
-					.reduce(BigInteger.ZERO, BigInteger::add);
-			BigInteger paidAmt = tickets.stream().flatMap(t -> claimsForMetrics(t, filter))
+					.reduce(BigDecimal.ZERO, BigDecimal::add);
+			BigDecimal paidAmt = tickets.stream().flatMap(t -> claimsForMetrics(t, filter))
 					.filter(c -> ReimbursementTicketClaim.STATUS_PAID.equals(c.getClaimStatus()))
 					.map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
-					.reduce(BigInteger.ZERO, BigInteger::add);
-			BigInteger rejectedAmt = tickets.stream().flatMap(t -> claimsForMetrics(t, filter))
+					.reduce(BigDecimal.ZERO, BigDecimal::add);
+			BigDecimal rejectedAmt = tickets.stream().flatMap(t -> claimsForMetrics(t, filter))
 					.filter(c -> isRejectedClaimStatus(c.getClaimStatus()))
 					.map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
-					.reduce(BigInteger.ZERO, BigInteger::add);
-			BigInteger approvedAmt = tickets.stream().flatMap(t -> claimsForMetrics(t, filter))
+					.reduce(BigDecimal.ZERO, BigDecimal::add);
+			BigDecimal approvedAmt = tickets.stream().flatMap(t -> claimsForMetrics(t, filter))
 					.filter(c -> ReimbursementTicketClaim.STATUS_PENDING_FINANCE.equals(c.getClaimStatus())
 							|| ReimbursementTicketClaim.STATUS_PAID.equals(c.getClaimStatus()))
 					.map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
-					.reduce(BigInteger.ZERO, BigInteger::add);
+					.reduce(BigDecimal.ZERO, BigDecimal::add);
 			long rejectedClaimLines = tickets.stream().flatMap(t -> claimsForMetrics(t, filter))
 					.filter(c -> isRejectedClaimStatus(c.getClaimStatus()))
 					.count();
@@ -2151,12 +2160,12 @@ public class ReimbursementTicketService {
 			long pendingFin = tickets.stream()
 					.filter(t -> ReimbursementTicket.STAGE_PENDING_FINANCE.equals(t.getWorkflowStage())).count();
 
-			Map<String, BigInteger> byDept = new HashMap<>();
+			Map<String, BigDecimal> byDept = new HashMap<>();
 			for (ReimbursementTicket t : tickets) {
 				String d = t.getDepartment() != null ? t.getDepartment() : "Unknown";
-				BigInteger sum = claimsForMetrics(t, filter).map(ReimbursementTicketClaim::getAmount)
-						.filter(Objects::nonNull).reduce(BigInteger.ZERO, BigInteger::add);
-				byDept.merge(d, sum, BigInteger::add);
+				BigDecimal sum = claimsForMetrics(t, filter).map(ReimbursementTicketClaim::getAmount)
+						.filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+				byDept.merge(d, sum, BigDecimal::add);
 			}
 
 			Map<String, Long> byCategory = new HashMap<>();
@@ -2167,21 +2176,21 @@ public class ReimbursementTicketService {
 				});
 			}
 
-			Map<String, BigInteger> topClaimers = new LinkedHashMap<>();
-			Map<String, BigInteger> empTotals = new HashMap<>();
+			Map<String, BigDecimal> topClaimers = new LinkedHashMap<>();
+			Map<String, BigDecimal> empTotals = new HashMap<>();
 			for (ReimbursementTicket t : tickets) {
 				String name = t.getFullName() != null ? t.getFullName() : String.valueOf(t.getEmpId());
-				BigInteger sum = claimsForMetrics(t, filter).map(ReimbursementTicketClaim::getAmount)
-						.filter(Objects::nonNull).reduce(BigInteger.ZERO, BigInteger::add);
-				empTotals.merge(name, sum, BigInteger::add);
+				BigDecimal sum = claimsForMetrics(t, filter).map(ReimbursementTicketClaim::getAmount)
+						.filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+				empTotals.merge(name, sum, BigDecimal::add);
 			}
 			empTotals.entrySet().stream().sorted((a, b) -> b.getValue().compareTo(a.getValue())).limit(10)
 					.forEach(e -> topClaimers.put(e.getKey(), e.getValue()));
 
-			BigInteger pipelinePendingAmt = tickets.stream().flatMap(t -> claimsForMetrics(t, filter))
+			BigDecimal pipelinePendingAmt = tickets.stream().flatMap(t -> claimsForMetrics(t, filter))
 					.filter(c -> isPipelinePendingClaimStatus(c.getClaimStatus()))
 					.map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
-					.reduce(BigInteger.ZERO, BigInteger::add);
+					.reduce(BigDecimal.ZERO, BigDecimal::add);
 
 			Map<String, Map<String, Object>> empBoard = new LinkedHashMap<>();
 			for (ReimbursementTicket t : tickets) {
@@ -2193,8 +2202,8 @@ public class ReimbursementTicketService {
 					m.put("fullName", t.getFullName());
 					m.put("department", t.getDepartment());
 					m.put("ticketCount", 0L);
-					m.put("requested", BigInteger.ZERO);
-					m.put("paid", BigInteger.ZERO);
+					m.put("requested", BigDecimal.ZERO);
+					m.put("paid", BigDecimal.ZERO);
 					m.put("rejectedLines", 0L);
 					m.put("claimLines", 0L);
 					return m;
@@ -2202,10 +2211,10 @@ public class ReimbursementTicketService {
 				row.put("ticketCount", ((Long) row.get("ticketCount")) + 1);
 				claimsForMetrics(t, filter).forEach(c -> {
 					row.put("claimLines", ((Long) row.get("claimLines")) + 1);
-					BigInteger amt = c.getAmount() != null ? c.getAmount() : BigInteger.ZERO;
-					row.put("requested", ((BigInteger) row.get("requested")).add(amt));
+					BigDecimal amt = claimAmountOrZero(c);
+					row.put("requested", ((BigDecimal) row.get("requested")).add(amt));
 					if (ReimbursementTicketClaim.STATUS_PAID.equals(c.getClaimStatus())) {
-						row.put("paid", ((BigInteger) row.get("paid")).add(amt));
+						row.put("paid", ((BigDecimal) row.get("paid")).add(amt));
 					}
 					if (isRejectedClaimStatus(c.getClaimStatus())) {
 						row.put("rejectedLines", ((Long) row.get("rejectedLines")) + 1);
@@ -2213,7 +2222,7 @@ public class ReimbursementTicketService {
 				});
 			}
 			List<Map<String, Object>> employeeLeaderboard = empBoard.values().stream()
-					.sorted((a, b) -> ((BigInteger) b.get("requested")).compareTo((BigInteger) a.get("requested")))
+					.sorted((a, b) -> ((BigDecimal) b.get("requested")).compareTo((BigDecimal) a.get("requested")))
 					.limit(20).map(m -> {
 						Map<String, Object> out = new LinkedHashMap<>(m);
 						long cl = (Long) out.get("claimLines");
@@ -2240,21 +2249,21 @@ public class ReimbursementTicketService {
 				ticketStatusBreakdown.merge(ds, 1L, Long::sum);
 			}
 
-			Map<String, Map<String, Long>> monthlyTrend = new TreeMap<>();
+			Map<String, Map<String, Double>> monthlyTrend = new TreeMap<>();
 			for (ReimbursementTicket t : tickets) {
 				String ym = yearMonthKey(t.getSubmittedOn());
 				if (ym == null) {
 					continue;
 				}
-				Map<String, Long> bucket = monthlyTrend.computeIfAbsent(ym, k -> {
-					Map<String, Long> m = new LinkedHashMap<>();
-					m.put("requested", 0L);
-					m.put("paid", 0L);
+				Map<String, Double> bucket = monthlyTrend.computeIfAbsent(ym, k -> {
+					Map<String, Double> m = new LinkedHashMap<>();
+					m.put("requested", 0.0);
+					m.put("paid", 0.0);
 					return m;
 				});
-				BigInteger req = claimsForMetrics(t, filter).map(ReimbursementTicketClaim::getAmount)
-						.filter(Objects::nonNull).reduce(BigInteger.ZERO, BigInteger::add);
-				bucket.put("requested", bucket.get("requested") + bigIntegerToLong(req));
+				BigDecimal req = claimsForMetrics(t, filter).map(ReimbursementTicketClaim::getAmount)
+						.filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+				bucket.put("requested", bucket.get("requested") + bigDecimalToDouble(req));
 			}
 			for (ReimbursementTicket t : tickets) {
 				if (!ReimbursementTicket.STAGE_PAID.equals(t.getWorkflowStage()) || t.getPaidOn() == null) {
@@ -2264,17 +2273,17 @@ public class ReimbursementTicketService {
 				if (pym == null) {
 					continue;
 				}
-				Map<String, Long> bucket = monthlyTrend.computeIfAbsent(pym, k -> {
-					Map<String, Long> m = new LinkedHashMap<>();
-					m.put("requested", 0L);
-					m.put("paid", 0L);
+				Map<String, Double> bucket = monthlyTrend.computeIfAbsent(pym, k -> {
+					Map<String, Double> m = new LinkedHashMap<>();
+					m.put("requested", 0.0);
+					m.put("paid", 0.0);
 					return m;
 				});
-				BigInteger paidOnTicket = claimsForMetrics(t, filter)
+				BigDecimal paidOnTicket = claimsForMetrics(t, filter)
 						.filter(c -> ReimbursementTicketClaim.STATUS_PAID.equals(c.getClaimStatus()))
 						.map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
-						.reduce(BigInteger.ZERO, BigInteger::add);
-				bucket.put("paid", bucket.get("paid") + bigIntegerToLong(paidOnTicket));
+						.reduce(BigDecimal.ZERO, BigDecimal::add);
+				bucket.put("paid", bucket.get("paid") + bigDecimalToDouble(paidOnTicket));
 			}
 
 			Map<String, Long> rejectionsByExpenditureType = new LinkedHashMap<>();
@@ -2390,11 +2399,11 @@ public class ReimbursementTicketService {
 				if (ReimbursementTicket.STAGE_PENDING_FINANCE.equals(t.getWorkflowStage())
 						&& t.getSubmittedOn() != null
 						&& t.getSubmittedOn().before(new Timestamp(System.currentTimeMillis() - 2L * 86400000L))) {
-					BigInteger pendingAmt = claimsForMetrics(t, filter)
+					BigDecimal pendingAmt = claimsForMetrics(t, filter)
 							.filter(c -> ReimbursementTicketClaim.STATUS_PENDING_FINANCE.equals(c.getClaimStatus()))
 							.map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
-							.reduce(BigInteger.ZERO, BigInteger::add);
-					if (pendingAmt.compareTo(BigInteger.valueOf(50000L)) >= 0) {
+							.reduce(BigDecimal.ZERO, BigDecimal::add);
+					if (pendingAmt.compareTo(new BigDecimal("50000")) >= 0) {
 						Map<String, Object> a = new LinkedHashMap<>();
 						a.put("severity", "HIGH");
 						a.put("type", "FINANCE_SLA");
@@ -2648,13 +2657,13 @@ public class ReimbursementTicketService {
 		m.put("submittedOn", t.getSubmittedOn());
 		m.put("financeRejectReason", t.getFinanceRejectReason());
 		m.put("paidOn", t.getPaidOn());
-		BigInteger total = t.getClaims().stream().map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
-				.reduce(BigInteger.ZERO, BigInteger::add);
+		BigDecimal total = t.getClaims().stream().map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
 		m.put("totalClaimAmount", total);
-		BigInteger paidClaimAmount = t.getClaims().stream()
+		BigDecimal paidClaimAmount = t.getClaims().stream()
 				.filter(c -> ReimbursementTicketClaim.STATUS_PAID.equals(c.getClaimStatus()))
 				.map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
-				.reduce(BigInteger.ZERO, BigInteger::add);
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
 		m.put("paidClaimAmount", paidClaimAmount);
 		List<Map<String, Object>> rejectedLines = buildRejectedClaimBreakdown(t);
 		m.put("rejectedClaimLines", rejectedLines);
@@ -2663,7 +2672,7 @@ public class ReimbursementTicketService {
 				.filter(c -> ReimbursementTicketClaim.STATUS_PAID.equals(c.getClaimStatus())
 						|| ReimbursementTicketClaim.STATUS_PENDING_FINANCE.equals(c.getClaimStatus()))
 				.map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
-				.reduce(BigInteger.ZERO, BigInteger::add));
+				.reduce(BigDecimal.ZERO, BigDecimal::add));
 		List<Map<String, Object>> claimViews = t.getClaims().stream().sorted(Comparator.comparing(ReimbursementTicketClaim::getLineNo))
 				.map(c -> {
 					Map<String, Object> cm = new LinkedHashMap<>();
