@@ -23,7 +23,13 @@
       <router-outlet></router-outlet>
     </div>
 
-    <div class="quick-menu-layer" aria-label="Quick navigation menu">
+  </mat-sidenav-content>
+  <mat-sidenav #rightDrawer position="end" mode="over" [disableClose]="true" class="global-right-drawer">
+    <ng-container *ngTemplateOutlet="drawerTemplate"></ng-container>
+  </mat-sidenav>
+</mat-sidenav-container>
+
+<div class="quick-menu-layer" aria-label="Quick navigation menu">
       <button mat-fab color="accent" (click)="clickMenu()" class="menu-button" [class.mat-elevation-z2]="!isOver"
         [class.mat-elevation-z8]="isOver" (mouseover)="isOver = true" (mouseleave)="isOver = false"
         *ngIf="(( currentUser) && (currentUser.employeeRole === 'HR' || currentUser.employeeRole === 'SuperAdmin' || currentUser.employeeRole === 'HOD' || currentUser.employeeRole === 'RMG'))">
@@ -68,13 +74,7 @@
         (click)="routingFunction2('user-timesheet/hr-dashboard',{tabName: 'hr-dashboard-tab'})">
         Timesheet
       </button>
-    </div>
-  </mat-sidenav-content>
-  <mat-sidenav #rightDrawer position="end" mode="over" [disableClose]="true" class="global-right-drawer">
-    <ng-container *ngTemplateOutlet="drawerTemplate"></ng-container>
-  </mat-sidenav>
-</mat-sidenav-container>
-
+</div>
 
 <ng-template #change_password>
   <div class="modal-body text-center">
