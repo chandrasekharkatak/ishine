@@ -28,6 +28,27 @@ public final class TypeConversionUtil {
 		}
 	}
 
+	/** Native SQL often returns BigInteger/BigDecimal instead of Long/Integer. */
+	public static Long toLong(Object value) {
+		if (value == null) {
+			return null;
+		}
+		if (value instanceof Number) {
+			return ((Number) value).longValue();
+		}
+		return safeParseLong(value);
+	}
+
+	public static Integer toInteger(Object value) {
+		if (value == null) {
+			return null;
+		}
+		if (value instanceof Number) {
+			return ((Number) value).intValue();
+		}
+		return safeParseInt(value);
+	}
+
 	public static Integer safeParseInt(Object obj) {
 		try {
 			if (obj == null)

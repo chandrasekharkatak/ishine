@@ -229,8 +229,8 @@ import com.apmosys.employeeportal.utility.ExceptionLogContext;
 import com.apmosys.employeeportal.utility.ExceptionUtils;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
-import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 import com.apmosys.employeeportal.utility.TypeConversionUtil;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class ResourceManagementService {
@@ -5673,15 +5673,15 @@ public class ResourceManagementService {
 			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
 			for (Object[] row : rawData) {
-				Long empId = row[0] != null ? (Long) row[0] : null;
-				Long employeementId = row[1] != null ? (Long) row[1] : null;
+				Long empId = TypeConversionUtil.toLong(row[0]);
+				Long employeementId = TypeConversionUtil.toLong(row[1]);
 				String billable = row[2] != null ? row[2].toString() : null;
 				String billableType = row[3] != null ? row[3].toString() : null;
 				String empName = row[4] != null ? row[4].toString() : null;
 				String deptName = row[5] != null ? row[5].toString() : null;
-				Integer projectId = row[6] != null ? (Integer) row[6] : null ;
+				Integer projectId = TypeConversionUtil.toInteger(row[6]);
 				String projectName = row[7] != null ? row[7].toString() : null;
-				Long poProjectId = row[8] != null ? (Long) row[8] : null;
+				Long poProjectId = TypeConversionUtil.toLong(row[8]);
 				String poStartDate = row[9] != null ? row[9].toString() : null;
 				String poEndDate = row[10] != null ? row[10].toString() : null;
 				String apmosysRM = row[11] != null ? row[11].toString() : null;
@@ -5689,12 +5689,12 @@ public class ResourceManagementService {
 				String poProjectType = row[13] != null ? row[13].toString() : null;
 				String poNo = row[14] != null ? row[14].toString() : null;
 				String clientName = row[15] != null ? row[15].toString() : null;
-				Long teamId = row[16] != null ? (Long) row[16] : null;
+				Long teamId = TypeConversionUtil.toLong(row[16]);
 				String teamName = row[17] != null ? row[17].toString() : null;
 				String teamIsActive = row[18] != null ? row[18].toString() : null;
 				String employeeRole = row[19] != null ? row[19].toString() : null;
-				Integer active = row[20] != null ? (Integer) row[20] : null;
-				Long projectManagerId = row[21] != null ? (Long) row[21] : null;
+				Integer active = TypeConversionUtil.toInteger(row[20]);
+				Long projectManagerId = TypeConversionUtil.toLong(row[21]);
 				String projectManagerName = row[22] != null ? row[22].toString() : null;
 				String isApmosysProductt = row[23] != null ? row[23].toString() : null;
 
