@@ -20,9 +20,11 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -70,6 +72,7 @@ import com.apmosys.employeeportal.model.TrainingMaster;
 import com.apmosys.employeeportal.model.TrainingSkip;
 import com.apmosys.employeeportal.repository.EmployeeQuizResponseStatusMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeTrainingMappingRepository;
 import com.apmosys.employeeportal.repository.TrainingConsentRepository;
 import com.apmosys.employeeportal.repository.TrainingContentRepository;
 import com.apmosys.employeeportal.repository.TrainingMasterRepository;
@@ -115,6 +118,10 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 
 	@Autowired
 	private TrainingQuizMappingRepository trainingQuizMappingRepository;
+	
+	@Autowired
+	private EmployeeTrainingMappingRepository employeeTrainingMappingRepository;
+
 
 	@Autowired
 	@Lazy
@@ -507,212 +514,210 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 	@Override
 	@Transactional
 	public ServiceResponse getUserTrainings(Long empId) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Get User Trainings");
-		apiLogInfo.setApiUrl("/api/training/getUserTrainings");
-		apiLogInfo.setLogLevel("INFO");
-		
-		try {
-			// Get all active trainings (both mandatory and non-mandatory) with effective dates
-			List<TrainingMaster> allActiveTrainings = trainingMasterRepository
-				.findActiveTrainingsWithEffectiveDates("true");
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Get User Trainings");
+	    apiLogInfo.setApiUrl("/api/training/getUserTrainings");
+	    apiLogInfo.setLogLevel("INFO");
+	    
+	    try {
+	        List<TrainingMaster> allActiveTrainings = trainingMasterRepository
+	            .findActiveTrainingsWithEffectiveDates("true");
 
-			List<Integer> allTrainingsWithQuiz = employeeQuizResponseStatusMappingRepository.getTrainingIdsHavingQuiz(allActiveTrainings.stream().map(TrainingMaster::getTrainingId).collect(Collectors.toList()));
+	        if (allActiveTrainings == null || allActiveTrainings.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(new ArrayList<>());
+	            apiLogInfo.setApiResponse("No active trainings found");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            apiLogInfo.setApiRequest("Emp ID: " + empId);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
 
-			List<TrainingIdResponsePassStatusDTO> alreadyAttemptedQuizes = employeeQuizResponseStatusMappingRepository.getTrainingIdsHavingQuizAndEmpId(allTrainingsWithQuiz, empId);
+	        Set<Integer> excludedTrainingIds = new HashSet<>(
+	            employeeTrainingMappingRepository
+	                .findExcludedTrainingIdsByEmpId(empId)
+	        );
 
-			List<TrainingConsent> alreadySeenContent = trainingConsentRepository.findByEmpIdAndTrainingIdsIn(empId, allActiveTrainings.stream().map(TrainingMaster::getTrainingId).collect(Collectors.toList()));
-			
-			List<UserTrainingDTO> userTrainings = new ArrayList<>();
-			
-			for (TrainingMaster training : allActiveTrainings) {
-			    UserTrainingDTO userTraining = new UserTrainingDTO();
-				userTraining.setTrainingId(training.getTrainingId());
-				userTraining.setTrainingName(training.getTrainingName());
-				userTraining.setTrainingType(training.getTrainingType());
-				userTraining.setLockEnabled("true".equals(training.getLockEnabled()));
-				userTraining.setMandatoryFlag(training.getMandatoryFlag());
-				userTraining.setMinViewTimeMinutes(training.getMinViewTimeMinutes());
-				userTraining.setConsentRequired(training.getConsentRequired());
-				userTraining.setSkipAllowed(training.getSkipAllowed());
-				userTraining.setRequiredFrequency(calculateTotalFrequency(training));
-				userTraining.setHasQuiz(allTrainingsWithQuiz.contains(training.getTrainingId()));
-				userTraining.setHasSeenContent(alreadySeenContent.stream().anyMatch(e -> e.getTrainingMaster().getTrainingId().equals(training.getTrainingId())));
-				userTraining.setQuizAttempted(alreadyAttemptedQuizes.stream().anyMatch(e -> e.getTrainingId().equals(training.getTrainingId())));
-				
-				Long activeQuizId = trainingQuizMappingRepository.findActiveSurveyIdByTraining(training.getTrainingId());
-				// Calculate completion count
-				int completionCount = countCompletionsInLast12Months(empId, training.getTrainingId(),activeQuizId);
-				userTraining.setCompletionCount(completionCount);
-				
-				// Get current active content
-				Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(training.getTrainingId(), PageRequest.of(0, 1))
-				        .stream()
-				        .findFirst();
-				if (activeContentOpt.isEmpty()) {
-					continue; // Skip trainings without active content
-				}
-				
-				TrainingContent activeContent = activeContentOpt.get();
-				TrainingContentDTO contentDTO = convertToTrainingContentDTO(activeContent);
-				userTraining.setContent(contentDTO);
-				
-				// Calculate current cycle based on deadline pattern and current date (user action independent)
-				int currentCycle = calculateCurrentCycleByDate(training);
-				userTraining.setCurrentCycleNumber(currentCycle);
+	        allActiveTrainings = allActiveTrainings.stream()
+	            .filter(t -> !excludedTrainingIds.contains(t.getTrainingId()))
+	            .collect(Collectors.toList());
 
-				if(activeQuizId == null) {
-					activeQuizId = null;
-				}
-				
-				// Check if consent exists for current active content in current cycle
-				Optional<TrainingConsent> consentOpt = trainingConsentRepository.findByEmpIdAndTrainingIdAndContentIdAndQuizIdAndCycleNumber(
-					empId,
-					training.getTrainingId(),
-					activeContent.getContentId(),
-					activeQuizId,
-					currentCycle
-				);
-				
-				// Check if skip exists for current cycle
-				Optional<TrainingSkip> skipOpt = trainingSkipRepository.findByEmpIdAndTrainingIdAndCycleNumber(
-					empId,
-					training.getTrainingId(),
-					activeQuizId,
-					currentCycle
-				);
-				
-				// Determine status
-				String status;
-				if (consentOpt.isPresent()) {
-					status = "COMPLETED";
-					// Get last completed date (most recent consent)
-					// List<TrainingConsent> allConsents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, training.getTrainingId(), activeQuizId);
-					// if (!allConsents.isEmpty()) {
-					// 	// List is already sorted DESC by consentTimestamp, so first element is most recent
-					// 	TrainingConsent mostRecentConsent = allConsents.get(0);
-					// 	if (mostRecentConsent != null && mostRecentConsent.getConsentTimestamp() != null) {
-					// 		LocalDate lastCompleted = mostRecentConsent.getConsentTimestamp()
-					// 		                .toLocalDateTime()
-					// 		                .toLocalDate();
+	        if (allActiveTrainings.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(new ArrayList<>());
+	            apiLogInfo.setApiResponse("No trainings available after exclusion");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            apiLogInfo.setApiRequest("Emp ID: " + empId);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
 
+	        List<Integer> allTrainingIds = allActiveTrainings.stream()
+	            .map(TrainingMaster::getTrainingId)
+	            .collect(Collectors.toList());
 
-					// 		userTraining.setLastCompletedOn(lastCompleted);
-					// 	}
-					// }
-				} else if (skipOpt.isPresent()) {
-					status = "SKIPPED";
-					TrainingSkip skip = skipOpt.get();
-					if (skip != null) {
-						userTraining.setSkipCount(skip.getSkipCount());
-					}
-				} else {
-					status = "PENDING";
+	        List<Integer> allTrainingsWithQuiz = employeeQuizResponseStatusMappingRepository
+	            .getTrainingIdsHavingQuiz(allTrainingIds);
 
-					
-				}
-				List<TrainingConsent> allConsents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, training.getTrainingId(), activeQuizId);
-					if (!allConsents.isEmpty()) {
-						// List is already sorted DESC by consentTimestamp, so first element is most recent
-						TrainingConsent mostRecentConsent = allConsents.get(0);
-						if (mostRecentConsent != null && mostRecentConsent.getConsentTimestamp() != null) {
-							LocalDate lastCompleted = mostRecentConsent.getConsentTimestamp()
-							                .toLocalDateTime()
-							                .toLocalDate();
+	        List<TrainingIdResponsePassStatusDTO> alreadyAttemptedQuizes = 
+	            employeeQuizResponseStatusMappingRepository
+	                .getTrainingIdsHavingQuizAndEmpId(allTrainingsWithQuiz, empId);
 
+	        List<TrainingConsent> alreadySeenContent = trainingConsentRepository
+	            .findByEmpIdAndTrainingIdsIn(empId, allTrainingIds);
+	        
+	        List<UserTrainingDTO> userTrainings = new ArrayList<>();
+	        
+	        for (TrainingMaster training : allActiveTrainings) {
+	            UserTrainingDTO userTraining = new UserTrainingDTO();
+	            userTraining.setTrainingId(training.getTrainingId());
+	            userTraining.setTrainingName(training.getTrainingName());
+	            userTraining.setTrainingType(training.getTrainingType());
+	            userTraining.setLockEnabled("true".equals(training.getLockEnabled()));
+	            userTraining.setMandatoryFlag(training.getMandatoryFlag());
+	            userTraining.setMinViewTimeMinutes(training.getMinViewTimeMinutes());
+	            userTraining.setConsentRequired(training.getConsentRequired());
+	            userTraining.setSkipAllowed(training.getSkipAllowed());
+	            userTraining.setRequiredFrequency(calculateTotalFrequency(training));
+	            userTraining.setHasQuiz(allTrainingsWithQuiz.contains(training.getTrainingId()));
+	            userTraining.setHasSeenContent(alreadySeenContent.stream()
+	                .anyMatch(e -> e.getTrainingMaster().getTrainingId().equals(training.getTrainingId())));
+	            userTraining.setQuizAttempted(alreadyAttemptedQuizes.stream()
+	                .anyMatch(e -> e.getTrainingId().equals(training.getTrainingId())));
+	            
+	            Long activeQuizId = trainingQuizMappingRepository
+	                .findActiveSurveyIdByTraining(training.getTrainingId());
 
-							userTraining.setLastCompletedOn(lastCompleted);
-						}
-					}
-				
-				userTraining.setStatus(status);
-				
-				// Calculate deadline
-				LocalDate cycleDeadline = null;
-				boolean isDeadlineCrossed = false;
-				if ("true".equals(training.getDeadlineEnabled()) && training.getDeadlinePattern() != null) {
-					cycleDeadline = calculateCycleDeadline(training, currentCycle);
-					if (cycleDeadline != null) {
-						isDeadlineCrossed = LocalDate.now().isAfter(cycleDeadline);
-						// userTraining.setDeadline(Date.valueOf(cycleDeadline));
-						userTraining.setDeadline(cycleDeadline);
-						userTraining.setIsDeadlineCrossed(isDeadlineCrossed);
-					}
-				}
-				
-				userTrainings.add(userTraining);
-			}
-			
-			// Sort by priority: 
-			// 1. Deadline crossed + mandatory + lock enabled first
-			// 2. Then mandatory + lock enabled
-			// 3. Then deadline crossed
-			// 4. Then by deadline date (earliest first)
-			// 5. Then mandatory flag (mandatory first)
-			// 6. Then by training name
-			userTrainings.sort((t1, t2) -> {
-				// Priority 1: Deadline crossed + mandatory + lock enabled
-				boolean t1Priority1 = t1.getIsDeadlineCrossed() != null && t1.getIsDeadlineCrossed() && 
-					"true".equals(t1.getMandatoryFlag()) && t1.getLockEnabled() != null && t1.getLockEnabled();
-				boolean t2Priority1 = t2.getIsDeadlineCrossed() != null && t2.getIsDeadlineCrossed() && 
-					"true".equals(t2.getMandatoryFlag()) && t2.getLockEnabled() != null && t2.getLockEnabled();
-				if (t1Priority1 && !t2Priority1) return -1;
-				if (t2Priority1 && !t1Priority1) return 1;
-				
-				// Priority 2: Mandatory + lock enabled
-				boolean t1Priority2 = "true".equals(t1.getMandatoryFlag()) && t1.getLockEnabled() != null && t1.getLockEnabled();
-				boolean t2Priority2 = "true".equals(t2.getMandatoryFlag()) && t2.getLockEnabled() != null && t2.getLockEnabled();
-				if (t1Priority2 && !t2Priority2) return -1;
-				if (t2Priority2 && !t1Priority2) return 1;
-				
-				// Priority 3: Deadline crossed
-				if (t1.getIsDeadlineCrossed() != null && t1.getIsDeadlineCrossed() && 
-					(t2.getIsDeadlineCrossed() == null || !t2.getIsDeadlineCrossed())) {
-					return -1;
-				}
-				if (t2.getIsDeadlineCrossed() != null && t2.getIsDeadlineCrossed() && 
-					(t1.getIsDeadlineCrossed() == null || !t1.getIsDeadlineCrossed())) {
-					return 1;
-				}
-				
-				// Priority 4: Deadline date (earliest first)
-				if (t1.getDeadline() != null && t2.getDeadline() != null) {
-					return t1.getDeadline().compareTo(t2.getDeadline());
-				}
-				if (t1.getDeadline() != null) return -1;
-				if (t2.getDeadline() != null) return 1;
-				
-				// Priority 5: Mandatory flag (mandatory first)
-				if ("true".equals(t1.getMandatoryFlag()) && !"true".equals(t2.getMandatoryFlag())) {
-					return -1;
-				}
-				if ("true".equals(t2.getMandatoryFlag()) && !"true".equals(t1.getMandatoryFlag())) {
-					return 1;
-				}
-				
-				// Priority 6: Training name
-				return t1.getTrainingName().compareTo(t2.getTrainingName());
-			});
-			System.out.println("userTrainings ==>  "+userTrainings.size());
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(userTrainings);
-			apiLogInfo.setApiResponse("User trainings fetched successfully");
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			apiLogInfo.setApiRequest("Emp ID: " + empId);
-			logService.logMyInfo(httpRequest, apiLogInfo);
-			throw e;
-		}
-		
-		apiLogInfo.setApiRequest("Emp ID: " + empId);
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	            int completionCount = countCompletionsInLast12Months(
+	                empId, training.getTrainingId(), activeQuizId);
+	            userTraining.setCompletionCount(completionCount);
+	            
+	            Optional<TrainingContent> activeContentOpt = trainingContentRepository
+	                .findCurrentActiveContent(training.getTrainingId(), PageRequest.of(0, 1))
+	                .stream()
+	                .findFirst();
+
+	            if (activeContentOpt.isEmpty()) {
+	                continue;
+	            }
+	            
+	            TrainingContent activeContent = activeContentOpt.get();
+	            TrainingContentDTO contentDTO = convertToTrainingContentDTO(activeContent);
+	            userTraining.setContent(contentDTO);
+	            
+	            int currentCycle = calculateCurrentCycleByDate(training);
+	            userTraining.setCurrentCycleNumber(currentCycle);
+	            
+	            Optional<TrainingConsent> consentOpt = trainingConsentRepository
+	                .findByEmpIdAndTrainingIdAndContentIdAndQuizIdAndCycleNumber(
+	                    empId,
+	                    training.getTrainingId(),
+	                    activeContent.getContentId(),
+	                    activeQuizId,
+	                    currentCycle
+	                );
+	            
+	            Optional<TrainingSkip> skipOpt = trainingSkipRepository
+	                .findByEmpIdAndTrainingIdAndCycleNumber(
+	                    empId,
+	                    training.getTrainingId(),
+	                    activeQuizId,
+	                    currentCycle
+	                );
+	            
+	            String status;
+	            if (consentOpt.isPresent()) {
+	                status = "COMPLETED";
+	            } else if (skipOpt.isPresent()) {
+	                status = "SKIPPED";
+	                TrainingSkip skip = skipOpt.get();
+	                if (skip != null) {
+	                    userTraining.setSkipCount(skip.getSkipCount());
+	                }
+	            } else {
+	                status = "PENDING";
+	            }
+
+	            List<TrainingConsent> allConsents = trainingConsentRepository
+	                .findByEmpIdAndTrainingIdAndQuizId(empId, training.getTrainingId(), activeQuizId);
+	            if (!allConsents.isEmpty()) {
+	                TrainingConsent mostRecentConsent = allConsents.get(0);
+	                if (mostRecentConsent != null && mostRecentConsent.getConsentTimestamp() != null) {
+	                    LocalDate lastCompleted = mostRecentConsent.getConsentTimestamp()
+	                        .toLocalDateTime()
+	                        .toLocalDate();
+	                    userTraining.setLastCompletedOn(lastCompleted);
+	                }
+	            }
+	            
+	            userTraining.setStatus(status);
+	            
+	            if ("true".equals(training.getDeadlineEnabled()) 
+	                    && training.getDeadlinePattern() != null) {
+	                LocalDate cycleDeadline = calculateCycleDeadline(training, currentCycle);
+	                if (cycleDeadline != null) {
+	                    boolean isDeadlineCrossed = LocalDate.now().isAfter(cycleDeadline);
+	                    userTraining.setDeadline(cycleDeadline);
+	                    userTraining.setIsDeadlineCrossed(isDeadlineCrossed);
+	                }
+	            }
+	            
+	            userTrainings.add(userTraining);
+	        }
+	        
+	        userTrainings.sort((t1, t2) -> {
+	            boolean t1Priority1 = t1.getIsDeadlineCrossed() != null && t1.getIsDeadlineCrossed() && 
+	                "true".equals(t1.getMandatoryFlag()) && t1.getLockEnabled() != null && t1.getLockEnabled();
+	            boolean t2Priority1 = t2.getIsDeadlineCrossed() != null && t2.getIsDeadlineCrossed() && 
+	                "true".equals(t2.getMandatoryFlag()) && t2.getLockEnabled() != null && t2.getLockEnabled();
+	            if (t1Priority1 && !t2Priority1) return -1;
+	            if (t2Priority1 && !t1Priority1) return 1;
+	            
+	            boolean t1Priority2 = "true".equals(t1.getMandatoryFlag()) && 
+	                t1.getLockEnabled() != null && t1.getLockEnabled();
+	            boolean t2Priority2 = "true".equals(t2.getMandatoryFlag()) && 
+	                t2.getLockEnabled() != null && t2.getLockEnabled();
+	            if (t1Priority2 && !t2Priority2) return -1;
+	            if (t2Priority2 && !t1Priority2) return 1;
+	            
+	            if (t1.getIsDeadlineCrossed() != null && t1.getIsDeadlineCrossed() && 
+	                (t2.getIsDeadlineCrossed() == null || !t2.getIsDeadlineCrossed())) return -1;
+	            if (t2.getIsDeadlineCrossed() != null && t2.getIsDeadlineCrossed() && 
+	                (t1.getIsDeadlineCrossed() == null || !t1.getIsDeadlineCrossed())) return 1;
+	            
+	            if (t1.getDeadline() != null && t2.getDeadline() != null)
+	                return t1.getDeadline().compareTo(t2.getDeadline());
+	            if (t1.getDeadline() != null) return -1;
+	            if (t2.getDeadline() != null) return 1;
+	            
+	            if ("true".equals(t1.getMandatoryFlag()) && !"true".equals(t2.getMandatoryFlag())) return -1;
+	            if ("true".equals(t2.getMandatoryFlag()) && !"true".equals(t1.getMandatoryFlag())) return 1;
+	            
+	            return t1.getTrainingName().compareTo(t2.getTrainingName());
+	        });
+
+	        System.out.println("userTrainings ==>  " + userTrainings.size());
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(userTrainings);
+	        apiLogInfo.setApiResponse("User trainings fetched successfully");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        apiLogInfo.setApiRequest("Emp ID: " + empId);
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+	        throw e;
+	    }
+	    
+	    apiLogInfo.setApiRequest("Emp ID: " + empId);
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
+
+
 
 	@Override
 	public ServiceResponse checkTrainingFrequency(Long empId, Integer trainingId) {
