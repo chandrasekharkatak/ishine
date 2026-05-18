@@ -16524,7 +16524,8 @@ public class ResourceManagementService {
 
 			Set<Integer> projectIds = getProjectIdsByType(employeeGroupKey, isAllAccessEmployee, hodProjects, deptFlag,
 					empId);
-			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, projectStatus, deptIds);
+			String tempProjectStatus = getProjectStatusForEmployeeCount(employeeGroupKey, projectStatus);
+			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, tempProjectStatus, deptIds);
 
 			allEmployeeGroupCount.put(employeeGroupKey,
 					getEmployeeGroupCount(employeeGroupKey, isAllAccessEmployee, deptIds, projectIds, deptFlag,
@@ -16678,6 +16679,16 @@ public class ResourceManagementService {
 		}
 	}
 
+	private String getProjectStatusForEmployeeCount(String employeeGroupKey, String projectStatus) {
+		if (employeeGroupKey == null) {
+			return projectStatus;
+		}
+		if (employeeGroupKey.equals("MAPPED_TO_INTERNAL")) {
+			return "TOTAL_INTERNAL";
+		} 
+		return projectStatus;
+	}
+
 	public Map<Integer, List<TeamSpocDTO>> getAllTeamsByProjectIds(Set<Integer> projectIds) {
 		if (projectIds == null || projectIds.isEmpty()) {
 			return Collections.emptyMap();
@@ -16722,30 +16733,6 @@ public class ResourceManagementService {
 	public Long getFutureStartDateAssignedEmployeeCount(boolean isAllAccessEmployee, List<Long> deptIds) {
 		return employeeRepository.getFutureStartDateAssignedEmployeeCountByDeptIds(deptIds);
 	}
-
-	public Long getMappedEmployeeCount(String projectType, boolean isAllAccessEmployee, Set<Integer> hodProjects,
-			String projectStatus, List<Long> filteredDeptIds, boolean deptFlag, Long empId) {
-
-		Set<Integer> projectIds = getProjectIdsByType(projectType, isAllAccessEmployee, hodProjects, deptFlag, empId);
-		projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, projectStatus, filteredDeptIds);
-
-		switch (projectType) {
-		case "MAPPED_TO_SHANKH":
-		case "MAPPED_TO_PROJECT":
-			if (projectStatus.equals("COMPLETED_IN_SHANKH")) {
-				return employeeTeamMapRepository.getMappedToShankhAllEmployeeCountByProjectIds(projectIds);
-			} else {
-				return employeeTeamMapRepository.getEmployeeCountByProjectIds(projectIds);
-			}
-		case "MAPPED_TO_INTERNAL":
-			return employeeTeamMapRepository.getEmployeeCountInternalByProjectIds(projectIds);
-		case "MAPPED_TO_INTERNAL_AND_SHANKH":
-			return employeeTeamMapRepository.getInternalAndShankhEmployeeCountByProjectIds(projectIds);
-		default:
-			return 0L;
-		}
-	}
-
 	// Employee Count End
 
 	private Set<Integer> getProjectIdsByType(String projectType, boolean isAllAccessEmployee, Set<Integer> hodProjects,
@@ -16840,7 +16827,9 @@ public class ResourceManagementService {
 
 			Set<Integer> projectIds = getProjectIdsByType(employeeGroupKey, isAllAccessEmployee, hodProjects, deptFlag,
 					empId);
-			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, projectStatus, deptIds);
+
+			String tempProjectStatus = getProjectStatusForEmployeeCount(employeeGroupKey, projectStatus);
+			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, tempProjectStatus, deptIds);
 
 			Slice<EmployeeDetailsDTO> employeeDetailsList = getEmployeeDetailsList(employeeGroupKey,
 					isAllAccessEmployee, pageDTO, deptIds, deptFlag, projectIds, projectStatus,
@@ -17231,13 +17220,17 @@ public class ResourceManagementService {
 			LocalDate toDate = null;
 			String projectTypee = null;
 			if (pageDTO.getExtraFilter() != null && !pageDTO.getExtraFilter().isEmpty()) {
-				Map<String, Object> extraFilters = pageDTO.getExtraFilter();
-				String fromDateStr = (String) extraFilters.get("fromDate");
-				String toDateStr = (String) extraFilters.get("toDate");
-				 projectTypee = (String) extraFilters.get("projectType");
 
-				fromDate = fromDateStr != null ? LocalDate.parse(fromDateStr) : null;
-				toDate = toDateStr != null ? LocalDate.parse(toDateStr) : null;
+				Map<String, Object> extraFilters = pageDTO.getExtraFilter();
+				List<LocalDate> dateRange = new ArrayList<>();
+				if (extraFilters.containsKey("key")) {
+					String key = (String) extraFilters.get("key");
+					dateRange = getTimesheetDateRange(key);
+				}			
+				
+				projectTypee = (String) extraFilters.get("projectType");
+				fromDate = dateRange != null && !dateRange.isEmpty() ? dateRange.get(0) : null;
+				toDate = dateRange != null && !dateRange.isEmpty() ? dateRange.get(1) : null;
 
 				if (fromDate == null) {
 					return failResponse(serviceResponse, apiLogInfo, "Invalid From Date.");
@@ -17984,37 +17977,26 @@ public class ResourceManagementService {
 				deptIds.add(employeeRepository.getJobRoleIdByEmpId(empId).orElse(0l));
 			}
 
-			Set<Integer> projectIds = getProjectIdsByType("TIMESHEET_NON_COMPLIANCE", isAllAccessEmployee, hodProjects, deptFlag, empId);
-			Set<Integer> filteredProjectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, "ALL", deptIds);
-			List<String> timesheetRanges = List.of("All","3M", "6M", "1Y");
-			 Map<String, Map<String, Long>> result = new LinkedHashMap<>();
+			Set<Integer> projectIds = getProjectIdsByType("TIMESHEET_NON_COMPLIANCE", isAllAccessEmployee, hodProjects,
+					deptFlag, empId);
+			Set<Integer> filteredProjectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, "ALL",
+					deptIds);
+			List<String> timesheetRanges = List.of("All", "3M", "6M", "1Y", "1Y+");
+			Map<String, Map<String, Long>> result = new LinkedHashMap<>();
 
-//			for (String timesheetRange : timesheetRangeSet) {
-//				if (timesheetRange.equals("All")) {
-//					allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
-//					continue;
-//				}
-//				List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
-//				LocalDate fromDate = dateRange.get(0);
-//				LocalDate toDate = dateRange.get(1);
-//				allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate));
-//			}
-			
-			 for (String timesheetRange : timesheetRanges) {
-				 if (timesheetRange.equals("All")) {
-					 result.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCountByProjectType(isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
-						continue;
-					}
-		            List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
-		            LocalDate fromDate = dateRange.get(0);
-		            LocalDate toDate  = dateRange.get(1);
-
-		            Map<String, Long> countByType = employeeCustomRepository
-		                    .getUnfilledTimesheetProjectDetailsCountByProjectType(
-		                            isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate);
-
-		            result.put(timesheetRange, countByType);
-		        }
+			for (String timesheetRange : timesheetRanges) {
+				if (timesheetRange.equals("All")) {
+					result.put(timesheetRange,
+							employeeCustomRepository.getUnfilledTimesheetProjectDetailsCountByProjectType(
+									isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
+					continue;
+				}
+				List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
+				LocalDate fromDate = dateRange.get(0);
+				LocalDate toDate = dateRange.get(1);
+				Map<String, Long> countByType = employeeCustomRepository.getUnfilledTimesheetProjectDetailsCountByProjectType(isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate);
+				result.put(timesheetRange, countByType);
+			}
 
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(result);
@@ -18026,22 +18008,14 @@ public class ResourceManagementService {
 	}
 
 	private List<LocalDate> getTimesheetDateRange(String key) {
-		LocalDate today = LocalDate.now();
-
-		switch (key) {
-		case "3M":
-			return List.of(today.minusMonths(3), today);
-
-		case "6M":
-			return List.of(today.minusMonths(6), today);
-
-		case "1Y":
-			return List.of(today.minusYears(1), today);
-
-		case "All":
-		default:
-			return List.of(null, null); // no filter
-		}
+		LocalDate currentDate = LocalDate.now();
+		Map<String, List<LocalDate>> dateRanges = Map.of(
+				"3M", List.of(currentDate.minusDays(90), currentDate),
+				"6M", List.of(currentDate.minusDays(180), currentDate.minusDays(91)),
+				"1Y", List.of(currentDate.minusDays(365), currentDate.minusDays(181)),
+				"1Y+", List.of(currentDate.minusYears(10), currentDate.minusDays(366)),
+				"All", Arrays.asList(null, null));
+		return dateRanges.getOrDefault(key, List.of());
 	}
 	
 	@Transactional(readOnly = true)
