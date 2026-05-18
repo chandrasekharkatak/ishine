@@ -70,7 +70,7 @@
                         <div class="rmb-draft-card__body">
                             <div class="rmb-draft-card__title-row">
                                 <span class="rmb-draft-pill">{{ ticketClaims.length }} claim<span *ngIf="ticketClaims.length !== 1">s</span></span>
-                                <span class="rmb-draft-total">₹ {{ ticketTotalAmount() | number:'1.0-0' }}</span>
+                                <span class="rmb-draft-total">₹ {{ ticketTotalAmount() | number:'1.2-2' }}</span>
                             </div>
                             <p class="rmb-draft-copy mb-2">
                                 <strong>Ticket draft.</strong> Use <em>Add claim to ticket</em> for each expense claim, then <em>Submit ticket</em> once when ready.
@@ -96,7 +96,7 @@
                                                 <span class="text-muted small" *ngIf="!c.projectName && !c.projectId">—</span>
                                                 <span [title]="c.projectName || ''">{{ c.projectName || (c.projectId ? ('#' + c.projectId) : '—') }}</span>
                                             </td>
-                                            <td class="text-right rmb-draft-amt rmb-draft-col-amt">{{ c.amount }}</td>
+                                            <td class="text-right rmb-draft-amt rmb-draft-col-amt">{{ c.amount | number:'1.2-2' }}</td>
                                             <td class="rmb-purpose-cell rmb-draft-col-purpose">{{ c.purpose | slice:0:60 }}{{ c.purpose?.length > 60 ? '…' : '' }}</td>
                                             <td class="text-center rmb-draft-col-docs">
                                                 <span class="rmb-draft-doc-count">{{ docCountForClaim(c) }}</span>
