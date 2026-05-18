@@ -594,9 +594,16 @@ export class RmgDashboardComponent implements OnInit {
     this.getEmployeeNameAndEmpld();
     this.mapSubFeatureFlag();
 
-    if ((this.filterStateService.deptIdList && this.filterStateService.deptIdList.length > 0) || (this.filterStateService.deptIdListByUser && this.filterStateService.deptIdListByUser.length > 0)) {
-      this.myDept = this.filterStateService.myDept;
-      this.selectedDepartmentIds = this.filterStateService.deptIdList;
+    if (this.currentUser.employeeRole !== 'SuperAdmin') {
+      if (this.filterStateService.deptIdList?.length > 0) {
+        this.myDept = this.filterStateService.myDept;
+        this.selectedDepartmentIds = [...this.filterStateService.deptIdList];
+        this.oldSelectedDepartmentIds = [...this.selectedDepartmentIds];
+      } else {
+        this.myDept = this.shouldFetchUserSpecificDepartments(deptName, empRole);
+        this.selectAllFilteredDepartments();
+      }
+      this.updateDepartmentLabel();
     }
 
     if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
@@ -905,6 +912,27 @@ export class RmgDashboardComponent implements OnInit {
     } else {
       await this.getAllDepartmentsByCurrentUserIdAndRole();
     }
+    this.selectAllFilteredDepartments();
+    this.getProjectDetailsList(true);
+    this.loadRMGDashboard();
+  }
+
+  private selectAllFilteredDepartments(): void {
+    this.selectedDepartmentIds = this.filteredDepartmentList?.map((dept) => dept.deptId) ?? [];
+    this.oldSelectedDepartmentIds = [...this.selectedDepartmentIds];
+    this.filterStateService.deptIdList = this.selectedDepartmentIds;
+    this.filterStateService.myDept = this.myDept;
+  }
+
+  get selectedDepartmentsTooltip(): string {
+    const ids = this.selectedDepartmentIds ?? [];
+    if (ids.length === 0) {
+      return 'No departments selected';
+    }
+    const names = (this.filteredDepartmentList ?? [])
+      .filter((dept) => ids.includes(dept.deptId))
+      .map((dept) => dept.name);
+    return names.length > 0 ? names.join(', ') : 'No departments selected';
   }
 
   updateDepartmentLabel() {

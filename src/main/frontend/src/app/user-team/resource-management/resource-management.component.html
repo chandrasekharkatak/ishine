@@ -46,10 +46,10 @@
                         <mat-slide-toggle color="primary" *ngIf="currentUser.employeeRole != 'SuperAdmin'"
                             [(ngModel)]="myDept" (change)="toggleDepartment()">
                         </mat-slide-toggle>
-                        <label *ngIf="currentUser.employeeRole !== 'SuperAdmin'">
+                        <label *ngIf="currentUser.employeeRole !== 'SuperAdmin'" [title]="selectedDepartmentsTooltip">
                             {{ myDept ? 'My Departments' : 'Departments' }}
                         </label>
-                        <label *ngIf="currentUser.employeeRole === 'SuperAdmin'">
+                        <label *ngIf="currentUser.employeeRole === 'SuperAdmin'" [title]="selectedDepartmentsTooltip">
                             {{ 'Departments' }}
                         </label>
                     </div>
@@ -57,7 +57,7 @@
                     <app-my-select class="form-control department-select app-my-select-dropdown"
                         placeholder="Select Department" [(ngModel)]="selectedDepartmentIds"
                         (dropdownClosed)="onDepartmentSelectionChange($event)" [options]="filteredDepartments"
-                        displayKey="name" valueKey="deptId" [multiple]="true">
+                        displayKey="name" valueKey="deptId" [multiple]="true" [title]="selectedDepartmentsTooltip">
                     </app-my-select>
                 </div>
     

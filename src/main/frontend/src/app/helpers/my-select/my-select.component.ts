@@ -35,6 +35,7 @@ export class MySelectComponent implements ControlValueAccessor, OnInit, OnChange
   @Input() showSelectAll = true;
   /** When true, option labels wrap in the overlay panel (long project names, reimbursement, etc.). */
   @Input() wrapOptionLines = false;
+  @Input() title = '';
   @Output() selectionChange = new EventEmitter<any>();
   @Output() change = new EventEmitter<any>();
   @Output() dropdownClosed = new EventEmitter<void>();
@@ -268,6 +269,20 @@ deepEqual(obj1: any, obj2: any): boolean {
       return this.placeholder || 'Select';
     }
     return labels.join(', ');
+  }
+
+  selectHoverTitle(): string {
+    if (this.title) {
+      return this.title;
+    }
+    if (this.multiple) {
+      const label = this.multiTriggerLabel();
+      return label === (this.placeholder || 'Select') ? '' : label;
+    }
+    if (this.selectedValue == null || this.selectedValue === '') {
+      return '';
+    }
+    return this.labelForSelectedItem(this.selectedValue);
   }
 
   private labelForSelectedItem(item: any): string {
