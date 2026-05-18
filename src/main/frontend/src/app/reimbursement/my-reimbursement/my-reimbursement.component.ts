@@ -379,6 +379,29 @@ vehicleTypeList:any[] = [];
     this.claimAmountInput = String(Number(a));
   }
 
+  /** From/To date: calendar only — block keyboard typing and paste. */
+  onClaimDateKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Tab') {
+      return;
+    }
+    event.preventDefault();
+  }
+
+  onClaimDatePaste(event: ClipboardEvent): void {
+    event.preventDefault();
+  }
+
+  openClaimDatePicker(event: Event): void {
+    const el = event.target as HTMLInputElement;
+    if (el && typeof el.showPicker === 'function') {
+      try {
+        el.showPicker();
+      } catch {
+        // showPicker may throw if not triggered by user gesture
+      }
+    }
+  }
+
   onClaimAmountKeydown(event: KeyboardEvent): void {
     if (this.reimbursementObj.travelMode === 'Personal Vehicle') {
       event.preventDefault();
