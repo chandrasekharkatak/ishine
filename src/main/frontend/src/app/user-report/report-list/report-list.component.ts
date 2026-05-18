@@ -479,9 +479,21 @@ dateRange: string; type: string; count: string;
       console.log("Billable departments",this.departments)
       this.filteredDepartments = [...this.departmentHistory.filter(dept => dept.isBillable)];
     } else {
-      this.departments = [...this.allDepartments];
-      this.filteredDepartments = [...this.allDepartments];
+      const deptName = String(this.currentUser.departmentName).trim();
+      const empRole = String(this.currentUser.employeeRole).trim();
 
+      if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") &&
+       !deptName.includes("Director") && !deptName.includes("Super Admin") &&
+        !empRole.includes("SuperAdmin") && !empRole.includes("Accounts") &&
+         !deptName.includes("Accounts") && !deptName.includes("HR")) {
+          this.departments = [...this.departmentHistory];
+          this.filteredDepartments = [...this.departmentHistory];
+        }
+        else{
+        this.departments = [...this.allDepartments];
+        this.filteredDepartments = [...this.allDepartments];
+     
+      }
     }
 
     this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
