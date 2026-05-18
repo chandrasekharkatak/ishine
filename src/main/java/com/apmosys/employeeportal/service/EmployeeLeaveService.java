@@ -3098,6 +3098,9 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					dto.setCurrentApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
 					dto.setFinalApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
 					
+					dto.setFromDateDayType(object[25] != null ? Float.parseFloat(object[25].toString()) : null);
+					dto.setToDateDayType(object[26] != null ? Float.parseFloat(object[26].toString()) : null);
+					
 					dtoList.add(dto);
 				});
 
