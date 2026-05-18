@@ -1662,7 +1662,8 @@ public class ResourceManagementService {
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Project Approved");
-			teamMemberStatusAsyncService.triggerFromInternalFlow();
+			teamMemberStatusAsyncService.triggerFromInternalFlow(
+					project.getProjectId() != null ? project.getProjectId().longValue() : null);
 
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 

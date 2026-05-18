@@ -5323,15 +5323,39 @@ public class TeamsService {
      */
 
     public void updateDefaultProjectMappings() {
+        updateDefaultProjectMappings(null);
+    }
 
-        List<Long> activeEmployees =
-                employeeRepository.findAllActiveEmployees();
+    public void updateDefaultProjectMappings(Long scopedProjectId) {
 
-        if (activeEmployees.isEmpty()) return;
+        List<Long> activeEmployees;
+        List<ProjectEmpInfoDTO> projects;
 
-        List<ProjectEmpInfoDTO> projects =
-                employeeTeamMapRepository
-                        .findActiveProjectsForEmployees(activeEmployees);
+        if (scopedProjectId == null) {
+            activeEmployees = employeeRepository.findAllActiveEmployees();
+            if (activeEmployees.isEmpty()) {
+                return;
+            }
+            projects = employeeTeamMapRepository.findActiveProjectsForEmployees(activeEmployees);
+        } else {
+            List<EmployeeTeamMap> projectMembers = employeeTeamMapRepository.findByProjectIdAndActive(
+            		scopedProjectId.intValue(),1L);
+            activeEmployees = projectMembers.stream()
+                    .map(EmployeeTeamMap::getEmpId)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .collect(Collectors.toList());
+            if (activeEmployees.isEmpty()) {
+                return;
+            }
+            projects = employeeTeamMapRepository.findActiveProjectsForEmployees(activeEmployees).stream()
+                    .filter(p -> p.getProjectId() != null
+                            && scopedProjectId.equals(p.getProjectId().longValue()))
+                    .collect(Collectors.toList());
+            if (projects.isEmpty()) {
+                return;
+            }
+        }
 
         Map<Long, List<ProjectEmpInfoDTO>> empProjectMap =
                 projects.stream()
@@ -5485,6 +5509,58 @@ public class TeamsService {
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public void cleanupDuplicateDefaultProjectMappings() {
+        List<Long> duplicateEmpIds =
+                empPrimaryProjectMappingRepository.findEmployeesWithMultipleDefaultMappings();
+
+        if (duplicateEmpIds.isEmpty()) {
+            log.info("Duplicate default mapping cleanup: no employees with multiple is_mapped='Y' rows found");
+            return;
+        }
+
+        log.info(
+                "Duplicate default mapping cleanup started: {} employee(s) with multiple is_mapped='Y' rows: {}",
+                duplicateEmpIds.size(), duplicateEmpIds);
+
+        int totalDeleted = 0;
+
+        for (Long empId : duplicateEmpIds) {
+            List<EmpPrimaryProjectMapping> activeMappings =
+                    empPrimaryProjectMappingRepository.findByEmpIdAndIsMappedOrderByUpdatedOnDesc(empId, "Y");
+
+            if (activeMappings.size() <= 1) {
+                continue;
+            }
+
+            EmpPrimaryProjectMapping retained = activeMappings.get(activeMappings.size() - 1);
+            log.info(
+                    "Duplicate default mapping cleanup retaining row for empId={}: mappingId={}, primaryProjectId={}, primaryProjectName={}, updatedOn={}",
+                    empId,
+                    retained.getMappingId(),
+                    retained.getPrimaryProjectId(),
+                    retained.getPrimaryProjectName(),
+                    retained.getUpdatedOn());
+
+            for (int i = 0; i < activeMappings.size() - 1; i++) {
+                EmpPrimaryProjectMapping duplicate = activeMappings.get(i);
+                log.info(
+                        "Duplicate default mapping cleanup deleting row for empId={}: mappingId={}, primaryProjectId={}, primaryProjectName={}, updatedOn={}",
+                        empId,
+                        duplicate.getMappingId(),
+                        duplicate.getPrimaryProjectId(),
+                        duplicate.getPrimaryProjectName(),
+                        duplicate.getUpdatedOn());
+                empPrimaryProjectMappingRepository.delete(duplicate);
+                totalDeleted++;
+            }
+        }
+
+        log.info(
+                "Duplicate default mapping cleanup complete: duplicateEmployeesFound={}, rowsDeleted={}",
+                duplicateEmpIds.size(), totalDeleted);
+    }
+
     private void queueHodNotificationForMappingIntegrityIssue(
             Long empId,
             List<ProjectEmpInfoDTO> empProjects,
@@ -5531,8 +5607,10 @@ public class TeamsService {
 
             try {
                 mailService.sendMailWithCC(
-                        hodEmail,
-                        rmgMail,
+//                        hodEmail,
+//                        rmgMail,
+                		"priyadarshini.singh@apmosys.com",
+                		"",
                         subject,
                         body
                 );
