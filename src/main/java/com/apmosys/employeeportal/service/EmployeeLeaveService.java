@@ -3079,7 +3079,9 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
 					dto.setReason(object[8] != null ? object[8].toString() : null);
 					dto.setLeaveTypeMasterId(object[9] != null ? Short.parseShort(object[9].toString()) : null);
-					dto.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+										dto.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+
+					dto.setLeaveEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 					dto.setRemark(object[11] != null ? object[11].toString() : null);
 					dto.setApproverName(object[12] != null ? object[12].toString() : null);
 					dto.setApproverEmail(object[13] != null ? object[13].toString() : null);

@@ -1547,6 +1547,7 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
     this.leaveObj.isWeekOffsExcluded = this.isWeekOffsExcluded;
     this.leaveObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)
     this.leaveObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)
+    this.leaveObj.empId = this.leaveObj.leaveEmpId;
     //console.log(" this.leaveObj : ", this.leaveObj);
     //console.log("leave emp id : ", this.leaveObj.leaveEmpId);
 
