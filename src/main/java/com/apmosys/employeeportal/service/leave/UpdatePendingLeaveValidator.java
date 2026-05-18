@@ -178,9 +178,9 @@ public class UpdatePendingLeaveValidator {
         }
 
         if (!"LWP".equalsIgnoreCase(leaveType.getLeaveTypeCode())
-                && (employeeLeavesMap.getBalance() == null
-                || employeeLeavesMap.getBalance() == 0
-                || employeeLeavesMap.getBalance() < difference)) {
+                 && difference > 0
+        && (employeeLeavesMap.getBalance() == null
+        || employeeLeavesMap.getBalance() < difference)) {
             throw new LeaveApplicationException("Your available balance of " + employeeLeavesMap.getBalance()
                     + " day(s) is not sufficient for this Leave Application.");
         }
