@@ -6110,12 +6110,11 @@ public class TeamsService {
         String billable = "No";
         String billableType = "Bench";
 
-        if (Boolean.TRUE.equals(project.getIsShadow())) {
-
+        if (Integer.valueOf(1).equals(project.getIsShadow())) {
+        	
             billableType = "Shadow";
-        }
-
-        else if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
+            
+        } else if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
 
             billable = "Yes";
             billableType = "TNM";
