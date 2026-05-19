@@ -29,13 +29,7 @@ public class MyConfig implements WebMvcConfigurer {
     @Value("${security.csp.policy}")
     private String contentSecurityPolicy;
 
-    
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/index.html")
-                .addResourceLocations("classpath:/static/index.html")
-                .setCacheControl(CacheControl.noCache());
-    }
+
     
     
     @Override
