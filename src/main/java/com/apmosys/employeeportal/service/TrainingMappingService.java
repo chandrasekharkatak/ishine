@@ -108,72 +108,40 @@ public class TrainingMappingService {
         } 
     }
 
- @Transactional
-public void excludeEmployeesToTraining(Long trainingId, TrainingMappingRequestDTO request) {
+    @Transactional
+    public void excludeEmployeesToTraining(Long trainingId, TrainingMappingRequestDTO request) {
 
-    LogDTO apiLogInfo = new LogDTO();
-    apiLogInfo.setSubFeatureName("Exclude Employees To Training");
-    apiLogInfo.setApiUrl("/api/training/" + trainingId + "/exclude");
-    apiLogInfo.setLogLevel("INFO");
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("Exclude Employees To Training");
+        apiLogInfo.setApiUrl("/api/training/" + trainingId + "/exclude");
+        apiLogInfo.setLogLevel("INFO");
 
-    try {
-        TrainingMaster training = trainingRepo.findByTrainingId(trainingId.intValue())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Training not found: " + trainingId));
+        try {
+            TrainingMaster training = trainingRepo.findByTrainingId(trainingId.intValue())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Training not found: " + trainingId));
 
-        Set<Long> excludedIds = new HashSet<>(
-            request.getExcludedEmployeeIds() != null ?
-            request.getExcludedEmployeeIds() : new ArrayList<>()
-        );
+            Set<Long> excludedIds = new HashSet<>(
+                request.getExcludedEmployeeIds() != null ?
+                request.getExcludedEmployeeIds() : new ArrayList<>()
+            );
 
-        Set<Long> allIds;
-        if (request.getAllEmployeeIds() != null && !request.getAllEmployeeIds().isEmpty()) {
-            allIds = new HashSet<>(request.getAllEmployeeIds());
-        } else {
-            allIds = new HashSet<>(mappingRepo.findAllEmpIdsByTrainingId(trainingId.intValue()));
-        }
+            Timestamp now = Timestamp.from(Instant.now());
 
-        Timestamp now = Timestamp.from(Instant.now());
+            Map<Long, EmployeeTrainingMapping> existingMap = mappingRepo
+                    .findAllByTrainingId(trainingId.intValue())
+                    .stream()
+                    .collect(Collectors.toMap(
+                        EmployeeTrainingMapping::getEmpId,
+                        m -> m
+                    ));
 
-        Map<Long, EmployeeTrainingMapping> existingMap = mappingRepo
-                .findAllByTrainingId(trainingId.intValue())
-                .stream()
-                .collect(Collectors.toMap(
-                    EmployeeTrainingMapping::getEmpId,
-                    m -> m
-                ));
-
-        List<EmployeeTrainingMapping> toSave = new ArrayList<>();
-
-        //handle excluded employees
-        for (Long empId : excludedIds) {
-            if (existingMap.containsKey(empId)) {
-                EmployeeTrainingMapping existing = existingMap.get(empId);
-                if (!"false".equals(existing.getActiveStatus())) {
-                    existing.setActiveStatus("false");
-                    existing.setUpdatedBy(request.getUpdatedBy());
-                    existing.setUpdatedOn(now);
-                    toSave.add(existing);
-                }
-            } else {
-                EmployeeTrainingMapping m = new EmployeeTrainingMapping();
-                m.setTrainingMaster(training);
-                m.setEmpId(empId);
-                m.setActiveStatus("false");
-                m.setCreatedBy(request.getUpdatedBy());
-                m.setUpdatedBy(request.getUpdatedBy());
-                m.setUpdatedOn(now);
-                toSave.add(m);
-            }
-        }
-
-        //handle included employees
-        for (Long empId : allIds) {
-            if (!excludedIds.contains(empId)) {
+            List<EmployeeTrainingMapping> toSave = new ArrayList<>();
+            for (Long empId : excludedIds) {
                 if (existingMap.containsKey(empId)) {
                     EmployeeTrainingMapping existing = existingMap.get(empId);
-                    if (!"true".equals(existing.getActiveStatus())) {
-                        existing.setActiveStatus("true");
+                    if (!"false".equals(existing.getActiveStatus())) {
+                        existing.setActiveStatus("false");
                         existing.setUpdatedBy(request.getUpdatedBy());
                         existing.setUpdatedOn(now);
                         toSave.add(existing);
@@ -182,26 +150,34 @@ public void excludeEmployeesToTraining(Long trainingId, TrainingMappingRequestDT
                     EmployeeTrainingMapping m = new EmployeeTrainingMapping();
                     m.setTrainingMaster(training);
                     m.setEmpId(empId);
-                    m.setActiveStatus("true");
+                    m.setActiveStatus("false");
                     m.setCreatedBy(request.getUpdatedBy());
                     m.setUpdatedBy(request.getUpdatedBy());
                     m.setUpdatedOn(now);
                     toSave.add(m);
                 }
             }
+            for (Map.Entry<Long, EmployeeTrainingMapping> entry : existingMap.entrySet()) {
+                if (!excludedIds.contains(entry.getKey()) && "false".equals(entry.getValue().getActiveStatus())) {
+                    EmployeeTrainingMapping existing = entry.getValue();
+                    existing.setActiveStatus("true");
+                    existing.setUpdatedBy(request.getUpdatedBy());
+                    existing.setUpdatedOn(now);
+                    toSave.add(existing);
+                }
+            }
+
+            if (!toSave.isEmpty()) mappingRepo.saveAll(toSave);
+
+            apiLogInfo.setApiResponse("Processed " + toSave.size() + " records. Excluded: "
+                    + excludedIds.size());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+            throw e;
         }
-
-        if (!toSave.isEmpty()) mappingRepo.saveAll(toSave);
-
-        apiLogInfo.setApiResponse("Processed " + toSave.size() + " records. Excluded: "
-                + excludedIds.size() + ", Included: " + (allIds.size() - excludedIds.size()));
-        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-    } catch (Exception e) {
-        e.printStackTrace();
-        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-        apiLogInfo.setLogLevel("ERROR");
-        throw e;
     }
-}
 }
