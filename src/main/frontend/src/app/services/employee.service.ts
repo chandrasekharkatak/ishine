@@ -548,11 +548,8 @@ duplicateCertificate(certificateobj:any){
    * Parses DOJ as DD-MM-YYYY (profile display), YYYY-MM-DD, or falls back to Date.parse.
    */
   calculateTotalExperience(totalExperience: any, dateOfJoining: any): number {
-    if(totalExperience == undefined || dateOfJoining == null || String(totalExperience).trim() === '' || dateOfJoining == undefined || String(dateOfJoining).trim() === '') {
-      return 0;
-    }
     const previousExp = Number(totalExperience ?? 0);
-    console.log("Previous Experience : ", previousExp);
+
     let apmosysExp = 0;
     if (dateOfJoining != null && String(dateOfJoining).trim() !== '') {
       const s = String(dateOfJoining).trim();
