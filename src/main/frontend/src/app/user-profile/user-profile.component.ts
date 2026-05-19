@@ -143,7 +143,7 @@ async checkExistingDraft() {
 
   showUpdateProfile() {
     this.isUpdateProfile = true;
-    this.showImageUpload = true;
+    // this.showImageUpload = true;
     this.openUpdateInfo(this.updateInfoTempRef);
   }
 
@@ -710,6 +710,7 @@ async checkExistingDraft() {
       if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);
         this.showViewProfile();
+        this.showImageUpload = false;
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
