@@ -1036,6 +1036,19 @@
   color: var(--success);
 }
 
+.dot-menu-item-assign:hover {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.dot-menu-item-assign i {
+  transition: transform 0.2s ease;
+}
+
+.dot-menu-item-assign:hover i {
+  transform: translateY(-1px) scale(1.08);
+}
+
 .pagination-container {
   padding: 16px 20px;
   border-top: 1px solid var(--border);
@@ -1854,4 +1867,135 @@
   background: transparent;
   border: none;
   box-shadow: none;
+}
+
+/* Custom premium styling for mat-select in training assignment modal */
+::ng-deep .assign-select-field.mat-form-field-appearance-outline .mat-form-field-outline {
+  color: #d1d5db !important; /* light grey border */
+}
+::ng-deep .assign-select-field.mat-form-field-appearance-outline:hover .mat-form-field-outline {
+  color: #9ca3af !important; /* medium grey on hover */
+}
+::ng-deep .assign-select-field.mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+  color: #193d8a !important; /* dark blue border when active/focused */
+}
+::ng-deep .assign-select-field .mat-select-value {
+  color: #374151 !important;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+::ng-deep .assign-select-field .mat-form-field-wrapper {
+  margin-bottom: 0px !important;
+  padding-bottom: 0px !important;
+}
+::ng-deep .assign-select-field .mat-form-field-infix {
+  border-top: 0.5em solid transparent !important;
+}
+
+/* Employee assignment table styling */
+.employee-assignment-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+.employee-assignment-table th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 16px;
+  border-bottom: 1.5px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.employee-assignment-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.85rem;
+  color: #334155;
+  vertical-align: middle;
+}
+.employee-assignment-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+.employee-assignment-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Custom Checkbox Styling */
+.custom-checkbox-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.custom-checkbox-wrapper input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: #193d8a;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* Status Pill Styling */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.status-pill.status-include {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+.status-pill.status-exclude {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Selected and Excluded Button Hover Transitions */
+button[style*="border: 1.5px solid #10b981"]:hover:not([disabled]) {
+  background: #10b981 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25) !important;
+  transform: translateY(-1.5px);
+}
+button[style*="border: 1.5px solid #10b981"]:hover:not([disabled]) i {
+  color: #ffffff !important;
+}
+button[style*="border: 1.5px solid #10b981"]:hover:not([disabled]) .badge {
+  background-color: #ffffff !important;
+  color: #10b981 !important;
+}
+button[style*="border: 1.5px solid #10b981"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+button[style*="border: 1.5px solid #f43f5e"]:hover:not([disabled]) {
+  background: #f43f5e !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 10px rgba(244, 63, 94, 0.25) !important;
+  transform: translateY(-1.5px);
+}
+button[style*="border: 1.5px solid #f43f5e"]:hover:not([disabled]) i {
+  color: #ffffff !important;
+}
+button[style*="border: 1.5px solid #f43f5e"]:hover:not([disabled]) .badge {
+  background-color: #ffffff !important;
+  color: #f43f5e !important;
+}
+button[style*="border: 1.5px solid #f43f5e"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
 }

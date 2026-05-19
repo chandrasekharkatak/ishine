@@ -45,6 +45,7 @@ import com.apmosys.employeeportal.Exception.GlobalException;
 import com.apmosys.employeeportal.Exception.ResourceNotFoundException;
 import com.apmosys.employeeportal.Exception.TrainingException;
 import com.apmosys.employeeportal.dto.ComplianceReportDTO;
+import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
 import com.apmosys.employeeportal.dto.LockStatusDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TrainingContentDTO;
@@ -70,6 +71,12 @@ import com.apmosys.employeeportal.serviceInterface.TrainingConfigService;
 import com.apmosys.employeeportal.serviceInterface.TrainingUserService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.apmosys.employeeportal.dto.FilteredEmployeeGroupDTO;
+import com.apmosys.employeeportal.dto.PageResponseDTO;
+import com.apmosys.employeeportal.model.Department;
+import com.apmosys.employeeportal.model.Designation;
+import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.DesignationRepository;
 import com.apmosys.employeeportal.utility.TrainingFileValidator;
 
 /**
@@ -93,6 +100,12 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 	@Autowired
 	private EmployeeRepository employeeRepository;
+
+	@Autowired
+	private DepartmentRepository departmentRepository;
+
+	@Autowired
+	private DesignationRepository designationRepository;
 
 	@Autowired
 	private HttpServletRequest httpRequest;
@@ -1773,6 +1786,92 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 
+	}
+
+	@Override
+	public ServiceResponse getEmployeesByFilter(String filter, String searchName, List<Long> ids, int page, int size) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Get Employees By Filter");
+		apiLogInfo.setApiUrl("/api/training/getEmployeesByFilter");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Filter: ").append(filter)
+		          .append(", searchName: ").append(searchName)
+		          .append(", ids: ").append(ids)
+		          .append(", page: ").append(page)
+		          .append(", size: ").append(size);
+		try {
+			Pageable pageable = PageRequest.of(page, size);
+			
+			if ("individuals".equalsIgnoreCase(filter)) {
+				Page<EmpIdAndNameDTO> employeePage = employeeRepository.findActiveEmployeesForIndividuals(searchName, pageable);
+				
+				PageResponseDTO<EmpIdAndNameDTO> pageResponse = new PageResponseDTO<>(
+					employeePage.getContent(),
+					employeePage.getNumber(),
+					employeePage.getSize(),
+					employeePage.getTotalElements(),
+					employeePage.getTotalPages()
+				);
+				
+				response.setStatusCode(HttpStatus.OK.value());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(pageResponse);
+				apiLogInfo.setApiResponse(pageResponse.toString());
+				
+			} else if ("department".equalsIgnoreCase(filter)) {
+				Page<EmpIdAndNameDTO> deptPage = departmentRepository.findActiveDepartmentsEmployeesByFilter(searchName,ids, pageable);
+				
+				PageResponseDTO<EmpIdAndNameDTO> pageResponse = new PageResponseDTO<>(
+					deptPage.getContent(),
+					deptPage.getNumber(),
+					deptPage.getSize(),
+					deptPage.getTotalElements(),
+					deptPage.getTotalPages()
+				);
+				
+				response.setStatusCode(HttpStatus.OK.value());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(pageResponse);
+				apiLogInfo.setApiResponse(pageResponse.toString());
+				
+			} else if ("designation".equalsIgnoreCase(filter)) {
+				Page<EmpIdAndNameDTO> emps = designationRepository.findEmployeesByDesignationIds(searchName,ids, pageable);
+				
+				PageResponseDTO<EmpIdAndNameDTO> pageResponse = new PageResponseDTO<>(
+					emps.getContent(),
+					emps.getNumber(),
+					emps.getSize(),
+					emps.getTotalElements(),
+					emps.getTotalPages()
+				);
+				response.setStatusCode(HttpStatus.OK.value());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(pageResponse);
+				apiLogInfo.setApiResponse(pageResponse.toString());
+				
+			} else {
+				response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid filter category. Allowed values: department, designation, individuals");
+				apiLogInfo.setApiResponse("Invalid filter value: " + filter);
+			}
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			e.printStackTrace();
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
+		}
+
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
 	}
 
 }

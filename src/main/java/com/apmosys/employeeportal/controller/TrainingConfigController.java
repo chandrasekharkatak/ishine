@@ -395,4 +395,25 @@ public class TrainingConfigController {
 			throw e;
 		}
 	}
+
+	@GetMapping("/getEmployeesByFilter")
+	public ServiceResponse getEmployeesByFilter(
+			@RequestParam("filter") String filter,
+			@RequestParam(value = "searchName", required = false) String searchName,
+			@RequestParam(value = "ids", required = false) java.util.List<Long> ids,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "size", defaultValue = "10") int size) {
+		try {
+			if (filter == null) {
+				ServiceResponse response = new ServiceResponse();
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Filter is required");
+				return response;
+			}
+			return trainingConfigService.getEmployeesByFilter(filter, searchName, ids, page, size);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
 }

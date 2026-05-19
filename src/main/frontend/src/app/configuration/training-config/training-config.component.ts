@@ -14,6 +14,8 @@ import { GlobalWorkerOptions } from 'pdfjs-dist';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { TrainingContentViewComponent } from 'src/app/training-content-view/training-content-view.component';
+import { DepartmentService } from 'src/app/services/department.service';
+import { DestinationService } from 'src/app/services/destination.service';
 
 GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -157,8 +159,25 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   slideBlobs: string[] = []; // Store blob URLs
   @ViewChild('success_template') successTemplate!: TemplateRef<any>;
   @ViewChild('deactivate_success_template') deactivateSuccessTemplate!: TemplateRef<any>;
+  @ViewChild('assign_training_template') assignTrainingTemplate!: TemplateRef<any>;
   successTitle: string = '';
   successMessage: string = '';
+
+  assignmentScope: string = 'ALL';
+  assignmentTarget: any = [];
+  assignmentScheduleDate: string = '';
+  assignmentPriority: string = 'MEDIUM';
+  assignmentNotes: string = '';
+  selectedEmployeeIds: number[] = [];
+  excludedEmployeeIds: number[] = [];
+  allEmployeesList: any[] = [];
+  employeeSearchQuery: string = '';
+  employeeStatusFilter: string = 'ALL';
+  employeePage: number = 0;
+  employeePageSize: number = 10;
+  employeeTotalElements: number = 0;
+  employeeTotalPages: number = 0;
+  allEmployeeIds: number[] = [];
 
   totalUsers: number = 0;
   totalUsersAttended: number = 0
@@ -174,6 +193,8 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     private locationStrategy: LocationStrategy,
     private modalService: NgbModal,
     private trainingService: TrainingService,
+    private departmentService: DepartmentService,
+    private destinationService: DestinationService,
     private sanitizer: DomSanitizer,
     private router: Router,
     private date: DatePipe
@@ -1879,6 +1900,278 @@ getAllTrainingTypes() {
         console.log(error);
       }
     })
+  }
+
+  departmentGroups: any[] = [];
+  designationGroups: any[] = [];
+  assignedEmployees: any[] = [];
+  isLoadingEmployees: boolean = false;
+
+  onAssignTraining(training: any) {
+    this.selectedTraining = training;
+    this.assignmentScope = 'ALL';
+    this.assignmentTarget = [];
+    this.assignmentScheduleDate = moment().format('YYYY-MM-DD');
+    this.assignmentPriority = 'MEDIUM';
+    this.assignmentNotes = '';
+    this.selectedEmployeeIds = [];
+    this.excludedEmployeeIds = [];
+    this.allEmployeesList = [];
+    this.employeeSearchQuery = '';
+    this.employeeStatusFilter = 'ALL';
+    this.employeePage = 0;
+    this.onScopeChange();
+    this.modalRef = this.modalService.open(this.assignTrainingTemplate, {
+      backdrop: 'static',
+      size: 'lg'
+    });
+  }
+
+  onScopeChange() {
+    this.assignmentTarget = [];
+    this.assignedEmployees = [];
+    this.selectedEmployeeIds = [];
+    this.excludedEmployeeIds = [];
+    this.allEmployeeIds = [];
+    this.allEmployeesList = [];
+    this.employeeSearchQuery = '';
+    this.employeeStatusFilter = 'ALL';
+    this.employeePage = 0;
+    
+    if (this.assignmentScope === 'ALL') {
+      this.loadEmployeesFromServer();
+      this.initializeSelection();
+    } else if (this.assignmentScope === 'DEPARTMENT') {
+      if (this.departmentGroups.length === 0) {
+        this.departmentService.getAllDepartments().subscribe({
+          next: (res: any) => {
+            if (res.serviceStatus === 'Success') {
+              this.departmentGroups = res.serviceResponse || [];
+            }
+          }
+        });
+      }
+    } else if (this.assignmentScope === 'DESIGNATION') {
+      if (this.designationGroups.length === 0) {
+        this.destinationService.getAllDesignation().subscribe({
+          next: (res: any) => {
+            if (res.serviceStatus === 'Success') {
+              this.designationGroups = res.serviceResponse || [];
+            }
+          }
+        });
+      }
+    }
+  }
+
+  onTargetChange() {
+    this.assignedEmployees = [];
+    this.selectedEmployeeIds = [];
+    this.excludedEmployeeIds = [];
+    this.allEmployeeIds = [];
+    this.allEmployeesList = [];
+    this.employeeSearchQuery = '';
+    this.employeeStatusFilter = 'ALL';
+    this.employeePage = 0;
+    if (!this.assignmentTarget || this.assignmentTarget.length === 0) return;
+
+    this.loadEmployeesFromServer();
+    this.initializeSelection();
+  }
+
+  loadEmployeesFromServer() {
+    this.isLoadingEmployees = true;
+    
+    let filterCategory = 'individuals';
+    let ids: number[] = [];
+    
+    if (this.assignmentScope === 'DEPARTMENT') {
+      filterCategory = 'department';
+      ids = this.assignmentTarget;
+    } else if (this.assignmentScope === 'DESIGNATION') {
+      filterCategory = 'designation';
+      ids = this.assignmentTarget;
+    }
+    
+    if (this.assignmentScope !== 'ALL' && (!ids || ids.length === 0)) {
+      this.assignedEmployees = [];
+      this.employeeTotalElements = 0;
+      this.employeeTotalPages = 0;
+      this.isLoadingEmployees = false;
+      return;
+    }
+
+    this.trainingService.getEmployeesByFilter(
+      filterCategory,
+      this.employeeSearchQuery,
+      ids,
+      this.employeePage,
+      this.employeePageSize
+    ).subscribe({
+      next: (res: any) => {
+        if (res.serviceStatus === 'Success' && res.serviceResponse) {
+          const pageResponse = res.serviceResponse;
+          this.assignedEmployees = pageResponse.content || [];
+          this.employeeTotalElements = pageResponse.totalElements || 0;
+          this.employeeTotalPages = pageResponse.totalPages || 0;
+        } else {
+          this.assignedEmployees = [];
+          this.employeeTotalElements = 0;
+          this.employeeTotalPages = 0;
+        }
+        this.isLoadingEmployees = false;
+      },
+      error: (err) => {
+        console.error("Error loading employees from server", err);
+        this.isLoadingEmployees = false;
+        this.assignedEmployees = [];
+        this.employeeTotalElements = 0;
+        this.employeeTotalPages = 0;
+      }
+    });
+  }
+
+  initializeSelection() {
+    this.selectedEmployeeIds = [];
+    this.excludedEmployeeIds = [];
+    this.allEmployeeIds = [];
+    this.allEmployeesList = [];
+    
+    let filterCategory = 'individuals';
+    let ids: number[] = [];
+    
+    if (this.assignmentScope === 'DEPARTMENT') {
+      filterCategory = 'department';
+      ids = this.assignmentTarget;
+    } else if (this.assignmentScope === 'DESIGNATION') {
+      filterCategory = 'designation';
+      ids = this.assignmentTarget;
+    }
+    
+    if (this.assignmentScope !== 'ALL' && (!ids || ids.length === 0)) {
+      return;
+    }
+
+    this.trainingService.getEmployeesByFilter(
+      filterCategory,
+      '',
+      ids,
+      0,
+      10000
+    ).subscribe({
+      next: (res: any) => {
+        if (res.serviceStatus === 'Success' && res.serviceResponse) {
+          this.allEmployeesList = res.serviceResponse.content || [];
+          this.allEmployeeIds = this.allEmployeesList.map((emp: any) => emp.empId);
+          this.selectedEmployeeIds = [...this.allEmployeeIds];
+          this.excludedEmployeeIds = []; // empty at start (all are checked by default!)
+        }
+      },
+      error: (err) => {
+        console.error("Error initializing employee selection", err);
+      }
+    });
+  }
+
+  onEmployeeSearchChange() {
+    this.employeePage = 0;
+    this.loadEmployeesFromServer();
+  }
+
+  onEmployeePageChange(pageNumber: number) {
+    this.employeePage = pageNumber - 1;
+    this.loadEmployeesFromServer();
+  }
+
+  toggleEmployeeSelection(empId: number) {
+    const index = this.excludedEmployeeIds.indexOf(empId);
+    if (index > -1) {
+      this.excludedEmployeeIds.splice(index, 1);
+    } else {
+      this.excludedEmployeeIds.push(empId);
+    }
+  }
+
+  isEmployeeSelected(empId: number): boolean {
+    return !this.excludedEmployeeIds.includes(empId);
+  }
+
+  toggleAllEmployees(event: any) {
+    if (event.target.checked) {
+      this.excludedEmployeeIds = [];
+    } else {
+      this.excludedEmployeeIds = [...this.allEmployeeIds];
+    }
+  }
+
+  isAllEmployeesSelected(): boolean {
+    if (this.allEmployeeIds.length === 0) return false;
+    return this.excludedEmployeeIds.length === 0;
+  }
+
+  viewingSelectionType: 'SELECTED' | 'EXCLUDED' = 'SELECTED';
+  viewingPage: number = 1;
+
+  get totalSelectedEmployees(): number {
+    return this.allEmployeeIds.length - this.excludedEmployeeIds.length;
+  }
+
+  get selectedEmployeesList(): any[] {
+    return this.allEmployeesList.filter(emp => !this.excludedEmployeeIds.includes(emp.empId));
+  }
+
+  get excludedEmployeesList(): any[] {
+    return this.allEmployeesList.filter(emp => this.excludedEmployeeIds.includes(emp.empId));
+  }
+
+  get viewingEmployeesList(): any[] {
+    return this.viewingSelectionType === 'SELECTED' ? this.selectedEmployeesList : this.excludedEmployeesList;
+  }
+
+  openSelectionModal(type: 'SELECTED' | 'EXCLUDED', template: any) {
+    this.viewingSelectionType = type;
+    this.viewingPage = 1;
+    this.modalService.open(template, {
+      backdrop: 'static',
+      size: 'md'
+    });
+  }
+
+  get filteredEmployees() {
+    let emps = this.assignedEmployees;
+
+    // Apply status filter frontend-side (Include / Exclude)
+    if (this.employeeStatusFilter === 'INCLUDE') {
+      return emps.filter(emp => this.isEmployeeSelected(emp.empId));
+    } else if (this.employeeStatusFilter === 'EXCLUDE') {
+      return emps.filter(emp => !this.isEmployeeSelected(emp.empId));
+    }
+    
+    return emps;
+  }
+
+  get showingToCount(): number {
+    return Math.min((this.employeePage + 1) * this.employeePageSize, this.employeeTotalElements);
+  }
+
+  submitAssignment() {
+    const finalSelectedIds = this.allEmployeeIds.filter(id => !this.excludedEmployeeIds.includes(id));
+    console.log("Submitting assignment for training:", this.selectedTraining?.trainingName);
+    console.log("Selected Employee IDs to assign:", finalSelectedIds);
+
+    if (this.modalRef) {
+      this.modalRef.close();
+    }
+    
+    // Simulate successful assignment and display alerttoast
+    setTimeout(() => {
+      this.openAlertMod(
+        this.alertTemplate,
+        `Training "${this.selectedTraining?.trainingName}" has been successfully assigned to ${finalSelectedIds.length} employees.`,
+        'success',
+        'Training Assigned Successfully'
+      );
+    }, 300);
   }
 
 }

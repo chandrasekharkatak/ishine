@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.serviceInterface;
 
+import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ComplianceReportDTO;
@@ -129,4 +130,6 @@ public interface TrainingConfigService {
 	ServiceResponse getAllTrainingTypes();
 
     ServiceResponse getCountOfResponses(Integer trainingId);
+
+	ServiceResponse getEmployeesByFilter(String filter, String searchName, List<Long> ids, int page, int size);
 }

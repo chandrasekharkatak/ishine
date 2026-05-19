@@ -122,4 +122,16 @@ export class TrainingService {
   getCountOfResponses(trainingId: number){
     return this.http.get(`${this.baseUrl}api/training/getCountOfResponses/${trainingId}`);
   }
+
+  getEmployeesByFilter(filter: string, searchName: string = '', ids: number[] = [], page: number = 0, size: number = 1000) {
+    let params = new HttpParams()
+      .set('filter', filter)
+      .set('searchName', searchName)
+      .set('page', page.toString())
+      .set('size', size.toString());
+    if (ids && ids.length > 0) {
+      params = params.set('ids', ids.join(','));
+    }
+    return this.http.get(`${this.baseUrl}api/training/getEmployeesByFilter`, { params });
+  }
 }

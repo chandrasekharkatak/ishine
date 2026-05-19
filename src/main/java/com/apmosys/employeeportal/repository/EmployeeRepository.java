@@ -4962,5 +4962,37 @@ public List<Object[]> fetchInActivePOListOfProject(
         nativeQuery = true)
     List<Employee> findByApEmployeementId(@Param("employmentId") Long employmentId);
 
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmpIdAndNameDTO(e.empId,e.name) from Employee e " +
+	       "WHERE e.employmentstatus <> 'InActive' " +
+	       "  AND e.empId NOT IN (1, 2, 3, 4, 5, 6) " +
+	       "  AND (:searchName IS NULL OR :searchName = '' OR LOWER(e.name) LIKE LOWER(CONCAT('%', :searchName, '%')))")
+	Page<EmpIdAndNameDTO> findActiveEmployeesForIndividuals(
+			@Param("searchName") String searchName,
+			Pageable pageable);
 
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmpIdAndNameDTO(e.empId,e.name) from Employee e " +
+	       "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+	       "INNER JOIN Department d ON d.deptId = jr.deptId " +
+	       "WHERE e.employmentstatus <> 'InActive' " +
+	       "  AND e.empId NOT IN (1, 2, 3, 4, 5, 6) " +
+	       "  AND d.deptId IN :deptIds " +
+	       "  AND (:searchName IS NULL OR :searchName = '' " +
+	       "       OR LOWER(e.name) LIKE LOWER(CONCAT('%', :searchName, '%')) " +
+	       "       OR LOWER(d.name) LIKE LOWER(CONCAT('%', :searchName, '%')))")
+	Page<EmpIdAndNameDTO> findActiveEmployeesByDepartmentIdsAndFilter(
+			@Param("deptIds") List<Long> deptIds,
+			@Param("searchName") String searchName, Pageable pageable);
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmpIdAndNameDTO(e.empId,e.name) from Employee e " +
+	       "INNER JOIN Designation des ON des.designationId = e.designationId " +
+	       "WHERE e.employmentstatus <> 'InActive' " +
+	       "  AND e.empId NOT IN (1, 2, 3, 4, 5, 6) " +
+	       "  AND des.designationId IN :designationIds " +
+	       "  AND (:searchName IS NULL OR :searchName = '' " +
+	       "       OR LOWER(e.name) LIKE LOWER(CONCAT('%', :searchName, '%')) " +
+	       "       OR LOWER(des.designationName) LIKE LOWER(CONCAT('%', :searchName, '%')))")
+	Page<EmpIdAndNameDTO> findActiveEmployeesByDesignationIdsAndFilter(
+			@Param("designationIds") List<Long> designationIds,
+			@Param("searchName") String searchName,
+			Pageable pageable);
 }
