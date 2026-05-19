@@ -118,18 +118,19 @@ export class Employee360TimesheetComponent implements OnInit {
     }
 
     this.activeButton = 'Pending';
-
+    const sessionId = sessionStorage.getItem('empId');
+    this.empId = sessionId ? Number(sessionId) : 0;
     const encryptedUser = sessionStorage.getItem('currentUser');
 
-if (encryptedUser) {
-  const decryptedString = this.encryptionService.decrypt(encryptedUser);
-  if (decryptedString) {
-    try {
-      this.currentUser = JSON.parse(decryptedString);
-    } catch (error) {
+    if (encryptedUser) {
+      const decryptedString = this.encryptionService.decrypt(encryptedUser);
+      if (decryptedString) {
+        try {
+          this.currentUser = JSON.parse(decryptedString);
+        } catch (error) {
       console.error('Failed to parse decrypted session user:', decryptedString, error);
       this.currentUser = null;
-    }
+      }
   } else {
     console.warn('Decryption returned empty string.');
     this.currentUser = null;
@@ -139,40 +140,40 @@ if (encryptedUser) {
   this.currentUser = null;
 }
     // this.currentUser = sessionStorage.getItem('currentUser');
-    if (this.currentUser) {
-      const currentUserData = JSON.parse(this.currentUser);
-      this.managerId = currentUserData.empId;
-      console.log(this.managerId);
-    }
+    // if (this.currentUser) {
+    //   const currentUserData = JSON.parse(this.currentUser);
+    //   this.managerId = currentUserData.empId;
+    //   console.log(this.managerId);
+    // }
     // this.empId=sessionStorage.getItem('empId');
     let encryptedEmployeeData = localStorage.getItem('employee360Data');
     let employeeData = null;
     if (encryptedEmployeeData) {
-  const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
-  if (decryptedString) {
-    try {
+      const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+      if (decryptedString) {
+        try {
       employeeData = JSON.parse(decryptedString);
-    } catch (error) {
+        } catch (error) {
       console.error('Failed to parse decrypted session user:', decryptedString, error);
       employeeData = null;
-    }
+        }
   } else {
     console.warn('Decryption returned empty string.');
     employeeData = null;
-  }
+      }
 } else {
   console.warn('No currentUser found in sessionStorage');
   employeeData = null;
-}
+    }
     this.Employee360 = employeeData;
     let employeeObject = employeeData;
-    let empId = employeeObject.empId;
+    // let empId = employeeObject.empId;
 
     this.startDate = null;
     this.endDate = null;
     this.formattedStartDate = null;
     this.formattedEndDate = null;
-    this.get360TimesheetDetails(this.activeButton, empId, this.projectId, this.teamName, this.formattedStartDate, this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton, this.empId, this.projectId, this.teamName, this.formattedStartDate, this.formattedEndDate);
     // this.getAllEmployeeFor360View();
     console.log(this.Employee360);
   }
@@ -208,6 +209,13 @@ exportToExcel(id:any): void {
 
   saveAs(data, exportToExcelTeamfile);
 }
+
+activeCalTab: string = 'Last 7 Days';
+// getFilteredCount(): number {
+//   return (this.result || [])
+//     .filter(r => r.showEmpId)
+//     .length;
+// }
   getTimesheetsForHomePageByEmpId(dateRange: any) {
     this.timesheetDetails = [];
     const TOTAL_WORKING_HOURS_IN_DAY = 8;
@@ -260,31 +268,72 @@ exportToExcel(id:any): void {
       let rejectedCount = 0;
       let notFilledCount = 0;
 
-      for (let date = moment(timesheetObj.startDate); date.isSameOrBefore(timesheetObj.endDate); date.add(1, 'days')) {
-        let newTimesheetObj = new Timesheet();
-        newTimesheetObj.date = moment(date).format(dateFormat);
+      for (
+          let date = moment(timesheetObj.startDate);
+          date.isSameOrBefore(timesheetObj.endDate);
+          date.add(1, 'days')
+        ) {
+          const currentDateStr = date.format(dateFormat);
 
-        if (newTimesheetObj.date) {
-          let checkedTimesheet = filledTimesheetDetails.find(timesheet => timesheet.date == newTimesheetObj.date);
+          const rows = filledTimesheetDetails.filter(
+            t => t.date === currentDateStr
+          );
 
-          if (checkedTimesheet) {
-            newTimesheetObj = checkedTimesheet;
-            newTimesheetObj.totalWorkingHoursPercentage = (newTimesheetObj.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + "%";
+          // ===== LAST 7 DAYS (single row per date) =====
+          if (dateRange === 'Last 7 Days') {
+            const ts = rows[0]; // first is enough
 
-            // For Chart Data
-            if (newTimesheetObj.status == "Pending") { pendingCount++; }
-            else if (newTimesheetObj.status == "Approved") { approvedCount++; }
-            else if (newTimesheetObj.status == "Rejected") rejectedCount++;
+            if (ts) {
+              const clone = { ...ts } as Timesheet;
+              clone.totalWorkingHoursPercentage =
+                (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + '%';
+
+              this.timesheetDetails.push(clone);
+
+              if (clone.status === 'Pending') pendingCount++;
+              else if (clone.status === 'Approved') approvedCount++;
+              else if (clone.status === 'Rejected') rejectedCount++;
+            } else {
+              const empty = new Timesheet();
+              empty.date = currentDateStr;
+              empty.status = 'Not Filled';
+              empty.dayType = 'Not Filled';
+              empty.weekDayName = this.getWeekDay(currentDateStr);
+              empty.totalWorkingHoursPercentage = '0%';
+
+              this.timesheetDetails.push(empty);
+              notFilledCount++;
+            }
+
+            continue;
+          }
+
+          // ===== MONTH / OTHER VIEWS (multiple rows per date) =====
+          if (rows.length > 0) {
+            rows.forEach(ts => {
+              const clone = { ...ts } as Timesheet;
+              clone.totalWorkingHours = Number(clone.totalWorkingHours?.toFixed(2));
+              clone.totalWorkingHoursPercentage =
+                (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + '%';
+
+              this.timesheetDetails.push(clone);
+
+              if (clone.status === 'Pending') pendingCount++;
+              else if (clone.status === 'Approved') approvedCount++;
+              else if (clone.status === 'Rejected') rejectedCount++;
+            });
           } else {
-            newTimesheetObj.totalWorkingHoursPercentage = "0%";
-            newTimesheetObj.status = "Not Filled";
-            newTimesheetObj.dayType = "Not Filled";
-            newTimesheetObj.weekDayName = this.getWeekDay(newTimesheetObj.date);
+            const empty = new Timesheet();
+            empty.date = currentDateStr;
+            empty.status = 'Not Filled';
+            empty.dayType = 'Not Filled';
+            empty.weekDayName = this.getWeekDay(currentDateStr);
+            empty.totalWorkingHoursPercentage = '0%';
+
+            this.timesheetDetails.push(empty);
             notFilledCount++;
           }
         }
-        this.timesheetDetails.push(newTimesheetObj);
-      }
 
       //console.log("timesheetDetails : ", this.timesheetDetails);
       this.timesheetDetails.sort(this.dateCompare);
@@ -475,7 +524,7 @@ exportToExcel(id:any): void {
   }
 
   findByProject(projectId: number, projectName: string) {
-    alert(projectId);
+    // alert(projectId);
     this.isProjectTeamClicked = true;
     this.projectClicked = true;
     this.allSelected = false;
@@ -554,7 +603,7 @@ exportToExcel(id:any): void {
     this.teamName = "null";
     this.allSelected = false;
 
-let encryptedEmployeeData = localStorage.getItem('employee360Data');
+let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
     let employeeData = null;
     if (encryptedEmployeeData) {
   const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
@@ -612,23 +661,17 @@ let encryptedEmployeeData = localStorage.getItem('employee360Data');
   }
 
   resetDateRange() {
-    this.dateTimeRange = null;
     this.startDate = null;
     this.endDate = null;
-    this.setDate();
+    this.formattedStartDate = null;
+    this.formattedEndDate = null;
+    this.get360TimesheetDetails(this.activeButton, this.empId, this.projectId, this.teamName, null, null);
   }
 
   getDateRange() {
-    if (this.dateTimeRange && this.dateTimeRange.length === 2) {
-      const fromDate = this.dateTimeRange[0];
-      const toDate = this.dateTimeRange[1];
-
-      console.log('From Date:', fromDate);
-      console.log('To Date:', toDate);
-      this.startDate = fromDate;
-      this.endDate = toDate;
-
-      // logic to filter data based on the selected range
+    if (this.startDate && this.endDate) {
+      console.log('From Date:', this.startDate);
+      console.log('To Date:', this.endDate);
       this.setDate();
     }
   }
@@ -664,50 +707,87 @@ let encryptedEmployeeData = localStorage.getItem('employee360Data');
     tab.classList.add('active');
     let activeRouteLink = tab.getAttribute('routerLink');
   }
-
-  transformData(originalData: any) {
+  transformData(originalData: any[]) {
     let transformedData = [];
+    const empName = originalData.find(t => t.createdBy == t.empId)?.employeeName
+      || originalData[0]?.employeeName
+      || '—';
 
-    Object.values(originalData).forEach((employee: any) => {
-      let isFirstActivity = true;
-      // this.managerId=21865;
-      if (this.managerId == employee.managerId) {
+    const empId = originalData[0]?.employmentId;
+    originalData.forEach((timesheet: any) => {
+      if (this.managerId == timesheet.currentManagerId) {
         this.actionButton = true;
-      } else { this.actionButton = false; }
-      const totalActivitiesCount = employee.timeSheetlist.length;
-      employee.timeSheetlist.forEach(items => {
-        let showProject = true;
-        transformedData.push({
-          empId: employee.empId,
-          employmentId: "A-" + employee.employmentId,
-          name: employee.name,
-          date: employee.date,
-          officeInTime: employee.officeInTime,
-          officeOutTime: employee.officeOutTime,
-          totalTime: employee.totalTime,
-          nightShift: employee.nightShift,
-          status: employee.status,
-          createdOn: employee.createdOn,
-          dayType: employee.dayType,
-          completionTime: items.completionTime,
-          activity: items.activity,
-          projectName: items.projectName,
-          teamName: items.teamName,
-          teamId: items.teamId,
-          projectId: items.projectId,
-          activityId: items.activityId,
-          timesheetId: items.timesheetId,
-          empActivitiesCountForDay: totalActivitiesCount,
-          showProject: showProject,
-          showEmpId: isFirstActivity,
-          selected: false,
+      } else {
+        this.actionButton = false;
+      }
+
+      const locationSessions = timesheet.locationSessions || [];
+
+
+      let allProjects: any[] = [];
+      locationSessions.forEach((loc: any) => {
+        (loc.projects || []).forEach((proj: any) => {
+          allProjects.push({ ...proj, locationMappingId: loc.locationMappingId });
         });
-        isFirstActivity = false;
-        showProject = false;
+      });
+
+
+      let totalActivities = 0;
+      allProjects.forEach(proj => {
+        totalActivities += (proj.activities?.length || 0);
+      });
+
+
+      const firstProject = allProjects[0] || null;
+      const firstActivity = firstProject?.activities?.[0] || null;
+
+
+      transformedData.push({
+        name: empName,
+        employmentId: empId ? "A-" + empId : '—',
+        empId: empId,
+        date: timesheet.date,
+        officeInTime: timesheet.workCheckIn,
+        officeOutTime: timesheet.workCheckOut,
+        totalTime: timesheet.totalWorkingMinutes
+          ? (timesheet.totalWorkingMinutes / 60).toFixed(2)
+          : '0',
+        nightShift: timesheet.isNightShift,
+        status: this.mapStatusToString(timesheet.status),
+        timesheetId: timesheet.timesheetId,
+        createdOn: timesheet.createdOn,
+        dayType: timesheet.dayType,
+
+        projectName: firstProject?.projectName || "NA",
+        projectId: firstProject?.projectId || null,
+        teamId: firstActivity?.teamId || null,
+        completionTime: firstProject?.totalClientWorkingMinutes
+          ? (firstProject.totalClientWorkingMinutes / 60).toFixed(2)
+          : null,
+        activity: firstActivity?.activity || null,
+
+        totalProjects: allProjects.length,
+        totalActivities: totalActivities,
+
+        showEmpId: true,
+        showProject: true,
+        selected: false,
+
+        locationSessions: locationSessions,
+        teamName: timesheet.teamName
       });
     });
 
     return transformedData;
+  }
+
+  mapStatusToString(status: number): string {
+    switch (status) {
+      case 1: return 'Pending';
+      case 2: return 'Approved';
+      case 3: return 'Rejected';
+      default: return 'Unknown';
+    }
   }
 
 //   get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
@@ -769,6 +849,27 @@ let encryptedEmployeeData = localStorage.getItem('employee360Data');
 //         });
 //     }
 
+onDateSelected(event: { date: string, status: string }) {
+  console.log("User clicked date:", event);
+
+  if (event.status === 'Approved') {
+    console.log("Skipping navigation because timesheet is approved.");
+    return;
+  }
+  else if(event.status==='Pending'){
+     console.log("Skipping navigation because timesheet is filled.");
+    return;
+  } else if(event.status==='Rejected'){
+     console.log("Skipping navigation because timesheet is 	Rejected.");
+    return;
+  }
+
+  this.router.navigate(['/user-timesheet/my-timesheet'], {
+    queryParams: { date: event.date ,
+      empId: this.empId
+    }
+  });
+}
 async get360TimesheetDetails(
   activeButton: string,
   empId: number,
@@ -778,8 +879,22 @@ async get360TimesheetDetails(
   formattedStartDate: string,
   formattedEndDate: string
 ): Promise<void> {
+  let startDate: string = null;
+  let endDate: string = null;
   console.log(this.activeButton);
-
+  if (this.selectedOption != 1) {
+    endDate = this.formatDateForApi(
+      formattedEndDate && formattedEndDate !== 'null'
+        ? formattedEndDate
+        : new Date().toISOString().split('T')[0]
+    );
+    startDate = this.formatDateForApi(
+      formattedStartDate && formattedStartDate !== 'null'
+        ? formattedStartDate
+        : new Date(new Date().setMonth(new Date().getMonth() - 3))
+          .toISOString().split('T')[0]
+    );
+  }
   try {
 
 
@@ -789,14 +904,14 @@ async get360TimesheetDetails(
       projectId,
       teamName,
       // managerId,
-      formattedStartDate,
-      formattedEndDate
+      startDate,
+      endDate,
     ).toPromise();
 
     if (response.serviceStatus === "Success") {
       console.log("=> serviceResponse", response.serviceResponse);
       this.data = response.serviceResponse;
-      this.data = Object.values(this.data);
+      // this.data = Object.values(this.data);
       this.responseCount = this.data.length;
       this.result = this.transformData(this.data);
       this.result.forEach((employee) => {
@@ -813,6 +928,10 @@ async get360TimesheetDetails(
       });
 
       console.log("this.result =>", this.result);
+    } else {
+      this.data = [];
+      this.result = [];
+      this.responseCount = 0;
     }
 
     const encryptedUser = sessionStorage.getItem('currentUser');
@@ -838,7 +957,7 @@ if (encryptedUser) {
 
     // this.currentUser = sessionStorage.getItem('currentUser');
     if (this.currentUser) {
-      const currentUserData = JSON.parse(this.currentUser);
+      const currentUserData = this.currentUser;
       this.managerId = currentUserData.empId;
       console.log(this.managerId);
     }
@@ -847,11 +966,38 @@ if (encryptedUser) {
     console.error("Error fetching data:", error);
   }
 }
+  mapStatusToInt(status: string): number | null {
+    switch (status) {
+      case 'Pending': return 1;
+      case 'Approved': return 2;
+      case 'Rejected': return 3;
+      default: return null;
+    }
+  }
 
+  formatDateForApi(dateStr: string): string {
+    if (!dateStr || dateStr === 'null') return '';
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+
+    const parts = dateStr.split('-');
+    if (parts.length === 3 && parts[0].length === 2) {
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return dateStr;
+  }
     clearBreadcrumbs(){
-      window.location.reload()
+       window.location.reload()
     }
 
+  expandedRows = new Set<number>();
 
+  toggleRow(timesheetId: number): void {
+    if (this.expandedRows.has(timesheetId)) {
+      this.expandedRows.delete(timesheetId);
+    } else {
+      this.expandedRows.add(timesheetId);
+    }
+  }
 }
 

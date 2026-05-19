@@ -1,0 +1,14 @@
+/* Align with Reimbursement / Timesheet / Travel — see reimbursement.component.css */
+.timesheet__tab-container {
+  padding: 2rem;
+}
+
+.timesheet__tab-item__link {
+  color: var(--middle-grey);
+}
+
+.timesheet__tab-item__link.active {
+  color: var(--raisin-black);
+  font-weight: bold;
+  border-bottom: 5px solid var(--dark-cornflower-blue);
+}

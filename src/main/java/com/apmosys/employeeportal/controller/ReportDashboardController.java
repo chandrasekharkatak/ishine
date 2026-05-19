@@ -57,12 +57,12 @@ public class ReportDashboardController {
 		return response;
 	}
 
-	@RequestMapping(value = "/getEmployeeWorkLocationForSummary", method = RequestMethod.GET)
-	public ServiceResponse getEmployeeWorkLocationForSummary() {
-
-		ServiceResponse response = reportDashboardService.getEmployeeWorkLocationForSummary();
-		return response;
-	}
+//	@RequestMapping(value = "/getEmployeeWorkLocationForSummary", method = RequestMethod.GET)
+//	public ServiceResponse getEmployeeWorkLocationForSummary() {
+//
+//		ServiceResponse response = reportDashboardService.getEmployeeWorkLocationForSummary();
+//		return response;
+//	}
 
 	@RequestMapping(value = "/getDepartmentWiseBillableData", method = RequestMethod.POST)
 	public ServiceResponse getDepartmentWiseBillableData(@RequestBody LeaveDTO leaveDto) {

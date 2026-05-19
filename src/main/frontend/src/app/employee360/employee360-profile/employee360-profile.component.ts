@@ -116,6 +116,7 @@ export class Employee360ProfileComponent implements OnInit {
    @ViewChild("change_default_project_template_on_deptUpdate")
   changeDefaultProjectTemplate: TemplateRef<any>;
 
+   @ViewChild("delete_employee_from_existing_project") deleteEmployeeFromExistingProjectTemplateRef: TemplateRef<any>;
 
   constructor(
     private employeeService: EmployeeService,
@@ -2065,7 +2066,7 @@ if (this.deptSelected) {
 
   if (this.isUpdation) {
     this.modalRef = this.modalService.open(this.changeDefaultProjectTemplate,{ modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false } );
-  } else { 
+  } else {
     this.deptSelected = true;
   }
   }
@@ -2100,7 +2101,6 @@ if (this.deptSelected) {
     const selectedProjectId = +event.target.value;
     const selectedProject = this.projectList.find(p => p.projectId === selectedProjectId);
     this.showEmployeeRoleDropdown = false;
-   
 
     if (selectedProject && selectedProject.teamList) {
       this.teamList = selectedProject.teamList;

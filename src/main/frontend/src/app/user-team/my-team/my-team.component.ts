@@ -2817,6 +2817,7 @@ setPipExtendsDays(template:TemplateRef<any>){
 // Balkan OrgChart removed (license expired). Custom hierarchy chart is rendered in the template.
 
 
+
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {

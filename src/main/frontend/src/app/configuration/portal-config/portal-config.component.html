@@ -15,8 +15,10 @@
 <!-- Portal Global Configuration start -->
 <div class="row">
     <div class="card col-md-12 px-0" *ngIf="portalConfig">
-        <div class="card-header text-center text-uppercase">
-            <strong>Portal Global Configuration</strong>
+        <div class="card-header custom-header text-uppercase">
+    
+            <strong class="header-title">Portal Global Configuration</strong>
+    
         </div>
         <div class="card-body">
             <div class="row">
@@ -48,7 +50,7 @@
                             <input type="number" class="form-control" autocomplete="none"
                                 [(ngModel)]="portalObj.noticePeriod">
                         </div>
-                    </div>
+                    </div>"card-header text-center text-uppercase"
                 </div>
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
@@ -819,6 +821,78 @@
 </div>
 
 <!-- Help Configuration :: end -->
+<!-- Defaulter Popup Configuration :: start -->
+
+<div class="row mt-4" *ngIf="isDefaulterConfigForm">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h1 class="table-header-title">Defaulter Popup Configuration</h1>
+      </div>
+    </div>
+
+    <div class="card mt-2">
+      <div class="card-body">
+
+        <!-- Heading -->
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="info-label">Popup Heading</label>
+              <input type="text" class="form-control" [(ngModel)]="portalObj.defPopupHeading" maxlength="100">
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="row">
+          <div class="col-md-12">
+            <div class="form-group">
+              <label class="info-label">Popup Description</label>
+              <textarea class="form-control" rows="3" [(ngModel)]="portalObj.defPopupDescription">
+              </textarea>
+            </div>
+          </div>
+        </div>
+
+      <!-- Cutoff (Month + Year Picker) -->
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+
+            <label class="info-label">Cutoff Month & Year</label>
+
+          <mat-form-field appearance="outline" class="w-100">
+          
+            <input matInput [matDatepicker]="picker" [(ngModel)]="selectedMonth" placeholder="Select month and year" readonly>
+          
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          
+            <mat-datepicker #picker startView="multi-year" (yearSelected)="chosenYearHandler($event)"
+              (monthSelected)="chosenMonthHandler($event, picker)">
+            </mat-datepicker>
+          
+          </mat-form-field>
+
+          </div>
+        </div>
+      </div>
+
+        <!-- Save Button -->
+        <div class="row mt-3">
+          <div class="col-md-12">
+            <button class="btn btn-primary btn-sm" (click)="updatePortalGlobalConfiguration(portalObj,alert_message)">
+              Save Configuration
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Defaulter Popup Configuration :: end -->
 
 <!-- Filter Modal -->
 <ng-template #filter>

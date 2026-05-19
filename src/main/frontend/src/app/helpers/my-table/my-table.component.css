@@ -1,0 +1,101 @@
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+    /* <-- Key point */
+}
+
+th,
+td {
+    white-space: nowrap;
+    text-align: left;
+    padding: 8px;
+}
+
+.table thead th {
+    width: 100%;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    background-color: #f4f6f8;
+    z-index: 3;
+}
+
+td {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.column-filter-toggle {
+    display: flex;
+    justify-content: left;
+    max-width: fit-content;
+    cursor: pointer;
+}
+
+.column-filter-toggle-btn {
+    color: #193d8a;
+    background-color: #fff;
+}
+
+.export-btn {
+    color: #053885;
+    display: flex;
+    justify-content: left;
+    max-width: fit-content;
+}
+
+.pointer-cursor {
+    cursor: pointer;
+}
+
+.table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+::ng-deep .custom-filter-row td {
+    border: 1px solid #ddd;
+    background-color: #f4f6f8;
+    position: sticky;
+    top: 40px;
+    z-index: 2;
+}
+
+.compact-paginator ::ng-deep {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 36px !important;
+    background: transparent !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-paginator-container {
+    padding: 0 !important;
+    min-height: 36px !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-paginator-page-size {
+    margin-right: 6px !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-paginator-range-label {
+    margin: 0 6px !important;
+    font-size: 12px !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-icon-button {
+    width: 30px !important;
+    height: 30px !important;
+    padding: 2px !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-select-trigger {
+    height: 28px !important;
+    font-size: 12px !important;
+}

@@ -22,6 +22,7 @@ import { PerformanceService } from 'src/app/services/performance.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { HrHodMangerApiForPerformnace } from 'src/app/models/hrHodMangerApiForPerformnace';
+import { EmployeeService } from 'src/app/services/employee.service';
 
 @Component({
   standalone: false,
@@ -84,11 +85,14 @@ export class PerformanceConfigComponent implements OnInit {
   log:Log;
   tabName:any = 'Configurations';
   excelName: string;
+  employeeList: any[] = [];        // full list from API
+  selectedEmployees: any[] = [];   // rows in table 
   constructor(
     private validationService: ValidationService,
     private modalService: NgbModal,
     private datePipe: DatePipe,
     private authenticationService: AuthenticationService,
+    private employeeService: EmployeeService,
     private exportExcelService: ExportExcelService,
     private locationStrategy: LocationStrategy,
     private departmentService: DepartmentService,
@@ -317,6 +321,11 @@ export class PerformanceConfigComponent implements OnInit {
     this.quarterCycle.cycleType = this.selectedCycleFrequency;
     console.log(this.selectedCycleFrequency);
     console.log(this.quarterCycle.cycleType);
+    if(this.selectedEmployees.length > 0){
+      this.quarterCycle.excludedEmployees = this.selectedEmployees.map(emp => emp.empId);
+    }else{
+      this.quarterCycle.excludedEmployees = [];
+    }
 
     this.performanceService.createQuarterCycle(this.quarterCycle).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -339,7 +348,12 @@ export class PerformanceConfigComponent implements OnInit {
     this.quarterCycle.updatedBy = this.currentUser.empId;
     this.quarterCycle.financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
     this.quarterCycle.quarterCycle = `${this.quarterCycle.fromMonth}-${this.quarterCycle.toMonth}`;
-
+    this.quarterCycle.cycleType = this.selectedCycleFrequency;
+    if(this.selectedEmployees.length > 0){
+      this.quarterCycle.excludedEmployees = this.selectedEmployees.map(emp => emp.empId);
+    }else{
+      this.quarterCycle.excludedEmployees = [];
+    }
     this.performanceService.updateQuarterCycle(this.quarterCycle).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -873,9 +887,12 @@ pageChangedPreview(event)
         this.quarterCycle.toYear = toYear;
         this.quarterCycle.fromMonth = fromMonth;
         this.quarterCycle.toMonth = toMonth;
-
+        this.selectedFinancialYear = this.quarterCycle.financialYear;
+        this.selectedCycleFrequency = this.quarterCycle.cycleType;
+        this.selectedQaurterCycle = this.quarterCycle.quarterCycle;
         this.fetchExistingQuarters();
-
+        this.getEmployeeByNameAndEmpld();
+        this.selectedEmployees = this.selectedEmployees = (this.quarterCycle.excludedEmployees || []).map(empId => ({empId: empId}));
 
       } else {
         console.error(response.serviceResponse)
@@ -937,6 +954,8 @@ pageChangedPreview(event)
     // this.allSpecializationList.push("nsjd");
   }
   showQuaterCreateForm() {
+    this.quarterCycle = new QuarterCycle();
+    this.getEmployeeByNameAndEmpld();
     this.setFinancialYear();
     this.fetchExistingQuarters();
     this.isQuaterTable = false;
@@ -1243,8 +1262,35 @@ pageChangedPreview(event)
     }
   }
 
+  // Add new row
+addRow() {
+  this.selectedEmployees.push({
+    empId: null
+  });
+}
 
+// Remove row
+removeRow(index: number) {
+  this.selectedEmployees.splice(index, 1);
+}
 
+// Get filtered employee list (removes already selected ones)
+getAvailableEmployees(currentIndex: number) {
+  const selectedIds = this.selectedEmployees
+    .map((e, i) => i !== currentIndex ? e.empId : null)
+    .filter(id => id !== null);
+    console.log('Selected IDs:', this.selectedEmployees);
+  return this.employeeList.filter(emp => !selectedIds.includes(emp.empId));
+}
+
+getEmployeeByNameAndEmpld() {
+    this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.employeeList = response.serviceResponse;
+        console.log('Employee List:', this.employeeList);
+      }
+    });
+  }
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

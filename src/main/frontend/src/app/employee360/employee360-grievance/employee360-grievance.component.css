@@ -1,0 +1,9 @@
+.form-control-sm,
+.small-gap {
+  margin-left: 10px;
+  margin-top: 10px;
+}
+.ml-auto {
+  margin-right: 10px;
+  margin-top: 10px;
+}

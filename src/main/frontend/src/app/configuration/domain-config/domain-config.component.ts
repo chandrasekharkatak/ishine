@@ -14,6 +14,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 @Component({
@@ -79,6 +80,7 @@ export class DomainConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private exportExcelService: ExportExcelService,
     private utilityService: UtilityService,
+    private router : Router
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x);}
 
   async ngOnInit(): Promise<void> {

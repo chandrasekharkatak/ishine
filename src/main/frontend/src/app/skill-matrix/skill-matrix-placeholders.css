@@ -1,0 +1,9 @@
+/* Shared with Reimbursement / portal theme — see styles.css CSS variables */
+.skill-matrix-ph__title {
+  color: var(--dark-cornflower-blue);
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.75rem;
+}

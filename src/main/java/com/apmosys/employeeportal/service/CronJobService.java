@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.Month;
 import java.time.OffsetDateTime;
 import java.time.Period;
@@ -37,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -62,6 +64,7 @@ import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
+import com.apmosys.employeeportal.repository.*;
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
 import org.dhatim.fastexcel.reader.ReadableWorkbook;
@@ -69,6 +72,8 @@ import org.dhatim.fastexcel.reader.Row;
 import org.dhatim.fastexcel.reader.Sheet;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -86,8 +91,11 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
+import com.apmosys.employeeportal.dto.AutoMigrationDTO;
 import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeImpactDTO;
+import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MilestoneExpireDto;
@@ -96,17 +104,21 @@ import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.enums.SchedulerTriggerType;
+import com.apmosys.employeeportal.enums.DayTypeCode;
 import com.apmosys.employeeportal.model.BiomaxDefaulter;
 import com.apmosys.employeeportal.model.BiomaxRequest;
 import com.apmosys.employeeportal.model.BirthdayMail;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.CompOffLeave;
+import com.apmosys.employeeportal.model.DayTypeMasterNew;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.Holiday;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
@@ -118,31 +130,7 @@ import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ProjectPo;
 import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.Team;
-import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.UserSession;
-import com.apmosys.employeeportal.repository.BiomaxDefaulterRepository;
-import com.apmosys.employeeportal.repository.BiomaxRequestRepository;
-import com.apmosys.employeeportal.repository.BirthdayMailRepository;
-import com.apmosys.employeeportal.repository.ClientLocationRepository;
-import com.apmosys.employeeportal.repository.ClientsRepository;
-import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
-import com.apmosys.employeeportal.repository.DepartmentRepository;
-import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
-import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
-import com.apmosys.employeeportal.repository.EmployeeRepository;
-import com.apmosys.employeeportal.repository.HolidayRepository;
-import com.apmosys.employeeportal.repository.JobRoleRepository;
-import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
-import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
-import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
-import com.apmosys.employeeportal.repository.PortalConfigRepository;
-import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
-import com.apmosys.employeeportal.repository.ProjectRepository;
-import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
-import com.apmosys.employeeportal.repository.TeamRepository;
-import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
-import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -163,95 +151,117 @@ public class CronJobService {
 	private BiomaxRequestRepository biomaxRequestRepository;
 	@Autowired
 	ProjectRepository projectRepository;
-	
+
 	@Autowired
 	ClientLocationRepository clientLocationRepository;
-	
+
 	@Autowired
 	BioMaxService bioMaxService;
-	
+
 	@Autowired
 	JobRoleRepository jobRoleRepository;
 	//added by rahul
 
-	
-	//end of rahul 
-	
+
+	//end of rahul
+
+    @Autowired
+    private DayTypeMasterNewRepository dayTypeMasterNewRepository;
+
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
-	
+
 	@Autowired
 	LeavePolicyMasterRepository leavePolicyMasterRepository;
-	
+
 	@Autowired
 	EmployeeLeavesMapRepository employeeLeavesMapRepository;
-	
-	@Autowired				
+
+	@Autowired
 	EmployeeRepository employeeRepository;
 	
+
 	@Autowired
-	TimesheetsRepository timesheetsRepository;
+	TimesheetActivityMapNewRepository timesheetActivityMapNewRepository;
 	
+//	@Autowired
+//	TimesheetsRepository timesheetsRepository;
+
 	@Autowired
 	HolidayRepository holidayRepository;
-	
+
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;
-	
+
 	@Autowired
 	PortalConfigRepository portalConfigRepository;
-	
+
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
-	
+
 	@Autowired
 	TimesheetService timesheetService;
+
+//	@Autowired
+//	TimesheetActivityMapRepository timesheetActivityMapRepository;
 	
 	@Autowired
-	TimesheetActivityMapRepository timesheetActivityMapRepository;
-	
+	TimesheetActivityMapNewRepository timesheetActivityMapRepository;
+
 	@Autowired
 	BirthdayMailRepository birthdayMailRepository;
-	
+
 	@Autowired
 	LeaveBalanceLogRepository leaveBalanceLogRepository;
-	
+
 	@Autowired
 	CompOffLeaveRepository compOffLeaveRepository;
-	
+
 	@Autowired
 	DepartmentRepository departmentRepository;
-	
+
 	@Autowired
 	TeamRepository teamRepository;
-	
+
 	@Autowired
 	ClientsRepository clientsRepository;
-	
+
 	@Autowired
 	AuthenticationService authenticationService;
-	
+
+    @Autowired
+	HolidayService holidayService;
+
 	@Autowired
 	private LogService logService;
-	
+
 	@Autowired
 	private HttpServletRequest httpRequest;
-	
+
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
-	
+
 	@Autowired
 	ResourceRequirementRepository resourceRequirementRepository;
 	
 	@Autowired
+	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
+
+	@Autowired
 	MailService mailService;
-	
+
 	@Autowired
 	private UserSessionRepository userSessionRepository;
-	
+
 	@Autowired
 	BiomaxDefaulterRepository biomaxDefaulterRepository;
 	
+	@Autowired
+	TeamsService teamsService;
+
+	@Autowired
+	TeamMemberStatusOrchestrationService teamMemberStatusOrchestrationService;
+
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
 
@@ -263,43 +273,43 @@ public class CronJobService {
 
 	@Value("${po.db.password}")
 	private String password;
-	
+
 	@Value("${hr.mail}")
 	private String hrMailAddress;
-	
+
 	@Value("${hr.head}")
 	private String hrHeadMail;
-	
+
 	@Value("${timesheet.reconcile.days}")
 	private Long timesheetReconcileDays;
-	
+
 	@Value("${billablechange.mail}")
 	private String billablechangeMailAddress;
-	
+
 	@Value("${finance.mail}")
 	private String financeMail;
-	
+
 	@Value("${allEmployeeDSR.file.location}")
 	private String allEmployeeDSRFileLocation;
-	
+
 	@Value("${rmg.mail}")
 	private String rmgMail;
-	
+
 	@Value("${poPortal.api.allProjects}")
 	private String allPoPortalProjects;
-	
+
 	@Value("${resignation.consent.link}")
 	private String resignationConsentLink;
-	
+
 	@Value("${usersession.inactive.timeout:10}")
 	private Long userSessionInactiveTimeout;
-	
+
 	@Value("${valid.attempt:5}")
 	private Long validAttempt;
-	
+
 	@Value("${leavetypeId}")
 	private int leaveTypeId;
-	
+
 	@Value("${admin.mail}")
 	private String adminMail;
 	
@@ -314,19 +324,21 @@ public class CronJobService {
 
 	@Value("${compOff.leave.type}")
 	private String leaveTypeCode;
-	
- 
-	
+
+	private static final Logger log = LoggerFactory.getLogger(CronJobService.class);
+
+
+
 	 @PersistenceContext
 	 EntityManager entityManager;
-	 
+
 	 public CronJobService(EntityManager entityManager) {
 	        this.entityManager = entityManager;
 	    }
-	 
-	 
 
-		
+
+
+
 //0 0 12 1 * ?  - Every month on the 1st, at noon
 //	0 0/2 * ? * *
 //	@Scheduled(cron = "0 0 12 1 * ?")
@@ -335,70 +347,70 @@ public class CronJobService {
 	public void monthlyLeaveIncrement() {
 		try {
 		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
-		     
+
 		     List<Employee> employeeList = employeeRepository.findAll();
-		     
-		     LocalDate dateToday = LocalDate.now(); 
-		     
+
+		     LocalDate dateToday = LocalDate.now();
+
 		     LocalDate prevMonthStart = dateToday.minusMonths(1).withDayOfMonth(1);  //2024-11-01
-		     
+
 		     YearMonth thisYearMonth = YearMonth.of(prevMonthStart.getYear(), prevMonthStart.getMonthValue());  //2024, 11
-		     
+
 		     LocalDate prevMonthEnd = thisYearMonth.atEndOfMonth();   //2024-11-30
-		     
+
 		     if(!leaveType.isEmpty()) {
-		    	 
+
 		    	 for(LeaveTypeMaster ltm :leaveType) {
 		        	  for(Employee employeeObj : employeeList) {
-		        		  
+
 		        		  System.out.println("checked     "+employeeObj.getEmploymentstatus().equals("Retain"));
-		        		  
+
 		        		  if(employeeObj.getEmploymentstatus().equals("Retain")) {
-	        				  
+
 	        				  System.out.println("@@@  "+employeeObj.getName());
-	        				  
-	        				  System.out.println("@@@  "+employeeObj.getIsRetain());	
+
+	        				  System.out.println("@@@  "+employeeObj.getIsRetain());
 	        				  }
-		        		 
+
 		        		  System.out.println(employeeObj.getEmploymentstatus() +"  "+ ltm.getLeaveTypeMasterId());
-		        		  
+
 		        		  Optional<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.
 		        				  findByEmployentStatusAndLeaveTypeMasterId(employeeObj.getEmploymentstatus(),ltm.getLeaveTypeMasterId());
 		        		  System.err.println("Red"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
 		        		  if(!leavePolicy.isEmpty() ) {
-		        			 
+
 		        			  LeavePolicyMaster leavePolicyObj = leavePolicy.get();
 
 		        			  if(leavePolicyObj.getIncrement().equals("Yes")){
-		        				  
-		        				
-		        				  
+
+
+
 		        				  EmployeeLeavesMap employeeLeaveMap = employeeLeavesMapRepository.
 		        						  findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(),ltm.getLeaveTypeMasterId());
-		        				  
+
 		        				  System.err.println("Red"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
-		        				  
+
 		        				          if(employeeLeaveMap != null) {
-		        				        	  
+
 		        				        	  // Manage Balance if user In-Between a month
 		        				        	  Boolean isContains = (employeeObj.getDateOfJoining().isBefore(prevMonthEnd) ) && (employeeObj.getDateOfJoining().isAfter(prevMonthStart));
 		        				        	  float retainValue = 0.0F;
-		        				        	  
+
 		        				        	  if(isContains) {
 		        				        		  Float newBalance = 0.0F;
-		        				        		  
+
 		        				        		    Period period = Period.between(employeeObj.getDateOfJoining(), dateToday);
 		        									long elapsedDays = period.getDays();
 		        									double leavesForDays = (double)((leavePolicyObj.getIncrementValue()*elapsedDays)/30);
-		        									
-		        									
+
+
 		        									if(leavesForDays != 0) {
 		        										BigDecimal BIG_O5 = new BigDecimal(0.5);
 
 		        									    BigDecimal bd = new BigDecimal( leavesForDays - Math.floor(leavesForDays));
 		        									    bd = bd.setScale(4,RoundingMode.HALF_DOWN);
 		        									    System.out.println("Decimal value " + bd.toString());
-		        									    
+
 		        									    if(bd.compareTo(BIG_O5) == 1) {
 		        									    	leavesForDays = Math.ceil(leavesForDays);
 		        									    }else if(bd.compareTo(BIG_O5) == 0){
@@ -407,9 +419,9 @@ public class CronJobService {
 		        									    	leavesForDays = Math.floor(leavesForDays);
 		        									    }
 		        									}
-		        									
+
 		        									newBalance =  (float)(employeeLeaveMap.getBalance() + leavesForDays);
-		        									
+
 		        									employeeLeaveMap.setBalance(newBalance);
 				        				        	 EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
 				        				        	 System.out.println("bsjhsdh"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
@@ -425,29 +437,29 @@ public class CronJobService {
 
 															leaveBalanceLogRepository.save(log);
 				        				        	  }
-		        				        		  
+
 		        				        	  }
 		        				        	  else {
-		        				        		  
-		        				        		  
 
-		        				        		  
+
+
+
 		        				        		  LocalDate resignedDate = employeeObj.getDateOfResign();
 		        				        		  LocalDate retainedDate = employeeObj.getDateOfRetain();
 		        				        	      String  isRetain = employeeObj.getIsRetain();
 		        				        	      System.out.println("Yesssss     "+employeeObj);
-		        				        	      
-		        				        	      System.out.println("1    "+resignedDate); 
+
+		        				        	      System.out.println("1    "+resignedDate);
 		        				        	      System.out.println("2    "+retainedDate);
 		        				        	      System.out.println("3   "+isRetain);
-		        				        	      
-		        				        	      System.out.println("1    "+employeeObj.getDateOfResign()); 
+
+		        				        	      System.out.println("1    "+employeeObj.getDateOfResign());
 		        				        	      System.out.println("2    "+employeeObj.getDateOfRetain());
 		        				        	      System.out.println("3   "+employeeObj.getIsRetain());
-		        				        	      
-		        				        	      if ("Yes".equals(isRetain)) { 
+
+		        				        	      if ("Yes".equals(isRetain)) {
 		        				        	    	  System.out.println("bsjhsdh"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
-		        				        	    	  
+
 		        				        	    	    if (resignedDate != null && retainedDate != null) {
 		        				        	    	    	System.err.println("jhbshj"+employeeObj.getEmpId());
 		        				        	    	    	System.out.println("bsjhsdh"+employeeObj.getEmpId() +"  "+ ltm.getLeaveTypeMasterId());
@@ -456,7 +468,7 @@ public class CronJobService {
 		        				        	    	        long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
 
 		        				        	    	        long fullMonths = totalDays / 30;
-		        				        	    	        
+
 		        				        	    	        System.out.print("fullMonth  "+fullMonths);
 
 		        				        	    	        for (long i = 0; i < fullMonths; i++) {
@@ -475,17 +487,17 @@ public class CronJobService {
 		        				        	    	    }
 		        				        	    	}
 
-		        			
-		        				        		  
-		        				        		  
-		        				        		  
-  
+
+
+
+
+
 
 		        				        		  float newBalance = employeeLeaveMap.getBalance() + leavePolicyObj.getIncrementValue();
 			        				        	  System.out.println(newBalance);
 			        				        	  employeeLeaveMap.setBalance(newBalance);
 			        				        	  EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(employeeLeaveMap);
-			        				        	  
+
 			        				        	  if(dbResponse != null) {
 														LeaveBalanceLog log = new LeaveBalanceLog();
 
@@ -498,13 +510,13 @@ public class CronJobService {
 
 														leaveBalanceLogRepository.save(log);
 			        				        	  }
-		        				        		  
-			        				        	  
-			        				        	  
-			        				        	  
-			        				        	  
-			        				        	  
-			        				        	  
+
+
+
+
+
+
+
 		        				        	  }
 		        				          }
 		        			  }
@@ -518,39 +530,39 @@ public class CronJobService {
 			e.printStackTrace();
 		   }
 	}
-	
-	
-	
-		
-	
+
+
+
+
+
 	// 0 0 0 31 MAR ? - AT 00:00 AT 31 DAY AT MARCH MONTH
-	
+
 //	@Scheduled(cron = "0 0 0 31 MAR ?")
 //	public void YearlyLeaveCronJob() {
-//		
+//
 //		short leaveTypeMasterId = 0;
 //		try {
 //		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
-//		     
+//
 //		          for(LeaveTypeMaster ltm :leaveType) {
 //			      leaveTypeMasterId = ltm.getLeaveTypeMasterId();
-//			
+//
 //			      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-//			      
+//
 //			          for(LeavePolicyMaster lpm : leavePolicy) {
 //				         if(lpm.getCarryForward().equals("Yes") || lpm.getCarryForward().equals("No")) {
-//					
+//
 //					         List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);
-//					       
+//
 //					              for(EmployeeLeavesMap elm :employeeLeaveMap) {
 //						              float dbBalance = elm.getBalance();
-//						              
+//
 //										if (lpm.getCarryForward().equals("No")) {
-//											
+//
 //											float newBalance = 0;
 //											elm.setBalance(newBalance);
 //											EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
-//											
+//
 //											if (dbResponse != null) {
 //												LeaveBalanceLog log = new LeaveBalanceLog();
 //
@@ -565,7 +577,7 @@ public class CronJobService {
 //											}
 //										} else if (lpm.getCarryForward().equals("Yes")) {
 //											float carryForwardValue = lpm.getCarryForwardValue();
-//											
+//
 //											if (dbBalance > carryForwardValue) {
 //												float newBalance = carryForwardValue;
 //												float deductedLeaveCount = dbBalance - carryForwardValue;
@@ -594,7 +606,7 @@ public class CronJobService {
 //			e.printStackTrace();
 //		   }
 //	}
-	 
+
 	// At 09:00 PM, on day 16th of the month, only in January
 //	@Scheduled(cron = "0 0 21 16 01 ?")
 
@@ -604,29 +616,29 @@ public class CronJobService {
 
 		public void YearlyLeaveCronJob() {
 			System.out.println("*************************************************************************");
-			
+
 			short leaveTypeMasterId = 0;	//initialize with zero
 			try {
 			     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();	//get all leave type
-			     
+
 			          for(LeaveTypeMaster ltm :leaveType) {
 				      leaveTypeMasterId = ltm.getLeaveTypeMasterId();	//iterate each leave type and get the leaveTypeMasterId
-				
+
 				      List<LeavePolicyMaster> leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterId(leaveTypeMasterId);	//get the leave policy details from leaveTypeMasterId
-				      
+
 				          for(LeavePolicyMaster lpm : leavePolicy) {
 					         if(lpm.getCarryForward().equals("Yes") || lpm.getCarryForward().equals("No")) {	//check either carry forwared is possible or not both
-						
+
 //						         List<EmployeeLeavesMap> employeeLeaveMap = employeeLeavesMapRepository.findByLeaveTypeMasterId(leaveTypeMasterId);		//get all the list of employee by using leaveTypeMasterId
 					        	 List<Object[]> employeeLeaveMap = employeeLeavesMapRepository.getEmpDetailsByLeaveTypeMasterId(leaveTypeMasterId);
-					        	 
+
 //						              for(EmployeeLeavesMap elm :employeeLeaveMap) {
 					              		for(Object[] object : employeeLeaveMap) {
 
-					        	 		
+
 //							              float dbBalance = elm.getBalance();	//store the DB balance
 					              			float dbBalance = (object[1] != null ? Float.parseFloat(object[1].toString()) : null);
-					              			
+
 					              			Date dateOfJoin = (Date) (object[6]);
 					              			Short probationDays = (object[5] != null ? Short.parseShort(object[5].toString()) : null);
 					              	        Date probationCompleteDate = null;
@@ -640,29 +652,29 @@ public class CronJobService {
 					              			    probationCompleteDate = cal.getTime();
 					              			    System.err.println("Complete probation Period ::  "+probationCompleteDate);
 					              			}
-					              	        
+
 					              	        int currentYear = LocalDate.now().getYear();
-					              			
+
 					              	        // Create Calendar instances for the start and end dates
 					              	        Calendar startDate = Calendar.getInstance();
 					              	        startDate.set(currentYear-1, Calendar.JULY, 1);
-					              	        
+
 					              	        Calendar endDate = Calendar.getInstance();
 					              	        endDate.set(currentYear, Calendar.JANUARY, 10);
-					              	        
+
 					              	        System.out.println("Start Date and End Date     ::   "+startDate.getTime()+" = "+endDate.getTime());
-					              	        
+
 					              	        // Check if probationCompleteDate is between July 1, 2023, and December 31, 2023
 					              	        boolean isWithinRange = probationCompleteDate.after(startDate.getTime()) && probationCompleteDate.before(endDate.getTime());
 	               //false
 					              	        System.err.println("probationCompleteDate.after(startDate.getTime())    :: "+startDate.getTime() );
 					              	        System.err.println("probationCompleteDate.before(endDate.getTime()    ::    "+endDate.getTime());
 					              	        if (!isWithinRange) {
-					//true              	        	
+					//true
 					              	            System.out.println("Probation complete date is between July 1, 2023, and December 31, 2023.");
-					              	            
+
 												if (lpm.getCarryForward().equals("No")) {
-													
+
 //													List<EmployeeLeave> employeeLeave = employeeLeaveRepository.findAll();
 													List<EmployeeLeave> employeeLeaveforApproved = employeeLeaveRepository.findByEmployeeforApproved();
 													List<EmployeeLeave> employeeLeaveforPending = employeeLeaveRepository.findByEmployeeforPending();
@@ -671,32 +683,32 @@ public class CronJobService {
 
 
 													List<EmployeeLeave> updatedEmployeeLeaveList = new ArrayList<>(); // List to hold mapped EmployeeLeave entities
-													float newBalance = 0; 
+													float newBalance = 0;
 
 
 													if(!employeeLeaveforApproved.isEmpty()) {
 														for(EmployeeLeave leave : employeeLeaveforApproved) {
 															if(leave != null) {
-																
+
 																Date createdOnDate = leave.getCommonProperty().getCreatedOn(); // Assuming this returns java.util.Date
 																LocalDate createdOnLocalDate = createdOnDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 																System.out.println("Checking Year " + createdOnLocalDate.getYear());
-																if(createdOnLocalDate.getYear() == (currentYear - 1) && 
+																if(createdOnLocalDate.getYear() == (currentYear - 1) &&
 																		leave.getFromDate().getYear() == currentYear) {
-																	
+
 																	newBalance=1;
 																	LeaveDTO leaveDTO = new LeaveDTO();
 																	leaveDTO.setLeaveStatusId((short)5);
 																	leaveDTO.setManagerApprovalStatus("Revoked");
 																	leaveDTO.setLevel2ApprovalStatus("NA");
 																	leaveDTO.setLevel3ApprovalStatus("NA");
-																	leaveDTO.setLevel2ApproverId(null);		
+																	leaveDTO.setLevel2ApproverId(null);
 																	leaveDTO.setLevel3ApproverId(null);
 																	leaveDTO.setReason("Application revoked as CL exceeded its limit !!");
 																	leaveDTO.setUpdatedBy(3);
 																	leaveDTO.setCurrentApprovalLevel(1);
 																	leaveDTO.setFinalApprovalLevel(1);
-																	
+
 																	leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
 													                leave.setManagerApprovalStatus(leaveDTO.getManagerApprovalStatus());
 													                leave.setLevel2ApprovalStatus(leaveDTO.getLevel2ApprovalStatus());
@@ -707,20 +719,20 @@ public class CronJobService {
 													                leave.getCommonProperty().setUpdatedBy((Long.valueOf(leaveDTO.getUpdatedBy())));
 													                leave.setCurrentApprovalLevel(leaveDTO.getCurrentApprovalLevel());
 													                leave.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());
-																	
+
 													                updatedEmployeeLeaveList.add(leave);
 													                elm.setBalance(newBalance);
 																	elm.setEmpId(leave.getEmpId());
 																	elm.setLeaveTypeMasterId(leave.getLeaveTypeMasterId());
 																	List<Long> employeeLeaveMapIds = employeeLeaveforApproved.stream()
-																		    .map(record -> record.getEmpId())  
-																		    .collect(Collectors.toList());     
+																		    .map(record -> record.getEmpId())
+																		    .collect(Collectors.toList());
 
 																	List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
-																		    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
+																		    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue()))
 																		    .collect(Collectors.toList());
 																	EmployeeLeavesMap lst = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(elm.getEmpId(),elm.getLeaveTypeMasterId());
-															        
+
 																	if (!matchingEmployeeIds.isEmpty()) {
 																	    matchingEmployeeIds.forEach(list -> {
 																	        if (list[0] instanceof BigInteger) {
@@ -730,19 +742,19 @@ public class CronJobService {
 																	        } else if (list[0] instanceof Long) {
 																	            // If it is already a Long, no conversion needed
 																	        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
-																	        } 
+																	        }
 																	        if (list[4] instanceof Float) {
 																	            elm.setPendingForApproval((Float) list[4]);
-																	        } 
+																	        }
 																	   });
-																	}	
+																	}
 																	dbResponse = employeeLeavesMapRepository.save(elm);
 																}
-																
-//																float newBalance = 1; 
+
+//																float newBalance = 1;
 													            if (createdOnLocalDate.getYear() == leave.getFromDate().getYear() &&
 													                leave.getNoOfDays() > 1) {
-													                newBalance = 1; 
+													                newBalance = 1;
 													                LeaveDTO leaveDTO = new LeaveDTO();
 													                leaveDTO.setLeaveStatusId((short) 5);
 													                leaveDTO.setManagerApprovalStatus("Revoked");
@@ -771,11 +783,11 @@ public class CronJobService {
 																	elm.setEmpId(leave.getEmpId());
 																	elm.setLeaveTypeMasterId(leave.getLeaveTypeMasterId());
 																	List<Long> employeeLeaveMapIds = employeeLeaveforApproved.stream()
-																		    .map(record -> record.getEmpId())  
-																		    .collect(Collectors.toList());     
+																		    .map(record -> record.getEmpId())
+																		    .collect(Collectors.toList());
 
 																	List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
-																		    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
+																		    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue()))
 																		    .collect(Collectors.toList());
 																	EmployeeLeavesMap lst = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(elm.getEmpId(),elm.getLeaveTypeMasterId());
 																	if (!matchingEmployeeIds.isEmpty()) {
@@ -787,7 +799,7 @@ public class CronJobService {
 																	        } else if (list[0] instanceof Long) {
 																	            // If it is already a Long, no conversion needed
 																	        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
-																	        } 
+																	        }
 																	        if (list[4] instanceof Float) {
 																	            elm.setPendingForApproval((Float) list[4]);
 																	        }
@@ -801,11 +813,11 @@ public class CronJobService {
 																	elm.setEmpId(leave.getEmpId());
 																	elm.setLeaveTypeMasterId(leave.getLeaveTypeMasterId());
 																	List<Long> employeeLeaveMapIds = employeeLeaveforApproved.stream()
-																		    .map(record -> record.getEmpId())  
-																		    .collect(Collectors.toList());     
+																		    .map(record -> record.getEmpId())
+																		    .collect(Collectors.toList());
 
 																	List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
-																		    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
+																		    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue()))
 																		    .collect(Collectors.toList());
 																	EmployeeLeavesMap lst = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(elm.getEmpId(),elm.getLeaveTypeMasterId());
 																	if (!matchingEmployeeIds.isEmpty()) {
@@ -817,19 +829,19 @@ public class CronJobService {
 																        } else if (list[0] instanceof Long) {
 																            // If it is already a Long, no conversion needed
 																        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
-																        } 															       
+																        }
 																	        if (list[4] instanceof Float) {
 																	            elm.setPendingForApproval((Float) list[4]);
 																	        }
 																	    });
 																	}
-																	
+
 																	dbResponse = employeeLeavesMapRepository.save(elm);
 													            }
 															}
-											
+
 														}
-														
+
 													}
 //													float newBalance = 0;
 													if(!employeeLeaveforPending.isEmpty()) {
@@ -838,23 +850,23 @@ public class CronJobService {
 																		Date createdOnDate = leave.getCommonProperty().getCreatedOn(); // Assuming this returns java.util.Date
 																		LocalDate createdOnLocalDate = createdOnDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 																		System.out.println("Checking Year " + createdOnLocalDate.getYear());
-																		if( createdOnLocalDate.getYear() == (currentYear - 1) && 
+																		if( createdOnLocalDate.getYear() == (currentYear - 1) &&
 																				leave.getFromDate().getYear() == currentYear) {
-																			
+
 																				newBalance=1;
-																				
+
 																				LeaveDTO leaveDTO = new LeaveDTO();
 																				leaveDTO.setLeaveStatusId((short)3);
 																				leaveDTO.setManagerApprovalStatus("Rejected");
 																				leaveDTO.setLevel2ApprovalStatus("NA");
 																				leaveDTO.setLevel3ApprovalStatus("NA");
-																				leaveDTO.setLevel2ApproverId(null);		
+																				leaveDTO.setLevel2ApproverId(null);
 																				leaveDTO.setLevel3ApproverId(null);
 																				leaveDTO.setReason("Application rejected as CL exceeded its limit !!");
 																				leaveDTO.setUpdatedBy(leave.getManagerId());
 																				leaveDTO.setCurrentApprovalLevel(1);
 																				leaveDTO.setFinalApprovalLevel(1);
-																				
+
 																				leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
 																                leave.setManagerApprovalStatus(leaveDTO.getManagerApprovalStatus());
 																                leave.setLevel2ApprovalStatus(leaveDTO.getLevel2ApprovalStatus());
@@ -865,18 +877,18 @@ public class CronJobService {
 																                leave.getCommonProperty().setUpdatedBy((Long.valueOf(leaveDTO.getUpdatedBy())));
 																                leave.setCurrentApprovalLevel(leaveDTO.getCurrentApprovalLevel());
 																                leave.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());
-																				
+
 																                updatedEmployeeLeaveList.add(leave);
 																				elm.setBalance(newBalance);
 																				elm.setEmpId(leave.getEmpId());
 																				elm.setLeaveTypeMasterId(leave.getLeaveTypeMasterId());
-																				
+
 																				List<Long> employeeLeaveMapIds = employeeLeaveforPending.stream()
-																					    .map(record -> record.getEmpId())  
-																					    .collect(Collectors.toList());     
+																					    .map(record -> record.getEmpId())
+																					    .collect(Collectors.toList());
 
 																				List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
-																					    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
+																					    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue()))
 																					    .collect(Collectors.toList());
 																				EmployeeLeavesMap lst = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(elm.getEmpId(),elm.getLeaveTypeMasterId());
 																				if (!matchingEmployeeIds.isEmpty()) {
@@ -888,7 +900,7 @@ public class CronJobService {
 																				        } else if (list[0] instanceof Long) {
 																				            // If it is already a Long, no conversion needed
 																				        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
-																				        } 
+																				        }
 																			             if (list[4] instanceof Float) {
 																				            elm.setPendingForApproval((Float) list[4]);
 																				        }
@@ -896,26 +908,26 @@ public class CronJobService {
 																				}
 
 
-																				
+
 																				dbResponse = employeeLeavesMapRepository.save(elm);
 																			}
-																		
+
 															            if (createdOnLocalDate.getYear() == leave.getFromDate().getYear() &&
 															                leave.getNoOfDays() > 1) {
-															                newBalance = 1; 
+															                newBalance = 1;
 
 															            	LeaveDTO leaveDTO = new LeaveDTO();
 																			leaveDTO.setLeaveStatusId((short)3);
 																			leaveDTO.setManagerApprovalStatus("Rejected");
 																			leaveDTO.setLevel2ApprovalStatus("NA");
 																			leaveDTO.setLevel3ApprovalStatus("NA");
-																			leaveDTO.setLevel2ApproverId(null);		
+																			leaveDTO.setLevel2ApproverId(null);
 																			leaveDTO.setLevel3ApproverId(null);
 																			leaveDTO.setReason("Application rejected as CL exceeded its limit !!");
 																			leaveDTO.setUpdatedBy(leave.getManagerId());
 																			leaveDTO.setCurrentApprovalLevel(1);
 																			leaveDTO.setFinalApprovalLevel(1);
-																			
+
 																			leave.setLeaveStatusId(leaveDTO.getLeaveStatusId());
 															                leave.setManagerApprovalStatus(leaveDTO.getManagerApprovalStatus());
 															                leave.setLevel2ApprovalStatus(leaveDTO.getLevel2ApprovalStatus());
@@ -926,18 +938,18 @@ public class CronJobService {
 															                leave.getCommonProperty().setUpdatedBy((Long.valueOf(leaveDTO.getUpdatedBy())));
 															                leave.setCurrentApprovalLevel(leaveDTO.getCurrentApprovalLevel());
 															                leave.setFinalApprovalLevel(leaveDTO.getFinalApprovalLevel());
-																			
+
 															                updatedEmployeeLeaveList.add(leave);
 																            elm.setBalance(newBalance);
 																			elm.setEmpId(leave.getEmpId());
 																			elm.setLeaveTypeMasterId(leave.getLeaveTypeMasterId());
-																			
+
 																			List<Long> employeeLeaveMapIds = employeeLeaveforPending.stream()
-																				    .map(record -> record.getEmpId())  
-																				    .collect(Collectors.toList());     
+																				    .map(record -> record.getEmpId())
+																				    .collect(Collectors.toList());
 
 																			List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
-																				    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
+																				    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue()))
 																				    .collect(Collectors.toList());
 																			EmployeeLeavesMap lst = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(elm.getEmpId(),elm.getLeaveTypeMasterId());
 																			if (!matchingEmployeeIds.isEmpty()) {
@@ -949,14 +961,14 @@ public class CronJobService {
 																			        } else if (list[0] instanceof Long) {
 																			            // If it is already a Long, no conversion needed
 																			        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
-																			        } 
+																			        }
 																			        if (list[4] instanceof Float) {
 																			            elm.setPendingForApproval((Float) list[4]);
 																			        }
 																			    });
-																			}																		
+																			}
 																			dbResponse = employeeLeavesMapRepository.save(elm);
-//																			
+//
 															            }else if(createdOnLocalDate.getYear() == leave.getFromDate().getYear() &&
 																                leave.getNoOfDays() == 1){
 															            	newBalance = 0;
@@ -964,11 +976,11 @@ public class CronJobService {
 																			elm.setEmpId(leave.getEmpId());
 																			elm.setLeaveTypeMasterId(leave.getLeaveTypeMasterId());
 																			List<Long> employeeLeaveMapIds = employeeLeaveforPending.stream()
-																				    .map(record -> record.getEmpId())  
-																				    .collect(Collectors.toList());     
+																				    .map(record -> record.getEmpId())
+																				    .collect(Collectors.toList());
 
 																			List<Object[]> matchingEmployeeIds = employeeLeaveMap.stream()
-																				    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue())) 
+																				    .filter(employeeLeave -> employeeLeaveMapIds.contains(((BigInteger) employeeLeave[2]).longValue()))
 																				    .collect(Collectors.toList());
 																			EmployeeLeavesMap lst = employeeLeavesMapRepository.findByEmpIdAndLeaveTypeMasterId(elm.getEmpId(),elm.getLeaveTypeMasterId());
 																			if (!matchingEmployeeIds.isEmpty()) {
@@ -980,7 +992,7 @@ public class CronJobService {
 																			        } else if (list[0] instanceof Long) {
 																			            // If it is already a Long, no conversion needed
 																			        	elm.setEmployeeLeavesMapId(lst.getEmployeeLeavesMapId());
-																			        } 
+																			        }
 																			        if (list[4] instanceof Float) {
 																			            elm.setPendingForApproval((Float) list[4]);
 																			        }
@@ -989,7 +1001,7 @@ public class CronJobService {
 																			dbResponse = employeeLeavesMapRepository.save(elm);
 															            }
 																	}
-																	
+
 															}
 														}
 													System.out.println("hjvbshv"+employeeLeaveforPending.isEmpty()+"nshjbv"+employeeLeaveforApproved.isEmpty());
@@ -1000,11 +1012,11 @@ public class CronJobService {
 														elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
 														elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
 														elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
-														
+
 														System.out.println("Check CL" + elm.getBalance());
 														dbResponse = employeeLeavesMapRepository.save(elm);
 													}
-													employeeLeaveRepository.saveAll(updatedEmployeeLeaveList);	
+													employeeLeaveRepository.saveAll(updatedEmployeeLeaveList);
 													System.out.println("Completed Successfully");
 //													elm.setBalance(newBalance);
 //													float newBalance = 1;
@@ -1014,10 +1026,10 @@ public class CronJobService {
 //													elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
 //													elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
 //													elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
-													
+
 //													System.out.println("Check CL" + elm.getBalance());
 //													dbResponse = employeeLeavesMapRepository.save(elm);
-													
+
 													if (dbResponse != null) {	//set the changes in log table after alter the leave
 														LeaveBalanceLog log = new LeaveBalanceLog();
 
@@ -1031,23 +1043,23 @@ public class CronJobService {
 														leaveBalanceLogRepository.save(log);
 													}
 												}
-												
-					              	        } 
-					              			
+
+					              	        }
+
 											if (lpm.getCarryForward().equals("Yes")) {	// check if carry forawrd or not
 												float carryForwardValue = lpm.getCarryForwardValue();
-												
+
 												System.err.println(" this is carryForwardValue   ::   "+carryForwardValue);
-												
-												
-												
+
+
+
 												if (dbBalance > carryForwardValue) {
-													float newBalance = carryForwardValue;	//set new value as per the leave policy 
-													float deductedLeaveCount = dbBalance - carryForwardValue;	
+													float newBalance = carryForwardValue;	//set new value as per the leave policy
+													float deductedLeaveCount = dbBalance - carryForwardValue;
 													System.out.println(deductedLeaveCount);
 													System.err.println(newBalance);
 //													elm.setBalance(newBalance);
-													
+
 													EmployeeLeavesMap elm = new EmployeeLeavesMap();
 													elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 													newBalance = (float) (newBalance);
@@ -1056,7 +1068,7 @@ public class CronJobService {
 													elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
 													elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
 													elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
-													
+
 													EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
 
 													if (dbResponse != null) {
@@ -1076,13 +1088,13 @@ public class CronJobService {
 													float newBalance = carryForwardValue;
 													EmployeeLeavesMap elm = new EmployeeLeavesMap();
 													elm.setEmployeeLeavesMapId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-													
+
 													System.err.println(" Plan leaved PL deduct and set increases value ");
 													elm.setBalance(newBalance);
 													elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
 													elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
 													elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
-													
+
 													EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
 
 													if (dbResponse != null) {
@@ -1103,7 +1115,7 @@ public class CronJobService {
 													elm.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
 													elm.setLeaveTypeMasterId(object[3] != null ? Short.parseShort(object[3].toString()) : null);
 													elm.setPendingForApproval(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
-													
+
 													EmployeeLeavesMap dbResponse = employeeLeavesMapRepository.save(elm);
 													if (dbResponse != null) {
 														LeaveBalanceLog log = new LeaveBalanceLog();
@@ -1124,8 +1136,8 @@ public class CronJobService {
 			   }
 		}
 
-	
-	
+
+
 	// 0 1 1 ? * * - At 01:01:00am every day
 //	@Scheduled(cron = "0 1 1 ? * *")
 
@@ -1360,26 +1372,26 @@ public class CronJobService {
 	
 	
 	//0 0 1 1,2,3,4,5,6,7 JAN ? - At 01:00:00am, on the 1st, 2nd, 3rd, 4th, 5th, 6th and 7th day, in January
-	
+
 	@Scheduled(cron = "0 0 1 1,2,3,4,5,6,7 JAN ?")
 	public void addingWeekOff() {
-		
-		
+
+
 		try {
 			int monthCount = 1;
-			
+
 			// For adding 2nd & 4th Saturday
-			
+
 			while(monthCount <= 12) {
-				
+
 				int currentYear = LocalDate.now().getYear();
 				LocalDate dateToday = LocalDate.of(currentYear, monthCount, 1);
-				
+
 				LocalDate secondSaturday = dateToday.with(TemporalAdjusters.dayOfWeekInMonth(2, DayOfWeek.SATURDAY));
 				List<Holiday> secondSaturdayData = holidayRepository.findByOccasionAndDateOfHoliday("Saturday : second saturday",secondSaturday);
-				
+
 				if(secondSaturdayData.isEmpty()) {
-					
+
 					Holiday newHoliday = new Holiday();
 					  newHoliday.setDateOfHoliday(secondSaturday);
 					  newHoliday.setDayOfTheWeek("Saturday");
@@ -1387,15 +1399,15 @@ public class CronJobService {
 					  newHoliday.setOccasion("Saturday : second saturday");
 					  newHoliday.setState("all");
 					  newHoliday.setOptionalHoliday("false");
-					  
+
 					  holidayRepository.save(newHoliday);
 				}
-				
+
 				LocalDate fourthSaturday = dateToday.with(TemporalAdjusters.dayOfWeekInMonth(4, DayOfWeek.SATURDAY));
                 List<Holiday> fourthSaturdayData = holidayRepository.findByOccasionAndDateOfHoliday("Saturday : fourth saturday",fourthSaturday);
-				
+
 				if(fourthSaturdayData.isEmpty()) {
-					
+
 					Holiday newHoliday = new Holiday();
 					  newHoliday.setDateOfHoliday(fourthSaturday);
 					  newHoliday.setDayOfTheWeek("Saturday");
@@ -1403,12 +1415,12 @@ public class CronJobService {
 					  newHoliday.setOccasion("Saturday : fourth saturday");
 					  newHoliday.setState("all");
 					  newHoliday.setOptionalHoliday("false");
-					  
+
 					  holidayRepository.save(newHoliday);
 				}
-				  
-			// For adding Sundays	  
-				
+
+			// For adding Sundays
+
 				Calendar calander = new GregorianCalendar(currentYear, monthCount - 1, 1);
 		        do {
 		            int day = calander.get(Calendar.DAY_OF_WEEK);
@@ -1416,7 +1428,7 @@ public class CronJobService {
 		            	Date date = calander.getTime();
 		            	LocalDate sundayDate = LocalDate.parse(new SimpleDateFormat("yyyy-MM-dd").format(date));
 		            	 List<Holiday> sundayData = holidayRepository.findByOccasionAndDateOfHoliday("Sunday",sundayDate);
-		            	
+
 		            	 if(sundayData.isEmpty()) {
 		            		 Holiday holidayObj = new Holiday();
 			            	  holidayObj.setDateOfHoliday(sundayDate);
@@ -1425,224 +1437,381 @@ public class CronJobService {
 			            	  holidayObj.setOccasion("Sunday");
 			            	  holidayObj.setState("all");
 			            	  holidayObj.setOptionalHoliday("false");
-			            	  
+
 							  holidayRepository.save(holidayObj);
-		            	 } 
+		            	 }
 		            }
 		            calander.add(Calendar.DAY_OF_YEAR, 1);
 		        }  while (calander.get(Calendar.MONTH) == monthCount-1);
-				
+
 				monthCount++;
 			}
-			
+
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
-	
+
 	//0 0 21 ? * * - At 21:00:00pm every day
-	
+
 //	@Scheduled(cron = "0 10 16 * * ?")
-	@Scheduled(cron = "0 1 00 ? * *")
+//	@Scheduled(cron = "0 */1 * ? * *")
 //	@Scheduled(cron = "0 36 17 3 11 ?")
 
-		public void automaticTimesheetFiller() {
-		
-		System.out.println("Cron----**********----started");
-			
-			try {
-				//for hardcoded
-//				LocalDate dateToday = LocalDate.parse("2024-12-14");
-//				LocalDate dateToday = LocalDate.parse("2025-11-17");
-				LocalDate dateToday = LocalDate.now();
-//				System.out.println("filling timesheet method started");
-				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
-//				System.err.println("vghgc"+dateToday);
-				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
-				
-//				List<Holiday> publicHoliday = holidayRepository.findByDateOfHolidayBetween(start,end);
-
-			//	Timesheet filler for weekoff day : saturday & sunday
-				
-				if(!publicHoliday.isEmpty()) {
-					
-					System.out.println("holiday_size"+publicHoliday.size());
-					
-					for(Holiday holiday: publicHoliday) {
-						String holidayOccassion = holiday.getOccasion();
-						String dayOfWeek = holiday.getDayOfTheWeek();
-						
-						if((holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Saturday")) || (holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Sunday"))) {
-							for(Object[] employeeList: allEmployee) {
-								Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
-								String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
-								if(("TNM").equalsIgnoreCase(billableType)) {
-									System.out.println("TNM");
-								}
-								Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId, dateToday);
-
-								if (empTimesheet == null) {
-
-									if (holidayOccassion.equals("Saturday : second saturday")
-											|| holidayOccassion.equals("Saturday : fourth saturday")) {
-										if (billableType != null && !("TNM").equalsIgnoreCase(billableType)) {
-											Timesheet newTimesheet = new Timesheet();
-											newTimesheet.getCommonProperty().setCreatedBy(empId);
-											newTimesheet.setDate(dateToday);
-											newTimesheet.setDayType("Week Off");
-											newTimesheet.setDescription("WeekOff : Saturday");
-											newTimesheet.setTotalTime((float) 0);
-											newTimesheet.setTotalWorkingHours("0");
-											newTimesheet.setEmpId(empId);
-											newTimesheet.setStatus("Approved");
-											timesheetsRepository.save(newTimesheet);
-										}
-									} else {
-										Timesheet newTimesheet = new Timesheet();
-										newTimesheet.getCommonProperty().setCreatedBy(empId);
-										newTimesheet.setDate(dateToday);
-										newTimesheet.setDayType("Week Off");
-										newTimesheet.setDescription("WeekOff : Sunday");
-										newTimesheet.setTotalTime((float) 0);
-										newTimesheet.setTotalWorkingHours("0");
-										newTimesheet.setEmpId(empId);
-										newTimesheet.setStatus("Approved");
-										timesheetsRepository.save(newTimesheet);
-									}
-
-									// For weekoff's managers don't have to approve the timesheet, if any employee
-									// worked on weekoff will revoke this ..
-
-//									System.out.println("filling weekoffs");
-
-								}
-							}
-						}
-					}		
-				}
-				
-		   //	Timesheet filler for public Holiday
-				
-				if(!publicHoliday.isEmpty()) {
-					System.out.println("vghgc"+publicHoliday.isEmpty());
-					System.out.println("holiday_size_holiday"+publicHoliday.size());
-					for(Holiday holidays: publicHoliday) {
-						String holidayState = holidays.getState();
-						
-						for(Object[] employeeList: allEmployee) {
-							Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
-							String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
-							String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
-							if(("TNM").equalsIgnoreCase(billableType)) {
-								System.out.println("TNM");
-							}
-							System.out.println("vghgc"+empId);
-							Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,holidays.getDateOfHoliday());
-							if(empTimesheet == null) {
-								System.out.println("vghgc"+publicHoliday.isEmpty());
-								if(((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
-										|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking"))))&& billableType != null &&!("TNM").equalsIgnoreCase(billableType)){
-									
-									Timesheet newTimesheet = new Timesheet();
-									newTimesheet.getCommonProperty().setCreatedBy(empId);
-									newTimesheet.setDate(holidays.getDateOfHoliday());
-												
-									newTimesheet.setDayType("Public Holiday");
-									newTimesheet.setDescription("Public Holiday : " + holidays.getOccasion());
-									newTimesheet.setEmpId(empId);
-									newTimesheet.setStatus("Approved");
-									
-//									System.out.println("filling holiday");
-									
-									timesheetsRepository.save(newTimesheet);
-									System.out.println("vghgc"+newTimesheet);
-									
-								}
-							}
-						}	
-					}
-				}
-				
-			//	Timesheet filler for leave days
-				
-//				List<EmployeeLeave> employeeLeave = employeeLeaveRepository.findByFromDate(dateToday);
+//		public void automaticTimesheetFiller() {
+//
+//		System.out.println("Cron----**********----started");
+//
+//			try {
+//				//for hardcoded
+////				LocalDate dateToday = LocalDate.parse("2024-12-14");
+////				LocalDate dateToday = LocalDate.parse("2025-11-17");
+//				LocalDate dateToday = LocalDate.now();
+//				LocalDateTime dateTimeToday = LocalDateTime.now();
+////				System.out.println("filling timesheet method started");
+//				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
+////				System.err.println("vghgc"+dateToday);
+//				List<EmployeeTimesheetsNew> toSave = new ArrayList<>();
+//				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
+//				List<Long> empIds = allEmployee.stream()
+//				        .map(e -> Long.parseLong(e[0].toString()))
+//				        .collect(Collectors.toList());
+//
+//				List<EmployeeTimesheetsNew> existingTimesheets =
+//				        employeeTimesheetsNewRepository.findByDateAndEmpIdIn(dateToday, empIds);
 //				
-//				if(!employeeLeave.isEmpty()) {
-//					
-//					for(EmployeeLeave leaveObj: employeeLeave) {
-//						Long empId = leaveObj.getEmpId();
-//						Short approvedLeave = 2;
-//						
-//						long elapsedDays = ChronoUnit.DAYS.between(leaveObj.getFromDate(), leaveObj.getToDate());
-//						
-//						if((elapsedDays == 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
-//							
-//							Timesheet newTimesheet = new Timesheet();
-//							
-//							newTimesheet.getCommonProperty().setCreatedBy(empId);
-//							newTimesheet.setDate(dateToday);
-//							newTimesheet.setDayType("Holiday");
-//							newTimesheet.setDescription("On leave");
-//							newTimesheet.setEmpId(empId);
-//							newTimesheet.setStatus("Approved");
-//							
-//							timesheetsRepository.save(newTimesheet);
-//						}
-//						
-//						if((elapsedDays != 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
-//							LocalDate tempDateToday = dateToday;
-//							
-//							while(tempDateToday.compareTo(leaveObj.getToDate()) != 1) {
+//				Map<Long, EmployeeTimesheetsNew> timesheetMap =
+//				        existingTimesheets.stream()
+//				                .collect(Collectors.toMap(
+//				                        EmployeeTimesheetsNew::getEmpId,
+//				                        t -> t
+//				                ));
+////				List<Holiday> publicHoliday = holidayRepository.findByDateOfHolidayBetween(start,end);
+//
+//			//	Timesheet filler for weekoff day : saturday & sunday
+//
+//				if(!publicHoliday.isEmpty()) {
+//
+//					System.out.println("holiday_size"+publicHoliday.size());
+//
+//					for(Holiday holiday: publicHoliday) {
+//						String holidayOccassion = holiday.getOccasion();
+//						String dayOfWeek = holiday.getDayOfTheWeek();
+//
+//						if((holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Saturday")) || (holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Sunday"))) {
+//							for(Object[] employeeList: allEmployee) {
+//								Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
+//								String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
 //								
-//								Timesheet newTimesheet = new Timesheet();
-//								
-//								newTimesheet.getCommonProperty().setCreatedBy(empId);
-//								newTimesheet.setDate(tempDateToday);
-//								newTimesheet.setDayType("Holiday");
-//								newTimesheet.setDescription("On leave");
-//								newTimesheet.setEmpId(empId);
-//								newTimesheet.setStatus("Approved");
-//								
-//								timesheetsRepository.save(newTimesheet);
-//								
-//								tempDateToday = tempDateToday.plusDays(1);
+////								Optional<EmployeeTimesheetsNew> empTimesheet = employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId, dateToday);
+//
+//								if (!timesheetMap.containsKey(empId)) {
+//
+//									if (holidayOccassion.equals("Saturday : second saturday")
+//											|| holidayOccassion.equals("Saturday : fourth saturday")) {
+//										if (billableType != null && !("TNM").equalsIgnoreCase(billableType)) {
+//											EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
+//											newTimesheet.setCreatedBy(empId);
+//											newTimesheet.setDate(dateToday);
+//											newTimesheet.setCreatedOn(dateTimeToday);//											newTimesheet.setDaytype("Week Off");
+//											newTimesheet.setDescription("WeekOff : Saturday");
+//											newTimesheet.setTotalWorkingMinutes(0);
+//											newTimesheet.setEmpId(empId);
+//											newTimesheet.setIsNightShift(false);
+//											newTimesheet.setDayTypeId(4);
+//											newTimesheet.setStatus(2);
+//											toSave.add(newTimesheet);
+//										}
+//									} else {
+//										EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
+//										newTimesheet.setCreatedBy(empId);
+//										newTimesheet.setDate(dateToday);
+//										newTimesheet.setCreatedOn(dateTimeToday);
+////										newTimesheet.setDayType("Week Off");
+//										newTimesheet.setIsNightShift(false);
+//										newTimesheet.setDescription("WeekOff : Sunday");
+////										newTimesheet.setTotalTime((float) 0);
+//										newTimesheet.setDayTypeId(4);
+//										newTimesheet.setTotalWorkingMinutes(0);
+//										newTimesheet.setEmpId(empId);
+//										newTimesheet.setStatus(2);
+//										toSave.add(newTimesheet);
+//									}
+//
+//									// For weekoff's managers don't have to approve the timesheet, if any employee
+//									// worked on weekoff will revoke this ..
+//
+////									System.out.println("filling weekoffs");
+//
+//								}
 //							}
-//						}					
+//						}
 //					}
 //				}
-				System.out.println("Method end reached");
-				}
-			catch(Exception e) {
-				e.printStackTrace();
-			}
-		}
-		
+//
+//		   //	Timesheet filler for public Holiday
+//
+//				if(!publicHoliday.isEmpty()) {
+//					System.out.println("vghgc"+publicHoliday.isEmpty());
+//					System.out.println("holiday_size_holiday"+publicHoliday.size());
+//					for(Holiday holidays: publicHoliday) {
+//						String holidayState = holidays.getState();
+//
+//						for(Object[] employeeList: allEmployee) {
+//							Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
+//							String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
+//							String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
+//							if(("TNM").equalsIgnoreCase(billableType)) {
+//								System.out.println("TNM");
+//							}
+//							System.out.println("vghgc"+empId);
+////							Optional<EmployeeTimesheetsNew> empTimesheet = employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId,holidays.getDateOfHoliday());
+//							if(!timesheetMap.containsKey(empId)) {
+//								System.out.println("vghgc"+publicHoliday.isEmpty());
+//								if(((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
+//										|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking"))))&& billableType != null &&!("TNM").equalsIgnoreCase(billableType)){
+//
+//									EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
+//									newTimesheet.setCreatedBy(empId);
+//									newTimesheet.setDate(holidays.getDateOfHoliday());
+//									newTimesheet.setCreatedOn(dateTimeToday);
+//									newTimesheet.setDayTypeId(2);
+//									newTimesheet.setIsNightShift(false);
+////									newTimesheet.setDayType("Public Holiday");
+//									newTimesheet.setDescription("Public Holiday : " + holidays.getOccasion());
+//									newTimesheet.setEmpId(empId);
+//									newTimesheet.setStatus(2);
+//
+////									System.out.println("filling holiday");
+//									toSave.add(newTimesheet);
+//									System.out.println("vghgc"+newTimesheet);
+//
+//								}
+//							}
+//						}
+//					}
+//				}
+//
+//			//	Timesheet filler for leave days
+//
+////				List<EmployeeLeave> employeeLeave = employeeLeaveRepository.findByFromDate(dateToday);
+////
+////				if(!employeeLeave.isEmpty()) {
+////
+////					for(EmployeeLeave leaveObj: employeeLeave) {
+////						Long empId = leaveObj.getEmpId();
+////						Short approvedLeave = 2;
+////
+////						long elapsedDays = ChronoUnit.DAYS.between(leaveObj.getFromDate(), leaveObj.getToDate());
+////
+////						if((elapsedDays == 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
+////
+////							Timesheet newTimesheet = new Timesheet();
+////
+////							newTimesheet.getCommonProperty().setCreatedBy(empId);
+////							newTimesheet.setDate(dateToday);
+////							newTimesheet.setDayType("Holiday");
+////							newTimesheet.setDescription("On leave");
+////							newTimesheet.setEmpId(empId);
+////							newTimesheet.setStatus("Approved");
+////
+////							timesheetsRepository.save(newTimesheet);
+////						}
+////
+////						if((elapsedDays != 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
+////							LocalDate tempDateToday = dateToday;
+////
+////							while(tempDateToday.compareTo(leaveObj.getToDate()) != 1) {
+////
+////								Timesheet newTimesheet = new Timesheet();
+////
+////								newTimesheet.getCommonProperty().setCreatedBy(empId);
+////								newTimesheet.setDate(tempDateToday);
+////								newTimesheet.setDayType("Holiday");
+////								newTimesheet.setDescription("On leave");
+////								newTimesheet.setEmpId(empId);
+////								newTimesheet.setStatus("Approved");
+////
+////								timesheetsRepository.save(newTimesheet);
+////
+////								tempDateToday = tempDateToday.plusDays(1);
+////							}
+////						}
+////					}
+////				}
+//				employeeTimesheetsNewRepository.saveAll(toSave);
+//				System.out.println("Method end reached");
+//				}
+//			catch(Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
+
 		// 0 0 12 ? * * - At 12:00:00pm every day
-		
+	@Scheduled(cron = "0 1 00 ? * *")
+	public void automaticTimesheetFiller() {
+
+	    log.info("Automatic Timesheet Filler Cron Started");
+
+	    try {
+        
+            DayTypeMasterNew holidayDayType = dayTypeMasterNewRepository
+                    .findByDayType(DayTypeCode.APMOSYS_HOLIDAY.getDbValue());
+            DayTypeMasterNew weekoffDayType = dayTypeMasterNewRepository
+                    .findByDayType(DayTypeCode.WEEK_OFF.getDbValue());
+
+            if (holidayDayType == null) {
+                System.out.println("ERROR: DayType '" + DayTypeCode.HOLIDAY.getDbValue()
+                        + "' not found in day_type_master_new. Aborting cron.");
+                return;
+            }
+            if (weekoffDayType == null) {
+                System.out.println("ERROR: DayType '" + DayTypeCode.WEEK_OFF.getDbValue()
+                        + "' not found in day_type_master_new. Aborting cron.");
+                return;
+            }
+             log.info("DayType verification passed — Holiday: {} (id={}), WeekOff: {} (id={})",
+                holidayDayType.getDayType(), holidayDayType.getDayTypeId(),
+                weekoffDayType.getDayType(), weekoffDayType.getDayTypeId());
+	        LocalDate dateToday = LocalDate.now();
+	        LocalDateTime dateTimeToday = LocalDateTime.now();
+
+	        List<Object[]> allEmployee =
+	                employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
+
+	        List<Holiday> publicHoliday =
+	                holidayRepository.findByDateOfHoliday(dateToday);
+
+	        if (publicHoliday.isEmpty()) {
+	            log.info("No holiday found for today: {}", dateToday);
+	            return;
+	        }
+
+	        List<Long> empIds = allEmployee.stream()
+	                .map(e -> Long.parseLong(e[0].toString()))
+	                .collect(Collectors.toList());
+
+	        List<EmployeeTimesheetsNew> existingTimesheets =
+	                employeeTimesheetsNewRepository.findByDateAndEmpIdIn(dateToday, empIds);
+
+	        Map<Long, EmployeeTimesheetsNew> timesheetMap =
+	                existingTimesheets.stream()
+	                        .collect(Collectors.toMap(
+	                                EmployeeTimesheetsNew::getEmpId,
+	                                t -> t
+	                        ));
+
+	        List<EmployeeTimesheetsNew> toSave = new ArrayList<>();
+            Map<Long, Holiday> empHolidayMap = new HashMap<>();
+	        for (Holiday holiday : publicHoliday) {
+
+	            String holidayType = holiday.getHolidayType();
+	            String dayOfWeek = holiday.getDayOfTheWeek();
+	            String holidayState = holiday.getState();
+
+	            for (Object[] employeeList : allEmployee) {
+
+	                Long empId = Long.parseLong(employeeList[0].toString());
+	                String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
+	                String billableType = employeeList[7] != null ? employeeList[7].toString() : null;
+
+	                if (timesheetMap.containsKey(empId)) continue;
+
+	                // ================= WEEKOFF =================
+	                if ("WeekOff".equals(holidayType)
+	                        && ("Saturday".equals(dayOfWeek) || "Sunday".equals(dayOfWeek))
+	                        && billableType != null
+	                        && !"TNM".equalsIgnoreCase(billableType)) {
+                        empHolidayMap.put(empId, holiday);
+	                    continue;
+	                }
+
+	                // ================= PUBLIC HOLIDAY =================
+	                if ((("all".equals(holidayState) ||
+	                        holidayState.equals(workLocation))
+	                        && "false".equals(holiday.getOptionalHoliday())
+	                        && ("Festival".equals(holidayType)
+	                            || "nonWorking".equals(holidayType)))
+	                        && billableType != null
+	                        && !"TNM".equalsIgnoreCase(billableType)) {
+
+                        empHolidayMap.put(empId, holiday); 
+	                }
+	            }
+	        }
+
+	        if (!empHolidayMap.isEmpty()) {
+				            log.info("Total auto-filled timesheets: {}", empHolidayMap.size());
+	            Map<Long, Employee> employeeMap = employeeRepository.findAllById(empHolidayMap.keySet())
+                        .stream()
+                        .collect(Collectors.toMap(Employee::getEmpId, e -> e));
+
+                LocalDateTime startOfDay = dateToday.atStartOfDay();
+                LocalDateTime endOfDay = dateToday.atTime(LocalTime.MAX);
+				Map<Holiday, List<Employee>> holidayEmployeeMap = new HashMap<>();
+
+				for (Map.Entry<Long, Holiday> entry : empHolidayMap.entrySet()) {
+
+					Employee emp = employeeMap.get(entry.getKey());
+
+					if (emp != null) {
+						holidayEmployeeMap
+								.computeIfAbsent(entry.getValue(), k -> new ArrayList<>())
+								.add(emp);
+					}
+				}
+
+				// Call bulk per holiday (no overwrite)
+				for (Map.Entry<Holiday, List<Employee>> entry : holidayEmployeeMap.entrySet()) {
+
+					Holiday holidayObj = entry.getKey();
+					List<Employee> employeesToProcess = entry.getValue();
+
+					if (!employeesToProcess.isEmpty()) {
+
+						holidayService.saveRelationalLeaveTimesheetBulk(
+								employeesToProcess,
+								dateToday,
+								holidayObj, 
+								startOfDay,
+								endOfDay,
+								holidayDayType,
+								weekoffDayType
+						);
+					}
+				}
+
+	        }
+         } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+
+	
 		@Scheduled(cron="${mailTrigger.time}")
 		public void protalConfigMailTrigger() {
 			try {
-				
+
 				List<PortalConfig> portalConfigObj = portalConfigRepository.findAll();
 				List<EmployeeDTO> probationElapsedDays = new ArrayList<EmployeeDTO>();
 				List<EmployeeDTO> resignElapsedDays = new ArrayList<EmployeeDTO>();
-				
+
 				LocalDate dateToday = LocalDate.now();
 				Float probationMailTrigger = null;
 				Float noticePeriodMailTrigger = null;
-				
+
 				for(PortalConfig portalObj :portalConfigObj) {
 					if(portalObj.getConfigName().equals("Probation Period")) {
 						probationMailTrigger = portalObj.getMailTrigger();
 					}else if(portalObj.getConfigName().equals("Notice Period")) {
 						noticePeriodMailTrigger = portalObj.getMailTrigger();
-					} 
+					}
 				}
-				
+
 				List<Object[]> employeeList = employeeRepository.getEmployeeInProbationAndNotice();
 				List<EmployeeDTO> listDTO = new ArrayList<EmployeeDTO>();
-				
+
 				if(employeeList != null) {
 					for(Object[] object: employeeList) {
 						EmployeeDTO empdto = new EmployeeDTO();
@@ -1653,7 +1822,7 @@ public class CronJobService {
 						empdto.setNoticePeriod(object[4] != null ? Short.parseShort(object[4].toString()) : null);
 						empdto.setDateOfJoining(object[5] != null ? object[5].toString() : null);
 						empdto.setDateOfResign(object[6] != null ? object[6].toString() : null);
-						
+
 						listDTO.add(empdto);
 					}
 				}
@@ -1665,32 +1834,32 @@ public class CronJobService {
 							mailService.sendMailWithCC(employeeData.getEmail(),
 									hrMailAddress,
 									"Regarding Probation Period",
-									"Employee with EmpId : A-"+ employeeData.getEmployeementId() 
+									"Employee with EmpId : A-"+ employeeData.getEmployeementId()
 						          + "<br> Name : " + employeeData.getName()
 						          + "<br> will complete its probation period in " + probationMailTrigger.shortValue() + " days");
 						}
 					}
-					
+
 					if(employeeData.getDateOfResign() != null){
-						
+
 						LocalDate relievingDate = stringToDateTimeParser.getDate(employeeData.getDateOfResign(), "yyyy-MM-dd").plusDays(employeeData.getNoticePeriod());
 						LocalDate mailTriggerDate = relievingDate.minusDays(noticePeriodMailTrigger.shortValue());
 						if(LocalDate.now().equals(mailTriggerDate)) {
 							mailService.sendMailWithCC(employeeData.getEmail(),
 									hrMailAddress,
-									"Regarding Notice Period","Employee with EmpId : A-"+ employeeData.getEmployeementId() 
+									"Regarding Notice Period","Employee with EmpId : A-"+ employeeData.getEmployeementId()
 									+ "<br> Name : " + employeeData.getName()
 						            + "<br> will complete its Notice period in " + noticePeriodMailTrigger.shortValue() + " days");
 						}
 					}
 				}
-				
+
 				// elapsedDays : Probation or Resigned
 				List<Object[]> elapsedEmpList = employeeRepository.getElapsedEmpInProbationAndNotice();
 				List<EmployeeDTO> elapseddtoList = new ArrayList<EmployeeDTO>();
 				if(!elapsedEmpList.isEmpty()){
 					elapsedEmpList.forEach((object) -> {
-						
+
 						EmployeeDTO empdto = new EmployeeDTO();
 						empdto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						empdto.setName(object[1] != null ? object[1].toString() : null);
@@ -1700,11 +1869,11 @@ public class CronJobService {
 						empdto.setDateOfJoining(object[5] != null ? object[5].toString() : null);
 						empdto.setDateOfResign(object[6] != null ? object[6].toString() : null);
 						empdto.setEmploymentstatus(object[7] != null ? object[7].toString() : null);
-						
+
 						elapseddtoList.add(empdto);
 					});
 				}
-				
+
 				if(!elapseddtoList.isEmpty()) {
 					elapseddtoList.forEach((employeeData) -> {
 						if(employeeData.getDateOfResign() == null) {
@@ -1712,13 +1881,13 @@ public class CronJobService {
 							// elapsedDays reminder *15 days*
 							if(confirmationDate.isBefore(dateToday)) {
 								Long elapsedDays = ChronoUnit.DAYS.between(confirmationDate, dateToday);
-								
+
 								if(elapsedDays/15 == 1) {
 									probationElapsedDays.add(employeeData);
-								}							
+								}
 							}
 						}
-						
+
 						if(employeeData.getDateOfResign() != null){
 							LocalDate relievingDate = stringToDateTimeParser.getDate(employeeData.getDateOfResign(), "yyyy-MM-dd").plusDays(employeeData.getNoticePeriod());
 							// elapsedDays reminder *15 days*
@@ -1726,15 +1895,15 @@ public class CronJobService {
 								Long elapsedDays = ChronoUnit.DAYS.between(relievingDate, dateToday);
 								if(elapsedDays/15 == 1) {
 									resignElapsedDays.add(employeeData);
-								}							
+								}
 							}
 						}
 					});
 				}
-				
+
 				// Probation mail reminder
 				if(!probationElapsedDays.isEmpty()) {
-					
+
 					StringBuilder html = new StringBuilder();
 					html.append("<html>\n" +
 				            "  <head>\n" +
@@ -1766,7 +1935,7 @@ public class CronJobService {
 					html.append("    </table>\n" +
 					            "  </body>\n" +
 					            "</html>");
-					
+
 					mailService.sendMail(hrMailAddress,
 							"Regarding Employee's Probation Period",
 							"Dear team, <br><br>"
@@ -1774,10 +1943,10 @@ public class CronJobService {
 						  + html.toString()
 							);
 				}
-				
+
 				//Resigned mail reminder
                 if(!resignElapsedDays.isEmpty()) {
-					
+
 					StringBuilder html = new StringBuilder();
 					html.append("<html>\n" +
 				            "  <head>\n" +
@@ -1809,7 +1978,7 @@ public class CronJobService {
 					html.append("    </table>\n" +
 					            "  </body>\n" +
 					            "</html>");
-					
+
 					mailService.sendMail(hrMailAddress,
 							"Regarding Employee's Notice Period",
 							"Dear team, <br><br>"
@@ -1817,13 +1986,13 @@ public class CronJobService {
 						  + html.toString()
 							);
 				}
-				
+
 			}catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
-		
-		
+
+
 		//Confirmation Mail ///Raj Alpha Swain
 //		@Scheduled(cron = "${mailTrigger.time}")
 		@Scheduled(cron = "0 0 10 * * *")
@@ -1835,29 +2004,29 @@ public class CronJobService {
 				e.printStackTrace();
 			}
 		}
-		
+
 		public void sendProbationReminder() {
 			LocalDate today = LocalDate.now();
 			List<Employee> employeesInProbation = employeeRepository.getEmployeeInProbation();
 			List<Employee> employeesInProbationExtended = employeeRepository.getEmployeeInProbationExtended();
-			
+
 			List<Employee> preConfirmationList = new ArrayList<>();
 	        List<Employee> overdueList = new ArrayList<>();
 	        List<Long> employeeIdsToUpdate = new ArrayList<>();
-			
+
 	        if(!employeesInProbation.isEmpty()) {
 			for(Employee employee : employeesInProbation) {
-				
+
 				if(employee.getProbationPeriod() == null || employee.getDateOfJoining() == null)
 				{
 					continue;
 				}
 
 				LocalDate confirmationDate = employee.getDateOfJoining().plusDays(employee.getProbationPeriod());
-				
+
 				Long daysLeftUntilConfirmation = ChronoUnit.DAYS.between(today,confirmationDate);
-				
-				if(daysLeftUntilConfirmation == 30 || daysLeftUntilConfirmation == 6 || daysLeftUntilConfirmation == 3 || 
+
+				if(daysLeftUntilConfirmation == 30 || daysLeftUntilConfirmation == 6 || daysLeftUntilConfirmation == 3 ||
 						daysLeftUntilConfirmation == 1 || daysLeftUntilConfirmation == 0)
 				{
 					 preConfirmationList.add(employee);
@@ -1866,7 +2035,7 @@ public class CronJobService {
 				{
 					Long daysoverdue = ChronoUnit.DAYS.between(confirmationDate,today);
 					boolean hasExtensionReason = employee.getReasonOfExtension() != null && !employee.getReasonOfExtension().isEmpty();
-					
+
 					if(daysoverdue >= 100 && hasExtensionReason && !employee.isLongOverdueNotified())
 					{
 						 if (daysoverdue % 5 == 0) {
@@ -1874,25 +2043,25 @@ public class CronJobService {
 			                    employeeIdsToUpdate.add(employee.getEmpId());
 			                }
 					}
-					
+
 					else if(daysoverdue >0 && daysoverdue % 5 == 0)
 					{
 						overdueList.add(employee);
 					}
-				}    
-			} 
+				}
+			}
 	        }
 	        else if(!employeesInProbationExtended.isEmpty()) {
 			for(Employee employee : employeesInProbationExtended) {
-				
+
 				LocalDate confirmationDate = employee.getDateOfJoining().plusDays(employee.getProbationPeriod());
-				
+
 				if(confirmationDate.isBefore(today))
 				{
 					Long daysLeftUntilConfirmation = ChronoUnit.DAYS.between(today,confirmationDate);
 					Long daysoverdue = ChronoUnit.DAYS.between(confirmationDate,today);
 					boolean hasExtensionReason = employee.getReasonOfExtension() != null && !employee.getReasonOfExtension().isEmpty();
-					
+
 					if(daysoverdue >= 100 && hasExtensionReason && !employee.isLongOverdueNotified())
 					{
 						 if (daysoverdue % 5 == 0) {
@@ -1900,12 +2069,12 @@ public class CronJobService {
 			                    employeeIdsToUpdate.add(employee.getEmpId());
 			                }
 					}
-					
+
 					else if(daysoverdue >0 && daysoverdue % 5 == 0 && !employee.isLongOverdueNotified())
 					{
 						overdueList.add(employee);
 					}
-				}  
+				}
 			}
 	        }
 			if (!preConfirmationList.isEmpty()) {
@@ -1923,34 +2092,34 @@ public class CronJobService {
 			        		emp.setLongOverdueNotified(true);
 			        		empList.add(emp);			        	}
 			        }
-			        
+
 			        employeeRepository.saveAll(empList);
 			 }
 		}
-		
-		
+
+
 		public void sendPreConfirmationEmail(List<Employee> employees)
-		{	
+		{
 			 if (employees == null || employees.isEmpty()) {
-		            return; 
+		            return;
 		        }
-		        
-			 
+
+
 		        Map<String, List<Employee>> employeesByManager = new HashMap<>();
-		        
+
 		        Map<String, List<Employee>> employeesByHod = new HashMap<>();
 
 		        for (Employee employee : employees) {
-		        	
+
 		        	String dept = employeeRepository.getDepartment(employee.getEmpId());
-		        	
+
 		            if (employee.getManagerId() != null) {
 		            	String mail = employeeRepository.getMailByEmpId(employee.getManagerId());
 		                employeesByManager.computeIfAbsent(mail, k -> new ArrayList<>()).add(employee);
 		            }
-		            
+
 		            Long hodId = employeeRepository.getDepartmentHod(employee.getEmpId());
-		            
+
 		            String HODMail = employeeRepository.findHodEmailById(hodId);
 		            if (dept!= null && HODMail != null) {
 		                employeesByHod.computeIfAbsent(HODMail, k -> new ArrayList<>()).add(employee);
@@ -1960,11 +2129,11 @@ public class CronJobService {
 		           for (Map.Entry<String, List<Employee>> entry : employeesByManager.entrySet()) {
 		            String managerEmail = entry.getKey();
 		            List<Employee> directReports = entry.getValue();
-		            
+
 		            String subject = "Action Required: Probation Confirmations for Your Team";
 		            String intro = "Dear Team,<br><br>This is a reminder that the probation period for the following members of your team is due for confirmation soon. Please take the necessary action.<br><br>";
 		            String body = buildHtmlEmailBody(intro, directReports);
-		            
+
 		            try {
 		                mailService.sendMail(managerEmail, subject, body);
 		            } catch (Exception e) {
@@ -1974,11 +2143,11 @@ public class CronJobService {
 		        	for (Map.Entry<String, List<Employee>> entry : employeesByHod.entrySet()) {
 		            String hodEmail = entry.getKey();
 		            List<Employee> departmentEmployees = entry.getValue();
-		            
+
 		            String subject = "Department Update: Upcoming Probation Confirmations";
 		            String intro = "Dear HOD,<br><br>This is a summary of all employees in your department whose probation period is due for confirmation soon.<br><br>";
 		            String body = buildHtmlEmailBody(intro, departmentEmployees);
-		            
+
 		            try {
 		                mailService.sendMail(hodEmail, subject, body);
 		            } catch (Exception e) {
@@ -1987,42 +2156,42 @@ public class CronJobService {
 		        }
 		        String hrSubject = "Consolidated Report: Upcoming Probation Confirmations";
 		        String hrIntro = "Dear HR Team,<br><br>Here is the consolidated list of all employees whose probation is due for confirmation.<br><br>";
-		        String hrBody = buildHtmlEmailBody(hrIntro, employees); 
-		        
+		        String hrBody = buildHtmlEmailBody(hrIntro, employees);
+
 		        try {
 		        	String email = "raj.swain@apmosys.com";
-		        	
+
 //		        	mailService.sendMail(hrMailAddress, hrSubject, hrBody);
 		            mailService.sendMail(email, hrSubject, hrBody);
 		        } catch (Exception e) {
 		            e.printStackTrace();
 		        }
 	    }
-		
-		
-		
-		
-		
+
+
+
+
+
 		public void sendOverdueConfirmationEmail(List<Employee> employees) {
 			 if (employees == null || employees.isEmpty()) {
-		            return; 
+		            return;
 		        }
 
-		 
+
 		        Map<String, List<Employee>> employeesByManager = new HashMap<>();
 		        Map<String, List<Employee>> employeesByHod = new HashMap<>();
 
 		        for (Employee employee : employees) {
-		        	
+
 		        	String dept = employeeRepository.getDepartment(employee.getEmpId());
-		        	
+
 		            if (employee.getManagerId() != null) {
 		            	String mail = employeeRepository.getMailByEmpId(employee.getManagerId());
 		                employeesByManager.computeIfAbsent(mail, k -> new ArrayList<>()).add(employee);
 		            }
-		            
+
 		            Long hodId = employeeRepository.getDepartmentHod(employee.getEmpId());
-		            
+
 		            String HODMail = employeeRepository.findHodEmailById(hodId);
 		            if (dept!= null && HODMail != null) {
 		                employeesByHod.computeIfAbsent(HODMail, k -> new ArrayList<>()).add(employee);
@@ -2032,26 +2201,26 @@ public class CronJobService {
 		        for (Map.Entry<String, List<Employee>> entry : employeesByManager.entrySet()) {
 		            String managerEmail = entry.getKey();
 		            List<Employee> directReports = entry.getValue();
-		            
+
 		            String subject = "URGENT ACTION: Overdue Probation Confirmations for Your Team";
 		            String intro = "Dear Team,<br><br>This is an urgent reminder that the probation confirmation for the following members of your team is overdue. Please prioritize and complete the process immediately.<br><br>";
 		            String body = buildHtmlEmailBody(intro, directReports);
-		            
+
 		            try {
 		                mailService.sendMail(managerEmail, subject, body);
 		            } catch (Exception e) {
-		                e.printStackTrace(); 
+		                e.printStackTrace();
 		            }
 		        }
 
 		        for (Map.Entry<String, List<Employee>> entry : employeesByHod.entrySet()) {
 		            String hodEmail = entry.getKey();
 		            List<Employee> departmentEmployees = entry.getValue();
-		            
+
 		            String subject = "URGENT Department Update: Overdue Probation Confirmations";
 		            String intro = "Dear HOD,<br><br>This is an urgent summary of all employees in your department whose probation confirmation is overdue.<br><br>";
 		            String body = buildHtmlEmailBody(intro, departmentEmployees);
-		            
+
 		            try {
 		                mailService.sendMail(hodEmail, subject, body);
 		            } catch (Exception e) {
@@ -2062,7 +2231,7 @@ public class CronJobService {
 		        String hrSubject = "URGENT Consolidated Report: Overdue Probation Confirmations";
 		        String hrIntro = "Dear HR Team,<br><br>Here is the consolidated list of all employees whose probation confirmation is overdue. Please ensure immediate follow-up.<br><br>";
 		        String hrBody = buildHtmlEmailBody(hrIntro, employees);
-		        
+
 		        try {
 		        	String email = "raj.swain@apmosys.com";
 //		            mailService.sendMail(hrMailAddress, hrSubject, hrBody);
@@ -2071,8 +2240,8 @@ public class CronJobService {
 		            e.printStackTrace();
 		        }
 	    }
-		
-		
+
+
 		 private String buildHtmlEmailBody(String introduction, List<Employee> employees) {
 		        StringBuilder body = new StringBuilder();
 		        body.append(introduction);
@@ -2085,13 +2254,13 @@ public class CronJobService {
 		            .append("<th style='padding: 8px;'>Date of Joining</th>")
 		            .append("<th style='padding: 8px;'>Due Days</th>")
 		            .append("</tr></thead>");
-		        
+
 		        body.append("<tbody>");
 		        LocalDate today = LocalDate.now();
 
 		        for (Employee emp : employees) {
 		            LocalDate confirmationDate = emp.getDateOfJoining().plusDays(emp.getProbationPeriod());
-		            long daysLeft = today.isBefore(confirmationDate) 
+		            long daysLeft = today.isBefore(confirmationDate)
 		            	    ? ChronoUnit.DAYS.between(today, confirmationDate)
 		            	    : ChronoUnit.DAYS.between(confirmationDate, today);
 		            String daysLeftString = daysLeft == 0 ? "<b>Today</b>" : String.valueOf(daysLeft);
@@ -2107,20 +2276,20 @@ public class CronJobService {
 		        }
 		        body.append("</tbody></table><br>");
 		        body.append("Thank you.<br>");
-		        body.append("<a href=\"https://ishine.apmosys.com/\">Visit iShine Portal</a>");		     
+		        body.append("<a href=\"https://ishine.apmosys.com/\">Visit iShine Portal</a>");
 
 		        return body.toString();
 		    }
 
-		
-		 
-		@Scheduled(cron = "0 0 10 * * *") 
+
+
+		@Scheduled(cron = "0 0 10 * * *")
 		public void automaticConfirmation()
 		{
 			try {
 			LocalDate today = LocalDate.now();
 			List<Employee> employeeList = employeeRepository.getEmployeeProbationAndIsClicked();
-			
+
 			if(employeeList != null) {
 				for(Employee employee :employeeList) {
 
@@ -2135,68 +2304,78 @@ public class CronJobService {
 		                employeeRepository.save(employee);
 //		            }
 				}
-				
+
 				System.out.print("++++++++++++ =========== Running"+ today);
 				}
 			}catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
-		
+
 		//0 0 4 2 * ? - At 04:00:00am, on the 2nd day, every month
  		//0 0/2 * ? * * - Run at every 2 min
-		
+
 //		@Scheduled(cron="${monthlyTimesheetExcelGenerator.expression}")
 		public ServiceResponse monthlyTimesheetExcelGenerator() {
 			ServiceResponse response = new ServiceResponse();
 			try {
-				
+				List<PortalConfig> portalConfig = portalConfigRepository.findAll();
+				String folderPath = portalConfig.stream()
+						.filter(c -> "DSR Download Path".equals(c.getConfigName()))
+						.map(PortalConfig::getConfigValue)
+						.findFirst().orElse("");
+				File rootDir = new File(folderPath);
+		        if (folderPath.isEmpty() || !rootDir.exists() || !rootDir.isDirectory()) {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("The configured DSR Download Path is invalid or does not exist in your system.");
+		            return response;
+		        }
 				Calendar calendar = Calendar.getInstance();
 				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 				calendar.add(Calendar.MONTH, -1);
 				calendar.set(Calendar.DATE, 1);
 
 				LocalDate firstDateOfPreviousMonth = LocalDate.parse(dateFormat.format(calendar.getTime()));
-				
+
 				calendar.set(Calendar.DATE,calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
 				LocalDate lastDateOfPreviousMonth = LocalDate.parse(dateFormat.format(calendar.getTime()));
-				
+
+				List<Object[]> allTimesheets = employeeTimesheetsNewRepository.findAllByDateRangeNative(firstDateOfPreviousMonth, lastDateOfPreviousMonth);
+				List<Object[]> allActivities = timesheetActivityMapNewRepository.findAllActivitiesByDateRange(firstDateOfPreviousMonth, lastDateOfPreviousMonth);
+				Map<Long, List<Object[]>> timesheetByEmpMap = allTimesheets.stream()
+						.collect(Collectors.groupingBy(obj -> Long.parseLong(obj[0].toString())));
+
+				Map<Long, List<Object[]>> activityByTsMap = allActivities.stream()
+						.collect(Collectors.groupingBy(obj -> Long.parseLong(obj[0].toString())));
 				List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
-				for(Object[] empObj : employeeList) {
-					
-					Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
+				Map<Long, Object[]> empDetailMap = employeeList.stream()
+		                .collect(Collectors.toMap(obj -> Long.parseLong(obj[0].toString()), obj -> obj));
+				for(Long empId : timesheetByEmpMap.keySet()) {
+					Object[] empObj = empDetailMap.get(empId);
+		            if (empObj == null) continue;
+//					Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
 					String empName = empObj[2] != null ? empObj[2].toString() : null;
 					Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
-					
+
 					System.out.println("Emp ID :" + empId);
 					System.out.println("Employment ID :" + employeementId);
-					
-					List<Timesheet> monthlyTimesheet = timesheetsRepository.
-							findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstDateOfPreviousMonth, lastDateOfPreviousMonth);
-					
-					List<PortalConfig> portalConfig = portalConfigRepository.findAll();
-					String folderPath = null;
-					if(!portalConfig.isEmpty()) {
-						for(PortalConfig portalConfigObj : portalConfig) {
-							if(portalConfigObj.getConfigName().equals("DSR Download Path")) {
-								folderPath = portalConfigObj.getConfigValue();
-							}
-						}
-					}
-					System.out.println("Folder Path : " + folderPath);
-					
+
+					List<Object[]> monthlyTimesheet = timesheetByEmpMap.getOrDefault(empId, new ArrayList<>());
+
+										System.out.println("Folder Path : " + folderPath);
+
 					    Path path = Files.createDirectories(Paths.get(folderPath +"DSR" + File.separator + firstDateOfPreviousMonth.getYear() + File.separator + firstDateOfPreviousMonth.getMonth()));
 						var f = new File(path + File.separator + employeementId + "-" + empName + "-" + firstDateOfPreviousMonth.getMonth() + ".xlsx");
-						
+
 						if(f.exists()) {
 							f.delete();
 						}
-						
+
 				        try (var fos = new FileOutputStream(f)) {
 
 				            var wb = new Workbook(fos, "Application", "1.0");
 				            Worksheet ws = wb.newWorksheet(firstDateOfPreviousMonth.getMonth() + " DSR");
-				            
+
 				            ws.value(0, 0, "Date");
 				            ws.value(0, 1, "Day Type");
 				            ws.value(0, 2, "Client");
@@ -2208,46 +2387,53 @@ public class CronJobService {
 				            ws.value(0, 8, "Status");
 
 				            int rowNum = 1;
-							for(Timesheet timesheetObj: monthlyTimesheet) {								
-								List<Object[]> objectList = timesheetActivityMapRepository.activitiesByTimesheetId(timesheetObj.getTimesheetId());
-								
-								String perviousProject = "";
-								String perviousDate = "";
-								String perviousClientName = "";
-								String perviousClientLocation = "";
-								
+							String perviousProject = "";
+							String perviousDate = "";
+							String perviousClientName = "";
+							String perviousClientLocation = "";
+							for(Object[] tsRow: monthlyTimesheet) {
+
+                                Long tsId        = tsRow[1] != null ? Long.parseLong(tsRow[1].toString()) : null;
+                                String tsDate    = tsRow[2] != null ? tsRow[2].toString() : "";
+                                String tsDayType = tsRow[3] != null ? tsRow[3].toString() : "";
+                                String tsTotalHr = tsRow[4] != null ? tsRow[4].toString() : "0";
+                                String tsStatus  = tsRow[5] != null ? tsRow[5].toString() : "";
+                                String tsDesc    = tsRow[6] != null ? tsRow[6].toString() : "";
+								List<Object[]> objectList = activityByTsMap.getOrDefault(tsId, new ArrayList<>());
+
 								if(!objectList.isEmpty()) {
 									for(Object[] object : objectList) {
-										
+
 										String activity = object[1] != null ? object[1].toString() : null;
 										String project = object[5] != null ? object[5].toString() : null;
 										String clientName = object[6] != null ? object[6].toString() : null;
 										String clientLocation = object[7] != null ? object[7].toString() : null;
-										
+
 										ws.style(rowNum, 0).format("yyyy-MM-dd").set();
-										
-										if(timesheetObj.getDate().toString().equals(perviousDate)) {
+
+										if(tsDate.equals(perviousDate)) {
 											ws.range(rowNum - 1, 0, rowNum, 0).merge();
 											ws.range(rowNum - 1, 1, rowNum, 1).merge();
 											ws.range(rowNum - 1, 6, rowNum, 6).merge();
 											ws.range(rowNum - 1, 8, rowNum, 8).merge();
 										}else {
-											ws.value(rowNum, 0, timesheetObj.getDate());
-											ws.value(rowNum, 1, timesheetObj.getDayType());
-											ws.value(rowNum, 6, timesheetObj.getTotalTime());
-											ws.value(rowNum, 8, timesheetObj.getStatus());
+											ws.value(rowNum, 0,tsDate );
+											ws.value(rowNum, 1, tsDayType);
+											ws.value(rowNum, 6, tsTotalHr);
+											ws.value(rowNum, 8,tsStatus );
+											ws.value(rowNum, 7, tsDesc);
 										}
-										if(clientName.equals(perviousClientName) && timesheetObj.getDate().toString().equals(perviousDate)) {
+										if(clientName.equals(perviousClientName) && tsDate.equals(perviousDate)) {
 											ws.range(rowNum - 1, 2, rowNum, 2).merge();
 										}else {
 											ws.value(rowNum, 2, clientName);
 										}
-										if(clientLocation.equals(perviousClientLocation) && timesheetObj.getDate().toString().equals(perviousDate)) {
+										if(clientLocation.equals(perviousClientLocation) && tsDate.equals(perviousDate)) {
 											ws.range(rowNum - 1, 3, rowNum, 3).merge();
 										}else {
 											ws.value(rowNum, 3, clientLocation);
 										}
-										if(project.equals(perviousProject) && timesheetObj.getDate().toString().equals(perviousDate)) {
+										if(project.equals(perviousProject) && tsDate.equals(perviousDate)) {
 											ws.range(rowNum - 1, 4, rowNum, 4).merge();
 										}else {
 											ws.value(rowNum, 4, project);
@@ -2255,43 +2441,46 @@ public class CronJobService {
 										if(!objectList.isEmpty()) {
 											ws.value(rowNum, 5, activity);
 										}else {
-											ws.value(rowNum, 5, timesheetObj.getDescription());
+											ws.value(rowNum, 5, tsDesc);
 										}
-										
-										
+
+
 										rowNum++;
 										perviousProject = project;
-										perviousDate = timesheetObj.getDate().toString();
+										perviousDate = tsDate;
 										perviousClientName = clientName;
 										perviousClientLocation = clientLocation;
 									}
 								}else {
-									
+
 									// Fill data of weekoff & leave
 									ws.style(rowNum, 0).format("yyyy-MM-dd").set();
-									
-									ws.value(rowNum, 0, timesheetObj.getDate());
-									ws.value(rowNum, 1, timesheetObj.getDayType());
-									ws.value(rowNum, 6, timesheetObj.getTotalTime());
-									ws.value(rowNum, 7, timesheetObj.getDescription());
-									ws.value(rowNum, 8, timesheetObj.getStatus());
-									
+
+									ws.value(rowNum, 0, tsDate);
+									ws.value(rowNum, 1, tsDayType);
+									ws.value(rowNum, 6, tsTotalHr);
+									ws.value(rowNum, 7,tsDesc);
+									ws.value(rowNum, 8,tsStatus);
+									perviousDate = tsDate;
+									perviousProject = "";
+									perviousClientName = "";
+									perviousClientLocation = "";
 									rowNum++;
-									
+
 									System.out.println("Activity List is empty");
 								}
 				        }
 				            wb.finish();
 				            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("DSR Generated Successfully.");
-				            
+
 				        }catch(Exception e) {
 				        	e.printStackTrace();
 				        	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("DSR creation failed");
 				        }
 				}
-				
+
 			}catch(Exception e) {
 				e.printStackTrace();
 				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -2300,13 +2489,13 @@ public class CronJobService {
 			}
 			return response;
 		}
-		
+
 //		0 0 7 ? * * - At 07:00:00am every day
 		@Async
 		@Scheduled(cron="${birthdaymail.cron.expression}")
 		public void birthdayGreetingMail() {
 			StringBuilder builder = new StringBuilder();
-			
+
 			List<Object[]> employeeObj = employeeRepository.getAllEmployeesBirthDayToday();
 			List<EmployeeDTO> employeeList = new ArrayList<EmployeeDTO>();
 			
@@ -3423,14 +3612,14 @@ public class CronJobService {
 			
 			
 		}
-		
-		
+
+
 //		0 0 7 ? * * - At 07:00:00am every day
 		@Async
 		@Scheduled(cron="${birthdayremindermail.cron.expression}")
 		public void birthdayReminderMail() {
 			StringBuilder builder = new StringBuilder();
-			
+
 			List<Object[]> employeeObj = employeeRepository.getAllEmployeesBirthDayTomorrow();
 			List<EmployeeDTO> employeeList = new ArrayList<EmployeeDTO>();
 
@@ -3447,7 +3636,7 @@ public class CronJobService {
 					employeeList.add(employee);
 				}
 			}
-			
+
 
 			if (!employeeList.isEmpty()) {
 
@@ -4562,13 +4751,13 @@ public class CronJobService {
 			    }
 			}
 		}
-		
+
 		@Async
 		@Scheduled(cron = "0 0 9 ? * *")
 		public void resignationMailConsent() {
 			try {
 				List<Object[]> employeeObj = employeeRepository.getEmployeeByDateOfRelieving();
-				
+
 				if(!employeeObj.isEmpty()) {
 					employeeObj.forEach((object) -> {
 						//send mail to manager
@@ -4580,7 +4769,7 @@ public class CronJobService {
 						String dateOfRelieving = object[7] != null ? object[7].toString() : null;
 						String department = object[8] != null ? object[8].toString() : null;
 						try {
-							mailService.sendMail(managerEmail, "Asset Consent", 
+							mailService.sendMail(managerEmail, "Asset Consent",
 									"Dear " + managerName + ",<br><br>"
 									+ "Please provide asset consent of " + empName + "<br>"
 									+ "<br><br>"
@@ -4596,15 +4785,15 @@ public class CronJobService {
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-						
+
 						//send mail to HR,IT,Admin,Accounts department head
 						List<Object[]> emailList = employeeRepository.getEmailForMailConsent();
-						
+
 						emailList.forEach((mailObj) -> {
 							String mailAddress = object[4] != null ? object[4].toString() : null;
 							String name = object[3] != null ? object[3].toString() : null;
 							try {
-								mailService.sendMail(mailAddress, "Asset Consent", 
+								mailService.sendMail(mailAddress, "Asset Consent",
 										"Dear " + name + ",<br><br>"
 										+ "Please provide asset consent of " + empName + "<br>"
 										+ "<br><br>"
@@ -4627,25 +4816,25 @@ public class CronJobService {
 				e.printStackTrace();
 			}
 		}
-		
+
 		// 0 0 10 ? * MON - At 10:00:00am, on every Monday, every month
 		// 0 0/2 * ? * *
 //		@Async
 //		@Scheduled(cron="${timesheetDefaulter.time}")
 //		public void timesheetDefaulterWeeklyMail() {
 //			try {
-//				List<Department> allDepartment = departmentRepository.findAll();			
+//				List<Department> allDepartment = departmentRepository.findAll();
 //				if(!allDepartment.isEmpty()) {
 //					allDepartment.forEach((object) -> {
 //						StringBuilder defaulterMail = new StringBuilder();
-//						
+//
 //						if(!object.getName().equals("Super Admin") && !object.getName().equals("Director") && !object.getName().equals("unKnown Department")) {
 //							int currentYear = LocalDate.now().getYear();
 //							int currentMonth = LocalDate.now().getMonthValue();
-//							
+//
 //							LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
 //							LocalDate end = LocalDate.now().minusDays(1);
-//							
+//
 //							Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
 //
 //							List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReport(firstOfMonth, end);
@@ -4653,7 +4842,7 @@ public class CronJobService {
 //
 //							List<TimesheetDTO> dtoList = new ArrayList<>();
 //							String hodMail = null;
-//							
+//
 //							if (!timesheetList.isEmpty()){
 //								for(Object[] employee: employeeList) {
 //									TimesheetDTO dto = new TimesheetDTO();
@@ -4680,7 +4869,7 @@ public class CronJobService {
 //											dto.setPendingEodCount(pendingEodCount);
 //										}
 //									});
-//									
+//
 //									if(dto.getPendingEodCount() >= 3) {
 //										defaulterMail.append(employee[3] != null ? employee[3].toString() : null);
 //										defaulterMail.append(",");
@@ -4689,12 +4878,12 @@ public class CronJobService {
 //								}
 //							}
 //							//Filter 0 pending EOD counts
-//							
+//
 //							dtoList = dtoList.stream().filter(timesheet -> timesheet.getPendingEodCount() >= 3).collect(Collectors.toList());
-//									
-//							//Mail timesheet defaulter list to: user cc: HR, HOD	
+//
+//							//Mail timesheet defaulter list to: user cc: HR, HOD
 //							if(!dtoList.isEmpty()) {
-//								
+//
 //								StringBuilder html = new StringBuilder();
 //								html.append("<html>\n" +
 //							            "  <head>\n" +
@@ -4732,11 +4921,11 @@ public class CronJobService {
 //									  html.append("        <td>" + timesheet.getDepartmentName() + "</td>\n");
 //									  html.append("      </tr>\n");
 //								}
-//								
+//
 //								html.append("    </table>\n" +
 //								            "  </body>\n" +
 //								            "</html>");
-//								
+//
 //								try {
 ////									mailService.sendMailWithCC(defaulterMail.toString(),
 ////											hodMail+","+hrMailAddress,
@@ -4749,7 +4938,7 @@ public class CronJobService {
 ////										  + " from 23rd January onwards if it remains unfilled for consecutive 3 days. <br><br>"
 ////										  + "Thus, ensure you fill timesheets on a daily basis to avoid lock of the timesheets and impacting salary.<br><br>"
 ////										  +	html.toString());
-//									
+//
 //									mailService.sendMailWithCC(hodMail,
 //											hrMailAddress,
 //											"EOD Timesheet Defaulters List for "+firstOfMonth+" to "+end,
@@ -4765,7 +4954,7 @@ public class CronJobService {
 //									System.out.println(object.getName() + " dept name \n\n\n");
 //									e.printStackTrace();
 //								}
-//								
+//
 //								String[] emailId = defaulterMail.toString().split(",");
 //								for (String email : emailId) {
 //									try {
@@ -4791,30 +4980,29 @@ public class CronJobService {
 //				e.printStackTrace();
 //			}
 //		}
-		
-		
+
+
 //		<-------Divya Code ----->
 		@Async
 		@Scheduled(cron="${timesheetDefaulter.time}")
 		public void timesheetDefaulterWeeklyMail() {
-			
-			System.out.println("***********JOB STARTED*******************");
+
+			log.info("*********** timesheetDefaulterWeeklyMail JOB STARTED *******************");
 		    try {
 		        List<Department> allDepartment = departmentRepository.findAll();
+		        log.debug("Departments fetched: {}", allDepartment);
+				log.info("Total departments fetched: {}", allDepartment.size());
 
-		        if (!allDepartment.isEmpty()) {
+		        if (allDepartment != null && !allDepartment.isEmpty()) {
 		            for (Department department : allDepartment) {
-		               
-		                if (department.getName().equals("Super Admin") ||
-		                    department.getName().equals("Director") ||
-		                    department.getName().equals("unKnown Department")) {
-		                    continue;
-		                }    
+						try {
+		                String deptName = department.getName();
 
-		                System.out.println("\n==========================================");
-		                System.out.println("Processing Department: " + department.getName() + " (ID: " + department.getDeptId() + ")");
-		                System.out.println("==========================================");
-
+						if ("Super Admin".equals(deptName) ||
+							"Director".equals(deptName) ||
+							"unKnown Department".equals(deptName)) {
+							continue;
+						} 
 		                Set<String> defaulterEmails = new HashSet<>();
 		                List<TimesheetDTO> dtoList = new ArrayList<>();
 
@@ -4823,16 +5011,26 @@ public class CronJobService {
 		                LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
 		                LocalDate end = LocalDate.now().minusDays(1);
 		                Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
-//		                Long dept= (long) 26;
-
-		                List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReport(firstOfMonth, end);
+//		                List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReportOLD(firstOfMonth, end);
+		                List<Object[]> timesheetList =employeeTimesheetsNewRepository.getFilledTimesheetPerEmployeeCount(firstOfMonth, end);
+		                Map<Long, Long> filledCountMap = timesheetList.stream()
+		                	    .filter(ts -> ts[0] != null)
+		                	    .collect(Collectors.toMap(
+		                	        ts -> Long.parseLong(ts[0].toString()),
+		                	        ts -> ts[1] != null ? Long.parseLong(ts[1].toString()) : 0L
+		                	    ));
 		                List<Object[]> employeeList = employeeRepository.getEmployeeByDepartmentId(department.getDeptId());
-		                System.out.println("Employee List (Total: " + employeeList.size() + "):");
+		                log.info("Employee List Size for {} : {}",
+										department.getName(),
+										employeeList == null ? 0 : employeeList.size());
 		                String hodMail = null;
 
-		                
+
 						for (Object[] emp : employeeList) {
-		                    System.out.println("  -> A-" + emp[0] + " | Email: " + emp[3]);
+							   try {
+		                    // System.out.println("  -> A-" + emp[0] + " | Email: " + emp[3]);
+		                    log.debug("Employee record: {}", Arrays.toString(emp));
+
 
 		                    TimesheetDTO dto = new TimesheetDTO();
 		                    dto.setEmployeementId(emp[0] != null ? Long.parseLong(emp[0].toString()) : null);
@@ -4844,35 +5042,49 @@ public class CronJobService {
 //		                    dto.setPendingEodCount(period);
 		                    dto.setExpectedEODCount(period);
 		                    dto.setEmploymentstatus(emp[6] != null ? emp[6].toString() : null);
+		                    dto.setIsApmosysProduct(emp[8] != null ? emp[8].toString() : null);
 		                    hodMail = emp[7] != null ? emp[7].toString() : null;
 		                    
 		                    
-		                    long filled = 0;
-		                    for (Object[] ts : timesheetList) {
-		                        Long tsEmpId = ts[0] != null ? Long.parseLong(ts[0].toString()) : null;
-		                        Long empId = emp[5] != null ? Long.parseLong(emp[5].toString()) : null;
-		                        
-		                        System.out.println("Total Expected value ::::" +period);
+//		                    long filled = 0;
+//		                    for (Object[] ts : timesheetList) {
+//		                        Long tsEmpId = ts[0] != null ? Long.parseLong(ts[0].toString()) : null;
+//		                        Long empId = emp[5] != null ? Long.parseLong(emp[5].toString()) : null;
+//		                        
+//		                        System.out.println("Total Expected value ::::" +period);
+//
+//		                        if (tsEmpId != null && tsEmpId.equals(empId)) {
+//		                            filled = ts[1] != null ? Long.parseLong(ts[1].toString()) : 0L;
+//		                            dto.setPendingEodCount(period - filled);
+//		                            break;
+//		                        }
+//		                    }
+		                    Long empId = emp[5] != null
+		                            ? Long.parseLong(emp[5].toString())
+		                            : null;
 
-		                        if (tsEmpId != null && tsEmpId.equals(empId)) {
-		                            filled = ts[1] != null ? Long.parseLong(ts[1].toString()) : 0L;
-		                            dto.setPendingEodCount(period - filled);
-		                            break;
-		                        }
-		                    }
+		                    long filled = empId != null
+		                            ? filledCountMap.getOrDefault(empId, 0L)
+		                            : 0L;
 		                    dto.setFilledTimesheetCount(filled);
-		                    
-		                    if (dto.getPendingEodCount() != null && dto.getPendingEodCount() >= 3 && dto.getEmail() != null) {
+		                    dto.setPendingEodCount(period - filled);
+		                    if(dto.getPendingEodCount() != null && dto.getPendingEodCount() >= 3 && dto.getEmail() != null) {
 		                        defaulterEmails.add(dto.getEmail().toLowerCase().trim());
 		                    }
 
 		                    dtoList.add(dto);
+						}catch (Exception e) {
+
+                            log.error("Error processing employee record: {}", Arrays.toString(emp), e);
+						}
+                        
 		                }
 
-						
+
 		                dtoList = dtoList.stream()
 		                        .filter(d -> d.getPendingEodCount()!=null && d.getPendingEodCount() >= 3)
 		                        .collect(Collectors.toList());
+						log.info("Defaulters found in {} : {}", department.getName(), dtoList.size());
 		                System.out.println("Defaulters (Pending EOD ≥ 3):");
 		                for (TimesheetDTO dto : dtoList) {
 		                    System.out.println("  -> A-" + dto.getEmployeementId() + " | " + dto.getEmail() + " | Pending: " + dto.getPendingEodCount() + " | Filled Count : " + dto.getFilledTimesheetCount());
@@ -4889,8 +5101,11 @@ public class CronJobService {
 		                            .append("<th>Expected Timesheet Count</th><th>Filled Timesheet Count</th><th>Department</th></tr>");
 
 		                    for (TimesheetDTO dto : dtoList) {
+		                    	boolean isApmosysProd = Boolean.parseBoolean(dto.getIsApmosysProduct());
+
+		                    	String empPrefix = isApmosysProd ? "AP-" : "A-";
 		                        html.append("<tr>")
-		                                .append("<td>A-").append(dto.getEmployeementId()).append("</td>")
+		                                .append("<td>").append(empPrefix).append(dto.getEmployeementId()).append("</td>")
 		                                .append("<td>").append(dto.getEmployeeName()).append("</td>")
 		                                .append("<td>").append(dto.getEmail()).append("</td>")
 		                                .append("<td>").append(dto.getManagerName()).append("</td>")
@@ -4901,7 +5116,8 @@ public class CronJobService {
 		                    }
 
 		                    html.append("</table></body></html>");
-
+							log.debug("Generated HTML mail body:\n{}",
+								html.toString().replace("><", ">\n<"));
 		                    // Send mail to HOD + HR
 		                    try {
 		                        mailService.sendMailWithCC(
@@ -4915,16 +5131,16 @@ public class CronJobService {
 		                                        + "Regards,<br>ApMoSys Technologies"
 		                                        + html.toString()
 		                        );
-		                        System.out.println(" HOD+HR mail sent for: " + department.getName());
+		                        log.info("HOD + HR mail sent for department {}", department.getName());
 		                    } catch (MessagingException e) {
-		                        System.out.println(" Failed sending HOD+HR mail for: " + department.getName());
-		                        e.printStackTrace();
+		                        log.error("Failed sending HOD+HR mail for department {}", department.getName(), e);
 		                    }
-//		     
+//
 		                    // Send mails to each individual employee
-		                    System.out.println("Individual defaulter emails (Total: " + defaulterEmails.size() + "):");
-		                    for (String email : defaulterEmails) {
-		                        System.out.println("  -> " + email);
+		                    log.info("Sending {} defaulter mails for department {}",
+        						defaulterEmails.size(), department.getName());
+							for (String email : defaulterEmails) {
+		                        log.debug("Processing email: {}", email);
 		                        try {
 		                            mailService.sendMail(
 		                                    email,
@@ -4935,34 +5151,39 @@ public class CronJobService {
 		                                            + html.toString()
 		                                            + "Regards,<br>ApMoSys Technologies"
 		                            );
+									 log.info("Mail sent successfully to {}", email);
 		                        } catch (Exception e) {
-		                            System.out.println("Failed sending mail to: " + email);
-		                            e.printStackTrace();
+		                            log.error("Failed sending mail to {}", email, e);
 		                        }
-		                    }		                    
+		                    }
 		                } else {
-		                    System.out.println("No defaulters in " + department.getName());
+		                    log.info("No defaulters found in department {}", department.getName());
 		                }
+						} catch (Exception e) {
+
+                    		log.error("Error while processing department {}", 
+          					department != null ? department.getName() : "UNKNOWN", e);
+
+                }
 		            }
 		        }
 		    } catch (Exception e) {
-		        System.out.println(" Exception occurred in timesheetDefaulterWeeklyMail()");
-		        e.printStackTrace();
+		                log.error("Exception occurred in timesheetDefaulterWeeklyMail()", e);
 		    }
 		}
 
-		
+
 //		*/20 * * * * *  for every 20 secs
-//      @Scheduled(cron = "0 0 8 ? * *")  // At 08:00 AM		
+//      @Scheduled(cron = "0 0 8 ? * *")  // At 08:00 AM
 		@Async
-		@Scheduled(cron = "0 0 8 ? * *")  // At 08:00 AM	
+		@Scheduled(cron = "0 0 8 ? * *")  // At 08:00 AM
 		public void timesheetCheckEnable() {
 
 			try {
 				LocalDate dateToday = LocalDate.now();
 				List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
 				List<EmployeeDTO> listDTO = new ArrayList<EmployeeDTO>();
-				
+
 				if(!employeeList.isEmpty()) {
 					for(Object[] object: employeeList) {
 						EmployeeDTO empdto = new EmployeeDTO();
@@ -4971,88 +5192,88 @@ public class CronJobService {
 						empdto.setEmployeementId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
 						empdto.setIsTimesheetLockCheckEnable(object[4] != null ? object[4].toString() : null);
 						empdto.setTimesheetLockUpdatedOn(object[5] != null ? object[5].toString() : null);
-						
+
 						listDTO.add(empdto);
 					}
 				}
-				
+
 				if(!listDTO.isEmpty()) {
 					listDTO.forEach((employeeDTO) -> {
-						
+
 						if(employeeDTO.getTimesheetLockUpdatedOn() != null) {
 							DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-							
-							LocalDate lastUpdatedDate = LocalDate.parse(employeeDTO.getTimesheetLockUpdatedOn(), format);			
+
+							LocalDate lastUpdatedDate = LocalDate.parse(employeeDTO.getTimesheetLockUpdatedOn(), format);
 							long elapsedDays = ChronoUnit.DAYS.between(lastUpdatedDate, dateToday);
-							
+
 							System.out.println("today : "+ dateToday + " lastUpdatedDate : "+ lastUpdatedDate);
 							System.out.println("elapsedDays for "+ employeeDTO.getEmpId() + " : "+  elapsedDays);
-							
+
 							if(elapsedDays >= timesheetReconcileDays && employeeDTO.getIsTimesheetLockCheckEnable().equals("false")) {
 								Optional<Employee> emp = employeeRepository.findById(employeeDTO.getEmpId());
 								if(emp.isPresent()) {
-									Employee employeeObj = emp.get();								
+									Employee employeeObj = emp.get();
 									employeeObj.setIsTimesheetLockCheckEnable("true");
 									employeeObj.setTimesheetLockUpdatedOn(LocalDate.now());
-									
+
 									employeeRepository.save(employeeObj);
 								}
 							}
 						}
 					});
 				}
-				
+
 			}catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
-		
+
 		@Async
 		@Scheduled(cron = "0 0 10 ? * MON")
 		public void weeklyAllEmployeeDsrReport() {
 			try {
 				TimesheetDTO timesheetDto = new TimesheetDTO();
 				timesheetDto.setIsCron("true");
-				
+
 				ServiceResponse response = allEmployeeDsrReport(timesheetDto);
-				
+
 			}catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		
-		
+
+
 		// Below method: will generate Excel with muliple row for projects & client
 //		public ServiceResponse allEmployeeDsrReport(TimesheetDTO timesheetdto) {
 //			ServiceResponse response = new ServiceResponse();
 //			try {
-//				
+//
 //				// Create Excel
 //				LocalDate firstOfMonth = null;
 //				LocalDate currentDate = null;
 //				String subject = null;
 //				int currentYear = 0;
-//				
+//
 //				if(timesheetdto.getIsCron().equals("true")) {
 //					currentYear = LocalDate.now().getYear();
 //					int currentMonth = LocalDate.now().getMonthValue();
-//					
+//
 //					firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
 //					currentDate = LocalDate.now().minusDays(1);
 //					subject = "All Employee's DSR report from "+firstOfMonth+" to "+currentDate;
-//					
+//
 //				}else if(timesheetdto.getIsCron().equals("false")) {
 //					int month = Month.valueOf(timesheetdto.getMonth().toUpperCase()).getValue();
 //					currentYear = LocalDate.now().getYear();
-//					
+//
 //					firstOfMonth = LocalDate.of(timesheetdto.getYear(), month, 1);
 //					currentDate = YearMonth.of(timesheetdto.getYear(), month).atEndOfMonth();
 //					subject = "All Employee's DSR report of month : "+timesheetdto.getMonth() + " " + currentYear;
 //				}
-//					
+//
 //					String fileName = "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx";
 //					var file = new File(fileName);
-//						
+//
 //					try (var fos = new FileOutputStream(file)) {
 //
 //						var wb = new Workbook(fos, "Application", "1.0");
@@ -5105,7 +5326,7 @@ public class CronJobService {
 //											ws.style(rowNum, 2).format("dd-MM-yyyy").set();
 //											ws.style(rowNum, 4).format("dd-MM-yyyy HH:mm:ss").set();
 //											ws.style(rowNum, 5).format("dd-MM-yyyy HH:mm:ss").set();
-//											
+//
 //											ws.value(rowNum, 0, "A-" + employeementId);
 //											ws.value(rowNum, 1, empName);
 //											ws.value(rowNum, 2, timesheetObj.getDate());
@@ -5157,16 +5378,16 @@ public class CronJobService {
 //					}catch(Exception e) {
 //						e.printStackTrace();
 //					}
-//					
+//
 //					// Send mail
-//					
+//
 //					 boolean mailSent = mailService.sendMailWithAttachment(financeMail,
 //							 hrMailAddress,
 //							 subject,
 //							 "Dear Team, <br><br>"
 //	                       + "Please find " + subject + " attached below.",
 //	                       file);
-//					
+//
 //					 if(mailSent) {
 //						 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 //						 response.setServiceResponse("All Employee's DSR report sent on mail to finance & HR department successfully.");
@@ -5174,7 +5395,7 @@ public class CronJobService {
 //						 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 //						 response.setServiceResponse("Unable to sent Mail.");
 //					 }
-//					
+//
 //			}catch(Exception e) {
 //				e.printStackTrace();
 //				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -5183,77 +5404,110 @@ public class CronJobService {
 //			}
 //			return response;
 //		}
-		
+
 		public ServiceResponse allEmployeeDsrReport(TimesheetDTO timesheetdto)
 		{
 			ServiceResponse response = new ServiceResponse();
-		
+
 //		List<BioMaTO> finalEmpBioData=bioMaxService.getBioInOut(timesheetdto);
-		
+
 //		System.out.println("print---"+finalEmpBioData);
-		
+
 try {
-			
+
 			// Create Excel
 			LocalDate firstOfMonth = null;
 			LocalDate currentDate = null;
 			String subject = null;
 			int currentYear = 0;
-			
-			if(timesheetdto.getIsCron().equals("true")) {
+
+			if ("true".equals(timesheetdto.getIsCron())) {
 				currentYear = LocalDate.now().getYear();
 				int currentMonth = LocalDate.now().getMonthValue();
-				
+
 				firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
 				currentDate = LocalDate.now().minusDays(1);
 				subject = "All Employee's DSR report from "+firstOfMonth+" to "+currentDate;
-				
-			}else if(timesheetdto.getIsCron().equals("false")) {
+
+			}else if ("false".equals(timesheetdto.getIsCron())) {
 				int month = Month.valueOf(timesheetdto.getMonth().toUpperCase()).getValue();
 				currentYear = LocalDate.now().getYear();
-				
+
 				firstOfMonth = LocalDate.of(timesheetdto.getYear(), month, 1);
 				currentDate = YearMonth.of(timesheetdto.getYear(), month).atEndOfMonth();
 				subject = "All Employee's DSR report of month : "+timesheetdto.getMonth() + " " + currentYear;
 			}
-				
-			
+			        log.info("Generating DSR report from {} to {}", firstOfMonth, currentDate);
+
+
 			String fileName = "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx";
 			var file = new File(fileName);
-			
+
 			if(allEmployeeDSRFileLocation != null) {
 				Path path = Files.createDirectories(Paths.get(allEmployeeDSRFileLocation + "AllEmployeeDSR"));
-				file = new File(path + File.separator + "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx");				
+				file = new File(path + File.separator + "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx");
 			}
-			
-					
+
+
 				try (var fos = new FileOutputStream(file)) {
 
 					var wb = new Workbook(fos, "Application", "1.0");
 					Worksheet ws = wb.newWorksheet(firstOfMonth.getMonth() + " DSR");
+					 String[] headers = {
+			                    "EmpId", "Emp Name", "Department Name", "Date",
+			                    "Day Type", "Leave Type", "In-Time", "Out-Time",
+			                    "Shift", "Total Working Hours", "Activity",
+			                    "Description", "Client", "Project", "Status"
+			            };
 
-					ws.value(0, 0, "EmpId");
-					ws.value(0, 1, "Emp Name");
-					ws.value(0, 2, "Department Name");
-					ws.value(0, 3, "Date");
-					ws.value(0, 4, "Day Type");
-					ws.value(0, 5, "Leave Type");
-					ws.value(0, 6, "In-Time");
-					ws.value(0, 7, "Out-Time");
-					ws.value(0, 8, "Shift");
-					ws.value(0, 9, "Total Working Hours");
-					ws.value(0, 10, "Activity"); //Comma seperated
-					ws.value(0, 11, "Description");
-					ws.value(0, 12, "Client"); // comma seperated
-					ws.value(0, 13, "Project"); // comma seperated
-					ws.value(0, 14, "Status");
-//					ws.value(0, 14, "BiomaxInTime");
-//					ws.value(0, 15, "BiomaxOutTime");
-//					
-					
+			            for (int i = 0; i < headers.length; i++) {
+			                ws.value(0, i, headers[i]);
+			            }
+//
+
 					int rowNum = 1;
 
 					List<Object[]> employeeList = employeeRepository.getEmployeeDetailForDSRCron(firstOfMonth, currentDate);
+					if (employeeList == null || employeeList.isEmpty()) {
+
+						log.warn("No employee data found for DSR report between {} and {}",
+								firstOfMonth, currentDate);
+
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("No employee data found.");
+						return response;
+					}
+
+					log.info("Total employees fetched: {}", employeeList.size());
+					
+
+					 List<Long> empIds = employeeList.stream()
+				                .map(e -> Long.parseLong(e[0].toString()))
+				                .collect(Collectors.toList());
+					 List<EmployeeTimesheetsNewDTO> allTimesheets =
+				                employeeTimesheetsNewRepository
+				                        .fetchTimesheetDataWithDateTypeForEmployees(
+				                                empIds, firstOfMonth, currentDate);
+					log.info("Total timesheets fetched: {}", allTimesheets.size());
+					 Map<Long, List<EmployeeTimesheetsNewDTO>> timesheetMap =
+				                allTimesheets.stream()
+				                        .collect(Collectors.groupingBy(
+				                                EmployeeTimesheetsNewDTO::getEmpId
+				                        ));
+					 List<Long> timesheetIds = allTimesheets.stream()
+				                .map(EmployeeTimesheetsNewDTO::getTimesheetId)
+				                .collect(Collectors.toList());
+					 Map<Long, List<Object[]>> activityMap = new HashMap<>();
+					 if (!timesheetIds.isEmpty()) {
+				            List<Object[]> allActivities =
+				                    timesheetActivityMapRepository
+				                            .activitiesByTimesheetIds(timesheetIds);
+
+				            activityMap = allActivities.stream()
+				                    .collect(Collectors.groupingBy(
+				                            obj -> Long.parseLong(obj[0].toString())
+				                    ));
+				        }
 					for (Object[] empObj : employeeList) {
 
 						Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
@@ -5261,143 +5515,146 @@ try {
 						Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
 						String departmentName = empObj[6] != null ? empObj[6].toString() : null;
 
-						System.out.println("Emp ID :" + empId);
-						System.out.println("Employment ID :" + employeementId);
 
-						List<Timesheet> monthlyTimesheet = timesheetsRepository
-								.findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstOfMonth, currentDate);
+//						List<Timesheet> monthlyTimesheet = timesheetsRepository
+//								.findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstOfMonth, currentDate);
+						List<EmployeeTimesheetsNewDTO> monthlyTimesheet = timesheetMap.getOrDefault(empId, Collections.emptyList());
+						
+						for (EmployeeTimesheetsNewDTO ts : monthlyTimesheet) {
 
-						if (!monthlyTimesheet.isEmpty()) {
-							for (Timesheet timesheetObj : monthlyTimesheet) {
-								List<Object[]> objectList = timesheetActivityMapRepository
-										.activitiesByTimesheetId(timesheetObj.getTimesheetId());
+						    List<Object[]> objectList =
+						            activityMap.getOrDefault(
+						                    ts.getTimesheetId(),
+						                    Collections.emptyList()
+						            );
 
-								StringBuilder activity = new StringBuilder();
-								StringBuilder description = new StringBuilder();
-								Set<String> project = new HashSet<>();
-								Set<String> clientName = new HashSet<>();
-								
-								if (!objectList.isEmpty()) {
-									for (Object[] object : objectList) {
-										activity.append(object[1] != null ? object[1].toString() : null).append(",");
-										description.append(object[3] != null ? object[3].toString() : null).append(",");							
-										project.add(object[5] != null ? object[5].toString() : null);
-										
-										clientName.add(object[6] != null ? object[6].toString() : null);
-									}
-									
-									ws.style(rowNum, 3).format("dd-MM-yyyy").set();
-									ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
-									ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
-									
-									ws.value(rowNum, 0, "A-" + employeementId);
-									ws.value(rowNum, 1, empName);
-									ws.value(rowNum, 2, departmentName);
-									ws.value(rowNum, 3, timesheetObj.getDate());
-									ws.value(rowNum, 4, timesheetObj.getDayType());
-									ws.value(rowNum, 6, timesheetObj.getOfficeInTime());
-									ws.value(rowNum, 7, timesheetObj.getOfficeOutTime());
-									if(timesheetObj.getIsNightShift() == null) {
-										ws.value(rowNum, 8, "Regular Shift");
-									}else {
-										ws.value(rowNum, 8, timesheetObj.getIsNightShift().equals("true") ? "Night Shift" : "Regular Shift");
-									}
-									ws.value(rowNum, 9, timesheetObj.getTotalWorkingHours());
-									if (!objectList.isEmpty()) {
-										ws.value(rowNum, 10, activity.toString());
-									} else {
-										ws.value(rowNum, 10, timesheetObj.getDescription());
-									}
-									if(!objectList.isEmpty()) {
-										ws.value(rowNum,11, description.toString());
-										}else {
-											ws.value(rowNum, 11, (String)null); 
-										}
-									ws.value(rowNum, 12, String.join(",", clientName));
-									ws.value(rowNum, 13, String.join(",", project));
-									ws.value(rowNum, 14, timesheetObj.getStatus());
+						    StringBuilder activity = new StringBuilder();
+						    StringBuilder description = new StringBuilder();
+						    Set<String> project = new LinkedHashSet<>();
+						    Set<String> clientName = new LinkedHashSet<>();
 
-									rowNum++;
-									
-									
-									 // Check if employeementId exists in finalEmpBioData
-//						            for (BioMaTO bio : finalEmpBioData) {
-//						                if (bio.getEmployeeCode().equalsIgnoreCase(String.valueOf(employeementId))) {
-//				
-//						                	ws.value(rowNum, 14, bio.getInTime());
-//						                	ws.value(rowNum, 15, bio.getOutTime());
-//						                	
-//						                    break; // Exit the loop if found
-//						                }
-//						            }
-									
-									
-									
-									
-								} else {
-									
-									//Get leave type
-									List<Object[]> empLeave = employeeLeaveRepository
-											.findLeaveTypeFromEmpIdAndDate(empId, timesheetObj.getDate().toString());
-									
-									String leaveType = null;
-									String dayType = timesheetObj.getDayType();
-									if(!empLeave.isEmpty()) {
-										for(Object[] object: empLeave) {
-											leaveType = object[0] != null ? object[0].toString() : null;
-											dayType = "Leave";
-										}
-									}
+						    if (!objectList.isEmpty()) {
 
-									// Fill data of weekoff & leave
+						        for (Object[] object : objectList) {
 
-									ws.style(rowNum, 3).format("dd-MM-yyyy").set();
-									ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
-									ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
+						            activity.append(object[1] != null ? object[1].toString() : null)
+						                    .append(",");
 
-									ws.value(rowNum, 0, "A-" + employeementId);
-									ws.value(rowNum, 1, empName);
-									ws.value(rowNum, 2, departmentName);
-									ws.value(rowNum, 3, timesheetObj.getDate());
-									ws.value(rowNum, 4, dayType);
-									ws.value(rowNum, 5, leaveType);
-									ws.value(rowNum, 9, timesheetObj.getTotalWorkingHours());
-								    ws.value(rowNum, 10, timesheetObj.getDescription());
-								    ws.value(rowNum, 11, (String)null); 
-									ws.value(rowNum, 14, timesheetObj.getStatus());
-									
-									 // Check if employeementId exists in finalEmpBioData
-//						            for (BioMaTO bio : finalEmpBioData) {
-//						                if (bio.getEmployeeCode().equalsIgnoreCase(String.valueOf(employeementId))) {
-//				
-//						                	ws.value(rowNum, 14, bio.getInTime());
-//						                	ws.value(rowNum, 15, bio.getOutTime());
-//						                	
-//						                    break; // Exit the loop if found
-//						                }
-//						            }
+						            description.append(object[3] != null ? object[3].toString() : null)
+						                    .append(",");
 
-									rowNum++;
+						            if (object[5] != null)
+						                project.add(object[5].toString());
 
-									System.out.println("Activity List is empty");
-								}
-							}
+						            if (object[6] != null)
+						                clientName.add(object[6].toString());
+						        }
+
+						        ws.style(rowNum, 3).format("dd-MM-yyyy").set();
+						        ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
+						        ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
+
+						        ws.value(rowNum, 0, "A-" + employeementId);
+						        ws.value(rowNum, 1, empName);
+						        ws.value(rowNum, 2, departmentName);
+						        ws.value(rowNum, 3, ts.getDate());
+						        ws.value(rowNum, 4, ts.getDaytype());
+						        ws.value(rowNum, 5, ts.getLeaveTypeMasterId());
+						        ws.value(rowNum, 6, ts.getWorkCheckIn());
+						        ws.value(rowNum, 7, ts.getWorkCheckOut());
+
+						        if (ts.getIsNightShift() == null) {
+						            ws.value(rowNum, 8, "Regular Shift");
+						        } else {
+						            ws.value(rowNum, 8,
+						                    ts.getIsNightShift().equals("true")
+						                            ? "Night Shift"
+						                            : "Regular Shift");
+						        }
+
+						        double hours = ts.getTotalWorkingMinutes() == null
+						                ? 0.0
+						                : ts.getTotalWorkingMinutes() / 60.0;
+
+						        ws.value(rowNum, 9,
+						                Math.round(hours * 100.0) / 100.0);
+
+						        ws.value(rowNum, 10, activity.toString());
+						        ws.value(rowNum, 11, description.toString());
+						        ws.value(rowNum, 12, String.join(",", clientName));
+						        ws.value(rowNum, 13, String.join(",", project));
+						        ws.value(rowNum, 14, ts.getStatus());
+
+						        rowNum++;
+
+						    } else {
+								log.debug("No activity found for timesheet {}", ts.getTimesheetId());
+						        List<Object[]> empLeave =
+						                employeeLeaveRepository
+						                        .findLeaveTypeFromEmpIdAndDate(
+						                                empId,
+						                                ts.getDate().toString()
+						                        );
+
+						        String leaveType = null;
+						        String dayType = ts.getDaytype();
+
+						        if (!empLeave.isEmpty()) {
+						            for (Object[] object : empLeave) {
+						                leaveType = object[0] != null
+						                        ? object[0].toString()
+						                        : null;
+						                dayType = "Leave";
+						            }
+						        }
+
+						        ws.style(rowNum, 3).format("dd-MM-yyyy").set();
+						        ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
+						        ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
+
+						        ws.value(rowNum, 0, "A-" + employeementId);
+						        ws.value(rowNum, 1, empName);
+						        ws.value(rowNum, 2, departmentName);
+						        ws.value(rowNum, 3, ts.getDate());
+						        ws.value(rowNum, 4, dayType);
+						        ws.value(rowNum, 5, leaveType);
+
+						        double hours = ts.getTotalWorkingMinutes() == null
+						                ? 0.0
+						                : ts.getTotalWorkingMinutes() / 60.0;
+
+						        ws.value(rowNum, 9,
+						                Math.round(hours * 100.0) / 100.0);
+
+						        ws.value(rowNum, 10, ts.getDescription());
+						        ws.value(rowNum, 11, (String) null);
+						        ws.value(rowNum, 14, ts.getStatus());
+
+						        rowNum++;
+
+						    }							
 						}
+							
 					}
 					wb.finish();
 				}catch(Exception e) {
-					e.printStackTrace();
+					// e.printStackTrace();
+					log.error("Error while generating DSR report", e);
+					 response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+					response.setServiceResponse("Failed to generate DSR report.");
+
+					return response;
 				}
-				
+
 				// Send mail
-				
+
 				 boolean mailSent = mailService.sendMailWithAttachment(financeMail,
 						 hrMailAddress,
 						 subject,
 						 "Dear Team, <br><br>"
                        + "Please find " + subject + " attached below.",
                        file);
-				
+
 				 if(mailSent) {
 					 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					 response.setServiceResponse("All Employee's DSR report sent on mail to finance & HR department successfully.");
@@ -5405,55 +5662,56 @@ try {
 					 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					 response.setServiceResponse("Unable to sent Mail.");
 				 }
-				
+
 		}catch(Exception e) {
-			e.printStackTrace();
+			// e.printStackTrace();
+			log.error("Unexpected error in allEmployeeDsrReport()", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 		}
 		return response;
-		
-		}
-		
-		
-	
-		
 
-		
-		
+		}
+
+
+
+
+
+
+
 		// To Remove any InActive / Blocked / Check Idle user within 1hr
 		// "0 0 0/1 ? * *" - Run at every 1 Hr
 		// "0 0/1 * ? * *" - Run at every 1 min
 		// "0 0/30 * ? * *" - Run at evry 30 mins
-		
+
 		@Async
 		@Scheduled(cron = "0 0/10 * ? * *")
 		public void loggedInUserAudit() {
-			
+
 			System.out.println(new Date() + " Running LoggedIn User Audit ... ");
-			
+
 			try {
 				List<UserSession> userSessionList = userSessionRepository.findAll();
 				List<String> loggedOutUsers = new ArrayList<String>();
-				
+
 				if(!userSessionList.isEmpty()){
 					for (UserSession session : userSessionList) {
 					      String user = null;
-					      
+
 					      LocalDateTime loginTime = session.getLoginTime();
 					      LocalDateTime lastCheckedTime = session.getLastCheckTime();
 					      LocalDateTime today = LocalDateTime.now();
 					      Long elapsedMinsAfterLastCheck = 0L;
 					      if(lastCheckedTime != null) elapsedMinsAfterLastCheck = ChronoUnit.MINUTES.between(lastCheckedTime, today);
-					      
+
 //					      System.out.println("key: " + key + " value: " + value + " loginTime : "+ loginTime+ " currentDateTime : "+ today + " elapsedHours : "+ elapsedHours);
-					      
+
 					      if(session.getSessionKey() != null) {
 					    	  List<Object[]> employeeData =  employeeRepository.getEmploymentStatusAndInvalidAccessAttemptByEmpId(session.getEmpId());
-					    	  
+
 					    	  EmployeeDTO employee = new EmployeeDTO();
-					    	  
+
 					    	  if (!employeeData.isEmpty()) {
 					    		  employeeData.forEach((data) -> {
 					    			  employee.setEmpId((data[0] != null) ? Long.parseLong(data[0].toString()) : null);
@@ -5461,11 +5719,11 @@ try {
 					    			  employee.setInvalidAccessAttempt((data[2] != null) ? Integer.parseInt(data[2].toString()) : null);
 									});
 					    	  };
-					    	  
-					    	  
+
+
 					    	  final long VALID_ATTEMPT_LIMIT = validAttempt;
 					    	  final long SESSION_CHECK_INACTIVE_LIMIT = userSessionInactiveTimeout;
-					    	  
+
 					    	  if(employee.getEmpId() != null && (employee.getEmploymentstatus().equals("InActive") || employee.getInvalidAccessAttempt() > VALID_ATTEMPT_LIMIT)) {
 					    		  user = session.getEmpId() + " - "+ "InActive/Blocked";
 					    		  userSessionRepository.deleteById(session.getUserSessionId());
@@ -5473,27 +5731,27 @@ try {
 					    		  user = session.getEmpId() + " - "+ " Time elapsed After Last Check : "+ elapsedMinsAfterLastCheck + " min.";
 					    		  userSessionRepository.deleteById(session.getUserSessionId());
 					    	  }
-					    	  
+
 					    	  if(user != null) {
-					    		  loggedOutUsers.add(user);				    		  
-					    	  } 
+					    		  loggedOutUsers.add(user);
+					    	  }
 					      }
 					}
 				}
-				
+
 				System.out.println("LoggedOutusers : "+ loggedOutUsers.toString());
-				
+
 			}catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
-		
+
 		//0 0 0 1/3 * ? - At 00:00:00am, every 3 days starting on the 1st, every month
 		@Scheduled(cron = "0 0 0 1/3 * ?")
 		public void oldProjectAlertMail() {
 			try {
 				List<ResourceManagementDTO> dtoList = new ArrayList<ResourceManagementDTO>();
-				
+
 				OkHttpClient client = new OkHttpClient();
 				Request request = new Request.Builder()
 				  .url(allPoPortalProjects)
@@ -5503,7 +5761,7 @@ try {
 				Response httpResponse = client.newCall(request).execute();
 				String jsonData = httpResponse.body().string();
 				JSONArray jsonArr = new JSONArray(jsonData);
-				
+
 				for (int i = 0; i < jsonArr.length(); i++) {
 			        JSONObject jsonObj = jsonArr.getJSONObject(i);
 			        Long poProjectId = jsonObj.getLong("id");
@@ -5511,29 +5769,29 @@ try {
 			        String createdOn = jsonObj.getString("createdOn");
 			        String clientName = jsonObj.getString("clientName");
 			        JSONArray deptartmentName = jsonObj.getJSONArray("department");
-			        
+
 			        Project projectObj = projectRepository.findByPoProjectId(poProjectId);
-			        
+
 			        if(projectObj != null) {
 			        	List<Team> isTeamCreated = teamRepository.findByProjectId(projectObj.getProjectId());
-			        	
+
 			        	if(isTeamCreated.isEmpty()) {
 			        		//Client info
 			        		Client clientObj = clientsRepository.findByClientId(projectObj.getClientId());
 			        		List<ProjectDepartmentMap> projDeptMap = projectDepartmentMapRepository.findByProjectId(projectObj.getProjectId());
 			        		List<String> deptList = new ArrayList<>();
-			        		
+
 			        		if(!projDeptMap.isEmpty()) {
 			        			projDeptMap.forEach((dept) -> {
 			        				Department deptObject = departmentRepository.findByDeptId(dept.getDeptId());
 			        				if(deptObject != null) {
-			        					deptList.add(deptObject.getName());			        							        					
+			        					deptList.add(deptObject.getName());
 			        				}
 			        			});
 			        		}
-			        		
+
 			        		ResourceManagementDTO rmgDTO = new ResourceManagementDTO();
-			        		
+
 			        		rmgDTO.setName(projectObj.getProjectName());
 			        		rmgDTO.setCreatedOn(projectObj.getCreatedOn().toString());
 			        		rmgDTO.setClientName(clientObj != null ? clientObj.getClientName() : null);
@@ -5546,9 +5804,9 @@ try {
 			        	for (Object jsonValue : deptartmentName) {
 			        	    stringJoiner.add(jsonValue.toString());
 			        	}
-			        	
+
 			        	ResourceManagementDTO rmgDTO = new ResourceManagementDTO();
-		        		
+
 		        		rmgDTO.setName(projectName);
 		        		rmgDTO.setCreatedOn(createdOn);
 		        		rmgDTO.setClientName(clientName);
@@ -5556,24 +5814,24 @@ try {
 		        		dtoList.add(rmgDTO);
 			        }
 				}
-				
-				
+
+
 				List<Department> allDepartment = departmentRepository.findAll();
-				
+
 				if(!allDepartment.isEmpty()) {
 					allDepartment.forEach((dept) -> {
-						
+
 						List<ResourceManagementDTO> filteredList = new ArrayList<>();
-						
+
 						for (ResourceManagementDTO dto : dtoList) {
 						    if (dto.getDeptName().contains(dept.getName())) {
 						        filteredList.add(dto);
 						    }
 						}
-						
-						
+
+
 						if(!filteredList.isEmpty()) {
-							
+
 							//Create Proj Info table
 			        		StringBuilder html = new StringBuilder();
 							html.append("<html>\n" +
@@ -5597,7 +5855,7 @@ try {
 						            "      </tr>\n");
 							// add rows to the table
 							for(ResourceManagementDTO rmgDTO: filteredList) {
-								
+
 								DateFormat inputFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 								Date inputDate = null;
 								try {
@@ -5608,7 +5866,7 @@ try {
 
 								DateFormat outputFormatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
 								String outputDateStr = outputFormatter.format(inputDate);
-								
+
 								html.append("      <tr>\n");
 								  // add cells to the row
 								  html.append("        <td>" + rmgDTO.getName() + "</td>\n");
@@ -5617,14 +5875,14 @@ try {
 								  html.append("        <td>" + dept.getName() + "</td>\n");
 								  html.append("      </tr>\n");
 							}
-							
+
 							html.append("    </table>\n" +
 							            "  </body>\n" +
 							            "</html>");
-							
+
 							//Send Mail regarding oldProject where team not created
-							
-							Employee empObj = employeeRepository.findByEmpId(dept.getHodId());						
+
+							Employee empObj = employeeRepository.findByEmpId(dept.getHodId());
 							try {
 								mailService.sendMailWithCC(rmgMail,empObj != null ? empObj.getEmail() : rmgMail,
 										"Reminder for Project - Resource OnBoarding",
@@ -5647,7 +5905,7 @@ try {
 		public void ProjectClonefromPoPortal() {
 			try {
 				List<ResourceManagementDTO> dtoList = new ArrayList<ResourceManagementDTO>();
-				
+
 				OkHttpClient client = new OkHttpClient();
 				Request request = new Request.Builder()
 				  .url(allPoPortalProjects)
@@ -5657,7 +5915,7 @@ try {
 				Response httpResponse = client.newCall(request).execute();
 				String jsonData = httpResponse.body().string();
 				JSONArray jsonArr = new JSONArray(jsonData);
-				
+
 				for (int i = 0; i < jsonArr.length(); i++) {
 			        JSONObject jsonObj = jsonArr.getJSONObject(i);
 			        Long poProjectId = jsonObj.getLong("id");
@@ -5665,29 +5923,29 @@ try {
 			        String createdOn = jsonObj.getString("createdOn");
 			        String clientName = jsonObj.getString("clientName");
 			        JSONArray deptartmentName = jsonObj.getJSONArray("department");
-			        
+
 			        Project projectObj = projectRepository.findByPoProjectId(poProjectId);
-			        
+
 			        if(projectObj != null) {
 			        	List<Team> isTeamCreated = teamRepository.findByProjectId(projectObj.getProjectId());
-			        	
+
 			        	if(isTeamCreated.isEmpty()) {
 			        		//Client info
 			        		Client clientObj = clientsRepository.findByClientId(projectObj.getClientId());
 			        		List<ProjectDepartmentMap> projDeptMap = projectDepartmentMapRepository.findByProjectId(projectObj.getProjectId());
 			        		List<String> deptList = new ArrayList<>();
-			        		
+
 			        		if(!projDeptMap.isEmpty()) {
 			        			projDeptMap.forEach((dept) -> {
 			        				Department deptObject = departmentRepository.findByDeptId(dept.getDeptId());
 			        				if(deptObject != null) {
-			        					deptList.add(deptObject.getName());			        							        					
+			        					deptList.add(deptObject.getName());
 			        				}
 			        			});
 			        		}
-			        		
+
 			        		ResourceManagementDTO rmgDTO = new ResourceManagementDTO();
-			        		
+
 			        		rmgDTO.setName(projectObj.getProjectName());
 			        		rmgDTO.setCreatedOn(projectObj.getCreatedOn().toString());
 			        		rmgDTO.setClientName(clientObj != null ? clientObj.getClientName() : null);
@@ -5700,9 +5958,9 @@ try {
 			        	for (Object jsonValue : deptartmentName) {
 			        	    stringJoiner.add(jsonValue.toString());
 			        	}
-			        	
+
 			        	ResourceManagementDTO rmgDTO = new ResourceManagementDTO();
-		        		
+
 		        		rmgDTO.setName(projectName);
 		        		rmgDTO.setCreatedOn(createdOn);
 		        		rmgDTO.setClientName(clientName);
@@ -5710,24 +5968,24 @@ try {
 		        		dtoList.add(rmgDTO);
 			        }
 				}
-				
-				
+
+
 				List<Department> allDepartment = departmentRepository.findAll();
-				
+
 				if(!allDepartment.isEmpty()) {
 					allDepartment.forEach((dept) -> {
-						
+
 						List<ResourceManagementDTO> filteredList = new ArrayList<>();
-						
+
 						for (ResourceManagementDTO dto : dtoList) {
 						    if (dto.getDeptName().contains(dept.getName())) {
 						        filteredList.add(dto);
 						    }
 						}
-						
-						
+
+
 						if(!filteredList.isEmpty()) {
-							
+
 							//Create Proj Info table
 			        		StringBuilder html = new StringBuilder();
 							html.append("<html>\n" +
@@ -5751,7 +6009,7 @@ try {
 						            "      </tr>\n");
 							// add rows to the table
 							for(ResourceManagementDTO rmgDTO: filteredList) {
-								
+
 								DateFormat inputFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 								Date inputDate = null;
 								try {
@@ -5762,7 +6020,7 @@ try {
 
 								DateFormat outputFormatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
 								String outputDateStr = outputFormatter.format(inputDate);
-								
+
 								html.append("      <tr>\n");
 								  // add cells to the row
 								  html.append("        <td>" + rmgDTO.getName() + "</td>\n");
@@ -5771,14 +6029,14 @@ try {
 								  html.append("        <td>" + dept.getName() + "</td>\n");
 								  html.append("      </tr>\n");
 							}
-							
+
 							html.append("    </table>\n" +
 							            "  </body>\n" +
 							            "</html>");
-							
+
 							//Send Mail regarding oldProject where team not created
-							
-							Employee empObj = employeeRepository.findByEmpId(dept.getHodId());						
+
+							Employee empObj = employeeRepository.findByEmpId(dept.getHodId());
 							try {
 								mailService.sendMailWithCC(rmgMail,empObj != null ? empObj.getEmail() : rmgMail,
 										"Reminder for Project - Resource OnBoarding",
@@ -5801,30 +6059,30 @@ try {
 		@Async
 		@Scheduled(cron = "0 0 9 ? * *")
 		public void pendingKycDefaulterMail() {
-			
+
 			List<Department> allDeptList = departmentRepository.findAll();
-			
+
 			if(!allDeptList.isEmpty()) {
 				allDeptList.forEach((dept) -> {
-					
+
 					if(!dept.getName().equals("Super Admin") && !dept.getName().equals("Director") && !dept.getName().equals("unKnown Department")) {
 						List<Object[]> managerList = employeeRepository.getManagerByDepartment(dept.getDeptId());
 						List<EmployeeDTO> finalPendingList = new ArrayList<>();
-						
+
 						if(!managerList.isEmpty()){
 							managerList.forEach((object) -> {
 								Long managerId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
 								String managerName = object[1] != null ? object[1].toString() : null;
 								String hodMail = object[2] != null ? object[2].toString() : null;
 								String managerMail = object[3] != null ? object[3].toString() : null;
-								
+
 								List<Object[]> employeeList = employeeRepository.getEmployeeByManager(managerId);
-								
+
 								if(!employeeList.isEmpty()) {
 									employeeList.forEach((employee) -> {
-										
+
 										EmployeeDTO dto = new EmployeeDTO();
-										
+
 										dto.setEmployeementId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
 										dto.setName(employee[1] != null ? employee[1].toString() : null);
 										dto.setEmail(employee[2] != null ? employee[2].toString() : null);
@@ -5832,18 +6090,18 @@ try {
 										dto.setManagerName(managerName);
 										dto.setManagerEmail(managerMail);
 										dto.setDepartmentName(employee[3] != null ? employee[3].toString() : null);
-										
+
 										finalPendingList.add(dto);
 									});
 								}
 							});
 						}
-						
+
 						if(!finalPendingList.isEmpty()) {
 							StringBuilder defaulterMail = new StringBuilder();
 							Set<String> managerMail = new HashSet<>();
 							Set<String> hodMail = new HashSet<>();
-							
+
 							StringBuilder html = new StringBuilder();
 							html.append("<html>\n" +
 						            "  <head>\n" +
@@ -5871,7 +6129,7 @@ try {
 									defaulterMail.append(",");
 									managerMail.add(employee.getManagerEmail());
 									hodMail.add(employee.getHodEmail());
-									
+
 									html.append("      <tr>\n");
 									  // add cells to the row
 									  html.append("        <td>" + "A-"+employee.getEmployeementId()+ "</td>\n");
@@ -5881,11 +6139,11 @@ try {
 									  html.append("        <td>" + employee.getDepartmentName() + "</td>\n");
 									  html.append("      </tr>\n");
 							}
-							
+
 							html.append("    </table>\n" +
 							            "  </body>\n" +
 							            "</html>");
-							
+
 							try {
 								
 								String formattedSupportMail = Arrays.stream(supportMail.split(","))
@@ -5921,15 +6179,15 @@ try {
 							}
 						}
 					}
-				});	
+				});
 			}
 		}
-		
+
 //		0 0 2 ? * * : At 02:00:00am every day
 //      0 0/1 * ? * * - Run at every 1 min
 //		@Async
 //		@Scheduled(cron = "0 0 2 ? * *")
-		
+
 // Currently Disabled to sysnc stataus from PO Portal to ishine
 		public void updateProjectStatus() {
 			LogDTO apiLogInfo = new LogDTO();
@@ -5937,9 +6195,9 @@ try {
 			apiLogInfo.setApiUrl("updateProjectStatus");
 			apiLogInfo.setLogLevel("INFO");
 			StringBuilder logBuilder = new StringBuilder();
-			
+
 			try {
-				
+
 				OkHttpClient client = new OkHttpClient();
 				Request request = new Request.Builder()
 				  .url(allPoPortalProjects)
@@ -5949,23 +6207,23 @@ try {
 				Response httpResponse = client.newCall(request).execute();
 				String jsonData = httpResponse.body().string();
 				JSONArray jsonArr = new JSONArray(jsonData);
-				
+
 				for (int i = 0; i < jsonArr.length(); i++) {
 			        JSONObject jsonObj = jsonArr.getJSONObject(i);
 			        Long poProjectId = jsonObj.getLong("id");
-			        
+
 			        if(jsonObj.getString("status").equals("Completed")){
 			        	Project projectObj = projectRepository.findByPoProjectId(poProjectId);
-			        	
+
 			        	if(projectObj != null) {
 			        		logBuilder.append("PoProject Id : " + poProjectId + "Project Name : " + projectObj.getProjectName() + "projectId : " + projectObj.getProjectId());
-				        	
+
 				        	projectObj.setActive("false");
-				        	
+
 				        	Project dbResponse = projectRepository.save(projectObj);
-				        	
+
 				        	if(dbResponse != null) {
-				        		apiLogInfo.setApiResponse("Project Status Updated Successfully.");			
+				        		apiLogInfo.setApiResponse("Project Status Updated Successfully.");
 								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				        	}else {
 				        		apiLogInfo.setApiResponse("Unable to Update Project Status." + "projectId : " + projectObj.getProjectId());
@@ -5982,7 +6240,7 @@ try {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				apiLogInfo.setLogLevel("ERROR");
 			}
-			
+
 			apiLogInfo.setApiRequest(logBuilder.toString());
 			RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
 			if (attributes != null) {
@@ -5990,12 +6248,12 @@ try {
 			    logService.logMyInfo(request, apiLogInfo);
 			}
 		}
-		
+
 		/*
 		 * Deduct Leave cron job
-		 * 
+		 *
 		 * if below condition for 3 consecutive days
-		 * 
+		 *
 		 * conditions :
 		 * Confirmed
 		 * 1) Reporting to work on or before shift starting time and not completing 9 hours
@@ -6004,7 +6262,7 @@ try {
 		 *    : Deduct ½ Day Leave
 		 * 3) Reporting late to work (after 30 minutes from shift starting time) and not completing 9 hours
 		 *    : Deduct 1 full Day Leave
-		 * 
+		 *
 		 * Probation
 		 * 1) Reporting to work on or before shift starting time and not completing 9 hours
 		 * 	  : Deduct ½ Day Salary
@@ -6041,14 +6299,14 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //	biomax.add(bio12);
 	return biomax;
 }
-//		
+//
 //		@Async
 //		@Scheduled(cron = "0 0 9 ? * *") // runs everyday at 9 pm
 		@SuppressWarnings("unused")
 //		public void leaveDeduct() {
 //			 String depart="";
 //				String employee="";
-//				
+//
 ////				List<BioMaTO> biomaxDataList = new ArrayList<>();
 ////				BioMaTO biomatObj = new BioMaTO();
 ////				biomatObj.setEmployeeCode("A2");
@@ -6061,7 +6319,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 ////				biomatObj.setEndTime("00:00");
 ////				biomatObj.setDeduct("0.5");
 ////				biomaxDataList.add(biomatObj);
-////				
+////
 ////				BioMaTO biomatObj1 = new BioMaTO();
 ////				biomatObj.setEmployeeCode("A2");
 ////				biomatObj1.setAttendanceDate("2025-01-19 00:00:00.0");
@@ -6073,7 +6331,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 ////				biomatObj1.setEndTime("00:00");
 ////				biomatObj1.setDeduct("0.5");
 ////				biomaxDataList.add(biomatObj1);
-////				
+////
 ////				BioMaTO biomatObj2 = new BioMaTO();
 ////				biomatObj.setEmployeeCode("A2");
 ////				biomatObj2.setAttendanceDate("2025-01-18 00:00:00.0");
@@ -6086,33 +6344,33 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 ////				biomatObj2.setDeduct("0.5");
 ////				biomaxDataList.add(biomatObj2);
 //
-//				
-//				
+//
+//
 //				//start the rahul code
-//				
+//
 //			List<BioMaTO> biomaxDataList =bioMaxService.getBiomaxDataForLeaveDeduct();
 //			System.out.println("Total Data Comming from Biomax"+biomaxDataList.size());
-//			
+//
 //			List<Long> dataToBeDeleted = new ArrayList<>();
-//		
+//
 //			List<Long> removeemployeeId=new ArrayList<>();
 //				//leave for findEmployeeIsOnCompOffLeaveToday
 ////			if(!biomaxDataList.isEmpty()) {
-//				
-//				 
+//
+//
 ////				 List<BiomaxRequest> approvedLeaveList = biomaxRequestRepository.findByEmployeementIdLeaveNotDeduct();
-//					
+//
 ////				 if (!approvedLeaveList.isEmpty()) {
 ////					 approvedLeaveList.forEach((empId)->{
 ////						 Employee emp=employeeRepository.findByEmpId(empId.getEmpId());
 ////						// empId.setEmpId(emp.getEmployeementId());
 ////						  removeemployeeId.add(emp.getEmployeementId());
-////							
+////
 ////					 });
-////					    		
+////
 ////				 }
-//				
-//					
+//
+//
 ////				 }
 //			// Fetch comp-off leave employees for today and filter biomaxDataList
 //			List<CompOffLeave> compOffLeaveList = compOffLeaveRepository.findEmployeeIsOnCompOffLeaveToday();
@@ -6120,7 +6378,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //				compOffLeaveList.forEach((comof)->{
 //					 Employee empcomof=employeeRepository.findByEmpId(comof.getEmpId());
 //					  removeemployeeId.add(empcomof.getEmployeementId());
-//						
+//
 //				});
 //			}
 //
@@ -6143,7 +6401,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //				employeeLeaveList.forEach((empleave)->{
 //					 Employee empcomof=employeeRepository.findByEmpId(empleave.getEmpId());
 //					 removeemployeeId.add(empcomof.getEmployeementId())	;// Use a set for faster lookup
-//					   	
+//
 //				});
 //			  	}
 //
@@ -6157,22 +6415,22 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //			    Set<Long> employeeNotLeaveDeduct = Arrays.stream(employeeIds)
 //			            .map(Long::parseLong)
 //			            .collect(Collectors.toSet());  // Use a set for faster lookup
-//			    
+//
 //			   // removeemployeeId.addAll(employeeNotLeaveDeduct);
 //			    if(employeeNotLeaveDeduct.size()>0) {
 //			    biomaxDataList.removeIf(bio -> employeeNotLeaveDeduct.contains(bio.getEmpId()));
 //			    }
-//				
+//
 //			}
 //			 if(removeemployeeId.size()>0) {
 //			biomaxDataList.removeIf(bio -> removeemployeeId.contains(bio.getEmployementId()));
 //			 }
 //				List<BioMaTO> finalEmpBioData = new ArrayList<>();
-//						
-//					
-//				
+//
+//
+//
 //				//end of the code
-////				
+////
 //				String fileName = "LeaveDeduct.xlsx";
 //				var file = new File(fileName);
 //
@@ -6192,27 +6450,27 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //					int rowNum = 1;
 //					//biomaxDataList=new ArrayList();
 //					if (!biomaxDataList.isEmpty()) {
-//						
+//
 //						List<BioMaTO> biomaxDataFilterList = biomaxDataList.stream()
 //								.filter(obj -> Double.parseDouble(obj.getDeduct()) > 0).collect(Collectors.toList());
 //
 //						if (!biomaxDataFilterList.isEmpty()) {
-//							
+//
 //							biomaxDataFilterList.forEach((object) -> {
 //
 //								Long employmentId = Long.parseLong(object.getEmployeeCode().replaceAll("\\D", ""));
 //								List<BiomaxDefaulter> defaulterList = biomaxDefaulterRepository
 //										.findByEmployeementIdForDefaulterBiomax(employmentId);
 //								//For employee configuration in biomax
-//								
-//							
-//								
+//
+//
+//
 //								Employee employeeObj = employeeRepository.findByEmployeementId(employmentId);
 //								JobRole departmentjon=jobRoleRepository.findByjobRoleId(employeeObj.getJobRoleId());
-//								
+//
 //								if (!defaulterList.isEmpty()) {
-//									
-//									
+//
+//
 //										/*
 //										 * Deduct leave for confirmed employee Deduct salary for probation employee
 //										 * (send mail to HR in excel format) Remove defaulter from BiomaxDefaulter after
@@ -6222,7 +6480,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //										if (employeeObj != null) {
 //											// Deduct leave
 //
-//											
+//
 //											if (employeeObj.getEmploymentstatus().equals("Confirmed")) {
 //												EmployeeLeavesMap employeeLeaveMapObject = employeeLeavesMapRepository
 //														.findByEmpIdAndLeaveTypeMasterId(employeeObj.getEmpId(), (short) 3);
@@ -6274,24 +6532,24 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //										newDefaulterObj.setEmployeementId(employmentId);
 //										newDefaulterObj.setDepartmentId(departmentjon.getDeptId());
 //										BiomaxDefaulter defaulterNewEntry = biomaxDefaulterRepository.save(newDefaulterObj);
-//										
+//
 //										}
 //								} else {
 //									// New defaulter entry
-//									
+//
 //											BiomaxDefaulter newDefaulterObj = new BiomaxDefaulter();
 //											newDefaulterObj.setEmpId(employeeObj.getEmpId());
 //											newDefaulterObj.setEmployeementId(employmentId);
 //											newDefaulterObj.setDepartmentId(departmentjon.getDeptId());
 //											BiomaxDefaulter newDefaulter = biomaxDefaulterRepository.save(newDefaulterObj);
-//										
-//										
+//
+//
 //								}
 //							});
 //						}
 //					}
 //					wb.finish();
-//					
+//
 //					// Send mail
 //
 //					 boolean mailSent = mailService.sendMailWithAttachment(hrMailAddress,
@@ -6300,23 +6558,23 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //							 "Dear Team, <br><br>"
 //		                   + "Please find Salary to be deducted of Employees in probation due to defaulter in working time attached below.",
 //		                   file);
-//					
+//
 //					 if(mailSent) {
 //						System.out.println("Salary to be deducted of Employees Mail sent successfully !!");
 //					 }else {
 //						 System.out.println("Unable to sent salary to be deducted of Employees Mail !!");
 //					 }
-//					 
-//					 
+//
+//
 //					 //Delete all the employee in defaulter by employeemnetId
 //				      biomaxDefaulterRepository.deleteAllByEmployeementIds(dataToBeDeleted);
-//					 
+//
 //				} catch (Exception e) {
 //					e.printStackTrace();
 //				}
-//			
-//			
-//			   
+//
+//
+//
 //		}
 
 		@Transactional
@@ -6360,7 +6618,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //			biomatObj2.setEndTime("00:00");
 //			biomatObj2.setDeduct("0.5");
 //			biomaxDataList.add(biomatObj2);
-//			
+//
 //			BioMaTO biomatObj3 = new BioMaTO();
 //			biomatObj3.setEmployeeCode("3");
 //			biomatObj3.setAttendanceDate("2025-03-26 00:00:00.0");
@@ -6372,7 +6630,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //			biomatObj3.setEndTime("00:00");
 //			biomatObj3.setDeduct("0.5");
 //			biomaxDataList.add(biomatObj3);
-//			
+//
 //			BioMaTO biomatObj4 = new BioMaTO();
 //			biomatObj4.setEmployeeCode("3");
 //			biomatObj4.setAttendanceDate("2025-03-29 00:00:00.0");
@@ -6384,7 +6642,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //			biomatObj4.setEndTime("00:00");
 //			biomatObj4.setDeduct("1");
 //			biomaxDataList.add(biomatObj4);
-//			
+//
 //			BioMaTO biomatObj5 = new BioMaTO();
 //			biomatObj5.setEmployeeCode("3");
 //			biomatObj5.setAttendanceDate("2025-03-31 00:00:00.0");
@@ -6415,7 +6673,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //					}
 //				});
 //			}
-			
+
 //			BioMaTO biomatObj5 = new BioMaTO();
 //			biomatObj5.setEmployeeCode("3");
 //			biomatObj5.setAttendanceDate("2025-03-25 00:00:00.0");
@@ -6446,7 +6704,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //					}
 //				});
 //			}
-			
+
 			// Fetch department configuration and filter biomaxDataList for
 			// non-leave-deducted departments
 			Optional<PortalConfig> departmentConfig = portalConfigRepository
@@ -6455,17 +6713,17 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 				PortalConfig portalConfig = departmentConfig.get();
 				if(portalConfig.getConfigValue() != null) {
 				String departmentConfigValue = portalConfig.getConfigValue().replace("[", "").replace("]", ""); // Remove
-				
+
 				if (!departmentConfigValue.isEmpty()) {
 					String[] departmentIds = departmentConfigValue.split(","); // Split the string into an array
 					Set<Long> departmentNotLeaveDeduct = Arrays.stream(departmentIds).map(Long::parseLong)
 							.collect(Collectors.toSet()); // Store department IDs in a set for faster lookup
 					biomaxDataList.removeIf(bio -> departmentNotLeaveDeduct.contains(bio.getDepartmentId()));
 				}
-				
-				
-				}																							
-																												
+
+
+				}
+
 			}
 
 			// Fetch employees on leave today and filter biomaxDataList for them
@@ -6537,7 +6795,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //					                     return holidays.isEmpty(); // Keep the data if no holiday is found
 //					                })
 //					                .collect(Collectors.toList());
-						
+
 						List<BioMaTO> biomaxDataFilterList = biomaxDataList.stream()
 								.filter(obj -> (!(obj.getDeduct().isEmpty()) && obj.getDeduct() != null
 										&& Double.parseDouble(obj.getDeduct()) > 0))
@@ -6545,7 +6803,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 						List<Long> employmentIdList = biomaxDataFilterList.stream()
 							    .filter(obj -> !(obj.getDeduct().isEmpty()) && obj.getDeduct() != null
 					            && Double.parseDouble(obj.getDeduct()) > 0)
-					    .map(obj -> Long.parseLong(obj.getEmployeeCode())) 
+					    .map(obj -> Long.parseLong(obj.getEmployeeCode()))
 					    .collect(Collectors.toList());
 						dataToBeDeleted.addAll(employmentIdList);
 
@@ -6569,7 +6827,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 										newDefaulterObj.setIsDeducted(false);
 										newDefaulterObj.setIsApprovedByManager(false);
 										biomaxDefaulterRepository.save(newDefaulterObj);
-										
+
 										List<BiomaxDefaulter> defaulterListLatest = biomaxDefaulterRepository
 												.findByEmployeementIdForDefaulterBiomax(employmentId);
 
@@ -6676,13 +6934,13 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 			}
 		}
 
-		
+
 		@Async
 //		@Scheduled(cron = "0 0/5 * ? * *")
 		//@Scheduled(cron = "0 9 12 * * ?")
 		@Transactional
 		public void getProjectCloneFromPoPortal() {
-			
+
 			LogDTO apiLogInfo = new LogDTO();
 	        apiLogInfo.setSubFeatureName("getProjectCloneFromPoPortal");
 	        apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
@@ -6691,10 +6949,10 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	        logBuilder.append("Cron to update existing po-project details in Ishine started! ");
 
 		    List<ProjectPoPortalDTO> list = new ArrayList<>();
-		    
+
 		    try {
 		        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
-		        
+
 		        list = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
 		        logBuilder.append("Total Projects Fetched = " + list.size());
 
@@ -6714,10 +6972,10 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		                    project.setPoProjectType(dto.getProjectType());
 		                    Date startDate = dto.getStartDate();
 		                    String formattedStartDate = dateFormat.format(startDate);
-		                    project.setPoStartDate(formattedStartDate);
+		                    project.setStartDate(formattedStartDate);
 		                    Date endDate = dto.getEndDate();
 		                    String formattedEndDate = dateFormat.format(endDate);
-		                    project.setPoEndDate(formattedEndDate);
+		                    project.setEndDate(formattedEndDate);
 		                    project.setStatus(dto.getStatus());
 		                    //departmentIds
 		                    List<String> departmentList = dto.getDepartment();
@@ -6734,10 +6992,10 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		                    	});
 		                    	 if(!deptIds.isEmpty()) {
 				                    	String deptIdStr = String.join(", ", deptIds);
-				                        project.setDeptId(deptIdStr); 
+				                        project.setDeptId(deptIdStr);
 				                    }
 		                    }
-		                   
+
 		                    //clientId
 		                    Integer clientId = null;
 		    			    Optional<Client> clientObj = clientsRepository.findByClientName(dto.getClientName());
@@ -6774,20 +7032,20 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		    					        logBuilder.append("Error occured while storing updated project details from PoPortal API.");
 		    			            }
 		    			        } else {
-		    			            
+
 		    			        }
 		    			    }
-		    			    project.setClientId(clientId); 
-		    		        
+		    			    project.setClientId(clientId);
+
 		                    project.setPoNo(dto.getPoNo());
-		                    project.setApmosysRM(dto.getApmosysRM());	
+		                    project.setApmosysRM(dto.getApmosysRM());
 		                    project.setIsRenewable(dto.getIsRenewable());
 		                    project.setClientRM(dto.getClientRM());
-		                    project.setApmosysRmEmail(dto.getApmosysRmEmail());                    
+		                    project.setApmosysRmEmail(dto.getApmosysRmEmail());
 		                    projectRepository.save(project);
 
 		    		        logBuilder.append("Updated Project: ID=" + dto.getId() + ", PoNo=" + dto.getPoNo());
-		    		        
+
 		                } else {
 		    		        logBuilder.append("Project table does not contain PoProjectId: " + dto.getId());
 		                }
@@ -6796,8 +7054,8 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		            	ex.printStackTrace();
 				        logBuilder.append("Error updating project ID: " + dto.getId() + " - " + ex.getMessage());
 		            }
-		            
-		            
+
+
 		        }
 		    } else {
 		        logBuilder.append("No projects found from PoPortal API.");
@@ -6831,12 +7089,12 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //		        po.setPoStartDate(row[3] instanceof Date ? (Date) row[3] : null);
 //		        po.setPoEndDate(row[4] instanceof Date ? (Date) row[4] : null);
 		        if (row[3] instanceof Date) {
-		            po.setPoStartDate((Date) row[3]);
+		            po.setProjectStartDate((Date) row[3]);
 		        } else if (row[3] instanceof Timestamp) {
-		            po.setPoStartDate(new Date(((Timestamp) row[3]).getTime()));
+		            po.setProjectStartDate(new Date(((Timestamp) row[3]).getTime()));
 		        } else if (row[3] instanceof String) {
 		            try {
-						po.setPoStartDate(formatter.parse((String) row[3]));
+						po.setProjectStartDate(formatter.parse((String) row[3]));
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -6844,12 +7102,12 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		        }
 		        // Handle End Date
 		        if (row[4] instanceof Date) {
-		            po.setPoEndDate((Date) row[4]);
+		            po.setProjectEndDate((Date) row[4]);
 		        } else if (row[4] instanceof Timestamp) {
-		            po.setPoEndDate(new Date(((Timestamp) row[4]).getTime()));
+		            po.setProjectEndDate(new Date(((Timestamp) row[4]).getTime()));
 		        } else if (row[4] instanceof String) {
 		            try {
-						po.setPoEndDate(formatter.parse((String) row[4]));
+						po.setProjectEndDate(formatter.parse((String) row[4]));
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -6869,7 +7127,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		        String hodEmail = po.getHodEmail();
 		    	//String hodEmail = "sakti.das@apmosys.com";
 		        String department = po.getDepartment();
-		        
+
 		        StringBuilder ccEmailBuilder = new StringBuilder();
 
 		        if (rmgMail != null && !rmgMail.trim().isEmpty()) {
@@ -6914,13 +7172,13 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 		                projectHtmlTable.append("<tr>")
 		                .append("<td>").append(po.getProjectName()).append("</td>")
-		                .append("<td>").append(po.getPoStartDate() != null ? sdf.format(po.getPoStartDate()) : "").append("</td>")
-		                .append("<td>").append(po.getPoEndDate() != null ? sdf.format(po.getPoEndDate()) : "").append("</td>")
+		                .append("<td>").append(po.getProjectStartDate() != null ? sdf.format(po.getProjectStartDate()) : "").append("</td>")
+		                .append("<td>").append(po.getProjectEndDate() != null ? sdf.format(po.getProjectEndDate()) : "").append("</td>")
 		                .append("<td>").append(po.getApmosysRm()).append("</td>")
-		                .append("<td>").append(po.isRenewable()).append("</td>") 
+		                .append("<td>").append(po.isRenewable()).append("</td>")
 		                .append("<td>").append(po.getPoProjectType()).append("</td>")
 		                .append("</tr>");
-		                
+
 		                projectHtmlTable.append("</table>");
 		                // Generate employee HTML table
 		                StringBuilder empHtmlTable = new StringBuilder();
@@ -6971,7 +7229,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 		    System.out.println(logBuilder.toString()); // Final log output
 		}
-		
+
 //		public File generateDepartmentPoReport(String department, List<ProjectPo> projectList) throws IOException {
 //		    String fileName = department.replaceAll("\\s+", "_") + "_Expired_PO_Report.xlsx";
 //		    File file = new File("/home/apmosys/Desktop/FILE_MAIL", fileName);
@@ -7009,8 +7267,8 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //
 //		    return null;
 //		}
-				
-		private String buildEmailContent(String employeeName, String projectName, String teamName, 
+
+		private String buildEmailContent(String employeeName, String projectName, String teamName,
                  String poStartDate, String poEndDate, String allocationStartDate) {
 			return  "<html><body>"
 				    + "<p>Dear " + employeeName + ",</p>"
@@ -7022,15 +7280,15 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 				    + "<table border='1' style='border-collapse: collapse; width: 100%;'>"
 				    + "<tr><th>Project Name</th><th>Team Name</th><th>PO Start Date</th>"
 				    + "<th>PO End Date</th><th>Employee Allocation Start Date</th></tr>"
-				    + "<tr><td>" + projectName + "</td><td>" + teamName + "</td><td>" 
+				    + "<tr><td>" + projectName + "</td><td>" + teamName + "</td><td>"
 				    + poStartDate + "</td><td>" + poEndDate + "</td><td>" + allocationStartDate + "</td></tr>"
 				    + "</table><br><br>"
 				    + "<p>Regards,</p>"
 				    + "<p>RMG Team</p>"
 				    + "</body></html>";
 		}
-		
-		private String buildEmailContent2(String employeeName, String projectName, String teamName, 
+
+		private String buildEmailContent2(String employeeName, String projectName, String teamName,
                 String poStartDate, String poEndDate, String allocationStartDate) {
 			return "<html><body>"
 					+ "<p>Dear " + employeeName + ",</p>"
@@ -7041,133 +7299,14 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 					+ "<table border='1' style='border-collapse: collapse; width: 100%;'>"
 					+ "<tr><th>Project Name</th><th>Team Name</th><th>PO Start Date</th>"
 					+ "<th>PO End Date</th><th>Employee Allocation Start Date</th></tr>"
-					+ "<tr><td>" + projectName + "</td><td>" + teamName + "</td><td>" 
+					+ "<tr><td>" + projectName + "</td><td>" + teamName + "</td><td>"
 					+ poStartDate + "</td><td>" + poEndDate + "</td><td>" + allocationStartDate + "</td></tr>"
 					+ "</table><br><br>"
 					+ "<p>Regards,</p>"
 					+ "<p>RMG Team</p>"
 					+ "</body></html>";
 		}
-		
-		public void triggerBillableTypeChangeMail(Long empId, String newBillableType, String oldBillableType, Long updatedById) {
-		    try {
-		        Object[] details = (Object[]) employeeRepository.findEmployeeDepartmentDetails(empId);
-		        if (details == null) return;
 
-		        Long empIdd = ((Number) details[0]).longValue();
-		        String empName = (String) details[1];
-		        String departmentName = (String) details[2];
-		        Long hodId = ((Number) details[3]).longValue();
-
-		        String updatedByName = employeeRepository.findEmployeeNameById(updatedById);
-		        String hodEmail = employeeRepository.findHodEmailById(hodId);
-
-		        StringBuilder html = new StringBuilder();
-		        html.append("<html><body>");
-		        html.append("<p>Dear HOD,</p>");
-		        html.append("<p>The following billable type change has been made by <b>")
-		            .append(updatedByName)
-		            .append("</b>:</p>");
-
-		        html.append("<div style='overflow-x:auto;'>");
-		        html.append("<table border='1' style='border-collapse: collapse; width: 100%; table-layout: auto;'>");
-		        html.append("<tr>");
-		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Employee ID</th>");
-		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Name</th>");
-		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Billable Type</th>");
-		        html.append("</tr>");
-
-		        html.append("<tr>");
-		        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>A-").append(empIdd).append("</td>");
-		        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>").append(empName).append("</td>");
-		        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>")
-		            .append(oldBillableType).append(" &rarr; ").append(newBillableType).append("</td>");
-		        html.append("</tr>");
-		        html.append("</table>");
-		        html.append("</div>");
-
-		        html.append("<p>Regards,<br/>Ishine Team</p>");
-		        html.append("</body></html>");
-
-		        String subject = "Billable Type Change Notification for " + departmentName + " Department";
-
-		        mailService.sendMailWithCC(hodEmail, billablechangeMailAddress, subject, html.toString());
-
-		    } catch (Exception e) {
-		        e.printStackTrace();
-		        // Optionally log or handle the error here
-		    }
-		}
-
-
-		
-		public void triggerBulkBillableChangeEmails(List<Long> empIds, Map<Long, String> oldBillableTypes, String newBillableType, Long updatedById) {
-		    Map<Long, List<Object[]>> deptToEmployeeDetails = new HashMap<>();
-
-		    for (Long empId : empIds) {
-		        Object[] details = (Object[]) employeeRepository.findEmployeeDepartmentDetails(empId);
-		        if (details == null) continue;
-
-		        Long empIdd = ((Number) details[0]).longValue();
-		        String empName = (String) details[1];
-		        String departmentName = (String) details[2];
-		        Long hodId = ((Number) details[3]).longValue();
-
-		        deptToEmployeeDetails.computeIfAbsent(hodId, k -> new ArrayList<>())
-		            .add(new Object[]{empIdd, empName, departmentName, oldBillableTypes.get(empId), newBillableType});
-		    }
-
-		    String updatedByName = employeeRepository.findEmployeeNameById(updatedById);
-
-		    for (Map.Entry<Long, List<Object[]>> entry : deptToEmployeeDetails.entrySet()) {
-		        Long hodId = entry.getKey();
-		        List<Object[]> employees = entry.getValue();
-		        String hodEmail = employeeRepository.findHodEmailById(hodId);
-
-		        // Get department name from first employee (they're all from the same department)
-		        String departmentName = (String) employees.get(0)[2];
-
-		        StringBuilder html = new StringBuilder();
-		        html.append("<html><body>");
-		        html.append("<p>Dear HOD,</p>");
-		        html.append("<p>The following billable type changes have been made by <b>")
-		            .append(updatedByName)
-		            .append("</b>:</p>");
-
-		        html.append("<div style='overflow-x:auto;'>");
-		        html.append("<table border='1' style='border-collapse: collapse; width: 100%; table-layout: auto;'>");
-		        html.append("<tr>");
-		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Employee ID</th>");
-		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Name</th>");
-		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Billable Type</th>");
-		        html.append("</tr>");
-
-		        for (Object[] emp : employees) {
-		            html.append("<tr>");
-		            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>A-").append(emp[0]).append("</td>");
-		            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>").append(emp[1]).append("</td>");
-		            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>")
-		                .append(emp[3]).append(" &rarr; ").append(emp[4]).append("</td>");
-		            html.append("</tr>");
-		        }
-
-		        html.append("</table>");
-		        html.append("</div>");
-		        html.append("<p>Regards,<br/>Ishine Team</p>");
-		        html.append("</body></html>");
-
-		        String subject = "Billable Type Change Notification for " + departmentName + " Department";
-
-		        try {
-		            mailService.sendMailWithCC(hodEmail, billablechangeMailAddress, subject, html.toString());
-		        } catch (MessagingException e) {
-		            e.printStackTrace();
-		            
-		        }
-		    }
-		}
-		
-		
 		public void sendHrDepartmentNotification(LeaveDTO leaveDTO, LeaveTypeMaster leavetype) {
 			LogDTO apiLogInfo = new LogDTO();
 		    apiLogInfo.setSubFeatureName("sendMailForExpiryProjects");
@@ -7183,44 +7322,44 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //	                String hrHeadEmail = "prarthana.lenka@apmosys.com";
 	                boolean isSelfApplied = Objects.equals(leaveDTO.getCreatedBy(), leaveDTO.getEmpId());
 	                String appliedByName = "";
-	                
+
 	                if (!isSelfApplied) {
 	                    Optional<Employee> createdByEmp = employeeRepository.findById(leaveDTO.getCreatedBy());
 	                    appliedByName = createdByEmp.map(Employee::getName).orElse("System");
 	                }
 
 	                String subject = "HR Department Leave Notification - " + leaveDTO.getName();
-	                
-	                
+
+
 	                StringBuilder mailBody = new StringBuilder();
 	                mailBody.append("<div style='font-family: Arial, sans-serif; color: #333; max-width: 600px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;'>");
 	                mailBody.append("<div style='background-color: #f8f9fa; padding: 20px; border-bottom: 2px solid #007bff;'>");
 	                mailBody.append("<h2 style='margin: 0; color: #007bff;'>Leave Application Alert</h2>");
 	                mailBody.append("<p style='margin: 5px 0 0 0; font-size: 14px; color: #666;'>Department: <b>Human Resources</b></p>");
 	                mailBody.append("</div>");
-	                
+
 	                mailBody.append("<div style='padding: 20px;'>");
 	                mailBody.append("<p>Dear Lituja,</p>");
 	                mailBody.append("<p>This is to inform you that a leave request exceeding 2 days has been submitted by an HR team member. Details are as follows:</p>");
-	                
+
 	                mailBody.append("<table style='width: 100%; border-collapse: collapse; margin-top: 15px;'>");
 	                mailBody.append("<tr style='background-color: #f2f2f2;'>");
 	                mailBody.append("<th style='border: 1px solid #ddd; padding: 10px; text-align: left;'>Field</th>");
 	                mailBody.append("<th style='border: 1px solid #ddd; padding: 10px; text-align: left;'>Details</th></tr>");
-	                
+
 	                addTableRow(mailBody, "Employee ID", "A-" + leaveDTO.getEmployeementId());
 	                addTableRow(mailBody, "Employee Name", leaveDTO.getName());
 	                addTableRow(mailBody, "Leave Type", leavetype.getLeaveType());
 	                addTableRow(mailBody, "Duration", leaveDTO.getFromDate() + " to " + leaveDTO.getToDate());
 	                addTableRow(mailBody, "Total Days", leaveDTO.getNoOfDays() + " day(s)");
-	                
+
 	                if (!isSelfApplied) {
 	                    addTableRow(mailBody, "Applied By", appliedByName);
 	                }
-	                
+
 	                addTableRow(mailBody, "Reason", leaveDTO.getReason());
 	                mailBody.append("</table>");
-	                
+
 	                mailBody.append("<p style='margin-top: 25px;'>Regards,<br><b>Leave Management System</b></p>");
 	                mailBody.append("</div>");
 	                mailBody.append("<div style='background-color: #f8f9fa; padding: 10px; text-align: center; font-size: 12px; color: #999;'>");
@@ -7230,7 +7369,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	                mailService.sendMail(hrHeadMail, subject, mailBody.toString());
 	            }
 	        } catch (Exception e) {
-	            
+
 	        	 logBuilder.append("Error sending HR specific notification: " + e.getMessage());
 	        	 System.out.println(logBuilder.toString());
 	        }
@@ -7242,8 +7381,8 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	        sb.append("<td style='border: 1px solid #ddd; padding: 10px;'>").append(value != null ? value : "N/A").append("</td>");
 	        sb.append("</tr>");
 	    }
-	    
-	    
+
+
 	    public void sendHrDepartmentNotificationUpdateCase(LeaveDTO leaveDTO, Optional<LeaveTypeMaster> leavetype) {
 			LogDTO apiLogInfo = new LogDTO();
 		    apiLogInfo.setSubFeatureName("sendMailForExpiryProjects");
@@ -7259,44 +7398,44 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //	                String hrHeadEmail = "prarthana.lenka@apmosys.com";
 	                boolean isSelfApplied = Objects.equals(leaveDTO.getUpdatedBy(), leaveDTO.getEmpId());
 	                String appliedByName = "";
-	                
+
 	                if (!isSelfApplied) {
 	                    Optional<Employee> createdByEmp = employeeRepository.findById(Long.parseLong(leaveDTO.getUpdatedBy().toString()));
 	                    appliedByName = createdByEmp.map(Employee::getName).orElse("System");
 	                }
 
 	                String subject = "HR Department Leave Update Notification - " + leaveDTO.getName();
-	                
-	                
+
+
 	                StringBuilder mailBody = new StringBuilder();
 	                mailBody.append("<div style='font-family: Arial, sans-serif; color: #333; max-width: 600px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;'>");
 	                mailBody.append("<div style='background-color: #f8f9fa; padding: 20px; border-bottom: 2px solid #007bff;'>");
 	                mailBody.append("<h2 style='margin: 0; color: #007bff;'>Leave Application Update Alert</h2>");
 	                mailBody.append("<p style='margin: 5px 0 0 0; font-size: 14px; color: #666;'>Department: <b>Human Resources</b></p>");
 	                mailBody.append("</div>");
-	                
+
 	                mailBody.append("<div style='padding: 20px;'>");
 	                mailBody.append("<p>Dear Lituja,</p>");
 	                mailBody.append("<p>This is to inform you that a leave update request exceeding 2 days has been submitted by an HR team member. Details are as follows:</p>");
-	                
+
 	                mailBody.append("<table style='width: 100%; border-collapse: collapse; margin-top: 15px;'>");
 	                mailBody.append("<tr style='background-color: #f2f2f2;'>");
 	                mailBody.append("<th style='border: 1px solid #ddd; padding: 10px; text-align: left;'>Field</th>");
 	                mailBody.append("<th style='border: 1px solid #ddd; padding: 10px; text-align: left;'>Details</th></tr>");
-	                
+
 	                addTableRow(mailBody, "Employee ID", "A-" + leaveDTO.getEmployeementId());
 	                addTableRow(mailBody, "Employee Name", leaveDTO.getName());
 	                addTableRow(mailBody, "Leave Type",leavetype.get().getLeaveType());
 	                addTableRow(mailBody, "Duration", leaveDTO.getFromDate() + " to " + leaveDTO.getToDate());
 	                addTableRow(mailBody, "Total Days", leaveDTO.getNoOfDays() + " day(s)");
-	                
+
 	                if (!isSelfApplied) {
 	                    addTableRow(mailBody, "Updated By", appliedByName);
 	                }
-	                
+
 	                addTableRow(mailBody, "Reason", leaveDTO.getReason());
 	                mailBody.append("</table>");
-	                
+
 	                mailBody.append("<p style='margin-top: 25px;'>Regards,<br><b>Leave Management System</b></p>");
 	                mailBody.append("</div>");
 	                mailBody.append("<div style='background-color: #f8f9fa; padding: 10px; text-align: center; font-size: 12px; color: #999;'>");
@@ -7306,7 +7445,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	                mailService.sendMail(hrHeadMail, subject, mailBody.toString());
 	            }
 	        } catch (Exception e) {
-	            
+
 	        	 logBuilder.append("Error sending HR specific notification: " + e.getMessage());
 	        	 System.out.println(logBuilder.toString());
 	        }
@@ -7622,30 +7761,148 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 			    }
 			}
 		}
+	    
+	    @Scheduled(cron = "0 0 1 * * *")
+	    @Transactional(rollbackOn = Exception.class)
+	    public void updateTeamMemberStatus() {
+	        teamMemberStatusOrchestrationService.updateTeamMemberStatus(SchedulerTriggerType.SCHEDULER);
+	    }
+
+	    public void sendAutoMigrationMail(List<AutoMigrationDTO> migrations) {
+
+		    AutoMigrationDTO dto = migrations.get(0);
+
+		    String subject = "PO Renewal Auto Resource Onboarding - " + dto.getProjectName();
+
+		    String body = buildAutoMigrationHtml(dto);
+		    
+		    try {
+ mailService.sendMailWithCC("prarthana.lenka@apmosys.com","priyadarshini.singh@apmosys.com",subject, body);
+		    }  catch (Exception e) {
+                e.printStackTrace();
+              
+		    }
+            
+		}
+	    
+	    private String buildAutoMigrationHtml(AutoMigrationDTO dto) {
+
+	        StringBuilder sb = new StringBuilder();
+
+	        sb.append("<!DOCTYPE html>")
+	          .append("<html><head>")
+	          .append("<meta charset='UTF-8'>")
+	          .append("<style>")
+
+	         
+	          .append("body { font-family: 'Segoe UI', sans-serif; background:#faf8fc; color:#4a4a4a; }")
+	          .append(".container { max-width:800px; margin:auto; padding:20px; }")
+
+	         
+	          .append(".header { background: linear-gradient(135deg,#e6d9f3,#f9e4ec); padding:25px; border-radius:12px; text-align:center; }")
+	          .append(".header h2 { margin:0; color:#5a3d6d; }")
+	          .append(".sub { color:#7b6a8d; font-size:14px; margin-top:5px; }")
+
+	         
+	          .append(".info { background:#f3edf9; padding:15px; border-radius:10px; margin-top:20px; }")
+
+	         
+	          .append(".section-title { margin-top:25px; font-size:18px; color:#6b4c7a; font-weight:600; }")
+
+	        
+	          .append(".card { background:#ffffff; border-left:5px solid #d9c9e8; padding:15px; margin-top:15px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05);} ")
+
+	          .append(".name { font-weight:600; color:#4a3b5c; font-size:15px; }")
+	          .append(".label { color:#8b7a9d; font-size:12px; }")
+	          .append(".value { margin-bottom:6px; }")
+
+	         
+	          .append(".move { background:#f9f6fc; padding:10px; border-radius:6px; margin-top:8px; }")
+
+	       
+	          .append(".footer { margin-top:30px; font-size:12px; color:#8b7a9d; text-align:center; }")
+
+	          .append("</style></head><body>");
+
+	        sb.append("<div class='container'>");
+
+	      
+	        sb.append("<div class='header'>")
+	          .append("<h2> PO Renewal - Automatic Resource Onboarding</h2>")
+	          .append("<div class='sub'>Ensuring smooth project continuity</div>")
+	          .append("</div>");
+
+	    
+	        sb.append("<div class='info'>")
+	          .append("<div><b>Project:</b> ").append(dto.getProjectName()).append("</div>")
+	          .append("<div><b>Project Type:</b> ").append(dto.getProjectType()).append("</div>")
+	          .append("<div><b>PO Movement:</b> ")
+	          .append(dto.getPreviousPoNumber())
+	          .append(" -> ")
+	          .append(dto.getCurrentPoNumber())
+	          .append("</div>")
+	          .append("</div>");
+
+	      
+	        sb.append("<div class='section-title'>What does this mean?</div>");
+
+	        if ("TNM".equalsIgnoreCase(dto.getProjectType())) {
+	            sb.append("<div class='info'>")
+	              .append("The previous PO has expired. To ensure work continues smoothly, ")
+	              .append("employees with matching roles have been automatically moved to the renewed PO. ")
+	              .append("This avoids any disruption in ongoing project activities.")
+	              .append("</div>");
+	        } else {
+	            sb.append("<div class='info'>")
+	              .append("The previous PO has expired. To maintain uninterrupted monitoring operations, ")
+	              .append("all active employees have been automatically moved to the renewed PO.")
+	              .append("</div>");
+	        }
+
+	      
+	        sb.append("<div class='section-title'> Auto Onboarded Resources</div>");
+
+	        for (EmployeeImpactDTO emp : dto.getEmployees()) {
+
+	            sb.append("<div class='card'>");
+
+	            sb.append("<div class='name'>").append(emp.getEmployeeName()).append("</div>");
+
+	            sb.append("<div class='value'><span class='label'>Role:</span> ")
+	              .append(emp.getRoleName()).append("</div>");
+
+	            sb.append("<div class='move'>");
+
+	            sb.append("<div class='value'><span class='label'>PO Movement:</span><br>")
+	              .append(emp.getPreviousPoNumber())
+	              .append(" -> ")
+	              .append(emp.getCurrentPoNumber())
+	              .append("</div>");
+
+	            sb.append("<div class='value'><span class='label'>Team Movement:</span><br>")
+	              .append(emp.getPreviousTeamName())
+	              .append(" -> ")
+	              .append(emp.getNewTeamName())
+	              .append("</div>");
+
+	            sb.append("</div>");
+
+	            sb.append("<div class='value'><span class='label'>Reason:</span> ")
+	              .append(emp.getReason()).append("</div>");
+
+	            sb.append("</div>");
+	        }
+
+	       
+	        sb.append("<div class='footer'>")
+	          .append("This is an automated notification generated during PO renewal.<br>")
+	          .append("</div>");
+
+	        sb.append("</div></body></html>");
+
+	        return sb.toString();
+	    }
 
 
-	    
-	    
-	    
-	  
 
-	    
-	    
-	    
-	    
-	    
-	
-
-		
-		
-		
-		
-		
-	
-				
-		
-		
-		
-		
-		
 }	

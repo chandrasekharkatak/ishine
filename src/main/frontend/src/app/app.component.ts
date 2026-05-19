@@ -10,6 +10,7 @@ import { EncryptionService } from './services/EncryptionService';
 import { TrainingService } from './services/training.service';
 // import ClientMonitor from 'skywalking-client-js';
 import { environment } from 'src/environments/environment';
+import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 
 
 interface SideNavToggle{
@@ -50,7 +51,8 @@ interface SideNavToggle{
     private modalService: NgbModal,
     private notificationService: NotificationService,
     private encryptionService: EncryptionService,
-    private trainingService: TrainingService
+    private trainingService: TrainingService,
+    private swUpdate: SwUpdate
   ){
 
     this.authenticationService.currentUser.subscribe(x => {
@@ -80,6 +82,19 @@ interface SideNavToggle{
 
    
   ngOnInit():void{
+     if (this.swUpdate.isEnabled) {
+      this.swUpdate.versionUpdates
+        .pipe(
+          filter((event): event is VersionReadyEvent => event.type === 'VERSION_READY')
+        )
+        .subscribe(() => {
+  const confirmRefresh = confirm('New version available. Reload now?');
+  if (confirmRefresh) {
+    window.location.reload();
+  }
+});
+    }
+
     // import('skywalking-client-js').then(ClientMonitor => {
     //   console.log('skywalking Client JS loaded:', ClientMonitor);
     //   if (ClientMonitor.default && typeof ClientMonitor.default.register === 'function') {

@@ -6,12 +6,12 @@ export const environment = {
   production: false,
   // baseUrl: "https://ishine.apmosys.com/",
   baseUrl: "http://localhost:8080/",
-  // baseUrl: "http://192.168.21.175:8081/employeeportalapp/",
+ //  baseUrl: "http://192.168.21.175:8096/employeeportalapp-grievance/",
   // baseUrl: "http://103.114.154.240/",
 
   // baseUrl360: "https://ishine.apmosys.com/",
   baseUrl360: "http://localhost:4200/",
-  // baseUrl360: "http://192.168.21.175:8081/employeeportalapp/",
+  // baseUrl360: "http://192.168.21.175:8096/employeeportalapp-grievance/",
   //  baseUrl360: "http://103.114.154.240/",
   
   lmsbaseurl :"http://192.168.12.113/academy-lms/index.php/",

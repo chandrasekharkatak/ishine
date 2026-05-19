@@ -114,3 +114,217 @@
 .department-select {
   width: 350px !important;  
 }
+
+/* ===============================
+Holidays Table - Required CSS
+=============================== */
+
+/* Header */
+.leave-section-header {
+background: linear-gradient(90deg, #f8f9fa, #ffffff);
+font-size: 15px;
+font-weight: 600;
+color: #343a40;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+border-bottom: 1px solid #dee2e6;
+padding: 10px 16px;
+}
+
+.leave-section-header i {
+color: #0d6efd;
+}
+
+/* Wrapper + Scroll */
+.ts-table-wrapper {
+width: 100%;
+box-sizing: border-box;
+font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.ts-table-scroll {
+width: 100%;
+overflow-x: auto;
+}
+
+/* Toolbar */
+.ts-toolbar {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 10px;
+padding-bottom: 10px;
+}
+
+.ts-search-toggle {
+width: 32px;
+height: 32px;
+border-radius: 6px;
+border: 1px solid #e2e8f0;
+background: #ffffff;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #64748b;
+font-size: 13px;
+cursor: pointer;
+transition: all 0.15s;
+}
+
+.ts-search-toggle:hover {
+background: #f1f5f9;
+color: #1a2e44;
+}
+
+/* Table */
+.ts-table {
+width: 100%;
+border-collapse: collapse;
+font-size: 13px;
+color: #1e293b;
+background: #ffffff;
+border: 1px solid #e2e8f0;
+border-radius: 8px;
+overflow: hidden;
+}
+
+.ts-table thead tr {
+background: #1a2e44;
+}
+
+.ts-table thead th {
+padding: 11px 12px;
+font-size: 11px;
+font-weight: 700;
+text-transform: uppercase;
+color: #ffffff;
+white-space: nowrap;
+}
+
+/* Filter Row */
+.ts-table thead tr:nth-child(2) th {
+background: #f1f5f9 !important;
+color: #334155 !important;
+font-size: 12px;
+padding: 8px 10px;
+text-transform: none;
+}
+
+/* Rows */
+.ts-table tbody tr.ts-row {
+border-bottom: 1px solid #f1f5f9;
+transition: background 0.1s;
+}
+
+.ts-table tbody tr.ts-row:hover {
+background: #f8fafc;
+}
+
+.ts-table tbody td {
+padding: 10px 12px;
+font-size: 13px;
+color: #334155;
+}
+
+/* Empty State */
+.ts-empty {
+text-align: center;
+padding: 40px 20px;
+color: #94a3b8;
+font-size: 13px;
+}
+
+.ts-empty i {
+font-size: 24px;
+display: block;
+margin-bottom: 8px;
+}
+
+/* Pagination */
+.ts-pagination {
+padding-top: 12px;
+display: flex;
+justify-content: center;
+}
+
+.ts-pagination::ng-deep .ngx-pagination .current {
+background: #1a2e44 !important;
+border-radius: 4px;
+}
+
+.ts-pagination::ng-deep .ngx-pagination a,
+.ts-pagination::ng-deep .ngx-pagination button {
+border-radius: 4px;
+font-size: 13px;
+}
+.ts-actions-cell {
+white-space: nowrap;
+}
+
+/* Base Button */
+.ts-action-btn {
+width: 28px;
+height: 28px;
+border-radius: 5px;
+border: 1px solid #e2e8f0;
+background: #f8fafc;
+color: #64748b;
+font-size: 12px;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+margin-right: 4px;
+transition: all 0.15s ease;
+}
+
+/* Hover default */
+.ts-action-btn:hover {
+background: #1a2e44;
+color: #ffffff;
+border-color: #1a2e44;
+}
+
+/* Edit Button */
+.ts-action-btn--edit:hover {
+background: #1a73e8;
+border-color: #1a73e8;
+color: #ffffff;
+}
+
+/* Delete Button */
+.ts-action-btn--danger:hover {
+background: #b91c1c;
+border-color: #b91c1c;
+color: #ffffff;
+}
+
+/* Export Button */
+.ts-export-btn {
+display: inline-flex;
+align-items: center;
+gap: 7px;
+height: 32px;
+padding: 0 14px;
+font-size: 12px;
+font-weight: 600;
+font-family: 'Segoe UI', system-ui, sans-serif;
+color: #1a73e8;
+background: #e7f1ff;
+border: 1px solid #b3d4fc;
+border-radius: 6px;
+cursor: pointer;
+transition: all 0.15s ease;
+}
+
+/* Hover Effect */
+.ts-export-btn:hover {
+background: #1a73e8;
+color: #ffffff;
+border-color: #1a73e8;
+}
+
+/* Icon size (optional polish) */
+.ts-export-btn i {
+font-size: 13px;
+}

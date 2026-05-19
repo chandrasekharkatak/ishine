@@ -14,6 +14,7 @@
       [ngClass]="{'active' : viewType ===  'Response' }">My Assigned Questions</button>
     <button *ngIf="activeSubFeatureList?.includes('Approval Tab')" type="button" class="btn btn-sm btn-outline-primary mr-1" (click)="getMyAssignedQues('approval');isApprovalTab = true;"
       [ngClass]="{'active' : viewType ===  'Approval-Tab' }">Approval Tab</button>
+
   </div>
 </div>
 

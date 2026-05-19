@@ -9,7 +9,7 @@ import { ActivatedRoute, Params, Router } from '@angular/router';
 import * as Highcharts from 'highcharts';
 import * as moment from 'moment';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { finalize, first, map, startWith } from 'rxjs/operators';
+import { finalize, first, map, startWith, catchError } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Status } from 'src/app/enum/status';
 import { DefaultProjectUpdate } from 'src/app/models/defaultProjectUpdate';
@@ -51,43 +51,107 @@ import { ViewImageComponent } from '../view-image/view-image.component';
 import { RestoreProjectPayload } from 'src/app/models/restoreProjectPayload';
 import { LoaderService } from 'src/app/services/loader.service';
 import { PaginationInstance } from 'ngx-pagination';
-import { merge } from 'rxjs';
+import { merge, of, forkJoin } from 'rxjs';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MilestoneUpdatedLog } from 'src/app/models/MilestoneUpdatedLog'; 
+import { RmgProject } from 'src/app/models/rmgProject';
+import { RmgStatusCardsComponent } from './rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
+import { RmgProjectConfigComponent } from './rmg-project-config/rmg-project-config.component';
+import { SubfeatureService } from 'src/app/services/subfeature.service';
+import { FeatureUsageLog } from 'src/app/models/featureUsageLog';
+import { RmgDashboardComponent } from './new-rmg-dashboard/rmg-dashboard/rmg-dashboard.component';
+import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 
+export const PROJECT_COMPLETION_DATE_FORMATS = {
+  parse: {
+    dateInput: 'DD-MM-YYYY',
+  },
+  display: {
+    dateInput: 'DD-MM-YYYY',
+    monthYearLabel: 'MMM YYYY',
+    dateA11yLabel: 'DD-MM-YYYY',
+    monthYearA11yLabel: 'MMMM YYYY',
+  },
+};
 
 class FilterData {
   title: any;
   columns: any;
   queryList: any;
 }
+
 @Component({
   standalone: false,
   selector: 'app-resource-management',
   templateUrl: './resource-management.component.html',
-  styleUrls: ['./resource-management.component.css']
+  styleUrls: ['./resource-management.component.css'],
+  providers: [
+    { provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_MOMENT_DATE_ADAPTER_OPTIONS] },
+    { provide: MAT_DATE_FORMATS, useValue: PROJECT_COMPLETION_DATE_FORMATS },
+  ],
 })
+
 export class ResourceManagementComponent implements OnInit {
+  
+  @ViewChild('rmgDashboardComponent') rmgDashboardComponent!: RmgDashboardComponent;
+  @ViewChild('rmgStatusCards') rmgStatusCardsComponent!: RmgStatusCardsComponent;
+  @ViewChild('rmgProjectConfig') rmgProjectComponent!: RmgProjectConfigComponent;
+  @ViewChild('chartSection') chartSection!: ElementRef;
+  @ViewChild("project_configuration") projectConfigurationTemplateRef: TemplateRef<any>;
+  @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
+  @ViewChild('project_completion_date_picker') projectCompletionDatePickerTemplateRef!: TemplateRef<any>;
+  @ViewChild('project_completion_confirmation') projectCompletionConfirmationTemplateRef!: TemplateRef<any>;
+  @ViewChild("restore_project") restoreProjectTemplateRef: TemplateRef<any>;
+  @ViewChild("create_internal_project_confirmation") createInternalProjectConfirmationTemplateRef: TemplateRef<any>;
+  @ViewChild("project_timesheet_summary") projectTimesheetSummaryTemplateRef: TemplateRef<any>;
+  @ViewChild("reject_project") rejectProjectTemplateRef: TemplateRef<any>;
+  @ViewChild("approve_project") approveProjectTemplateRef: TemplateRef<any>;
+  @ViewChild("client_side_id_confirmation") clientSideIdConfirmationTemplateRef: TemplateRef<any>;
+
+  alertMessageModalRef: NgbModalRef;
+  projectConfigurationModalRef: NgbModalRef;
+  projectCompletionConfirmationModalRef!: NgbModalRef;
+  projectCompletionDatePickerModalRef!: NgbModalRef;
+  restoreInfoRef: NgbModalRef;
+  restoreProjectModalRef: NgbModalRef;
+  createInternalProjectConfirmationModalRef: NgbModalRef;
+  projectTimesheetSummaryModalRef: NgbModalRef;
+  rejectProjectModalRef: NgbModalRef;
+  clientSideIdConfirmationModalRef:NgbModalRef;
+
+  isNewRmgDashboard:boolean = true;
+  showProjectConfig: boolean = false;
+  rmgProjectObj: RmgProject = new RmgProject();
+  projectCompletionObj:Project = new Project();
+  isAllProjects: boolean = false;
+  markProjectCompletionConfig: boolean = false;
+
+  expandedProjects: Set<string> = new Set();
+  projectFullText: Map<string, string> = new Map();
+  shouldReload: boolean = false;
+  hasClientSideIdFlagHistory: Boolean = false;
+  isClientSideIdFormattedHistory: Boolean = false;
+  selectedDepartments: string[] = [];
+  allDepartmentsGraph: string[] = [];
+  showDepartmentFilter: boolean = true;
+  orgChartData: any[] = [];
+  filterError: string | null = null;
+  tableData: any[][] = [];
+  maxRows: number = 0;
+
+  selectedDepartmentIds: any[] = [];
+  oldSelectedDepartmentIds: any[] = [];
+
+
+  allStates: any[] = [
+    "Maharashtra",
+  ];
 
   nodes: OrgChartNode[] = [];
 
-  topStats = [
-    { value: 96, label: "Ishine's Billable", icon: "fa-users", iconColor: "#5E35B1", borderColor: "#5E35B1" },
-    { value: 104, label: "Shankh's Billable", icon: "fa-users", iconColor: "#FFB300", borderColor: "#FFB300" },
-    { value: -5, label: "TNM Difference", icon: "", iconColor: "#D32F2F", borderColor: "#D32F2F" },
-    { value: -7, label: "Fixed Cost Difference", icon: "", iconColor: "#D32F2F", borderColor: "#D32F2F" }
-  ];
-
-  statusCards = [
-    { value: 12, label: "Pending for approval", icon: "fa fa-clock", iconColor: "#FFB300", borderColor: "#FFB300" },
-    { value: 45, label: "Approved", icon: "fa-check-circle", iconColor: "#4CAF50", borderColor: "#4CAF50" },
-    { value: 28, label: "Not Started", icon: "fa-minus-circle", iconColor: "#9E9E9E", borderColor: "#9E9E9E" },
-    { value: 28, label: "Completed", icon: "fa-check", iconColor: "#009688", borderColor: "#009688" },
-    { value: 5, label: "On Hold", icon: "fa-pause-circle", iconColor: "#F44336", borderColor: "#F44336" },
-    { value: 32, label: "Pending", icon: "fa-hourglass-half", iconColor: "#03A9F4", borderColor: "#03A9F4" }
-  ];
-
   // dateType: string = 'po';
+  minDate: Date;
   completedProjectsCount: number | null = null;
   isCountLoading: boolean = false;
   showReportList = false;
@@ -123,50 +187,50 @@ export class ResourceManagementComponent implements OnInit {
   selectedFile: File | null = null;
   selectedFilePreviewUrl: string | null = null;
   milestoneDocumentUrl: SafeResourceUrl | null = null;
-  modalRef:NgbModalRef;
-  modalRefRole:NgbModalRef;
+  modalRef: NgbModalRef;
+  modalRefRole: NgbModalRef;
   isModalFullscreen = false;
 
   isTNMCollapsed = false;
 
-  notStartedCount:number=0;
-  pendingForApprovalCount:number=0;
-  approvedCount:number=0;
-  completedInIshineCount:number=0;
-  completedCount:number=0;
-  completedWithEmployeeCount:number=0;
+  notStartedCount: number = 0;
+  pendingForApprovalCount: number = 0;
+  approvedCount: number = 0;
+  completedInIshineCount: number = 0;
+  completedCount: number = 0;
+  completedWithEmployeeCount: number = 0;
   currentPoProjectType: string | null = null;
 
-  seempCountDeptSelected:any;
-  searchEmployeeResultLen:any;
-  notInListLen:any;
-  employeeListNotInSearch:any[]=[];
+  seempCountDeptSelected: any;
+  searchEmployeeResultLen: any;
+  notInListLen: any;
+  employeeListNotInSearch: any[] = [];
   activeMetricView = "search";
-   notInSearchPageNo = 1;
-   filteredEmployeeListNotInSearch:any[]=[];
-   employeeMatrixPageNo = 1;
-   employeeMatrixPageSize = 3;
-   totalEmployeeMatrixElements = 0;
-   totalEmployeeMatrixPages = 0;
-   paginationConfig: PaginationInstance = {
-  id: 'employeeSkillMatrixId',
-  itemsPerPage: 3,
-  currentPage: 1,
-  totalItems: 0
-};
+  notInSearchPageNo = 1;
+  filteredEmployeeListNotInSearch: any[] = [];
+  employeeMatrixPageNo = 1;
+  employeeMatrixPageSize = 3;
+  totalEmployeeMatrixElements = 0;
+  totalEmployeeMatrixPages = 0;
+  paginationConfig: PaginationInstance = {
+    id: 'employeeSkillMatrixId',
+    itemsPerPage: 3,
+    currentPage: 1,
+    totalItems: 0
+  };
 
-allEmployeeSkillSummary: { email: string; skillCount: number }[] = [];
-topSkillCounts: number[] = [];
+  allEmployeeSkillSummary: { email: string; skillCount: number }[] = [];
+  topSkillCounts: number[] = [];
 
-expandedIndex: boolean = false;
-isClientSideIdFormatted:Boolean = false;
-employeeRoleList:any =[]
-projectNameForMilestoneUpdate : string ;
-poNameForMilestoneUpdate : string;
+  expandedIndex: boolean = false;
+  isClientSideIdFormatted: Boolean = false;
+  employeeRoleList: any = []
+  projectNameForMilestoneUpdate: string;
+  poNameForMilestoneUpdate: string;
 
-toggleExpand(): void {
-  this.expandedIndex = !this.expandedIndex;
-}
+  toggleExpand(): void {
+    this.expandedIndex = !this.expandedIndex;
+  }
 
 
   // new cards changes.....................................................................
@@ -202,10 +266,8 @@ toggleExpand(): void {
   milestoneDocumentModal: TemplateRef<any>;
   @ViewChild('update_project_completion_modal') updateProjectCompletionModal: TemplateRef<any>;
   updateProjectCompletionModalRef: NgbModalRef;
-  modalRefWithReloadMilestone:NgbModalRef;
+  modalRefWithReloadMilestone: NgbModalRef;
 
-  @ViewChild('chartSection')
-  chartSection!: ElementRef;
 
   @ViewChild('MarkAsCompleteDefaultProject') MarkAsCompleteDefaultProject1!: TemplateRef<any>;
   @ViewChild('OtherProjectDefaultMapping') OtherProjectDefaultMapping1!: TemplateRef<any>;
@@ -216,6 +278,11 @@ toggleExpand(): void {
   alert_message_without_reloadModalRef!: NgbModalRef;
   @ViewChild('resource_removal_alert') removeResourceModal: TemplateRef<any>;
   removeResourceModalRef: NgbModalRef;
+  projectMilestoneDocumentModalRef: NgbModalRef;
+  updateProjectMilestoneModalRef:NgbModalRef;
+   projectLineItemListModalRef:NgbModalRef;
+  @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
+
 
   data: string;
   currentUser: User;
@@ -225,33 +292,7 @@ toggleExpand(): void {
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType: any;
-
   alertMessage: any;
-  alert_Message: any;
-
-
-expiredProjects1To2Months: any;
-expiredProjects2To3Months:any;
-expiredProjects3To6Months:any;
-expiredProjects6To9Months:any;
-expiredProjects9To12Months:any;
-expiredProjectsAbove12Months:any;
-expiredProjectsWithin1Month:any;
-
-  modalRef2:NgbModalRef;
-  modalRef1:NgbModalRef;
-  modalRef3:NgbModalRef;
-  modalRef4:NgbModalRef;
-  modalRef5:NgbModalRef;
-  modalRef6:NgbModalRef;
-  modalRefTeamMember:NgbModalRef;
-  projectLineItemListModalRef:NgbModalRef;
-  updateProjectMilestoneModalRef:NgbModalRef;
-  clientSideIdPresent :NgbModalRef;
-  modalRefWithReload:NgbModalRef;
-  modalRefWithoutReload:NgbModalRef;
-  modalRefWithoutReload2:NgbModalRef;
-  deleteResourceModalRef:NgbModalRef;
 
   projectObj: Project = new Project();
   projectObj2: Project = new Project();
@@ -266,6 +307,7 @@ expiredProjectsWithin1Month:any;
   selectedTeamsDetails: any[] = [];
   isProjectTable: boolean = false;
   isEditProject: boolean = false;
+  isClientSideIdTnmProjectType: boolean = false;
   isUpdation: boolean = false;
   isHideButton: boolean = false;
   allProjectTable: boolean = false;
@@ -277,6 +319,7 @@ expiredProjectsWithin1Month:any;
 
   currentTeam: any;
   selectedProjToReject: any;
+  projectRejectionReason:string = '';
   currentProjectId: any;
   selectedProjectManager: any;
   excelName: any;
@@ -316,8 +359,6 @@ expiredProjectsWithin1Month:any;
   isExtensionEnabled:boolean =false
   showMilestoneImageModal:boolean =false
   minExtendDate!: Date;
-  projectMilestoneDocumentModalRef: NgbModalRef;
-  @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
   expandedMilestoneId:any
   selectedLogs: any[] = [];
   selectedLogType: 'start' | 'end' | 'status' | null = null;
@@ -330,19 +371,16 @@ expiredProjectsWithin1Month:any;
   confirmMilestoneStatus:any;
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
-  employeeNotInSearchColumns: any[] = ['employeementId','employeeName','deptName','jobRole','email','skillNames','certificateNames'];
+  employeeNotInSearchColumns: any[] = ['employeementId', 'employeeName', 'deptName', 'jobRole', 'email', 'skillNames', 'certificateNames'];
   filters: any = {};
   SEfilters: any = {};
   isSearchEnabled: boolean = false;
   isSESearchEnabled: boolean = false;
-  // projectColumns: any[] = ["blank", "draftStatus", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
-  projectColumns: any[] = ["blank", "name", "poNo", "combinedProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status","projectStatus", "draftStatus"];
 
   projectDetails: any = [];
   projectDetails2: any = [];
   copyDepartment: any = [];
   currentBreadcrumbList: any[] = [];
-  // employeesFor360: any[] = [];
   poProjectListFromIshine: any[] = [];
   flagDialogueBox: boolean = false;
   tableName: string;
@@ -354,14 +392,12 @@ expiredProjectsWithin1Month:any;
   deptIdList: any[] = [];
   employeeList: Employee[] = [];
   filteredEmployees: Employee[] = [];
-  employeeCtrl = new FormControl();
   searchText: any;
   searchTextDept: any;
   selectedStatusTab: string = '';
-  @ViewChild('customDatePickerTemplate')
-  customDatePickerTemplate!: TemplateRef<any>;
 
-  selectedDate: String | null = null;
+
+  selectedDate: any | null = null;
   completedProjectDetails: Project = new Project();
   projectFilterDTO: ProjectFilterDTO = new ProjectFilterDTO();
   deptList: ProjectFilterDTO = new ProjectFilterDTO();
@@ -395,11 +431,6 @@ expiredProjectsWithin1Month:any;
   filteredOtherProjectList: any[] = [];
   filterData: any = new FilterData();
 
-  @ViewChild("previous_default_project")
-  previousDefaultProject: TemplateRef<any>;
-
-  @ViewChild("other_project_mappings")
-  otherProjectMappings: TemplateRef<any>;
   searchTerm: any;
   defaultProjectUpdate: DefaultProjectUpdate = new DefaultProjectUpdate();
   defaultProjectUpdateEmpId: any;
@@ -476,28 +507,7 @@ expiredProjectsWithin1Month:any;
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Po No', 'Po Start Date', 'Po End Date', 'Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Profile Completion'];
   timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
-  filteredTimesheetReportColumns: any[] = [
-    'employeementId',
-    'employeeType',
-    'employeeName',
-    'departmentName',
-    'date',
-    'dayType',
-    'projectName',
-    'teamName',
-    'clientName',
-    'clientLocation',
-    'activity',
-    'description',
-    'managerName',
-    'status',
-    'totalTime',
-    'officeInTime',
-    'officeOutTime',
-    'leaveType',
-    'createdByName',
-    'createdOn'
-  ];
+  filteredTimesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'departmentName', 'date', 'dayType', 'projectName', 'teamName', 'clientName', 'clientLocation', 'activity', 'description', 'managerName', 'status', 'totalTime', 'officeInTime', 'officeOutTime', 'leaveType', 'createdByName', 'createdOn'];
 
   queryList: any[] = [];
   // filterData: any = new FilterData();
@@ -527,20 +537,15 @@ expiredProjectsWithin1Month:any;
   // filters: any = {};
   // isSearchEnabled: boolean = false;
 
-  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
-  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
+  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'projectStartDate', 'projectEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
+  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'projectStartDate', 'projectEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
   leaveReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
-  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
-  // 'dateOfJoining', 'aadhar', 'aboutMe', 'address', 'permanentAddress', 'city', 'bloodGroup', 'dateOfBirth', 'gender', 'fatherName', 'panNumber', 'placeOfBirth', 'workLocation', 'probationPeriod', 'noticePeriod', 'country', 'totalExperience', 'emergencyContactMobile', 'emergencyContactPerson', 'landline', 'maritalStatus', 'motherTongue', 'alternateMobileNo', 'pincode', 'relation', 'state', 'viewsOnOrganisation', 'passportNumber', 'bankAccountNo', 'bankIFSCCode', 'bankName', 'pfAccountNumber', 'previousPfAccountNumber', 'uan', 'esicNumber', 'graduationType', 'pursuing', 'passingGrade', 'yearOfPassing',
+  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'projectStartDate', 'projectEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
   leaveTimesheetReportColumn: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   defaultMappingColumns: any[] = ['tabName', 'featureName', 'subFeatureName'];
-  employeeReportColumnForDetailedProjecttttView: any[] = ['blank',
-    'projectName', 'projectManager', 'apmosysRM', 'clientRM',
-    'poStartDate', 'poEndDate', 'poNo', 'poProjectType', 'teamName',
-    'employeeName', 'jobRole', 'deptName', 'mobileNo', 'email',
-    'billable', 'billableType', 'effectiveStartDate'
-  ];
+  employeeReportColumnForDetailedProjecttttView: any[] = ['blank', 'projectName', 'projectManager', 'apmosysRM', 'clientRM', 'projectStartDate', 'projectEndDate', 'poNo', 'poProjectType', 'teamName', 'employeeName', 'jobRole', 'deptName', 'mobileNo', 'email', 'billable', 'billableType', 'effectiveStartDate'];
+
   employeesFor360: any[] = [];
   // departments: any[] = [];
   allEmployee: any[] = [];
@@ -609,292 +614,44 @@ expiredProjectsWithin1Month:any;
   fcProjectMilestoneList: FCProjectMilestone[] = [];
   statusList = [Status.NOT_STARTED, Status.IN_PROGRESS, Status.ON_HOLD, Status.COMPLETED];
   projectMilestone: any;
-  fallBackMsg:any;
-  isApproved:boolean = false;
+  fallBackMsg: any;
+  isApproved: boolean = false;
   advanceFilter: any;
-  skipSelectionChange: boolean = false;
-  isLoadingMilestones: any=false;
-   activeModalTab: 'info' | 'milestone' = 'info';
+  isLoadingMilestones: any = false;
+  activeModalTab: 'info' | 'milestone' = 'info';
   teamMemberTemplate: any;
   preview_team_new_teams_only: TemplateRef<any>;
   delete_team_modal: TemplateRef<any>;
   MarkAsCompleteDefaultProject: TemplateRef<any>;
   OtherProjectDefaultMapping: TemplateRef<any>;
-isCollapsed1: any;
+  isCollapsed1: any;
   fcProjectList: any;
   notificationService: any;
   iscountLoading: boolean;
-monitoringDefaulters: any;
-monitoringCount: any;
-tnmDefaulters: any;
-fixedCostDefaulters: any;
-unfilledTimesheetCounts: any;
+  monitoringDefaulters: any;
+  monitoringCount: any;
+  tnmDefaulters: any;
+  fixedCostDefaulters: any;
+  unfilledTimesheetCounts: any;
   serviceResponse: any;
 
+  selectedMembers: any[] = [];
+  employeeSelectionHistory: any[] = [];
 
-  poDepartments = [
-  {
-    "deptab": "PT",
-    "name": "Performance Testing"
-  },
-  {
-    "deptab": "DEV, IT",
-    "name": "Development, IT"
-  },
-  {
-    "deptab": "FT",
-    "name": "Functional Testing"
-  },
-  {
-    "deptab": "APM, ST",
-    "name": "APM, Security Testing"
-  },
-  {
-    "deptab": "AC",
-    "name": "Accounts"
-  },
-  {
-    "deptab": "RPA",
-    "name": "RPA"
-  },
-  {
-    "deptab": "APM, DEV, FT",
-    "name": "APM, Development, Functional Testing"
-  },
-  {
-    "deptab": "APM",
-    "name": "APM"
-  },
-  {
-    "deptab": "APM, MONT, PS",
-    "name": "APM, Application Performance Monitoring, Production Support"
-  },
-  {
-    "deptab": "AC, ADM",
-    "name": "Accounts, Admin"
-  },
-  {
-    "deptab": "ADM",
-    "name": "Admin"
-  },
-  {
-    "deptab": "BD, DEV",
-    "name": "Business Development, Development"
-  },
-  {
-    "deptab": "BD, HR, RMG, SA",
-    "name": "Business Development, HR, Resource Management Group, Super Admin"
-  },
-  {
-    "deptab": "AUT, IT, RND",
-    "name": "Automation Testing, IT, Products and RND"
-  },
-  {
-    "deptab": "PRSALE",
-    "name": "Presales"
-  },
-  {
-    "deptab": "APM, FT, PT, TRNA",
-    "name": "APM, Functional Testing, Performance Testing, Training"
-  },
-  {
-    "deptab": "AC, AUT",
-    "name": "Accounts, Automation Testing"
-  },
-  {
-    "deptab": "BD",
-    "name": "Business Development"
-  },
-  {
-    "deptab": "DEV, FT, RND",
-    "name": "Development, Functional Testing, Products and RND"
-  },
-  {
-    "deptab": "DEV",
-    "name": "Development"
-  },
-  {
-    "deptab": "APM, DEV",
-    "name": "APM, Development"
-  },
-  {
-    "deptab": "FA, PS",
-    "name": "Floor Automation, Production Support"
-  },
-  {
-    "deptab": "AUT, FT",
-    "name": "Automation Testing, Functional Testing"
-  },
-  {
-    "deptab": "AUT, IT",
-    "name": "Automation Testing, IT"
-  },
-  {
-    "deptab": "AUT, DEV, RND",
-    "name": "Automation Testing, Development, Products and RND"
-  },
-  {
-    "deptab": "APM, PS",
-    "name": "APM, Production Support"
-  },
-  {
-    "deptab": "APM, FT, PT",
-    "name": "APM, Functional Testing, Performance Testing"
-  },
-  {
-    "deptab": "AUT, RPA",
-    "name": "Automation Testing, RPA"
-  },
-  {
-    "deptab": "DEV, FT, RPA, ST",
-    "name": "Development, Functional Testing, RPA, Security Testing"
-  },
-  {
-    "deptab": "HR",
-    "name": "HR"
-  },
-  {
-    "deptab": "APM, DEV, PT",
-    "name": "APM, Development, Performance Testing"
-  },
-  {
-    "deptab": "AUT, DEV",
-    "name": "Automation Testing, Development"
-  },
-  {
-    "deptab": "AUT",
-    "name": "Automation Testing"
-  },
-  {
-    "deptab": "AUT, FT, PS",
-    "name": "Automation Testing, Functional Testing, Production Support"
-  },
-  {
-    "deptab": "DEV, PS",
-    "name": "Development, Production Support"
-  },
-  {
-    "deptab": "PS",
-    "name": "Production Support"
-  },
-  {
-    "deptab": "IT, PS",
-    "name": "IT, Production Support"
-  },
-  {
-    "deptab": "AC, APM, AUT, BD, DEV, FT, HR, SA, ST",
-    "name": "Accounts, APM, Automation Testing, Business Development, Development, Functional Testing, HR, Security Testing, Super Admin"
-  },
-  {
-    "deptab": "AUT, FT, ST",
-    "name": "Automation Testing, Functional Testing, Security Testing"
-  },
-  {
-    "deptab": "FT, PS",
-    "name": "Functional Testing, Production Support"
-  },
-  {
-    "deptab": "AUT, FT, PT",
-    "name": "Automation Testing, Functional Testing, Performance Testing"
-  },
-  {
-    "deptab": "AUT, FT, RPA",
-    "name": "Automation Testing, Functional Testing, RPA"
-  },
-  {
-    "deptab": "APM, PT",
-    "name": "APM, Performance Testing"
-  },
-  {
-    "deptab": "FT, ST",
-    "name": "Functional Testing, Security Testing"
-  },
-  {
-    "deptab": "BD, FT",
-    "name": "Business Development, Functional Testing"
-  },
-  {
-    "deptab": "AUT, RND",
-    "name": "Automation Testing, Products and RND"
-  },
-  {
-    "deptab": "BD, DEV, FT, ST",
-    "name": "Business Development, Development, Functional Testing, Security Testing"
-  },
-  {
-    "deptab": "RND",
-    "name": "Products and RND"
-  },
-  {
-    "deptab": "APM, AUT, DEV, FT, PS, PT, RND, RPA, ST",
-    "name": "APM, Automation Testing, Development, Functional Testing, Performance Testing, Production Support, Products and RND, RPA, Security Testing"
-  },
-  {
-    "deptab": "AC, APM",
-    "name": "Accounts, APM"
-  },
-  {
-    "deptab": "BD, PT",
-    "name": "Business Development, Performance Testing"
-  },
-  {
-    "deptab": "APM, AUT, DEV, FT, PS, RPA",
-    "name": "APM, Automation Testing, Development, Functional Testing, Production Support, RPA"
-  },
-  {
-    "deptab": "FT, PT",
-    "name": "Functional Testing, Performance Testing"
-  },
-  {
-    "deptab": "DIR, FT, PT",
-    "name": "Director, Functional Testing, Performance Testing"
-  }
-]
+  isSkillMatrix = false;
+  statusTab: any;
 
-isSkillMatrix= false;
-statusTab: any;
-toggleDepartmentsVisible: boolean = false;
-
-toggleDepartments() {
-  this.toggleDepartmentsVisible = !this.toggleDepartmentsVisible;
-}
   clientSideIdObj: updateHasClientSideId = new updateHasClientSideId();
-  projList:any[] = [];
-  liftAndShiftObj = new LiftAndShift();
-  @ViewChild('lift_and_shift_teams')
-  liftAndShiftTeamsTemp!: TemplateRef<any>;
-  liftAndShiftRef:NgbModalRef;
-  sourceProjectId:any;
-  @ViewChild("alert_message_lift_shift")
-  modalRefWithReloadTemp: TemplateRef<any>;
-  hasClientSideIdFlag:Boolean=false;
-  fetchClientSideIdObj:updateHasClientSideId = new updateHasClientSideId();
-  @ViewChild("fcResourceMappedToTNMProject")
-  fcResourceMappedToTNMProjectTemp: TemplateRef<any>;
-  fcResourceMappedToTNMProjectRef:NgbModalRef;
-  @ViewChild("fcResourceMapped_no")
-  fcResourceMapped_noTemp: TemplateRef<any>;
-  fcResourceMapped_noRef:NgbModalRef;
-  @ViewChild("restore_info")
-  restoreInfoTemp: TemplateRef<any>;
-  restoreInfoRef:NgbModalRef;
+  hasClientSideIdFlag: Boolean = false;
+  fetchClientSideIdObj: updateHasClientSideId = new updateHasClientSideId();
   restoreProjectPayload = new RestoreProjectPayload();
-  @ViewChild("resource_alert")
-  restoreAlertTemp: TemplateRef<any>;
-  restoreAlertRef:NgbModalRef;
   isRestoreSuccess: Boolean = false;
-  @ViewChild("alertMessageMarkAsComplete")
-  alertMessageMarkAsCompleteTemp: TemplateRef<any>;
-  alertMessageMarkAsCompleteRef:NgbModalRef;
   isCompletionSuccess: Boolean = false;
-
-  @ViewChild("alertMEssageForPOResourceRequirementFetching")
-  poResourceRequirementFetchTemp:TemplateRef<any>;
-  poResourceRequirementFetchRef:NgbModalRef;
   defaultImagePath = 'assets/Images/default-user-image.jpeg';
 
   @ViewChild('teamMemberAuto', { read: MatAutocompleteTrigger }) teamMemberAutoTrigger!: MatAutocompleteTrigger;
 
+  isReportTabToggleViewVisible :boolean = false;
 
   constructor(
     private filterStateService: FilterStateService,
@@ -914,196 +671,105 @@ toggleDepartments() {
     private breadcrumbService: BreadcrumbService,
     private employee360Service: Employee360Service,
     private sanitizer: DomSanitizer,
-    private dialog:MatDialog,
+    private dialog: MatDialog,
     private renderer: Renderer2,
     private appComponent: AppComponent,
     private el: ElementRef,
-    private loaderService: LoaderService
+    private loaderService: LoaderService,
+    private subFeatureService : SubfeatureService
   ) {
-
+    this.minDate = new Date(); 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
     const reportUrl = `${environment.baseUrl360}#/user-reports/report-list`;
     this.reportListUrlSafe = this.sanitizer.bypassSecurityTrustResourceUrl(reportUrl);
-
   }
 
-
-
-
   async ngOnInit(): Promise<void> {
+    this.isNewRmgDashboard = this.filterStateService.isNewRmgDashboard;
+    if (this.isNewRmgDashboard) {
+      this.mapSubFeatureFlag();
+      this.showViewProjects(true);
+      return;
+    }
+
     this.myDept = true;
-    this.projectFilterDTO.approvalStatus = "TotalProjects";
-    this.selectedStatusTab = "TotalProjects";
-    this.route.params.subscribe(params => {
-      console.log('Route params changed:', params);
-      // this.projectFilterDTO.approvalStatus = "TotalProjects";
-      this.projectFilterDTO.approvalStatus = this.projectFilterDTO.approvalStatus || "TotalProjects";
-    });
-    // Dynamic Subfeature Flags
-    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-    featureMap.subFeatures?.forEach(sub => {
-      console.log(sub,"sub")
-      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-    });
-    // console.log("lalalalalalalalal", this.userMapping);
     const deptName = String(this.currentUser.departmentName).trim();
     const empRole = String(this.currentUser.employeeRole).trim();
-    if (!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") &&
-      !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin") && !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")) {
-      await this.getAllDepartments();
-      await this.getDeptsByUser();
-      // this.projectFilterDTO.isHod = true
-    }
-    else {
-      await this.getAllDepartments();
-      // await this.getDeptsByUser();
-      if (this.filteredDepartments != null)
-        this.projectFilterDTO.isAdmin = true;
-      else {
-        this.projectFilterDTO.isOther = true
-        this.isAdminOrHod = false;
-      }
-    }
-    console.log(this.projectFilterDTO);
+    this.isAccounts = deptName === 'Accounts';
+    this.setReportToggleViewVisible();
+    this.mapSubFeatureFlag();
+
     this.route.params.subscribe((params: Params) => {
       this.currentProjectId = params['id'];
     });
-    //console.log(this.currentProjectId, " : this.currentProjectId");
+
+    if (this.shouldFetchUserSpecificDepartments(deptName, empRole)) {
+      await this.getDeptsByUser();
+    } else {
+      await this.getAllDepartmentsByCurrentUserIdAndRole();
+    }
+
+    if (this.currentUser.employeeRole !== 'SuperAdmin') {
+      this.selectAllFilteredDepartments();
+    }
+
     this.sectionViewInit();
     this.getEmployeeByNameAndEmpld();
-    // this.initializeActiveProjectFilters();
-
-    this.employeeCtrl.valueChanges
-      .pipe(
-        startWith(''),
-        map(value => typeof value === 'string' ? value : value?.name || ''),
-        map(name => this.filterEmployees(name))
-      )
-      .subscribe(filtered => {
-        this.filteredEmployees = filtered;
-      });
-
-    this.teamLeadCtrl.valueChanges
-      .pipe(
-        startWith(''),
-        map(value => typeof value === 'string' ? value : value?.name || ''),
-        map(name => this.filterTeamLeads(name))
-      )
-      .subscribe(filtered => {
-        this.filteredTeamLeads = filtered;
-      });
-
-    if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
-      this.toggleSearch();
-    }
-    // this.employee360Service.employeesFor360$.subscribe((employees) => {
-    //   this.employeesFor360 = employees;
-    //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
-    // });
-    // console.log('userMapping',this.userMapping);
-
-    if (deptName === "Accounts") {
-      this.isAccounts = true;
-    }
-    // this.toggleSelectAllDept();
-    console.log("testtyuijnbnml" , this.projectFilterDTO.approvalStatus)
-    this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
-    // this. projectFilterDTO.departmentsids = this.filteredDepartments.map(dept => dept.deptId);
-    // await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
-
-    await this.RbacInternalProjects(this.projectFilterDTO);
-
-    await this.getEmployeesWithoutBillability(this.projectFilterDTO);
-
-    await this.fetchTimesheetMissingCount();
-
-    await this.initializeExpiredProjectFilters();
-     this.selectedExpiredProjectFilter = this.expiredProjectFilters[0];
-
-    await this.RbacShankhProjects(this.projectFilterDTO);
-
-    await this.RbacAllShankhInternalProjects(this.projectFilterDTO);
-    await this.ExceptionEmployeeReport(this.projectFilterDTO);
-    await this.RbacBothShankhInternal(this.projectFilterDTO);
-    await this.ProjectLessEmployees(this.projectFilterDTO);
-    await this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
-
-
-//     this.fetchTimesheetMissingCount();
-
-// this.initializeExpiredProjectFilters();
-
-  // this.loadExpiredProjectCounts(null).then(() => {
-  //   console.log('Initial expired project counts loaded');
-  // }).catch((error) => {
-  //   console.error('Failed to load initial counts:', error);
-  // });
-
-
-
-    await this.getProjectDetailsForBulkDefaultUpdate();
-    await this.TotalEmployeeCount();
-
-    // const deptName = String(this.currentUser.departmentName).trim();
-    // const empRole = String(this.currentUser.employeeRole).trim();
-    // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") &&
-    // !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
-    //   await this.onDepartmentToggle();
-    // }
-    // else{
-    //   await this.onDepartmentToggle();
-    // }
-
-    if (this.filterStateService.projectReportFilters) {
-      this.filters = this.filterStateService.projectReportFilters;
-      this.isSearchEnabled = true;
-    }
-    if (this.filterStateService.deptIdList && this.filterStateService.deptIdList.length > 0) {
-      console.log(this.filterStateService.deptIdList, "this.filterStateService.deptIdList");
-      this.deptIdList = this.filterStateService.deptIdList;
-      this.myDept = this.filterStateService.myDept;
-      this.onDepartmentSelectionChange();
-    }
-    if (this.filterStateService.deptIdListByUser && this.filterStateService.deptIdListByUser.length > 0) {
-      console.log(this.filterStateService.deptIdListByUser, "this.filterStateService.deptIdListByUser");
-      this.myDept = this.filterStateService.myDept;
-      this.deptIdListByUser = this.filterStateService.deptIdListByUser;
-      this.onDepartmentSelectionChangeByUser();
-    }
-    if (this.filterStateService.selectedStatusTab) {
-      this.selectedStatusTab = this.filterStateService.selectedStatusTab;
-      this.selectStatusTab(this.selectedStatusTab);
-      console.log(this.selectedStatusTab, "this.selectedStatusTab");
-    }
-
-    // this.getFixedCostProjectList("all");
-    // this.getFixedCostProjectList("defaulter");
-    // this.fetchCompletedProjectsCount("lastmonth");
-
-    this.getFixedCostCount(this.projectFilterDTO);
-    console.log("count",this.expiredProjectFilters);
-
-    this.calculateCardLevels();
-    this.employeeRoleList = this.employeeRole.map(role => ({ role: role }));
-
+    // this.loadRMGDashboard(this.rmgDashboardProjectRequest);
+    // this.restoreFilterState();
   }
 
+  private mapSubFeatureFlag() {
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+  }
 
-  toggleModalFullscreen() {
-    this.isModalFullscreen = !this.isModalFullscreen;
-    if (this.modalRef) {
-      if (this.isModalFullscreen) {
-        this.modalRef.update({ windowClass: 'custom-modal modal-dialog.fullscreen-modal' });
-      } else {
-        this.modalRef.update({ windowClass: 'custom-modal modal-lg' });
+  private shouldFetchUserSpecificDepartments(deptName: string, empRole: string): boolean {
+    const depts = ["Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR"];
+    const roles = ["SuperAdmin", "Accounts"];
+    return (!depts.some(dept => deptName.includes(dept)) &&
+      !roles.some(role => empRole.includes(role)));
+  }
+
+  async getAllDepartmentsByCurrentUserIdAndRole(): Promise<any> {
+    this.selectedDepartmentIds = [];
+    this.oldSelectedDepartmentIds = [];
+    this.filteredDepartments = [];
+    try {
+      const response: any = await this.departmentService.getDeptsByRole(this.currentUser.empId).pipe(first()).toPromise();
+      if (response?.serviceStatus !== "Success") {
+        throw new Error("Failed to fetch departments");
       }
+      const serviceResponse = response.serviceResponse;
+      this.filteredDepartments = serviceResponse?.departments || [];
+      return;
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+      throw error;
     }
   }
 
-  /**
-   * Org-wide hierarchy / department visibility (align with EmployeeService.hasWideHierarchyAnchorAccess).
-   */
+  async getDeptsByUser(): Promise<any> {
+    this.selectedDepartmentIds = [];
+    this.oldSelectedDepartmentIds = [];
+    this.filteredDepartments = [];
+    try {
+      const response: any = await this.departmentService.getDeptsByUser(this.currentUser.empId).pipe(first()).toPromise();
+      if (response?.serviceStatus !== "Success") {
+        throw new Error("Failed to fetch user departments");
+      }
+      const serviceResponse = response.serviceResponse;
+      this.filteredDepartments = serviceResponse?.departments || [];
+      return;
+    } catch (error) {
+      console.error("Error fetching user departments:", error);
+      throw error;
+    }
+  }
+
   hasOrgWideHierarchyAccess(): boolean {
     const r = (this.currentUser?.employeeRole ?? '').toString().trim();
     if (!r) {
@@ -1118,463 +784,197 @@ toggleDepartments() {
     return false;
   }
 
-  sectionViewInit() {
-    if (this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin') {
-      this.isHOD = true;
-    } else {
-      this.isHOD = false;
-    }
-    if (this.currentUser.employeeRole == '' || this.currentUser.employeeRole == undefined || this.currentUser.employeeRole == null) {
-      this.isHOD = false;
-    }
-
-    if (this.userMapping.view_all_rmg_projects) {
-      this.showViewProjects();
-    }
-
-    if (this.currentProjectId != undefined || this.currentProjectId != null) {
+  sectionViewInit(): void {
+    const role = this.currentUser.employeeRole?.trim() || '';
+    this.isHOD = role === 'HOD' || role === 'SuperAdmin';
+    if (this.userMapping?.view_all_rmg_projects || (this.currentProjectId != undefined && this.currentProjectId != null)) {
       this.showViewProjects();
     }
   }
 
-  showViewProjects() {
+  private filterEmployees(searchText: string) {
+    const lowerText = (searchText || '').toLowerCase();
+    return this.employeeList.filter(emp => {
+      const name = emp?.name?.toString() || '';
+      const employmentId = emp?.employmentId?.toString() || '';
+      return name.toLowerCase().includes(lowerText) ||
+        employmentId.toLowerCase().includes(lowerText);
+    });
+  }
+
+  showViewProjects(isRouteFromEmployee360: boolean = false) {
     this.isProjectTable = true;
     this.allProjectTable = true;
     this.isSkillMatrix = false;
-
     this.isHideButton = false;
     this.isEditProject = false;
     this.isCreateForm = false;
     this.isCreation = false;
+    this.showProjectConfig = false;
+    this.markProjectCompletionConfig = false;
     this.filters = {};
     this.isSearchEnabled = false;
-
     this.allProjectList = [];
     this.teamCreatedProjectList = [];
-    // this.getManagerList();
-    // this.alreadyCreatedTeam();
+    this.isNewRmgDashboard = this.filterStateService.isNewRmgDashboard;
+    if (this.rmgStatusCardsComponent) {
+      this.rmgStatusCardsComponent.onDepartmentSelectionChange(this.selectedDepartmentIds);
+    }
+
+    if (!isRouteFromEmployee360) {
+      setTimeout(() => {
+        if (this.rmgDashboardComponent) {
+          this.rmgDashboardComponent?.ngOnInit();
+        }
+      }, 1);
+    }
   }
-
-
-
-
 
   showEditProjectForm(project: any) {
     this.isEditProject = true;
-
     this.allProjectTable = true;
     this.isHideButton = true;
-
     this.allTeamList = [];
     this.projectObj = Object.assign({}, project);
     this.getAllDepartmentList(project);
-    this.getTeamListByProjectName(project);
+    // this.getTeamListByProjectName(project);
     this.getManagerList();
   }
 
-  closeEditProject() {
-    this.isHideButton = false;
+  onDepartmentSelectionChange(event: any) {
+    if (this.areArraysEqual(this.oldSelectedDepartmentIds, this.selectedDepartmentIds)) {
+      return;
+    }
+    this.oldSelectedDepartmentIds = [...this.selectedDepartmentIds];
+    if (this.rmgStatusCardsComponent) {
+      this.rmgStatusCardsComponent.onDepartmentSelectionChange(event);
+    }
   }
 
-  showCreateForm() {
-    this.isCreateForm = true;
-    this.isCreation = true;
-    this.isSkillMatrix= false;
+  async toggleDepartment() {
+    this.filterStateService.myDept = this.myDept;
+    if (this.myDept) {
+      await this.getDeptsByUser();
+    } else {
+      await this.getAllDepartmentsByCurrentUserIdAndRole();
+    }
 
-    this.isProjectTable = false;
-    this.allProjectTable = false;
-    this.isUpdateForm = false;
-
-
-    this.projectObj = new Project();
-    this.getAllDepartmentListForCreateProject();
-    this.getManagerList();
-    this.getAllClientList();
-    this.projectObj.clientId = '';
+    this.selectAllFilteredDepartments();
+    if (this.rmgStatusCardsComponent) {
+      this.rmgStatusCardsComponent.onDepartmentSelectionChange(this.selectedDepartmentIds);
+    }
   }
 
-  allStates: any[] = [
-    "Maharashtra",
-  ];
+  private selectAllFilteredDepartments(): void {
+    this.selectedDepartmentIds = this.filteredDepartments?.map((dept) => dept.deptId) ?? [];
+    this.oldSelectedDepartmentIds = [...this.selectedDepartmentIds];
+    this.filterStateService.deptIdList = this.selectedDepartmentIds;
+    this.filterStateService.myDept = this.myDept;
+  }
 
-  getAllProjects() {
-    fetch(this.currentUser.poPortalAllProjectApi).then(res => res.json()).then(async data => {
-      let allPoProject = data;
-      //console.log("allPoProject    V  allPoProject   ",allPoProject);
-      this.resourceManagementService.getInternalProject().pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.internalProjectList = response.serviceResponse;
+  get selectedDepartmentsTooltip(): string {
+    const ids = this.selectedDepartmentIds ?? [];
+    if (ids.length === 0) {
+      return 'No departments selected';
+    }
+    const names = (this.filteredDepartments ?? [])
+      .filter((dept) => ids.includes(dept.deptId))
+      .map((dept) => dept.name);
+    return names.length > 0 ? names.join(', ') : 'No departments selected';
+  }
 
-          let _projectList = [...allPoProject, ...this.internalProjectList];
-
-          if ((_projectList != null || _projectList != undefined) && (this.teamCreatedProjectList != null || this.teamCreatedProjectList != undefined)) {
-
-            // sort according to dateTime
-            _projectList = _projectList.sort((a, b) => (new Date(a.createdOn).getTime() < new Date(b.createdOn).getTime()) ? 1 : -1);
-
-            _projectList.sort((a) => {
-              if (a.isTeamCreated && a.isDraftProject == 'Pending For Approval') {
-                return -1;
-              } else {
-                return 1;
-              }
-            });
-
-            // Separate PoPortal projects and internal projects
-            this.poPortalProjectList = _projectList.filter(proj => proj.id != null);
-            this.internalProjectList = _projectList.filter(proj => proj.id == null);
-            //console.log(" Anurag   ::    ",this.poPortalProjectList);
-            //console.log(" Anurag internal   ::   ",this.internalProjectList);
-            //console.log(" teamCreatedProjectList   ",this.teamCreatedProjectList);
-
-            // Process PoPortal projects
-            this.poPortalProjectList.forEach((proj) => {
-              let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.id == projTeam.poProjectId);
-              //console.log("selectedProj  ::   ",selectedProj);
-
-              if (selectedProj) {
-                proj.isTeamCreated = true;
-                proj.isDraftProject = selectedProj.isActive == 2 ? 'Pending For Approval' : selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
-                proj.isActive = selectedProj.isActive;
-                proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-                proj.projectViewId = selectedProj.projectId;
-              } else {
-                proj.isTeamCreated = false;
-                proj.isDraftProject = "NA";
-                proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-              }
-
-              if (proj.status != null) {
-                if (proj.status == "true") {
-                  proj.status = "InProgress";
-                } else if (proj.status == "false") {
-                  proj.status = "Completed";
-                } else {
-                  proj.status = proj.status;
-                }
-              }
-            });
-
-            // Process internal projects
-            this.internalProjectList.forEach((proj) => {
-              let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.projectId == projTeam.projectId);
-              // console.log("Priyadarshini", proj.projectId, " ", proj.projectName);
-
-              if (selectedProj) {
-                proj.isTeamCreated = true;
-                proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
-                // proj.isDraftProject = proj.projectType;
-                proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-                proj.projectViewId = selectedProj.projectId;
-              } else {
-                proj.isTeamCreated = false;
-                proj.isDraftProject = proj.projectType;
-                proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-              }
-
-              if (proj.status != null) {
-                if (proj.status == "true") {
-                  proj.status = "InProgress";
-                } else if (proj.status == "false") {
-                  proj.status = "Completed";
-                } else {
-                  proj.status = proj.status;
-                }
-              }
-            });
-
-            this.allProjectList = _projectList;
-
-            // Navigate to Project when used link
-            if (this.currentProjectId != undefined || this.currentProjectId != null) {
-              this.allProjectList.forEach((proj) => {
-                if (proj.id == this.currentProjectId) {
-                  proj.isEditProject = true;
-                  this.showEditProjectForm(proj);
-                }
-              });
-            }
-          }
-          console.log(this.internalProjectList, " this.internalProjectList");
-
-
-          console.log("  allProject_Po_Internal   ", this.allProject_Po_Internal);
-          console.log("this.currentUser.departmentName", this.currentUser.departmentName)
-        } else {
-          console.error(response.serviceResponse);
-        }
-
-      });
+  getAllClientList() {
+    this.allClientList = [];
+    this.projectService.getAllClients().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allClientList = response.serviceResponse;
+        this.filteredClientList = this.allClientList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.clientId === value.clientId
+          ))
+        )
+      } else {
+        console.error(response.serviceResponse)
+      }
     });
   }
 
-  clearSelection(event: Event) {
-
-    console.log(this.skipSelectionChange,"this.skipSelectionChange")
-    console.log(this.isAllSelected, "this.isAllSelected");
-    // this.skipSelectionChange = true;
-    console.log(this.skipSelectionChange,"this.skipSelectionChange")
-    event.stopPropagation();
-    if (this.isAllSelected == true) {
-      console.log(this.isAllSelected, "this.isAllSelected");
-      this.toggleSelectAllDept();
-
-    }
-    else {
-      this.deptIdList = [];
-      this.projectFilterDTO.approvalStatus = "TotalProjects";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departmentsids = [];
-      //  this.projectFilterDTO.departmentsids = null;
-      this.projectFilterDTO.departments = [];
-      this.filterStateService.deptIdList = this.deptIdList;
-      console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.rbacApiCalls();
-    }
-    this.searchTextDept = '';
-    this.filterDepartments();
-
+  getClientLocationList(clientId: any) {
+    this.clientLocationList = [];
+    this.allClientLocationList = [];
+    const key = "clientLocationId";
+    this.clientLocationList = [...new Map(this.allClientList.map((project: Project) => [project[key], project])).values()].filter((project: Project) => {
+      if (project.clientId == clientId) {
+        return { clientLocationId: project.clientLocationId, clientLocation: project.clientLocation }
+      }
+    });
   }
 
+  getAllDepartmentListForCreateProject() {
+    this.allDeptList = [];
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allDeptList = response.serviceResponse;
+        this.filteredDepartmentsInternal = [...this.allDeptList];
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
 
-  filterDepartments(deptObj?:any) {
-    if(deptObj){this.departments=deptObj}
-    const lowerText = this.searchTextDept.toLowerCase();
-    this.filteredDepartments = this.departments.filter(dept =>
+  filterDepartmentsInternal() {
+    const lowerText = (this.searchTextDept || '').toLowerCase();
+  
+    this.filteredDepartmentsInternal = this.allDeptList.filter(dept =>
       dept.name.toLowerCase().includes(lowerText)
     );
   }
 
-  onDepartmentSelectionChange(deptIds?:any) {
-    this.skipSelectionChange = false
-    console.log(this.skipSelectionChange,"this.skipSelectionChange")
-    if (this.skipSelectionChange) {
-      return;
+  async getManagerList() {
+    this.managerList = [];
+    this.filteredManagerList = [];
+    let reqObj = { ...this.employeeObj };
+    reqObj.role = "Manager";
+    if (reqObj.employeementId) {
+      reqObj.employeementId = reqObj.employeementId.substring(2);
     }
-    if(deptIds){this.deptIdList=deptIds}
-    console.log(this.skipSelectionChange,"this.skipSelectionChange")
-    console.log(this.isAllSelected, "this.isAllSelected", this.deptIdList.length, "this.dept length");
-    if (!this.isAllSelected && this.deptIdList.length > 0 && this.deptIdList[0] != null) {
-      this.projectFilterDTO.approvalStatus = "TotalProjects";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departmentsids = this.deptIdList;
-      this.projectFilterDTO.departments = [];
-      this.filterStateService.deptIdList = this.deptIdList;
-      this.filterStateService.myDept = this.myDept;
-      this.rbacApiCalls();
+    this.employeeObj.role = "Manager";
+    this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
+    try {
+      const response: any = await this.employeeService.getAllEmployeesByRole(reqObj).pipe(first()).toPromise();
+      if (response.serviceStatus === "Success") {
+        this.managerList = JSON.parse(JSON.stringify(response.serviceResponse));
+        this.overheadList = JSON.parse(JSON.stringify(response.serviceResponse));
+        this.managerList.forEach((emp) => {
+          if (emp.employeementId) {
+            let idStr = String(emp.employeementId); // Force convert to String
+            if (!idStr.startsWith("A-")) {
+              emp.employeementId = "A-" + idStr;
+            } else {
+              emp.employeementId = idStr;
+            }
+          }
+        });
 
-      console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      console.log(this.filterStateService.deptIdList, "this.filterStateService.deptIdListByUser");
-    }
-    else {
-      this.projectFilterDTO = this.deptList2;
-      this.projectFilterDTO.approvalStatus = "TotalProjects";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departmentsids = this.deptIdList;
-      this.projectFilterDTO.departments = [];
-      this.filterStateService.deptIdList = this.deptIdList;
-      this.rbacApiCalls();
-    }
-  }
-
-  //   onDepartmentSelectionChange1() {
-  //     console.log(this.isAllSelected, "this.isAllSelected");
-  //     if (!this.isAllSelected && this.projectObj.departmentList.length > 0 && this.projectObj.departmentList[0] != null) {
-  //         this.projectFilterDTO.approvalStatus = "All";
-  //         this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
-  //         this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
-  //         console.log(this.projectFilterDTO, "this.projectFilterDTO");
-  //         this.fetchCountAndList();
-  //     }
-  // }
-
-  //  onDepartmentSelectionChange2() {
-  //     console.log(this.isAllSelected, "this.isAllSelected");
-  //     if (!this.isAllSelected && this.teamObj.departmentList.length > 0 && this.teamObj.departmentList[0] != null) {
-  //       this.projectFilterDTO.approvalStatus = "All";
-  //       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-  //       this.projectFilterDTO.departmentsids = this.teamObj.departmentList;
-  //       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-  //       this.fetchCountAndList();
-  //     }
-  // }
-
-
-  // toggleSelectAllDept() {
-  //   console.log(this.skipSelectionChange,"this.skipSelectionChange")
-  //   // this.skipSelectionChange = true
-  //   console.log(this.isAllSelected, "this.isAllSelected")
-
-  //   if (this.isAllSelected) {
-  //     this.deptIdList = [];
-  //     this.skipSelectionChange = false;
-  //     this.isAllSelected = false;
-  //     console.log(this.skipSelectionChange,"this.skipSelectionChange")
-  //     console.log(this.isAllSelected, "this.isAllSelected")
-  //   } else {
-  //     this.deptIdList = this.filteredDepartments.map(dept => dept.deptId);
-  //     console.log(this.deptIdList, "this.deptIdList");
-  //     this.isAllSelected = true;
-  //     this.skipSelectionChange = true;
-  //      console.log(this.skipSelectionChange,"this.skipSelectionChange")
-  //     console.log(this.isAllSelected, "this.isAllSelected")
-  //   }
-
-  //   this.projectFilterDTO.approvalStatus = "All";
-  //   this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
-  //   this.projectFilterDTO.departmentsids = this.deptIdList;
-  //   this.projectFilterDTO.departments = [];
-  //   this.filterStateService.deptIdList = this.deptIdList;
-  //   this.rbacApiCalls();
-  // }
-
-  toggleSelectAllDept() {
-    if (this.isAllSelected) {
-      this.deptIdList = [];
-    } else {
-      this.deptIdList = [...this.filteredDepartments.map(dept => dept.deptId), 'all'];
-    }
-
-    this.isAllSelected = !this.isAllSelected;
-
-    this.applyFilters();
-}
-
-
-onDeptSelectionChange2() {
-
-  console.log(this.deptIdList)
-
-  const selectAllWasClicked = this.deptIdList.includes('all');
-
-
-  const allItemsSelected = this.filteredDepartments.length > 0 &&
-    this.deptIdList.filter(id => id !== 'all').length === this.filteredDepartments.length;
-
-  if (selectAllWasClicked && !this.isAllSelected) {
-
-    this.deptIdList = [...this.filteredDepartments.map(dept => dept.deptId), 'all'];
-    this.isAllSelected = true;
-      console.log(this.deptIdList)
-
-  } else if (!selectAllWasClicked && this.isAllSelected) {
-
-    this.deptIdList = [];
-    this.isAllSelected = false;
-  } else if (!this.isAllSelected && allItemsSelected) {
-
-    this.isAllSelected = true;
-    this.deptIdList.push('all');
-  } else if (this.isAllSelected && !allItemsSelected) {
-
-    this.isAllSelected = false;
-    this.deptIdList = this.deptIdList.filter(id => id !== 'all');
-  }
-
-
-  console.log(this.filteredDepartments, "this.filteredDepartments");
-  console.log(this.deptIdList, "this.deptIdList");
-
-  this.applyFilters();
-}
-
-onDeptSelectionChange1() {
-
-  const selectAllWasTriggered = this.deptIdList.includes('all');
-  const allItemsAreSelected = this.filteredDepartments.length > 0 &&
-      (this.deptIdList.length - (selectAllWasTriggered ? 1 : 0)) === this.filteredDepartments.length;
-
-  if (selectAllWasTriggered && !this.isAllSelected) {
-    this.isAllSelected = true;
-    this.deptIdList = [...this.filteredDepartments.map(dept => dept.deptId), 'all'];
-  }
-
-  else if (!selectAllWasTriggered && this.isAllSelected) {
-    this.isAllSelected = false;
-    this.deptIdList = [];
-  }
-
-  else if (allItemsAreSelected && !this.isAllSelected) {
-    this.isAllSelected = true;
-    if (!this.deptIdList.includes('all')) {
-        this.deptIdList.push('all');
+        this.overheadList.forEach((emp) => {
+          if (emp.employeementId) {
+            let idStr = String(emp.employeementId);
+            if (!idStr.startsWith("A-")) {
+              emp.employeementId = "A-" + idStr;
+            } else {
+              emp.employeementId = idStr;
+            }
+          }
+        });
+        this.filteredManagerList = [...this.managerList];
+        this.filteredOverheadList = [...this.overheadList];
+      } else {
+        console.error(response.serviceResponse);
+      }
+    } catch (error) {
+      this.openAlertMessageModal("Error fetching manager list: " + error);
     }
   }
-  else if (!allItemsAreSelected && this.isAllSelected) {
-    this.isAllSelected = false;
-    this.deptIdList = this.deptIdList.filter(id => id !== 'all');
-  }
-  this.applyFilters();
-}
-
-    applyFilters() {
-        console.log('Applying filters with departments:', this.deptIdList);
-
-        const selectedIds = this.deptIdList.filter(id => id !== 'all');
-        const selectedIdsSet = new Set(selectedIds);
-        const selectedDepartments = this.filteredDepartments.filter(dept => selectedIdsSet.has(dept.deptId));
-
-        this.projectFilterDTO.approvalStatus = "TotalProjects";
-        this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
-        this.projectFilterDTO.departmentsids = selectedIds;
-        this.projectFilterDTO.departments = selectedDepartments;
-
-        this.departmentsList = this.projectFilterDTO.departmentsids;
-        console.log(this.departmentsList, "+++++++++++++++++++++++++++++++this.depatmentFilterDTO");
-        // this.getAllEmployeesByDepartmentIds(this.departmentsList);
-
-        this.rbacApiCalls();
-    }
-
-  toggleSelectAllDept1() {
-    console.log(this.isAllSelected, "this.isAllSelected");
-    if (this.isAllSelected) {
-      // Deselect all if already selected
-      this.projectObj.departmentList = [];
-      this.isAllSelected = false;
-      this.projectFilterDTO.approvalStatus = "TotalProjects";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
-      this.projectFilterDTO.departmentsids = [];
-      console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
-    } else {
-      // Select all departments
-      this.projectObj.departmentList = this.filteredDepartments.map(dept => dept.deptId);
-      this.isAllSelected = true;
-      this.projectFilterDTO.approvalStatus = "TotalProjects";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
-      this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
-      console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
-    }
-  }
-  toggleSelectAllDept2() {
-    // this.employeeReportObj.deptId = [];
-    console.log(this.isAllSelected, "this.isAllSelected")
-    if (this.isAllSelected) {
-      // Deselect all if already selected
-      this.teamObj.departmentList = [];
-      this.isAllSelected = false;
-      this.projectFilterDTO.approvalStatus = "TotalProjects";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departmentsids = [];
-      console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.fetchCountAndList();
-    } else {
-      // Select all departments
-      this.teamObj.departmentList = this.filteredDepartmentsTeam.map(dept => dept.deptId);
-      this.isAllSelected = true;
-      this.projectFilterDTO.approvalStatus = "TotalProjects";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departmentsids = this.teamObj.departmentList;
-      console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.fetchCountAndList();
-    }
-
-  }
-
-  deptList2: any;
-
 
   getAllDepartments(): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -1582,18 +982,15 @@ onDeptSelectionChange1() {
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             this.deptList = response.serviceResponse;
-            this.deptList2 = response.serviceResponse;
             this.departments = this.deptList.departments;
             this.deptIdList = this.departments;
-            console.log("this.departments",this.departments);
             this.departmentsList = [...(this.departments || [])];
             this.filteredDepartments = [...(this.departments || [])];
             this.filteredDepartmentsTeam = [...this.departmentsList];
-            // console.log(this.filteredDepartments, "this.filteredDepartments");
             this.projectFilterDTO = this.deptList;
             this.projectFilterDTO.departments = [];
             this.projectFilterDTO.departmentsids = [];
-            this.onDepartmentToggle(this.projectFilterDTO);
+            // this.onDepartmentToggle(this.projectFilterDTO);
             resolve(response.serviceResponse);
           } else {
             reject("Failed to fetch departments");
@@ -1613,8 +1010,6 @@ onDeptSelectionChange1() {
           if (response.serviceStatus === "Success") {
             this.departments = response.serviceResponse;
             this.filteredDepartments = this.departments;
-            console.log(this.departments, "this.departments")
-            // this.deptIdList = this.filteredDepartments.map(dept => dept.deptId);
             resolve(response.serviceResponse);
           } else {
             reject("Failed to fetch departments");
@@ -1627,301 +1022,23 @@ onDeptSelectionChange1() {
     });
   }
 
-  selectStatusTab(status: string) {
-    this.page = 1;
-    const documentHeight = document.body.scrollHeight;
-    this.scroller.scrollToPosition([0, documentHeight]);
-    this.selectedStatusTab = status;
-    this.filterStateService.selectedStatusTab = status;
-    console.log(this.selectedStatusTab)
-    console.log(this.selectedStatusTab, "this.selectedStatusTab");
-    this.projectFilterDTO.approvalStatus = this.selectedStatusTab;
-    if (this.selectedStatusTab == "Completed") {
-        this.projectFilterDTO.completionStatus = this.selectedStatusTab;
-        this.projectFilterDTO.approvalStatus = "All";
-    }
-    else if (this.selectedStatusTab == "CompletedWithTeam") {
-        this.projectFilterDTO.completionStatus = this.selectedStatusTab;
-        this.projectFilterDTO.approvalStatus = "All";
-    }
-    else if(this.selectedStatusTab == "ApprovedProjects"){
- this.projectFilterDTO.completionStatus = null;
-        this.projectFilterDTO.approvalStatus = "ApprovedProjects";
-    }
-    else if(this.selectedStatusTab == "PendingProjects"){
- this.projectFilterDTO.completionStatus = null;
-        this.projectFilterDTO.approvalStatus = "PendingProjects";
-    }
-    else if(this.selectedStatusTab == "CompletedWithShankh"){
- this.projectFilterDTO.completionStatus = this.selectedStatusTab;
-        this.projectFilterDTO.approvalStatus = "All";
-    }
-     else if(this.selectedStatusTab == "RejectedProjects"){
- this.projectFilterDTO.completionStatus = null;
-        this.projectFilterDTO.approvalStatus = "RejectedProjects";
-    }
-     else if(this.selectedStatusTab == "TotalProjects"){
- this.projectFilterDTO.completionStatus = null;
-        this.projectFilterDTO.approvalStatus = "TotalProjects";
-    }
-    else if (this.selectedStatusTab == "activeTNMProjects") {
-        this.projectFilterDTO.completionStatus = null;
-        this.projectFilterDTO.approvalStatus = "activeTNM";
-    }
-    else if (this.selectedStatusTab == "allMonitoringProject") {
-        this.projectFilterDTO.completionStatus = null;
-        this.projectFilterDTO.approvalStatus = "monitoring";
-    }
-    else if (this.selectedStatusTab == "allInternalProject") {
-        this.projectFilterDTO.completionStatus = null;
-        this.projectFilterDTO.approvalStatus = "internal";
-    }
-     else if (this.selectedStatusTab == "unfilledPositions") {
-        this.projectFilterDTO.completionStatus = null;
-        this.projectFilterDTO.approvalStatus = "unfilledPositions";
-    }
-    else if (this.selectedStatusTab == "expiredTNM") {
-        if (!this.selectedExpiredProjectFilter) {
-            this.selectedExpiredProjectFilter = this.expiredProjectFilters.find(f => f.key === 'allExpiredTNMProjectsCount') || this.expiredProjectFilters[0];
-        }
-
-        this.projectFilterDTO.approvalStatus = "expiredTNM";
-        this.projectFilterDTO.completionStatus = null;
-        this.projectFilterDTO.expiredProjectFilter = this.selectedExpiredProjectFilter.key;
-
-        console.log('ExpiredTNM selected - Filter:', this.selectedExpiredProjectFilter);
-        console.log('ExpiredTNM selected - Filter Key:', this.projectFilterDTO.expiredProjectFilter);
-        console.log('ExpiredTNM selected - DepartmentIds:', this.projectFilterDTO.departmentsids);
-    }
-
-else if (this.selectedStatusTab == "fixedCost") {
-        this.selectedRange1 = this.ranges1[0]; // Default to "Active" (all)
-        console.log('Fixed Cost selected - Department IDs:', this.projectFilterDTO.departmentsids);
-        console.log('Fixed Cost selected - Selected Range:', this.selectedRange1);
-        this.getFixedCostProjectList(this.selectedRange1.value, this.projectFilterDTO);
-        return;
-    }
-    else {
-        this.projectFilterDTO.completionStatus = null;
-    }
-    console.log(this.projectFilterDTO)
-    this.CombinedPOInternalList(this.alert_message_without_reloadTemplate, this.projectFilterDTO);
-    this.RbacInternalProjects(this.projectFilterDTO);
-    this.RbacShankhProjects(this.projectFilterDTO);
-    this.getEmployeesWithoutBillability(this.projectFilterDTO);
-    this.RbacAllShankhInternalProjects(this.projectFilterDTO);
-    this.ExceptionEmployeeReport(this.projectFilterDTO);
-    this.RbacBothShankhInternal(this.projectFilterDTO);
-    this.ProjectLessEmployees(this.projectFilterDTO);
-    this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
-}
-
-   selectStatusTab1(status: string) {
-    this.page = 1;
-    this.selectedStatusTab = status;
-
-
-    if (this.scroller) {
-      const documentHeight = document.body.scrollHeight;
-      this.scroller.scrollToPosition([0, documentHeight]);
-    }
-
-    this.getFixedCostProjectList(status,this.projectFilterDTO);
-  }
-
-getFixedCostCount(projectFilterDTO: any) {
-    this.resourceManagementService.getFixedCostCount(projectFilterDTO).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success" && response.serviceResponse) {
-
-        this.totalProjectCount = response.serviceResponse.totalFixedCostcount;
-        this.defaulterCount = response.serviceResponse.expiredCount;
-        this.delayedCount = response.serviceResponse.delayedCount;
-        this.ontTimeCount = response.serviceResponse.ontimeCount;
-
-
-        const allRange = this.ranges1.find(range => range.value === 'all');
-        if (allRange) {
-          allRange.count = this.totalProjectCount;
-        }
-
-        const defaulterRange = this.ranges1.find(range => range.value === 'defaulter');
-        if (defaulterRange) {
-          defaulterRange.count = this.defaulterCount;
-        }
-        const delayedRange = this.ranges1.find(range => range.value === 'delays');
-        if (delayedRange) {
-          delayedRange.count = this.delayedCount;
-        }
-        const ontimeRange = this.ranges1.find(range => range.value === 'ontime');
-        if (ontimeRange) {
-          ontimeRange.count = this.ontTimeCount;
-        }
-
-        console.log("Total Fixed Cost Project Count:", this.totalProjectCount);
-        console.log("Defaulter/Expired Count:", this.defaulterCount);
-        console.log("Updated ranges1 array:", this.ranges1);
-
-      } else {
-        this.totalProjectCount = 0;
-        this.defaulterCount = 0;
-        this.ranges1.forEach(range => {
-            if (range.value === 'all' || range.value === 'defaulter') {
-                range.count = 0;
-            }
-        });
-        console.error("Failed to get fixed cost count:", response.serviceResponse || response.serviceMessage);
-      }
-    });
-  }
-
- getFixedCostProjectList(tabName:any,projectFilterDTO: any) {
-    this.isCountLoading = true;
-    const payload = {
-      projectFilterDTO: projectFilterDTO,
-      tabName: this.selectedRange1.value}
-    this.resourceManagementService.getFixedCostProjectList(payload).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        const receivedProjects = response.serviceResponse;
-        if (tabName === 'all') {
-          this.allProject_Po_Internal = receivedProjects;
-          console.log("All Projects Updated:", this.allProject_Po_Internal);
-        } else if (tabName === 'defaulter') {
-          this.allProject_Po_Internal = receivedProjects;
-          console.log("All Projects Updated:", this.allProject_Po_Internal);
-        }
-        else if (tabName === 'delays') {
-          this.allProject_Po_Internal = receivedProjects;
-          console.log("All Projects Updated:", this.allProject_Po_Internal);
-        }
-         else if (tabName === 'ontime') {
-          this.allProject_Po_Internal = receivedProjects;
-          console.log("All Projects Updated:", this.allProject_Po_Internal);
-        }
-        if (tabName === this.selectedStatusTab) {
-          this.fcProjectList = receivedProjects.sort((a, b) => a.projectName.localeCompare(b.projectName));
-          console.log("Displayed List Updated:", this.fcProjectList);
-        }
-        this.isCountLoading = false;
-
-      } else {
-        if (tabName === this.selectedStatusTab) {
-          this.fcProjectList = [];
-        }
-        this.isCountLoading = false;
-        console.error(`Failed to get list for ${tabName}:`, response.serviceResponse);
-
-      }
-    });
-  }
-
-
-  getUnfilledPositionsCount(projectFilterDTO: any) {}
-
-  getUnfilledPositionList(projectFilterDTO: any,status: string) {}
-
-
-
-   ranges1 = [
-    {label: 'Active', value: "all",count:this.totalProjectCount},
-    {label:'Default', value: "defaulter",count:this.defaulterCount},
-    { label: 'Ontime', value: "ontime",count:this.ontTimeCount},
-    { label: 'Delays', value: "delays",count:this.delayedCount},
-
-
-  ];
-
-
- selectedRange1 = this.ranges1[0];
-
-
- selectRange1(range: any): void {
-    const documentHeight = document.body.scrollHeight;
-    this.scroller.scrollToPosition([0, documentHeight]);
-    if (this.selectedRange1 === range) {
-      return;
-    }
-
-    this.selectedRange1 = range;
-    this.getFixedCostProjectList(range.value, this.projectFilterDTO);
-  }
-
-  getSelectedRangeCount(): number {
-    return this.selectedRange1?.count || 0;
-}
-
-  // fetchCompletedProjectsCount(timeRange: string): void {
-  //   this.isCountLoading = true;
-
-  //   this.resourceManagementService.getFixedCostProjectList(timeRange).pipe(first()).subscribe({
-  //     next: (response: any) => {
-  //       if (response.serviceStatus === "Success") {
-  //         this.completedProjectsCount = response.serviceResponse.length;
-  //         this.allProject_Po_Internal = response.serviceResponse;
-  //         console.log('Completed Projects Count:', this.completedProjectsCount);
-  //         console.log('All Projects:', this.allProject_Po_Internal);
-  //       } else {
-  //         this.completedProjectsCount = 0;
-  //         console.error('API Error:', response.serviceResponse);
-  //       }
-  //       this.isCountLoading = false;
-  //     },
-  //     error: (err) => {
-  //       this.completedProjectsCount = 0;
-  //       this.isCountLoading = false;
-  //       console.error('Failed to fetch completed projects count', err);
-  //     }
-  //   });
-  // }
-
-
-
-  alreadyCreatedTeam() {
-    this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.teamCreatedProjectList = response.serviceResponse;
-        this.getAllProjects();
-        //console.log(this.teamCreatedProjectList, " this.teamCreatedProjectList");
-      } else {
-        this.getAllProjects();
-        console.error(response.serviceResponse);
-      }
-    });
-  }
-
   getAllDepartmentList(project: any) {
     this.allDeptList = [];
-
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
         this.filteredDeptList = this.allDeptList.filter(x => project.department.includes(x.name));
         this.filteredDepartments = [...this.allDeptList];
-        console.log("allDeptList : ", this.allDeptList)
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
 
-  GetAllResourceRequirementForProject(project: Project) {
-    this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-
-        this.projectObj.resourceRequirements = response.serviceResponse
-      }
-    });
-  }
-
-  // Team
-  getSubstring(str: string): string {
-    return str.substring(0, 5); // or any logic you want
-  }
   getAllEmployeesByRole(departmentList: any) {
     this.teamLeadsList = [];
     let employeeList = [];
     this.employeeObj.role = this.currentUser.employeeRole;
-
-
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
@@ -1935,2131 +1052,6 @@ getFixedCostCount(projectFilterDTO: any) {
     });
   }
 
-  getAllEmployeesByDepartmentIds(departmentList: any) {
-    this.employeeListByDept = [];
-
-    let empObj = new Employee();
-    empObj.departmentList = departmentList?.map(deptId => {
-      let dept = new Department();
-      dept.deptId = deptId;
-      return deptId;
-    });
-
-    //console.log("empObj.departmentList : ", empObj.departmentList);
-
-    this.employeeService.getAllEmployeesByDepartmentIds(empObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.employeeListByDept = response.serviceResponse;
-        this.employeeListByDept = this.employeeListByDept.sort((a, b) => a.name.localeCompare(b.name));
-        console.log("employeeList By Department : ", this.employeeListByDept);
-        // this.updateEmployeeListAccordingToTeamMembers();
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  }
-
-
-//   getAllEmployeesByDepartmentIds(departmentList: any) {
-//     this.employeeListByDept = [];
-
-//     let empObj = new Employee();
-
-//     // empObj.departmentList = departmentList?.map(deptId => {
-//     //     return { deptId: Number(deptId) };
-//     // });
-
-//     empObj.departmentIds = departmentList?.map(id => Number(id));
-
-//     this.employeeService.getAllEmployeesByDepartmentIds(empObj)
-//         .pipe(first())
-//         .subscribe((response: any) => {
-//             if (response.serviceStatus == "Success") {
-//                 this.employeeListByDept = response.serviceResponse;
-//                 this.employeeListByDept = this.employeeListByDept.sort((a, b) =>
-//                     a.name.localeCompare(b.name)
-//                 );
-//                 console.log("employeeList By Department : ", this.employeeListByDept);
-//             } else {
-//                 console.error(response.serviceResponse);
-//             }
-//         });
-// }
-  updateEmployeeListAccordingToTeamMembers() {
-    this.employeeListByDept.forEach((employee, index) => {
-      const existingEmployee = this.teamObj.allTeamMemberList?.find(member => member.empId == employee.empId);
-      if (existingEmployee) {
-        employee.isSelected = true;
-      } else {
-        const existingEmployee = this.allTeamMembers.find(member => member.empId == employee.empId);
-        if (existingEmployee) {
-          employee.isSelected = true;
-        }
-      }
-    });
-
-    console.log("updateEmployeeListAccordingToTeamMembers this.allTeamMembers ",this.allTeamMembers);
-  }
-
-  setTeamLead(teamLeadId) {
-    let teamLead: any = [];
-    teamLead = this.teamLeadsList?.find(x => x.empId == teamLeadId);
-    if (teamLead) {
-      this.allTeamList?.forEach((team: any) => {
-        if (team.teamName == this.currentTeam.teamName) {
-          if (team.teamMemberList) {
-            teamLead.isTeamLead = true;
-            team.teamMemberList = team.teamMemberList.filter(x => x.isTeamLead != true);
-            //console.log(team.teamMemberList, " : team memeber list");
-            team.teamMemberList = [...team.teamMemberList, ...[teamLead]];
-          } else {
-            teamLead.isTeamLead = true;
-            team.teamMemberList = [teamLead];
-
-            //console.log(team.teamMemberList, " : team memeber list ===");
-          }
-        }
-      });
-    }
-  }
-
-  addTeamMemberMapping() {
-    // console.log("Hii addTeamMemberMapping   ");
-    // console.log(" this.allTeamList   ",this.allTeamList)
-    this.allTeamList?.forEach((team: any) => {
-      if (team.teamName == this.currentTeam.teamName) {
-        // console.log("team.teamMemberList  ",team.teamMemberList)
-        if (team.teamMemberList) {
-          if (this.allTeamMembers.length) {
-            // console.log("this.allTeamMembers.length   ",this.allTeamMembers.length);
-            team.teamMemberList = [...team.teamMemberList, ...this.allTeamMembers];
-            console.log("team.teamMemberList   ", team.teamMemberList);
-          } else {
-            team.teamMemberList = [...team.teamMemberList];
-          }
-        } else {
-          team.teamMemberList = (this.allTeamMembers.length !== 0) ? this.allTeamMembers : null;
-        }
-      }
-    });
-    this.hideTeamMemberModal();
-    this.hasNewTeamMembers = false;
-  }
-
-  checkTeamName(template: TemplateRef<any>, team: any, teamIndex: any) {
-    if (this.projectObj.isTeamCreated == "true" || this.projectObj.isTeamCreated == true) {
-      let teamObj = new Team();
-      teamObj.teamId = team.teamId;
-      teamObj.teamName = team.teamName;
-      teamObj.projectName = this.projectObj.name;
-
-      //console.log(teamObj, " : teamObj");
-
-
-      this.teamService.checkTeamName(teamObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Fail") {
-          this.allTeamList.forEach((presentTeam, index) => {
-            if (index == teamIndex) {
-              presentTeam.teamName = '';
-            }
-          });
-          this.openAlertMod6(template, response.serviceResponse);
-        } else {
-          this.allTeamListCopy.forEach((teamCopy) => {
-            if (teamCopy.teamName == team.teamName && (team.teamName != null && team.teamName != '' && team.teamName != undefined)) {
-
-              this.allTeamList.forEach((presentTeam, index) => {
-                if (index !== teamIndex) {
-                  presentTeam.teamName = '';
-                  this.openAlertMod6(template, "Team Name already exists!!");
-                }
-              });
-            }
-          });
-        }
-      });
-    } else {
-
-      this.allTeamListCopy.forEach((teamCopy) => {
-        if (teamCopy.teamName == team.teamName && (team.teamName != null && team.teamName != '' && team.teamName != undefined)) {
-
-          this.allTeamList.forEach((presentTeam, index) => {
-            if (index !== teamIndex) {
-              presentTeam.teamName = '';
-              this.openAlertMod6(template, "Team Name already exists!!");
-            }
-          });
-        }
-      });
-    }
-  }
-
-  validateProjectObj(projectObj, template: TemplateRef<any>) {
-    if (projectObj.projectManagerId == undefined || projectObj.projectManagerId.length == 0 || projectObj.projectManagerId == null) {
-      this.alertMessage = `Please select project manager.`
-      this.openAlertMod6(template, this.alertMessage);
-      return;
-    }
-
-    if (projectObj.teamList.length == 0) {
-      this.alertMessage = "Please add atleast one team."
-      this.openAlertMod6(template, this.alertMessage);
-      return false;
-    }
-
-    if (projectObj.teamList.length != 0) {
-      let flag = true;
-      projectObj.teamList.forEach((projObj, index) => {
-        projObj.teamName = projObj.teamName?.trim();
-        if (!this.validationService.validateNullUndefinedEmptyString(projObj.teamName)) {
-          this.alertMessage = `Please enter Team Name - ${index + 1}.`
-          flag = false;
-          return;
-        }
-        if (!this.validationService.validateTeamName(projObj.teamName)) {
-          this.alertMessage = "Please enter valid Team Name."
-          this.openAlertMod6(template, this.alertMessage);
-          return false;
-        }
-
-        // if (projObj.departmentId == undefined || projObj.departmentId.length == 0 || projObj.departmentId == null) {
-        //   this.alertMessage = `Please select Team's department - ${index + 1}.`
-        //   flag = false;
-        //   return;
-        // }
-
-        if (projObj.teamMemberList == undefined || projObj.teamMemberList.length == 0 || projObj.teamMemberList == null) {
-          this.alertMessage = `Please add team member(s) - ${index + 1}.`
-          flag = false;
-          return;
-        }
-
-        if (projObj.teamMemberList.length != 0) {
-          let memberFlag = true;
-          projObj.teamMemberList.forEach((member) => {
-            if (!this.validationService.validateNullUndefinedEmptyString(member.name)) {
-              this.alertMessage = `Please select Team Member- ${index + 1}.`
-              flag = false;
-              return;
-            }
-
-            if (member.isTeamLead == null && (member.isTeamLead != true || member.isTeamLead != 'true')) {
-              if (member.employeeRole == undefined || member.employeeRole.length == 0 || member.employeeRole == null) {
-                this.alertMessage = `Please select member(s) Employee Role - ${index + 1}.`
-                flag = false;
-                //console.log(projObj.teamMemberList, " : projObj.teamMemberList");
-
-                return;
-              }
-            }
-          });
-          if (!memberFlag) {
-            this.openAlertMod6(template, this.alertMessage);
-            return false;
-          } else {
-            return true;
-          }
-        }
-      });
-      if (!flag) {
-        this.openAlertMod6(template, this.alertMessage);
-        return false;
-      } else {
-        return true;
-      }
-    }
-  }
-
-  createDraftProjectInfo(template: TemplateRef<any>, template2: TemplateRef<any>) {
-
-    console.log(this.allTeamList, "this.allTeamList");
-    if (this.allTeamList != null && this.allTeamList.length != 0) {
-
-      this.allTeamList.forEach(team => {
-        if (team.spoc) {
-          team.spocId = team.spoc.empId;
-        } else {
-          console.log(`No SPOC data available for team: ${team.teamName}`);
-        }
-        if (team.teamMemberList) {
-          team.teamMemberList.forEach(member => {
-            if (member.shadow && member.shadow.empId) {
-              member.shadowEmpId = member.shadow.empId;
-              console.log("shadowEmpId set", member.shadowEmpId)
-            } else {
-              member.shadowEmpId = null;
-              console.log(`No valid shadow data for member: ${member.empId || 'Unknown ID'} in team: ${team.teamName}`);
-            }
-          });
-        }
-
-      });
-      this.projectObj.teamList = this.allTeamList;
-      this.projectObj.createdBy = this.currentUser.empId;
-
-    if ([null, undefined, ''].includes(this.projectObj.poProjectType)) {
-        this.projectObj.projectType = "Internal";
-      } else {
-        this.projectObj.projectType = this.projectObj.poProjectType;
-      }
-
-      // this.projectObj.projectId=this.projectObj.id;
-
-      let inputValidated: boolean = this.validateProjectObj(this.projectObj, template2)
-      if (!inputValidated) return;
-
-      if (this.isHOD == true) {
-        this.projectObj.isHOD = true;
-        //console.log(this.projectObj, " : this.projectObj");
-        this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.openAlertMod(template, response.serviceResponse);
-            this.allTeamMembers = [];
-             this.cancelRequest1();
-
-          } else {
-            this.openAlertMod6(template2, response.serviceResponse);
-          }
-        });
-      } else {
-        this.projectObj.isHOD = false;
-        console.log(this.projectObj, " : this.projectObj");
-        this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.openAlertMod6(this.alertTemplate, response.serviceResponse);
-            this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((response: any) => {
-              if (response.serviceStatus == "Success") {
-                this.allTeamMembers = [];
-                 this.cancelRequest1();
-                // this.cancelRequest();
-                // this.openAlertMod(template, response.serviceResponse);
-              } else {
-                // this.cancelRequest();
-                // this.openAlertMod(template2, response.serviceResponse);
-              }
-            });
-          } else {
-            this.openAlertMod6(template2, response.serviceResponse);
-          }
-        });
-      }
-    }
-    else {
-      this.openAlertMod6(template2, "There are currently no teams to be set...!");
-    }
-  }
-
-  formatDateArrayToString(dateArray: number[]): string {
-  if (!dateArray || dateArray.length < 6) return null;
-
-  const [year, month, day, hour, minute, second] = dateArray;
-
-  // Pad with leading zeros for consistency
-  const pad = (n: number) => String(n).padStart(2, "0");
-
-  return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:${pad(second)}`;
-}
-
-  getTeamListByProjectName(project: any) {
-    // this.previewTeamList = [];
-    console.log(project.updatedOn, " : project.updatedOn");
-    // const data = this.formatDateArrayToString(project.updatedOn);
-    // project.updatedOn = data
-    //console.log(" project    ",project);
-    project.active = null;
-    this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.projectObj.teamList = response.serviceResponse;
-        console.log(this.projectObj, "projectofthisteam");
-        console.log(this.projectObj.teamList, " this.projectObj.teamList");
-
-        this.projectCompletionDate = this.projectObj.poEndDate ? moment(this.projectObj.poEndDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
-        console.log(this.projectCompletionDate, " this.projectObj.endDtae");
-        this.projectObj.teamList.forEach((obj) => {
-          obj.departmentList = obj.departmentList?.map(x => +x);
-          this.copyDepartment = obj.departmentList;
-          // this.getAllEmployeesByRole(this.copyDepartment);
-
-          if (obj.teamMemberList) {
-            obj.teamMemberList.forEach((member) => {
-              if (member) { // Check if member is not null
-                // Format the startDate if it exists, otherwise set it to null
-                member.startDate = member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
-                member.emp360 = member.empId;
-                member.shadowControl = new FormControl(member.shadow || null);
-                if(!member.otherActiveProjects || member.otherActiveProjects.length === 0){
-                  member.isDefaultProject = 1;
-                }
-              }
-            });
-          } else {
-            console.warn('teamMemberList is null or undefined');
-          }
-        });
-        //console.log(this.projectObj.teamList, " this.projectObj.teamList");
-        this.previewTeamList = this.projectObj.teamList;
-
-        //console.log(" length of previewTeamList  ",this.previewTeamList.length);
-        //Project Team List
-        if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
-          this.addInputTeamField();
-        } else {
-          //console.log(" find error in else part ")
-          this.allTeamList = this.projectObj.teamList;
-          console.log("all team list is :--",this.allTeamList);
-          // this.allTeamListCopy = this.projectObj.teamList;
-          this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
-        }
-        this.fallBackMsg = '';
-        this.isApproved = false;
-      } else {
-        console.error(response.serviceResponse);
-
-        if (response.serviceStatus == "Fail") {
-          this.fallBackMsg = "All teams are inactive for this project";
-          if (project.draftStatus == "Approved")
-            this.isApproved = true;
-        }
-
-        //Project Team List
-        if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
-          this.addInputTeamField();
-        } else {
-          this.allTeamList = this.projectObj.teamList;
-                    console.log("all after project team list is :--",this.allTeamList);
-          this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
-        }
-      }
-    });
-    // this.getManagerList();
-    // console.log("teamObj.teamLeadId ",this.teamObj.teamLeadId);
-    // console.log("teamLeadsList ",this.teamLeadsList);
-
-  }
-
-  // getTeamListByProjectName(project: any) {
-  //   this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus === 'Success') {
-  //       this.projectObj.teamList = response.serviceResponse;
-
-  //       this.projectObj.teamList.forEach((obj) => {
-  //         obj.departmentList = obj.departmentList?.map(x => +x);
-  //         this.copyDepartment = obj.departmentList;
-
-  //         this.projectObj.resourceRequirements.forEach((requirement) => {
-  //           requirement.teamMembers = [];
-  //         });
-
-  //         if (obj.teamMemberList) {
-  //           obj.teamMemberList.forEach((member) => {
-  //             const matchingRequirement = this.projectObj.resourceRequirements.find(
-  //               (requirement) => requirement.id === member.id
-  //             );
-
-  //             if (matchingRequirement) {
-  //               member.startDate = member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
-  //               member.emp360 = member.empId;
-  //               member.billability = 'Billable'; // Static value for billability
-  //               member.shadowResources = member.shadowResources || [];
-  //               matchingRequirement.teamMembers.push(member);
-  //               matchingRequirement.assigned = matchingRequirement.teamMembers.length;
-  //             }
-  //           });
-  //         }
-  //       });
-
-  //       this.projectObj.resourceRequirements.forEach((requirement) => {
-  //         requirement.teamMembers = requirement.teamMembers.map(member => ({
-  //           ...member,
-  //           shadowResources: member.shadowResources.length > 0 ? member.shadowResources : [{}]
-  //         }));
-  //       });
-
-  //       this.previewTeamList = this.projectObj.teamList;
-
-  //       if (!this.projectObj.teamList?.length) {
-  //         this.addInputTeamField();
-  //       } else {
-  //         this.allTeamList = this.projectObj.teamList;
-  //         this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
-  //       }
-
-  //     } else {
-  //       console.error(response.serviceResponse);
-
-  //       if (!this.projectObj.teamList?.length) {
-  //         this.addInputTeamField();
-  //       } else {
-  //         this.allTeamList = this.projectObj.teamList;
-  //         this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
-  //       }
-  //     }
-  //   });
-  // }
-
-  onApproveProject(project: any) {
-    project.empId = this.currentUser.empId;
-    // project.projectId = this.projectObj.projectId;
-    console.log("this.projectObj.projectId   ", this.projectObj.projectId);
-    console.log("this.projectObj.projectId   ", project.projectId);
-    if (project.poProjectType != null) {
-      project.projectType = project.poProjectType;
-      project.isDraftProject= "false";
-    } else {
-      project.projectType = "Internal";
-    }
-    this.resourceManagementService.approvePendingProject(project).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.showViewProjects();
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-        // this.showPendingForApprovalProject();
-      } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-  }
-
-  onRejectProject(project: any) {
-
-    let projObj = this.selectedProjToReject;
-    projObj.rejectReason = project.rejectReason;
-    projObj.empId = this.currentUser.empId;
-    if (project.poProjectType != null) {
-      project.projectType = project.poProjectType;
-    } else {
-      project.projectType = "Internal";
-    }
-    this.resourceManagementService.rejectPendingProject(projObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.showViewProjects();
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-        // this.showPendingForApprovalProject();
-      } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-  }
-
-  async getManagerList() {
-    this.managerList = [];
-    this.filteredManagerList = [];
-
-    // 2. Create a COPY of the request object (Do not touch this.employeeObj)
-    let reqObj = { ...this.employeeObj };
-    reqObj.role = "Manager";
-
-    if (reqObj.employeementId) {
-      reqObj.employeementId = reqObj.employeementId.substring(2);
-    }
-    this.employeeObj.role = "Manager";
-    // if( this.employeeObj.isConsultant == 'true' ){
-    //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(5)
-    // }else{
-    //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
-    // }
-
-    this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
-    try {
-      const response: any = await this.employeeService.getAllEmployeesByRole(reqObj).pipe(first()).toPromise();
-      if (response.serviceStatus === "Success") {
-        this.managerList = JSON.parse(JSON.stringify(response.serviceResponse));
-        this.overheadList = JSON.parse(JSON.stringify(response.serviceResponse));
-
-        this.managerList.forEach((emp) => {
-         if (emp.employeementId) {
-              let idStr = String(emp.employeementId); // Force convert to String
-              if (!idStr.startsWith("A-")) {
-                  emp.employeementId = "A-" + idStr;
-              } else {
-                  emp.employeementId = idStr;
-              }
-          }
-        });
-        this.overheadList.forEach((emp) => {
-          if (emp.employeementId) {
-              let idStr = String(emp.employeementId);
-              if (!idStr.startsWith("A-")) {
-                  emp.employeementId = "A-" + idStr;
-              } else {
-                  emp.employeementId = idStr;
-              }
-          }
-        });
-        this.filteredManagerList = [...this.managerList];
-        this.filteredOverheadList = [...this.overheadList];
-      } else {
-        console.error(response.serviceResponse);
-      }
-    } catch (error) {
-      console.error("Error fetching manager list:", error);
-    }
-  }
-
-  onSelectProjectForSync(project, event) {
-    if (event.target.checked) {
-      event.target.classList.add('checked');
-      this.bulkSyncList.push(project);
-    } else {
-      event.target.classList.remove('checked');
-      const projectCheckboxes = document.querySelectorAll('.sync-project-checkbox.checked');
-      this.bulkSyncList.forEach((projObj, index) => {
-        if (projObj == project) this.bulkSyncList.splice(index, 1);
-      });
-    }
-    //console.log("Updated Bulk List : ", this.bulkSyncList);
-  }
-
-  onBulkSyncProject(template: TemplateRef<any>) {
-
-    let projObj = new Project();
-    projObj.bulkSyncList = this.bulkSyncList;
-
-    //console.log(projObj, " : this.projObj");
-
-    this.resourceManagementService.bulkSyncProject(projObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.showViewProjects();
-        this.openAlertMod(template, response.serviceResponse);
-        this.bulkSyncList = [];
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
-
-  setManagerName(projectObj: any) {
-    this.selectedProjectManager = '';
-    const managerFound = this.managerList.find(x => x.employeementId == projectObj.projectManager);
-    if (managerFound) {
-      this.selectedProjectManager = managerFound.name;
-      //this.empId=managerFound.empId;
-    }
-  }
-
-  getAllClientList() {
-    this.allClientList = [];
-
-    this.projectService.getAllClients().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allClientList = response.serviceResponse;
-
-        //remove duplicate clients
-        this.filteredClientList = this.allClientList.filter((value, index, self) =>
-          index === self.findIndex((t) => (
-            t.clientId === value.clientId
-          ))
-        )
-
-        //console.log(this.filteredClientList, " : this.filteredClientList");
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
-  }
-
-  getAllDepartmentListForCreateProject() {
-    this.allDeptList = [];
-
-    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allDeptList = response.serviceResponse;
-        this.filteredDepartmentsInternal = [...this.allDeptList];
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
-  }
-
-  getClientLocationList(clientId: any) {
-    this.clientLocationList = [];
-    this.allClientLocationList = [];
-
-    const key = "clientLocationId";
-    this.clientLocationList = [...new Map(this.allClientList.map((project: Project) => [project[key], project])).values()].filter((project: Project) => {
-      if (project.clientId == clientId) {
-        return { clientLocationId: project.clientLocationId, clientLocation: project.clientLocation }
-      }
-    });
-    //console.log("clientLocationList :", this.clientLocationList);
-  }
-
-  checkProjectName(template: TemplateRef<any>) {
-    let projectObj = new Project();
-    projectObj.projectName = this.projectObj.projectName?.trim();
-
-    if (projectObj.projectName.length >= 5) {
-      if (!this.validationService.validateProjectName(projectObj.projectName)) {
-        this.alertMessage = "Please enter valid Project Name !!"
-        this.projectObj.projectName = '';
-        this.openAlertMod6(template, this.alertMessage);
-        return false;
-      }
-
-    } else {
-      this.alertMessage = "Please enter more than 4 letters in Project Name !!"
-      this.projectObj.projectName = '';
-      this.openAlertMod6(template, this.alertMessage);
-      return false;
-    }
-    this.projectService.checkProjectName(projectObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Fail") {
-        this.projectObj.projectName = '';
-        this.openAlertMod6(template, response.serviceResponse);
-      }
-    })
-  }
-
-  validateCreateProjectObj(projectObj: Project, template: TemplateRef<any>) {
-    if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.projectName)) {
-      this.alertMessage = "Please enter Project name !!"
-      this.openAlertMod3(template, this.alertMessage);
-      return false;
-    }
-    // if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.clientId)) {
-    //   this.alertMessage = "Please select a client !!"
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return false;
-    // }
-    // if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.projectManagerId)) {
-    //   this.alertMessage = "Please select project manager !!"
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return false;
-    // }
-    if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.departmentList)) {
-      this.alertMessage = "Please select department !!"
-      this.openAlertMod3(template, this.alertMessage);
-      return false;
-    }
-    if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.state)) {
-      this.alertMessage = "Please select state !!"
-      this.openAlertMod3(template, this.alertMessage);
-      return false;
-    }
-    return true;
-  }
-
-  createProject(template: TemplateRef<any>) {
-    let inputValidated: boolean = this.validateCreateProjectObj(this.projectObj, template)
-    if (!inputValidated) return;
-
-    // this.projectObj.departmentList = this.projectObj.departmentName;
-    // this.projectObj.departmentName = null;
-    this.projectObj.projectName = this.projectObj.projectName?.trim();
-    this.projectObj.createdBy = this.currentUser.empId;
-    //console.log("     :   ",this.projectObj);
-
-    this.projectService.createProject(this.projectObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showViewProjects();
-      } else {
-        this.openAlertMod3(template, response.serviceResponse);
-      }
-    });
-  }
-
-  // Manage team & teamMemberList
-  deletefiled:boolean=false;
-  addInputTeamField() {
-    this.deletefiled=true;
-    let newTeamObj = new Team();
-    this.allTeamList.push(newTeamObj);
-    this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
-    this.copyDepartment = [];
-    //console.log(this.allTeamList, " : this.allTeamList");
-  }
-
-
-
-  tempTeam = new Project();
-  projectdetails1: any[] = [];
-  openDeleteModalForTeam(template: TemplateRef<any>, alert_message: TemplateRef<any>, teamObj, project) {
-    this.tempTeam = teamObj;
-    this.projectdetails1 = project;
-
-    if (!this.tempTeam.teamId) {
-      // this.openAlertMod(alert_message, "Team is missing. Cannot proceed.");
-      this.allTeamList.pop();
-      this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
-      this.copyDepartment = [];
-      if (!this.allTeamList || this.allTeamList.length === 0) {
-        this.addInputTeamField();
-      }
-      return;
-    } else {
-      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-    }
-
-
-  }
-
-  isBulkDelete: boolean = false;
-  isBulkDeleteResource: boolean = false;
-  isBulkDeleteResourceFromTNMProjects: boolean = false;
-  openDeleteModalForTeamBulk(template: TemplateRef<any>, alert_message: TemplateRef<any>, teamObj, project, template1: TemplateRef<any>, template2: TemplateRef<any>,) {
-    this.isBulkDelete = true;
-    this.isBulkDeleteResource = false;
-    this.isBulkDeleteResourceFromTNMProjects = false;
-    this.currentProjectDetails = project.projectId;
-    this.tempTeam = teamObj;
-    this.projectdetails1 = project;
-    const empIds: number[] = this.selectedTeamsDetails.reduce((acc: number[], team: any) => {
-      const members = Array.isArray(team.teamMemberList) ? team.teamMemberList : [];
-
-      members.forEach(member => {
-        if (
-          Array.isArray(member.otherActiveProjects) &&
-          member.otherActiveProjects.length === 0 &&
-          member.isDefaultProject === 1
-        ) {
-          acc.push(member.empId);
-        }
-      });
-
-      return acc;
-    }, []);
-
-    const empIdsHavingActiveProjects: number[] = this.selectedTeamsDetails.reduce((acc: number[], team: any) => {
-      const members = Array.isArray(team.teamMemberList) ? team.teamMemberList : [];
-
-      members.forEach(member => {
-        if (
-          Array.isArray(member.otherActiveProjects) &&
-          member.otherActiveProjects.length !== 0 &&
-          member.isDefaultProject === 1
-        ) {
-          acc.push(member.empId);
-        }
-      });
-
-      return acc;
-    }, []);
-    this.activeProjects = empIdsHavingActiveProjects;
-    this.EmployessIds = empIds;
-    if (empIds.length !== 0 && empIdsHavingActiveProjects.length !== 0) {
-      this.getEmployeeInformationBulk(empIds);
-      this.modalRef4 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
-      this.setDefaultProjectObj.empIds = empIdsHavingActiveProjects;
-      this.setDefaultProjectObj.projectId = project.projectId;
-      this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-      this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-xl' });
-
-    } else if (empIds.length !== 0 && empIdsHavingActiveProjects.length === 0) {
-      this.getEmployeeInformationBulk(empIds);
-      this.modalRef4 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
-    } else if (empIds.length === 0 && empIdsHavingActiveProjects.length !== 0) {
-      this.setDefaultProjectObj.empIds = empIdsHavingActiveProjects;
-      this.setDefaultProjectObj.projectId = project.projectId;
-      this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-      this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-xl' });
-    } else {
-      this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-    }
-
-    console.log("tesmp", this.projectdetails1);
-    this.getProjectDetailsForBulkDefaultUpdate();
-  }
-
-
-
-
-
-  tempArray: any[] = [];
-
-
-  // addTeamMember() {
-  //   const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
-  //   console.log("newteamMember  ", newTeamMember)
-  //   if (newTeamMember) {
-  //     newTeamMember.employeeRole = this.newteamMember.employeeRole;
-  //     newTeamMember.resourceOverviewId = this.newteamMember.resourceOverviewId;
-
-  //     this.allTeamMembers.push(newTeamMember);
-
-
-  //   }
-
-  //   this.newteamMember = new TeamMember();
-  // }
-
-
-  //raj
-  //   private _resetAddMemberForm() {
-  //   // 1. Reset the main data objects
-  //   this.newteamMember = { // Use a plain object or 'new TeamMember()' if you have a class
-  //     employeeTeamMappingId: null,
-  //     teamId: null,
-  //     empId: null,
-  //     name: null,
-  //     employeeRole: null,
-  //     isTeamLead: null,
-  //     billableType :  null,
-  //     newBillableType :  null,
-  //     isShadow: null,
-  //     isDefaultProject: null,
-  //     resourceOverviewId:  null,
-  //     otherActiveProjects: null
-  //     // ... any other default properties
-  //   };
-  //   this.selectedRequirement = null;
-
-  //   // 2. Reset the Angular FormControl for the autocomplete
-  //   // Using setValue('') is often more reliable than reset() for autocomplete display
-  //   this.teamMemberCtrl.setValue('');
-
-  //   // 3. Reset the UI state flags to disable the controls again
-  //   this.isRoleSelectDisabled = true;
-  //   this.isRequirementSelectDisabled = true;
-  //   this.isCheckboxesDisabled = true;
-  // }
-  //   addTeamMember() {
-  //   const selectedEmployee = this.employeeListByDept.find(
-  //     (employee) => employee.empId == this.newteamMember.empId
-  //   );
-
-  //     if (!selectedEmployee) {
-  //     console.error("Could not find the selected employee in the list.");
-  //     return;
-  //   }
-
-  //       const memberToAdd = {
-  //         ...selectedEmployee,
-  //         employeeRole: this.newteamMember.employeeRole,
-  //         resourceOverviewId: this.selectedRequirement.resourceOverviewId,
-  //         isShadow: this.newteamMember.isShadow,
-  //         isDefaultProject: this.newteamMember.isDefaultProject
-  //       };
-
-  //       this.allTeamMembers.push(memberToAdd);
-
-  //       this.newteamMember = new TeamMember();
-  //       this.addMemberCtrl.reset();
-  //       this.selectedRequirement = null;
-  //       this.teamMemberCtrl.reset();
-
-  //     if (this.selectedRequirement) {
-  //     memberToAdd['resourceOverviewId'] = this.selectedRequirement.resourceOverviewId;
-  //     }
-
-  //     }
-
-  // ---- END-------//
-  addTeamMember() {
-    // 1. Basic Validation: Ensure an employee is selected from the dropdown.
-    if (!this.newteamMember || !this.newteamMember.empId) {
-      // You can add a user-friendly message here (e.g., using a toast service)
-      console.error("No employee selected.");
-      return;
-    }
-
-    // 2. Uniqueness Check: Verify if the employee is already in the 'allTeamMembers' list.
-    const isAlreadyAdded = this.allTeamMembers.some(member => member.empId === this.newteamMember.empId);
-
-    if (isAlreadyAdded) {
-      // Inform the user that this member is already added.
-      // this.toastService.warning('This team member has already been added.', 'Duplicate');
-      console.warn('This team member has already been added.');
-      return; // Stop the function here.
-    }
-
-    // 3. Find the full employee object from the master list.
-    const employeeData = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
-    if (!employeeData) {
-      console.error("Could not find employee data for the selected ID.");
-      return;
-    }
-
-    // 4. Create the new team member object with all required properties.
-    const memberToAdd = {
-      ...employeeData, // Copy all base properties from the master list
-      employeeRole: this.newteamMember.employeeRole || [], // Ensure it's an array
-      isShadow: this.newteamMember.isShadow ? 1 : 0,
-      isDefaultProject: this.newteamMember.isDefaultProject ? 1 : 0,
-      teamName: this.currentTeam.teamName,
-      // Add resourceOverviewId only if a requirement was selected
-      resourceOverviewId: this.selectedRequirement ? this.selectedRequirement.resourceOverviewId : null,
-    };
-
-    // 5. Add the new member to the array.
-    this.allTeamMembers.push(memberToAdd);
-    this.hasNewTeamMembers = true;
-
-    // 6. Reset form controls for the next entry.
-    this.newteamMember = new TeamMember();
-    this.addMemberCtrl.reset();
-    this.selectedRequirement = null;
-    this.teamMemberCtrl.reset();
-
-    // This is a crucial step to update the UI list (see Step 2 below)
-    this.updateEmployeeListAccordingToTeamMembers();
-  }
-  removeTeamMember(teamMember, index) {
-    const currentTeam = this.currentTeam;
-    this.allTeamList?.forEach((team) => {
-      if (team.teamName == currentTeam.teamName) {
-        team.teamMemberList.splice(index, 1);
-
-        this.teamObj.allTeamMemberList.splice(index, 1);
-        let existingEmployee = this.employeeListByDept.find(employee => employee.empId == teamMember.empId);
-        if (existingEmployee) existingEmployee.isSelected = false;
-      }
-    });
-  }
-  isEmployeeAllocated(employeeId: number): boolean {
-    // Check if the employee is in the "New Team Members" list being built
-    const isinNewMembers = this.allTeamMembers.some(member => member.empId === employeeId);
-
-    // Check if the employee is already in the "Existing Team Members" list for this team
-    const isinExistingMembers = this.teamObj?.allTeamMemberList?.some(member => member.empId === employeeId);
-
-    return isinNewMembers || isinExistingMembers;
-}
-
-  removeInputTeamMemberField(teamMember) {
-    this.allTeamMembers.forEach((value, index) => {
-      if (value == teamMember) {
-        this.allTeamMembers.splice(index, 1);
-        let existingEmployee = this.employeeListByDept.find(employee => employee.empId == teamMember.empId);
-        if (existingEmployee) existingEmployee.isSelected = false;
-      }
-    });
-
-  }
-  //---------Raj(addButton)-------------//
-
-  resetTeamMemberForm() {
-    this.selectedRequirement = null;
-    this.newteamMember = new TeamMember();
-    // this.teamMemberCtrl.setValue('');
-  }
-errorMessage:any;
-
-addTeamMember1(): boolean {
-  // Hierarchical validation - each step must be completed in order
-  console.log("this.projectObj.resourceRequirements=================", this.projectObj);
-  // Step 1: Check requirement selection first (if requirements exist)
-  if(this.projectObj.resourceRequirements?.length==0 ){
-    this.errorMessage= "Please add requirements before adding team members.";
-    return;
-  }
-
-  //second step
-  //
-
-
-  //service call
-}
-isAddButtonDisabled(): boolean {
-  // console.log("this.projectObj.resourceRequirements=================", this.projectObj);
-  // Step 1: Check requirement selection first (if requirements exist)
-    console.log("Selected requirement:", this.selectedRequirement);
-  // if (this.projectObj.resourceRequirements?.length > 0 &&
-  //     (this.selectedRequirement == null || this.selectedRequirement == undefined)
-  //   ) {
-  //     console.log("I am here");
-  //     return true;
-  //   }
-  // The upper part is not required any more because resource requirements are not selected any more.
-
-    // Step 2: Check employee selection (only after requirement is selected)
-    if (!this.newteamMember.empId) {
-      return true;
-    }
-
-    // Step 3: Check role selection (only after employee is selected)
-    if (!this.newteamMember.employeeRole?.length) {
-      return true;
-    }
-
-    // Step 4: Additional business rule validation
-    if (this.projectDetails.length !== 0 && this.newteamMember.billableType === 'TNM') {
-      return true;
-    }
-    if(!this.userAdditionEnabled){
-      return true;
-    }
-
-    return false;
-  }
-
-
-  getValidationErrorMessage(): string {
-    // Step 1: Check requirement selection first (if requirements exist)
-    // if (this.projectObj.resourceRequirements?.length > 0 && (!this.selectedRequirement || this.selectedRequirement === '' || this.selectedRequirement === null || this.selectedRequirement === undefined)) {
-    //   return "Please select Requirement";
-    // }
-
-    console.log("this.selectedRequirement", this.selectedRequirement);
-
-    // Step 2: Check employee selection (only show this error after requirement is selected)
-    if (!this.newteamMember.empId) {
-      return "Please select Employee";
-    }
-
-    // Step 3: Check role selection (only show this error after employee is selected)
-    if (!this.newteamMember.employeeRole?.length) {
-      return "Please select Role";
-    }
-
-
-    // Step 4: Additional business rule validation
-    if (this.projectDetails.length !== 0 && this.newteamMember.billableType === 'TNM') {
-      return "TNM billable type is not allowed with existing project details";
-    }
-
-    return "";
-  }
-
-  handleAddButtonClick() {
-    const errorMessage = this.getValidationErrorMessage();
-    if (errorMessage) {
-
-      this.openAlertModRole(this.alertTemplateRole, errorMessage);
-    } else {
-      this.addTeamMember();
-      this.updateEmployeeListAccordingToTeamMembers();
-
-      // this.resetTeamMemberForm();
-
-    }
-
-    console.log("this.allTeamMembers ",this.allTeamMembers);
-  }
-   closeModalRole() {
-    if (this.modalRefRole) {
-      this.modalRefRole.close();
-    }
-  }
-
-  openTeamMemberModal(template: TemplateRef<any>, currentTeam) {
-    this.allTeamMembers = [];
-    this.teamObj.teamLeadId = '';
-    this.newteamMember.empId = '';
-    this.newteamMember.employeeRole = null;
-
-    this.resetTeamMemberForm();
-    // this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
-    // this.getAllEmployeesByRole(currentTeam.departmentList);
-    console.log("this.copyDepartment ", currentTeam);
-    // this.getAllEmployeesByDepartmentIds(this.copyDepartment);
-    // this.resetTeamMemberForm();
-    this.getAllEmployeesByDepartmentIds(this.deptIdList);
-    this.getAllEmployeesByRole(this.copyDepartment);
-    this.allTeamList?.forEach((team: any) => {
-      if (team.teamName == currentTeam.teamName) {
-        let teamLeadObj = team.teamMemberList?.filter(x => x.isTeamLead == true || x.isTeamLead == "true");
-        if (teamLeadObj) {
-          this.teamObj.teamLeadId = teamLeadObj[0]?.empId;
-        }
-        //console.log(teamLeadObj, " :teamLeadObj");
-        //console.log(this.teamObj.teamLeadId, " : this.teamObj.teamLeadId");
-
-        console.log("team.teammemberList ", this.teamObj);
-
-        this.teamObj.allTeamMemberList = team.teamMemberList?.filter(x => x.isTeamLead != true);
-        if ((this.teamObj.allTeamMemberList != undefined || this.teamObj.allTeamMemberList != null) && this.teamObj.allTeamMemberList.length != 0) {
-          this.isUpdation = true;
-        } else {
-          this.isUpdation = false;
-        }
-      }
-    });
-    //console.log(this.teamObj.allTeamMemberList, " allTeamMemberList");
-
-    this.currentTeam = currentTeam;
-    this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
-  }
-
-  openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-    this.alertMessage = message;
-  }
-   openAlertModRole(template: TemplateRef<any>, message: any) {
-    this.modalRefRole = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-    this.alertMessage = message;
-  }
-
-
-  openAlertMod3(template: TemplateRef<any>, message: any) {
-    this.modalRef3 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-    this.alertMessage = message;
-  }
-
-  openShowCreateForm(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-  }
-
-  openAlertModWithReload(template: TemplateRef<any>, message: any) {
-    this.modalRefWithReload = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-    this.alertMessage = message;
-  }
-
-  cancelRequestWithReload() {
-    this.modalRefWithReload.close();
-    this.hideLiftAndShiftTeamsMod();
-    this.cancelRequest1();
-    this.cancelRequest();
-  }
-
-  cancelRequest() {
-    console.log("cancel call");
-
-    this.modalRef?.close();
-    this.modalRef1?.close();
-    this.hideTeamMemberModal();
-  }
-  cancelRequestRole(){
-    this.modalRef?.close();
-  }
-
-  cancelRequest5() {
-    this.modalRef5.close();
-  }
-
-    cancelRequest10() {
-    this.modalRef5.close();
-  }
-
-  cancelRequest1() {
-    console.log("cancel call ");
-
-    this.modalRef1.close();
-  }
-
-  cancelRequest2() {
-    console.log("cancel call ");
-
-    this.modalRef2.close();
-  }
-
-  cancelRequest3() {
-    console.log("cancel call 3");
-
-    this.modalRef3.close();
-  }
-  cancelRequest6() {
-
-    console.log("cancel call 3");
-     this.alert_message_without_reloadModalRef?.close();
-    // this.modalRef6.close();
-    this.cancelRequestWithoutReload();
-  }
-cancelRequest7() {
-    //  this.modalRef6.close();
-    //  this.alert_message_without_reloadModalRef?.close();
-    this.modalRef?.close();
-    this.modalRef6?.close();
-    //  this.cancelRequestWithoutReload();
-  }
-
-  openAlertMod6(template: TemplateRef<any>, message: any) {
-    this.modalRef6 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-    this.alertMessage = message;
-  }
-  previewTeamModal(template: TemplateRef<any>, teamObj: any, projectObj: any) {
-    this.selectedProjectManager = '';
-    this.previewTeamList = [];
-    this.allTeamList?.forEach((team: any) => {
-      if (team.teamName == teamObj.teamName) {
-        this.previewTeamList = [team];
-      }
-    });
-    if (this.previewTeamList.length === 0) {
-      console.warn('No team members available for this team.');
-      return;
-    }
-    if (projectObj.projectManager != null) {
-      this.setManagerName(projectObj);
-    }
-    //console.log(this.previewTeamList, " : this.previewTeamList");
-
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
-  }
-
-  openProjectPreviewModal(template: TemplateRef<any>, project: any) {
-    this.isHideButton = false
-    this.allProjectList.forEach((proj) => {
-      proj.isEditProject = false;
-    });
-    this.previewTeamList = [];
-    this.projectObj = Object.assign({}, project);
-    console.log(this.projectObj, "this.projectObj");
-    this.setManagerName(project);
-    this.getTeamListByProjectName(project);
-    this.getManagerList();
-
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
-  }
-    cancelRequestWithoutReload() {
-    this.modalRefWithoutReload.close();
-  }
-
-
-  public getDisplayProjectStatus(project: any): string {
-  if (project.draftStatus === 'Approved' && project.status != 'NA' && project.status != 'Pending') {
-    return 'In Progress';
-  }
-  else if (project.status === 'Pending') {
-    return 'Not Started';
-  }
-  return project.projectStatus ? project.projectStatus : 'NA';
-}
-
-  openRejectModal(template: TemplateRef<any>, projectObj: any) {
-    this.selectedProjToReject = projectObj;
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
-  }
-
-  //pagination
-
-  page = 1;
-  handlePageChange(event) {
-    this.page = event;
-  }
-
-  sortData(sort: Sort) {
-    //console.log(sort);
-    if (sort.active) {
-      let sortParams: any[] = sort.active?.split("|");
-      this.sortColumn = sortParams[0];
-      this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;
-    }
-  }
-
-  onSearch(searchData: any) {
-    this.filters = searchData;
-    // Save the current filter state to the service
-    this.filterStateService.projectReportFilters = this.filters;
-  }
-
-  toggleSearch(): void {
-    this.isSearchEnabled = !this.isSearchEnabled;
-
-    if (!this.isSearchEnabled) {
-      this.filters = {};
-      this.filterStateService.clearProjectReportFilters();
-    }
-  }
-
-
-  openMenuIndex: number | null = null;
-
-  toggleMenu(index: number) {
-    this.openMenuIndex = this.openMenuIndex === index ? null : index;
-  }
-
-  closeMenu(index: number) {
-    if (this.openMenuIndex === index) {
-      this.openMenuIndex = null;
-    }
-  }
-
-  onAction(action: string, project: any) {
-    console.log('Action:', action, 'on Project:', project);
-    this.openMenuIndex = null;
-    // handle your logic here...
-  }
-
-
-  // Excel Export
-
-  //   exportToExcel(id:any) {
-  //     this.excelName = 'Projects.xlsx';
-
-  //     const onlySpecificDataArr = this.allProjectList.map(
-  //       x => ({
-  //         "Project Name": x.name,
-  //         "PO Number": x.poNo,
-  //         "Project Manager": x.projectManagerName,
-  //         "Client Name": x.clientName,
-  //         "Client State": x.clientState,
-  //         "Apmosys RM": x.apmosysRM,
-  //         "Client RM": x.clientRM,
-  //         "Start Date": x.startDate ? x.startDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.startDate,
-  // "End Date": x.endDate ? x.endDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.endDate,
-  //         // "Start Date": x.startDate,
-  //         // "End Date": x.endDate,
-  //         "Created On": x.createdOn,
-  //         "Approval Status": x.isDraftProject,
-  //         "Project Status": x.status,
-  //       })
-  //     )
-  //     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
-  //   }
-
-
-  //  exportToExcel(id: any): void {
-  //     this.excelName = "Project Report.xlsx";
-  //     this.tableName = 'Team Members';
-
-  //     this.exportExcelService.exportTableDataToExcel(this.allProject_Po_Internal, this.excelName);
-  // }
-
-  exportToExcel(id: any): void {
-    this.excelName = "Project Report.xlsx";
-    this.tableName = 'Team Members';
-
-    // Transform data to match the table columns
-    const exportData = this.allProject_Po_Internal.map(x => ({
-      'Actions': '', // Add appropriate action text or leave empty
-      'Approval Status': x.status,
-      'Project Name': x.name || '',
-      'PO Number': x.poNo || '',
-      'Project Type': x.projectType || '',
-      'Project Manager': x.projectManagers && x.projectManagers.length > 0
-        ? x.projectManagers[0].projectManagerName
-        : '',
-      'Client': x.clientName || '',
-      'Apmosys RM': x.apmosysRM || '',
-      'Client RM': x.clientRM || '',
-      'Start Date': x.poStartDate || '',
-      'End Date': x.poEndDate || '',
-      'State': x.state || '',
-      'Created On': x.createdOn || '',
-      'Project Status': x.projectStatus || ''
-    }));
-
-    this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
-  }
-
-
-  // check resource template
-
-  getExistingProjectsByUser(employeeId: string): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      console.log("Fetching project details for employee ID:", employeeId);
-
-      let projectObj = new Project();
-      projectObj.empId = employeeId;
-
-      this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe(
-        (response: any) => {
-          if (response.serviceStatus === "Success") {
-            this.projectDetails = response.serviceResponse;
-            this.projectDetails = this.projectDetails.map(project => ({ ...project,startDate: project.startDate ? new Date(project.startDate) : null,
-            updatedOn: project.updatedOn ? new Date(project.updatedOn) : null
-            }));
-            this.totalNoOfProjectsForAUser = this.projectDetails?.length;
-            console.log("this.projectDetails", this.projectDetails?.length);
-            this.checkIfUserAddingEnabled();
-
-            if (this.projectDetails.length > 0) {
-              if (this.projectDetails[0].billableType === "TNM") {
-                this.openAlertMod6(
-                  this.alertTemplateWithoutReload,
-                  "This Employee is already mapped to TNM project. Can't add to another project or Team !!"
-                );
-                this.getBillableType = this.projectDetails.find(
-                  (employee) => (this.newteamMember.billableType = employee.billableType)
-                );
-              } else {
-                this.newMemberInProject = "NewMember";
-                this.newteamMember.billableType = this.newMemberInProject;
-              }
-            }else {
-              this.newMemberInProject = "NewMember";
-              this.newteamMember.billableType = this.newMemberInProject;
-            }
-
-            resolve(this.projectDetails);
-          } else {
-            console.error("Failed to fetch project details:", response);
-            reject(response);
-          }
-        },
-        (error) => {
-          console.error("Error in service call:", error);
-          reject(error);
-        }
-      );
-    });
-  }
-
-dateType: string = 'po';
-  deleteResourceFromProject(template: TemplateRef<any>) {
-    let projectObj = new Project();
-    projectObj.teamId = this.projectObj2.teamId;
-    projectObj.empId = this.projectObj2.empId;
-    projectObj.endDate = this.lastDate1;
-
-    console.log("team details ", projectObj)
-    this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.selectedMembers = [];
-        this.openAlertMod(template, response.serviceResponse);
-        this.getExistingProjectsByUser(this.projectObj2.empId)
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-      this.dateType = 'po';
-    })
-
-  }
-
-
- deleteResourceFromProject2(template: TemplateRef<any>) {
-    const isCustomDate = this.dateType === 'custom';
-    let projectObj = new Project();
-    projectObj.teamId = this.projectObj2.teamId;
-    projectObj.empId = this.projectObj2.empId;
-    projectObj.endDate = this.lastDate1 || null;
-    projectObj.createdBy = this.currentUser.empId;
-    projectObj.isCustomDate = isCustomDate;
-    projectObj.updatedBy = this.currentUser.empId;
-    projectObj.rescRemovedBy = this.currentUser.empId;
-
-    console.log("team details ", projectObj)
-    this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.selectedMembers = [];
-        this.openModalRefWithoutReload2(template, response.serviceResponse);
-        this.getExistingProjectsByUser(this.projectObj2.empId)
-      } else {
-        this.openModalRefWithoutReload2(template, response.serviceResponse);
-      }
-    })
-
-  }
-
-
-    openModalRefWithoutReload2(template: TemplateRef<any>, message: any) {
-    this.modalRefWithoutReload2 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-    this.alertMessage = message;
-  }
-  totalNoOfProjectsForAUser:number = 0;
-  userAdditionEnabled: boolean = true;
- openProjectTemplateModal(template: TemplateRef<any>, employee: any) {
-  console.log("Project object is,",this.projectObj);
-    this.getExistingProjectsByUser(employee.empId).then((projectDetails) => {
-      this.dataObj = employee;
-      this.totalNoOfProjectsForAUser = projectDetails?.length;
-      this.checkIfUserAddingEnabled();
-      if (projectDetails.length > 0) {
-        this.page = 1;
-        this.modalRef2 = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
-      } else {
-        console.log("No project details found for the employee.");
-      }
-
-      console.log("data employee newmenbfcg  ", employee);
-    }).catch((error) => {
-      console.error("Error fetching project details:", error);
-      this.totalNoOfProjectsForAUser= null;
-    });
-  }
-
-
-
-  changeDepartment(event: any): void {
-    const selectedDepartmentIds = event.value;
-    console.log("this.copyDepartment ", this.copyDepartment);
-    // Identify deselected departments by finding the difference between the previous and current selections
-    const deselectedDepartmentIds = this.copyDepartment.filter(
-      id => !selectedDepartmentIds.includes(id)
-    );
-
-    console.log("deselectedDepartmentIds    ", deselectedDepartmentIds)
-
-    // Update the current department selection
-    this.copyDepartment = selectedDepartmentIds;
-
-    // If there are any deselected departments, show the alert
-    if (deselectedDepartmentIds.length > 0) {
-      this.allTeamList.forEach(team => {
-        if (team.teamMemberList === '' || team.teamMemberList === null || team.teamMemberList === undefined) {
-          return;
-        } else {
-          this.openAlertMod(this.alertTemplate, "You have deselected a department! Wish to add it again, please ensure that the team members for that department are added as well.");
-
-          const departmentList = team.departmentList;
-          console.log("team.teamMemberList  ", team.teamMemberList)
-          console.log("departmentList     ", departmentList);
-
-          // Use strict equality check and type casting if necessary
-          const filteredTeamMemberList = team.teamMemberList.filter(member => {
-            const memberDeptId = String(member.departmentId); // Convert to string for comparison
-            const isMatch = departmentList.some(deptId => String(deptId) === memberDeptId);
-            console.log(`Checking if department ID ${memberDeptId} is in departmentList:`, isMatch);
-            return isMatch;
-          });
-          console.log("filteredTeamMemberList    ", filteredTeamMemberList)
-          team.teamMemberList = filteredTeamMemberList;
-          console.log(team.teamMemberList);
-        }
-      });
-    }
-
-    // Update the previousDepartmentIds with the current selection for future comparison
-    this.copyDepartment = selectedDepartmentIds;
-  }
-
-  EmployeeViewDataModel(template: TemplateRef<any>, catagory: string) {
-    if (catagory === 'Sankh') {
-      this.employeeData = this.sankhMappedEmployeesList;
-      this.catagory = catagory;
-    }
-    else if (catagory === 'Internal') {
-      this.employeeData = this.internalMappedEmployeesList;
-      this.catagory = catagory;
-    }
-    else if (catagory === 'Both') {
-      this.employeeData = this.mappedToBothEmployeesList;
-      this.catagory = catagory;
-    }
-    else if (catagory === 'Not Mapped') {
-      this.employeeData = this.employeesWithoutProjectList;
-      this.catagory = catagory;
-    }
-    else if (catagory === 'Without Billability') {
-      this.employeeData = this.employeesWithoutBillability;
-      this.catagory = catagory;
-    }
-
-    else if (catagory === 'All Mapped') {
-      this.employeeData = this.allMappedEmployeesList;
-      this.catagory = catagory;
-    }
-    else if (catagory === 'Exception') {
-      this.employeeData = this.exceptionEmployeesList;
-      this.catagory = catagory;
-    }
-    else if (catagory === 'OnBench') {
-      this.employeeData = this.employeeBenchRepot;
-      this.catagory = catagory;
-    } else if (catagory === 'Unfilled Timesheet Projects') {
-      this.employeeData = this.unfilledTimesheetProjectList;
-      this.catagory = catagory;
-    }
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
-  }
-
-
-
-
-  deleteResourceModal(template: TemplateRef<any>, teamId) {
-    if(this.dateType!=='custom')
-    {
-      this.lastDate1 = teamId.poEndDate;
-    }
-    // let projectObj = Object.assign({},this.projectObj); for copy object
-    this.deleteResourceModalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
-    this.projectObj2 = teamId;
-
-  }
-
-  hideDeleteResourceModalRef(){
-    this.deleteResourceModalRef?.close();
-    this.dateType='po';
-  }
-
-
-  ranges = [
-    { label: '3M', value: 3, unit: 'M' },
-    { label: '6M', value: 6, unit: 'M' },
-    { label: '1Y', value: 1, unit: 'Y' }
-  ];
-
-  selectedRange = this.ranges[0];
-
-  selectRange(range: any) {
-    this.selectedRange = range;
-    this.fetchTimesheetMissingCount();
-  }
-
-
-
-  unfilledTimesheetProjectList: any[] = [];
-  unfilledTimesheetProjectListCount: any;
-
-  fetchTimesheetMissingCount() {
-    const today = new Date();
-    const fromDate = new Date(today);
-
-    if (this.selectedRange.unit === 'M') {
-      fromDate.setMonth(fromDate.getMonth() - this.selectedRange.value);
-    } else if (this.selectedRange.unit === 'Y') {
-      fromDate.setFullYear(fromDate.getFullYear() - this.selectedRange.value);
-    }
-
-    const payload = {
-      empId: this.currentUser.empId,
-      fromDate: fromDate.toISOString().split('T')[0],
-      toDate: today.toISOString().split('T')[0]
-    };
-
-    console.log('non compliance:', payload);
-    this.resourceManagementService.getProjectsunfilledTimesheet(payload).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        console.log(response.serviceResponse);
-        this.unfilledTimesheetProjectList = response.serviceResponse;
-        this.unfilledTimesheetProjectListCount = this.unfilledTimesheetProjectList.length;
-        console.log("this.internalMappedEmployees", this.internalMappedEmployees)
-      } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-
-  }
-
-  openTimesheetPopup() {
-    // Load and show modal with data for selectedRange
-    // this.modalService.openTimesheetModal(this.selectedRange);
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  pageNo = 1;
-  handlePageChanges(event) {
-    this.pageNo = event;
-  }
-
-  // closeProjectModal(){
-  //   console.log("again called after deleted ");
-  //   this.modalRef?.close();
-  // }
-
-  getRefreshPage() {
-    this.showEditProjectForm(this.projectObj);
-  }
-
-  syncPoProjectDetailsByProjectId(template: TemplateRef<any>, project: any) {
-    this.resourceManagementService.syncPoProjectDetailsByProjectId(project).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
-
-  sendEmailNotificationToBDTeam(template: TemplateRef<any>, project: any) {
-    this.resourceManagementService.sendEmailNotificationToBDTeam(project).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
-
-  deleteTeam(template: TemplateRef<any>) {
-    console.log("delete team method call ", this.tempTeam);
-    this.tempTeam.endDate = this.lastDate;
-    this.projectService.deleteTeam(this.tempTeam).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        const teamIndex = this.allTeamList.findIndex(team => team.teamId === this.tempTeam.teamId);
-
-        if (teamIndex !== -1) {
-          this.allTeamList.splice(teamIndex, 1);
-          this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
-          this.copyDepartment = [];
-        }
-        if (!this.allTeamList || this.allTeamList.length === 0) {
-          this.addInputTeamField();
-        }
-        this.openAlertMod(template, response.serviceResponse);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    })
-
-  }
-  deleteResourceModal1(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
-    const detailsList = Array.isArray(this.projectdetails1) ? this.projectdetails1 : [this.projectdetails1];
-
-    detailsList.forEach(details => {
-      this.lastDate = details.poEndDate
-        ? moment(details.poEndDate).format('YYYY-MM-DD')
-        : moment().format('YYYY-MM-DD');
-      console.log("Testing for end date", this.lastDate);
-    });
-
-  }
-
-
-  toggleSelectAll(): void {
-    this.allTeamList.forEach(teamObj => {
-      teamObj.selected = this.selectAll;
-    });
-    this.updateSelectedTeamsDetails();
-  }
-
-
-  updateSelection(): void {
-
-    this.selectAll = this.allTeamList.every(teamObj => teamObj.selected);
-    this.updateSelectedTeamsDetails();
-  }
-
-
-  updateSelectedTeamsDetails(): void {
-    this.allTeamList.forEach(teamObj => {
-      teamObj.endDate = this.lastDate;
-    });
-    this.selectedTeamsDetails = this.allTeamList.filter(teamObj => teamObj.selected);
-    console.log('Selected Team Details:', this.selectedTeamsDetails);
-  }
-
-  deleteTeamsByIdsBulk(template: TemplateRef<any>) {
-    console.log("Deleting teams: ", this.selectedTeamsDetails);
-    const detailsList = Array.isArray(this.projectdetails1) ? this.projectdetails1 : [this.projectdetails1];
-
-    // detailsList.forEach(details => {
-    //   this.lastDate = details.poEndDate
-    //     ? moment(details.poEndDate).format('YYYY-MM-DD')
-    //     : moment().format('YYYY-MM-DD');
-    //   console.log("Testing for end date", this.lastDate);
-    // });
-    this.selectedTeamsDetails = this.selectedTeamsDetails.map(entry => ({
-      ...entry,
-      endDate: this.lastDate || null,
-      createdBy: this.currentUser.empId
-    }));
-    this.projectService.deleteTeamsByIdsBulk(this.selectedTeamsDetails).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        const deletedIds = this.selectedTeamsDetails.map(team => team.teamId);
-        this.allTeamList = this.allTeamList.filter(team => !deletedIds.includes(team.teamId));
-        this.selectedTeamsDetails = [];
-        this.allTeamList.forEach(team => team.selected = false);
-        this.selectAll = false;
-        this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
-        this.copyDepartment = [];
-        if (!this.allTeamList || this.allTeamList.length === 0) {
-          this.addInputTeamField();
-        }
-        console.log("Selected teams cleared: ", this.selectedTeamsDetails);
-
-        this.openAlertMod(template, response.serviceResponse);
-
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
-
-  // alert_message template is to be passed
-CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilterDTO) {
-    this.allProject_Po_Internal = [];
-    this.resourceManagementService.combinedPOINTERNALDataList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus === "Success") {
-            console.log(response.serviceResponse);
-
-            if (this.selectedStatusTab === 'expiredTNM' && response.serviceResponse) {
-                let expiredProjects = [];
-
-                if (this.selectedExpiredProjectFilter && this.selectedExpiredProjectFilter.key) {
-                    const filterKey = this.selectedExpiredProjectFilter.key;
-
-                    const dataKeyMapping = {
-                        'expiredProjectsWithin1Month': 'expiredTNMProjectsWithin1Month',
-                        'expiredProjects1To2Months': 'expiredTNMProjects1To2Months',
-                        'expiredProjects2To3Months': 'expiredTNMProjects2To3Months',
-                        'expiredProjects3To6Months': 'expiredTNMProjects3To6Months',
-                        'expiredProjects6To9Months': 'expiredTNMProjects6To9Months',
-                        'expiredProjects9To12Months': 'expiredTNMProjects9To12Months',
-                        'expiredProjectsAbove12Months': 'expiredTNMProjectsAbove12Months',
-                        'allExpiredTNMProjectsCount': 'allExpiredTNMProjects'
-                    };
-
-                    const dataKey = dataKeyMapping[filterKey] || 'allExpiredTNMProjects';
-                    expiredProjects = response.serviceResponse[dataKey] || [];
-                } else {
-                    expiredProjects = response.serviceResponse.allExpiredTNMProjects || [];
-                }
-
-                if (expiredProjects && expiredProjects.length > 0) {
-                    this.allProject_Po_Internal = expiredProjects.map((project: any) => {
-                        project.combinedProjectType = this.getProjectType(project);
-
-                        if (project.projectManager && project.projectManager.trim() !== '') {
-                            project.projectManagerName = project.projectManager;
-                        } else {
-                            project.projectManagerName = '';
-                        }
-                        return this.setDefaultProjectValues(project);
-                    });
-
-                    console.log(`Loaded ${expiredProjects.length} expired TNM projects for filter: ${this.selectedExpiredProjectFilter?.title}`);
-                }
-            }
-            else if (this.selectedStatusTab === 'allMonitoringProject' && response.serviceResponse.monitoringProjects && response.serviceResponse.monitoringProjects.length > 0) {
-                this.allProject_Po_Internal = response.serviceResponse.monitoringProjects.map((project: any) => {
-                    project.combinedProjectType = this.getProjectType(project);
-
-                    if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
-                        const managerNamesString = project.projectManagers
-                            .map(manager => manager.projectManagerName)
-                            .join(', ');
-                        project.projectManagerName = managerNamesString;
-                    } else if (project.projectManager && project.projectManager.trim() !== '') {
-                        project.projectManagerName = project.projectManager;
-                    } else {
-                        project.projectManagerName = '';
-                    }
-                    return this.setDefaultProjectValues(project);
-                });
-                console.log(`Loaded ${this.allProject_Po_Internal.length} monitoring projects`);
-            }
-            else if (this.selectedStatusTab === 'TotalProjects' && response.serviceResponse.totalProjects && response.serviceResponse.totalProjects.length > 0) {
-                this.allProject_Po_Internal = response.serviceResponse.totalProjects.map((project: any) => {
-                    project.combinedProjectType = this.getProjectType(project);
-
-                    if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
-                        const managerNamesString = project.projectManagers
-                            .map(manager => manager.projectManagerName)
-                            .join(', ');
-                        project.projectManagerName = managerNamesString;
-                    } else if (project.projectManager && project.projectManager.trim() !== '') {
-                        project.projectManagerName = project.projectManager;
-                    } else {
-                        project.projectManagerName = '';
-                    }
-                    return this.setDefaultProjectValues(project);
-                });
-                console.log(`Loaded ${this.allProject_Po_Internal.length} total projects`);
-            }
-            else if (this.selectedStatusTab === 'allInternalProject' && response.serviceResponse.internalProjects && response.serviceResponse.internalProjects.length > 0) {
-                this.allProject_Po_Internal = response.serviceResponse.internalProjects.map((project: any) => {
-                    project.combinedProjectType = this.getProjectType(project);
-
-                    if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
-                        const managerNamesString = project.projectManagers
-                            .map(manager => manager.projectManagerName)
-                            .join(', ');
-                        project.projectManagerName = managerNamesString;
-                    } else if (project.projectManager && project.projectManager.trim() !== '') {
-                        project.projectManagerName = project.projectManager;
-                    } else {
-                        project.projectManagerName = '';
-                    }
-                    return this.setDefaultProjectValues(project);
-                });
-                console.log(`Loaded ${this.allProject_Po_Internal.length} internal projects`);
-            }
-            else if (this.selectedStatusTab === 'unfilledPositions') {
-                if (response.serviceResponse.unfilledPositions && response.serviceResponse.unfilledPositions.length > 0) {
-                    console.log('Unfilled positions data:', response.serviceResponse.unfilledPositions);
-                    this.allProject_Po_Internal = response.serviceResponse.unfilledPositions.map((project: any) => {
-                        project.combinedProjectType = this.getProjectType(project);
-
-                        if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
-                            const managerNamesString = project.projectManagers
-                                .map(manager => manager.projectManagerName)
-                                .join(', ');
-                            project.projectManagerName = managerNamesString;
-                        } else if (project.projectManager && project.projectManager.trim() !== '') {
-                            project.projectManagerName = project.projectManager;
-                        } else {
-                            project.projectManagerName = '';
-                        }
-                        return this.setDefaultProjectValues(project);
-                    });
-                    console.log(`Loaded ${this.allProject_Po_Internal.length} unfilled positions`);
-                }
-            }
-            else if (response.serviceResponse.activeTNMProjects && response.serviceResponse.activeTNMProjects.length > 0) {
-                this.allProject_Po_Internal = response.serviceResponse.activeTNMProjects.map((project: any) => {
-                    project.combinedProjectType = this.getProjectType(project);
-
-                    if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
-                        const managerNamesString = project.projectManagers
-                            .map(manager => manager.projectManagerName)
-                            .join(', ');
-                        project.projectManagerName = managerNamesString;
-                    } else if (project.projectManager && project.projectManager.trim() !== '') {
-                        project.projectManagerName = project.projectManager;
-                    } else {
-                        project.projectManagerName = '';
-                    }
-                    return this.setDefaultProjectValues(project);
-                });
-            }
-            else if (response.serviceResponse.combinedNewProjects && response.serviceResponse.combinedNewProjects.length > 0) {
-                this.allProject_Po_Internal = response.serviceResponse.combinedNewProjects.map((project: any) => {
-                    project.combinedProjectType = this.getProjectType(project);
-
-                    if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
-                        const managerNamesString = project.projectManagers
-                            .map(manager => manager.projectManagerName)
-                            .join(', ');
-                        project.projectManagerName = managerNamesString;
-                    } else {
-                        project.projectManagerName = '';
-                    }
-
-                    return this.setDefaultProjectValues(project);
-                });
-            }
-
-            this.createDepartmentArray();
-            console.log("this.allProject_Po_Internal", this.allProject_Po_Internal);
-            // this.tabCounts = response.serviceResponse.counts;
-            // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
-        } else {
-            this.openAlertMod(template, "No List Found");
-        }
-    });
-}
-
-
-setDefaultProjectValues(project: any) {
-  project.status = project.status ?? "NA";
-  project.projectStatus = project.projectStatus ?? "NA";
-  project.poNo = project.poNo ?? "NA";
-  project.apmosysRM = project.apmosysRM ?? "NA";
-  project.clientRM = project.clientRM ?? "NA";
-  return project;
-}
-
-
-
-  getProjectType(project: any): string {
-    if (project.poProjectType !== null && project.poProjectType !== undefined && project.poProjectType !== '') {
-      return project.poProjectType;
-    } else if (project.internalProjectType !== null && project.internalProjectType !== undefined && project.internalProjectType !== '') {
-      return project.internalProjectType;
-    } else {
-      return 'NA';
-    }
-  }
-
-  RbacInternalProjects(projectFilterDTO: ProjectFilterDTO) {
-    this.resourceManagementService.rbacInternalProjects(projectFilterDTO).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        console.log(response.serviceResponse);
-        this.internalMappedEmployeesList = response.serviceResponse;
-        this.internalMappedEmployees = this.internalMappedEmployeesList.length;
-        console.log("this.internalMappedEmployees", this.internalMappedEmployees)
-      } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-
-  }
-
-  RbacShankhProjects(projectFilterDTO: ProjectFilterDTO) {
-    this.resourceManagementService.rbacShankhProjects(projectFilterDTO).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        console.log(response.serviceResponse);
-        this.sankhMappedEmployeesList = response.serviceResponse;
-        this.sankhMappedEmployees = this.sankhMappedEmployeesList.length;
-        console.log("this.sankhMappedEmployees", this.sankhMappedEmployees)
-      } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-
-  }
-  RbacAllShankhInternalProjects(projectFilterDTO: ProjectFilterDTO) {
-    this.resourceManagementService.rbacAllShankhInternalProjects(projectFilterDTO).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        console.log(response.serviceResponse);
-        this.allMappedEmployeesList = response.serviceResponse;
-        this.allMappedEmployees = this.allMappedEmployeesList.length;
-        console.log("this.allMappedEmployeesList", this.allMappedEmployeesList)
-      }
-      else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-  }
-
-  ExceptionEmployeeReport(projectFilterDTO: ProjectFilterDTO) {
-    this.resourceManagementService.exceptionEmployeeReport(projectFilterDTO).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        console.log(response.serviceResponse);
-        this.exceptionEmployeesList = response.serviceResponse;
-        this.exceptionEmployees = this.exceptionEmployeesList.length;
-        console.log("this.exceptionEmployeesList", this.exceptionEmployeesList)
-      }
-      else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-  }
-
-  RbacBothShankhInternal(projectFilterDTO: ProjectFilterDTO) {
-    this.resourceManagementService.rbacBothShankhInternal(projectFilterDTO).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        console.log(response.serviceResponse);
-        this.mappedToBothEmployeesList = response.serviceResponse;
-        this.mappedToBothEmployees = this.mappedToBothEmployeesList.length;
-        console.log("this.mappedToBothEmployeesList", this.mappedToBothEmployeesList)
-      } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-  }
-
-  ProjectLessEmployees(projectFilterDTO: ProjectFilterDTO) {
-    this.resourceManagementService.projectLessEmployees(projectFilterDTO).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        this.employeesWithoutProjectList = response.serviceResponse;
-        this.employeesWithoutProject = this.employeesWithoutProjectList.length;
-        console.log("this.employeesWithoutProjectList", this.employeesWithoutProjectList)
-      } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-  }
-
-
-  getEmployeesWithoutBillability(projectFilterDTO: ProjectFilterDTO) {
-    this.resourceManagementService.getEmployeesWithoutBillability(projectFilterDTO).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        this.employeesWithoutBillability = response.serviceResponse;
-        this.employeesWithoutBillable = this.employeesWithoutBillability.length;
-        console.log("this.employeesWithoutProjectList", this.employeesWithoutProjectList)
-      } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-  }
-
-
-
-  TotalEmployeeCount() {
-    this.resourceManagementService.totalEmployeeCount().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        console.log(response.serviceResponse);
-        this.totalEmployees = response.serviceResponse;
-      } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-  }
-
   getEmployeeByNameAndEmpld() {
     this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
@@ -4068,262 +1060,505 @@ setDefaultProjectValues(project: any) {
         this.teamLeadsList = this.employeeList;
         this.filteredTeamLeads = this.teamLeadsList;
       } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+        this.openAlertMessageModal(response.serviceResponse);
       }
     });
   }
 
-  // filterEmployees(searchText: string) {
-  //   const lowerText = (searchText || '').toLowerCase();
-  //   return this.employeeList.filter(emp =>
-  //     emp.name.toLowerCase().includes(lowerText) ||
-  //     emp.employmentId.toLowerCase().includes(lowerText)
-  //   );
-  // }
-
-  filterEmployees(searchText: string) {
-  const lowerText = (searchText || '').toLowerCase();
-  return this.employeeList.filter(emp => {
-    const name = emp?.name?.toString() || '';
-    const employmentId = emp?.employmentId?.toString() || '';
-
-    return name.toLowerCase().includes(lowerText) ||
-           employmentId.toLowerCase().includes(lowerText);
-  });
-}
-
-  onEmployeeSelected(event: any) {
-    const selectedEmp = event.option.value;
-    if (selectedEmp) {
-      this.selectedEmpId = selectedEmp.empId;
-      this.employeeCtrl.setValue(selectedEmp.name);
-      console.log('Selected Employee ID:', this.selectedEmpId);
-    }
-  }
-  onEmployeeInputChange() {
-    if (!this.employeeCtrl.value || this.employeeCtrl.value.trim() === '') {
-        this.selectedEmpId = 0;
-    }
-}
-
-
-  isEmployeeInList(list: any[]): boolean {
-    return list?.some(emp => emp.empId === this.selectedEmpId);
+  trackByEmpId(index: number, member: any): number {
+    return member.empId;
   }
 
-  isEmployeeInTeam(employee: any): boolean {
-    if (this.teamObj.allTeamMemberList != undefined) {
-  return this.teamObj.allTeamMemberList.some(
-    (member: any) => member.empId === employee.empId
-  );}
-  else{
-    return false;
-  }
-}
-
-  displayEmployee(emp: any): string {
-    console.log("emp", emp);  // This is helpful for debugging
-    if (typeof emp === 'string') {
-      return emp;  // User is typing or you manually set value to string
-    }
-    return emp && emp.name ? emp.name : '';
+  toggleReportView() {
+    this.showReportList = !this.showReportList;
   }
 
-  openSummaryModal(template: TemplateRef<any>, selectedEmpId: any) {
-    this.summaryModalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
-    this.selectedEmpId = selectedEmpId;
-
-    this.getProjectTimesheetSummaryData();
+  setReportToggleViewVisible() {
+    this.isReportTabToggleViewVisible = this.currentUser?.userMapping?.some(m => m.featureName === 'Reports') ?? false;
   }
 
-    openSummaryModal1(template: TemplateRef<any>) {
-    this.summaryModalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
-
-    this.getfixedCostProjectGraph();
-  }
-
-  openSummaryModal2(template: TemplateRef<any>) {
-    this.summaryModalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
-
-    this.getExpiredTNMProjectGraph();
-  }
-
-  openSummaryModal3(template: TemplateRef<any>) {
-    this.summaryModalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
-
-    this.getStatusGraphData();
-  }
-
-    openSummaryModal4(template: TemplateRef<any>,statusTab : string) {
-    this.summaryModalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
-    this.selectedStatusTab = statusTab;
-
-    this.prepareAndFetchChartData();
-  }
-
-
-  closeSummaryModal() {
-    this.summaryModalRef?.close();
-  }
-
-  getProjectTimesheetSummaryData() {
-    // 1. Check if the current user and their empId are available.
-    if (!this.selectedEmpId) {
-      this.openAlertMod(this.alertTemplateWithoutReload, "Cannot fetch summary. User information is missing.");
-      console.error("Current user or empId is not available.");
-      // Close the modal or show an error state in the chart container if the modal is already open
-      if (this.summaryModalRef) {
-        // You could display an error message inside the modal body here
-        document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Could not load data: User not identified.</p>';
-      }
-      return;
-    }
-
-    // 2. Create the DTO object to send to the backend.
-    const resourceManagementDTO = {
-      empId: this.selectedEmpId
-    };
-
-    // 3. Pass the DTO to the service call.
-    console.log("================================", resourceManagementDTO);
-    this.resourceManagementService.getProjectTimesheetSummary(resourceManagementDTO).pipe(first()).subscribe({
-      next: (response: any) => {
-        if (response.serviceStatus === "Success") {
-          this.projectSummaryData = response.serviceResponse;
-
-          if (this.projectSummaryData && this.projectSummaryData.length > 0) {
-            this.processProjectSummaryData(this.projectSummaryData);
-          } else {
-            // Handle the case where the API succeeds but returns no data
-            document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center">No timesheet summary data found for your projects.</p>';
-          }
-        } else {
-          // this.openAlertMod(this.alertTemplate, "Failed to load project summary data.");
-          console.error(response.serviceResponse);
-          document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Error:No timesheets filled till date</p>';
-        }
-      },
-      error: (err) => {
-        this.openAlertMod(this.alertTemplate, "An error occurred while fetching summary data.");
-        console.error(err);
-        document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">A server error occurred. Please try again later.</p>';
-      }
+  goToReportList() {
+    this.router.navigate(['/user-reports/report-list'], {
+      state: { returnUrl: this.router.url }
     });
   }
 
-  processProjectSummaryData(summaryData: any[]) {
-    const categories = [];
-    const seriesData = [];
+// Skill Matrix Start
 
-    // Sort data by totalTimesheetsFilled in descending order and take top 20 for better visualization
-    const sortedData = summaryData
-      .sort((a, b) => b.totalTimesheetsFilled - a.totalTimesheetsFilled)
-      .slice(0, 20);
+  skillsPerPage = 3;
+  rankedEmployees: any[] = [];
+  certificationList: any[] = [];
+  skillList: any[] = [];
+  departmentList: any[] = [];
+  filtersSkillMatrix: FilterMatrix = new FilterMatrix();
+  searchTextSkill = '';
+  filteredSkills: any[] = [];
+  isAllSkillsSelected = false;
+  filterMatrixObj: FilterMatrix = new FilterMatrix();
+  isAllCertificatesSelected = false;
+  searchTextCertificate: any;
+  filteredCertificates: any[] = [];
+  searchTextCertDept = '';
+  filteredCertificationDepartments: any[] = [];
+  isAllCertificationDepartmentsSelected = false;
+  searchTextDeptMatrix = '';
+  filteredDepartmentsMatrix: any[] = [];
+  isAllDepartmentsSelected = false;
+  apiResponsesCount: any;
+  employeeWings = new Map<string, string | null>();
+  employeesSkillMatrix: searchEmployeeResultSet[] = [];
+  filteredEmployeesSkillMatrix: any[] = [];
+  name = 'skills&Certifications.xlsx';
 
-    sortedData.forEach(item => {
-      categories.push(item.projectName);
-      seriesData.push(item.totalTimesheetsFilled);
-    });
+  wingImages = [
+    "assets/Images/goldenwings.gif",
+    "assets/Images/silverwings.gif",
+    "assets/Images/bronzewings.gif"
+  ];
 
-    const chartData = [{
-      name: 'Timesheets Filled',
-      data: seriesData,
-      color: '#0275d8' // A bootstrap primary-like color
-    }];
 
-    this.renderColumnChart(
-      'Top 20 Projects by Timesheets Filled',
-      'projectTimesheetSummaryChart',
-      chartData,
-      categories
-      , 'Number of Timesheets Filled'
+  filterSkills() {
+    const lower = this.searchTextSkill.toLowerCase();
+    const selectedIds = this.filtersSkillMatrix.skillIds || [];
+    this.filteredSkills = this.skillList.filter(skill =>
+      skill.skillName.toLowerCase().includes(lower) ||
+      selectedIds.includes(skill.skillId)
     );
   }
 
-getExpiredTNMProjectGraph() {
-  const categories = ['1M', '1-2M', '2-3M', '3-6M', '6-9M', '9-12M', '12M+'];
+  clearSkills(event: Event) {
+    event.stopPropagation();
+    this.filtersSkillMatrix.skillIds = [];
+    this.filtersSkillMatrix.skillNames = [];
+    this.isAllSkillsSelected = false;
+    this.searchTextSkill = '';
+    this.filteredSkills = [...this.skillList];
+  }
 
-  const data = [
-    {
-      y: this.expiredProjectsWithin1Month || 0,
-      color: '#28a745'
-    },
-    {
-      y: this.expiredProjects1To2Months || 0,
-      color: '#17a2b8'
-    },
-    {
-      y: this.expiredProjects2To3Months || 0,
-      color: '#ffc107'
-    },
-    {
-      y: this.expiredProjects3To6Months || 0,
-      color: '#fd7e14'
-    },
-    {
-      y: this.expiredProjects6To9Months || 0,
-      color: '#dc3545'
-    },
-    {
-      y: this.expiredProjects9To12Months || 0,
-      color: '#6f42c1'
-    },
-    {
-      y: this.expiredProjectsAbove12Months || 0,
-      color: '#e83e8c'
+  updateSelectedSkillNames() {
+    const selectedSkills = this.skillList.filter(skill =>
+      this.filtersSkillMatrix.skillIds.includes(skill.skillId)
+    );
+    this.filtersSkillMatrix.skillNames = selectedSkills.map(skill => skill.skillName);
+  }
+
+  toggleSelectAllSkills() {
+    this.isAllSkillsSelected = !this.isAllSkillsSelected;
+
+    this.filtersSkillMatrix.skillIds = this.isAllSkillsSelected
+      ? this.filteredSkills.map(s => s.skillId) : [];
+
+    this.filtersSkillMatrix.skillNames = this.isAllSkillsSelected
+      ? this.filteredSkills.map(s => s.skillName) : [];
+  }
+
+  compareById(item1: any, item2: any): boolean {
+    return item1 === item2;
+  }
+
+  onSkillSelectionChange() {
+    this.isAllSkillsSelected =
+      this.filtersSkillMatrix.skillIds.length === this.skillList.length;
+  }
+
+  resetSkillSearch() {
+    this.searchTextSkill = '';
+    this.filteredSkills = [...this.skillList];
+  }
+
+  getAllPredefinedSkills() {
+    this.employeeService.getAllPredefinedSkills().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.skillList = response.serviceResponse;
+        this.filteredSkills = this.skillList;
+      } else {
+        console.error(response.serviceResponse);
+      }
+      this.checkAllApiResponses();
+    });
+  }
+
+  getCountOfEmployeeFromSelectedDepartment() {
+    this.resourceManagementService.getEmployeeCountSDeptwise(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.seempCountDeptSelected = response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getAllCertificatesRbac() {
+    this.filterMatrixObj.empId = this.currentUser.empId;
+    this.resourceManagementService.getCertficatesRbac(this.filterMatrixObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.certificationList = response.serviceResponse;
+        this.filteredCertificates = [...this.certificationList];
+      } else {
+        console.error(response.serviceResponse);
+      }
+      this.checkAllApiResponses();
+    });
+  }
+
+  onCertificateSelectionChange() {
+    this.isAllCertificatesSelected =
+      this.filtersSkillMatrix.certificateIds.length === this.filteredCertificates.length;
+  }
+
+  filterCertificates() {
+    const lower = this.searchTextCertificate.toLowerCase();
+    const selectedIds = this.filtersSkillMatrix.certificateIds || [];
+
+    this.filteredCertificates = this.certificationList.filter(cert =>
+      cert.certificateName.toLowerCase().includes(lower) ||
+      selectedIds.includes(cert.employeeCertificateId)
+    );
+  }
+
+  resetCertficateSearch() {
+    this.searchTextCertificate = '';
+    this.filteredCertificates = [...this.certificationList];
+  }
+
+  clearCertificates(event: Event) {
+    this.filtersSkillMatrix.certificateIds = [];
+    this.isAllCertificatesSelected = false;
+    this.searchTextCertificate = '';
+    this.filteredCertificates = [...this.certificationList];
+  }
+
+  toggleSelectAllCertificates() {
+    this.isAllCertificatesSelected = !this.isAllCertificatesSelected;
+    this.filtersSkillMatrix.certificateIds = this.isAllCertificatesSelected
+      ? this.filteredCertificates.map(c => c.employeeCertificateId) : [];
+  }
+
+  filterDepartmentsMatrix() {
+    const lower = this.searchTextDeptMatrix.toLowerCase();
+    const selectedIds = this.filtersSkillMatrix.deptIds || [];
+    this.filteredDepartmentsMatrix = this.departmentList.filter(dept =>
+      dept.name.toLowerCase().includes(lower) || selectedIds.includes(dept.deptId)
+    );
+  }
+
+  clearDepartments(event: Event) {
+    event.stopPropagation();
+    this.filtersSkillMatrix.deptIds = [];
+    this.isAllDepartmentsSelected = false;
+    this.searchTextDeptMatrix = '';
+    this.filteredDepartmentsMatrix = [...this.departmentList];
+  }
+
+  resetDeptSearch() {
+    this.searchTextDeptMatrix = '';
+    this.filteredDepartmentsMatrix = [...this.departmentList];
+  }
+
+  toggleSelectAllDepartments() {
+    this.isAllDepartmentsSelected = !this.isAllDepartmentsSelected;
+    this.filtersSkillMatrix.deptIds = this.isAllDepartmentsSelected
+      ? this.filteredDepartmentsMatrix.map(d => d.deptId)
+      : [];
+  }
+
+  onDepartmentSelectionChangeMatrix() {
+    this.isAllDepartmentsSelected =
+      this.filtersSkillMatrix.deptIds.length === this.departmentList.length;
+  }
+
+  filterCertificationDepartments() {
+    const lower = this.searchTextCertDept.toLowerCase();
+    this.filteredCertificationDepartments = this.departmentList.filter(dept =>
+      dept.name.toLowerCase().includes(lower)
+    );
+  }
+
+  clearCertificationDepartments(event: Event) {
+    event.stopPropagation();
+    this.filtersSkillMatrix.certificationDeptIds = [];
+    this.isAllCertificationDepartmentsSelected = false;
+    this.searchTextCertDept = '';
+    this.filteredCertificationDepartments = [...this.departmentList];
+  }
+
+  toggleSelectAllCertificationDepartments() {
+    this.isAllCertificationDepartmentsSelected = !this.isAllCertificationDepartmentsSelected;
+    this.filtersSkillMatrix.certificationDeptIds = this.isAllCertificationDepartmentsSelected
+      ? this.filteredCertificationDepartments.map(d => d.deptId)
+      : [];
+  }
+
+  onCertificationDeptSelectionChange() {
+    this.isAllCertificationDepartmentsSelected =
+      this.filtersSkillMatrix.certificationDeptIds.length === this.departmentList.length;
+  }
+
+  getAllDepartmentsRbac() {
+    this.filterMatrixObj.empId = this.currentUser.empId;
+    this.resourceManagementService.getDepartmentsRbac(this.filterMatrixObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.departmentList = response.serviceResponse;
+        this.filteredDepartmentsMatrix = this.departmentList;
+        this.filteredCertificationDepartments = this.departmentList;
+      } else {
+        console.error(response.serviceResponse);
+      }
+      this.checkAllApiResponses();
+    });
+  }
+
+  openShowSkillMatrix() {
+    this.isSkillMatrix = true;
+    this.isProjectTable = false;
+    this.allProjectTable = false;
+    this.isCreateForm = false;
+    this.isCreation = false;
+    this.apiResponsesCount = 0;
+    this.getAllCertificatesRbac();
+    this.getAllPredefinedSkills();
+    this.getAllDepartmentsRbac();
+  }
+
+  applySearchFilter() {
+    this.getAllFilterBasedSearchEmployee();
+    this.getCountOfEmployeeFromSelectedDepartment();
+    this.getAllEmployyesNotInSearch();
+  }
+
+  checkAllApiResponses() {
+    this.apiResponsesCount++;
+    if (this.apiResponsesCount === 3) {
+      this.resetFilters();
+      this.apiResponsesCount = 0;
     }
-  ];
+  }
 
-  const chartData = [{
-    name: 'Expired TNM Projects',
-    data: data
-  }];
+  resetFilters() {
+    this.filtersSkillMatrix.certificateIds = [];
+    this.filtersSkillMatrix.skillIds = this.skillList?.map(s => s.skillId) || [];
+    this.filtersSkillMatrix.skillNames = this.skillList?.map(s => s.skillName) || [];
+    this.filtersSkillMatrix.deptIds = this.departmentList?.map(d => d.deptId) || [];
+    this.filtersSkillMatrix.certificateStatus = 'All';
+    this.filtersSkillMatrix.specialization = '';
+    this.isAllCertificatesSelected = false;
+    this.isAllDepartmentsSelected = true;
+    this.isAllCertificationDepartmentsSelected = false;
+    this.isAllSkillsSelected = true;
+    this.applySearchFilter();
+  }
 
-  this.renderColumnChart(
-    'Expired TNM Projects by Time Period',
-    'expiredTNMProjectChart',
-    chartData,
-    categories,
-    'Number of Projects'
-  );
-}
+  handleEmployeePageChange(event: number) {
+    this.employeeMatrixPageNo = event;
+    this.paginationConfig.currentPage = event;
+    this.getAllFilterBasedSearchEmployee();
+  }
 
-getfixedCostProjectGraph(){
-  const categories = ['Active', 'Defaulter', 'Delayed', 'On Time'];
-  const data = [
-    {
-      y: this.totalProjectCount,
-      color: '#5cb85c'
-    },
-    {
-      y: this.defaulterCount,
-      color: '#d9534f'
-    },
-    {
-      y: this.delayedCount,
-      color: '#f0ad4e'
-    },
-    {
-      y: this.ontTimeCount,
-      color: '#5bc0de'
+  getVisibleSkills(emp: any) {
+    return emp.skillsEmp.slice(emp.skillIndex, emp.skillIndex + this.skillsPerPage);
+  }
+
+  // Next
+  nextSkills(emp: any) {
+    if (emp.skillIndex + this.skillsPerPage < emp.skillsEmp.length) {
+      emp.skillIndex += this.skillsPerPage;
     }
-  ];
+  }
 
-  const chartData = [{
-    name: 'Fixed Cost Projects',
-    data: data
-  }];
+  // Prev
+  prevSkills(emp: any) {
+    if (emp.skillIndex - this.skillsPerPage >= 0) {
+      emp.skillIndex -= this.skillsPerPage;
+    } else {
+      emp.skillIndex = 0;
+    }
+  }
 
-  this.renderColumnChart(
-    'Fixed Cost Projects Overview',
-    'fixedCostProjectChart',
-    chartData,
-    categories
-    , 'Number of Projects'
-  );
-}
+  assignWings() {
+    this.employeeWings.clear();
+    this.employeesSkillMatrix.forEach(emp => {
+      const count = emp.skillsEmp.length;
+      if (count === this.topSkillCounts[0]) {
+        this.employeeWings.set(emp.email, this.wingImages[0]);
+      } else if (count === this.topSkillCounts[1]) {
+        this.employeeWings.set(emp.email, this.wingImages[1]);
+      } else if (count === this.topSkillCounts[2]) {
+        this.employeeWings.set(emp.email, this.wingImages[2]);
+      } else {
+        this.employeeWings.set(emp.email, null);
+      }
+    });
+  }
 
-  renderColumnChart(chartName: any, chartId: any, chartData: any, categories: any,yAxisTitle: string) {
+  getWingImage(emp: any): string | null {
+    return this.employeeWings.get(emp.email) || null;
+  }
+
+  getAllFilterBasedSearchEmployee() {
+    this.filtersSkillMatrix.page = this.employeeMatrixPageNo;
+    this.filtersSkillMatrix.size = this.employeeMatrixPageSize;
+    this.filtersSkillMatrix.export = false;
+    this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        const result = response.serviceResponse;
+        this.employeesSkillMatrix = result.content.map((emp: any) => ({
+          ...emp,
+          skillIndex: 0,
+          skillCount: emp.skillsEmp.length || 0
+        }));
+        this.filteredEmployeesSkillMatrix = this.employeesSkillMatrix;
+        this.paginationConfig.totalItems = result.totalElements;
+        this.paginationConfig.itemsPerPage = result.pageSize;
+        this.employeesSkillMatrix.forEach(emp => {
+          const exists = this.allEmployeeSkillSummary.some(e => e.email === emp.email);
+          if (!exists) {
+            this.allEmployeeSkillSummary.push({ email: emp.email, skillCount: emp.skillCount });
+          }
+        });
+        this.updateTopSkillCounts();
+        this.assignWings();
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  updateTopSkillCounts() {
+    const distinctCounts = [...new Set(this.allEmployeeSkillSummary.map(e => e.skillCount))];
+    distinctCounts.sort((a, b) => b - a);
+    this.topSkillCounts = distinctCounts.slice(0, 3);
+  }
+
+  getAllEmployyesNotInSearch() {
+    this.resourceManagementService.searchEnployeesNotInSearch(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeListNotInSearch = response.serviceResponse;
+        this.filteredEmployeeListNotInSearch = this.employeeListNotInSearch;
+        this.notInListLen = this.employeeListNotInSearch.length;
+        this.employeeListNotInSearch.forEach((emp: any) => {
+          const skillNames = emp.skillsEmp
+            ?.map((skill: any) => skill.skillName || skill.additionalSkill || '')
+            .filter((name: string) => name.trim() !== '')
+            .join(', ') || 'NA';
+
+          const certificateNames = emp.certificatesEmp
+            ?.map((cert: any) => cert.certificationName)
+            .filter((name: string) => name && name.trim() !== '')
+            .join(', ') || 'NA';
+
+          emp.skillNames = skillNames;
+          emp.certificateNames = certificateNames;
+        });
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  toggleMetricView(view: string): void {
+    this.activeMetricView = view
+  }
+
+  exportSkillsCertifications() {
+    this.filtersSkillMatrix.export = true;
+    this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix)
+      .pipe(first())
+      .subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          const allEmployees = response.serviceResponse.content;
+          const excelData = allEmployees.map(emp => {
+            const skillNames = emp.skillsEmp
+              ?.map(skill => skill.skillName || skill.additionalSkill || '')
+              .filter(name => name.trim() !== '')
+              .join(', ') || '';
+            const certificateNames = emp.certificatesEmp?.map(cert => cert.certificationName)?.join(', ') || '';
+
+            return {
+              "Employee ID": emp.employeementId,
+              "Employee Name": emp.employeeName,
+              "Department Name": emp.deptName,
+              "Job Role": emp.jobRole,
+              "Email": emp.email,
+              "Skills": skillNames,
+              "Certifications": certificateNames
+            };
+          });
+          this.exportExcelService.exportTableDataToExcel(excelData, this.name);
+        }
+      });
+  }
+
+  exportUnmatchedEmployees() {
+    const excelData = this.employeeListNotInSearch.map((emp: any) => {
+      return {
+        "Employee ID": emp.employeementId,
+        "Employee Name": emp.employeeName,
+        "Department Name": emp.deptName,
+        "Job Role": emp.jobRole,
+        "Email": emp.email,
+        "Skills": emp.skillNames,
+        "Certifications": emp.certificateNames
+      };
+    });
+    this.exportExcelService.exportTableDataToExcel(excelData, 'Unmatched_Employees.xlsx');
+  }
+
+  getProfileImage(imageBytes: string): SafeResourceUrl {
+    if (imageBytes) {
+      const objectURL = 'data:image/*;base64,' + imageBytes;
+      return this.sanitizer.bypassSecurityTrustResourceUrl(objectURL);
+    } else {
+      return this.defaultImagePath;
+    }
+  }
+
+  onImageError(event: any) {
+    event.target.src = this.defaultImagePath;
+  }
+
+  onSearchSE(searchData) {
+    this.SEfilters = searchData;
+    this.applySearchFilterNotInSearch();
+  }
+
+  applySearchFilterNotInSearch() {
+    if (!this.SEfilters || Object.keys(this.SEfilters).length === 0) {
+      this.filteredEmployeeListNotInSearch = this.employeeListNotInSearch;
+      return;
+    }
+
+    this.filteredEmployeeListNotInSearch = this.employeeListNotInSearch.filter(emp => {
+      return Object.entries(this.SEfilters).every(([key, value]) => {
+        if (!value) return true;
+        return emp[key]?.toString().toLowerCase().includes(value.toString().toLowerCase());
+      });
+    });
+  }
+
+  toggleSESearch() {
+    this.isSESearchEnabled = !this.isSESearchEnabled;
+    if (!this.isSESearchEnabled) {
+      this.SEfilters = {};
+    }
+  }
+
+  // Helpers Start
+  isValidString(string: any) {
+    return this.validationService.validateNullUndefinedEmptyStringTrim(string);
+  }
+
+  openAlertMessageModal(alertMessage: any) {
+    this.alertMessage = alertMessage;
+    this.alertMessageModalRef = this.modalService.open(this.alertMessageTemplateRef, { modalDialogClass: 'modal-sm' });
+  }
+
+  closeAlertMessageModal() {
+    if (this.alertMessageModalRef) {
+      this.alertMessageModalRef?.close();
+    }
+  }
+
+  renderColumnChart(chartName: any, chartId: any, chartData: any, categories: any, yAxisTitle: string) {
     Highcharts.chart(chartId, {
       chart: {
         type: 'column',
@@ -4382,2046 +1617,661 @@ getfixedCostProjectGraph(){
     });
   }
 
+  isValidNumber(value: any): boolean {
+		return typeof value === 'number' && !Number.isNaN(value);
+	}
 
-
-
-
-
-
-
-
-  async openEditModal(template, project) {
-    // console.log("Project ",project)
-    this.isEditProject = true;
-
-    this.allProjectTable = true;
-    this.isHideButton = true;
-
-    this.allTeamList = [];
-    this.selectedTeamsDetails = [];
-    this.projectObj = Object.assign({}, project);
-    this.GetAllResourceRequirementForProject(this.projectObj);
-    this.getAllDepartmentList1(project);
-    this.getTeamListByProjectName(project);
-    await this.getManagerList();
-    this.getEmployeeByNameAndEmpld();
-    this.activeModalTab = 'info';
-    // this.isModalFullscreen = false;
-
-    this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
-
-    const isStringId = this.filteredManagerList?.length > 0 && typeof this.filteredManagerList[0].empId === 'string';
-
-    if (this.projectObj.projectManagerId && this.projectObj.projectManagerId.length > 0) {
-        this.projectObj.projectManagerId = this.projectObj.projectManagerId.map(id =>
-            isStringId ? String(id) : Number(id)
-        );
+  get isValidEmployee(): boolean {
+    if (!this.selectedEmpId || !this.isValidNumber(this.selectedEmpId) || !this.filteredEmployees?.length) {
+      return false;
     }
-    else if (this.projectObj.projectManagers && this.projectObj.projectManagers.length > 0) {
-        this.projectObj.projectManagerId = this.projectObj.projectManagers.map(pm =>
-            isStringId ? String(pm.projectManagerId) : Number(pm.projectManagerId)
-        );
+
+    return this.filteredEmployees.some(
+      emp => emp.empId === this.selectedEmpId
+    );
+  }
+
+  private areArraysEqual(arr1: number[], arr2: number[]): boolean {
+    if (!arr1 || !arr2) {
+      return false;
     }
-    else if (this.projectObj.projectManager) {
-        this.projectObj.projectManagerId = (
-            this.projectObj.projectManager.includes(",")
-            ? this.projectObj.projectManager.split(",")
-            : [this.projectObj.projectManager]
-        )
-        .map((manager) => manager?.trim().toLowerCase())
-        .map((manager) => this.filteredManagerList.find((m) => m?.name?.toLowerCase() == manager)?.empId)
-        .filter((empId) => empId != undefined);
+    if (arr1?.length !== arr2?.length) {
+      return false;
+    }
+    for (let i = 0; i < arr1?.length; i++) {
+      if (arr1[i] !== arr2[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  setNewRmgDashboardFlag() {
+    this.filterStateService.isNewRmgDashboard =  this.isNewRmgDashboard;
+    this.ngOnInit();
+    let featureUsageLog = new FeatureUsageLog();
+    featureUsageLog.empId = this.currentUser.empId;
+    featureUsageLog.featureName = 'NEW RMG DASHBOARD';
+    featureUsageLog.logMessage = this.isNewRmgDashboard ? 'SWITCHED FROM OLD RMG DASHBOARD TO NEW RMG DASHBOARD' : 'SWITCHED FROM NEW RMG DASHBOARD TO OLD RMG DASHBOARD';
+    this.subFeatureService.saveFeatureUsageLog(featureUsageLog).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+        this.openAlertMessageModal(response.serviceResponse);
+      }
+    });
+  }
+  // Helpers End
+
+  // Project Timesheet Summary Modal Start
+  openProjectTimesheetSummaryModal(selectedEmpId: any) {
+    if (!selectedEmpId || selectedEmpId == undefined || selectedEmpId == null || !this.isValidNumber(selectedEmpId)) {
+      this.openAlertMessageModal("Kindly Select a Valid Employee!!");
+      return;
+    }
+    if (!this.filteredEmployees.some(emp => emp.empId === selectedEmpId)) {
+      this.openAlertMessageModal("Kindly Select a Valid Employee!!");
+      return;
+    }
+    this.selectedEmpId = selectedEmpId;
+    this.getProjectTimesheetSummaryData();
+    this.projectTimesheetSummaryModalRef = this.modalService.open(this.projectTimesheetSummaryTemplateRef, { modalDialogClass: 'modal-lg' });
+  }
+
+  closeProjectTimesheetSummaryModal() {
+    if (this.projectTimesheetSummaryModalRef) {
+      this.projectTimesheetSummaryModalRef?.close();
     }
   }
 
-  async openTeamMembersModal(template: any, projectObj, currentTeam) {
-    this.teamMemberCtrl.reset();
-    this.selectedMembers = [];
-    this.hasSelectedMembers = false;
-    this.selectedTeamEntries = [];
-    // this.teamObj.allTeamMemberList = [];
-    this.getAllMembers()?.forEach(m => {
-       if (m.selected) {
-        m.selected = false;
-    }});
-
-    this.modalRefTeamMember = this.modalService.open(template, { modalDialogClass: 'custom-modal' });
-    this.currentPoProjectType = projectObj.poProjectType;
-    console.log("The project object is",projectObj);
-    console.log("Project object id is ",projectObj.id);
-    if (projectObj.id && projectObj.poProjectType.toUpperCase() =='TNM') {
-      // this.getResourceRequirementByPoProjectId(projectObj.id);
-     await this.getResourceRequirementByPoProjectId(projectObj.id,projectObj.poProjectType,1);
-     let totalRequirement = this.projectRequirementsList.totalRequirements;
-     await this.getProjectAssignedDataByProjectIdfunc(projectObj.id,1,totalRequirement);
+  getProjectTimesheetSummaryData() {
+    if (!this.selectedEmpId) {
+      this.openAlertMessageModal("Cannot fetch summary. User information is missing.");
+      if (this.projectTimesheetSummaryModalRef) {
+        document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Could not load data: User not identified.</p>';
+      }
+      return;
     }
-    else{
-      await this.getResourceRequirementByPoProjectId(projectObj.projectId,projectObj.poProjectType,0);
-    //  await this.getProjectAssignedDataByProjectIdfunc(projectObj.projectId,0,0);
-
-    }
-    console.log("Current resource overview id",this.resourceOverViewIdList);
-    await this.GetAllResourceRequirementForProject1(projectObj);
-    console.log("ProjectObject requirement list",this.projectObj.resourceRequirements);
-    projectObj.resourceRequirements.forEach(requirement => {
-      requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
-      requirement.assigned = requirement.teamMembers.length;
-    });
-
-    if (projectObj.resourceRequirements != null && projectObj.resourceRequirements.length != 0) {
-      this.projectObj.resourceRequirements.forEach(req => {
-        const assignedCount = this.teamObj.allTeamMemberList?.filter(member => member.resourceOverviewId === req.resourceOverviewId).length || 0;
-        req.assigned = assignedCount;
-      });
-    }
-
-
-    this.allTeamMembers = [];
-    this.teamObj.teamLeadId = '';
-    this.newteamMember.empId = '';
-    this.newteamMember.employeeRole = null;
-    // this.newteamMember.departmentId = null;
-    this.newteamMember.name = null;
-
-    // this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
-    // this.getAllEmployeesByRole(currentTeam.departmentList);
-    console.log("this.copyDepartment ", this.copyDepartment);
-    // this.getAllEmployeesByDepartmentIds(this.copyDepartment);
-
-     const deptIdList = currentTeam.departmentList.map((id: number) => ({
-           deptId: id
-      }));
-    this.getAllEmployeesByDepartmentIds(deptIdList);
-    this.getAllEmployeesByRole(this.copyDepartment);
-    this.allTeamList?.forEach((team: any) => {
-      if (team.teamName == currentTeam.teamName) {
-        let teamLeadObj = team.teamMemberList?.filter(x => x.isTeamLead == true || x.isTeamLead == "true");
-        if (teamLeadObj) {
-          this.teamObj.teamLeadId = teamLeadObj[0]?.empId;
-        }
-        //console.log(teamLeadObj, " :teamLeadObj");
-        console.log(team, " : this.teamObj.teamLeadId");
-
-        console.log("team.teammemberListj ", team.allTeamMemberList);
-
-        this.teamObj.allTeamMemberList = team.teamMemberList?.filter(x => x.isTeamLead != true);
-        this.teamObj.teamId = team.teamId;
-        if ((this.teamObj.allTeamMemberList != undefined || this.teamObj.allTeamMemberList != null) && this.teamObj.allTeamMemberList.length != 0) {
-          this.isUpdation = true;
+    const resourceManagementDTO = { empId: this.selectedEmpId };
+    this.resourceManagementService.getProjectTimesheetSummary(resourceManagementDTO).pipe(first()).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.projectSummaryData = response.serviceResponse;
+          if (this.projectSummaryData && this.projectSummaryData.length > 0) {
+            this.processProjectSummaryData(this.projectSummaryData);
+          } else {
+            document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center">No timesheet summary data found for your projects.</p>';
+          }
         } else {
-          this.isUpdation = false;
+          // this.openAlertMod(this.alertTemplate, "Failed to load project summary data.");
+          console.error(response.serviceResponse);
+          document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Error:No timesheets filled till date</p>';
         }
+      },
+      error: (err) => {
+        console.error(err);
+        this.openAlertMessageModal("An error occurred while fetching summary data.");
+        document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">A server error occurred. Please try again later.</p>';
       }
     });
-    //console.log(this.teamObj.allTeamMemberList, " allTeamMemberList");
-
-    this.currentTeam = currentTeam;
-    this.expandedIndex = false;
   }
 
+  processProjectSummaryData(summaryData: any[]) {
+    const categories = [];
+    const seriesData = [];
+    const sortedData = summaryData
+      .sort((a, b) => b.totalTimesheetsFilled - a.totalTimesheetsFilled).slice(0, 20);
 
-  EmployessIds: number[] = [];
-  activeProjects: number[] = [];
-  currentProjectDetails: any;
-  openDatePicker(template: TemplateRef<any>, template1: TemplateRef<any>, project: any, template2: TemplateRef<any>) {
-    this.isBulkDelete = false;
-    this.isBulkDeleteResource = false;
-    this.isBulkDeleteResourceFromTNMProjects = false;
-    this.currentProjectDetails = project.projectId;
-    const today = new Date();
-    this.selectedDate = today.toISOString().split('T')[0];
-    this.completedProjectDetails = project;
-    console.log("projectid", this.completedProjectDetails);
-    this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.projectObj.teamList = response.serviceResponse;
-        console.log(this.projectObj, "projectofthisteam");
-
-        this.projectCompletionDate = this.projectObj.poEndDate ? moment(this.projectObj.poEndDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
-        console.log(this.projectCompletionDate, " this.projectObj.endDtae");
-        this.projectObj.teamList.forEach((obj) => {
-          obj.departmentList = obj.departmentList?.map(x => +x);
-          this.copyDepartment = obj.departmentList;
-
-          if (obj.teamMemberList) {
-            obj.teamMemberList.forEach((member) => {
-              if (member) { // Check if member is not null
-                // Format the startDate if it exists, otherwise set it to null
-                member.startDate = member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
-                member.emp360 = member.empId;
-                member.shadowControl = new FormControl(member.shadow || null);
-              }
-            });
-          } else {
-            console.warn('teamMemberList is null or undefined');
-          }
-        });
-        //console.log(this.projectObj.teamList, " this.projectObj.teamList");
-        this.previewTeamList = this.projectObj.teamList;
-
-        //console.log(" length of previewTeamList  ",this.previewTeamList.length);
-        //Project Team List
-        if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
-          this.addInputTeamField();
-        } else {
-          //console.log(" find error in else part ")
-          this.allTeamList = this.projectObj.teamList;
-          // this.allTeamListCopy = this.projectObj.teamList;
-          const empIds: number[] = this.allTeamList.reduce((acc: number[], team: any) => {
-            const members = Array.isArray(team.teamMemberList) ? team.teamMemberList : [];
-
-            members.forEach(member => {
-              if (
-                Array.isArray(member.otherActiveProjects) &&
-                member.otherActiveProjects.length === 0 &&
-                member.isDefaultProject === 1
-              ) {
-                acc.push(member.empId);
-              }
-            });
-
-            return acc;
-          }, []);
-
-          const empIdsHavingActiveProjects: number[] = this.allTeamList.reduce((acc: number[], team: any) => {
-            const members = Array.isArray(team.teamMemberList) ? team.teamMemberList : [];
-
-            members.forEach(member => {
-              if (
-                Array.isArray(member.otherActiveProjects) &&
-                member.otherActiveProjects.length !== 0 &&
-                member.isDefaultProject === 1
-              ) {
-                acc.push(member.empId);
-              }
-            });
-
-            return acc;
-          }, []);
-          this.activeProjects = empIdsHavingActiveProjects;
-          this.EmployessIds = empIds;
-          if (empIds.length !== 0 && empIdsHavingActiveProjects.length !== 0) {
-            this.getEmployeeInformationBulk(empIds);
-            this.modalRef4 = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
-            this.setDefaultProjectObj.empIds = empIdsHavingActiveProjects;
-            this.setDefaultProjectObj.projectId = project.projectId;
-            this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-            this.modalRef = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
-
-          } else if (empIds.length !== 0 && empIdsHavingActiveProjects.length === 0) {
-
-            this.getEmployeeInformationBulk(empIds);
-            this.modalRef4 = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
-          } else if (empIds.length === 0 && empIdsHavingActiveProjects.length !== 0) {
-            this.setDefaultProjectObj.empIds = empIdsHavingActiveProjects;
-            this.setDefaultProjectObj.projectId = project.projectId;
-            this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-            this.modalRef = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
-          } else {
-            this.modalRef5 = this.modalService.open(template2, { modalDialogClass: 'modal-sm' });
-          }
-          console.error("test", empIdsHavingActiveProjects, empIds);
-          // this.modalRef4 = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
-          this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
-        }
-
-      } else {
-        console.error(response.serviceResponse);
-
-        //Project Team List
-        if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
-          this.addInputTeamField();
-          this.completedProjectDetails.projectCompletionDate = new Date().toISOString().split('T')[0];
-        this.completedProjectDetails.projectStatus = 'Completed';
-        this.completedProjectDetails.updatedBy = this.currentUser.empId;
-
-        if (!this.completedProjectDetails.projectCompletionDate) {
-          this.alertMessage = "Please Select Completion Date!!"
-          this.openAlertMod(template, this.alertMessage);
-          return;
-        }
-
-        try {
-
-        if (this.completedProjectDetails.poProjectType == null) {
-          this.completedProjectDetails.projectType = "Internal";
-        } else {
-          this.completedProjectDetails.projectType = this.completedProjectDetails.poProjectType;
-        }
-
-        this.resourceManagementService.completionDateOfProject(this.completedProjectDetails).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.selectedDate = '';
-            this.closeModal1();
-            console.log('Selected Date:', response.serviceResponse);
-            this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
-          } else {
-            this.selectedDate = '';
-            this.modalRef5.close();
-            this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
-          }
-        });
-      } catch (error: unknown) {
-        console.error('Unexpected error in try/catch:', error);
-      }
-        } else {
-          this.allTeamList = this.projectObj.teamList;
-          this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
-        }
-      }
+    sortedData.forEach(item => {
+      categories.push(item.projectName);
+      seriesData.push(item.totalTimesheetsFilled);
     });
+
+    const chartData = [{
+      name: 'Timesheets Filled',
+      data: seriesData,
+      color: '#0275d8' // A bootstrap primary-like color
+    }];
+
+    this.renderColumnChart(
+      'Top 20 Projects by Timesheets Filled',
+      'projectTimesheetSummaryChart',
+      chartData,
+      categories
+      , 'Number of Timesheets Filled'
+    );
+  }
+  // Project Timesheet Summary Modal End
+
+  // Internal Project Start
+  filterDepartments(deptObj?: any) {
+    if (deptObj) { this.departments = deptObj }
+    const lowerText = this.searchTextDept.toLowerCase();
+    this.filteredDepartments = this.departments.filter(dept =>
+      dept.name.toLowerCase().includes(lowerText)
+    );
+  }
+
+  showCreateInternalProjectForm() {
+    this.isCreateForm = true;
+    this.isCreation = true;
+    this.isSkillMatrix = false;
+    this.isProjectTable = false;
+    this.allProjectTable = false;
+    this.isUpdateForm = false;
+    this.projectObj = new Project();
+    this.getAllDepartmentListForCreateProject();
     this.getManagerList();
-
-
-
-    //     const empIds: number[] = this.allTeamList.reduce((acc: number[], team: any) => {
-    //       const members = Array.isArray(team.teamMemberList) ? team.teamMemberList : [];
-
-    //       members.forEach(member => {
-    //         if (
-    //           Array.isArray(member.otherActiveProjects) &&
-    //           member.otherActiveProjects.length === 0 &&
-    //           member.isDefaultProject === 1
-    //         ) {
-    //           acc.push(member.empId);
-    //         }
-    //       });
-
-    //       return acc;
-    //     }, []);
-
-
-
-    //     const empIdsHavingActiveProjects: number[] = this.allTeamList.reduce((acc: number[], team: any) => {
-    //       const members = Array.isArray(team.teamMemberList) ? team.teamMemberList : [];
-
-    //       members.forEach(member => {
-    //         if (
-    //           Array.isArray(member.otherActiveProjects) &&
-    //           member.otherActiveProjects.length !== 0 &&
-    //           member.isDefaultProject === 1
-    //         ) {
-    //           acc.push(member.empId);
-    //         }
-    //       });
-
-    //       return acc;
-    //     }, []);
-    // let firstModalRef, secondModalRef;
-    //     if(empIds.length !==0 && empIdsHavingActiveProjects.length !==0){
-    //       this.modalRef4 = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
-
-    //     this.modalRef = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
-
-    //     }else if(empIds.length !==0 && empIdsHavingActiveProjects.length ===0 ){
-    //       this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
-    //     }else{
-    //        this.modalRef = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
-    //     }
-
-    this.getProjectDetailsForBulkDefaultUpdate();
+    this.getAllClientList();
+    this.projectObj.clientId = '';
   }
 
-  submitDate(template: TemplateRef<any>) {
+  openCreateInternalProjectConfirmationModal() {
+    this.createInternalProjectConfirmationModalRef = this.modalService.open(this.createInternalProjectConfirmationTemplateRef, { modalDialogClass: 'modal-sm' });
+  }
 
+  closeCreateInternalProjectConfirmationModal() {
+    if (this.createInternalProjectConfirmationModalRef) {
+      this.createInternalProjectConfirmationModalRef?.close();
+    }
+  }
 
-    this.completedProjectDetails.projectCompletionDate = this.selectedDate;
+  checkProjectName(template: TemplateRef<any>) {
+    let projectObj = new Project();
+    projectObj.projectName = this.projectObj.projectName?.trim();
+
+    if (projectObj.projectName.length >= 5) {
+      if (!this.validationService.validateProjectName(projectObj.projectName)) {
+        this.projectObj.projectName = '';
+        this.openAlertMessageModal("Please enter valid Project Name !!");
+        return false;
+      }
+    } else {
+      this.projectObj.projectName = '';
+      this.openAlertMessageModal("Please enter more than 4 letters in Project Name !!");
+      return false;
+    }
+    this.projectService.checkProjectName(projectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Fail") {
+        this.projectObj.projectName = '';
+        this.openAlertMessageModal(response.serviceResponse);
+      }
+    })
+  }
+
+  validateCreateProjectObj(projectObj: Project, template: TemplateRef<any>) {
+    if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.projectName)) {
+      this.openAlertMessageModal("Please enter Project name !!");
+      return false;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.departmentList)) {
+      this.openAlertMessageModal( "Please select department !!");
+      return false;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.state)) {
+      this.openAlertMessageModal("Please select state !!");
+      return false;
+    }
+    return true;
+  }
+
+  createProject(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateCreateProjectObj(this.projectObj, template)
+    if (!inputValidated) {
+      return;
+    }
+    this.projectObj.projectName = this.projectObj.projectName?.trim();
+    this.projectObj.createdBy = this.currentUser.empId;
+    this.projectService.createProject(this.projectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMessageModal(response.serviceResponse);
+        this.showViewProjects();
+      } else {
+        this.openAlertMessageModal(response.serviceResponse);
+      }
+    });
+  }
+  // Internal Project End
+
+  // Project Completion Start
+  initiateProjectCompletion(project: any) {
+    this.selectedDate = null;
+    this.projectCompletionObj = project;
+    this.markProjectCompletionConfig = true;
+    this.isAllProjects = this.isValidString(this.projectFilterDTO.approvalStatus) && this.projectFilterDTO.approvalStatus?.toLowerCase() === 'all';
+    forkJoin({
+      managers: this.getManagerAndOverheadList(),
+      departments: this.getAllDepartmentsList(),
+      employees: this.getEmployeeNameAndEmpld(),
+      projectConfig: this.getProjectConfigurationDetailsByProjectId(project)
+    }).subscribe(result => {
+      if (this.rmgProjectObj) {
+        this.rmgProjectComponent.validateProjectForCompletion(project.projectId);
+      } else {
+          this.openAlertMessageModal("Unable to mark the project as complete at the moment. Please contact the administrator!!");
+      }
+    });
+  }
+
+  openProjectCompletionDatePickerModal() {
+    this.projectCompletionDatePickerModalRef = this.modalService.open(this.projectCompletionDatePickerTemplateRef, { modalDialogClass: 'modal-sm' });
+  }
+
+  closeProjectCompletionDatePickerModal() {
+    if (this.projectCompletionDatePickerModalRef) {
+      this.projectCompletionDatePickerModalRef?.close();
+    }
+  }
+
+  openProjectCompletionConfirmationModal() {
+    this.projectCompletionConfirmationModalRef = this.modalService.open(this.projectCompletionConfirmationTemplateRef, { modalDialogClass: 'modal-sm' });
+  }
+
+  closeProjectCompletionConfirmationModal() {
+    if (this.projectCompletionConfirmationModalRef) {
+      this.projectCompletionConfirmationModalRef?.close();
+    }
+  }
+
+  confirmMarkProjectAsComplete() {
+    if (!this.selectedDate || this.selectedDate == undefined || this.selectedDate == null) {
+      this.openAlertMessageModal('Kindly provide Project completion Date!!');
+      return;
+    }
+
+    let projectObj: Project = new Project();
+    projectObj.projectStatus = "Completed";
+    projectObj.projectType = this.projectCompletionObj.projectType;
+    projectObj.projectId = this.projectCompletionObj.projectId;
+    projectObj.projectCompletionDate = moment(this.selectedDate).format('YYYY-MM-DD');
+    projectObj.updatedBy = this.currentUser.empId;
+    this.resourceManagementService.completionDateOfProject(projectObj).pipe(first()).subscribe(
+      (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.closeProjectCompletionDatePickerModal();
+          this.openAlertMessageModal(response.serviceResponse);
+          if (this.rmgStatusCardsComponent) {
+            this.rmgStatusCardsComponent.onDepartmentSelectionChange(this.selectedDepartmentIds);
+          }
+          if (this.rmgDashboardComponent) {
+            this.rmgDashboardComponent?.ngOnInit();
+          }
+        } else {
+          this.openAlertMessageModal(response.serviceResponse);
+        }
+      },
+      (error) => {
+        this.openAlertMessageModal("Something went wrong while marking the Project as complete.");
+      }
+    );
+  }
+
+  submitProjectCompletionDate() {
     this.completedProjectDetails.projectStatus = 'Completed';
+    this.completedProjectDetails.projectCompletionDate = moment(this.selectedDate).format('YYYY-MM-DD');
     this.completedProjectDetails.updatedBy = this.currentUser.empId;
 
     if (!this.completedProjectDetails.projectCompletionDate) {
-      this.alertMessage = "Please Select Completion Date!!"
-      this.openAlertMod(template, this.alertMessage);
+      this.openAlertMessageModal("Please Select Completion Date!!");
       return;
     }
-    if (
-      this.EmployessIds.length === 0 && this.activeProjects.length === 0
-    ) {
-
-      this.allTeamList.forEach(teamObj => {
-        teamObj.endDate = this.selectedDate;
-      });
-      console.log("insidde", this.completedProjectDetails, this.selectedDate, this.allTeamList);
-      try {
-
-        if (this.completedProjectDetails.poProjectType == null) {
-          this.completedProjectDetails.projectType = "Internal";
-        } else {
-          this.completedProjectDetails.projectType = this.completedProjectDetails.poProjectType;
-        }
-
-        this.resourceManagementService.completionDateOfProject(this.completedProjectDetails).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.selectedDate = '';
-            this.closeModal1();
-            console.log('Selected Date:', response.serviceResponse);
-            // this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
-             this.alertMessage = response.serviceResponse;
-            // this.alert_message_without_reloadModalRef = this.modalService.open(this.alert_message_without_reloadTemplate, { modalDialogClass: 'modal-md' });
-            this.openAlertMessageMarkAsCompleteTemp(this.alertMessage);
-            this.isCompletionSuccess = true;
-          } else {
-            this.selectedDate = '';
-            this.modalRef5.close();
-            this.alertMessage = response.serviceResponse;
-            // this.alert_message_without_reloadModalRef = this.modalService.open(this.alert_message_without_reloadTemplate, { modalDialogClass: 'modal-md' });
-            this.openAlertMessageMarkAsCompleteTemp(this.alertMessage);
-            this.isCompletionSuccess = false;
-          }
-        });
-
-        this.projectService.deleteTeamsByIdsBulk(this.selectedTeamsDetails).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus === "Success") {
-            const deletedIds = this.selectedTeamsDetails.map(team => team.teamId);
-            this.allTeamList = this.allTeamList.filter(team => !deletedIds.includes(team.teamId));
-            this.selectedTeamsDetails = [];
-            this.allTeamList.forEach(team => team.selected = false);
-            this.selectAll = false;
-            this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
-            this.copyDepartment = [];
-            if (!this.allTeamList || this.allTeamList.length === 0) {
-              this.addInputTeamField();
-            }
-            console.log("Selected teams cleared: ", this.selectedTeamsDetails);
-
-            // this.openAlertMod(template, response.serviceResponse);
-
-          } else {
-            // this.openAlertMod(template, response.serviceResponse);
-          }
-        });
-
-      } catch (error: unknown) {
-        console.error('Unexpected error in try/catch:', error);
-      }
-
-    }
-
-
-  }
-
-  closeModal1() {
-    this.selectedDate = '';
-    this.modalRef5.close();
-  }
-  closeModal() {
-    this.modalRef?.close();
-  }
-  // getResourceRequirementByPoProjectId(id) {
-  //   this.loadingRequirements = true;
-  //   this.resourceManagementService.getResourceRequirementByPoProjectId(id).pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus == "Success") {
-  //       this.projectRequirementsList = response.serviceResponse.resourceRequirements;
-  //       this.projectObj.resourceRequirements=response.serviceResponse.resourceRequirementList;
-  //       this.loadingRequirements = false;
-  //     } else {
-  //       console.error("Error fetching project requirement list");
-  //       this.loadingRequirements = false;
-  //     }
-  //   });
-  // }
-
-  resourceOverViewIdList = [];
-  infoTitle:String="Total number of requirements";
- async getResourceRequirementByPoProjectId(id, type,flagForPOProject) {
-  this.infoTitle = "Total number of requirements";
-   this.loadingRequirements = true;
-    console.log("getResourceRequirementByPoProjectId called")
-    this.projectRequirementsList =  new ProjectRequirements();
-    this.projectObj.resourceRequirements=[];
-
-    try{
-      const response:any  = await this.resourceManagementService.getResourceRequirementByPoProjectId(id,type).pipe(first()).toPromise();
-
-    // this.resourceManagementService.getResourceRequirementByPoProjectId(id,type).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.projectRequirementsList = response.serviceResponse.resourceRequirements;
-        this.projectObj.resourceRequirements=response.serviceResponse.resourceRequirementList;
-        console.log("Project requirement list",this.projectRequirementsList);
-        console.log("Project resourceRequirements list",this.projectObj.resourceRequirements);
-        this.projectObj.resourceRequirements.map(item=>{
-          this.resourceOverViewIdList.push(item.resourceOverviewId);
-        })
-        console.log("resourceOverviewIdList",this.resourceOverViewIdList);
-        this.loadingRequirements = false;
+    try {
+      if (this.completedProjectDetails.poProjectType == null) {
+        this.completedProjectDetails.projectType = "Internal";
       } else {
-        console.error("Error fetching project requirement list");
-        this.loadingRequirements = false;
-        if(flagForPOProject){
-          // this.poResourceRequirementAlert("Unable to fetch resource requirement from Shankh!");
-          this.infoTitle="Unable to fetch resource requirement from Shankh!";
-        }else{
-          // this.poResourceRequirementAlert("Unable to fetch Resource requirement");
-          this.infoTitle ="Unable to fetch Resource requirement";
+        this.completedProjectDetails.projectType = this.completedProjectDetails.poProjectType;
+      }
+
+      this.resourceManagementService.completionDateOfProject(this.completedProjectDetails).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.selectedDate = '';
+          this.isCompletionSuccess = true;
+          this.openProjectCompletionDatePickerModal();
+          this.openAlertMessageModal(response.serviceResponse);
+        } else {
+          this.selectedDate = '';
+          this.isCompletionSuccess = false;
+          this.openAlertMessageModal(response.serviceResponse);
         }
-      }
-    // });
-    }catch(error){
-      console.log(error);
-      this.poResourceRequirementAlert(error.message);
-      this.loadingRequirements = true;
+      });
 
+      this.projectService.deleteTeamsByIdsBulk(this.selectedTeamsDetails).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          const deletedIds = this.selectedTeamsDetails.map(team => team.teamId);
+          this.allTeamList = this.allTeamList.filter(team => !deletedIds.includes(team.teamId));
+          this.selectedTeamsDetails = [];
+          this.allTeamList.forEach(team => team.selected = false);
+          this.selectAll = false;
+          this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
+          this.copyDepartment = [];
+        } else {
+        }
+      });
+    } catch (error: unknown) {
+      console.error('Unexpected error in try/catch:', error);
+    }
+  }
+  // Project Completion End
+
+  // Restore Project Start 
+  openRestoreProjectModal(projectId: any) {
+    this.selectedProjectId = projectId;
+    this.restoreProjectModalRef = this.modalService.open(this.restoreProjectTemplateRef, { modalDialogClass: 'modal-sm' });
+  }
+
+  closeRestoreProjectModal() {
+    if (this.restoreProjectModalRef) {
+      this.restoreProjectModalRef?.close();
     }
   }
 
-  removeShadowResource(member: any, index: number) {
-    member.shadowResources.splice(index, 1);
-  }
-
-  onResourceSelected(event: any, member) {
-    const selectedName = event.option.value;
-    const selectedEmp = this.employeeList.find(emp => emp.name === selectedName);
-    if (selectedEmp) {
-      this.selectedEmpId = selectedEmp.empId;
-      console.log('Selected Employee ID:', this.selectedEmpId);
-    }
-    member.shadow = selectedName;
-    member.shadowControl.setValue(selectedName);
-  }
-
-  onTeamMemberSelected(event: any): void {
-    const selectedEmployee =event?.option?.value || event?.value || event;
-    this.newteamMember = { ...selectedEmployee };
-    this.newteamMember.empId = selectedEmployee.empId;
-    this.newteamMember.name = selectedEmployee.name;
-  }
-
-  // filterDepartmentsTeamForm() {
-  //   const lowerText = this.searchTextDeptTeam.trim().toLowerCase();
-
-  //   const filtered = this.departmentsList.filter(dept =>
-  //     dept.name.toLowerCase().includes(lowerText)
-  //   );
-
-  //   const selected = this.departmentsList.filter(dept =>
-  //     this.teamObj.departmentList?.includes(dept.deptId)
-  //   );
-  //   const selectedSet = new Set(filtered.map(dept => dept.deptId));
-  //   const merged = [...filtered];
-
-  //   selected.forEach(dept => {
-  //     if (!selectedSet.has(dept.deptId)) {
-  //       merged.push(dept);
-  //     }
-  //   });
-
-  //   this.filteredDepartmentsTeam = merged;
-  // }
-  filterDepartmentsTeamForm(departmentsListObj?:any) {
-    if(departmentsListObj){this.departmentsList=departmentsListObj}
-    const lowerText = this.searchTextDeptTeam.trim().toLowerCase();
-
-    const filtered = this.departmentsList.filter(dept =>
-      dept.name.toLowerCase().includes(lowerText)
-    );
-
-    const selected = this.departmentsList.filter(dept =>
-      this.teamObj.departmentList?.includes(dept.deptId)
-    );
-
-    const selectedSet = new Set(filtered.map(dept => dept.deptId));
-    const merged = [...filtered];
-
-    selected.forEach(dept => {
-      if (!selectedSet.has(dept.deptId)) {
-        merged.push(dept);
+  restorePreviousStateOfProject(projectId: any) {
+    this.closeRestoreProjectModal();
+    this.restoreProjectPayload.projectId = projectId;
+    this.restoreProjectPayload.currentUserEmpId = this.currentUser.empId;
+    this.resourceManagementService.restorePreviousStateOfProject(this.restoreProjectPayload).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.isRestoreSuccess = true;
+        this.openAlertMessageModal(response.serviceResponse);
+      } else {
+        this.isRestoreSuccess = false;
+        this.openAlertMessageModal(response.serviceResponse);
       }
+    }, (error: any) => {
+      this.loaderService.requestEnded();
+      this.isRestoreSuccess = false;
+      this.openAlertMessageModal(error.message);
     });
+  }
+  // Restore Project End
 
-    this.filteredDepartmentsTeam = merged;
+  // Approve & Reject Project Start
+  onApproveProject(project: any) {
+    project.empId = this.currentUser.empId;
+    if (project.poProjectType != null) {
+      project.projectType = project.poProjectType;
+      project.isDraftProject = "false";
+    } else {
+      project.projectType = "Internal";
+    }
 
-    // Update select all state after filtering
-    // if (!this.teamObj.departmentList || this.teamObj.departmentList.length === 0) {
-    //     this.isAllDeptSelected = false;
-    // } else if (this.filteredDepartmentsTeam.length > 0) {
-    //     const allFilteredSelected = this.filteredDepartmentsTeam.every(dept =>
-    //         this.teamObj.departmentList.includes(dept.deptId)
-    //     );
-    //     this.isAllDeptSelected = allFilteredSelected;
+    this.resourceManagementService.approvePendingProject(project).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMessageModal(response.serviceResponse);
+        this.showViewProjects();
+      } else {
+        this.openAlertMessageModal(response.serviceResponse || 'Something went wrong');
+      }
+      console.log("APPROVE BUTTON :   ",response);
+    });
+  }
+
+  onRejectProject() {
+    let projObj = this.selectedProjToReject;
+    projObj.empId = this.currentUser.empId;
+    projObj.rejectReason = this.projectRejectionReason;
+    // if (this.selectedProjToReject.poProjectType != null) {
+    //   project.projectType = this.selectedProjToReject.poProjectType;
     // } else {
-    //     this.isAllDeptSelected = false;
+    //   project.projectType = "Internal";
     // }
-  }
 
-toggleSelectAllTeams(event: any, teamObj: any) {
-  if (!event.isUserInput || !event.source.selected) {
-    return;
-  }
-
-  const allDeptIds = this.filteredDepartmentsTeam.map(dept => dept.deptId);
-
-  if (teamObj.departmentList?.length === allDeptIds.length) {
-    teamObj.departmentList = [];
-  } else {
-    teamObj.departmentList = [...allDeptIds];
-  }
-  event.source.deselect();
-}
-
-
-
-
-  clearSelectionDept(event: Event) {
-    event.stopPropagation();
-    this.teamObj.departmentList = [];
-    this.isAllDeptSelected = false;
-  }
-
-  onSpocSelected(event: any) {
-    const selectedSpoc = event.option.value;
-  }
-
-  displaySPOC(emp: any): string {
-    console.log("emp", emp)
-    return emp ? `${emp.name}` : '';
-  }
-
-  filterManagers(projectManagerId?:any) {
-    if(projectManagerId){this.projectObj.projectManagerId=projectManagerId}
-    const lowerText = this.searchManagerText.trim().toLowerCase();
-
-    const filtered = this.managerList.filter(manager =>
-      manager.name.toLowerCase().includes(lowerText)
-    );
-
-    const selectedManagers = this.managerList.filter(manager =>
-      this.projectObj.projectManagerId?.includes(manager.empId)
-    );
-
-    const selectedSet = new Set(filtered.map(emp => emp.empId));
-    const merged = [...filtered];
-
-    selectedManagers.forEach(manager => {
-      if (!selectedSet.has(manager.empId)) {
-        merged.push(manager);
-      }
-    });
-
-    this.filteredManagerList = merged;
-  }
-
-  toggleSelectAllManagers(): void {
-    if (this.isAllManagersSelected) {
-      this.projectObj.projectManagerId = [];
-      this.isAllManagersSelected = false;
-    } else {
-      this.projectObj.projectManagerId = this.filteredManagerList.map(emp => emp.empId);
-      this.isAllManagersSelected = true;
-      console.log("Selected Managers: ", this.projectObj.projectManagerId);
-    }
-  }
-
-  clearManagerSelection(event: Event): void {
-    event.stopPropagation();
-    this.projectObj.projectManagerId = [];
-    this.isAllManagersSelected = false;
-  }
-
-  onManagerSelectionChange(selectedManagers: string[]): void {
-    this.isAllManagersSelected = selectedManagers.length === this.filteredManagerList.length;
-  }
-
-  filterOverhead(overhead:any) {
-    this.projectObj.projectOverheadId = overhead;
-    const lowerText = this.searchOverheadText.trim().toLowerCase();
-
-    const filtered = this.overheadList.filter(overhead =>
-      overhead.name.toLowerCase().includes(lowerText)
-    );
-
-    const selectedOverheads = this.overheadList.filter(overhead =>
-      this.projectObj.projectOverheadId?.includes(overhead.empId)
-    );
-
-    const selectedSet = new Set(filtered.map(emp => emp.empId));
-    const merged = [...filtered];
-
-    selectedOverheads.forEach(overhead => {
-      if (!selectedSet.has(overhead.empId)) {
-        merged.push(overhead);
-      }
-    });
-
-    this.filteredOverheadList = merged;
-  }
-
-  toggleSelectAllOverhead(): void {
-    if (this.isAllOverheadsSelected) {
-      this.projectObj.projectOverheadId = [];
-      this.isAllOverheadsSelected = false;
-    } else {
-      this.projectObj.projectOverheadId = this.filteredOverheadList.map(emp => emp.empId);
-      this.isAllOverheadsSelected = true;
-    }
-  }
-
-  clearOverheadSelection(event: Event): void {
-    event.stopPropagation();
-    this.projectObj.projectOverheadId = [];
-    this.isAllOverheadsSelected = false;
-  }
-
-  onOverheadSelectionChange(selectedOverheads: string[]): void {
-    this.isAllOverheadsSelected = selectedOverheads.length === this.filteredOverheadList.length;
-  }
-
-  getTeamMembersForRequirement(resourceOverviewId: number): any[] {
-    return this.allTeamMembers?.filter(member => member.resourceOverviewId === resourceOverviewId) || [];
-  }
-
-  hasNoTeamMembersFor(requirementId: number): boolean {
-    return !this.teamObj.allTeamMemberList?.some(
-      member => member.resourceOverviewId === requirementId
-    );
-  }
-
-  // openModal(template,empId) {
-  //   this.getEmployeeInformation(empId);
-  //   this.modalRef2 = this.modalService.open(template, { modalDialogClass: 'custom-modal' });
-  // }
-
-  getEmployeeInformation(empId) {
-    this.resourceManagementService.getEmployeeInformation(empId).pipe(first()).subscribe((response: any) => {
+    this.resourceManagementService.rejectPendingProject(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.employeeInformation = response.serviceResponse;
+        this.openAlertMessageModal(response.serviceResponse);
+        this.showViewProjects();
       } else {
-        console.error("Error employee informations");
+        this.openAlertMessageModal(response.serviceResponse || 'Something went wrong');
       }
     });
   }
-  popoverEmpId: string | null = null;
 
-  togglePopover(empId: string) {
-    if (this.popoverEmpId === empId) {
-      this.popoverEmpId = null;
-      return;
-    }
-
-    this.getEmployeeInformation(empId);
-    this.popoverEmpId = empId;
+  openRejectProjectModal(projectObj: any) {
+    this.projectRejectionReason = null;
+    this.selectedProjToReject = projectObj;
+    this.rejectProjectModalRef = this.modalService.open(this.rejectProjectTemplateRef, { modalDialogClass: 'modal-lg' });
   }
 
-  closePopover(empId: string) {
-    if (this.popoverEmpId === empId) {
-      this.popoverEmpId = null;
+  closeRejectProjectModal() {
+    if (this.rejectProjectModalRef) {
+      this.rejectProjectModalRef?.close();
     }
   }
+  // Approve & Reject Project End
 
-  selectedMembers: any[] = [];
-  employeeSelectionHistory: any[] = [];
-  globalSelectAll: boolean = false;
-  onSelectionChange(team: any, object: any) {
-    if (!this.selectedMembers) {
-      this.selectedMembers = [];
-    }
-    console.log("kmjhg", team);
-    const existingTeamIndex = this.selectedMembers.findIndex(item => item.team.teamId === team.teamId);
-
-    if (object.selected) {
-
-      if (existingTeamIndex === -1) {
-        this.selectedMembers.push({ team, object: [object] });
-      } else {
-
-        const alreadyAdded = this.selectedMembers[existingTeamIndex].object
-          .some((m: any) => m.empId === object.empId);
-        if (!alreadyAdded) {
-          this.selectedMembers[existingTeamIndex].object.push(object);
-        }
-      }
-
-
-      const historyExists = this.employeeSelectionHistory.some(
-        (entry) => entry.teamId === team.teamId && entry.empId === object.empId
-      );
-      if (!historyExists) {
-        const deselectedMember = {
-          teamId: team.teamId,
-          empId: object.empId,
-          employeeTeamMapId: object.employeeTeamMapId
-        };
-        this.employeeSelectionHistory.push(deselectedMember);
-      }
-    } else {
-
-      if (existingTeamIndex !== -1) {
-        const memberIndex = this.selectedMembers[existingTeamIndex].object
-          .findIndex((m: any) => m.empId === object.empId);
-
-        if (memberIndex !== -1) {
-
-          this.selectedMembers[existingTeamIndex].object.splice(memberIndex, 1);
-
-
-          if (this.selectedMembers[existingTeamIndex].object.length === 0) {
-            this.selectedMembers.splice(existingTeamIndex, 1);
-          }
-        }
-      }
-
-
-      const historyIndex = this.employeeSelectionHistory.findIndex(
-        (entry) => entry.teamId === team.teamId && entry.empId === object.empId
-      );
-      if (historyIndex !== -1) {
-        this.employeeSelectionHistory.splice(historyIndex, 1);
-      }
-    }
-
-    console.log("Selected Members:", this.selectedMembers);
-    console.log("Employee Selection History:", this.employeeSelectionHistory);
+  // Client Side Id Mapping Start
+  openClientSideIdConfirmationModal(projectId: any) {
+    this.clientSideIdObj.projectId = projectId;
+    this.fetchHasClientSideId(projectId);
+    this.clientSideIdConfirmationModalRef = this.modalService.open(this.clientSideIdConfirmationTemplateRef, { modalDialogClass: 'modal-md' });
   }
 
-  teamMemberList1: any[] = [];
-  isTeamFullySelected(team: any): boolean {
-    return team.allTeamMemberList.every((member: any) => member.selected);
-
-  }
-
-  toggleTeamSelection(team: any, event: any) {
-    const isChecked = event.target.checked;
-
-    team.allTeamMemberList.forEach((member: any) => {
-      if (member.selected !== isChecked) {
-        member.selected = isChecked;
-        this.onSelectionChange(team, member);
-      }
-    });
-
-    if (!isChecked) {
-
-      this.employeeSelectionHistory = this.employeeSelectionHistory.filter(
-        (entry) => entry.teamId !== team.teamId
-      );
-
-
-      const teamIndex = this.selectedMembers.findIndex(sel => sel.team.teamId === team.teamId);
-      if (teamIndex !== -1) {
-        this.selectedMembers.splice(teamIndex, 1);
-      }
-    }
-    console.log("After deletion:", this.selectedMembers, this.employeeSelectionHistory);
-  }
-
-  isMemberSelected(team: any, member: any): boolean {
-    return !!member.selected;
-  }
-
-  areAllTeamsSelected(): boolean {
-    const allTeamsHaveMembers = this.teamMemberList1.every(team => team.employees.length > 0);
-    const allMembersSelected = this.teamMemberList1.every(team =>
-      team.employees.every((member: any) => member.selected)
-    );
-
-    return this.teamMemberList1.length > 0 && allTeamsHaveMembers && allMembersSelected;
-  }
-
-  toggleAllTeams(event: any): void {
-    const isChecked = event.target.checked;
-
-    this.teamMemberList1.forEach(team => {
-      team.employees.forEach(member => {
-        if (member.selected !== isChecked) {
-          member.selected = isChecked;
-          this.onSelectionChange(team, member);
-        }
-      });
-    });
-    console.log("After deletion:", this.selectedMembers, this.employeeSelectionHistory, this.teamMemberList1);
-
-    if (!isChecked) {
-      this.employeeSelectionHistory = [];
-      this.selectedMembers = [];
+  closeClientSideIdConfirmationModal(): void {
+    if (this.clientSideIdConfirmationModalRef) {
+      this.clientSideIdConfirmationModalRef?.close();
     }
   }
-  lastDate1: any;
-  deleteResourceModalBulk(template: TemplateRef<any>, template1: TemplateRef<any>, template2: TemplateRef<any>, project) {
 
-
-
-    if (this.selectedMembers.length > 0) {
-      this.isBulkDelete = false;
-      this.isBulkDeleteResource = true;
-      this.isBulkDeleteResourceFromTNMProjects = false;
-      const empIds: number[] = this.selectedMembers.reduce((acc: number[], team: any) => {
-        const members = Array.isArray(team.team?.allTeamMemberList) ? team.team.allTeamMemberList : [];
-
-        members.forEach(member => {
-          if (
-            Array.isArray(member.otherActiveProjects) &&
-            member.otherActiveProjects.length === 0 &&
-            member.isDefaultProject === 1
-          ) {
-            acc.push(member.empId);
-          }
-        });
-
-        return acc;
-      }, []);
-
-
-      const empIdsHavingActiveProjects: number[] = this.selectedMembers.reduce((acc: number[], team: any) => {
-        const members = Array.isArray(team.team?.allTeamMemberList) ? team.team.allTeamMemberList : [];
-
-        members.forEach(member => {
-          if (
-            Array.isArray(member.otherActiveProjects) &&
-            member.otherActiveProjects.length !== 0 &&
-            member.isDefaultProject === 1
-          ) {
-            acc.push(member.empId);
-          }
-        });
-
-        return acc;
-      }, []);
-
-      this.activeProjects = empIdsHavingActiveProjects;
-      this.EmployessIds = empIds;
-      const selectedEmpIds = this.employeeSelectionHistory.map(item => item.empId);
-
-      this.EmployessIds = this.EmployessIds.filter(empId =>
-        selectedEmpIds.includes(empId)
-      );
-
-      this.activeProjects = this.activeProjects.filter(empId =>
-        selectedEmpIds.includes(empId)
-      );
-
-
-      // console.log("test projectDeatils", this.activeProjects, this.EmployessIds, project, this.selectedMembers)
-      if (this.EmployessIds.length !== 0 && this.activeProjects.length !== 0) {
-        this.getEmployeeInformationBulk(this.EmployessIds);
-        this.modalRef4 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
-        this.setDefaultProjectObj.empIds = this.activeProjects;
-        this.setDefaultProjectObj.projectId = project.projectId;
-        this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-        this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-xl' });
-
-      } else if (this.EmployessIds.length !== 0 && this.activeProjects.length === 0) {
-        this.getEmployeeInformationBulk(this.EmployessIds);
-        this.modalRef4 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
-      } else if (this.EmployessIds.length === 0 && this.activeProjects.length !== 0) {
-        this.setDefaultProjectObj.empIds = this.activeProjects;
-        this.setDefaultProjectObj.projectId = project.projectId;
-        this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-        this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-xl' });
-      } else {
-        this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-      }
-    } else {
-
-      this.isBulkDelete = false;
-      this.isBulkDeleteResource = false;
-      this.isBulkDeleteResourceFromTNMProjects = true;
-      const empIds: number[] = this.slectedMemberFromResourceRequirement
-        .filter(member =>
-          Array.isArray(member.otherActiveProjects) &&
-          member.otherActiveProjects.length === 0 &&
-          member.isDefaultProject === 1
-        )
-        .map(member => member.empId);
-
-
-
-
-      const empIdsHavingActiveProjects: number[] = this.slectedMemberFromResourceRequirement
-        .filter(member =>
-          Array.isArray(member.otherActiveProjects) &&
-          member.otherActiveProjects.length > 0 &&
-          member.isDefaultProject === 1
-        )
-        .map(member => member.empId);
-
-
-      this.activeProjects = empIdsHavingActiveProjects;
-      this.EmployessIds = empIds;
-      console.log("test", this.EmployessIds, this.activeProjects);
-      const selectedEmpIds = this.selectedTeamEntries.map(item => item.empId);
-
-      this.EmployessIds = this.EmployessIds.filter(empId =>
-        selectedEmpIds.includes(empId)
-      );
-
-      this.activeProjects = this.activeProjects.filter(empId =>
-        selectedEmpIds.includes(empId)
-      );
-
-
-      console.log("test projectDeatils", this.activeProjects, this.EmployessIds, project, this.selectedMembers)
-      if (this.EmployessIds.length !== 0 && this.activeProjects.length !== 0) {
-        this.getEmployeeInformationBulk(this.EmployessIds);
-        this.modalRef4 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
-        this.setDefaultProjectObj.empIds = this.activeProjects;
-        this.setDefaultProjectObj.projectId = project.projectId;
-        this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-        this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-xl' });
-
-      } else if (this.EmployessIds.length !== 0 && this.activeProjects.length === 0) {
-        this.getEmployeeInformationBulk(this.EmployessIds);
-        this.modalRef4 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
-      } else if (this.EmployessIds.length === 0 && this.activeProjects.length !== 0) {
-        this.setDefaultProjectObj.empIds = this.activeProjects;
-        this.setDefaultProjectObj.projectId = project.projectId;
-        this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-        this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-xl' });
-      } else {
-        this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-      }
-    }
-    // this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
-
-    this.lastDate1 = this.projectCompletionDate;
-    this.getProjectDetailsForBulkDefaultUpdate();
-  }
-   deleteResourceFromProjectBulk(template: TemplateRef<any>) {
-    const isCustomDate = this.dateType === 'custom';
-    this.employeeSelectionHistory = this.employeeSelectionHistory.map(entry => ({
-      ...entry,
-      endDate: this.lastDate1 || null,
-      createdBy: this.currentUser.empId,
-      isCustomDate: isCustomDate
-
-
-    }));
-    console.log("Selected members", this.selectedMembers);
-    console.log("Employee Selection History",this.employeeSelectionHistory)
-    // console.log("After deletion:", this.selectedMembers, this.employeeSelectionHistory, this.teamMemberList1);
-    this.projectService.updateProjectResourcesAsInActiveBulk(this.employeeSelectionHistory)
-      .pipe(first())
-      .subscribe((response: any) => {
-        if (response.serviceStatus === "Success") {
-          // this.openAlertMod(template, response.serviceResponse);
-          this.teamMemberList1.forEach(team => {
-
-            team.employees.forEach(member => {
-              member.selected = false;
-            });
-          });
-
-          this.getExistingProjectsByUser(this.projectObj2.empId)
-          //What happening here is first when we are deleting team member to append it directly in the frontend without api call we are removing the team member from the list
-         //  the teamobj is the current team which is opend and allTeammember list contains the list of all the team members.
-         //and after deleting it we are calling the api for getting the assigned count because this would also be changed , but why we need to call the api for the assigned count is
-         //we doesnot have any idea about a team member if he is approved or not so we need to call the api to get data from backend
-
-           this.teamObj.allTeamMemberList = this.teamObj.allTeamMemberList.filter(member => !this.employeeSelectionHistory.some(entry => +entry.empId == +member.empId));
-          //  let totalRequirement = this.projectRequirementsList.totalRequirements;
-           console.log("Project obj id is",this.projectObj.id)
-           this.getResourceRequirementByPoProjectId(this.projectObj.projectId,this.projectObj.poProjectType,0);
-           let currentTeam = this.allTeamList.filter(team => team.teamId == this.teamObj.teamId);
-
-           let currentTeamIndex = this.allTeamList.findIndex(team => team.teamId == this.teamObj.teamId);
-           currentTeam = currentTeam[0].teamMemberList.filter(member => !this.employeeSelectionHistory.some(entry => +entry.empId == +member.empId));
-           this.allTeamList[currentTeamIndex].teamMemberList = currentTeam;
-
-           this.RbacShankhProjects(this.projectFilterDTO);
-           this.RbacInternalProjects(this.projectFilterDTO);
-           this.RbacBothShankhInternal(this.projectFilterDTO);
-           this.ProjectLessEmployees(this.projectFilterDTO);
-           this.RbacAllShankhInternalProjects(this.projectFilterDTO);
-           this.ExceptionEmployeeReport(this.projectFilterDTO);
-           this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
-           this.getEmployeesWithoutBillability(this.projectFilterDTO);
-           this.updateProjectCompletionModalRef?.close();
-           this.openremoveResourceModal(response.serviceResponse);
-
-        }
-        else{
-          this.updateProjectCompletionModalRef?.close();
-          this.openremoveResourceModal("Unable to delete. Something went wrong.");
-        }
-        this.selectedMembers = [];
-        this.employeeSelectionHistory = [];
-      });
-  }
-
-  getPreviousDefaultProjectDetails(empId) {
-    this.resourceManagementService.getPreviousDefaultProjectDetails(empId).pipe(first()).subscribe((response: any) => {
+  updateHasClientSideId(flag: Boolean) {
+    this.clientSideIdObj.hasClientSideId = flag;
+    this.clientSideIdObj.currentUserEmpId = this.currentUser.empId;
+    this.clientSideIdObj.clientFlag = this.isClientSideIdFormatted;
+    this.closeClientSideIdConfirmationModal();
+    this.resourceManagementService.updateHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.previousDefaultProjects = response.serviceResponse;
-        // this.modalRef = this.modalService.open(this.previousDefaultProject, { modalDialogClass: 'custom-modal' });
+        this.openAlertMessageModal(response.serviceResponse);
+        this.hasClientSideIdFlag = false;
+        this.isClientSideIdFormatted = false;
+        this.hasClientSideIdFlagHistory = false;
+        this.isClientSideIdFormattedHistory = false;
       } else {
-        this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
-        console.error("Error employee informations");
+        this.openAlertMessageModal(response.serviceResponse)
+      }
+    });
+    this.hasClientSideIdFlag = false;
+    this.isClientSideIdFormatted = false;
+    this.hasClientSideIdFlagHistory = false;
+    this.isClientSideIdFormattedHistory = false;
+  }
+
+  getValidateResponse() {
+    if (this.hasClientSideIdFlag == this.hasClientSideIdFlagHistory && this.isClientSideIdFormatted == this.isClientSideIdFormattedHistory) {
+      return true;
+    }
+    return false;
+  }
+
+  onMandatoryChange() {
+    if (!this.hasClientSideIdFlag) {
+      this.isClientSideIdFormatted = false;
+    }
+  }
+
+  fetchHasClientSideId(projectId: any) {
+    this.clientSideIdObj.projectId = projectId;
+    this.resourceManagementService.fetchHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.fetchClientSideIdObj = response.serviceResponse;
+        this.hasClientSideIdFlag = !!this.fetchClientSideIdObj.hasClientSideId;
+        this.isClientSideIdFormatted = !!this.fetchClientSideIdObj.clientFlag;
+        this.hasClientSideIdFlagHistory = !!this.fetchClientSideIdObj.hasClientSideId;
+        this.isClientSideIdFormattedHistory = !!this.fetchClientSideIdObj.clientFlag;
+      } else {
+        this.openAlertMessageModal(response.serviceResponse)
+      }
+    });
+  }
+  // Client Side Id Mapping End
+
+  // Project Configuration Start
+  showProjectConfigurationDetails(project: any, isModal: boolean) {
+    this.isAllProjects = this.isValidString(this.projectFilterDTO.approvalStatus) && this.projectFilterDTO.approvalStatus?.toLowerCase() === 'all';
+    forkJoin({
+      managers: this.getManagerAndOverheadList(),
+      departments: this.getAllDepartmentsList(),
+      employees: this.getEmployeeNameAndEmpld(),
+      projectConfig: this.getProjectConfigurationDetailsByProjectId(project)
+    }).subscribe(result => {
+      if (this.rmgProjectObj) {
+        if (isModal) {
+          this.openProjectConfigurationModal();
+        } else {
+          this.showProjectConfiguration();
+        }
       }
     });
   }
 
-  onDefaultProjectCheckboxChange(event: Event, member) {
-    const isChecked = (event.target as HTMLInputElement).checked;
-    if (isChecked) {
-      member.isDefaultProject = 1;
-      this.getPreviousDefaultProjectDetails(member.empId);
-    } else {
-      member.isDefaultProject = 0;
-      if (member.otherActiveProjects && member.otherActiveProjects.length > 0) {
-        this.otherProjectList = member.otherActiveProjects;
-        this.filteredOtherProjectList = this.otherProjectList;
-        this.defaultProjectUpdateEmpId = member.empId;
-        this.modalRef = this.modalService.open(this.otherProjectMappings, { modalDialogClass: 'custom-modal' });
-      }
-    }
+  showProjectConfiguration() {
+    this.showProjectConfig = true;
+    this.markProjectCompletionConfig = false;
+    this.isSkillMatrix = false;
+    this.isProjectTable = false;
+    this.allProjectTable = false;
+    this.isCreateForm = false;
+    this.isCreation = false;
+    this.filterStateService.isNewRmgDashboard = this.isNewRmgDashboard;
+    this.isNewRmgDashboard = false;
   }
 
-  filterDepartmentsInternalForm() {
-    const lowerText = this.searchTextDeptInternal.trim().toLowerCase();
-
-    const filtered = this.allDeptList.filter(dept =>
-      dept.name.toLowerCase().includes(lowerText)
-    );
-
-    const selected = this.allDeptList.filter(dept =>
-      this.projectObj.departmentList?.includes(dept.deptId)
-    );
-    const selectedSet = new Set(filtered.map(dept => dept.deptId));
-    const merged = [...filtered];
-
-    selected.forEach(dept => {
-      if (!selectedSet.has(dept.deptId)) {
-        merged.push(dept);
-      }
-    });
-
-    this.filteredDepartmentsInternal = merged;
+  closeProjectConfiguration() {
+    this.showViewProjects();
   }
 
+  getManagerAndOverheadList() {
+    this.managerList = [];
+    this.filteredManagerList = [];
+    this.overheadList = [];
+    this.filteredOverheadList = [];
 
-  toggleSelectAllInternal() {
-    if (this.isAllSelected) {
-      this.projectObj.departmentList = [];
-      this.isAllSelected = false;
-      console.log("test", this.projectObj.departmentList);
+    const reqObj = {
+      ...this.employeeObj,
+      role: 'Manager',
+      employeementId: this.employeeObj?.employeementId?.substring(2)
+    };
 
-    } else {
-      this.projectObj.departmentList = this.filteredDepartmentsInternal.map(dept => dept.deptId);
-      this.isAllSelected = true;
-      console.log("test2", this.projectObj.departmentList);
-    }
-  }
+    return this.employeeService.getAllEmployeesByRole(reqObj).pipe(
+      first(),
+      map((response: any) => {
+        if (response.serviceStatus === 'Success') {
+          const empList = [...response.serviceResponse];
+          this.appendPrefixToEmployee(empList);
 
-
-
-
-  clearSelectionInternal(event: Event) {
-    event.stopPropagation();
-    this.projectObj.departmentName = [];
-    this.isAllSelected = false;
-  }
-
-
-
-  selectedTeamData: any[] = [];
-  hasSelectedMembers: boolean = false;
-
-  getAllMembers(): any[] {
-    // console.log("test",this.teamObj?.allTeamMemberList);
-    return this.teamObj?.allTeamMemberList || [];
-
-  }
-
-
-  getMembersForRequirement(resourceOverviewId: any): any[] {
-    return this.getAllMembers().filter(m => m.resourceOverviewId === resourceOverviewId);
-  }
-
-  getNewTeamMembers(): any[] {
-    return this.allTeamMembers || [];
-  }
-
-  getNewMembersForRequirement(resourceOverviewId: any): any[] {
-    return this.getNewTeamMembers().filter(m => m.resourceOverviewId === resourceOverviewId);
-  }
-
-
-  isAllSelected1(): boolean {
-    const members = this.getAllMembers();
-    return members.length > 0 && members.every(m => m.selected);
-  }
-
-  isPartiallySelected(): boolean {
-    const members = this.getAllMembers();
-    return members.some(m => m.selected) && !this.isAllSelected1();
-  }
-
-  toggleSelectAll1(event: any): void {
-    const checked = event.target.checked;
-    this.getAllMembers().forEach(m => m.selected = checked);
-    this.getSelectedTeamData();
-  }
-
-
-  isRequirementFullySelected(requirement: any): boolean {
-    const members = this.getMembersForRequirement(requirement.resourceOverviewId);
-    return members.length > 0 && members.every(m => m.selected);
-  }
-
-  isRequirementPartiallySelected(requirement: any): boolean {
-    const members = this.getMembersForRequirement(requirement.resourceOverviewId);
-    return members.some(m => m.selected) && !this.isRequirementFullySelected(requirement);
-  }
-
-  toggleRequirementSelection(requirement: any, event: any): void {
-    const checked = event.target.checked;
-    this.getMembersForRequirement(requirement.resourceOverviewId).forEach(m => m.selected = checked);
-    this.getSelectedTeamData();
-  }
-
-
-  onIndividualSelectionChange(): void {
-    this.getSelectedTeamData();
-  }
-
-  trackByEmpId(index: number, member: any): number {
-    return member.empId;
-  }
-
-  removeTeamMember1(member: any): void {
-    // Find the index *before* any deletion
-    const index = this.teamObj.allTeamMemberList.findIndex(m => m.empId === member.empId);
-
-    // Call the unified removal function
-    this.removeTeamMember(member, index);
-
-    // Update selection
-    this.getSelectedTeamData();
-  }
-
-  selectedTeamEntries: { empId: number; teamId: number }[] = [];
-
-  slectedMemberFromResourceRequirement: any;
-  getSelectedTeamData(): void {
-    const allMembers = this.getAllMembers();
-    const selectedMembers = allMembers.filter(m => m.selected);
-    this.slectedMemberFromResourceRequirement = selectedMembers;
-    console.log("test", allMembers);
-    const selectedEntries = selectedMembers.map(m => ({
-      empId: m.empId,
-      teamId: this.teamObj.teamId,
-      employeeTeamMapId: m.employeeTeamMapId
-    }));
-
-
-    this.selectedTeamEntries = selectedEntries;
-
-
-
-    const groupedData = this.projectObj.resourceRequirements
-      .map(requirement => {
-        const membersForReq = selectedMembers.filter(
-          member => member.resourceOverviewId === requirement.resourceOverviewId
-        );
-
-        if (membersForReq.length === 0) return null;
-
-        return {
-          requirementDetails: {
-            role: requirement.role,
-            department: requirement.department,
-            experience: requirement.experience,
-            resourceOverviewId: requirement.resourceOverviewId
-          },
-          selectedMembers: membersForReq
-        };
+          this.managerList = [...empList];
+          this.overheadList = [...empList];
+          this.filteredManagerList = [...empList];
+          this.filteredOverheadList = [...empList];
+        }
+        return true;
+      }),
+      catchError(error => {
+        console.error('Manager list failed', error);
+        return of(false);
       })
-      .filter(group => group !== null);
-
-    this.selectedTeamData = groupedData;
-    this.hasSelectedMembers = this.selectedTeamEntries.length > 0;
-    console.log('Selected Team Data:', this.selectedTeamEntries); // Optional: view in console
-  }
-
-  // Utility: show "No team members" message
-  hasNoTeamMembersFor1(resourceOverviewId: any): boolean {
-    return this.getMembersForRequirement(resourceOverviewId).length === 0;
-  }
-
-  deleteResourceFromProjectBulk1(template: TemplateRef<any>) {
-    this.selectedTeamEntries = this.selectedTeamEntries.map(entry => ({
-      ...entry,
-      endDate: this.lastDate1 || null
-    }));
-    console.log("After deletion:", this.selectedTeamEntries);
-
-    this.projectService.updateProjectResourcesAsInActiveBulk(this.selectedTeamEntries)
-      .pipe(first())
-      .subscribe((response: any) => {
-        if (response.serviceStatus === "Success") {
-          // this.openAlertMod6(template, response.serviceResponse);
-
-
-
-          this.employeeSelectionHistory = [];
-
-
-          this.teamMemberList1.forEach(team => {
-
-            team.employees.forEach(member => {
-              member.selected = false;
-            });
-          });
-          this.getExistingProjectsByUser(this.projectObj2.empId)
-         //What happening here is first when we are deleting team member to append it directly in the frontend without api call we are removing the team member from the list
-        //  the teamobj is the current team which is opend and allTeammember list contains the list of all the team members.
-        //and after deleting it we are calling the api for getting the assigned count because this would also be changed , but why we need to call the api for the assigned count is
-        //we doesnot have any idea about a team member if he is approved or not so we need to call the api to get data from backend
-
-          this.teamObj.allTeamMemberList = this.teamObj.allTeamMemberList.filter(member => !this.selectedTeamEntries.some(entry => +entry.empId == +member.empId));
-          let totalRequirement = this.projectRequirementsList.totalRequirements;
-          console.log("Project obj id is",this.projectObj.id)
-          this.getProjectAssignedDataByProjectIdfunc(this.projectObj.id,1,totalRequirement);
-          // after removing the members what we are doing in here is we are getting all the team list that is in the project then getting the exact team fromwhich we have deletaed the
-          //members then after getting it we are updating the members here so the count value will look perfect without hitting any api.and will be updated simultaneously.
-          let currentTeam = this.allTeamList.filter(team => team.teamId == this.teamObj.teamId);
-
-          let currentTeamIndex = this.allTeamList.findIndex(team => team.teamId == this.teamObj.teamId);
-          // console.log("before removing team members from current team",currentTeam);
-          currentTeam = currentTeam[0].teamMemberList.filter(member => !this.selectedTeamEntries.some(entry => +entry.empId == +member.empId));
-          // console.log("After removing it",currentTeam);
-          this.allTeamList[currentTeamIndex].teamMemberList = currentTeam;
-
-          //This are for to update the counts in the page.
-          this.RbacShankhProjects(this.projectFilterDTO);
-          this.RbacInternalProjects(this.projectFilterDTO);
-          this.RbacBothShankhInternal(this.projectFilterDTO);
-          this.ProjectLessEmployees(this.projectFilterDTO);
-          this.RbacAllShankhInternalProjects(this.projectFilterDTO);
-          this.ExceptionEmployeeReport(this.projectFilterDTO);
-          this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
-          this.getEmployeesWithoutBillability(this.projectFilterDTO);
-          //  this.fetchTimesheetMissingCount();
-
-          //  this.initializeExpiredProjectFilters();
-          //  this.selectedExpiredProjectFilter = this.expiredProjectFilters[0];
-
-          //  this.RbacShankhProjects(this.projectFilterDTO);
-
-          //  this.ExceptionEmployeeReport(this.projectFilterDTO);
-          this.updateProjectCompletionModalRef?.close();
-          this.openremoveResourceModal(response.serviceResponse);
-        }
-        else{
-          this.updateProjectCompletionModalRef?.close();
-          this.openremoveResourceModal("Unable to delete. Something went wrong.");
-
-        }
-        this.selectedTeamEntries = [];
-      });
-
-  }
-
-  filterMappedProjects() {
-    const lowerText = this.searchMappedProjectText.trim().toLowerCase();
-    const filteredOtherProjectList = this.otherProjectList.filter(project =>
-      project.projectName.toLowerCase().includes(lowerText)
     );
   }
 
-  clearSelectionMappedProjects(event: Event): void {
-    event.stopPropagation();
-    // binding variable
-    // this.otherProjectList = [];
-  }
-
-  filterOtherProjects(selectedOtherProjectId?:any) {
-    if(selectedOtherProjectId){
-      this.selectedOtherProjectId=selectedOtherProjectId}
-    const lowerSearch = this.searchTerm.toLowerCase();
-    this.filteredOtherProjectList = this.otherProjectList.filter(project =>
-      project.projectName.toLowerCase().includes(lowerSearch)
-    );
-  }
-
-  setDefaultProjectUpdateBillable(empId, projectId) {
-    this.defaultProjectUpdate.empIds = [empId];
-    this.defaultProjectUpdate.projectId = projectId;
-    this.defaultProjectUpdate.updatedBy = this.currentUser.empId;
-    this.resourceManagementService.setDefaultProjectUpdateBillable(this.defaultProjectUpdate).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
-      } else {
-        this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
-        console.error("Error setting the default project!");
-      }
-    });
-  }
-  setDefaultProjectUpdateForActiveProject(details: any, projectId, template: TemplateRef<any>) {
-    console.log("test id", details.empId, details);
-    this.defaultProjectUpdate.empIds = [details.empId];
-    this.defaultProjectUpdate.projectId = projectId;
-    this.defaultProjectUpdate.createdBy = this.currentUser.empId;
-    const today = new Date();
-    this.selectedDate = today.toISOString().split('T')[0];
-    if (!this.defaultProjectUpdate.projectId) {
-      this.openAlertMod6(this.alertTemplateWithoutReload, "Please update Default Project");
+  appendPrefixToEmployee(employeeList: any) {
+    if (!this.validationService.validateNullUndefinedEmptyList(employeeList)) {
       return;
     }
-
-    this.resourceManagementService.setDefaultProjectUpdateBillable(this.defaultProjectUpdate).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod6(this.alertTemplateWithoutReload, response.serviceResponse);
-        this.activeProjects = this.activeProjects.filter(id => id !== details.empId);
-        this.setDefaultProjectObj.empIds = this.activeProjects;
-        this.setDefaultProjectObj.projectId = this.currentProjectDetails;
-        this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-        const alertModalSub = merge(this.modalRef.closed, this.modalRef.dismissed)?.subscribe(() => {
-          alertModalSub.unsubscribe();
-          if (this.EmployessIds.length === 0 && this.activeProjects.length === 0) {
-            this.modalRef?.close();
-            this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-          }
-          if (this.EmployessIds.length !== 0 && this.activeProjects.length === 0) {
-            this.modalRef?.close();
-            this.openAlertMod6(this.alertTemplateWithoutReload, "Please update the default project of employees who are not mapped to other active projects.");
-          }
-        });
-      } else {
-        this.openAlertMod6(this.alertTemplateWithoutReload, response.serviceResponse);
-        console.error("Error setting the default project!");
-      }
-    });
-  }
-  deleteResourceFromTeamModal(template: TemplateRef<any>, projectObj, teamId, empId) {
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
-    this.projectObj2 = projectObj;
-    this.projectObj2.teamId = teamId;
-    this.projectObj2.empId = empId;
-  }
-
-  getProjectDetailsForBulkDefaultUpdate() {
-    this.resourceManagementService.getProjectDetailsForBulkDefaultUpdate().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.projectListBulk = response.serviceResponse;
-        this.benchProjectListBulk = this.projectListBulk.benchProjectList;
-        this.otherProjectListBulk = this.projectListBulk.otherProjectList;
-        this.filteredProjectsForDefaultBulkBench = this.benchProjectListBulk;
-        this.filteredProjectsForDefaultBulkOther = this.otherProjectListBulk;
-      } else {
-        this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Project List");
-        console.error("Unable to fetch Project List!");
-      }
+    employeeList.forEach((emp) => {
+      emp.employeementId = "A-".concat(emp.employeementId);
     });
   }
 
-  filterProjectsForDefaultBulkBench(obj:any) {
-    if(obj){
-      this.setDefaultProjectObj.projectId=obj
-    }
-    const lowerSearch = this.searchTerm.toLowerCase();
-    this.filteredProjectsForDefaultBulkBench = this.benchProjectListBulk.filter(project =>
-      project.projectName.toLowerCase().includes(lowerSearch)
+  getAllDepartmentsList() {
+    this.allDeptList = [];
+
+    return this.departmentService.getAllDepartments().pipe(
+      first(),
+      map((response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.allDeptList = response.serviceResponse;
+        }
+        return true;
+      }),
+      catchError(error => {
+        console.error('Department list failed', error);
+        return of(false);
+      })
     );
   }
 
-  filterProjectsForDefaultBulkOther() {
-    const lowerSearch = this.searchTerm.toLowerCase();
-    this.filteredProjectsForDefaultBulkOther = this.otherProjectListBulk.filter(project =>
-      project.projectName.toLowerCase().includes(lowerSearch)
+  getEmployeeNameAndEmpld() {
+    this.employeeList = [];
+
+    return this.employeeService.getAllActiveEmployeeInformation().pipe(
+      first(),
+      map((response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.employeeList = response.serviceResponse;
+        }
+        return true;
+      }),
+      catchError(error => {
+        console.error('Employee list failed', error);
+        return of(false);
+      })
     );
   }
 
-  getTeamListForSelectedProject(obj?:any) {
-    if(obj){this.setDefaultProjectObj.projectId=obj}
-    let selectedProjectId = this.setDefaultProjectObj.projectId;
-
-    if (!selectedProjectId || !this.bulkProjectType)
-      this.teamListBulk = [];
-
-    const projectList = this.bulkProjectType === 'bench' ? this.benchProjectListBulk : this.otherProjectListBulk;
-    this.teamListBulk = projectList.find(p => p.projectId === selectedProjectId);
-    this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
-    this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
-  }
-
-//   getTeamListForSelectedProject1(emp) {
-//     let selectedProjectId = emp.projectId;
-
-
-//     if (!selectedProjectId || !this.bulkProjectType) {
-//         this.teamListBulk = [];
-//         return;
-//     }
-
-//     const projectList = emp.projectType === 'bench' ? this.benchProjectListBulk : this.otherProjectListBulk;
-//     this.teamListBulk = projectList.find(p => p.projectId === selectedProjectId);
-
-//     if (this.teamListBulk) {
-//         this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
-//         this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
-//     }
-// }
-// getTeamListForSelectedProject1(emp) {
-//     let selectedProjectId = emp.projectId;
-
-//     if (!selectedProjectId || !emp.projectType) {
-//         this.teamListBulk = null;
-//         this.filteredTeamsForDefaultBulk = [];
-//         this.resourceRequirementListBulk = [];
-//         return;
-//     }
-
-//     const projectList = emp.projectType === 'bench' ? this.benchProjectListBulk : this.otherProjectListBulk;
-//     this.teamListBulk = projectList.find(p => p.projectId === selectedProjectId);
-
-//     if (this.teamListBulk && this.teamListBulk.teamList) {
-//         this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
-//         this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
-//     } else {
-//         this.filteredTeamsForDefaultBulk = [];
-//         this.resourceRequirementListBulk = [];
-//     }
-// }
-
-  getTeamListForSelectedProject1(emp) {
-    let selectedProjectId = emp.projectId;
-
-    if (!selectedProjectId || !emp.projectType) {
-      this.teamListBulk = null;
-      this.filteredTeamsForDefaultBulk = [];
-      this.resourceRequirementListBulk = [];
-      this.filteredResourceRequirementListBulk = [];
-      return;
-    }
-
-    const projectList = emp.projectType === 'bench' ? this.benchProjectListBulk : this.otherProjectListBulk;
-    this.teamListBulk = projectList.find(p => p.projectId === selectedProjectId);
-
-    if (this.teamListBulk) {
-      // this is hanlding teams
-      if (this.teamListBulk.teamList) {
-        this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
-      } else {
-        this.filteredTeamsForDefaultBulk = [];
-      }
-
-      // this is handling requiremnts
-      if (this.teamListBulk.resourceRequirement) {
-        this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
-        this.filteredResourceRequirementListBulk = this.teamListBulk.resourceRequirement;
-        this.filteredResourceRequirementListBulk = this.filteredResourceRequirementListBulk.map(req => ({
-          ...req,
-          displayText: `Role - ${req.role} || Dept - ${req.department} || Exp - ${req.experience} y`
-        }));
-      } else {
-        this.resourceRequirementListBulk = [];
-        this.filteredResourceRequirementListBulk = [];
-      }
-    } else {
-      this.filteredTeamsForDefaultBulk = [];
-      this.resourceRequirementListBulk = [];
-      this.filteredResourceRequirementListBulk = [];
-    }
-  }
-
-  filterTeamsForDefaultBulk(obj?:any) {
-    const lowerSearch = this.searchTermTeam.toLowerCase();
-    this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList.filter(team =>
-      team.teamName.toLowerCase().includes(lowerSearch)
-    );
-  }
-filteredResourceRequirementListBulk:any;
-searchTermRequirement:any;
-
-  filterResourceRequirementForDefaultBulk() {
-    const lowerSearch = this.searchTermRequirement.toLowerCase();
-    console.log(this.resourceRequirementListBulk , "+++++++++++++++++++++++++++++++++++++++++++++++++++");
-    this.filteredResourceRequirementListBulk = this.resourceRequirementListBulk.filter(req =>
-        req.role.toLowerCase().includes(lowerSearch) ||
-        req.department.toLowerCase().includes(lowerSearch) ||
-        req.experience.toString().includes(lowerSearch)
-    );
-    this.filteredResourceRequirementListBulk = this.filteredResourceRequirementListBulk.map(req => ({
-  ...req,
-  displayText: `Role - ${req.role} || Dept - ${req.department} || Exp - ${req.experience} y`
-}));    console.log(this.resourceRequirementListBulk , "+++++++++++++++++++++++++++++++++++++++++++++++++++");
-  }
-searchTextProject:any;
-projects: any[] = [];
-filteredProjects: any[] = [];
-
-
-
- filterProjects(emp) {
-    const lowerText = this.searchTextProject.toLowerCase();
-
-    if (lowerText.trim() === '') {
-
-        this.filteredProjectsForDefaultBulkBench = [...this.benchProjectListBulk];
-        this.filteredProjectsForDefaultBulkOther = [...this.otherProjectListBulk];
-    } else {
-
-        if (emp.projectType === 'other') {
-
-            this.filteredProjectsForDefaultBulkOther = this.otherProjectListBulk.filter(project =>
-                project.projectName.toLowerCase().includes(lowerText)
-
-            );
-        } else if (emp.projectType === 'bench') {
-
-            this.filteredProjectsForDefaultBulkBench = this.benchProjectListBulk.filter(project =>
-                project.projectName.toLowerCase().includes(lowerText)
-            );
+  getProjectConfigurationDetailsByProjectId(project: any) {
+    this.showProjectConfig = false;
+    this.rmgProjectObj = null;
+    return this.resourceManagementService.getProjectConfigurationDetailsByProjectId(project?.projectId, this.isAllProjects).pipe(
+      first(),
+      map((response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.rmgProjectObj = response.serviceResponse;
+          this.rmgProjectObj.state = this.isValidString(this.rmgProjectObj.state) ? this.rmgProjectObj.state : 'NA';
+          this.rmgProjectObj.dbProjectManagerIds = this.rmgProjectObj?.projectManagerIds || [];
         }
-    }
-    this.searchTextProject = '';
-}
-
-  getEmployeeInformationBulk(empIds) {
-    this.resourceManagementService.getEmployeeInformationBulk(empIds).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.bulkEmployeeList = response.serviceResponse;
-      } else {
-        if (this.EmployessIds.length !== 0) {
-          this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
-          console.error("Unable to fetch Employee List!");
-        }
-
-      }
-    });
-  }
-
-  setProjectMappingAndDefaultProject(template: TemplateRef<any>, emp) {
-    console.log("empId", emp, emp.empId);
-    this.setDefaultProjectObj.empId = [emp.empId];
-    this.setDefaultProjectObj.createdBy = this.currentUser.empId;
-    this.setDefaultProjectObj.projectId = emp.projectId;
-    this.setDefaultProjectObj.teamId = emp.teamId;
-    this.setDefaultProjectObj.employeeRole = emp.employeeRole;
-    this.setDefaultProjectObj.resourceOverViewId = emp.resourceOverViewId;
-    const today = new Date();
-    this.selectedDate = today.toISOString().split('T')[0];
-    if (
-      !this.setDefaultProjectObj.projectId ||
-      !this.setDefaultProjectObj.teamId ||
-      !this.setDefaultProjectObj.employeeRole
-    ) {
-      this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');
-      // alert('Project, Team, and Employee Role must be selected.');
-      return;
-    }
-    if (this.setDefaultProjectObj.teamId !== null) {
-      this.resourceManagementService.setProjectMappingAndDefaultProject(this.setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.bulkEmployeeList = response.serviceResponse;
-          console.log("The Response is",response.serviceResponse);
-          // this.modalRef4.close();
-          // this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
-
-          this.openremoveResourceModal(response.serviceResponse);
-          this.EmployessIds = this.EmployessIds.filter(id => id !== emp.empId);
-          this.getEmployeeInformationBulk(this.EmployessIds);
-          console.log("empId", this.activeProjects.length, this.EmployessIds.length);
-          if (this.activeProjects.length === 0 && this.EmployessIds.length === 0) {
-            this.modalRef4.close();
-            this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-          }
-          if (this.EmployessIds.length === 0 && this.activeProjects.length !== 0) {
-            this.modalRef4.close();
-            this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the default project of employees who are currently mapped to other active projects.");
-          }
-        } else {
-          this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
-          console.error("Unable to fetch Employee List!");
-        }
-      });
-    }
-
-  }
-
-
-  setProjectMappingAndDefaultProjectBulk(setDefaultProjectObj, template: TemplateRef<any>) {
-
-    setDefaultProjectObj.empId = this.EmployessIds;
-    const today = new Date();
-    this.selectedDate = today.toISOString().split('T')[0];
-    if (
-      !setDefaultProjectObj.projectId ||
-      !setDefaultProjectObj.teamId ||
-      !setDefaultProjectObj.employeeRole
-    ) {
-      this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');
-      // alert('Project, Team, and Employee Role must be selected.');
-      return;
-    }
-
-    if (setDefaultProjectObj.teamId !== null) {
-      this.resourceManagementService.setProjectMappingAndDefaultProject(setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.bulkEmployeeList = response.serviceResponse;
-          this.EmployessIds = [];
-          setDefaultProjectObj = [];
-          // this.getEmployeeInformationBulk(this.EmployessIds);
-          if (this.activeProjects.length === 0 && this.EmployessIds.length === 0) {
-            this.modalRef4.close();
-            this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-          }
-          if (this.EmployessIds.length === 0 && this.activeProjects.length !== 0) {
-            this.modalRef4.close();
-            this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the default project  of employees who are currently mapped to other active projects.");
-          }
-
-        } else {
-          this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
-          console.error("Unable to fetch Employee List!");
-        }
-      });
-    }
-
-  }
-
-  bulkEmployeeListActiveList: any[] = [];
-  getEmployeeInformationForDefaultProject(setDefaultProjectObj: any) {
-
-    this.resourceManagementService.getEmployeeInformationForDefaultProject(setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.bulkEmployeeListActiveList = response.serviceResponse;
-        console.error("Unable to fetch Employee List!", this.bulkEmployeeListActiveList);
-        // this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-
-      } else {
-        if (this.activeProjects.length !== 0) {
-          this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
-          console.error("Unable to fetch Employee List!");
-        }
-
-      }
-    });
-  }
-
-  getBenchEmployeeMoreThan30Days(projectFilterDTO: ProjectFilterDTO) {
-    this.resourceManagementService.getBenchEmployeeMoreThan30Days(projectFilterDTO).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        console.log(response.serviceResponse);
-        this.employeeBenchRepot = response.serviceResponse;
-        this.employeeBench = this.employeeBenchRepot.length;
-        // console.log("this.employeeBenchRepot", this.employeeBenchRepot)
-      }
-      else {
-        // this.openAlertMod(this.alertTemplate, response.serviceResponse);
-        this.employeeBenchRepotMsg = response.serviceResponse;
-        this.employeeBench = 0;
-      }
-    });
-  }
-
-  //router function
-  // navigateToOtherPage() {
-  //   const reportPageUrl = `${environment.baseUrl360}#/user-reports/report-list`;
-  //   window.open(reportPageUrl, '_blank');
-  //   //this.router.navigate(['/your-target-route']);
-  // }
-  toggleReportView() {
-    this.showReportList = !this.showReportList;
-  }
-
-  goToReportList() {
-    this.router.navigate(['/user-reports/report-list'], {
-      state: { returnUrl: this.router.url }
-    });
-  }
-
-  hideTeamMemberModal(): void {
-    if (this.modalRefTeamMember) {
-      this.modalRefTeamMember.close();
-    }
-  }
-
-  displayTeamLead(emp: any): string {
-    console.log("emp", emp)
-    return emp ? `${emp.name}` : '';
-  }
-
-  onTeamLeadSelected(event: any) {
-    const selectedTeamLead = event.option.value;
-    this.teamObj.teamLeadId = selectedTeamLead.empId;
-  }
-
-  filterTeamLeads(searchText: string) {
-    const lowerText = (searchText || '').toLowerCase();
-    return this.teamLeadsList.filter(emp =>
-      emp.name.toLowerCase().includes(lowerText) ||
-      emp.employmentId.toLowerCase().includes(lowerText)
+        return true;
+      }),
+      catchError(error => {
+        console.error('Fetch Project Details failed', error);
+        return of(false);
+      })
     );
   }
 
-  getDeptsByUser(): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.departmentService.getDeptsByUser(this.currentUser.empId).pipe(first()).subscribe({
-        next: (response: any) => {
-          if (response.serviceStatus === "Success") {
-            this.deptListUser = response.serviceResponse;
-            this.departmentListByUser = this.deptListUser.departments;
-            this.deptIdListByUser = this.departmentListByUser;
-            this.filteredDepartmentsByUser = this.departmentListByUser;
-            this.projectFilterDTO = this.deptList;
-            this.projectFilterDTO.departments = [];
-            this.projectFilterDTO.departmentsids = [];
-            this.onDepartmentToggle(this.projectFilterDTO);
-            // this.combinedPOINTERNALCountList(this.projectFilterDTO);
-            resolve(response.serviceResponse);
-          } else {
-            reject("Failed to fetch departments");
-          }
-        },
-        error: (error) => {
-          reject(error);
-        }
-      });
-    });
+  openProjectConfigurationModal() {
+    this.projectConfigurationModalRef = this.modalService.open(this.projectConfigurationTemplateRef, { modalDialogClass: 'modal-lg no-modal-content', backdrop: 'static', keyboard: false });
   }
 
-  onDepartmentSelectionChangeByUser(deptIds?:any) {
-        console.log(this.skipSelectionChange,"this.skipSelectionChange")
-    if (this.skipSelectionChange) {
-      return;
-    }
-    if(deptIds){this.deptIdListByUser=deptIds;}
-    console.log(this.skipSelectionChange,"this.skipSelectionChange")
-    console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser");
-    if (!this.isAllSelectedByUser && this.deptIdListByUser.length > 0 && this.deptIdListByUser[0] != null) {
-      this.projectFilterDTO.approvalStatus = "TotalProjects";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departments = [];
-      this.projectFilterDTO.departmentsids = this.deptIdListByUser;
-      this.filterStateService.deptIdListByUser = this.deptIdListByUser;
-      this.filterStateService.myDept = this.myDept;
-      console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.rbacApiCalls();
-      // this.getEmployeeReportData();
-
-    }else {
-      this.projectFilterDTO = this.deptList2;
-      this.projectFilterDTO.approvalStatus = "TotalProjects";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departmentsids = this.deptIdListByUser;
-      this.projectFilterDTO.departments = [];
-      this.filterStateService.deptIdList = this.deptIdList;
-      this.rbacApiCalls();
-
-
+  closeProjectConfigurationModal() {
+    if (this.projectConfigurationModalRef) {
+      this.projectConfigurationModalRef?.close();
     }
   }
+  // Project Configuration End
 
-  filterDepartmentsByUser() {
-    const lowerText = this.searchTextDeptByUser.toLowerCase();
-    this.filteredDepartmentsByUser = this.departmentListByUser.filter(dept =>
-      dept.name.toLowerCase().includes(lowerText)
-    );
-  }
-
-  clearSelectionByUser(event: Event) {
-    console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser");
-    event.stopPropagation();
-    if (this.isAllSelectedByUser == true) {
-      console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser");
-      this.toggleSelectAllDeptByUser();
+  handleProjectAction(event: { action: string; project: any }) {
+    const { action, project } = event;
+    switch (action) {
+      case 'PREVIEW':
+        this.isEditProject = false;
+        this.showProjectConfigurationDetails(project, true);
+        break;
+      case 'EDIT_NEW':
+        this.showProjectConfigurationDetails(project, false);
+        break;
+      case 'MARK_AS_COMPLETE':
+        this.initiateProjectCompletion(project);
+        break;
+      case 'APPROVE':
+        this.onApproveProject(project);
+        break;
+      case 'REJECT':
+        this.openRejectProjectModal(project);
+        break;
+      case 'CLIENT_SIDE_ID_STATUS':
+        this.isClientSideIdTnmProjectType = project.poProjectType && project?.poProjectType?.trim()?.toLowerCase() === 'tnm';
+        this.openClientSideIdConfirmationModal(project.projectId);
+        break;
+      case 'RESTORE':
+        this.openRestoreProjectModal(project.projectId);
+        break;
     }
-    else {
-      this.deptIdListByUser = [];
-      this.projectFilterDTO.approvalStatus = "TotalProjects";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departmentsids = [];
-      this.projectFilterDTO.departments = [];
-      this.filterStateService.deptIdListByUser = this.deptIdListByUser;
-      console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.rbacApiCalls();
-    }
-  }
-
-  toggleSelectAllDeptByUser() {
-    // this.employeeReportObj.deptId = [];
-    console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser.......")
-    if (this.isAllSelectedByUser) {
-      // Deselect all if already selected
-      this.deptIdListByUser = [];
-      this.isAllSelectedByUser = false;
-      this.projectFilterDTO.approvalStatus = "TotalProjects";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departmentsids = [];
-      this.projectFilterDTO.departments = [];
-      this.filterStateService.deptIdListByUser = this.deptIdListByUser;
-      console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.rbacApiCalls();
-
-    } else {
-      // Select all departments
-      this.deptIdListByUser = this.filteredDepartmentsByUser.map(dept => dept.deptId);
-      this.isAllSelectedByUser = true;
-      this.projectFilterDTO.approvalStatus = "TotalProjects";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departmentsids = this.deptIdListByUser;
-      this.projectFilterDTO.departments = [];
-      this.filterStateService.deptIdListByUser = this.deptIdListByUser;
-      console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.rbacApiCalls();
-
-    }
-
-  }
-
-
-
-
-  combinedPOINTERNALCountList(projectFilterDTO): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.resourceManagementService.combinedPOINTERNALCountList(projectFilterDTO).pipe(first()).subscribe({
-        next: (response: any) => {
-          if (response.serviceStatus === "Success") {
-            this.countList = response.serviceResponse;
-            this.tabCounts = this.countList.counts;
-            console.log("this.tabCounts", this.tabCounts);
-            this.expiredProjects1To2Months=this.tabCounts.expiredProjects1To2Months;
-            this.expiredProjects2To3Months=this.tabCounts.expiredProjects2To3Months;
-            this.expiredProjects3To6Months=this.tabCounts.expiredProjects3To6Months;
-            this.expiredProjects6To9Months=this.tabCounts.expiredProjects6To9Months;
-            this.expiredProjects9To12Months=this.tabCounts.expiredProjects9To12Months;
-            this.expiredProjectsAbove12Months=this.tabCounts.expiredProjectsAbove12Months;
-            this.expiredProjectsWithin1Month=this.tabCounts.expiredProjectsWithin1Month;
-
-            this.notStartedCount = this.tabCounts.notStartedCount;
-            this.pendingForApprovalCount = this.tabCounts.pendingForApprovalCount;
-            this.approvedCount = this.tabCounts.approvedCount;
-            this.completedInIshineCount = this.tabCounts.completedInIshineCount;
-            this.completedCount =  this.tabCounts.completedCount;
-            this.completedWithEmployeeCount =   this.tabCounts.completedWithEmployeeCount;
-
-            console.log("this.tabCounts", this.tabCounts);
-            // this.selectActiveProjectFilter(this.selectedActiveProjectFilter);
-            resolve(response.serviceResponse);
-          } else {
-            reject("Failed to fetch counts");
-          }
-        },
-        error: (error) => {
-          reject(error);
-        }
-      });
-    });
-  }
-
- getStatusGraphData() {
-  const { data, categories } = this.showMoreCards
-    ? {
-        data: [
-          { y: this.completedInIshineCount, color: '#5cb85c' },
-          { y: this.completedCount, color: '#d9534f' },
-          { y: this.completedWithEmployeeCount, color: '#f0ad4e' }
-        ],
-        categories: ['Ishine Completed', 'Shankh Completed', 'Completed with Employee']
-      }
-    : {
-        data: [
-          { y: this.notStartedCount, color: '#5cb85c' },
-          { y: this.pendingForApprovalCount, color: '#d9534f' },
-          { y: this.approvedCount, color: '#f0ad4e' }
-        ],
-        categories: ['Not Started', 'Pending for Approval', 'Approved']
-      };
-
-  const chartData = [{
-    name: 'Project Status',
-    data: data
-  }];
-
-  this.renderColumnChart(
-    'Projects Overview',
-    'ProjectChart',
-    chartData,
-    categories,
-    'Number of Projects'
-  );
-}
-  onDepartmentToggle(projectFilterDTO) {
-    projectFilterDTO.approvalStatus = 'TotalProjects';
-    if (!this.myDept) {
-      this.projectFilterDTO.departments = this.deptIdList;
-      const deptIds: number[] = this.deptIdList.map(dept => dept.deptId);
-      this.projectFilterDTO.departmentsids = deptIds;
-      this.combinedPOINTERNALCountList(projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, projectFilterDTO);
-    }
-    else {
-      this.projectFilterDTO.departments = this.deptIdListByUser;
-      const deptIds: number[] = this.deptIdListByUser.map(dept => dept.deptId);
-      this.projectFilterDTO.departmentsids = deptIds;
-      this.combinedPOINTERNALCountList(projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, projectFilterDTO);
-    }
-  }
-
-  fetchCountAndList() {
-    this.myDept = !this.myDept;
-    if (this.myDept) {
-      this.projectFilterDTO.departments = this.deptIdList;
-      const deptIds: number[] = this.deptIdList.map(dept => dept.deptId);
-      this.projectFilterDTO.departmentsids = deptIds;
-      this.projectFilterDTO.approvalStatus = 'All';
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
-    }
-    else {
-      this.projectFilterDTO.departments = this.deptIdListByUser;
-      const deptIds: number[] = this.deptIdListByUser.map(dept => dept.deptId);
-      this.projectFilterDTO.departmentsids = deptIds;
-      this.projectFilterDTO.approvalStatus = 'All';
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
-    }
-  }
-
-  toggleDept(): void {
-    this.myDept = !this.myDept;
-    this.filterStateService.myDept = this.myDept;
-  }
-
-  createDepartmentArray() {
-    this.allProject_Po_Internal.forEach(project => {
-      if (Array.isArray(project.combinedProjectType)) {
-        project.combinedProjectType.forEach((type: any) => {
-          if (type.deptId) {
-            // Split comma-separated string, trim and convert to numbers
-            const deptIds = type.deptId.split(',')
-              .map((id: string) => parseInt(id.trim()))
-              .filter(id => !isNaN(id));
-
-            // Match with this.departments to get names
-            const departmentNames = deptIds.map(id => {
-              const match = this.departments.find(dep => dep.deptId === id);
-              return match ? match.deptName : null;
-            }).filter(name => name !== null);
-
-            // Assign to type.department
-            type.department = departmentNames;
-          } else {
-            type.department = [];
-          }
-        });
-      }
-    });
-  }
-
-  rbacApiCalls() {
-    // location.reload();
-    this.combinedPOINTERNALCountList(this.projectFilterDTO);
-    this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
-    this.RbacInternalProjects(this.projectFilterDTO);
-    this.RbacShankhProjects(this.projectFilterDTO);
-    this.getEmployeesWithoutBillability(this.projectFilterDTO);
-    this.RbacAllShankhInternalProjects(this.projectFilterDTO);
-    this.ExceptionEmployeeReport(this.projectFilterDTO);
-    this.RbacBothShankhInternal(this.projectFilterDTO);
-    this.ProjectLessEmployees(this.projectFilterDTO);
-    this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
-    this.getFixedCostCount(this.projectFilterDTO);
-    this.isRestoreSuccess = false;
-  }
-
-  clearField() {
-    this.bulkProjectType = '';
-    this.setDefaultProjectObj.projectId = '';
-    this.setDefaultProjectObj.teamId = '';
-    this.setDefaultProjectObj.employeeRole = '';
-    this.setDefaultProjectObj.resourceOverViewId = '';
   }
 
   openProjectLineItemListModal() {
@@ -6432,9 +2282,9 @@ filteredProjects: any[] = [];
     this.projectLineItemListModalRef?.close();
   }
 
-showProjectMilestones(projectObj: any) {
+  showProjectMilestones(projectObj: any) {
     this.fcProjectMilestoneList = [];
-     this.isLoadingMilestones = true;
+    this.isLoadingMilestones = true;
 
     let projectObjTemp = new Project();
     projectObjTemp.poProjectId = projectObj?.id;
@@ -6452,29 +2302,29 @@ showProjectMilestones(projectObj: any) {
             console.error("Error fetching milestones:", response.serviceResponse);
             this.openAlertMod(this.alertTemplate, response.serviceResponse);
           }
-           this.isLoadingMilestones = false;
+          this.isLoadingMilestones = false;
         },
         error: (err) => {
-            console.error("HTTP error fetching milestones:", err);
-            this.openAlertMod(this.alertTemplate, "An unexpected error occurred while fetching milestones.");
-             this.isLoadingMilestones = false;
+          console.error("HTTP error fetching milestones:", err);
+          this.openAlertMod(this.alertTemplate, "An unexpected error occurred while fetching milestones.");
+          this.isLoadingMilestones = false;
         }
-    });
-}
+      });
+  }
 
-   switchModalTab(tabName: 'info' | 'milestone') {
+  switchModalTab(tabName: 'info' | 'milestone') {
     this.activeModalTab = tabName;
 
     // If switching to the milestone tab, fetch the data
     if (tabName === 'milestone') {
       this.showProjectMilestones(this.projectObj);
-    //    setTimeout(() => {
-    //   this.openProjectLineItemListModal();
-    // }, 100);
+      //    setTimeout(() => {
+      //   this.openProjectLineItemListModal();
+      // }, 100);
     }
   }
 
-  calculatePoStatus(projectDto:any) {
+  calculatePoStatus(projectDto: any) {
     let notStarted = 0, completed = 0, hold = 0, inProgress = 0;
     let lineItemList = this.fcProjectMilestoneList.filter(milestone => milestone.lineItemId == this.projectMilestone.lineItemId);
     for (let m of lineItemList) {
@@ -6493,79 +2343,33 @@ showProjectMilestones(projectObj: any) {
     else if (notStarted > 0 && notStarted < lineItemList?.length) { this.projectMilestone.lineItemStatus = Status.IN_PROGRESS }
     else if (completed > 0) { this.projectMilestone.lineItemStatus = Status.COMPLETED }
 
-   const allCompleted =
-    this.fcProjectMilestoneList.length > 0 &&
-    this.fcProjectMilestoneList.every(m => m.status === Status.COMPLETED);
+    const allCompleted =
+      this.fcProjectMilestoneList.length > 0 &&
+      this.fcProjectMilestoneList.every(m => m.status === Status.COMPLETED);
 
-  if (allCompleted) {
-    // this.confirmComplete();
-    this.confirmCompleteMailTrigger(projectDto)
-  } else {
+    if (allCompleted) {
+      // this.confirmComplete();
+      this.confirmCompleteMailTrigger(projectDto)
+    } else {
 
-    this.updateMilestone();
-    this.closeUpdateProjectMilestoneModal();
+      this.updateMilestone();
+      this.closeUpdateProjectMilestoneModal();
+    }
+    return allCompleted
   }
-   return allCompleted
-  }
 
-  confirmCompleteMailTrigger(projectDto:any) {
-  console.log(projectDto.projectId);
-  this.resourceManagementService.completeProjectReminder(projectDto.projectId).pipe(first())
-    .subscribe((response: any) => {
+  confirmCompleteMailTrigger(projectDto: any) {
+    console.log(projectDto.projectId);
+    this.resourceManagementService.completeProjectReminder(projectDto.projectId).pipe(first())
+      .subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           console.log("Completion mail triggered successfully!!");
-        } 
-      }, (error) => {console.log(error);}
-    );
-}
-
-
-
-shouldReload: boolean = false;
-confirmComplete() {
-
-  this.projectObj.projectCompletionDate = new Date();
-
-  this.projectObj.projectType = this.projectObj.poProjectType;
-  this.projectObj.projectStatus="Completed";
-
-  this.resourceManagementService
-    .completionDateOfProject(this.projectObj)
-    .pipe(first())
-    .subscribe(
-      (response: any) => {
-
-        if (response.serviceStatus === "Success") {
-          console.log('Selected Date:', response.serviceResponse);
-          this.openUpdateProjectCompletionModal(
-            "Since all milestones are completed, the project is marked as complete.",
-            true
-          );
-        } else {
-          this.openUpdateProjectCompletionModal(response.serviceResponse, false);
         }
-      },
-      (error) => {
-
-        this.openUpdateProjectCompletionModal("Something went wrong while completing the project.");
-      }
-    );
-}
-
-cancelComplete() {
-  this.confirmCompleteTemplateModalRef?.close();
-}
-
-
-  sortProjectMilestoneData(sort: Sort) {
-    if (sort.active) {
-      let sortParams: any[] = sort.active?.split("|");
-      this.projectMilestoneSortColumn = sortParams[0];
-      this.projectMilestoneSortColumnType = sortParams[1];
-      this.projectMilestoneSortDirection = sort.direction;
-      this.showProjectMilestones(this.projectObj);
-    }
+      }, (error) => { console.log(error); }
+      );
   }
+
+
 
   handleProjectMilestonePageChange(event) {
     this.projectMilestonepage = event;
@@ -6575,7 +2379,7 @@ cancelComplete() {
     this.extensionReason()
     this.projectMilestone = JSON.parse(JSON.stringify(milestone));
     this.minExtendedDate()
-    this.originalStatus=this.projectMilestone.status
+    this.originalStatus = this.projectMilestone.status
     this.updateProjectMilestoneModalRef = this.modalService.open(this.updateProjectMilestoneModal, { modalDialogClass: 'modal-xl' });
   }
 
@@ -6603,15 +2407,15 @@ cancelComplete() {
   }
 
 
-  onFileSelected(event: any,projectMilestone:any): void {
+  onFileSelected(event: any, projectMilestone: any): void {
     const file: File = event.target.files[0];
     this.selectedFile = null;
     this.selectedFilePreviewUrl = null;
-    
-    if(!file){return ;}
+
+    if (!file) { return; }
 
     if (file) {
-      const allowedTypes = ['application/pdf','image/jpeg','image/png','image/jpg'];
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
       if (!allowedTypes.includes(file.type)) {
         this.openAlertMod(this.alertTemplateForMilestone, "Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.");
         event.target.value = '';
@@ -6619,23 +2423,24 @@ cancelComplete() {
         return;
       }
 
-    const maxSize = 25 * 1024 * 1024; // 25MB
-    if (file.size > maxSize) {
-      this.openAlertMod(this.alertTemplateForMilestone, "File size should be less than 25MB!!");
-      return;
-    }
-      const uniquefile =projectMilestone.id+'_'+file.name
-      this.validateFileName(uniquefile,"status");
+      const maxSize = 25 * 1024 * 1024; // 25MB
+      if (file.size > maxSize) {
+        this.openAlertMod(this.alertTemplateForMilestone, "File size should be less than 25MB!!");
+        return;
+      }
+      const uniquefile = projectMilestone.id + '_' + file.name
+      this.validateFileName(uniquefile, "status");
       const reader = new FileReader();
       reader.onload = () => {
-      this.selectedFilePreviewUrl = reader.result as string;};
+        this.selectedFilePreviewUrl = reader.result as string;
+      };
       reader.readAsDataURL(file);
       this.selectedFile = file;
-      this.selectedFile = new File([file],uniquefile,{ type: file.type });
+      this.selectedFile = new File([file], uniquefile, { type: file.type });
     }
   }
 
-    previewSelectedFile(): void {
+  previewSelectedFile(): void {
     if (!this.selectedFile || !this.selectedFilePreviewUrl) {
       alert('Please select a file to preview.');
       return;
@@ -6655,1905 +2460,181 @@ cancelComplete() {
     this.alertMessage = message;
   }
 
- private requiresDocument(status: string): boolean {
-  return status?.trim() === Status.COMPLETED || status?.trim() === Status.ON_HOLD;
-}
+  private requiresDocument(status: string): boolean {
+    return status?.trim() === Status.COMPLETED || status?.trim() === Status.ON_HOLD;
+  }
 
 
-openMileStoneStatusModal(){
+  openMileStoneStatusModal() {
     if (!this.projectMilestone.startDate) {
-    this.openAlertMod(this.alertTemplateForMilestone, 'Start date is required for milestone');
-    return;}
+      this.openAlertMod(this.alertTemplateForMilestone, 'Start date is required for milestone');
+      return;
+    }
 
-  if (!this.projectMilestone.endDate) {
-    this.openAlertMod(this.alertTemplateForMilestone, 'End date is required for milestone');
-    return;
-  }
+    if (!this.projectMilestone.endDate) {
+      this.openAlertMod(this.alertTemplateForMilestone, 'End date is required for milestone');
+      return;
+    }
 
-  if (this.projectMilestone.startDate > this.projectMilestone.endDate) {
-    this.openAlertMod(this.alertTemplateForMilestone, 'End date must be after start date for milestone');
-    return;
-  }
+    if (this.projectMilestone.startDate > this.projectMilestone.endDate) {
+      this.openAlertMod(this.alertTemplateForMilestone, 'End date must be after start date for milestone');
+      return;
+    }
 
-  if (!this.projectMilestone.status || this.projectMilestone.status.trim().length === 0) {
-    this.openAlertMod(this.alertTemplateForMilestone, 'Status is required for milestone');
-    return;
-  }
-  
-  if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
-  this.openAlertMod(this.alertTemplateForMilestone, 'Please upload a document when completing/holding a milestone');
-  return;
-  }
+    if (!this.projectMilestone.status || this.projectMilestone.status.trim().length === 0) {
+      this.openAlertMod(this.alertTemplateForMilestone, 'Status is required for milestone');
+      return;
+    }
 
-  // if(this.projectObj.projectStatus==="Completed"){
-  //   this.openAlertMod(this.alertTemplateForMilestone, 'Project is already completed. You cannot update the milestone.');
-  //   return;
-  // }
+    if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
+      this.openAlertMod(this.alertTemplateForMilestone, 'Please upload a document when completing/holding a milestone');
+      return;
+    }
+
+    // if(this.projectObj.projectStatus==="Completed"){
+    //   this.openAlertMod(this.alertTemplateForMilestone, 'Project is already completed. You cannot update the milestone.');
+    //   return;
+    // }
 
     this.modalRef = this.modalService.open(this.confirmMilestoneStatusModal, { modalDialogClass: 'modal-sm' });
-    this.confirmMilestoneStatus = "Are you sure to update the milestone status from "+ this.originalStatus +" to "+this.projectMilestone.status +" ?";
-}
+    this.confirmMilestoneStatus = "Are you sure to update the milestone status from " + this.originalStatus + " to " + this.projectMilestone.status + " ?";
+  }
 
-  isLoadingMilestone:boolean=false;
+  isLoadingMilestone: boolean = false;
   async updateMilestoneChanges() {
     this.projectNameForMilestoneUpdate = this.projectObj.name;
     this.poNameForMilestoneUpdate = this.projectObj.poNo;
 
     console.log("before updaed by updated on", this.projectMilestone);
 
-    this.projectMilestone.updatedBy = this.currentUser.employeementId;
+    this.projectMilestone.updatedBy = this.currentUser.empId;
     this.projectMilestone.updatedOn = new Date();
     this.projectMilestone.updatedByName = this.currentUser.name;
     this.projectMilestone.projectNameForMilestoneUpdate = this.projectNameForMilestoneUpdate
     this.projectMilestone.poNameForMilestoneUpdate = this.poNameForMilestoneUpdate
-
+    this.projectMilestone.poProjectId=this.projectObj.poProjectId
 
     const formData = new FormData();
     formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
     formData.append('projectName', this.projectNameForMilestoneUpdate);
-    formData.append('previousStatus' , this.originalStatus)
+    formData.append('previousStatus', this.originalStatus)
 
     if (this.selectedFile) {
       formData.append('file', this.selectedFile);
     }
-    this.isLoadingMilestone=true;
-
-    this.projectService.updateMilestoneById(formData).pipe(first()).subscribe({next: (response: any) => {
-    this.isLoadingMilestone = false;
-
-    if (response.serviceStatus === "Success") {
-        this.selectedFile = null;
-        this.isStatusChanged=false;
-       const index = this.fcProjectMilestoneList.findIndex(m => m.id === this.projectMilestone.id);
-    if (index > -1) {this.fcProjectMilestoneList[index] = { ...this.projectMilestone };}
-        this.calculatePoStatus(this.projectMilestone);
-      this.closeUpdateProjectMilestoneModal();
-      this.showProjectMilestones(this.projectObj);
-    } else {
-      this.openAlertMod(this.alertTemplateForMilestone, response.serviceResponse || "Failed to update milestone.");
-      this.showProjectMilestones(this.projectObj);
-    }
-  },
-  error: (err) => {
-    this.isLoadingMilestone = false;
-    this.openAlertMod(this.alertTemplateForMilestone, "Error updating milestone: " + err.message);
-  }
-});
-  this.closeUpdateProjectMilestoneModal();
-
-  }
-
-onStatusChange(newStatus: string) {
-  this.isStatusChanged = newStatus !== this.originalStatus;
-}
-
-
-  // viewMilestoneFile(milestoneId: number): void {
-  //   this.projectService.getMilestoneById(milestoneId).subscribe({
-  //     next: (res) => {
-  //       if (res.serviceStatus === 'Success') {
-  //         const milestone = res.serviceResponse;
-  //         if (milestone.documentBase64) {
-  //           const mimeType = this.getMimeType(milestone.documentName);
-  //           const base64Data = `data:${mimeType};base64,${milestone.documentContent}`;
-  //           this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(base64Data);
-  //           setTimeout(() => {
-  //             this.viewDocument();
-  //           }, 2000);
-
-  //         } else {
-  //           alert('No document available for this milestone.');
-  //         }
-  //       } else {
-  //         console.error(res.serviceResponse);
-  //       }
-  //     },
-  //     error: (err) => {
-  //       console.error('Failed to retrieve milestone:', err);
-  //     }
-  //   });
-  // }
-
-
-  getFileType(filename: string): string {
-  const extension = filename.split('.').pop()?.toLowerCase();
-  switch (extension) {
-    case 'png': return 'image/png';
-    case 'jpg':
-    case 'jpeg': return 'image/jpeg';
-    case 'pdf': return 'application/pdf';
-    default: return 'application/octet-stream';
-  }
-}
-
-clearSelectedFile(fileInput: HTMLInputElement) {
-  this.selectedFile = null;
-  fileInput.value = '';
-}
-
-  viewFiles(mileStoneId: any) {
     this.isLoadingMilestone = true;
-    this.projectService.getMilestoneById(mileStoneId).subscribe((res: any) => {
-       this.isLoadingMilestone = false;
 
+    this.projectService.updateMilestoneById(formData).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.isLoadingMilestone = false;
 
-
-        if (res.documentContent && res.documentName) {
-          const fileType = this.getFileType(res.documentName);
-          const imageDataUrl = `data:${fileType};base64,${res.documentContent}`;
-          console.log("image url" + imageDataUrl)
-          this.dialog.open(ViewImageComponent, {
-            width: '80%',
-            data: {
-              imageUrl: imageDataUrl,
-              fileName: res.documentName
-            }
-          });
+        if (response.serviceStatus === "Success") {
+          this.selectedFile = null;
+          this.isStatusChanged = false;
+          const index = this.fcProjectMilestoneList.findIndex(m => m.id === this.projectMilestone.id);
+          if (index > -1) { this.fcProjectMilestoneList[index] = { ...this.projectMilestone }; }
+          this.calculatePoStatus(this.projectMilestone);
+          this.closeUpdateProjectMilestoneModal();
+          this.showProjectMilestones(this.projectObj);
         } else {
-          this.notificationService.showErrorMessage("image is not available")
+          this.openAlertMod(this.alertTemplateForMilestone, response.serviceResponse || "Failed to update milestone.");
+          this.showProjectMilestones(this.projectObj);
         }
-
-
-    },
-      (error) => {
-        this.notificationService.showErrorMessage(error.error.message);
-      }
-    )
-
-
-  }
-
-
-
-  getMimeType(fileName: string): string {
-    const ext = fileName?.split('.').pop()?.toLowerCase();
-    switch (ext) {
-      case 'pdf': return 'application/pdf';
-      case 'png': return 'image/png';
-      case 'jpg':
-      case 'jpeg': return 'image/jpeg';
-      default: return 'application/octet-stream';
-    }
-  }
-
- getAllDepartmentList1(project: any) {
-    this.allDeptList = [];
-
-    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allDeptList = response.serviceResponse;
-        const deptIds = project?.deptId
-          ?.split(",")
-          .map(id => Number(id.trim()))
-          .filter(id => !isNaN(id));
-
-        const departmentNames = this.allDeptList
-          .filter(x => deptIds?.includes(x.deptId))
-          .map(x => x.name);
-
-
-
-        this.projectObj.department = departmentNames;
-
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  }
-
-
-
-
-expiredProjectFilters = [
-    { key: 'allExpiredTNMProjectsCount', label: 'All', title: 'All Expired TNM Projects' },
-    { key: 'expiredProjectsWithin1Month', label: '1M', title: 'Expired Within 1 Month' },
-    { key: 'expiredProjects1To2Months', label: '1-2M', title: 'Expired 1 to 2 Months' },
-    { key: 'expiredProjects2To3Months', label: '2-3M', title: 'Expired 2 to 3 Months' },
-    { key: 'expiredProjects3To6Months', label: '3-6M', title: 'Expired 3 to 6 Months' },
-    { key: 'expiredProjects6To9Months', label: '6-9M', title: 'Expired 6 to 9 Months' },
-    { key: 'expiredProjects9To12Months', label: '9-12M', title: 'Expired 9 to 12 Months' },
-    { key: 'expiredProjectsAbove12Months', label: '12M+', title: 'Expired Above 12 Months' }
-];
-
-selectedExpiredProjectFilter: any = null;
-expiredProjectDisplayCount: number | null = null;
-
-
-
-  openClientSideIdPresent(template: TemplateRef<any>,projectId:any) {
-    this.clientSideIdPresent = this.modalService.open(template, { modalDialogClass: 'modal-md' });
-    this.clientSideIdObj.projectId = projectId;
-    this.fetchHasClientSideId(projectId);
-  }
-
-  hideClientSideIdPresent(): void {
-    if (this.clientSideIdPresent) {
-      this.clientSideIdPresent.close();
-    }
-  }
-
-  onClientSideIdOk() {
-    this.updateHasClientSideId(this.hasClientSideIdFlag);
-  }
-
-  updateHasClientSideId(flag:Boolean){
-    this.clientSideIdObj.hasClientSideId = flag;
-    this.clientSideIdObj.currentUserEmpId = this.currentUser.empId;
-    this.clientSideIdObj.clientFlag = this.isClientSideIdFormatted;
-    this.hideClientSideIdPresent();
-    this.resourceManagementService.updateHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse);
-        this.hasClientSideIdFlag = false;
-        this.isClientSideIdFormatted = false;
-        this.hasClientSideIdFlagHistory = false;
-        this.isClientSideIdFormattedHistory = false;
-      } else {
-        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse)
-      }
-    });
-    this.hasClientSideIdFlag = false;
-    this.isClientSideIdFormatted = false;
-    this.hasClientSideIdFlagHistory = false;
-    this.isClientSideIdFormattedHistory = false;
-  }
-
-  getActiveProjectList(){
-    this.resourceManagementService.getActiveProjectList().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.projList = response.serviceResponse;
-      } else {
-        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse);
-      }
-    });
-  }
-
-  liftAndShiftTeams(){
-    this.liftAndShiftObj.currentUserEmpId = this.currentUser.empId;
-    this.liftAndShiftObj.teamIds = this.selectedTeamsDetails.map(team => team.teamId);
-    this.resourceManagementService.liftAndShiftTeams(this.liftAndShiftObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertModWithReload(this.modalRefWithReloadTemp,response.serviceResponse);
-      } else {
-        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse);
-      }
-    });
-  }
-
-  openLiftAndShiftTeamsMod(projectObj:any) {
-    this.liftAndShiftObj.sourceProjectId = projectObj.projectId;
-    this.getActiveProjectList();
-    this.liftAndShiftRef = this.modalService.open(this.liftAndShiftTeamsTemp, { modalDialogClass: 'modal-lg' });
-  }
-
-  hideLiftAndShiftTeamsMod() {
-    this.liftAndShiftRef?.close();
-  }
-  hasClientSideIdFlagHistory:Boolean = false;
-  isClientSideIdFormattedHistory:Boolean = false;
-  fetchHasClientSideId(projectId:any){
-    this.clientSideIdObj.projectId = projectId;
-    this.resourceManagementService.fetchHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.fetchClientSideIdObj = response.serviceResponse;
-        this.hasClientSideIdFlag = !!this.fetchClientSideIdObj.hasClientSideId;
-        this.isClientSideIdFormatted = !!this.fetchClientSideIdObj.clientFlag;
-        this.hasClientSideIdFlagHistory = !!this.fetchClientSideIdObj.hasClientSideId;
-        this.isClientSideIdFormattedHistory = !!this.fetchClientSideIdObj.clientFlag;
-        console.log("this.hasClientSideIdFlag",this.hasClientSideIdFlag);
-        console.log("this.isClientSideIdFormatted",this.isClientSideIdFormatted);
-      } else {
-        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse)
-      }
-    });
-  }
-
-
-//    activeProjectDisplayCount: number | null = null;
-//   selectedActiveProjectFilter: any;
-//   activeProjectFilters: any[] = [];
-
-
-//  initializeActiveProjectFilters() {
-//     this.activeProjectFilters = [
-//       {
-//         label: 'Total',
-//         key: 'allTotalActiveProjectCount',
-//         title: 'All Active Projects'
-//       },
-//       {
-//         label: '<31',
-//         key: 'allActiveProjectsUpToMarch31Count',
-//         title: 'Projects Active Up To March 31'
-//       },
-//       {
-//         label: '>31',
-//         key: 'activeProjectGreaterThan31MarchCount',
-//         title: 'Projects Active After March 31'
-//       },
-//       {
-//         label: 'Int',
-//         key: 'allInternalActiveProjectsCounts',
-//         title: 'Internal Active Projects'
-//       }
-//     ];
-
-//     this.selectedActiveProjectFilter = this.activeProjectFilters[0];
-//   }
-
-//   selectActiveProjectFilter(filter: any) {
-//     this.selectedActiveProjectFilter = filter;
-//     if (this.tabCounts) {
-//       this.activeProjectDisplayCount = this.tabCounts[filter.key];
-//     }
-//   }
-
-
-getCurrentExpiredCount(): number {
-    if (!this.tabCounts) return 0;
-    if (this.selectedExpiredProjectFilter && this.selectedExpiredProjectFilter.key) {
-        return this.tabCounts[this.selectedExpiredProjectFilter.key] || 0;
-    }
-    return this.tabCounts.allExpiredTNMProjectsCount || 0;
-}
-
-initializeExpiredProjectFilters() {
-  this.selectedExpiredProjectFilter = this.expiredProjectFilters[0];
-}
-
-selectExpiredProjectFilter(filter: any) {
-    this.selectedExpiredProjectFilter = filter;
-    this.projectFilterDTO.expiredProjectFilter = filter.key;
-
-    console.log('Selected expired project filter:', filter);
-    console.log('Filter key set to:', this.projectFilterDTO.expiredProjectFilter);
-
-    this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
-}
-
-
-showMoreCards: boolean = false;
-
-totalCards: number = 9;
-cardsPerLevel: number = 3;
-maxCardLevels: number = 0;
-currentCardLevel: number = 1;
-
-calculateCardLevels() {
-  this.maxCardLevels = Math.ceil(this.totalCards / this.cardsPerLevel);
-  this.currentCardLevel = 1;
-}
-
-toggleMoreCards() {
-  if (this.currentCardLevel >= this.maxCardLevels) {
-    this.currentCardLevel = 1;  // Reset to show first level
-  } else {
-    this.currentCardLevel++;    // Show next level
-  }
-}
-
-
-selectedDepartments: string[] = [];
-allDepartmentsGraph: string[] = [];
-showDepartmentFilter: boolean = true;
-orgChartData: any[] = [];
-filterError: string | null = null;
-
-
-
-
-
-
-renderColumnChart1(chartName: any, chartId: any, chartData: any, categories: any, yAxisTitle: string) {
-  Highcharts.chart(chartId, {
-    chart: {
-      type: 'column',
-    },
-    title: {
-      text: chartName,
-      style: {
-        fontWeight: 'bold',
-        color: '#000000'
-      }
-    },
-    xAxis: {
-      categories: categories,
-      title: {
-        text: 'Clients'
       },
-      labels: {
-        rotation: -45,
-        style: {
-          fontSize: '11px',
-          fontFamily: 'Verdana, sans-serif'
-        }
-      }
-    },
-    yAxis: {
-      min: 0,
-      title: {
-        text: yAxisTitle,
-        align: 'high'
-      },
-      labels: {
-        overflow: 'justify'
-      }
-    },
-    tooltip: {
-      headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
-      pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
-        '<td style="padding:0"><b>{point.y}</b></td></tr>',
-      footerFormat: '</table>',
-      shared: true,
-      useHTML: true
-    },
-    plotOptions: {
-      column: {
-        dataLabels: {
-          enabled: true,
-          format: '{y}',
-          style: {
-            fontSize: '10px',
-          },
-          // Only show labels for values > 0
-          formatter: function() {
-            return this.y > 0 ? this.y : '';
-          }
-        },
-        pointPadding: 0.2,
-        borderWidth: 0
-      }
-    },
-    credits: {
-      enabled: false,
-    },
-    legend: {
-      enabled: true,
-      layout: 'horizontal',
-      align: 'center',
-      verticalAlign: 'bottom'
-    },
-    series: chartData
-  });
-}
-
-
-
-tableData: any[][] = [];
-maxRows: number = 0;
-
-
-prepareAndFetchChartData() {
-  let filteredDepts = this.poDepartments;
-
-  if (this.projectFilterDTO?.departmentsids?.length > 0) {
-    const deptIdSet = new Set(this.projectFilterDTO.departmentsids);
-
-    const allowedDeptNames = this.allDepartments
-      .filter(dept => deptIdSet.has(dept.deptId))
-      .map(d => d.name.toLowerCase().trim());
-
-    filteredDepts = this.poDepartments.filter(po => {
-      const subDepts = po.name.split(",").map(d => d.toLowerCase().trim());
-      return subDepts.some(sd => allowedDeptNames.includes(sd));
-    });
-  }
-
-  this.allDeptList = filteredDepts
-    .map(dept => ({ name: dept.name, deptab: dept.deptab }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  this.selectedDepartments = [];
-
-  this.filterError = null;
-  this.getClientDepartmentChart(this.projectFilterDTO);
-}
- allDepartments = [
-      { deptId: 1, name: 'Super Admin', isBillable: false },
-      { deptId: 2, name: 'Accounts', isBillable: false },
-      { deptId: 3, name: 'APM', isBillable: true },
-      { deptId: 4, name: 'Application Performance Monitoring', isBillable: true },
-      { deptId: 5, name: 'Automation Testing', isBillable: true },
-      { deptId: 6, name: 'Business Development', isBillable: false },
-      { deptId: 7, name: 'Development', isBillable: true },
-      { deptId: 8, name: 'Functional Testing', isBillable: true },
-      { deptId: 9, name: 'HR', isBillable: false },
-      { deptId: 10, name: 'IT', isBillable: false },
-      { deptId: 11, name: 'Performance Testing', isBillable: true },
-      { deptId: 12, name: 'Production Support', isBillable: true },
-      { deptId: 13, name: 'Security Testing', isBillable: true },
-      { deptId: 14, name: 'Admin', isBillable: false },
-      { deptId: 15, name: 'Director', isBillable: false },
-      { deptId: 16, name: 'Resource Management Group', isBillable: false },
-      { deptId: 18, name: 'Presales', isBillable: false },
-      { deptId: 20, name: 'Production Support 24x7', isBillable: true },
-      { deptId: 21, name: 'Unknown Department', isBillable: false },
-      { deptId: 25, name: 'RPA', isBillable: true },
-      { deptId: 26, name: 'Products and RND', isBillable: true },
-      { deptId: 27, name: 'Consultant', isBillable: false },
-      { deptId: 28, name: 'Training', isBillable: false },
-      { deptId: 29, name: 'Floor Automation', isBillable: true }
-    ];
-
-getClientDepartmentChart(projectFilterDTO?: any) {
-  if (projectFilterDTO) {
-    this.projectFilterDTO = projectFilterDTO;
-  }
-
-
-
-  const payload = {
-    projectStructure: {
-      deptName: this.selectedDepartments?.length > 0 ? this.selectedDepartments : null,
-      type: this.selectedStatusTab || 'All'
-    },
-    projectFilter: this.projectFilterDTO
-  };
-
-  this.projectService.getClientVsDepartment(payload).pipe(first()).subscribe((res: any) => {
-    if (res.serviceStatus === "Success") {
-      this.serviceResponse = res.serviceResponse || [];
-      this.processDataForOrgChart();
-    } else {
-      console.error("Service call failed:", res.serviceResponse);
-      this.serviceResponse = [];
-      this.orgChartData = [];
-    }
-  });
-}
- hideModalRefWithoutReload2() {
-    this.modalRefWithoutReload2.close();
-    if(this.projectDetails.length === 0){
-      this.modalRef2.close();
-    }
-  }
-
-
-
-processDataForOrgChart() {
-  const departmentMap = new Map<string, Map<string, any[]>>();
-  const dataToProcess = this.serviceResponse;
-
-  dataToProcess.forEach(item => {
-    const { deptAb, clientName, projectName } = item;
-
-    if (!departmentMap.has(deptAb)) {
-      departmentMap.set(deptAb, new Map<string, any[]>());
-    }
-    const clientMap = departmentMap.get(deptAb)!;
-
-    if (!clientMap.has(clientName)) {
-      clientMap.set(clientName, []);
-    }
-    const projects = clientMap.get(clientName)!;
-
-    projects.push({
-      name: projectName,
-      cssClass: 'project-node'
-    });
-  });
-
-  this.orgChartData = Array.from(departmentMap.entries()).map(([deptAb, clientMap]) => {
-    return {
-      name: deptAb,
-      cssClass: 'department-node',
-      childs: Array.from(clientMap.entries()).map(([clientName, projects]) => {
-        return {
-          name: clientName,
-          cssClass: 'client-node',
-          childs: projects
-        };
-      })
-    };
-  });
-  this.processDataForTable();
-}
-
-
-expandedProjects: Set<string> = new Set();
-projectFullText: Map<string, string> = new Map();
-
-  getChartsByDepartment() {
-    let charts = this.orgChartData;
-
-    if (this.searchTerm && this.searchTerm.trim() !== '') {
-      const lowerCaseSearchTerm = this.searchTerm.toLowerCase().trim();
-      charts = this.orgChartData.filter(deptNode =>
-        deptNode.name.toLowerCase().includes(lowerCaseSearchTerm)
-      );
-    }
-
-    return charts.map(deptNode => [deptNode]);
-  }
-
-
-toggleAllDepartments(selectAll: boolean) {
-  if (selectAll) {
-    this.selectedDepartments = this.allDeptList.map(dept => dept.name);
-  } else {
-    this.selectedDepartments = [];
-  }
-  this.getClientDepartmentChart();
-}
-
-
-getColumnHeaders(): string[] {
-  if (this.tableData.length === 0) return [];
-  return this.tableData[0];
-}
-
-isDepartmentOrProjectHeader(rowIndex: number, colIndex: number): boolean {
-  if (rowIndex !== 0) return false;
-
-  const currentCell = this.tableData[rowIndex][colIndex];
-  return currentCell === 'Projects' || (currentCell !== '' && colIndex % 2 === 0);
-}
-
-truncateToWords(text: string, wordLimit: number): string {
-  if (!text) return '';
-  const words = text.split(' ');
-  if (words.length <= wordLimit) return text;
-  return words.slice(0, wordLimit).join(' ') + '...';
-}
-
-
-getFullProjectName(projectName: string): string {
-  return this.projectFullText.get(projectName) || projectName;
-}
-
-
-isProjectExpanded(projectName: string): boolean {
-  return this.expandedProjects.has(projectName);
-}
-
-expandedColumns: Set<string> = new Set();
-expandAllProjects: boolean = false;
-
-processDataForTable() {
-  this.expandedProjects.clear();
-  this.projectFullText.clear();
-
-  const departmentMap = new Map<string, Map<string, any[]>>();
-  const dataToProcess = this.serviceResponse;
-
-  dataToProcess.forEach(item => {
-    const { deptAb, clientName, projectName } = item;
-
-    if (!departmentMap.has(deptAb)) {
-      departmentMap.set(deptAb, new Map<string, any[]>());
-    }
-    const clientMap = departmentMap.get(deptAb)!;
-
-    if (!clientMap.has(clientName)) {
-      clientMap.set(clientName, []);
-    }
-    const projects = clientMap.get(clientName)!;
-    projects.push(projectName);
-  });
-
-  const departments = Array.from(departmentMap.keys());
-  const tableColumns: any[][] = [];
-  departments.forEach(dept => {
-    const clientMap = departmentMap.get(dept)!;
-    const deptColumn: any[] = [dept];
-
-    Array.from(clientMap.entries()).forEach(([clientName, projects]) => {
-      deptColumn.push({ type: 'client', name: clientName });
-
-      projects.forEach(project => {
-        deptColumn.push({ type: 'project', name: project });
-      });
-    });
-
-    tableColumns.push(deptColumn);
-  });
-
-  this.maxRows = Math.max(...tableColumns.map(col => col.length));
-
-  tableColumns.forEach(column => {
-    while (column.length < this.maxRows) {
-      column.push('');
-    }
-  });
-  this.tableData = [];
-  for (let i = 0; i < this.maxRows; i++) {
-    const row: any[] = [];
-    tableColumns.forEach(column => {
-      row.push(column[i] || '');
-    });
-    this.tableData.push(row);
-  }
-}
-
-
-isDepartmentHeader(rowIndex: number): boolean {
-  return rowIndex === 0;
-}
-
-isClientName(rowIndex: number, colIndex: number): boolean {
-  if (rowIndex === 0) return false;
-  const currentCell = this.tableData[rowIndex][colIndex];
-  return currentCell && typeof currentCell === 'object' && currentCell.type === 'client';
-}
-
-isProjectName(rowIndex: number, colIndex: number): boolean {
-  if (rowIndex === 0) return false;
-  const currentCell = this.tableData[rowIndex][colIndex];
-  return currentCell && typeof currentCell === 'object' && currentCell.type === 'project';
-}
-
-isDepartmentCell(rowIndex: number, colIndex: number): boolean {
-  if (rowIndex !== 0) return false;
-  const currentCell = this.tableData[rowIndex][colIndex];
-  return typeof currentCell === 'string' && currentCell !== '';
-}
-
-
-getCellDisplayText(cell: any): string {
-  if (typeof cell === 'string') {
-    return cell;
-  }
-  if (cell && cell.name) {
-    if (cell.type === 'project') {
-      return this.getDisplayProjectName(cell.name);
-    }
-    return cell.name;
-  }
-  return '';
-}
-
-getCellFullText(cell: any): string {
-  if (typeof cell === 'string') {
-    return cell;
-  }
-  if (cell && cell.name) {
-    return cell.name;
-  }
-  return '';
-}
-
-truncateText1(text: string, charLimit: number = 15): string {
-  if (!text || text.length <= charLimit) return text;
-  return text.substring(0, charLimit) + '...';
-}
-
-truncateText(text: string, charLimit: number = 15): string {
-  if (!text || text.length <= charLimit) return text;
-
-  const startIndex = text.length - charLimit + 3;
-  return '...' + text.substring(startIndex);
-}
-
-isTextTruncated(text: string): boolean {
-  return text && text.length > 15;
-}
-
-getDisplayProjectName(projectName: string, departmentName?: string): string {
-  if (!projectName) return '';
-
-  this.projectFullText.set(projectName, projectName);
-
-  const isColumnExpanded = departmentName && this.expandedColumns.has(departmentName);
-  const isIndividualExpanded = this.isProjectExpanded(projectName);
-
-  if (isColumnExpanded || isIndividualExpanded) {
-    return projectName;
-  }
-
-  return this.truncateText(projectName, 15);
-}
-
-getDisplayClientName(clientName: string, departmentName?: string): string {
-  if (!clientName) return '';
-
-  this.projectFullText.set(clientName, clientName);
-
-  const isColumnExpanded = departmentName && this.expandedColumns.has(departmentName);
-  const isIndividualExpanded = this.isProjectExpanded(clientName);
-
-  if (isColumnExpanded || isIndividualExpanded) {
-    return clientName;
-  }
-
-  return this.truncateText1(clientName, 15);
-}
-
-isProjectTruncated(text: string): boolean {
-  return this.isTextTruncated(text);
-}
-
-toggleExpandAllProjects(departmentName: string): void {
-  if (this.expandedColumns.has(departmentName)) {
-    this.expandedColumns.delete(departmentName);
-  } else {
-    this.expandedColumns.add(departmentName);
-  }
-}
-
-
-
-isColumnExpanded(departmentName: string): boolean {
-  return this.expandedColumns.has(departmentName);
-}
-
-toggleProjectExpansion(text: string): void {
-  if (this.expandedProjects.has(text)) {
-    this.expandedProjects.delete(text);
-  } else {
-    this.expandedProjects.add(text);
-  }
-}
-
-toggleClientExpansion(clientName: string): void {
-  this.toggleProjectExpansion(clientName); }
-
-updateSelectedDepartments(department: string, event: any): void {
-  const isChecked = event.target.checked;
-  if (isChecked) {
-    this.selectedDepartments = [department];
-  } else {
-    this.selectedDepartments = [];
-  }
-  this.getClientDepartmentChart();
-}
-
-modalMessage: string = '';
-openUpdateProjectCompletionModal(message: string, reload: boolean = false): void {
-  this.modalMessage = message;
-  this.shouldReload = reload;
-  if (reload) {
-    this.modalRefWithReload = this.modalService.open(this.updateProjectCompletionModal, {
-      modalDialogClass: 'modal-dialog modal-sm modal-position-top'
-    });
-  } else {
-    this.updateProjectCompletionModalRef = this.modalService.open(this.updateProjectCompletionModal, {
-      modalDialogClass: 'modal-dialog modal-sm modal-position-top'
-    });
-  }
-}
-onModalOkClick(): void {
-  if (this.shouldReload) {
-    this.modalRefWithReload.close();
-    window.location.reload();
-  } else {
-    if (this.updateProjectCompletionModalRef) {
-      this.updateProjectCompletionModalRef?.close();
-    }
-  }
-}
-
-// Close modal
-closeUpdateProjectCompletionModal(): void {
-  if (this.updateProjectCompletionModalRef) {
-    this.updateProjectCompletionModalRef?.close();
-  }
-}
-
-
-
-openremoveResourceModal(message: string): void {
-  this.modalMessage = message;
-  this.updateProjectCompletionModalRef = this.modalService.open(this.updateProjectCompletionModal, {
-    modalDialogClass: 'modal-dialog modal-sm modal-position-top'
-  });
-}
-
-
-closeremoveResourceModal(): void {
-  if (this.updateProjectCompletionModalRef) {
-    this.updateProjectCompletionModalRef?.close();
-  }
-}
- closeAlert(event: Event): void {
-    event.preventDefault();
-    event.stopPropagation();
-    if (this.modalRef) {
-      this.modalRef?.close();
-    }
-  }
-
-
-openFcResourceMappedToTNMProjectTemp() {
-  this.fcResourceMappedToTNMProjectRef = this.modalService.open(this.fcResourceMappedToTNMProjectTemp, { modalDialogClass: 'modal-sm' });
-}
-
-hideFcResourceMappedToTNMProjectTemp() {
-  this.fcResourceMappedToTNMProjectRef?.close();
-}
-
-openFcResourceMapped_noTemp() {
-  // this.removeInputTeamMemberField(teamMember);
-  this.updateEmployeeListAccordingToTeamMembers()
-  this.fcResourceMapped_noRef = this.modalService.open(this.fcResourceMappedToTNMProjectTemp, { modalDialogClass: 'modal-sm' });
-}
-
-hideFcResourceMapped_noTemp() {
-  this.fcResourceMapped_noRef?.close();
-}
-
-  async GetAllResourceRequirementForProject1(project: Project) {
-    try{
-
-      let response:any = await this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).toPromise();
-      // this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.projectObj.oldresourceRequirements = response.serviceResponse;
-          this.projectObj.oldresourceRequirements = this.projectObj.oldresourceRequirements.filter((item: any) => !this.resourceOverViewIdList.includes(item.resourceOverviewId));
-
-          console.log("Old resource requirements ", this.projectObj.oldresourceRequirements);
-        }
-      }
-      catch(error){
-        this.poResourceRequirementAlert(error);
-      }
-    // });
-  }
-
-openRestoreInfoTemp(projectId:any) {
-  this.selectedProjectId = projectId;
-  this.restoreInfoRef = this.modalService.open(this.restoreInfoTemp, { modalDialogClass: 'modal-sm' });
-}
-
-hideRestoreInfoTemp() {
-  this.restoreInfoRef?.close();
-}
-
-restorePreviousStateOfProject(projectId:any){
-  this.hideRestoreInfoTemp();
-  this.restoreProjectPayload.projectId = projectId;
-  this.restoreProjectPayload.currentUserEmpId = this.currentUser.empId;
-  this.resourceManagementService.restorePreviousStateOfProject(this.restoreProjectPayload).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.isRestoreSuccess = true;
-      this.openRestoreModal(response.serviceResponse);
-    } else {
-      this.isRestoreSuccess = false;
-      this.openRestoreModal(response.serviceResponse);
-    }
-  }, (error:any) => {
-    this.loaderService.requestEnded();
-    // console.log(" restorePreviousStateOfProject ",JSON.stringify(error));
-    this.isRestoreSuccess = false;
-    this.openRestoreModal(error.message);
-  });
-}
-
-openRestoreModal(message: any) {
-  this.restoreAlertRef = this.modalService.open(this.restoreAlertTemp, { modalDialogClass: 'modal-sm' });
-  this.alertMessage = message;
-}
-
-hideRestoreModal() {
-  this.restoreAlertRef?.close();
-  if(this.isRestoreSuccess){
-    this.page = 1;
-    this.projectFilterDTO.approvalStatus = "ApprovedProjects";
-    this.rbacApiCalls();
-  }
-}
-
-openAlertMessageMarkAsCompleteTemp(message: any) {
-  this.alertMessageMarkAsCompleteRef = this.modalService.open(this.alertMessageMarkAsCompleteTemp, { modalDialogClass: 'modal-sm' });
-  this.alertMessage = message;
-}
-
-hideAlertMessageMarkAsCompleteTemp() {
-  this.alertMessageMarkAsCompleteRef?.close();
-  if(this.isCompletionSuccess){
-    this.page = 1;
-    this.projectFilterDTO.approvalStatus = "ApprovedProjects";
-    this.rbacApiCalls();
-  }
-}
-
-poResourceRequirementAlert(message) {
-  this.poResourceRequirementFetchRef = this.modalService.open(this.poResourceRequirementFetchTemp, { modalDialogClass: 'modal-sm' });
-  this.alertMessage = message;
-
-}
-
-closePOResourceRequirementAlert(){
-  if (this.poResourceRequirementFetchRef) {
-    this.poResourceRequirementFetchRef?.close();
-  }
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-skillsPerPage = 3;
-// employeesSkillMatrix = [
-//   {
-//     name: "Prarthana Lenka",
-//     designation: "Development : Full Stack Developer",
-//     email: "prarthana.lenka@company.com",
-//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-//     certifications: ["Azure Fundamentals", "DevOps Engineer","lala secutity"],
-//     skills: ["Angular", "C#", "Azure", "SQL","Java","lala","Angular", "C#", "Azure", "SQL","Java","lala"],
-//     domain: "Web",
-//     department: "Engineering",
-//     status: "Expired",
-//      skillIndex: 0
-//   },
-//   {
-//     name: "John Doe",
-//     designation: "Development : Senior Developer",
-//     email: "john.doe@company.com",
-//     imageUrl: "https://randomuser.me/api/portraits/men/32.jpg",
-//     certifications: ["AWS Certified Solutions Architect", "Cloud Architecture"],
-//     skills: ["Javascript", "React", "AWS", "Node.js","React", "AWS", "Node.js"],
-//     domain: "Cloud",
-//     department: "Development",
-//     status: "Active",
-//      skillIndex: 0
-//   },
-//   {
-//     name: "Jane Smith",
-//     designation: "Development : Full Stack Developer",
-//     email: "jane.smith@company.com",
-//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
-//     skills: ["Angular", "C#", "Azure", "SQL"],
-//     domain: "Web",
-//     department: "Engineering",
-//     status: "Expired",
-//      skillIndex: 0
-//   },
-//     {
-//     name: "SHivtosh Pal",
-//     designation: "Development : Full Stack Developer",
-//     email: "shivtosh.pal@company.com",
-//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
-//     skills: ["Angular", "Azure", "SQL"],
-//     domain: "Web",
-//     department: "Engineering",
-//     status: "Expired",
-//      skillIndex: 0
-//   },
-//    {
-//     name: "SHivtosh Pal",
-//     designation: "Development : Full Stack Developer",
-//     email: "shivtosh.pal@company.com",
-//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
-//     skills: ["Angular", "Azure", "SQL"],
-//     domain: "Web",
-//     department: "Engineering",
-//     status: "Expired",
-//      skillIndex: 0
-//   },
-//    {
-//     name: "SHivtosh Pal",
-//     designation: "Development : Full Stack Developer",
-//     email: "shivtosh.pal@company.com",
-//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
-//     skills: ["Angular", "Azure", "SQL"],
-//     domain: "Web",
-//     department: "Engineering",
-//     status: "Expired",
-//      skillIndex: 0
-//   },
-//    {
-//     name: "SHivtosh Pal",
-//     designation: "Development : Full Stack Developer",
-//     email: "shivtosh.pal@company.com",
-//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
-//     skills: ["Angular", "Azure", "SQL"],
-//     domain: "Web",
-//     department: "Engineering",
-//     status: "Expired",
-//      skillIndex: 0
-//   },
-//    {
-//     name: "SHivtosh Pal",
-//     designation: "Development : Full Stack Developer",
-//     email: "shivtosh.pal@company.com",
-//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
-//     skills: ["Angular", "Azure", "SQL"],
-//     domain: "Web",
-//     department: "Engineering",
-//     status: "Expired",
-//      skillIndex: 0
-//   },
-//    {
-//     name: "SHivtosh Pal",
-//     designation: "Development : Full Stack Developer",
-//     email: "shivtosh.pal@company.com",
-//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
-//     skills: ["Angular", "Azure", "SQL"],
-//     domain: "Web",
-//     department: "Engineering",
-//     status: "Expired",
-//      skillIndex: 0
-//   }
-// ];
-
-rankedEmployees:any[] =[];
-
-// dropdown data
-certificationList :any[]=[];
-skillList:any[]=[];
-departmentList :any[]=[];
-filtersSkillMatrix: FilterMatrix = new FilterMatrix();
-
-searchTextSkill = '';
-filteredSkills: any[] = [];
-isAllSkillsSelected = false;
-
-// filterSkills() {
-//   const lower = this.searchTextSkill.toLowerCase();
-//   this.filteredSkills = this.skillList.filter(skill =>
-//     skill.skillName.toLowerCase().includes(lower)
-//   );
-// }
-filterSkills() {
-  const lower = this.searchTextSkill.toLowerCase();
-  const selectedIds = this.filtersSkillMatrix.skillIds || [];
-  this.filteredSkills = this.skillList.filter(skill =>
-    skill.skillName.toLowerCase().includes(lower) ||
-    selectedIds.includes(skill.skillId)
-  );
-}
-
-
-clearSkills(event: Event) {
-  event.stopPropagation();
-  this.filtersSkillMatrix.skillIds = [];
-  this.filtersSkillMatrix.skillNames = [];
-  this.isAllSkillsSelected = false;
-  this.searchTextSkill = '';
-  this.filteredSkills = [...this.skillList];
-}
-
-updateSelectedSkillNames() {
-  const selectedSkills = this.skillList.filter(skill =>
-    this.filtersSkillMatrix.skillIds.includes(skill.skillId)
-  );
-
-  this.filtersSkillMatrix.skillNames = selectedSkills.map(skill => skill.skillName);
-}
-
-toggleSelectAllSkills() {
-  this.isAllSkillsSelected = !this.isAllSkillsSelected;
-  this.filtersSkillMatrix.skillIds = this.isAllSkillsSelected
-    ? this.filteredSkills.map(s => s.skillId)
-    : [];
-
-     this.filtersSkillMatrix.skillNames = this.isAllSkillsSelected
-    ? this.filteredSkills.map(s => s.skillName)
-    : [];
-}
-
-compareById(item1: any, item2: any): boolean {
-  return item1 === item2;
-}
-
-onSkillSelectionChange() {
-  this.isAllSkillsSelected =
-    this.filtersSkillMatrix.skillIds.length === this.skillList.length;
-}
-
-resetSkillSearch() {
-  this.searchTextSkill = '';
-  this.filteredSkills = [...this.skillList];
-}
-
-getAllPredefinedSkills() {
-    this.employeeService.getAllPredefinedSkills().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.skillList = response.serviceResponse;
-        this.filteredSkills = this.skillList;
-      } else {
-        console.error(response.serviceResponse);
-      }
-       this.checkAllApiResponses();
-    });
-  }
-
-
-  getCountOfEmployeeFromSelectedDepartment(){
-    this.resourceManagementService.getEmployeeCountSDeptwise(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.seempCountDeptSelected = response.serviceResponse;
-
-      } else {
-        console.error(response.serviceResponse);
-      }
-
-    });
-
-  }
-
-
-
-
-  filterMatrixObj:FilterMatrix = new FilterMatrix();
-  isAllCertificatesSelected = false;
-  searchTextCertificate :any;
-  filteredCertificates: any[] = [];
-  getAllCertificatesRbac(){
-    this.filterMatrixObj.empId = this.currentUser.empId;
-    this.resourceManagementService.getCertficatesRbac(this.filterMatrixObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.certificationList = response.serviceResponse;
-          this.filteredCertificates = [...this.certificationList];
-      } else {
-        console.error(response.serviceResponse);
-      }
-       this.checkAllApiResponses();
-    });
-  }
-
-
-
-  onCertificateSelectionChange() {
-  this.isAllCertificatesSelected =
-    this.filtersSkillMatrix.certificateIds.length === this.filteredCertificates.length;
-}
-
-// filterCertificates() {
-//   const lower = this.searchTextCertificate.toLowerCase();
-//   this.filteredCertificates = this.certificationList.filter(cert =>
-//     cert.certificateName.toLowerCase().includes(lower)
-//   );
-// }
-
-filterCertificates() {
-  const lower = this.searchTextCertificate.toLowerCase();
-  const selectedIds = this.filtersSkillMatrix.certificateIds || [];
-
-  this.filteredCertificates = this.certificationList.filter(cert =>
-    cert.certificateName.toLowerCase().includes(lower) ||
-    selectedIds.includes(cert.employeeCertificateId)
-  );
-}
-
-resetCertficateSearch(){
-  this.searchTextCertificate = '';
-  this.filteredCertificates = [...this.certificationList];
-}
-
-clearCertificates(event: Event) {
-  // event.stopPropagation();
-  this.filtersSkillMatrix.certificateIds = [];
-  this.isAllCertificatesSelected = false;
-  this.searchTextCertificate = '';
-  this.filteredCertificates = [...this.certificationList];
-}
-
-toggleSelectAllCertificates() {
-  this.isAllCertificatesSelected = !this.isAllCertificatesSelected;
-  this.filtersSkillMatrix.certificateIds = this.isAllCertificatesSelected
-    ? this.filteredCertificates.map(c => c.employeeCertificateId)
-    : [];
-}
-
-searchTextDeptMatrix = '';
-filteredDepartmentsMatrix: any[] = [];
-isAllDepartmentsSelected = false;
-
-filterDepartmentsMatrix() {
-  const lower = this.searchTextDeptMatrix.toLowerCase();
- const selectedIds = this.filtersSkillMatrix.deptIds || [];
-  this.filteredDepartmentsMatrix = this.departmentList.filter(dept =>
-    dept.name.toLowerCase().includes(lower) ||  selectedIds.includes(dept.deptId)
-  );
-}
-
-clearDepartments(event: Event) {
-  event.stopPropagation();
-  this.filtersSkillMatrix.deptIds = [];
-  this.isAllDepartmentsSelected = false;
-  this.searchTextDeptMatrix = '';
-  this.filteredDepartmentsMatrix = [...this.departmentList];
-}
-
-resetDeptSearch(){
-    this.searchTextDeptMatrix = '';
-  this.filteredDepartmentsMatrix = [...this.departmentList];
-}
-
-toggleSelectAllDepartments() {
-  this.isAllDepartmentsSelected = !this.isAllDepartmentsSelected;
-  this.filtersSkillMatrix.deptIds = this.isAllDepartmentsSelected
-    ? this.filteredDepartmentsMatrix.map(d => d.deptId)
-    : [];
-}
-
-onDepartmentSelectionChangeMatrix() {
-  this.isAllDepartmentsSelected =
-    this.filtersSkillMatrix.deptIds.length === this.departmentList.length;
-}
-
-searchTextCertDept = '';
-filteredCertificationDepartments: any[] = [];
-isAllCertificationDepartmentsSelected = false;
-
-filterCertificationDepartments() {
-  const lower = this.searchTextCertDept.toLowerCase();
-  this.filteredCertificationDepartments = this.departmentList.filter(dept =>
-    dept.name.toLowerCase().includes(lower)
-  );
-}
-
-clearCertificationDepartments(event: Event) {
-  event.stopPropagation();
-  this.filtersSkillMatrix.certificationDeptIds = [];
-  this.isAllCertificationDepartmentsSelected = false;
-  this.searchTextCertDept = '';
-  this.filteredCertificationDepartments = [...this.departmentList];
-}
-
-toggleSelectAllCertificationDepartments() {
-  this.isAllCertificationDepartmentsSelected = !this.isAllCertificationDepartmentsSelected;
-  this.filtersSkillMatrix.certificationDeptIds = this.isAllCertificationDepartmentsSelected
-    ? this.filteredCertificationDepartments.map(d => d.deptId)
-    : [];
-}
-
-onCertificationDeptSelectionChange() {
-  this.isAllCertificationDepartmentsSelected =
-    this.filtersSkillMatrix.certificationDeptIds.length === this.departmentList.length;
-}
-
- getAllDepartmentsRbac(){
-    this.filterMatrixObj.empId = this.currentUser.empId;
-    this.resourceManagementService.getDepartmentsRbac(this.filterMatrixObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.departmentList = response.serviceResponse;
-        this.filteredDepartmentsMatrix = this.departmentList;
-        this.filteredCertificationDepartments = this.departmentList;
-      } else {
-        console.error(response.serviceResponse);
-      }
-       this.checkAllApiResponses();
-    });
-  }
-
-
-
-apiResponsesCount:any;
-  openShowSkillMatrix(){
-    this.isSkillMatrix= true;
-      this.isProjectTable = false;
-    this.allProjectTable = false;
-     this.isCreateForm = false;
-    this.isCreation = false;
-   this.apiResponsesCount = 0;
-  this.getAllCertificatesRbac();
-  this.getAllPredefinedSkills();
-  this.getAllDepartmentsRbac();
-
-  }
-
-
-
-  applySearchFilter(){
-    console.log(this.filtersSkillMatrix);
-    this.getAllFilterBasedSearchEmployee();
-    this.getCountOfEmployeeFromSelectedDepartment();
-    this.getAllEmployyesNotInSearch();
-  }
-
-
-  checkAllApiResponses() {
-  this.apiResponsesCount++;
-  if (this.apiResponsesCount === 3) {
-    this.resetFilters();
-    this.apiResponsesCount = 0;
-  }
-}
-
-resetFilters() {
-
-  this.filtersSkillMatrix.certificateIds = [];
-
-
-  this.filtersSkillMatrix.skillIds = this.skillList?.map(s => s.skillId) || [];
-
-   this.filtersSkillMatrix.skillNames = this.skillList?.map(s => s.skillName) || [];
-
-
-  this.filtersSkillMatrix.deptIds = this.departmentList?.map(d => d.deptId) || [];
-
-
-  // this.filtersSkillMatrix.certificationDeptIds = [];
-
-
-  this.filtersSkillMatrix.certificateStatus = 'All';
-  this.filtersSkillMatrix.specialization = '';
-
-
-  this.isAllCertificatesSelected = false;
-  this.isAllDepartmentsSelected = true;
-  this.isAllCertificationDepartmentsSelected = false;
-  this.isAllSkillsSelected = true;
-
-
-  this.applySearchFilter();
-}
-
-
-wingImages = [
-  "assets/Images/goldenwings.gif",
-  "assets/Images/silverwings.gif",
-  "assets/Images/bronzewings.gif"
-];
-
-
-
-
-handleEmployeePageChange(event: number) {
- this.employeeMatrixPageNo = event;
-  this.paginationConfig.currentPage = event;
-  this.getAllFilterBasedSearchEmployee();
-
-}
-
-getVisibleSkills(emp: any) {
-  return emp.skillsEmp.slice(emp.skillIndex, emp.skillIndex + this.skillsPerPage);
-}
-
-// Next
-nextSkills(emp: any) {
-  if (emp.skillIndex + this.skillsPerPage < emp.skillsEmp.length) {
-    emp.skillIndex += this.skillsPerPage;
-  }
-}
-
-// Prev
-prevSkills(emp: any) {
-  if (emp.skillIndex - this.skillsPerPage >= 0) {
-    emp.skillIndex -= this.skillsPerPage;
-  } else {
-    emp.skillIndex = 0;
-  }
-}
-
-employeeWings = new Map<string, string | null>();
-
-assignWings() {
-  this.employeeWings.clear();
-
-  this.employeesSkillMatrix.forEach(emp => {
-    const count = emp.skillsEmp.length;
-
-    if (count === this.topSkillCounts[0]) {
-      this.employeeWings.set(emp.email, this.wingImages[0]);
-    } else if (count === this.topSkillCounts[1]) {
-      this.employeeWings.set(emp.email, this.wingImages[1]);
-    } else if (count === this.topSkillCounts[2]) {
-      this.employeeWings.set(emp.email, this.wingImages[2]);
-    } else {
-      this.employeeWings.set(emp.email, null);
-    }
-  });
-}
-
-
-getWingImage(emp: any): string | null {
-  return this.employeeWings.get(emp.email) || null;
-}
-
-
-
-employeesSkillMatrix:searchEmployeeResultSet[]=[];
-filteredEmployeesSkillMatrix:any[]=[];
-getAllFilterBasedSearchEmployee(){
-  this.filtersSkillMatrix.page = this.employeeMatrixPageNo;
-  this.filtersSkillMatrix.size = this.employeeMatrixPageSize;
-  this.filtersSkillMatrix.export = false;
-
-   this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        const result = response.serviceResponse;
-        this.employeesSkillMatrix = result.content.map((emp: any) => ({
-          ...emp,
-          skillIndex: 0,
-          skillCount: emp.skillsEmp.length || 0
-        }));
-
-        this.filteredEmployeesSkillMatrix = this.employeesSkillMatrix;
-        this.paginationConfig.totalItems = result.totalElements;
-        this.paginationConfig.itemsPerPage = result.pageSize;
-
-       this.employeesSkillMatrix.forEach(emp => {
-          const exists = this.allEmployeeSkillSummary.some(e => e.email === emp.email);
-          if (!exists) {
-            this.allEmployeeSkillSummary.push({ email: emp.email, skillCount: emp.skillCount });
-          }
-        });
-
-        this.updateTopSkillCounts();
-
-
-        this.assignWings();
-      } else {
-        console.error(response.serviceResponse);
+      error: (err) => {
+        this.isLoadingMilestone = false;
+        this.openAlertMod(this.alertTemplateForMilestone, "Error updating milestone: " + err.message);
       }
     });
-}
+    this.closeUpdateProjectMilestoneModal();
 
-
-updateTopSkillCounts() {
-  const distinctCounts = [...new Set(this.allEmployeeSkillSummary.map(e => e.skillCount))];
-  distinctCounts.sort((a, b) => b - a);
-  this.topSkillCounts = distinctCounts.slice(0, 3);
-}
-
-
-getAllEmployyesNotInSearch(){
- this.resourceManagementService.searchEnployeesNotInSearch(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.employeeListNotInSearch = response.serviceResponse;
-        this.filteredEmployeeListNotInSearch = this.employeeListNotInSearch;
-        this.notInListLen =  this.employeeListNotInSearch.length;
-          this.employeeListNotInSearch.forEach((emp: any) => {
-          const skillNames = emp.skillsEmp
-            ?.map((skill: any) => skill.skillName || skill.additionalSkill || '')
-            .filter((name: string) => name.trim() !== '')
-            .join(', ') || 'NA';
-
-          const certificateNames = emp.certificatesEmp
-            ?.map((cert: any) => cert.certificationName)
-            .filter((name: string) => name && name.trim() !== '')
-            .join(', ') || 'NA';
-
-
-          emp.skillNames = skillNames;
-          emp.certificateNames = certificateNames;
-        });
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-
-}
-
-toggleMetricView(view: string): void {
-    this.activeMetricView = view
-
-    // if (view === "notInSearch") {
-    //   this.getAllEmployyesNotInSearch();
-    // }
   }
 
-
-
-
-
-
-
-
-
-  name = 'skills&Certifications.xlsx';
-
-exportSkillsCertifications() {
-  this.filtersSkillMatrix.export = true;
-  this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix)
-    .pipe(first())
-    .subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        const allEmployees = response.serviceResponse.content;
-
-
-        const excelData = allEmployees.map(emp => {
-          const skillNames = emp.skillsEmp
-              ?.map(skill => skill.skillName || skill.additionalSkill || '')
-              .filter(name => name.trim() !== '')
-              .join(', ') || '';
-          const certificateNames = emp.certificatesEmp?.map(cert => cert.certificationName)?.join(', ') || '';
-
-          return {
-            "Employee ID": emp.employeementId,
-            "Employee Name": emp.employeeName,
-            "Department Name": emp.deptName,
-            "Job Role": emp.jobRole,
-            "Email": emp.email,
-            "Skills": skillNames,
-            "Certifications": certificateNames
-          };
-        });
-
-
-        this.exportExcelService.exportTableDataToExcel(excelData, this.name);
-      }
-    });
-}
-
-exportUnmatchedEmployees() {
-
-
-  const excelData = this.employeeListNotInSearch.map((emp: any) => {
-    return {
-      "Employee ID": emp.employeementId ,
-      "Employee Name": emp.employeeName ,
-      "Department Name": emp.deptName ,
-      "Job Role": emp.jobRole ,
-      "Email": emp.email,
-      "Skills": emp.skillNames,
-      "Certifications": emp.certificateNames
-    };
-  });
-
-
-  this.exportExcelService.exportTableDataToExcel(excelData, 'Unmatched_Employees.xlsx');
-}
-
-
-
-async getProjectAssignedDataByProjectIdfunc(id:number,flagForPOProject,totalRequirements:number){
-  try{
-  this.loadingRequirements = true;
-    console.log("getResourceRequirementByPoProjectId called")
-    console.log("type of id",typeof id);
-
-
-  let response:any = await this.resourceManagementService.getProjectAssignedDataByProjectId(id,totalRequirements).pipe(first()).toPromise();
-  console.log("the response is",response);
-  if (response.serviceStatus == "Success") {
-    this.projectRequirementsList.assigned = response.serviceResponse?.assigned;
-    this.projectRequirementsList.difference = response.serviceResponse?.difference;
-    this.projectRequirementsList.assignedPending = response.serviceResponse?.assignedPending;
-    this.projectRequirementsList.assignedApproved = response.serviceResponse?.assignedApproved;
-    this.loadingRequirements = false;
+  onStatusChange(newStatus: string) {
+    this.isStatusChanged = newStatus !== this.originalStatus;
   }
-  else {
-    console.error("Error fetching project requirement list");
-    this.loadingRequirements = false;
-    if(flagForPOProject){
-      this.poResourceRequirementAlert("Error while fetching resource requirement list from PO");
-    }else{
-      this.poResourceRequirementAlert("Error while fetching Resource requirement");
-    }
-}
-}
-catch(error){
-  this.poResourceRequirementAlert(error.message);
-  this.loadingRequirements = false;
-}
-}
 
-  getProfileImage(imageBytes: string): SafeResourceUrl {
-    if (imageBytes) {
-      const objectURL = 'data:image/*;base64,' + imageBytes;
-      return this.sanitizer.bypassSecurityTrustResourceUrl(objectURL);
-    } else {
-      return this.defaultImagePath;
+  onExtendedDateSelected() {
+    if (!this.projectMilestone.extendedDate) {
+      this.projectMilestone.extensionReason = null;
+      this.projectMilestone.extensionFile = null;
     }
   }
 
-  onImageError(event: any) {
-    event.target.src = this.defaultImagePath;
-  }
-
-   onSearchSE(searchData){
-    this.SEfilters = searchData;
-    this.applySearchFilterNotInSearch();
-   }
-
-   applySearchFilterNotInSearch() {
-  if (!this.SEfilters || Object.keys(this.SEfilters).length === 0) {
-    this.filteredEmployeeListNotInSearch = this.employeeListNotInSearch;
-    return;
-  }
-
-  this.filteredEmployeeListNotInSearch = this.employeeListNotInSearch.filter(emp => {
-    return Object.entries(this.SEfilters).every(([key, value]) => {
-      if (!value) return true;
-      return emp[key]?.toString().toLowerCase().includes(value.toString().toLowerCase());
-    });
-  });
-}
-
-
-
-    toggleSESearch(){
-    this.isSESearchEnabled = !this.isSESearchEnabled;
-    if(!this.isSESearchEnabled){
-      this.SEfilters = {};
-    }
-  }
-
-  disableShadowAndDefaultCheckBox(): boolean {
-  if(this.selectedRequirement && this.teamMemberCtrl?.value && this.newteamMember?.employeeRole?.length > 0){
-    return true;
-  }else{
-    if(this.newteamMember?.isShadow){
-      this.newteamMember.isShadow = 0;
-    }
-    if(this.newteamMember?.isDefaultProject){
-      const event = { target: { checked: false } } as unknown as Event;
-      this.onDefaultProjectCheckboxChange(event, this.newteamMember);
-    }
-    return false;
-  }
-
-
-  }
-  getValidateResponse(){
-        console.log("this.hasClientSideIdFlag",this.hasClientSideIdFlag);
-        console.log("this.isClientSideIdFormatted",this.isClientSideIdFormatted);
-    if(this.hasClientSideIdFlag == this.hasClientSideIdFlagHistory && this.isClientSideIdFormatted == this.isClientSideIdFormattedHistory){
-      return true;
-    }
-    return false;
-  }
-  onMandatoryChange(){
-    if (!this.hasClientSideIdFlag) {
-      this.isClientSideIdFormatted = false;
-    }
-  }
-
-  checkIfUserAddingEnabled(){
-   if(this.totalNoOfProjectsForAUser>0 && this.projectObj.poProjectType?.toLowerCase() == "tnm" ){
-    this.userAdditionEnabled = false;
-   }
-   else{
-    this.userAdditionEnabled = true;
-   }
-  }
-
-  getAddButtonTitle(): string | null {
-
-    // Case 0: Resource not selected
-    if (!this.newteamMember.empId) {
-      return 'Please select a resource.';
-    }
-    // Case 1: Role not selected
-    if (!this.newteamMember.employeeRole?.length) {
-      return 'Please select a role before adding the resource.';
-    }
-    if(this.totalNoOfProjectsForAUser==null){
-      return 'Project details not fetched successfully'
-    }
-    // Case 2: User addition disabled due to TNM rule
-    if (!this.userAdditionEnabled) {
-      return 'The selected resource is already allocated to an existing project and is not eligible for assignment to a TNM project. Please remove the resource from the existing project and try again.';
-    }
-
-    // No tooltip when enabled
-    return null;
-  }
-
-  onExtendedDateSelected() {  
-  if (!this.projectMilestone.extendedDate) {
-    this.projectMilestone.extensionReason = null;
+  clearExtensionFile(fileInput: HTMLInputElement) {
     this.projectMilestone.extensionFile = null;
-  }
-}
-
-clearExtensionFile(fileInput: HTMLInputElement) {
-  this.projectMilestone.extensionFile = null;
-  fileInput.value = '';
-}
-
-onExtensionFileSelected(event: any,projectMilestone:any) {
-
-  const file = event.target.files[0];
-  if (!file) return;
-  const allowedTypes = ['application/pdf','image/jpeg','image/jpg','image/png'];
-
-  if (!allowedTypes.includes(file.type)) {
-    this.openAlertMod(this.alertTemplateForMilestone, "Only PDF, JPG, JPEG, or PNG files are allowed.");
-    event.target.value = '';
-    return;
+    fileInput.value = '';
   }
 
-  const maxSize = 25 * 1024 * 1024; // 25MB
-  if (file.size > maxSize) {
-    this.openAlertMod(this.alertTemplateForMilestone, "File size should be less than 25MB!!");
-    return;
+  onExtensionFileSelected(event: any, projectMilestone: any) {
+
+    const file = event.target.files[0];
+    if (!file) return;
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+
+    if (!allowedTypes.includes(file.type)) {
+      this.openAlertMod(this.alertTemplateForMilestone, "Only PDF, JPG, JPEG, or PNG files are allowed.");
+      event.target.value = '';
+      return;
+    }
+
+    const maxSize = 25 * 1024 * 1024; // 25MB
+    if (file.size > maxSize) {
+      this.openAlertMod(this.alertTemplateForMilestone, "File size should be less than 25MB!!");
+      return;
+    }
+
+    const uniquefile = projectMilestone.id + '_' + file.name
+    this.validateFileName(uniquefile, "extended")
+    this.projectMilestone.extensionFile = file;
+    this.projectMilestone.extensionFile = new File([file], uniquefile, { type: file.type });
+
+
+
   }
-  
-  const uniquefile =projectMilestone.id+'_'+file.name 
-  this.validateFileName(uniquefile,"extended")
-  this.projectMilestone.extensionFile = file;
-  this.projectMilestone.extensionFile = new File([file],uniquefile,{ type: file.type });
 
-  
-  
-}
-
-validateFileName(uniquefile: any,type:any) {
-  this.projectService.validateDocName(uniquefile).subscribe({
-    next: (response: any) => {
-      if (response.serviceStatus === 'Success') {
-        // No duplicate
-        console.error(response.serviceResponse);
-      } else if (response.serviceStatus === 'Fail') {
-        // Duplicate found
-        type==="extended"?this.projectMilestone.extensionFile = null:this.selectedFile = null;
-        this.openAlertMod(this.alertTemplateForMilestone, response.serviceResponse);
-        return false;        
+  validateFileName(uniquefile: any, type: any) {
+    this.projectService.validateDocName(uniquefile).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          // No duplicate
+          console.error(response.serviceResponse);
+        } else if (response.serviceStatus === 'Fail') {
+          // Duplicate found
+          type === "extended" ? this.projectMilestone.extensionFile = null : this.selectedFile = null;
+          this.openAlertMod(this.alertTemplateForMilestone, response.serviceResponse);
+          return false;
+        }
+      },
+      error: (error) => {
+        type === "extended" ? this.projectMilestone.extensionFile = null : this.selectedFile = null;
+        this.openAlertMod(this.alertTemplateForMilestone, "Error while validating file. Kindly try after sometime!!");
+        return false;
       }
-    },
-    error: (error) => {
-        type==="extended"?this.projectMilestone.extensionFile = null:this.selectedFile = null;
-        this.openAlertMod(this.alertTemplateForMilestone,"Error while validating file. Kindly try after sometime!!");
-        return false;        
-    }
-  });
-}
+    });
+  }
 
-previewMilestoneFile(file1:any) {
-  if (!file1) return;
+  previewMilestoneFile(file1: any) {
+    if (!file1) return;
 
-  const file = file1;
-  const fileURL = URL.createObjectURL(file1);
-  this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
-  this.isPdfFile = file.type === 'application/pdf';
-  this.isImageFile = file.type.startsWith('image/');
+    const file = file1;
+    const fileURL = URL.createObjectURL(file1);
+    this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+    this.isPdfFile = file.type === 'application/pdf';
+    this.isImageFile = file.type.startsWith('image/');
 
-  this.projectMilestoneDocumentModalRef = this.modalService.open(
-    this.projectMilestoneDocumentTemplateRef,
-    {
-      modalDialogClass: 'modal-xl',
-      backdrop: 'static',
-      keyboard: false
-    }
-  );
-}
+    this.projectMilestoneDocumentModalRef = this.modalService.open(
+      this.projectMilestoneDocumentTemplateRef,
+      {
+        modalDialogClass: 'modal-xl',
+        backdrop: 'static',
+        keyboard: false
+      }
+    );
+  }
 
 
-extensionReason() {
+  extensionReason() {
     this.projectService.getAllMilestoneExtendReason().subscribe({
       next: (response) => {
         if (response.serviceStatus === 'Success') {
@@ -8567,137 +2648,154 @@ extensionReason() {
     });
   }
 
-updateMilestoneExtendedDateWithReason():Promise<boolean> {
+  updateMilestoneExtendedDateWithReason(): Promise<boolean> {
 
-  if(!this.isExtensionEnabled) return
-    else if(!this.projectMilestone.extensionReason){ 
-        this.openAlertMod(this.alertTemplateForMilestone, "Kindly select the extension reason!!");
-        return Promise.resolve(false);
-    }else if(this.projectMilestone?.extensionReason?.milestoneExtensionReason==='Other' &&
-        (!this.projectMilestone?.customReason || !this.projectMilestone?.customReason.trim())){
-        this.openAlertMod(this.alertTemplateForMilestone, "Kindly Enter Custom Reason!!");
-        return Promise.resolve(false);        
-    }  
-  
-   console.log("this.currentUser===>>",this.currentUser);
-  this.projectNameForMilestoneUpdate = this.projectObj.name;
-  this.poNameForMilestoneUpdate = this.projectObj.poNo;
-    
-  const payload: MilestoneUpdatedLog = {
-    milestoneId: this.projectMilestone.id,
-    poId: this.projectMilestone.poId,
-    projectId: this.projectMilestone.projectId,
-    milestoneName: this.projectMilestone.name,
-    milestoneStartDate: this.projectMilestone.startDate ? this.projectMilestone.startDate : null,
-    milestoneEndDate: this.projectMilestone.endDate ? this.projectMilestone.endDate : null, 
-    description: this.projectMilestone.description,
-    remarks: this.projectMilestone.remarks,
-    milestoneStatus: this.projectMilestone.status,
-    extendedDate: this.projectMilestone.extendedDate,
-    updatedBy: this.currentUser.employeementId,
-    updatedByName: this.currentUser.name,
-    projectName : this.projectNameForMilestoneUpdate,
-    poNumber : this.poNameForMilestoneUpdate,
-    lineItemName : this.projectMilestone.lineItemName,
-    milestoneExtensionReasonId: this.projectMilestone.extensionReason?.id,
-    milestoneExtensionReasonText: this.projectMilestone?.extensionReason?.milestoneExtensionReason==='Other'? this.projectMilestone.customReason : ""  };
+    if (!this.isExtensionEnabled) return
+    else if (!this.projectMilestone.extensionReason) {
+      this.openAlertMod(this.alertTemplateForMilestone, "Kindly select the extension reason!!");
+      return Promise.resolve(false);
+    } else if (this.projectMilestone?.extensionReason?.milestoneExtensionReason === 'Other' &&
+      (!this.projectMilestone?.customReason || !this.projectMilestone?.customReason.trim())) {
+      this.openAlertMod(this.alertTemplateForMilestone, "Kindly Enter Custom Reason!!");
+      return Promise.resolve(false);
+    }
 
-  const formData = new FormData();
-  formData.append("milestoneData",new Blob([JSON.stringify(payload)], { type: "application/json" }));
+    console.log("this.currentUser===>>", this.currentUser);
+    this.projectNameForMilestoneUpdate = this.projectObj.name;
+    this.poNameForMilestoneUpdate = this.projectObj.poNo;
 
-  // optional file
-  if (this.projectMilestone.extensionFile) {
-    formData.append("extensionFile", this.projectMilestone.extensionFile);
-  }
+    const payload: MilestoneUpdatedLog = {
+      milestoneId: this.projectMilestone.id,
+      poId: this.projectMilestone.poId,
+      projectId: this.projectMilestone.projectId,
+      milestoneName: this.projectMilestone.name,
+      milestoneStartDate: this.projectMilestone.startDate ? this.projectMilestone.startDate : null,
+      milestoneEndDate: this.projectMilestone.endDate ? this.projectMilestone.endDate : null,
+      description: this.projectMilestone.description,
+      remarks: this.projectMilestone.remarks,
+      milestoneStatus: this.projectMilestone.status,
+      extendedDate: this.projectMilestone.extendedDate,
+      updatedBy: this.currentUser.empId,
+      updatedByName: this.currentUser.name,
+      projectName: this.projectNameForMilestoneUpdate,
+      poNumber: this.poNameForMilestoneUpdate,
+      lineItemName: this.projectMilestone.lineItemName,
+      milestoneExtensionReasonId: this.projectMilestone.extensionReason?.id,
+      milestoneExtensionReasonText: this.projectMilestone?.extensionReason?.milestoneExtensionReason === 'Other' ? this.projectMilestone.customReason : ""
+    };
 
-  return new Promise((resolve) => {
-    this.projectService.updateMilestoneExtendedDate(formData).subscribe({
-      next: (response: any) => {
-        console.log(response);
-        if (response?.serviceStatus === 'Success') {
-          this.openAlertMod(this.alertTemplateForMilestone,"Date Extended successfully!!");
-          this.isExtensionEnabled = false
-          this.showProjectMilestones(this.projectObj);
-          return
-        } else {
-          this.openAlertMod(this.alertTemplateForMilestone,"Something went wrong while updating extended date. Kindly try after sometime!!");
+    const formData = new FormData();
+    formData.append("milestoneData", new Blob([JSON.stringify(payload)], { type: "application/json" }));
+
+    // optional file
+    if (this.projectMilestone.extensionFile) {
+      formData.append("extensionFile", this.projectMilestone.extensionFile);
+    }
+
+    return new Promise((resolve) => {
+      this.projectService.updateMilestoneExtendedDate(formData).subscribe({
+        next: (response: any) => {
+          console.log(response);
+          if (response?.serviceStatus === 'Success') {
+            this.openAlertMod(this.alertTemplateForMilestone, "Date Extended successfully!!");
+            this.isExtensionEnabled = false
+            this.showProjectMilestones(this.projectObj);
+            return
+          } else {
+            this.openAlertMod(this.alertTemplateForMilestone, "Something went wrong while updating extended date. Kindly try after sometime!!");
+            resolve(false);
+          }
+        }, error: () => {
+          this.openAlertMod(this.alertTemplateForMilestone, "Something went wrong while updating extended date. Kindly try after sometime!!");
           resolve(false);
         }
-      },error: () => {
-        this.openAlertMod(this.alertTemplateForMilestone,"Something went wrong while updating extended date. Kindly try after sometime!!");
-        resolve(false);
-      }
+      });
     });
-  });
-}   
-
-onExtendedDateChange(event: any) {
-  if (event.value) { this.isExtensionEnabled = true; }
-}
-
-minExtendedDateformilestone:Date;
-minExtendedDate(): void {
-  const startDate = this.projectMilestone?.startDate;
-  if (!startDate) return;
-  const date = new Date(startDate);
-  date.setDate(date.getDate() + 1);
-  this.minExtendedDateformilestone = date;
-}
-
-closeProjectMilestoneDocumentsModal() {
-  if (this.projectMilestoneDocumentModalRef) {
-    this.projectMilestoneDocumentModalRef?.close();
-    this.projectMilestoneDocumentModalRef = null;
   }
-  this.milestoneDocumentUrl = null;
- }
 
-toggleExtensionLogs(milestone: any) {
-  if (!milestone.extendedDate) {return;}
-  this.expandedMilestoneId = this.expandedMilestoneId === milestone.id ? null : milestone.id;
-}
+  onExtendedDateChange(event: any) {
+    if (event.value) { this.isExtensionEnabled = true; }
+  }
 
-toggleLogs(milestone: any, type: 'start' | 'end' | 'status') {
+  minExtendedDateformilestone: Date;
 
-  // If clicking same milestone and same log type → collapse
-  if (this.expandedMilestoneId === milestone.id && this.selectedLogType === type) {
-    this.expandedMilestoneId = null;
+  /** Earliest selectable new end date: calendar day after milestone start (no max). */
+  minExtendedDate(): void {
+    const startDate = this.projectMilestone?.startDate;
+    if (!startDate) return;
+    this.minExtendedDateformilestone = moment(startDate).startOf('day').add(1, 'day').toDate();
+  }
+
+  get milestoneExtendEndDateTooltip(): string {
+    const sd = this.projectMilestone?.startDate;
+    if (!sd) {
+      return (
+        'Choose any date from the day after the milestone start date onward.\n' +
+        'There is no latest date limit.'
+      );
+    }
+    const formatted = moment(sd).format('D MMM YYYY');
+    return (
+      `Milestone start date is ${formatted}.\n` +
+      'You may select any date after that day.\n' +
+      'Pick a date before the current end date to finish earlier, or after it to extend.'
+    );
+  }
+
+  closeProjectMilestoneDocumentsModal() {
+    if (this.projectMilestoneDocumentModalRef) {
+      this.projectMilestoneDocumentModalRef?.close();
+      this.projectMilestoneDocumentModalRef = null;
+    }
+    this.milestoneDocumentUrl = null;
+  }
+
+  toggleExtensionLogs(milestone: any) {
+    if (!milestone.extendedDate) { return; }
+    this.expandedMilestoneId = this.expandedMilestoneId === milestone.id ? null : milestone.id;
+  }
+
+  toggleLogs(milestone: any, type: 'start' | 'end' | 'status') {
+
+    // If clicking same milestone and same log type → collapse
+    if (this.expandedMilestoneId === milestone.id && this.selectedLogType === type) {
+      this.expandedMilestoneId = null;
+      this.selectedLogs = [];
+      this.selectedLogType = null;
+      this.logHeader = '';
+      return;
+    }
+    // Expand row
+    this.expandedMilestoneId = milestone.id;
+    this.selectedLogType = type;
     this.selectedLogs = [];
-    this.selectedLogType = null;
-    this.logHeader = '';
-    return;
+
+    switch (type) {
+      case 'start':
+        this.selectedLogs = milestone.milestoneExtendedStartDateLogs || [];
+        this.logHeader = 'Start Date';
+        break;
+
+      case 'end':
+        this.selectedLogs = milestone.milestoneExtendedEndDateLogs || [];
+        this.logHeader = 'End Date';
+        break;
+
+      case 'status':
+        this.selectedLogs = milestone.milestoneStatusLogs || [];
+        this.logHeader = 'Status';
+        break;
+    }
   }
-  // Expand row
-  this.expandedMilestoneId = milestone.id;
-  this.selectedLogType = type;
-  this.selectedLogs = [];
 
-  switch (type) {
-    case 'start':
-      this.selectedLogs = milestone.milestoneExtendedStartDateLogs || [];
-      this.logHeader = 'Start Date';
-      break;
-
-    case 'end':
-      this.selectedLogs = milestone.milestoneExtendedEndDateLogs || [];
-      this.logHeader = 'End Date';
-      break;
-
-    case 'status':
-      this.selectedLogs = milestone.milestoneStatusLogs || [];
-      this.logHeader = 'Status';
-      break;
+  trackByLog(index: number, log: any) {
+    return log.documentId || index;
   }
-}
-
-trackByLog(index: number, log: any) {
-  return log.documentId || index;
-}
 
 
-previewDocument(documentId: number,documentName:any) {
+  previewDocument(documentId: number, documentName: any) {
 
-  this.projectService.getExtensionDocumentByName(documentName).subscribe((res: any) => {
+    this.projectService.getExtensionDocumentByName(documentName).subscribe((res: any) => {
       if (!res || !res.documentContent) {
         this.milestoneDocumentUrl = null;
         this.openAlertMod(this.alertTemplateForMilestone, "Error fetching document for preview. Kindly try after sometime!!");
@@ -8715,24 +2813,83 @@ previewDocument(documentId: number,documentName:any) {
       this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
       this.isPdfFile = res.documentType === 'application/pdf';
       this.isImageFile = res.documentType.startsWith('image/');
-      
+
       this.projectMilestoneDocumentModalRef = this.modalService.open(
-      this.projectMilestoneExtendedPreviewTemplateRef,{modalDialogClass: 'modal-xl',keyboard: false});
+        this.projectMilestoneExtendedPreviewTemplateRef, { modalDialogClass: 'modal-xl', keyboard: false });
     },
-    (error) => {
-      console.error('Error fetching document:', error);
-      this.openAlertMod(this.alertTemplateForMilestone, "Error fetching document for preview. Kindly try after sometime!!");
-      this.milestoneDocumentUrl = null;
-      return
+      (error) => {
+        console.error('Error fetching document:', error);
+        this.openAlertMod(this.alertTemplateForMilestone, "Error fetching document for preview. Kindly try after sometime!!");
+        this.milestoneDocumentUrl = null;
+        return
+      }
+    );
+  }
+
+  closeProjectMilestoneImageModal() {
+    this.showMilestoneImageModal = false;
+    this.milestoneDocumentUrl = null;
+  }
+
+  openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  sortProjectMilestoneData(sort: Sort) {
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
+      this.projectMilestoneSortColumn = sortParams[0];
+      this.projectMilestoneSortColumnType = sortParams[1];
+      this.projectMilestoneSortDirection = sort.direction;
+      this.showProjectMilestones(this.projectObj);
     }
-  );
-}
+  }
 
-closeProjectMilestoneImageModal() {
-  this.showMilestoneImageModal = false;
-  this.milestoneDocumentUrl = null;
-}
+  viewFiles(mileStoneId: any) {
+    this.isLoadingMilestone = true;
+    this.projectService.getMilestoneById(mileStoneId).subscribe((res: any) => {
+      this.isLoadingMilestone = false;
 
-  
+
+
+      if (res.documentContent && res.documentName) {
+        const fileType = this.getFileType(res.documentName);
+        const imageDataUrl = `data:${fileType};base64,${res.documentContent}`;
+        console.log("image url" + imageDataUrl)
+        this.dialog.open(ViewImageComponent, {
+          width: '80%',
+          data: {
+            imageUrl: imageDataUrl,
+            fileName: res.documentName
+          }
+        });
+      } else {
+        this.notificationService.showErrorMessage("image is not available")
+      }
+
+
+    },
+      (error) => {
+        this.notificationService.showErrorMessage(error.error.message);
+      }
+    )
+  }
+
+  clearSelectedFile(fileInput: HTMLInputElement) {
+    this.selectedFile = null;
+    fileInput.value = '';
+  }
+
+  getFileType(filename: string): string {
+    const extension = filename.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'png': return 'image/png';
+      case 'jpg':
+      case 'jpeg': return 'image/jpeg';
+      case 'pdf': return 'application/pdf';
+      default: return 'application/octet-stream';
+    }
+  }
 
 }

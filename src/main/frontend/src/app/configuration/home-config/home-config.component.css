@@ -149,3 +149,22 @@ ngx-editor {
 min-height: 20rem;
 text-align: left;
 }
+.table-header {
+  min-height: 50px;
+}
+
+.action-icon {
+  font-size: 16px;
+  color: #0d6efd;
+  background-color: #e7f1ff;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.action-icon:hover {
+  background-color: #0d6efd;
+  color: #fff;
+  transform: scale(1.1);
+}

@@ -30,6 +30,9 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { LoaderService } from 'src/app/services/loader.service';
 import * as XLSX from 'xlsx';
+import { PageEvent } from "@angular/material/paginator";
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
 class FilterData {
   title: any;
@@ -109,7 +112,7 @@ selectedClientProjectViewOption: string = 'default';
 
   allTimesheetApplicationsList: any[] = [];
   timesheetApplicationsDataForExcel: any[] = [];
-
+  allTimesheetApplicationsListForExcel:any[] =[]; 
   allJobRoleList: any[] = [];
   personaWiseJobRole: any[] = [];
   accessControlList: any[] = [];
@@ -211,8 +214,8 @@ selectedClientProjectViewOption: string = 'default';
     'billable',
     'billableType',
     'teamName',
-    'poStartDate',
-    'poEndDate',
+    'projectStartDate',
+    'projectEndDate',
     'effectiveStartDate',
     'effectiveEndDate',
     'clientName',
@@ -220,15 +223,15 @@ selectedClientProjectViewOption: string = 'default';
     'workLocation',
     'totalExperience',
     'primaryProjectName'];
-  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementIdAccToET', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
+  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementIdAccToET', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'projectStartDate', 'projectEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
   leaveReportColumns: any[] = ['employmentIdAcToET', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
-  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
+  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'projectStartDate', 'projectEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
   leaveTimesheetReportColumn: any[] = ['employmentIdAcToET', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   defaultMappingColumns: any[] = ['tabName', 'featureName', 'subFeatureName'];
   employeeReportColumnForDetailedProjecttttView: any[] = ['blank', 'blank',
     'projectName', 'projectManager', 'apmosysRM', 'clientRM',
-    'poStartDate', 'poEndDate', 'poNo', 'poProjectType', 'teamName',
+    'projectStartDate', 'projectEndDate', 'poNo', 'poProjectType', 'teamName',
     'employeeName', 'jobRole', 'deptName', 'mobileNo', 'email',
     'billable', 'billableType', 'effectiveStartDate'
   ];
@@ -307,7 +310,7 @@ dateRange: string; type: string; count: string;
     'Monitoring': {},
     'Internal': {}
   };
-  inActivePEmployeeColumns:any[] = ['employeementIdAccToET','name','projectName','poNo','poProjectType','poStartDate','poEndDate','clientName','clientLocation'];
+  inActivePEmployeeColumns:any[] = ['employeementIdAccToET','name','projectName','poNo','poProjectType','projectStartDate','projectEndDate','clientName','clientLocation'];
 
   employeeReportColumnForDetailedView: any[] = [
     'blank',
@@ -325,8 +328,8 @@ dateRange: string; type: string; count: string;
     'billable',
     'billableType',
     'teamName',
-    'poStartDate',
-    'poEndDate',
+    'projectStartDate',
+    'projectEndDate',
     'effectiveStartDate',
     'effectiveEndDate',
     'clientName',
@@ -336,6 +339,7 @@ dateRange: string; type: string; count: string;
     'blank'
   ];
 
+  isRmgToggleViewVisible:boolean = false;
 
 
   //Acl Redesign
@@ -402,12 +406,16 @@ dateRange: string; type: string; count: string;
 
   async ngOnInit(): Promise<void> {
     this.hideMaternityLeaveEmps = true;
-
+    this.searchSubject.pipe(debounceTime(500),distinctUntilChanged()).subscribe(searchData=>{
+      this.onSearchForViewTimesheet(searchData);
+    });
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log("userMapping", this.userMapping);
+    this.setRmgToggleViewVisible();
+
     await this.getAllDepartments();
 
     this.preventBackButton();
@@ -471,9 +479,21 @@ dateRange: string; type: string; count: string;
       console.log("Billable departments",this.departments)
       this.filteredDepartments = [...this.departmentHistory.filter(dept => dept.isBillable)];
     } else {
-      this.departments = [...this.allDepartments];
-      this.filteredDepartments = [...this.allDepartments];
+      const deptName = String(this.currentUser.departmentName).trim();
+      const empRole = String(this.currentUser.employeeRole).trim();
 
+      if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") &&
+       !deptName.includes("Director") && !deptName.includes("Super Admin") &&
+        !empRole.includes("SuperAdmin") && !empRole.includes("Accounts") &&
+         !deptName.includes("Accounts") && !deptName.includes("HR")) {
+          this.departments = [...this.departmentHistory];
+          this.filteredDepartments = [...this.departmentHistory];
+        }
+        else{
+        this.departments = [...this.allDepartments];
+        this.filteredDepartments = [...this.allDepartments];
+     
+      }
     }
 
     this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
@@ -680,8 +700,8 @@ dateRange: string; type: string; count: string;
             projectManager: project.projectManager,
             apmosysRM: project.apmosysRM,
             clientRM: project.clientRM,
-            poStartDate: project.poStartDate,
-            poEndDate: project.poEndDate,
+            projectStartDate: project.projectStartDate,
+            projectEndDate: project.projectEndDate,
             poNo: project.poNo,
             poProjectType: project.poProjectType,
             teamName: team.teamName,
@@ -948,13 +968,24 @@ dateRange: string; type: string; count: string;
   projectSummary: any = {};
 
   /** Align with Employee 360: total = previous work years + tenure since DOJ (see EmployeeService.calculateTotalExperience). */
+  private resolveDateOfJoiningForReport(employee: any): string | null {
+    const raw = employee?.dateOfJoining ?? employee?.date_of_joining;
+    if (raw == null || String(raw).trim() === '') {
+      return null;
+    }
+    const parsed = moment(raw, [AppComponent.DATE_FORMAT, 'YYYY-MM-DD', moment.ISO_8601], true);
+    return parsed.isValid() ? parsed.format(AppComponent.DATE_FORMAT) : String(raw).trim();
+  }
+
   private applyExperienceForReport(employee: any): void {
     if (!employee) {
       return;
     }
+    const dateOfJoining = this.resolveDateOfJoiningForReport(employee);
+    employee.dateOfJoining = dateOfJoining;
     const isFresher = (employee.experience || '').toString().toLowerCase() === 'fresher';
     const previousYears = isFresher ? 0 : Number(employee.totalExperience ?? 0);
-    employee.totalExperience = this.employeeService.calculateTotalExperience(previousYears, employee.dateOfJoining);
+    employee.totalExperience = this.employeeService.calculateTotalExperience(previousYears, dateOfJoining);
   }
 
   getEmployeeReportData() {
@@ -1291,17 +1322,17 @@ onSearchClientProject(searchData: any) {
 
 
         this.allEmployee.forEach((emp) => {
-          if (!emp.poEndDate) {
+          if (!emp.projectEndDate) {
             this.internalCountList.push(emp);
             return;
           }
 
           const currentDate = new Date();
-          const poEndDate = new Date(emp.poEndDate);
+          const projectEndDate = new Date(emp.projectEndDate);
 
           const projectTypes = emp.poProjectType.toLowerCase().split(',');
 
-          if (poEndDate < currentDate) {
+          if (projectEndDate < currentDate) {
             projectTypes.forEach((type) => {
               type = type.trim();
               if (type === 'tnm') {
@@ -1349,18 +1380,18 @@ onSearchClientProject(searchData: any) {
       : this.deptWiseConsolidated.filter(emp => emp.departmentId == this.selectedDepartment);
     this.filteredEmployees = departmentFiltered;
     departmentFiltered.forEach((emp) => {
-      if (!emp.poEndDate) {
+      if (!emp.projectEndDate) {
         this.internalCount++;
         this.internalCountList.push(emp);
         return;
       }
 
       const currentDate = new Date();
-      const poEndDate = new Date(emp.poEndDate);
+      const projectEndDate = new Date(emp.projectEndDate);
 
       const projectTypes = emp.poProjectType.toLowerCase().split(',');
 
-      if (poEndDate < currentDate) {
+      if (projectEndDate < currentDate) {
         projectTypes.forEach((type) => {
           type = type.trim();
           if (type === 'tnm') {
@@ -1591,9 +1622,9 @@ onSearchClientProject(searchData: any) {
     this.sortColumn = [];
     this.sortColumnType = [];
     this.sortDirection = '';
-    this.page = 1;
+    this.page = 0;
     this.isTimesheetReportTable = true;
-
+    this.resetFilters();
     this.isLeaveReportTable = false;
     this.isEmployeeReportTable = false;
     this.isAccessControlListTable = false;
@@ -1638,6 +1669,17 @@ onSearchClientProject(searchData: any) {
 
     this.data = ''
   }
+  resetFilters() {
+  this.queryList = [];                 // clear current filters
+  this.activeQueryListForFilter = []; // clear applied filters
+  this.storedDataList = [];           // clear saved filters
+  this.isFilterApplied = false;       // reset flag
+
+  this.page = 0;                      // reset pagination
+
+  // reload default data
+  // this.showTimesheetReportTable();  // or leave/employee based on screen
+}
 
   showEmployeeReportTable() {
     this.leaveReportFlag = false;
@@ -1737,6 +1779,19 @@ onSearchClientProject(searchData: any) {
     this.employeeRole='';
     this.resetAclAdv();
 
+  }
+
+  setRmgToggleViewVisible() {
+    this.isRmgToggleViewVisible =
+      this.currentUser?.userMapping
+        ?.find(m => m.featureName === 'Resource Management')
+        ?.subFeatures
+        ?.some(sf => sf.subFeatureName === 'View All RMG Projects' && sf.isActive) ?? false;
+  }
+
+  goToRmgPage(){
+    console.log(this.currentUser.userMapping);
+    this.router.navigate(['/user-team/resource-management'], { state: { returnUrl: this.router.url } });
   }
 
   showDefaultMappingTable() {
@@ -1840,36 +1895,38 @@ onSearchClientProject(searchData: any) {
     }
   }
 
-  getAllTimesheetApplicationsList() {
-    this.allTimesheetApplicationsList = [];
-    console.log(this.allTimesheetApplicationsList , "*********************");
+  // getAllTimesheetApplicationsList() {
+  //   this.allTimesheetApplicationsList = [];
+  //   console.log(this.allTimesheetApplicationsList , "*********************");
 
-    this.timesheetService.timesheetReport().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allTimesheetApplicationsList = response.serviceResponse;
-        this.allTimesheetApplicationsList.forEach(timesheet => {
-          timesheet.employmentIdAcToET =(timesheet.employmentIdAcToET);
-          timesheet.employeeType = ((timesheet.isApprenticeship === 'true') ? 'Apprentice' : ((timesheet.isConsultant === 'true') ? 'Consultant' : 'Regular')),
-            timesheet.description = timesheet.description?.replaceAll('<br>', '')
-          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-          timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.updatedOn = (timesheet.updatedOn) ? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.emp360 = timesheet.empId;
-          timesheet.emp360UpdatedBy = timesheet.timesheetStatusUpdatedBy;
+  //   this.timesheetService.timesheetReport().pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.allTimesheetApplicationsList = response.serviceResponse;
+  //       this.allTimesheetApplicationsList.forEach(timesheet => {
+  //         timesheet.employmentIdAcToET =(timesheet.employmentIdAcToET);
+  //         timesheet.employeeType = ((timesheet.isApprenticeship === 'true') ? 'Apprentice' : ((timesheet.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+  //           timesheet.description = timesheet.description?.replaceAll('<br>', '')
+  //         timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+  //         timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+  //         timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+  //         timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //         timesheet.updatedOn = (timesheet.updatedOn) ? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //         timesheet.emp360 = timesheet.empId;
+  //         timesheet.emp360UpdatedBy = timesheet.timesheetStatusUpdatedBy;
 
-        });
+  //       });
 
-      } else {
-        alert(response.serviceResponse)
-      }
-    });
-  }
+  //     } else {
+  //       alert(response.serviceResponse)
+  //     }
+  //   });
+  // }
 
 
   getCustomTimesheetApplicationsList(queryObjList: any, template: TemplateRef<any>,exportAll?) {
-    this.allTimesheetApplicationsList = [];
+    if(!exportAll){
+      this.allTimesheetApplicationsList = [];
+    }
     const finalQueryList = this.isFilterApplied
     ? this.activeQueryListForFilter
     : queryObjList;
@@ -1877,22 +1934,54 @@ onSearchClientProject(searchData: any) {
     const queryObj: any = {
     queryList: finalQueryList,
     empId: this.currentUser.empId,
-    page: this.page - 1,
-    size: this.itemsPerPage,
+    page: this.viewReportPage,
+    size: this.pageSize,
     sortColumn: this.sortColumn,
     sortDirection: this.sortDirection,
     exportAll: exportAll || false
   };
 
     if (!queryObj) {
-      this.openAlertMod(this.alertModal, "Enter filter to featch view timesheet data");
+      this.openAlertMod(this.alertModal, "Enter filter to fetch view timesheet data");
 
     } else {
       this.timesheetService.customTimesheetApplicationReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
+          if(exportAll){
+            this.allTimesheetApplicationsListForExcel = response.serviceResponse.content;
+
+             if (this.allTimesheetApplicationsListForExcel.length == 0) {
+            this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
+          }
+           this.allTimesheetApplicationsListForExcel.forEach(timesheet => {
+            timesheet.employeementId = (timesheet.employmentIdAcToET);
+           timesheet.employeeType = (timesheet.isApmosysProduct === 'true')
+  ? 'Apmosys Product'
+  : ((timesheet.isApprenticeship === 'true')
+    ? 'Apprentice'
+    : ((timesheet.isConsultant === 'true')
+      ? 'Consultant'
+      : 'Regular')),
+              timesheet.description = timesheet.description?.replaceAll('<br>', '')
+            timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+            timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.updatedOn = (timesheet.updatedOn) ? moment(timesheet.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.emp360 = timesheet.empId;
+            timesheet.emp360UpdatedBy = timesheet.timesheetStatusUpdatedBy;
+
+          });
+            this.isTimesheetReportTable = true;
+            this.exportToExcel();
+          return;
+          }
           this.allTimesheetApplicationsList = response.serviceResponse.content;
-             this.totalItems = response.serviceResponse.totalElements;
-             this.itemsPerPage = queryObj.size;
+         
+            this.totalItems = response.serviceResponse.totalElements;
+            this.viewReportPage = response.serviceResponse.pageable.pageNumber;
+            this.pageSize = response.serviceResponse.pageable.pageSize;
+          
 
           if (this.allTimesheetApplicationsList.length == 0) {
             this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
@@ -1916,15 +2005,15 @@ onSearchClientProject(searchData: any) {
             timesheet.emp360UpdatedBy = timesheet.timesheetStatusUpdatedBy;
 
           });
-          if (exportAll) {
-            this.isTimesheetReportTable = true;
-            this.exportToExcel();
-          }
+          // if (exportAll) {
+          //   this.isTimesheetReportTable = true;
+          //   this.exportToExcel();
+          // }
 
         } else {
           this.openAlertMod(template, response.serviceResponse);
           this.totalItems = 0;
-          this.itemsPerPage = 0;
+          this.viewReportPage = 0;
         }
       });
     }
@@ -3756,6 +3845,9 @@ submit(template: TemplateRef<any>) {
   page = 1;
   itemsPerPage = 5;
   page1 = 1;
+// added for server side mat paginator
+viewReportPage = 0;
+
   handlePageChange(event) {
     this.page = event;
   }
@@ -3770,9 +3862,10 @@ handlePageChange1(event) {
   }
 
 
-  handlePageChangeForViweTimesheetReport(event: number) {
-    this.page = event;
-    this.getCustomTimesheetApplicationsList(this.activeQueryList,this.alertTemplate);
+  handlePageChangeForViweTimesheetReport(event: PageEvent) {
+    this.viewReportPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.getCustomTimesheetApplicationsList(this.activeQueryList, this.alertTemplate);
   }
 
   sortDataForTimesheetLeaveReport(sort: Sort) {
@@ -3865,7 +3958,7 @@ handlePageChange1(event) {
     if (this.isTimesheetReportTable == true) {
       this.excelName = 'timesheetReport.xlsx';
 
-      const onlySpecificDataArr = this.allTimesheetApplicationsList.map(
+      const onlySpecificDataArr = this.allTimesheetApplicationsListForExcel.map(
         x => ({
           "Employeement Id": x.employeementId,
           "Employee Type": x.employeeType,
@@ -3904,8 +3997,8 @@ handlePageChange1(event) {
             "Team Name": x.teamName,
             "Project Name": x.projectName,
             "Po No": x.poNo,
-            "Po Start Date": x.poStartDate,
-            "Po End Date": x.poEndDate,
+            "Po Start Date": x.projectStartDate,
+            "Po End Date": x.projectEndDate,
             "Po Project Type": x.poProjectType,
             "createdBy": x.createdBy,
             "createdOn": x.createdOn,
@@ -3934,8 +4027,8 @@ handlePageChange1(event) {
                 "Project Name": x.projectName,
                 "Po No": x.poNo,
                 "Po Type": x.poProjectType,
-                "Po Start Date": x.poStartDate,
-                "Po End Date": x.poEndDate,
+                "Po Start Date": x.projectStartDate,
+                "Po End Date": x.projectEndDate,
                 "Effective Start Date": x.effectiveStartDate,
                 "Effective End Date": x.effectiveEndDate,
                 "Client Name": x.clientName,
@@ -3963,8 +4056,8 @@ handlePageChange1(event) {
                 "Project Name": x.projectName,
                 "Po No": x.poNo,
                 "Po Type": x.poType,
-                "Po Start Date": x.poStartDate,
-                "Po End Date": x.poEndDate,
+                "Po Start Date": x.projectStartDate,
+                "Po End Date": x.projectEndDate,
                 "Effective Start Date": x.effectiveStartDate,
                 "Effective End Date": x.effectiveEndDate,
                 "Client Name": x.clientName,
@@ -3988,8 +4081,8 @@ handlePageChange1(event) {
                   "Project Manager": project.projectManager,
                   "Apmosys RM": project.apmosysRM || '—',
                   "Client RM": project.clientRM || '—',
-                  "PO Start Date": project.poStartDate,
-                  "PO End Date": project.poEndDate,
+                  "PO Start Date": project.projectStartDate,
+                  "PO End Date": project.projectEndDate,
                   "PO No": project.poNo,
                   "PO Type": project.poProjectType,
                   "Team Name": team.teamName,
@@ -4156,6 +4249,11 @@ private mapFieldToBackendColumn(field: string): string {
 
   return mapping[field] || field; // fallback to same name if not mapped
 }
+private searchSubject = new Subject<any>;
+
+onSearchTimesheet(searchData : any){
+  this.searchSubject.next(searchData); 
+}
 
 onSearchForViewTimesheet(searchData: any) {
   this.filters = searchData;
@@ -4199,6 +4297,7 @@ onSearchForViewTimesheet(searchData: any) {
   }
 
   this.getCustomTimesheetApplicationsList(this.activeQueryList, this.alertTemplate);
+  this.filters= {};
 }
 private normalizeDate(value: string): string {
   if (!value) return value;
@@ -4516,7 +4615,7 @@ private normalizeDate(value: string): string {
 
 onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, dateRange: string | null, projectTemplate: TemplateRef<any>): void {
   const category = this.selectedTab[this.activeBox];
-
+  // this.allInactivePOListOfEmployee = [];
   if (category === 'Project') {
     this.modalRef = this.modalService.open(projectTemplate, { modalDialogClass: 'modal-xl' });
   } else {
@@ -4866,8 +4965,8 @@ getActivePoCount(box: any): void {
       'Project Name': x.projectName || 'N/A',
       'PO No': x.poNo || 'N/A',
       'PO Type': x.poProjectType || 'N/A',
-      'PO Start': x.poStartDate || 'N/A',
-      'PO End': x.poEndDate || 'N/A',
+      'PO Start': x.projectStartDate || 'N/A',
+      'PO End': x.projectEndDate || 'N/A',
       'Client': x.clientName || 'N/A',
       'Location': x.clientLocation || 'N/A',
         })
@@ -4888,8 +4987,8 @@ getActivePoCount(box: any): void {
       'Project Name': x.projectName || 'N/A',
       'PO No': x.poNo || 'N/A',
       'PO Type': x.poProjectType || 'N/A',
-      'PO Start': x.poStartDate || 'N/A',
-      'PO End': x.poEndDate || 'N/A',
+      'PO Start': x.projectStartDate || 'N/A',
+      'PO End': x.projectEndDate || 'N/A',
       'Client': x.clientName || 'N/A',
       'Location': x.clientLocation || 'N/A',
         })
@@ -4905,8 +5004,8 @@ getActivePoCount(box: any): void {
     //   'Project Name': emp.projectName || 'N/A',
     //   'PO No': emp.poNo || 'N/A',
     //   'PO Type': emp.poProjectType || 'N/A',
-    //   'PO Start': emp.poStartDate || 'N/A',
-    //   'PO End': emp.poEndDate || 'N/A',
+    //   'PO Start': emp.projectStartDate || 'N/A',
+    //   'PO End': emp.projectEndDate || 'N/A',
     //   'Client': emp.clientName || 'N/A',
     //   'Location': emp.clientLocation || 'N/A',
     // }));
@@ -4937,8 +5036,8 @@ getActivePoCount(box: any): void {
       'Project Name': x.projectName || 'N/A',
       'PO No': x.poNo || 'N/A',
       'PO Type': x.poProjectType || 'N/A',
-      'PO Start': x.poStartDate || 'N/A',
-      'PO End': x.poEndDate || 'N/A',
+      'PO Start': x.projectStartDate || 'N/A',
+      'PO End': x.projectEndDate || 'N/A',
       'Client': x.clientName || 'N/A',
       'Location': x.clientLocation || 'N/A',
         })
@@ -4959,8 +5058,8 @@ getActivePoCount(box: any): void {
       'Project Name': x.projectName || 'N/A',
       'PO No': x.poNo || 'N/A',
       'PO Type': x.poProjectType || 'N/A',
-      'PO Start': x.poStartDate || 'N/A',
-      'PO End': x.poEndDate || 'N/A',
+      'PO Start': x.projectStartDate || 'N/A',
+      'PO End': x.projectEndDate || 'N/A',
       'Client': x.clientName || 'N/A',
       'Location': x.clientLocation || 'N/A',
         })
@@ -5195,7 +5294,7 @@ selectedClientName: string = '';
     { key: 'apmosysRM', label: 'Apmosys RM', type: 'string' },
     { key: 'clientRM', label: 'Client RM', type: 'string' }
   ];
-  modalProjectColumns1 :any[]=['projectName','poNo','projectType','clientName','apmosysRM','clientRM','poStartDate','poEndDate','createdOn'];
+  modalProjectColumns1 :any[]=['projectName','poNo','projectType','clientName','apmosysRM','clientRM','projectStartDate','projectEndDate','createdOn'];
 
 openClientProjectModal(template: TemplateRef<any>, clientName: string, department: string,deptId:any,clientId:any,projectType:any) {
   this.selectedClientName = clientName;
@@ -5269,10 +5368,10 @@ handleModalPageChange(page: number): void {
       'Client': project.clientName || 'NA',
       'Apmosys RM': project.apmosysRM || 'NA',
       'Client RM': project.clientRM || 'NA',
-      'Start Date': project.poStartDate ?
-        new Date(project.poStartDate).toLocaleDateString('en-GB') : 'NA',
-      'End Date': project.poEndDate ?
-        new Date(project.poEndDate).toLocaleDateString('en-GB') : 'NA',
+      'Start Date': project.projectStartDate ?
+        new Date(project.projectStartDate).toLocaleDateString('en-GB') : 'NA',
+      'End Date': project.projectEndDate ?
+        new Date(project.projectEndDate).toLocaleDateString('en-GB') : 'NA',
       'Created On': project.createdOn ?
         new Date(project.createdOn).toLocaleDateString('en-GB') : 'NA'
     }));
@@ -5507,6 +5606,16 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     this.getAllLeaveTimesheets(this.alert_message_timesheet_leave_report);
   }
 
+  toggleSearchForTimesheetReport(){
+     this.sortColumn = [];
+    this.sortColumnType = [];
+    this.sortDirection = '';
+    this.isSearchEnabled = !this.isSearchEnabled;
+    if (!this.isSearchEnabled) {
+      this.filters = {};
+      this.showTimesheetReportTable();
+    }
+  }
   onAclAdvSearch(selectBox?: any,type?:any){ 
     this.loaderService.requestStarted();
     setTimeout(() => {

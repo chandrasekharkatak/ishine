@@ -1,12 +1,14 @@
 package com.apmosys.employeeportal.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
-
+import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,40 +17,65 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
+import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
+import com.apmosys.employeeportal.dto.EmployeeTeamDepartmentDTO;
 import com.apmosys.employeeportal.dto.FilterMatrix;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
-import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
+import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
+import com.apmosys.employeeportal.dto.IshineToPoRequestDTO;
 import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
+import com.apmosys.employeeportal.dto.PageDTO;
+import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
-import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
+import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
+import com.apmosys.employeeportal.dto.ProjectViewResolveBulkItemDTO;
+import com.apmosys.employeeportal.dto.ProjectViewResolveBulkRequestDTO;
+import com.apmosys.employeeportal.dto.ProjectViewResolveResponseDTO;
+import com.apmosys.employeeportal.dto.RMGDashboardProjectRequest;
+import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
+import com.apmosys.employeeportal.dto.RmUpdateSyncDto;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
 import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
+import com.apmosys.employeeportal.service.CronJobService;
+import com.apmosys.employeeportal.service.PoSyncOrchestratorService;
+import com.apmosys.employeeportal.service.ProjectHierarchyResolverService;
 import com.apmosys.employeeportal.service.ResourceManagementService;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 @RestController
 @RequestMapping("/api")
 public class ResourceManagementController {
-	
-	
+
 	@Autowired
 	ResourceManagementService resourceManagementService;
+
+	@Autowired
+	PoSyncOrchestratorService poSyncOrchestratorService;
 	
 	@Autowired
+	ProjectHierarchyResolverService projectHierarchyResolverService;
+
+	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
+
+
+	
 
 	@Encrypted
 	@JobRoleAccess(featureIds = {34})
@@ -81,14 +108,15 @@ public class ResourceManagementController {
 		ServiceResponse response = resourceManagementService.getPendingForApprovalProject();
 		return response;
 	}
+	
 	@Encrypted
 	@JobRoleAccess(featureIds = {34})
-	@RequestMapping(value = "/approvePendingProject", method = RequestMethod.POST)
-	public ServiceResponse approvePendingProject(@RequestBody ResourceManagementDTO resourceManagementDTO) {
-		
+	@PostMapping(value = "/approvePendingProject")
+	public ServiceResponse approvePendingProject(@RequestBody ResourceManagementDTO resourceManagementDTO) throws Exception {
 		ServiceResponse response = resourceManagementService.approvePendingProject(resourceManagementDTO);
 		return response;
 	}
+	
 	@Encrypted
 	@JobRoleAccess(featureIds = {34})
 	@RequestMapping(value = "/rejectPendingProject", method = RequestMethod.POST)
@@ -184,6 +212,40 @@ public class ResourceManagementController {
 		ServiceResponse response = resourceManagementService.getTeamInfo(projectId);
 		return response;
 	}
+	
+	@GetMapping("/resolveProjectViewId")
+	public ServiceResponse resolveProjectViewId(@RequestParam String projectViewId) {
+		ServiceResponse response = new ServiceResponse();
+		String resolved = projectHierarchyResolverService.resolveProjectViewId(projectViewId);
+		String resolvedName = projectHierarchyResolverService.resolveProjectNameFromProjectViewId(projectViewId);
+		ProjectViewResolveResponseDTO dto = new ProjectViewResolveResponseDTO(projectViewId, resolved,
+				resolved != null && !resolved.equals(projectViewId), resolvedName);
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(dto);
+		return response;
+	}
+	
+	@PostMapping("/resolveProjectViewIds")
+	public ServiceResponse resolveProjectViewIds(@RequestBody ProjectViewResolveBulkRequestDTO request) {
+		ServiceResponse response = new ServiceResponse();
+		Map<String, ProjectViewResolveBulkItemDTO> out = new HashMap<>();
+		
+		if (request != null && request.getProjectViewIds() != null) {
+			for (String original : request.getProjectViewIds()) {
+				if (original == null || original.trim().isEmpty()) {
+					continue;
+				}
+				String resolved = projectHierarchyResolverService.resolveProjectViewId(original);
+				boolean redirected = resolved != null && !Objects.equals(resolved, original);
+				String resolvedName = projectHierarchyResolverService.resolveProjectNameFromProjectViewId(original);
+				out.put(original, new ProjectViewResolveBulkItemDTO(resolved, redirected, resolvedName));
+			}
+		}
+		
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(out);
+		return response;
+	}
 	@JobRoleAccess(featureIds = {3})
 	@RequestMapping(value = "/getTeamMemberByTeamId/{teamId}", method = RequestMethod.GET)
 	public ServiceResponse getTeamMemberByTeamId(@PathVariable("teamId") Long teamId) {
@@ -274,7 +336,7 @@ public class ResourceManagementController {
 	@RequestMapping(value = "/completionDateOfProject", method = RequestMethod.POST)
 	public ServiceResponse completionDateOfProject(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
-		ServiceResponse response = resourceManagementService.completionDateOfProject(resourceManagementDTO);
+		ServiceResponse response = poSyncOrchestratorService.completionDateOfProject(resourceManagementDTO);
 		return response;
 	}
 	@Encrypted
@@ -288,7 +350,7 @@ public class ResourceManagementController {
 	@JobRoleAccess(featureIds = {34})
 	@RequestMapping(value ="/rbacUnfilledTimesheetsProjects", method = RequestMethod.POST)
 	public ServiceResponse getAllUnfilledTimesheetsProjects(@RequestBody NonComplianceProjects nonComplianceProjects  ) {
-		ServiceResponse response = resourceManagementService.getAllUnfilledTimesheetsProjects(nonComplianceProjects);
+		ServiceResponse response = resourceManagementService.getAllUnfilledTimesheetsProjectsNEW(nonComplianceProjects);
 		return response;
 	}
 	@Encrypted
@@ -464,6 +526,44 @@ public class ResourceManagementController {
 	 	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	 	return resourceManagementService.poCrudOperationsInIshine(poPortalProjects);
 	 }
+	 
+	 
+//	 @PostMapping("/poCrudOperationsInIshineNew")
+//	 public ServiceResponse poCrudOperationsInIshineNew(HttpServletRequest httpRequest,@RequestBody ProjectPoMappingWithResourceDTO poPortalProjects) {
+//		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+//		 return poSyncOrchestratorService.poCrudOperationsInIshineNew(poPortalProjects);
+//	 }
+//	 
+	 
+	 @PostMapping("/renewPoInIshineNew")
+	 public ServiceResponse renewPoInIshineNew(HttpServletRequest httpRequest, @Valid @RequestBody RenewedPoSyncDto dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.renewPoInIshineNew(dto);
+	 }
+	 
+	 
+	 @PostMapping("/deletePoInIshineNew")
+	 public ServiceResponse deletePoInIshineNew(HttpServletRequest httpRequest,@Valid @RequestBody  DeletedPoSyncDTO dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.deletePoInIshineNew(dto);
+	 }
+	 
+	 @PostMapping("/updateRmDetailsInPo")
+	 public ServiceResponse updateRmDetailsInPo(HttpServletRequest httpRequest,@RequestBody  RmUpdateSyncDto dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.updateRmOdPos(dto);
+	 }
+	 
+	 
+	 @PostMapping("/updateAddressInPos")
+	 public ServiceResponse updateAddressInPos(HttpServletRequest httpRequest,
+			 @Valid @RequestBody PoClientAddressUpdateDTO dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.updateAddressInPos(dto);
+	 }
+	 
+	 
+	 
 
 
 //	@PostMapping("/poCrudOperationsInIshine")
@@ -510,9 +610,8 @@ public class ResourceManagementController {
 	@Encrypted
 	@JobRoleAccess(featureIds = {34})
 	@PostMapping("/getProjectStructure")
-	public ServiceResponse getProjectStructure(@RequestBody ProjectStructureWrapper wrapper) {
-	    return resourceManagementService.getProjectStructure(wrapper.getProjectStructure(),
-	                                                         wrapper.getProjectFilter());
+	public ServiceResponse getProjectStructure(@RequestBody ProjectStructureRequest projectStructure) {
+	    return resourceManagementService.getProjectStructure(projectStructure);
 	}
 
 	@PostMapping(value = "/sendTimesheetDetailsToShankh")
@@ -534,16 +633,17 @@ public class ResourceManagementController {
 	 }
 	
 	@PostMapping("/getDocumentDataByDocIdForPO")
-	 public ServiceResponse getDocumentDataByDocId(HttpServletRequest httpRequest,@RequestBody Long docId) {
-		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 public ServiceResponse getDocumentDataByDocId(HttpServletRequest httpRequest,@RequestBody Long docId) throws Exception {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	 	return resourceManagementService.getDocumentDataByDocId(docId);
 	 }
 	
-	@PostMapping(value = "/handleTeamsAsPerLinkedPo")
-	public ServiceResponse handleTeamsAsPerLinkedPo(@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
-		return resourceManagementService.handleTeamsAsPerLinkedPo(payloadDTO);
-	}
 	
+	@PostMapping("/getResourceCountFromPoId")
+	 public ServiceResponse getResourceCountFromPoId(HttpServletRequest httpRequest,@RequestBody List<Long> poIds) throws Exception {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 	return resourceManagementService.getResourceCountFromPoId(poIds);
+	 }
 //	@PostMapping(value = "/sendTimesheetDetailsToShankh")
 //	public ServiceResponse sendTimesheetDetailsToShankh(@RequestBody TimeSheetRequestDto payloadDTO) {
 //		return resourceManagementService.sendTimesheetDetailsToShankh(payloadDTO);
@@ -618,6 +718,172 @@ public class ResourceManagementController {
 		return response;
 	}
 	
+	// @Encrypted
+	@GetMapping("/getProjectConfigurationDetailsByProjectId")
+	public ServiceResponse getProjectConfigurationDetailsByProjectId(@RequestParam Integer projectId, @RequestParam boolean isAllProjects) {
+		return resourceManagementService.getProjectConfigurationDetailsByProjectId(projectId, isAllProjects);
+	}
+	
+	// @Encrypted
+	@GetMapping("/getResourceRequirementByPoId")
+	public ServiceResponse getResourceRequirementByPoId(@RequestParam Long poId) {
+		return resourceManagementService.getResourceRequirementByPoId(poId);
+	}
+
+	// @Encrypted
+	@GetMapping("/getActivePoDetailsByProjectId")
+	public ServiceResponse getActivePoDetailsByProjectId(@RequestParam Integer projectId) {
+		return resourceManagementService.getActivePoDetailsByProjectId(projectId);
+	}
+
+	// @Encrypted
+	@GetMapping("/getResourceRequirementByTeamId")
+	public ServiceResponse getResourceRequirementByTeamId(@RequestParam Long teamId) {
+		return resourceManagementService.getResourceRequirementByTeamId(teamId);
+	}
+
+	@PostMapping("/ishineToPoEmpDetails")
+	public ServiceResponse ishineToPoEmpDetails(HttpServletRequest httpRequest, @RequestBody IshineToPoRequestDTO ishineToPoRequest) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return resourceManagementService.ishineToPoEmpDetails(ishineToPoRequest);
+	}
+
+	// @Encrypted
+	@GetMapping("/getResourceRequirementCountByProjectId")
+	public ServiceResponse getResourceRequirementCountByProjectId(
+			@RequestParam Integer projectId, @RequestParam String projectType) {
+		return resourceManagementService.getResourceRequirementCountByProjectId(projectId, projectType);
+	}
+
+	// @Encrypted
+	@GetMapping("/getResourceRequirementDetailsByProjectId")
+	public ServiceResponse getResourceRequirementDetailsByProjectId(
+			@RequestParam Integer projectId, @RequestParam String projectType, @RequestParam boolean currentActivePO) {
+		return resourceManagementService.getResourceRequirementDetailsByProjectId(projectId, projectType,currentActivePO);
+	}
+	
+	@GetMapping("/oneTimeUpdatePoClientId")
+	public ServiceResponse oneTimeUpdatePoClientId() {
+		return resourceManagementService.oneTimeUpdatePoClientId("once");
+	}
+
+	// @Encrypted
+	@PostMapping("/fetchProjectDetailsList")
+	public ServiceResponse fetchProjectDetailsList(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.fetchProjectDetailsList(rmgDashboardProjectRequest);
+	}
+
+	// @Encrypted
+	@PostMapping("/getEmployeeCountByEmployeeGroup")
+	public ServiceResponse getEmployeeCountByEmployeeGroup(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getEmployeeCountByEmployeeGroup(rmgDashboardProjectRequest);
+	}
+
+	// @Encrypted
+	@PostMapping("/getEmployeeDetailsListByEmployeeGroup")
+	public ServiceResponse getEmployeeDetailsListByEmployeeGroup(@RequestBody PageDTO pageDTO) {
+		return resourceManagementService.getEmployeeDetailsListByEmployeeGroup(pageDTO);
+	}
+
+	// @Encrypted
+	@PostMapping("/getProjectStatusCount")
+	public ServiceResponse getProjectStatusCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getProjectStatusCount(rmgDashboardProjectRequest);
+	}
+
+	// @Encrypted
+	@PostMapping("/getUnfilledTimesheetProjectDetailsList")
+	public ServiceResponse getUnfilledTimesheetProjectDetailsList(@RequestBody PageDTO pageDTO) {
+		return resourceManagementService.getUnfilledTimesheetProjectDetailsList(pageDTO);
+	}	
+
+	// @Encrypted
+	@PostMapping("/getUnfilledTimesheetProjectDetailsCount")
+	public ServiceResponse getUnfilledTimesheetProjectDetailsCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getUnfilledTimesheetProjectDetailsCount(rmgDashboardProjectRequest);
+	}
+	
+	//API called by PoPortal(Shankh) application to check if iShine is up and running
+	@GetMapping("/healthCheck")
+	public String healthCheck(HttpServletRequest httpRequest) {
+	    poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	    return "iShine is online...";
+	}
+
+	@PostMapping("/getEmployeeTeamDepartment")
+	public ServiceResponse getEmployeeTeamDepartment(@RequestBody EmployeeTeamDepartmentDTO dto) {
+		Long teamId = dto.getTeamId();
+		Long empId = dto.getEmpId();
+		LocalDate date = dto.getDate();
+		if(teamId == null || empId == null) {
+			return null;
+		}
+		return resourceManagementService.getEmployeeTeamDepartment(teamId , empId , date);
+	}
+
+	// @Encrypted
+	@PostMapping("/getBillingLossRiskScore")
+	public ServiceResponse getBillingLossRiskScore(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getBillingLossRiskScore(rmgDashboardProjectRequest);
+	}
+	
+	// @Encrypted
+	@PostMapping("/getExpiredTNMFilterWiseProjectStatusCount")
+	public ServiceResponse getExpiredTNMFilterWiseProjectStatusCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getExpiredTNMFilterWiseProjectStatusCount(rmgDashboardProjectRequest);
+	}
+	
+	// @Encrypted
+	@PostMapping("/getFCFilterWiseProjectStatusCount")
+	public ServiceResponse getFCFilterWiseProjectStatusCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getFCFilterWiseProjectStatusCount(rmgDashboardProjectRequest);
+	}
+	
+	// @Encrypted
+	@PostMapping("/getAllUnfilledTimesheetProjectDetailsCount")
+	public ServiceResponse getAllUnfilledTimesheetProjectDetailsCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getAllUnfilledTimesheetProjectDetailsCount(rmgDashboardProjectRequest);
+	}
+	
+	// @Encrypted
+	@GetMapping("/getEmployeeMappedToClientPercent")
+	public ServiceResponse getEmployeeMappedToClientPercent() {
+		return resourceManagementService.getEmployeeMappedToClientPercent();
+	}
+
+	// @Encrypted
+	@PostMapping("/getTimesheetApplicableProjectData")
+	public ServiceResponse getTimesheetApplicableProjectData(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getTimesheetApplicableProjectData(rmgDashboardProjectRequest);
+	}
+
+	@GetMapping("/getAllPosForProjectAndDate")
+	public ServiceResponse getAllPosForProjectAndDate(
+			@RequestParam Integer projectId,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
+		return resourceManagementService.getAllPosForProjectAndDate(projectId, fromDate, toDate);
+	}
+
+	@GetMapping("/getProjectIdByPoNo")
+	public ServiceResponse getProjectIdByPoNo(@RequestParam String poNo) {
+		return resourceManagementService.getProjectIdByPoNo(poNo);
+	}
+
+//	
+	@GetMapping("/cronClient")
+	public void syncClientsFromPoPortalApi() {
+		System.out.println("cron started");
+		poSyncOrchestratorService.syncClientsFromPoPortalCron();
+		System.out.println("cron ended");
+	}
+	
+	@Scheduled(cron = "${clientSyncFromPoCron.time}")
+	public void syncClientsFromPoPortalCron() {
+		System.out.println("cron started");
+		poSyncOrchestratorService.syncClientsFromPoPortalCron();
+		System.out.println("cron ended");
+	}
 	
 	
 	

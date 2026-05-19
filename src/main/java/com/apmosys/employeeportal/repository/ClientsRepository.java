@@ -22,7 +22,9 @@ public interface ClientsRepository extends JpaRepository<Client, Integer> {
 			"INNER JOIN ClientLocation cl on cl.clientId = c.clientId ")
 	public List<ClientsDTO> getClientInfo();
 
-	Client findByPoClientId(Integer poClientId);
+
+	
+	Optional<Client> findByPoClientId(Long poClientId);
 
 	Client findByClientId(Integer clientId);
 
@@ -33,5 +35,17 @@ public interface ClientsRepository extends JpaRepository<Client, Integer> {
 
 	@Query("select new com.apmosys.employeeportal.dto.ClientIdAndName(c.clientId, c.clientName) from Client c")
 	List<ClientIdAndName> findAllClientIdAndName();
+	
+	@Query(value="SELECT c FROM Client c WHERE LOWER(TRIM(c.clientName)) IN :clientNames")
+	List<Client> findByTrimmedClientNameIn(List<String> clientNames);
+
+	@Query(value="SELECT c FROM Client c WHERE poClientId IN :poIds")
+	List<Client> findByPoClientIdIn(List<Long> poIds);
+	
+	@Query(value =" SELECT c\n"
+			+ "    FROM Client c\n"
+			+ "    WHERE LOWER(TRIM(c.clientName)) = :normalizedLowerClientName ")
+	Optional<Client> findByClientNameIgnoreCaseAndTrim(String normalizedLowerClientName);
+
 
 }

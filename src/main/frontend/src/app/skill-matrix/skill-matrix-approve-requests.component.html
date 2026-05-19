@@ -1,0 +1,583 @@
+<div class="sm-ar">
+  <div class="pg">
+    <!-- Top buttons (portal style) -->
+    <div class="mb-3" *ngIf="!detail">
+      <button type="button" class="btn btn-outline-primary btn-sm mx-2 my-1"
+        [ngClass]="{'active': activeTab === 'requests'}" (click)="switchTab('requests')">
+        Approval requests
+      </button>
+
+      <button type="button" class="btn btn-outline-primary btn-sm mx-2 my-1"
+        [ngClass]="{'active': activeTab === 'approved'}" (click)="switchTab('approved')">
+        Finalized requests
+      </button>
+    
+    </div>
+
+    <p *ngIf="status" class="text-muted small mb-2">{{ status }}</p>
+    <p *ngIf="error" class="text-danger small mb-2">{{ error }}</p>
+
+    <!-- Detail view -->
+    <div *ngIf="detail" class="arDetail">
+      <button *ngIf="!modalSkill" type="button" class="btn btn-sm btn-outline-primary backBtn" (click)="closeDetail()">
+        ← Back to all employees
+      </button>
+
+      <div class="detailTop" *ngIf="!modalSkill">
+        <div class="detailTop-left">
+          <div class="detailPerson">
+            <div class="bigAva">{{ initials(detail.employeeName) }}</div>
+            <div class="detailPerson-txt">
+              <div class="detailPerson-name">
+                {{ detail.employeeName }}
+              </div>
+              <div class="detailPerson-meta">{{ detail.designation }} · {{ detail.deptName }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="detailTop-right">
+          <div class="detailTop-rightRow">
+            <div class="detailPills">
+              <span class="dPill dPill--status">{{ detail.status }}</span>
+              <span class="dPill">Submitted {{ detail.submittedAt | date:'dd-MMM-yyyy, HH:mm' }}</span>
+              <span class="dPill" *ngIf="detail.reviewDeadline">Due {{ detail.reviewDeadline | date:'dd-MMM-yyyy' }}</span>
+            </div>
+            <div class="detailProg">
+              <div class="progress-track">
+                <div class="progress-fill" [style.width.%]="progressPercentTotal()"></div>
+              </div>
+              <div class="detailProg-txt">
+                {{ reviewedTotal() }}/{{ detail?.skillsTotal || 0 }} reviewed
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="secHead" *ngIf="!modalSkill">
+        <span>Skill ratings — review each skill</span>
+      </div>
+
+      <!-- Stat cards (prototype) -->
+      <div class="smStatRow smStatRow--lift" *ngIf="detail && !modalSkill">
+        <div class="smStat" style="background:#FAEEDA;color:#633806">
+          <div class="smStatN">{{ detail.pendingCount || 0 }}</div>
+          <div class="smStatL">Pending</div>
+        </div>
+        <div class="smStat" style="background:#EAF3DE;color:#0F6E56">
+          <div class="smStatN">{{ detail.approvedCount || 0 }}</div>
+          <div class="smStatL">Approved</div>
+        </div>
+        <div class="smStat" style="background:#EEEDFE;color:#3C3489">
+          <div class="smStatN">{{ detail.adjustedCount || 0 }}</div>
+          <div class="smStatL">Adjusted</div>
+        </div>
+        <div class="smStat" style="background:#E6F1FB;color:#0C447C">
+          <div class="smStatN">{{ detail.sentBackCount || 0 }}</div>
+          <div class="smStatL">Sent back</div>
+        </div>
+        <div class="smStat" style="background:#FCEBEB;color:#791F1F">
+          <div class="smStatN">{{ detail.rejectedCount || 0 }}</div>
+          <div class="smStatL">Rejected</div>
+        </div>
+      </div>
+
+      <!-- Table card header (prototype) -->
+      <div class="smTableCard">
+        <div class="smTableHdr" *ngIf="!modalSkill">
+          <span style="font-size:12px;font-weight:500">Skill ratings — review each skill</span>
+          <span class="bdg" [ngClass]="(detail?.pendingCount || 0) > 0 ? 'b-am' : 'b-gr'">{{ pendingBadgeText() }}</span>
+          <div class="smHdrBtns" *ngIf="(detail?.pendingCount || 0) > 0">
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="bulkApproveAllPending()">
+              ✓ Approve all pending
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmRejectAll()">
+              ✕ Reject all pending
+            </button>
+          </div>
+        </div>
+
+      <div class="overflow-auto" *ngIf="!modalSkill">
+        <table class="table table-sm skill-matrix-approve-requests__sort-table">
+          <thead class="thead-light">
+            <tr>
+              <th scope="col" class="info-label" style="width:60px">Sr No.</th>
+              <th scope="col" class="info-label">Skill name</th>
+              <th scope="col" class="info-label" style="width:140px">Category</th>
+              <th scope="col" class="info-label" style="width:140px">Type</th>
+              <th scope="col" class="info-label" style="width:140px">Self rating</th>
+              <th scope="col" class="info-label" style="width:130px">Manager status</th>
+              <th scope="col" class="info-label" style="width:120px">HOD status</th>
+              <th scope="col" class="info-label" style="width:120px">Final status</th>
+              <th scope="col" class="info-label" style="width:90px">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="!detailLoading && (!detail?.skills || detail.skills.length === 0)">
+              <td colspan="9" class="text-center info-label">No details to display...</td>
+            </tr>
+            <tr *ngFor="let sk of detail.skills; let i = index">
+              <th scope="row" class="info-label">{{ detailPageSize * (detailPage - 1) + i + 1 }}</th>
+              <td style="font-weight:600;color:var(--color-text-primary)">{{ sk.skillName }}</td>
+              <td>{{ sk.skillCategory || '—' }}</td>
+              <td>{{ sk.required ? 'Required' : 'Optional' }}</td>
+              <td style="font-weight:600;color:#193d8a">L{{ sk.selfRating || 0 }}</td>
+              <td>{{ decisionLabel(sk.managerDecision) }}</td>
+              <td>{{ decisionLabel(sk.hodDecision) }}</td>
+              <td>{{ decisionLabel(sk.finalDecision) }}</td>
+              <td class="text-nowrap">
+                <button type="button" class="btn btn-sm btn-outline-primary"
+                  title="Take action" (click)="openSkillModal(sk)">
+                  <em class="fa fa-eye" aria-hidden="true"></em>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Skill detail page (replaces modal) -->
+      <div *ngIf="modalSkill" class="smSkillPage smSkillPage--pro">
+        <div class="smSkillPageHdr smSkillPageHdr--pro">
+          <div class="smSkillHdrTop">
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="closeSkillModal()">← Back to skills list</button>
+          </div>
+
+          <div class="smSkillHdrBottom">
+            <div class="smSkillHdrMain">
+              <div class="smSkillPageTitle">{{ modalSkill.skillName }}</div>
+              <div class="smSkillHdrLines">
+                <div>{{ modalSkill.skillCategory || '—' }}</div>
+                <div>{{ modalSkill.required ? 'Required' : 'Optional' }}</div>
+                <div>Manager: {{ decisionLabel(modalSkill.managerDecision) }}</div>
+                <div>HOD: {{ decisionLabel(modalSkill.hodDecision) }}</div>
+                <div>Final: {{ decisionLabel(modalSkill.finalDecision) }}</div>
+              </div>
+            </div>
+
+            <div class="smSkillPageNav">
+              <button class="btn btn-sm btn-outline-secondary" type="button" [disabled]="modalIndex<=0" (click)="navigateModal(-1)">Previous</button>
+              <span class="smModalNav__txt">{{ modalNavText() }}</span>
+              <button class="btn btn-sm btn-outline-secondary" type="button" [disabled]="modalIndex>=((skillMeta?.length||1)-1)" (click)="navigateModal(1)">Next</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="smSkillPageBody smSkillPageBody--pro">
+          <div *ngIf="modalSkill._loading" class="text-muted small" style="padding:6px 2px 10px">
+            Loading skill details…
+          </div>
+          <div class="evSection">
+            <div class="evSectionHdr">
+              <span class="bdg b-bl">Overview</span>
+              <span class="evSectionSub">Self-written evidence and usage summary</span>
+            </div>
+            <div class="evSectionBody">
+              <div class="descBox">{{ modalSkill.whatCanYouDo }}</div>
+
+              <div class="evGrid evGrid--cards">
+                <div class="evCard">
+                  <div class="evCardK">Usage</div>
+                  <div class="evCardV">{{ modalSkill.usageFrequency ? modalSkill.usageFrequency : 'N/A' }}</div>
+                  <div class="evCardS">Experience: {{ modalSkill.yearsExperience ? modalSkill.yearsExperience : 'N/A' }}</div>
+                  <div class="evCardS">Last used: {{ modalSkill.lastUsed ? modalSkill.lastUsed : 'N/A' }}</div>
+                </div>
+                <div class="evCard">
+                  <div class="evCardK">GitHub / portfolio</div>
+                  <div class="evCardV evCardV--mono">{{ modalSkill.githubPortfolioUrl ? modalSkill.githubPortfolioUrl : 'N/A' }}</div>
+                </div>
+                <div class="evCard">
+                  <div class="evCardK">Colleague endorsement</div>
+                  <div class="evCardV">{{ modalSkill.colleagueEndorser ? modalSkill.colleagueEndorser : 'N/A' }}</div>
+                </div>
+                <div class="evCard">
+                  <div class="evCardK">Certification / training</div>
+                  <div class="evCardV">
+                    {{ (modalSkill.certifications?.length || 0) }} cert · {{ (modalSkill.trainings?.length || 0) }} training
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="evSection" *ngIf="modalSkill.subskills?.length">
+            <div class="evSectionHdr">
+              <span class="bdg b-te">Sub-skills</span>
+              <span class="evSectionSub">Confidence marked by employee</span>
+            </div>
+            <div class="evSectionBody">
+              <div class="chipRow">
+                <span *ngFor="let ss of modalSkill.subskills" class="subChip" [class.gap]="!ss.confident">
+                  {{ ss.subskillName }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="evSection" *ngIf="modalSkill.projectNames?.length">
+            <div class="evSectionHdr">
+              <span class="bdg b-gr">Project evidence</span>
+              <span class="evSectionSub">Projects tagged with this skill</span>
+            </div>
+            <div class="evSectionBody">
+              <div class="chipRow">
+                <span *ngFor="let pn of modalSkill.projectNames" class="projTag">{{ pn }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="smModalInputs" *ngIf="modalSkill._draftDecision">
+            <div *ngIf="modalSkill._draftDecision==='adjusted'">
+              <div class="smModalLbl">Corrected rating (employee claimed L{{ modalSkill.selfRating }})</div>
+              <div class="ratRow">
+                <div class="ratOpt" [class.sel]="modalSkill.managerRating===1" (click)="setAdjustedRating(modalSkill,1)">L1</div>
+                <div class="ratOpt" [class.sel]="modalSkill.managerRating===2" (click)="setAdjustedRating(modalSkill,2)">L2</div>
+                <div class="ratOpt" [class.sel]="modalSkill.managerRating===3" (click)="setAdjustedRating(modalSkill,3)">L3</div>
+                <div class="ratOpt" [class.sel]="modalSkill.managerRating===4" (click)="setAdjustedRating(modalSkill,4)">L4</div>
+                <div class="ratOpt" [class.sel]="modalSkill.managerRating===5" (click)="setAdjustedRating(modalSkill,5)">L5</div>
+              </div>
+            </div>
+
+            <div *ngIf="decisionNeedsComment(modalSkill._draftDecision)">
+              <div class="smModalLbl">Comment (required for Reject)</div>
+              <textarea class="cmtArea" [ngModel]="modalSkill.managerComment" (ngModelChange)="setManagerComment(modalSkill,$event)"></textarea>
+              <div style="display:flex;justify-content:flex-end;margin-top:8px">
+                <button type="button" class="btn btn-sm btn-primary"
+                  (click)="decide(modalSkill, modalSkill._draftDecision, modalSkill.managerRating)">
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="smSkillPageFoot">
+          <button type="button" class="btn btn-sm btn-outline-danger" (click)="beginDecision(modalSkill,'rejected')">Reject</button>
+          <!-- Send back / Adjust hidden for now (per request) -->
+          <!-- <button type="button" class="btn btn-sm btn-outline-warning" (click)="beginDecision(modalSkill,'sent_back')">Send back</button> -->
+          <!-- <button type="button" class="btn btn-sm btn-outline-primary" (click)="beginDecision(modalSkill,'adjusted')">Adjust</button> -->
+          <button type="button" class="btn btn-sm btn-success" (click)="beginDecision(modalSkill,'approved')">Approve</button>
+        </div>
+      </div>
+
+      <!-- Pagination footer (prototype style) -->
+      <div class="smPgBar" *ngIf="!modalSkill && detailSkillsTotal > 0">
+        <span style="font-size:11px;color:var(--color-text-secondary)">
+          Showing {{ detailRangeStart() }}–{{ detailRangeEnd() }} of {{ detailSkillsTotal }} skills
+        </span>
+        <div class="portalPg">
+          <button class="pg-nav" type="button" (click)="goDetailPage(detailPage-1)" [disabled]="detailPage<=1">« Previous</button>
+          <button class="pg-num" type="button" *ngFor="let p of detailPagerPages()" [class.on]="p===detailPage" (click)="goDetailPage(p)">{{ p }}</button>
+          <button class="pg-nav" type="button" (click)="goDetailPage(detailPage+1)" [disabled]="detailPage>=detailTotalPages()">Next »</button>
+        </div>
+      </div>
+
+      <!-- Submit bar (prototype) -->
+      <div class="submit-bar" [class.on]="!modalSkill && (detail?.pendingCount || 0) === 0">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;flex-wrap:wrap">
+          <div style="width:30px;height:30px;border-radius:50%;background:#EAF3DE;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <em class="fa fa-check" style="color:#0F6E56"></em>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:500">All {{ detailSkillsTotal }} skills reviewed — ready to submit.</div>
+            <div style="font-size:11px;color:var(--color-text-secondary)">Submit to complete this assessment cycle.</div>
+          </div>
+        </div>
+        <ng-container *ngIf="!isHodViewer">
+          <button class="submit-btn" type="button" (click)="submitReview()">Submit review</button>
+        </ng-container>
+        <ng-container *ngIf="isHodViewer">
+          <button class="submit-btn" type="button" (click)="submitHodDecision('approved')">Approve</button>
+          <button class="submit-btn btn-outline-danger" type="button" style="margin-left:8px" (click)="submitHodDecision('rejected')">Reject</button>
+        </ng-container>
+      </div>
+
+      </div><!-- /smTableCard -->
+    </div>
+
+    <!-- Requests tab -->
+    <div *ngIf="!detail && activeTab==='requests'">
+      <div class="stats" *ngIf="!loading && queueRows?.length">
+        <div class="sc sc--await">
+          <div class="sc-main">
+            <div class="sc-n">{{ getStats().awaiting }}</div>
+            <div class="sc-l">Awaiting review</div>
+          </div>
+        </div>
+        <div class="sc sc--overdue">
+          <div class="sc-main">
+            <div class="sc-n">{{ getStats().overdue }}</div>
+            <div class="sc-l">Overdue</div>
+          </div>
+        </div>
+        <div class="sc sc--skills">
+          <div class="sc-main">
+            <div class="sc-n">{{ getStats().skillsToReview }}</div>
+            <div class="sc-l">Skills to review</div>
+          </div>
+        </div>
+        <div class="sc sc--done">
+          <div class="sc-main">
+            <div class="sc-n">{{ getStats().completed }}</div>
+            <div class="sc-l">Completed</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="selector-toggle mb-2">
+            <a href="javascript:void(0)" (click)="toggleSearch()" title="Search / filters">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+          </div>
+
+          <div class="overflow-auto">
+            <table class="table table-sm skill-matrix-approve-requests__sort-table" matSort (matSortChange)="sortData($event)">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label">Sr No.</th>
+                  <th scope="col" class="info-label" mat-sort-header="employeeName|string">Employee</th>
+                  <th scope="col" class="info-label" mat-sort-header="designation|string">Designation</th>
+                  <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Manager Approved</th>
+                  <th scope="col" class="info-label" mat-sort-header="hodName|string">HOD Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="hodApprovalStatus|string">HOD Approved</th>
+                  <th scope="col" class="info-label" mat-sort-header="finalStatus|string">Final Status</th>
+                  <th scope="col" class="info-label" mat-sort-header="submittedAt|date">Submitted</th>
+                  <th scope="col" class="info-label">Action</th>
+                </tr>
+                <tr
+                  app-column-filter-bar
+                  *ngIf="isSearchEnabled"
+                  [columnList]="filterColumns"
+                  (onSearch)="onSearch($event)">
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="loading">
+                  <td colspan="11" class="text-center info-label">Loading…</td>
+                </tr>
+                <tr *ngIf="!loading && (!queueRows || queueRows.length === 0)">
+                  <td colspan="11" class="text-center info-label">No details to display...</td>
+                </tr>
+
+                <tr
+                  *ngFor="let r of queueRows | paginate: { id: 'sm-approve-queue', itemsPerPage: pageSize, currentPage: page, totalItems: totalRows }; let i = index">
+                  <th scope="row" class="info-label">{{ pageSize * (page - 1) + i + 1 }}</th>
+                  <td style="font-weight:600;color:var(--color-text-primary)">{{ r.employeeName }}</td>
+                  <td>{{ r.designation }}</td>
+                  <td>{{ r.managerName || '—' }}</td>
+                  <td>{{ ynStatus(r.managerApprovalStatus) }}</td>
+                  <td>{{ r.hodName || '—' }}</td>
+                  <td>{{ ynStatus(r.hodApprovalStatus) }}</td>
+                  <td>{{ finalStatusLabel(r.finalStatus) }}</td>
+                  <td>{{ r.submittedAt ? (r.submittedAt | date:'dd-MMM-yyyy') : '—' }}</td>
+                  <td class="text-nowrap">
+                    <button *ngIf="r.actionEnabled" type="button" class="btn btn-sm btn-outline-primary"
+                      title="Review" (click)="openDetail(r)">
+                      <em class="fa fa-eye" aria-hidden="true"></em>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <pagination-controls
+            *ngIf="totalRows > 0"
+            class="my-pagination"
+            id="sm-approve-queue"
+            (pageChange)="handlePageChange($event)">
+          </pagination-controls>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skill view tab (simple table for now) -->
+    <div *ngIf="!detail && activeTab==='byskill'">
+      <p *ngIf="svError" class="text-danger small mb-2">{{ svError }}</p>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="selector-toggle mb-2">
+            <a href="javascript:void(0)" (click)="toggleSvSearch()" title="Search / filters">
+              <i *ngIf="!svIsSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="svIsSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+          </div>
+
+          <div class="overflow-auto">
+            <table class="table table-sm skill-matrix-approve-requests__sort-table" matSort (matSortChange)="sortSkillView($event)">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label">Sr No.</th>
+                  <th scope="col" class="info-label" mat-sort-header="skillName|string">Skill</th>
+                  <th scope="col" class="info-label" mat-sort-header="skillCategory|string">Category</th>
+                  <th scope="col" class="info-label" mat-sort-header="employeeName|string">Employee</th>
+                  <th scope="col" class="info-label" mat-sort-header="decision|string">Decision</th>
+                  <th scope="col" class="info-label">Action</th>
+                </tr>
+                <tr
+                  app-column-filter-bar
+                  *ngIf="svIsSearchEnabled"
+                  [columnList]="svFilterColumns"
+                  (onSearch)="onSvSearch($event)">
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="!svLoading && (!svRows || svRows.length === 0)">
+                  <td colspan="7" class="text-center info-label">No details to display...</td>
+                </tr>
+
+                <tr *ngFor="let r of svRows | paginate: { id: 'sm-skill-view', itemsPerPage: svPageSize, currentPage: svPage, totalItems: svTotal }; let i = index">
+                  <th scope="row" class="info-label">{{ svPageSize * (svPage - 1) + i + 1 }}</th>
+                  <td style="font-weight:600;color:var(--color-text-primary)">{{ r.skillName }}</td>
+                  <td>{{ r.skillCategory || '—' }}</td>
+                  <td>{{ r.employeeName }}</td>
+                  <td style="text-transform:capitalize">{{ r.decision || 'pending' }}</td>
+                  <td class="text-nowrap">
+                    <button type="button" class="btn btn-sm btn-outline-primary"
+                      title="Review" (click)="openDetail({submissionId: r.submissionId})">
+                      <em class="fa fa-eye" aria-hidden="true"></em>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <pagination-controls *ngIf="svTotal > 0" class="my-pagination" [id]="'sm-skill-view'"
+            (pageChange)="handleSvPageChange($event)"></pagination-controls>
+        </div>
+      </div>
+    </div>
+
+    <!-- Done tab -->
+    <div *ngIf="!detail && activeTab==='done'">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="selector-toggle mb-2">
+            <a href="javascript:void(0)" (click)="toggleDoneSearch()" title="Search / filters">
+              <i *ngIf="!doneIsSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="doneIsSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+          </div>
+
+          <div class="overflow-auto">
+            <table class="table table-sm skill-matrix-approve-requests__sort-table" matSort (matSortChange)="sortDone($event)">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label">Sr No.</th>
+                  <th scope="col" class="info-label" mat-sort-header="employeeName|string">Employee</th>
+                  <th scope="col" class="info-label" mat-sort-header="designation|string">Designation</th>
+                  <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Manager Approved</th>
+                  <th scope="col" class="info-label" mat-sort-header="hodName|string">HOD Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="hodApprovalStatus|string">HOD Approved</th>
+                  <th scope="col" class="info-label" mat-sort-header="finalStatus|string">Final Status</th>
+                  <th scope="col" class="info-label" mat-sort-header="submittedAt|date">Submitted</th>
+                  <th scope="col" class="info-label">Action</th>
+                </tr>
+                <tr
+                  app-column-filter-bar
+                  *ngIf="doneIsSearchEnabled"
+                  [columnList]="doneFilterColumns"
+                  (onSearch)="onDoneSearch($event)">
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="!loading && (!queueRows || queueRows.length === 0)">
+                  <td colspan="11" class="text-center info-label">No details to display...</td>
+                </tr>
+                <tr *ngFor="let r of queueRows | paginate: { id: 'sm-approve-done', itemsPerPage: pageSize, currentPage: page, totalItems: totalRows }; let i = index">
+                  <th scope="row" class="info-label">{{ pageSize * (page - 1) + i + 1 }}</th>
+                  <td style="font-weight:600;color:var(--color-text-primary)">{{ r.employeeName }}</td>
+                  <td>{{ r.designation }}</td>
+                  <td>{{ r.managerName || '—' }}</td>
+                  <td>{{ ynStatus(r.managerApprovalStatus) }}</td>
+                  <td>{{ r.hodName || '—' }}</td>
+                  <td>{{ ynStatus(r.hodApprovalStatus) }}</td>
+                  <td>{{ finalStatusLabel(r.finalStatus) }}</td>
+                  <td>{{ r.submittedAt ? (r.submittedAt | date:'dd-MMM-yyyy') : '—' }}</td>
+                  <td class="text-nowrap">
+                    <button type="button" class="btn btn-sm btn-outline-primary"
+                      title="View" (click)="openDetail(r)">
+                      <em class="fa fa-eye" aria-hidden="true"></em>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <pagination-controls *ngIf="totalRows > 0" class="my-pagination" [id]="'sm-approve-done'"
+            (pageChange)="handlePageChange($event)"></pagination-controls>
+        </div>
+      </div>
+    </div>
+
+    <!-- Approved tab -->
+    <div *ngIf="!detail && activeTab==='approved'">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="selector-toggle mb-2">
+            <a href="javascript:void(0)" (click)="toggleSearch()" title="Search / filters">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+          </div>
+
+          <div class="overflow-auto">
+            <table class="table table-sm skill-matrix-approve-requests__sort-table" matSort (matSortChange)="sortData($event)">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label">Sr No.</th>
+                  <th scope="col" class="info-label" mat-sort-header="employeeName|string">Employee</th>
+                  <th scope="col" class="info-label" mat-sort-header="designation|string">Designation</th>
+                  <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="managerApprovalStatus|string">Manager Approved</th>
+                  <th scope="col" class="info-label" mat-sort-header="hodName|string">HOD Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="hodApprovalStatus|string">HOD Approved</th>
+                  <th scope="col" class="info-label" mat-sort-header="finalStatus|string">Final Status</th>
+                  <th scope="col" class="info-label" mat-sort-header="submittedAt|date">Submitted</th>
+                </tr>
+                <tr
+                  app-column-filter-bar
+                  *ngIf="isSearchEnabled"
+                  [columnList]="approvedFilterColumns"
+                  (onSearch)="onSearch($event)">
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="loading">
+                  <td colspan="9" class="text-center info-label">Loading…</td>
+                </tr>
+                <tr *ngIf="!loading && (!queueRows || queueRows.length === 0)">
+                  <td colspan="9" class="text-center info-label">No details to display...</td>
+                </tr>
+                <tr
+                  *ngFor="let r of queueRows | paginate: { id: 'sm-approved', itemsPerPage: pageSize, currentPage: page, totalItems: totalRows }; let i = index">
+                  <th scope="row" class="info-label">{{ pageSize * (page - 1) + i + 1 }}</th>
+                  <td style="font-weight:600;color:var(--color-text-primary)">{{ r.employeeName }}</td>
+                  <td>{{ r.designation }}</td>
+                  <td>{{ r.managerName || '—' }}</td>
+                  <td>{{ ynStatus(r.managerApprovalStatus) }}</td>
+                  <td>{{ r.hodName || '—' }}</td>
+                  <td>{{ ynStatus(r.hodApprovalStatus) }}</td>
+                  <td>
+                    <span class="bdg" [ngClass]="finalStatusBadgeClass(r.finalStatus)">{{ finalStatusLabel(r.finalStatus) }}</span>
+                  </td>
+                  <td>{{ r.submittedAt ? (r.submittedAt | date:'dd-MMM-yyyy') : '—' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <pagination-controls *ngIf="totalRows > 0" class="my-pagination" [id]="'sm-approved'"
+            (pageChange)="handlePageChange($event)"></pagination-controls>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

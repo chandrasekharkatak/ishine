@@ -123,8 +123,8 @@
                 <div class="info-wrapper">
                     <div class="form-group" style="max-width: 250px;">
                         <label><span class="text-danger">*</span>Half Year</label>
-                        <select class="form-control" [(ngModel)]= "selectedHalfYearCycle" name="halfyear" (click)="checkHalfYearlyExistance(alert_message)" >
-                            <option >H1 (APR-SEP)</option>> 
+                        <select class="form-control" [(ngModel)]="selectedHalfYearCycle" name="halfyear" (click)="checkHalfYearlyExistance(alert_message)" >
+                            <option >H1 (APR-SEP)</option>
                             <option>H2 (OCT-MAR)</option>
                         </select>
                     </div>
@@ -137,33 +137,84 @@
                 <div class="info-wrapper">
                     <div class="form-group" style="max-width: 250px;">
                         <label><span class="text-danger">*</span>Year</label>
-                        <select class="form-control" name="year" [(ngModel)]="selectedYearlyCycle" (click)="checkYearlyExistance(alert_message)">
+                        <select class="form-control" name="year" [(ngModel)]="selectedYearlyCycle"
+                            (click)="checkYearlyExistance(alert_message)">
                             <option>APR-MAR</option>
                         </select>
                     </div>
                 </div>
             </div>
             <!-- dropdown ended for selecting year -->
-
+             @if ((selectedCycleFrequency == 'Monthly' && quarterCycle.fromMonth && quarterCycle.toMonth) || (selectedCycleFrequency === 'Half-Yearly' && selectedHalfYearCycle) ||
+             (selectedCycleFrequency === 'Quarterly' && selectedQaurterCycle) || (selectedCycleFrequency === 'Yearly' && selectedYearlyCycle) || (isQuaterUpdation && selectedEmployees.length > 0)) {
+            <div class="mt-4">
+                <!-- Header + Add Button Row -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="font-weight-bold mb-0">Exclude Employees</h5>
+            
+                    <button class="btn btn-success btn-sm" (click)="addRow()">
+                        + Add Employee
+                    </button>
+                </div>
+            
+                <table class="table table-bordered table-sm">
+                    <thead class="thead-light">
+                        <tr>
+                            <th style="width: 10%">Sr No</th>
+                            <th style="width: 70%">Employee</th>
+                            <th style="width: 20%">Action</th>
+                        </tr>
+                    </thead>
+            
+                    <tbody>
+                        <tr *ngFor="let row of selectedEmployees; let i = index">
+                            <!-- Serial Number -->
+                            <td>{{ i + 1 }}</td>
+                            
+                            <!-- Employee Dropdown -->
+                            <td>
+                                <select class="form-control" [(ngModel)]="row.empId" name="emp{{i}}">
+                            
+                                    <option [ngValue]="null" disabled>Select Employee</option>
+                            
+                                    <option *ngFor="let emp of getAvailableEmployees(i)" [ngValue]="emp.empId">
+                                        {{ emp.name }} ({{ emp.employmentId }})
+                                    </option>
+                            
+                                </select>
+                            </td>
+                            
+                            <!-- Remove Button -->
+                            <td>
+                                <button class="btn btn-danger btn-sm" (click)="removeRow(i)">
+                                    Remove
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            
+            </div>
+        }
             <div class="row mt-3">
-                <div class="col-md-12">
+                <div class="col-md-12 align-items-center d-flex justify-content-end">
                     <button *ngIf="isQuaterCreation" type="submit" class="btn btn-primary btn-sm mx-1"
                         (click)="createQuarterCycle(alert_message)">Create Cycle</button>
-
+            
                     <button *ngIf="isQuaterUpdation" type="submit" class="btn btn-primary btn-sm mx-1"
                         (click)="updateQuarterCycle(alert_message)">Update Cycle</button>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-<!--end of quarter cycle form-->
+            </div>
+            </div>
+            </div>
+            <!--end of quarter cycle form-->
 
 <!--start of quarter table-->
 <div class="row" *ngIf="isQuaterTable ">
     <div class="col-md-12">
         <div class="row">
-            <div class="col-md-12 table-header">
+            <div class="col-md-12 table-header d-flex align-items-center justify-content-between">
                 <h1 class="table-header-title">Configurable Cycle(s)</h1>
             </div>
         </div>
@@ -331,12 +382,8 @@
     
     <div class="col-md-12">
         <div class="row">
-            <div class="col-md-12 table-header">
+            <div class="col-md-12 table-header d-flex align-items-center justify-content-between">
                 <h1 class="table-header-title">Review(s)</h1>
-                <!-- <div class="col-md-4 mb-2 ml-auto d-flex justify-content-end align-items-start">
-                    <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isCreateReview}"  (click)="showCreateReviewForm()"  ><em class="fa-solid fa-plus"></em>Create Review</button>
-                </div> -->
-                <!-- <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isCreateReview}"  (click)="showCreateReviewForm()"  ><em class="fa-solid fa-plus"></em>Create Review</button> -->
             </div>
         </div>
 

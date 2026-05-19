@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
+import com.apmosys.employeeportal.model.FeatureUsageLog;
 import com.apmosys.employeeportal.service.SubFeatureMasterService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -33,4 +35,9 @@ public class SubFeatureMasterController {
 		return response;
 	}
 
+	// @Encrypted
+	@PostMapping("/saveFeatureUsageLog")
+	public ServiceResponse saveFeatureUsageLog(@RequestBody FeatureUsageLog featureUsageLog) {
+		return subFeatureMasterService.saveFeatureUsageLog(featureUsageLog);
+	}
 }

@@ -19,6 +19,10 @@ import { Employee360Service } from '../services/employee360.service';
 import { UtilityService } from '../services/utility.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { EncryptionService } from '../services/EncryptionService';
+import { DomainService } from '../services/domain.service';
+import { EmployeeService } from '../services/employee.service';
+import { ImageService } from '../services/image.service';
+import { Domain } from '../models/domain';
 
 
 @Component({
@@ -41,37 +45,45 @@ export class Employee360Component implements OnInit {
   private hasLoadedData = false;
   tabName:any = 'Configurations';
   currentUser:User;
+  employeeObj: Employee = new Employee();
   userMapping:any = {};
   breadcrumbUrl:any[] = [];
   breadcrumbUrl1:any[] = [];
   breadcrumbs: any[] = [];
+    domainSpecializationList: any[] = [];
+
 
   private navigationSubscription: Subscription;
 
   constructor(
     private authenticationService: AuthenticationService,
     private router: Router,
+    private domainService: DomainService,
     private route: ActivatedRoute,
     private employee360Service: Employee360Service,
     private breadcrumbService: BreadcrumbService,
     private utillity:UtilityService,
    private sanitizer: DomSanitizer,
+   private employeeService: EmployeeService,
+   private imageService: ImageService,
    private encryptionService: EncryptionService,
-  
-    
-  ) { 
+
+
+  ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.breadcrumbUrl = x);
-   
+
   }
 
 
   currentab:String;
   leave:String;
   othertab:any;
+  currentEmployeeInfo: Employee = new Employee();
+
   employeeId:any;
   ngOnInit(): void {
-   
+
     setTimeout(() => {
       this.route.data.subscribe(data => {
         let encryptedData = this.encryptionService.encrypt(JSON.stringify(data.employeeData));
@@ -83,7 +95,7 @@ export class Employee360Component implements OnInit {
       this.removeActiveTab();
       this.setActiveTab();
     });
-    
+
     let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
             let employeeData = null;
             if (encryptedEmployeeData) {
@@ -104,7 +116,7 @@ export class Employee360Component implements OnInit {
                 employeeData = null;
             }
             const storedData = employeeData;
-   
+
     const parsedData = storedData ? storedData : null;
     this.employeeData = parsedData
     if (parsedData !== null && parsedData !== undefined) {
@@ -112,7 +124,7 @@ export class Employee360Component implements OnInit {
     } else {
       this.employeeData = history.state?.data ?? {};
     }
-   
+
     let findBreadcrumbObject = this.breadcrumbUrl.findIndex(x => x.title === "Employee-360-Profile");
     if (findBreadcrumbObject >= 0) {
       this.breadcrumbUrl.splice(findBreadcrumbObject + 1);
@@ -122,13 +134,13 @@ export class Employee360Component implements OnInit {
    this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
-   
 
+    this.onGetEmployeeInfo();
     this.getBioOverTimeandState();
 
-  
 
-    // Dynamic feature Flags 
+
+    // Dynamic feature Flags
     let featureMap:Feature[] = this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName);
 
     console.log("checked logs   ",this.currentUser.userMapping)
@@ -140,7 +152,7 @@ export class Employee360Component implements OnInit {
       });
       this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
     });
-  
+
 
     this.breadcrumbService.currentMessage.pipe(takeUntil(this.unsubscribe$)).subscribe(message =>  {
       this.setActiveTab();
@@ -148,7 +160,7 @@ export class Employee360Component implements OnInit {
 
     this.getCountOfRewardsAndAppreciation();
   }
-   
+
      loadProfileImage(imageByte: any) {
        let imageElement = document.getElementById('user-avatar');
        if (imageByte) {
@@ -174,7 +186,9 @@ export class Employee360Component implements OnInit {
       });
     });
   }
-  
+
+
+
 
   refreshData() {
     // Your logic to refresh the view/data
@@ -182,9 +196,83 @@ export class Employee360Component implements OnInit {
   }
   backhistory(){
     window.history.back();
-   
-  
   }
+  async onGetEmployeeInfo() {
+
+
+        console.log("inner fuction");
+
+        this.domainSpecializationList = [];
+        this.currentEmployeeInfo = new Employee();
+        let currentEmp = new Employee();
+
+        currentEmp.empId = this.employeeData.empId;
+        currentEmp.isDraft = false;
+        //console.log("currentEmp : ", currentEmp);
+
+        const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
+        sessionStorage.setItem('empId', currentEmp.empId);
+        sessionStorage.setItem('empIdA', response.serviceResponse.employeementId);
+        sessionStorage.setItem('eId', response.serviceResponse.empId);
+        if (response.serviceStatus == "Success") {
+          this.currentEmployeeInfo = response.serviceResponse;
+          this.currentEmployeeInfo.totalCurrentExperience=this.employeeService.calculateTotalExperience(
+              this.currentEmployeeInfo.totalExperience, this.currentEmployeeInfo.dateOfJoining );
+
+          this.employeeObj = response.serviceResponse;
+          this.employeeData.billableType=this.employeeObj.billableType;
+          //this.currentEmployeeInfo = { ...response.serviceResponse };
+          //console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
+          this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
+
+        } else {
+          console.error(response.serviceResponse);
+        }
+
+        const docResponse: any = await this.imageService.getEmployeeDocuments(currentEmp).toPromise();
+        if (docResponse.serviceStatus == 'Success') {
+          this.currentEmployeeInfo.documentList = docResponse.serviceResponse;
+
+          //console.log("this.previewObj.documentList : ", this.currentEmployeeInfo.documentList);
+        } else {
+          //console.log(docResponse.serviceResponse);
+        }
+
+        let domainObj = new Domain();
+        domainObj.empId = this.employeeData.empId;
+        const domainResponse: any = await this.domainService.getDomainSpecializationByEmpId(domainObj).toPromise();
+
+        console.log("yessss", domainResponse)
+        if (domainResponse.serviceStatus == "Success") {
+          this.domainSpecializationList = domainResponse.serviceResponse;
+
+          this.domainSpecializationList.forEach((object: Domain) => {
+
+            var letters = 'BCDEF'.split('');
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+              color += letters[Math.floor(Math.random() * letters.length)];
+            }
+
+            object.colorCode = color;
+          });
+
+          //console.log(this.domainSpecializationList, " : this.domainSpecializationList");
+        } else {
+          console.error(domainResponse.serviceResponse);
+        }
+
+        setTimeout(() => {
+          this.currentEmployeeInfo.documentList && this.currentEmployeeInfo.documentList.forEach((doc, index) => {
+            if (doc.documentBytes) {
+              let preview = document.getElementById(`docPreview${index + 1}`);
+              let objectURL = 'data:image/*;base64,' + doc.documentBytes;
+              let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
+              preview.setAttribute('src', src);
+            }
+          });
+        }, 500);
+      }
   backhistory1() {
     const breadcrumbData = sessionStorage.getItem("breadcrumb");
     return breadcrumbData ? JSON.parse(breadcrumbData) : [];
@@ -234,10 +322,12 @@ export class Employee360Component implements OnInit {
         activeRouteLink = 'rewards';
       }else if(employee360title.includes("Appreciation")){
         activeRouteLink = 'appreciation';
+      }else if(employee360title.includes("Grievance")){
+        activeRouteLink = 'grievance';
       }else{
         activeRouteLink = 'profile';
       }
-      
+
     } else {
       const tab = document.getElementById('Employee360Tab').querySelector('.nav-link');
         activeRouteLink = tab ? tab.getAttribute('routerLink') : 'profile';
@@ -251,7 +341,7 @@ export class Employee360Component implements OnInit {
         tab.classList.remove('active');
       }
     });
-    
+
     this.router.navigate(['./' + activeRouteLink], { relativeTo: this.route });
   }
 
@@ -271,24 +361,24 @@ export class Employee360Component implements OnInit {
 
   getBioOverTimeandState(){
 
-    let currentEmp = new Employee(); 
+    let currentEmp = new Employee();
     currentEmp.empId = this.employeeData.empId;
     currentEmp.isDraft = false;
 
     this.employee360Service.getBioOverTimeandState(currentEmp).subscribe((response:any) =>
-      
+
       {
        this.responseOvertime= response.serviceResponse[0];
        this.responsestate = response.serviceResponse[1];
       }
-    
+
     );
-     
+
 
   }
- 
-  leave360viewtab(tab:any){  
-          this.currentab=tab;        
+
+  leave360viewtab(tab:any){
+          this.currentab=tab;
           console.log(this.currentab);
   }
 
@@ -317,15 +407,15 @@ export class Employee360Component implements OnInit {
 
       let apmosysExp = 0;
       if (employeeData.dateOfJoining) {
-      
+
           const [d, m, y] = employeeData.dateOfJoining.split('-');
           const doj = new Date(`${y}-${m}-${d}`);
-      
+
           const today = new Date();
           const diff = today.getTime() - doj.getTime();
           apmosysExp = diff / (1000 * 60 * 60 * 24 * 365.25);
         }
-    
+
       // Total = previous exp + apmosys exp
       let totalExp = previousExp + apmosysExp;
       employeeData.totalCurrentExperience = Number(totalExp.toFixed(1));
@@ -333,7 +423,7 @@ export class Employee360Component implements OnInit {
       const encryptedUpdatedString = this.encryptionService.encrypt(updatedString);
       sessionStorage.setItem('employee360Data', encryptedUpdatedString);
       return employeeData;
-    
+
     }
-   
+
 }

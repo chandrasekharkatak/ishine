@@ -503,7 +503,7 @@
                         </mat-expansion-panel>
 
                         <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
-                        <mat-expansion-panel 
+                        <mat-expansion-panel
                             *ngIf="currentEmployeeInfo.experience == 'Experienced' && currentEmployeeInfo.previousEmploymentList && currentEmployeeInfo.previousEmploymentList !==0"
                             class="acc-content">
                             <mat-expansion-panel-header class="accordion-header-bg-color"title="Previous Employment Information">
@@ -652,14 +652,14 @@
                                     <div class="d-flex flex-wrap skill-container">
                                         <div *ngFor="let skill of skills" class="skill-card">
 
-                                          
+
                                             <div class="d-flex justify-content-between align-items-start">
                                                 <span class="skill-name">{{ skill.name }}</span>
                                                 <img src="assets/Images/thumbskill.png" alt="thumbs up"
                                                     class="icon-top" />
                                             </div>
 
-                                           
+
                                             <div class="d-flex justify-content-between align-items-end mt-auto">
                                                 <div >
                                                     <button class="btn p-0 border-0 bg-transparent action-btn">
@@ -692,7 +692,7 @@
                                         </div>
 
                                     </div>
-                                   
+
                                     <hr />
 
                                     <div class="d-flex align-items-center">
@@ -751,7 +751,7 @@
                                         </button>
 
                                     </div>
-                                  
+
                                     <hr />
                                     <div class="pengu-container">
                                         <div class="container-fluid cert-container-animated"
@@ -940,9 +940,9 @@
                                     <!-- <div class="col-md-4 mb-0"> -->
                                     <!-- <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Is Employee a Consultant</label>
-                                            <select class="form-control" [(ngModel)]="employeeObj.isConsultant" 
+                                            <select class="form-control" [(ngModel)]="employeeObj.isConsultant"
                                                     [disabled]="isUpdation && (employeeObj.isConsultant == null || isUpdation)">
-         
+
                                                 <option *ngIf="!isUpdation" value="true">Yes</option>
                                                 <option *ngIf="!isUpdation" value="false">No</option>
                                                 <option *ngIf="isUpdation && employeeObj.isConsultant === true" selected value="true">Yes</option>
@@ -985,7 +985,7 @@
                                                 <input *ngIf="isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" readonly>
                                                 <input *ngIf="isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" readonly> 
+                                                [(ngModel)]="employeeObj.employeementId" readonly>
                                             </div>
                                         </div>
                                     </div> -->
@@ -1949,7 +1949,7 @@
 <ng-template #popup_before_inactive_modal>
 
     <div class="mm-popup-container">
-  
+
       <!-- Header -->
       <div class="mm-popup-header">
         <h2 class="mm-popup-title"><strong>Manager Mappings</strong></h2>
@@ -1962,11 +1962,11 @@
 
       <!-- Body -->
       <div class="mm-popup-body">
-  
+
         <!-- Manager Section -->
         <div class="mm-popup-section">
           <h3 class="mm-popup-section-title">Manager</h3>
-  
+
           <table class="mm-popup-table">
             <thead>
               <tr>
@@ -1974,12 +1974,12 @@
                 <th>Department</th>
               </tr>
             </thead>
-  
+
             <tbody>
               <tr *ngIf="reporteeList.length == 0">
                 <td colspan="2" class="mm-popup-no-data">No reportees have this user as manager.</td>
               </tr>
-  
+
               <tr *ngFor="let reportee of reporteeList">
                 <td>{{ reportee.name }}</td>
                 <td>{{ reportee.departmentName }}</td>
@@ -1987,11 +1987,11 @@
             </tbody>
           </table>
         </div>
-  
+
         <!-- Reporting Manager Section -->
         <div class="mm-popup-section">
           <h3 class="mm-popup-section-title">Reporting Manager</h3>
-  
+
           <table class="mm-popup-table">
             <thead>
               <tr>
@@ -1999,12 +1999,12 @@
                 <th>Department</th>
               </tr>
             </thead>
-  
+
             <tbody>
               <tr *ngIf="reporteeList2.length == 0">
                 <td colspan="2" class="mm-popup-no-data">No reportees have this user as reporting manager.</td>
               </tr>
-  
+
               <tr *ngFor="let reportee of reporteeList2">
                 <td>{{ reportee.name }}</td>
                 <td>{{ reportee.departmentName }}</td>
@@ -2012,19 +2012,19 @@
             </tbody>
           </table>
         </div>
-  
+
       </div>
-  
+
       <!-- Footer -->
       <div class="mm-popup-footer">
         <button class="mm-popup-btn mm-popup-cancel-btn" (click)="modalRef.componentInstance.onCancel()">Cancel</button>
         <button class="mm-popup-btn mm-popup-continue-btn" (click)="modalRef.componentInstance.onConfirm()">Continue</button>
         <!-- <button class="mm-popup-btn mm-popup-continue-btn" (click)="exportManagerSheet()">Export Excel</button> -->
-       
+
     </div>
-  
+
     </div>
-  
+
   </ng-template>
 
   <ng-template #change_default_project_template_on_deptUpdate>
@@ -2038,4 +2038,3 @@
     </div>
 </ng-template>
 
-  

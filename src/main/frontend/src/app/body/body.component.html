@@ -1,22 +1,79 @@
-<nav class="navbar navbar-expand fixed-top navbar-light bg-light" [ngClass]="getNavClass()"
-  *ngIf="currentUser && !isHome">
-  <ul class="navbar-nav ml-auto">
-    <li class="nav-item dropdown">
-      <a class="nav-link dropdown-toggle" id="user-dropdown" data-toggle="dropdown" aria-haspopup="true"
-        aria-expanded="false">
-        <i class="fa-solid fa-user"></i>&nbsp;{{currentUserName}}
-      </a>
-      <div class="dropdown-menu dropdown-menu-right user-menu" aria-labelledby="user-dropdown">
-        <!-- <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a> -->
-        <a class="dropdown-item" (click)="openChangePassword(change_password)"><i
-            class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
-        <a class="dropdown-item" (click)="userLogout()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Logout</a>
-      </div>
-    </li>
-  </ul>
-</nav>
-<div class="body" [ngClass]="getBodyClass()">
-  <router-outlet></router-outlet>
+<mat-sidenav-container class="body-container">
+  <!-- MAIN CONTENT -->
+  <mat-sidenav-content>
+    <nav class="navbar navbar-expand fixed-top navbar-light bg-light" [ngClass]="getNavClass()"
+      *ngIf="currentUser && !isHome">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" id="user-dropdown" data-toggle="dropdown" aria-haspopup="true"
+            aria-expanded="false">
+            <i class="fa-solid fa-user"></i>&nbsp;{{currentUserName}}
+          </a>
+          <div class="dropdown-menu dropdown-menu-right user-menu" aria-labelledby="user-dropdown">
+            <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a>
+            <a class="dropdown-item" (click)="openChangePassword(change_password)"><i
+                class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
+            <a class="dropdown-item" (click)="userLogout()"><i
+                class="fa-solid fa-right-from-bracket"></i>&nbsp;Logout</a>
+          </div>
+        </li>
+      </ul>
+    </nav>
+    <div class="body" [ngClass]="getBodyClass()">
+      <router-outlet></router-outlet>
+    </div>
+
+  </mat-sidenav-content>
+  <mat-sidenav #rightDrawer position="end" mode="over" [disableClose]="true" class="global-right-drawer">
+    <ng-container *ngTemplateOutlet="drawerTemplate"></ng-container>
+  </mat-sidenav>
+</mat-sidenav-container>
+
+<div class="quick-menu-layer" aria-label="Quick navigation menu">
+      <button mat-fab color="accent" (click)="clickMenu()" class="menu-button" [class.mat-elevation-z2]="!isOver"
+        [class.mat-elevation-z8]="isOver" (mouseover)="isOver = true" (mouseleave)="isOver = false"
+        *ngIf="(( currentUser) && (currentUser.employeeRole === 'HR' || currentUser.employeeRole === 'SuperAdmin' || currentUser.employeeRole === 'HOD' || currentUser.employeeRole === 'RMG'))">
+        <i class="material-icons" *ngIf="!openMenu">menu</i>
+        <i class="material-icons" *ngIf="openMenu">close</i>
+      </button>
+
+      <button mat-mini-fab class="action-button one mat-elevation-z8"
+        *ngIf=" currentUser && openMenu && resourceManagementFeature === 'Resource Management'" color="basic"
+        (click)="routingFunction( 'user-team/resource-management')">
+        <i class="material-icons">badge</i>
+      </button>
+
+      <button mat-raised-button class="label labelone mat-elevation-z8"
+        style="background-color: rgb(4, 4, 109); color: #f9f5f5;"
+        *ngIf=" currentUser && openMenu && resourceManagementFeature === 'Resource Management'" color="basic"
+        (click)="routingFunction('user-team/resource-management')">
+        RMG
+      </button>
+
+      <button mat-mini-fab class="action-button two mat-elevation-z8"
+        *ngIf="currentUser && openMenu && reportsFeature === 'Reports'" color="basic"
+        (click)="routingFunction('user-reports/report-list')">
+        <i class="material-icons">diversity_3</i>
+      </button>
+
+      <button mat-raised-button class="label labeltwo mat-elevation-z8"
+        style="background-color: rgb(4, 4, 109); color: #f9f5f5;" *ngIf="currentUser && openMenu && reportsFeature === 'Reports'"
+        color="basic" (click)="routingFunction('user-reports/report-list')">
+        Employee Report
+      </button>
+
+      <button mat-mini-fab class="action-button three mat-elevation-z8"
+        *ngIf="currentUser && openMenu && reportsFeature === 'Reports'" color="basic"
+        (click)="routingFunction('user-timesheet/hr-dashboard')">
+        <i class="fa-solid fa-calendar-check"></i>
+      </button>
+
+      <button mat-raised-button class="label lablethree mat-elevation-z8"
+        style="background-color: rgb(4, 4, 109); color: #f9f5f5;"
+        *ngIf=" currentUser && openMenu && timesheetFeature === 'Timesheets Dashboard'" color="basic"
+        (click)="routingFunction2('user-timesheet/hr-dashboard',{tabName: 'hr-dashboard-tab'})">
+        Timesheet
+      </button>
 </div>
 
 <ng-template #change_password>
@@ -73,44 +130,3 @@
     <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
   </div>
 </ng-template>
-
-
-
-<button mat-fab color="accent" (click)="clickMenu()" class="menu-button" [class.mat-elevation-z2]="!isOver"
-  [class.mat-elevation-z8]="isOver" (mouseover)="isOver = true" (mouseleave)="isOver = false" *ngIf="(( currentUser) && (currentUser.employeeRole === 'HR' || currentUser.employeeRole === 'SuperAdmin' || currentUser.employeeRole === 'HOD' || currentUser.employeeRole === 'RMG'))"
-  >
-
-  <i class="material-icons" *ngIf="!openMenu">menu</i>
-  <i class="material-icons" *ngIf="openMenu">close</i>
-</button>
-
-<button mat-mini-fab class="action-button one mat-elevation-z8" *ngIf=" currentUser && openMenu && resourceManagementFeature === 'Resource Management'" color="basic"
-  (click)="routingFunction( 'user-team/resource-management')">
-  <i class="material-icons">badge</i>
-</button>
-
-<button mat-raised-button class="label labelone mat-elevation-z8" style="background-color: rgb(4, 4, 109); color: #f9f5f5;" *ngIf=" currentUser && openMenu && resourceManagementFeature === 'Resource Management'" color="basic"
-  (click)="routingFunction('user-team/resource-management')" >
-  RMG
-</button>
-
-<button mat-mini-fab class="action-button two mat-elevation-z8" *ngIf="currentUser && openMenu && reportsFeature === 'Reports'" color="basic"
-  (click)="routingFunction('user-reports/report-list')">
-  <i class="material-icons">diversity_3</i>
-</button>
-<button mat-raised-button class="label labeltwo mat-elevation-z8" style="background-color: rgb(4, 4, 109); color: #f9f5f5;" *ngIf="currentUser && openMenu && reportsFeature === 'Reports'" color="basic"
-  (click)="routingFunction('user-reports/report-list')">
-  Employee Report
-</button>
-<!-- <button mat-raised-button class="label labelone mat-elevation-z8" style="background-color: rgb(4, 4, 109); color: #f9f5f5;"  *ngIf="currentUser && openMenu && timesheetFeature === 'Timesheets Dashboard'" color="basic"
-  (click)="routingFunction('user-reports/report-list')">
- Timesheet Dashboard
-</button> -->
-<button mat-mini-fab class="action-button three mat-elevation-z8" *ngIf="currentUser && openMenu && reportsFeature === 'Reports'" color="basic"
-  (click)="routingFunction('user-timesheet/hr-dashboard')">
-  <i class="fa-solid fa-calendar-check"></i>
-</button>
-<button mat-raised-button class="label lablethree mat-elevation-z8" style="background-color: rgb(4, 4, 109); color: #f9f5f5;" *ngIf=" currentUser && openMenu && timesheetFeature === 'Timesheets Dashboard'" color="basic"
-  (click)="routingFunction2('user-timesheet/hr-dashboard',{tabName: 'hr-dashboard-tab'})" >
-  Timesheet
-</button>

@@ -1,0 +1,90 @@
+<div class="sm-my-submissions">
+  <div class="row">
+    <div class="col-md-12 table-header">
+      <div class="d-flex align-items-center justify-content-between">
+        <h3 class="table-header-title mb-0">My Submissions</h3>
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="toggleSearch()">
+          {{ isSearchEnabled ? 'Hide search' : 'Search' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <p *ngIf="error" class="text-danger small mb-2">{{ error }}</p>
+
+  <div class="overflow-auto" *ngIf="!loading">
+    <table class="table sm-my-submissions__table" matSort (matSortChange)="sortData($event)">
+      <thead class="thead-light">
+        <tr>
+          <th mat-sort-header="submissionId|string">Submission ID</th>
+          <th mat-sort-header="designation|string">Designation</th>
+          <th mat-sort-header="reportingManagerName|string">Manager Name</th>
+          <th mat-sort-header="managerApprovalStatus|string">Manager Approved</th>
+          <th mat-sort-header="hodName|string">HOD Name</th>
+          <th mat-sort-header="hodApprovalStatus|string">HOD Approved</th>
+          <th mat-sort-header="finalStatus|string">Final Status</th>
+          <th mat-sort-header="status|string">Status</th>
+          <th mat-sort-header="submittedAt|date">Submitted</th>
+          <th mat-sort-header="updatedAt|date">Updated</th>
+          <th style="width:70px">Action</th>
+        </tr>
+        <tr
+          *ngIf="isSearchEnabled"
+          app-column-filter-bar
+          [columnList]="filterColumns"
+          (onSearch)="onSearch($event)">
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngIf="rows.length; else emptyState">
+          <tr
+            *ngFor="let r of rows | paginate: { id: 'sm-my-submissions', itemsPerPage: pageSize, currentPage: page, totalItems: totalRows }">
+            <td class="text-monospace">{{ r.submissionId }}</td>
+            <td>{{ r.designation }}</td>
+            <td>{{ r.reportingManagerName }}</td>
+            <td>{{ ynStatus(r.managerApprovalStatus) }}</td>
+            <td>{{ r.hodName || '—' }}</td>
+            <td>{{ ynStatus(r.hodApprovalStatus) }}</td>
+            <td>{{ finalStatusLabel(r.finalStatus) }}</td>
+            <td>
+              <span class="sm-my-submissions__status" [ngClass]="'sm-my-submissions__status--' + (r.status || '').toLowerCase()">
+                {{ r.status }}
+              </span>
+            </td>
+            <td>{{ r.submittedAt ? (r.submittedAt | date:'dd-MMM-yyyy, HH:mm') : '—' }}</td>
+            <td>{{ r.updatedAt ? (r.updatedAt | date:'dd-MMM-yyyy, HH:mm') : '—' }}</td>
+            <td>
+              <button
+                *ngIf="finalStatusLabel(r.finalStatus).toLowerCase() === 'approved'"
+                type="button"
+                class="btn btn-sm btn-outline-primary mr-1"
+                title="Add Skills"
+                (click)="addSkills(r)">
+                <em class="fa fa-plus" aria-hidden="true"></em>
+              </button>
+              <button
+                *ngIf="isRejected(r)"
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+                title="Edit and resubmit"
+                (click)="editRejected(r)">
+                <em class="fa fa-edit" aria-hidden="true"></em>
+              </button>
+            </td>
+          </tr>
+        </ng-container>
+        <ng-template #emptyState>
+          <tr>
+            <td class="sm-my-submissions__empty" colspan="11">No submissions yet.</td>
+          </tr>
+        </ng-template>
+      </tbody>
+    </table>
+  </div>
+
+  <pagination-controls
+    *ngIf="!loading && totalRows > pageSize"
+    id="sm-my-submissions"
+    (pageChange)="handlePageChange($event)">
+  </pagination-controls>
+</div>

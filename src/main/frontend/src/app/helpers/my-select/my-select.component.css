@@ -1,14 +1,16 @@
-::ng-deep .custom-select-panel.mat-mdc-select-panel {
-  min-width: 100% !important;
+::ng-deep .cdk-overlay-pane .mat-mdc-select-panel,
+::ng-deep .cdk-overlay-pane .mat-select-panel {
   width: auto !important;
+  min-width: 240px !important;
+  max-width: calc(100vw - 24px) !important;
   margin-top: 2px !important;
 }
 
 ::ng-deep .mat-mdc-option {
-  height: 36px !important;        /* your preferred height */
-  line-height: 36px !important;
+  height: auto !important;
+  line-height: 1.2 !important;
   font-size: 14px !important;
-  padding: 0 12px !important;
+  padding: 8px 12px !important;
 }
 
 ::ng-deep .mat-select-search-input {
@@ -31,18 +33,64 @@
 }
 
 .mat-icon {
-    vertical-align: unset !important;
+  vertical-align: unset !important;
 }
 
 ::ng-deep .mat-button .mat-button-wrapper>*, .mat-flat-button .mat-button-wrapper>*, .mat-stroked-button .mat-button-wrapper>*, .mat-raised-button .mat-button-wrapper>*, .mat-icon-button .mat-button-wrapper>*, .mat-fab .mat-button-wrapper>*, .mat-mini-fab .mat-button-wrapper>* {
-    vertical-align: unset !important;
+  vertical-align: unset !important;
 }
 
-::ng-deep .mdc-list-item__primary-text  {
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+.my-select__multi-trigger {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+}
+
+.my-select__multi-trigger-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9375rem;
+  color: #334155;
+}
+
+::ng-deep .mdc-list-item__primary-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
   display: block !important;
+  word-break: break-word !important;
+}
+
+::ng-deep .no-checkbox-option .mat-pseudo-checkbox {
+  display: none !important;
+}
+
+::ng-deep .my-select-panel--wrap.mat-mdc-select-panel,
+::ng-deep .my-select-panel--wrap.mat-select-panel {
+  max-width: min(100vw - 32px, 640px) !important;
+  min-width: min(100%, 280px) !important;
+}
+
+::ng-deep .my-select-panel--wrap .mat-mdc-option {
+  height: auto !important;
+  min-height: 40px !important;
+  line-height: 1.4 !important;
+  white-space: normal !important;
+  align-items: flex-start !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+::ng-deep .my-select-panel--wrap .mdc-list-item__primary-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  display: block !important;
+  line-height: 1.4 !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 ::ng-deep .wrapped-select-panel .mat-mdc-option {
@@ -59,4 +107,10 @@
   text-overflow: clip !important;
   word-break: break-word !important;
   line-height: 1.35 !important;
+}
+
+/* Material flips panel above trigger; tighten spacing (feat / RMG) */
+::ng-deep .cdk-overlay-pane .mat-mdc-select-panel-above {
+  margin-bottom: 4px !important;
+  margin-top: 0 !important;
 }

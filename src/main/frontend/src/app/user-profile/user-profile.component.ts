@@ -543,10 +543,11 @@ async checkExistingDraft() {
     currentEmp.empId = this.currentUser.empId;
     currentEmp.isDraft = false;
     //console.log("currentEmp : ", currentEmp);
-
+    console.log("Fetching employee info for empId : ", currentEmp);
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
       this.currentEmployeeInfo = response.serviceResponse;
+      console.log("Employee Info : ", this.currentEmployeeInfo);
       this.currentEmployeeInfo.totalCurrentExperience=this.employeeService.calculateTotalExperience(
           this.currentEmployeeInfo.totalExperience, this.currentEmployeeInfo.dateOfJoining );
 
