@@ -177,7 +177,7 @@
                       <i class="fas fa-chart-line"></i> View Responses
                     </button>
                     <button class="dot-menu-item dot-menu-item-assign" (click)="onAssignTraining(training); training['_menuOpen'] = false">
-                      <i class="fa-solid fa-users"></i> Assign Training
+                      <i class="fa-solid fa-users"></i> Exclude Employees
                     </button>
                   </div>
                 </div>
@@ -466,7 +466,38 @@
             </div>
           </div>
         </div>
-
+        <!-- Exclude Employees Section -->
+        <div class="accordion-card" *ngIf="isTrainingForm">
+          <div class="accordion-header" style="cursor: default;">
+            <h5>
+              <i class="fas fa-user-times"></i>
+              Exclude Employees
+              <span class="badge-modern badge-warning ml-2" *ngIf="pendingExcludedIds.length > 0">
+                {{pendingExcludedIds.length}} excluded
+              </span>
+            </h5>
+          </div>
+          <div class="accordion-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <small class="text-muted">
+                <i class="fas fa-info-circle"></i>
+                All employees are included by default. Use the button to manage exclusions.
+              </small>
+              <button type="button" class="btn btn-sm btn-outline-warning" (click)="openExcludeFromForm()">
+                <i class="fas fa-users-slash mr-1"></i>
+                Manage Exclusions
+                <span class="badge badge-danger ml-2" *ngIf="pendingExcludedIds.length > 0">
+                  {{pendingExcludedIds.length}}
+                </span>
+              </button>
+            </div>
+        
+            <div class="alert-note mt-3" *ngIf="pendingExcludedIds.length > 0">
+              <i class="fas fa-exclamation-triangle"></i>
+              <strong>{{pendingExcludedIds.length}} employee(s)</strong> will be excluded when training is saved.
+            </div>
+          </div>
+        </div>
         <!-- Action Buttons -->
         <div class="form-actions">
           <button type="button" class="btn-secondary" (click)="showTable()"><i class="fas fa-times"></i> Cancel</button>
@@ -935,5 +966,204 @@
   </div>
   <div class="modal-footer border-0 pb-4 px-4">
     <button type="button" class="btn btn-secondary px-4" (click)="modal.dismiss()"><i class="fas fa-times me-1"></i> Close</button>
+  </div>
+</ng-template>
+
+       <!-- exclusion modal template -->
+<ng-template #assign_training_modal let-modal>
+  <!-- Header -->
+  <div class="modal-header border-0 pb-0 pt-4 px-4">
+    <h4 class="modal-title fw-bold" style="color: #193d8a;">
+      <i class="fas fa-user-times text-warning me-2"></i>
+      Exclude Employees —
+      <span class="text-muted fw-normal" style="font-size: 0.95rem;">
+        {{selectedTrainingForAssign?.trainingName}}
+      </span>
+    </h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+
+  <div class="modal-body px-4 pb-2 pt-3">
+
+    <!-- Summary Badges -->
+    <div class="d-flex align-items-center flex-wrap gap-2 mb-3 pb-3" style="border-bottom: 1px dashed #dee2e6;">
+      <button type="button" class="btn btn-sm d-flex align-items-center" style="font-size: 0.82rem; border-radius: 8px; border: 1.5px solid #10b981;
+                 color: #047857; background: rgba(16,185,129,0.08); font-weight: 600;
+                 padding: 6px 14px; gap: 6px; cursor: default;">
+        <i class="fas fa-user-check" style="font-size: 0.9rem;"></i>
+        <span>Included</span>
+        <span class="badge rounded-pill" style="background-color: #10b981; color: #fff;
+                 font-size: 0.72rem; font-weight: 700; padding: 3px 7px;">
+          {{getSelectedCount()}}
+        </span>
+      </button>
+
+      <button type="button" class="btn btn-sm d-flex align-items-center" style="font-size: 0.82rem; border-radius: 8px; border: 1.5px solid #f43f5e;
+                 color: #be123c; background: rgba(244,63,94,0.08); font-weight: 600;
+                 padding: 6px 14px; gap: 6px; cursor: default;">
+        <i class="fas fa-user-minus" style="font-size: 0.9rem;"></i>
+        <span>Excluded</span>
+        <span class="badge rounded-pill" style="background-color: #f43f5e; color: #fff;
+                 font-size: 0.72rem; font-weight: 700; padding: 3px 7px;">
+          {{assignableEmployees.length - getSelectedCount()}}
+        </span>
+      </button>
+
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm" (click)="selectAllEmployees()" style="font-size: 0.8rem; border-radius: 8px; border: 1.5px solid #10b981;
+                   color: #047857; background: rgba(16,185,129,0.08);
+                   font-weight: 600; padding: 5px 12px;">
+          <i class="fas fa-check-double me-1"></i> Select All
+        </button>
+        <button type="button" class="btn btn-sm" (click)="deselectAllEmployees()" style="font-size: 0.8rem; border-radius: 8px; border: 1.5px solid #f43f5e;
+                   color: #be123c; background: rgba(244,63,94,0.08);
+                   font-weight: 600; padding: 5px 12px;">
+          <i class="fas fa-times me-1"></i> Deselect All
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters Row -->
+    <div class="row g-3 align-items-end mb-3">
+
+      <div class="col-md-4">
+        <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem; color: #475569;">
+          Department
+        </label>
+        <div style="position: relative; display: flex; align-items: center;
+                border: 1.5px solid #dee2e6; border-radius: 6px;
+                background: #fff; overflow: hidden;">
+          <i class="fas fa-building text-muted"
+            style="position: absolute; left: 9px; font-size: 0.75rem; pointer-events: none; z-index: 1;"></i>
+          <select [(ngModel)]="assignDeptFilter" name="assignDeptFilter" style="width: 100%; border: none; outline: none; font-size: 0.8rem;
+                     padding: 5px 8px 5px 28px; background: transparent;
+                     appearance: none; -webkit-appearance: none; cursor: pointer;">
+            <option value="">All Departments</option>
+            <option *ngFor="let dept of assignDepartments" [value]="dept.deptId">
+              {{dept.departmentName}}
+            </option>
+          </select>
+          <i class="fas fa-chevron-down text-muted"
+            style="position: absolute; right: 9px; font-size: 0.7rem; pointer-events: none;"></i>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem; color: #475569;">
+          Search
+        </label>
+        <div style="position: relative; display: flex; align-items: center;
+                border: 1.5px solid #dee2e6; border-radius: 6px;
+                background: #fff; overflow: hidden;">
+          <i class="fas fa-search text-muted"
+            style="position: absolute; left: 9px; font-size: 0.75rem; pointer-events: none; z-index: 1;"></i>
+          <input type="text" [(ngModel)]="assignSearchText" name="assignSearchText" placeholder="Search by name..."
+            style="width: 100%; border: none; outline: none; font-size: 0.8rem;
+                    padding: 5px 8px 5px 28px; background: transparent;">
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem; color: #475569;">
+          Status
+        </label>
+        <div style="position: relative; display: flex; align-items: center;
+                border: 1.5px solid #dee2e6; border-radius: 6px;
+                background: #fff; overflow: hidden;">
+          <i class="fas fa-filter text-muted"
+            style="position: absolute; left: 9px; font-size: 0.75rem; pointer-events: none; z-index: 1;"></i>
+          <select [(ngModel)]="assignStatusFilter" name="assignStatusFilter" style="width: 100%; border: none; outline: none; font-size: 0.8rem;
+                     padding: 5px 8px 5px 28px; background: transparent;
+                     appearance: none; -webkit-appearance: none; cursor: pointer;">
+            <option value="">All</option>
+            <option value="included">Included</option>
+            <option value="excluded">Excluded</option>
+          </select>
+          <i class="fas fa-chevron-down text-muted"
+            style="position: absolute; right: 9px; font-size: 0.7rem; pointer-events: none;"></i>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="assignLoading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status" style="width: 2rem; height: 2rem;"></div>
+      <p class="mt-2 text-muted small">Loading employees...</p>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive" *ngIf="!assignLoading" style="max-height: 380px; overflow-y: auto;
+                border: 1px solid #e2e8f0; border-radius: 8px;">
+      <table class="employee-assignment-table mb-0">
+        <thead style="position: sticky; top: 0; z-index: 1;">
+          <tr>
+            <th style="width: 48px;">
+              <div class="custom-checkbox-wrapper">
+                <input type="checkbox" [checked]="isAllFilteredSelected()" (change)="toggleAllFiltered($event)">
+              </div>
+            </th>
+            <th>Employee Name</th>
+            <th>Department</th>
+            <th class="text-center" style="width: 120px;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="getFilteredEmployees().length === 0">
+            <td colspan="4">
+              <div class="text-center text-muted py-4">
+                <i class="fas fa-search-minus fa-lg mb-2 d-block"></i>
+                No employees match the current filters.
+              </div>
+            </td>
+          </tr>
+          <tr *ngFor="let emp of getFilteredEmployees()">
+            <td>
+              <div class="custom-checkbox-wrapper">
+                <input type="checkbox" [checked]="assignSelectedIds.has(emp.empId)"
+                  (change)="toggleEmployeeSelection(emp.empId)">
+              </div>
+            </td>
+            <td>
+              <span class="fw-medium text-dark" style="font-size: 0.85rem;">{{emp.name}}</span>
+            </td>
+            <td>
+              <span class="badge-modern badge-muted" style="font-size: 0.75rem;">
+                {{emp.departmentName}}
+              </span>
+            </td>
+            <td class="text-center">
+              <span class="status-pill"
+                [ngClass]="assignSelectedIds.has(emp.empId) ? 'status-include' : 'status-exclude'">
+                <i class="fas me-1"
+                  [ngClass]="assignSelectedIds.has(emp.empId) ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                {{assignSelectedIds.has(emp.empId) ? 'Included' : 'Excluded'}}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="modal-footer border-0 pb-4 px-4">
+    <small class="text-muted me-auto">
+      <i class="fas fa-info-circle me-1"></i>
+      Unchecked employees will be excluded from this training.
+    </small>
+    <button type="button" class="btn-secondary" (click)="modal.dismiss()">
+      <i class="fas fa-times"></i> Cancel
+    </button>
+    <button type="button" class="btn btn-success px-4" [disabled]="assignSaving" (click)="onUpdateAssignment()">
+      <span *ngIf="assignSaving">
+        <span class="spinner-border spinner-border-sm me-1"></span>
+        Saving...
+      </span>
+      <span *ngIf="!assignSaving">
+        <i class="fas fa-save me-1"></i> Update Assignment
+      </span>
+    </button>
   </div>
 </ng-template>

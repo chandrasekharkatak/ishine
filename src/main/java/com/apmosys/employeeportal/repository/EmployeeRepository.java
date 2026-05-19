@@ -4961,6 +4961,50 @@ public List<Object[]> fetchInActivePOListOfProject(
         "AND is_apprenticeship = 'false' " ,
         nativeQuery = true)
     List<Employee> findByApEmployeementId(@Param("employmentId") Long employmentId);
+    
+    @Query(value = "SELECT "
+	        + "    e.employeement_id AS employeementId, "
+	        + "    e.name, "
+	        + "    e.created_by AS createdBy, "
+	        + "    e.created_on AS createdOn, "
+	        + "    e.gender, "
+	        + "    e.manager_id AS managerId, "
+	        + "    d.name AS departmentName, "
+	        + "    e.updated_by AS updatedBy, "
+	        + "    d.dept_id "
+	        + "FROM employee e "
+	        + "INNER JOIN job_role jr "
+	        + "    ON e.job_role_id = jr.job_role_id "
+	        + "INNER JOIN department d "
+	        + "    ON jr.dept_id = d.dept_id "
+	        + "WHERE e.employmentstatus != 'Inactive' "
+	        + "AND ( "
+	        + "      :dept_id IS NULL "
+	        + "      OR d.dept_id IN (:dept_id) "
+	        + ")"
+	        + "ORDER BY e.name",
+	        nativeQuery = true)
+    List<Object[]> getAllEmployeeToExcludeFromTraining(@Param("dept_id") List<Integer> deptId);
+	
+	@Query(value = "SELECT DISTINCT\n"
+			+ "		             e.employeement_id AS employeementId, \n"
+			+ "		             e.emp_id, \n"
+			+ "		             e.name, \n"
+			+ "		             e.created_by AS createdBy, \n"
+			+ "		             e.created_on AS createdOn, \n"
+			+ "		             e.gender, \n"
+			+ "		             e.manager_id AS managerId, \n"
+			+ "		             d.name AS departmentName, \n"
+			+ "		             e.updated_by AS updatedBy, \n"
+			+ "		             d.dept_id \n"
+			+ "		         FROM employee e \n"
+			+ "		         INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id \n"
+			+ "		         INNER JOIN department d ON jr.dept_id = d.dept_id \n"
+			+ "		         WHERE e.employmentstatus != 'Inactive'  and e.emp_id not in (1,2,3,4,5,6)\n"
+			+ "		         ORDER BY e.name",
+	        nativeQuery = true)
+	List<Object[]> getAllActiveEmployeesForAssignment();
+
 
 	@Query("SELECT new com.apmosys.employeeportal.dto.EmpIdAndNameDTO(e.empId,e.name) from Employee e " +
 	       "WHERE e.employmentstatus <> 'InActive' " +
