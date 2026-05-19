@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.CacheControl;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -15,7 +14,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import com.apmosys.employeeportal.EmployeePortalInterceptor;
 
@@ -29,15 +27,6 @@ public class MyConfig implements WebMvcConfigurer {
     @Value("${security.csp.policy}")
     private String contentSecurityPolicy;
 
-    
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/index.html")
-                .addResourceLocations("classpath:/static/index.html")
-                .setCacheControl(CacheControl.noCache());
-    }
-    
-    
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
