@@ -101,7 +101,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
     //console.log("draftObj : ", this.draftObj);
 
     let currentEmp = new Employee();
-    currentEmp.employeementId = this.draftObj.employeementIdAccToET;
+    // currentEmp.employeementId = this.draftObj.employeementIdAccToET;
     currentEmp.empId = this.draftObj.draftEmpId;
     currentEmp.isDraft = true;
 
