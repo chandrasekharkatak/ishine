@@ -65,7 +65,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/createLeaveType`,
     `${this.baseUrl}` + `api/updateLeaveType`,
     `${this.baseUrl}` + `api/getAllLeaveTypes`,
-
+    `${this.baseUrl}` + `api/getDraftEmployeeByEmploymentId`,
     `${this.baseUrl}` + `api/getAllCompOffReasons`,
     `${this.baseUrl}` + `api/applyForCompOff`,
     `${this.baseUrl}` + `api/updateCompOffById`,
