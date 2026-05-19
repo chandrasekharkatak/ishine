@@ -60,3 +60,8 @@
   word-break: break-word !important;
   line-height: 1.35 !important;
 }
+
+::ng-deep .cdk-overlay-pane {
+  width: max-content !important;
+  max-width: 300px !important;
+}

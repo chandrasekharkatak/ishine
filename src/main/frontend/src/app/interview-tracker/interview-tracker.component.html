@@ -1,0 +1,128 @@
+<div class="mt-5">
+<div class="container-fluid p-3">
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="table-header-title mb-0">Interview Tracker</h4>
+                <button class="btn btn-schedule" (click)="openScheduleInterview()">
+                    <i class="fa fa-plus me-1"></i> Schedule Interview
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-card mb-3">
+        <div class="card-body">
+            <div class="d-flex flex-wrap align-items-end gap-2">
+                <div class="filter-input-sm">
+                    <label class="info-label">Date Range</label>
+                    <app-my-select #dateRangeFilter class="form-control"
+                                                    placeholder="Select Domain" [(ngModel)]="dateRangePreset"
+                                                    [options]="dateRangeOptions" displayKey="label"
+                                                    valueKey="value"
+                                                    (selectionChange)="setDateRange($event)">
+                                                </app-my-select>
+                </div>
+
+                <div class="filter-input-sm" *ngIf="showCustomDate">
+                    <label class="info-label">Start Date</label>
+                    <input type="date" class="form-control form-control-sm global-filter-input" [(ngModel)]="startDate" >
+                </div>
+
+                <div class="filter-input-sm" *ngIf="showCustomDate">
+                    <label class="info-label">End Date</label>
+                    <input type="date" class="form-control form-control-sm global-filter-input" [(ngModel)]="endDate">
+                </div>
+
+                <div class="filter-input-sm">
+                    <label class="info-label">Client</label>
+                    <app-my-select #clientFilter class="form-control"
+                                                    placeholder="Select Client" [(ngModel)]="selectedClients"
+                                                    [options]="clientList"  [multiple]="true" [autocomplete]="true">
+                                                </app-my-select>
+                </div>
+
+                <div class="filter-input-sm">
+                    <label class="info-label">Department</label>
+                    <app-my-select #departmentFilter class="form-control"
+                                                    placeholder="Select Department" [(ngModel)]="selectedDepartments"
+                                                    [options]="departmentList" displayKey="name" valueKey="id" [multiple]="true">
+                                                </app-my-select>
+                </div>
+
+                <div class="filter-input-sm">
+                    <label class="info-label">Employee</label>
+                    <app-my-select #employeeFilter class="form-control"
+                                                    placeholder="Select Employee" [(ngModel)]="selectedEmployees"
+                                                    [options]="employeeList" displayKey="name" valueKey="id" [multiple]="true">
+                                                </app-my-select>
+                </div>
+
+                <div>
+                    <button class="btn btn-apply" (click)="applyFilters()">
+                        <i class="fa fa-filter me-1"></i> Apply
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 tile-col">
+            <div class="metric-tile interview-tile border-start-primary">
+                <div class="tile-header">
+                    <i class="fa fa-calendar-check text-primary"></i>
+                    <span>Future Interviews</span>
+                </div>
+                <div class="tile-value">{{ dashboardStats.futureInterviews || 0 }}</div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 tile-col">
+            <div class="metric-tile interview-tile border-start-info">
+                <div class="tile-header">
+                    <i class="fa fa-clock text-info"></i>
+                    <span>Scheduled</span>
+                </div>
+                <div class="tile-value">{{ dashboardStats.scheduledInterviews || 0 }}</div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 tile-col">
+            <div class="metric-tile interview-tile border-start-success">
+                <div class="tile-header">
+                    <i class="fa fa-chart-pie text-success"></i>
+                    <span>Interview Status</span>
+                </div>
+                <div #interviewStatusChart class="chart-container"></div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 tile-col">
+            <div class="metric-tile interview-tile border-start-warning">
+                <div class="tile-header">
+                    <i class="fa fa-user-check text-warning"></i>
+                    <span>Selection Status</span>
+                </div>
+                <div #selectionStatusChart class="chart-container"></div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 tile-col">
+            <div class="metric-tile interview-tile border-start-secondary">
+                <div class="tile-header">
+                    <i class="fa fa-user-plus text-secondary"></i>
+                    <span>Onboarding Status</span>
+                </div>
+                <div #onboardingStatusChart class="chart-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="list-card">
+        <div class="card-body p-0">
+            <app-interview-list [filterObj]="activeFilterObj"></app-interview-list>
+        </div>
+    </div>
+</div>
+</div>

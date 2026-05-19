@@ -205,6 +205,7 @@ import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.com
 import { ResizableModule } from 'angular-resizable-element';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
 import { ApproverWorkflowComponent } from './user-team/project-insight/components/approver-workflow/approver-workflow.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -219,6 +220,9 @@ import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomple
 import { NgxEditorModule } from 'ngx-editor';
 import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
 import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
+import { InterviewTrackerComponent } from './interview-tracker/interview-tracker.component';
+import { InterviewListComponent } from './interview-tracker/interview-list/interview-list.component';
+import { ScheduleInterviewComponent } from './interview-tracker/schedule-interview/schedule-interview.component';
 
 registerLocaleData(localeGb);
 
@@ -406,7 +410,10 @@ registerLocaleData(localeGb);
     ProjectColumnFilterPipe,
     MyAutocompleteComponent,
     InfoTooltipComponent,
-    QuizSubmit
+    QuizSubmit,
+    InterviewTrackerComponent,
+    InterviewListComponent,
+    ScheduleInterviewComponent
   ],
   imports: [
     BrowserModule,
@@ -441,6 +448,7 @@ registerLocaleData(localeGb);
     ResizableModule,
     MatMenuModule,
     MatButtonModule,
+    MatDividerModule,
     MatExpansionModule,
     NgxPaginationModule,
     ExperienceDurationPipe,

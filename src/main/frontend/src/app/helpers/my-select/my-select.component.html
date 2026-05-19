@@ -27,6 +27,13 @@
     [title]="getDisplayText(opt)">
       {{ getDisplayText(opt) }}
     </mat-option>
+    <mat-option
+      *ngIf="autocomplete"
+      [value]="searchText"
+      class="add-custom-option"
+    >
+      Add {{ searchText }} 
+    </mat-option>
         <mat-option *ngIf="filteredOptions.length === 0" disabled>
         <b>No data found</b>
       </mat-option>

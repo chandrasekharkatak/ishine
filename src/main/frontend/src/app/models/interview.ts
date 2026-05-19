@@ -1,0 +1,34 @@
+export class Interview {
+    id: any;
+    title: any;
+    date: any;
+    time: any;
+    client: any;
+    role: any;
+    project: any;
+    departmentId: any;
+    departmentName: any;
+    employeeId: any;
+    employeeName: any;
+    mode: any;
+    interviewStatus: any;
+    selectionStatus: any;
+    onboardingStatus: any;
+    interviewRemarks: any;
+    selectionRemarks: any;
+    onboardingRemarks: any;
+    jd: any;
+    interviewerName: any;
+    scheduledById: any;
+    scheduledByName: any;
+    additionalNotes: any;
+    resumeFileName: any;
+    resumeFilePath: any;
+    resumeFile: any;
+    createdBy: any;
+    createdOn: any;
+    updatedBy: any;
+    updatedOn: any;
+    isSelected: boolean = false;
+    isExpanded: boolean = false;
+}

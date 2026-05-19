@@ -122,6 +122,11 @@ const routes: Routes = [
     loadChildren: () => import('./module-routing/reimbursement/reimbursement.module').then(m => m.ReimbursementModule),
     canActivate: [AuthGuard]
   },
+  {
+    path: 'interview-tracker',
+    loadChildren: () => import('./module-routing/interview-tracker/interview-tracker.module').then(m => m.InterviewTrackerModule),
+    canActivate: [AuthGuard]
+  },
   { path: 'qr-code', component: QrCodeGeneratorComponent, canActivate: [AuthGuard] },
   { path: '**', component: ConnectionLostComponent },
 ];
