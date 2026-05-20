@@ -29,6 +29,7 @@ export class UserProfileComponent implements OnInit {
 
   //flags
   isUpdateProfile: boolean = false;
+  showImageUpload: boolean = false;
 
   currentUser: any;
   currentEmployeeInfo: Employee = new Employee();
@@ -142,13 +143,13 @@ async checkExistingDraft() {
 
   showUpdateProfile() {
     this.isUpdateProfile = true;
-
+    // this.showImageUpload = true;
     this.openUpdateInfo(this.updateInfoTempRef);
   }
 
   showViewProfile() {
     this.isUpdateProfile = false;
-
+    this.showImageUpload = true;
     this.onGetEmployeeInfo();
   }
 
@@ -709,6 +710,7 @@ async checkExistingDraft() {
       if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);
         this.showViewProfile();
+        this.showImageUpload = false;
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }

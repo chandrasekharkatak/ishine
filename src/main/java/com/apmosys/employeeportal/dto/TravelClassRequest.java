@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TravelClassRequest {
+    private Long travelClassId;
     private Long travelReasonId;
     private String travelReason;
     private String travelMode;

@@ -5,12 +5,22 @@
 <div class="container-fluid">
     <div class="row justify-content-between mb-3">
         <h3 class="profile__greetings">Welcome, {{currentEmployeeInfo.name}}</h3>
+        <div class="d-flex align-items-center gap-2">
       <button (click)="showUpdateProfile()" [ngClass]="'btn-primary'"
         class="btn d-flex align-items-center gap-2">
         <span>
           {{ hasPendingRequest ? 'View Existing Request' : 'Update Profile' }}
         </span>
       </button>
+      <button
+            *ngIf="userMapping.upload_profile_image"
+            (click)="showImageUpload = !showImageUpload"
+             class="btn btn-primary d-flex align-items-center"
+             style="margin-left: 12px;">
+            <span>Update Profile Picture</span>
+
+        </button>
+        </div>
        <!-- <button *ngIf="isUpdateProfile && userMapping.view_profile" type="submit" class="btn btn-primary btn-sm"
             (click)="showViewProfile()">View Profile</button>-->
     </div>
@@ -24,7 +34,7 @@
                                 class="user-card__profile-avatar__img" alt="Avatar" />
 
                             <!-- IMAGE UPLOAD -->
-                            <div *ngIf="isUpdateProfile && userMapping.upload_profile_image"
+                            <div *ngIf="showImageUpload && userMapping.upload_profile_image"
                                 class="user-card__profile-avatar-upload mt-3">
                                 <input type="file" name="file" accept="image/jpeg,image/jpg" id="profileImg"
                                     class="profileImgFile" (change)="onProfileImageSelect($event,alert_message)" />

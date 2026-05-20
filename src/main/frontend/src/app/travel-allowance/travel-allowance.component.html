@@ -6,9 +6,9 @@
     <div class="col-md-12">
         <div class="card">
             <ul class="nav nav-tabs timesheet__tabs" id="timesheetTab" role="tablist">
-                <li *ngIf="userMapping.apply_journey" class="nav-item timesheet__tab-item" >
-                    <a class="nav-link timesheet__tab-item__link" id="my-timesheet-tab" data-toggle="tab" role="tab"
-                        aria-controls="my-timesheet" aria-selected="true"
+                <li *ngIf="canApplyTravelRequest()" class="nav-item timesheet__tab-item" >
+                    <a class="nav-link timesheet__tab-item__link" id="apply-travel-tab" data-toggle="tab" role="tab"
+                        aria-controls="apply-travel" aria-selected="true"
                         routerLink="my-travelrequest"
                         routerLinkActive="active"
                         [routerLinkActiveOptions]="{ exact: true }">Apply Travel Request</a>

@@ -2089,7 +2089,7 @@ public class TeamMembersService {
 			ServiceResponse resp = new ServiceResponse();
 			resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			resp.setServiceResponse("TEAM_ID_REQUIRED_FOR_VALIDATION");
-			resp.setServiceResponse1("Team Id is required to validate re-joining for non-PO projects.");
+			resp.setServiceResponse1("Team details is required to validate re-joining for non-PO projects.");
 			return resp;
 		}
 

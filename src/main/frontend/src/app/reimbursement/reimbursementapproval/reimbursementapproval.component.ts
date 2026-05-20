@@ -11,7 +11,9 @@ import { ReimbursementService } from 'src/app/services/reimbursement.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
 import { ReimbursementTicketModalComponent } from '../reimbursement-ticket-modal/reimbursement-ticket-modal.component';
 import {
+  approvalLevelApproverColumnTitle,
   approvalLevelCell,
+  approvalLevelStatusColumnTitle,
   buildTicketFilterColumns,
   deriveTableLevelColumns,
   RmbApprovalLevelColumn
@@ -24,6 +26,8 @@ import {
   styleUrls: ['./reimbursementapproval.component.css']
 })
 export class ReimbursementapprovalComponent implements OnInit {
+  readonly approvalLevelApproverColumnTitle = approvalLevelApproverColumnTitle;
+  readonly approvalLevelStatusColumnTitle = approvalLevelStatusColumnTitle;
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;

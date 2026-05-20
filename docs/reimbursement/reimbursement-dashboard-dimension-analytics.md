@@ -8,7 +8,7 @@ This document describes the **entire reimbursement analytics dashboard**: every 
 
 | Tab | Question it answers |
 |-----|----------------------|
-| **Overview** | At-a-glance KPIs, ticket status mix, monthly requested vs paid, department spending bar, claim-type distribution. |
+| **Overview** | Matrix-aware KPIs (matrix/legacy tickets, pending matrix vs HOD/HR/Finance, claim-line queues), configured approval paths panel, in-flight workflow chips + matrix funnel, then status/trend/dept/category charts. |
 | **Ticket lifecycle** | Drill-down table of tickets and nested claim lines (status, stage, amounts). |
 | **Approval analytics** | Pending approvals by level and a simple funnel from submitted to paid/closed. |
 | **Rejection analysis** | Rejection KPIs, reasons (with progress bars), rejections by claim type (column chart), rejection log table. |
@@ -40,18 +40,18 @@ All tabs share the **same dashboard API** and **filter bar**; metrics are scoped
 | `overview` | `rmbDashChartDept` | Horizontal bar | Department spending | `departmentSpending` (requested by ticket department) | `renderOverviewCharts` |
 | `overview` | `rmbDashChartCategory` | Pie (inner ~55% donut) | Claim category distribution | `claimsByExpenditureType` (claim **counts** by type) | `renderOverviewCharts` |
 | `rejection` | `rmbDashChartRejectType` | Column (single series, red) | Rejections by claim type | `rejectionsByExpenditureType` | `renderRejectionTypeChart` |
-| `clientTrend` | `rmbDashClientEmployeeStack` | **Line** (4 series: raised/paid/pending/rejected) | Client amounts (all clients) | `clientLineChartPack` | `renderDashboardLineSeriesChart` |
+| `clientTrend` | `rmbDashClientEmployeeStack` | **Grouped column** (4 series) | Top 12 active clients + Others | `clientLineChartPack` (trimmed) | `renderInsightFourSeriesGroupedColumn` |
 | `clientTrend` | `rmbDashClientTicketDonut` | Pie (inner ~66% donut) | Ticket status distribution | `ticketStatusBreakdown` | `renderTicketStatusDonut` |
-| `clientTrend` | `rmbDashClientTopDim` | Horizontal bar | Top clients by raised amount | `barTotalsByClient.rows` (top 8) | `renderTopDimensionBar` |
-| `clientTrend` | `rmbDashClientTopEmp` | Horizontal bar | Top employees by raised amount | `employeeLeaderboard` (top 8) | `renderTopEmployeesHorizontalBar` |
-| `projectTrend` | `rmbDashProjectEmployeeStack` | **Stacked column** (4 series) | Project-wise employee reimbursement | `projectEmployeeStack` | `renderStackedEmployeeColumn` |
+| `clientTrend` | `rmbDashClientTopDim` | Vertical column | Top 10 clients by raised amount | `barTotalsByClient.rows` (top 10) | `renderTopDimensionColumnChart` |
+| `clientTrend` | `rmbDashClientTopEmp` | Vertical column | Top 10 employees by raised amount | `employeeLeaderboard` (top 10) | `renderTopEmployeesColumnChart` |
+| `projectTrend` | `rmbDashProjectEmployeeStack` | **Grouped column** (4 series) | Top 12 active projects + Others | `projectLineChartPack` (trimmed) | `renderInsightFourSeriesGroupedColumn` |
 | `projectTrend` | `rmbDashProjectTicketDonut` | Pie donut | Ticket status distribution | `ticketStatusBreakdown` | `renderTicketStatusDonut` |
-| `projectTrend` | `rmbDashProjectTopDim` | Horizontal bar | Top projects by raised amount | `barTotalsByProject.rows` | `renderTopDimensionBar` |
-| `projectTrend` | `rmbDashProjectTopEmp` | Horizontal bar | Top employees by raised amount | `employeeLeaderboard` | `renderTopEmployeesHorizontalBar` |
-| `deptTrend` | `rmbDashDeptInsightEmployeeStack` | **Line** (4 series) | Department amounts (all master departments) | `departmentLineChartPack` | `renderDashboardLineSeriesChart` |
+| `projectTrend` | `rmbDashProjectTopDim` | Vertical column | Top 10 projects by raised amount | `barTotalsByProject.rows` | `renderTopDimensionColumnChart` |
+| `projectTrend` | `rmbDashProjectTopEmp` | Vertical column | Top 10 employees by raised amount | `employeeLeaderboard` | `renderTopEmployeesColumnChart` |
+| `deptTrend` | `rmbDashDeptInsightEmployeeStack` | **Grouped column** (4 series) | Top 12 active departments + Others | `departmentLineChartPack` (trimmed) | `renderInsightFourSeriesGroupedColumn` |
 | `deptTrend` | `rmbDashDeptInsightTicketDonut` | Pie donut | Ticket status distribution | `ticketStatusBreakdown` | `renderTicketStatusDonut` |
-| `deptTrend` | `rmbDashDeptInsightTopDim` | Horizontal bar | Top departments by raised amount | `barTotalsByDepartment.rows` | `renderTopDimensionBar` |
-| `deptTrend` | `rmbDashDeptInsightTopEmp` | Horizontal bar | Top employees by raised amount | `employeeLeaderboard` | `renderTopEmployeesHorizontalBar` |
+| `deptTrend` | `rmbDashDeptInsightTopDim` | Vertical column | Top 10 departments by raised amount | `barTotalsByDepartment.rows` | `renderTopDimensionColumnChart` |
+| `deptTrend` | `rmbDashDeptInsightTopEmp` | Vertical column | Top 10 employees by raised amount | `employeeLeaderboard` | `renderTopEmployeesColumnChart` |
 
 ### 2.3 Four monetary series (line + stacked column + top dimension bars)
 
@@ -64,7 +64,7 @@ For packs / rows that split **raised / paid / pending / rejected**:
 | **Pending** | `PENDING_HOD`, `PENDING_HR`, `PENDING_FINANCE`. |
 | **Rejected** | `HOD_REJECTED`, `HR_REJECTED`, `FINANCE_REJECTED`. |
 
-**Top dimension** horizontal bars (`renderTopDimensionBar`) plot only **raised (requested)** on the x-axis for the top N rows from `barTotalsByClient` / `barTotalsByProject` / `barTotalsByDepartment`.
+**Top dimension** vertical column charts (`renderTopDimensionColumnChart`) plot **raised (requested)** on the y-axis (₹) with **name labels** on the x-axis for the top 10 rows from `barTotalsByClient` / `barTotalsByProject` / `barTotalsByDepartment`.
 
 **Top employees** horizontal bars use **`employeeLeaderboard[].requested`** (sorted, top N).
 
@@ -72,8 +72,8 @@ For packs / rows that split **raised / paid / pending / rejected**:
 
 | Tab | Content |
 |-----|---------|
-| **All** | Filter bar: FY preset, from/to dates, department, employee, project, client, display status, workflow stage, expenditure type, **Reset**. Header: Excel/PDF (disabled), **Refresh**. |
-| **Overview** | **12 KPI cards** in 3 rows (tickets, claims, requested, paid, pipeline pending ₹, rejected ₹, approved-for-payment ₹, rejected claim lines %, partial-approval tickets, pending HOD/HR/Fin counts, aging pending >7d tickets, finance-ready lines). |
+| **All** | Filter bar: FY preset, from/to dates, department, employee, client, project, display status, workflow stage, expenditure type, **Reset**. Header: Excel/PDF (disabled), **Refresh**. |
+| **Overview** | **16 KPI cards** in 4 rows plus **Configured approval paths** (from `activeApprovalMatrices`) and **In-flight workflow** (stage chips, `pendingMatrixByLevel`, compact `approvalFunnelMatrix`). |
 | **Ticket lifecycle** | **Main table** from `ticketRows` with pagination; expand row → **nested claims table**; status/stage badges; link to approvals. **No Highcharts.** |
 | **Approval analytics** | **3 KPI cards** (pending HOD, HR, Finance ticket counts). **Funnel:** five Bootstrap **progress** rows from `approvalFunnel` + `funnelSteps`. |
 | **Rejection analysis** | **2 KPI cards**; **rejection reasons** = list + red **progress** bars (`rejectionReasonList()` / `rejectionReasonBuckets`); **rejections by claim type** = Highcharts column (above); **rejection detail log** table (`rejectionLog`). |
@@ -183,6 +183,20 @@ Across **bar totals** and **line chart packs**:
 
 Helpers: `isPipelinePendingClaimStatus`, `isRejectedClaimStatus` in `ReimbursementTicketService`.
 
+### 5.4 Master filter dropdowns (search-select on UI)
+
+The filter bar uses **`app-my-select`** (same component as Apply Reimbursement) for department, employee, project, client, and claim type. Placeholder text prompts search; a clear (×) control resets each master filter to “all”.
+
+| `filterOptions` key | Source |
+|---------------------|--------|
+| `departments` | `departmentRepository.getAllDeptsList()` — deduped department **names** |
+| `employees` | `employeeRepository.findAllActiveEmployeesObject()` — active **`employee`** rows (`employmentstatus != 'InActive'`) as `{ empId, fullName }` |
+| `projects` | `projectRepository.findAllProjectIdNameAndClient()` — all **`projects`** rows as `{ projectId, projectName, clientId }`. UI shows **all** projects until a client is selected; then only projects with matching `clientId`. |
+| `clients` | `clientsRepository.findAll()` — **`clients`** master as `{ clientId, clientName }` |
+| `expenditureTypes` | `expenditureTypeRepository.findAll()` — **`expenditure_type`** names (claim types) |
+
+`ticketStatuses` and `workflowStages` remain plain `<select>` lists built from tickets in the current actor scope.
+
 ---
 
 ## 6. Client-based analysis
@@ -208,7 +222,7 @@ This avoids x-axis / dropdown showing only `Client #1981` when the claim row or 
 
 ### 6.3 Frontend charts (tab `clientTrend`)
 
-- **Main chart:** `renderDashboardLineSeriesChart('rmbDashClientEmployeeStack', clientLineChartPack)` — **multi-series line** (Raised, Paid, Pending, Rejected): thick lines, circular markers, grid, boxed legend.  
+- **Main chart:** `renderInsightFourSeriesGroupedColumn('rmbDashClientEmployeeStack', clientLineChartPack)` — top 12 clients with activity + Others bucket; grouped columns (Raised, Paid, Pending, Rejected).  
 - **Donut:** `ticketStatusBreakdown` (global ticket counts for filtered `tickets`).  
 - **Top dimension bar:** `barTotalsByClient` (top N by requested).  
 - **Top employees bar:** `employeeLeaderboard` (top by requested).  
@@ -234,7 +248,7 @@ This avoids x-axis / dropdown showing only `Client #1981` when the claim row or 
 
 ### 7.3 Frontend (tab `deptTrend`)
 
-- **Main chart:** `renderDashboardLineSeriesChart('rmbDashDeptInsightEmployeeStack', departmentLineChartPack)`.  
+- **Main chart:** `renderInsightFourSeriesGroupedColumn('rmbDashDeptInsightEmployeeStack', departmentLineChartPack)`.  
 - **Donut / top dept bar / top employees / aging:** same pattern as client tab, using `barTotalsByDepartment` and shared `ticketStatusBreakdown`, `employeeLeaderboard`, `pendingAmountAging`.
 
 ---
@@ -243,9 +257,8 @@ This avoids x-axis / dropdown showing only `Client #1981` when the claim row or 
 
 ### 8.1 Project filter options (dropdown)
 
-- **Not** a full `project` entity master for the whole company.  
-- **Built from** `allActive` tickets: distinct `projectId` / `projectName` seen on **claim lines** (and related logic in the same dashboard block).  
-- So the dropdown lists projects that **appear in reimbursement data**, not necessarily every row in a global projects table.
+- **Source:** `projectRepository.findAllProjectIdAndName()` — all rows in the **`project`** table (`{ projectId, projectName }`), sorted by name.  
+- Charts still aggregate only projects that have in-scope claim activity; the filter dropdown is the full project master.
 
 ### 8.2 Payloads
 
@@ -256,7 +269,7 @@ This avoids x-axis / dropdown showing only `Client #1981` when the claim row or 
 
 ### 8.3 Frontend (tab `projectTrend`)
 
-- **Main chart:** **Stacked column** chart — `renderStackedEmployeeColumn('rmbDashProjectEmployeeStack', projectEmployeeStack)` (not the line chart).  
+- **Main chart:** `renderInsightFourSeriesGroupedColumn('rmbDashProjectEmployeeStack', projectLineChartPack)` when line pack is present; legacy `renderStackedEmployeeColumn` only if pack is missing.  
 - **Donut / top project bar / top employees / aging:** same shared widgets as other insight tabs.
 
 ---
@@ -290,7 +303,7 @@ These are computed once per request and reused:
 - `destroyCharts()` runs before each redraw and on `ngOnDestroy`.  
 - `renderCharts()` branches on **`activeTab`** (see **§2.6** for the exact map):  
   - Overview / rejection / client / project / department each render **only** the charts for that tab (avoids Highcharts sizing issues on hidden divs).  
-- Client and department **line** charts share **`renderDashboardLineSeriesChart`**.  
+- Client, project, and department **main** charts share **`renderInsightFourSeriesGroupedColumn`** (trimmed from line chart packs).  
 - Project tab uses **`renderStackedEmployeeColumn`** for the main panel.
 
 ---

@@ -11,6 +11,10 @@ import com.apmosys.employeeportal.model.TravelClass;
 import com.apmosys.employeeportal.model.TravelMode;
 
 public interface TravelClassRepository extends JpaRepository<TravelClass, Long> {
+
+	long countByTravelMode_TravelModeId(Long travelModeId);
+
+	long countByTravelReason_Id(Long travelReasonId);
 	
 //	Optional<TravelClass> findByTravelReasonName(String travelMode);
 	
@@ -19,5 +23,6 @@ public interface TravelClassRepository extends JpaRepository<TravelClass, Long> 
 	@Query(nativeQuery = true , value = "SELECT * FROM travel_class where travel_mode_id =:travelModeId")
 	public Optional<List<TravelClass>> findByTravelModeId(Long travelModeId);
 
+	List<TravelClass> findAllByTravelMode_TravelModeId(Long travelModeId);
 
 }
