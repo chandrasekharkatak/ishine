@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,12 +50,15 @@ public class TabMasterService {
 					dto.setFeatureName(tab[3] != null ? tab[3].toString() : null);
 					dto.setTabName(tab[4] != null ? tab[4].toString() : null);
 					dto.setTabIcon(tab[5] != null ? tab[5].toString() : null);
-					dto.setTabRouteName(tab[6] != null ? tab[6].toString() : null);					
+					dto.setTabRouteName(tab[6] != null ? tab[6].toString() : null);		
+					dto.setTabSequence(tab[7] != null ? Integer.parseInt(tab[7].toString()) : null);					
 					dtoList.add(dto);
 					
 				}
+
+				List<RoleFeatureMapDTO> sortedDtoList = dtoList.stream().sorted(Comparator.comparing(RoleFeatureMapDTO::getTabSequence)).collect(Collectors.toList());
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
+				response.setServiceResponse(sortedDtoList);
 			}
 			else
 			{

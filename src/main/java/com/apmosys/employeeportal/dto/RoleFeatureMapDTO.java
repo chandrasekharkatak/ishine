@@ -12,6 +12,7 @@ public class RoleFeatureMapDTO {
 	private String tabName;
 	private String tabIcon;
 	private String tabRouteName;
+	private Integer tabSequence;
 	
 	
 	
@@ -68,6 +69,12 @@ public class RoleFeatureMapDTO {
 	}
 	public void setTabRouteName(String tabRouteName) {
 		this.tabRouteName = tabRouteName;
+	}
+	public Integer getTabSequence() {
+		return tabSequence;
+	}
+	public void setTabSequence(Integer tabSequence) {
+		this.tabSequence = tabSequence;
 	}
 	
 	
