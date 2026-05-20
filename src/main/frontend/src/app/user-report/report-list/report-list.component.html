@@ -714,7 +714,7 @@ firt share list of feature and then go one by one details, nothing to be missed
             <th *ngIf="changeTable" scope="col" class="info-label wide-col" mat-sort-header="primaryProjectName|string">
               Default
               Project Assigned</th>
-            <th *ngIf="changeTable && !isAccounts" scope="col" class="info-label wide-wide-col"
+            <th *ngIf="changeTable && !isAccounts && !(userMapping.employee_report_read_only)" scope="col" class="info-label wide-wide-col"
               mat-sort-header="defaultProject|string">
               Select Default Project</th>
           </tr>
@@ -911,7 +911,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                 Not Assigned
               </ng-container>
             </td>
-            <td *ngIf="changeTable && !isAccounts">
+            <td *ngIf="changeTable && !isAccounts && !(userMapping.employee_report_read_only)">
               <div class="col d-flex align-items-center m-0 p-0">
                 <ng-container *ngIf="employee.projectName">
                   <div>

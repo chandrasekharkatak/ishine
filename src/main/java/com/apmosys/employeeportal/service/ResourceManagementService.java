@@ -195,6 +195,7 @@ import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
+import com.apmosys.employeeportal.repository.EmployeeAccessOverrideRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificatesRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
@@ -360,6 +361,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	private TimesheetRejectionDetailsNewRepository timesheetRejectionDetailsNewRepository;
+
+	@Autowired
+	private EmployeeAccessOverrideRepository employeeAccessOverrideRepository;
 
 	@Autowired
 	private ApiLogUtility apiLogUtility;
@@ -10517,12 +10521,9 @@ public class ResourceManagementService {
 		try {
 			ProjectFilterDTO projectFilterDTO = new ProjectFilterDTO();
 			projectFilterDTO.setCurrentUserEmpId(currentUserEmpId);
-
 			Set<Long> accessibleDeptIds = new HashSet<>();
 			Map<Long, String> fullDeptMap = new HashMap<>();
-
 			if (departmentRepository.existsByHodId(currentUserEmpId)) {
-
 				List<GetDeptIdByRoleDTO> hodDeptList = departmentRepository.findDeptIdsByHodId2(currentUserEmpId);
 				if (hodDeptList != null && !hodDeptList.isEmpty()) {
 					logBuilder.append("\n Department list fetched for HOD.");
@@ -10532,11 +10533,8 @@ public class ResourceManagementService {
 					}
 					projectFilterDTO.setIsHod(true);
 				}
-
 			} else {
-
 				if (departmentRepository.isUserMappedInAnyRole(currentUserEmpId)) {
-
 					List<GetDeptIdByRoleDTO> deptIds = departmentRepository.findDeptsByEmpId(currentUserEmpId);
 					if (deptIds != null && !deptIds.isEmpty()) {
 						logBuilder.append("\n Department list fetched for Other (Not HOD and NOt SuperAdmin).");
@@ -10546,17 +10544,23 @@ public class ResourceManagementService {
 						}
 						projectFilterDTO.setIsOther(true);
 					}
-
 				}
 			}
 
-			if (accessibleDeptIds.isEmpty() || fullDeptMap.isEmpty()) {
+			List<GetDeptIdByRoleDTO> overrideDeptIds = employeeAccessOverrideRepository.findActiveDeptIdsAndSubFeatureNameByEmpId(currentUserEmpId, "View All RMG Projects");
+			if (overrideDeptIds != null && !overrideDeptIds.isEmpty()) {
+				for (GetDeptIdByRoleDTO dto : overrideDeptIds) {
+					accessibleDeptIds.add(dto.getDeptId());
+					fullDeptMap.put(dto.getDeptId(), dto.getName());
+				}
+				projectFilterDTO.setIsOther(true);
+			}
 
+			if (accessibleDeptIds.isEmpty() || fullDeptMap.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(
 						"You currently do not have access to any departments or projects based on your role (Admin, HOD, Project Manager, Project Overhead, Team Lead, or SPOC).");
 				logBuilder.append("\n No department found ! ");
-
 			} else {
 
 				List<GetDeptIdByRoleDTO> finalDeptList = fullDeptMap.entrySet().stream()
@@ -10568,16 +10572,13 @@ public class ResourceManagementService {
 				response.setServiceResponse(projectFilterDTO);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				logBuilder.append("\n Department list fetched successfully.");
-
 			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Something went wrong!");
 			logBuilder.append("\n Exception occurred: ").append(e.getMessage());
 		}
-
 		return response;
 	}
 
@@ -16235,26 +16236,30 @@ public class ResourceManagementService {
 
 	private List<Long> resolveDepartments(RMGDashboardProjectRequest dto) {
 		String userType = dto.getCurrentUserType();
+		List<Long> deptIds = new ArrayList<>();
+		if (dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()) {
+			return dto.getDepartmentIds();
+		}
+
 		if (userType.equals("ADMIN")) {
-			return dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()
-					? dto.getDepartmentIds()
-					: departmentRepository.findAllDepartments();
+			deptIds = departmentRepository.findAllDepartments();
 		} else if (userType.equals("HOD")) {
-			if (dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()) {
-				return dto.getDepartmentIds();
-			}
 			List<Department> deptData = departmentRepository.findByHodId(dto.getCurrentUserEmpId());
-			return deptData.stream()
+			deptIds = deptData.stream()
 					.map(Department::getDeptId)
 					.filter(Objects::nonNull)
 					.collect(Collectors.toList());
 		} else { // Other role
-			if (dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()) {
-				return dto.getDepartmentIds();
-			}
 			Employee employee = employeeRepository.findByEmpId(dto.getCurrentUserEmpId());
-			return departmentRepository.findDepartmentIdOfCurrentUser(employee.getJobRoleId());
+			deptIds = departmentRepository.findDepartmentIdOfCurrentUser(employee.getJobRoleId());
 		}
+		List<GetDeptIdByRoleDTO> overrideDepts = employeeAccessOverrideRepository.findActiveDeptIdsAndSubFeatureNameByEmpId(dto.getCurrentUserEmpId(), "View All RMG Projects");
+		if (overrideDepts != null && !overrideDepts.isEmpty()) {
+			List<Long> overrideDeptIds = overrideDepts.stream().map(GetDeptIdByRoleDTO::getDeptId)
+					.filter(Objects::nonNull).collect(Collectors.toList());
+			deptIds.addAll(overrideDeptIds);
+		}
+		return deptIds;
 	}
 
 	@Transactional(readOnly = true)

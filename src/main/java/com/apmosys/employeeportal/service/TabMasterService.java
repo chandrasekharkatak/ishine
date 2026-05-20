@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.RoleFeatureMapDTO;
 import com.apmosys.employeeportal.dto.TabMasterDTO;
+import com.apmosys.employeeportal.repository.EmployeeAccessOverrideRepository;
 import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.TabMasterRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -22,13 +23,22 @@ public class TabMasterService {
 	@Autowired
 	RoleFeatureMapRepository roleFeatureMapRepository;
 
+	@Autowired
+	EmployeeAccessOverrideRepository employeeAccessOverrideRepository;
+
 	public ServiceResponse getTabsByRoleId(Long jobRoleId, Long empId) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<Object[]> tabArrayList = roleFeatureMapRepository.getTabsByRoleId(jobRoleId);
-			
-			if(tabArrayList != null)
-			{
+			List<Object[]> overrideTabArrayList  = employeeAccessOverrideRepository.findActiveTabRowsByEmpId(empId);
+			if (overrideTabArrayList != null && !overrideTabArrayList.isEmpty()) {
+				if(tabArrayList == null){
+					tabArrayList = new ArrayList<>();
+				}
+				tabArrayList.addAll(overrideTabArrayList);
+			}
+
+			if(tabArrayList != null  && !tabArrayList.isEmpty()){
 				List<RoleFeatureMapDTO> dtoList = new ArrayList<RoleFeatureMapDTO>();
 				for(Object[] tab :tabArrayList)
 				{
