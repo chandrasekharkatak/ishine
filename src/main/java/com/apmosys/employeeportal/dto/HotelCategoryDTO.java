@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class HotelCategoryDTO {
+    private Long id;
     private String hotelCategory;
     private String description;
     private Long createdBy;

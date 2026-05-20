@@ -10,6 +10,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DomainService } from 'src/app/services/domain.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
+import { ReimbursementService } from 'src/app/services/reimbursement.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -66,13 +67,22 @@ export class MyTravelrequestComponent implements OnInit {
     purposeOfTravel: '',
     fromLocation: '',
     toLocation: '',
-    supportingDocument: null, // File
+    supportingDocument: null,
     hotelCategory: '',
     tlSubCategory: '',
     docIds: [],
-    kycDocumentId:''
-
+    kycDocumentId: '',
+    projectId: null as number | null,
+    othersProjectName: '',
+    othersClientId: null as number | null,
+    displayClientName: ''
   };
+
+  mappedProjectsForTravel: { projectId: number; projectName: string; clientName?: string; clientId?: number | null }[] = [];
+  projectPickerSource: 'TEAM' | 'DEPARTMENT' | null = null;
+  showOthersOption = false;
+  clientsForOthers: { clientId: number; clientName: string }[] = [];
+  readonly TRAVEL_OTHERS_PROJECT_ID = -1;
   locationStrategy: any;
   domainSpecializationList: any[];
   todayDate: string;
@@ -89,6 +99,7 @@ export class MyTravelrequestComponent implements OnInit {
     private employeeService: EmployeeService,
     private sanitizer: DomSanitizer,
     private travelDesk: TravelDeskService,
+    private reimbursementService: ReimbursementService,
     private domainService: DomainService,
     private router : Router
 
@@ -148,7 +159,7 @@ export class MyTravelrequestComponent implements OnInit {
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
       this.currentEmployeeInfo = response.serviceResponse;
-
+      void this.loadMappedProjectsForTravel();
     } else {
       console.error(response.serviceResponse);
     }
@@ -179,9 +190,182 @@ export class MyTravelrequestComponent implements OnInit {
   }
 
 
+  async loadMappedProjectsForTravel() {
+    this.mappedProjectsForTravel = [];
+    this.projectPickerSource = null;
+    this.showOthersOption = false;
+    const empId = this.currentEmployeeInfo?.empId ?? this.currentUser?.empId;
+    if (empId == null) {
+      return;
+    }
+    try {
+      const response: any = await this.reimbursementService
+        .fetchReimbursementClaimProjectOptions({ empId })
+        .pipe(first())
+        .toPromise();
+      if (response.serviceStatus !== 'Success' || !response.serviceResponse) {
+        return;
+      }
+      const bag = response.serviceResponse;
+      this.projectPickerSource = bag.pickerSource === 'DEPARTMENT' ? 'DEPARTMENT' : 'TEAM';
+      this.showOthersOption = !!bag.showOthersOption;
+      const raw = (bag.projects || []) as any[];
+      const seen = new Set<number>();
+      const parsed: { projectId: number; projectName: string; clientName?: string; clientId?: number | null }[] = [];
+      for (const p of raw) {
+        const id = p.projectId != null ? Number(p.projectId) : NaN;
+        if (!Number.isFinite(id) || seen.has(id)) {
+          continue;
+        }
+        seen.add(id);
+        const cn = p.clientName != null ? String(p.clientName).trim() : '';
+        const cid = p.clientId != null && p.clientId !== '' ? Number(p.clientId) : null;
+        parsed.push({
+          projectId: id,
+          projectName: p.projectName != null ? String(p.projectName) : `Project #${id}`,
+          clientName: cn !== '' ? cn : undefined,
+          clientId: Number.isFinite(cid as number) ? cid : null
+        });
+      }
+      const othersRows = parsed.filter((r) => r.projectId === this.TRAVEL_OTHERS_PROJECT_ID);
+      const normalRows = parsed
+        .filter((r) => r.projectId !== this.TRAVEL_OTHERS_PROJECT_ID)
+        .sort((a, b) => a.projectName.localeCompare(b.projectName));
+      // Travel: always offer "Others" (manual project name + client from clients master)
+      if (!othersRows.length) {
+        othersRows.push({
+          projectId: this.TRAVEL_OTHERS_PROJECT_ID,
+          projectName: 'Others',
+          clientName: '',
+          clientId: null
+        });
+      }
+      this.mappedProjectsForTravel = [...othersRows, ...normalRows];
+      await this.loadClientsForOthers();
+    } catch (e) {
+      console.error('loadMappedProjectsForTravel', e);
+      this.mappedProjectsForTravel = [];
+      this.projectPickerSource = null;
+      this.showOthersOption = false;
+    }
+  }
+
+  async loadClientsForOthers(): Promise<void> {
+    if (this.clientsForOthers.length > 0) {
+      return;
+    }
+    try {
+      const response: any = await this.reimbursementService
+        .fetchReimbursementClientsFromMaster()
+        .pipe(first())
+        .toPromise();
+      if (response.serviceStatus !== 'Success' || !response.serviceResponse) {
+        return;
+      }
+      const raw = response.serviceResponse as any[];
+      this.clientsForOthers = raw
+        .filter((r) => r.clientId != null)
+        .map((r) => ({
+          clientId: Number(r.clientId),
+          clientName: r.clientName != null ? String(r.clientName) : ''
+        }))
+        .filter((r) => Number.isFinite(r.clientId))
+        .sort((a, b) => a.clientName.localeCompare(b.clientName));
+    } catch (e) {
+      console.error('loadClientsForOthers', e);
+    }
+  }
+
+  emptyProjectPickerHint(): string {
+    if (this.projectPickerSource === 'DEPARTMENT') {
+      return 'No active projects are linked to your department scope. If this looks wrong, contact RMG.';
+    }
+    if (this.projectPickerSource === 'TEAM') {
+      return 'You have no mapped projects. Contact RMG to assign a project before submitting a travel request.';
+    }
+    return 'Projects could not be loaded. Refresh the page or try again later.';
+  }
+
+  clearSelectedProject(): void {
+    this.travelDeskObj.projectId = null;
+    this.travelDeskObj.othersProjectName = '';
+    this.travelDeskObj.othersClientId = null;
+    this.travelDeskObj.displayClientName = '';
+  }
+
+  clearOthersClient(): void {
+    this.travelDeskObj.othersClientId = null;
+  }
+
+  isOthersProjectSelected(): boolean {
+    return Number(this.travelDeskObj.projectId) === this.TRAVEL_OTHERS_PROJECT_ID;
+  }
+
+  showReadonlyClientForProject(): boolean {
+    const id = this.travelDeskObj.projectId != null ? Number(this.travelDeskObj.projectId) : NaN;
+    return Number.isFinite(id) && id !== this.TRAVEL_OTHERS_PROJECT_ID;
+  }
+
+  onTravelProjectSelected(_event?: unknown): void {
+    const id = this.travelDeskObj.projectId != null ? Number(this.travelDeskObj.projectId) : NaN;
+    if (!Number.isFinite(id)) {
+      this.travelDeskObj.displayClientName = '';
+      this.travelDeskObj.othersProjectName = '';
+      this.travelDeskObj.othersClientId = null;
+      return;
+    }
+    if (id === this.TRAVEL_OTHERS_PROJECT_ID) {
+      this.travelDeskObj.displayClientName = '';
+      if (!this.clientsForOthers.length) {
+        void this.loadClientsForOthers();
+      }
+      return;
+    }
+    this.travelDeskObj.othersProjectName = '';
+    this.travelDeskObj.othersClientId = null;
+    const p = this.mappedProjectsForTravel.find((x) => x.projectId === id);
+    this.travelDeskObj.displayClientName = p?.clientName ? String(p.clientName) : '';
+  }
+
+  projectSectionHint(): string {
+    if (this.isOthersProjectSelected()) {
+      return 'Enter the project name and choose a client from the master list.';
+    }
+    return 'Select a mapped project. Client is filled automatically from the project mapping.';
+  }
+
+  private validateProjectAndClient(template: TemplateRef<any>): boolean {
+    if (!this.mappedProjectsForTravel.length) {
+      this.openAlertMod(template, this.emptyProjectPickerHint());
+      return false;
+    }
+    if (this.travelDeskObj.projectId == null || this.travelDeskObj.projectId === '') {
+      this.openAlertMod(template, 'Please select a project.');
+      return false;
+    }
+    const selectedPid = Number(this.travelDeskObj.projectId);
+    if (!this.mappedProjectsForTravel.some((p) => p.projectId === selectedPid)) {
+      this.openAlertMod(template, 'Please select a valid project from the list.');
+      return false;
+    }
+    if (selectedPid === this.TRAVEL_OTHERS_PROJECT_ID) {
+      if (!(this.travelDeskObj.othersProjectName || '').trim()) {
+        this.openAlertMod(template, 'Enter the project name for Others.');
+        return false;
+      }
+      if (this.travelDeskObj.othersClientId == null || this.travelDeskObj.othersClientId === '') {
+        this.openAlertMod(template, 'Select a client for Others.');
+        return false;
+      }
+    }
+    return true;
+  }
+
   async submitForm(template: TemplateRef<any>) {
     if (this.isValidForm()) {
-      // All validations
+      if (!this.validateProjectAndClient(template)) {
+        return;
+      }
       if (!this.travelDeskObj.associatedTravelRequest) {
         this.openAlertMod(template, "Please select an Associated Travel Request.");
         return;
@@ -319,6 +503,8 @@ export class MyTravelrequestComponent implements OnInit {
 
 
 
+        const selectedPid = Number(this.travelDeskObj.projectId);
+        const projectRow = this.mappedProjectsForTravel.find((p) => p.projectId === selectedPid);
         const travelData: any = {
           employeeId: this.currentEmployeeInfo.empId,
           fullName: this.currentEmployeeInfo.name,
@@ -343,7 +529,18 @@ export class MyTravelrequestComponent implements OnInit {
           docId: this.travelDeskObj.docIds,
           reportingManagerId: this.currentEmployeeInfo.reportingManagerId,
           reportingManagerName: this.currentEmployeeInfo.reportingManagerName,
-          kycDocumentId: this.travelDeskObj.kycDocumentId
+          kycDocumentId: this.travelDeskObj.kycDocumentId,
+          projectId: selectedPid,
+          othersProjectName: selectedPid === this.TRAVEL_OTHERS_PROJECT_ID
+            ? (this.travelDeskObj.othersProjectName || '').trim() : null,
+          othersClientId: selectedPid === this.TRAVEL_OTHERS_PROJECT_ID
+            ? Number(this.travelDeskObj.othersClientId) : null,
+          clientId: selectedPid !== this.TRAVEL_OTHERS_PROJECT_ID && projectRow?.clientId != null
+            ? Number(projectRow.clientId) : null,
+          clientName: selectedPid !== this.TRAVEL_OTHERS_PROJECT_ID
+            ? (projectRow?.clientName || this.travelDeskObj.displayClientName || '') : null,
+          projectName: selectedPid !== this.TRAVEL_OTHERS_PROJECT_ID
+            ? (projectRow?.projectName || '') : null
         };
 
         console.log('currentEmployeeInfo         :::::::::::::', this.currentEmployeeInfo);
@@ -405,8 +602,18 @@ export class MyTravelrequestComponent implements OnInit {
       fromDate: '',
       toDate: '',
       purposeOfTravel: '',
-      supportingDocument: null
+      supportingDocument: null,
+      hotelCategory: '',
+      tlSubCategory: '',
+      docIds: [],
+      kycDocumentId: '',
+      projectId: null,
+      othersProjectName: '',
+      othersClientId: null,
+      displayClientName: ''
     };
+    this.travelModelistByReason = [];
+    this.travelClasslistByReason = [];
     this.alertMessage = `Your form data has been successfully reset  !!!!!!`;
     this.openAlertMod(template, this.alertMessage);
 
@@ -549,9 +756,19 @@ export class MyTravelrequestComponent implements OnInit {
   }
 
 
+  onTravelReasonSelected(_event?: unknown): void {
+    void this.onTravelReasonChange(this.travelDeskObj.associatedTravelRequest);
+  }
+
+  onTravelModeSelected(_event?: unknown): void {
+    void this.onModeChange(this.travelDeskObj.travelMode);
+  }
+
   async onTravelReasonChange(selectedTravelReasons: string) {
-    console.log('Selected reason:', selectedTravelReasons);
+    this.travelDeskObj.travelMode = '';
+    this.travelDeskObj.travelClass = '';
     this.travelModelistByReason = [];
+    this.travelClasslistByReason = [];
     if (selectedTravelReasons == "Hotel & Lodging") {
       this.onGetHotelCategory();
       this.onGetHotelSubCategory();
@@ -572,19 +789,21 @@ export class MyTravelrequestComponent implements OnInit {
 
 
   async onModeChange(selectedTravelMode: string) {
-    console.log('Selected Mode:', selectedTravelMode);
+    this.travelDeskObj.travelClass = '';
     this.travelClasslistByReason = [];
+    const mode = this.travelModelistByReason?.find((m: any) => m.modeType === selectedTravelMode);
+    if (!mode?.travelModeId) {
+      return;
+    }
     try {
-      const response: any = await this.travelDesk.getTravelClassByMode(selectedTravelMode).toPromise();
-      if (response.serviceStatus === "Success") {
-        this.travelClasslistByReason = response.serviceResponse;
-        console.log("travelClasslistByReason :", this.travelClasslistByReason);
+      const response: any = await this.travelDesk.getTravelClassByMode(mode.travelModeId).toPromise();
+      if (response.serviceStatus === 'Success') {
+        this.travelClasslistByReason = response.serviceResponse || [];
       } else {
-        console.error("Failed to fetch travel Class:", response.serviceResponse);
+        console.error('Failed to fetch travel classes:', response.serviceError || response.serviceResponse);
       }
-
     } catch (error) {
-      console.error("Error fetching travel Class:", error);
+      console.error('Error fetching travel classes:', error);
     }
   }
 
