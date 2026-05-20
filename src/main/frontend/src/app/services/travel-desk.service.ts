@@ -71,12 +71,20 @@ export class TravelDeskService {
     return this.http.post(`${this.baseUrl}`+`api/travel-reason/create`, reason);
   }
 
+  deleteTravelReason(id: number) {
+    return this.http.post(`${this.baseUrl}api/deleteTravelReason`, { id });
+  }
+
   getTravelReason() {
     return this.http.get(`${this.baseUrl}` + `api/getTravelReason`);
   }
 
   saveTravelMode(travelModeObj: any) {
     return this.http.post(`${this.baseUrl}`+`api/saveTravelMode`, travelModeObj);
+  }
+
+  deleteTravelMode(travelModeId: number) {
+    return this.http.post(`${this.baseUrl}api/deleteTravelMode`, { travelModeId });
   }
 
   getTravelMode() {
@@ -88,6 +96,10 @@ export class TravelDeskService {
 
   saveTravelClass(travelModeObj: any) {
     return this.http.post(`${this.baseUrl}`+`api/saveTravelClass`, travelModeObj);
+  }
+
+  deleteTravelClass(travelClassId: number) {
+    return this.http.post(`${this.baseUrl}api/deleteTravelClass`, { travelClassId });
   }
 
 
@@ -107,6 +119,10 @@ export class TravelDeskService {
     return this.http.post(`${this.baseUrl}`+`api/saveHotelCategory`, reason);
   }
 
+  deleteHotelCategory(id: number) {
+    return this.http.post(`${this.baseUrl}api/deleteHotelCategory`, { id });
+  }
+
   getHotelCategory() {
     return this.http.get(`${this.baseUrl}` + `api/getHotelCategory`);
   }
@@ -114,6 +130,10 @@ export class TravelDeskService {
 
   saveHotelSubCategory(reason: any) {
     return this.http.post(`${this.baseUrl}`+`api/saveHotelSubCategory`, reason);
+  }
+
+  deleteHotelSubCategory(id: number) {
+    return this.http.post(`${this.baseUrl}api/deleteHotelSubCategory`, { id });
   }
 
   getHotelSubCategory() {
@@ -124,9 +144,12 @@ export class TravelDeskService {
     return this.http.post(`${this.baseUrl}`+`api/saveCity`, reason);
   }
 
-  getTravelClassByMode(travelReason: string) {
-    console.log(travelReason);
-    return this.http.post(`${this.baseUrl}api/getTravelClassByMode`, travelReason, {
+  deleteCity(cityId: number) {
+    return this.http.post(`${this.baseUrl}api/deleteCity`, { cityId });
+  }
+
+  getTravelClassByMode(travelModeId: number) {
+    return this.http.post(`${this.baseUrl}api/getTravelClassByMode`, travelModeId, {
       headers: { 'Content-Type': 'application/json' }
     });
   }

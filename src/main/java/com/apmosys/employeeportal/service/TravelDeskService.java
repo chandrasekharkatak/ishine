@@ -33,7 +33,9 @@ import com.apmosys.employeeportal.dto.TravelDeskDTO;
 import com.apmosys.employeeportal.dto.TravelModeDTO;
 import com.apmosys.employeeportal.dto.TravelReasonDTO;
 import com.apmosys.employeeportal.model.City;
+import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.HotelCategory;
 import com.apmosys.employeeportal.model.HotelSubCategory;
@@ -43,8 +45,10 @@ import com.apmosys.employeeportal.model.TravelDesk;
 import com.apmosys.employeeportal.model.TravelMode;
 import com.apmosys.employeeportal.model.TravelReason;
 import com.apmosys.employeeportal.repository.CityRepository;
+import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.HotelCategoryRepository;
 import com.apmosys.employeeportal.repository.HotelSubCategoryRepository;
 import com.apmosys.employeeportal.repository.NewsletterRepository;
@@ -87,7 +91,15 @@ public class TravelDeskService {
 	 
 	 @Autowired
 	 private CityRepository cityRepository;
-	
+
+	@Autowired
+	private ProjectRepository projectRepository;
+
+	@Autowired
+	private ClientsRepository clientsRepository;
+
+	private static final long TRAVEL_PROJECT_OTHERS_ID = -1L;
+
 	@Value("${level2Approver}")
 	public String level2Approver;
 	
@@ -110,6 +122,40 @@ public class TravelDeskService {
 	private String adminHead;
 
 	
+	private void applyProjectAndClientOnTravelDesk(TravelDesk travelDesk, TravelDeskDTO travelData) {
+		if (travelData.getProjectId() == null) {
+			return;
+		}
+		long pid = travelData.getProjectId().longValue();
+		if (pid == TRAVEL_PROJECT_OTHERS_ID) {
+			travelDesk.setProjectId(null);
+			String othersName = travelData.getOthersProjectName() != null
+					? travelData.getOthersProjectName().trim()
+					: (travelData.getProjectName() != null ? travelData.getProjectName().trim() : "");
+			travelDesk.setProjectName(othersName);
+			Integer cid = travelData.getOthersClientId() != null ? travelData.getOthersClientId() : travelData.getClientId();
+			travelDesk.setClientId(cid);
+			if (cid != null) {
+				Client client = clientsRepository.findByClientId(cid);
+				travelDesk.setClientName(client != null ? client.getClientName() : travelData.getClientName());
+			} else {
+				travelDesk.setClientName(travelData.getClientName());
+			}
+			return;
+		}
+		travelDesk.setProjectId(pid);
+		Project project = projectRepository.findByProjectId((int) pid);
+		if (project != null) {
+			travelDesk.setProjectName(project.getProjectName());
+			travelDesk.setClientId(project.getClientId());
+			travelDesk.setClientName(project.getClientName());
+		} else if (travelData.getProjectName() != null) {
+			travelDesk.setProjectName(travelData.getProjectName());
+			travelDesk.setClientId(travelData.getClientId());
+			travelDesk.setClientName(travelData.getClientName());
+		}
+	}
+
 	@SuppressWarnings("unused")
 	public ServiceResponse saveTravelData(TravelDeskDTO travelData) {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -136,6 +182,7 @@ public class TravelDeskService {
 		travelDesk.setCity(travelData.getCity());
 		travelDesk.setTravelMode(travelData.getTravelMode());
 		travelDesk.setTravelClass(travelData.getTravelClass());
+		applyProjectAndClientOnTravelDesk(travelDesk, travelData);
 		travelDesk.setPurpose(travelData.getPurposeOfTravel());
 		travelDesk.setFromLocation(travelData.getFromLocation());
 		travelDesk.setFromDate(travelData.getFromDate());
@@ -1192,17 +1239,45 @@ try {
 	public ServiceResponse saveTravelReason(TravelReasonDTO travelReasonDTO) {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    try {
-	        TravelReason travelReason = new TravelReason();
-	        travelReason.setTravelReasonName(travelReasonDTO.getTravelReasonName());
-	        travelReason.setDescription(travelReasonDTO.getDescription());
-	        travelReason.setIsActive("Y");
-	        travelReason.setCreatedBy(travelReasonDTO.getCreatedBy());
-	        Employee empName = employeeRepository.findByEmpId(travelReasonDTO.getCreatedBy());
-	        travelReason.setCreatedByName(empName.getName());
-	        TravelReason savedReason = travelReasonRepository.save(travelReason);
+	        if (travelReasonDTO.getTravelReasonName() == null
+	                || travelReasonDTO.getTravelReasonName().trim().isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("Travel reason name is required.");
+	            return serviceResponse;
+	        }
+	        final String name = travelReasonDTO.getTravelReasonName().trim();
+	        Employee emp = travelReasonDTO.getCreatedBy() != null
+	                ? employeeRepository.findByEmpId(travelReasonDTO.getCreatedBy())
+	                : null;
+	        final String empName = emp != null ? emp.getName() : "System";
 
-	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        serviceResponse.setServiceResponse(savedReason); 
+	        if (travelReasonDTO.getId() != null) {
+	            TravelReason existing = travelReasonRepository.findById(travelReasonDTO.getId())
+	                    .orElseThrow(() -> new RuntimeException("Travel reason not found: " + travelReasonDTO.getId()));
+	            Optional<TravelReason> other = travelReasonRepository.findByTravelReasonName(name);
+	            if (other.isPresent() && !other.get().getId().equals(existing.getId())) {
+	                throw new RuntimeException("Travel reason name already exists.");
+	            }
+	            existing.setTravelReasonName(name);
+	            existing.setDescription(travelReasonDTO.getDescription());
+	            existing.setUpdatedBy(travelReasonDTO.getCreatedBy());
+	            TravelReason savedReason = travelReasonRepository.save(existing);
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(savedReason);
+	        } else {
+	            if (travelReasonRepository.findByTravelReasonName(name).isPresent()) {
+	                throw new RuntimeException("Travel reason name already exists.");
+	            }
+	            TravelReason travelReason = new TravelReason();
+	            travelReason.setTravelReasonName(name);
+	            travelReason.setDescription(travelReasonDTO.getDescription());
+	            travelReason.setIsActive("Y");
+	            travelReason.setCreatedBy(travelReasonDTO.getCreatedBy());
+	            travelReason.setCreatedByName(empName);
+	            TravelReason savedReason = travelReasonRepository.save(travelReason);
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(savedReason);
+	        }
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -1211,6 +1286,34 @@ try {
 
 	    return serviceResponse;
 	}
+
+	public ServiceResponse deleteTravelReason(Long id) {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        if (id == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("id is required.");
+	            return response;
+	        }
+	        if (travelModeRepository.countByTravelReason_Id(id) > 0) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("Cannot delete: travel modes exist for this reason. Remove them first.");
+	            return response;
+	        }
+	        if (travelClassRepository.countByTravelReason_Id(id) > 0) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("Cannot delete: travel classes exist for this reason. Remove them first.");
+	            return response;
+	        }
+	        travelReasonRepository.deleteById(id);
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Travel reason deleted.");
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceError(e.getMessage());
+	    }
+	    return response;
+	}
 	
 	public ServiceResponse getAllTravelReasons() {
 	    ServiceResponse serviceResponse = new ServiceResponse();
@@ -1218,13 +1321,8 @@ try {
 	        List<TravelReason> reasonList = travelReasonRepository.findAll();				
 
 
-	        if (reasonList.isEmpty()) {
-	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            serviceResponse.setServiceError("No travel reasons found.");
-	        } else {
-	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            serviceResponse.setServiceResponse(reasonList);
-	        }
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        serviceResponse.setServiceResponse(reasonList);
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -1240,20 +1338,51 @@ try {
 	    ServiceResponse response = new ServiceResponse();
 
 	    try {
-	        // Fetch TravelReason entity by name
+	        if (travelModeDTO.getModeType() == null || travelModeDTO.getModeType().trim().isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("Mode type is required.");
+	            return response;
+	        }
 	        TravelReason travelReason = travelReasonRepository
 	            .findByTravelReasonName(travelModeDTO.getTravelReason())
 	            .orElseThrow(() -> new RuntimeException("TravelReason not found: " + travelModeDTO.getTravelReason()));
+	        final String modeType = travelModeDTO.getModeType().trim();
+	        Employee empName = travelModeDTO.getCreatedBy() != null
+	                ? employeeRepository.findByEmpId(travelModeDTO.getCreatedBy())
+	                : null;
+	        final String creatorName = empName != null ? empName.getName() : "System";
 
-	        TravelMode mode = new TravelMode();
-	        mode.setTravelReason(travelReason); // Set the entity, not the string
-	        mode.setModeType(travelModeDTO.getModeType());
-	        mode.setDescription(travelModeDTO.getDescription());
-	        mode.setIsActive("Y");
-	        mode.setCreatedBy(travelModeDTO.getCreatedBy());
-	        Employee empName = employeeRepository.findByEmpId(travelModeDTO.getCreatedBy());
-	        mode.setCreatedByName(empName.getName());
-	        travelModeRepository.save(mode);
+	        if (travelModeDTO.getTravelModeId() != null) {
+	            TravelMode existing = travelModeRepository.findById(travelModeDTO.getTravelModeId())
+	                    .orElseThrow(() -> new RuntimeException("Travel mode not found: " + travelModeDTO.getTravelModeId()));
+	            List<TravelMode> siblings = travelModeRepository.findByTravelReasonId(travelReason.getId());
+	            for (TravelMode m : siblings) {
+	                if (!m.getTravelModeId().equals(existing.getTravelModeId())
+	                        && m.getModeType() != null
+	                        && m.getModeType().trim().equalsIgnoreCase(modeType)) {
+	                    throw new RuntimeException("Mode type already exists for this travel reason.");
+	                }
+	            }
+	            existing.setTravelReason(travelReason);
+	            existing.setModeType(modeType);
+	            existing.setDescription(travelModeDTO.getDescription());
+	            travelModeRepository.save(existing);
+	        } else {
+	            List<TravelMode> siblings = travelModeRepository.findByTravelReasonId(travelReason.getId());
+	            for (TravelMode m : siblings) {
+	                if (m.getModeType() != null && m.getModeType().trim().equalsIgnoreCase(modeType)) {
+	                    throw new RuntimeException("Mode type already exists for this travel reason.");
+	                }
+	            }
+	            TravelMode mode = new TravelMode();
+	            mode.setTravelReason(travelReason);
+	            mode.setModeType(modeType);
+	            mode.setDescription(travelModeDTO.getDescription());
+	            mode.setIsActive("Y");
+	            mode.setCreatedBy(travelModeDTO.getCreatedBy());
+	            mode.setCreatedByName(creatorName);
+	            travelModeRepository.save(mode);
+	        }
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse("Travel Mode saved successfully.");
@@ -1262,6 +1391,29 @@ try {
 	        response.setServiceError(e.getMessage());
 	    }
 
+	    return response;
+	}
+
+	public ServiceResponse deleteTravelMode(Long travelModeId) {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        if (travelModeId == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("travelModeId is required.");
+	            return response;
+	        }
+	        if (travelClassRepository.countByTravelMode_TravelModeId(travelModeId) > 0) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("Cannot delete: travel classes use this mode. Remove them first.");
+	            return response;
+	        }
+	        travelModeRepository.deleteById(travelModeId);
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Travel mode deleted.");
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceError(e.getMessage());
+	    }
 	    return response;
 	}
 
@@ -1291,7 +1443,7 @@ try {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    try {
 //	        List<TravelMode> modeList = travelModeRepository.findAll();
-	        List<TravelMode> modeList = travelModeRepository.findAllData();
+	        List<TravelMode> modeList = travelModeRepository.findAllWithReason();
 
 	        List<TravelModeDTO> dtoList = new ArrayList<>();
 
@@ -1321,7 +1473,7 @@ try {
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        serviceResponse.setServiceError("Error fetching travel reasons: " + e.getMessage());
+	        serviceResponse.setServiceError("Error fetching travel modes: " + e.getMessage());
 	    }
 
 	    return serviceResponse;
@@ -1372,33 +1524,43 @@ try {
 	        ServiceResponse response = new ServiceResponse();
 
 	        try {
-	            // Fetch TravelReason by name
-	        	 TravelReason travelReason = travelReasonRepository
+	            TravelReason travelReason = travelReasonRepository
 	     	            .findByTravelReasonName(dto.getTravelReason())
 	     	            .orElseThrow(() -> new RuntimeException("TravelReason not found: " + dto.getTravelReason()));
 
-	        	 Long modeId = Long.parseLong(dto.getTravelMode()); 
-	 	        
+	        	 Long modeId = Long.parseLong(dto.getTravelMode());
+	 	        TravelMode travelMode = travelModeRepository.findById(modeId)
+	 	                .orElseThrow(() -> new RuntimeException("Travel Mode not found: " + modeId));
+	            final String className = dto.getTravelClass() != null ? dto.getTravelClass().trim() : "";
+	            if (className.isEmpty()) {
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceError("Travel class name is required.");
+	                return response;
+	            }
+	            Employee empName = dto.getCreatedBy() != null
+	                    ? employeeRepository.findByEmpId(dto.getCreatedBy())
+	                    : null;
+	            final String creatorName = empName != null ? empName.getName() : "System";
 
-	 	        TravelMode modeList = travelModeRepository.findByModeId(modeId);
-
-//	        	 String modeType = dto.getTravelMode();
-	        	 
-//	        	 TravelMode travelMode = travelModeRepository
-//	        		        .findByModeType(modeType)
-//	        		        .orElseThrow(() -> new RuntimeException("Travel Mode not found: " + dto.getTravelMode()));
-
-
-	            TravelClass travelClass = new TravelClass();
-	            travelClass.setTravelReason(travelReason);
-	            travelClass.setTravelMode(modeList);
-	            travelClass.setTravelClass(dto.getTravelClass());
-	            travelClass.setDescription(dto.getDescription());
-	            travelClass.setCreatedBy(dto.getCreatedBy());
-	            travelClass.setIsActive("Y");
-	            Employee empName = employeeRepository.findByEmpId(dto.getCreatedBy());
-	            travelClass.setCreatedByName(empName.getName());
-	            travelClassRepository.save(travelClass);
+	            if (dto.getTravelClassId() != null) {
+	                TravelClass existing = travelClassRepository.findById(dto.getTravelClassId())
+	                        .orElseThrow(() -> new RuntimeException("Travel class not found: " + dto.getTravelClassId()));
+	                existing.setTravelReason(travelReason);
+	                existing.setTravelMode(travelMode);
+	                existing.setTravelClass(className);
+	                existing.setDescription(dto.getDescription());
+	                travelClassRepository.save(existing);
+	            } else {
+	                TravelClass travelClass = new TravelClass();
+	                travelClass.setTravelReason(travelReason);
+	                travelClass.setTravelMode(travelMode);
+	                travelClass.setTravelClass(className);
+	                travelClass.setDescription(dto.getDescription());
+	                travelClass.setCreatedBy(dto.getCreatedBy());
+	                travelClass.setIsActive("Y");
+	                travelClass.setCreatedByName(creatorName);
+	                travelClassRepository.save(travelClass);
+	            }
 
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            response.setServiceResponse("Travel Class saved successfully.");
@@ -1410,7 +1572,24 @@ try {
 
 	        return response;
 	    }
-	
+
+	public ServiceResponse deleteTravelClass(Long travelClassId) {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        if (travelClassId == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("travelClassId is required.");
+	            return response;
+	        }
+	        travelClassRepository.deleteById(travelClassId);
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Travel class deleted.");
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceError(e.getMessage());
+	    }
+	    return response;
+	}
 
 
 	public ServiceResponse uploadTicket(MultipartFile file, String displayName, Long uploadedBy, BigInteger requestId) {
@@ -1669,17 +1848,38 @@ try {
 	public ServiceResponse saveHotelCategory(HotelCategoryDTO hotelCategoryDTO) {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    try {
-	        HotelCategory hotelCategory = new HotelCategory();
-	        hotelCategory.setHotelCategory(hotelCategoryDTO.getHotelCategory());
-	        hotelCategory.setDescription(hotelCategoryDTO.getDescription());
-	        hotelCategory.setIsActive("Y");
-	        hotelCategory.setCreatedBy(hotelCategoryDTO.getCreatedBy()); 
-	        Employee empName = employeeRepository.findByEmpId(hotelCategoryDTO.getCreatedBy());
-	        hotelCategory.setCreatedByName(empName.getName());
-	        HotelCategory savedCategory = hotelCategoryRepository.save(hotelCategory);
+	        if (hotelCategoryDTO.getHotelCategory() == null
+	                || hotelCategoryDTO.getHotelCategory().trim().isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("Hotel category name is required.");
+	            return serviceResponse;
+	        }
+	        final String name = hotelCategoryDTO.getHotelCategory().trim();
+	        Employee emp = hotelCategoryDTO.getCreatedBy() != null
+	                ? employeeRepository.findByEmpId(hotelCategoryDTO.getCreatedBy())
+	                : null;
+	        final String empNameStr = emp != null ? emp.getName() : "System";
 
-	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        serviceResponse.setServiceResponse(savedCategory); 
+	        if (hotelCategoryDTO.getId() != null) {
+	            HotelCategory existing = hotelCategoryRepository.findById(hotelCategoryDTO.getId())
+	                    .orElseThrow(() -> new RuntimeException("Hotel category not found: " + hotelCategoryDTO.getId()));
+	            existing.setHotelCategory(name);
+	            existing.setDescription(hotelCategoryDTO.getDescription());
+	            existing.setUpdatedBy(hotelCategoryDTO.getCreatedBy());
+	            HotelCategory savedCategory = hotelCategoryRepository.save(existing);
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(savedCategory);
+	        } else {
+	            HotelCategory hotelCategory = new HotelCategory();
+	            hotelCategory.setHotelCategory(name);
+	            hotelCategory.setDescription(hotelCategoryDTO.getDescription());
+	            hotelCategory.setIsActive("Y");
+	            hotelCategory.setCreatedBy(hotelCategoryDTO.getCreatedBy());
+	            hotelCategory.setCreatedByName(empNameStr);
+	            HotelCategory savedCategory = hotelCategoryRepository.save(hotelCategory);
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(savedCategory);
+	        }
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -1688,6 +1888,34 @@ try {
 
 	    return serviceResponse;
 	}
+
+	public ServiceResponse deleteHotelCategory(Long id) {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        if (id == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("id is required.");
+	            return response;
+	        }
+	        if (hotelSubCategoryRepository.countByHotelCategory_Id(id) > 0) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("Cannot delete: hotel sub-categories exist. Remove them first.");
+	            return response;
+	        }
+	        if (cityRepository.countByHotelCategory_Id(id) > 0) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("Cannot delete: cities are linked to this category. Remove them first.");
+	            return response;
+	        }
+	        hotelCategoryRepository.deleteById(id);
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Hotel category deleted.");
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceError(e.getMessage());
+	    }
+	    return response;
+	}
 	
 	
 	public ServiceResponse getHotelCategory() {
@@ -1695,13 +1923,8 @@ try {
 	    try {
 	        List<HotelCategory> hotelCategoryist = hotelCategoryRepository.findAll();
 
-	        if (hotelCategoryist.isEmpty()) {
-	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            serviceResponse.setServiceError("No hotel Category found.");
-	        } else {
-	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            serviceResponse.setServiceResponse(hotelCategoryist);
-	        }
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        serviceResponse.setServiceResponse(hotelCategoryist);
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -1716,26 +1939,36 @@ try {
 	    ServiceResponse response = new ServiceResponse();
 
 	    try {
-	        // Fetch HotelCategory entity by name
-//	        HotelCategory hotelCategory = hotelCategoryRepository
-//	            .findHotelCategoryById(dto.getHotelCategory())
-//	            .orElseThrow(() -> new RuntimeException("HotelCategory not found: " + dto.getHotelCategory()));
-	    	
-	    	Long hotelCategoryId = Long.parseLong(dto.getHotelCategory()); // Convert String to Long
-
+	    	Long hotelCategoryId = Long.parseLong(dto.getHotelCategory());
 	    	HotelCategory hotelCategory = hotelCategoryRepository
 	    	    .findById(hotelCategoryId)
 	    	    .orElseThrow(() -> new RuntimeException("HotelCategory not found: " + dto.getHotelCategory()));
+	        final String subName = dto.getHotelSubCategoryName() != null ? dto.getHotelSubCategoryName().trim() : "";
+	        if (subName.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("Sub-category name is required.");
+	            return response;
+	        }
+	        Employee emp = dto.getCreatedBy() != null ? employeeRepository.findByEmpId(dto.getCreatedBy()) : null;
+	        final String empNameStr = emp != null ? emp.getName() : "System";
 
-	        HotelSubCategory subCategory = new HotelSubCategory();
-	        subCategory.setHotelCategory(hotelCategory); // Set the entity, not just ID
-	        subCategory.setHotelSubCategoryName(dto.getHotelSubCategoryName());
-	        subCategory.setDescription(dto.getDescription());
-	        subCategory.setIsActive("Y");
-	        subCategory.setCreatedBy(dto.getCreatedBy());
-	        Employee empName = employeeRepository.findByEmpId(dto.getCreatedBy());
-	        subCategory.setCreatedByName(empName.getName());
-	        hotelSubCategoryRepository.save(subCategory);
+	        if (dto.getId() != null) {
+	            HotelSubCategory existing = hotelSubCategoryRepository.findById(dto.getId())
+	                    .orElseThrow(() -> new RuntimeException("Hotel sub-category not found: " + dto.getId()));
+	            existing.setHotelCategory(hotelCategory);
+	            existing.setHotelSubCategoryName(subName);
+	            existing.setDescription(dto.getDescription());
+	            hotelSubCategoryRepository.save(existing);
+	        } else {
+	            HotelSubCategory subCategory = new HotelSubCategory();
+	            subCategory.setHotelCategory(hotelCategory);
+	            subCategory.setHotelSubCategoryName(subName);
+	            subCategory.setDescription(dto.getDescription());
+	            subCategory.setIsActive("Y");
+	            subCategory.setCreatedBy(dto.getCreatedBy());
+	            subCategory.setCreatedByName(empNameStr);
+	            hotelSubCategoryRepository.save(subCategory);
+	        }
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse("Hotel Sub-Category saved successfully.");
@@ -1746,6 +1979,29 @@ try {
 
 	    return response;
 	}
+
+	public ServiceResponse deleteHotelSubCategory(Long id) {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        if (id == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("id is required.");
+	            return response;
+	        }
+	        if (cityRepository.countByHotelSubCategory_Id(id) > 0) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("Cannot delete: cities are linked to this sub-category. Remove them first.");
+	            return response;
+	        }
+	        hotelSubCategoryRepository.deleteById(id);
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Hotel sub-category deleted.");
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceError(e.getMessage());
+	    }
+	    return response;
+	}
 	
 	
 	public ServiceResponse getHotelSubCategory() {
@@ -1753,15 +2009,9 @@ try {
 	    try {
 	        List<HotelSubCategory> hotelSubCategoryist = hotelSubCategoryRepository.findAll();
 
-	        if (hotelSubCategoryist.isEmpty()) {
-	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            serviceResponse.setServiceError("No hotel Category found.");
-	            return serviceResponse;
-	        } else {
-	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            serviceResponse.setServiceResponse(hotelSubCategoryist);
-	            return serviceResponse;
-	        }
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        serviceResponse.setServiceResponse(hotelSubCategoryist);
+	        return serviceResponse;
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -1785,16 +2035,34 @@ try {
 	                .findById(dto.getHotelSubCategoryId())
 	                .orElseThrow(() -> new RuntimeException("HotelSubCategory not found with ID: " + dto.getHotelSubCategoryId()));
 
-	        City city = new City();
-	        city.setHotelCategory(hotelCategory);
-	        city.setHotelSubCategory(hotelSubCategory);
-	        city.setCityName(dto.getCityName());
-	        city.setDescription(dto.getDescription());
-	        city.setIsActive("Y");
-	        city.setCreatedBy(dto.getCreatedBy());
-	        Employee empName = employeeRepository.findByEmpId(dto.getCreatedBy());
-	        city.setCreatedByName(empName.getName());
-	        cityRepository.save(city);
+	        final String cityName = dto.getCityName() != null ? dto.getCityName().trim() : "";
+	        if (cityName.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("City name is required.");
+	            return response;
+	        }
+	        Employee emp = dto.getCreatedBy() != null ? employeeRepository.findByEmpId(dto.getCreatedBy()) : null;
+	        final String empNameStr = emp != null ? emp.getName() : "System";
+
+	        if (dto.getCityId() != null) {
+	            City existing = cityRepository.findById(dto.getCityId())
+	                    .orElseThrow(() -> new RuntimeException("City not found: " + dto.getCityId()));
+	            existing.setHotelCategory(hotelCategory);
+	            existing.setHotelSubCategory(hotelSubCategory);
+	            existing.setCityName(cityName);
+	            existing.setDescription(dto.getDescription());
+	            cityRepository.save(existing);
+	        } else {
+	            City city = new City();
+	            city.setHotelCategory(hotelCategory);
+	            city.setHotelSubCategory(hotelSubCategory);
+	            city.setCityName(cityName);
+	            city.setDescription(dto.getDescription());
+	            city.setIsActive("Y");
+	            city.setCreatedBy(dto.getCreatedBy());
+	            city.setCreatedByName(empNameStr);
+	            cityRepository.save(city);
+	        }
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse("City saved successfully.");
@@ -1805,29 +2073,38 @@ try {
 
 	    return response;
 	}
+
+	public ServiceResponse deleteCity(Long cityId) {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        if (cityId == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError("cityId is required.");
+	            return response;
+	        }
+	        cityRepository.deleteById(cityId);
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("City deleted.");
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceError(e.getMessage());
+	    }
+	    return response;
+	}
 	
 	
-	public ServiceResponse getTravelClassByMode(String travelModeName) {
+	public ServiceResponse getTravelClassByTravelModeId(Long travelModeId) {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    try {
-
-	        
-	        TravelMode getTravelClassByMode = travelModeRepository
-		            .findByModeType(travelModeName)
-		            .orElseThrow(() -> new RuntimeException("TravelClass not found: " + travelModeName));
-		        
-	        
-
-	        System.out.println(getTravelClassByMode.toString());
-
-	        Long travelModeId = getTravelClassByMode.getTravelModeId(); 
-	        System.out.println("Travel Mode ID: " + travelModeId);
-
-	        Optional<List<TravelClass>> classList = travelClassRepository.findByTravelModeId(travelModeId);
-
-	        if (classList.isEmpty()) {
+	        if (travelModeId == null) {
 	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            serviceResponse.setServiceError("No travel modes found.");
+	            serviceResponse.setServiceError("Travel mode is required.");
+	            return serviceResponse;
+	        }
+	        List<TravelClass> classList = travelClassRepository.findAllByTravelMode_TravelModeId(travelModeId);
+	        if (classList == null || classList.isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("No travel classes found for the selected mode.");
 	        } else {
 	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            serviceResponse.setServiceResponse(classList);
@@ -1835,9 +2112,8 @@ try {
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        serviceResponse.setServiceError("Error fetching travel modes: " + e.getMessage());
+	        serviceResponse.setServiceError("Error fetching travel classes: " + e.getMessage());
 	    }
-
 	    return serviceResponse;
 	}
 	
@@ -1883,15 +2159,9 @@ try {
 	    try {
 	        List<City> cityList = cityRepository.findAll();
 
-	        if (cityList.isEmpty()) {
-	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            serviceResponse.setServiceError("No City found.");
-	            return serviceResponse;
-	        } else {
-	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            serviceResponse.setServiceResponse(cityList);
-	            return serviceResponse;
-	        }
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        serviceResponse.setServiceResponse(cityList);
+	        return serviceResponse;
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -1906,15 +2176,9 @@ try {
 	    try {
 	        List<TravelClass> classList = travelClassRepository.findAll();
 
-	        if (classList.isEmpty()) {
-	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            serviceResponse.setServiceError("No CLass found.");
-	            return serviceResponse;
-	        } else {
-	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            serviceResponse.setServiceResponse(classList);
-	            return serviceResponse;
-	        }
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        serviceResponse.setServiceResponse(classList);
+	        return serviceResponse;
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

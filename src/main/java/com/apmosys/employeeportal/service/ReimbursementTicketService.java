@@ -119,7 +119,7 @@ public class ReimbursementTicketService {
 	@Value("${reimbursement.ticket-id.zone:Asia/Kolkata}")
 	private String reimbursementTicketIdZone;
 
-	/** Sentinel project id for Business Development manual "Others" line (not a real projects.project_id). */
+	/** Sentinel project id for manual "Others" line (not a real projects.project_id). */
 	public static final long REIMBURSEMENT_PROJECT_OTHERS_ID = -1L;
 
 	private static String normEmail(String e) {
@@ -500,20 +500,8 @@ public class ReimbursementTicketService {
 		}
 	}
 
-	private boolean isBusinessDevelopmentDepartment(String deptName) {
-		if (!StringUtils.hasText(deptName)) {
-			return false;
-		}
-		String n = deptName.trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
-		return n.contains("business development");
-	}
-
 	private boolean showOthersProjectOption(Long empId) {
-		if (empId == null) {
-			return false;
-		}
-		String dept = employeeRepository.getDepartment(empId);
-		return isBusinessDevelopmentDepartment(dept);
+		return empId != null;
 	}
 
 	private void addOthersRowIfApplicable(List<Map<String, Object>> projects, boolean showOthers) {
@@ -612,7 +600,7 @@ public class ReimbursementTicketService {
 	}
 
 	/**
-	 * All rows from {@code clients} (via JPA) for BD "Others" claim line — not client_locations join.
+	 * All rows from {@code clients} (via JPA) for "Others" claim line — not client_locations join.
 	 */
 	@Transactional(readOnly = true)
 	public ServiceResponse fetchReimbursementClientsFromMaster() {
@@ -656,10 +644,6 @@ public class ReimbursementTicketService {
 		}
 		long eid = empId.longValue();
 		if (c.getProjectId().longValue() == REIMBURSEMENT_PROJECT_OTHERS_ID) {
-			String dept = employeeRepository.getDepartment(eid);
-			if (!isBusinessDevelopmentDepartment(dept)) {
-				throw new IllegalArgumentException("Claim " + index + ": \"Others\" is only available for Business Development.");
-			}
 			if (!StringUtils.hasText(c.getOthersProjectName()) || c.getOthersProjectName().trim().isEmpty()) {
 				throw new IllegalArgumentException("Claim " + index + ": enter the project name for Others.");
 			}
