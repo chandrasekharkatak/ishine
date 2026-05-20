@@ -9077,5 +9077,8 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 			+ " GROUP BY CASE WHEN po_project_type IS NOT NULL AND TRIM(p.po_project_type) != '' THEN p.po_project_type ELSE p.internal_project_type END) T1 \n")
 	public List<Object[]> getProjectTypeWiseProjectCount(Set<Integer> projectIds, List<Long> deptIds);
 
+	
+	@Query(nativeQuery = true, value = " select p.po_project_type from projects p where p.project_id = :projectId ")
+	public String isClientProject(Integer projectId);
 
 }
