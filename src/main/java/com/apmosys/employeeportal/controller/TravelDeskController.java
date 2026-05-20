@@ -96,6 +96,11 @@ public class TravelDeskController {
 	public ServiceResponse createTravelReason(@RequestBody TravelReasonDTO travelReasonDTO) {
 	    return travelDeskService.saveTravelReason(travelReasonDTO);
 	}
+
+	@PostMapping("/deleteTravelReason")
+	public ServiceResponse deleteTravelReason(@RequestBody TravelReasonDTO dto) {
+	    return travelDeskService.deleteTravelReason(dto.getId());
+	}
 	
 	@JobRoleAccess(featureIds = {55,59})
 	@GetMapping("/getTravelReason")
@@ -106,6 +111,11 @@ public class TravelDeskController {
     @PostMapping("/saveTravelMode")
     public ServiceResponse saveTravelMode(@RequestBody TravelModeDTO travelModeDTO) {
         return travelDeskService.saveTravelMode(travelModeDTO);
+    }
+
+    @PostMapping("/deleteTravelMode")
+    public ServiceResponse deleteTravelMode(@RequestBody TravelModeDTO dto) {
+        return travelDeskService.deleteTravelMode(dto.getTravelModeId());
     }
     
     @JobRoleAccess(featureIds = {55,59,60,61})
@@ -128,6 +138,11 @@ public class TravelDeskController {
     public ServiceResponse saveTravelClass(@RequestBody TravelClassRequest travelClassDTO) {
         return travelDeskService.saveTravelClass(travelClassDTO);
     }
+
+    @PostMapping("/deleteTravelClass")
+    public ServiceResponse deleteTravelClass(@RequestBody TravelClassRequest dto) {
+        return travelDeskService.deleteTravelClass(dto.getTravelClassId());
+    }
     
     @PostMapping("/getTravelModeByReason")
     public ServiceResponse getTravelModeByReason(@RequestBody String travelReason) {
@@ -138,6 +153,11 @@ public class TravelDeskController {
     public ServiceResponse saveHotelCategory(@RequestBody HotelCategoryDTO dto) {
         return travelDeskService.saveHotelCategory(dto);
     }
+
+    @PostMapping("/deleteHotelCategory")
+    public ServiceResponse deleteHotelCategory(@RequestBody HotelCategoryDTO dto) {
+        return travelDeskService.deleteHotelCategory(dto.getId());
+    }
     @JobRoleAccess(featureIds = {55,59})
 	@GetMapping("/getHotelCategory")
 	public ServiceResponse getHotelCategory() {
@@ -147,6 +167,11 @@ public class TravelDeskController {
 	@PostMapping("/saveHotelSubCategory")
 	public ServiceResponse saveHotelSubCategory(@RequestBody HotelSubCategoryDTO hotelSubCategoryDTO) {
 	    return travelDeskService.saveHotelSubCategory(hotelSubCategoryDTO);
+	}
+
+	@PostMapping("/deleteHotelSubCategory")
+	public ServiceResponse deleteHotelSubCategory(@RequestBody HotelSubCategoryDTO dto) {
+	    return travelDeskService.deleteHotelSubCategory(dto.getId());
 	}
 	
 	@JobRoleAccess(featureIds = {55,59})
@@ -159,10 +184,15 @@ public class TravelDeskController {
 	public ServiceResponse saveCity(@RequestBody CityDTO cityDTO) {
 	    return travelDeskService.saveCity(cityDTO);
 	}
+
+	@PostMapping("/deleteCity")
+	public ServiceResponse deleteCity(@RequestBody CityDTO dto) {
+	    return travelDeskService.deleteCity(dto.getCityId());
+	}
 	
     @PostMapping("/getTravelClassByMode")
-    public ServiceResponse getTravelClassByMode(@RequestBody String travelReason) {
-        return travelDeskService.getTravelClassByMode(travelReason);
+    public ServiceResponse getTravelClassByMode(@RequestBody Long travelModeId) {
+        return travelDeskService.getTravelClassByTravelModeId(travelModeId);
     }
     
     @PostMapping("/getCityBySubCategory")

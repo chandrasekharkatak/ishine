@@ -12,6 +12,8 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface HotelSubCategoryRepository extends JpaRepository<HotelSubCategory, Long> {
 
+	long countByHotelCategory_Id(Long hotelCategoryId);
+
 	//City findAll(String travelModeName);
     // Custom queries can be added if needed
 	

@@ -16,12 +16,11 @@ public interface TravelModeRepository extends JpaRepository<TravelMode, Long> {
 //    List<TravelMode> findByTravelMode(String modeType);
 
     List<TravelMode> findByTravelReasonId(Long travelReasonId);
-    
-    @Query(nativeQuery = true,value="SELECT * FROM db_emp_portal.travel_mode tm inner join travel_reason tr on tm.travel_reason_id = tr.id ")
-    List<TravelMode> findAllData();
-    
-    @Query(nativeQuery = true,value="SELECT * FROM db_emp_portal.travel_mode where travel_mode_id = :modeId ")
-	TravelMode findByModeId(Long modeId);
+
+    long countByTravelReason_Id(Long travelReasonId);
+
+    @Query("SELECT tm FROM TravelMode tm LEFT JOIN FETCH tm.travelReason ORDER BY tm.travelModeId")
+    List<TravelMode> findAllWithReason();
 
     
 

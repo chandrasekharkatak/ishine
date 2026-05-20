@@ -9,7 +9,6 @@ import { ViewTravelrequestComponent } from 'src/app/travel-allowance/view-travel
 const routes: Routes = [{
   path: '', component: TravelAllowanceComponent,
   children: [
-    { path: '', redirectTo: 'my-travelrequest', pathMatch: 'full' },
     { path: 'my-travelrequest', component: MyTravelrequestComponent },
     { path: 'view-travelrequest', component: ViewTravelrequestComponent },
     { path: 'approve-travelrequest', component: TravelrequestapprovalComponent },
