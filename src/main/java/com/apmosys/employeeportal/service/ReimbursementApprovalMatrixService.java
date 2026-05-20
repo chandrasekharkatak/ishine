@@ -142,10 +142,36 @@ public class ReimbursementApprovalMatrixService {
 			case "POOL_ANY_IN_SCOPE":
 				return "Approver pool";
 			case "SPECIFIC_IN_SCOPE":
-				return "Specific approver";
+				return formatSpecificInScopeLevelLabel(lvl);
 			default:
 				return lvl.getRouting().replace('_', ' ');
 		}
+	}
+
+	/** Column / flow label: exact department name(s) configured on this matrix level. */
+	private String formatSpecificInScopeLevelLabel(ReimbursementApprovalMatrixLevelDTO lvl) {
+		if (lvl == null || lvl.getDepartmentIds() == null || lvl.getDepartmentIds().isEmpty()) {
+			return "Department";
+		}
+		List<String> names = new ArrayList<>();
+		for (Long deptId : lvl.getDepartmentIds()) {
+			if (deptId == null) {
+				continue;
+			}
+			Department dept = departmentRepository.findByDeptId(deptId);
+			if (dept != null && StringUtils.hasText(dept.getName())) {
+				String nm = dept.getName().trim();
+				boolean seen = names.stream().anyMatch(n -> n.equalsIgnoreCase(nm));
+				if (!seen) {
+					names.add(nm);
+				}
+			}
+		}
+		names.sort(String.CASE_INSENSITIVE_ORDER);
+		if (names.isEmpty()) {
+			return "Department";
+		}
+		return String.join(", ", names);
 	}
 
 	private String buildFlowSummary(ReimbursementApprovalMatrixDTO matrix) {

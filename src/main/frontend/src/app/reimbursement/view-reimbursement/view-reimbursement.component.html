@@ -27,8 +27,8 @@
                 <th mat-sort-header="paidClaimAmount|number">Paid (₹)</th>
                 <th mat-sort-header="submittedOn|date">Submitted</th>
                 <ng-container *ngFor="let col of tableLevelColumns; let li = index">
-                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverName|string'">{{ col.levelLabel }} approver</th>
-                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverStatus|string'">{{ col.levelLabel }} status</th>
+                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverName|string'">{{ approvalLevelApproverColumnTitle(col) }}</th>
+                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverStatus|string'">{{ approvalLevelStatusColumnTitle(col) }}</th>
                 </ng-container>
                 <th>Rejections</th>
                 <th>Claims</th>
