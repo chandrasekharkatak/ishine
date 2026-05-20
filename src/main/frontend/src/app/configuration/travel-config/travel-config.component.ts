@@ -1,6 +1,7 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import Swal from 'sweetalert2';
 import { Employee } from 'src/app/models/employee';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
@@ -28,13 +29,20 @@ export class TravelConfigComponent implements OnInit {
   isHotelSubCategory: boolean = false;
   isCity: boolean = false;
   travelReason = {
+    id: null as number | null,
     travelReasonName: '',
     description: '',
     createdBy: ''
   };
+  editingTravelModeId: number | null = null;
+  editingTravelClassId: number | null = null;
+  editingHotelCategoryId: number | null = null;
+  editingHotelSubCategoryId: number | null = null;
+  editingCityId: number | null = null;
   //hotelCategory = '';
   //description = '';
   hotelCategory1 = {
+    id: null as number | null,
     hotelCategory: '',
     description: ''
   };
@@ -57,11 +65,11 @@ export class TravelConfigComponent implements OnInit {
   travelModelistByReason: any[] = [];
   selectedTravelReasons: string = '';
   // selectedTravelReasons: string[] = [];
-  selectedTravelModes: string[] = [];
+  selectedTravelModes: string = '';
   travelClass: any;
-  hotelSubCategorylist: any;
-  cityList: any;
-  travelClassList: any;
+  hotelSubCategorylist: any[] = [];
+  cityList: any[] = [];
+  travelClassList: any[] = [];
   istravelModeTab: boolean = false;
   isHotelCategoryTab: boolean = false;
   isHotelSubCategoryTab: boolean = false;
@@ -73,11 +81,21 @@ export class TravelConfigComponent implements OnInit {
     this.page = event;
   }
   reviewColumns: any[] = ['blank', 'travelReasonName', 'description', 'createdBy', 'createdOn' ]
-  reviewColumns1: any[] = ['blank', 'modeType', 'description', 'createdBy', 'createdOn' ]
+  reviewColumns1: any[] = ['blank', 'travelReasonName', 'modeType', 'description', 'createdBy', 'createdOn' ]
   reviewColumns2: any[] = ['blank', 'travelClass', 'description', 'createdBy', 'createdOn']
   reviewColumns3: any[] = ['blank', 'hotelCategory', 'description', 'createdBy', 'createdOn']
   reviewColumns4: any[] = ['blank', 'hotelSubCategoryName', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
   reviewColumns5: any[] = ['blank', 'cityName', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
+
+  @ViewChild('travelReasonModal') private travelReasonModalTpl: TemplateRef<any>;
+  @ViewChild('travelModeModal') private travelModeModalTpl: TemplateRef<any>;
+  @ViewChild('travelClassModal') private travelClassModalTpl: TemplateRef<any>;
+  @ViewChild('hotelCategoryModal') private hotelCategoryModalTpl: TemplateRef<any>;
+  @ViewChild('hotelSubCategoryModal') private hotelSubCategoryModalTpl: TemplateRef<any>;
+  @ViewChild('cityModal') private cityModalTpl: TemplateRef<any>;
+
+  private formModalRef: NgbModalRef;
+
   constructor(private modalService: NgbModal, private travelDesk: TravelDeskService,
     private employeeService: EmployeeService,
     private authenticationService: AuthenticationService,
@@ -118,44 +136,92 @@ export class TravelConfigComponent implements OnInit {
   }
 
   showQuaterTable() {
-    this.isCategoryTable = true;
-    this.isClass = false;
-    this.istravelMode = false;
-    this.travelModeForm = false;
-    this.classCategoryForm = false;
-    this.createCategoryForm = false;
-    this.isHotelCategory = false;
-    this.isHotelSubCategory = false;
-    this.isCity = false;
     this.istravelModeTab = false;
     this.isHotelCategoryTab = false;
     this.isHotelSubCategoryTab = false;
     this.isCityTab = false;
     this.isClassTab = false;
     this.isCategoryTableTab = true;
-
+    this.page = 1;
+    this.onGetTravelReason();
   }
   createCategory() {
-    this.isCategoryTable = false;
-    this.createCategoryForm = true;
-    this.travelModeForm = false;
-    this.classCategoryForm = false;
-    this.isClass = false;
-    this.istravelMode = false;
-    //this.createCategoryForm=false;
-    this.isHotelCategory = false;
-    this.isHotelSubCategory = false;
-    this.isCity = false;
-    this.hotelCategoryForm = false;
-    this.hotelSubCategoryForm = false;
-    this.cityForm = false;
-    this.istravelModeTab = false;
-    this.isHotelCategoryTab = false;
-    this.isHotelSubCategoryTab = false;
-    this.isCityTab = false;
-    this.isClassTab = false;
-    this.isCategoryTableTab = true;
+    this.resetTravelReasonForm();
+    this.openTravelReasonModal();
+  }
 
+  private escapeHtml(text: string): string {
+    if (text == null || text === '') {
+      return '';
+    }
+    const d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
+  }
+
+  private closeFormModal(): void {
+    this.formModalRef?.close();
+    this.formModalRef = undefined;
+  }
+
+  private openFormModal(tpl: TemplateRef<any> | undefined): void {
+    if (!tpl) {
+      return;
+    }
+    this.closeFormModal();
+    this.formModalRef = this.modalService.open(tpl, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      scrollable: true
+    });
+  }
+
+  openTravelReasonModal(): void {
+    this.openFormModal(this.travelReasonModalTpl);
+  }
+
+  openTravelModeModal(): void {
+    this.openFormModal(this.travelModeModalTpl);
+  }
+
+  openTravelClassModal(): void {
+    this.openFormModal(this.travelClassModalTpl);
+  }
+
+  openHotelCategoryModal(): void {
+    this.openFormModal(this.hotelCategoryModalTpl);
+  }
+
+  openHotelSubCategoryModal(): void {
+    this.openFormModal(this.hotelSubCategoryModalTpl);
+  }
+
+  openCityModal(): void {
+    this.openFormModal(this.cityModalTpl);
+  }
+
+  private swalMessage(icon: 'success' | 'error' | 'warning' | 'info', title: string, text?: string): void {
+    Swal.fire({
+      icon,
+      title,
+      text: text || undefined,
+      confirmButtonText: 'OK'
+    });
+  }
+
+  private async swalConfirmDelete(htmlMessage: string): Promise<boolean> {
+    const r = await Swal.fire({
+      icon: 'warning',
+      title: 'Delete?',
+      html: htmlMessage,
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
+      focusCancel: true,
+      reverseButtons: true
+    });
+    return r.isConfirmed;
   }
   sortData(sort: Sort) {
     //console.log(sort);
@@ -177,234 +243,86 @@ export class TravelConfigComponent implements OnInit {
       this.filters = {};
     }
   }
-  istravelMode: Boolean = false;
   subCategory() {
-    this.istravelMode = true;
-    this.isClass = false;
-    this.isCategoryTable = false;
-    this.travelModeForm = false;
-    this.classCategoryForm = false;
-    this.createCategoryForm = false;
-    this.isHotelCategory = false;
-    this.isHotelSubCategory = false;
-    this.isCity = false;
-    this.hotelCategoryForm = false;
-    this.hotelSubCategoryForm = false;
-    this.cityForm = false;
     this.istravelModeTab = true;
     this.isHotelCategoryTab = false;
     this.isHotelSubCategoryTab = false;
     this.isCityTab = false;
     this.isClassTab = false;
     this.isCategoryTableTab = false;
+    this.page = 1;
+    this.onGetTravelMode();
   }
 
-  isClass: boolean = false;
   classCategory() {
-    this.isClass = true;
-    this.istravelMode = false;
-    this.isCategoryTable = false;
-    this.travelModeForm = false;
-    this.classCategoryForm = false;
-    this.createCategoryForm = false;
-    this.isHotelCategory = false;
-    this.isHotelSubCategory = false;
-    this.isCity = false;
-    this.hotelCategoryForm = false;
-    this.hotelSubCategoryForm = false;
-    this.cityForm = false;
     this.istravelModeTab = false;
     this.isHotelCategoryTab = false;
     this.isHotelSubCategoryTab = false;
     this.isCityTab = false;
     this.isClassTab = true;
     this.isCategoryTableTab = false;
+    this.page = 1;
+    this.onGetTravelCass();
   }
 
   hotelCategory() {
-    this.isClass = false;
-    this.istravelMode = false;
-    this.isCategoryTable = false;
-    this.travelModeForm = false;
-    this.classCategoryForm = false;
-    this.createCategoryForm = false;
-    this.isHotelCategory = false;
-    this.isHotelSubCategory = false;
-    this.isCity = false;
-    this.hotelCategoryForm = true;
-    this.hotelSubCategoryForm = false;
-    this.cityForm = false;
-
-    this.istravelModeTab = false;
-    this.isHotelCategoryTab = true;
-    this.isHotelSubCategoryTab = false;
-    this.isCityTab = false;
-    this.isClassTab = false;
-    this.isCategoryTableTab = false;
-
+    this.hotelCategory1 = { id: null, hotelCategory: '', description: '' };
+    this.openHotelCategoryModal();
   }
+
   hotelCategory3() {
-    this.isClass = false;
-    this.istravelMode = false;
-    this.isCategoryTable = false;
-    this.travelModeForm = false;
-    this.classCategoryForm = false;
-    this.createCategoryForm = false;
-    this.isHotelCategory = true;
-    this.isHotelSubCategory = false;
-    this.isCity = false;
-    this.hotelCategoryForm = false;
-    this.hotelSubCategoryForm = false;
-    this.cityForm = false;
     this.istravelModeTab = false;
     this.isHotelCategoryTab = true;
     this.isHotelSubCategoryTab = false;
     this.isCityTab = false;
     this.isClassTab = false;
     this.isCategoryTableTab = false;
+    this.page = 1;
+    this.onGetHotelCategory();
   }
 
   hotelSubCategory() {
-    this.isClass = false;
-    this.istravelMode = false;
-    this.isCategoryTable = false;
-    this.travelModeForm = false;
-    this.classCategoryForm = false;
-    this.createCategoryForm = false;
-    this.isHotelCategory = false;
-    this.isHotelSubCategory = false;
-    this.isCity = false;
-    this.hotelCategoryForm = false;
-    this.hotelSubCategoryForm = true;
-    this.cityForm = false;
-    this.istravelModeTab = false;
-    this.isHotelCategoryTab = false;
-    this.isHotelSubCategoryTab = true;
-    this.isCityTab = false;
-    this.isClassTab = false;
-    this.isCategoryTableTab = false;
+    this.editingHotelSubCategoryId = null;
+    this.hotelSubCategoryData = { hotelCategory: '', hotelSubCategoryName: '', description: '', cityName: '' };
+    this.openHotelSubCategoryModal();
   }
+
   hotelSubCategory3() {
-    this.isClass = false;
-    this.istravelMode = false;
-    this.isCategoryTable = false;
-    this.travelModeForm = false;
-    this.classCategoryForm = false;
-    this.createCategoryForm = false;
-    this.isHotelCategory = false;
-    this.isHotelSubCategory = true;
-    this.isCity = false;
-    this.hotelCategoryForm = false;
-    this.hotelSubCategoryForm = false;
-    this.cityForm = false;
     this.istravelModeTab = false;
     this.isHotelCategoryTab = false;
     this.isHotelSubCategoryTab = true;
     this.isCityTab = false;
     this.isClassTab = false;
     this.isCategoryTableTab = false;
+    this.page = 1;
+    this.onGetHotelSubCategory();
   }
 
   cityCategory() {
-    this.isClass = false;
-    this.istravelMode = false;
-    this.isCategoryTable = false;
-    this.travelModeForm = false;
-    this.classCategoryForm = false;
-    this.createCategoryForm = false;
-    this.isHotelCategory = false;
-    this.isHotelSubCategory = false;
-    this.isCity = true;
-    this.hotelCategoryForm = false;
-    this.hotelSubCategoryForm = false;
-    this.cityForm = false;
     this.istravelModeTab = false;
     this.isHotelCategoryTab = false;
     this.isHotelSubCategoryTab = false;
     this.isCityTab = true;
     this.isClassTab = false;
     this.isCategoryTableTab = false;
+    this.page = 1;
+    this.onGetCity();
   }
+
   cityCategory3() {
-    this.isClass = false;
-    this.istravelMode = false;
-    this.isCategoryTable = false;
-    this.travelModeForm = false;
-    this.classCategoryForm = false;
-    this.createCategoryForm = false;
-    this.isHotelCategory = false;
-    this.isHotelSubCategory = false;
-    this.isCity = false;
-    this.hotelCategoryForm = false;
-    this.hotelSubCategoryForm = false;
-    this.cityForm = true;
-    this.istravelModeTab = false;
-    this.isHotelCategoryTab = false;
-    this.isHotelSubCategoryTab = false;
-    this.isCityTab = true;
-    this.isClassTab = false;
-    this.isCategoryTableTab = false;
+    this.editingCityId = null;
+    this.hotelSubCategoryData = { hotelCategory: '', hotelSubCategoryName: '', description: '', cityName: '' };
+    this.openCityModal();
   }
-
-
-  classCategoryForm: boolean = false;
-  travelModeForm: boolean = false;
-  hotelCategoryForm: boolean = false;
-  hotelSubCategoryForm: boolean = false;
-  cityForm: boolean = false;
 
   subClassCategory() {
-    this.travelModeForm = false;
-    this.classCategoryForm = true;
-    this.createCategoryForm = false;
-    this.isClass = false;
-    this.istravelMode = false;
-    this.isCategoryTable = false;
-    this.isHotelCategory = false;
-    this.isHotelSubCategory = false;
-    this.isCity = false;
-    this.hotelCategoryForm = false;
-    this.hotelSubCategoryForm = false;
-    this.cityForm = false;
-    this.istravelModeTab = false;
-    this.isHotelCategoryTab = false;
-    this.isHotelSubCategoryTab = false;
-    this.isCityTab = false;
-    this.isClassTab = true;
-    this.isCategoryTableTab = false;
+    this.resetTravelClassForm();
+    this.openTravelClassModal();
   }
 
   travelCategory() {
-    this.travelModeForm = true;
-    this.classCategoryForm = false;
-    this.createCategoryForm = false;
-    this.isClass = false;
-    this.istravelMode = false;
-    this.isCategoryTable = false;
-    this.isHotelCategory = false;
-    this.isHotelSubCategory = false;
-    this.isCity = false;
-    this.istravelModeTab = true;
-    this.isHotelCategoryTab = false;
-    this.isHotelSubCategoryTab = false;
-    this.isCityTab = false;
-    this.isClassTab = false;
-    this.isCategoryTableTab = false;
-  }
-
-  openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-    this.alertMessage = message;
-  }
-
-  openAlertMod2(template1: TemplateRef<any>, message: any) {
-    this.modalRef2 = this.modalService.open(template1, { modalDialogClass: 'modal-sm' });
-    this.alertMessage = message;
-  }
-
-  openValidationMod(template: TemplateRef<any>, message: any) {
-    this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-    this.alertMessage = message;
+    this.resetTravelModeForm();
+    this.openTravelModeModal();
   }
 
   // async submitTravelReason(template: TemplateRef<any>) {
@@ -424,131 +342,177 @@ export class TravelConfigComponent implements OnInit {
   //     this.openAlertMod(template, "Error occurred while saving the travel reason.");
   //   }
   // }
-  async submitTravelReason(template: TemplateRef<any>, template1: TemplateRef<any>) {
+  async submitTravelReason() {
     try {
       const newReason = this.travelReason.travelReasonName.trim().toLowerCase();
-      this.travelReason.createdBy = this.currentUser.empId;
       const duplicate = this.travelReasonlist.some(reason =>
         reason.travelReasonName.trim().toLowerCase() === newReason
+        && reason.id !== this.travelReason.id
       );
-
       if (duplicate) {
-        this.openValidationMod(template1, "Travel Reason already exists!");
+        this.swalMessage('warning', 'Travel reason already exists!');
         return;
       }
-
-      const response: any = await this.travelDesk.saveTravelReason(this.travelReason).toPromise();
-      console.log('Travel Reason saved:', response);
-
-      if (response.serviceStatus === "Success") {
-
-        this.openAlertMod(template, "Travel Reason submitted successfully!");
+      const payload = {
+        id: this.travelReason.id,
+        travelReasonName: this.travelReason.travelReasonName,
+        description: this.travelReason.description,
+        createdBy: this.currentEmployeeInfo?.empId || this.currentUser.empId
+      };
+      const response: any = await this.travelDesk.saveTravelReason(payload).toPromise();
+      if (response.serviceStatus === 'Success') {
+        const wasEdit = !!this.travelReason.id;
+        this.closeFormModal();
+        this.swalMessage('success', wasEdit ? 'Travel reason updated.' : 'Travel reason saved.');
+        this.resetTravelReasonForm();
+        await this.onGetTravelReason();
         this.showQuaterTable();
-        this.travelReason = null;
-        this.onGetTravelReason();
       } else {
-        this.openAlertMod(template, "Submission failed. Try again.!");
+        this.swalMessage('error', response.serviceError || 'Submission failed.');
       }
-
     } catch (error) {
       console.error('Error submitting reason:', error);
-      this.openAlertMod(template, "Error occurred while saving the travel reason.");
+      this.swalMessage('error', 'Error occurred while saving the travel reason.');
     }
   }
 
-
-
-
-  cancelRequest() {
-    this.modalRef?.close();
-    location.reload();
-  }
-
-  cancelRequest1() {
-    this.modalRef?.close();
-  }
-
   async onGetTravelReason() {
-
     const response: any = await this.travelDesk.getTravelReason().toPromise();
     if (response.serviceStatus == "Success") {
-      this.travelReasonlist = response.serviceResponse;
-
-      console.log("travelReasonlist   ::::::: : ", this.travelReasonlist);
-
+      this.travelReasonlist = response.serviceResponse || [];
     } else {
+      this.travelReasonlist = [];
       console.error(response.serviceResponse);
     }
   }
 
+  resetTravelReasonForm() {
+    this.travelReason = { id: null, travelReasonName: '', description: '', createdBy: '' };
+  }
 
-  async submitTravelMode(template: TemplateRef<any>, template1: TemplateRef<any>) {
-    if (!this.selectedTravelReasons || this.selectedTravelReasons.length === 0) {
-      this.openAlertMod(template, "Please select at least one travel reason.");
+  editTravelReason(row: any) {
+    this.travelReason = {
+      id: row.id,
+      travelReasonName: row.travelReasonName,
+      description: row.description || '',
+      createdBy: row.createdBy
+    };
+    this.openTravelReasonModal();
+  }
+
+  async deleteTravelReasonRow(row: any) {
+    const ok = await this.swalConfirmDelete(
+      `Delete travel reason <strong>${this.escapeHtml(row.travelReasonName)}</strong>?`
+    );
+    if (!ok) {
       return;
     }
-    if (!this.modeType || this.modeType.length === 0) {
-      this.openAlertMod(template, "Please enter Mode type.");
+    try {
+      const response: any = await this.travelDesk.deleteTravelReason(row.id).toPromise();
+      if (response.serviceStatus === 'Success') {
+        this.swalMessage('success', 'Travel reason deleted.');
+        await this.onGetTravelReason();
+      } else {
+        this.swalMessage('warning', response.serviceError || 'Delete failed.');
+      }
+    } catch (error) {
+      console.error(error);
+      this.swalMessage('error', 'Delete failed.');
+    }
+  }
+
+
+  async submitTravelMode() {
+    if (!this.selectedTravelReasons?.trim()) {
+      this.swalMessage('warning', 'Please select a travel reason.');
       return;
     }
-    if (!this.description || this.description.length === 0) {
-      this.openAlertMod(template, "Please enter the description.");
+    if (!this.modeType?.trim()) {
+      this.swalMessage('warning', 'Please enter mode type.');
+      return;
+    }
+    if (!this.description?.trim()) {
+      this.swalMessage('warning', 'Please enter description.');
       return;
     }
     try {
       const reason = this.selectedTravelReasons;
-
-      // const duplicate = this.travelModelist?.some((item: any) =>
-      //   item.modeType?.trim().toLowerCase() === this.modeType?.trim().toLowerCase()
-      // );
       const isDuplicate = this.travelModelist?.some((item: any) =>
         item.travelReasonName?.trim().toLowerCase() === this.selectedTravelReasons?.trim().toLowerCase() &&
-        item.modeType?.trim().toLowerCase() === this.modeType?.trim().toLowerCase()
+        item.modeType?.trim().toLowerCase() === this.modeType?.trim().toLowerCase() &&
+        item.travelModeId !== this.editingTravelModeId
       );
-
       if (isDuplicate) {
-        this.openValidationMod(template1, "Mode Type based on the travel reason is already exists!");
+        this.swalMessage('warning', 'This mode already exists for the selected travel reason.');
         return;
       }
-
       const travelModePayload = {
+        travelModeId: this.editingTravelModeId,
         travelReason: reason,
-        modeType: this.modeType,
+        modeType: this.modeType.trim(),
         description: this.description,
         createdBy: this.currentEmployeeInfo?.empId || 0
       };
-      console.log("travelModePayload", travelModePayload);
-
       const response: any = await this.travelDesk.saveTravelMode(travelModePayload).toPromise();
-
       if (response.serviceStatus !== 'Success') {
-
-        console.error(`Error saving reason: ${reason}`, response.serviceError);
-        this.openAlertMod(template1, `Failed to save travel mode for reason: ${reason}`);
+        this.swalMessage('error', response.serviceError || 'Failed to save travel mode.');
         return;
       }
-      this.openAlertMod(template, 'Travel Mode saved successfully!');
-      this.selectedTravelReasons = null;
-      this.modeType = null;
-      this.description = null;
+      const wasEdit = !!this.editingTravelModeId;
+      this.closeFormModal();
+      this.swalMessage('success', wasEdit ? 'Travel mode updated.' : 'Travel mode saved.');
+      this.resetTravelModeForm();
+      await this.onGetTravelMode();
       this.subCategory();
-      this.onGetTravelMode();
     } catch (error) {
       console.error('API error:', error);
-      this.openAlertMod(template, 'Unexpected error occurred!');
+      this.swalMessage('error', 'Unexpected error occurred.');
     }
   }
 
   async onGetTravelMode() {
-
     const response: any = await this.travelDesk.getTravelMode().toPromise();
     if (response.serviceStatus == "Success") {
-      this.travelModelist = response.serviceResponse;
-
-      console.log("travelModelist   ::::::: : ", this.travelModelist);
-
+      this.travelModelist = response.serviceResponse || [];
     } else {
-      console.error(response.serviceResponse);
+      this.travelModelist = [];
+      console.error(response.serviceError || response.serviceResponse);
+    }
+  }
+
+  resetTravelModeForm() {
+    this.editingTravelModeId = null;
+    this.selectedTravelReasons = '';
+    this.modeType = '';
+    this.description = '';
+  }
+
+  editTravelMode(row: any) {
+    this.editingTravelModeId = row.travelModeId;
+    this.selectedTravelReasons = row.travelReasonName || '';
+    this.modeType = row.modeType;
+    this.description = row.description || '';
+    this.openTravelModeModal();
+  }
+
+  async deleteTravelModeRow(row: any) {
+    const ok = await this.swalConfirmDelete(
+      `Delete travel mode <strong>${this.escapeHtml(row.modeType)}</strong>?`
+    );
+    if (!ok) {
+      return;
+    }
+    try {
+      const response: any = await this.travelDesk.deleteTravelMode(row.travelModeId).toPromise();
+      if (response.serviceStatus === 'Success') {
+        this.swalMessage('success', 'Travel mode deleted.');
+        await this.onGetTravelMode();
+      } else {
+        this.swalMessage('warning', response.serviceError || 'Delete failed.');
+      }
+    } catch (error) {
+      console.error(error);
+      this.swalMessage('error', 'Delete failed.');
     }
   }
 
@@ -570,88 +534,36 @@ export class TravelConfigComponent implements OnInit {
   }
 
 
-  async submitTravelClass(template: TemplateRef<any>, template1: TemplateRef<any>) {
+  async submitTravelClass() {
     if (!this.selectedTravelReasons || !this.selectedTravelModes || !this.travelClass || !this.description) {
-      this.openAlertMod(template, "All fields are required.");
+      this.swalMessage('warning', 'All fields are required.');
       return;
     }
-
     const travelClassPayload = {
+      travelClassId: this.editingTravelClassId,
       travelReason: this.selectedTravelReasons,
       travelMode: this.selectedTravelModes,
       travelClass: this.travelClass,
       description: this.description,
       createdBy: this.currentEmployeeInfo?.empId || 0
     };
-
-    console.log("travelClassPayload", travelClassPayload);
-
     try {
-
-      const selectedReason = travelClassPayload.travelReason.trim().toLowerCase();
-      // const selectedMode = travelClassPayload.travelMode[1].trim().toLowerCase();
-      const selectedClass = this.travelClass?.trim().toLowerCase();
-      // const selectedReason = this.selectedTravelReasons[1]?.trim().toLowerCase();
-      const selectedMode = this.selectedTravelModes[1]?.trim().toLowerCase();
-      // const selectedClass = this.travelClass?.trim().toLowerCase();
-
-
-
-      console.log("selectedReason :::", selectedReason);
-      console.log("selectedMode :::", selectedMode);
-
-      console.log("selectedClass :::", selectedClass);
-
-
-      const isDuplicate = this.travelClassList?.some((item: any) =>
-        item.travelReason.travelReasonName?.travelReasonName?.trim().toLowerCase() === selectedReason &&
-        item.travelMode.modeType?.modeType?.trim().toLowerCase() === selectedMode &&
-        item.travelClass?.trim().toLowerCase() === selectedClass
-      );
-
-      if (isDuplicate) {
-        this.openValidationMod(template, "Travel class for this combination already exists!");
-        return;
-      }
       const response: any = await this.travelDesk.saveTravelClass(travelClassPayload).toPromise();
       if (response.serviceStatus === 'Success') {
-        this.selectedTravelReasons = null;
-        this.selectedTravelModes = null;
-        this.travelClass = null;
-        this.description = null;
-        this.openAlertMod(template, 'Travel Class saved successfully!');
+        const wasEdit = !!this.editingTravelClassId;
+        this.closeFormModal();
+        this.swalMessage('success', wasEdit ? 'Travel class updated.' : 'Travel class saved.');
+        this.resetTravelClassForm();
+        await this.onGetTravelCass();
         this.classCategory();
-        this.onGetTravelCass();
       } else {
-        alert('Error saving travel class: ' + response.serviceError);
+        this.swalMessage('error', response.serviceError || 'Failed to save travel class.');
       }
     } catch (error) {
       console.error('API error:', error);
-      this.openAlertMod(template, 'Unexpected error occurred!');
+      this.swalMessage('error', 'Unexpected error occurred.');
     }
   }
-
-  openDeleteModal(template: TemplateRef<any>, documentObj: any) {
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-
-  }
-
-  onDeleteType(template: TemplateRef<any>) {
-    let doc = new Document();
-
-    // doc.typeId = this.documentObj.typeId;
-    // doc.typeName = this.documentObj.typeName;
-    //     this.newsletterService.deleteType(doc).pipe(first()).subscribe((response : any)=>{
-    //       if(response.serviceStatus == "Success"){
-    //         this.openAlertMod(template, response.serviceResponse);
-    //         this.getAllTypeName();
-    //       }else{
-    //         this.openAlertMod(template, response.serviceResponse);
-    //       }
-    //     })
-    //console.log("yes delete !!   ",doc.typeId);
-  }
-
 
   // async submitHotelCategory(template: TemplateRef<any>) {
   //   try {
@@ -681,41 +593,37 @@ export class TravelConfigComponent implements OnInit {
   //   }
   // }
 
-  async submitHotelCategory(template: TemplateRef<any>) {
+  async submitHotelCategory() {
     try {
       const newCategory = this.hotelCategory1.hotelCategory?.trim().toLowerCase();
-
       const isDuplicate = this.hotelCategorylist?.some((item: any) =>
-        item.hotelCategory?.trim().toLowerCase() === newCategory
+        item.hotelCategory?.trim().toLowerCase() === newCategory &&
+        item.id !== this.hotelCategory1.id
       );
-
       if (isDuplicate) {
-        this.openAlertMod(template, "Hotel Category already exists!");
+        this.swalMessage('warning', 'Hotel category already exists!');
         return;
       }
-
       const hotelCategoryPayload = {
+        id: this.hotelCategory1.id,
         hotelCategory: this.hotelCategory1.hotelCategory,
         description: this.hotelCategory1.description,
         createdBy: this.currentEmployeeInfo?.empId || 0
       };
-
       const response: any = await this.travelDesk.saveHotelCategory(hotelCategoryPayload).toPromise();
-      console.log('hotelCategory saved:', response);
-
-      if (response.serviceStatus === "Success") {
-        this.hotelCategory1.hotelCategory = null;
-        this.hotelCategory1.description = null;
-        this.openAlertMod(template, "Hotel Category submitted successfully!");
+      if (response.serviceStatus === 'Success') {
+        const wasEdit = !!hotelCategoryPayload.id;
+        this.closeFormModal();
+        this.swalMessage('success', wasEdit ? 'Hotel category updated.' : 'Hotel category saved.');
+        this.hotelCategory1 = { id: null, hotelCategory: '', description: '' };
+        await this.onGetHotelCategory();
         this.hotelCategory3();
-        this.onGetHotelCategory();
       } else {
-        this.openAlertMod(template, "Submission failed. Try again!");
+        this.swalMessage('error', response.serviceError || 'Submission failed.');
       }
-
     } catch (error) {
       console.error('Error submitting hotel category:', error);
-      this.openAlertMod(template, "Error occurred while saving the hotel category.");
+      this.swalMessage('error', 'Error occurred while saving the hotel category.');
     }
   }
 
@@ -723,15 +631,38 @@ export class TravelConfigComponent implements OnInit {
 
 
   async onGetHotelCategory() {
-
     const response: any = await this.travelDesk.getHotelCategory().toPromise();
     if (response.serviceStatus == "Success") {
-      this.hotelCategorylist = response.serviceResponse;
-
-      console.log("hotelCategorylist   ::::::: : ", this.hotelCategorylist);
-
+      this.hotelCategorylist = response.serviceResponse || [];
     } else {
+      this.hotelCategorylist = [];
       console.error(response.serviceResponse);
+    }
+  }
+
+  editHotelCategory(row: any) {
+    this.hotelCategory1 = { id: row.id, hotelCategory: row.hotelCategory, description: row.description || '' };
+    this.openHotelCategoryModal();
+  }
+
+  async deleteHotelCategoryRow(row: any) {
+    const ok = await this.swalConfirmDelete(
+      `Delete hotel category <strong>${this.escapeHtml(row.hotelCategory)}</strong>?`
+    );
+    if (!ok) {
+      return;
+    }
+    try {
+      const response: any = await this.travelDesk.deleteHotelCategory(row.id).toPromise();
+      if (response.serviceStatus === 'Success') {
+        this.swalMessage('success', 'Hotel category deleted.');
+        await this.onGetHotelCategory();
+      } else {
+        this.swalMessage('warning', response.serviceError || 'Delete failed.');
+      }
+    } catch (error) {
+      console.error(error);
+      this.swalMessage('error', 'Delete failed.');
     }
   }
 
@@ -763,45 +694,41 @@ export class TravelConfigComponent implements OnInit {
   //   }
   // }
 
-  async submitHotelSubCategory(template: TemplateRef<any>) {
+  async submitHotelSubCategory() {
     try {
-      const selectedCategoryId = this.hotelSubCategoryData.hotelCategory; // This is a number (category ID)
+      const selectedCategoryId = this.hotelSubCategoryData.hotelCategory;
       const enteredSubCategoryName = this.hotelSubCategoryData.hotelSubCategoryName?.trim().toLowerCase();
-
-      // ✅ Check for duplicate based on category ID and sub-category name
       const isDuplicate = this.hotelSubCategorylist?.some((item: any) =>
         item.hotelCategory?.id === selectedCategoryId &&
-        item.hotelSubCategoryName?.trim().toLowerCase() === enteredSubCategoryName
+        item.hotelSubCategoryName?.trim().toLowerCase() === enteredSubCategoryName &&
+        item.id !== this.editingHotelSubCategoryId
       );
-
       if (isDuplicate) {
-        this.openAlertMod(template, "Hotel Sub-Category already exists for the selected category.");
+        this.swalMessage('warning', 'Hotel sub-category already exists for the selected category.');
         return;
       }
-
       const hotelSubCategoryPayload = {
+        id: this.editingHotelSubCategoryId,
         hotelCategory: selectedCategoryId,
         hotelSubCategoryName: this.hotelSubCategoryData.hotelSubCategoryName,
         description: this.hotelSubCategoryData.description,
         createdBy: this.currentEmployeeInfo?.empId || 0
       };
-
       const response: any = await this.travelDesk.saveHotelSubCategory(hotelSubCategoryPayload).toPromise();
-
       if (response.serviceStatus !== 'Success') {
-        console.error('Error saving hotel sub-category:', response.serviceError);
-        this.openAlertMod(template, "Failed to save Hotel Sub-Category.");
+        this.swalMessage('error', response.serviceError || 'Failed to save hotel sub-category.');
         return;
       }
-      this.hotelSubCategoryData.hotelCategory = null;
-      this.hotelSubCategoryData.hotelSubCategoryName = null;
-      this.hotelSubCategoryData.description = null;
-      this.openAlertMod(template, "Hotel Sub-Category saved successfully!");
+      const wasEdit = !!this.editingHotelSubCategoryId;
+      this.closeFormModal();
+      this.swalMessage('success', wasEdit ? 'Hotel sub-category updated.' : 'Hotel sub-category saved.');
+      this.editingHotelSubCategoryId = null;
+      this.hotelSubCategoryData = { hotelCategory: '', hotelSubCategoryName: '', description: '', cityName: '' };
+      await this.onGetHotelSubCategory();
       this.hotelSubCategory3();
-      this.onGetHotelSubCategory();
     } catch (error) {
-      console.error("API error:", error);
-      this.openAlertMod(template, "Unexpected error occurred while saving Hotel Sub-Category.");
+      console.error('API error:', error);
+      this.swalMessage('error', 'Unexpected error occurred while saving hotel sub-category.');
     }
   }
 
@@ -811,77 +738,167 @@ export class TravelConfigComponent implements OnInit {
 
 
   async onGetHotelSubCategory() {
-
     const response: any = await this.travelDesk.getHotelSubCategory().toPromise();
     if (response.serviceStatus == "Success") {
-      this.hotelSubCategorylist = response.serviceResponse;
-
-      console.log("hotelSubCategorylist   ::::::: : ", this.hotelSubCategorylist);
-
+      this.hotelSubCategorylist = response.serviceResponse || [];
     } else {
+      this.hotelSubCategorylist = [];
       console.error(response.serviceResponse);
     }
   }
 
+  editHotelSubCategory(row: any) {
+    this.editingHotelSubCategoryId = row.id;
+    this.hotelSubCategoryData = {
+      hotelCategory: row.hotelCategory?.id,
+      hotelSubCategoryName: row.hotelSubCategoryName,
+      description: row.description || '',
+      cityName: ''
+    };
+    this.openHotelSubCategoryModal();
+  }
 
-  async submitCity(template: TemplateRef<any>) {
+  async deleteHotelSubCategoryRow(row: any) {
+    const ok = await this.swalConfirmDelete(
+      `Delete sub-category <strong>${this.escapeHtml(row.hotelSubCategoryName)}</strong>?`
+    );
+    if (!ok) {
+      return;
+    }
+    try {
+      const response: any = await this.travelDesk.deleteHotelSubCategory(row.id).toPromise();
+      if (response.serviceStatus === 'Success') {
+        this.swalMessage('success', 'Hotel sub-category deleted.');
+        await this.onGetHotelSubCategory();
+      } else {
+        this.swalMessage('warning', response.serviceError || 'Delete failed.');
+      }
+    } catch (error) {
+      console.error(error);
+      this.swalMessage('error', 'Delete failed.');
+    }
+  }
+
+  async submitCity() {
     try {
       const payload = {
+        cityId: this.editingCityId,
         hotelCategoryId: this.hotelSubCategoryData.hotelCategory,
         hotelSubCategoryId: this.hotelSubCategoryData.hotelSubCategoryName,
         cityName: this.hotelSubCategoryData.cityName,
         description: this.hotelSubCategoryData.description,
         createdBy: this.currentEmployeeInfo?.empId || 0
       };
-
-      console.log(payload);
-
       const response: any = await this.travelDesk.saveCity(payload).toPromise();
-
       if (response.serviceStatus !== 'Success') {
-        console.error('Error saving city:', response.serviceError);
-        this.openAlertMod(template, "Failed to save City.");
+        this.swalMessage('error', response.serviceError || 'Failed to save city.');
         return;
       }
-      this.hotelSubCategoryData.hotelCategory = null;
-      this.hotelSubCategoryData.hotelSubCategoryName = null;
-      this.hotelSubCategoryData.cityName = null;
-      this.hotelSubCategoryData.description = null;
-      this.openAlertMod(template, "City saved successfully!");
+      const wasEdit = !!this.editingCityId;
+      this.closeFormModal();
+      this.swalMessage('success', wasEdit ? 'City updated.' : 'City saved.');
+      this.editingCityId = null;
+      this.hotelSubCategoryData = { hotelCategory: '', hotelSubCategoryName: '', description: '', cityName: '' };
+      await this.onGetCity();
       this.cityCategory();
-      this.onGetCity();
     } catch (error) {
-      console.error("API error:", error);
-      this.openAlertMod(template, "Unexpected error occurred while saving City.");
+      console.error('API error:', error);
+      this.swalMessage('error', 'Unexpected error occurred while saving city.');
     }
   }
 
 
 
   async onGetCity() {
-
     const response: any = await this.travelDesk.getCity().toPromise();
     if (response.serviceStatus == "Success") {
-      this.cityList = response.serviceResponse;
-
-      console.log("cityList   ::::::: : ", this.cityList);
-
+      this.cityList = response.serviceResponse || [];
     } else {
+      this.cityList = [];
       console.error(response.serviceResponse);
     }
   }
 
+  editCity(row: any) {
+    this.editingCityId = row.cityId;
+    this.hotelSubCategoryData = {
+      hotelCategory: row.hotelCategory?.id,
+      hotelSubCategoryName: row.hotelSubCategory?.id,
+      cityName: row.cityName,
+      description: row.description || ''
+    };
+    this.openCityModal();
+  }
+
+  async deleteCityRow(row: any) {
+    const ok = await this.swalConfirmDelete(
+      `Delete city <strong>${this.escapeHtml(row.cityName)}</strong>?`
+    );
+    if (!ok) {
+      return;
+    }
+    try {
+      const response: any = await this.travelDesk.deleteCity(row.cityId).toPromise();
+      if (response.serviceStatus === 'Success') {
+        this.swalMessage('success', 'City deleted.');
+        await this.onGetCity();
+      } else {
+        this.swalMessage('warning', response.serviceError || 'Delete failed.');
+      }
+    } catch (error) {
+      console.error(error);
+      this.swalMessage('error', 'Delete failed.');
+    }
+  }
 
   async onGetTravelCass() {
-
     const response: any = await this.travelDesk.onGetTravelCass().toPromise();
     if (response.serviceStatus == "Success") {
-      this.travelClassList = response.serviceResponse;
-
-      console.log("travelClassList Fetched   :::::::: ", this.travelClassList);
-
+      this.travelClassList = response.serviceResponse || [];
     } else {
+      this.travelClassList = [];
       console.error(response.serviceResponse);
+    }
+  }
+
+  resetTravelClassForm() {
+    this.editingTravelClassId = null;
+    this.selectedTravelReasons = '';
+    this.selectedTravelModes = '';
+    this.travelClass = '';
+    this.description = '';
+  }
+
+  editTravelClass(row: any) {
+    this.editingTravelClassId = row.travelClassId;
+    this.selectedTravelReasons = row.travelReason?.travelReasonName || '';
+    this.selectedTravelModes = String(row.travelMode?.travelModeId || '');
+    this.travelClass = row.travelClass;
+    this.description = row.description || '';
+    if (this.selectedTravelReasons) {
+      this.onTravelReasonChange(this.selectedTravelReasons);
+    }
+    this.openTravelClassModal();
+  }
+
+  async deleteTravelClassRow(row: any) {
+    const ok = await this.swalConfirmDelete(
+      `Delete travel class <strong>${this.escapeHtml(row.travelClass)}</strong>?`
+    );
+    if (!ok) {
+      return;
+    }
+    try {
+      const response: any = await this.travelDesk.deleteTravelClass(row.travelClassId).toPromise();
+      if (response.serviceStatus === 'Success') {
+        this.swalMessage('success', 'Travel class deleted.');
+        await this.onGetTravelCass();
+      } else {
+        this.swalMessage('warning', response.serviceError || 'Delete failed.');
+      }
+    } catch (error) {
+      console.error(error);
+      this.swalMessage('error', 'Delete failed.');
     }
   }
 

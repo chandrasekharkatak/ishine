@@ -58,6 +58,25 @@ export class MySelectComponent implements ControlValueAccessor, OnInit, OnChange
     this.filteredOptions = this.options || [];
   }
 
+  private equalValue(a: any, b: any): boolean {
+    if (a == null && b == null) {
+      return true;
+    }
+    if (a == null || b == null) {
+      return false;
+    }
+    // When consuming API data, ids may be numbers in options but strings in ngModel.
+    // Compare by string for primitives to keep labels stable.
+    const aType = typeof a;
+    const bType = typeof b;
+    const aPrim = aType === 'string' || aType === 'number' || aType === 'boolean';
+    const bPrim = bType === 'string' || bType === 'number' || bType === 'boolean';
+    if (aPrim && bPrim) {
+      return String(a) === String(b);
+    }
+    return a === b;
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['options']) {
       this.onSearchChange();
@@ -92,7 +111,9 @@ export class MySelectComponent implements ControlValueAccessor, OnInit, OnChange
     if (this.multiple) {
       const invalid = (value || []).some((v) =>
         this.isDisabledOption(
-          this.options.find((o) => (this.valueKey ? o[this.valueKey] === v : o === v))
+          this.options.find((o) =>
+            this.valueKey ? this.equalValue(o[this.valueKey], v) : o === v
+          )
         )
       );
 
@@ -101,7 +122,9 @@ export class MySelectComponent implements ControlValueAccessor, OnInit, OnChange
         return;
       }
     } else {
-      const opt = this.options.find((o) => (this.valueKey ? o[this.valueKey] === value : o === value));
+      const opt = this.options.find((o) =>
+        this.valueKey ? this.equalValue(o[this.valueKey], value) : o === value
+      );
 
       if (this.isDisabledOption(opt)) {
         this.writeValue(this.selectedValue);
@@ -129,7 +152,7 @@ export class MySelectComponent implements ControlValueAccessor, OnInit, OnChange
       return 0;
     }
     if (this.valueKey) {
-      return this.options.findIndex((o) => o[this.valueKey] === item);
+      return this.options.findIndex((o) => this.equalValue(o[this.valueKey], item));
     }
     return this.getIndex(this.options, item);
   }
@@ -262,7 +285,9 @@ export class MySelectComponent implements ControlValueAccessor, OnInit, OnChange
     }
     if (this.options?.length) {
       const opt = this.options.find((o) =>
-        this.valueKey ? o?.[this.valueKey] === item : o === item || this.compareObjects(o, item)
+        this.valueKey
+          ? this.equalValue(o?.[this.valueKey], item)
+          : o === item || this.compareObjects(o, item)
       );
       if (opt != null) {
         return this.getDisplayText(opt);

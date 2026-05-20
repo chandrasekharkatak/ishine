@@ -433,10 +433,16 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
     const allowedNames = new Set(
       this.rolesForDepartments(rs.applicabilityDepartmentIds ?? []).map((r) => this.normRoleName(r.name))
     );
-    rs.applicabilityJobRoleIds = (rs.applicabilityJobRoleIds ?? []).filter((id) => {
+    const kept = (rs.applicabilityJobRoleIds ?? []).filter((id) => {
       const jr = this.findJobRoleById(id);
       return jr && allowedNames.has(this.normRoleName(jr.name));
     });
+    // Important: the roles dropdown options are de-duped by role title. If we keep raw ids from
+    // other departments, the select can't map them to an option label and shows ids instead.
+    rs.applicabilityJobRoleIds = this.collapseRepresentativeJobRoleIds(
+      kept.map((x) => this.normId(x)).filter(Boolean),
+      rs.applicabilityDepartmentIds ?? []
+    );
     this.enrichDraftForTable(rs);
   }
 
@@ -689,10 +695,14 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
     const allowedNames = new Set(
       this.rolesForDepartments(level.departmentIds).map((r) => this.normRoleName(r.name))
     );
-    level.jobRoleIds = level.jobRoleIds.filter((id) => {
+    const kept = (level.jobRoleIds ?? []).filter((id) => {
       const jr = this.findJobRoleById(id);
       return jr && allowedNames.has(this.normRoleName(jr.name));
     });
+    level.jobRoleIds = this.collapseRepresentativeJobRoleIds(
+      kept.map((x) => this.normId(x)).filter(Boolean),
+      level.departmentIds ?? []
+    );
     this.loadEmployeesForLevel(level);
     this.syncSpecificEmployee(level);
   }
