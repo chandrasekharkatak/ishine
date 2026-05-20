@@ -9,11 +9,11 @@
                     (click)="showViewProjects()">
                     View All Projects
                 </button>
-                <button type="button" class="btn custom-btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isCreation}"
-                    (click)="showCreateInternalProjectForm()">
+                <button type="button" class="btn custom-btn-outline-primary btn-sm mx-1"  *ngIf="!(userMapping.rmg_read_only)" 
+                    [ngClass]="{'active': isCreation}" (click)="showCreateInternalProjectForm()">
                     Create Internal Project
                 </button>
-                <button type="button" class="btn custom-btn-outline-primary btn-sm mx-1"
+                <button type="button" class="btn custom-btn-outline-primary btn-sm mx-1"  *ngIf="!(userMapping.rmg_read_only)"
                     [ngClass]="{'active': isSkillMatrix}" (click)="openShowSkillMatrix()">
                     Search Employee(Skill Matrix)
                 </button>
@@ -105,12 +105,12 @@
                     <i class="bi bi-eye"></i>
                     View All Projects
                 </button>
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20" *ngIf="!(userMapping.rmg_read_only)"
                     [ngClass]="{'active': isCreation}" (click)="showCreateInternalProjectForm()">
                     <i class="bi bi-plus"></i>
                     Create Internal Project
                 </button>
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20" *ngIf="!(userMapping.rmg_read_only)"
                     [ngClass]="{'active': isSkillMatrix}" (click)="openShowSkillMatrix()">
                     <i class="bi bi-person-vcard"></i>
                     Skill Matrix
