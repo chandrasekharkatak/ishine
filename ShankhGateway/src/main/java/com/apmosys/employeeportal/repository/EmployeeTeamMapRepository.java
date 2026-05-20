@@ -1503,5 +1503,13 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			@Param("roleId") Long roleId,
 			@Param("rangeStart") LocalDateTime rangeStart,
 			@Param("rangeEnd") LocalDateTime rangeEnd);
+	
+	@Query(value = "SELECT etm.empId, etm.endDate " +
+            "FROM EmployeeTeamMap etm " +
+            "WHERE etm.empId IN :empIds " +
+            "AND etm.poId = :poId")
+List<Object[]> findEmpIdAndEndDateByEmpIdsAndPoId(
+     @Param("empIds") List<Long> empIds,
+     @Param("poId") Long poId);
 
 }

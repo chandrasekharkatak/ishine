@@ -236,21 +236,21 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 
     @Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO( "
         		+ "       e.employeementId,e.name,rd.role,rd.experience,rd.department,"
-        		+ "       prm.clientRoleId,p.clientId,COUNT(DISTINCT et.timesheetId),"
-        		+ "       MIN(et.date),MAX(et.date),e.isApmosysProduct,ppo.poId,"
-        		+ "		  et.empId,ptsn.shadowEmpId, etm.isShadow ) "
+        		+ "       prm.clientRoleId,p.clientId,COUNT(DISTINCT CASE WHEN et.dayTypeId IN (1,3,8) THEN et.timesheetId ELSE NULL END),"
+        		+ "       e.isApmosysProduct,ppo.poId,"
+        		+ "	 et.empId) "
         		+ "     FROM EmployeeTimesheetsNew et  "
                         + " inner join EmployeeTimesheetLocationMapping etlm on etlm.timesheetId = et.timesheetId "
                         + " inner join ProjectTimesheetStatusNew ptsn on ptsn.id.timesheetId = etlm.timesheetId "
                         + " and etlm.locationMappingId = ptsn.id.locationMappingId "
-                        + " left join EmployeeTimesheetActivitiesMappingNew etam on etam.timesheetId = et.timesheetId "
+//                        + " left join EmployeeTimesheetActivitiesMappingNew etam on etam.timesheetId = et.timesheetId "
         		// + "		LEFT JOIN TimesheetActivityMap etam on etam.timesheetId=et.timesheetId"
-                        + " and ptsn.id.projectId = etam.projectId and etlm.locationMappingId = etam.locationMappingId "
-        		+ "		LEFT JOIN Activity a on a.activityId=etam.activityId"
-        		+ "		LEFT JOIN TimesheetDocumentDetailsNew edd on edd.timesheetId=et.timesheetId "
-        		+ "         AND edd.clientApprovalStatusId = 1 AND edd.finalFlag = 1 "
-        		+ "		LEFT JOIN Team t on t.teamId=a.teamId "
-        		+ "		LEFT JOIN Project p on p.projectId=t.projectId "
+//                        + " and ptsn.id.projectId = etam.projectId and etlm.locationMappingId = etam.locationMappingId "
+//        		+ "		LEFT JOIN Activity a on a.activityId=etam.activityId"
+        		+ "		LEFT JOIN TimesheetDocumentDetailsNew edd on edd.timesheetId=et.timesheetId and ptsn.id.projectId = edd.projectId "
+        		+ "         AND edd.clientApprovalStatusId = 2 AND edd.finalFlag = 1 "
+//        		+ "		LEFT JOIN Team t on t.teamId=a.teamId "
+        		+ "		LEFT JOIN Project p on p.projectId=ptsn.id.projectId "
         		+ "     LEFT JOIN ProjectPoDetails ppo on ppo.projectId = p.projectId "
         		+ "          AND ppo.clientAddressId IS NOT NULL AND ppo.active=1"
         		+ "		LEFT JOIN PoRequirementMapping prm ON prm.poId = ppo.poId "
@@ -259,12 +259,16 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         		+ "		LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId "
         		+ "		LEFT JOIN Employee e on e.empId=etm.empId "
         		+ "		LEFT JOIN Department d ON d.name = prm.department "
-        		+ "		where 1=1 AND et.empId = :empId "
+        		+ "		where 1=1 AND et.empId in (:empIds) "
         		+ "        AND etm.poId = :poId and et.status = 2 "
-        		+ "        AND etm.active!= 2 AND et.dayTypeId not in (5 ,9) "
-        		+ "        AND et.date BETWEEN :startDate AND :endDate")
-        	IshineToPoEmployeeDTO findEmployeesWithTimesheetCount(Long empId,
+        		+ "        AND etm.active!= 2 "
+        		+ "        AND et.date BETWEEN :startDate AND :endDate and ptsn.shadowEmpId is null"
+                        + " group by  e.employeementId,e.name,rd.role,rd.experience,rd.department,prm.clientRoleId,"
+                        + " p.clientId,e.isApmosysProduct,ppo.poId, et.empId "
+                )
+        	List<IshineToPoEmployeeDTO> findEmployeesWithTimesheetCount(List<Long> empIds,
         	         LocalDate startDate,LocalDate endDate,Long poId);
+
 	ProjectPoDetails findByPoId(Long poId);
 
 	boolean existsByPoIdAndProjectIdAndActiveTrue(Long poId, Integer projectId);
@@ -304,6 +308,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
     @Query("SELECT ppd.projectId FROM ProjectPoDetails ppd where ppd.poNo = :poNo and ppd.active is true")
 	Integer findProjectIdByPoNo(String poNo);
 
+
     @Query("SELECT ppd.poProjectId FROM ProjectPoDetails ppd where ppd.poNo = :poNo and ppd.active is true")
     Long findPoProjectIdByPoNo(String poNo);
     List<ProjectPoDetails> findByProjectIdAndPoIdInAndActiveTrue(Integer projectId, Set<Long> poIds);
@@ -312,4 +317,9 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 
     List<ProjectPoDetails> findByProjectIdAndNextPOInAndActiveTrue(Integer projectId, Set<Long> poIds);
 
+
+        // @Query(value = "",nativeQuery = true)
+        // Object[] 
+
+     
 }

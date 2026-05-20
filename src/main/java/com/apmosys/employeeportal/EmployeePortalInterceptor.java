@@ -169,8 +169,8 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/api/poCrudOperationsInIshine",
 			"/api/getExtensionDocumentById",
 			"/employeeportal/api/getEmployeesWorkingInProjects",
-			"/api/getEmployeesWorkingInProjects"
-
+			"/api/getEmployeesWorkingInProjects",
+			"/api/timesheetUploadTest/bulk-migrate2"
 			);
 	
 //	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(

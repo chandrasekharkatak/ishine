@@ -1663,4 +1663,17 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId in :teamIds and etm.employeeTeamMapId in :etmIds and etm.active != 0 ")
 	List<EmployeeTeamMap> activeAndPendingEmployeesByTeamIdsAndEtmIds(List<Long> teamIds,List<Long> etmIds);
 
+	/**
+	 * Fetches all (empId, endDate) rows for the given employees under a specific PO.
+	 * Multiple rows per employee are expected (shadow, deboard-reboard, etc.).
+	 * row[0] = empId (Long), row[1] = endDate (LocalDateTime, may be null)
+	 */
+	@Query(value = "SELECT etm.empId, etm.endDate " +
+	               "FROM EmployeeTeamMap etm " +
+	               "WHERE etm.empId IN :empIds " +
+	               "AND etm.poId = :poId")
+	List<Object[]> findEmpIdAndEndDateByEmpIdsAndPoId(
+	        @Param("empIds") List<Long> empIds,
+	        @Param("poId") Long poId);
+
 }
