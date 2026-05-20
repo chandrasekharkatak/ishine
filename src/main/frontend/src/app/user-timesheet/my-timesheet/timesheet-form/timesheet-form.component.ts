@@ -1283,6 +1283,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     }
     this.isNightShift = false;
     this.toDate = null;
+    this.compOffForDate = null;
     const dayTypeFillable = this.isDayTypeFillable();
     this.clearAndInitOnDayTypeChange(dayTypeFillable);
     // if (!dayTypeFillable) {
