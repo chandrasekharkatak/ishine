@@ -416,7 +416,7 @@ public class ReimbursementTicketMatrixWorkflowService {
 			return "Approver pool";
 		}
 		if ("SPECIFIC_IN_SCOPE".equals(routing)) {
-			return "Specific approver";
+			return "—";
 		}
 		return "—";
 	}
