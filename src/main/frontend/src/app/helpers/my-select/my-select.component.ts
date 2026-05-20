@@ -41,6 +41,7 @@ export class MySelectComponent implements ControlValueAccessor, OnInit, OnChange
   @Input() wrapOptions = false;
   @Input() showSelectAll = true;
   @Input() wrapOptionLines = false;
+  @Input() title = '';
   @Output() selectionChange = new EventEmitter<any>();
   @Output() change = new EventEmitter<any>();
   @Output() dropdownClosed = new EventEmitter<void>();
@@ -277,6 +278,20 @@ export class MySelectComponent implements ControlValueAccessor, OnInit, OnChange
       return this.placeholder || 'Select';
     }
     return labels.join(', ');
+  }
+
+  selectHoverTitle(): string {
+    if (this.title) {
+      return this.title;
+    }
+    if (this.multiple) {
+      const label = this.multiTriggerLabel();
+      return label === (this.placeholder || 'Select') ? '' : label;
+    }
+    if (this.selectedValue == null || this.selectedValue === '') {
+      return '';
+    }
+    return this.labelForSelectedItem(this.selectedValue);
   }
 
   private labelForSelectedItem(item: any): string {

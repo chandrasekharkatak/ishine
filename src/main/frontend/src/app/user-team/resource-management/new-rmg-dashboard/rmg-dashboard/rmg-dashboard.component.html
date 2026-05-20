@@ -46,11 +46,12 @@
             <div class="d-flex align-items-center gap-3">
                 <!-- Department Dropdown -->
                 <div class="d-flex align-items-center mr-1">
-                    <label class="toolbar-label mb-0">Department</label>&nbsp;
+                    <label class="toolbar-label mb-0" [title]="selectedDepartmentsTooltip">Department</label>&nbsp;
 
                     <app-my-select class="form-select toolbar-select max-width200" placeholder="Select Department"
                         [(ngModel)]="selectedDepartmentIds" (dropdownClosed)="onDepartmentSelectionChange()"
                         [options]="filteredDepartmentList" displayKey="name" valueKey="deptId" [multiple]="true"
+                        [title]="selectedDepartmentsTooltip"
                         [showFilterAction]="currentUser.employeeRole != 'SuperAdmin'"
                         [filterActionLabel]="departmentFilterActionLabel" (filterAction)="filterDepartment()">
                     </app-my-select>

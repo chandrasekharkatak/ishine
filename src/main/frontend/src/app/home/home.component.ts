@@ -1623,6 +1623,9 @@ resetRejectModalData() {
                 this.roundToTwo(
                   (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100
                 ) + '%';
+
+              clone.showWorkingHoursInHomePage = this.convertFromDecimalToMinutes(clone.totalWorkingHours);
+              
               this.timesheetDetails.push(clone);
 
               if (clone.status === 'Pending') pendingCount++;
@@ -1653,7 +1656,7 @@ resetRejectModalData() {
             this.roundToTwo(
               (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100
             ) + '%';
-
+               clone.showWorkingHoursInHomePage =  this.convertFromDecimalToMinutes(clone.totalClientWorkingHours);
               this.timesheetDetails.push(clone);
 
               if (clone.status === 'Pending') pendingCount++;
@@ -3824,6 +3827,16 @@ resetFileData() {
   this.documentType = '';
   this.documentContent = null;
   this.previewUrlForMileStone = null;
+}
+
+convertFromDecimalToMinutes(totalWorkingHours){
+  const totalMinutes = Math.round((totalWorkingHours || 0) * 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  const result =(`${hours}.${minutes.toString().padStart(2, '0')}`);
+  console.log(result);
+  return result;
 }
 
 }

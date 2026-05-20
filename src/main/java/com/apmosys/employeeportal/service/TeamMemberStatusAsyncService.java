@@ -15,7 +15,13 @@ public class TeamMemberStatusAsyncService {
 
     @Async
     public void triggerFromInternalFlow() {
-        teamMemberStatusOrchestrationService.updateTeamMemberStatus(SchedulerTriggerType.INTERNAL);
+        triggerFromInternalFlow(null);
+    }
+
+    @Async
+    public void triggerFromInternalFlow(Long scopedProjectIdForMapping) {
+        teamMemberStatusOrchestrationService.updateTeamMemberStatus(
+                SchedulerTriggerType.INTERNAL, scopedProjectIdForMapping);
     }
 
     @Async

@@ -223,10 +223,11 @@ export class RmgDashboardComponent implements OnInit {
   };
 
   zeroTimesheetBars = [
-    { label: 'No Timesheet', value: null, color: '#2f467f', key: 'All', display: false, subKey: 'TIMESHEET_NON_COMPLIANCE', fullLabel: 'No Timesheet Filled' },
-    { label: '3 Months', value: null, color: '#5677C2', key: '3M', display: true, segments: { TNM: 0, 'Fixed Cost': 0, Monitoring: 0, Internal: 0 } },
-    { label: '6 Months', value: null, color: '#CC9433', key: '6M', display: true, segments: { TNM: 0, 'Fixed Cost': 0, Monitoring: 0, Internal: 0 } },
-    { label: '1 Year', value: null, color: '#C65353', key: '1Y', display: true,segments: { TNM: 0, 'Fixed Cost': 0, Monitoring: 0, Internal: 0 } },
+    { label: 'No Timesheet', value: null, color: '#2f467f', key: '3M', display: false, subKey: 'TIMESHEET_NON_COMPLIANCE', fullLabel: 'No Timesheet (0-3M)' },
+    { label: '0-3M', value: null, color: '#5677C2', key: '3M', display: true, segments: { TNM: 0, 'Fixed Cost': 0, Monitoring: 0, Internal: 0 } },
+    { label: '3-6M', value: null, color: '#CC9433', key: '6M', display: true, segments: { TNM: 0, 'Fixed Cost': 0, Monitoring: 0, Internal: 0 } },
+    { label: '6-12M', value: null, color: '#C65353', key: '1Y', display: true,segments: { TNM: 0, 'Fixed Cost': 0, Monitoring: 0, Internal: 0 } },
+    { label: '12M+', value: null, color: '#C65353', key: '1Y+', display: true,segments: { TNM: 0, 'Fixed Cost': 0, Monitoring: 0, Internal: 0 } },
   ];
 
   completedItems = [
@@ -594,9 +595,16 @@ export class RmgDashboardComponent implements OnInit {
     this.getEmployeeNameAndEmpld();
     this.mapSubFeatureFlag();
 
-    if ((this.filterStateService.deptIdList && this.filterStateService.deptIdList.length > 0) || (this.filterStateService.deptIdListByUser && this.filterStateService.deptIdListByUser.length > 0)) {
-      this.myDept = this.filterStateService.myDept;
-      this.selectedDepartmentIds = this.filterStateService.deptIdList;
+    if (this.currentUser.employeeRole !== 'SuperAdmin') {
+      if (this.filterStateService.deptIdList?.length > 0) {
+        this.myDept = this.filterStateService.myDept;
+        this.selectedDepartmentIds = [...this.filterStateService.deptIdList];
+        this.oldSelectedDepartmentIds = [...this.selectedDepartmentIds];
+      } else {
+        this.myDept = this.shouldFetchUserSpecificDepartments(deptName, empRole);
+        this.selectAllFilteredDepartments();
+      }
+      this.updateDepartmentLabel();
     }
 
     if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
@@ -826,11 +834,6 @@ export class RmgDashboardComponent implements OnInit {
     console.log(point);
     if (chartId && point) {
       let projectStatus = chartId.split('_Chart')[0];
-      // if (projectStatus == 'TIMESHEET_NON_COMPLIANCE') {
-      //   let key = this.zeroTimesheetBars.find(t => t.label === point?.category).key || 'All';
-      //   this.openUnfilledProjectTimesheetDetailsModal(key);
-      //   return;
-      // } else 
       if (projectStatus == 'TOTAL_EXPIRED_TNM') {
         this.projectStatus = projectStatus;
         this.filterStateService.selectedProjectStatus = this.projectStatus;
@@ -905,6 +908,27 @@ export class RmgDashboardComponent implements OnInit {
     } else {
       await this.getAllDepartmentsByCurrentUserIdAndRole();
     }
+    this.selectAllFilteredDepartments();
+    this.getProjectDetailsList(true);
+    this.loadRMGDashboard();
+  }
+
+  private selectAllFilteredDepartments(): void {
+    this.selectedDepartmentIds = this.filteredDepartmentList?.map((dept) => dept.deptId) ?? [];
+    this.oldSelectedDepartmentIds = [...this.selectedDepartmentIds];
+    this.filterStateService.deptIdList = this.selectedDepartmentIds;
+    this.filterStateService.myDept = this.myDept;
+  }
+
+  get selectedDepartmentsTooltip(): string {
+    const ids = this.selectedDepartmentIds ?? [];
+    if (ids.length === 0) {
+      return 'No departments selected';
+    }
+    const names = (this.filteredDepartmentList ?? [])
+      .filter((dept) => ids.includes(dept.deptId))
+      .map((dept) => dept.name);
+    return names.length > 0 ? names.join(', ') : 'No departments selected';
   }
 
   updateDepartmentLabel() {
@@ -1406,7 +1430,7 @@ export class RmgDashboardComponent implements OnInit {
     fromDate = filter == 'All' ? null : fromDate.format('YYYY-MM-DD');
     let toDate = filter == 'All' ? null : today.format('YYYY-MM-DD');
 
-    this.projectDetailsExtraParams = { "selectedDeptIds": this.selectedDepartmentIds, "projectStatus": this.timesheetNonCompliance.key, "fromDate": fromDate, "toDate": toDate,  projectType: projectType || null };
+    this.projectDetailsExtraParams = { "selectedDeptIds": this.selectedDepartmentIds, "projectStatus": this.timesheetNonCompliance.key, "fromDate": fromDate, "toDate": toDate,  projectType: projectType || null, "key": filter};
     this.projectDetailsColumnConfig = this.timesheetNonCompliance?.columnConfig;
     this.projectDetailsDefaultSortColumn = this.timesheetNonCompliance?.defaultSortColumn;
     this.projectDetailsSubTableColumnConfig = this.timesheetNonCompliance?.columnConfig
@@ -1684,42 +1708,21 @@ export class RmgDashboardComponent implements OnInit {
       const response: any = await firstValueFrom(this.resourceManagementService.getAllUnfilledTimesheetProjectDetailsCount(newRmgDashboardProjectRequest));
       if (response?.serviceStatus == "Success" && response?.serviceResponse != null) {
         const counts = response.serviceResponse;
-        // for (const filter of this.zeroTimesheetBars) {
-        //   filter.value = counts[filter.key];
-        // }
         for (const filter of this.zeroTimesheetBars) {
+          const bucketData = counts[filter.key] || {};
 
-          // if (!filter.display) {
-          //   continue;
-          // }
-  
-          const bucketData =
-            counts[filter.key] || {};
-  
           filter.segments = {
-  
             TNM:
               bucketData?.TNM || 0,
-  
             'Fixed Cost':
               bucketData?.['Fixed Cost'] || 0,
-  
             Monitoring:
               bucketData?.Monitoring || 0,
-  
             Internal:
               bucketData?.Internal || 0
           };
-  
-          filter.value =
-  
-            (bucketData?.TNM || 0) +
-  
-            (bucketData?.['Fixed Cost'] || 0) +
-  
-            (bucketData?.Monitoring || 0) +
-  
-            (bucketData?.Internal || 0);
+
+          filter.value = (bucketData?.TNM || 0) + (bucketData?.['Fixed Cost'] || 0) + (bucketData?.Monitoring || 0) + (bucketData?.Internal || 0);
         }
       } else {
         this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
