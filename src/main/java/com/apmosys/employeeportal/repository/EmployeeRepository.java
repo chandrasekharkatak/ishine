@@ -1213,7 +1213,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ " CASE WHEN p.po_project_type IS NOT NULL AND TRIM(p.po_project_type) != '' THEN p.po_project_type ELSE p.internal_project_type END AS project_type, DATE(p.start_date) \n"
 			+ " from projects p \n"
 			+ " inner join teams t on t.project_id = p.project_id  \n"
-			+ " where p.po_project_type is not null and TRIM(p.po_project_type) != '' and (p.internal_project_type = 'InternalRNDProducts' or p.internal_project_type IS NULL) and p.active = 'true' and t.is_active = 'Y' ")
+			+ " where (p.internal_project_type = 'InternalRNDProducts' OR p.po_project_type is not null) and p.active = 'true' and t.is_active = 'Y' ")
 	List<Object[]> getAllProjectsThatAreNotBench();
     
 //    @Modifying
