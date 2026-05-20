@@ -963,7 +963,11 @@ export class EmployeeInfoComponent implements OnInit{
       this.updateUserInfoService.setUserInfoObj(this.employeeObj);
       this.loadDocumentUpload.emit();
     } else {
-      console.error(response.serviceResponse);
+       this.alertMessage =
+    response.serviceResponse ||
+    "Something went wrong";
+
+  this.openAlertMod(template, this.alertMessage);
     }
   }
 
