@@ -1,0 +1,2879 @@
+<div class="row mt-1 mb-1 p-2" style="padding-top: 0px !important;">
+    <div class="card shadow project-config-card" *ngIf="!isTeamDetailsForm">
+        <div class="card-header  project-card-header">
+            <div class="row align-items-center">
+                <div class="col-md-11">
+                    <h6 class="card-title text-left">
+                        <ng-container *ngIf="projectConfigResolveMap?.[rmgProjectObj?.projectId]?.redirected">
+                            <span class="me-2 rounded-circle text-dark border border-warning-subtle"
+                                style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background-color:#fff3cd;"
+                                [title]="'Linked to project: ' + (projectConfigResolveMap?.[rmgProjectObj?.projectId]?.resolvedProjectName || 'Primary project')">
+                                <i class="bi bi-link-45deg" style="font-size:16px;line-height:1;" aria-hidden="true"></i>
+                            </span>
+                            <button type="button" class="btn btn-sm btn-link p-0 me-2"
+                                [title]="'Copy primary project name: ' + (projectConfigResolveMap?.[rmgProjectObj?.projectId]?.resolvedProjectName || '')"
+                                (click)="$event.stopPropagation(); copyPrimaryProjectNameFromConfig()">
+                                <i class="bi bi-clipboard" aria-hidden="true"></i>
+                            </button>
+                        </ng-container>
+                        {{ rmgProjectObj.projectName ? (rmgProjectObj.projectName + ' (Project Configuration)')
+                        : 'Project Configuration' }}
+                    </h6>
+                </div>
+                <div class="col-md-1 d-flex justify-content-end">
+                    <button class="btn btn-sm btn-outline-primary" title="Close Configuration" *ngIf="!isProjectPreview"
+                        (click)="closeProjectConfiguration?.emit()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" title="Close Preview Modal" *ngIf="isProjectPreview"
+                        (click)="closeProjectConfigurationModal?.emit()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-2">
+            <mat-tab-group *ngIf="fixedCostTypes.includes((projectType ?? '').toLowerCase()) && !isInternalProject"
+                (selectedTabChange)="onTabChange($event)">
+                <mat-tab label="Project">
+                </mat-tab>
+                <mat-tab label="Milestones">
+                </mat-tab>
+            </mat-tab-group>
+            <ng-container *ngIf="currentTab == 'Project'">
+                <div class="row">
+                    <div class="col-md-12">
+                        <mat-stepper #project_config_stepper linear [(selectedIndex)]="projectConfigStepperIndex"
+                            orientation="horizontal" class="custom-stepper"
+                            (selectionChange)="onProjectConfigStepChange($event)">
+                            <mat-step [completed]="isProjectManagerValid" *ngIf="!isProjectPreview">
+                                <ng-template matStepLabel>Project Information</ng-template>
+                                <div *ngIf="!isProjectManagerValid" class="danger">
+                                    {{ projectConfigStepperErrorMessage }}
+                                </div>
+                                <ng-container>
+                                    <div class="horizontal-row"></div>
+                                    <ng-template [ngTemplateOutlet]="project_information_template"></ng-template>
+                                </ng-container>
+                            </mat-step>
+                            <mat-step *ngIf="!isProjectPreview">
+                                <ng-template matStepLabel>Resource Config</ng-template>
+                                <ng-container>
+                                    <div class="horizontal-row"></div>
+                                    <ng-template [ngTemplateOutlet]="team_list_template"></ng-template>
+                                </ng-container>
+                            </mat-step>
+                            <mat-step>
+                                <ng-template matStepLabel>Preview</ng-template>
+                                <ng-container>
+                                    <div class="horizontal-row"></div>
+                                    <ng-template [ngTemplateOutlet]="project_information_template"></ng-template>
+                                    <div class="horizontal-row"></div>
+                                    <ng-template [ngTemplateOutlet]="team_list_template"></ng-template>
+                                </ng-container>
+                            </mat-step>
+                        </mat-stepper>
+                    </div>
+                </div>
+            </ng-container>
+            <ng-container *ngIf="currentTab == 'Milestones'">
+                <div class="card card shadow-sm p-2 m-2" style="padding-top: 0px !important;">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <ng-template [ngTemplateOutlet]="fc_milestone_template"></ng-template>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+    <ng-container>
+        <ng-template [ngTemplateOutlet]="team_details_new" *ngIf="isTeamDetailsForm">
+        </ng-template>
+    </ng-container>
+</div>
+
+<ng-template #project_information_template>
+    <div class="project-information-section">
+        <ng-container *ngIf="projectConfigStepperIndex == 2 || isProjectPreview">
+            <div class="row m-2">
+                <h5>Project Information</h5>
+            </div>
+        </ng-container>
+        <div class="row">
+            <div class="col-md-4 mb-0">
+                <div class="form-group p-2 mb-0">
+                    <label>Project Name</label>
+                    <input class="form-control" type="text" disabled [(ngModel)]="rmgProjectObj.projectName" />
+                </div>
+            </div>
+            <div class="col-md-4 mb-0">
+                <div class="form-group p-2 mb-0">
+                    <label>Client Name</label>
+                    <input class="form-control" type="text" disabled [ngModel]="rmgProjectObj.clientName || 'NA'" />
+                </div>
+            </div>
+            <div class="col-md-4 mb-0">
+                <div class="form-group p-2 mb-0">
+                    <label>State</label>
+                    <input class="form-control" type="text" disabled [ngModel]="rmgProjectObj.state || 'NA'" />
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-0">
+                <div class="form-group p-2 mb-0">
+                    <label>Project Type</label>
+                    <input class="form-control" type="text" disabled [ngModel]="projectType || 'NA'" />
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-0">
+                <div class="form-group p-2 mb-0">
+                    <label><span class="text-danger">*</span>Project Manager</label>
+
+                    <div class="manager-wrapper" (mouseenter)="showManagerTooltip = true" (mouseleave)="showManagerTooltip = false">
+
+                        <app-my-select class="form-control" [(ngModel)]="rmgProjectObj.projectManagerIds"
+                            [readonly]="projectConfigStepperIndex !== 0" [class.disable-dropdown]="projectConfigStepperIndex === 2"
+                            [options]="managerList" displayKey="name" valueKey="empId" placeholder="Select Project Manager"
+                            [multiple]="true" (dropdownClosed)="validateProjectManagerIds()">
+                        </app-my-select>
+
+                        <!-- Popup -->
+                        <div class="manager-popup"
+                            *ngIf="showManagerTooltip && getSelectedManagers().length > 0 && projectConfigStepperIndex === 2 ">
+                            <div class="manager-popup-title">Selected Managers</div>
+                            <div class="manager-popup-item" *ngFor="let name of getSelectedManagers()">
+                                👤 {{ name }}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-0">
+                <div class="form-group p-2 mb-0">
+                    <label>Project Overhead</label>
+
+                    <div class="manager-wrapper" (mouseenter)="showOverheadTooltip = true"
+                        (mouseleave)="showOverheadTooltip = false">
+
+                        <app-my-select class="form-control" [(ngModel)]="rmgProjectObj.projectOverheadIds"
+                            [class.disable-dropdown]="projectConfigStepperIndex === 2" [readonly]="projectConfigStepperIndex !== 0"
+                            [options]="overheadList" displayKey="name" valueKey="empId" placeholder="Select Project Overhead"
+                            [multiple]="true">
+                        </app-my-select>
+
+                        <!-- Popup -->
+                        <div class="manager-popup"
+                            *ngIf="showOverheadTooltip && getSelectedOverheads().length > 0 && projectConfigStepperIndex === 2">
+                            <div class="manager-popup-title">Selected Overheads</div>
+                            <div class="manager-popup-item" *ngFor="let name of getSelectedOverheads()">
+                                👤 {{ name }}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <!-- <div class="col-md-4 mb-0">
+                <div class="form-group p-2 mb-0">
+                    <label>Department</label>
+                    <app-my-select #departmentSelect2 class="form-control" disabled placeholder="Select Department"
+                        [class.disable-dropdown]="projectConfigStepperIndex === 2"
+                        [(ngModel)]="rmgProjectObj.departmentIds" [options]="departmentsList" displayKey="name"
+                        [disable]="true" valueKey="deptId" [multiple]="true">
+                    </app-my-select>
+                </div>
+            </div> -->
+            <div class="col-md-4 mb-0">
+                <div class="form-group p-2 mb-0">
+                    <label>Department</label>
+
+                    <div class="manager-wrapper" (mouseenter)="showDepartmentTooltip = true"
+                        (mouseleave)="showDepartmentTooltip = false">
+
+                        <app-my-select #departmentSelect2 class="form-control" disabled placeholder="Select Department"
+                            [class.disable-dropdown]="projectConfigStepperIndex === 2" [(ngModel)]="rmgProjectObj.departmentIds"
+                            [options]="departmentsList" displayKey="name" [disable]="true" valueKey="deptId" [multiple]="true">
+                        </app-my-select>
+
+                        <!-- Popup -->
+                        <div class="manager-popup" *ngIf="showDepartmentTooltip && getSelectedDepartments().length > 0 && projectConfigStepperIndex === 2">
+                            <div class="manager-popup-title">Selected Departments</div>
+                            <div class="manager-popup-item" *ngFor="let name of getSelectedDepartments()">
+                                🏢 {{ name }}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-0">
+                <div class="form-group p-2 mb-0">
+                    <label>Approval Status</label>
+                    <input class="form-control" type="text" disabled
+                        [ngModel]="rmgProjectObj.draftProjectStatus || 'NA'" />
+                </div>
+            </div>
+            <div class="col-md-4 mb-0">
+                <div class="form-group p-2 mb-0">
+                    <label>Project Status</label>
+                    <input class="form-control" type="text" disabled [ngModel]="rmgProjectObj.projectStatus || 'NA'" />
+                </div>
+            </div>
+        </div>
+        <div class="row" *ngIf="projectConfigStepperIndex === 0">
+            <div class="col-md-6 mb-0 m-2">
+                <button class="btn btn-primary btn-sm" (click)="saveProjectInformation()">
+                    Save Project Information
+                </button>&nbsp;&nbsp;
+                <button class="btn btn-outline-primary btn-sm" [disabled]="!isProjectManagerValid"
+                    (click)="navigateToResourceConfig()">
+                    Next
+                </button>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #team_list_template>
+    <div class="po-list-container m-1">
+        <ng-container *ngIf="projectConfigStepperIndex == 2 || isProjectPreview">
+            <div class="row m-2">
+                <h5>Resource Config</h5>
+            </div>
+        </ng-container>
+        <div class="team-list-body">
+            <!-- TNM Resource Requirement Cards -->
+            <div class="row resource-count-row" *ngIf="projectConfigStepperIndex === 1">
+                <div class="col-12">
+                    <div class="resource-count-card">
+                        <div *ngFor="let item of resourceStats" class="count-item" [ngClass]="item.class"
+                            [hidden]="!item.show">
+                            <span>{{ item.label }}</span> : <strong>{{ item.value }}</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="horizontal-row"></div>
+                 <div class="col-12" *ngIf="rmgProjectObj?.projectMessage">
+                      <div class="project-message-bar">
+                          <div class="scroll-text">
+                              {{ rmgProjectObj.projectMessage }}
+                          </div>
+                      </div>
+                 </div>
+            </div>
+
+            <ng-container *ngIf="projectType === 'TNM'">
+                <div class="mt-3">
+                    <ng-template [ngTemplateOutlet]="resource_requirement_template">
+                    </ng-template>
+                </div>
+            </ng-container>
+
+            <div class="row" *ngIf="projectConfigStepperIndex === 1">
+                <div class="col-md-12 d-flex justify-content-end">
+                    <button *ngIf="!rmgProjectObj?.isAnyNewTeamAdded && rmgProjectObj?.teamDetailsList?.length > 0"
+                        class="btn btn-primary btn-sm mr-1" title="Update Team(s)"
+                        [disabled]="!isAnyTeamUpdated()"
+                        (click)="addOrUpdateTeamDetails(true)">
+                        Update Team(s)
+                    </button>
+                    <button [disabled]="!(rmgProjectObj.isAnyTeamSelected && rmgProjectObj?.teamDetailsList?.length > 0)"
+                        class="btn btn-primary btn-sm mr-1" title="Update Team(s)" (click)="validateDeleteTeams()">
+                        Delete Team(s)
+                    </button>
+                    <button [disabled]="!(rmgProjectObj.isAnyTeamSelected && rmgProjectObj?.teamDetailsList?.length > 0)"
+                        class="btn btn-primary btn-sm mr-1" title="Migrate Team(s)" (click)="openMigrateTeamModal()">
+                        Migrate Team(s)
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary mr-1"
+                        [title]="!rmgProjectObj.addNewTeamToggle ? 'Show Add New Team' : 'Hide Add New Team'"
+                        (click)="toggleAddNewTeam()">
+                        <i class="fa"
+                            [ngClass]="rmgProjectObj.addNewTeamToggle ? 'fa-minus-circle' : 'fa-plus-circle'"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- All Teams List Table  -->
+            <div class="w-100 mt-2 mb-2">
+                <div class="new-table-container">
+                    <table class="new-custom-table">
+                        <thead>
+                            <tr>
+                                <th *ngIf="rmgProjectObj.teamDetailsList?.length === 0"></th>
+                                <th
+                                    *ngIf="projectConfigStepperIndex === 1 && rmgProjectObj?.teamDetailsList?.length !== 0">
+                                    <mat-checkbox class="custom-checkbox" color="primary"
+                                        [checked]="rmgProjectObj.isAllTeamsSelected" title="Select All Teams"
+                                        (change)="onAllTeamsCheckboxChange()"></mat-checkbox>
+                                </th>
+                                <th class="min-width180 max-width200"><span class="text-danger">*</span>Team Name</th>
+                                <th class="min-width180 max-width200"><span class="text-danger">*</span>Department(s)</th>
+                                <th class="min-width180 max-width200">SPOC</th>
+                                <th>Action</th>
+                            </tr>
+                            <ng-container *ngIf="rmgProjectObj.addNewTeamToggle">
+                                <tr *ngIf="projectConfigStepperIndex === 1">
+                                    <td></td>
+                                    <td class="min-width180 max-width200">
+                                        <input class="form-control" type="text"
+                                            [(ngModel)]="rmgProjectObj.newTeamObj.teamName"
+
+                                            [disabled]="projectConfigStepperIndex !== 1" placeholder="Enter Team Name"
+                                            (blur)="validateTeamName(rmgProjectObj.newTeamObj)" />
+                                    </td>
+                                    <td class="min-width180 max-width200" style="position: relative;"
+                                        (mouseenter)="showTeamDepartmentTooltip = true"
+                                        (mouseleave)="showTeamDepartmentTooltip = false">
+
+                                        <app-my-select #teamDepartmentSelect class="form-control"
+                                            [readonly]="projectConfigStepperIndex !== 1"
+                                            [class.disable-dropdown]="isPreviewStep"
+                                            placeholder="Select Department"
+                                            [(ngModel)]="rmgProjectObj.newTeamObj.deptIds" [options]="departmentsList"
+                                            displayKey="name" valueKey="deptId" [multiple]="true">
+                                        </app-my-select>
+
+                                        <!-- Popup (Preview only) -->
+                                        <div class="manager-popup"
+                                            *ngIf="showTeamDepartmentTooltip && getSelectedTeamDepartments().length > 0 && isPreviewStep">
+                                            <div class="manager-popup-title">Selected Departments</div>
+                                            <div class="manager-popup-body">
+                                                <div class="manager-popup-item"
+                                                    *ngFor="let name of getSelectedTeamDepartments()">
+                                                    🏢 {{ name }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="min-width180 max-width200" style="position: relative;"
+                                        (mouseenter)="showTeamSpocTooltip = true"
+                                        (mouseleave)="showTeamSpocTooltip = false">
+
+                                        <app-my-select #teamSpocSelect class="form-control"
+                                            [readonly]="projectConfigStepperIndex !== 1"
+                                            [class.disable-dropdown]="isPreviewStep"
+                                            placeholder="Select Employee"
+                                            [(ngModel)]="rmgProjectObj.newTeamObj.spocId" [options]="spocList"
+
+                                            displayKey="name" valueKey="empId" [multiple]="false">
+                                        </app-my-select>
+
+                                        <!-- Popup (Preview only) -->
+                                        <div class="manager-popup"
+                                            *ngIf="showTeamSpocTooltip && getSelectedTeamSpoc().length > 0 && isPreviewStep">
+                                            <div class="manager-popup-title">Selected Employee</div>
+                                            <div class="manager-popup-body">
+                                                <div class="manager-popup-item" *ngFor="let name of getSelectedTeamSpoc()">
+                                                    👤 {{ name }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm mr-1" title="Save New Team" [disabled]="!isNewTeamDetailsFilled"
+                                            (click)="saveNewTeamDetails()">
+                                            Save New Team
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary" (click)="toggleAddNewTeam()">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </thead>
+                        <tbody>
+                            <ng-container *ngIf="rmgProjectObj.teamDetailsList?.length === 0">
+                                <tr>
+                                    <td [attr.colspan]="projectConfigStepperIndex === 1 ? 5 : 4" class="text-center">No
+                                        Details to display.</td>
+                                </tr>
+                            </ng-container>
+                            <ng-container *ngFor="let team of rmgProjectObj.teamDetailsList; let teamIndex = index; trackBy: trackByTeamId">
+                                <tr>
+                                    <td *ngIf="projectConfigStepperIndex === 1">
+                                        <mat-checkbox class="custom-checkbox" color="primary"
+                                            [checked]="team.isTeamSelected" (change)="onTeamCheckboxChange(team)">
+                                        </mat-checkbox>
+                                    </td>
+                                    <td class="min-width180 max-width200">
+                                        <input class="form-control" type="text" [(ngModel)]="team.teamName"
+
+                                            [disabled]="projectConfigStepperIndex !== 1" placeholder="Enter Team Name"
+                                            (blur)="validateTeamName(team)" />
+                                    </td>
+                                    <td class="min-width180 max-width200"
+                                        (mouseenter)="openTeamHoverPopup($event, 'dept', team)"
+                                        (mouseleave)="closeTeamHoverPopup()">
+                                        <app-my-select #teamDepartmentSelect class="form-control"
+                                            [readonly]="projectConfigStepperIndex !== 1"
+                                            [class.disable-dropdown]="isPreviewStep"
+                                            placeholder="Select Department"
+                                            [(ngModel)]="team.deptIds" [options]="departmentsList" displayKey="name"
+                                            valueKey="deptId" [multiple]="true">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="min-width180 max-width200"
+                                        (mouseenter)="openTeamHoverPopup($event, 'spoc', team)"
+                                        (mouseleave)="closeTeamHoverPopup()">
+                                        <app-my-select #teamSpocSelect class="form-control"
+                                            [readonly]="projectConfigStepperIndex !== 1"
+                                            [class.disable-dropdown]="isPreviewStep"
+                                            placeholder="Select Employee"
+                                            [(ngModel)]="team.spocId" [options]="spocList" displayKey="name"
+                                            valueKey="empId" [multiple]="false">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="actions">
+                                        <button class="btn btn-sm" *ngIf="projectConfigStepperIndex === 1"
+                                            title="Open Team Details" (click)="showTeamDetails(team)">
+                                            <i class="fa fa-edit" aria-hidden="true"></i>
+                                        </button>
+                                        <button class="btn btn-sm" *ngIf="projectConfigStepperIndex === 2"
+                                            title="View Team Details" (click)="openTeamMemberDetailsPreviewModal(team)">
+                                            <i class="fa fa-eye" aria-hidden="true"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hover popup overlay (not constrained by table scroll) -->
+        <div class="manager-popup manager-popup-fixed"
+            *ngIf="teamHoverPopupVisible && teamHoverPopupItems.length > 0"
+            [ngStyle]="teamHoverPopupStyle">
+            <div class="manager-popup-title">{{ teamHoverPopupTitle }}</div>
+            <div class="manager-popup-body">
+                <div class="manager-popup-item" *ngFor="let name of teamHoverPopupItems">
+                    <span *ngIf="teamHoverPopupTitle === 'Selected Departments'">🏢</span>
+                    <span *ngIf="teamHoverPopupTitle !== 'Selected Departments'">👤</span>
+                    {{ name }}
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #current_team_member_resource_template let-teamMembers="teamMembers" let-team="team">
+    <div class="row align-items-center mt-3 mb-3">
+        <div class="col-md-2 d-flex justify-content-start" *ngIf="teamMembers?.length > 0">
+            <button class="btn btn-sm btn-outline-primary" (click)="toggleCurrentTeamMemberSearch()">
+                <i
+                    [ngClass]="{ 'fa fa-search' : !isCurrentTeamMemberSearchEnabled, 'fa-solid fa-xmark': isCurrentTeamMemberSearchEnabled}"></i>
+            </button>
+        </div>
+        <div class="col-md-6 offset-4 d-flex justify-content-end"
+            [ngClass]="{  'offset-4': teamMembers?.length > 0, 'offset-6': !(teamMembers?.length > 0) }"
+            *ngIf="projectConfigStepperIndex === 1">
+            <button type="button" class="btn btn-primary btn-sm mr-1"
+                *ngIf="currentTeam.isAnyNewMemberAdded && teamMembers?.length > 0"
+                (click)="addOrUpdateTeamMembers(currentTeam,false)">
+                Save New Member(s)
+            </button>
+            <button type="button" class="btn btn-primary btn-sm mr-1"
+                [disabled]="!(!currentTeam.isAnyNewMemberAdded && teamMembers?.length > 0 && !(cloneMemberMappingList?.length > 0))"
+                (click)="addOrUpdateTeamMembers(currentTeam,true)">
+                Update Member(s)
+            </button>
+            <button type="button" class="btn btn-primary btn-sm mr-1" [disabled]="!(cloneMemberMappingList?.length > 0) || isCloneSaveRestricted"
+                (click)="saveClonedMembers()">
+                Save Cloned Member(s)
+            </button>
+            <button type="button" class="btn btn-primary btn-sm mr-1"
+                [disabled]="!(currentTeam.isAnyMemberSelected && teamMembers?.length > 0)"
+                (click)="validateRemoveMembers(teamMembers)">
+                Mark End Date
+            </button>&nbsp;
+            <button type="button" class="btn btn-sm btn-outline-primary m-1"
+                [disabled]="cloneMemberMappingList?.length > 0"
+                [title]="!currentTeam.addNewTeamMemberToggle ? 'Show Add New Team Member' : 'Hide Add New Team Member'"
+                (click)="toggleAddNewMember(currentTeam)">
+                <i class="fa" [ngClass]="currentTeam.addNewTeamMemberToggle ? 'fa-minus-circle' : 'fa-plus-circle'"></i>
+            </button>
+        </div>
+    </div>
+    <div class="new-table-container shadow-sm current-team-member-table">
+        <table class="new-custom-table" matSort (matSortChange)="sortCurrentTeamMemberData($event)">
+            <thead>
+                <tr>
+                    <th class="col-select" *ngIf="projectConfigStepperIndex === 1">
+                        <mat-checkbox class="custom-checkbox" color="primary" [checked]="team.isAllMemberSelected"
+                            (change)="onAllTeamTeamMemberCheckboxChange(team,$event, teamMembers)">
+                        </mat-checkbox>
+                    </th>
+                    <th class="col-action" *ngIf="projectConfigStepperIndex === 1"></th>
+                    <th class="col-info">Info</th>
+                    <th class="min-width50 max-width100 truncate" mat-sort-header="employementId|string" title="Employment Id">
+                        Employment Id
+                    </th>
+                    <th class="min-width100 max-width150" mat-sort-header="memberName|string" title="Name">
+                        <span class="text-danger">*</span>Name
+                    </th>
+                    <th class="min-width100 max-width150" *ngIf="!isInternalProject" mat-sort-header="poNo|string" title="PO No.">
+                        <span class="text-danger">*</span>PO No.
+                    </th>
+                    <th class="min-width180 max-width200" *ngIf="!isInternalProject && projectType == 'TNM'"
+                        mat-sort-header="displayRequirement|string" title="PO Role">
+                        <span class="text-danger">*</span>PO Role
+                    </th>
+                    <th class="min-width180 max-width200" title="Employee Role">
+                        <span class="text-danger">*</span>Employee Role
+                    </th>
+                    <th class="min-width100 max-width150 col-start-date" title="Start Date">
+                        <span class="text-danger">*</span>Start Date
+                    </th>
+                    <th class="min-width100 max-width150" title="End Date">
+                        End Date
+                    </th>
+                    <th class="col-shadow" *ngIf="!isInternalProject" title="Shadow">
+                        Shadow
+                    </th>
+                    <th class="col-default" title="Default">
+                        Default
+                    </th>
+                </tr>
+                <ng-container *ngIf="isCurrentTeamMemberSearchEnabled">
+                    <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="!isInternalProject && projectType == 'TNM' && (projectConfigStepperIndex != 2 && !isProjectPreview)"
+                        [columnList]="rmgCurrentTeamMemberColumnListForTNM"
+                        (onSearch)="searchCurrentTeamMember($event)">
+                    </tr>
+                    <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="!isInternalProject && projectType !== 'TNM'  && (projectConfigStepperIndex != 2 && !isProjectPreview)"
+                        [columnList]="rmgCurrentTeamMemberColumnList" (onSearch)="searchCurrentTeamMember($event)">
+                    </tr>
+                    <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="isInternalProject && (projectConfigStepperIndex != 2 && !isProjectPreview)"
+                        [columnList]="rmgCurrentTeamMemberColumnListForInternal"
+                        (onSearch)="searchCurrentTeamMember($event)">
+                    </tr>
+                    <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="!isInternalProject && projectType == 'TNM' && (projectConfigStepperIndex == 2 || isProjectPreview)"
+                        [columnList]="rmgCurrentTeamMemberColumnListForTNMPreview"
+                        (onSearch)="searchCurrentTeamMember($event)">
+                    </tr>
+                    <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="!isInternalProject  && projectType !== 'TNM'  && (projectConfigStepperIndex == 2 || isProjectPreview)"
+                        [columnList]="rmgCurrentTeamMemberColumnListPreview"
+                        (onSearch)="searchCurrentTeamMember($event)">
+                    </tr>
+                    <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="isInternalProject && (projectConfigStepperIndex == 2 || isProjectPreview)"
+                        [columnList]="rmgCurrentTeamMemberColumnListForInternalPreview"
+                        (onSearch)="searchCurrentTeamMember($event)">
+                    </tr>
+                </ng-container>
+                <ng-container *ngIf="currentTeam.addNewTeamMemberToggle && !(cloneMemberMappingList?.length > 0)">
+                    <tr *ngIf="projectConfigStepperIndex === 1">
+                        <td></td>
+                        <td [attr.colspan]="2">
+                            <div class="d-flex justify-content-start">
+                                <button class="btn btn-sm btn-outline-primary" title="Save New Member"
+                                    (click)="saveNewTeamMemberDetails()" [disabled]="currentTeam.newRmgTeamMember.isRestricted">
+                                    <i class="fa fa-floppy-disk"></i>
+                                </button>&nbsp;&nbsp;
+                                <button class="btn btn-sm btn-outline-primary" (click)="toggleAddNewMember(team)">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td class="min-width100 max-width150" disabled>
+                            {{ currentTeam.newRmgTeamMember.employementId || 'NA' }}
+                        </td>
+                        <td class="min-width180 max-width200">
+                            <app-my-select #newMemberSelect class="form-control" placeholder="Select Employee"
+                                [(ngModel)]="currentTeam.newRmgTeamMember.empId" [options]="employeeListFilteredByDept"
+                                [displayKey]="employeeDisplayArr" valueKey="empId" [multiple]="false"
+                                displaySeparator=" | "
+                                (change)="getEmployeeExistingProjectDetailsByEmpId(currentTeam.newRmgTeamMember, currentTeam.newRmgTeamMember.empId, true, rmgProjectObj.projectId)">
+                            </app-my-select>
+                        </td>
+                        <td class="min-width180 max-width200" *ngIf="!isInternalProject">
+                            <app-my-select #newMemberPOSelect class="form-control" placeholder="Select PO"
+                                [(ngModel)]="currentTeam.newRmgTeamMember.poId" [options]="filteredPoDetailsList"
+                                displayKey="poNo" valueKey="poId" [multiple]="false"
+                                (change)="getResourceRequirementByPoId($event)" [showFilterAction]="true"
+                                [filterActionLabel]="poFilterActionLabel" (filterAction)="filterActivePoDetails()">
+                            </app-my-select>
+                        </td>
+                        <td class="min-width180 max-width200" *ngIf="!isInternalProject && projectType == 'TNM'">
+                            <app-my-select #newMemberRequirementSelect class="form-control" placeholder="Select PO Role"
+                                [(ngModel)]="currentTeam.newRmgTeamMember.roleId"
+                                [options]="filteredActiveResourceRequirement" displayKey="displayRequirement"
+                                valueKey="roleId" [multiple]="false" [showFilterAction]="true"
+                                [filterActionLabel]="roleFilterActionLabel"
+                                (filterAction)="filterActiveResourceRequirement()">
+                                >
+                            </app-my-select>
+                        </td>
+                        <td class="min-width180 max-width200">
+                            <app-my-select #employeeRoleSelect class="form-control" placeholder="Select Role"
+                                [(ngModel)]="currentTeam.newRmgTeamMember.employeeRoles" [options]="employeeRoles"
+                                [multiple]="true">
+                            </app-my-select>
+                        </td>
+                        <td class="min-width180 max-width200 col-start-date">
+                            <div class="date-input-wrapper">
+                                <input class="form-control date-input start-date-input" readonly [matDatepicker]="startDatepicker"
+                                    (dateChange)="validateEmployeeProjectStartDate(currentTeam.newRmgTeamMember, rmgProjectObj.projectId, projectType)"
+                                    [(ngModel)]="currentTeam.newRmgTeamMember.startDate"
+                                    [disabled]="!currentTeam.newRmgTeamMember.empId" (click)="startDatepicker.open()" />
+                                <mat-icon class="calendar-icon"
+                                    (click)="startDatepicker.open()">calendar_today</mat-icon>
+                                <mat-datepicker #startDatepicker></mat-datepicker>
+                            </div>
+                        </td>
+                        <td class="min-width180 max-width200" *ngIf="currentTeam.newRmgTeamMember.isEndDateVisible">
+                            <div class="d-flex align-items-center">
+                                <div class="date-input-wrapper flex-grow-1">
+                                    <input class="form-control date-input" readonly [matDatepicker]="endDatepicker"
+                                        [(ngModel)]="currentTeam.newRmgTeamMember.endDate"
+                                        [min]="currentTeam.newRmgTeamMember.startDate"
+                                        [max]="currentTeam.newRmgTeamMember.memberMaxEndDate"
+                                        [disabled]="!currentTeam.newRmgTeamMember.empId"
+                                        (click)="endDatepicker.open()" />
+                                    <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
+                                    <mat-datepicker #endDatepicker></mat-datepicker>
+                                </div>
+                                <app-info-tooltip *ngIf="currentTeam.newRmgTeamMember.validationMessage"
+                                    class="ml-2"
+                                    [shouldShine]="false"
+                                    iconBgColor="#ca8a04"
+                                    [size]="16"
+                                    [content]="[currentTeam.newRmgTeamMember.validationMessage]">
+                                </app-info-tooltip>
+                            </div>
+                        </td>
+                        <td class="min-width100 max-width150" *ngIf="!currentTeam.newRmgTeamMember.isEndDateVisible">
+                            {{'--'}}
+                        </td>
+                        <td *ngIf="!isInternalProject">
+                            <mat-checkbox class="custom-checkbox" color="primary"
+                                [(ngModel)]="currentTeam.newRmgTeamMember.isShadow"></mat-checkbox>
+                        </td>
+                        <td>
+                            <mat-checkbox class="custom-checkbox" color="primary"
+                                [disabled]="currentTeam.newRmgTeamMember.dbDefaultProject"
+                                [(ngModel)]="currentTeam.newRmgTeamMember.defaultProject"></mat-checkbox>
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-container *ngIf="cloneMemberMappingList?.length > 0 && projectConfigStepperIndex === 1">
+                    <tr *ngFor="let member of cloneMemberMappingList; let i= index">
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <div class="d-flex justify-content-start">
+                                <button class="btn btn-sm btn-outline-primary" title="Remove From Cloning List"
+                                    (click)="removeFromCloneMemberMappingList(member, i)">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td class="min-width100 max-width150" disabled>
+                            {{ member.employementId || 'NA' }}
+                        </td>
+                        <td class="min-width180 max-width200">
+                            <app-my-select #newMemberSelect class="form-control" placeholder="Select Employee"
+                                [(ngModel)]="member.empId" [options]="member.memberList"
+                                [displayKey]="employeeDisplayArr" valueKey="empId" [multiple]="false"
+                                displaySeparator=" | "
+                                (change)="getCloneEmployeeExistingProjectDetailsByEmpId(member, member.empId, rmgProjectObj.projectId); updateEmployeeList()">
+                            </app-my-select>
+                        </td>
+                        <td class="min-width180 max-width200" *ngIf="!isInternalProject">
+                            <app-my-select #newMemberPOSelect class="form-control" placeholder="Select PO"
+                                [(ngModel)]="member.poId" [options]="member.filteredPoDetailsList" displayKey="poNo"
+                                valueKey="poId" [multiple]="false"
+                                (change)="getResourceRequirementByPoIdForEmployee($event, member)"
+                                [showFilterAction]="true" [filterActionLabel]="member.poFilterActionLabel"
+                                (filterAction)="filterActivePoDetailsEmployeeSpecific(member)">
+                            </app-my-select>
+                        </td>
+                        <td class="min-width180 max-width200" *ngIf="!isInternalProject && projectType == 'TNM'">
+                            <app-my-select #newMemberRequirementSelect class="form-control" placeholder="Select PO Role"
+                                [(ngModel)]="member.roleId" [options]="member.filteredActiveResourceRequirement"
+                                displayKey="displayRequirement" valueKey="roleId" [multiple]="false"
+                                [showFilterAction]="true" [filterActionLabel]="member.roleFilterActionLabel"
+                                (filterAction)="filterActiveResourceRequirementEmployeeSpecific(member)">
+                                >
+                            </app-my-select>
+                        </td>
+                        <td class="min-width180 max-width200">
+                            <app-my-select #employeeRoleSelect class="form-control" placeholder="Select Role"
+                                [(ngModel)]="member.employeeRoles" [options]="employeeRoles" [multiple]="true">
+                            </app-my-select>
+                        </td>
+                        <td class="min-width180 max-width200 col-start-date">
+                            <div class="date-input-wrapper">
+                                <input class="form-control date-input start-date-input" readonly [matDatepicker]="startDatepicker"
+                                    (dateChange)="validateEmployeeProjectStartDate(member, rmgProjectObj.projectId, projectType)"
+                                    [(ngModel)]="member.startDate" [disabled]="!member.empId"
+                                    (click)="startDatepicker.open()" />
+                                <mat-icon class="calendar-icon"
+                                    (click)="startDatepicker.open()">calendar_today</mat-icon>
+                                <mat-datepicker #startDatepicker></mat-datepicker>
+                            </div>
+                        </td>
+                        <td class="min-width180 max-width200" *ngIf="member.isEndDateVisible">
+                            <div class="d-flex align-items-center">
+                                <div class="date-input-wrapper flex-grow-1">
+                                    <input class="form-control date-input" readonly [matDatepicker]="endDatepicker"
+                                        [(ngModel)]="member.endDate"
+                                        [min]="member.startDate"
+                                        [max]="member.memberMaxEndDate"
+                                        [disabled]="!member.empId" (click)="endDatepicker.open()" />
+                                    <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
+                                    <mat-datepicker #endDatepicker></mat-datepicker>
+                                </div>
+                                <app-info-tooltip *ngIf="member.validationMessage"
+                                    class="ml-2"
+                                    [shouldShine]="false"
+                                    iconBgColor="#ca8a04"
+                                    [size]="16"
+                                    [content]="[member.validationMessage]">
+                                </app-info-tooltip>
+                            </div>
+                        </td>
+                        <td class="min-width100 max-width150" *ngIf="!member.isEndDateVisible">
+                            {{'--'}}
+                        </td>
+                        <td *ngIf="!isInternalProject">
+                            <mat-checkbox class="custom-checkbox" color="primary" [(ngModel)]="member.isShadow">
+                            </mat-checkbox>
+                        </td>
+                        <td>
+                            <mat-checkbox class="custom-checkbox" color="primary" [disabled]="member.dbDefaultProject"
+                                [(ngModel)]="member.defaultProject">
+                            </mat-checkbox>
+                        </td>
+                    </tr>
+                </ng-container>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="!teamMembers || teamMembers?.length === 0">
+                    <tr>
+                        <td [attr.colspan]="projectConfigStepperIndex === 1
+                            ? (isInternalProject ? 9 : (projectType == 'TNM' ? 12 : 11))
+                            : (isInternalProject ? 7 : (projectType == 'TNM' ? 10 : 9))"
+                            class="text-center">No Resources found.</td>
+                    </tr>
+                </ng-container>
+                <ng-container *ngIf="teamMembers && teamMembers?.length != 0">
+                    <tr
+                        *ngFor="let member of teamMembers | multicolFilter: currentTeamMemberFilters : true | sort : [currentTeamMemberSortColumn, currentTeamMemberSortColumnType, currentTeamMemberSortDirection] | paginate: { itemsPerPage: currentTeamMemberPageSize, currentPage: currentTeamMemberPage }; let i= index">
+                        <td class="col-select" *ngIf="projectConfigStepperIndex === 1">
+                            <mat-checkbox class="custom-checkbox" color="primary" [(ngModel)]="member.isMemberSelected"
+                                (change)="onMemberCheckboxChange(team, $event, member.etmId)">
+                            </mat-checkbox>
+                        </td>
+                        <td class="col-action" *ngIf="projectConfigStepperIndex === 1">
+                            <div class="d-flex justify-evenly">
+                                <button class="btn btn-sm btn-outline-primary" title="Add to Cloning List"
+                                    (click)="addMemberMappingToCloneList(member)">
+                                    <i class="fa-solid fa-copy"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td class="col-info">
+                            <div class="chip-container">
+                                <div class="info-chip blue-chip">
+                                    <span class="emp-name" triggers="mouseenter:mouseleave" placement="right"
+                                        container="body" popoverClass="emp-popover" [ngbPopover]="popoverTpl">
+                                        <ng-template #popoverTpl>
+                                            <ng-container *ngTemplateOutlet="employeeInfo; context: { member: member }">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa fa-info-circle blue-chip"></i>
+                                    </span>
+                                </div>
+                                <div *ngIf="normalizeDate(member?.poEndDate) < todaysDate || normalizeDate(member?.lineItemEndDate) < todaysDate"
+                                    class="info-chip red-chip">
+                                    <span triggers="mouseenter:mouseleave" placement="bottom" container="body"
+                                        popoverClass="info-popover" [ngbPopover]="popoverAllocationExpiredTpl">
+                                        <ng-template #popoverAllocationExpiredTpl>
+                                            <ng-container
+                                                *ngTemplateOutlet="allocationExpiredInfo; context: { member: member }">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa-solid fa-calendar-xmark"></i>
+                                    </span>
+                                </div>
+                                <div *ngIf="member?.isOverboardedRole" class="info-chip red-chip">
+                                    <span triggers="mouseenter:mouseleave" placement="bottom" container="body"
+                                        popoverClass="info-popover" [ngbPopover]="popoverOverboardedTpl">
+                                        <ng-template #popoverOverboardedTpl>
+                                            <ng-container
+                                                *ngTemplateOutlet="overBoardedInfo; context: { member: member }">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                    </span>
+                                </div>
+                                <div *ngIf="normalizeDate(member?.dbStartDate) > todaysDate"
+                                    class="info-chip yellow-chip">
+                                    <span triggers="mouseenter:mouseleave" placement="bottom" container="body"
+                                        popoverClass="info-popover" [ngbPopover]="popoverFutureStartDateTpl">
+                                        <ng-template #popoverFutureStartDateTpl>
+                                            <ng-container
+                                                *ngTemplateOutlet="futureStartDateInfo; context: { member: member }">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa-solid fa-calendar-check"></i>
+                                    </span>
+                                </div>
+                                <div *ngIf="member?.isMemberActive == 2"
+                                    class="info-chip yellow-chip">
+                                    <span triggers="mouseenter:mouseleave" placement="bottom" container="body"
+                                        popoverClass="info-popover" [ngbPopover]="pendingForApprovalTpl">
+                                        <ng-template #pendingForApprovalTpl>
+                                            <ng-container
+                                                *ngTemplateOutlet="pendingForApprovalInfo;">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa-solid fa-clock"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="min-width50 max-width100 truncate" [title]="member.employementId|| 'NA' ">
+                            {{ member.employementId || 'NA' }}
+                        </td>
+                        <td class="min-width100 max-width150 truncate" [title]="member.memberName || 'NA' ">
+                            <span *ngIf="member.empId" class="cursor-pointer emp_360-span text-underline"
+                                [navigateToEmployee360]="member.empId">{{member.memberName || 'NA' }}</span>
+                            <span *ngIf="!member.empId">{{member.memberName || 'NA' }}</span>
+                        </td>
+                        <td class="min-width100 max-width150 truncate" *ngIf="!isInternalProject"
+                            [title]="member.poNo|| 'NA'">
+                            {{ member.poNo || 'NA' }}
+                        </td>
+                        <td class="min-width100 max-width150 truncate"
+                            *ngIf="!isInternalProject && projectType == 'TNM'"
+                            [title]="member.displayRequirement || 'NA'">
+                            {{ member.displayRequirement || 'NA' }}
+                        </td>
+                        <td class="min-width180 max-width200">
+                            <app-my-select #employeeRoleSelect class="form-control" placeholder="Select Role"
+                                [readonly]="projectConfigStepperIndex !== 1" [(ngModel)]="member.employeeRoles"
+                                [options]="employeeRoles" [multiple]="true">
+                            </app-my-select>
+                        </td>
+                        <td class="min-width180 max-width200 col-start-date">
+                            <div class="date-input-wrapper">
+                                <input class="form-control date-input start-date-input" readonly [matDatepicker]="startDatepicker"
+                                    [disabled]="projectConfigStepperIndex !== 1"
+                                    (dateChange)="validateEmployeeProjectStartDate(member, rmgProjectObj.projectId, projectType)"
+                                    [(ngModel)]="member.startDate" readonly (click)="startDatepicker.open()" />
+                                <mat-icon class="calendar-icon"
+                                    (click)="startDatepicker.open()">calendar_today</mat-icon>
+                                <mat-datepicker #startDatepicker></mat-datepicker>
+                            </div>
+                        </td>
+                        <td class="min-width100 max-width150" *ngIf="member.isEndDateVisible">
+                            <div class="d-flex align-items-center">
+                                <div class="date-input-wrapper flex-grow-1">
+                                    <input class="form-control date-input" readonly [matDatepicker]="endDatepicker" [(ngModel)]="member.endDate"
+                                        [min]="member.startDate"
+                                        [max]="member.memberMaxEndDate" [disabled]="!member.empId" (click)="endDatepicker.open()" />
+                                    <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
+                                    <mat-datepicker #endDatepicker></mat-datepicker>
+                                </div>
+                                <app-info-tooltip *ngIf="member.validationMessage"
+                                    class="ml-2"
+                                    [shouldShine]="false"
+                                    iconBgColor="#ca8a04"
+                                    [size]="16"
+                                    [content]="[member.validationMessage]">
+                                </app-info-tooltip>
+                            </div>
+                        </td>
+                        <td class="min-width100 max-width150 truncate" *ngIf="!member.isEndDateVisible"
+                            [title]="member.endDate ? ( member.endDate | date:'dd-MM-yyyy'): 'NA'">
+                            {{ member.endDate ? ( member.endDate | date:'dd-MM-yyyy'): 'NA' }}
+                        </td>
+                        <td class="col-shadow" *ngIf="!isInternalProject">
+                            <mat-checkbox class="custom-checkbox" color="primary"
+                                (change)="onShadowCheckBoxChanged($event,member)"
+                                [disabled]="projectConfigStepperIndex !== 1 || isProjectPreview"
+                                [(ngModel)]="member.isShadow">
+                            </mat-checkbox>
+                        </td>
+                        <td class="col-default">
+                            <mat-checkbox class="custom-checkbox" color="primary"
+                                (change)="onDefaultCheckBoxChanged($event,member)"
+                                [disabled]="projectConfigStepperIndex !== 1 || isProjectPreview || (member.dbDefaultProject && (!member.otherActiveProjectIds || member.otherActiveProjectIds?.length === 0))"
+                                [(ngModel)]="member.defaultProject">
+                            </mat-checkbox>
+                        </td>
+                    </tr>
+                </ng-container>
+            </tbody>
+        </table>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-6 d-flex justify-content-start">
+            <mat-paginator class="compact-paginator " [length]="teamMembers.length"  *ngIf="teamMembers?.length > 0"
+                [pageIndex]="currentTeamMemberPage-1" [pageSize]="currentTeamMemberPageSize"
+                [pageSizeOptions]="[5, 10, 20, 50]" (page)="currentTeamMemberPageChange($event)"
+                style="background-color: unset;">
+            </mat-paginator>
+        </div>
+        <div class="col-md-6 d-flex justify-content-end" *ngIf="!isProjectPreview">
+            <button class="btn btn-outline-primary btn-sm" (click)="callCloseProjectConfiguration()">
+                Go to Resource Management
+            </button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #old_team_member_resource_template let-teamMembers="teamMembers" let-requirement="requirement"
+    let-team="team">
+    <div class="row align-items-center mt-3 mb-3" *ngIf="teamMembers?.length > 0">
+        <div class="col-md-2 d-flex justify-content-start">
+            <button class="btn btn-sm btn-outline-primary" (click)="toggleOldTeamMemberSearch()">
+                <i
+                    [ngClass]="{ 'fa fa-search' : !isOldTeamMemberSearchEnabled, 'fa-solid fa-xmark': isOldTeamMemberSearchEnabled}"></i>
+            </button>
+        </div>
+        <div class="col-md-6 offset-4 d-flex justify-content-end " *ngIf="projectConfigStepperIndex === 1">
+            <button class="btn btn-primary btn-sm" *ngIf="teamMembers?.length > 0"
+                [disabled]="!isAnyMemberEndDateChanged"
+                (click)="extendTeamMembersEndDate(currentTeam)">Update Member(s) End Date
+            </button>
+        </div>
+    </div>
+    <div class="new-table-container shadow-sm old-team-member-table">
+        <table class="new-custom-table" matSort (matSortChange)="sortOldTeamMemberData($event)">
+            <thead>
+                <tr>
+                    <th class="col-info">Info</th>
+                    <th class="min-width100 max-width150" mat-sort-header="employementId|string" title="Employment Id">
+                        Employment Id
+                    </th>
+                    <th class="min-width100 max-width150" mat-sort-header="memberName|string" title="Name">
+                        Name
+                    </th>
+                    <th class="min-width100 max-width150" mat-sort-header="memberDepartment|string" title="Employee Department">
+                        Employee Department
+                    </th>
+                    <th class="min-width100 max-width150" *ngIf="!isInternalProject" mat-sort-header="poNo|string" title="PO No.">
+                        PO No.
+                    </th>
+                    <th class="min-width100 max-width150" *ngIf="!isInternalProject && projectType == 'TNM'"
+                        mat-sort-header="displayRequirement|string" title="PO Role">
+                        PO Role
+                    </th>
+                    <th class="min-width100 max-width150" mat-sort-header="employeeRole|string" title="Role">
+                        Role
+                    </th>
+                    <th class="min-width100 max-width150 col-start-date" title="Start Date">
+                        Start Date
+                    </th>
+                    <th class="min-width100 max-width150 col-end-date" title="End Date">
+                        End Date
+                    </th>
+                    <th class="col-shadow" *ngIf="!isInternalProject" title="Shadow">
+                        Shadow
+                    </th>
+                </tr>
+                <ng-container *ngIf="isOldTeamMemberSearchEnabled">
+                    <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="!isInternalProject && projectType !== 'TNM'" [columnList]="rmgOldTeamMemberColumnList"
+                        (onSearch)="searchOldTeamMember($event)">
+                    </tr>
+                    <tr class="custom-filter-row" app-column-filter-bar
+                        *ngIf="!isInternalProject && projectType == 'TNM'"
+                        [columnList]="rmgOldTeamMemberColumnListForTNM" (onSearch)="searchOldTeamMember($event)">
+                    </tr>
+                    <tr class="custom-filter-row" app-column-filter-bar *ngIf="isInternalProject"
+                        [columnList]="rmgOldTeamMemberColumnListForInternal" (onSearch)="searchOldTeamMember($event)">
+                    </tr>
+                </ng-container>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="!teamMembers || teamMembers?.length === 0">
+                    <tr>
+                        <td [attr.colspan]="isInternalProject ? 7 : (projectType == 'TNM' ? 10 : 9)"
+                            class="text-center">
+                            No Resources found.
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-container *ngIf="teamMembers && teamMembers?.length != 0">
+                    <tr
+                        *ngFor="let member of teamMembers | multicolFilter: oldTeamMemberFilters : true | sort : [oldTeamMemberSortColumn, oldTeamMemberSortColumnType,oldTeamMemberSortDirection] | paginate: { itemsPerPage: oldTeamMemberPageSize, currentPage: oldTeamMemberPage }; let i= index">
+                        <td class="col-info">
+                            <div class="chip-container">
+                                <div class="info-chip blue-chip">
+                                    <span class="emp-name" triggers="mouseenter:mouseleave" placement="right" container="body"
+                                        popoverClass="emp-popover" [ngbPopover]="popoverTpl">
+                                        <ng-template #popoverTpl>
+                                            <ng-container *ngTemplateOutlet="employeeInfo; context: { member: member }">
+                                            </ng-container>
+                                        </ng-template>
+                                        <i class="fa fa-info-circle blue-chip"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="min-width100 max-width150" [title]="member.employementId|| 'NA' ">
+                            {{ member.employementId || 'NA' }}
+                        </td>
+                        <td class="min-width100 max-width150 truncate" [title]="member.memberName|| 'NA' ">
+                            <span *ngIf="member.empId" class="cursor-pointer emp_360-span text-underline"
+                                [navigateToEmployee360]="member.empId">{{member.memberName || 'NA' }}</span>
+                            <span *ngIf="!member.empId">{{member.memberName || 'NA' }}</span>
+                        </td>
+                        <td class="min-width100 max-width150 truncate" [title]="member.memberDepartment|| 'NA' ">
+                            {{ member.memberDepartment || 'NA' }}
+                        </td>
+                        <td class="min-width100 max-width150 truncate" *ngIf="!isInternalProject"
+                            [title]="member.poNo|| 'NA' ">
+                            {{ member.poNo || 'NA' }}
+                        </td>
+                        <td class="min-width100 max-width150 truncate"
+                            *ngIf="!isInternalProject && projectType == 'TNM'"
+                            [title]="member.displayRequirement|| 'NA' ">
+                            {{ member.displayRequirement || 'NA' }}
+                        </td>
+                        <td class="min-width100 max-width150 truncate" [title]="member.employeeRole|| 'NA' ">
+                            {{ member.employeeRole || 'NA' }}
+                        </td>
+                        <td class="min-width100 max-width150 truncate col-start-date"
+                            [title]="member.startDate ? ( member.startDate | date:'dd-MM-yyyy'): 'NA'">
+                            {{ member.startDate ? ( member.startDate | date:'dd-MM-yyyy'): 'NA' }}
+                        </td>
+                        <td class="min-width100 max-width150 col-end-date">
+                            <div class="date-input-wrapper">
+                                <input class="form-control date-input" readonly [matDatepicker]="endDatepicker"
+                                    [min]="member.startDate"
+                                    [disabled]="projectConfigStepperIndex !== 1"
+                                    (dateChange)="onMemberEndDateChange($event, currentTeam.newRmgTeamMember)"
+                                    [(ngModel)]="member.endDate" (click)="endDatepicker.open()" />
+                                <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
+                                <mat-datepicker #endDatepicker></mat-datepicker>
+                            </div>
+                        </td>
+                        <td class="col-shadow" *ngIf="!isInternalProject">
+                            <mat-checkbox class="custom-checkbox" color="primary" disabled="true"
+                                [(ngModel)]="member.isShadow">
+                            </mat-checkbox>
+                        </td>
+                    </tr>
+                </ng-container>
+            </tbody>
+        </table>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-6 d-flex justify-content-start">
+            <mat-paginator class="compact-paginator " [length]="teamMembers.length" [pageIndex]="oldTeamMemberPage-1"  *ngIf="teamMembers?.length > 0"
+                [pageSize]="oldTeamMemberPageSize" [pageSizeOptions]="[5, 10, 20, 50]"
+                (page)="oldTeamMemberPageChange($event)" style="background-color: unset;">
+            </mat-paginator>
+        </div>
+        <div class="col-md-6 d-flex justify-content-end" *ngIf="!isProjectPreview">
+            <button class="btn btn-outline-primary btn-sm" (click)="callCloseProjectConfiguration()">
+                Go to Resource Management
+            </button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #migrate_team>
+    <div class="card">
+        <div class="card-header">
+            <div class="row align-items-center ">
+                <div class="col-md-11">
+                    <h6 class="card-title p-0">Migrate Team(s)</h6>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-sm btn-outline-primary" (click)="closeMigrateTeamModal()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center align-items-center m-1">
+            <div
+                [ngClass]="{'col-md-2': !teamMembersMigrationObj.isInternalProject, 'col-md-3': teamMembersMigrationObj.isInternalProject }">
+                <label class="mb-0">Target Project<span class="text-danger">*</span>
+                </label>
+            </div>
+            <div
+                [ngClass]="{'col-md-4': !teamMembersMigrationObj.isInternalProject, 'col-md-6': teamMembersMigrationObj.isInternalProject}">
+                <app-my-select #filterActiveProject class="form-control w-100" placeholder="Select Target Project"
+                    [(ngModel)]="teamMembersMigrationObj.targetProjectId" [options]="projectList"
+                    displayKey="projectName" valueKey="projectId" [multiple]="false"
+                    (change)="getActivePoDetailsByProjectIdForTeamMigration()">
+                </app-my-select>
+            </div>
+            <div class="col-md-6 d-flex justify-content-end align-items-center p-1"
+                *ngIf="!teamMembersMigrationObj.isInternalProject">
+                <mat-slide-toggle color="primary" [(ngModel)]="isBulkTeamMemberMigration">
+                </mat-slide-toggle>&nbsp;&nbsp;
+                <h6 *ngIf="!isBulkTeamMemberMigration" class="section-title mb-0">Bulk Team Member Migration</h6>
+                <h6 *ngIf="isBulkTeamMemberMigration" class="section-title mb-0">Individual Team Member Migration
+                </h6>
+            </div>
+        </div>
+
+        <div class="card-body p-2" *ngIf="!teamMembersMigrationObj.isInternalProject">
+            <div class="row justify-content-start align-items-center m-1 custom-border"
+                *ngIf="!isBulkTeamMemberMigration">
+                <div class="col-3 p-1">
+                    <div class="form-group mb-0">
+                        <label>PO</label>
+                        <app-my-select class="form-control" placeholder="Select PO"
+                            [(ngModel)]="teamMembersMigrationObj.targetPoId" displayKey="poNo" valueKey="poId"
+                            [options]="teamMigrationPoDetailsList"
+                            (change)="getResourceRequirementDetailsByProjectIdForTeamMemberMigration(teamMembersMigrationObj.targetProjectId)">
+                        </app-my-select>
+                    </div>
+                </div>
+                <div class="col-3 p-1" *ngIf="teamMembersMigrationObj.projectType === 'TNM'">
+                    <div class="form-group mb-0">
+                        <label>PO Role</label>
+                        <app-my-select class="form-control" [(ngModel)]="teamMembersMigrationObj.targetRoleId"
+                            valueKey="roleId" displayKey="displayRequirement"
+                            [options]="teamMigrationResourceRequirementList">
+                        </app-my-select>
+                    </div>
+                </div>
+                <div class="col-1 offset-1 d-flex justify-content-end p-3">
+                    <button class="btn btn-sm btn-outline-primary" (click)="migrateTeamMembersBulk()"
+                        title="Bulk Migrate Team Member(s)">
+                        <em class="fa fa-exchange"></em>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card m-2 p-2">
+                <!-- Bulk Update Mode -->
+                <div class="row align-items-center mb-1"
+                    *ngIf="teamMigrationTeamMembersList.length > 0 && !isBulkTeamMemberMigration">
+                    <div class="col-md-2 d-flex justify-content-start">
+                        <button class="btn btn-sm btn-outline-primary" (click)="toggleMigrateTeamMemberSearch()">
+                            <i
+                                [ngClass]="{ 'fa fa-search' : !isMigrateTeamMemberSearchEnabled, 'fa-solid fa-xmark': isMigrateTeamMemberSearchEnabled}"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-6 offset-4 d-flex justify-content-end">
+                        <mat-paginator class="compact-paginator " [length]="teamMigrationTeamMembersList.length"
+                            [pageIndex]="migrateTeamMemberPage-1" [pageSize]="migrateTeamMemberPageSize"
+                            [pageSizeOptions]="[5, 10, 20, 50]" (page)="migrateTeamMemberPageChange($event)">
+                        </mat-paginator>
+                    </div>
+                </div>
+                <div class="row align-items-center mb-1"
+                    *ngIf="teamMigrationTeamMembersList.length > 0 && isBulkTeamMemberMigration">
+                    <div class="col-md-2 d-flex justify-content-start">
+                        <button class="btn btn-sm btn-outline-primary"
+                            (click)="toggleMigrateIndividualTeamMemberSearch()">
+                            <i
+                                [ngClass]="{ 'fa fa-search' : !isMigrateIndividualTeamMemberSearchEnabled, 'fa-solid fa-xmark': isMigrateIndividualTeamMemberSearchEnabled}"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-6 offset-4 d-flex justify-content-end">
+                        <mat-paginator class="compact-paginator " [length]="teamMigrationTeamMembersList.length"
+                            [pageIndex]="migrateIndividualTeamMemberPage-1"
+                            [pageSize]="migrateIndividualTeamMemberPageSize" [pageSizeOptions]="[5, 10, 20, 50]"
+                            (page)="migrateIndividualTeamMemberPageChange($event)">
+                        </mat-paginator>
+                    </div>
+                </div>
+
+                <div class="table-container" *ngIf="!isBulkTeamMemberMigration">
+                    <table class="custom-table" matSort (matSortChange)="sortMigrateTeamMemberData($event)">
+                        <thead>
+                            <tr>
+                                <th *ngIf="!isBulkTeamMemberMigration && teamMigrationTeamMembersList?.length !== 0">
+                                    <mat-checkbox class="custom-checkbox" color="primary"
+                                        [checked]="teamMembersMigrationObj.isAllMemberSelected"
+                                        title="Select All Members"
+                                        (change)="updateAllMemberTeamMigrationCheckBox()"></mat-checkbox>
+                                </th>
+                                <th class="min-width100 max-width150" mat-sort-header="employementId|string">
+                                    Employment Id
+                                </th>
+                                <th class="min-width100 max-width150" mat-sort-header="memberName|string">
+                                    Employee Name
+                                </th>
+                                <th class="min-width180 max-width200" mat-sort-header="teamName|string">
+                                    Current Team Name
+                                </th>
+                                <th class="min-width180 max-width200" mat-sort-header="employeeRole|string">
+                                    Current Employee Role
+                                </th>
+                                <th class="min-width100 max-width150" mat-sort-header="poNo|string">
+                                    Current PO No
+                                </th>
+                                <th class="min-width180 max-width200" mat-sort-header="displayRequirement|string">
+                                    Current PO Role
+                                </th>
+                            </tr>
+                            <ng-container *ngIf="isMigrateTeamMemberSearchEnabled">
+                                <tr class="custom-filter-row" app-column-filter-bar
+                                    [columnList]="migrateTeamMemberColumnListBulk"
+                                    (onSearch)="searchMigrateTeamMember($event)">
+                                </tr>
+                            </ng-container>
+                        </thead>
+                        <tbody>
+                            <ng-container *ngIf="teamMigrationTeamMembersList.length === 0">
+                                <tr>
+                                    <td colspan="9" class="text-center">No Details to display.</td>
+                                </tr>
+                            </ng-container>
+                            <ng-container
+                                *ngFor="let employee of teamMigrationTeamMembersList | multicolFilter: migrateTeamMemberFilters : true | sort : [migrateTeamMemberSortColumn, migrateTeamMemberSortColumnType,migrateTeamMemberSortDirection] | paginate: { itemsPerPage: migrateTeamMemberPageSize, currentPage: migrateTeamMemberPage }; let i= index">
+                                <tr>
+                                    <td>
+                                        <mat-checkbox class="custom-checkbox" color="primary"
+                                            [checked]="employee.isMemberSelected"
+                                            (change)="onMemberMigrationMemberCheckboxChange(employee)">
+                                        </mat-checkbox>
+                                    </td>
+                                    <td class="min-width100 max-width150 truncate"
+                                        [title]="employee.employementId || 'NA'">
+                                        {{employee.employementId }}
+                                    </td>
+                                    <td class=" truncate" [title]=" employee.memberName || 'NA'">
+                                        {{ employee.memberName }}
+                                    </td>
+                                    <td class="min-width180 max-width200 truncate" [title]="employee.teamName || 'NA'">
+                                        {{ employee.teamName || 'NA' }}
+                                    </td>
+                                    <td class="min-width180 max-width200 truncate"
+                                        [title]="employee.employeeRole || 'NA'">
+                                        {{ employee.employeeRole || 'NA' }}
+                                    </td>
+                                    <td class="min-width180 max-width200 truncate" [title]="employee.poNo || 'NA'">
+                                        {{ employee.poNo || 'NA'}}
+                                    </td>
+                                    <td class="min-width180 max-width200 truncate"
+                                        [title]="employee.displayRequirement || 'NA'">
+                                        {{ employee.displayRequirement || 'NA' }}
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Individual Mode -->
+                <div class="table-container" *ngIf="isBulkTeamMemberMigration">
+                    <table class="custom-table" matSort (matSortChange)="sortMigrateIndividualTeamMemberData($event)">
+                        <thead>
+                            <tr>
+                                <th class="min-width100 max-width150" mat-sort-header="employementId|string">
+                                    Employment Id
+                                </th>
+                                <th class="min-width100 max-width150" mat-sort-header="memberName|string">
+                                    Employee Name
+                                </th>
+                                <th class="min-width100 max-width150" mat-sort-header="teamName|string">
+                                    Current Team Name
+                                </th>
+                                <th class="min-width180 max-width200" mat-sort-header="employeeRole|string">
+                                    Current Employee Role
+                                </th>
+                                <th class="min-width180 max-width200" mat-sort-header="poNo|string">
+                                    Current PO No
+                                </th>
+                                <th class="min-width180 max-width200" mat-sort-header="displayRequirement|string">
+                                    Current PO Role
+                                </th>
+                                <th class="min-width180 max-width200">Target PO</th>
+                                <th class="min-width180 max-width200">Target PO Role</th>
+                                <th>Action</th>
+                            </tr>
+                            <ng-container *ngIf="isMigrateIndividualTeamMemberSearchEnabled">
+                                <tr class="custom-filter-row" app-column-filter-bar
+                                    [columnList]="migrateIndividualTeamMemberColumnList"
+                                    (onSearch)="searchMigrateIndividualTeamMember($event)">
+                                </tr>
+                            </ng-container>
+                        </thead>
+                        <tbody>
+                            <ng-container>
+                                <tr *ngIf="teamMigrationTeamMembersList.length === 0">
+                                    <td colspan="11" class="text-center">No Details to display.</td>
+                                </tr>
+                            </ng-container>
+                            <ng-container
+                                *ngFor="let employee of teamMigrationTeamMembersList | multicolFilter: migrateIndividualTeamMemberFilters : true | sort : [migrateIndividualTeamMemberSortColumn, migrateIndividualTeamMemberSortColumnType,migrateIndividualTeamMemberSortDirection] | paginate: { itemsPerPage: migrateIndividualTeamMemberPageSize, currentPage: migrateIndividualTeamMemberPage }; let i= index">
+                                <tr>
+                                    <td class="min-width100 max-width150 truncate"
+                                        [title]="employee.employementId || 'NA'">
+                                        {{employee.employementId }}
+                                    </td>
+                                    <td class="min-width100 max-width150 truncate"
+                                        [title]="employee.memberName || 'NA'">
+                                        {{ employee.memberName }}
+                                    </td>
+                                    <td class="min-width100 max-width150 truncate" [title]="employee.teamName || 'NA'">
+                                        {{ employee.teamName }}
+                                    </td>
+                                    <td class="min-width180 max-width200 truncate"
+                                        [title]="employee.employeeRole || 'NA'">
+                                        {{ employee.employeeRole }}
+                                    </td>
+                                    <td class="min-width180 max-width200 truncate" [title]="employee.poNo || 'NA'">
+                                        {{ employee.poNo || 'NA' }}
+                                    </td>
+                                    <td class="min-width180 max-width200 truncate"
+                                        [title]="employee.displayRequirement || 'NA'">
+                                        {{employee.displayRequirement || 'NA' }}
+                                    </td>
+                                    <td class="min-width180 max-width200">
+                                        <app-my-select class="form-control" placeholder="Select PO"
+                                            [(ngModel)]="employee.targetPoId" displayKey="poNo" valueKey="poId"
+                                            [options]="employee.poDetailsList"
+                                            (change)="getResourceRequirementDetailsByProjectIdForTeamMemberMigrationAndForEmployee(employee,teamMembersMigrationObj.targetProjectId)">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="min-width180 max-width200">
+                                        <app-my-select class="form-control" placeholder="Search Requirement"
+                                            [(ngModel)]="employee.roleId" valueKey="roleId"
+                                            displayKey="displayRequirement"
+                                            [options]="employee.resourceRequirementList">
+                                        </app-my-select>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" title="Migrate Team Member"
+                                            (click)="migrateTeamMembers(employee)">
+                                            <em class="fa fa-exchange"></em>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center mt-2 mb-2" *ngIf="teamMembersMigrationObj.isInternalProject">
+            <button class="btn btn-sm btn-outline-primary" (click)="migrateTeam()">Yes, Proceed</button>&nbsp;&nbsp;
+            <button class="btn btn-sm btn-primary" (click)="closeMigrateTeamModal()">No, Cancel</button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #team_details_new>
+    <div class="card shadow project-config-card">
+        <div class="card-header project-card-header">
+            <nav class="rmg-breadcrumb" aria-label="breadcrumb" *ngIf="!isProjectPreview">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item">
+                        <a href="javascript:void(0)" title="Back to Resource Management"
+                            (click)="callCloseProjectConfiguration()">Resource Management</a>
+                    </li>
+                    <li class="breadcrumb-item rmg-breadcrumb-active">
+                        <a href="javascript:void(0)" title="Back to Team Configuration"
+                            (click)="(projectConfigStepperIndex == 2 || isProjectPreview) ? closeTeamMemberDetailsPreviewModal() : hideTeamDetails()">
+                            Resource Configuration
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <span>
+                            {{ currentTeam.teamName ? (currentTeam.teamName + ' (Team Member Details)') : 'Team Member Details' }}
+                        </span>
+                    </li>
+                </ol>
+            </nav>
+            <div class="row align-items-center">
+                <div class="col-md-11">
+                    <h6 class="card-title text-left mb-0">
+                        {{ currentTeam.teamName ? (currentTeam.teamName + ' (Team Member Details)')
+                        : 'Team Member Details' }}
+                    </h6>
+                </div>
+                <div class="col-md-1 d-flex justify-content-end">
+                    <button class="btn btn-sm btn-outline-primary" title="Close Team Details"
+                        *ngIf="projectConfigStepperIndex != 2 && !isProjectPreview" (click)="hideTeamDetails()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" title="Close Team Details"
+                        *ngIf="projectConfigStepperIndex == 2 || isProjectPreview"
+                        (click)="closeTeamMemberDetailsPreviewModal()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body pt-1">
+            <div class="row">
+                <div class="col-12 p-4" style="padding-top: 0px !important;">
+                    <ng-container *ngIf="projectType === 'TNM'">
+                        <div class="mt-3">
+                            <ng-template [ngTemplateOutlet]="resource_requirement_template">
+                            </ng-template>
+                        </div>
+                    </ng-container>
+                    <ng-container>
+                        <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" class="resource-tab-group"
+                            (selectedTabChange)="onResourceTabChange($event)">
+                            <mat-tab label="Currently Mapped Resource">
+                                <div class="col-md-12">
+                                    <ng-template [ngTemplateOutlet]="current_team_member_resource_template"
+                                        [ngTemplateOutletContext]="{teamMembers :currentTeam.rmgCurrentTeamMemberList,team: currentTeam}">
+                                    </ng-template>
+                                </div>
+                            </mat-tab>
+                            <mat-tab label="Old Resource">
+                                <div class="col-md-12">
+                                    <ng-template [ngTemplateOutlet]="old_team_member_resource_template"
+                                        [ngTemplateOutletContext]="{teamMembers :currentTeam.rmgOldTeamMemberList, team: currentTeam}">
+                                    </ng-template>
+                                </div>
+                            </mat-tab>
+                        </mat-tab-group>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #team_member_details_preview>
+    <ng-container>
+        <ng-template [ngTemplateOutlet]="team_details_new">
+        </ng-template>
+    </ng-container>
+</ng-template>
+
+<ng-template #employeeInfo let-member="member">
+    <div class="emp-info">
+        <div class="info-row">
+            <span class="label">Employment Id</span>
+            <span class="value">{{ member.employementId }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">ApMoSys Job Role</span>
+            <span class="value">{{ member.employeeRole }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Billability</span>
+            <span class="value">{{ member.billableType }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Start Date</span>
+            <span class="value">{{ member.startDate | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Department</span>
+            <span class="value">{{ member.memberDepartment }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Current Employment Status</span>
+            <span class="value">{{ member.employmentStatus }}</span>
+        </div>
+        <div class="divider"></div>
+
+        <div class="info-row">
+            <span class="label">Prev Exp</span>
+            <span class="value">{{ member.prevExp }} yrs</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Curr Exp</span>
+            <span class="value">{{ member.currentExp }} yrs</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Total Exp</span>
+            <span class="value highlight">{{ member.totalExp }} yrs</span>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #allocationExpiredInfo let-member="member">
+    <div class="popover-info red-border">
+        <div class="popover-row">
+            <span>
+                Allocation expired:
+                <b>
+                    {{ normalizeDate(member?.poEndDate) < todaysDate ? ('PO: ' + (member?.poEndDate | date:'
+                        dd-MM-yyyy')) : ('Requirement: ' + (member?.lineItemEndDate | date:' dd-MM-yyyy')) }} </b>
+            </span>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #overBoardedInfo let-member="member">
+    <div class="popover-info red-border">
+        <div class="popover-row">
+            <span>
+                <b>Overallocation detected — </b><br>
+                Required Resource: <b>{{ member.requiredCount }}</b> <br>
+                Assigned Resource: <b>{{ member.actualAssigned }}</b> <br>
+                <span class="action-text">Please deboard excess resources accordingly.</span>
+            </span>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #futureStartDateInfo let-member="member">
+    <div class="popover-info yellow-border">
+        <div class="popover-row">
+            <span>
+                Starts on <b>{{ member.dbStartDate | date:'dd-MM-yyyy' }}</b>
+            </span>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #pendingForApprovalInfo>
+    <div class="popover-info yellow-border">
+        <div class="popover-row">
+            <span>Pending for Approval
+            </span>
+        </div>
+    </div>
+</ng-template>
+
+
+<ng-template #mapping_other_project_as_default>
+    <div class="card-header project-card-header" style="margin:0px !important">
+        <div class="row align-items-center">
+            <div class="col-md-11">
+                <h6 class="card-title text-left">Eligible for Default Project Assignment&nbsp;
+                    <i class="fa fa-beat fa-info-circle info-icon cursor-pointer"
+                        title="Employees with Other Project Mappings Eligible for Default Project Assignment">
+                    </i>
+                </h6>
+            </div>
+            <div class="col-md-1 d-flex justify-content-end">
+                <button class="btn btn-sm" (click)="closeMappingToOtherProjectAsDefaultModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="p-3">
+        <div class="row align-items-center mb-1" *ngIf="mappingToOtherProjectAsDefaultList.length > 0">
+            <div class="col-md-2 d-flex justify-content-start">
+                <button class="btn btn-sm btn-outline-primary"
+                    (click)="toggleChangeEmployeeDefaultProjectMappingSearch()">
+                    <i
+                        [ngClass]="{ 'fa fa-search' : !isChangeEmployeeDefaultProjectMappingSearchEnabled, 'fa-solid fa-xmark': isChangeEmployeeDefaultProjectMappingSearchEnabled}"></i>
+                </button>
+            </div>
+            <div class="col-md-10 d-flex justify-content-end">
+                <mat-paginator class="compact-paginator " [length]="mappingToOtherProjectAsDefaultList.length"
+                    [pageIndex]="changeEmployeeDefaultProjectMappingPage-1"
+                    [pageSize]="changeEmployeeDefaultProjectMappingPageSize" [pageSizeOptions]="[5, 10, 20, 50]"
+                    (page)="changeEmployeeDefaultProjectMappingPageChange($event)">
+                </mat-paginator>
+            </div>
+        </div>
+        <div class="new-table-container custom-rounded-border">
+            <table class="new-custom-table custom-table-border" matSort
+                (matSortChange)="sortChangeEmployeeDefaultProjectMappingData($event)">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th class="min-width100 max-width150" mat-sort-header="employementId|string">
+                            Employment Id
+                        </th>
+                        <th class="min-width100 max-width150" mat-sort-header="memberName|string">
+                            Name
+                        </th>
+                        <th class="min-width180 max-width200">Project</th>
+                        <th class="min-width180 max-width200">Start Date</th>
+                        <th class="min-width100 max-width150">PO No</th>
+                        <th class="min-width180 max-width200">PO Role</th>
+                        <th class="min-width100 max-width150">Team</th>
+                        <th class="min-width100 max-width150">Employee Role</th>
+                    </tr>
+                    <ng-container *ngIf="isChangeEmployeeDefaultProjectMappingSearchEnabled">
+                        <tr class="custom-filter-row" app-column-filter-bar
+                            [columnList]="changeEmployeeDefaultProjectMappingColumnList"
+                            (onSearch)="searchChangeEmployeeDefaultProjectMapping($event)">
+                        </tr>
+                    </ng-container>
+                </thead>
+                <tbody>
+                    <ng-container *ngIf="mappingToOtherProjectAsDefaultList?.length === 0">
+                        <tr>
+                            <td colspan="9" class="text-center">No Details to display.</td>
+                        </tr>
+                    </ng-container>
+                    <ng-container
+                        *ngFor="let employee of mappingToOtherProjectAsDefaultList | multicolFilter: changeEmployeeDefaultProjectMappingFilters : true | sort : [changeEmployeeDefaultProjectMappingSortColumn, changeEmployeeDefaultProjectMappingSortColumnType,changeEmployeeDefaultProjectMappingSortDirection] | paginate: { itemsPerPage: changeEmployeeDefaultProjectMappingPageSize, currentPage: changeEmployeeDefaultProjectMappingPage }; let i= index">
+                        <tr>
+                            <td>
+                                <button class="btn btn-sm btn-primary"
+                                    (click)="updateMappingToOtherProjectAsDefault(employee)"
+                                    title="Update Default Project">
+                                    <em class="fa fa-floppy-disk"></em>
+                                </button>
+                            </td>
+                            <td class="min-width100 max-width150 truncate" [title]="employee.employementId || 'NA'">
+                                {{ employee.employementId || 'NA' }}
+                            </td>
+                            <td class="min-width100 max-width150 truncate" [title]="employee.memberName || 'NA'">
+                                {{ employee.memberName || 'NA' }}
+                            </td>
+                            <td class="min-width180 max-width200  min-width150">
+                                <mat-select placeholder="Select Project" [(ngModel)]="employee.selectedProject">
+                                    <mat-option *ngFor="let project of employee.otherActiveProjects" [value]="project">
+                                        {{ project.projectName }}
+                                    </mat-option>
+                                </mat-select>
+                            </td>
+                            <td class="min-width180 max-width200">
+                                <div class="date-input-wrapper">
+                                    <input class="form-control date-input" readonly
+                                        [matDatepicker]="defaultProjectEmployeeStartDatepicker"
+                                        (dateChange)="validateEmployeeProjectStartDateDefaultMapping(employee, employee.selectedProject.projectId, projectType)"
+                                        [(ngModel)]="employee.selectedProject.startDate"
+                                        [disabled]="!employee.selectedProject.projectId"
+                                        (click)="defaultProjectEmployeeStartDatepicker.open()" />
+                                    <mat-icon class="calendar-icon"
+                                        (click)="defaultProjectEmployeeStartDatepicker.open()">calendar_today</mat-icon>
+                                    <mat-datepicker #defaultProjectEmployeeStartDatepicker></mat-datepicker>
+                                </div>
+                            </td>
+                            <td class="min-width100 max-width150 truncate"
+                                [title]="employee.selectedProject?.poNo || 'NA'">
+                                {{ employee.selectedProject?.poNo || 'NA' }}
+                            </td>
+                            <td class="min-width180 max-width200 truncate"
+                                [title]="employee.selectedProject?.resourceRequirement || 'NA'">
+                                {{ employee.selectedProject?.resourceRequirement || 'NA' }}
+                            </td>
+                            <td class="min-width100 max-width150 truncate"
+                                [title]="employee.selectedProject?.teamName || 'NA'">
+                                {{ employee.selectedProject?.teamName || 'NA' }}
+                            </td>
+                            <td class="min-width100 max-width150 truncate"
+                                [title]="employee.selectedProject?.employeeRole || 'NA'">
+                                {{ employee.selectedProject?.employeeRole || 'NA' }}
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #mark_default_project_completion>
+    <div class="card">
+        <div class="card-header">
+            <div class="row align-items-center ">
+                <div class="col-md-11">
+                    <h6 class="card-title p-0">Employee(s) With New Default Project Mappings Requirement</h6>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-sm btn-outline-primary" (click)="closeMarkDefaultProjectCompletionModal()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-2">
+            <div class="row justify-content-start align-items-center m-2">
+                <mat-slide-toggle color="primary" [(ngModel)]="isMarkDefaultProjectCompletionBulk">
+                </mat-slide-toggle>&nbsp;&nbsp;
+                <h6 *ngIf="!isMarkDefaultProjectCompletionBulk" class="section-title">Bulk Default Project Mapping</h6>
+                <h6 *ngIf="isMarkDefaultProjectCompletionBulk" class="section-title">Individual Default Project Mapping
+                </h6>
+            </div>
+            <div class="card p-1 mb-1" *ngIf="!isMarkDefaultProjectCompletionBulk">
+                <div class="row flex-nowrap align-items-end horizontal-scroll m-1">
+                    <div class="col-3 p-1">
+                        <div class="form-group">
+                            <label>Project Type</label>
+                            <app-my-select class="form-control" placeholder="Select Project Type"
+                                [(ngModel)]="defaultProjectObj.projectType" [options]="projectTypes">
+                            </app-my-select>
+                        </div>
+                    </div>
+                    <div class="col-3 p-1">
+                        <div class="form-group">
+                            <label>Project</label>
+                            <app-my-select class="form-control" placeholder="Select Project"
+                                [(ngModel)]="defaultProjectObj.projectId"
+                                [options]="defaultProjectObj.projectType !== 'Bench' ? projectsOther : projectsBench"
+                                valueKey="projectId" displayKey="projectName"
+                                (change)="getTeamOrPoBasedOnProjectType()">
+                            </app-my-select>
+                        </div>
+                    </div>
+                    <div class="col-3 p-1" *ngIf="defaultProjectObj.projectType !== 'Bench'">
+                        <div class="form-group">
+                            <label>PO</label>
+                            <app-my-select class="form-control" placeholder="Select PO"
+                                [(ngModel)]="defaultProjectObj.poId" displayKey="poNo" valueKey="poId"
+                                [options]="defaultProjectObj.poDetailsList" (change)="getResourceRequirementByTeamIdDefaultMapping()">
+                            </app-my-select>
+                        </div>
+                    </div>
+                    <div class="col-3 p-1">
+                        <div class="form-group">
+                            <label>Team Name</label>
+                            <app-my-select class="form-control" placeholder="Select Team" valueKey="teamId"
+                                displayKey="teamName" [(ngModel)]="defaultProjectObj.teamId"
+                                [options]="defaultProjectObj.teamList">
+                            </app-my-select>
+                        </div>
+                    </div>
+                    <div class="col-3 p-1">
+                        <div class="form-group">
+                            <label>Employee Role</label>
+                            <app-my-select class="form-control" [multiple]="true" placeholder="Select Role"
+                                [(ngModel)]="defaultProjectObj.employeeRoles" [options]="employeeRoles">
+                            </app-my-select>
+                        </div>
+                    </div>
+                    <div class="col-3 p-1">
+                        <div class="form-group">
+                            <label>Project Requirement</label>
+                            <app-my-select class="form-control" [(ngModel)]="defaultProjectObj.roleId" valueKey="roleId"
+                                displayKey="displayRequirement" [options]="defaultProjectObj.resourceRequirementList">
+                            </app-my-select>
+                        </div>
+                    </div>
+                    <div class="col-3 p-1">
+                        <div class="form-group">
+                            <div class="date-input-wrapper">
+                                <label>Start Date</label>
+                                <input class="form-control date-input" readonly
+                                    [matDatepicker]="bulkDefaultProjectMappingStartDatepicker"
+                                    [(ngModel)]="defaultProjectObj.startDate" [disabled]="!defaultProjectObj.projectId"
+                                    (click)="bulkDefaultProjectMappingStartDatepicker.open()" />
+                                <mat-icon class="calendar-icon" style="top:70%"
+                                    (click)="bulkDefaultProjectMappingStartDatepicker.open()">calendar_today</mat-icon>
+                                <mat-datepicker #bulkDefaultProjectMappingStartDatepicker></mat-datepicker>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3 p-1 mb-4">
+                        <button class="btn btn-sm btn-primary" (click)="updateDefaultProjectCompletionBulk()">Update
+                            Default Project</button>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-4">
+                <!-- Bulk Update Mode -->
+                <div class="row align-items-center mb-1"
+                    *ngIf="markDefaultProjectCompletionList.length > 0 && !isMarkDefaultProjectCompletionBulk">
+                    <div class="col-md-2 d-flex justify-content-start">
+                        <button class="btn btn-sm btn-outline-primary"
+                            (click)="toggleMarkDefaultProjectCompletionSearch()">
+                            <i
+                                [ngClass]="{ 'fa fa-search' : !isMarkDefaultProjectCompletionSearchEnabled, 'fa-solid fa-xmark': isMarkDefaultProjectCompletionSearchEnabled}"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-6 offset-4 d-flex justify-content-end">
+                        <mat-paginator class="compact-paginator " [length]="markDefaultProjectCompletionList.length"
+                            [pageIndex]="markDefaultProjectCompletionPage-1"
+                            [pageSize]="markDefaultProjectCompletionPageSize" [pageSizeOptions]="[5, 10, 20, 50]"
+                            (page)="markDefaultProjectCompletionPageChange($event)">
+                        </mat-paginator>
+                    </div>
+                </div>
+                <div class="row align-items-center mb-1"
+                    *ngIf="markDefaultProjectCompletionList.length > 0 && isMarkDefaultProjectCompletionBulk">
+                    <div class="col-md-2 d-flex justify-content-start">
+                        <button class="btn btn-sm btn-outline-primary"
+                            (click)="toggleMarkDefaultProjectCompletionIndividualSearch()">
+                            <i
+                                [ngClass]="{ 'fa fa-search' : !isMarkDefaultProjectCompletionIndividualSearchEnabled, 'fa-solid fa-xmark': isMarkDefaultProjectCompletionIndividualSearchEnabled}"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-6 offset-4 d-flex justify-content-end">
+                        <mat-paginator class="compact-paginator " [length]="markDefaultProjectCompletionList.length"
+                            [pageIndex]="markDefaultProjectCompletionIndividualPage-1"
+                            [pageSize]="markDefaultProjectCompletionIndividualPageSize"
+                            [pageSizeOptions]="[5, 10, 20, 50]"
+                            (page)="markDefaultProjectCompletionIndividualPageChange($event)">
+                        </mat-paginator>
+                    </div>
+                </div>
+                <div class="table-container" *ngIf="!isMarkDefaultProjectCompletionBulk">
+                    <table class="custom-table" matSort (matSortChange)="sortMarkDefaultProjectCompletionData($event)">
+                        <thead>
+                            <tr>
+                                <th class="min-width100 max-width150" mat-sort-header="employementId|string">
+                                    Employment Id
+                                </th>
+                                <th class="min-width100 max-width150" mat-sort-header="memberName|string">
+                                    Employee Name
+                                </th>
+                                <th class="min-width100 max-width150" mat-sort-header="memberDepartment|string">
+                                    Employee Department
+                                </th>
+                                <th class="min-width100 max-width150" mat-sort-header="jobRoleName|string">
+                                    Job Role
+                                </th>
+                                <th class="min-width100 max-width150" mat-sort-header="billableType|string">
+                                    Billable Type
+                                </th>
+                                <th class="min-width50 max-width100" mat-sort-header="prevExp|string">
+                                    Previous Exp
+                                </th>
+                                <th class="min-width50 max-width100" mat-sort-header="currentExp|string">
+                                    Current Exp
+                                </th>
+                                <th class="min-width50 max-width100" mat-sort-header="totalExp|string">
+                                    Total Exp
+                                </th>
+                            </tr>
+                            <ng-container *ngIf="isMarkDefaultProjectCompletionSearchEnabled">
+                                <tr class="custom-filter-row" app-column-filter-bar
+                                    [columnList]="markDefaultProjectCompletionColumnListBulk"
+                                    (onSearch)="searchMarkDefaultProjectCompletion($event)">
+                                </tr>
+                            </ng-container>
+                        </thead>
+                        <tbody>
+                            <ng-container *ngIf="markDefaultProjectCompletionList.length === 0">
+                                <tr>
+                                    <td colspan="8" class="text-center">No Details to display.</td>
+                                </tr>
+                            </ng-container>
+                            <ng-container
+                                *ngFor="let employee of markDefaultProjectCompletionList | multicolFilter: markDefaultProjectCompletionFilters : true | sort : [markDefaultProjectCompletionSortColumn, markDefaultProjectCompletionSortColumnType,markDefaultProjectCompletionSortDirection] | paginate: { itemsPerPage: markDefaultProjectCompletionPageSize, currentPage: markDefaultProjectCompletionPage }; let i= index">
+                                <tr>
+                                    <td class="min-width100 max-width150 truncate"
+                                        [title]="employee.employementId || 'NA'">
+                                        {{ employee.employementId || 'NA' }}
+                                    </td>
+                                    <td class="min-width100 max-width150 truncate"
+                                        [title]="employee.memberName || 'NA'">
+                                        {{ employee.memberName || 'NA' }}
+                                    </td>
+                                    <td class="min-width100 max-width150 truncate"
+                                        [title]="employee.memberDepartment || 'NA'">
+                                        {{ employee.memberDepartment || 'NA' }}
+                                    </td>
+                                    <td class="min-width100 max-width150 truncate"
+                                        [title]="employee.jobRoleName || 'NA'">
+                                        {{ employee.jobRoleName || 'NA' }}
+                                    </td>
+                                    <td class="min-width100 max-width150 truncate"
+                                        [title]="employee.billableType || 'NA'">
+                                        {{ employee.billableType || 'NA' }}
+                                    </td>
+                                    <td class="min-width50 max-width100 truncate" [title]="employee.prevExp || 'NA'">
+                                        {{ employee.prevExp || 'NA' }}
+                                    </td>
+                                    <td class="min-width50 max-width100 truncate" [title]="employee.currentExp || 'NA'">
+                                        {{ employee.currentExp || 'NA' }}
+                                    </td>
+                                    <td class="min-width50 max-width100 truncate" [title]="employee.totalExp || 'NA'">
+                                        {{ employee.totalExp || 'NA' }}
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Individual Mode -->
+                <div class="table-container" *ngIf="isMarkDefaultProjectCompletionBulk">
+                    <table class="custom-table" matSort
+                        (matSortChange)="sortMarkDefaultProjectCompletionIndividualData($event)">
+                        <thead>
+                            <tr>
+                                <th class="min-width100 max-width150" mat-sort-header="employementId|string">
+                                    Employment Id
+                                </th>
+                                <th class="min-width100 max-width150" mat-sort-header="memberName|string">
+                                    Name</th>
+                                <th class="min-width180 max-width200">Project Type</th>
+                                <th class="min-width180 max-width200">Project</th>
+                                <th class="min-width180 max-width200">PO No</th>
+                                <th class="min-width180 max-width200">Team</th>
+                                <th class="min-width180 max-width200">Employee Role</th>
+                                <th class="min-width180 max-width200">Requirement</th>
+                                <th class="min-width180 max-width200">Start Date</th>
+                                <th>Action</th>
+                            </tr>
+                            <ng-container *ngIf="isMarkDefaultProjectCompletionIndividualSearchEnabled">
+                                <tr class="custom-filter-row" app-column-filter-bar
+                                    [columnList]="markDefaultProjectCompletionIndividualColumnList"
+                                    (onSearch)="searchMarkDefaultProjectCompletionIndividual($event)">
+                                </tr>
+                            </ng-container>
+                        </thead>
+                        <tbody>
+                            <ng-container *ngIf="markDefaultProjectCompletionList.length === 0">
+                                <tr>
+                                    <td colspan="9" class="text-center">No Details to display.</td>
+                                </tr>
+                            </ng-container>
+                            <ng-container
+                                *ngFor="let employee of markDefaultProjectCompletionList | multicolFilter: markDefaultProjectCompletionIndividualFilters : true | sort : [markDefaultProjectCompletionIndividualSortColumn, markDefaultProjectCompletionIndividualSortColumnType,markDefaultProjectCompletionIndividualSortDirection] | paginate: { itemsPerPage: markDefaultProjectCompletionIndividualPageSize, currentPage: markDefaultProjectCompletionIndividualPage }; let i= index">
+                                <tr>
+                                    <td class="min-width100 max-width150 truncate"
+                                        [title]="employee.employementId || 'NA'">
+                                        {{ employee.employementId || 'NA' }}
+                                    </td>
+                                    <td class="min-width100 max-width150 truncate"
+                                        [title]="employee.memberName || 'NA'">
+                                        {{ employee.memberName || 'NA' }}
+                                    </td>
+                                    <td class="min-width180 max-width200">
+                                        <app-my-select class="form-control" placeholder="Select Project Type"
+                                            [(ngModel)]="employee.projectType" [options]="projectTypes"
+                                            (change)="changeProjectTypeForEmployee(employee)">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="min-width180 max-width200">
+                                        <app-my-select class="form-control" placeholder="Select Project"
+                                            [(ngModel)]="employee.projectId" displayKey="projectName"
+                                            valueKey="projectId"
+                                            [options]="employee.projectType !== 'Bench' ? projectsOther : projectsBench"
+                                            (change)="getTeamOrPoBasedOnProjectTypeForEmployee(employee)">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="min-width180 max-width200">
+                                        <app-my-select class="form-control" *ngIf="employee.projectType !== 'Bench'"
+                                            placeholder="Select PO" [(ngModel)]="employee.poId" displayKey="poNo"
+                                            valueKey="poId" [options]="employee.poDetailsList"
+                                            (change)="getResourceRequirementByPoIdForEmployeeDefaultMapping(employee)">
+                                        </app-my-select>
+                                        <span *ngIf="employee.projectType === 'Bench'">--</span>
+                                    </td>
+                                    <td class="min-width180 max-width200">
+                                        <app-my-select class="form-control" placeholder="Search Team"
+                                            [(ngModel)]="employee.teamId" displayKey="teamName" valueKey="teamId"
+                                            [options]="employee.teamList">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="min-width180 max-width200">
+                                        <app-my-select class="form-control" placeholder="Select Role"
+                                            [(ngModel)]="employee.employeeRoles" [options]="employeeRoles"
+                                            [multiple]="true">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="min-width180 max-width200">
+                                        <app-my-select class="form-control" *ngIf="employee.projectType !== 'Bench'"
+                                            placeholder="Search Requirement" [(ngModel)]="employee.roleId"
+                                            valueKey="roleId" displayKey="displayRequirement"
+                                            [options]="employee.resourceRequirementList">
+                                        </app-my-select>
+                                        <span *ngIf="employee.projectType === 'Bench'">--</span>
+                                    </td>
+                                    <td class="min-width180 max-width200">
+                                        <div class="date-input-wrapper">
+                                            <input class="form-control date-input" readonly
+                                                [matDatepicker]="defaultProjectMappingStartDatepicker"
+                                                (dateChange)="validateEmployeeProjectStartDateDefaultMapping(employee, employee.projectId , projectType)"
+                                                [(ngModel)]="employee.startDate" [disabled]="!employee.projectId"
+                                                (click)="defaultProjectMappingStartDatepicker.open()" />
+                                            <mat-icon class="calendar-icon"
+                                                (click)="defaultProjectMappingStartDatepicker.open()">calendar_today</mat-icon>
+                                            <mat-datepicker #defaultProjectMappingStartDatepicker></mat-datepicker>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" title="Set Default Project"
+                                            (click)="updateDefaultProjectCompletion(employee, false)">
+                                            Update
+                                        </button>
+                                    </td>
+                                </tr>
+                            </ng-container>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #remove_members_confirmation>
+    <div class="modal-body">
+        <p class="text-center mb-1">This action will permanently mark the selected members as inactive for the Team.
+            <br> Do you want to proceed?
+        </p>
+        <p *ngIf="removePermanently" class="text-danger mb-1">Note: This action cannot be undone.</p>
+        <div class="row justify-content-center align-items-center"
+            *ngIf="!isInternalProject">
+            <mat-radio-group color="primary" [(ngModel)]="membersEndDateType"
+                (change)="onMemberRemoveEndDateTypeChange($event)">
+                <mat-radio-button value="PO">PO End Date</mat-radio-button>
+                <mat-radio-button value="Custom">Custom End Date</mat-radio-button>
+            </mat-radio-group>
+        </div>
+        <div class="row justify-content-center align-items-center">
+            <div class="col-md-8">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label ml-1">Select End Date<span *ngIf="!removePermanently" class="text-danger">*</span></label>
+                        <div class="date-input-wrapper">
+                            <input class="form-control date-input" readonly [matDatepicker]="membersEndDatePicker"
+                                [(ngModel)]="membersEndDate" (click)="membersEndDatePicker.open()"
+                                [disabled]="membersEndDateType === 'PO'" />
+                            <mat-icon class="calendar-icon"
+                                (click)="membersEndDatePicker.open()" [class.disabled]="membersEndDateType === 'PO'">calendar_today</mat-icon>
+                            <mat-datepicker #membersEndDatePicker></mat-datepicker>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center align-items-center">
+            <mat-checkbox class="remove-permanently" color="primary" [(ngModel)]="removePermanently" (change)="onRemovePermanentlyChecked($event.checked)"></mat-checkbox>
+            <small>Remove Permanently</small>&nbsp;
+            <span class="info-chip red-chip">
+                <span triggers="mouseenter:mouseleave" placement="right" container="body" popoverClass="info-popover"
+                    [ngbPopover]="removePermanentlyAlertTpl">
+                    <ng-template #removePermanentlyAlertTpl>
+                        <ng-container *ngTemplateOutlet="removePermanentlyAlert">
+                        </ng-container>
+                    </ng-template>
+                    <i class="fa fa-beat fa-info-circle cursor-pointer"></i>
+                </span>
+            </span>
+        </div>
+        <div class="row justify-content-center align-items-center">
+            <button type="button" class="btn btn-success btn-sm" (click)="removeTeamMembersFromProject();">Yes,
+                proceed</button>&nbsp;
+            <button type="button" class="btn btn-danger btn-sm" (click)="closeRemoveMembersModal()">No,
+                Cancel</button>&nbsp;
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #delete_team_confirmation>
+    <div class="modal-body">
+        <p class="text-center">Are you sure you want to delete the Selected Team(s) from the Project ?</p>
+        <div class="row justify-content-center align-items-center">
+            <label class="info-label">Select End Date</label>
+        </div>
+        <div class="row justify-content-center align-items-center m-2">
+            <div class="date-input-wrapper">
+                <input class="form-control date-input" readonly [matDatepicker]="teamEndDatePicker"
+                    [(ngModel)]="teamEndDate" (click)="teamEndDatePicker.open()" />
+                <mat-icon class="calendar-icon" (click)="teamEndDatePicker.open()">calendar_today</mat-icon>
+                <mat-datepicker #teamEndDatePicker></mat-datepicker>
+            </div>
+            <!-- <input type="date" class="form-control" autocomplete="none" [(ngModel)]="teamEndDate"> -->
+        </div>
+        <div class="row justify-content-center align-items-center">
+            <button type="button" class="btn btn-success" (click)="deleteSelectedTeams()">Yes,
+                proceed</button>&nbsp;
+            <button type="button" class="btn btn-danger" (click)="closeDeleteTeamConfirmationModal()">No,
+                Cancel</button>&nbsp;
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #delete_team_validation_preview>
+    <div class="modal-header">
+        <h5 class="modal-title">Delete Team(s) - Preview</h5>
+        <button type="button" class="close" aria-label="Close" (click)="closeDeleteTeamValidationPreviewModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body delete-team-preview-body">
+        <div class="delete-team-preview-summary" *ngIf="deleteTeamSummary.blocked > 0 || deleteTeamSummary.inactive > 0 || deleteTeamSummary.deleted > 0">
+            <div class="delete-team-preview-summary__title">Summary</div>
+                <ul class="delete-team-preview-summary__list">
+                    <li *ngIf="deleteTeamSummary.blocked > 0">
+                        <b>{{ deleteTeamSummary.blocked }}</b> resources cannot be removed
+                    </li>
+                    <li *ngIf="deleteTeamSummary.inactive > 0">
+                        <b>{{ deleteTeamSummary.inactive }}</b> resources will be made inactive
+                    </li>
+                    <li *ngIf="deleteTeamSummary.deleted > 0">
+                        <b>{{ deleteTeamSummary.deleted }}</b> resources will be permanently deleted
+                    </li>
+                </ul>
+            <div class="delete-team-preview-summary__hint text-danger fw-bold">
+                Team will be deleted only after all active resources are successfully removed.
+            </div>
+        </div>
+
+        <ng-container *ngIf="isValidList(deleteTeamValidationRows); else noValidationRows">
+
+            <!-- A) Blocked -->
+            <div class="delete-team-preview-section" *ngIf="isValidList(blockedEmployees)">
+                <div class="delete-team-preview-section__header">
+                    <div class="delete-team-preview-section__title">
+                        Resources That Cannot Be Removed As End Date Is Before Start Date
+                    </div>
+                    <span class="dt-badge dt-badge--count dt-badge--danger">{{ blockedEmployees.length }}</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered dt-table">
+                        <thead>
+                            <tr>
+                                <th>Employee Code</th>
+                                <th>Employee Name</th>
+                                <th>Team Start Date</th>
+                                <!-- <th>Reason</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let row of blockedEmployees">
+                                <td>{{ row.employeeCode }}</td>
+                                <td>{{ row.employeeName }}</td>
+                                <td>{{ row.teamStartDate ? (row.teamStartDate | date:'dd-MM-yyyy') : '-' }}</td>
+                                <!-- <td>
+                                    <span class="dt-badge dt-badge--danger">{{ row.label }}</span>
+                                </td> -->
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- B) Will be inactivated -->
+            <div class="delete-team-preview-section" *ngIf="isValidList(inactiveEmployees)">
+                <div class="delete-team-preview-section__header">
+                    <div class="delete-team-preview-section__title">
+                        Resources That Will Be Removed
+                    </div>
+                    <span class="dt-badge dt-badge--count dt-badge--success">{{ inactiveEmployees.length }}</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered dt-table">
+                        <thead>
+                            <tr>
+                                <th>Employee Code</th>
+                                <th>Employee Name</th>
+                                <th>Team Start Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let row of inactiveEmployees">
+                                <td>{{ row.employeeCode }}</td>
+                                <td>{{ row.employeeName }}</td>
+                                <td>{{ row.teamStartDate ? (row.teamStartDate | date:'dd-MM-yyyy') : '-' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- C) Permanently deleted -->
+            <div class="delete-team-preview-section" *ngIf="isValidList(deletedEmployees)">
+                <div class="delete-team-preview-section__header">
+                    <div class="delete-team-preview-section__title">
+                        Resources To Be Permanently Deleted
+                    </div>
+                    <span class="dt-badge dt-badge--count dt-badge--warning">{{ deletedEmployees.length }}</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered dt-table">
+                        <thead>
+                            <tr>
+                                <th>Employee Code</th>
+                                <th>Employee Name</th>
+                                <th>Team Start Date</th>
+                                <!-- <th>Reason</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let row of deletedEmployees">
+                                <td>{{ row.employeeCode }}</td>
+                                <td>{{ row.employeeName }}</td>
+                                <td>{{ row.teamStartDate ? (row.teamStartDate | date:'dd-MM-yyyy') : '-' }}</td>
+                                <!-- <td>
+                                    <span class="dt-badge dt-badge--warning">{{ row.label }}</span>
+                                </td> -->
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </ng-container>
+
+        <ng-template #noValidationRows>
+            <p class="text-muted mb-0">
+                No resources are associated with the selected team(s). You can proceed with deletion.
+            </p>
+        </ng-template>
+    </div>
+    <div class="modal-footer delete-team-preview-footer justify-content-center">
+        <button type="button" class="btn btn-sm btn-success"
+            [disabled]="deleteTeamValidationRows?.length > 0 && !deleteTeamSummary.canProceed"
+            (click)="confirmDeleteTeamsAfterValidation()">
+            Yes, Proceed
+        </button>
+        <button type="button" class="btn btn-sm btn-danger" (click)="closeDeleteTeamValidationPreviewModal()">No, Cancel</button>
+    </div>
+</ng-template>
+
+<ng-template #shadow_resource_mapping>
+    <div class="modal-body">
+        <h6 class="text-center mt-2">
+            {{ !isOnboardingAsShadow
+            ? 'Provide Shadow Assignment End Date & New Assignment Start Date.'
+            : 'Provide Regular Assignment End Date & New Shadow Assignment Start Date.'
+            }}
+        </h6>
+
+        <div class="row d-flex justify-content-between align-items-center mb-2 ">
+            <div class="col-7">
+                <small>
+                    Current {{ !isOnboardingAsShadow ? 'Shadow' : 'Regular'}} Assignment End Date
+                    <span class="text-danger">*</span>
+                </small>
+            </div>
+            <div class="col-5">
+                <div class="date-input-wrapper">
+                    <input class="form-control date-input" readonly
+                        [matDatepicker]="shadowResourceMappingMemberEndDatepicker"
+                        [(ngModel)]="shadowResourceMappingMemberEndDate"
+                        (click)="shadowResourceMappingMemberEndDatepicker.open()" />
+                    <mat-icon class="calendar-icon" (click)="shadowResourceMappingMemberEndDatepicker.open()">
+                        calendar_today
+                    </mat-icon>
+                    <mat-datepicker #shadowResourceMappingMemberEndDatepicker></mat-datepicker>
+                </div>
+            </div>
+        </div>
+
+        <div class="row d-flex justify-content-between align-items-center">
+            <div class="col-7">
+                <small>
+                    New {{ isOnboardingAsShadow ? 'Shadow' : 'Regular'}} Assignment Start Date
+                    <span class="text-danger">*</span>
+                </small>
+            </div>
+            <div class="col-5">
+                <div class="date-input-wrapper">
+                    <input class="form-control date-input" readonly
+                        [matDatepicker]="shadowResourceMappingMemberStartDatepicker"
+                        [(ngModel)]="shadowResourceMappingMemberStartDate"
+                        (click)="shadowResourceMappingMemberStartDatepicker.open()" />
+                    <mat-icon class="calendar-icon" (click)="shadowResourceMappingMemberStartDatepicker.open()">
+                        calendar_today
+                    </mat-icon>
+                    <mat-datepicker #shadowResourceMappingMemberStartDatepicker></mat-datepicker>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-2">
+            <button class="btn btn-sm btn-success" (click)="updateMemberShadowMapping()">
+                Yes, Proceed
+            </button>&nbsp;
+            <button class="btn btn-sm btn-danger" (click)="closeShadowResourceMappingModal()">
+                Cancel
+            </button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #resource_requirement_template>
+    <mat-accordion>
+        <mat-expansion-panel [expanded]="false" class="shadow-sm team-list-expansion-panel mb-2">
+            <mat-expansion-panel-header>
+                <mat-panel-title>
+                    <h6 class="m-2">Project Resource Requirements (All)</h6>
+                </mat-panel-title>
+            </mat-expansion-panel-header>
+            <div class="mt-2">
+                <div class="row align-items-center mb-1">
+                    <div class="col-md-2 d-flex justify-content-start">
+                        <button class="btn btn-sm btn-outline-primary" (click)="toggleAllResourceRequirementSearch()" *ngIf="currentRmgProjectResourceRequirementList.length > 0">
+                            <i
+                                [ngClass]="{ 'fa fa-search' : !isAllResourceRequirementSearchEnabled, 'fa-solid fa-xmark': isAllResourceRequirementSearchEnabled}"></i>
+                        </button>&nbsp;&nbsp;
+                        <button class="btn btn-sm btn-outline-primary" (click)="filterResourceRequirementDetails()"
+                            [title]="allResourceRequirement ? 'Show Active Resource Requirement' : 'Show All Resource Requirement'">
+                            <i
+                                [ngClass]="{ 'fa fa-filter' :  allResourceRequirement, 'fa-solid fa-rotate-left': !allResourceRequirement}"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-10 d-flex justify-content-end" *ngIf="currentRmgProjectResourceRequirementList.length > 0">
+                        <mat-paginator [length]="currentRmgProjectResourceRequirementList.length"
+                            [pageIndex]="allResourceRequirementPage-1" [pageSize]="allResourceRequirementPageSize"
+                            [pageSizeOptions]="[5, 10, 20, 50]" (page)="allResourceRequirementPageChange($event)">
+                        </mat-paginator>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="custom-table" matSort (matSortChange)="sortAllResourceRequirementData($event)">
+                        <thead>
+                            <tr>
+                                <th>Sr.No</th>
+                                <th class="min-width-requirement-table100 max-width-requirement-table150" mat-sort-header="poNo|string">
+                                    PO No.</th>
+                                <th class="min-width-requirement-table100 max-width-requirement-table150"
+                                    mat-sort-header="poStartDate|date">PO
+                                    Start Date
+                                </th>
+                                <th class="min-width-requirement-table100 max-width-requirement-table150"
+                                    mat-sort-header="poEndDate|date">PO End
+                                    Date</th>
+                                <th class="min-width-requirement-table100 max-width-requirement-table150" *ngIf="projectType === 'TNM'"
+                                    mat-sort-header="role|string">
+                                    Role
+                                </th>
+                                <th class="min-width-requirement-table100 max-width-requirement-table150" *ngIf="projectType === 'TNM'"
+                                    mat-sort-header="department|string">
+                                    Department
+                                </th>
+                                <th class="min-width-requirement-table100 max-width-requirement-table150" *ngIf="projectType === 'TNM'"
+                                    mat-sort-header="experience|string">
+                                    Experience
+                                </th>
+                                <th class="min-width-requirement-table100 max-width-requirement-table150" *ngIf="projectType === 'TNM'"
+                                    mat-sort-header="requirementStartDate|date">
+                                    Role Start Date
+                                </th>
+                                <th class="min-width-requirement-table100 max-width-requirement-table150" *ngIf="projectType === 'TNM'"
+                                    mat-sort-header="requirementEndDate|date">
+                                    Role End Date
+                                </th>
+                                <th class="min-width-requirement-table50 max-width-requirement-table100" *ngIf="projectType === 'TNM'"
+                                    mat-sort-header="count|string">
+                                    Required Count
+                                </th>
+                                <th class="min-width-requirement-table50 max-width-requirement-table100"
+                                    mat-sort-header="assignedApproved|string">
+                                    Approved
+                                </th>
+                                <th class="min-width-requirement-table50 max-width-requirement-table100"
+                                    mat-sort-header="assignedPending|string">
+                                    Pending
+                                </th>
+                                <th class="min-width-requirement-table50 max-width-requirement-table100"
+                                    mat-sort-header="difference|string">
+                                    Difference</th>
+                            </tr>
+                            <ng-container *ngIf="isAllResourceRequirementSearchEnabled">
+                                <tr class="custom-filter-row" app-column-filter-bar *ngIf="!isInternalProject"
+                                    [columnList]="allResourceRequirementColumnList" (onSearch)="searchAllResourceRequirement($event)">
+                                </tr>
+                                <tr class="custom-filter-row" app-column-filter-bar *ngIf="isInternalProject"
+                                    [columnList]="allResourceRequirementColumnListForInternal"
+                                    (onSearch)="searchAllResourceRequirement($event)">
+                                </tr>
+                            </ng-container>
+                        </thead>
+                        <tbody>
+                            <tr
+                                *ngIf="!currentRmgProjectResourceRequirementList || currentRmgProjectResourceRequirementList?.length === 0">
+                                <td colspan="13" class="text-center">No Resource Requirement found.</td>
+                            </tr>
+                            <ng-container
+                                *ngFor="let resourceReq of currentRmgProjectResourceRequirementList | multicolFilter: allResourceRequirementFilters : true | sort : [allResourceRequirementSortColumn, allResourceRequirementSortColumnType,allResourceRequirementSortDirection] | paginate: { itemsPerPage: allResourceRequirementPageSize, currentPage: allResourceRequirementPage }; let i= index">
+                
+                                <tr [ngStyle]="{'background-color': resourceReq.isExpired ? '#fee2e2' : '#ffffff'}">
+                                    <td>{{i+1}}</td>
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
+                                        [title]="resourceReq.poNo || 'NA'">
+                                        {{resourceReq.poNo || 'NA'}}
+                                    </td>
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
+                                        [title]="resourceReq.poStartDate ? (resourceReq.poStartDate | date:'dd-MM-yyyy') : 'NA'">
+                                        {{ resourceReq.poStartDate ? (resourceReq.poStartDate | date:'dd-MM-yyyy') :
+                                        'NA'}}
+                                    </td>
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
+                                        [title]="resourceReq.poEndDate ? (resourceReq.poEndDate | date:'dd-MM-yyyy') : 'NA'">
+                                        {{resourceReq.poEndDate ? (resourceReq.poEndDate | date:'dd-MM-yyyy') : 'NA'}}
+                                    </td>
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
+                                        *ngIf="projectType === 'TNM'" [title]="resourceReq.role || 'NA'">
+                                        {{resourceReq.role || 'NA'}}
+                                    </td>
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
+                                        *ngIf="projectType === 'TNM'" [title]="resourceReq.department  || 'NA'">
+                                        {{resourceReq.department || 'NA'}}
+                                    </td>
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
+                                        *ngIf="projectType === 'TNM'" [title]="resourceReq.experience || 'NA'">
+                                        {{resourceReq.experience || 'NA'}}
+                                    </td>
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
+                                        *ngIf="projectType === 'TNM'"
+                                        [title]="resourceReq.requirementStartDate ? (resourceReq.requirementStartDate | date:'dd-MM-yyyy') : 'NA'">
+                                        {{resourceReq.requirementStartDate ? (resourceReq.requirementStartDate |
+                                        date:'dd-MM-yyyy') : 'NA'}}
+                                    </td>
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
+                                        *ngIf="projectType === 'TNM'"
+                                        [title]="resourceReq.requirementEndDate ? (resourceReq.requirementEndDate | date:'dd-MM-yyyy') : 'NA'">
+                                        {{resourceReq.requirementEndDate ? (resourceReq.requirementEndDate |
+                                        date:'dd-MM-yyyy') : 'NA'}}
+                                    </td>
+                                    <td class="min-width-requirement-table50 max-width-requirement-table100"
+                                        *ngIf="projectType === 'TNM'" [title]="resourceReq.count || 0 ">
+                                        {{resourceReq.count || 0 }}
+                                    </td>
+                                    <td class="min-width-requirement-table50 max-width-requirement-table100"
+                                        [title]="resourceReq.assignedApproved || 0">
+                                        {{resourceReq.assignedApproved || 0}}
+                                    </td>
+                                    <td class="min-width-requirement-table50 max-width-requirement-table100"
+                                        [title]="resourceReq.assignedPending || 0">
+                                        {{resourceReq.assignedPending || 0}}
+                                    </td>
+                                    <td class="min-width-requirement-table50 max-width-requirement-table100"
+                                        [title]="resourceReq.difference || 0">
+                                        {{resourceReq.difference || 0}}
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </mat-expansion-panel>
+    </mat-accordion>
+</ng-template>
+
+<ng-template #fc_milestone_template>
+    <div class="milestone-list-pane">
+        <div class="milestone-list-pane__inner">
+            <h3 class="milestone-list-pane__title">Project Milestone List</h3>
+            <div class="milestone-table-wrap">
+                <div class="table-container">
+                    <table class="table milestone-table" id="project-milestone">
+                        <thead class="milestone-table__head">
+                            <tr>
+                                <th scope="col" class="milestone-table__th">#</th>
+                                <th scope="col" class="milestone-table__th">Line Item</th>
+                                <th scope="col" class="milestone-table__th">Name</th>
+                                <th scope="col" class="milestone-table__th">Description</th>
+                                <th scope="col" class="milestone-table__th">Start Date</th>
+                                <th scope="col" class="milestone-table__th">End Date</th>
+                                <th scope="col" class="milestone-table__th">Status</th>
+                                <th scope="col" class="milestone-table__th">Remarks</th>
+                                <th *ngIf="!isPreviewStep && !isProjectPreview" scope="col"
+                                    class="milestone-table__th milestone-table__th--actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="milestone-table__body">
+                            <tr *ngIf="fcProjectMilestoneList.length === 0" class="milestone-table__empty">
+                                <td [attr.colspan]="(!isPreviewStep && !isProjectPreview) ? 9 : 8" class="text-center">No milestones to display.</td>
+                            </tr>
+                            <ng-container
+                                *ngFor="let milestone of fcProjectMilestoneList | paginate: { itemsPerPage: 10, currentPage: projectMilestonepage }; let j = index">
+                                <tr class="milestone-table__row">
+                                    <td class="milestone-table__cell">{{ (projectMilestonepage - 1) * 10 + j + 1 }}</td>
+                                    <td class="milestone-table__cell">{{ milestone.lineItemName || '-' }}</td>
+                                    <td class="milestone-table__cell">{{ milestone.name || '-' }}</td>
+                                    <td class="milestone-table__cell milestone-table__cell--desc">{{ milestone.description || '-' }}</td>
+                                    <td class="milestone-table__cell">
+                                        <ng-container *ngIf="milestone.startDate; else milestoneStartDash">
+                                            <span *ngIf="milestone.milestoneExtendedStartDateLogs?.length > 0"
+                                                class="milestone-table__link" (click)="toggleLogs(milestone, 'start')">
+                                                {{ milestone.startDate | date:'dd/MM/yyyy' }}
+                                                <i class="fas fa-chevron-down ml-1"></i>
+                                            </span>
+                                            <span *ngIf="!milestone.milestoneExtendedStartDateLogs?.length">
+                                                {{ milestone.startDate | date:'dd/MM/yyyy' }}
+                                            </span>
+                                        </ng-container>
+                                        <ng-template #milestoneStartDash>-</ng-template>
+                                    </td>
+                                    <td class="milestone-table__cell">
+                                        <ng-container *ngIf="milestone.endDate; else milestoneEndDash">
+                                            <span *ngIf="milestone.milestoneExtendedEndDateLogs?.length > 0"
+                                                class="milestone-table__link" (click)="toggleLogs(milestone, 'end')">
+                                                {{ milestone.endDate | date:'dd/MM/yyyy' }}
+                                                <i class="fas fa-chevron-down ml-1"></i>
+                                            </span>
+                                            <span *ngIf="!milestone.milestoneExtendedEndDateLogs?.length">
+                                                {{ milestone.endDate | date:'dd/MM/yyyy' }}
+                                            </span>
+                                        </ng-container>
+                                        <ng-template #milestoneEndDash>-</ng-template>
+                                    </td>
+                                    <td class="milestone-table__cell">
+                                        <ng-container *ngIf="milestone.status !== null && milestone.status !== undefined && milestone.status !== ''; else milestoneStatusDash">
+                                            <span *ngIf="milestone.milestoneStatusLogs?.length > 0"
+                                                class="milestone-table__link" (click)="toggleLogs(milestone, 'status')">
+                                                {{ milestone.status }}
+                                                <i class="fas fa-chevron-down ml-1"></i>
+                                            </span>
+                                            <span *ngIf="!milestone.milestoneStatusLogs?.length">{{ milestone.status }}</span>
+                                        </ng-container>
+                                        <ng-template #milestoneStatusDash>-</ng-template>
+                                    </td>
+                                    <td class="milestone-table__cell milestone-table__cell--desc">{{ milestone.remarks || '-' }}</td>
+                                    <td *ngIf="!isPreviewStep && !isProjectPreview"
+                                        class="milestone-table__cell milestone-table__cell--actions">
+                                        <button type="button" class="milestone-table__btn milestone-table__btn--edit"
+                                            [title]="milestone.status === 'Completed' ? 'Cannot edit completed milestone' : 'Edit'"
+                                            (click)="openUpdateProjectMilestoneModal(milestone)">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button *ngIf="milestone.status === 'Completed'" type="button"
+                                            class="milestone-table__btn milestone-table__btn--doc" title="View Document"
+                                            (click)="previewDocument(milestone.id, milestone.documentName)">
+                                            <i class="fas fa-file-alt"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="expandedMilestoneId === milestone.id" class="milestone-table__expand-row">
+                                    <td [attr.colspan]="(!isPreviewStep && !isProjectPreview) ? 9 : 8" class="milestone-table__expand-cell">
+                                        <div class="milestone-accordion">
+                                            <div class="milestone-accordion__header">
+                                                <span class="milestone-accordion__title">
+                                                    <i class="fas fa-history"></i>
+                                                    Milestone {{ logHeader }} Logs
+                                                    <span class="milestone-accordion__count">({{ selectedLogs.length }})</span>
+                                                </span>
+                                                <button type="button" class="milestone-accordion__close"
+                                                    aria-label="Close logs"
+                                                    (click)="toggleLogs(milestone, selectedLogType!)">
+                                                    <i class="fas fa-times"></i> Close
+                                                </button>
+                                            </div>
+                                            <div class="milestone-accordion__body">
+                                                <div *ngIf="selectedLogs.length === 0" class="milestone-logs-empty">
+                                                    No logs available.
+                                                </div>
+                                                <div *ngIf="selectedLogs.length > 0" class="milestone-logs">
+                                                    <div *ngFor="let log of selectedLogs; let k = index; trackBy: trackByLog"
+                                                        class="milestone-log-card">
+                                                        <div class="milestone-log-card__row">
+                                                            <div class="milestone-log-card__meta">
+                                                                <span class="milestone-log-card__num">{{ k + 1 }}</span>
+                                                                <span class="milestone-log-card__by">{{ log.updatedByName || '-' }}</span>
+                                                                <span class="milestone-log-card__on">{{ log.updatedOn ? (log.updatedOn | date:'dd/MM/yyyy HH:mm') : '-' }}</span>
+                                                            </div>
+                                                            <div class="milestone-log-card__values" *ngIf="logHeader !== 'Status'">
+                                                                <span class="milestone-log-card__old">{{ log.oldValue ? (log.oldValue | date:'dd/MM/yyyy') : '-' }}</span>
+                                                                <i class="fas fa-arrow-right milestone-log-card__arrow"></i>
+                                                                <span class="milestone-log-card__new">{{ log.newValue ? (log.newValue | date:'dd/MM/yyyy') : '-' }}</span>
+                                                            </div>
+                                                            <div class="milestone-log-card__values" *ngIf="logHeader === 'Status'">
+                                                                <span class="milestone-log-card__old">{{ log.oldValue || '-' }}</span>
+                                                                <i class="fas fa-arrow-right milestone-log-card__arrow"></i>
+                                                                <span class="milestone-log-card__new">{{ log.newValue || '-' }}</span>
+                                                            </div>
+                                                            <div class="milestone-log-card__reasons" *ngIf="logHeader !== 'Status'">
+                                                                <span class="milestone-log-card__reason" *ngIf="log.extentionReason">
+                                                                    {{ log.extentionReason }}
+                                                                </span>
+                                                                <span class="milestone-log-card__reason milestone-log-card__reason--custom"
+                                                                    *ngIf="log.othersReason || log.otherReason">
+                                                                    {{ log.othersReason || log.otherReason }}
+                                                                </span>
+                                                                <span class="milestone-log-card__na"
+                                                                    *ngIf="!log.extentionReason && !log.othersReason && !log.otherReason">-</span>
+                                                            </div>
+                                                            <div class="milestone-log-card__doc">
+                                                                <button *ngIf="log.documentName" type="button"
+                                                                    class="milestone-log-card__doc-btn"
+                                                                    (click)="previewDocument(milestone.id, log.documentName)">
+                                                                    <i class="fas fa-eye"></i> View
+                                                                </button>
+                                                                <span *ngIf="!log.documentName" class="milestone-log-card__doc-na"
+                                                                    title="Document not present">
+                                                                    <i class="fas fa-eye-slash"></i>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="milestone-pagination" [hidden]="fcProjectMilestoneList.length === 0">
+                    <pagination-controls class="my-pagination"
+                        (pageChange)="handleProjectMilestonePageChange($event)"></pagination-controls>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #update_project_milestone>
+  <div class="ep-milestone-modal">
+    <header class="ep-milestone-modal__header">
+      <div class="ep-milestone-modal__header-accent"></div>
+      <div class="ep-milestone-modal__header-inner">
+        <h2 class="ep-milestone-modal__title">Update Milestone</h2>
+        <p class="ep-milestone-modal__subtitle">Change status, extend dates, or attach documents</p>
+        <button type="button" class="ep-milestone-modal__close" aria-label="Close" (click)="closeUpdateProjectMilestoneModal()">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="ep-milestone-modal__body">
+      <aside class="ep-milestone-modal__aside" aria-label="Milestone context">
+        <div class="ep-milestone-aside__card">
+          <!-- <span class="ep-milestone-aside__badge">Context</span> -->
+          <ul class="ep-milestone-aside__list">
+            <li class="ep-milestone-aside__item">
+              <span class="ep-milestone-aside__key">Line Item</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.lineItemName || '—' }}</span>
+            </li>
+            <li class="ep-milestone-aside__item">
+              <span class="ep-milestone-aside__key">Milestone</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.name || '—' }}</span>
+            </li>
+            <li class="ep-milestone-aside__item">
+              <span class="ep-milestone-aside__key">Start Date</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.startDate ? (projectMilestone.startDate | date:'d MMM yyyy') : '—' }}</span>
+            </li>
+            <li class="ep-milestone-aside__item">
+              <span class="ep-milestone-aside__key">End Date</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.endDate ? (projectMilestone.endDate | date:'d MMM yyyy') : '—' }}</span>
+            </li>
+            <li class="ep-milestone-aside__item ep-milestone-aside__item--full">
+              <span class="ep-milestone-aside__key">Description</span>
+              <span class="ep-milestone-aside__val">{{ projectMilestone.description || '—' }}</span>
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      <main class="ep-milestone-modal__main">
+        <section class="ep-milestone-form-section">
+          <h3 class="ep-milestone-form-section__title">Date</h3>
+          <div class="ep-milestone-form-row">
+            <mat-form-field appearance="outline" class="ep-milestone-field ep-milestone-field--half ep-datepicker-57px">
+              <mat-label>Extend end date</mat-label>
+              <input matInput
+                [matDatepicker]="extendedDatePicker"
+                [(ngModel)]="projectMilestone.extendedDate"
+                [min]="minExtendedDateformilestone"
+                placeholder="Pick a date"
+                autocomplete="off"
+                (dateChange)="onExtendedDateChange($event)" />
+              <mat-datepicker-toggle matSuffix [for]="extendedDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #extendedDatePicker></mat-datepicker>
+              <mat-icon matSuffix [matTooltip]="milestoneExtendEndDateTooltip"
+                matTooltipClass="milestone-tooltip"
+                matTooltipPosition="below" class="ep-milestone-field__hint">info</mat-icon>
+            </mat-form-field>
+          </div>
+        </section>
+
+        <section class="ep-milestone-form-section ep-milestone-form-section--extension" *ngIf="isExtensionEnabled">
+          <h3 class="ep-milestone-form-section__title ep-milestone-form-section__title--warning">
+            <i class="fa fa-calendar-plus"></i> Extension details
+          </h3>
+          <div class="ep-milestone-form-row ep-extension-one-line">
+            <div class="ep-milestone-field ep-milestone-field--half ep-extension-reason-cell">
+              <div class="ep-extension-reason-level">
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Reason for extension <span class="ep-required">*</span></mat-label>
+                  <mat-select [(ngModel)]="projectMilestone.extensionReason">
+                    <mat-option *ngFor="let reason of milestoneExtendReason" [value]="reason">
+                      {{ reason.milestoneExtensionReason }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="ep-milestone-field ep-milestone-field--half ep-extension-doc-cell">
+              <div class="ep-extension-doc-level">
+                <label class="ep-label ep-label--inline">Extension document</label>
+                <div class="ep-upload-wrapper">
+                  <div class="ep-upload ep-upload--extension" [class.ep-upload--filled]="projectMilestone.extensionFile">
+                    <label class="ep-upload__zone">
+                      <input type="file" class="ep-upload__input"
+                        (change)="onExtensionFileSelected($event, projectMilestone)"
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        #extensionFileInput />
+                      <ng-container *ngIf="!projectMilestone.extensionFile">
+                        <i class="fa fa-cloud-upload-alt ep-upload__icon"></i>
+                        <span class="ep-upload__text">Drop file or <span class="ep-upload__browse">browse</span></span>
+                        <span class="ep-upload__types">JPG, PNG, PDF</span>
+                      </ng-container>
+                      <ng-container *ngIf="projectMilestone.extensionFile">
+                        <i class="fa fa-file-alt ep-upload__icon ep-upload__icon--file"></i>
+                        <span class="ep-upload__placeholder">File selected</span>
+                      </ng-container>
+                    </label>
+                    <div class="ep-upload__btns">
+                      <button type="button" class="ep-btn ep-btn--ghost"
+                        (click)="previewMilestoneFile(projectMilestone.extensionFile)" [disabled]="!projectMilestone.extensionFile">
+                        <i class="fa fa-eye"></i>
+                      </button>
+                      <button type="button" class="ep-btn ep-btn--ghost" (click)="clearExtensionFile(extensionFileInput)" [disabled]="!projectMilestone.extensionFile">
+                        <i class="fa fa-trash-alt"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <p *ngIf="projectMilestone.extensionFile" class="ep-upload-filename">{{ projectMilestone.extensionFile?.name }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="projectMilestone?.extensionReason?.milestoneExtensionReason === 'Other'" class="ep-milestone-custom-reason ep-extension-custom-row">
+            <label class="ep-label">Custom reason <span class="ep-required">*</span></label>
+            <textarea class="ep-textarea"
+              [(ngModel)]="projectMilestone.customReason"
+              name="customReason"
+              placeholder="Specify your reason"
+              rows="3"></textarea>
+          </div>
+        </section>
+
+        <br>
+
+        <div class="d-flex justify-content-end" *ngIf="isExtensionEnabled && projectMilestone.extendedDate">
+        <button type="button" class="ep-btn ep-btn--primary" [disabled]="projectMilestone.status === 'Completed'"
+        [title]="projectMilestone.status === 'Completed'  ? 'Date cannot be updated after milestone is marked completed': 'Click to update milestone extension details'"
+        (click)="updateMilestoneExtendedDateWithReason()">Update Extension</button>
+        </div>
+
+        <section class="mt-5">
+          <mat-form-field appearance="outline" class="ep-milestone-field ep-milestone-field--half">
+            <mat-label>Status</mat-label>
+            <mat-select [(ngModel)]="projectMilestone.status" (selectionChange)="onStatusChange($event.value)">
+              <mat-option [value]="projectMilestone.status">{{ projectMilestone.status }}</mat-option>
+              <ng-container *ngFor="let status of statusList">
+                <mat-option *ngIf="status != projectMilestone.status" [value]="status">{{ status }}</mat-option>
+              </ng-container>
+            </mat-select>
+            <mat-hint *ngIf="projectMilestone.status === 'Completed' || projectMilestone.status === 'On Hold'">Document required</mat-hint>
+          </mat-form-field>
+        </section>
+
+        <section class="ep-milestone-form-section mt-3">
+          <h3 class="ep-milestone-form-section__title">Remarks</h3>
+          <mat-form-field appearance="outline" class="ep-milestone-field ep-milestone-field--full">
+            <mat-label>Notes (optional)</mat-label>
+            <textarea matInput rows="3" [(ngModel)]="projectMilestone.remarks" placeholder="Add any notes for this update"></textarea>
+          </mat-form-field>
+        </section>
+
+        <section class="ep-milestone-form-section">
+          <h3 class="ep-milestone-form-section__title">
+            Status document
+            <span class="ep-required" *ngIf="projectMilestone.status === 'Completed' || projectMilestone.status === 'On Hold'">*</span>
+          </h3>
+          <div class="ep-upload-wrapper">
+            <div class="ep-upload" [class.ep-upload--filled]="selectedFile">
+              <label class="ep-upload__zone">
+                <input type="file" class="ep-upload__input" (change)="onFileSelected($event, projectMilestone)"
+                  accept=".jpg,.jpeg,.png,.pdf" #fileInput />
+                <ng-container *ngIf="!selectedFile">
+                  <i class="fa fa-image ep-upload__icon"></i>
+                  <span class="ep-upload__text">Drop image or <span class="ep-upload__browse">browse</span></span>
+                  <span class="ep-upload__types">JPG, JPEG, PNG, PDF</span>
+                </ng-container>
+                <ng-container *ngIf="selectedFile">
+                  <i class="fa fa-file-image ep-upload__icon ep-upload__icon--file"></i>
+                  <span class="ep-upload__placeholder">File selected</span>
+                </ng-container>
+              </label>
+              <div class="ep-upload__btns">
+                <button type="button" class="ep-btn ep-btn--ghost" (click)="previewMilestoneFile(selectedFile)" [disabled]="!selectedFile">
+                  <i class="fa fa-eye"></i>
+                </button>
+                <button type="button" class="ep-btn ep-btn--ghost" (click)="clearSelectedFile(fileInput)" [disabled]="!selectedFile">
+                  <i class="fa fa-trash-alt"></i>
+                </button>
+              </div>
+            </div>
+            <p *ngIf="selectedFile" class="ep-upload-filename">{{ selectedFile.name }}</p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="ep-milestone-modal__footer">
+      <span class="ep-milestone-modal__footer-note">RM, HOD and directors will be notified.</span>
+      <div class="ep-milestone-modal__footer-actions">
+        <button type="button" class="ep-btn ep-btn--secondary" (click)="closeUpdateProjectMilestoneModal()">Cancel</button>
+        <button type="button" class="ep-btn ep-btn--primary"
+        [title]="!isStatusChanged ? 'Change milestone status to update' : 'Click to update milestone status'"
+        (click)="openMileStoneStatusModal()">Update status</button>
+      </div>
+    </footer>
+  </div>
+</ng-template>
+
+<ng-template #project_milestone_document>
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Milestone Document Preview</h5>
+                    <button type="button" class="close" aria-label="Close"
+                        (click)="closeProjectMilestoneDocumentsModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body milestone-doc-preview-body">
+                    <div *ngIf="milestoneDocumentUrl" class="milestone-doc-preview-frame-wrap">
+                        <iframe [src]="milestoneDocumentUrl" class="milestone-doc-preview-frame" height="600px"></iframe>
+                    </div>
+                    <div *ngIf="!milestoneDocumentUrl" class="milestone-doc-preview-empty">
+                        <p>No document available for this milestone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #mark_complete_fc_project>
+    <div class="modal-header">
+        <h5 class="modal-title">Confirm Project Completion</h5>
+        <button type="button" class="close" aria-label="Close" (click)="closeMarkAsCompleteFCProjectModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p>All your milestones are completed. Do you want to mark the project as complete?</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="onMarkCompleteFCProjectDeclined()">No</button>
+        <button type="button" class="btn btn-primary" (click)="markAsCompleteFCProject()">Yes</button>
+    </div>
+</ng-template>
+
+<ng-template #loading>
+    <i class="fa fa-spinner fa-spin text-secondary"></i>
+</ng-template>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="closeAlertMessageModal()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #confirmMilestoneStatusModal let-modal>
+  <div class="modal-body text-center">
+    <p class="mb-3">{{ confirmMilestoneStatus }}</p>
+    <div class="d-flex justify-content-center gap-3">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">
+        No
+      </button>
+      <button type="button" class="btn btn-primary ml-3" (click)="updateMilestoneChanges(); modal.close()">
+        Yes
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #removePermanentlyAlert>
+    <div class="popover-info red-border">
+        <div class="popover-row">
+            <span>
+                Member will be <span class="highlight-text">permanently</span> removed from the team.
+            </span>
+        </div>
+    </div>
+</ng-template>

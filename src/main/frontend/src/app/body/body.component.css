@@ -1,11 +1,36 @@
-.body{
-    width: 100vw;
-    height: 100vh;
+:host {
+  display: block;
+}
 
+.body{
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
+    height: 100vh;
     z-index: 0;
     position: relative;
     top: 0;
     transition: all .5s ease;
+    box-sizing: border-box;
+}
+
+.body-container {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.body-container ::ng-deep .mat-drawer-content {
+  overflow-x: hidden;
+}
+
+.global-right-drawer {
+  width: 45vw !important;
+  max-width: 90vw;
+  box-shadow: -6px 0 30px rgba(0,0,0,0.25);
+}
+
+.global-right-drawer ::ng-deep .mat-drawer-inner-container {
+  overflow-x: hidden !important;
 }
 
 .body--active{
@@ -218,19 +243,40 @@
   
   
   
+.quick-menu-layer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  z-index: 1200;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  overflow: visible;
+}
+
+.quick-menu-layer > * {
+  pointer-events: auto;
+}
+
 .menu-button {
     position: fixed;
     bottom: 1.5rem;
     right: 1.5rem;
-    width: 50px;               
-    height: 50px;
-    border-radius: 50%;        
-    background-color: #231e8d;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: #231e8d !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s ease, background-color 0.3s ease; 
+    z-index: 1200;
+    transition: transform 0.3s ease, background-color 0.3s ease;
   }
+
+.menu-button mat-icon,
+.menu-button .material-icons {
+  color: #fff;
+}
   
 
   .menu-button:hover {
@@ -261,6 +307,7 @@
     position: fixed;
     right: 5rem;
     left: auto;
+    z-index: 1200;
     height: 25px;
     width: 116px;
     line-height: 25px;
@@ -310,6 +357,7 @@
 .action-button {
     position: fixed;
     right: 2rem;
+    z-index: 1200;
     transition-property: opacity;
     width: 40px;
     height: 40px;
@@ -325,7 +373,7 @@
     padding: 10px;
     border: 1px solid white !important;        
   }
-  
+
  
   .action-button:hover {
     position: fixed;

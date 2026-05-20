@@ -25,6 +25,7 @@ import { TeamService } from 'src/app/services/team.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
 
 
 @Component({
@@ -142,6 +143,7 @@ export class TeamConfigComponent implements OnInit {
     private departmentService: DepartmentService,
     private exportExcelService: ExportExcelService,
     private timesheetService: TimesheetService,
+    private timesheetNewService: TimesheetNewService,
     private locationStrategy: LocationStrategy,
     private employee360Service: Employee360Service,
     private utilityService: UtilityService
@@ -971,7 +973,7 @@ export class TeamConfigComponent implements OnInit {
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = this.currentUser.empId;
-    this.timesheetService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetNewService.getAllProjectsByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeSpecificProjectList = response.serviceResponse;
 

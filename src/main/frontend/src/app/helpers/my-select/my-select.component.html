@@ -1,40 +1,45 @@
-
-  <mat-select [panelClass]="getPanelClass()"
+<mat-select [panelClass]="selectPanelClass"
+  [attr.title]="selectHoverTitle()"
   disableOptionCentering
-    [multiple]="multiple"
-    [(ngModel)]="selectedValue"
-    (selectionChange)="onSelectionChange($event.value)"
-    (openedChange)="onDropdownOpened($event)"
-    [compareWith]="compareObjects"
-    [placeholder]="placeholder"
-  >
-    <mat-option>
-      <ngx-mat-select-search
+  [multiple]="multiple"
+  [(ngModel)]="selectedValue"
+  (selectionChange)="onSelectionChange($event.value)"
+  (openedChange)="onDropdownOpened($event)"
+  [compareWith]="compareObjects"
+  [placeholder]="multiple ? '' : placeholder"
+>
+  <mat-select-trigger *ngIf="multiple" class="my-select__multi-trigger">
+    <span class="my-select__multi-trigger-text">{{ multiTriggerLabel() }}</span>
+  </mat-select-trigger>
+  <mat-option>
+    <ngx-mat-select-search
       [(ngModel)]="searchText"
       (ngModelChange)="onSearchChange()"
       placeholderLabel="Search ..."
-      noEntriesFoundLabel="No data to display">
+      noEntriesFoundLabel="No data to display"
+      [disabled]="disable || readonly">
     </ngx-mat-select-search>
-    </mat-option>
+  </mat-option>
 
+  <mat-option *ngIf="showFilterAction" class="mat-option no-checkbox-option"
+    [title]="filterActionLabel" (click)="triggerFilter($event)">
+    <i class="fa fa-filter" aria-hidden="true"></i>
+    {{ filterActionLabel }}
+  </mat-option>
 
-    <mat-option class="mat-option" *ngIf="multiple && showSelectAll && filteredOptions.length > 0" (click)="toggleSelectAll($event)">
-      <strong>
-        {{ isAllSelected() ? 'Deselect All' : 'Select All' }}
-      </strong>
-    </mat-option>
-    <mat-option *ngFor="let opt of filteredOptions; trackBy: trackByOption" [value]="valueKey?opt[valueKey]:opt"
-    [title]="getDisplayText(opt)">
-      {{ getDisplayText(opt) }}
-    </mat-option>
-    <mat-option
-      *ngIf="autocomplete"
-      [value]="searchText"
-      class="add-custom-option"
-    >
-      Add {{ searchText }} 
-    </mat-option>
-        <mat-option *ngIf="filteredOptions.length === 0" disabled>
-        <b>No data found</b>
-      </mat-option>
-  </mat-select>
+  <mat-option class="mat-option" *ngIf="multiple && showSelectAll && filteredOptions.length > 0" (click)="toggleSelectAll($event)"
+    [disabled]="disable || readonly">
+    <strong>
+      {{ isAllSelected() ? 'Deselect All' : 'Select All' }}
+    </strong>
+  </mat-option>
+
+  <mat-option *ngFor="let opt of filteredOptions; trackBy: trackByOption" [value]="valueKey?opt[valueKey]:opt"
+    [disabled]="isDisabledOption(opt)" [title]="getDisplayText(opt)">
+    {{ getDisplayText(opt) }}
+  </mat-option>
+
+  <mat-option *ngIf="filteredOptions.length === 0" disabled>
+    <b>No data found</b>
+  </mat-option>
+</mat-select>

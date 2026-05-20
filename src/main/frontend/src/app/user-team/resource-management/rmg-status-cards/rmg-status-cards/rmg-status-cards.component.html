@@ -1,0 +1,824 @@
+<ng-container>
+    <!-- Project Status Summary -->
+    <div class="project-container m-1 mb-3 card border rounded">
+        <mat-accordion>
+            <mat-expansion-panel [expanded]="true" class="shadow-sm">
+                <mat-expansion-panel-header>
+                    <mat-panel-title>
+                        <h3 class="m-0">Project Status Summary</h3>
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
+                <div class="card-body p-0">
+                    <div class="row">
+                        <div class="col-md-6 mb-3 pr-0">
+                            <div class="card p-1 m-1 border rounded shadow-sm d-flex flex-row align-items-start">
+                                <div class="row">
+                                    <div class="col-md-11 team-project-status-scroll-container">
+                                        <!-- First Row -->
+                                        <div class="row justify-content-start m-1">
+                                            <ng-container *ngFor="let team1ProjectStatus of TEAM_PROJECT_STATUS_LIST">
+                                                <div class="col-md-1 project-status-card m-2 p-2"
+                                                    [attr.style]="team1ProjectStatus?.leftstyle"
+                                                    [ngClass]="{'project-status-selected-card': selectedProjectStatus === team1ProjectStatus?.key}"
+                                                    (click)="onProjectStatusSelect(team1ProjectStatus?.key, TEAM_PROJECT_STATUS_LIST)">
+                                                    <div class="row">
+                                                        <div class="col-md-8">
+                                                            <div class="value fw-bold">
+                                                                <ng-container
+                                                                    *ngIf="team1ProjectStatus?.count !== null && team1ProjectStatus?.count !== undefined; else loading">
+                                                                    {{ team1ProjectStatus?.count }}
+                                                                </ng-container>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <i class="fa fa-info-circle info-icon cursor-pointer"
+                                                                [title]="team1ProjectStatus.infoLabel">
+                                                            </i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-12">
+                                                            <div class="label text-muted fw-semibold">
+                                                                {{ team1ProjectStatus?.label }}
+                                                                <i [ngClass]="team1ProjectStatus?.i_class" class="ml-1"
+                                                                    [attr.style]="team1ProjectStatus?.style"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ng-container>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1 d-flex justify-content-center align-items-center">
+                                        <button title="Show Graph"
+                                            class="fa-solid fa-chart-simple fa-beat-fade mb-2 show-graph-btn"
+                                            (click)="openTeamProjectStatusSummaryModal()"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3 pl-0">
+                            <div class="card p-1 m-1 border rounded shadow-sm">
+                                <div #totalStatusScrollContainer class="team-project-status-scroll-container">
+                                    <div class="row justify-content-start m-1">
+                                        <ng-container *ngFor="let projectStatus of TOTAL_PROJECT_STATUS_LIST">
+                                            <div class="col-md-1 project-status-card m-2 p-2"
+                                                [attr.style]="projectStatus?.leftstyle"
+                                                [ngClass]="{'project-status-selected-card': selectedProjectStatus === projectStatus?.key}"
+                                                (click)="onProjectStatusSelect(projectStatus?.key, TOTAL_PROJECT_STATUS_LIST)">
+                                                <div class="row">
+                                                    <div class="col-md-8">
+                                                        <div class="value fw-bold">
+                                                            <ng-container
+                                                                *ngIf="projectStatus?.count !== null && projectStatus?.count !== undefined; else loading">
+                                                                <div [attr.style]="projectStatus?.style">
+                                                                    {{ projectStatus?.count }}
+                                                                </div>
+                                                            </ng-container>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <i class="fa fa-info-circle info-icon cursor-pointer"
+                                                            [title]="projectStatus.infoLabel">
+                                                        </i>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <div class="label text-muted fw-semibold">
+                                                            {{projectStatus?.label}}
+                                                            <i [ngClass]="projectStatus?.i_class"
+                                                                (click)="$event.stopPropagation();openTotalProjectsSummaryModal(projectStatus?.key)"
+                                                                [attr.style]="projectStatus?.style"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </ng-container>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card p-1 m-1">
+                        <div class="row justify-content-start align-items-center">
+                            <div class="col-md-5 pr-0">
+                                <div class="project-status-card m-2 p-2"
+                                    [attr.style]="TEAM3_PROJECT_STATUS_LIST[0]?.leftstyle"
+                                    [ngClass]="{'project-status-selected-card': selectedProjectStatus === TEAM3_PROJECT_STATUS_LIST[0]?.key}"
+                                    (click)="onProjectStatusSelect(TEAM3_PROJECT_STATUS_LIST[0]?.key,TEAM3_PROJECT_STATUS_LIST)">
+                                    <div class="row">
+                                        <div
+                                            class="col-md-2 d-flex justify-content-between align-items-center m-custom-05">
+                                            <div class="value">
+                                                <ng-container
+                                                    *ngIf="TEAM3_PROJECT_STATUS_LIST[0]?.count !== null && TEAM3_PROJECT_STATUS_LIST[0]?.count !== undefined; else loading">
+                                                    <div [attr.style]="TEAM3_PROJECT_STATUS_LIST[0]?.style">
+                                                        {{ TEAM3_PROJECT_STATUS_LIST[0]?.count }}
+                                                    </div>
+                                                </ng-container>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-10 range-buttons mb-1 flex-wrap"
+                                            (click)="$event.stopPropagation()">
+                                            <div *ngFor="let filter of EXPIRED_TNM_PROJECT_FILTERS_LIST; let i = index"
+                                                class="filter-container">
+                                                <button
+                                                    [style]="selectedExpiredTNMProjectFilter === filter.key ? TEAM3_PROJECT_STATUS_LIST[0]?.bgstyle : ''"
+                                                    class="pill-button"
+                                                    (click)="selectExpiredTNMProjectFilter(TEAM3_PROJECT_STATUS_LIST[0],filter)"
+                                                    [title]="filter.title">
+                                                    {{ filter.label }}
+                                                </button>
+                                                <div class="filter-count">
+                                                    <ng-container
+                                                        *ngIf="filter?.count !== null && filter?.count !== undefined; else loading">
+                                                        {{filter?.count}}
+                                                    </ng-container>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="label text-muted fw-semibold">
+                                        {{TEAM3_PROJECT_STATUS_LIST[0]?.label}}
+                                        <i [ngClass]="TEAM3_PROJECT_STATUS_LIST[0]?.i_class"
+                                            (click)="$event.stopPropagation();openExpiredTNMProjectsSummaryModal()"
+                                            [attr.style]="TEAM3_PROJECT_STATUS_LIST[0]?.style"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 pl-0 pr-0">
+                                <div class="project-status-card m-2 p-2"
+                                    [attr.style]="TEAM4_PROJECT_STATUS_LIST[0]?.leftstyle"
+                                    [ngClass]="{'project-status-selected-card': selectedProjectStatus === TEAM4_PROJECT_STATUS_LIST[0]?.key}"
+                                    (click)="onProjectStatusSelect(TEAM4_PROJECT_STATUS_LIST[0]?.key, TEAM4_PROJECT_STATUS_LIST)">
+                                    <div class="row">
+                                        <div
+                                            class="col-md-2 d-flex justify-content-between align-items-center m-custom-05">
+                                            <div class="value">
+                                                <ng-container
+                                                    *ngIf="TEAM4_PROJECT_STATUS_LIST[0]?.count !== null && TEAM4_PROJECT_STATUS_LIST[0]?.count !== undefined; else loading">
+                                                    <div [attr.style]="TEAM4_PROJECT_STATUS_LIST[0]?.style">
+                                                        {{ TEAM4_PROJECT_STATUS_LIST[0]?.count
+                                                        }}
+                                                    </div>
+                                                </ng-container>
+                                            </div>
+                                        </div>
+                                        <div class=" col-md-10 range-buttons mb-1 flex-wrap"
+                                            (click)="$event.stopPropagation()">
+                                            <div *ngFor="let filter of FC_PROJECT_FILTERS_LIST; let i = index"
+                                                class="filter-container">
+                                                <button
+                                                    [style]="selectedFCProjectFilter === filter.key ? TEAM4_PROJECT_STATUS_LIST[0]?.bgstyle :''"
+                                                    class="pill-button"
+                                                    (click)="selectFCProjectFilter(TEAM4_PROJECT_STATUS_LIST[0],filter)"
+                                                    [title]="filter.title">
+                                                    {{ filter.label }}
+                                                </button>
+                                                <div class="filter-count">
+                                                    <ng-container
+                                                        *ngIf="filter?.count !== null && filter?.count !== undefined; else loading">
+                                                        {{filter?.count}}
+                                                    </ng-container>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="label text-muted fw-semibold">
+                                        {{TEAM4_PROJECT_STATUS_LIST[0]?.label}}
+                                        <i [ngClass]="TEAM4_PROJECT_STATUS_LIST[0]?.i_class"
+                                            (click)="$event.stopPropagation();openFixedCostProjectsSummaryModal()"
+                                            [attr.style]="TEAM4_PROJECT_STATUS_LIST[0]?.style"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 pl-0 ">
+                                <div class="project-status-card m-2 p-2"
+                                    [attr.style]="TEAM5_PROJECT_STATUS_LIST[0]?.leftstyle"
+                                    [ngClass]="{'project-status-selected-card': selectedProjectStatus === TEAM5_PROJECT_STATUS_LIST[0]?.key}">
+                                    <div class="row">
+                                        <div
+                                            class="col-md-2 d-flex justify-content-between align-items-center m-custom-05">
+                                            <div class="value">
+                                                <ng-container
+                                                    *ngIf="TEAM5_PROJECT_STATUS_LIST[0]?.count !== null && TEAM5_PROJECT_STATUS_LIST[0]?.count !== undefined; else loading">
+                                                    <div [attr.style]="TEAM5_PROJECT_STATUS_LIST[0]?.style">
+                                                        {{ selectedProjectCount }}
+                                                    </div>
+                                                </ng-container>
+                                            </div>
+                                        </div>
+                                        <div class=" col-md-10 range-buttons mb-1 flex-wrap">
+                                            <div *ngFor="let filter of TIMESHEET_NON_COMPLIANCE_PROJECT_LIST; let i = index"
+                                                class="filter-container">
+                                                <button
+                                                    [style]="selectedUnfilledTimesheetProjectFilter === filter.key ? TEAM5_PROJECT_STATUS_LIST[0]?.bgstyle :''"
+                                                    class="pill-button"
+                                                    (click)="openProjectDetailsModal(TEAM5_PROJECT_STATUS_LIST[0]);selectUnfilledTimesheetProjectFilter(filter)"
+                                                    [title]="filter.label">
+                                                    {{ filter.label }}
+                                                </button>
+                                                <div class="filter-count">
+                                                    <ng-container
+                                                        *ngIf="filter?.count !== null && filter?.count !== undefined; else loading">
+                                                        {{filter?.count}}
+                                                    </ng-container>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="label text-muted fw-semibold">
+                                        {{TEAM5_PROJECT_STATUS_LIST[0]?.label}}
+                                        <i [ngClass]="TEAM5_PROJECT_STATUS_LIST[0]?.i_class"
+                                            (click)="openProjectDetailsModal(TEAM5_PROJECT_STATUS_LIST[0])"
+                                            [attr.style]="TEAM5_PROJECT_STATUS_LIST[0]?.style"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </mat-expansion-panel>
+        </mat-accordion>
+    </div>
+
+    <!-- Employee Status Summary -->
+    <div class="employee-container m-1 mb-3 card border rounded">
+        <mat-accordion>
+            <mat-expansion-panel [expanded]="false" class="shadow-md">
+                <mat-expansion-panel-header>
+                    <mat-panel-title>
+                        <h3 class="m-0">Employee Status Summary</h3>
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
+                <div class="card-body p-0">
+                    <div class="row">
+                        <div class="col-md-4 mb-3" *ngFor="let employeeGroup of EMPLOYEE_GROUPS_LIST">
+                            <div class="employee-count-card p-3 border rounded"
+                                (click)="openEmployeeDetailsModal(employeeGroup)">
+                                <div class="value mb-1">
+                                    <ng-container
+                                        *ngIf="employeeGroup?.count !== null && employeeGroup?.count !== undefined; else loading">
+                                        {{ employeeGroup?.count }}
+                                    </ng-container>
+                                </div>
+                                <div class="fs-6 label fw-semibold mt-1"
+                                    [ngClass]="employeeGroup.key !==  EMPLOYEE_GROUPS.TOTAL.key ? 'text-uppercase' : 'mb-3'"
+                                    [attr.style]="employeeGroup?.style">
+                                    {{ employeeGroup.label }} <i
+                                        [ngClass]="employeeGroup.key ===  EMPLOYEE_GROUPS.NOT_MAPPED_TO_ANY_PROJECT.key ? 'fa fa-unlink' : 'fa fa-link'"
+                                        [attr.style]="employeeGroup?.style" class="ms-1"></i>
+                                </div>
+                                <div *ngIf="employeeGroup.key !==  EMPLOYEE_GROUPS.TOTAL.key"
+                                    class="text-primary fw-medium small">View Employees</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </mat-expansion-panel>
+        </mat-accordion>
+    </div>
+</ng-container>
+
+<ng-container>
+    <!-- Project Details List -->
+    <div class="row row m-1 mb-3 card border rounded" id="projectTable">
+        <div class="row m-2 ml-4">
+            <h3 class="mb-0">{{ selectedProjectStatusLabel }}</h3>
+        </div>
+        <div class="card-body p-1 w-100">
+            <div class="row align-items-center mb-1 ml-2"
+                *ngIf="projectDetailsList.length > 0 || isProjectSearchEnabled">
+                <div class="col-md-2 d-flex justify-content-start pl-0">
+                    <button class="btn btn-sm btn-outline-primary" (click)="toggleProjectSearch()">
+                        <i
+                            [ngClass]="{ 'fa fa-search' : !isProjectSearchEnabled, 'fa-solid fa-xmark': isProjectSearchEnabled}"></i>
+                    </button> &nbsp;&nbsp;
+                    <button class="btn btn-sm btn-outline-primary" matButton [matMenuTriggerFor]="downloadMenu"
+                        *ngIf="projectDetailsList.length > 0">
+                        <em class="fa fa-download"></em></button>
+                    <mat-menu #downloadMenu="matMenu">
+                        <button mat-menu-item (click)="exportPageProjectDetailsToExcel(projectDetailsList)">
+                            <i class="fa fa-file-download"></i> Download Page Data
+                        </button>
+                        <button mat-menu-item (click)="exportAllFilteredPageProjectDetailsToExcel()">
+                            <i class="fa fa-cloud-download"></i> Download All Data
+                        </button>
+                    </mat-menu>
+                </div>
+                <div class="col-md-10 d-flex justify-content-end" *ngIf="projectDetailsList.length > 0">
+                    <mat-paginator [length]="totalProjectsCount" [pageIndex]="projectPage" [pageSize]="projectPageSize"
+                        [pageSizeOptions]="[5, 10, 20, 50]" (page)="onProjectPageChange($event)">
+                    </mat-paginator>
+                </div>
+            </div>
+            <div *ngIf="rmgLinkedProjectSearchInfo" class="alert alert-warning py-2 px-3 small mb-2 mx-2" role="status">
+                {{ rmgLinkedProjectSearchInfo }}
+            </div>
+            <div class="table-container">
+                <table class="custom-table" matSort (matSortChange)="sortProjectData($event)">
+                    <thead>
+                        <tr>
+                            <th>Actions</th>
+                            <th class="max-width200 min-width200" mat-sort-header="name|string">
+                                <span>
+                                    Project Name
+                                    <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2"
+                                        [shouldShine]="false" [iconBgColor]="'#202020'"
+                                        [content]="projectNameSearchInfoTooltip" [size]="16">
+                                    </app-info-tooltip>
+                                </span>
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="poNo|string">
+                                PO No.
+                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2" 
+                                    [shouldShine]="false" [iconBgColor]="'#202020'" 
+                                    [content]="poSearchTooltip" [size]="16">
+                                </app-info-tooltip>
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="projectType|string">
+                                Project Type
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="projectManagerName|string">
+                                Project Manager
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="clientName|string">
+                                Client
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="apmosysRM|string">
+                                ApMoSys RM
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="clientRM|string">
+                                Client RM
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="projectStartDate|string">
+                                Start Date
+                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2" 
+                                    [shouldShine]="false" [iconBgColor]="'#202020'" 
+                                    [content]="dateSearchTooltip" [size]="16">
+                                </app-info-tooltip>
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="projectEndDate|string">
+                                End Date
+                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2" 
+                                    [shouldShine]="false" [iconBgColor]="'#202020'" 
+                                    [content]="dateSearchTooltip" [size]="16">
+                                </app-info-tooltip>
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="state|string">
+                                State
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="createdOn|datetime">
+                                Created On
+                                <app-info-tooltip *ngIf="isProjectSearchEnabled" class="table-header-info-tooltip ml-2" 
+                                    [shouldShine]="false" [iconBgColor]="'#202020'" 
+                                    [content]="dateSearchTooltip" [size]="16">
+                                </app-info-tooltip>
+                            </th>
+                            <!-- <th class="max-width200 min-width200" mat-sort-header="status|string">
+                                PO Project Status
+                            </th> -->
+                            <th class="max-width200 min-width200" mat-sort-header="projectStatus|string">
+                                Ishine Project Status
+                            </th>
+                            <th class="max-width200 min-width200" mat-sort-header="draftStatus|string">
+                                Approval Status
+                            </th>
+                        </tr>
+                        <tr app-column-filter-bar class="custom-filter-row" *ngIf="isProjectSearchEnabled"
+                            [columnList]="projectColumns" [searchOnEnter]="true" (onSearch)="onProjectSearch($event);">
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <ng-container *ngIf="projectDetailsList.length == 0">
+                            <tr>
+                                <th colspan="15" class="info-label">No details to display...</th>
+                            </tr>
+                        </ng-container>
+                        <ng-container *ngFor="let project of projectDetailsList; let i = index">
+                            <tr>
+                                <td class="text-center">
+                                    <!-- Action Button -->
+                                    <button class="btn btn-sm" matButton [matMenuTriggerFor]="actionMenu">
+                                        <em class="fa-solid fa-ellipsis-vertical"></em></button>
+                                    <mat-menu #actionMenu="matMenu">
+                                        <button mat-menu-item
+                                            *ngIf="project.draftStatus != 'Not Started' || project.isTeamCreated == 'true'"
+                                            (click)="onAction('PREVIEW',project)">
+                                            <i class="fas fa-eye"></i> Preview
+                                        </button>
+                                        <button mat-menu-item (click)="onAction('EDIT_NEW', project);" *ngIf="!(project.active === 'false')">
+                                            <i class="fas fa-pen"></i> Edit
+                                        </button>
+                                        <button mat-menu-item
+                                            *ngIf="(project.draftStatus == 'Approved' || project.isTeamCreated == 'true') && project.projectStatus != 'Completed' && !(project.active === 'false')"
+                                            (click)="onAction('MARK_AS_COMPLETE', project)">
+                                            <i class="fas fa-check-double"></i> Mark as Complete
+                                        </button>
+                                        <button mat-menu-item
+                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !(project.active === 'false')"
+                                            (click)="onAction('APPROVE',project);">
+                                            <i class="fas fa-square-check"></i> Approve
+                                        </button>
+                                        <button mat-menu-item
+                                            *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !(project.active === 'false')"
+                                            (click)="onAction('REJECT', project);">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                        <button mat-menu-item *ngIf="project.poProjectType && !(project.active === 'false')"
+                                            (click)="onAction('CLIENT_SIDE_ID_STATUS',project);">
+                                            <i class="fas fa-id-badge"></i> ClientID Status
+                                        </button>
+                                        <button mat-menu-item *ngIf="project.active === 'false'"
+                                            (click)="onAction('RESTORE',project);">
+                                            <i class="fas fa-trash-arrow-up"></i> Restore
+                                        </button>
+                                    </mat-menu>
+                                </td>
+                                <td class="max-width200 min-width200 text-break"
+                                    [title]="project?.name || 'NA'"
+                                    *ngIf="(project?.draftStatus == 'Not Started' || project?.active === 'false')">
+
+                                    <span class="rmg-inactive-project-name-text">
+                                        {{ project?.name || 'NA' }}
+                                    </span>
+
+                                    <span class="d-inline-flex align-items-center flex-wrap gap-1 ms-1 align-middle">
+
+                                        <ng-container *ngIf="projectDetailsResolveMap?.[project?.projectId]?.redirected">
+                                            <span class="icon-btn warning"
+                                                [title]="'Linked to project: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || 'Primary project')">
+                                                <i class="bi bi-link-45deg"></i>
+                                            </span>
+                                            <button type="button" class="icon-btn ghost"
+                                                [title]="'Click to copy primary project name: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || '')"
+                                                (click)="$event.stopPropagation(); copyPrimaryProjectName(project?.projectId)">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </ng-container>
+
+                                        <span *ngIf="rmgLinkedProjectSearchInfo && isRmgLinkedSearchPrimaryRow(project)"
+                                            class="icon-btn warning"
+                                            [title]="getRmgLinkedSearchRowTooltip(project)">
+                                            <i class="bi bi-link-45deg"></i>
+                                        </span>
+
+                                        <span *ngIf="project?.active === 'false'" class="inactive-label text-nowrap">
+                                            Inactive
+                                        </span>
+                                    </span>
+                                </td>
+                                <td class="max-width200 min-width200" title="Click to view Project Details"
+                                    *ngIf="(project?.draftStatus != 'Not Started' && project?.active !== 'false')">
+                                    <span style="cursor: pointer; color: blue;" id="clickablefor360"
+                                        [navigateToProjectView]="project?.projectViewId">
+                                        <ng-container *ngIf="projectDetailsResolveMap?.[project?.projectId]?.redirected">
+                                            <span class="icon-btn warning"
+                                                [title]="'Linked to project: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || 'Primary project')">
+                                                <i class="bi bi-link-45deg"></i>
+                                            </span>
+                                            <button type="button" class="icon-btn ghost"
+                                                [title]="'Click to copy primary project name: ' + (projectDetailsResolveMap?.[project?.projectId]?.resolvedProjectName || '')"
+                                                (click)="$event.stopPropagation(); copyPrimaryProjectName(project?.projectId)">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </ng-container>
+                                        {{ project?.name || 'NA' }}
+                                        <span *ngIf="rmgLinkedProjectSearchInfo && isRmgLinkedSearchPrimaryRow(project)"
+                                            class="icon-btn warning"
+                                            [title]="getRmgLinkedSearchRowTooltip(project)">
+                                            <i class="bi bi-link-45deg"></i>
+                                        </span>
+                                    </span>
+                                </td>
+                                <td class="max-width200 min-width200 truncate" [title]="project?.poNo || 'NA'">
+                                    {{project?.poNo || 'NA' }}
+                                </td>
+                                <td class="max-width200 min-width200" [title]="project?.poProjectType || 'NA'">
+                                    {{project?.poProjectType || 'NA' }}
+                                </td>
+                                <td class="max-width200 min-width200 truncate text-capitalize">
+                                    <ng-container title="Click to view Employee 360"
+                                        *ngIf="userMapping.rmg_employee_360 && project?.projectManagerName && !isAccounts">
+                                        <span class="info-label cursor-pointer" id="clickablefor360"
+                                            *ngFor="let managerData of project?.projectManagers; let last = last"
+                                            [navigateToEmployee360]="managerData.projectManagerId">
+                                            {{managerData.projectManagerName ? managerData.projectManagerName : 'NA' }}
+                                            {{!last ? ',' : ''}}
+                                        </span>
+                                    </ng-container>
+                                    <ng-container *ngIf="!userMapping.rmg_employee_360 || !project?.projectManagerName">
+                                        <span class="info-label cursor-pointer"
+                                            *ngFor="let managerData of project?.projectManagers; let last = last">
+                                            {{managerData.projectManagerName ? managerData.projectManagerName : 'NA'}}
+                                            {{!last ? ',' : ''}}
+                                        </span>
+                                    </ng-container>
+                                    <ng-container
+                                        *ngIf="(!project?.projectManagers || project?.projectManagers.length === 0) && project?.projectManager">
+                                        <span class="info-label">
+                                            {{project?.projectManager}}
+                                        </span>
+                                    </ng-container>
+                                </td>
+                                <td class="max-width200 min-width200 truncate" [title]="project?.clientName ||'NA'">
+                                    {{ project?.clientName ||'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate" [title]="project?.apmosysRM ||'NA'">
+                                    {{ project?.apmosysRM ||'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate" [title]="project?.clientRM ||'NA'">
+                                    {{ project?.clientRM ||'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate"
+                                    [title]="project?.projectStartDate ? (project?.projectStartDate | date : 'dd/MM/yyyy') : 'NA'">
+                                    {{ project?.projectStartDate ? (project?.projectStartDate | date : 'dd/MM/yyyy') :
+                                    'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate"
+                                    [title]="project?.projectEndDate ? ( project?.projectEndDate | date: 'dd/MM/yyyy') : 'NA'">
+                                    {{ project?.projectEndDate ? ( project?.projectEndDate | date: 'dd/MM/yyyy') :
+                                    'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate" [title]="project?.state || 'NA'">
+                                    {{ project?.state || 'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate"
+                                    [title]=" project?.createdOn ? (project?.createdOn | date: 'dd/MM/yyyy') : 'NA'">
+                                    {{ project?.createdOn ? (project?.createdOn | date: 'dd/MM/yyyy') : 'NA' }}
+                                </td>
+                                <!-- <td class="max-width200 min-width200 truncate" [title]="project?.status || 'NA'">
+                                    {{ project?.status || 'NA'}}
+                                </td> -->
+                                <td class="max-width200 min-width200 truncate" [title]="project?.projectStatus || 'NA'">
+                                    {{ project?.projectStatus||'NA'}}
+                                </td>
+                                <td class="max-width200 min-width200 truncate"
+                                    [ngStyle]="{'color': (project?.draftStatus == 'Pending For Approval') ? 'orange' : (project?.draftStatus == 'Approved') ? 'green' : (project?.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
+                                    <em>{{ project?.draftStatus || 'NA' }}</em>
+                                </td>
+                            </tr>
+                        </ng-container>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</ng-container>
+
+<ng-template #timesheet_non_compliance_project_details>
+    <div class="modal-header">
+        <h5>Project Information</h5>
+        <button class="btn btn-sm btn-outline-primary" (click)="closeProjectDetailsModal()"><i
+                class="fa fa-xmark m-0"></i></button>
+    </div>
+    <div class="modal-body mb-3">
+        <app-my-table [apiUrl]="getUnfilledTimesheetProjectDetailsListUrl" [columns]="projectDetailsColumnConfig"
+            [defaultSortColumn]="projectDetailsDefaultSortColumn" [isRowExpandable]="true"
+            [extraParams]="projectDetailsExtraParams" [isExportAllowed]="true" [isSearchAllowed]="true"
+            [subTableColumnConfig]="projectDetailsSubTableColumnConfig" [subTableData]="[]" [mergeRowData]="true"
+            [defaultCellMergeColumn]="'projectName'" [defaultSubTableCellMergeColumn]="">
+        </app-my-table>
+        <!-- <div class="modal-actions">
+            <button class="btn btn-outline-primary btn-sm ml-2" (click)="closeProjectDetailsModal()">Cancel</button>
+        </div> -->
+    </div>
+</ng-template>
+
+<ng-template #employee_details>
+    <div class="modal-header">
+        <h5>Employee Information</h5>
+        <button class="btn btn-sm btn-outline-primary" (click)="closeEmployeeDetailsModal()"><i
+                class="fa fa-xmark m-0"></i></button>
+    </div>
+    <div class="modal-body mb-3">
+        <app-my-table [apiUrl]="getEmployeeListByEmployeeGroupUrl" [columns]="employeeDetailsColumnConfig"
+            [defaultSortColumn]="employeeDetailsDefaultSortColumn" [isRowExpandable]="true"
+            [extraParams]="employeeDetailsExtraParams" [isExportAllowed]="true" [isSearchAllowed]="true"
+            [subTableColumnConfig]="employeeDetailsSubTableColumnConfig" [subTableData]="[]" [mergeRowData]="true"
+            [defaultCellMergeColumn]="'employmentIdAcToET'" [defaultSubTableCellMergeColumn]="">
+        </app-my-table>
+        <!-- <div class="modal-actions">
+            <button class="btn btn-outline-primary btn-sm ml-2" (click)="closeEmployeeDetailsModal()">Cancel</button>
+        </div> -->
+    </div>
+</ng-template>
+
+<ng-template #employee_project_timesheet_summary>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Project Timesheet Summary</h4>
+        <button type="button" class="close pull-right" aria-label="Close"
+            (click)="closeEmployeeProjectTimesheetSummaryModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div id="projectTimesheetSummaryChart" style="width:100%; height: 500px;"></div>
+    </div>
+</ng-template>
+
+<ng-template #expired_tnm_projects_summary>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">TNM Projects</h4>
+        <button type="button" class="close pull-right" aria-label="Close"
+            (click)="closeExpiredTNMProjectsSummaryModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div id="expiredTNMProjectChart" style="width:100%; height: 500px;"></div>
+    </div>
+</ng-template>
+
+<ng-template #fixed_cost_projects_summary>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Fixed Cost Projects</h4>
+        <button type="button" class="close pull-right" aria-label="Close"
+            (click)="closeFixedCostProjectsSummaryModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div id="fixedCostProjectChart" style="width:100%; height: 500px;"></div>
+    </div>
+</ng-template>
+
+<ng-template #team_project_status_summary>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Project Status</h4>
+        <button type="button" class="close pull-right" aria-label="Close"
+            (click)="closeTeamProjectStatusSummaryModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div id="ProjectChart" style="width:100%; height: 500px;"></div>
+    </div>
+</ng-template>
+
+<ng-template #total_projects_summary>
+    <div class="modal-header">
+        <h5 class="modal-title pull-left">
+            Department, Client, and Project Structure
+        </h5>
+        <button class="btn btn-sm btn-outline-primary-custom pull-right" (click)="closeTotalProjectsSummaryModal()">
+            <i class="fa fa-xmark m-0"></i>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="row mb-3 align-items-center">
+            <div class="col-md-6">
+                <mat-label class="d-block mb-1 text-muted small fw-semibold">Select Departments</mat-label>
+                <app-my-select class="form-control"
+                    placeholder="Choose departments" [(ngModel)]="selectedUniqueDepts"
+                    (ngModelChange)="onUniqueDeptSelect($event)" [options]="uniqueDeptLists"
+                    displayKey="name" valueKey="name" [multiple]="true">
+                </app-my-select>
+                <mat-hint class="d-block mt-1 text-muted small">Filter projects by selecting one or more core departments</mat-hint>
+            </div>
+            <div class="col-md-6">
+                <mat-label class="d-block mb-1 text-muted small fw-semibold">Select Employees</mat-label>
+                <app-my-select class="form-control"
+                    placeholder="Choose employees" [(ngModel)]="selectedUniqueEmployees"
+                    (ngModelChange)="onUniqueEmployeeSelect($event)" [options]="projectEmployeeList"
+                    displayKey="name" valueKey="name" [multiple]="true">
+                </app-my-select>
+                <mat-hint class="d-block mt-1 text-muted small">Filter projects by selecting one or more employees</mat-hint>
+            </div>
+        </div>
+        <div class="filter-section">
+            <div class="filter-header d-flex align-items-center justify-content-between">
+                <h5 style="margin: 0">Filter by Departments</h5>
+                <button class="btn btn-sm btn-outline-primary-custom" (click)="toggleProjectSummaryChartDepartments()">
+                    {{ toggleProjectSummaryDepartmentsVisible ? "Hide" : "Show" }}
+                </button>
+            </div>
+
+            <div class="filter-options" *ngIf="toggleProjectSummaryDepartmentsVisible"
+                style="max-height: 200px;overflow-y: auto;border: 1px solid #ddd;padding: 10px;margin-bottom: 20px;">
+                <div class="row">
+                    <div class="col-md-3 col-sm-4 col-6" *ngFor="let dept of displayedDepartmentList; let i = index">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" [id]="'dept-' + i" [value]="dept.name"
+                                [checked]="selectedDepartments.includes(dept.name)"
+                                (change)="updateSelectedDepartments(dept.name, $event)" />
+                            <label class="form-check-label" [for]="'dept-' + i">
+                                {{ dept.deptab }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-wrapper" style="height: 50vh !important; overflow: auto" #tableSection>
+            <div *ngIf="tableData && tableData.length > 0; else noData">
+                <div class="table-responsive">
+                    <table class="table table-bordered project-summary-table">
+                        <tbody>
+                            <tr *ngFor="let row of tableData; let rowIndex = index"
+                                [class.department-header-row]="isDepartmentHeader(rowIndex)">
+                                <td *ngFor="let cell of row; let colIndex = index"
+                                    [class.department-cell]="isDepartmentCell(rowIndex, colIndex)"
+                                    [class.client-cell]="isClientName(rowIndex, colIndex)"
+                                    [class.project-cell]="isProjectName(rowIndex, colIndex)"
+                                    [class.empty-cell]="cell === ''">
+
+                                    <!-- Department header with expand/collapse button -->
+                                    <ng-container *ngIf="isDepartmentCell(rowIndex, colIndex)">
+                                        <div class="department-header-container d-flex align-items-center justify-content-center"
+                                            style="gap: 8px;">
+                                            <span>{{ getCellDisplayText(cell) }}</span>
+                                            <button class="btn btn-xs btn-outline-light expand-all-btn"
+                                                style="padding: 2px 6px; font-size: 11px; line-height: 1; border: 1px solid rgba(255,255,255,0.5);"
+                                                [title]="isColumnExpanded(getCellDisplayText(cell)) ? 'Collapse All Projects' : 'Expand All Projects'"
+                                                (click)="toggleExpandAllProjects(getCellDisplayText(cell))">
+                                                {{ isColumnExpanded(getCellDisplayText(cell)) ? '-' : '+' }}
+                                            </button>
+                                        </div>
+                                    </ng-container>
+
+                                    <!-- Client names (left-aligned) with expand buttons -->
+                                    <ng-container *ngIf="isClientName(rowIndex, colIndex)">
+                                        <div class="client-name-container d-flex align-items-center justify-content-start"
+                                            style="gap: 5px;">
+                                            <span [title]="getCellFullText(cell)" style="text-align: left;">
+                                                {{ getDisplayClientName(getCellFullText(cell),
+                                                tableData[0][colIndex]) }}
+                                            </span>
+
+                                        </div>
+                                    </ng-container>
+
+                                    <!-- Project names (right-aligned) with individual expand buttons -->
+                                    <ng-container *ngIf="isProjectName(rowIndex, colIndex)">
+                                        <div class="project-name-container d-flex align-items-center justify-content-end"
+                                            style="gap: 5px;">
+                                            <span [title]="getCellFullText(cell)" 
+                                                  (click)="openProjectEmployeesModal(getCellFullText(cell))"
+                                                  class="text-primary"
+                                                  style="text-align: right; cursor: pointer; text-decoration: underline;">
+                                                {{ getDisplayProjectName(getCellFullText(cell),
+                                                tableData[0][colIndex]) }}
+                                            </span>
+                                        </div>
+                                    </ng-container>
+
+                                    <!-- Regular cells (department names, empty cells) -->
+                                    <ng-container
+                                        *ngIf="!isDepartmentCell(rowIndex, colIndex) && !isClientName(rowIndex, colIndex) && !isProjectName(rowIndex, colIndex)">
+                                        {{ getCellDisplayText(cell) }}
+                                    </ng-container>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <ng-template #noData>
+                <p class="text-center p-4">
+                    No data to display. Please select one or more departments to view
+                    the table.
+                </p>
+            </ng-template>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #project_employees_modal>
+    <div class="modal-header">
+        <h5 class="modal-title pull-left">
+            Employees in {{ selectedProjectForEmployees }}
+        </h5>
+        <button class="btn btn-sm btn-outline-primary-custom pull-right" (click)="closeProjectEmployeesModal()">
+            <i class="fa fa-xmark m-0"></i>
+        </button>
+    </div>
+    <div class="modal-body">
+        <ul class="list-group" style="max-height: 400px; overflow-y: auto;">
+            <li class="list-group-item list-group-item-action text-primary" 
+                style="cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s ease;"
+                onmouseover="this.style.borderLeftColor='#007bff'; this.style.backgroundColor='#f8f9fa';"
+                onmouseout="this.style.borderLeftColor='transparent'; this.style.backgroundColor='transparent';"
+                *ngFor="let emp of employeesForSelectedProject"
+                (click)="navigateToEmployee360(emp.empId)">
+                <i class="fa fa-user me-2 text-secondary"></i> {{ emp.name }}
+            </li>
+            <li class="list-group-item text-muted text-center" *ngIf="!employeesForSelectedProject || employeesForSelectedProject.length === 0">
+                No employees found for this project.
+            </li>
+        </ul>
+    </div>
+</ng-template>
+
+<ng-template #loading>
+    <i class="fa fa-spinner fa-spin text-secondary"></i>
+</ng-template>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="closeAlertMessageModal()">OK</button>&nbsp;
+    </div>
+</ng-template>

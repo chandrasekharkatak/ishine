@@ -11,7 +11,7 @@ import lombok.ToString;
 @ToString
 public class PoEmployeeTimesheetSyncDTO {
 
-	private Long employeementId;
+	private Long employeeMentId;
     private String employeeName;
     private String currentStatus;
     private Timestamp startDate;

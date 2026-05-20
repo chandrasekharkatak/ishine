@@ -37,6 +37,7 @@ public class ApiLogUtility {
 
 			return apilogrepository.save(log);
 		} catch (Exception e) {
+			e.printStackTrace();
 			return null;
 		}
 	}

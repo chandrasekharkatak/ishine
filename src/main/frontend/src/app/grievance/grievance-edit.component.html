@@ -1,0 +1,298 @@
+<div class="grievance-page-container">
+  <div class="container-fluid px-3 pb-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <div class="grievance-edit-header d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+          <h1 class="table-header-title grievance-ticket-heading mb-0 d-flex align-items-center flex-wrap">
+            <span class="grievance-ticket-heading-label">Ticket</span>
+            <span class="grievance-ticket-id-badge">{{ ticketForm.ticketNumber }}</span>
+            <button
+              *ngIf="!loading && ticketForm.ticketId"
+              type="button"
+              class="btn btn-link grievance-edit-history-btn p-0 ml-3 align-middle"
+              (click)="openAuditHistoryModal()"
+              title="Ticket activity and audit timeline"
+              aria-label="Open ticket activity and audit timeline"
+            >
+              <i class="fa fa-history fa-lg" aria-hidden="true"></i>
+            </button>
+          </h1>
+          <div class="d-flex flex-wrap align-items-center grievance-edit-top-actions flex-grow-1">
+            <div class="d-flex align-items-center flex-wrap grievance-edit-proof-group mr-2">
+              <ng-container *ngIf="proofDocuments?.length">
+                <span class="align-self-center small text-secondary d-none d-md-inline">Proof files:</span>
+                <button
+                  type="button"
+                  class="btn btn-outline-primary btn-sm grievance-edit-proof-file-btn text-truncate"
+                  style="max-width: 11rem"
+                  *ngFor="let d of proofDocuments"
+                  (click)="downloadProofDocumentEntry(d)"
+                  [title]="d.fileName"
+                >
+                  <i class="fa fa-download grievance-edit-proof-file-icon" aria-hidden="true"></i>
+                  <span class="grievance-edit-proof-filename">{{ d.fileName }}</span>
+                </button>
+              </ng-container>
+            </div>
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-sm grievance-edit-top-action-btn ml-auto flex-shrink-0"
+              (click)="goBack()"
+            >
+              <i class="fa fa-arrow-left mr-1" aria-hidden="true"></i>Back to list
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="alertMessage" class="alert mb-3" [ngClass]="'alert-' + alertType" role="alert">
+          {{ alertMessage }}
+        </div>
+
+        <div *ngIf="loading" class="text-muted py-4 text-center">
+          <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"></i>Loading ticket details...
+        </div>
+
+        <div *ngIf="!loading" class="row g-4 grievance-edit-ticket-meta">
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold text-secondary small">Ticket Number</label>
+            <input class="form-control" [value]="ticketForm.ticketNumber" disabled />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold text-secondary small">Raised By</label>
+            <input class="form-control" [value]="ticketForm.createdByName" disabled />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold text-secondary small">Created On</label>
+            <input class="form-control" [value]="(ticketForm.createdOn | date : 'dd-MMM-yyyy hh:mm a') || ''" disabled />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold text-secondary small">Employee ID</label>
+            <input class="form-control" [value]="ticketForm.createdByEmployeeId || ''" disabled />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold text-secondary small">Department</label>
+            <input class="form-control" [value]="ticketForm.createdByDepartment || ''" disabled />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold text-secondary small">Phone number</label>
+            <input class="form-control" [value]="ticketForm.createdByPhone || '—'" disabled />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold text-secondary small">Current project</label>
+            <textarea class="form-control grievance-edit-meta-multiline" readonly rows="2">{{ ticketForm.createdByProjectName || '—' }}</textarea>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold text-secondary small">Client name</label>
+            <input class="form-control" [value]="ticketForm.createdByClientName || '—'" disabled />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold text-secondary small">Reporting manager</label>
+            <input class="form-control" [value]="ticketForm.createdByReportingManager || '—'" disabled />
+          </div>
+
+          <div class="col-12">
+            <div class="grievance-edit-section-label">Grievance details</div>
+          </div>
+
+          <div class="col-12 grievance-edit-field-group">
+            <label class="form-label fw-semibold text-secondary small" for="editSubject">Subject</label>
+            <input id="editSubject" class="form-control" [(ngModel)]="ticketForm.subject" maxlength="300" readonly />
+          </div>
+
+          <div class="col-12">
+            <div class="row g-3 g-lg-4 grievance-edit-field-row">
+              <div class="col-12 col-lg-3">
+                <label class="form-label fw-semibold text-secondary small" for="editCategory">Category</label>
+                <select id="editCategory" class="form-control grievance-select" [(ngModel)]="ticketForm.category" disabled>
+                  <option value="">Select module</option>
+                  <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+                </select>
+              </div>
+              <div class="col-12 col-lg-3">
+                <label class="form-label fw-semibold text-secondary small" for="editSubCategory">Sub-category</label>
+                <input id="editSubCategory" class="form-control" [(ngModel)]="ticketForm.subCategory" name="editSubCategory" readonly />
+              </div>
+              <div class="col-12 col-lg-3">
+                <label class="form-label fw-semibold text-secondary small" for="editTicketFeature">Feature</label>
+                <input id="editTicketFeature" class="form-control" [(ngModel)]="ticketForm.ticketFeature" name="editTicketFeature" readonly />
+              </div>
+              <div class="col-12 col-lg-3">
+                <label class="form-label fw-semibold text-secondary small" for="editIssueScenario">Issue scenario</label>
+                <input
+                  id="editIssueScenario"
+                  class="form-control"
+                  [value]="ticketForm.issueScenario || '—'"
+                  name="editIssueScenario"
+                  readonly
+                />
+              </div>
+              <div class="col-12 col-lg-3">
+                <label class="form-label fw-semibold text-secondary small" for="editPriority">Priority</label>
+                <select id="editPriority" class="form-control grievance-select" [(ngModel)]="ticketForm.priority" disabled>
+                  <option value="LOW">LOW</option>
+                  <option value="MEDIUM">MEDIUM</option>
+                  <option value="HIGH">HIGH</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div
+              class="grievance-edit-status-assign-row"
+              [class.grievance-edit-status-assign-row--split]="canViewAllTickets()"
+            >
+              <div class="grievance-edit-status-assign-cell">
+                <label class="form-label fw-semibold text-secondary small" for="editStatus">Status</label>
+                <select id="editStatus" class="form-control grievance-select grievance-edit-status-select" [(ngModel)]="ticketForm.status">
+                  <option *ngFor="let status of statusOptions" [value]="status">{{ getStatusLabel(status) }}</option>
+                </select>
+              </div>
+              <div class="grievance-edit-status-assign-cell" *ngIf="canViewAllTickets()">
+                <label class="form-label fw-semibold text-secondary small d-block" for="editAssignee">Assign To (Development / HR)</label>
+                <mat-form-field appearance="outline" class="grievance-assignee-field grievance-edit-assignee-mat-field" subscriptSizing="dynamic">
+                  <mat-select
+                    id="editAssignee"
+                    [(ngModel)]="ticketForm.assignedToEmpId"
+                    name="assigneeEmpId"
+                    panelClass="grievance-assignee-panel"
+                    placeholder="Search and select assignee"
+                    (openedChange)="onAssigneeSelectOpened($event)"
+                  >
+                    <mat-option>
+                      <ngx-mat-select-search
+                        [formControl]="assigneeFilterCtrl"
+                        placeholderLabel="Search by name..."
+                        noEntriesFoundLabel="No matching person"
+                      ></ngx-mat-select-search>
+                    </mat-option>
+                    <mat-option [value]="null">— Select —</mat-option>
+                    <mat-option *ngFor="let user of filteredDevelopmentUsers" [value]="user.empId">
+                      {{ user.name }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 grievance-edit-field-group">
+            <label class="form-label fw-semibold text-secondary small" for="editDescription">Description</label>
+            <textarea id="editDescription" class="form-control" rows="5" [(ngModel)]="ticketForm.description" maxlength="4000" readonly></textarea>
+          </div>
+
+          <div class="col-12 mt-2">
+            <h5 class="mb-2">Resolution Management</h5>
+            <p class="small mb-2 grievance-edit-resolution-required-note" *ngIf="resolutionRequired()">
+              <span class="grievance-edit-resolution-note-label">Note:</span>
+              Fields marked with <span class="text-danger">*</span> are required while status is <strong>Resolved</strong>.
+            </p>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-secondary small">
+              Resolution Category<span class="text-danger" *ngIf="resolutionRequired()"> *</span>
+            </label>
+            <select class="form-control grievance-select" [(ngModel)]="ticketForm.resolutionCategory">
+              <option value="">Select resolution category</option>
+              <option *ngFor="let option of resolutionCategoryOptions" [value]="option">{{ option }}</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-secondary small">Resolution Date</label>
+            <input class="form-control" [value]="(ticketForm.resolutionDate | date : 'dd-MMM-yyyy hh:mm a') || ''" disabled />
+            <small class="form-text text-muted" *ngIf="resolutionRequired() && !ticketForm.resolutionDate">Set automatically when you save with status Resolved.</small>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-secondary small">Resolved By</label>
+            <input class="form-control" [value]="ticketForm.resolvedBy || ''" disabled />
+            <small class="form-text text-muted" *ngIf="resolutionRequired() && !ticketForm.resolvedBy">Set automatically when you save with status Resolved.</small>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold text-secondary small">
+              Action Taken<span class="text-danger" *ngIf="resolutionRequired()"> *</span>
+            </label>
+            <textarea class="form-control" rows="3" [(ngModel)]="ticketForm.actionTaken" maxlength="4000"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold text-secondary small">
+              Resolution Remarks<span class="text-danger" *ngIf="resolutionRequired()"> *</span>
+            </label>
+            <textarea class="form-control" rows="4" [(ngModel)]="ticketForm.resolutionRemarks" maxlength="4000"></textarea>
+          </div>
+          <div class="col-md-8 grievance-edit-field-group">
+            <label class="form-label fw-semibold text-secondary small">Supporting Document</label>
+            <input
+              type="file"
+              class="form-control grievance-edit-file-input"
+              accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+              (change)="onResolutionDocumentSelected($event)"
+            />
+            <small class="text-danger d-block mt-1" *ngIf="resolutionDocumentError">{{ resolutionDocumentError }}</small>
+            <small class="text-primary d-block mt-1" *ngIf="resolutionDocument">Selected: {{ resolutionDocument.name }}</small>
+            <small class="text-muted d-block mt-1" *ngIf="ticketForm.resolutionDocName">Current: {{ ticketForm.resolutionDocName }}</small>
+          </div>
+
+          <div class="col-12 d-flex justify-content-start align-items-center flex-wrap gap-2 grievance-edit-save-row">
+            <button type="button" class="btn btn-primary" [disabled]="!canSaveTicket()" (click)="saveTicket()">
+              <i class="fa fa-save me-1" aria-hidden="true"></i>{{ saving ? 'Saving...' : 'Save Changes' }}
+            </button>
+            <button type="button" class="btn btn-outline-primary" *ngIf="ticketForm.resolutionDocName" (click)="downloadResolutionDocument()">
+              <i class="fa fa-download me-1" aria-hidden="true"></i>Resolution Doc
+            </button>
+          </div>
+
+          <div class="col-12 mt-3" *ngIf="showFeedbackSection()">
+            <h5 class="mb-2">Feedback Mechanism</h5>
+            <div *ngIf="hasFeedbackSubmitted()" class="alert alert-light border mb-0">
+              <p class="mb-2 small text-muted">
+                Feedback submitted<span *ngIf="ticketForm.feedbackOn"> on {{ ticketForm.feedbackOn | date : 'dd-MMM-yyyy hh:mm a' }}</span>.
+              </p>
+              <div class="d-flex align-items-center gap-1 mb-2">
+                <span *ngFor="let star of [1,2,3,4,5]" class="star-btn">
+                  <i
+                    [ngClass]="(ticketForm.feedbackRating || 0) >= star ? 'fas fa-star text-warning' : 'far fa-star text-secondary'"
+                    aria-hidden="true"
+                  ></i>
+                </span>
+              </div>
+              <p class="mb-0 text-secondary" *ngIf="ticketForm.feedbackComments">{{ ticketForm.feedbackComments }}</p>
+            </div>
+            <ng-container *ngIf="!hasFeedbackSubmitted()">
+              <div class="d-flex align-items-center gap-1 mb-2">
+                <button type="button" class="btn btn-link p-0 star-btn" *ngFor="let star of [1,2,3,4,5]" (click)="setRating(star)">
+                  <i
+                    class="fa-lg"
+                    [ngClass]="(ticketForm.feedbackRating || 0) >= star ? 'fas fa-star text-warning' : 'far fa-star text-secondary'"
+                    aria-hidden="true"
+                  ></i>
+                </button>
+              </div>
+              <textarea class="form-control mb-2" rows="3" maxlength="2000" [(ngModel)]="ticketForm.feedbackComments" placeholder="Share your feedback comments"></textarea>
+              <button type="button" class="btn btn-outline-primary" [disabled]="feedbackSubmitting" (click)="submitFeedback()">
+                {{ feedbackSubmitting ? 'Submitting...' : 'Submit feedback' }}
+              </button>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #auditHistoryModal let-modal>
+  <div class="grievance-ticket-modal-root grievance-audit-history-modal">
+    <div class="modal-header grievance-ticket-modal-header align-items-start">
+      <div class="pe-3 flex-grow-1 min-w-0">
+        <div class="grievance-modal-kicker">Grievance</div>
+        <h5 class="modal-title grievance-modal-title mb-0">Ticket activity &amp; audit timeline</h5>
+        <span class="grievance-audit-modal-chip" *ngIf="ticketForm.ticketNumber">{{ ticketForm.ticketNumber }}</span>
+      </div>
+      <button type="button" class="grievance-modal-close-btn" (click)="modal.dismiss()" aria-label="Close">
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="modal-body grievance-ticket-modal-body">
+      <app-grievance-audit-timeline [ticketId]="ticketForm.ticketId" [modalMode]="true"></app-grievance-audit-timeline>
+    </div>
+  </div>
+</ng-template>

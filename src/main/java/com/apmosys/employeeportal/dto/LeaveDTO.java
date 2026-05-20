@@ -177,5 +177,7 @@ public class LeaveDTO {
 	private String employmentIdAcToET;
 	private String employeeType;
 	private Boolean isHierarchyView;
-	
+	private List<Long> rejectionIds;
+	private Long rejectedBy;
+	private Long rejectionId;
 }

@@ -1,0 +1,139 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="row mb-2 mt-2"
+            *ngIf="(data && data?.length > 0 && (isSearchAllowed || isExportAllowed)) || isSearchEnabled">
+            <div class="col-md-2 d-flex justify-content-start pt-2 pb-2" *ngIf="isSearchAllowed">
+                <button (click)="toggleSearch()" class="btn btn-sm btn-outline-primary">
+                    <i [ngClass]="{'fa fa-search': !isSearchEnabled,'fa-solid fa-xmark': isSearchEnabled}">
+                    </i>
+                </button>&nbsp;&nbsp;
+                <button class="btn btn-sm btn-outline-primary" matButton [matMenuTriggerFor]="downloadMenu" *ngIf="data && data?.length > 0 && isExportAllowed">
+                    <em class="fa fa-download"></em></button>
+                <mat-menu #downloadMenu="matMenu">
+                    <button mat-menu-item (click)="downloadData(false)">
+                        <i class="fa fa-file-download"></i> Download Page Data
+                    </button>
+                    <button mat-menu-item (click)="downloadData(true)">
+                        <i class="fa fa-cloud-download"></i> Download All Data
+                    </button>
+                </mat-menu>
+            </div>
+            <div class="col-md-10 d-flex justify-content-end" *ngIf="data?.length > 0">
+                <mat-paginator *ngIf="apiUrl != undefined && apiUrl != null " class="compact-paginator" [length]="totalRecords"
+                    [pageIndex]="page" [pageSize]="size" [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)">
+                </mat-paginator>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="table table-bordered" matSort (matSortChange)="onSort($event)">
+                <thead>
+                    <tr>
+                        <th *ngIf="isRowExpandable" class="text-center"><i
+                                class="fa fa-info-circle info-icon pointer-cursor" title="Expandable Row"></i></th>
+                        <th *ngIf="!isLastColumnAction && rowActions?.length > 0" class="text-center">Actions</th>
+                        <th>Sr.No</th>
+                        <th class="text-center" *ngFor="let col of columns; let idx = index"
+                            mat-sort-header="{{ col.field || 'col-' + idx }}">
+                            {{ col.header }}
+                        </th>
+                        <th *ngIf="isLastColumnAction && rowActions?.length > 0" class="text-center">Actions</th>
+                    </tr>
+                    <tr app-column-filter-bar class="custom-filter-row" [hidden]="!isSearchEnabled" [columnList]="searchableColumnList"
+                        (onSearch)="onSearch($event)" [searchOnEnter]="searchOnEnter"></tr>
+                </thead>
+                <tbody>
+                    <ng-container *ngIf="data.length == 0">
+                        <tr>
+                            <th [attr.colspan]="noDetailsColumnCount" class="text-center info-label">No details to
+                                display...
+                            </th>
+                        </tr>
+                    </ng-container>
+                    <ng-container *ngFor="let row of data ;  let i = index">
+                        <tr>
+                            <td *ngIf="isRowExpandable">
+                                <button class="btn btn-sm btn-outline-primary" (click)="toggleRow(row)"
+                                    [hidden]="!row?.expandableRow">
+                                    <i
+                                        [ngClass]="{'fa-solid fa-chevron-down': !isRowExpanded(row),'fa fa-xmark': isRowExpanded(row)}">
+                                    </i>
+                                </button>
+                            </td>
+                            <td class="text-center" *ngIf="!isLastColumnAction && rowActions?.length > 0">
+                                <button class="btn btn-sm btn-outline-secondary" matButton
+                                    [matMenuTriggerFor]="actionMenu"><em
+                                        class="fa-solid fa-ellipsis-vertical"></em></button>
+                                <mat-menu #actionMenu="matMenu">
+                                    <ng-container *ngFor="let action of rowActions">
+                                        <button mat-menu-item (click)="triggerAction(action.action, row)">
+                                            <em [attr.class]="action.icon"></em>&nbsp;{{action.name}}
+                                        </button>
+                                    </ng-container>
+                                </mat-menu>
+                            </td>
+                            <td>{{i+1}}</td>
+                            <ng-container *ngIf="!isRowExpanded(row)">
+                                <td [title]="row[col.field]" *ngFor="let col of columns">{{ row[col.field] }}</td>
+                            </ng-container>
+
+                            <ng-container *ngIf="isRowExpanded(row)">
+                                <td [attr.rowspan]="getRowSpan(row,col?.field, i)" [title]="row[col.field]"
+                                    *ngFor="let col of columns">{{ row[col.field] }}</td>
+                            </ng-container>
+
+                            <td class="text-center" *ngIf="isLastColumnAction && rowActions?.length > 0">
+                                <button class="btn btn-sm btn-outline-secondary" matButton
+                                    [matMenuTriggerFor]="actionMenu"><em
+                                        class="fa-solid fa-ellipsis-vertical"></em></button>
+                                <mat-menu #actionMenu="matMenu">
+                                    <ng-container *ngFor="let action of rowActions">
+                                        <button mat-menu-item (click)="triggerAction(action.action, row)">
+                                            <em [attr.class]="action.icon"></em>&nbsp;{{action.name}}
+                                        </button>
+                                    </ng-container>
+                                </mat-menu>
+                            </td>
+                        </tr>
+
+                        <ng-container *ngIf="mergeRowData && isRowExpanded(row)">
+                            <tr *ngFor="let innerRow of row?.expandedRowDetails; let j = index">
+                                <td *ngIf="isRowExpandable"></td> <!-- for Expandable Column -->
+                                <td *ngIf="!isLastColumnAction && rowActions?.length > 0"></td>
+                                <td>{{i+1}}.{{j+1}}</td>
+                                <ng-container *ngFor="let col of columns">
+                                    <td [title]="innerRow[col.field]"
+                                        [attr.rowspan]="getChildRowSpan(i,row,col?.field, j)"
+                                        *ngIf="!isChildCellHidden(i, j, col.field)">
+                                        {{ innerRow[col.field] }}
+                                    </td>
+                                </ng-container>
+                                <td *ngIf="isLastColumnAction && rowActions?.length > 0"></td>
+                            </tr>
+                        </ng-container>
+
+                        <ng-container *ngIf="!mergeRowData">
+                            <tr *ngIf="isRowExpanded(row)">
+                                <td [attr.colspan]="columns.length + 2">
+                                    <app-my-table [apiUrl]="null" [columns]="subTableColumnConfig"
+                                        [defaultSortColumn]="" [isRowExpandable]="false" [extraParams]=""
+                                        [isExportAllowed]="false" [isSearchAllowed]="false"
+                                        [subTableData]="row?.expandedRowDetails">
+                                    </app-my-table>
+                                </td>
+                            </tr>
+                        </ng-container>
+
+                    </ng-container>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="closeAlertMessageModal()">OK</button>&nbsp;
+    </div>
+</ng-template>

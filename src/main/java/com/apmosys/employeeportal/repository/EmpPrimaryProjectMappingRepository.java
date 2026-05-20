@@ -1,8 +1,11 @@
 package com.apmosys.employeeportal.repository;
 
+import java.time.LocalDateTime;
+import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -14,7 +17,12 @@ import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 
 public interface EmpPrimaryProjectMappingRepository extends JpaRepository<EmpPrimaryProjectMapping, Long>{
 
+	/** @deprecated Prefer {@link #findAllByEmpIdAndIsMappedOrderByMappingIdDesc} — DB may contain duplicate Y rows per emp. */
+	@Deprecated
 	EmpPrimaryProjectMapping findByEmpIdAndIsMapped(Long empId,String ismapped);
+
+	/** All active primary mappings for an employee (newest first). Use first element when only one logical primary is needed. */
+	List<EmpPrimaryProjectMapping> findAllByEmpIdAndIsMappedOrderByMappingIdDesc(Long empId, String ismapped);
 	
 	 List<EmpPrimaryProjectMapping> findByEmpIdIn(List<Long> empIds);
 
@@ -42,4 +50,54 @@ public interface EmpPrimaryProjectMappingRepository extends JpaRepository<EmpPri
 	    
 	    List<EmpPrimaryProjectMapping> findByEmpIdInAndPrimaryProjectIdInAndIsMapped(List<Long> empIds, List<Long> projectIds, String isMapped);
 
+		@Query("SELECT epm FROM EmpPrimaryProjectMapping epm WHERE epm.empId IN :empIds AND primaryProjectId=:projectId AND epm.isMapped = 'Y' ")
+	 	List<EmpPrimaryProjectMapping> findByEmpIdInAndIsMappedAndProjectId(@Param("empIds") List<Long> empIds, @Param("projectId") Long projectId);
+
+        boolean existsByEmpIdAndPrimaryProjectIdAndIsMapped(Long empId, Long projectId, String string);
+
+        List<Long> findEmpIdByEmpIdInAndPrimaryProjectIdAndIsMapped(
+        List<Long> empIds,
+        Long projectId,
+        String isMapped);
+        
+    @Query("SELECT eppm FROM EmpPrimaryProjectMapping eppm " +
+            "WHERE eppm.empId IN :empIds " +
+            "AND eppm.primaryProjectId IN :projectIds " +
+            "AND eppm.isMapped='Y'")
+    List<EmpPrimaryProjectMapping> findActivePrimaryMappings(
+            Set<Long> empIds,
+            Set<Long> projectIds);
+
+    @Query("SELECT eppm FROM EmpPrimaryProjectMapping eppm WHERE eppm.empId = :empId")
+    Optional<EmpPrimaryProjectMapping> findByEmpId(Long empId);
+    
+    List<EmpPrimaryProjectMapping> findByEmpIdIn(Set<Long> empIds);
+
+	@Query("SELECT epm FROM EmpPrimaryProjectMapping epm WHERE epm.empId IN :empIds AND primaryProjectId !=:projectId AND epm.isMapped = 'Y' ")
+	List<EmpPrimaryProjectMapping> findByEmpIdInAndIsMappedAndProjectIdNotIn(@Param("empIds") List<Long> empIds, @Param("projectId") Long projectId);
+
+	@Query("SELECT epm FROM EmpPrimaryProjectMapping epm WHERE epm.empId IN :empIds AND primaryProjectId=:projectId ")
+	List<EmpPrimaryProjectMapping> findByEmpIdInAndProjectId(@Param("empIds") List<Long> empIds, @Param("projectId") Long projectId);
+
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO("
+        + "p.projectId, "
+        + "p.projectName, "
+        + "p.clientFlag, "
+        + "p.hasClientSideId, "
+        + "p.poProjectType, "
+        + "0"
+        + ") "
+        + "FROM EmpPrimaryProjectMapping eppm "
+        + "INNER JOIN Project p ON p.projectId = eppm.primaryProjectId "
+        + "WHERE eppm.empId = :empId "
+        + "AND eppm.isMapped = 'Y'")
+List<ProjectNameAndPrjoectIdDTO> getPrimaryMappedProjects(@Param("empId") Long empId);
+
+	@Query("SELECT eppm.empId FROM EmpPrimaryProjectMapping eppm "
+			+ "WHERE eppm.isMapped = 'Y' "
+			+ "GROUP BY eppm.empId "
+			+ "HAVING COUNT(eppm) > 1")
+	List<Long> findEmployeesWithMultipleDefaultMappings();
+
+	List<EmpPrimaryProjectMapping> findByEmpIdAndIsMappedOrderByUpdatedOnDesc(Long empId, String isMapped);
 }

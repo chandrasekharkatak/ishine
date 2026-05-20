@@ -1,9 +1,285 @@
-::ng-deep.mat-dialog-container {
-    resize: both;
-    overflow: auto;
-    background: #fff;
-  }
+/* ── Match app-my-autocomplete height to cf-select ── */
+::ng-deep .cf-row app-my-autocomplete .autocomplete-container .input-container input {
+  height: 36px !important;
+  font-size: 13px !important;
+  font-family: 'Segoe UI', system-ui, sans-serif !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 6px !important;
+  padding: 7px 36px 7px 10px !important;
+  box-shadow: none !important;
+  color: #1e293b !important;
+  background: #ffffff !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+}
 
-  ::ng-deep .autocomplete-container .input-container input {
-    padding-right: 35px !important; 
-  }
+::ng-deep .cf-row app-my-autocomplete .autocomplete-container .input-container input:focus {
+  border-color: #1a73e8 !important;
+  box-shadow: 0 0 0 2px rgba(26,115,232,0.15) !important;
+  outline: none !important;
+}
+
+/* Remove default autocomplete box shadow/border */
+::ng-deep .cf-row app-my-autocomplete .autocomplete-container {
+  box-shadow: none !important;
+}
+
+/* Label inside autocomplete — hide it since we have cf-label above */
+::ng-deep .cf-row app-my-autocomplete label {
+  display: none !important;
+}
+
+  .cf-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cf-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.cf-row-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1a2e44;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 22px;
+}
+
+.cf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.cf-field--sm {
+  flex: 0 0 130px;
+  min-width: 130px;
+}
+
+.cf-field--actions {
+  flex: 0 0 76px;
+  min-width: 76px;
+}
+
+.cf-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.cf-select {
+  font-size: 13px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #1e293b;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 7px 10px;
+  height: 36px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.cf-select:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26,115,232,0.15);
+}
+
+.cf-select:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.cf-error {
+  font-size: 11px;
+  color: #ef4444;
+}
+
+.cf-action-btns {
+  display: flex;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.cf-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cf-btn--add {
+  background: #e7f1ff;
+  color: #1a73e8;
+  border-color: #b3d4fc;
+}
+
+.cf-btn--add:hover {
+  background: #1a73e8;
+  color: #ffffff;
+  border-color: #1a73e8;
+}
+
+.cf-btn--remove {
+  background: #fff0f0;
+  color: #ef4444;
+  border-color: #fca5a5;
+}
+
+.cf-btn--remove:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.cf-footer {
+  display: flex;
+  gap: 10px;
+  padding-top: 6px;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 4px;
+}
+
+.cf-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #ffffff;
+  background: #1a2e44;
+  border: none;
+  border-radius: 6px;
+  padding: 0 20px;
+  height: 36px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cf-submit-btn:hover { background: #243651; }
+
+.cf-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #64748b;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0 20px;
+  height: 36px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cf-clear-btn:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+
+/* ── Match app-my-autocomplete mat-input height to cf-select ── */
+::ng-deep .cf-row app-my-autocomplete .mat-mdc-text-field-wrapper {
+  height: 36px !important;
+  padding: 0 10px !important;
+}
+
+::ng-deep .cf-row app-my-autocomplete .mat-mdc-form-field-infix {
+  min-height: 36px !important;
+  padding-top: 7px !important;
+  padding-bottom: 7px !important;
+}
+
+::ng-deep .cf-row app-my-autocomplete .mdc-text-field__input {
+  font-size: 13px !important;
+  font-family: 'Segoe UI', system-ui, sans-serif !important;
+  color: #1e293b !important;
+}
+
+::ng-deep .cf-row app-my-autocomplete .mdc-notched-outline__leading,
+::ng-deep .cf-row app-my-autocomplete .mdc-notched-outline__notch,
+::ng-deep .cf-row app-my-autocomplete .mdc-notched-outline__trailing {
+  border-color: #e2e8f0 !important;
+  border-width: 1px !important;
+}
+
+::ng-deep .cf-row app-my-autocomplete .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
+
+/* Hide floating label since we have cf-label above */
+::ng-deep .cf-row app-my-autocomplete .mat-mdc-floating-label {
+  display: none !important;
+}
+
+/* Hide internal label from app-my-autocomplete */
+::ng-deep .cf-row app-my-autocomplete .mat-mdc-floating-label,
+::ng-deep .cf-row app-my-autocomplete .mdc-floating-label,
+::ng-deep .cf-row app-my-autocomplete .mat-mdc-form-field-label {
+  display: none !important;
+}
+
+/* Fix notch gap left by hidden label */
+::ng-deep .cf-row app-my-autocomplete .mdc-notched-outline__notch {
+  border-top: 1px solid #e2e8f0 !important;
+  width: 0px !important;
+  padding: 0 !important;
+}
+
+::ng-deep .cf-row app-my-select .mat-mdc-select {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 6px !important;
+  padding: 8px 10px !important;
+  height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  background: #ffffff !important;
+}
+
+::ng-deep .cf-row app-my-select .mat-mdc-select:focus,
+::ng-deep .cf-row app-my-select .mat-mdc-select.mat-mdc-select-invalid {
+  border-color: #1a73e8 !important;
+  box-shadow: 0 0 0 2px rgba(26,115,232,0.15) !important;
+  outline: none !important;
+}
+
+/* Disabled state for last conjunction */
+::ng-deep .cf-row .cf-field--disabled app-my-select .mat-mdc-select {
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  border-color: #e2e8f0 !important;
+}

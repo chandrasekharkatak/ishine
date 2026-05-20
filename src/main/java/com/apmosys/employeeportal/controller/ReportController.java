@@ -44,13 +44,13 @@ public class ReportController {
 		return response;
 	}
 	
-	@JobRoleAccess(featureIds = {26})
-	@RequestMapping(value="/timesheetReport" , method = RequestMethod.GET)
-	public ServiceResponse timesheetReport() {		
-		
-		ServiceResponse response =	reportService.timesheetReport();
-		return response;
-	}
+//	@JobRoleAccess(featureIds = {26})
+//	@RequestMapping(value="/timesheetReport" , method = RequestMethod.GET)
+//	public ServiceResponse timesheetReport() {		
+//		
+//		ServiceResponse response =	reportService.timesheetReport();
+//		return response;
+//	}
 	
 	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value="/getMappedSubFeatureList" , method = RequestMethod.POST)

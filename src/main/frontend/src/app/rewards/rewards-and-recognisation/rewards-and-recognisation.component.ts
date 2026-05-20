@@ -17,6 +17,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { SortPipe } from 'src/app/sort.pipe';
 import * as XLSX from 'xlsx';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -104,7 +105,8 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
     private exportExcelService: ExportExcelService,
     private validationService: ValidationService,
     private employeeService: EmployeeService,
-    private utilityService: UtilityService
+    private utilityService: UtilityService,
+    private router : Router
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -804,7 +806,7 @@ removeQuarter(index: number) {
 
     const headers = [
       ['Employee Id', 'Employee Name', 'Reward Category', 'Reward Type Name', 'Of Month-Year', 'Remarks'],
-      ['e.g. 240017', 'e.g. Prarthana Lenka', 'e.g. Monthly/Half Yearly/Annual/Quarterly', 'e.g. Gem Of The Month', 'e.g. January 2025/Q2 2025(For Quarterly)', 'e.g. Did their best in their respective fields']
+      ['e.g. A-240017', 'e.g. Prarthana Lenka', 'e.g. Monthly/Half Yearly/Annual/Quarterly', 'e.g. Gem Of The Month', 'e.g. January 2025/Q2 2025(For Quarterly)', 'e.g. Did their best in their respective fields']
     ];
 
 
@@ -1093,4 +1095,9 @@ onEnableQuarterClick(template: TemplateRef<any>) {
     }
   });
 }
+
+
+
+
+  
   }

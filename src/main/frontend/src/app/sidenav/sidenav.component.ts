@@ -43,44 +43,58 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
   constructor(private authenticationService: AuthenticationService,
     private breadcrumbService: BreadcrumbService,){
-    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
-
-    this.menuItems = this.currentUser.tabList;   
   }
 
    ngOnInit(): void {
     this.screenWidth = window.innerWidth;
-    //console.log("menuItems : ", this.menuItems);
-    this.appreciationEventInfo = this.currentUser.appreciationEventInfo;
-    this.firstTimeLogin=sessionStorage.getItem('FirstTimeLogin');
-   
+    this.firstTimeLogin = sessionStorage.getItem('FirstTimeLogin');
+
+    this.activatedSubscriptions = this.authenticationService.currentUser.subscribe(x => {
+      this.currentUser = x;
+      if (!x?.tabList?.length) {
+        this.menuItems = [];
+        this.appreciationEventInfo = x?.appreciationEventInfo;
+        return;
+      }
+      this.menuItems = [...x.tabList];
+      this.appreciationEventInfo = x.appreciationEventInfo;
+      this.filterAppreciationTab();
+    });
+  }
+
+  /** Hide Appreciation tab when disabled (same rules as before; runs whenever user / tabList updates). */
+  private filterAppreciationTab(): void {
+    if (!this.menuItems?.length || !this.currentUser) {
+      return;
+    }
+    if (!this.appreciationEventInfo?.fromDate || !this.appreciationEventInfo?.toDate) {
+      return;
+    }
     const dateFormat = 'YYYY-MM-DD';
+    const currentDate = moment(new Date()).format(dateFormat);
+    const fromDate = this.appreciationEventInfo?.fromDate;
+    const toDate = this.appreciationEventInfo?.toDate;
+    const dateCheck = this.dateCheck(currentDate, fromDate, toDate);
 
-    var currentDate = moment(new Date()).format(dateFormat);
-    let fromDate = this.appreciationEventInfo.fromDate;
-    let toDate = this.appreciationEventInfo.toDate;
-    var dateCheck=this.dateCheck(currentDate,fromDate,toDate);
-
-    //console.log(this.currentUser.isAppreciationEnable, " : isAppreciationEnable");
-    
-
-    this.menuItems.forEach((item,index) => {
-      if(item.tabName == 'Appreciation' && this.currentUser.isAppreciationEnable != true && dateCheck==false){
-        this.menuItems.splice(index,1);
+    this.menuItems = this.menuItems.filter((item) => {
+      if (item.tabName !== 'Appreciation') {
+        return true;
       }
-      else if(item.tabName == 'Appreciation' && this.currentUser.isAppreciationEnable == false && dateCheck==true){
-        this.menuItems.splice(index,1); 
+      if (this.currentUser.isAppreciationEnable !== true && dateCheck === false) {
+        return false;
       }
-      else if(item.tabName == 'Appreciation' && this.currentUser.isAppreciationEnable == true && dateCheck==false){
-        this.menuItems.splice(index,1); 
-
+      if (this.currentUser.isAppreciationEnable === false && dateCheck === true) {
+        return false;
       }
-
+      if (this.currentUser.isAppreciationEnable === true && dateCheck === false) {
+        return false;
+      }
+      return true;
     });
   }
 
   ngOnDestroy(): void {
-    this.activatedSubscriptions.unsubscribe();
+    this.activatedSubscriptions?.unsubscribe();
   }
   
 

@@ -5,6 +5,7 @@ import { ReimbursementComponent } from 'src/app/reimbursement/reimbursement.comp
 import { ReimbursementapprovalComponent } from 'src/app/reimbursement/reimbursementapproval/reimbursementapproval.component';
 import { TotalReimbursementrequestComponent } from 'src/app/reimbursement/total-reimbursementrequest/total-reimbursementrequest.component';
 import { ViewReimbursementComponent } from 'src/app/reimbursement/view-reimbursement/view-reimbursement.component';
+import { ReimbursementDashboardComponent } from 'src/app/reimbursement/reimbursement-dashboard/reimbursement-dashboard.component';
 
 const routes: Routes = [{
   path: '', component: ReimbursementComponent,
@@ -13,6 +14,7 @@ const routes: Routes = [{
     { path: 'my-reimbursement', component: MyReimbursementComponent },
     { path: 'view-reimbursement', component: ViewReimbursementComponent },
     { path: 'approve-reimbursement', component: ReimbursementapprovalComponent },
+    { path: 'reimbursement-dashboard', component: ReimbursementDashboardComponent },
     { path: 'total-reimbursement', component: TotalReimbursementrequestComponent }
   ]
 },];

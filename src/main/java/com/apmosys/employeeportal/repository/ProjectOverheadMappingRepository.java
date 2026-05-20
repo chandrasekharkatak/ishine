@@ -54,5 +54,12 @@ List<Integer> isUserProjectOverheadOfAnyActiveInternalAndExternalProjectList(@Pa
 	@Transactional
 	@Query(value="UPDATE ProjectOverheadMapping p SET p.active = 0 WHERE p.projectId =:projectId")
 	public void deactivateByProjectId(@Param("projectId") Long projectId);
+
+	@Query(value=" select DISTINCT pom.projectOverheadId from ProjectOverheadMapping pom \n"+
+			"INNER JOIN Employee e ON e.empId = pom.projectOverheadId where pom.projectId =:projectId \n")
+    public List<Long> getAllProjectOverheadId(Long projectId);
+	
+	@Query("SELECT DISTINCT pom.projectOverheadId from ProjectOverheadMapping pom where pom.projectId = :projectId and pom.active=:active")
+	List<Long> findProjectOverheadIdByProjectIdAndActive(Long projectId, Integer active);
 	
 }

@@ -1,0 +1,71 @@
+.dt-wrapper {
+  position: relative;
+  margin-bottom: 0.75rem;
+}
+
+.dt-label {
+  display: block; /* 🔥 THIS is critical */
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+}
+
+.dt-wrapper .form-control {
+  height: 38px;
+}
+
+.dt-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  min-width: 38px;
+  padding: 0;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  line-height: 1;
+}
+
+.dt-wrapper .col-md-1.pl-0 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* 12-hour time dropdowns */
+.dt-time-12h {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.dt-time-12h .dt-time-select {
+  height: 38px;
+  min-width: 0;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.dt-time-12h .dt-hour {
+  width: 4.5rem;
+}
+
+.dt-time-12h .dt-minute {
+  width: 4.5rem;
+}
+
+.dt-time-12h .dt-ampm {
+  width: 4.5rem;
+  font-weight: 500;
+}
+
+.dt-time-sep {
+  font-weight: 600;
+  color: #555;
+  user-select: none;
+}

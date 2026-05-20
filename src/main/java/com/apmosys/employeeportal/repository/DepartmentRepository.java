@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
+import com.apmosys.employeeportal.dto.PoPortalEmpIdDTO;
 import com.apmosys.employeeportal.model.Department;
 
 @Repository
@@ -29,6 +30,8 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	public List<DepartmentDTO>  getAllDepartments();
 
 	public Department findByName(String department);
+
+	Optional<Department> findFirstByNameIgnoreCase(String name);
 	
 	@Query(value = "SELECT * FROM department WHERE dept_id IN (:departmentIdList)", nativeQuery = true)
 	List<Object[]> getAllDepartmentsByIdList(@Param("departmentIdList") List<Long> departmentIdList);
@@ -40,10 +43,10 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
 	public boolean existsByHodId(Long empId);
 
-	@Query(value="SELECT new com.apmosys.employeeportal.dto.PoPortalDTO(d.deptId, d.name, e.employeementId, d.deptAbbreviation, d.isBillable, d.isTnm)  \n"
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.PoPortalEmpIdDTO(d.deptId, d.name, e.empId, d.deptAbbreviation, d.isBillable, d.isTnm)  \n"
 			+ "FROM Department d \n"
 			+ "INNER JOIN Employee e ON e.empId = d.hodId")
-	public List<PoPortalDTO> getDepartmentInfo();
+	public List<PoPortalEmpIdDTO> getDepartmentInfo();
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getSegregatedDeptEodDefaulter(LocalDate firstOfMonth, LocalDate currentDate);
@@ -71,7 +74,12 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 		       "AND e.empId = :empId")
 	public Long findHodIdByEmpId(@Param("empId") Long empId);
 
-
+	@Query("SELECT e.empId, d.hodId " +
+       "FROM Department d, JobRole j, Employee e " +
+       "WHERE j.deptId = d.deptId " +
+       "AND e.jobRoleId = j.jobRoleId " +
+       "AND e.empId IN :empIds")
+List<Object[]> findHodIdsByEmpIds(@Param("empIds") List<Long> empIds);
 	
 	@Query(nativeQuery = true,value = "select d.name from department d \n"
 			+ "inner join job_role j on j.dept_id = d.dept_id\n"
@@ -159,10 +167,10 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 		List<GetDeptIdByRoleDTO> findDeptIdsForProjectOverhead(@Param("empId") Long empId);
 
 		@Query("SELECT t.deptIds FROM Team t WHERE t.teamLeadId = :empId")
-		String findDeptIdsForTeamLead(@Param("empId") Long empId);
+		List<String> findDeptIdsForTeamLead(@Param("empId") Long empId);
 
 		@Query("SELECT t.deptIds FROM Team t WHERE t.spocId = :empId")
-		String findDeptIdsForSpoc(@Param("empId") Long empId);
+		List<String> findDeptIdsForSpoc(@Param("empId") Long empId);
 		
 		@Query("SELECT new com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO(d.deptId, d.name) FROM Department d WHERE d.deptId IN :deptIds")
 		List<GetDeptIdByRoleDTO> findDepartmentsByIds(@Param("deptIds") List<Long> deptIds);

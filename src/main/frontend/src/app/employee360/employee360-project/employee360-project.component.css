@@ -1,35 +1,85 @@
 .table-container {
     width: 100%;
-    max-height: 60vh; 
+    max-height: 60vh;
     position: relative;
   }
-  
+
   .fixed-header-table thead th {
     position: sticky;
-    top: 0; 
-    z-index: 2; 
+    top: 0;
+    z-index: 2;
   }
   #BassScrollBar {
-    overflow: hidden !important; 
-    position: relative; 
+    overflow: hidden !important;
+    position: relative;
   }
 
 
 
+/* Highlights the parent when history is open */
+.parent-expanded {
+    background-color: #f0f7ff !important;
+    border-bottom: 2px solid #007bff;
+}
 
+/* History row styling */
+.history-row {
+    background-color: #fafafa !important;
+    font-size: 0.88rem;
+    color: #666;
+}
+
+/* The blue vertical line that connects history items */
+.accent-border {
+    border-left: 4px solid #007bff;
+    position: relative;
+    background-color: transparent !important;
+}
+
+/* Entrance Animation (Motion) */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-in {
+    animation: fadeInDown 0.3s ease-out;
+}
+
+/* Hover effect for history items */
+.history-row:hover {
+    background-color: #f1f1f1 !important;
+    color: #333;
+}
 
   .team-preview-field {
     flex: 1;
     display: flex;
     flex-direction: column;
   }
-  
+.collapse-icon {
+    transition: transform 0.3s ease, color 0.2s ease;
+    cursor: pointer;
+}
+
+.collapse-icon.rotated {
+    transform: rotate(90deg);
+}
+
+
   .team-preview-field label {
     font-weight: bold;
     color: #061e5c;
     margin-bottom: 5px;
   }
-  
+
+
   .team-preview-field input {
     padding: 8px;
     border: 1px solid #ccc;
@@ -66,7 +116,7 @@
     box-shadow: 0 0 10px rgba(0,0,0,0.08);
   }
 
-     .form-field input, 
+     .form-field input,
   .form-field mat-select {
     padding: 10px;
     /* border-radius: 20px; */
@@ -74,3 +124,173 @@
     outline: none;
     min-height: 45px;
   }
+
+.date-input-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.date-input {
+  padding-right: 36px;
+  cursor: pointer;
+  background-color: white;
+}
+
+.calendar-icon {
+  position: absolute;
+  right: 10px;
+  top: 47%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #656565;
+}
+
+
+/* New Table Start */
+.new-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.new-custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 5px;
+}
+
+.new-custom-table th,
+.new-custom-table td {
+    padding: 5px;
+    text-align: center;
+}
+
+.new-custom-table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f4f6f8;
+    font-weight: 600;
+    z-index: 3;
+    font-size: 14px;
+    height: 7vh;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.min-width100 {
+    min-width: 100px !important;
+}
+
+.min-width150 {
+    min-width: 150px !important;
+}
+
+.min-width180 {
+    min-width: 180px !important;
+}
+
+
+.max-width100 {
+    max-width: 100px !important;
+}
+
+.max-width150 {
+    max-width: 150px !important;
+}
+
+.max-width200 {
+    max-width: 200px !important;
+}
+
+.truncate {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.project-card-header {
+    background-color: #fff;
+    margin: .5rem !important;
+    margin-bottom: 0 !important;
+}
+
+
+/* Table Start */
+.table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 5px;
+}
+
+.custom-table th,
+.custom-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.custom-table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f4f6f8;
+    font-weight: 600;
+    z-index: 3;
+}
+
+.custom-table tbody tr:nth-child(odd) {
+    background: #f5f5f5;
+}
+
+.custom-table tbody tr {
+    background-color: #ffffff;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+
+.info-chip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.red-chip {
+background-color: #DC2626;
+color: white;
+}
+
+.red-border {
+    border-left: 4px solid #dc3545;
+}
+
+.highlight-text {
+  font-weight: bold;
+  font-style: italic;
+}
+
+.popover-info {
+    padding: 10px 12px;
+    max-width: 250px;
+    font-size: 12px;
+    line-height: 1.4;
+    border-radius: 6px;
+    background-color: #fff;
+}

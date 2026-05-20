@@ -57,13 +57,13 @@ export class Employee360Service {
   // navigateToEmployee360(data: any) {
   //   // Store the data in sessionStorage (stringify it if it's an object)
   //   sessionStorage.setItem('employee360Data', JSON.stringify(data));
-    
+
   //   // Create the URL for the route
   //   const url = this.router.createUrlTree(['/employee-360/profile']).toString();
-    
+
   //   // Open the URL in a new tab
   //   window.open(url, '_blank').focus();
-    
+
   //   // Notify navigation if needed
   //   this.navigationSubject.next();
   // }
@@ -77,16 +77,17 @@ export class Employee360Service {
 
   // get360TimesheetDetails(status: string, empId: number, projectId:number, teamName:string,managerId:number,startDate:string,endDate:string) {
   get360TimesheetDetails(status: string, empId: number, projectId: number, teamName: string, startDate: string, endDate: string) {
-    return this.http.get(`${this.baseUrl}api/get360TimesheetDetails`, {
-      params: {
-        status: status,
-        empId: empId.toString(),
-        projectId: projectId.toString(),
-        teamName: teamName,
-        // managerId:managerId.toString(),
-        startDate: startDate,
-        endDate: endDate
-      }
+    const statusMap: { [key: string]: number | null } = {
+      'Pending': 1,
+      'Approved': 2,
+      'Rejected': 3
+    };
+
+    return this.http.post(`${this.baseUrl}api/getAllMyTimesheetsByEmpId`, {
+      empId: empId,
+      startDate: startDate,
+      endDate: endDate,
+      status: statusMap[status] ?? null
     });
   }
 
@@ -142,7 +143,7 @@ export class Employee360Service {
 //added by rahul for project
 getTeamMemberByTeamId(teamId:any){
   return this.http.get(`${this.baseUrl}`+`api/getTeamMemberByTeamId`+teamId);
-} 
+}
 
   getProjectInfo(project:Project){
     return this.http.post(`${this.baseUrl}`+`api/getProjectInfo`,project);
@@ -151,7 +152,7 @@ getTeamMemberByTeamId(teamId:any){
   getPoProjectInfo(project:Project){
     return this.http.post(`${this.baseUrl}`+`api/getPoProjectInfo`,project);
   }
-  
+
   getTeamInfo(projectId:any){
     return this.http.get(`${this.baseUrl}`+`api/getTeamInfo?projectId=${projectId}`);
   }

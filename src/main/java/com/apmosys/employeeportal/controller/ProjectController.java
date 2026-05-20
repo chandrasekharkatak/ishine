@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,20 +20,21 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
+import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
-import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectDto;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
-import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
-import com.apmosys.employeeportal.request.ProjectRequest;
+import com.apmosys.employeeportal.dto.RmgProjectDto;
+import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.request.ProjectRequest;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.service.PoPortalAPIService;
 import com.apmosys.employeeportal.service.ProjectService;
@@ -161,9 +161,9 @@ public class ProjectController {
 	}
 	
 	@PostMapping(value = "/poProjectTimesheetSync")
-	public ServiceResponse poProjectTimesheetSync(HttpServletRequest httpRequest,@RequestBody Set<Long> projectIdList) {
+	public ServiceResponse poProjectTimesheetSync(HttpServletRequest httpRequest,@RequestBody Set<Long> poIdList) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		return projectService.poProjectTimesheetSync(projectIdList);
+		return projectService.poProjectTimesheetSync(poIdList);
 	}
 
 	@Encrypted
@@ -231,15 +231,15 @@ public class ProjectController {
 		return poPortalApiService.getAllMilestoneExtendReason();
 	}
 	
-	@GetMapping(value = "/getPodetailsPromPOPortal")
-	public ServiceResponse getPodetailsPromPOPortal() {
+	@GetMapping(value = "/getPodetailsFromPOPortal")
+	public ServiceResponse getPodetailsFromPOPortal() {
 		return poPortalApiService.syncProjectPoFromPoPortal();
 	}
 	
-	@GetMapping(value = "/getProjectSDEDFromPOPortal")
-	public ServiceResponse getProjectSDEDFromPOPortal() {
-		return poPortalApiService.updateSDEDOfproject();
-	} 
+//	@GetMapping(value = "/getProjectSDEDFromPOPortal")
+//	public ServiceResponse getProjectSDEDFromPOPortal() {
+//		return poPortalApiService.updateSDEDOfproject();
+//	} 
 	
 
 	@GetMapping(value = "/getMilestoneProjectWise")
@@ -295,13 +295,11 @@ public class ProjectController {
 	}
 	
 	@RequestMapping(value = "/getResourceCountListByPoprojectName", method = RequestMethod.POST)
-	public ServiceResponse getResourceCountListByPoprojectName(HttpServletRequest httpRequest,
-			@RequestBody List<String> projectNames) {
+	public ServiceResponse getResourceListByPoNumbers(HttpServletRequest httpRequest,
+			@RequestBody List<String> poNumbers) {
 
-//	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-
-		ServiceResponse response = poPortalApiService.getResourceCountListByPoprojectName(projectNames);
-		return response;
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return poPortalApiService.getResourceListByPoNumbers(poNumbers);
 	}
 	
 
@@ -311,6 +309,19 @@ public class ProjectController {
 		return response;
 	}
 	
+	// @Encrypted
+	@PostMapping("/saveProjectInformation")
+	public ServiceResponse saveProjectInformation(@RequestBody RmgProjectDto rmgProjectDto) {
+		return projectService.saveProjectInformation(rmgProjectDto);
+	}
+
+	// @Encrypted
+	@PostMapping(value = "/updateProjectStartDate")
+	public ServiceResponse updateProjectStartDate(@RequestBody ProjectDto projectDto) {
+		// employeeService.clearEmployeeCache();
+		return projectService.updateProjectStartDate(projectDto);
+	}
+
 	@PostMapping("/getExtensionDocumentByName")
 	public ResponseEntity<FCProjectMilestoneDTO> getExtensionDocumentById(@RequestBody Map<String, String> request) {
 	    String uniquefile = request.get("uniquefile");

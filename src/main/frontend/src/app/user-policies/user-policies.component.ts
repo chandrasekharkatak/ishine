@@ -13,6 +13,7 @@ import { LocationStrategy } from '@angular/common';
 import * as moment from 'moment';
 import { AppComponent } from '../app.component';
 import { UtilityService } from '../services/utility.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 
@@ -69,6 +70,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private locationStrategy: LocationStrategy,
         private utilityService: UtilityService,
+        private router : Router
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -279,6 +281,8 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
+
+  
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

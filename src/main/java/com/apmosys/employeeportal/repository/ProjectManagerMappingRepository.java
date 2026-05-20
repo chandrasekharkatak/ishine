@@ -77,4 +77,10 @@ List<Integer> isUserProjectManagerOfAnyActiveInternalProjectList(@Param("empId")
 	 @Query("SELECT new com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO(e.empId , e.name) from Employee e, ProjectManagerMapping pmm where e.empId = pmm.projectManagerId and pmm.projectId = :projectId ")
     List<ProjectManagerIdAndNameDTO> findProjectManagerIdAndName(@Param("projectId") Long projectId);
 
+	@Query("SELECT DISTINCT e.empId from Employee e INNER JOIN ProjectManagerMapping pmm ON e.empId = pmm.projectManagerId where pmm.projectId = :projectId ")
+	public List<Long> getAllProjectManagerId(@Param("projectId") Long projectId);
+
+	@Query("SELECT DISTINCT pmm.projectManagerId from ProjectManagerMapping pmm where pmm.projectId = :projectId and pmm.active=:active")
+	List<Long> findProjectManagerIdByProjectIdAndActive(Long projectId, Integer active);
+
 }

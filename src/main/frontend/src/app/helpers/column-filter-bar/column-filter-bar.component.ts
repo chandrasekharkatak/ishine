@@ -13,14 +13,13 @@ import { FilterStateService } from 'src/app/services/filter-state.service';
 export class ColumnFilterBarComponent implements OnInit {
 
 
-  @Input()
-  columnList:any[];
+  @Input() columnList:any[];
+  @Input() searchOnEnter:boolean = false;
+
   displayColumns:any[] = [];
   currentBreadcrumbList: any[] = [];
   projectManagement: any;
 
-  @Input()
-  searchOnEnter: boolean = false;
 
   /** Optional: pre-fill values by column name (used for server-side column filtering). */
   @Input()
@@ -44,6 +43,7 @@ export class ColumnFilterBarComponent implements OnInit {
     && this.router.url.includes('resource-management')
     && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
       this.onSearch.emit({'name' : this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.object?.projectName}); 
+      return;
     }
 
     // Prefer explicit initial values (caller-managed, eg. server-side column filters)

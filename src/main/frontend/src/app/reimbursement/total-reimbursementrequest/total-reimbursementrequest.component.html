@@ -1,4 +1,89 @@
 <div class="container-fluid my-4">
+  <div class="row mb-3" *ngIf="reimbursementDashboard">
+    <div class="col-md-3">
+      <div class="card border-primary"><div class="card-body py-2">
+        <div class="small text-muted">Tickets (filtered)</div>
+        <div class="h4 mb-0">{{ reimbursementDashboard.ticketCount }}</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-success"><div class="card-body py-2">
+        <div class="small text-muted">Paid amount</div>
+        <div class="h4 mb-0">{{ reimbursementDashboard.totalPaidAmount }}</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-warning"><div class="card-body py-2">
+        <div class="small text-muted">Pending (HOD / HR / Fin)</div>
+        <div class="h6 mb-0">{{ reimbursementDashboard.pendingHodTickets }} / {{ reimbursementDashboard.pendingHrTickets }} / {{ reimbursementDashboard.pendingFinanceTickets }}</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-secondary"><div class="card-body py-2">
+        <div class="small text-muted">Aging &gt; 7 days</div>
+        <div class="h4 mb-0">{{ reimbursementDashboard.agingPendingTicketsOver7Days }}</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="row mb-3" *ngIf="financeTickets?.length">
+    <div class="col-12">
+      <h3 class="h6 text-primary">Finance — multi-claim tickets pending payment</h3>
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="selector-toggle">
+          <a href="javascript:void(0)">
+            <i *ngIf="!isSearchEnabledFinanceTickets" class="fa fa-search" (click)="toggleFinanceTicketSearch()"></i>
+            <i *ngIf="isSearchEnabledFinanceTickets" class="fa fa-xmark" (click)="toggleFinanceTicketSearch()"></i>
+          </a>
+        </div>
+      </div>
+      <table class="table table-sm table-bordered" matSort (matSortChange)="sortFinanceTicketData($event)">
+        <thead>
+          <tr>
+            <th mat-sort-header="ticketNo|string">Ticket</th>
+            <th mat-sort-header="fullName|string">Employee</th>
+            <th mat-sort-header="displayStatus|string">Stage</th>
+            <th mat-sort-header="payableApprovedAmount|number">Amount</th>
+            <th mat-sort-header="submittedOn|date">Submitted</th>
+            <th mat-sort-header="level1ApproverName|string">Level 1</th>
+            <th mat-sort-header="level2ApproverName|string">Level 2</th>
+            <th mat-sort-header="level3ApproverName|string">Level 3</th>
+            <th>Action</th>
+          </tr>
+          <tr app-column-filter-bar *ngIf="isSearchEnabledFinanceTickets" [columnList]="financeTicketActiveColumns"
+            (onSearch)="onFinanceTicketSearch($event);pageFinanceTickets=1"></tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="(financeTickets | colFilter:financeTicketFilters:false).length === 0">
+            <td colspan="9" class="text-center text-muted">No details to display...</td>
+          </tr>
+          <tr *ngFor="let ft of financeTickets
+            | colFilter:financeTicketFilters:false
+            | sort:[sortFinanceTicketColumn, sortFinanceTicketColumnType, sortFinanceTicketDirection]
+            | paginate: { itemsPerPage: 10, currentPage: pageFinanceTickets }">
+            <td>{{ ft.ticketNo || ft.ticketId }}</td>
+            <td>{{ ft.fullName }}</td>
+            <td>{{ ft.displayStatus }}</td>
+            <td>{{ ft.payableApprovedAmount }}</td>
+            <td>{{ ft.submittedOn | date:'medium' }}</td>
+            <td>{{ ft.level1ApproverName || ft.hodName || '—' }}</td>
+            <td>{{ ft.level2ApproverName || '—' }}</td>
+            <td>{{ ft.level3ApproverName || '—' }}</td>
+            <td class="text-nowrap">
+              <button type="button" class="btn btn-sm btn-outline-primary mr-1" (click)="openTicketModal(ft)">View</button>
+              <button type="button" class="btn btn-sm btn-primary" (click)="openTicketModal(ft)">Pay / Reject</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <pagination-controls class="my-3 justify-content-center" [hidden]="!financeTickets?.length"
+        (pageChange)="handleFinanceTicketPageChange($event)">
+      </pagination-controls>
+    </div>
+  </div>
+
+  <!-- financeTicketModal removed: replaced by shared ReimbursementTicketModalComponent -->
+
   <div class="row mb-3">
     <div class="col-12 d-flex justify-content-between align-items-center">
       <div>

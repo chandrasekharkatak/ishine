@@ -1,0 +1,16 @@
+.calendar-legend {
+  margin: 18px 0 0 0;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.legend-label {
+  font-size: 14px;
+}
+

@@ -28,18 +28,40 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { APP_DATE_FORMATS, AppDateAdapter, DateTimePickerComponent } from 'src/app/helpers/date-time-picker/date-time-picker.component';
+import { ProjectEntry } from 'src/app/models/projectEntry';
+import { ActivityNew } from 'src/app/models/activityNew';
+import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
+import { TimesheetFormComponent } from './timesheet-form/timesheet-form.component';
 import { ProjectBasedBulkUploadPayload } from '../team-timesheet/types';
+import { M } from '@angular/material/ripple.d-BxTUZJt7';
+import { ExcelDownloadService } from 'src/app/services/excel-download-service';
+import { firstValueFrom } from 'rxjs';
+import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 
 @Component({
   standalone: false,
   selector: 'app-my-timesheet',
   templateUrl: './my-timesheet.component.html',
-  styleUrls: ['./my-timesheet.component.css']
+  styleUrls: ['./my-timesheet.component.css'],
+  providers: [         
+    {
+      provide: DateAdapter,
+      useClass: AppDateAdapter
+    },
+    {
+      provide: MAT_DATE_FORMATS,
+      useValue: APP_DATE_FORMATS
+    }
+  ]
 })
 export class MyTimesheetComponent implements OnInit {
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+
+  @ViewChild('errorModal') errorModal!: TemplateRef<any>;
+
 
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
@@ -52,14 +74,34 @@ export class MyTimesheetComponent implements OnInit {
   @ViewChild("previewRulesInfoModal")
    previewRulesInfoModal: TemplateRef<any>;
 
+  @ViewChild("night_shift_template")
+  night_shift_template: TemplateRef<any>;
 
+  @ViewChild("update_timesheet_template")
+  update_timesheet_template: TemplateRef<any>;
+
+  @ViewChild("noNotAppliedYet")
+  noNotAppliedYet: TemplateRef<any>;
+
+  @ViewChild(TimesheetFormComponent)
+  timesheetFormComponent!: TimesheetFormComponent;
+  rejectionReasons: any;
+  // Property aliases for template references used in HTML
+  get alert_message(): TemplateRef<any> {
+    return this.alertTemplate;
+  }
+
+  get update_clientId(): TemplateRef<any> {
+    return this.updateClientId;
+  }
 
    rulesInfoModalRef:NgbModalRef;
     rulesInfopreviewFileName:any;
   rulesfileType:any;
   rulespreviewUrl:any;
 
-
+popupTitle = '';
+popupMessage = '';
   data: string;
   feature = "My Timesheets";
   currentUser: User;
@@ -83,7 +125,7 @@ export class MyTimesheetComponent implements OnInit {
 
   isSelfTimesheets: boolean = false;
   isTeamTimesheets: boolean = false;
-
+  itemsPerPage = 10;
 
   Allholidays: any[] = [];
   AllWeekOfList: any[] = [];
@@ -102,6 +144,13 @@ export class MyTimesheetComponent implements OnInit {
   timesheetActivities: any[] = [];
   startDate: any;
   endDate: any;
+  /** 'currentMonth' | 'previousMonth' | 'custom' - drives date filter and visibility of custom date inputs */
+  dateRangeType: 'currentMonth' | 'previousMonth' | 'custom' = 'currentMonth';
+
+  // Hierarchical view expansion state
+  expandedTimesheets: Set<number> = new Set(); // timesheetId
+  expandedLocations: Map<string, Set<number>> = new Map(); // "timesheetId" -> Set<locationMappingId>
+  expandedProjects: Map<string, Set<number>> = new Map(); // "timesheetId_locationId" -> Set<projectId>
   isPolicySidebarOpen = false;
   expandedSection = "attendance";
 
@@ -129,12 +178,32 @@ export class MyTimesheetComponent implements OnInit {
   disableCreateUpdateTimesheet: boolean = false;
   isAutoFilled: boolean = false;
   selectedDate: Date | undefined;
+  /** When set (e.g. from Employee 360), create form opens in team mode with this employee pre-selected */
+  selectedEmpIdForCreate: number | null = null;
 
   isTimesheetLockCheckEnable: any = "true";
   employeeInTNMProject: boolean = false;
   maxMonth: string;
+  minMonth: string;
+  setBulkUploadRange : number;
+  // Summary metrics for mini dashboard (EOD-style counts)
+  // New mini-dashboard summaries (computed from allMyTimesheets for current date range)
+  dayTypeSummary = {
+    working: 0,
+    leave: 0,
+    holidayOrWeekoff: 0,
+    others: 0
+  };
 
-  withVmsbullet:string[] = ["Applicable to resources working on projects with a client-side VMS system.",
+  statusSummary = {
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    others: 0
+  };
+
+
+withVmsbullet:string[] = ["Applicable to resources working on projects with a client-side VMS system.",
 "Daily timesheets must be filled directly in the client’s VMS system.",
 "Ensure entries are accurate and complete for the entire month.",
 "At month-end, submit the VMS timesheet for client-side manager approval.",
@@ -152,12 +221,15 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
 
 
   selectedTimesheet: any;
+  selectedTimesheetId: number | null = null; // For update timesheet flow
   today = new Date().toISOString().split('T')[0];
 
   filters: any = {};
   isSearchEnabled: boolean = false;
-  selfTimesheetColumns: any[] = ['blank', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours','projectName', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType','rejectReason' ,'remarks'];
-  teamTimesheetColumns: any[] = ['blank', 'employeeName', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours','projectName', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason','remarks'];
+  // Simplified columns for card-based accordion view
+  // Column order must match table header: expand, Sr No., [Name if team], Date, Day Type, In, Out, Total Hrs, Status, [Applied By if self], Applied On, Shift, Leave Type, Reject Reason, Remarks, Actions
+  selfTimesheetColumns: any[] = ['blank', 'blank', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'totalWorkingHours', 'statusDisplay', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'blank',  'blank'];
+  teamTimesheetColumns: any[] = ['blank', 'blank', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'totalWorkingHours', 'statusDisplay', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'blank', 'blank', 'blank'];
   tableName: string;
   activeProjectList: Project[];
   selectedProjectId: any;
@@ -188,6 +260,7 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
   activePreviewUrl: SafeResourceUrl | null = null;
   activeFileType: string | null = null;
   mimeType: any;
+  private previewBlobUrl: string | null = null; // for revoking on modal close
   projectRequiresClientId: Boolean = false;
   projAlertRequireClientId: Boolean = false;
   fromDate: any = null;
@@ -204,10 +277,13 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
   @ViewChild("alert_message_with_reset")
   alertModalWithoutReload: TemplateRef<any>;
 
+  @ViewChild("alert_message_for_blank_etm")
+  alertModalWithoutReloadForBlankEtm: TemplateRef<any>;
+
   previousFilledDocument: any;
   previousApprovedDocument: any;
-  minDate: string;
-  maxDate: string;
+  minDate: any;
+  maxDate: any;
   maxToDate: Date | null = null;
   disableList: any;
   disableListFormatted: Date[] = [];
@@ -254,6 +330,8 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
   noOtherShadowResourceTemp: TemplateRef<any>;
   noOtherShadowResourceModalRef:NgbModalRef;
 
+  pickerStartDate : Date | null = null;
+
   //latestProjectId = this.activeProjectList
 
   constructor(
@@ -261,6 +339,7 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
     private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private timesheetService: TimesheetService,
+    private timesheetNewService: TimesheetNewService,
     private exportExcelService: ExportExcelService,
     private datePipe: DatePipe,
     private clipboardService: ClipboardService,
@@ -272,7 +351,8 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
     private sanitizer: DomSanitizer,
     private route: ActivatedRoute,
     private inputValidationService:InputValidationService,
-    private router: Router
+    private router: Router,
+    private excelDownloadService: ExcelDownloadService
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -295,11 +375,17 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
     this.route.queryParams.subscribe(params => {
       if (params['date']) {
         this.isAutoFilled = true;
-        this.timesheetObj.timesheetAppliedFor = 'self';
         this.selectedDate = new Date(params['date']);
+        console.log("selected date : ", this.selectedDate);
       }
-      if (this.isAutoFilled) {
-        this.loadAutofillData()
+      // From Employee 360: HR/Admin creating timesheet for the employee they were viewing
+      if (params['empId']) {
+        const empId = Number(params['empId']);
+        if (!isNaN(empId)) {
+          this.selectedEmpIdForCreate = empId;
+          this.isAutoFilled = true;
+          console.log("selected empId for create (from 360): ", this.selectedEmpIdForCreate);
+        }
       }
     });
     this.clientSideIdNotMandatory = true;
@@ -314,6 +400,7 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
     this.preventBackButton();
     this.isEmployeeInTNMProject();
     this.thisMonthValidation();
+    this.setStartDateMinMax();
     this.showBulkButton();
     // this.setStartDateMinMax();
     this.timeReset();
@@ -325,7 +412,96 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
     // this.checkUploadEligibility();
     this.isFullMonthSelected();
 
+    // Load summary metrics for mini dashboard
+    console.log("*****called*******")
+    this.loadTimesheetSummary();
+
   }
+
+  /**
+   * Load summary metrics for EOD-style counts:
+   * - EOD (Last 7 days)
+   * - EOD (This month)
+   * - EOD (Last month)
+   *
+   * Uses the same backend API as Home page (getTimesheetsForHomePageByEmpId),
+   * and counts the number of days with at least one timesheet entry.
+   */
+  loadTimesheetSummary(): void {
+    // Legacy backend-based summary (last7/thisMonth/lastMonth) is no longer used in UI.
+    // Summary dashboard is now computed from allMyTimesheets for the currently selected date range.
+    return;
+  }
+
+  /**
+   * Recompute mini-dashboard summaries from the currently loaded timesheets.
+   * Uses allMyTimesheets (self or team) and the selected date range (startDate/endDate).
+   *
+   * Day type grouping:
+   * - working: any dayType containing "working", "half-day working", or "non-working"
+   * - leave: any dayType containing "leave"
+   * - holiday/week off: any dayType containing "holiday" or "week off/weekoff"
+   */
+  private recomputeSummaryFromTimesheets(): void {
+    const day = {
+      working: 0,
+      leave: 0,
+      holidayOrWeekoff: 0,
+      others: 0
+    };
+
+    const status = {
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+      others: 0
+    };
+
+    if (!this.allMyTimesheets || this.allMyTimesheets.length === 0) {
+      this.dayTypeSummary = day;
+      this.statusSummary = status;
+      return;
+    }
+
+    for (const ts of this.allMyTimesheets) {
+      const rawDayType = ts.dayType ? String(ts.dayType) : '';
+      const dayType = rawDayType.toLowerCase().trim();
+
+      // Order matters: leave-specific labels first, then working/non-working, then holidays/weekoffs, then others.
+      if (dayType.includes('leave')) {
+        day.leave++;
+      } else if (
+        dayType.includes('working') ||          // "Working", "Half-day Working"
+        dayType.includes('non-working')        // explicit for clarity (even though it also contains "working")
+      ) {
+        day.working++;
+      } else if (dayType.includes('holiday') || dayType.includes('week off') || dayType.includes('weekoff')) {
+        day.holidayOrWeekoff++;
+      } else {
+        day.others++;
+      }
+
+      switch (ts.status) {
+        case 1:
+          status.pending++;
+          break;
+        case 2:
+          status.approved++;
+          break;
+        case 3:
+          status.rejected++;
+          break;
+        default:
+          status.others++;
+          break;
+      }
+    }
+
+    this.dayTypeSummary = day;
+    this.statusSummary = status;
+  }
+
+
   preventBackButton() {
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(() => {
@@ -333,6 +509,17 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
     })
   }
 
+  onFormTypeSelect(formType:string){
+    if(formType == 'createTimesheet'){
+      this.showCreateTimesheetForm();
+    }else if(formType =='bulkUpload'){
+      this.resetTimesheetForm();
+      this.showBulkUploadForm();
+    }else if(formType =='viewMyTimesheet'){
+      this.resetTimesheetForm();
+      this.showViewMyTimesheets()
+    }
+  }
 
 //   openUserManualPdf(): void {
 //   const pdfPath = 'assets/pdfFiles/Ishine_Timesheet_TNM.pdf';
@@ -345,6 +532,7 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
 
 //   this.rulesInfoModalRef = this.modalService.open(this.previewRulesInfoModal,{ class: 'modal-xl modal-dialog-centered' });
 // }
+
 
 openUserManualPdf(): void {
   const pdfPath = 'assets/pdfFiles/Ishine_Timesheet_TNM.pdf';
@@ -617,8 +805,8 @@ get tooltipCta(): string {
     this.makeApmosysOutTime();
     this.makeClientInTime();
     this.makeClientOutTime();
-    this.getProjectListForDateAndEmpId();
-    this.resetTimesheetFormOnDateChange('isNightShiftModal');
+    this.resetTimesheetFormOnDateChange();
+    console.log("after method calls ", this.fromDate);
   }
 
 
@@ -633,6 +821,14 @@ get tooltipCta(): string {
     this.isTimesheetTable = false;
     this.isUpdation = false;
     this.isTimesheetBulkForm = false;
+
+    // Clear update-mode state so Create form is clean (no previous timesheet data)
+    this.selectedTimesheetId = null;
+    // IMPORTANT: do NOT clear selectedDate when coming from "create from home" (auto-filled via query param)
+    // so that it can be passed down to the child form for autofill.
+    if (!this.isAutoFilled) {
+      this.selectedDate = undefined;
+    }
 
     this.rawObjectUrl1 = null;
     this.previewUrl1 = null;
@@ -652,18 +848,25 @@ get tooltipCta(): string {
 
   showBulkUploadForm() {
     this.clientSideIdNotMandatory = true;
-    this.isTimesheetForm = false;
-    this.isCreation = false;
+  this.isTimesheetForm = false;
+  this.isCreation = false;
+  this.isTimesheetTable = false;
+  this.isUpdation = false;
+  this.isTimesheetBulkForm = true;
+    this.setBulkUploadRange = 1;
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth(); // 0-indexed
 
-    this.isTimesheetTable = false;
-    this.isUpdation = false;
+  // Max = current month
+  this.maxMonth = `${year}-${String(month + 1).padStart(2, '0')}`;
 
-    this.isTimesheetBulkForm = true;
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    this.maxMonth = `${year}-${month}`;
-    this.reset();
+  const prevMonthDate = new Date(year, month - this.setBulkUploadRange, 1);
+  const prevYear = prevMonthDate.getFullYear();
+  const prevMonth = String(prevMonthDate.getMonth() + 1).padStart(2, '0');
+  this.minMonth = `${prevYear}-${prevMonth}`;
+  console.log(today, year, month,'<-month', prevMonth , prevYear,prevMonth, this.maxMonth, this.minMonth,'*-*-*-*-*-*-*-*-*-');
+  this.reset();
   }
 
   showViewMyTimesheets() {
@@ -676,22 +879,22 @@ get tooltipCta(): string {
 
     this.showSelfTimesheets();
   }
- 
+
   showSelfTimesheets() {
     this.isSelfTimesheets = true;
     this.isTeamTimesheets = false;
 
     this.page = 1;
 
-    this.startDate = null;
-    this.endDate = null;
-
+    // Reset filters and table state
     this.allMyTimesheets = [];
     this.data = '';
-
     this.filters = {};
     this.isSearchEnabled = false;
     this.setStartDateMinMax();
+
+    this.dateRangeType = 'currentMonth';
+    this.applyDateRangeTypeAndLoad();
   }
 
   showTeamTimesheets() {
@@ -700,30 +903,66 @@ get tooltipCta(): string {
 
     this.page = 1;
 
-    this.startDate = null;
-    this.endDate = null;
-
+    // Reset filters and table state
     this.allMyTimesheets = [];
     this.data = '';
-
     this.filters = {};
     this.isSearchEnabled = false;
 
     this.teamMemberList = [];
     this.setStartDateMinMax();
 
-    let employeeObj = new Employee();
-    employeeObj.empId = this.currentUser.empId;
-    this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.teamMemberList = response.serviceResponse;
-        //console.log("teamMemberList : ", this.teamMemberList);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+    this.dateRangeType = 'currentMonth';
+    this.applyDateRangeTypeAndLoad();
+
+    // let employeeObj = new Employee();
+    // employeeObj.empId = this.currentUser.empId;
+    // this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.teamMemberList = response.serviceResponse;
+    //     //console.log("teamMemberList : ", this.teamMemberList);
+    //   } else {
+    //     console.error(response.serviceResponse);
+    //   }
+    // });
+    this.getMyTeamTimesheets();
+
   }
 
+  /**
+   * Applies the selected date range type (current month, previous month, or custom) by setting
+   * startDate/endDate when not custom, then loads self or team timesheets.
+   */
+  applyDateRangeTypeAndLoad() {
+    const today = new Date();
+    this.page = 1;
+    if (this.dateRangeType === 'currentMonth') {
+      const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
+      this.endDate = moment(today).format(AppComponent.DB_DATE_FORMAT);
+    } else if (this.dateRangeType === 'previousMonth') {
+      const prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const lastDayPrev = new Date(today.getFullYear(), today.getMonth(), 0);
+      this.startDate = moment(prevMonth).format(AppComponent.DB_DATE_FORMAT);
+      this.endDate = moment(lastDayPrev).format(AppComponent.DB_DATE_FORMAT);
+    }
+    // custom: keep existing startDate/endDate
+    if (this.isSelfTimesheets) {
+      this.getAllMyTimesheetsByEmpId();
+    } else if (this.isTeamTimesheets) {
+      this.getMyTeamTimesheets();
+    }
+  }
+
+  /**
+   * Switches to custom date range and clears start/end dates so the user can select fresh.
+   */
+  switchToCustomDateRange() {
+    this.dateRangeType = 'custom';
+    this.startDate = null;
+    this.endDate = null;
+    this.page = 1;
+  }
 
   showBulkButton(){
      this.timesheetService.wasEmployeeInClientProjCurrAndPrevMon(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
@@ -746,19 +985,39 @@ get tooltipCta(): string {
 
   }
 
-  checkTimesheetForInActiveActivities(timesheetObj: Timesheet, template: TemplateRef<any>) {
+  checkTimesheetForInActiveActivitiesOLD(timesheetObj: any, template: TemplateRef<any>) {
+    console.log("The timesheet object is", timesheetObj);
 
-    if (timesheetObj.dayType == "Working" && (timesheetObj.status == "Pending" || timesheetObj.status == "Rejected") && timesheetObj?.inactiveTimesheetActivities) {
+    // Handle hierarchical EmployeeTimesheetDTO structure
+    const status = timesheetObj.statusDisplay || this.mapStatusToString(timesheetObj.status);
+    const dayType = timesheetObj.dayType;
+
+    // Store selected timesheet for inactive activities check
+    this.selectedTimesheet = timesheetObj;
+
+    if (dayType == "Working" && (status === "Pending" || status === "Rejected") && timesheetObj?.inactiveTimesheetActivities) {
       this.openInActiveUpdateConfimationModal(template, timesheetObj);
-      this.previousFilledDocument = timesheetObj.filledDocument;
-      this.previousApprovedDocument = timesheetObj.approvedDocument;
-
+      // Note: Document handling may need adjustment for hierarchical structure
+      this.previousFilledDocument = timesheetObj.documentData?.find((d: any) => d.docType === 'Filled')?.docId;
+      this.previousApprovedDocument = timesheetObj.documentData?.find((d: any) => d.docType === 'Approved')?.docId;
     } else {
       this.showUpdateTimesheetForm(timesheetObj);
-      this.previousFilledDocument = timesheetObj.filledDocument;
-      this.previousApprovedDocument = timesheetObj.approvedDocument;
+      // Note: Document handling may need adjustment for hierarchical structure
+      this.previousFilledDocument = timesheetObj.documentData?.find((d: any) => d.docType === 'Filled')?.docId;
+      this.previousApprovedDocument = timesheetObj.documentData?.find((d: any) => d.docType === 'Approved')?.docId;
     }
   }
+
+    openEditTimesheetForm(timesheetObj: any) {
+     console.log("The timesheet object is", timesheetObj);
+     this.showUpdateTimesheetForm(timesheetObj);
+     // Note: Document handling may need adjustment for hierarchical structure
+     this.previousFilledDocument = timesheetObj.documentData?.find((d: any) => d.docType === 'Filled')?.docId;
+     this.previousApprovedDocument = timesheetObj.documentData?.find((d: any) => d.docType === 'Approved')?.docId;
+    }
+
+
+
 
   updateInactiveActivitiesTimesheet() {
     this.showUpdateTimesheetForm(this.selectedTimesheet);
@@ -766,13 +1025,22 @@ get tooltipCta(): string {
 
 
   onMonthYearChange() {
+     if (!this.timesheetObj.monthYear) {
+    this.resetBulkUploadForm('MONTH');
+    return;
+  }
+  
+  const [year, month] = this.timesheetObj.monthYear.split('-').map(Number);
+  this.pickerStartDate = new Date(year, month - 1, 1);
+
   this.resetBulkUploadForm('MONTH');
   this.getMyProjectsInMonthYear();
   }
 
    getMyProjectsInMonthYear() {
-
+      this.timesheetObj.c
       this.timesheetObj.empId = this.currentUser.empId;
+      console.log("***-*-*-*---*" , this.timesheetObj);
       this.timesheetService.getMyProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.projectsInMonthYear = response.serviceResponse;
@@ -807,6 +1075,8 @@ get tooltipCta(): string {
 
     if (level === 'MONTH') {
       this.timesheetObj.projectId = null;
+      this.timesheetObj.clientInTime = null;
+      this.timesheetObj.clientOutTime = null;
       this.projectsInMonthYear = [];
     }
 
@@ -825,95 +1095,58 @@ get tooltipCta(): string {
 
 
 
+  /**
+   * Open the update timesheet form (new implementation).
+   * Minimal flow: set only what app-timesheet-form needs. Form loads all data via loadTimesheetForUpdate(timesheetId).
+   * No parent API calls here (getAllAvailableTimesheetByEmpId, getProjectList, getClientDetails, etc.) – form is self-contained.
+   */
   showUpdateTimesheetForm(timesheetObj: Timesheet) {
-    this.isTimesheetForm = true;
-    this.isUpdation = true;
+    const timesheetId = timesheetObj.timesheetId ?? null;
+    if (timesheetId == null) {
+      console.error('showUpdateTimesheetForm: timesheetId is required');
+      return;
+    }
+
+    // Reset so form is destroyed, then show with correct inputs in next tick
+    this.isTimesheetForm = false;
+    this.isUpdation = false;
+    this.selectedTimesheetId = null;
+    this.selectedDate = undefined;
 
     this.isTimesheetTable = false;
     this.isCreation = false;
     this.isTimesheetUpdate = true;
-    // console.log("OLD", timesheetObj);
 
+    this.selectedTimesheetId = timesheetId;
+    this.selectedDate = this.parseTimesheetRowDate(timesheetObj.date);
 
-    this.timesheetObj = Object.assign({}, timesheetObj);
+    setTimeout(() => {
+      this.isTimesheetForm = true;
+      this.isUpdation = true;
+    }, 0);
+  }
 
-    this.timesheetObj.updatedTimesheetActivities = [];
-    this.timesheetObj.date = (this.timesheetObj.date) ? moment(timesheetObj.date, "DD-MM-YYYY").toDate() : '';
-    this.fromDate = new Date(this.timesheetObj.date);
-    this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime) ? moment(timesheetObj.officeInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime) ? moment(timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    this.timesheetObj.createdOn = (this.timesheetObj.createdOn) ? moment(timesheetObj.createdOn, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    this.timesheetObj.dayType = (this.timesheetObj.dayType == "Holiday") ? "Week Off" : this.timesheetObj.dayType;
-    this.timesheetObj.clientInTime = (this.timesheetObj.clientInTime) ? moment(timesheetObj.clientInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    this.timesheetObj.clientOutTime = (this.timesheetObj.clientOutTime) ? moment(timesheetObj.clientOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
+  /** Parse date from table row (DD-MM-YYYY string or Date) to Date for selectedDate. */
+  private parseTimesheetRowDate(date: any): Date | undefined {
+    if (date == null) return undefined;
+    if (date instanceof Date) return date;
+    const parsed = moment(date, ['DD-MM-YYYY', 'YYYY-MM-DD'], true);
+    return parsed.isValid() ? parsed.toDate() : undefined;
+  }
 
-    if (this.timesheetObj.officeInTime) {
-      this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
-    }
-
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" ||this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
-      this.__tempDescription = this.timesheetObj.description;
-    }
-
-    let userObj: User = new User();
-    if (this.isSelfTimesheets) {
-      this.timesheetObj.timesheetAppliedFor = "self";
-      this.timesheetObj.empId = this.currentUser.empId;
-      // this.timesheetObj.shadowFor = "Self";
-
-      userObj.empId = this.currentUser.empId;
-      userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-    } else if (this.isTeamTimesheets) {
-      this.timesheetObj.timesheetAppliedFor = "team";
-
-      let teamMember = this.teamMemberList.find(employee => employee.empId == timesheetObj.empId)
-      //console.log("Team Member : ", teamMember);
-      userObj.empId = teamMember.empId;
-      userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-      this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-    }
-
-    this.fromDate = new Date(this.timesheetObj.date);
-    this.toDate = this.timesheetObj.officeOutTime ? new Date(moment(this.timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").format("YYYY-MM-DD")) : '';
-    if (this.timesheetObj.officeInTime) {
-      this.setTimeDropdowns(this.timesheetObj.officeInTime, 'In');
-    }
-    if (this.timesheetObj.officeOutTime) {
-      this.setTimeDropdowns(this.timesheetObj.officeOutTime, 'Out');
-    }
-    const status = (this.timesheetObj.clientApprovalStatus || '').toLowerCase();
-    this.clientSideIdNotMandatory = !(status === 'pending' || status === 'approved');
-
-    if (!this.clientSideIdNotMandatory) {
-      const officeIn = this.timesheetObj.officeInTime;
-      const officeOut = this.timesheetObj.officeOutTime;
-      const clientIn = this.timesheetObj.clientInTime;
-      const clientOut = this.timesheetObj.clientOutTime;
-
-      if (officeIn && officeOut && clientIn && clientOut) {
-
-        const isInSame = moment(officeIn).isSame(moment(clientIn), 'minute');
-        const isOutSame = moment(officeOut).isSame(moment(clientOut), 'minute');
-
-        this.syncTimes = isInSame && isOutSame;
-
-      }
-      if (this.timesheetObj.clientInTime) {
-        this.setTimeDropdowns(this.timesheetObj.clientInTime, 'ClientIn');
-      }
-      if (this.timesheetObj.clientOutTime) {
-        this.setTimeDropdowns(this.timesheetObj.clientOutTime, 'ClientOut');
-      }
-    }
-    this.getProjectListForDateAndEmpId();
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
-      return;
-    }
-      this.getClientDetailsByProjectIdAndEmpId();
-
-      this.getAllAvailableTimesheetByEmpId(this.timesheetObj.empId);
-      this.onProjectSelect(timesheetObj.projectId);
-
+  /**
+   * Handle timesheet updated event from form component
+   * @param timesheetId - ID of the updated timesheet
+   */
+  onTimesheetUpdated(timesheetId: number): void {
+    // Show success message to user
+    this.openAlertMod(this.alertTemplate, 'Timesheet updated successfully.');
+    // Refresh the timesheet list and summary dashboard after update
+    this.isTeamTimesheets = false;
+    // Reset form state
+    this.resetTimesheetForm();
+    this.getAllMyTimesheetsByEmpId();
+    this.loadTimesheetSummary();
   }
 
 
@@ -1130,48 +1363,6 @@ get tooltipCta(): string {
     );
   }
 
-
-
-
-
-
-  // filterHolidayListByYear(value: any) {
-  //   // Reset selections
-  //   this.selectedHolidayType = "";
-  //   this.selectedYear = value;
-
-  //   console.log("Selected year:", this.selectedYear);
-
-  //   this.holidayListFilter = this.holidayList.filter((holiday: Holiday) => {
-  //     const holidayYear = moment(holiday.dateOfHoliday, "DD-MM-YYYY").year();
-  //     return (
-  //       holiday.holidayType !== "WeekOff" &&
-  //       holiday.holidayType !== "nonWorking" &&
-  //       holidayYear === this.selectedYear
-  //     );
-  //   });
-
-
-  //   this.Allholidays = this.holidayListFilter.map((holiday: Holiday) =>
-  //     holiday.dateOfHoliday
-  //       ? moment(holiday.dateOfHoliday, AppComponent.DATE_FORMAT).format(AppComponent.DB_DATE_FORMAT)
-  //       : ''
-  //   ).filter(date => date !== '');
-
-  //   console.log("Selected holidayListFilter:", this.Allholidays);
-  //   console.log("Selected Allholidays:", this.Allholidays);
-  // }
-
-
-
-
-
-
-
-
-
-
-
   //Manage the weekoff and holidays
   customDateFilter: (date: Date) => boolean = (date: Date): boolean => {
 
@@ -1224,54 +1415,7 @@ get tooltipCta(): string {
   // }
 
   getFilteredDates(dayType: string): Date[] {
-
-
-    console.log("date filter ", this.Allholidays);
-
-    const DAY_IN_MS = 24 * 60 * 60 * 1000;
-    const currentDate = new Date();
-    const backDatedDays = this.currentUser.timesheetBackDatedDays || 30;
-    const startDate = new Date(currentDate.getTime() - backDatedDays * DAY_IN_MS);
-
-    // const publicHolidays = ['2024-11-25', '2024-11-01']; // Add public holiday dates here.
-
-    // if (dayType === 'Public Holiday') {
-    //   // Filter for Public Holidays
-
-    //   console.log("hodays ",this.Allholidays)
-
-    //   return this.Allholidays
-    //     .map(date => new Date(date))
-    //     .filter(holidayDate => holidayDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date === this.datePipe.transform(holidayDate, 'yyyy-MM-dd')));
-    // }
-
-    if (dayType === 'Non-working') {
-
-      // Filter for holidays
-      const holidayDates = this.Allholidays
-        .map(date => new Date(date))
-        .filter(holidayDate => holidayDate >= startDate &&
-          holidayDate <= currentDate &&
-          this.availableTimesheets.find(timesheet => timesheet.date === this.datePipe.transform(holidayDate, 'yyyy-MM-dd'))
-        );
-
-      // Filter for week-off dates
-      const weekOffDates = this.AllWeekOfList
-        .map(date => new Date(date))
-        .filter(
-          weekOffDate =>
-            weekOffDate >= startDate &&
-            weekOffDate <= currentDate &&
-            this.availableTimesheets.find(
-              timesheet => timesheet.date === this.datePipe.transform(weekOffDate, 'yyyy-MM-dd')
-            )
-        );
-
-      // Combine the holidays and week off dates
-      return [...holidayDates, ...weekOffDates];
-    }
-
-
+    // Legacy helper – kept for reference; main Non-working date rules now live in TimesheetFormComponent.
     return [];
   }
 
@@ -1975,9 +2119,9 @@ get tooltipCta(): string {
     this.previousApprovedDocument = this.timesheetObj.approvedDocument;
 
     if (this.selectedFile2 !== null && this.selectedFile2 != undefined) {
-
+      console.log(this.timesheetObj.bulkapprovedId);
       let newDoc2: TimesheetDoc = {
-        docId: this.previousApprovedDocument,
+        docId: this.timesheetObj.bulkApprovedDocId != null?this.previousFilledDocument:this.previousApprovedDocument,
         docName: this.fileName2,
         empId: this.timesheetObj.empId,
         clientApprovalStatus: "Approved",
@@ -2056,8 +2200,10 @@ get tooltipCta(): string {
 
 
     } else {
+      console.log("Team member list is",this.teamMemberList);
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
-      userObj.empId = teamMember.empId;
+      console.log("Team member is ",teamMember);
+      userObj.empId = teamMember?.empId;
       userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
       this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
       this.timesheetObj.empId = teamMember.empId;
@@ -2095,6 +2241,7 @@ get tooltipCta(): string {
   }
 
   getAllTeamMemberList() {
+    console.log("Timesheet object is",this.timesheetObj)
     this.resetTimesheetFormForAutoFill();
     this.teamMemberList = []
     this.timesheetObj.date = ''
@@ -2123,34 +2270,7 @@ get tooltipCta(): string {
         }
       });
     }
-
-  }
-
-  getAllProjectsByEmpId(employeeObj: User) {
-    this.allProjectsList = [];
-    this.clientList = [];
-    this.clientLocationList = [];
-    this.projectList = [];
-    // this.teamList = [];
-
-    let timesheetObj = new Timesheet();
-    timesheetObj.empId = employeeObj.empId;
-    this.timesheetService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allProjectsList = response.serviceResponse;
-        if (this.allProjectsList.length == 0) {
-        }
-        else {
-          const key = "clientId";
-          this.clientList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].map((project: Timesheet) => {
-            return { clientId: project.clientId, clientName: project.clientName, projectId: project.projectId }
-          });
-        }
-      } else {
-        console.error(response.serviceResponse)
-        this.openAlertWithResetMod(this.alertModalWithoutReload, "Please contact the RMG team and set up your default project mapping!");
-      }
-    });
+    console.log("Timesheet object is",this.timesheetObj)
   }
 
   getProjectList(activityObj: Activity) {
@@ -2284,7 +2404,7 @@ get tooltipCta(): string {
     timesheetObj.endDate = moment(endDate).format(AppComponent.DB_DATE_FORMAT);
 
     //console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
-    this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetNewService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.availableTimesheets = response.serviceResponse;
       } else {
@@ -2318,6 +2438,17 @@ get tooltipCta(): string {
   /* View Timesheets */
   getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
     this.allMyTimesheets = [];
+
+    // Custom range: require both dates before calling API
+    if (this.dateRangeType === 'custom' && (!this.startDate || !this.endDate)) {
+      this.recomputeSummaryFromTimesheets();
+      return;
+    }
+    // When called on from date (start date) change: don't call API if end date is not yet set
+    if (this.startDate && (this.endDate == null || this.endDate === '' || this.endDate === undefined)) {
+      return;
+    }
+
     if (this.endDate < this.startDate) {
       if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
         this.alertMessage = "Please enter Start Date !!"
@@ -2342,30 +2473,102 @@ get tooltipCta(): string {
       timesheetObj.endDate = this.endDate;
 
       //console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
-      this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+      this.timesheetNewService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allMyTimesheets = response.serviceResponse;
-          this.allMyTimesheets.forEach(timesheet => {
-            timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-            timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-            timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-            timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-            timesheet.isNightShiftDisplay = (timesheet.isNightShift == 'true') ? 'Night Shift' : 'Regular Shift';
-            if (timesheet.clientSideId) {
-              timesheet.clientInTime = (timesheet.clientInTime) ? moment(timesheet.clientInTime).format(AppComponent.DATETIME_FORMAT) : null;
-              timesheet.clientOutTime = (timesheet.clientOutTime) ? moment(timesheet.clientOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-            }
-          });
+          this.processHierarchicalTimesheetData();
+          this.recomputeSummaryFromTimesheets();
         } else {
           console.error(response.serviceResponse)
+          this.allMyTimesheets = [];
+          this.recomputeSummaryFromTimesheets();
         }
+      }, (error) => {
+        console.error("Error fetching timesheets:", error);
+        this.allMyTimesheets = [];
+        this.recomputeSummaryFromTimesheets();
       });
 
     }
   }
 
+  /**
+   * Process hierarchical timesheet data from API response
+   * Formats dates, calculates totals, and prepares data for display
+   */
+  processHierarchicalTimesheetData(): void {
+    this.allMyTimesheets.forEach(timesheet => {
+      // Format main timesheet dates
+      timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+      timesheet.workCheckIn = (timesheet.workCheckIn) ? moment(timesheet.workCheckIn).format(AppComponent.DATETIME_FORMAT) : null;
+      timesheet.workCheckOut = (timesheet.workCheckOut) ? moment(timesheet.workCheckOut).format(AppComponent.DATETIME_FORMAT) : null;
+      timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+      timesheet.isNightShiftDisplay = (timesheet.isNightShift == true || timesheet.isNightShift === 'true') ? 'Night Shift' : 'Regular Shift';
+      timesheet.statusDisplay = this.mapStatusToString(timesheet.status);
+
+      // Ensure filterable fields exist so column search works (ColFilterPipe uses item[key])
+      timesheet.createdByName = timesheet.createdByName != null ? String(timesheet.createdByName) : '';
+      // For self timesheets, applicant is always current user when backend does not send createdByName yet
+      if (!timesheet.createdByName && this.isSelfTimesheets && this.currentUser?.name) {
+        timesheet.createdByName = this.currentUser.name;
+      }
+      timesheet.leaveType = timesheet.leaveType != null ? String(timesheet.leaveType) : '';
+      timesheet.rejectReason = timesheet.rejectReason != null ? String(timesheet.rejectReason) : '';
+      timesheet.remarks = timesheet.remarks != null ? String(timesheet.remarks) : '';
+      timesheet.totalWorkingHours = this.getTotalWorkingHours(timesheet.totalWorkingMinutes?? 0, false);
+      // Populate from first rejection in nested data if not at top level
+      if ((!timesheet.rejectReason || !timesheet.remarks) && timesheet.locationSessions && timesheet.locationSessions.length > 0) {
+        for (const loc of timesheet.locationSessions) {
+          if (loc.projects && loc.projects.length > 0) {
+            for (const proj of loc.projects) {
+              if (proj.rejectionDetails && proj.rejectionDetails.length > 0) {
+                const r = proj.rejectionDetails[0];
+                if (!timesheet.rejectReason && r.rejectionReason) timesheet.rejectReason = r.rejectionReason;
+                if (!timesheet.remarks && r.remark) timesheet.remarks = r.remark;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      // Process location sessions
+      if (timesheet.locationSessions && timesheet.locationSessions.length > 0) {
+        let totalActivityMinutes = 0;
+
+        timesheet.locationSessions.forEach((location: any) => {
+          // Format location times (they come as "HH:mm" or "HH:mm:ss" strings from backend)
+          // If they need formatting, we can add it here
+          // location.locationInTime and location.locationOutTime are already strings
+
+          // Process projects within location
+          if (location.projects && location.projects.length > 0) {
+            location.projects.forEach((project: any) => {
+              // Calculate project total hours from activities
+              if (project.activities && project.activities.length > 0) {
+                let projectTotalMinutes = 0;
+                project.activities.forEach((activity: any) => {
+                  if (activity.durationMinutes) {
+                    projectTotalMinutes += activity.durationMinutes;
+                    totalActivityMinutes += activity.durationMinutes;
+                  }
+                });
+                project.totalActivityMinutes = projectTotalMinutes;
+              }
+            });
+          }
+        });
+
+        // Store total activity minutes for display
+        timesheet.totalActivitiesMinutes = totalActivityMinutes;
+      }
+    });
+  }
+
   /* Timesheets Applied By ME for My Team Members */
   getMyTeamTimesheets(template?: TemplateRef<any>) {
+    this.isTeamTimesheets = true;
+    this.isSelfTimesheets = false;
     this.allMyTimesheets = [];
 
     if (this.endDate) {
@@ -2389,27 +2592,28 @@ get tooltipCta(): string {
     timesheetObj.startDate = this.startDate;
     timesheetObj.endDate = this.endDate;
 
-    //console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
+    // Backend now returns hierarchical EmployeeTimesheetDTO structure
     this.timesheetService.getAllMyTeamTimesheets(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allMyTimesheets = response.serviceResponse;
-        this.allMyTimesheets.forEach(timesheet => {
-          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-          timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.isNightShiftDisplay = (timesheet.isNightShift == 'true') ? 'Night Shift' : 'Regular Shift';
-        });
-        //console.log("allMyTimesheets :", this.allMyTimesheets);
+        this.processHierarchicalTimesheetData();
+        this.recomputeSummaryFromTimesheets();
       } else {
         console.error(response.serviceResponse);
+        this.allMyTimesheets = [];
+        this.recomputeSummaryFromTimesheets();
       }
+    }, (error) => {
+      console.error("Error fetching team timesheets:", error);
+      this.allMyTimesheets = [];
+      this.recomputeSummaryFromTimesheets();
     });
   }
 
   resetToDate() {
     this.endDate = ''
     this.allMyTimesheets = [];
+    this.recomputeSummaryFromTimesheets();
   }
 
   getAllMyActivitiesByTimesheetId(timesheet: any) {
@@ -2525,32 +2729,66 @@ get tooltipCta(): string {
   exportToExcel(): void {
 
     if (this.isTimesheetTable == true) {
-      this.excelName = 'MyTimeSheet.xlsx'
+      this.excelName = 'MyTimeSheet.xlsx';
 
-      const _allEmployeeList = this.allMyTimesheets.slice()
-      this.allMyTimesheetsDataForExcel = _allEmployeeList.sort((a, b) => (new Date(a.date).getTime() > new Date(b.date).getTime()) ? 1 : -1);
+      // Use filtered data when user has applied search, otherwise all data
+      const sourceList = (this.filters && Object.keys(this.filters).length > 0)
+        ? this.allMyTimesheets.filter(item => {
+            return Object.keys(this.filters).every(key => {
+              const searchVal = this.filters[key];
+              if (searchVal == null || searchVal === '') return true;
+              const cellVal = item[key];
+              const str = cellVal != null ? String(cellVal) : '';
+              try {
+                return new RegExp(String(searchVal).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi').test(str);
+              } catch {
+                return str.toLowerCase().includes(String(searchVal).toLowerCase());
+              }
+            });
+          })
+        : this.allMyTimesheets.slice();
 
-      const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(
-        x => ({
-          "Date": x.date,
-          "Day Type": x.dayType,
-          "In Time": x.officeInTime,
-          "Out Time": x.officeOutTime,
-          "Total Working Hours": x.totalWorkingOfficeHours,
-          "Project Name" :x.projectName,
-          "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
-          "Total Activity Time": x.totalTime,
-          "Status": x.status,
-          "Applied By": x.createdByName,
-          "Applied On": x.createdOn,
-          "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
-          "Leave Type": x.leaveType,
-          "Remarks": x.remarks
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+      this.allMyTimesheetsDataForExcel = sourceList.sort((a, b) =>
+        (new Date(a.date).getTime() > new Date(b.date).getTime()) ? 1 : -1
+      );
+
+      const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(x => {
+        const projectNames = this.getProjectNamesFromTimesheet(x);
+        return {
+          ...(this.isTeamTimesheets ? { 'Employee Name': x.employeeName ?? '' } : {}),
+          'Date': x.date ?? '',
+          'Day Type': x.dayType ?? '',
+          'In Time': x.workCheckIn ?? '',
+          'Out Time': x.workCheckOut ?? '',
+          'Total Working Hours': this.getTotalWorkingHours(x.totalWorkingMinutes ?? 0, false),
+          'Project Name': projectNames,
+          'Timesheet Details': x.description?.replaceAll('<br>', ' \n') ?? '',
+          'Total Activity Time': this.getTotalWorkingHours(x.totalActivitiesMinutes ?? 0, true),
+          'Status': x.statusDisplay ?? this.mapStatusToString(x.status) ?? '',
+          'Applied By': x.createdByName ?? '',
+          'Applied On': x.createdOn ?? '',
+          'Shift Type': x.isNightShiftDisplay ?? (x.isNightShift === true || x.isNightShift === 'true' ? 'Night Shift' : 'Regular Shift'),
+          'Leave Type': x.leaveType ?? '',
+          // 'Reject Reason': x.rejectReason ?? '',
+          // 'Remarks': x.remarks ?? ''
+        };
+      });
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
     }
+  }
 
+  /**
+   * Get comma-separated project names from timesheet locationSessions (for Excel export).
+   */
+  private getProjectNamesFromTimesheet(timesheet: any): string {
+    if (!timesheet?.locationSessions?.length) return '';
+    const names: string[] = [];
+    timesheet.locationSessions.forEach((loc: any) => {
+      (loc.projects || []).forEach((p: any) => {
+        if (p.projectName) names.push(p.projectName);
+      });
+    });
+    return [...new Set(names)].join(', ');
   }
 
   getAllMyLeaveApplicationsByEmpId(userObj: User) {
@@ -2799,26 +3037,7 @@ get tooltipCta(): string {
     //console.log("Updated Filter : ", this.filters);
   }
 
-  getProjectListForDateAndEmpId() {
-    //employeeTeamMapping has startDate and endDate as localDateTime
-    const d = new Date(this.fromDate);
-    const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
-
-    const payload = {
-      empId: this.timesheetObj.empId,
-      date: localDateTime
-    };
-
-    this.timesheetService.getProjectListForDateAndEmpId(payload).pipe(first()).subscribe(async(response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.activeProjectList = response.serviceResponse;
-        console.log("Active Project List :::::::::", this.activeProjectList);
-
-      } else {
-        console.error("Service Response for this.activeProjectList :::::::", response.serviceResponse);
-      }
-    });
-  }
+ 
 
   isEmployeeInTNMProject(){
      this.timesheetService.isEmployeeInTNMProject(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
@@ -2848,31 +3067,110 @@ get tooltipCta(): string {
 
 
 
-getDoscForPreview(docId: any) {
-  this.timesheetService.getDocumentDataByDocId(docId)
-    .pipe(first())
-    .subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
+  /**
+   * Document preview from My-Timesheet: uses EmployeeTimesheetControllerNew.getDocumentDataByDocId (blob).
+   * @param docId - Document ID
+   * @param approvedDocType - true for Approved (FinalDocumentNew), false for Filled (TimesheetDocumentDetailsNew)
+   */
 
-        this.docData2 = response.serviceResponse.docData;
-        this.mimeType = response.serviceResponse.docMimeType;
+  getDoscForPreview(docId: any, approvedDocType: boolean) {
+    this.timesheetNewService.getDocumentDataByDocId(Number(docId), approvedDocType)
+      .pipe(first())
+      .subscribe({
+        next: (blob: Blob) => {
+          const mimeType = blob.type || 'application/octet-stream';
+          if (this.isExcelMimeType(mimeType)) {
+            const fileName = `document.${mimeType.includes('openxml') ? 'xlsx' : 'xls'}`;
+           
+            // this.downloadBlobAsFile(blob, fileName);
+            this.excelDownloadService.openConfirmAndDownload(blob, fileName);
+          } else {
+            this.showPreviewFromBlob(blob);
+          }
+        },
+        error: (err) => {
+  let message = 'Something went wrong';
+  let title = 'Error';
 
-        // Excel → Download
-        if (
-          this.mimeType === 'application/vnd.ms-excel' ||
-          this.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        ) {
-          const fileName = response.serviceResponse.docName || 'document.xlsx';
-          this.downloadExcel(this.docData2, this.mimeType, fileName);
-        }
-        // PDF / Image → Preview
-        else {
-          this.showPreview(this.docData2, this.mimeType);
-        }
+  const openPopup = (title: string, message: string) => {
+    this.popupTitle = title;
+    this.popupMessage = message;
+    this.modalService.open(this.errorModal, { centered: true });
+  };
+
+  if (err.error instanceof Blob) {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      try {
+        const errorObj = JSON.parse(reader.result as string);
+        openPopup(
+          errorObj.serviceStatus || title,
+          errorObj.serviceResponse || message
+        );
+      } catch {
+        openPopup(title, message);
+      }
+    };
+
+    reader.readAsText(err.error);
+
+  } else if (err?.error?.serviceResponse) {
+    openPopup(
+      err.error.serviceStatus || title,
+      err.error.serviceResponse
+    );
+  } else {
+    openPopup(title, message);
+  }
+}
+      });
+  }
+
+  private showPreviewFromBlob(blob: Blob): void {
+    if (this.previewBlobUrl) {
+      URL.revokeObjectURL(this.previewBlobUrl);
+      this.previewBlobUrl = null;
+    }
+    this.previewBlobUrl = URL.createObjectURL(blob);
+    this.activePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewBlobUrl);
+    const mimeType = blob.type || '';
+    if (mimeType === 'application/pdf') {
+      this.activeFileType = 'pdf';
+    } else if (mimeType.startsWith('image/')) {
+      this.activeFileType = 'image';
+    } else {
+      this.activeFileType = '';
+    }
+    this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
+    this.modalRef.hidden.pipe(first()).subscribe(() => {
+      if (this.previewBlobUrl) {
+        URL.revokeObjectURL(this.previewBlobUrl);
+        this.previewBlobUrl = null;
       }
     });
-}
+  }
 
+  private downloadBlobAsFile(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  getFinalDocumentDataByDocId(timesheetId:any,docId:any){
+        console.log(docId,":docId");
+        this.timesheetService.getFinalDocumentDataByDocId(timesheetId,docId).pipe(first()).subscribe((response: any) => {
+           if (response.serviceStatus == "Success") {
+        console.log(response.serviceResponse);
+        this.docData2 = response.serviceResponse.docData;
+        console.log(typeof (this.docData2), ":docDataType")
+        this.mimeType = response.serviceResponse.docMimeType
+        this.showPreview(this.docData2, this.mimeType)
+      }
+        });
+      }
   formatDateToLocalYMD(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // month is 0-based
@@ -2904,6 +3202,7 @@ getDoscForPreview(docId: any) {
         fromDate: this.finalFromDate,
         toDate: this.finalToDate,
         projectId: this.timesheetObj.projectId,
+        isBulkUploadBySelf:true
       }
 
     this.timesheetService.bulkFinalUploadProjectBased(payload, this.selectedFile2).pipe(first()).subscribe((response: any) => {
@@ -3065,12 +3364,16 @@ getDoscForPreview(docId: any) {
   //   this.selectedFile2 = file;
   //   this.fileName2 = file.name;
   // }
-onFinalFileSelected(event: any): void {
+
+  fileNameToShow : string = '';
+async onFinalFileSelected(event: any): Promise<void> {
+  this.fileNameToShow = '';
   const file: File = event.target.files[0];
   this.fileError2 = '';
   this.previewUrl2 = null;
   this.fileType2 = null;
-
+  this.fileNameToShow = file.name.toLowerCase() || 'document';
+  console.log(this.fileNameToShow);
   if (!file) return;
 
   const allowedTypes = [
@@ -3093,7 +3396,11 @@ onFinalFileSelected(event: any): void {
     this.fileError2 = 'File size must be 500Kb or less.';
     return;
   }
-
+  this.selectedFile2 = await this.renameFile(file, this.timesheetObj.projectId, 'Approved');
+  
+  if(this.selectedFile2 == null){
+    return;
+  }
   // Cleanup old URL
   if (this.rawObjectUrl2) {
     URL.revokeObjectURL(this.rawObjectUrl2);
@@ -3117,8 +3424,8 @@ onFinalFileSelected(event: any): void {
     this.fileType2 = 'excel';
   }
 
-  this.selectedFile2 = file;
-  this.fileName2 = file.name;
+
+  this.fileName2 = this.selectedFile2.name;
 }
 
 
@@ -3189,15 +3496,23 @@ onFinalFileSelected(event: any): void {
   else{
     this.empClientSideObj.empId = this.currentUser.empId;
   }
+    const savedId = this.empClientSideObj.clientSideId.trim();
+    const projectId = this.empClientSideObj.projectId;
+    const empId = this.empClientSideObj.empId;
     this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        this.hideClientSideIdForm();
+        this.timesheetObj.clientSideId = savedId;
+        if (this.timesheetFormComponent) {
+          this.timesheetFormComponent.applyClientSideIdToProject(projectId, savedId);
+        }
         this.openAlertMod(template, response.serviceResponse);
-        this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId, this.currentUser.empId);
+        void this.getClientSideIdByProjectIdAndEmpId(projectId, empId);
       } else {
         this.openAlertMod(template, response.serviceResponse)
       }
+      this.resetUpdateClientSideId();
     });
-    this.resetUpdateClientSideId();
   }
 
   async onProjectChange(projId: any) {
@@ -3494,9 +3809,13 @@ onFinalFileSelected(event: any): void {
     //
     await this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId, empId).pipe(first()).toPromise().then((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.timesheetObj.clientSideId = response.serviceResponse;
-        if (this.timesheetObj.clientSideId) {
-          this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+        const id = this.normalizeClientSideIdFromApi(response.serviceResponse);
+        this.timesheetObj.clientSideId = id;
+        if (id) {
+          this.empClientSideObj.clientSideId = id;
+          if (this.timesheetFormComponent) {
+            this.timesheetFormComponent.applyClientSideIdToProject(projectId, id);
+          }
         }
       } else {
         console.error(response.serviceResponse);
@@ -3504,10 +3823,37 @@ onFinalFileSelected(event: any): void {
     });
   }
 
+  private normalizeClientSideIdFromApi(raw: unknown): string | null {
+    if (raw == null) {
+      return null;
+    }
+    if (typeof raw === 'string') {
+      const s = raw.trim();
+      return s.length ? s : null;
+    }
+    if (typeof raw === 'object') {
+      const o = raw as { value?: unknown };
+      if (typeof o.value === 'string') {
+        const s = o.value.trim();
+        return s.length ? s : null;
+      }
+    }
+    const s = String(raw).trim();
+    return s.length && s !== '[object Object]' ? s : null;
+  }
+
   resetTimesheetForm(){
     this.timeReset();
     this.fromDate = null;
     this.toDate = null;
+    this.selectedTimesheetId = null; // Reset timesheet ID for update flow
+    this.selectedDate = undefined;
+    this.isAutoFilled = false;
+    this.selectedEmpIdForCreate = null;
+    this.isTimesheetForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.isTimesheetTable = true;
     this.timesheetObj.projectId = null;
     this.timesheetObj.clientSideId = null;
     this.timesheetObj.hasClientSideId = false;
@@ -3631,130 +3977,6 @@ onFinalFileSelected(event: any): void {
     this.selectedClientOutPeriod = null;
   }
 
-
-  loadAutofillData() {
-    this.isUpdation = false;
-    this.isTimesheetForm = true;
-    this.timesheetObj.timesheetAppliedFor = 'self';
-    this.timesheetObj.dayType = 'Working';
-    this.fromDate = this.selectedDate;
-    this.onFromDateChange();
-    this.getProjectListForDateAndEmpId();
-    this.makeApmosysInTime();
-    this.makeApmosysOutTime();
-    this.makeClientInTime();
-    this.makeClientOutTime();
-
-    let timesheet: Partial<Timesheet> = { empId: this.currentUser.empId };
-
-    this.timesheetService.getLastFilledTimesheetByEmp(timesheet)
-      .pipe(first())
-      .subscribe((response: any) => {
-        if (response.serviceStatus === "Success") {
-          const autoData = response.serviceResponse[0];
-          // console.log("autoFillTimesheet: " + JSON.stringify(autoData));
-
-          const lockDate = new Date(autoData.timesheetLockUpdatedOn);
-          const selectedDate = new Date(this.selectedDate!);
-          const lockCheckEnable = autoData.istimesheetLockCheckEnable;
-
-
-          if (lockCheckEnable === "true" && lockDate > selectedDate) {
-             const formattedDate = lockDate.toLocaleDateString("en-GB", {
-              day: "2-digit",
-               month: "2-digit",
-               year: "numeric"
-             });
-            this.openAlertWithResetMod(
-              this.alertModalWithoutReload,
-              "Timesheet is locked upto " + formattedDate
-            );
-            return;
-          }
-
-
-          if (this.activeProjectList?.some(p => p.projectId === autoData.projectId)) {
-            this.timesheetObj.projectId = autoData.projectId;
-            this.checkIfProjectRequiresClientId(this.timesheetObj.projectId);
-            this.getClientDetailsByProjectIdAndEmpId();
-          }
-          this.timesheetObj.clientApprovalStatus = autoData.clientApprovalStatus;
-
-
-          setTimeout(() => {
-            const defaultClient = this.clientDropdownList?.find(c => c.clientId === autoData.clientId);
-            if (!defaultClient) {
-              console.error("Client not found in list");
-                this.openAlertWithResetMod(
-              this.alertModalWithoutReload,
-              "Client not found in list "
-            );
-              return;
-            }
-
-            this.allTimesheetActivities.forEach(activityObj => {
-              activityObj.clientId = defaultClient.clientId;
-              this.getClientLocationList(activityObj);
-            });
-
-            setTimeout(() => {
-              this.allTimesheetActivities.forEach(activityObj => {
-                activityObj.clientLocationId = autoData.clientLocationID;
-                this.getProjectList(activityObj);
-              });
-
-
-              setTimeout(() => {
-                this.allTimesheetActivities.forEach(activityObj => {
-                  activityObj.projectId = autoData.projectId;
-
-                  if (activityObj.projectList?.some(t => t.teamId === autoData.teamId)) {
-                    activityObj.teamId = autoData.teamId;
-                    this.getAllActivitiesByProjectIdandEmpId(activityObj);
-                  }
-                });
-
-
-                setTimeout(() => {
-                  this.allTimesheetActivities.forEach(activityObj => {
-                    if (activityObj.projectActivities?.some(a => a.activityId === autoData.activityID)) {
-                      activityObj.activityId = autoData.activityID;
-                      activityObj.activity = autoData.activity;
-                      activityObj.description = autoData.description || '';
-                      activityObj.completionTime = autoData.completionTime;
-                    }
-                  });
-                  this.autoFillTimesheet = true;
-                }, 200);
-
-              }, 200);
-
-            }, 200);
-
-          }, 200);
-
-
-        } else if (!response.serviceResponse || response.serviceResponse.length < 1) {
-          this.openAlertWithResetMod(
-            this.alertModalWithoutReload,
-            "No timesheet found"
-          );
-          return;
-        }
-
-         else {
-          console.error("No autofill data found:", response.serviceResponse);
-           this.openAlertWithResetMod(
-              this.alertModalWithoutReload,
-              "Something went wrong " + response.serviceMessage
-            );
-            return;
-
-        }
-      });
-  }
-
-
   syncTimes = false;
 
 onSyncToggle() {
@@ -3858,6 +4080,39 @@ checkUploadEligibility() {
     this.resetTimesheetFormOnDateChange();
   }
 
+onTimesheetAppliedForChange(value: string): void {
+
+  this.timesheetObj.timesheetAppliedFor = value;
+
+
+
+  if (value === 'self') {
+
+    this.getAllTeamMemberList();
+
+    this.getTimesheetMetadata();
+    console.log("I am here");
+
+    this.timesheetObj.isShadowTimesheet = false;
+     } else if (value === 'asShadow') {
+
+    this.resetTimesheetFormForAutoFill();
+
+    this.timesheetObj.isShadowTimesheet = true;
+
+
+
+  } else {
+
+    this.resetTimesheetFormForAutoFill();
+
+    this.getAllTeamMemberList();
+
+    this.timesheetObj.isShadowTimesheet = false;
+
+  }
+  }
+
   resetTimesheetFormOnDateChange(value?:any){
     this.timeReset();
     // this.toDate = null;
@@ -3897,25 +4152,194 @@ checkUploadEligibility() {
     this.syncTimes = false;
   }
 
+  //  zoomIn() {
+  //   if (this.zoomScale < 2.5) {
+  //     this.zoomScale += 0.1;
+  //     this.zoomLevel = Math.round(this.zoomScale * 100);
+  //   }
+  // }
+
+  // zoomOut() {
+  //   if (this.zoomScale > 0.5) {
+  //     this.zoomScale -= 0.1;
+  //     this.zoomLevel = Math.round(this.zoomScale * 100);
+  //   }
+  // }
+
+  // get transformStyle() {
+  //   return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
+  // }
+
+  // startDrag(event: MouseEvent) {
+  //   if (this.zoomScale <= 1) return; // drag only when zoomed
+
+  //   this.isDragging = true;
+  //   this.startX = event.clientX - this.translateX;
+  //   this.startY = event.clientY - this.translateY;
+  //   event.preventDefault();
+  // }
+
+  // onDrag(event: MouseEvent) {
+  //   if (!this.isDragging) return;
+
+  //   this.translateX = event.clientX - this.startX;
+  //   this.translateY = event.clientY - this.startY;
+  // }
+
+  // endDrag() {
+  //   this.isDragging = false;
+  // }
+
+  // resetPreviewState() {
+  //   this.zoomScale = 1;
+  //   this.zoomLevel = 100;
+  //   this.translateX = 0;
+  //   this.translateY = 0;
+  //   this.isDragging = false;
+  // }
+
+  // openNoOtherShadowResource(message: any) {
+  //   this.alertMessage = message;
+  //   this.noOtherShadowResourceModalRef = this.modalService.open(this.noOtherShadowResourceTemp, { modalDialogClass: 'modal-md' });
+  // }
+
+  // hideNoOtherShadowResource(): void {
+  //   if (this.noOtherShadowResourceModalRef) {
+  //     this.noOtherShadowResourceModalRef?.close();
+  //     this.resetTimesheetForm();
+  //   }
+  // }
+  // getClientDetailsByProjectIdAndEmpId() {
+  //   if(!this.timesheetObj.dayType || this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday" || this.timesheetObj.dayType == "Comp Off"){
+  //     return;
+  //   }
+  //   this.clientDetails = '';
+  //   this.projectList = [];
+
+  //   const payload = {
+  //     empId: this.timesheetObj.empId,
+  //     projectId: this.timesheetObj.projectId
+  //   };
+  //   this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.clientDetails = response.serviceResponse;
+  //       this.clientDropdownList = [this.clientDetails];
+  //     } else {
+  //       console.error(response.serviceResponse)
+  //       this.openAlertMod(this.alertTemplate, response.serviceResponse);
+  //     }
+  //   });
+  // }
+
+  // onClientChange(activityObj: any) {
+  //   activityObj.clientLocationList = this.clientDetails.clientLocations || [];
+  //   activityObj.clientLocationId = null;
+  //   activityObj.teamId = null;
+  // }
+
+  // private filterActivitiesByDepartment(activityList: any[]): any[] {
+
+  //   if (!activityList?.length) {
+  //     return [];
+  //   }
+
+  //   if (this.timesheetObj.timesheetAppliedFor === 'team') {
+  //     const teamMember = this.teamMemberList.find(
+  //       emp => emp.empId === this.timesheetObj.empId
+  //     );
+
+  //     return activityList.filter(activity =>
+  //       activity.departmentList?.map(Number).includes(teamMember?.departmentId)
+  //     );
+  //   }
+
+  //   const filteredList = activityList.filter(activity =>
+  //     activity.departmentList?.map(Number).includes(this.currentUser.departmentId)
+  //   );
+
+  //   if (filteredList.length === 0) {
+  //     this.openAlertMod(
+  //       this.alertModalWithoutReload,
+  //       'No activity found for your department!'
+  //     );
+  //   }
+
+  //   return filteredList;
+  // }
+
+
+
+  downloadSelectedFile(): void {
+  if (!this.rawObjectUrl2 || !this.selectedFile2) return;
+
+  const a = document.createElement('a');
+  a.href = this.rawObjectUrl2;
+  a.download = this.fileName2;
+  a.click();
+}
+
+isExcelMimeType(mimeType: string): boolean {
+  return mimeType === 'application/vnd.ms-excel'
+    || mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+}
+
+
+downloadExcel(base64Data: string, mimeType: string, fileName: string) {
+
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const blob = new Blob(
+    [new Uint8Array(byteNumbers)],
+    { type: mimeType }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+
+  window.URL.revokeObjectURL(url);
+}
+
+
   getClientDetailsByProjectIdAndEmpId() {
-    if(!this.timesheetObj.dayType || this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday" || this.timesheetObj.dayType == "Comp Off"){
-      return;
-    }
     this.clientDetails = '';
     this.projectList = [];
 
-    const payload = {
+    const payload: any = {
       empId: this.timesheetObj.empId,
       projectId: this.timesheetObj.projectId,
       date: this.timesheetObj.date = new Date(this.timesheetObj.date).toLocaleDateString('en-CA') // gives YYYY-MM-DD
     };
+
+    // Add date filter to get only teams active on the selected date
+    if (this.timesheetObj.date) {
+      const dateMoment = moment(this.timesheetObj.date);
+      if (dateMoment.isValid()) {
+        payload.date = dateMoment.format('YYYY-MM-DD') + 'T00:00:00';
+      }
+    } else if (this.fromDate) {
+      const dateMoment = moment(this.fromDate);
+      if (dateMoment.isValid()) {
+        payload.date = dateMoment.format('YYYY-MM-DD') + 'T00:00:00';
+      }
+    }
+
     this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.clientDetails = response.serviceResponse;
         this.clientDropdownList = [this.clientDetails];
       } else {
         console.error(response.serviceResponse)
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+        this.openAlertWithResetMod(this.alertModalWithoutReload, response.serviceResponse);
       }
     });
   }
@@ -4014,45 +4438,378 @@ checkUploadEligibility() {
     }
   }
 
-  downloadSelectedFile(): void {
-  if (!this.rawObjectUrl2 || !this.selectedFile2) return;
+  /**
+   * Expansion state management methods
+   */
+  toggleTimesheetExpansion(timesheetId: number): void {
+    if (this.expandedTimesheets.has(timesheetId)) {
+      this.expandedTimesheets.delete(timesheetId);
+      // Also collapse all locations and projects for this timesheet
+      const locationKey = timesheetId.toString();
+      this.expandedLocations.delete(locationKey);
+      this.expandedProjects.delete(locationKey);
+    } else {
+      this.expandedTimesheets.add(timesheetId);
+    }
+  }
+
+  toggleLocationExpansion(timesheetId: number, locationId: number): void {
+    const key = timesheetId.toString();
+    if (!this.expandedLocations.has(key)) {
+      this.expandedLocations.set(key, new Set());
+    }
+    const locationSet = this.expandedLocations.get(key)!;
+
+    if (locationSet.has(locationId)) {
+      locationSet.delete(locationId);
+      // Also collapse all projects for this location
+      const projectKey = `${timesheetId}_${locationId}`;
+      this.expandedProjects.delete(projectKey);
+    } else {
+      locationSet.add(locationId);
+    }
+  }
+
+  toggleProjectExpansion(timesheetId: number, locationId: number, projectId: number): void {
+    const key = `${timesheetId}_${locationId}`;
+    if (!this.expandedProjects.has(key)) {
+      this.expandedProjects.set(key, new Set());
+    }
+    const projectSet = this.expandedProjects.get(key)!;
+
+    if (projectSet.has(projectId)) {
+      projectSet.delete(projectId);
+    } else {
+      projectSet.add(projectId);
+    }
+  }
+
+  isTimesheetExpanded(timesheetId: number): boolean {
+    return this.expandedTimesheets.has(timesheetId);
+  }
+
+  isLocationExpanded(timesheetId: number, locationId: number): boolean {
+    const key = timesheetId.toString();
+    return this.expandedLocations.has(key) && this.expandedLocations.get(key)!.has(locationId);
+  }
+
+  isProjectExpanded(timesheetId: number, locationId: number, projectId: number): boolean {
+    const key = `${timesheetId}_${locationId}`;
+    return this.expandedProjects.has(key) && this.expandedProjects.get(key)!.has(projectId);
+  }
+
+  /**
+   * Helper methods to check if expandable
+   */
+  hasLocations(timesheet: any): boolean {
+    return timesheet.locationSessions && timesheet.locationSessions.length > 0;
+  }
+
+  hasProjects(location: any): boolean {
+    return location.projects && location.projects.length > 0;
+  }
+
+  hasActivities(project: any): boolean {
+    return project.activities && project.activities.length > 0;
+  }
+
+  /**
+   * Calculate total hours for location.
+   * Uses location in/out times when available; otherwise falls back to sum of activity hours.
+   */
+  getTotalLocationHours(location: any): string {
+    if (location.locationInTime && location.locationOutTime) {
+      // Handle both "HH:mm" and "HH:mm:ss" formats from backend
+      const inTime = moment(location.locationInTime, [
+        'YYYY-MM-DD HH:mm:ss.S',
+        'YYYY-MM-DD HH:mm:ss',
+        'HH:mm:ss',
+        'HH:mm'], true);
+      const outTime = moment(location.locationOutTime, [
+        'YYYY-MM-DD HH:mm:ss.S',
+        'YYYY-MM-DD HH:mm:ss',
+        'HH:mm:ss',
+        'HH:mm'], true);
+      if (inTime.isValid() && outTime.isValid()) {
+        const diffMinutes = outTime.diff(inTime, 'minutes');
+        const adjustedDiff = diffMinutes < 0 ? diffMinutes + 1440 : diffMinutes;
+        console.log("adjustedDiff",adjustedDiff)
+        const hours = Math.floor(adjustedDiff / 60);
+        const minutes = adjustedDiff % 60;
+        return `${hours}:${minutes.toString().padStart(2, '0')}`;
+        // return (adjustedDiff / 60).toFixed(2);
+        // return this.getTotalWorkingHours(adjustedDiff);
+      }
+    }
+    // Fallback: sum activity hours when in/out times are null (e.g. non-fillable days)
+    console.log("Logging out side")
+    const totalActivityHours = this.getTotalLocationActivityHours(location);
+    return totalActivityHours > 0 ? totalActivityHours.toFixed(2) : '0:00';
+  }
+
+  /**
+   * Calculate total hours for project
+   */
+  getTotalProjectHours(project: any): string {
+    if (!project.activities || project.activities.length === 0) return '0.00';
+    const totalMinutes = project.activities.reduce((sum: number, act: any) => {
+      return sum + (act.durationMinutes || 0);
+    }, 0);
+    return (totalMinutes / 60).toFixed(2);
+  }
+
+  /**
+   * Get documents for a specific project
+   */
+  getDocumentsForProject(timesheet: any, projectId: number): any[] {
+    if (!timesheet.documentData) return [];
+    return timesheet.documentData.filter((doc: any) => doc.projectId === projectId);
+  }
+
+  /**
+   * Map status integer to string
+   */
+  mapStatusToString(status: number): string {
+    switch (status) {
+      case 1: return 'Pending';
+      case 2: return 'Approved';
+      case 3: return 'Rejected';
+      case 4: return 'Partial';
+      default: return 'Unknown';
+    }
+  }
+
+  /**
+   * Map client approval status integer to string
+   */
+  mapClientApprovalStatusToString(status: number | null): string {
+    if (status === null) return '';
+    switch (status) {
+      case 1: return 'Pending';
+      case 2: return 'Approved';
+      case 3: return 'Rejected';
+      default: return '';
+    }
+  }
+
+  /**
+   * Get total working hours from minutes
+   */
+  getTotalWorkingHours(minutes: number,isActivity:boolean): string {
+    if(!isActivity){
+      if (!minutes) return '0:00';
+      const time:number = Number((minutes / 60).toFixed(2));
+      const hours = Math.floor(time);
+      const minute = Math.round((time - hours) * 60);
+      return `${hours}:${minute.toString().padStart(2, '0')}`;
+    }
+    else{
+      if (!minutes) return '0.00';
+      return (minutes / 60).toFixed(2);
+    }
+  }
+
+  /**
+   * Find filled document in timesheet document data
+   */
+  findFilledDocument(timesheet: any): any {
+    if (!timesheet || !timesheet.documentData || timesheet.documentData.length === 0) {
+      return null;
+    }
+    return timesheet.documentData.find((d: any) => d.docType === 'Filled') || null;
+  }
+
+  /**
+   * Find approved document in timesheet document data
+   */
+  findApprovedDocument(timesheet: any): any {
+    if (!timesheet || !timesheet.documentData || timesheet.documentData.length === 0) {
+      return null;
+    }
+    return timesheet.documentData.find((d: any) => d.docType === 'Approved') || null;
+  }
+
+  /**
+   * Find filled document for a specific project
+   */
+  findFilledDocumentForProject(timesheet: any, projectId: number): any {
+    const projectDocs = this.getDocumentsForProject(timesheet, projectId);
+    return projectDocs.find((d: any) => d.docType === 'Filled') || null;
+  }
+
+  /**
+   * Find approved document for a specific project
+   */
+  findApprovedDocumentForProject(timesheet: any, projectId: number): any {
+    const projectDocs = this.getDocumentsForProject(timesheet, projectId);
+    return projectDocs.find((d: any) => d.docType === 'Approved') || null;
+  }
+
+  /**
+   * Calculate total activity hours for a location (sum of all activities across all projects in the location)
+   */
+  getTotalLocationActivityHours(location: any): number {
+    if (!location || !location.projects || location.projects.length === 0) {
+      return 0;
+    }
+
+    let totalMinutes = 0;
+    for (const project of location.projects) {
+      if (project.activities && project.activities.length > 0) {
+        for (const activity of project.activities) {
+          totalMinutes += activity.durationMinutes || 0;
+        }
+      }
+    }
+
+    return totalMinutes / 60; // Convert to hours
+  }
+
+  // renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): File {
+  //   const ext = file.name.substring(file.name.lastIndexOf('.'));
+  //   const safeDocType = docType.toLowerCase(); // optional
+  //   const newFileName = `${projectId}_${safeDocType}_${file.name}`;
+
+  //   return new File([file], newFileName, { type: file.type });
+  // }
+
+  openRejectReasonsModal(data: any, template: TemplateRef<any>) {
+    this.rejectionReasons = data;
+    this.modalService.open(
+      template,
+      { modalDialogClass: 'modal-lg', backdrop: 'static' }
+    );
+  }
+  formatDate(dateStr: string): string {
+  const [day, month, year] = dateStr.split("-");
+  return `${year}-${month}-${day}`;
+}
+  handleEditClick(timesheet: any) {
+    console.log(JSON.stringify(timesheet, null, 2));
+    const formattedDate = this.formatDate(timesheet.date);
+
+  const payload = {
+    timesheetId: timesheet.timesheetId,
+    date: formattedDate
+  };
+  this.timesheetNewService.checkEditAllowed(payload).subscribe({
+      next: (isAllowed: boolean) => {
+
+        if (isAllowed) {
+          this.proceedEdit(timesheet);
+        } else {
+          this.openConfirmationPopup(timesheet);
+        }
+
+      },
+      error: (err) => {
+        console.error("API error", err);
+      }
+    });
+  }
+  proceedEdit(timesheet: any) {
+    this.resetTimesheetForm();
+    this.openEditTimesheetForm(timesheet);
+  }
+
+  openConfirmationPopup(timesheet: any) {
+  const modalRef = this.modalService.open(this.alertModalWithoutReloadForBlankEtm, { modalDialogClass: 'modal-sm' });
+
+  modalRef.result.then((result) => {
+    if (result === 'continue') {
+      this.proceedEdit(timesheet);
+    }
+  }).catch(() => {
+  });
+}
+
+  downloadFile(): void {
+    if (!this.rawObjectUrl2) return;
 
   const a = document.createElement('a');
   a.href = this.rawObjectUrl2;
-  a.download = this.fileName2;
+  a.download = this.fileName2 || 'download';
+  document.body.appendChild(a); // required in some browsers
   a.click();
-}
-
-isExcelMimeType(mimeType: string): boolean {
-  return mimeType === 'application/vnd.ms-excel'
-    || mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-}
-
-
-downloadExcel(base64Data: string, mimeType: string, fileName: string) {
-
-  const byteCharacters = atob(base64Data);
-  const byteNumbers = new Array(byteCharacters.length);
-
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  document.body.removeChild(a);
   }
 
-  const blob = new Blob(
-    [new Uint8Array(byteNumbers)],
-    { type: mimeType }
-  );
+   async renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): Promise<File> {
+    
+      try{
+      const ext = file.name.includes('.') ?file.name.substring(file.name.lastIndexOf('.')): '';
+      // const safeDocType = docType.toLowerCase(); // optional
+      // // const newFileName = `${this.currentUser.empId}_${projectId}_${}_${safeDocType}${ext}`;
+      // const newFileName = `${projectId}_${this.fromDate}_${this.dayType}_${safeDocType}${ext}`;
+  
+      const response: any = await firstValueFrom(this.timesheetService.generateFileName({
+        projectId: projectId,
+        extension: ext,
+        docType: docType
+      }));
+      const newFileName = response.fileName;
+  
+      return new File([file], newFileName, { type: file.type });
+    }
+     catch(error){
+      this.handleError(error,"Generating unique file name",true,"Unable to generate unique file name")
+      return null;
+    }
+  
+    }
 
-  const url = window.URL.createObjectURL(blob);
+    private handleError(error: any, context: string, showToUser: boolean = false, userMessage?: string): void {
+      const errorMessage = error?.message || error?.toString() || 'An unexpected error occurred';
+      console.error(`[${context}]`, error);
+      
+      if (showToUser) {
+        const message = userMessage || `Error: ${errorMessage}. Please try again.`;
+        this.openAlertMod(this.alertTemplate, message);
+      }
+    }
 
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  a.click();
+    rejectiondetails:any[]=[]
+    groupedRejections: any[] = [];
+    fetchRejectionReasonByTimesheet(timesheetId:number,template: TemplateRef<any>){
+    this.timesheetNewService.getRejectionDetailsWithProjectsByTimesheetId(timesheetId).subscribe({
+      next:(res)=>{
+        if(res.serviceStatus=='Success'){
+          this.rejectiondetails=res.serviceResponse
+          this.groupedRejections = this.getGroupedRejections(this.rejectiondetails);
+          this.modalService.open(
+            template,
+            { modalDialogClass: 'modal-lg', backdrop: 'static' }
+          );
+        }
+        else{
+          this.handleError(res,"Fetching rejection details",true,"Unable to fetch rejection details")
+        }
+      },
+      error:(err)=>{
+        this.handleError(err,"Fetching rejection details",true,"Unable to fetch rejection details")
+      }
+    })
+   }
 
-  window.URL.revokeObjectURL(url);
-}
 
+   getGroupedRejections(rejections: any[]) {
+    const grouped = [];
+    const seen = new Map();
+  
+    rejections.forEach((r, index) => {
+      const key = r.projectName;
+      if (!seen.has(key)) {
+        seen.set(key, { ...r, rowspan: 1, index: grouped.length });
+        grouped.push({ ...r, rowspan: 1, showRemarks: true });
+      } else {
+        const existing = seen.get(key);
+        grouped[existing.index].rowspan++;
+        grouped.push({ ...r, showRemarks: false });
+      }
+    });
+  
+    return grouped;
+  }
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

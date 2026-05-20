@@ -1,0 +1,14 @@
+.column-search {
+  width: 120px;
+  margin-left: 30px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+
+      /* control column width */
+}
+
+.search-input {
+  height: 36px;       /* input height */
+  width: 100%;        /* fill parent */
+  font-size: 12px;
+}

@@ -934,9 +934,10 @@ th .fa-lock-open:hover {
 }
 .pms-section .pms-cards-row {
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
+  grid-template-columns:minmax(0, 1fr) minmax(0, 1.5fr);
   gap: 24px;
   align-items: stretch;
+  width: 100%;
 }
 @media (max-width: 992px) {
   .pms-section .pms-cards-row { grid-template-columns: 1fr; }

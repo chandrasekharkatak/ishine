@@ -1,0 +1,1089 @@
+<div class="skill-matrix-master-config">
+  <div class="row mb-3">
+    <div class="col-md-12 px-0">
+      <button type="button" class="btn btn-outline-primary btn-sm mx-2 my-1"
+        [ngClass]="{'active': segment === 'categories'}" (click)="selectSegment('categories')">
+        Skill Category Master
+      </button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-2 my-1"
+        [ngClass]="{'active': segment === 'skills'}" (click)="selectSegment('skills')">
+        Skills Master
+      </button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-2 my-1"
+        [ngClass]="{'active': segment === 'subskills'}" (click)="selectSegment('subskills')">
+        Subskills Master
+      </button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-2 my-1"
+        [ngClass]="{'active': segment === 'domains'}" (click)="selectSegment('domains')">
+        Domain Master
+      </button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-2 my-1"
+        [ngClass]="{'active': segment === 'subdomains'}" (click)="selectSegment('subdomains')">
+        Sub Domain Master
+      </button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-2 my-1"
+        [ngClass]="{'active': segment === 'domainFeatures'}" (click)="selectSegment('domainFeatures')">
+        Domain Feature Master
+      </button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-2 my-1"
+        [ngClass]="{'active': segment === 'aspirationChips'}" (click)="selectSegment('aspirationChips')">
+        Aspiration chips (Step 5)
+      </button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-2 my-1"
+        [ngClass]="{'active': segment === 'hierarchyView'}" (click)="selectSegment('hierarchyView')">
+        Hierarchy View
+      </button>
+    </div>
+  </div>
+
+    <!-- Skill categories -->
+    <div class="row" *ngIf="segment === 'categories'">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-12 table-header">
+            <h3 class="table-header-title">Skill Category Master</h3>
+          </div>
+        </div>
+        <div class="col-md-12">
+          <div class="row">
+            <div class="col-md-auto ml-auto d-flex flex-wrap justify-content-end align-items-start mb-1">
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-1 mb-1" (click)="downloadBulkTemplate('skill-categories')">
+                <em class="fa-solid fa-download"></em> Sample template
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-1 mb-1" (click)="openBulkUploadModal('skill-categories')">
+                <em class="fa-solid fa-upload"></em> Bulk upload
+              </button>
+              <button type="button" class="btn btn-outline-primary btn-sm mb-1" (click)="openAddCategory()">
+                <em class="fa-solid fa-plus"></em> Add
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="selector-toggle">
+              <a href="javascript:void(0)" (click)="toggleSearch()">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+              </a>
+            </div>
+            <div class="overflow-auto">
+              <table class="table skill-matrix-master-config__sort-table" matSort
+                [matSortActive]="categoriesSortActive"
+                [matSortDirection]="categoriesSortDirection"
+                (matSortChange)="sortDataCategories($event)">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label" mat-sort-header="categoryName|string">Category name</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                  <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="categoryFilterColumns"
+                    (onSearch)="onSearch($event)"></tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="categories.length === 0">
+                    <td colspan="3" class="text-center info-label">No details to display...</td>
+                  </tr>
+                  <tr
+                    *ngFor="let row of categories | paginate: { id: 'sm-cat', itemsPerPage: pageSize, currentPage: page, totalItems: totalCategories }; let i = index">
+                    <th scope="row" class="info-label">{{ pageSize * (page - 1) + i + 1 }}</th>
+                    <td>{{ row.categoryName }}</td>
+                    <td class="text-nowrap skill-matrix-master-config__actions">
+                      <button type="button" class="btn btn-sm btn-outline-primary mr-1" (click)="editCategory(row)"
+                        title="Edit">
+                        <em class="fa fa-edit" aria-hidden="true"></em>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmDeleteCategory(row)"
+                        title="Delete">
+                        <em class="fa fa-trash" aria-hidden="true"></em>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <pagination-controls *ngIf="totalCategories > 0" class="my-pagination" [id]="'sm-cat'"
+              (pageChange)="handlePageChange($event)"></pagination-controls>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills -->
+    <div class="row" *ngIf="segment === 'skills'">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-12 table-header">
+            <h3 class="table-header-title">Skills Master</h3>
+          </div>
+        </div>
+        <div class="col-md-12">
+          <div class="row">
+            <div class="col-md-auto ml-auto d-flex flex-wrap justify-content-end align-items-start mb-1">
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-1 mb-1" (click)="downloadBulkTemplate('skills')">
+                <em class="fa-solid fa-download"></em> Sample template
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-1 mb-1" (click)="openBulkUploadModal('skills')">
+                <em class="fa-solid fa-upload"></em> Bulk upload
+              </button>
+              <button type="button" class="btn btn-outline-primary btn-sm mb-1" (click)="openAddSkill()">
+                <em class="fa-solid fa-plus"></em> Add
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="selector-toggle">
+              <a href="javascript:void(0)" (click)="toggleSearch()">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+              </a>
+            </div>
+            <div class="overflow-auto">
+              <table class="table skill-matrix-master-config__sort-table" matSort
+                [matSortActive]="skillsSortActive"
+                [matSortDirection]="skillsSortDirection"
+                (matSortChange)="sortDataSkills($event)">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label" mat-sort-header="skillName|string">Skill name</th>
+                    <th scope="col" class="info-label" mat-sort-header="categoryName|string">Category</th>
+                    <th scope="col" class="info-label" mat-sort-header="skillType|string">Type</th>
+                    <th scope="col" class="info-label" mat-sort-header="activeDisplay|string">Active</th>
+                    <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                  <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="skillsFilterColumns"
+                    (onSearch)="onSearch($event)"></tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="skills.length === 0">
+                    <td colspan="7" class="text-center info-label">No details to display...</td>
+                  </tr>
+                  <tr
+                    *ngFor="let row of skills | paginate: { id: 'sm-skills', itemsPerPage: pageSize, currentPage: page, totalItems: totalSkills }; let i = index">
+                    <th scope="row" class="info-label">{{ pageSize * (page - 1) + i + 1 }}</th>
+                    <td>{{ row.skillName }}</td>
+                    <td>{{ row.categoryName }}</td>
+                    <td>{{ row.skillType || '—' }}</td>
+                    <td>{{ row.activeDisplay }}</td>
+                    <td>{{ departmentDisplay(row.departmentId) }}</td>
+                    <td class="text-nowrap skill-matrix-master-config__actions">
+                      <button type="button" class="btn btn-sm btn-outline-primary mr-1" (click)="editSkill(row)"
+                        title="Edit">
+                        <em class="fa fa-edit" aria-hidden="true"></em>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmDeleteSkill(row)"
+                        title="Delete">
+                        <em class="fa fa-trash" aria-hidden="true"></em>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <pagination-controls *ngIf="totalSkills > 0" class="my-pagination" [id]="'sm-skills'"
+              (pageChange)="handlePageChange($event)"></pagination-controls>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subskills -->
+    <div class="row" *ngIf="segment === 'subskills'">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-12 table-header">
+            <h3 class="table-header-title">Subskills Master</h3>
+          </div>
+        </div>
+        <div class="col-md-12">
+          <div class="row">
+            <div class="col-md-auto ml-auto d-flex flex-wrap justify-content-end align-items-start mb-1">
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-1 mb-1" (click)="downloadBulkTemplate('subskills')">
+                <em class="fa-solid fa-download"></em> Sample template
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-1 mb-1" (click)="openBulkUploadModal('subskills')">
+                <em class="fa-solid fa-upload"></em> Bulk upload
+              </button>
+              <button type="button" class="btn btn-outline-primary btn-sm mb-1" (click)="openAddSubskill()">
+                <em class="fa-solid fa-plus"></em> Add
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="selector-toggle">
+              <a href="javascript:void(0)" (click)="toggleSearch()">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+              </a>
+            </div>
+            <div class="overflow-auto">
+              <table class="table skill-matrix-master-config__sort-table" matSort
+                [matSortActive]="subskillsSortActive"
+                [matSortDirection]="subskillsSortDirection"
+                (matSortChange)="sortDataSubskills($event)">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label" mat-sort-header="subskillName|string">Subskill name</th>
+                    <th scope="col" class="info-label" mat-sort-header="skillName|string">Skill</th>
+                    <th scope="col" class="info-label" mat-sort-header="activeDisplay|string">Active</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                  <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="subskillsFilterColumns"
+                    (onSearch)="onSearch($event)"></tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="subskills.length === 0">
+                    <td colspan="5" class="text-center info-label">No details to display...</td>
+                  </tr>
+                  <tr
+                    *ngFor="let row of subskills | paginate: { id: 'sm-sub', itemsPerPage: pageSize, currentPage: page, totalItems: totalSubskills }; let i = index">
+                    <th scope="row" class="info-label">{{ pageSize * (page - 1) + i + 1 }}</th>
+                    <td>{{ row.subskillName }}</td>
+                    <td>{{ row.skillName }}</td>
+                    <td>{{ row.activeDisplay }}</td>
+                    <td class="text-nowrap skill-matrix-master-config__actions">
+                      <button type="button" class="btn btn-sm btn-outline-primary mr-1" (click)="editSubskill(row)"
+                        title="Edit">
+                        <em class="fa fa-edit" aria-hidden="true"></em>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmDeleteSubskill(row)"
+                        title="Delete">
+                        <em class="fa fa-trash" aria-hidden="true"></em>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <pagination-controls *ngIf="totalSubskills > 0" class="my-pagination" [id]="'sm-sub'"
+              (pageChange)="handlePageChange($event)"></pagination-controls>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Domain Master -->
+    <div class="row" *ngIf="segment === 'domains'">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-12 table-header">
+            <h3 class="table-header-title">Domain Master</h3>
+          </div>
+        </div>
+        <div class="col-md-12">
+          <div class="row">
+            <div class="col-md-auto ml-auto d-flex flex-wrap justify-content-end align-items-start mb-1">
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-1 mb-1" (click)="downloadBulkTemplate('skill-domains')">
+                <em class="fa-solid fa-download"></em> Sample template
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-1 mb-1" (click)="openBulkUploadModal('skill-domains')">
+                <em class="fa-solid fa-upload"></em> Bulk upload
+              </button>
+              <button type="button" class="btn btn-outline-primary btn-sm mb-1" (click)="openAddDomain()">
+                <em class="fa-solid fa-plus"></em> Add
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="selector-toggle">
+              <a href="javascript:void(0)" (click)="toggleSearch()">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+              </a>
+            </div>
+            <div class="overflow-auto">
+              <table class="table skill-matrix-master-config__sort-table" matSort
+                [matSortActive]="domainsSortActive"
+                [matSortDirection]="domainsSortDirection"
+                (matSortChange)="sortDataDomains($event)">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label" mat-sort-header="domainName|string">Domain name</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                  <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="domainFilterColumns"
+                    (onSearch)="onSearch($event)"></tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="domains.length === 0">
+                    <td colspan="3" class="text-center info-label">No details to display...</td>
+                  </tr>
+                  <tr
+                    *ngFor="let row of domains | paginate: { id: 'sm-domain', itemsPerPage: pageSize, currentPage: page, totalItems: totalDomains }; let i = index">
+                    <th scope="row" class="info-label">{{ pageSize * (page - 1) + i + 1 }}</th>
+                    <td>{{ row.domainName }}</td>
+                    <td class="text-nowrap skill-matrix-master-config__actions">
+                      <button type="button" class="btn btn-sm btn-outline-primary mr-1" (click)="editDomain(row)"
+                        title="Edit">
+                        <em class="fa fa-edit" aria-hidden="true"></em>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmDeleteDomain(row)"
+                        title="Delete">
+                        <em class="fa fa-trash" aria-hidden="true"></em>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <pagination-controls *ngIf="totalDomains > 0" class="my-pagination" [id]="'sm-domain'"
+              (pageChange)="handlePageChange($event)"></pagination-controls>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub Domain Master -->
+    <div class="row" *ngIf="segment === 'subdomains'">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-12 table-header">
+            <h3 class="table-header-title">Sub Domain Master</h3>
+          </div>
+        </div>
+        <div class="col-md-12">
+          <div class="row">
+            <div class="col-md-auto ml-auto d-flex flex-wrap justify-content-end align-items-start mb-1">
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-1 mb-1" (click)="downloadBulkTemplate('skill-subdomains')">
+                <em class="fa-solid fa-download"></em> Sample template
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-1 mb-1" (click)="openBulkUploadModal('skill-subdomains')">
+                <em class="fa-solid fa-upload"></em> Bulk upload
+              </button>
+              <button type="button" class="btn btn-outline-primary btn-sm mb-1" (click)="openAddSubdomain()">
+                <em class="fa-solid fa-plus"></em> Add
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="selector-toggle">
+              <a href="javascript:void(0)" (click)="toggleSearch()">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+              </a>
+            </div>
+            <div class="overflow-auto">
+              <table class="table skill-matrix-master-config__sort-table" matSort
+                [matSortActive]="subdomainsSortActive"
+                [matSortDirection]="subdomainsSortDirection"
+                (matSortChange)="sortDataSubdomains($event)">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label" mat-sort-header="subdomainName|string">Sub domain name</th>
+                    <th scope="col" class="info-label" mat-sort-header="domainName|string">Domain</th>
+                    <th scope="col" class="info-label" mat-sort-header="activeDisplay|string">Active</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                  <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="subdomainFilterColumns"
+                    (onSearch)="onSearch($event)"></tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="subdomains.length === 0">
+                    <td colspan="5" class="text-center info-label">No details to display...</td>
+                  </tr>
+                  <tr
+                    *ngFor="let row of subdomains | paginate: { id: 'sm-subdomain', itemsPerPage: pageSize, currentPage: page, totalItems: totalSubdomains }; let i = index">
+                    <th scope="row" class="info-label">{{ pageSize * (page - 1) + i + 1 }}</th>
+                    <td>{{ row.subdomainName }}</td>
+                    <td>{{ row.domainName }}</td>
+                    <td>{{ row.activeDisplay }}</td>
+                    <td class="text-nowrap skill-matrix-master-config__actions">
+                      <button type="button" class="btn btn-sm btn-outline-primary mr-1" (click)="editSubdomain(row)"
+                        title="Edit">
+                        <em class="fa fa-edit" aria-hidden="true"></em>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmDeleteSubdomain(row)"
+                        title="Delete">
+                        <em class="fa fa-trash" aria-hidden="true"></em>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <pagination-controls *ngIf="totalSubdomains > 0" class="my-pagination" [id]="'sm-subdomain'"
+              (pageChange)="handlePageChange($event)"></pagination-controls>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Domain Feature Master: feature on domain only, or on a sub domain under that domain -->
+    <div class="row" *ngIf="segment === 'domainFeatures'">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-12 table-header">
+            <h3 class="table-header-title">Domain Feature Master</h3>
+          </div>
+        </div>
+        <div class="col-md-12">
+          <div class="row">
+            <div class="col-md-auto ml-auto d-flex flex-wrap justify-content-end align-items-start mb-1">
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-1 mb-1" (click)="downloadBulkTemplate('skill-domain-features')">
+                <em class="fa-solid fa-download"></em> Sample template
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-1 mb-1" (click)="openBulkUploadModal('skill-domain-features')">
+                <em class="fa-solid fa-upload"></em> Bulk upload
+              </button>
+              <button type="button" class="btn btn-outline-primary btn-sm mb-1" (click)="openAddDomainFeature()">
+                <em class="fa-solid fa-plus"></em> Add
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="selector-toggle">
+              <a href="javascript:void(0)" (click)="toggleSearch()">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+              </a>
+            </div>
+            <div class="overflow-auto">
+              <table class="table skill-matrix-master-config__sort-table" matSort
+                [matSortActive]="domainFeaturesSortActive"
+                [matSortDirection]="domainFeaturesSortDirection"
+                (matSortChange)="sortDataDomainFeatures($event)">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label" mat-sort-header="featureName|string">Feature name</th>
+                    <th scope="col" class="info-label" mat-sort-header="domainName|string">Domain</th>
+                    <th scope="col" class="info-label" mat-sort-header="subdomainName|string">Scope</th>
+                    <th scope="col" class="info-label" mat-sort-header="activeDisplay|string">Active</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                  <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="domainFeatureFilterColumns"
+                    (onSearch)="onSearch($event)"></tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="domainFeatures.length === 0">
+                    <td colspan="6" class="text-center info-label">No details to display...</td>
+                  </tr>
+                  <tr
+                    *ngFor="let row of domainFeatures | paginate: { id: 'sm-dfeat', itemsPerPage: pageSize, currentPage: page, totalItems: totalDomainFeatures }; let i = index">
+                    <th scope="row" class="info-label">{{ pageSize * (page - 1) + i + 1 }}</th>
+                    <td>{{ row.featureName }}</td>
+                    <td>{{ row.domainName }}</td>
+                    <td>{{ featureScopeLabel(row) }}</td>
+                    <td>{{ row.activeDisplay }}</td>
+                    <td class="text-nowrap skill-matrix-master-config__actions">
+                      <button type="button" class="btn btn-sm btn-outline-primary mr-1" (click)="editDomainFeature(row)"
+                        title="Edit">
+                        <em class="fa fa-edit" aria-hidden="true"></em>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmDeleteDomainFeature(row)"
+                        title="Delete">
+                        <em class="fa fa-trash" aria-hidden="true"></em>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <pagination-controls *ngIf="totalDomainFeatures > 0" class="my-pagination" [id]="'sm-dfeat'"
+              (pageChange)="handlePageChange($event)"></pagination-controls>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Step 5: aspiration chips (skillmatrix_aspiration_chip_master) -->
+    <div class="row" *ngIf="segment === 'aspirationChips'">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-12 table-header">
+            <h3 class="table-header-title">Aspiration chips (Submit for review — Step 5)</h3>
+          </div>
+        </div>
+        <p class="text-muted small col-12 mb-2">
+          Chips shown as “Tap to add interest” on Submit for review. Use <strong>Global (id 0)</strong> as the default pool when a department has no specific rows.
+        </p>
+        <div class="col-md-12">
+          <div class="row">
+            <div class="col-md-auto ml-auto d-flex flex-wrap justify-content-end align-items-start mb-1">
+              <button type="button" class="btn btn-outline-primary btn-sm mb-1" (click)="openAddAspirationChip()">
+                <em class="fa-solid fa-plus"></em> Add
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="selector-toggle">
+              <a href="javascript:void(0)" (click)="toggleSearch()">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+              </a>
+            </div>
+            <div class="overflow-auto">
+              <table class="table skill-matrix-master-config__sort-table" matSort
+                [matSortActive]="aspirationChipsSortActive"
+                [matSortDirection]="aspirationChipsSortDirection"
+                (matSortChange)="sortDataAspirationChips($event)">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label">Sr No.</th>
+                    <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department</th>
+                    <th scope="col" class="info-label" mat-sort-header="chipLabel|string">Chip label</th>
+                    <th scope="col" class="info-label" mat-sort-header="sortOrder|number">Sort</th>
+                    <th scope="col" class="info-label" mat-sort-header="activeDisplay|string">Active</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                  <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="aspirationChipFilterColumns"
+                    (onSearch)="onSearch($event)"></tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="aspirationChips.length === 0">
+                    <td colspan="6" class="text-center info-label">No details to display...</td>
+                  </tr>
+                  <tr
+                    *ngFor="let row of aspirationChips | paginate: { id: 'sm-aspchip', itemsPerPage: pageSize, currentPage: page, totalItems: totalAspirationChips }; let i = index">
+                    <th scope="row" class="info-label">{{ pageSize * (page - 1) + i + 1 }}</th>
+                    <td>{{ row.departmentName }}</td>
+                    <td>{{ row.chipLabel }}</td>
+                    <td>{{ row.sortOrder }}</td>
+                    <td>{{ row.activeDisplay }}</td>
+                    <td class="text-nowrap skill-matrix-master-config__actions">
+                      <button type="button" class="btn btn-sm btn-outline-primary mr-1" (click)="editAspirationChip(row)" title="Edit">
+                        <em class="fa fa-edit" aria-hidden="true"></em>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmDeleteAspirationChip(row)" title="Delete">
+                        <em class="fa fa-trash" aria-hidden="true"></em>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <pagination-controls *ngIf="totalAspirationChips > 0" class="my-pagination" [id]="'sm-aspchip'"
+              (pageChange)="handlePageChange($event)"></pagination-controls>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hierarchy View (read-only): category → department → skill → subskill + domain stack tree -->
+    <div class="row" *ngIf="segment === 'hierarchyView'">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-12 table-header">
+            <h3 class="table-header-title">Hierarchy View</h3>
+          </div>
+        </div>
+
+        <div class="smhv">
+          <div class="smhv__ctrl">
+            <button type="button" class="smhv__vtab" [class.act]="hierarchyViewMode === 'skills'" (click)="setHierarchyViewMode('skills')">⬤ Skill hierarchy</button>
+            <button type="button" class="smhv__vtab" [class.act]="hierarchyViewMode === 'domains'" (click)="setHierarchyViewMode('domains')">⬤ Domain hierarchy</button>
+
+            <button type="button" class="smhv__vtab" [class.act]="hierarchyVizMode === 'radial'" (click)="setHierarchyVizMode('radial')">⬤ Circular overview</button>
+            <button type="button" class="smhv__vtab" [class.act]="hierarchyVizMode === 'tree'" (click)="setHierarchyVizMode('tree')">⊢ Tree hierarchy</button>
+
+            <div class="smhv__tctr" [class.show]="hierarchyVizMode === 'tree'">
+              <ng-container *ngIf="hierarchyViewMode === 'skills'">
+                <span class="smhv__lbl">Department</span>
+                <app-my-select
+                  class="skill-matrix-master-config__search-select smhv__sel"
+                  [options]="departmentOptions"
+                  displayKey="name"
+                  valueKey="deptId"
+                  placeholder="Select department…"
+                  [(ngModel)]="vizSelectedDeptId"
+                  (selectionChange)="onVizDeptChange($event)">
+                </app-my-select>
+              </ng-container>
+              <ng-container *ngIf="hierarchyViewMode === 'domains'">
+                <span class="smhv__lbl">Domain</span>
+                <app-my-select
+                  class="skill-matrix-master-config__search-select smhv__sel"
+                  [options]="hierarchyDomainOptions"
+                  displayKey="domainName"
+                  valueKey="domainId"
+                  placeholder="Select domain…"
+                  [(ngModel)]="vizSelectedDomainId"
+                  (selectionChange)="onVizDomainChange($event)">
+                </app-my-select>
+              </ng-container>
+
+              <button type="button" class="smhv__sbtn" (click)="vizExpandCollapseAll(true)">Expand all</button>
+              <button type="button" class="smhv__sbtn" (click)="vizExpandCollapseAll(false)">Collapse all</button>
+
+              <button type="button" class="smhv__sbtn" (click)="vizExport('csv')">CSV</button>
+              <button type="button" class="smhv__sbtn" (click)="vizExport('xlsx')">XLSX</button>
+            </div>
+          </div>
+
+          <div class="smhv__wrap" *ngIf="hierarchyVizMode === 'radial'">
+            <svg #vizRadialSvg width="100%" viewBox="0 0 680 500" class="smhv__svg"></svg>
+          </div>
+
+          <div class="smhv__wrap smhv__wrap--tree" *ngIf="hierarchyVizMode === 'tree'">
+            <div class="smhv__treeScroll">
+              <svg #vizTreeSvg class="smhv__svg"></svg>
+            </div>
+          </div>
+
+          <div class="smhv__tooltip" #vizTooltip></div>
+          <div class="smhv__legend">
+            <div class="smhv__li" *ngFor="let g of vizLegend">
+              <span class="smhv__dot" [style.background]="g.color"></span>{{ g.label }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</div>
+
+<ng-template #bulkUploadModalTpl let-modal>
+  <div class="modal-header skill-matrix-master-modal__header">
+    <div>
+      <h4 class="modal-title skill-matrix-master-modal__title">Bulk upload</h4>
+      <p class="skill-matrix-master-modal__subtitle mb-0">{{ bulkUploadMasterLabel() }}</p>
+    </div>
+    <button type="button" class="close skill-matrix-master-modal__close" aria-label="Close" [disabled]="isBulkUploadBusy()"
+      (click)="closeBulkUploadModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body skill-matrix-master-modal__body skill-matrix-bulk-upload-modal">
+    <p class="text-muted small mb-3 mb-md-4">
+      Choose an Excel file (.xlsx or .xls), then click <strong>Upload</strong>. Upload does not start until you confirm.
+    </p>
+    <div class="form-group mb-3">
+      <label class="skill-matrix-master-modal__label d-block">Spreadsheet</label>
+      <div class="d-flex flex-wrap align-items-center">
+        <input #bulkFileInput type="file" class="d-none" accept=".xlsx,.xls,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          [disabled]="isBulkUploadBusy()" (change)="onBulkModalFileChange($event)" />
+        <button type="button" class="btn btn-outline-secondary btn-sm mr-2" [disabled]="isBulkUploadBusy()" (click)="bulkFileInput.click()">
+          Choose file…
+        </button>
+        <span class="text-truncate skill-matrix-bulk-upload-modal__file-name" [title]="bulkUploadSelectedFile?.name || ''">
+          {{ bulkUploadSelectedFile?.name || 'No file chosen' }}
+        </span>
+        <button *ngIf="bulkUploadSelectedFile && !isBulkUploadBusy() && bulkUploadPhase === 'pick'" type="button" class="btn btn-link btn-sm p-0 ml-1"
+          (click)="clearBulkModalFile(bulkFileInput)">Clear</button>
+      </div>
+    </div>
+    <div class="d-flex flex-wrap align-items-center mb-3">
+      <button type="button" class="btn btn-primary skill-matrix-master-modal__btn-save mr-2 mb-2"
+        [disabled]="!bulkUploadSelectedFile || isBulkUploadBusy()"
+        (click)="executeBulkUploadFromModal()">
+        <em *ngIf="isBulkUploadBusy()" class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></em>
+        Upload
+      </button>
+      <button *ngIf="bulkUploadPhase === 'done' || bulkUploadPhase === 'error'" type="button" class="btn btn-outline-primary mb-2 mr-2"
+        (click)="bulkUploadAnotherFile(bulkFileInput)">Choose another file</button>
+    </div>
+
+    <div *ngIf="bulkUploadShowProgressSection" class="skill-matrix-bulk-upload-modal__progress card border-0 bg-light">
+      <div class="card-body py-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="font-weight-bold small">{{ bulkUploadProgressCaption }}</span>
+          <span class="small text-muted" *ngIf="bulkUploadPhase !== 'error'">Progress: <strong>{{ bulkUploadPercentDisplay }}</strong></span>
+        </div>
+        <mat-progress-bar class="skill-matrix-bulk-upload-modal__progress-bar" [mode]="bulkUploadProgressBarMode" [value]="bulkUploadProgressBarValue"></mat-progress-bar>
+
+        <div *ngIf="bulkUploadPhase === 'done' && bulkUploadResult" class="mt-3">
+          <div class="row text-center small mb-2">
+            <div class="col-4">
+              <div class="text-muted">Total records</div>
+              <div class="h5 mb-0">{{ bulkUploadResult.totalRecords }}</div>
+            </div>
+            <div class="col-4">
+              <div class="text-muted">Successful</div>
+              <div class="h5 mb-0 text-success">{{ bulkUploadResult.inserted }}</div>
+            </div>
+            <div class="col-4">
+              <div class="text-muted">Failed</div>
+              <div class="h5 mb-0 text-danger">{{ bulkUploadResult.failed }}</div>
+            </div>
+          </div>
+          <p *ngIf="bulkUploadResult.failed > 0 && bulkUploadResult.rowErrors.length >= 80" class="text-warning small mb-2">
+            Only the first 80 error lines are listed. Fix those rows and re-upload if needed.
+          </p>
+          <div *ngIf="bulkUploadResult.rowErrors.length > 0" class="table-responsive skill-matrix-bulk-upload-modal__errors mt-2">
+            <table class="table table-sm table-bordered bg-white mb-0">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label">Row</th>
+                  <th scope="col" class="info-label">Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let err of bulkUploadResult.rowErrors">
+                  <td class="text-nowrap">{{ parseBulkRowError(err).row }}</td>
+                  <td>{{ parseBulkRowError(err).message }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div *ngIf="bulkUploadPhase === 'error'" class="alert alert-danger mb-0 mt-2 small" role="alert">
+          {{ bulkUploadErrorMessage }}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer skill-matrix-master-modal__footer">
+    <button type="button" class="btn btn-outline-secondary skill-matrix-master-modal__btn-cancel" [disabled]="isBulkUploadBusy()"
+      (click)="closeBulkUploadModal()">Close</button>
+  </div>
+</ng-template>
+
+<ng-template #categoryModalTpl let-modal>
+  <div class="modal-header skill-matrix-master-modal__header">
+    <div>
+      <h4 class="modal-title skill-matrix-master-modal__title">{{ categoryEditId == null ? 'Add category' : 'Edit category' }}</h4>
+      <p class="skill-matrix-master-modal__subtitle mb-0">Name used across skill matrix masters.</p>
+    </div>
+    <button type="button" class="close skill-matrix-master-modal__close" aria-label="Close" (click)="modal.dismiss('cancel')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body skill-matrix-master-modal__body">
+    <div class="row">
+      <div class="col-12">
+        <div class="form-group skill-matrix-master-modal__field mb-0">
+          <label class="skill-matrix-master-modal__label">Category name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control skill-matrix-master-modal__input" [(ngModel)]="categoryForm.categoryName"
+            maxlength="100" placeholder="e.g. Cloud, Compliance" autocomplete="off" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer skill-matrix-master-modal__footer">
+    <button type="button" class="btn btn-outline-secondary skill-matrix-master-modal__btn-cancel" (click)="modal.dismiss()">Cancel</button>
+    <button type="button" class="btn btn-primary skill-matrix-master-modal__btn-save" (click)="saveCategory()">Save</button>
+  </div>
+</ng-template>
+
+<ng-template #skillModalTpl let-modal>
+  <div class="modal-header skill-matrix-master-modal__header">
+    <div>
+      <h4 class="modal-title skill-matrix-master-modal__title">{{ skillEditId == null ? 'Add skill' : 'Edit skill' }}</h4>
+      <p class="skill-matrix-master-modal__subtitle mb-0">Define the skill, link category, type, and department.</p>
+    </div>
+    <button type="button" class="close skill-matrix-master-modal__close" aria-label="Close" (click)="modal.dismiss('cancel')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body skill-matrix-master-modal__body">
+    <div class="row">
+      <div class="col-12">
+        <div class="form-group skill-matrix-master-modal__field">
+          <label class="skill-matrix-master-modal__label">Skill name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control skill-matrix-master-modal__input" [(ngModel)]="skillForm.skillName" maxlength="120"
+            placeholder="Enter skill name" autocomplete="off" />
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group skill-matrix-master-modal__field">
+          <label class="skill-matrix-master-modal__label">Category <span class="text-danger">*</span></label>
+          <app-my-select
+            class="skill-matrix-master-config__search-select"
+            [options]="categoryOptions"
+            displayKey="categoryName"
+            valueKey="categoryId"
+            placeholder="Search or select category"
+            [(ngModel)]="skillForm.categoryId">
+          </app-my-select>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group skill-matrix-master-modal__field">
+          <label class="skill-matrix-master-modal__label">Type <span class="text-danger">*</span></label>
+          <app-my-select
+            class="skill-matrix-master-config__search-select"
+            [options]="skillTypeSelectOptions"
+            displayKey="label"
+            valueKey="code"
+            placeholder="Search or select type"
+            [(ngModel)]="skillForm.skillType">
+          </app-my-select>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="form-group skill-matrix-master-modal__field mb-2">
+          <label class="skill-matrix-master-modal__label">Department <span class="text-danger">*</span></label>
+          <app-my-select
+            class="skill-matrix-master-config__search-select"
+            [options]="departmentOptions"
+            displayKey="name"
+            valueKey="deptId"
+            placeholder="Search or select department"
+            [(ngModel)]="skillForm.departmentId">
+          </app-my-select>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="skill-matrix-master-modal__active-wrap">
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input" id="skillActiveChk" [(ngModel)]="skillForm.isActive" />
+            <label class="custom-control-label skill-matrix-master-modal__active-label" for="skillActiveChk">Active</label>
+          </div>
+          <span class="skill-matrix-master-modal__hint">Inactive skills can be hidden from selection where applicable.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer skill-matrix-master-modal__footer">
+    <button type="button" class="btn btn-outline-secondary skill-matrix-master-modal__btn-cancel" (click)="modal.dismiss()">Cancel</button>
+    <button type="button" class="btn btn-primary skill-matrix-master-modal__btn-save" (click)="saveSkill()">Save</button>
+  </div>
+</ng-template>
+
+<ng-template #subskillModalTpl let-modal>
+  <div class="modal-header skill-matrix-master-modal__header">
+    <div>
+      <h4 class="modal-title skill-matrix-master-modal__title">{{ subskillEditId == null ? 'Add subskill' : 'Edit subskill' }}</h4>
+      <p class="skill-matrix-master-modal__subtitle mb-0">Attach a subskill under an existing skill.</p>
+    </div>
+    <button type="button" class="close skill-matrix-master-modal__close" aria-label="Close" (click)="modal.dismiss('cancel')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body skill-matrix-master-modal__body">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group skill-matrix-master-modal__field">
+          <label class="skill-matrix-master-modal__label">Skill <span class="text-danger">*</span></label>
+          <app-my-select
+            class="skill-matrix-master-config__search-select"
+            [options]="skillOptionsForSubskill"
+            displayKey="skillName"
+            valueKey="skillId"
+            placeholder="Search or select skill"
+            [(ngModel)]="subskillForm.skillId">
+          </app-my-select>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group skill-matrix-master-modal__field">
+          <label class="skill-matrix-master-modal__label">Subskill name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control skill-matrix-master-modal__input" [(ngModel)]="subskillForm.subskillName" maxlength="255"
+            placeholder="Enter subskill name" autocomplete="off" />
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="skill-matrix-master-modal__active-wrap">
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input" id="subskillActiveChk" [(ngModel)]="subskillForm.isActive" />
+            <label class="custom-control-label skill-matrix-master-modal__active-label" for="subskillActiveChk">Active</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer skill-matrix-master-modal__footer">
+    <button type="button" class="btn btn-outline-secondary skill-matrix-master-modal__btn-cancel" (click)="modal.dismiss()">Cancel</button>
+    <button type="button" class="btn btn-primary skill-matrix-master-modal__btn-save" (click)="saveSubskill()">Save</button>
+  </div>
+</ng-template>
+
+<ng-template #domainModalTpl let-modal>
+  <div class="modal-header skill-matrix-master-modal__header">
+    <div>
+      <h4 class="modal-title skill-matrix-master-modal__title">{{ domainEditId == null ? 'Add domain' : 'Edit domain' }}</h4>
+      <p class="skill-matrix-master-modal__subtitle mb-0">Domains group sub domains in the skill matrix.</p>
+    </div>
+    <button type="button" class="close skill-matrix-master-modal__close" aria-label="Close" (click)="modal.dismiss('cancel')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body skill-matrix-master-modal__body">
+    <div class="row">
+      <div class="col-12">
+        <div class="form-group skill-matrix-master-modal__field mb-0">
+          <label class="skill-matrix-master-modal__label">Domain name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control skill-matrix-master-modal__input" [(ngModel)]="domainForm.domainName"
+            maxlength="150" placeholder="e.g. Engineering, Operations" autocomplete="off" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer skill-matrix-master-modal__footer">
+    <button type="button" class="btn btn-outline-secondary skill-matrix-master-modal__btn-cancel" (click)="modal.dismiss()">Cancel</button>
+    <button type="button" class="btn btn-primary skill-matrix-master-modal__btn-save" (click)="saveDomain()">Save</button>
+  </div>
+</ng-template>
+
+<ng-template #subdomainModalTpl let-modal>
+  <div class="modal-header skill-matrix-master-modal__header">
+    <div>
+      <h4 class="modal-title skill-matrix-master-modal__title">{{ subdomainEditId == null ? 'Add sub domain' : 'Edit sub domain' }}</h4>
+      <p class="skill-matrix-master-modal__subtitle mb-0">Attach a sub domain under an existing domain.</p>
+    </div>
+    <button type="button" class="close skill-matrix-master-modal__close" aria-label="Close" (click)="modal.dismiss('cancel')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body skill-matrix-master-modal__body">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group skill-matrix-master-modal__field">
+          <label class="skill-matrix-master-modal__label">Domain <span class="text-danger">*</span></label>
+          <app-my-select
+            class="skill-matrix-master-config__search-select"
+            [options]="domainOptionsForSubdomain"
+            displayKey="domainName"
+            valueKey="domainId"
+            placeholder="Search or select domain"
+            [(ngModel)]="subdomainForm.domainId">
+          </app-my-select>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group skill-matrix-master-modal__field">
+          <label class="skill-matrix-master-modal__label">Sub domain name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control skill-matrix-master-modal__input" [(ngModel)]="subdomainForm.subdomainName" maxlength="255"
+            placeholder="Enter sub domain name" autocomplete="off" />
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="skill-matrix-master-modal__active-wrap">
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input" id="subdomainActiveChk" [(ngModel)]="subdomainForm.isActive" />
+            <label class="custom-control-label skill-matrix-master-modal__active-label" for="subdomainActiveChk">Active</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer skill-matrix-master-modal__footer">
+    <button type="button" class="btn btn-outline-secondary skill-matrix-master-modal__btn-cancel" (click)="modal.dismiss()">Cancel</button>
+    <button type="button" class="btn btn-primary skill-matrix-master-modal__btn-save" (click)="saveSubdomain()">Save</button>
+  </div>
+</ng-template>
+
+<ng-template #domainFeatureModalTpl let-modal>
+  <div class="modal-header skill-matrix-master-modal__header">
+    <div>
+      <h4 class="modal-title skill-matrix-master-modal__title">{{ domainFeatureEditId == null ? 'Add domain feature' : 'Edit domain feature' }}</h4>
+      <p class="skill-matrix-master-modal__subtitle mb-0">Attach to the domain only, or pick a sub domain under that domain.</p>
+    </div>
+    <button type="button" class="close skill-matrix-master-modal__close" aria-label="Close" (click)="modal.dismiss('cancel')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body skill-matrix-master-modal__body">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group skill-matrix-master-modal__field">
+          <label class="skill-matrix-master-modal__label">Domain <span class="text-danger">*</span></label>
+          <app-my-select
+            class="skill-matrix-master-config__search-select"
+            [options]="domainOptionsForSubdomain"
+            displayKey="domainName"
+            valueKey="domainId"
+            placeholder="Search or select domain"
+            [(ngModel)]="domainFeatureForm.domainId"
+            (selectionChange)="onDomainFeatureDomainChanged()">
+          </app-my-select>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group skill-matrix-master-modal__field">
+          <label class="skill-matrix-master-modal__label">Sub domain <span class="text-muted font-weight-normal">(optional)</span></label>
+          <app-my-select
+            class="skill-matrix-master-config__search-select"
+            [options]="subdomainOptionsForFeature"
+            displayKey="subdomainName"
+            valueKey="subdomainId"
+            placeholder="Leave unset for domain-level feature"
+            [(ngModel)]="domainFeatureForm.subdomainId">
+          </app-my-select>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="form-group skill-matrix-master-modal__field mb-2">
+          <label class="skill-matrix-master-modal__label">Feature name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control skill-matrix-master-modal__input" [(ngModel)]="domainFeatureForm.featureName" maxlength="255"
+            placeholder="Enter feature name" autocomplete="off" />
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="skill-matrix-master-modal__active-wrap">
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input" id="domainFeatureActiveChk" [(ngModel)]="domainFeatureForm.isActive" />
+            <label class="custom-control-label skill-matrix-master-modal__active-label" for="domainFeatureActiveChk">Active</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer skill-matrix-master-modal__footer">
+    <button type="button" class="btn btn-outline-secondary skill-matrix-master-modal__btn-cancel" (click)="modal.dismiss()">Cancel</button>
+    <button type="button" class="btn btn-primary skill-matrix-master-modal__btn-save" (click)="saveDomainFeature()">Save</button>
+  </div>
+</ng-template>
+
+<ng-template #aspirationChipModalTpl let-modal>
+  <div class="modal-header skill-matrix-master-modal__header">
+    <div>
+      <h4 class="modal-title skill-matrix-master-modal__title">{{ aspirationChipEditId == null ? 'Add aspiration chip' : 'Edit aspiration chip' }}</h4>
+      <p class="skill-matrix-master-modal__subtitle mb-0">Shown on Skill matrix → Submit for review → Step 5.</p>
+    </div>
+    <button type="button" class="close skill-matrix-master-modal__close" aria-label="Close" (click)="modal.dismiss('cancel')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body skill-matrix-master-modal__body">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group skill-matrix-master-modal__field">
+          <label class="skill-matrix-master-modal__label">Department scope <span class="text-danger">*</span></label>
+          <app-my-select
+            class="skill-matrix-master-config__search-select"
+            [options]="aspirationChipDeptOptions"
+            displayKey="name"
+            valueKey="deptId"
+            placeholder="Global or a specific department"
+            [(ngModel)]="aspirationChipForm.deptId">
+          </app-my-select>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group skill-matrix-master-modal__field">
+          <label class="skill-matrix-master-modal__label">Sort order</label>
+          <input type="number" class="form-control skill-matrix-master-modal__input" [(ngModel)]="aspirationChipForm.sortOrder" />
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="form-group skill-matrix-master-modal__field mb-2">
+          <label class="skill-matrix-master-modal__label">Chip label <span class="text-danger">*</span></label>
+          <input type="text" class="form-control skill-matrix-master-modal__input" [(ngModel)]="aspirationChipForm.chipLabel" maxlength="200"
+            placeholder="e.g. Tech lead" autocomplete="off" />
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="skill-matrix-master-modal__active-wrap">
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input" id="aspirationChipActiveChk" [(ngModel)]="aspirationChipForm.isActive" />
+            <label class="custom-control-label skill-matrix-master-modal__active-label" for="aspirationChipActiveChk">Active</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer skill-matrix-master-modal__footer">
+    <button type="button" class="btn btn-outline-secondary skill-matrix-master-modal__btn-cancel" (click)="modal.dismiss()">Cancel</button>
+    <button type="button" class="btn btn-primary skill-matrix-master-modal__btn-save" (click)="saveAspirationChip()">Save</button>
+  </div>
+</ng-template>
