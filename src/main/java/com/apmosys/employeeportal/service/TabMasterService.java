@@ -16,7 +16,6 @@ import com.apmosys.employeeportal.dto.TabMasterDTO;
 import com.apmosys.employeeportal.repository.EmployeeAccessOverrideRepository;
 import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.TabMasterRepository;
-import com.apmosys.employeeportal.utility.InterviewConstants;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -52,8 +51,7 @@ public class TabMasterService {
 					dto.setTabName(tab[4] != null ? tab[4].toString() : null);
 					dto.setTabIcon(tab[5] != null ? tab[5].toString() : null);
 					dto.setTabRouteName(tab[6] != null ? tab[6].toString() : null);		
-					dto.setTabSequence(tab[7] != null ? Integer.parseInt(tab[7].toString()) : null);
-					applyKnownFeatureTabDefaults(dto);
+					dto.setTabSequence(tab[7] != null ? Integer.parseInt(tab[7].toString()) : null);					
 					dtoList.add(dto);
 					
 				}
@@ -76,27 +74,6 @@ public class TabMasterService {
 
 		}
 		return response;
-	}
-
-	/** Ensures sidebar tab metadata when feature_master.tab_id is missing but role has sub-features. */
-	private void applyKnownFeatureTabDefaults(RoleFeatureMapDTO dto) {
-		if (dto == null || dto.getFeatureName() == null) {
-			return;
-		}
-		if (InterviewConstants.FEATURE_NAME.equals(dto.getFeatureName())) {
-			if (dto.getTabName() == null || dto.getTabName().isBlank()) {
-				dto.setTabName("Interview Tracker");
-			}
-			if (dto.getTabRouteName() == null || dto.getTabRouteName().isBlank()) {
-				dto.setTabRouteName("interview-tracker");
-			}
-			if (dto.getTabIcon() == null || dto.getTabIcon().isBlank()) {
-				dto.setTabIcon("fa fa-calendar-check-o");
-			}
-			if (dto.getTabSequence() == null) {
-				dto.setTabSequence(999);
-			}
-		}
 	}
 
 }
