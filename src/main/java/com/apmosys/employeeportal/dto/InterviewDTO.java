@@ -26,6 +26,9 @@ public class InterviewDTO {
     private String interviewStatus;
     private String selectionStatus;
     private String onboardingStatus;
+    private String interviewStatusChangeDate;
+    private String selectionStatusChangeDate;
+    private String onboardingStatusChangeDate;
     private String interviewRemarks;
     private String selectionRemarks;
     private String onboardingRemarks;
@@ -55,4 +58,20 @@ public class InterviewDTO {
     private String sortDirection;
     private Integer page;
     private Integer size;
+
+    // Column-level filters
+    private String titleFilter;
+    private String dateFilter;
+    private String clientFilter;
+    private String roleFilter;
+    private String projectFilter;
+    private String departmentNameFilter;
+    private String employeeNameFilter;
+    private String modeFilter;
+    private String interviewStatusFilter;
+    private String selectionStatusFilter;
+    private String onboardingStatusFilter;
+    private String jdFilter;
+    private String scheduledByNameFilter;
+    private String interviewerNameFilter;
 }

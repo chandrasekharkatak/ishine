@@ -1,29 +1,32 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.model.Interview;
 
-public interface InterviewRepository extends JpaRepository<Interview, Long> {
+@Repository
+public interface InterviewRepository extends JpaRepository<Interview, Long>, InterviewRepositoryCustom {
 
-    @Query(nativeQuery = true, value = "SELECT i.*, d.name as department_name, e.name as employee_name, s.name as scheduled_by_name " +
+    @Query(nativeQuery = true, value = "SELECT i.*, d.name as department_name, e.name as employee_name, c.name as scheduled_by_name " +
             "FROM interview_tracker i " +
             "LEFT JOIN department d ON i.department_id = d.dept_id " +
             "LEFT JOIN employee e ON i.employee_id = e.emp_id " +
-            "LEFT JOIN employee s ON i.scheduled_by_id = s.emp_id " +
+            "LEFT JOIN employee c ON i.created_by = c.emp_id " +
             "WHERE (:startDate IS NULL OR :endDate IS NULL OR i.date BETWEEN :startDate AND :endDate) " +
             "ORDER BY i.date DESC")
     List<Object[]> findAllInterviews(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
-    @Query(nativeQuery = true, value = "SELECT i.*, d.name as department_name, e.name as employee_name, s.name as scheduled_by_name " +
+    @Query(nativeQuery = true, value = "SELECT i.*, d.name as department_name, e.name as employee_name, c.name as scheduled_by_name " +
             "FROM interview_tracker i " +
             "LEFT JOIN department d ON i.department_id = d.dept_id " +
             "LEFT JOIN employee e ON i.employee_id = e.emp_id " +
-            "LEFT JOIN employee s ON i.scheduled_by_id = s.emp_id " +
+            "LEFT JOIN employee c ON i.created_by = c.emp_id " +
             "WHERE (:startDate IS NULL OR :endDate IS NULL OR i.date BETWEEN :startDate AND :endDate) " +
             "AND (:client IS NULL OR i.client = :client) " +
             "AND (:departmentId IS NULL OR i.department_id = :departmentId) " +
@@ -45,9 +48,26 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
             "ORDER BY name")
     List<Object[]> findAllEmployees();
 
+    /**
+     * Superset for interview tracker global employee filter: standard active list (findAllEmployees)
+     * UNION employees who appear in any department-scoped schedule list (same employment rule as
+     * {@link #findEmployeesByDepartmentId}), so no one selectable in schedule is missing from global.
+     */
+    @Query(nativeQuery = true, value =
+            "SELECT emp_id, name FROM ( " +
+            "  SELECT emp_id, name FROM employee WHERE name IS NOT NULL AND name != '' AND employmentstatus != 'InActive' " +
+            "  UNION " +
+            "  SELECT DISTINCT e.emp_id, e.name FROM employee e " +
+            "  INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+            "  WHERE jr.dept_id IS NOT NULL AND e.name IS NOT NULL AND e.name != '' " +
+            "  AND (e.employmentstatus IS NULL OR e.employmentstatus != 'InActive') " +
+            ") u ORDER BY name")
+    List<Object[]> findAllEmployeesForInterviewGlobalFilter();
+
     @Query(nativeQuery = true, value = "SELECT e.emp_id, e.name FROM employee e " +
             "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
             "WHERE jr.dept_id = :departmentId AND e.name IS NOT NULL AND e.name != '' " +
+            "AND (e.employmentstatus IS NULL OR e.employmentstatus != 'InActive') " +
             "ORDER BY e.name")
     List<Object[]> findEmployeesByDepartmentId(@Param("departmentId") Long departmentId);
 
@@ -69,4 +89,6 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
             "WHERE c.client_name = :clientName AND p.project_name IS NOT NULL AND p.project_name != '' " +
             "ORDER BY p.project_name")
     List<Object[]> findProjectsByClientName(@Param("clientName") String clientName);
+
+    Optional<Interview> findFirstByResumeFilePathContaining(String fileNameFragment);
 }

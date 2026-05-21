@@ -70,7 +70,7 @@
                 <div class="col-md-4 mb-14">
                     <label class="form-label-custom">Project</label>
                     <div class="autocomplete-wrapper">
-                        <input type="text" class="form-control form-control-custom" [(ngModel)]="projectSearchText" name="project" [placeholder]="!selectedClient ? 'Select client first' : (isLoadingProjects ? 'Loading projects...' : 'Search or type new project')" [disabled]="isProjectDropdownDisabled" (input)="onProjectInput()" (focus)="filterProjectList()" (blur)="onProjectBlur()" (keydown.enter)="$event.preventDefault()" autocomplete="off">
+                        <input type="text" class="form-control form-control-custom" [(ngModel)]="projectSearchText" name="project" [placeholder]="isLoadingProjects ? 'Loading projects...' : 'Search or type new project'" [disabled]="isProjectDropdownDisabled" (input)="onProjectInput()" (focus)="filterProjectList()" (blur)="onProjectBlur()" (keydown.enter)="$event.preventDefault()" autocomplete="off">
                         <div class="autocomplete-dropdown" *ngIf="showProjectDropdown && filteredProjectList.length > 0">
                             <div class="autocomplete-item" *ngFor="let p of filteredProjectList" (mousedown)="selectProject(p.name)">
                                 <i class="fa fa-folder text-muted"></i><span>{{ p.name }}</span>
@@ -80,7 +80,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="text-muted" style="font-size: 0.7rem; margin-top: 0.2rem;" *ngIf="!selectedClient"><i class="fa fa-info-circle me-1"></i>Select a client to load projects</div>
+                    <div class="text-muted" style="font-size: 0.7rem; margin-top: 0.2rem;" *ngIf="!selectedClient && !isProjectDropdownDisabled"><i class="fa fa-info-circle me-1"></i>Enter a client to load projects</div>
                 </div>
                 <div class="col-md-4 mb-14">
                     <label class="form-label-custom">Department <span class="required-mark">*</span></label>
@@ -116,10 +116,13 @@
                             </div>
                             <div class="file-upload-content file-selected" *ngIf="selectedFileName">
                                 <i class="fa fa-file-pdf file-icon-pdf"></i>
-                                <div class="file-info">
-                                    <span class="file-name">{{ selectedFileName }}</span>
-                                    <span class="file-size">{{ selectedFileSize }}</span>
-                                </div>
+                                    <div class="file-info">
+                                        <span class="file-name">{{ selectedFileName }}</span>
+                                        <span class="file-size">{{ selectedFileSize }}</span>
+                                        <button *ngIf="isEditMode && interviewForm.resumeFilePath" type="button" (click)="openResumePopup(); $event.stopPropagation()" class="file-view-btn">
+                                            <i class="fa fa-eye"></i> View Resume
+                                        </button>
+                                    </div>
                                 <button type="button" class="file-remove-btn" (click)="removeFile($event)" title="Remove file">
                                     <i class="fa fa-times"></i>
                                 </button>
@@ -155,9 +158,13 @@
                         [options]="interviewStatusOptions">
                     </app-my-select>
                 </div>
-                <div class="col-md-8 mb-14" *ngIf="interviewForm.interviewStatus === 'Cancelled'">
-                    <label class="form-label-custom">Interview Remarks <span class="required-mark">*</span></label>
-                    <textarea class="form-control form-control-custom textarea-custom" rows="2" [(ngModel)]="interviewForm.interviewRemarks" name="interviewRemarks" placeholder="Reason for cancellation..."></textarea>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Interview Status Change Date</label>
+                    <input type="date" class="form-control form-control-custom" [(ngModel)]="interviewForm.interviewStatusChangeDate" name="interviewStatusChangeDate">
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Interview Remarks</label>
+                    <textarea class="form-control form-control-custom textarea-custom" rows="2" [(ngModel)]="interviewForm.interviewRemarks" name="interviewRemarks" placeholder="Enter interview remarks..."></textarea>
                 </div>
             </div>
             <div class="row g-3 mt-2">
@@ -168,9 +175,16 @@
                         [options]="selectionStatusOptions">
                     </app-my-select>
                 </div>
-                <div class="col-md-8 mb-14" *ngIf="interviewForm.selectionStatus === 'Rejected'">
-                    <label class="form-label-custom">Selection Remarks <span class="required-mark">*</span></label>
-                    <textarea class="form-control form-control-custom textarea-custom" rows="2" [(ngModel)]="interviewForm.selectionRemarks" name="selectionRemarks" placeholder="Reason for rejection..."></textarea>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Selection Status Change Date <span class="required-mark" *ngIf="isSelectionStatusChangeDateRequired()">*</span></label>
+                    <input type="date" class="form-control form-control-custom" [class.is-invalid]="formErrors['selectionStatusChangeDate']"
+                        [(ngModel)]="interviewForm.selectionStatusChangeDate" name="selectionStatusChangeDate"
+                        (change)="clearFieldError('selectionStatusChangeDate')">
+                    <div class="field-error" *ngIf="formErrors['selectionStatusChangeDate']"><i class="fa fa-exclamation-circle"></i> {{ formErrors['selectionStatusChangeDate'] }}</div>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Selection Remarks</label>
+                    <textarea class="form-control form-control-custom textarea-custom" rows="2" [(ngModel)]="interviewForm.selectionRemarks" name="selectionRemarks" placeholder="Enter selection remarks..."></textarea>
                 </div>
             </div>
             <div class="row g-3 mt-2">
@@ -181,9 +195,16 @@
                         [options]="onboardingStatusOptions">
                     </app-my-select>
                 </div>
-                <div class="col-md-8 mb-14" *ngIf="interviewForm.onboardingStatus === 'Dropped'">
-                    <label class="form-label-custom">Onboarding Remarks <span class="required-mark">*</span></label>
-                    <textarea class="form-control form-control-custom textarea-custom" rows="2" [(ngModel)]="interviewForm.onboardingRemarks" name="onboardingRemarks" placeholder="Reason for dropping..."></textarea>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Onboarding Status Change Date <span class="required-mark" *ngIf="isOnboardingStatusChangeDateRequired()">*</span></label>
+                    <input type="date" class="form-control form-control-custom" [class.is-invalid]="formErrors['onboardingStatusChangeDate']"
+                        [(ngModel)]="interviewForm.onboardingStatusChangeDate" name="onboardingStatusChangeDate"
+                        (change)="clearFieldError('onboardingStatusChangeDate')">
+                    <div class="field-error" *ngIf="formErrors['onboardingStatusChangeDate']"><i class="fa fa-exclamation-circle"></i> {{ formErrors['onboardingStatusChangeDate'] }}</div>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Onboarding Remarks</label>
+                    <textarea class="form-control form-control-custom textarea-custom" rows="2" [(ngModel)]="interviewForm.onboardingRemarks" name="onboardingRemarks" placeholder="Enter onboarding remarks..."></textarea>
                 </div>
             </div>
         </div>
@@ -214,4 +235,26 @@
         <i *ngIf="!isSubmitting" class="fa" [class.fa-save]="isEditMode" [class.fa-calendar-check]="!isEditMode"></i>
         <span>{{ isSubmitting ? (isEditMode ? 'Updating...' : 'Scheduling...') : (isEditMode ? 'Update Interview' : 'Schedule Interview') }}</span>
     </button>
+</div>
+
+<div class="resume-popup-overlay" *ngIf="showResumePopup" (click)="closeResumePopup()">
+    <div class="resume-popup-content" (click)="$event.stopPropagation()">
+        <div class="resume-popup-header">
+            <h5><i class="fa fa-file-pdf me-2"></i>{{ interviewForm.resumeFileName }}</h5>
+            <button type="button" class="close" (click)="closeResumePopup()">&times;</button>
+        </div>
+        <div class="resume-popup-body">
+            <div class="loading-spinner" *ngIf="isLoadingResume">
+                <i class="fa fa-spinner fa-spin"></i>
+                <span>Loading resume...</span>
+            </div>
+            <iframe *ngIf="!isLoadingResume && resumeBlobUrl" [src]="resumeBlobUrl" width="100%" height="100%" frameborder="0"></iframe>
+        </div>
+        <div class="resume-popup-footer">
+            <button type="button" class="btn btn-outline-primary btn-sm me-2" (click)="openInNewTab()">
+                <i class="fa fa-external-link me-1"></i> Open in New Tab
+            </button>
+            <button type="button" class="btn btn-cancel" (click)="closeResumePopup()">Close</button>
+        </div>
+    </div>
 </div>

@@ -4,6 +4,14 @@ import { InterviewTrackerService } from 'src/app/services/interview-tracker.serv
 import { Interview } from 'src/app/models/interview';
 import { first } from 'rxjs/operators';
 import * as moment from 'moment';
+import { environment } from 'src/environments/environment';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { HttpClient } from '@angular/common/http';
+import {
+    hasStatusChangeDate,
+    requiresStatusChangeDate,
+    requiresStatusChangeDateOnSet
+} from '../interview-status.helpers';
 
 @Component({
     standalone: false,
@@ -48,11 +56,22 @@ export class ScheduleInterviewComponent implements OnInit {
     isEmployeeDropdownDisabled: boolean = true;
     isLoadingProjects: boolean = false;
     isProjectDropdownDisabled: boolean = true;
+    existingResumeUrl: SafeResourceUrl = '';
+    private baseUrl: string = environment.baseUrl;
+    showResumePopup: boolean = false;
+    resumeBlobUrl: SafeResourceUrl = '';
+    isLoadingResume: boolean = false;
+    /** Set when opening edit before dropdown API returns. */
+    private editContextReady: boolean = false;
+    private originalSelectionStatus: string = 'Pending';
+    private originalOnboardingStatus: string = 'Not Applicable';
 
     constructor(
         public activeModal: NgbActiveModal,
         private interviewTrackerService: InterviewTrackerService,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private sanitizer: DomSanitizer,
+        private http: HttpClient
     ) { }
 
     ngOnInit(): void {
@@ -63,27 +82,32 @@ export class ScheduleInterviewComponent implements OnInit {
             this.interviewForm.interviewStatus = 'Scheduled';
             this.interviewForm.selectionStatus = 'Pending';
             this.interviewForm.onboardingStatus = 'Not Applicable';
+            this.interviewForm.interviewStatusChangeDate = null;
+            this.interviewForm.selectionStatusChangeDate = null;
+            this.interviewForm.onboardingStatusChangeDate = null;
         }
     }
 
     setEditMode(interview: Interview): void {
         this.isEditMode = true;
+        this.editContextReady = true;
         this.modalTitle = 'Edit Interview';
         this.interviewForm = { ...interview };
+        this.originalSelectionStatus = interview.selectionStatus || 'Pending';
+        this.originalOnboardingStatus = interview.onboardingStatus || 'Not Applicable';
         this.clientSearchText = interview.client || '';
         this.projectSearchText = interview.project || '';
         this.selectedClient = interview.client || '';
         if (interview.resumeFileName) {
             this.selectedFileName = interview.resumeFileName;
             this.selectedFileSize = 'Attached';
+            if (interview.resumeFilePath) {
+                const fileName = interview.resumeFilePath.replace(/^\//, '');
+                const url = `${this.baseUrl}api/interview/resume/${fileName}`;
+                this.existingResumeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+            }
         }
-        if (this.interviewForm.departmentId) {
-            this.selectedDepartment = this.departmentList.find((d: any) => d.id === this.interviewForm.departmentId) || null;
-            this.loadEmployeesForDepartment(this.interviewForm.departmentId);
-        }
-        if (this.selectedClient) {
-            this.loadProjectsByClient(this.selectedClient);
-        }
+        this.applyEditSelectionsIfReady();
     }
 
     loadDropdownData(): void {
@@ -94,8 +118,44 @@ export class ScheduleInterviewComponent implements OnInit {
                 this.employeeList = response.serviceResponse.employees || [];
                 this.filteredClientList = [...this.clientList];
                 this.filteredProjectList = [...this.projectList];
+                this.applyEditSelectionsIfReady();
             }
         });
+    }
+
+    /** Run after dropdown data and/or setEditMode so department/employee bind correctly in edit mode. */
+    private applyEditSelectionsIfReady(): void {
+        if (!this.isEditMode || !this.editContextReady) {
+            return;
+        }
+
+        const deptId = this.normalizeId(this.interviewForm.departmentId);
+        if (deptId != null) {
+            let dept = this.departmentList.find((d: any) => this.normalizeId(d.id) === deptId);
+            if (!dept) {
+                const label = this.interviewForm.departmentName || `Department ${deptId}`;
+                dept = { id: deptId, name: label };
+                this.departmentList = [dept, ...this.departmentList];
+            }
+            this.selectedDepartment = dept || null;
+            this.interviewForm.departmentId = deptId;
+            if (dept) {
+                this.loadEmployeesForDepartment(deptId);
+            }
+        }
+
+        if (this.selectedClient) {
+            this.loadProjectsByClient(this.selectedClient);
+        }
+        this.cdr.detectChanges();
+    }
+
+    private normalizeId(value: any): number | null {
+        if (value == null || value === '') {
+            return null;
+        }
+        const n = Number(value);
+        return Number.isNaN(n) ? null : n;
     }
 
     loadEmployeesForDepartment(deptId: number): void {
@@ -108,7 +168,16 @@ export class ScheduleInterviewComponent implements OnInit {
                 this.filteredEmployeeList = [];
             }
             if (this.isEditMode && this.interviewForm.employeeId) {
-                this.selectedEmployee = this.filteredEmployeeList.find((e: any) => e.id === this.interviewForm.employeeId) || null;
+                const empId = this.normalizeId(this.interviewForm.employeeId);
+                let emp = this.filteredEmployeeList.find((e: any) => this.normalizeId(e.id) === empId);
+                if (!emp && this.interviewForm.employeeName) {
+                    emp = { id: empId, name: this.interviewForm.employeeName };
+                    this.filteredEmployeeList = [emp, ...this.filteredEmployeeList];
+                }
+                this.selectedEmployee = emp || null;
+                if (empId != null) {
+                    this.interviewForm.employeeId = empId;
+                }
             }
             this.isLoadingEmployees = false;
             this.isEmployeeDropdownDisabled = false;
@@ -171,6 +240,7 @@ export class ScheduleInterviewComponent implements OnInit {
         this.showClientDropdown = false;
         this.interviewForm.project = '';
         this.projectSearchText = '';
+        this.isProjectDropdownDisabled = false;
         this.loadProjectsByClient(value);
     }
 
@@ -195,6 +265,12 @@ export class ScheduleInterviewComponent implements OnInit {
     onClientInput(): void {
         this.interviewForm.client = this.clientSearchText;
         this.filterClientList();
+        const isNewClient = this.clientSearchText && !this.clientList.includes(this.clientSearchText);
+        this.isProjectDropdownDisabled = !isNewClient && !this.selectedClient;
+        if (isNewClient) {
+            this.projectList = [];
+            this.filteredProjectList = [];
+        }
     }
 
     onProjectInput(): void {
@@ -229,60 +305,96 @@ export class ScheduleInterviewComponent implements OnInit {
         this.clearFieldError('employee');
     }
 
-    validateForm(): boolean {
+    validateForm(): string | null {
         this.formErrors = {};
         this.errorMessage = '';
-        let isValid = true;
 
-        if (!this.interviewForm.title || !this.interviewForm.title.trim()) {
-            this.formErrors['title'] = 'Title is required';
-            isValid = false;
+        const fields = ['title', 'date', 'time', 'client', 'role', 'department', 'employee', 'mode', 'jd'];
+        for (const field of fields) {
+            let value: any;
+            switch (field) {
+                case 'title': value = this.interviewForm.title; break;
+                case 'date': value = this.interviewForm.date; break;
+                case 'time': value = this.interviewForm.time; break;
+                case 'client': value = this.interviewForm.client; break;
+                case 'role': value = this.interviewForm.role; break;
+                case 'department': value = this.interviewForm.departmentId; break;
+                case 'employee': value = this.interviewForm.employeeId; break;
+                case 'mode': value = this.interviewForm.mode; break;
+                case 'jd': value = this.interviewForm.jd; break;
+            }
+
+            if (!value || (typeof value === 'string' && !value.trim())) {
+                this.formErrors[field] = `${this.getFieldLabel(field)} is required`;
+                return field;
+            }
         }
-        if (!this.interviewForm.date) {
-            this.formErrors['date'] = 'Date is required';
-            isValid = false;
-        }
-        if (!this.interviewForm.time) {
-            this.formErrors['time'] = 'Time is required';
-            isValid = false;
-        }
-        if (!this.interviewForm.client || !this.interviewForm.client.trim()) {
-            this.formErrors['client'] = 'Client is required';
-            isValid = false;
-        }
-        if (!this.interviewForm.role || !this.interviewForm.role.trim()) {
-            this.formErrors['role'] = 'Role is required';
-            isValid = false;
-        }
-        if (!this.interviewForm.departmentId) {
-            this.formErrors['department'] = 'Department is required';
-            isValid = false;
-        }
-        if (!this.interviewForm.employeeId) {
-            this.formErrors['employee'] = 'Employee is required';
-            isValid = false;
-        }
-        if (!this.interviewForm.mode) {
-            this.formErrors['mode'] = 'Mode is required';
-            isValid = false;
-        }
-        if (!this.interviewForm.jd || !this.interviewForm.jd.trim()) {
-            this.formErrors['jd'] = 'Job Description is required';
-            isValid = false;
+
+        const statusDateError = this.validateStatusChangeDates();
+        if (statusDateError) {
+            return statusDateError;
         }
 
         this.formSubmitted = true;
-        return isValid;
+        return null;
     }
 
-    clearFieldError(field: string): void {
-        if (this.formErrors[field]) {
-            delete this.formErrors[field];
+    isSelectionStatusChangeDateRequired(): boolean {
+        if (this.isEditMode) {
+            return requiresStatusChangeDate(this.originalSelectionStatus, this.interviewForm.selectionStatus);
         }
+        return requiresStatusChangeDateOnSet(this.interviewForm.selectionStatus);
+    }
+
+    isOnboardingStatusChangeDateRequired(): boolean {
+        if (this.isEditMode) {
+            return requiresStatusChangeDate(this.originalOnboardingStatus, this.interviewForm.onboardingStatus);
+        }
+        return requiresStatusChangeDateOnSet(this.interviewForm.onboardingStatus);
+    }
+
+    private validateStatusChangeDates(): string | null {
+        if (this.isSelectionStatusChangeDateRequired() && !hasStatusChangeDate(this.interviewForm.selectionStatusChangeDate)) {
+            this.formErrors['selectionStatusChangeDate'] = 'Selection status change date is required when moving from Pending';
+            return 'selectionStatusChangeDate';
+        }
+        if (this.isOnboardingStatusChangeDateRequired() && !hasStatusChangeDate(this.interviewForm.onboardingStatusChangeDate)) {
+            this.formErrors['onboardingStatusChangeDate'] = 'Onboarding status change date is required when moving from Not Applicable or Pending';
+            return 'onboardingStatusChangeDate';
+        }
+        return null;
+    }
+
+    getFieldLabel(field: string): string {
+        const labels: any = {
+            title: 'Title', date: 'Date', time: 'Time', client: 'Client',
+            role: 'Role', department: 'Department', employee: 'Employee',
+            mode: 'Mode', jd: 'Job Description',
+            selectionStatusChangeDate: 'Selection status change date',
+            onboardingStatusChangeDate: 'Onboarding status change date'
+        };
+        return labels[field] || field;
+    }
+
+    focusAndScrollToError(field: string): void {
+        setTimeout(() => {
+            const element = document.querySelector(`[name="${field}"]`) as HTMLElement;
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) {
+                    element.focus();
+                } else {
+                    const input = element.querySelector('input, textarea, select') as HTMLElement;
+                    if (input) input.focus();
+                }
+            }
+        }, 100);
     }
 
     submitForm(): void {
-        if (!this.validateForm()) {
+        const firstErrorField = this.validateForm();
+        if (firstErrorField) {
+            this.focusAndScrollToError(firstErrorField);
             return;
         }
 
@@ -304,6 +416,12 @@ export class ScheduleInterviewComponent implements OnInit {
                 this.errorMessage = this.isEditMode ? 'Failed to update interview. Please try again.' : 'Failed to schedule interview. Please try again.';
             }
         });
+    }
+
+    clearFieldError(field: string): void {
+        if (this.formErrors[field]) {
+            delete this.formErrors[field];
+        }
     }
 
     onFileSelect(event: any): void {
@@ -334,8 +452,10 @@ export class ScheduleInterviewComponent implements OnInit {
         this.selectedFileName = '';
         this.selectedFileSize = '';
         this.fileError = '';
+        this.existingResumeUrl = '';
         this.interviewForm.resumeFile = null;
         this.interviewForm.resumeFileName = null;
+        this.interviewForm.resumeFilePath = null;
     }
 
     formatFileSize(bytes: number): string {
@@ -348,5 +468,46 @@ export class ScheduleInterviewComponent implements OnInit {
 
     closeModal(): void {
         this.activeModal.dismiss();
+    }
+
+    openResumePopup(): void {
+        if (!this.interviewForm.resumeFilePath) return;
+
+        this.isLoadingResume = true;
+        this.showResumePopup = true;
+        const fileName = this.interviewForm.resumeFilePath.replace(/^\//, '');
+        const url = `${this.baseUrl}api/interview/resume/${fileName}`;
+
+        this.http.get(url, { responseType: 'blob', headers: { loader: 'true' } }).subscribe((blob: Blob) => {
+            const objectUrl = URL.createObjectURL(blob);
+            this.resumeBlobUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+            this.isLoadingResume = false;
+            this.cdr.detectChanges();
+        }, (error) => {
+            this.isLoadingResume = false;
+        });
+    }
+
+    closeResumePopup(): void {
+        if (this.resumeBlobUrl) {
+            const url = this.resumeBlobUrl.toString();
+            if (url.startsWith('blob:')) {
+                URL.revokeObjectURL(url.replace('unsafe:', ''));
+            }
+        }
+        this.showResumePopup = false;
+        this.resumeBlobUrl = '';
+    }
+
+    openInNewTab(): void {
+        if (!this.interviewForm.resumeFilePath) return;
+
+        const fileName = this.interviewForm.resumeFilePath.replace(/^\//, '');
+        const url = `${this.baseUrl}api/interview/resume/${fileName}`;
+
+        this.http.get(url, { responseType: 'blob', headers: { loader: 'true' } }).subscribe((blob: Blob) => {
+            const objectUrl = URL.createObjectURL(blob);
+            window.open(objectUrl, '_blank');
+        });
     }
 }

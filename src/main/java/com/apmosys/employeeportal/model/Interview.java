@@ -9,6 +9,8 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 
+import org.hibernate.envers.Audited;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -18,6 +20,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@Audited
 public class Interview {
 
     @Id
@@ -36,6 +39,9 @@ public class Interview {
     private String interviewStatus;
     private String selectionStatus;
     private String onboardingStatus;
+    private String interviewStatusChangeDate;
+    private String selectionStatusChangeDate;
+    private String onboardingStatusChangeDate;
 
     @Column(length = 500)
     private String interviewRemarks;

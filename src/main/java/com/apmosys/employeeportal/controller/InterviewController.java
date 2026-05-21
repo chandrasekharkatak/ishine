@@ -15,6 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.InterviewDTO;
 import com.apmosys.employeeportal.service.InterviewService;
+import com.apmosys.employeeportal.utility.InterviewConstants;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
@@ -37,7 +39,7 @@ public class InterviewController {
     @Value("${file.location.documents.interview:./uploads/interviews}")
     private String interviewFileLocation;
 
-    @JobRoleAccess(featureIds = {3})
+    @JobRoleAccess(featureIds = {InterviewConstants.INTERVIEW_FEATURE_ID})
     @RequestMapping(value = "/scheduleInterview", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ServiceResponse scheduleInterview(
             @RequestPart("dto") InterviewDTO interviewDTO,
@@ -77,7 +79,7 @@ public class InterviewController {
         return response;
     }
 
-    @JobRoleAccess(featureIds = {3})
+    @JobRoleAccess(featureIds = {InterviewConstants.INTERVIEW_FEATURE_ID})
     @RequestMapping(value = "/updateInterview", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ServiceResponse updateInterview(
             @RequestPart("dto") InterviewDTO interviewDTO,
@@ -111,50 +113,54 @@ public class InterviewController {
         return response;
     }
 
-    @JobRoleAccess(featureIds = {3})
+    @JobRoleAccess(featureIds = {InterviewConstants.INTERVIEW_FEATURE_ID})
     @RequestMapping(value = "/getAllInterviews", method = RequestMethod.POST)
     public ServiceResponse getAllInterviews(@RequestPart("dto") InterviewDTO interviewDTO) {
         ServiceResponse response = interviewService.getAllInterviews(interviewDTO);
         return response;
     }
 
-    @JobRoleAccess(featureIds = {3})
+    @JobRoleAccess(featureIds = {InterviewConstants.INTERVIEW_FEATURE_ID})
     @RequestMapping(value = "/getInterviewById", method = RequestMethod.POST)
     public ServiceResponse getInterviewById(@RequestPart("dto") InterviewDTO interviewDTO) {
         ServiceResponse response = interviewService.getInterviewById(interviewDTO);
         return response;
     }
 
-    @JobRoleAccess(featureIds = {3})
+    @JobRoleAccess(featureIds = {InterviewConstants.INTERVIEW_FEATURE_ID})
     @RequestMapping(value = "/deleteInterview", method = RequestMethod.POST)
     public ServiceResponse deleteInterview(@RequestPart("dto") InterviewDTO interviewDTO) {
         ServiceResponse response = interviewService.deleteInterview(interviewDTO);
         return response;
     }
 
-    @JobRoleAccess(featureIds = {3})
+    @JobRoleAccess(featureIds = {InterviewConstants.INTERVIEW_FEATURE_ID})
     @RequestMapping(value = "/getInterviewDropdownData", method = RequestMethod.GET)
     public ServiceResponse getInterviewDropdownData() {
         ServiceResponse response = interviewService.getDropdownData();
         return response;
     }
 
-    @JobRoleAccess(featureIds = {3})
+    @JobRoleAccess(featureIds = {InterviewConstants.INTERVIEW_FEATURE_ID})
     @RequestMapping(value = "/getEmployeesByDepartment", method = RequestMethod.GET)
     public ServiceResponse getEmployeesByDepartment(@RequestParam("departmentId") Long departmentId) {
         ServiceResponse response = interviewService.getEmployeesByDepartmentId(departmentId);
         return response;
     }
     
-    @JobRoleAccess(featureIds = {3})
+    @JobRoleAccess(featureIds = {InterviewConstants.INTERVIEW_FEATURE_ID})
     @RequestMapping(value = "/getProjectsByClient", method = RequestMethod.GET)
     public ServiceResponse getProjectsByClient(@RequestParam("clientName") String clientName) {
         ServiceResponse response = interviewService.getProjectsByClientName(clientName);
         return response;
     }
 
+    @JobRoleAccess(featureIds = {InterviewConstants.INTERVIEW_FEATURE_ID})
     @RequestMapping(value = "/interview/resume/{fileName}", method = RequestMethod.GET)
     public ResponseEntity<Resource> downloadResume(@PathVariable("fileName") String fileName) throws IOException {
+        if (!interviewService.canDownloadResume(fileName)) {
+            return ResponseEntity.status(403).build();
+        }
         Path filePath = Paths.get(interviewFileLocation).resolve(fileName).normalize();
         Resource resource = new UrlResource(filePath.toUri());
 
@@ -171,5 +177,12 @@ public class InterviewController {
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
+    }
+
+    @JobRoleAccess(featureIds = {InterviewConstants.INTERVIEW_FEATURE_ID})
+    @RequestMapping(value = "/updateInterviewStatus", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ServiceResponse updateInterviewStatus(@RequestBody InterviewDTO interviewDTO) {
+        ServiceResponse response = interviewService.updateInterviewStatus(interviewDTO);
+        return response;
     }
 }

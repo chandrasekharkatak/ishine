@@ -3,9 +3,11 @@ package com.apmosys.employeeportal.service;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -14,9 +16,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.InterviewDTO;
+import com.apmosys.employeeportal.dto.InterviewVisibilityScope;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.model.CommonProperties;
 import com.apmosys.employeeportal.model.Interview;
 import com.apmosys.employeeportal.repository.InterviewRepository;
+import com.apmosys.employeeportal.utility.InterviewConstants;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -31,15 +36,29 @@ public class InterviewService {
     @Autowired
     private LogService logService;
 
+    @Autowired
+    private InterviewAccessService interviewAccessService;
+
     @Transactional
     public ServiceResponse scheduleInterview(InterviewDTO interviewDTO) {
         ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
-        apiLogInfo.setSubFeatureName("Schedule Interview");
+        apiLogInfo.setFeatureName(InterviewConstants.FEATURE_NAME);
+        apiLogInfo.setSubFeatureName(InterviewConstants.SUB_SCHEDULE);
         apiLogInfo.setApiUrl("/api/scheduleInterview");
         apiLogInfo.setLogLevel("INFO");
 
         try {
+            Long currentEmpId = interviewAccessService.getCurrentEmpId();
+            interviewAccessService.requireSubFeature(currentEmpId, InterviewConstants.SUB_SCHEDULE);
+
+            String statusDateError = validateStatusChangeDatesForNew(interviewDTO);
+            if (statusDateError != null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse(statusDateError);
+                return response;
+            }
+
             Interview interview = new Interview();
             interview.setTitle(interviewDTO.getTitle());
             interview.setDate(interviewDTO.getDate());
@@ -53,6 +72,9 @@ public class InterviewService {
             interview.setInterviewStatus(interviewDTO.getInterviewStatus() != null ? interviewDTO.getInterviewStatus() : "Scheduled");
             interview.setSelectionStatus(interviewDTO.getSelectionStatus() != null ? interviewDTO.getSelectionStatus() : "Pending");
             interview.setOnboardingStatus(interviewDTO.getOnboardingStatus() != null ? interviewDTO.getOnboardingStatus() : "Not Applicable");
+            interview.setInterviewStatusChangeDate(interviewDTO.getInterviewStatusChangeDate());
+            interview.setSelectionStatusChangeDate(interviewDTO.getSelectionStatusChangeDate());
+            interview.setOnboardingStatusChangeDate(interviewDTO.getOnboardingStatusChangeDate());
             interview.setInterviewRemarks(interviewDTO.getInterviewRemarks());
             interview.setSelectionRemarks(interviewDTO.getSelectionRemarks());
             interview.setOnboardingRemarks(interviewDTO.getOnboardingRemarks());
@@ -63,10 +85,12 @@ public class InterviewService {
             interview.setResumeFileName(interviewDTO.getResumeFileName());
             interview.setResumeFilePath(interviewDTO.getResumeFilePath());
 
-            interview.getCommonProperty().setCreatedBy(interviewDTO.getCreatedBy());
-            interview.getCommonProperty().setCreatedOn(new Timestamp(System.currentTimeMillis()));
-            interview.getCommonProperty().setUpdatedBy(interviewDTO.getCreatedBy());
-            interview.getCommonProperty().setUpdatedOn(LocalDateTime.now());
+            CommonProperties commonProperty = new CommonProperties();
+            commonProperty.setCreatedBy(currentEmpId);
+            commonProperty.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+            commonProperty.setUpdatedBy(currentEmpId);
+            commonProperty.setUpdatedOn(LocalDateTime.now());
+            interview.setCommonProperty(commonProperty);
 
             Interview saved = interviewRepository.save(interview);
 
@@ -77,6 +101,9 @@ public class InterviewService {
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse("Interview scheduled successfully");
             response.setServiceResponse1(saved.getId());
+        } catch (SecurityException ex) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse(ex.getMessage());
         } catch (Exception e) {
             apiLogInfo.setApiRequest("Interview: " + interviewDTO.getTitle());
             apiLogInfo.setApiError("Error scheduling interview: " + e.getMessage());
@@ -94,15 +121,33 @@ public class InterviewService {
     public ServiceResponse updateInterview(InterviewDTO interviewDTO) {
         ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
-        apiLogInfo.setSubFeatureName("Update Interview");
+        apiLogInfo.setFeatureName(InterviewConstants.FEATURE_NAME);
+        apiLogInfo.setSubFeatureName(InterviewConstants.SUB_EDIT);
         apiLogInfo.setApiUrl("/api/updateInterview");
         apiLogInfo.setLogLevel("INFO");
 
         try {
+            Long currentEmpId = interviewAccessService.getCurrentEmpId();
+            interviewAccessService.requireSubFeature(currentEmpId, InterviewConstants.SUB_EDIT);
+
             Interview existing = interviewRepository.findById(interviewDTO.getId()).orElse(null);
             if (existing == null) {
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
                 response.setServiceResponse("Interview not found");
+                return response;
+            }
+            if (!canAccessInterviewEntity(currentEmpId, existing)) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Access denied for this interview");
+                return response;
+            }
+
+            String statusDateError = validateStatusChangeDatesForUpdate(
+                    existing.getSelectionStatus(), interviewDTO.getSelectionStatus(), interviewDTO.getSelectionStatusChangeDate(),
+                    existing.getOnboardingStatus(), interviewDTO.getOnboardingStatus(), interviewDTO.getOnboardingStatusChangeDate());
+            if (statusDateError != null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse(statusDateError);
                 return response;
             }
 
@@ -118,6 +163,9 @@ public class InterviewService {
             existing.setInterviewStatus(interviewDTO.getInterviewStatus());
             existing.setSelectionStatus(interviewDTO.getSelectionStatus());
             existing.setOnboardingStatus(interviewDTO.getOnboardingStatus());
+            existing.setInterviewStatusChangeDate(interviewDTO.getInterviewStatusChangeDate());
+            existing.setSelectionStatusChangeDate(interviewDTO.getSelectionStatusChangeDate());
+            existing.setOnboardingStatusChangeDate(interviewDTO.getOnboardingStatusChangeDate());
             existing.setInterviewRemarks(interviewDTO.getInterviewRemarks());
             existing.setSelectionRemarks(interviewDTO.getSelectionRemarks());
             existing.setOnboardingRemarks(interviewDTO.getOnboardingRemarks());
@@ -131,8 +179,13 @@ public class InterviewService {
                 existing.setResumeFilePath(interviewDTO.getResumeFilePath());
             }
 
-            existing.getCommonProperty().setUpdatedBy(interviewDTO.getUpdatedBy());
-            existing.getCommonProperty().setUpdatedOn(LocalDateTime.now());
+            CommonProperties existingCommon = existing.getCommonProperty();
+            if (existingCommon == null) {
+                existingCommon = new CommonProperties();
+            }
+            existingCommon.setUpdatedBy(currentEmpId);
+            existingCommon.setUpdatedOn(LocalDateTime.now());
+            existing.setCommonProperty(existingCommon);
 
             Interview saved = interviewRepository.save(existing);
 
@@ -142,6 +195,9 @@ public class InterviewService {
 
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse("Interview updated successfully");
+        } catch (SecurityException ex) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse(ex.getMessage());
         } catch (Exception e) {
             apiLogInfo.setApiRequest("Interview ID: " + interviewDTO.getId());
             apiLogInfo.setApiError("Error updating interview: " + e.getMessage());
@@ -155,15 +211,121 @@ public class InterviewService {
         return response;
     }
 
+    @Transactional
+    public ServiceResponse updateInterviewStatus(InterviewDTO interviewDTO) {
+        ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setFeatureName(InterviewConstants.FEATURE_NAME);
+        apiLogInfo.setSubFeatureName(InterviewConstants.SUB_EDIT);
+        apiLogInfo.setApiUrl("/api/updateInterviewStatus");
+        apiLogInfo.setLogLevel("INFO");
+
+        try {
+            Long currentEmpId = interviewAccessService.getCurrentEmpId();
+            interviewAccessService.requireSubFeature(currentEmpId, InterviewConstants.SUB_EDIT);
+
+            Interview existing = interviewRepository.findById(interviewDTO.getId()).orElse(null);
+            if (existing == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Interview not found");
+                return response;
+            }
+            if (!canAccessInterviewEntity(currentEmpId, existing)) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Access denied for this interview");
+                return response;
+            }
+
+            String newSelectionStatus = interviewDTO.getSelectionStatus() != null
+                    ? interviewDTO.getSelectionStatus() : existing.getSelectionStatus();
+            String newOnboardingStatus = interviewDTO.getOnboardingStatus() != null
+                    ? interviewDTO.getOnboardingStatus() : existing.getOnboardingStatus();
+            String statusDateError = validateStatusChangeDatesForUpdate(
+                    existing.getSelectionStatus(), newSelectionStatus, interviewDTO.getSelectionStatusChangeDate(),
+                    existing.getOnboardingStatus(), newOnboardingStatus, interviewDTO.getOnboardingStatusChangeDate());
+            if (statusDateError != null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse(statusDateError);
+                return response;
+            }
+
+            if (interviewDTO.getInterviewStatus() != null) {
+                existing.setInterviewStatus(interviewDTO.getInterviewStatus());
+            }
+            if (interviewDTO.getSelectionStatus() != null) {
+                existing.setSelectionStatus(interviewDTO.getSelectionStatus());
+            }
+            if (interviewDTO.getOnboardingStatus() != null) {
+                existing.setOnboardingStatus(interviewDTO.getOnboardingStatus());
+            }
+            if (interviewDTO.getInterviewRemarks() != null) {
+                existing.setInterviewRemarks(interviewDTO.getInterviewRemarks());
+            }
+            if (interviewDTO.getSelectionRemarks() != null) {
+                existing.setSelectionRemarks(interviewDTO.getSelectionRemarks());
+            }
+            if (interviewDTO.getOnboardingRemarks() != null) {
+                existing.setOnboardingRemarks(interviewDTO.getOnboardingRemarks());
+            }
+            if (interviewDTO.getInterviewStatusChangeDate() != null) {
+                existing.setInterviewStatusChangeDate(interviewDTO.getInterviewStatusChangeDate());
+            }
+            if (interviewDTO.getSelectionStatusChangeDate() != null) {
+                existing.setSelectionStatusChangeDate(interviewDTO.getSelectionStatusChangeDate());
+            }
+            if (interviewDTO.getOnboardingStatusChangeDate() != null) {
+                existing.setOnboardingStatusChangeDate(interviewDTO.getOnboardingStatusChangeDate());
+            }
+
+            CommonProperties existingCommon = existing.getCommonProperty();
+            if (existingCommon == null) {
+                existingCommon = new CommonProperties();
+            }
+            existingCommon.setUpdatedBy(currentEmpId);
+            existingCommon.setUpdatedOn(LocalDateTime.now());
+            existing.setCommonProperty(existingCommon);
+
+            Interview saved = interviewRepository.save(existing);
+
+            apiLogInfo.setApiRequest("Interview ID: " + interviewDTO.getId());
+            apiLogInfo.setApiResponse("Interview status updated successfully. ID: " + saved.getId());
+            logService.logMyInfo(httpRequest, apiLogInfo);
+
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse("Interview status updated successfully");
+        } catch (SecurityException ex) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse(ex.getMessage());
+        } catch (Exception e) {
+            apiLogInfo.setApiRequest("Interview ID: " + interviewDTO.getId());
+            apiLogInfo.setApiError("Error updating interview status: " + e.getMessage());
+            apiLogInfo.setLogLevel("ERROR");
+            logService.logMyInfo(httpRequest, apiLogInfo);
+
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceError(e.getMessage());
+            response.setErrorStackTrace(e.getStackTrace().toString());
+        }
+        return response;
+    }
+
     public ServiceResponse getAllInterviews(InterviewDTO interviewDTO) {
         ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
-        apiLogInfo.setSubFeatureName("Get All Interviews");
+        apiLogInfo.setFeatureName(InterviewConstants.FEATURE_NAME);
+        apiLogInfo.setSubFeatureName(InterviewConstants.SUB_VIEW);
         apiLogInfo.setApiUrl("/api/getAllInterviews");
         apiLogInfo.setLogLevel("INFO");
 
         try {
-            List<Object[]> results;
+            Long currentEmpId = interviewAccessService.getCurrentEmpId();
+            if (!interviewAccessService.canViewList(currentEmpId)) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Access denied: View Interview");
+                return response;
+            }
+            InterviewVisibilityScope visibilityScope = interviewAccessService.resolveVisibilityScope(currentEmpId);
+
             String startDate = interviewDTO.getStartDate();
             String endDate = interviewDTO.getEndDate();
 
@@ -171,26 +333,34 @@ public class InterviewService {
             List<Long> departmentIds = interviewDTO.getDepartmentIds();
             List<Long> employeeIds = interviewDTO.getEmployeeIds();
 
-            if ((clients == null || clients.isEmpty()) && (departmentIds == null || departmentIds.isEmpty()) && (employeeIds == null || employeeIds.isEmpty())) {
-                results = interviewRepository.findAllInterviews(startDate, endDate);
-            } else {
-                results = new ArrayList<>();
-                if (clients != null && !clients.isEmpty()) {
-                    for (String client : clients) {
-                        results.addAll(interviewRepository.findAllInterviewsFiltered(startDate, endDate, client, null, null));
-                    }
-                }
-                if (departmentIds != null && !departmentIds.isEmpty()) {
-                    for (Long deptId : departmentIds) {
-                        results.addAll(interviewRepository.findAllInterviewsFiltered(startDate, endDate, null, deptId, null));
-                    }
-                }
-                if (employeeIds != null && !employeeIds.isEmpty()) {
-                    for (Long empId : employeeIds) {
-                        results.addAll(interviewRepository.findAllInterviewsFiltered(startDate, endDate, null, null, empId));
-                    }
-                }
-            }
+            Integer page = interviewDTO.getPage() != null ? interviewDTO.getPage() : 0;
+            Integer size = interviewDTO.getSize() != null ? interviewDTO.getSize() : 20;
+
+            List<Object[]> results = interviewRepository.findAllInterviewsWithColumnFilters(
+                    startDate, endDate,
+                    clients, departmentIds, employeeIds,
+                    interviewDTO.getTitleFilter(), interviewDTO.getDateFilter(),
+                    interviewDTO.getClientFilter(), interviewDTO.getRoleFilter(),
+                    interviewDTO.getProjectFilter(), interviewDTO.getDepartmentNameFilter(),
+                    interviewDTO.getEmployeeNameFilter(), interviewDTO.getModeFilter(),
+                    interviewDTO.getInterviewStatusFilter(), interviewDTO.getSelectionStatusFilter(),
+                    interviewDTO.getOnboardingStatusFilter(), interviewDTO.getJdFilter(),
+                    interviewDTO.getScheduledByNameFilter(), interviewDTO.getInterviewerNameFilter(),
+                    visibilityScope,
+                    interviewDTO.getSortColumn(), interviewDTO.getSortDirection(),
+                    page, size);
+
+            long totalElements = interviewRepository.countAllInterviewsWithColumnFilters(
+                    startDate, endDate,
+                    clients, departmentIds, employeeIds,
+                    interviewDTO.getTitleFilter(), interviewDTO.getDateFilter(),
+                    interviewDTO.getClientFilter(), interviewDTO.getRoleFilter(),
+                    interviewDTO.getProjectFilter(), interviewDTO.getDepartmentNameFilter(),
+                    interviewDTO.getEmployeeNameFilter(), interviewDTO.getModeFilter(),
+                    interviewDTO.getInterviewStatusFilter(), interviewDTO.getSelectionStatusFilter(),
+                    interviewDTO.getOnboardingStatusFilter(), interviewDTO.getJdFilter(),
+                    interviewDTO.getScheduledByNameFilter(), interviewDTO.getInterviewerNameFilter(),
+                    visibilityScope);
 
             List<InterviewDTO> interviewList = new ArrayList<>();
             for (Object[] row : results) {
@@ -198,40 +368,13 @@ public class InterviewService {
                 interviewList.add(dto);
             }
 
-            String sortColumn = interviewDTO.getSortColumn();
-            String sortDirection = interviewDTO.getSortDirection();
-            if (sortColumn != null && sortDirection != null) {
-                interviewList.sort((a, b) -> {
-                    int cmp = 0;
-                    try {
-                        String valA = getFieldValue(a, sortColumn);
-                        String valB = getFieldValue(b, sortColumn);
-                        if (sortColumn.equals("date")) {
-                            cmp = valA.compareTo(valB);
-                        } else {
-                            cmp = valA.compareToIgnoreCase(valB);
-                        }
-                    } catch (Exception e) {
-                        cmp = 0;
-                    }
-                    return sortDirection.equals("asc") ? cmp : -cmp;
-                });
-            }
-
-            Integer page = interviewDTO.getPage() != null ? interviewDTO.getPage() : 0;
-            Integer size = interviewDTO.getSize() != null ? interviewDTO.getSize() : 20;
-            int totalElements = interviewList.size();
-            int fromIndex = page * size;
-            int toIndex = Math.min(fromIndex + size, totalElements);
-            List<InterviewDTO> paginatedList = fromIndex < totalElements ? interviewList.subList(fromIndex, toIndex) : new ArrayList<>();
-
             apiLogInfo.setApiRequest("Filters: " + startDate + " to " + endDate);
-            apiLogInfo.setApiResponse("Retrieved " + paginatedList.size() + " interviews out of " + totalElements);
+            apiLogInfo.setApiResponse("Retrieved " + interviewList.size() + " interviews out of " + totalElements);
             logService.logMyInfo(httpRequest, apiLogInfo);
 
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(paginatedList);
-            response.setTotalElements(totalElements);
+            response.setServiceResponse(interviewList);
+            response.setTotalElements((int) totalElements);
         } catch (Exception e) {
             apiLogInfo.setApiError("Error retrieving interviews: " + e.getMessage());
             apiLogInfo.setLogLevel("ERROR");
@@ -247,10 +390,21 @@ public class InterviewService {
     public ServiceResponse getInterviewById(InterviewDTO interviewDTO) {
         ServiceResponse response = new ServiceResponse();
         try {
+            Long currentEmpId = interviewAccessService.getCurrentEmpId();
+            if (!interviewAccessService.canViewList(currentEmpId)) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Access denied: View Interview");
+                return response;
+            }
             Interview interview = interviewRepository.findById(interviewDTO.getId()).orElse(null);
             if (interview == null) {
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
                 response.setServiceResponse("Interview not found");
+                return response;
+            }
+            if (!canAccessInterviewEntity(currentEmpId, interview)) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Access denied for this interview");
                 return response;
             }
             InterviewDTO dto = mapEntityToDTO(interview);
@@ -267,10 +421,18 @@ public class InterviewService {
     public ServiceResponse deleteInterview(InterviewDTO interviewDTO) {
         ServiceResponse response = new ServiceResponse();
         try {
+            Long currentEmpId = interviewAccessService.getCurrentEmpId();
+            interviewAccessService.requireSubFeature(currentEmpId, InterviewConstants.SUB_DELETE);
+
             Interview existing = interviewRepository.findById(interviewDTO.getId()).orElse(null);
             if (existing == null) {
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
                 response.setServiceResponse("Interview not found");
+                return response;
+            }
+            if (!canAccessInterviewEntity(currentEmpId, existing)) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Access denied for this interview");
                 return response;
             }
             interviewRepository.delete(existing);
@@ -286,10 +448,18 @@ public class InterviewService {
     public ServiceResponse getDropdownData() {
         ServiceResponse response = new ServiceResponse();
         try {
+            Long currentEmpId = interviewAccessService.getCurrentEmpId();
+            if (!interviewAccessService.canViewList(currentEmpId)) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Access denied: View Interview");
+                return response;
+            }
+            InterviewVisibilityScope scope = interviewAccessService.resolveVisibilityScope(currentEmpId);
+
             Map<String, Object> data = new HashMap<>();
             data.put("clients", interviewRepository.findAllClients());
-            data.put("departments", buildIdNameList(interviewRepository.findAllDepartments()));
-            data.put("employees", buildIdNameList(interviewRepository.findAllEmployees()));
+            data.put("departments", buildScopedDepartments(scope));
+            data.put("employees", buildScopedEmployees(scope));
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse(data);
         } catch (Exception e) {
@@ -299,11 +469,33 @@ public class InterviewService {
         return response;
     }
 
+    public boolean canDownloadResume(String fileName) {
+        Long currentEmpId = interviewAccessService.getCurrentEmpId();
+        if (!interviewAccessService.canViewList(currentEmpId)) {
+            return false;
+        }
+        return interviewRepository.findFirstByResumeFilePathContaining(fileName)
+                .map(interview -> canAccessInterviewEntity(currentEmpId, interview))
+                .orElse(false);
+    }
+
     
 
     public ServiceResponse getEmployeesByDepartmentId(Long departmentId) {
         ServiceResponse response = new ServiceResponse();
         try {
+            Long currentEmpId = interviewAccessService.getCurrentEmpId();
+            if (!interviewAccessService.canViewList(currentEmpId)) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Access denied: View Interview");
+                return response;
+            }
+            InterviewVisibilityScope scope = interviewAccessService.resolveVisibilityScope(currentEmpId);
+            if (!scope.isViewAll() && !scope.getVisibleDepartmentIds().contains(departmentId)) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Access denied for this department");
+                return response;
+            }
             List<Map<String, Object>> employees = buildIdNameList(interviewRepository.findEmployeesByDepartmentId(departmentId));
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse(employees);
@@ -368,19 +560,22 @@ public class InterviewService {
             dto.setSelectionRemarks(getString(row[13]));
             dto.setOnboardingStatus(getString(row[14]));
             dto.setOnboardingRemarks(getString(row[15]));
-            dto.setJd(getString(row[16]));
-            dto.setScheduledById(row[17] != null ? ((Number) row[17]).longValue() : null);
-            dto.setInterviewerName(getString(row[18]));
-            dto.setAdditionalNotes(getString(row[19]));
-            dto.setResumeFileName(getString(row[20]));
-            dto.setResumeFilePath(getString(row[21]));
-            dto.setCreatedBy(row[22] != null ? ((Number) row[22]).longValue() : null);
-            dto.setCreatedOn(getString(row[23]));
-            dto.setUpdatedBy(row[24] != null ? ((Number) row[24]).longValue() : null);
-            dto.setUpdatedOn(getString(row[25]));
-            dto.setDepartmentName(getString(row[26]));
-            dto.setEmployeeName(getString(row[27]));
-            dto.setScheduledByName(getString(row[28]));
+            dto.setInterviewStatusChangeDate(getString(row[16]));
+            dto.setSelectionStatusChangeDate(getString(row[17]));
+            dto.setOnboardingStatusChangeDate(getString(row[18]));
+            dto.setJd(getString(row[19]));
+            dto.setScheduledById(row[20] != null ? ((Number) row[20]).longValue() : null);
+            dto.setInterviewerName(getString(row[21]));
+            dto.setAdditionalNotes(getString(row[22]));
+            dto.setResumeFileName(getString(row[23]));
+            dto.setResumeFilePath(getString(row[24]));
+            dto.setCreatedBy(row[25] != null ? ((Number) row[25]).longValue() : null);
+            dto.setCreatedOn(getString(row[26]));
+            dto.setUpdatedBy(row[27] != null ? ((Number) row[27]).longValue() : null);
+            dto.setUpdatedOn(getString(row[28]));
+            dto.setDepartmentName(getString(row[29]));
+            dto.setEmployeeName(getString(row[30]));
+            dto.setScheduledByName(getString(row[31]));
         } catch (Exception e) {
         }
         return dto;
@@ -401,6 +596,9 @@ public class InterviewService {
         dto.setInterviewStatus(interview.getInterviewStatus());
         dto.setSelectionStatus(interview.getSelectionStatus());
         dto.setOnboardingStatus(interview.getOnboardingStatus());
+        dto.setInterviewStatusChangeDate(interview.getInterviewStatusChangeDate());
+        dto.setSelectionStatusChangeDate(interview.getSelectionStatusChangeDate());
+        dto.setOnboardingStatusChangeDate(interview.getOnboardingStatusChangeDate());
         dto.setInterviewRemarks(interview.getInterviewRemarks());
         dto.setSelectionRemarks(interview.getSelectionRemarks());
         dto.setOnboardingRemarks(interview.getOnboardingRemarks());
@@ -422,6 +620,98 @@ public class InterviewService {
 
     private String getString(Object obj) {
         return obj != null ? obj.toString() : null;
+    }
+
+    private boolean canAccessInterviewEntity(Long currentEmpId, Interview interview) {
+        Long createdBy = interview.getCommonProperty() != null ? interview.getCommonProperty().getCreatedBy() : null;
+        return interviewAccessService.canAccessInterview(
+                currentEmpId, interview.getEmployeeId(), createdBy, interview.getDepartmentId());
+    }
+
+    private List<Map<String, Object>> buildScopedDepartments(InterviewVisibilityScope scope) {
+        List<Object[]> all = interviewRepository.findAllDepartments();
+        if (scope.isViewAll()) {
+            return buildIdNameList(all);
+        }
+        if (scope.getVisibleDepartmentIds().isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Object[] row : all) {
+            Long deptId = row[0] != null ? ((Number) row[0]).longValue() : null;
+            if (deptId != null && scope.getVisibleDepartmentIds().contains(deptId)) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", row[0]);
+                item.put("name", row[1]);
+                result.add(item);
+            }
+        }
+        return result;
+    }
+
+    private List<Map<String, Object>> buildScopedEmployees(InterviewVisibilityScope scope) {
+        if (scope.isViewAll()) {
+            return buildIdNameList(interviewRepository.findAllEmployeesForInterviewGlobalFilter());
+        }
+        if (scope.getVisibleEmployeeIds().isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<Map<String, Object>> all = buildIdNameList(interviewRepository.findAllEmployeesForInterviewGlobalFilter());
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> item : all) {
+            Long id = item.get("id") != null ? ((Number) item.get("id")).longValue() : null;
+            if (id != null && scope.getVisibleEmployeeIds().contains(id)) {
+                result.add(item);
+            }
+        }
+        return result;
+    }
+
+    private static final List<String> INITIAL_STATUS_VALUES = Arrays.asList("Not Applicable", "Pending");
+
+    private boolean isInitialStatus(String status) {
+        return status != null && INITIAL_STATUS_VALUES.contains(status);
+    }
+
+    private boolean requiresStatusChangeDate(String originalStatus, String newStatus) {
+        if (newStatus == null || Objects.equals(originalStatus, newStatus)) {
+            return false;
+        }
+        return isInitialStatus(originalStatus) && !isInitialStatus(newStatus);
+    }
+
+    private boolean requiresStatusChangeDateForNew(String status) {
+        return status != null && !isInitialStatus(status);
+    }
+
+    private boolean hasStatusChangeDate(String date) {
+        return date != null && !date.trim().isEmpty();
+    }
+
+    private String validateStatusChangeDatesForNew(InterviewDTO dto) {
+        if (requiresStatusChangeDateForNew(dto.getSelectionStatus())
+                && !hasStatusChangeDate(dto.getSelectionStatusChangeDate())) {
+            return "Selection status change date is required when status is not Pending";
+        }
+        if (requiresStatusChangeDateForNew(dto.getOnboardingStatus())
+                && !hasStatusChangeDate(dto.getOnboardingStatusChangeDate())) {
+            return "Onboarding status change date is required when status is not Not Applicable or Pending";
+        }
+        return null;
+    }
+
+    private String validateStatusChangeDatesForUpdate(
+            String originalSelection, String newSelection, String selectionChangeDate,
+            String originalOnboarding, String newOnboarding, String onboardingChangeDate) {
+        if (requiresStatusChangeDate(originalSelection, newSelection)
+                && !hasStatusChangeDate(selectionChangeDate)) {
+            return "Selection status change date is required when moving from Pending";
+        }
+        if (requiresStatusChangeDate(originalOnboarding, newOnboarding)
+                && !hasStatusChangeDate(onboardingChangeDate)) {
+            return "Onboarding status change date is required when moving from Not Applicable or Pending";
+        }
+        return null;
     }
 
     private String getFieldValue(InterviewDTO dto, String field) {

@@ -1103,6 +1103,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Employee> findByEmpIdIn(@Param("empIds") Set<Long> empIds);
     @Query("SELECT e FROM Employee e WHERE e.empId IN :empIds")
     List<Employee> findByEmpIdIn(@Param("empIds") List<Long> empIds);
+
+    @Query(nativeQuery = true, value = "SELECT DISTINCT e.emp_id FROM employee e "
+            + "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id "
+            + "WHERE e.employmentstatus != 'InActive' AND jr.dept_id IN :deptIds")
+    List<Long> findActiveEmpIdsByDepartmentIds(@Param("deptIds") List<Long> deptIds);
     
     
     @Query(value ="select new com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name,d.name ,e.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) from Employee e  \n"

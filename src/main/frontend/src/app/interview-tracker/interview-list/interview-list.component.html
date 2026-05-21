@@ -1,19 +1,195 @@
-<div class="p-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="table-header-title mb-0">Interview List</h5>
-        <div class="selector-toggle">
-            <a href="javascript:void(0)" (click)="toggleSearch()">
-                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-            </a>
+<div class="interview-list-shell px-3 pt-3 pb-2">
+    <div class="interview-list-toolbar">
+        <div class="interview-list-toolbar__title">
+            <span class="interview-list-toolbar__icon" aria-hidden="true"><i class="fa fa-list-ul"></i></span>
+            <div>
+                <h2 class="interview-list-toolbar__heading">Interview list</h2>
+                <p class="interview-list-toolbar__sub">Sort columns, search inline, or switch to aggregated counts.</p>
+            </div>
+        </div>
+        <div class="interview-list-toolbar__actions">
+            <div class="it-toolbar-cluster">
+                <div class="it-toolbar-cluster-inner">
+                    <div class="it-aggregate-switch custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="interviewAggregatedView" [(ngModel)]="aggregatedView" (change)="onAggregatedViewChange()">
+                        <label class="custom-control-label it-switch-label" for="interviewAggregatedView">Aggregated view</label>
+                    </div>
+                    <div *ngIf="aggregatedView" class="it-aggregate-by">
+                        <label class="it-aggregate-by__label" for="interviewAggregateBy">Aggregate by</label>
+                        <select id="interviewAggregateBy" class="form-control form-control-sm it-aggregate-by__select" [(ngModel)]="aggregateBy" (ngModelChange)="onAggregateByChange()">
+                            <option *ngFor="let opt of aggregateByOptions" [value]="opt.value">{{ opt.label }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-it-export btn-sm" (click)="exportToExcel()" [disabled]="aggregatedView ? aggregatedRows.length === 0 : filteredList.length === 0" title="Export to Excel">
+                <i class="fa fa-file-excel me-2"></i> Export
+            </button>
+            <button type="button" class="btn btn-it-search-toggle btn-sm" *ngIf="!aggregatedView" (click)="toggleSearch()" [attr.aria-pressed]="isSearchEnabled" [attr.title]="isSearchEnabled ? 'Close column search' : 'Column search'">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search" aria-hidden="true"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
         </div>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover table-bordered" matSort (matSortChange)="sortData($event)">
-            <thead class="thead-light">
+    <div class="table-responsive interview-table-wrap it-aggregate-table-wrap" *ngIf="aggregatedView">
+        <table class="table interview-data-table interview-data-table--aggregate" matSort (matSortChange)="sortData($event)">
+            <thead>
+                <tr class="it-aggregate-head-group">
+                    <th scope="col" rowspan="2" class="info-label" style="width: 36px;"></th>
+                    <th scope="col" rowspan="2" class="info-label" style="width: 48px;">#</th>
+                    <th scope="col" rowspan="2" class="info-label" mat-sort-header="group|string">{{ getAggregateColumnHeader() }}</th>
+                    <th scope="col" rowspan="2" class="info-label text-end" mat-sort-header="count|number">Total interviews</th>
+                    <th scope="col" class="info-label it-aggregate-head-section text-center" [attr.colspan]="aggregateInterviewStatusKeys.length || 1"
+                        *ngIf="aggregateInterviewStatusKeys.length > 0">Interview status</th>
+                    <th scope="col" class="info-label it-aggregate-head-section text-center" [attr.colspan]="aggregateSelectionStatusKeys.length || 1"
+                        *ngIf="aggregateSelectionStatusKeys.length > 0">Selection status</th>
+                    <th scope="col" class="info-label it-aggregate-head-section text-center" [attr.colspan]="aggregateOnboardingStatusKeys.length || 1"
+                        *ngIf="aggregateOnboardingStatusKeys.length > 0">Onboarding status</th>
+                </tr>
+                <tr class="it-aggregate-head-status">
+                    <th scope="col" class="info-label it-aggregate-status-col text-end" *ngFor="let status of aggregateInterviewStatusKeys"
+                        [attr.title]="status">{{ status }}</th>
+                    <th scope="col" class="info-label it-aggregate-status-col text-end" *ngFor="let status of aggregateSelectionStatusKeys"
+                        [attr.title]="status">{{ status }}</th>
+                    <th scope="col" class="info-label it-aggregate-status-col text-end" *ngFor="let status of aggregateOnboardingStatusKeys"
+                        [attr.title]="status">{{ status }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="aggregatedView && !aggregateBy">
+                    <td [attr.colspan]="getAggregateTableColspan()" class="it-empty-state">
+                        <i class="fa fa-layer-group it-empty-state__icon" aria-hidden="true"></i>
+                        <p class="it-empty-state__title">Choose how to group</p>
+                        <p class="it-empty-state__text">Select an <strong>Aggregate by</strong> value to show grouped results.</p>
+                    </td>
+                </tr>
+                <tr *ngIf="aggregatedView && aggregateBy && aggregatedRows.length === 0">
+                    <td [attr.colspan]="getAggregateTableColspan()" class="it-empty-state">
+                        <i class="fa fa-inbox it-empty-state__icon" aria-hidden="true"></i>
+                        <p class="it-empty-state__title">No data</p>
+                        <p class="it-empty-state__text">No interviews match the current filters.</p>
+                    </td>
+                </tr>
+                <ng-container *ngFor="let row of aggregatedRows | paginate: { itemsPerPage: itemsPerPage, currentPage: page, totalItems: totalCount }; let i = index">
+                    <tr class="it-aggregate-row"
+                        [class.it-aggregate-row--expanded]="isAggregateRowExpanded(row)"
+                        (click)="toggleAggregateRow(row)"
+                        role="button"
+                        [attr.aria-expanded]="isAggregateRowExpanded(row)">
+                        <td class="it-aggregate-row__toggle text-center">
+                            <i class="fa fa-chevron-right it-aggregate-chevron" [class.it-aggregate-chevron--open]="isAggregateRowExpanded(row)" aria-hidden="true"></i>
+                        </td>
+                        <td>{{ ((page - 1) * itemsPerPage) + i + 1 }}</td>
+                        <td class="info-label">{{ row.displayLabel }}</td>
+                        <td class="info-label text-end fw-semibold">{{ row.totalCount }}</td>
+                        <td class="info-label text-end it-aggregate-count" *ngFor="let status of aggregateInterviewStatusKeys">
+                            {{ getStatusCount(row, 'interview', status) }}
+                        </td>
+                        <td class="info-label text-end it-aggregate-count" *ngFor="let status of aggregateSelectionStatusKeys">
+                            {{ getStatusCount(row, 'selection', status) }}
+                        </td>
+                        <td class="info-label text-end it-aggregate-count" *ngFor="let status of aggregateOnboardingStatusKeys">
+                            {{ getStatusCount(row, 'onboarding', status) }}
+                        </td>
+                    </tr>
+                    <tr *ngIf="isAggregateRowExpanded(row)" class="it-aggregate-detail-row">
+                        <td [attr.colspan]="getAggregateTableColspan()" class="it-aggregate-detail-cell">
+                            <div class="it-aggregate-detail-wrap table-responsive">
+                                <table class="table interview-data-table interview-data-table--detail mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col" class="info-label" style="width: 40px;">#</th>
+                                            <th scope="col" class="info-label" style="width: 50px;"></th>
+                                            <th scope="col" class="info-label">Title</th>
+                                            <th scope="col" class="info-label">Date</th>
+                                            <th scope="col" class="info-label">Client</th>
+                                            <th scope="col" class="info-label">Role</th>
+                                            <th scope="col" class="info-label">Project</th>
+                                            <th scope="col" class="info-label">Department</th>
+                                            <th scope="col" class="info-label">Employee</th>
+                                            <th scope="col" class="info-label">Mode</th>
+                                            <th scope="col" class="info-label">Interview Status</th>
+                                            <th scope="col" class="info-label">Selection Status</th>
+                                            <th scope="col" class="info-label">Onboarding Status</th>
+                                            <th scope="col" class="info-label">JD</th>
+                                            <th scope="col" class="info-label" style="width: 60px;">Resume</th>
+                                            <th scope="col" class="info-label">Scheduled By</th>
+                                            <th scope="col" class="info-label">Interviewer</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let item of row.items; let j = index" (click)="$event.stopPropagation()">
+                                            <td>{{ j + 1 }}</td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-icon" [matMenuTriggerFor]="aggregateActionMenu" #menuTrigger="matMenuTrigger">
+                                                    <i class="fa fa-ellipsis-v"></i>
+                                                </button>
+                                                <mat-menu #aggregateActionMenu="matMenu" xPosition="before">
+                                                    <button mat-menu-item (click)="openViewModal(item)">
+                                                        <i class="fa fa-eye text-primary me-2"></i>
+                                                        <span>View</span>
+                                                    </button>
+                                                    <button mat-menu-item *ngIf="userMapping.edit_interview" (click)="openEditModal(item)">
+                                                        <i class="fa fa-edit text-warning me-2"></i>
+                                                        <span>Edit</span>
+                                                    </button>
+                                                    <button mat-menu-item *ngIf="userMapping.edit_interview" (click)="openStatusModal(item)">
+                                                        <i class="fa fa-exchange-alt text-info me-2"></i>
+                                                        <span>Change Status</span>
+                                                    </button>
+                                                    <button mat-menu-item *ngIf="userMapping.delete_interview" (click)="deleteInterview(item)">
+                                                        <i class="fa fa-trash text-danger me-2"></i>
+                                                        <span>Delete</span>
+                                                    </button>
+                                                </mat-menu>
+                                            </td>
+                                            <td class="info-label">{{ item.title }}</td>
+                                            <td class="info-label">{{ formatDate(item.date) }}</td>
+                                            <td class="info-label">{{ item.client }}</td>
+                                            <td class="info-label">{{ item.role }}</td>
+                                            <td class="info-label">{{ item.project }}</td>
+                                            <td class="info-label">{{ item.departmentName }}</td>
+                                            <td class="info-label">{{ item.employeeName }}</td>
+                                            <td class="info-label">{{ item.mode }}</td>
+                                            <td>
+                                                <span class="primary-pill {{ getStatusClass(item.interviewStatus) }}">{{ item.interviewStatus }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="primary-pill {{ getStatusClass(item.selectionStatus) }}">{{ item.selectionStatus }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="primary-pill {{ getStatusClass(item.onboardingStatus) }}">{{ item.onboardingStatus }}</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <a *ngIf="item.jd" href="javascript:void(0)" class="jd-link" (click)="openJdModal(item)">View JD</a>
+                                                <span *ngIf="!item.jd" class="text-muted">-</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <a *ngIf="item.resumeFilePath" href="javascript:void(0)" (click)="openResumeModal(item)" class="resume-link">
+                                                    <i class="fa fa-file-pdf text-danger me-1"></i>Resume
+                                                </a>
+                                                <span *ngIf="!item.resumeFilePath" class="text-muted">-</span>
+                                            </td>
+                                            <td class="info-label">{{ item.scheduledByName }}</td>
+                                            <td class="info-label">{{ item.interviewerName }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-container>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-responsive interview-table-wrap" *ngIf="!aggregatedView">
+        <table class="table interview-data-table" matSort (matSortChange)="sortData($event)">
+            <thead>
                 <tr>
                     <th scope="col" class="info-label" style="width: 40px;">#</th>
+                    <th scope="col" class="info-label" style="width: 50px;"></th>
                     <th scope="col" class="info-label" mat-sort-header="title|string">Title</th>
                     <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
                     <th scope="col" class="info-label" mat-sort-header="client|string">Client</th>
@@ -29,16 +205,43 @@
                     <th scope="col" class="info-label" style="width: 60px;">Resume</th>
                     <th scope="col" class="info-label" mat-sort-header="scheduledByName|string">Scheduled By</th>
                     <th scope="col" class="info-label" mat-sort-header="interviewerName|string">Interviewer</th>
-                    <th scope="col" class="info-label" style="width: 50px;"></th>
+                    
                 </tr>
-                <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="columns" (onSearch)="onSearch($event); page=1"></tr>
+                <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="columns" [searchOnEnter]="true" (onSearch)="onSearch($event); page=1"></tr>
             </thead>
             <tbody>
                 <tr *ngIf="filteredList.length == 0">
-                    <td colspan="17" class="text-center info-label py-4">No interview details to display</td>
+                    <td colspan="17" class="it-empty-state">
+                        <i class="fa fa-inbox it-empty-state__icon" aria-hidden="true"></i>
+                        <p class="it-empty-state__title">No interviews</p>
+                        <p class="it-empty-state__text">Adjust filters above or schedule a new interview.</p>
+                    </td>
                 </tr>
                 <tr *ngFor="let item of filteredList | paginate: { itemsPerPage: itemsPerPage, currentPage: page, totalItems: totalCount } let i = index">
                     <td>{{ ((page - 1) * itemsPerPage) + i + 1 }}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-icon" [matMenuTriggerFor]="actionMenu" #menuTrigger="matMenuTrigger">
+                            <i class="fa fa-ellipsis-v"></i>
+                        </button>
+                        <mat-menu #actionMenu="matMenu" xPosition="before">
+                            <button mat-menu-item (click)="openViewModal(item)">
+                                <i class="fa fa-eye text-primary me-2"></i>
+                                <span>View</span>
+                            </button>
+                            <button mat-menu-item *ngIf="userMapping.edit_interview" (click)="openEditModal(item)">
+                                <i class="fa fa-edit text-warning me-2"></i>
+                                <span>Edit</span>
+                            </button>
+                            <button mat-menu-item *ngIf="userMapping.edit_interview" (click)="openStatusModal(item)">
+                                <i class="fa fa-exchange-alt text-info me-2"></i>
+                                <span>Change Status</span>
+                            </button>
+                            <button mat-menu-item *ngIf="userMapping.delete_interview" (click)="deleteInterview(item)">
+                                <i class="fa fa-trash text-danger me-2"></i>
+                                <span>Delete</span>
+                            </button>
+                        </mat-menu>
+                    </td>
                     <td class="info-label">{{ item.title }}</td>
                     <td class="info-label">{{ formatDate(item.date) }}</td>
                     <td class="info-label">{{ item.client }}</td>
@@ -62,144 +265,156 @@
                     </td>
                     <td class="text-center">
                         <a *ngIf="item.resumeFilePath" href="javascript:void(0)" (click)="openResumeModal(item)" class="resume-link">
-                            <i class="fa fa-file-pdf text-danger me-1"></i>{{ item.resumeFileName }}
+                            <i class="fa fa-file-pdf text-danger me-1"></i>Resume
                         </a>
                         <span *ngIf="!item.resumeFilePath" class="text-muted">-</span>
                     </td>
                     <td class="info-label">{{ item.scheduledByName }}</td>
                     <td class="info-label">{{ item.interviewerName }}</td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-icon" [matMenuTriggerFor]="actionMenu" #menuTrigger="matMenuTrigger">
-                            <i class="fa fa-ellipsis-v"></i>
-                        </button>
-                        <mat-menu #actionMenu="matMenu" xPosition="before">
-                            <button mat-menu-item (click)="openViewModal(item)">
-                                <i class="fa fa-eye text-primary me-2"></i>
-                                <span>View</span>
-                            </button>
-                            <button mat-menu-item (click)="openEditModal(item)">
-                                <i class="fa fa-edit text-warning me-2"></i>
-                                <span>Edit</span>
-                            </button>
-                            <button mat-menu-item (click)="openStatusModal(item)">
-                                <i class="fa fa-exchange-alt text-info me-2"></i>
-                                <span>Change Status</span>
-                            </button>
-                            <mat-divider></mat-divider>
-                            <button mat-menu-item class="text-danger" (click)="openFeedbackModal(item)">
-                                <i class="fa fa-comment text-danger me-2"></i>
-                                <span>Feedback</span>
-                            </button>
-                        </mat-menu>
-                    </td>
+                    
                 </tr>
             </tbody>
         </table>
     </div>
 
-    <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls>
+    <div class="it-pagination-wrap">
+        <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls>
+    </div>
 </div>
 
 <!-- View Modal -->
 <ng-template #viewModal>
     <div class="modal-header view-modal-header">
-        <h5 class="modal-title"><i class="fa fa-eye me-2"></i>Interview Details</h5>
+        <div class="header-content">
+            <div class="header-icon"><i class="fa fa-calendar-check"></i></div>
+            <div>
+                <h5 class="modal-title mb-0">{{ selectedInterview.title }}</h5>
+                <small class="text-white-50">{{ selectedInterview.role }} | {{ selectedInterview.client }}</small>
+            </div>
+        </div>
         <button type="button" class="close" (click)="modalRef.dismiss()">&times;</button>
     </div>
-    <div class="modal-body">
-        <div class="view-section">
-            <h6 class="view-section-title"><i class="fa fa-info-circle"></i> Basic Information</h6>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="view-label">Title</label>
-                    <p class="view-value">{{ selectedInterview.title }}</p>
+    <div class="modal-body view-modal-body">
+        <!-- Status Summary -->
+        <div class="status-summary-row mb-3">
+            <div class="status-badge-item">
+                <span class="status-label">Interview</span>
+                <span class="primary-pill {{ getStatusClass(selectedInterview.interviewStatus) }}">{{ selectedInterview.interviewStatus }}</span>
+                <span class="status-change-date">Status change: {{ formatStatusChangeDate(selectedInterview.interviewStatusChangeDate) }}</span>
+            </div>
+            <div class="status-badge-item">
+                <span class="status-label">Selection</span>
+                <span class="primary-pill {{ getStatusClass(selectedInterview.selectionStatus) }}">{{ selectedInterview.selectionStatus }}</span>
+                <span class="status-change-date">Status change: {{ formatStatusChangeDate(selectedInterview.selectionStatusChangeDate) }}</span>
+            </div>
+            <div class="status-badge-item">
+                <span class="status-label">Onboarding</span>
+                <span class="primary-pill {{ getStatusClass(selectedInterview.onboardingStatus) }}">{{ selectedInterview.onboardingStatus }}</span>
+                <span class="status-change-date">Status change: {{ formatStatusChangeDate(selectedInterview.onboardingStatusChangeDate) }}</span>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <!-- Basic Info Card -->
+            <div class="col-md-6">
+                <div class="view-card">
+                    <h6 class="view-card-title"><i class="fa fa-info-circle text-primary"></i> Basic Information</h6>
+                    <div class="view-detail-row">
+                        <span class="view-detail-label"><i class="fa fa-calendar me-1"></i> Date</span>
+                        <span class="view-detail-value">{{ formatDate(selectedInterview.date) }}</span>
+                    </div>
+                    <div class="view-detail-row">
+                        <span class="view-detail-label"><i class="fa fa-clock me-1"></i> Time</span>
+                        <span class="view-detail-value">{{ selectedInterview.time || 'N/A' }}</span>
+                    </div>
+                    <div class="view-detail-row">
+                        <span class="view-detail-label"><i class="fa fa-laptop me-1"></i> Mode</span>
+                        <span class="view-detail-value">{{ selectedInterview.mode }}</span>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label class="view-label">Date</label>
-                    <p class="view-value">{{ formatDate(selectedInterview.date) }}</p>
+            </div>
+
+            <!-- Candidate Card -->
+            <div class="col-md-6">
+                <div class="view-card">
+                    <h6 class="view-card-title"><i class="fa fa-user-tie text-success"></i> Candidate & Project</h6>
+                    <div class="view-detail-row">
+                        <span class="view-detail-label"><i class="fa fa-user me-1"></i> Employee</span>
+                        <span class="view-detail-value">{{ selectedInterview.employeeName }}</span>
+                    </div>
+                    <div class="view-detail-row">
+                        <span class="view-detail-label"><i class="fa fa-building me-1"></i> Department</span>
+                        <span class="view-detail-value">{{ selectedInterview.departmentName }}</span>
+                    </div>
+                    <div class="view-detail-row">
+                        <span class="view-detail-label"><i class="fa fa-folder me-1"></i> Project</span>
+                        <span class="view-detail-value">{{ selectedInterview.project || 'N/A' }}</span>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label class="view-label">Time</label>
-                    <p class="view-value">{{ selectedInterview.time || 'N/A' }}</p>
+            </div>
+
+            <!-- Interviewer Card -->
+            <div class="col-md-6">
+                <div class="view-card">
+                    <h6 class="view-card-title"><i class="fa fa-users text-info"></i> Interviewer Details</h6>
+                    <div class="view-detail-row">
+                        <span class="view-detail-label"><i class="fa fa-user-circle me-1"></i> Interviewer</span>
+                        <span class="view-detail-value">{{ selectedInterview.interviewerName || 'N/A' }}</span>
+                    </div>
+                    <div class="view-detail-row">
+                        <span class="view-detail-label"><i class="fa fa-user-plus me-1"></i> Scheduled By</span>
+                        <span class="view-detail-value">{{ selectedInterview.scheduledByName || 'N/A' }}</span>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <label class="view-label">Client</label>
-                    <p class="view-value">{{ selectedInterview.client }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label class="view-label">Role</label>
-                    <p class="view-value">{{ selectedInterview.role }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label class="view-label">Mode</label>
-                    <p class="view-value">{{ selectedInterview.mode }}</p>
+            </div>
+
+            <!-- Documents Card -->
+            <div class="col-md-6">
+                <div class="view-card">
+                    <h6 class="view-card-title"><i class="fa fa-paperclip text-warning"></i> Documents</h6>
+                    <div class="view-detail-row" *ngIf="selectedInterview.resumeFilePath">
+                        <span class="view-detail-label"><i class="fa fa-file-pdf me-1"></i> Resume</span>
+                        <a href="javascript:void(0)" (click)="openResumeModal(selectedInterview)" class="view-detail-value text-primary text-decoration-none">
+                            {{ selectedInterview.resumeFileName }} <i class="fa fa-external-link-alt ms-1 small"></i>
+                        </a>
+                    </div>
+                    <div class="view-detail-row" *ngIf="!selectedInterview.resumeFilePath">
+                        <span class="view-detail-label"><i class="fa fa-file-pdf me-1"></i> Resume</span>
+                        <span class="view-detail-value text-muted">Not uploaded</span>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="view-section">
-            <h6 class="view-section-title"><i class="fa fa-user-tie"></i> Candidate & Project</h6>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="view-label">Employee</label>
-                    <p class="view-value">{{ selectedInterview.employeeName }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label class="view-label">Department</label>
-                    <p class="view-value">{{ selectedInterview.departmentName }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label class="view-label">Project</label>
-                    <p class="view-value">{{ selectedInterview.project || 'N/A' }}</p>
-                </div>
+
+        <!-- Job Description -->
+        <div class="view-card mt-3" *ngIf="selectedInterview.jd">
+            <h6 class="view-card-title"><i class="fa fa-file-alt text-secondary"></i> Job Description</h6>
+            <div class="jd-content-box">{{ selectedInterview.jd }}</div>
+        </div>
+
+        <!-- Remarks Section -->
+        <div class="remarks-section mt-3">
+            <div class="alert alert-info alert-custom mb-2" *ngIf="selectedInterview.interviewRemarks">
+                <i class="fa fa-comment me-2"></i>
+                <strong>Interview Remarks:</strong> {{ selectedInterview.interviewRemarks }}
+            </div>
+            <div class="alert alert-danger alert-custom mb-2" *ngIf="selectedInterview.selectionRemarks">
+                <i class="fa fa-times-circle me-2"></i>
+                <strong>Selection Remarks:</strong> {{ selectedInterview.selectionRemarks }}
+            </div>
+            <div class="alert alert-warning alert-custom mb-0" *ngIf="selectedInterview.onboardingRemarks">
+                <i class="fa fa-user-check me-2"></i>
+                <strong>Onboarding Remarks:</strong> {{ selectedInterview.onboardingRemarks }}
             </div>
         </div>
-        <div class="view-section">
-            <h6 class="view-section-title"><i class="fa fa-users"></i> Interviewer & Status</h6>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="view-label">Interviewer</label>
-                    <p class="view-value">{{ selectedInterview.interviewerName || 'N/A' }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label class="view-label">Scheduled By</label>
-                    <p class="view-value">{{ selectedInterview.scheduledByName || 'N/A' }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label class="view-label">Interview Status</label>
-                    <p class="view-value"><span class="primary-pill {{ getStatusClass(selectedInterview.interviewStatus) }}">{{ selectedInterview.interviewStatus }}</span></p>
-                </div>
-                <div class="col-md-4">
-                    <label class="view-label">Selection Status</label>
-                    <p class="view-value"><span class="primary-pill {{ getStatusClass(selectedInterview.selectionStatus) }}">{{ selectedInterview.selectionStatus }}</span></p>
-                </div>
-                <div class="col-md-4">
-                    <label class="view-label">Onboarding Status</label>
-                    <p class="view-value"><span class="primary-pill {{ getStatusClass(selectedInterview.onboardingStatus) }}">{{ selectedInterview.onboardingStatus }}</span></p>
-                </div>
-            </div>
-        </div>
-        <div class="view-section" *ngIf="selectedInterview.jd">
-            <h6 class="view-section-title"><i class="fa fa-file-alt"></i> Job Description</h6>
-            <p class="view-value jd-text">{{ selectedInterview.jd }}</p>
-        </div>
-        <div class="view-section" *ngIf="selectedInterview.interviewRemarks">
-            <h6 class="view-section-title"><i class="fa fa-comment"></i> Interview Remarks</h6>
-            <p class="view-value">{{ selectedInterview.interviewRemarks }}</p>
-        </div>
-        <div class="view-section" *ngIf="selectedInterview.selectionRemarks">
-            <h6 class="view-section-title"><i class="fa fa-times-circle"></i> Selection Remarks</h6>
-            <p class="view-value">{{ selectedInterview.selectionRemarks }}</p>
-        </div>
-        <div class="view-section" *ngIf="selectedInterview.onboardingRemarks">
-            <h6 class="view-section-title"><i class="fa fa-user-check"></i> Onboarding Remarks</h6>
-            <p class="view-value">{{ selectedInterview.onboardingRemarks }}</p>
-        </div>
-        <div class="view-section" *ngIf="selectedInterview.additionalNotes">
-            <h6 class="view-section-title"><i class="fa fa-sticky-note"></i> Additional Notes</h6>
-            <p class="view-value">{{ selectedInterview.additionalNotes }}</p>
+
+        <!-- Additional Notes -->
+        <div class="view-card mt-3" *ngIf="selectedInterview.additionalNotes">
+            <h6 class="view-card-title"><i class="fa fa-sticky-note text-muted"></i> Additional Notes</h6>
+            <p class="mb-0 text-muted">{{ selectedInterview.additionalNotes }}</p>
         </div>
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer view-modal-footer">
         <button type="button" class="btn btn-cancel" (click)="modalRef.dismiss()">Close</button>
     </div>
 </ng-template>
@@ -240,5 +455,98 @@
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-cancel" (click)="modalRef.dismiss()">Close</button>
+    </div>
+</ng-template>
+
+<!-- Change Status Modal -->
+<ng-template #statusModal>
+    <div class="modal-header status-modal-header">
+        <h5 class="modal-title"><i class="fa fa-exchange-alt me-2"></i>Change Status</h5>
+        <button type="button" class="close" (click)="modalRef.dismiss()">&times;</button>
+    </div>
+    <div class="modal-body">
+        <div class="status-interview-info">
+            <h6 class="info-label mb-1">{{ selectedInterview.title }}</h6>
+            <p class="mb-0 text-muted"><strong>Employee:</strong> {{ selectedInterview.employeeName }} | <strong>Date:</strong> {{ formatDate(selectedInterview.date) }}</p>
+        </div>
+        <hr>
+        <div class="status-form-fields">
+            <div class="status-type-row">
+                <div class="status-type-label">Interview</div>
+                <div class="status-type-fields row g-2 align-items-start">
+                    <div class="col-md-3 col-status">
+                        <label class="form-label-custom">Status</label>
+                        <select class="form-control form-control-custom" [(ngModel)]="statusForm.interviewStatus" name="interviewStatus">
+                            <option value="Scheduled">Scheduled</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                            <option value="Rescheduled">Rescheduled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-date">
+                        <label class="form-label-custom">Change date</label>
+                        <input type="date" class="form-control form-control-custom" [(ngModel)]="statusForm.interviewStatusChangeDate" name="interviewStatusChangeDate">
+                    </div>
+                    <div class="col-md-6 col-remarks">
+                        <label class="form-label-custom">Remarks <span class="required-mark" *ngIf="statusForm.interviewStatus === 'Cancelled'">*</span></label>
+                        <textarea class="form-control form-control-custom status-remarks-input" rows="2" [(ngModel)]="statusForm.interviewRemarks" name="interviewRemarks" placeholder="Enter interview remarks..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="status-type-row">
+                <div class="status-type-label">Selection</div>
+                <div class="status-type-fields row g-2 align-items-start">
+                    <div class="col-md-3 col-status">
+                        <label class="form-label-custom">Status</label>
+                        <select class="form-control form-control-custom" [(ngModel)]="statusForm.selectionStatus" name="selectionStatus">
+                            <option value="Pending">Pending</option>
+                            <option value="Selected">Selected</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Hold">Hold</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-date">
+                        <label class="form-label-custom">Change date <span class="required-mark" *ngIf="isSelectionStatusChangeDateRequired()">*</span></label>
+                        <input type="date" class="form-control form-control-custom" [class.is-invalid]="statusFormErrors['selectionStatusChangeDate']"
+                            [(ngModel)]="statusForm.selectionStatusChangeDate" name="selectionStatusChangeDate">
+                        <div class="field-error" *ngIf="statusFormErrors['selectionStatusChangeDate']"><i class="fa fa-exclamation-circle"></i> {{ statusFormErrors['selectionStatusChangeDate'] }}</div>
+                    </div>
+                    <div class="col-md-6 col-remarks">
+                        <label class="form-label-custom">Remarks <span class="required-mark" *ngIf="statusForm.selectionStatus === 'Rejected'">*</span></label>
+                        <textarea class="form-control form-control-custom status-remarks-input" rows="2" [(ngModel)]="statusForm.selectionRemarks" name="selectionRemarks" placeholder="Enter selection remarks..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="status-type-row">
+                <div class="status-type-label">Onboarding</div>
+                <div class="status-type-fields row g-2 align-items-start">
+                    <div class="col-md-3 col-status">
+                        <label class="form-label-custom">Status</label>
+                        <select class="form-control form-control-custom" [(ngModel)]="statusForm.onboardingStatus" name="onboardingStatus">
+                            <option value="Not Applicable">Not Applicable</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Onboarded">Onboarded</option>
+                            <option value="Dropped">Dropped</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-date">
+                        <label class="form-label-custom">Change date <span class="required-mark" *ngIf="isOnboardingStatusChangeDateRequired()">*</span></label>
+                        <input type="date" class="form-control form-control-custom" [class.is-invalid]="statusFormErrors['onboardingStatusChangeDate']"
+                            [(ngModel)]="statusForm.onboardingStatusChangeDate" name="onboardingStatusChangeDate">
+                        <div class="field-error" *ngIf="statusFormErrors['onboardingStatusChangeDate']"><i class="fa fa-exclamation-circle"></i> {{ statusFormErrors['onboardingStatusChangeDate'] }}</div>
+                    </div>
+                    <div class="col-md-6 col-remarks">
+                        <label class="form-label-custom">Remarks <span class="required-mark" *ngIf="statusForm.onboardingStatus === 'Dropped'">*</span></label>
+                        <textarea class="form-control form-control-custom status-remarks-input" rows="2" [(ngModel)]="statusForm.onboardingRemarks" name="onboardingRemarks" placeholder="Enter onboarding remarks..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" (click)="modalRef.dismiss()">Cancel</button>
+        <button type="button" class="btn btn-submit" (click)="saveStatus()">
+            <i class="fa fa-check me-1"></i> Update Status
+        </button>
     </div>
 </ng-template>

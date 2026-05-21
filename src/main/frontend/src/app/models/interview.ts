@@ -14,6 +14,9 @@ export class Interview {
     interviewStatus: any;
     selectionStatus: any;
     onboardingStatus: any;
+    interviewStatusChangeDate: any;
+    selectionStatusChangeDate: any;
+    onboardingStatusChangeDate: any;
     interviewRemarks: any;
     selectionRemarks: any;
     onboardingRemarks: any;

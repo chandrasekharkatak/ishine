@@ -2,9 +2,11 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angula
 import * as moment from 'moment';
 import * as Highcharts from 'highcharts';
 import { InterviewTrackerService } from 'src/app/services/interview-tracker.service';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ScheduleInterviewComponent } from './schedule-interview/schedule-interview.component';
 import { first } from 'rxjs/operators';
+import { buildInterviewUserMapping, InterviewUserMapping } from './interview-permissions';
 
 @Component({
     standalone: false,
@@ -34,6 +36,7 @@ export class InterviewTrackerComponent implements OnInit, AfterViewInit {
     dashboardStats: any = {};
     isLoading: boolean = false;
     activeFilterObj: any = {};
+    userMapping: InterviewUserMapping = buildInterviewUserMapping(null);
 
     dateRangeOptions = [
         { value: 'Last Week', label: 'Last Week' },
@@ -45,13 +48,17 @@ export class InterviewTrackerComponent implements OnInit, AfterViewInit {
 
     constructor(
         private interviewTrackerService: InterviewTrackerService,
+        private authenticationService: AuthenticationService,
         private modalService: NgbModal
     ) { }
 
     ngOnInit(): void {
+        this.userMapping = buildInterviewUserMapping(this.authenticationService.currentUserValue);
         this.setDateRange('Last Month');
-        this.loadDropdownData();
-        this.applyFilters();
+        if (this.userMapping.view_interview) {
+            this.loadDropdownData();
+            this.applyFilters();
+        }
     }
 
     ngAfterViewInit(): void {
@@ -97,14 +104,30 @@ export class InterviewTrackerComponent implements OnInit, AfterViewInit {
         });
     }
 
+    resetFilters(): void {
+        this.dateRangePreset = 'Last Month';
+        this.setDateRange('Last Month');
+        this.selectedClients = [];
+        this.selectedDepartments = [];
+        this.selectedEmployees = [];
+        this.applyFilters();
+    }
+
+    hasActiveFilters(): boolean {
+        return (this.selectedClients?.length > 0)
+            || (this.selectedDepartments?.length > 0)
+            || (this.selectedEmployees?.length > 0)
+            || this.dateRangePreset === 'Custom';
+    }
+
     applyFilters(): void {
         this.isLoading = true;
         this.activeFilterObj = {
             startDate: this.startDate,
             endDate: this.endDate,
             clients: this.selectedClients,
-            departmentIds: this.selectedDepartments.map((d: any) => d.id),
-            employeeIds: this.selectedEmployees.map((e: any) => e.id)
+            departmentIds: this.mapToNumericIds(this.selectedDepartments),
+            employeeIds: this.mapToNumericIds(this.selectedEmployees)
         };
 
         this.interviewTrackerService.getDashboardStats(this.activeFilterObj).pipe(first()).subscribe((response: any) => {
@@ -121,7 +144,6 @@ export class InterviewTrackerComponent implements OnInit, AfterViewInit {
 
     computeDashboardStats(data: any[]): void {
         const futureInterviews = data.filter((item: any) => moment(item.date).isAfter(moment(), 'day')).length;
-        const scheduledInterviews = data.filter((item: any) => item.interviewStatus === 'Scheduled').length;
 
         const interviewStatusBreakdown: any = {};
         data.forEach((item: any) => {
@@ -140,7 +162,6 @@ export class InterviewTrackerComponent implements OnInit, AfterViewInit {
 
         this.dashboardStats = {
             futureInterviews,
-            scheduledInterviews,
             totalInterviews: data.length,
             interviewStatusBreakdown,
             selectionStatusBreakdown,
@@ -232,7 +253,31 @@ export class InterviewTrackerComponent implements OnInit, AfterViewInit {
         } as any);
     }
 
+    /**
+     * app-my-select with valueKey="id" stores primitives; without valueKey it stores { id, name }.
+     */
+    private mapToNumericIds(selection: any[]): number[] {
+        if (!selection || selection.length === 0) {
+            return [];
+        }
+        return selection
+            .map((item: any) => {
+                if (item == null) {
+                    return null;
+                }
+                if (typeof item === 'object') {
+                    const id = item.id != null ? item.id : item.empId;
+                    return id != null ? Number(id) : null;
+                }
+                return Number(item);
+            })
+            .filter((id: number | null) => id != null && !Number.isNaN(id as number)) as number[];
+    }
+
     openScheduleInterview(): void {
+        if (!this.userMapping.schedule_interview) {
+            return;
+        }
         const modalRef = this.modalService.open(ScheduleInterviewComponent, {
             size: 'lg',
             centered: true,
@@ -242,6 +287,10 @@ export class InterviewTrackerComponent implements OnInit, AfterViewInit {
             if (result === 'saved') {
                 this.applyFilters();
             }
-        }).catch(() => { });
+        }).catch((reason) => {
+            if (reason !== 'cancel' && reason !== 'ESC') {
+                console.log('Modal dismissed:', reason);
+            }
+        });
     }
 }
