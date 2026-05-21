@@ -2,7 +2,7 @@ import { Component, EventEmitter, HostListener, OnDestroy, OnInit, Output } from
 import { Subscription } from 'rxjs';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
-import { navbarData } from './nav-data';
+import { navbarData,navbarItemData  } from './nav-data';
 import { enableAppreciation } from '../models/enableAppreciation';
 import * as moment from 'moment';
 import { BreadcrumbService } from '../services/breadcrumb.service';
@@ -10,6 +10,11 @@ import { BreadcrumbService } from '../services/breadcrumb.service';
 interface SideNavToggle{
   screenWidth: number;
   collapsed: boolean;
+}
+export interface NavGroup {
+  groupLabel: string;
+  items: any[];
+  isExpanded: boolean;
 }
 @Component({
   standalone: false,
@@ -30,7 +35,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
   appreciationEventInfo:enableAppreciation;
 
   private activatedSubscriptions:Subscription;
-  
+
+   groupedMenuItems: NavGroup[] = [];
 
   @HostListener('window:resize', ['$event'])
   onResize(event:any){
@@ -59,6 +65,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
       this.menuItems = [...x.tabList];
       this.appreciationEventInfo = x.appreciationEventInfo;
       this.filterAppreciationTab();
+       this.buildGroupedMenu();
     });
   }
 
@@ -93,10 +100,70 @@ export class SidenavComponent implements OnInit, OnDestroy {
     });
   }
 
+  //  private buildGroupedMenu(): void {
+  //   const groupMap: { [label: string]: any[] } = {};
+
+  //   this.menuItems.forEach(item => {
+  //     const groupLabel = TAB_GROUP_MAP[item.tabName] || 'OTHER';
+  //     if (!groupMap[groupLabel]) {
+  //       groupMap[groupLabel] = [];
+  //     }
+  //     groupMap[groupLabel].push(item);
+  //   });
+
+  //   // Build in GROUP_ORDER, then append any unlisted groups
+  //   const ordered: NavGroup[] = [];
+  //   GROUP_ORDER.forEach(label => {
+  //     if (groupMap[label]) {
+  //       ordered.push({ groupLabel: label, items: groupMap[label], isExpanded: true });
+  //     }
+  //   });
+  //   // Any group not in GROUP_ORDER goes at the end
+  //   Object.keys(groupMap).forEach(label => {
+  //     if (!GROUP_ORDER.includes(label)) {
+  //       ordered.push({ groupLabel: label, items: groupMap[label], isExpanded: true });
+  //     }
+  //   });
+
+  //   this.groupedMenuItems = ordered;
+  // }
+
+  private buildGroupedMenu(): void {
+  const groupMap: { [label: string]: { items: any[], sequence: number } } = {};
+
+   console.log('menuItems from API:', this.menuItems);
+
+
+  this.menuItems.forEach(item => {
+    // tabGroup and groupSequence now come directly from API response
+    const groupLabel    = item.tabGroup      || 'OTHER';
+    const groupSequence = item.groupSequence ?? 999;
+
+    if (!groupMap[groupLabel]) {
+      groupMap[groupLabel] = { items: [], sequence: groupSequence };
+    }
+    groupMap[groupLabel].items.push(item);
+  });
+
+  // Sort by groupSequence from DB — no hardcoded ORDER array needed
+  this.groupedMenuItems = Object.entries(groupMap)
+    .sort(([, a], [, b]) => a.sequence - b.sequence)
+    .map(([groupLabel, { items }]) => ({
+      groupLabel,
+      items,
+      isExpanded: true
+    }));
+}
+
+
+    toggleGroup(group: NavGroup): void {
+    group.isExpanded = !group.isExpanded;
+  }
+
   ngOnDestroy(): void {
     this.activatedSubscriptions?.unsubscribe();
   }
-  
+
 
   toggleCollapse(){
     this.collapsed = !this.collapsed;
@@ -134,7 +201,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
       console.log('Routing is disabled because firstTimeLogin is false');
     }else{
       this.breadcrumbService.setBreadcrumbSubject(null)
-  
+
     }
   }
 }

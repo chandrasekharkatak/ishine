@@ -29,6 +29,13 @@ public class TabMasterService {
 			
 			if(tabArrayList != null)
 			{
+				System.out.println("================== RAW DATABASE RESULTS ==================");
+	            System.out.println("Total rows fetched from DB: " + tabArrayList.size());
+	            for (Object[] row : tabArrayList) {
+	                System.out.println("Row content: " + java.util.Arrays.toString(row));
+	            }
+	            System.out.println("==========================================================");
+	            
 				List<RoleFeatureMapDTO> dtoList = new ArrayList<RoleFeatureMapDTO>();
 				for(Object[] tab :tabArrayList)
 				{
@@ -39,7 +46,9 @@ public class TabMasterService {
 					dto.setFeatureName(tab[3] != null ? tab[3].toString() : null);
 					dto.setTabName(tab[4] != null ? tab[4].toString() : null);
 					dto.setTabIcon(tab[5] != null ? tab[5].toString() : null);
-					dto.setTabRouteName(tab[6] != null ? tab[6].toString() : null);					
+					dto.setTabRouteName(tab[6] != null ? tab[6].toString() : null);
+					dto.setTabGroup(tab[7] != null ? tab[7].toString() : "OTHER");
+	                dto.setGroupSequence(tab[8] != null ? Integer.parseInt(tab[8].toString()) : 999);
 					dtoList.add(dto);
 					
 				}
