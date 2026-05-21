@@ -42,7 +42,7 @@ public class MyConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins("*")
-                .allowedMethods("GET", "POST", "PUT", "OPTIONS")
+                .allowedMethods("GET", "POST", "PUT", "OPTIONS","PATCH","DELETE")
 //                .allowedMethods("POST", "GET", "PUT" ,"DELETE")
                 .allowedHeaders("Content-Type", "Accept", "X-Requested-With", "loader",
                         "Authorization", "X-FORWARDED-FOR", "Sw8", "X-TRACE-MAP")
