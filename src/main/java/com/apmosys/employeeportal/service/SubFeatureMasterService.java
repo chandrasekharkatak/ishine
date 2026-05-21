@@ -17,7 +17,6 @@ import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.repository.FeatureUsageLogRepository;
 import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.SubFeatureMasterRepository;
-import com.apmosys.employeeportal.utility.InterviewConstants;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -164,16 +163,6 @@ public class SubFeatureMasterService {
 			response.setServiceError(e.getMessage());
 		}
 		return response;
-	}
-
-	private void applyKnownFeatureTabNameDefaults(SubFeatureMasterDTO dto) {
-		if (dto == null || dto.getFeatureName() == null) {
-			return;
-		}
-		if (InterviewConstants.FEATURE_NAME.equals(dto.getFeatureName())
-				&& (dto.getTabName() == null || dto.getTabName().isBlank())) {
-			dto.setTabName("Interview Tracker");
-		}
 	}
 
 }
