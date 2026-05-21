@@ -1,0 +1,145 @@
+<div class="interview-tracker-page">
+    <div class="container-fluid px-3 pt-4 pb-3 it-tracker-inner">
+        <header class="it-page-header">
+            <div class="it-page-header__main">
+                <h2 class="it-page-title">Interview Tracker</h2>
+                <p class="it-page-sub">Schedule interviews, filter the pipeline, and review status at a glance.</p>
+            </div>
+            <div class="it-page-header__actions">
+                <button type="button" class="btn btn-schedule" *ngIf="userMapping.schedule_interview" (click)="openScheduleInterview()">
+                    <i class="fa fa-plus me-2"></i> Schedule Interview
+                </button>
+            </div>
+        </header>
+
+        <div *ngIf="!userMapping.view_interview" class="alert alert-warning mx-0 mb-3">
+            You do not have permission to view the interview list. Contact your administrator for <strong>View Interview</strong> access under Interview Tracker.
+        </div>
+
+        <ng-container *ngIf="userMapping.view_interview">
+        <section class="filter-card it-filter-card" aria-label="Filters">
+            <div class="it-filter-card__head">
+                <div class="it-filter-card__title">
+                    <span class="it-filter-card__icon"><i class="fa fa-sliders-h"></i></span>
+                    <div>
+                        <h2 class="it-filter-card__heading">Filters</h2>
+                        <p class="it-filter-card__hint">Narrow the list and dashboard; then apply to refresh.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body it-filter-card__body">
+                <div class="it-filter-row">
+                    <div class="filter-input-sm">
+                        <label class="info-label">Date range</label>
+                        <app-my-select class="form-control" placeholder="Select range" [(ngModel)]="dateRangePreset"
+                            [options]="dateRangeOptions" displayKey="label" valueKey="value"
+                            (selectionChange)="setDateRange($event)">
+                        </app-my-select>
+                    </div>
+
+                    <div class="filter-input-sm" *ngIf="showCustomDate">
+                        <label class="info-label" for="it-start">Start date</label>
+                        <input id="it-start" type="date" class="form-control global-filter-input" [(ngModel)]="startDate">
+                    </div>
+
+                    <div class="filter-input-sm" *ngIf="showCustomDate">
+                        <label class="info-label" for="it-end">End date</label>
+                        <input id="it-end" type="date" class="form-control global-filter-input" [(ngModel)]="endDate">
+                    </div>
+
+                    <div class="filter-input-sm">
+                        <label class="info-label">Client</label>
+                        <app-my-select class="form-control" placeholder="Select client" [(ngModel)]="selectedClients"
+                            [options]="clientList" [multiple]="true">
+                        </app-my-select>
+                    </div>
+
+                    <div class="filter-input-sm">
+                        <label class="info-label">Department</label>
+                        <app-my-select class="form-control" placeholder="Select department" [(ngModel)]="selectedDepartments"
+                            [options]="departmentList" displayKey="name" valueKey="id" [multiple]="true">
+                        </app-my-select>
+                    </div>
+
+                    <div class="filter-input-sm">
+                        <label class="info-label">Employee</label>
+                        <app-my-select class="form-control" placeholder="Select employee" [(ngModel)]="selectedEmployees"
+                            [options]="employeeList" displayKey="name" valueKey="id" [multiple]="true">
+                        </app-my-select>
+                    </div>
+
+                    <div class="it-filter-actions-wrap">
+                        <button type="button" class="btn btn-reset" (click)="resetFilters()" [disabled]="!hasActiveFilters()" title="Clear all filters and restore default date range">
+                            <i class="fa fa-undo me-2"></i> Reset
+                        </button>
+                        <button type="button" class="btn btn-apply" (click)="applyFilters()">
+                            <i class="fa fa-filter me-2"></i> Apply filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="it-metrics-section" aria-label="Overview metrics">
+            <h2 class="it-section-title">Overview</h2>
+            <div class="row g-3 mb-3">
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 tile-col">
+                    <div class="metric-tile interview-tile interview-tile--kpi border-start-primary">
+                        <div class="tile-header">
+                            <i class="fa fa-calendar-check text-primary" aria-hidden="true"></i>
+                            <span>Future interviews</span>
+                        </div>
+                        <div class="tile-value">{{ dashboardStats.futureInterviews || 0 }}</div>
+                    </div>
+                </div>
+
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 tile-col">
+                    <div class="metric-tile interview-tile interview-tile--kpi border-start-info">
+                        <div class="tile-header">
+                            <i class="fa fa-list-ol text-info" aria-hidden="true"></i>
+                            <span>Total interviews</span>
+                        </div>
+                        <div class="tile-value">{{ dashboardStats.totalInterviews ?? 0 }}</div>
+                    </div>
+                </div>
+
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 tile-col">
+                    <div class="metric-tile interview-tile interview-tile--chart border-start-success">
+                        <div class="tile-header">
+                            <i class="fa fa-chart-pie text-success" aria-hidden="true"></i>
+                            <span>Interview status</span>
+                        </div>
+                        <div #interviewStatusChart class="chart-container"></div>
+                    </div>
+                </div>
+
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 tile-col">
+                    <div class="metric-tile interview-tile interview-tile--chart border-start-warning">
+                        <div class="tile-header">
+                            <i class="fa fa-user-check text-warning" aria-hidden="true"></i>
+                            <span>Selection status</span>
+                        </div>
+                        <div #selectionStatusChart class="chart-container"></div>
+                    </div>
+                </div>
+
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 tile-col">
+                    <div class="metric-tile interview-tile interview-tile--chart border-start-secondary">
+                        <div class="tile-header">
+                            <i class="fa fa-user-plus text-secondary" aria-hidden="true"></i>
+                            <span>Onboarding status</span>
+                        </div>
+                        <div #onboardingStatusChart class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="list-card it-list-section" aria-label="Interview list">
+            <div class="card-body p-0">
+                <app-interview-list [filterObj]="activeFilterObj" [userMapping]="userMapping"></app-interview-list>
+            </div>
+        </section>
+        </ng-container>
+    </div>
+</div>
