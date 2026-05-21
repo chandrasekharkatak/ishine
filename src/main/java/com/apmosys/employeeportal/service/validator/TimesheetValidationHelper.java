@@ -438,8 +438,19 @@ public class TimesheetValidationHelper {
             }
             
             if (isWorkingDay) {
+
+            	String poProjectType = projectRepository.isClientProject(project.getProjectId());
+            	Boolean isShadowMandetory = false;
+            	if(poProjectType != null && (poProjectType.equals("TNM") || poProjectType.equals("Fixed Cost")) ) {
+            		 isShadowMandetory = isShadowMandatoryForProjectAndDateForEmp(empDTO.getEmpId(),empDTO.getDate(), project.getProjectId());
+      
+            	}
+            	else {
+            		isShadowMandetory = false;
+            	}
+
             	
-            	if (isShadowMandatoryForProjectAndDateForEmp(empDTO.getEmpId(),empDTO.getDate(), project.getProjectId()) && Boolean.FALSE.equals(project.getIsShadowTimesheet()) 
+            	if (isShadowMandetory &&  Boolean.FALSE.equals(project.getIsShadowTimesheet()) 
                         && Boolean.FALSE.equals(project.getIsShadowForSelf()) ) {
 
                         throw new TimesheetValidationFailedException(

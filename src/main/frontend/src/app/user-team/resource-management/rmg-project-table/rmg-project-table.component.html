@@ -98,44 +98,49 @@
                                     <em class="fa-solid fa-ellipsis-vertical"></em>
                                 </button>
                                 <mat-menu #actionMenu="matMenu">
-                                    <button mat-menu-item
-                                        *ngIf="row?.draftStatus != 'Not Started' || row?.isTeamCreated == 'true'"
-                                        (click)="onAction('PREVIEW',row)">
-                                        <i class="fas fa-eye"></i> Preview
-                                    </button>
-                                    <button mat-menu-item (click)="onAction('EDIT_NEW', row);"
-                                        *ngIf="!(row?.active === 'false')">
-                                        <i class="fas fa-pen"></i> Edit
-                                    </button>
-                                    <button mat-menu-item
-                                        *ngIf="(row?.draftStatus == 'Approved' || row?.isTeamCreated == 'true') && row?.projectStatus != 'Completed' && !(row?.active === 'false')"
-                                        (click)="onAction('MARK_AS_COMPLETE', row)">
-                                        <i class="fas fa-check-double"></i> Mark as Complete
-                                    </button>
-                                    <button mat-menu-item
-                                        *ngIf="userMapping.rmg_approval_option && row?.draftStatus === 'Pending For Approval' && !(row?.active === 'false')"
-                                        (click)="onAction('APPROVE',row);">
-                                        <i class="fas fa-square-check"></i> Approve
-                                    </button>
-                                    <button mat-menu-item
-                                        *ngIf="userMapping.rmg_approval_option && row?.draftStatus === 'Pending For Approval' && !(row?.active === 'false')"
-                                        (click)="onAction('REJECT', row);">
-                                        <i class="fas fa-times"></i> Reject
-                                    </button>
-                                    <button mat-menu-item
-                                        *ngIf="row?.poProjectType && !allNonBillableProjectTypes.includes(row?.poProjectType?.trim()?.toLowerCase()) && !(row?.active === 'false')"
-                                        (click)="onAction('CLIENT_SIDE_ID_STATUS',row);">
-                                        <i class="fas fa-id-badge"></i> ClientID Status
-                                    </button>
-                                    <button mat-menu-item *ngIf="row?.active === 'false'"
-                                        (click)="onAction('RESTORE',row);">
-                                        <i class="fas fa-trash-arrow-up"></i> Restore
-                                    </button>
+                                    <ng-container *ngIf="userMapping.rmg_read_only">
+                                        <button mat-menu-item *ngIf="row?.draftStatus != 'Not Started' || row?.isTeamCreated == 'true'"
+                                            (click)="onAction('PREVIEW',row)">
+                                            <i class="fas fa-eye"></i> Preview
+                                        </button>
+                                    </ng-container>
+                                    <ng-container *ngIf="!(userMapping.rmg_read_only)">
+                                        <button mat-menu-item *ngIf="row?.draftStatus != 'Not Started' || row?.isTeamCreated == 'true'"
+                                            (click)="onAction('PREVIEW',row)">
+                                            <i class="fas fa-eye"></i> Preview
+                                        </button>
+                                        <button mat-menu-item (click)="onAction('EDIT_NEW', row);" *ngIf="!(row?.active === 'false')">
+                                            <i class="fas fa-pen"></i> Edit
+                                        </button>
+                                        <button mat-menu-item
+                                            *ngIf="(row?.draftStatus == 'Approved' || row?.isTeamCreated == 'true') && row?.projectStatus != 'Completed' && !(row?.active === 'false')"
+                                            (click)="onAction('MARK_AS_COMPLETE', row)">
+                                            <i class="fas fa-check-double"></i> Mark as Complete
+                                        </button>
+                                        <button mat-menu-item
+                                            *ngIf="userMapping.rmg_approval_option && row?.draftStatus === 'Pending For Approval' && !(row?.active === 'false')"
+                                            (click)="onAction('APPROVE',row);">
+                                            <i class="fas fa-square-check"></i> Approve
+                                        </button>
+                                        <button mat-menu-item
+                                            *ngIf="userMapping.rmg_approval_option && row?.draftStatus === 'Pending For Approval' && !(row?.active === 'false')"
+                                            (click)="onAction('REJECT', row);">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                        <button mat-menu-item
+                                            *ngIf="row?.poProjectType && !allNonBillableProjectTypes.includes(row?.poProjectType?.trim()?.toLowerCase()) && !(row?.active === 'false')"
+                                            (click)="onAction('CLIENT_SIDE_ID_STATUS',row);">
+                                            <i class="fas fa-id-badge"></i> ClientID Status
+                                        </button>
+                                        <button mat-menu-item *ngIf="row?.active === 'false'" (click)="onAction('RESTORE',row);">
+                                            <i class="fas fa-trash-arrow-up"></i> Restore
+                                        </button>
+                                    </ng-container>
                                 </mat-menu>
                             </ng-container>
 
                             <ng-container *ngSwitchCase="'name'">
-                                <ng-container *ngIf="(row?.draftStatus == 'Not Started' || row?.active === 'false')">
+                                <ng-container *ngIf="(row?.draftStatus == 'Not Started' || row?.active === 'false') || userMapping.rmg_read_only">
                                     <span class="rmg-inactive-project-name-text">
                                         {{ row?.name || 'NA' }}
                                     </span>
@@ -160,7 +165,7 @@
                                         </span>
                                     </span>
                                 </ng-container>
-                                <ng-container *ngIf="(row?.draftStatus != 'Not Started' && row?.active !== 'false')">
+                                <ng-container *ngIf="(row?.draftStatus != 'Not Started' && row?.active !== 'false') && !(userMapping.rmg_read_only)">
                                     <span style="cursor: pointer; color: blue;" id="clickablefor360"
                                         [navigateToProjectView]="row?.projectViewId">
                                         <ng-container *ngIf="projectDetailsResolveMap?.[row?.projectId]?.redirected">

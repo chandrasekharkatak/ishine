@@ -217,6 +217,7 @@ import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.com
 import { ResizableModule } from 'angular-resizable-element';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
 import { ApproverWorkflowComponent } from './user-team/project-insight/components/approver-workflow/approver-workflow.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -245,6 +246,9 @@ import { MyTableComponent } from './helpers/my-table/my-table.component';
 import { RmgStatusCardsComponent } from './user-team/resource-management/rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
+import { InterviewTrackerComponent } from './interview-tracker/interview-tracker.component';
+import { InterviewListComponent } from './interview-tracker/interview-list/interview-list.component';
+import { ScheduleInterviewComponent } from './interview-tracker/schedule-interview/schedule-interview.component';
 import { ReimbursementTicketModalComponent } from './reimbursement/reimbursement-ticket-modal/reimbursement-ticket-modal.component';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
@@ -432,6 +436,10 @@ registerLocaleData(localeGb);
     TeamAllTimesheetsTableComponent,
     TimesheetFormComponent,
     InfoTooltipComponent,
+    QuizSubmit,
+    InterviewTrackerComponent,
+    InterviewListComponent,
+    ScheduleInterviewComponent,
     RmgProjectConfigComponent,
     MyTableComponent,
     RmgModalHostComponent,
@@ -475,6 +483,7 @@ registerLocaleData(localeGb);
     ResizableModule,
     MatMenuModule,
     MatButtonModule,
+    MatDividerModule,
     MatExpansionModule,
     NgxPaginationModule,
     NgxEditorModule,
