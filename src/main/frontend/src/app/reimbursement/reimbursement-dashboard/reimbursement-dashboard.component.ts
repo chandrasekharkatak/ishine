@@ -89,14 +89,25 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
   /** Main 4-metric chart on client / project / department tabs (grouped columns, not full master line). */
   private readonly insightFourSeriesTopLimit = 12;
 
+  /** Users with Approve/Dashboard reimbursement access see org-wide metrics, not approval-chain-only. */
+  private dashboardFullScope = false;
+
   constructor(
     private authenticationService: AuthenticationService,
     private reimbursementService: ReimbursementService
   ) {
-    this.authenticationService.currentUser.subscribe((x) => (this.currentUser = x));
+    this.authenticationService.currentUser.subscribe((x) => {
+      this.currentUser = x;
+      this.dashboardFullScope = this.resolveDashboardFullScope(x);
+    });
   }
 
   ngOnInit(): void {
+    const u = this.authenticationService.currentUserValue;
+    if (u) {
+      this.currentUser = u;
+      this.dashboardFullScope = this.resolveDashboardFullScope(u);
+    }
     void this.loadDashboard();
   }
 
@@ -677,6 +688,9 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.reimbursementDashboard = null;
     this.destroyCharts();
+    if (this.currentUser) {
+      this.dashboardFullScope = this.resolveDashboardFullScope(this.currentUser);
+    }
     try {
       const body = this.buildFilterPayload();
       const dash: any = await this.reimbursementService
@@ -697,6 +711,27 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
     } finally {
       this.loading = false;
     }
+  }
+
+  /**
+   * Org-wide dashboard for SuperAdmin/Admin and anyone with Approve Reimbursement / Dashboard tab access.
+   */
+  private resolveDashboardFullScope(user: any): boolean {
+    if (!user) {
+      return false;
+    }
+    const er = String(user.employeeRole || user.role || '').trim();
+    if (/superadmin/i.test(er) || /^admin$/i.test(er) || /administrator/i.test(er)) {
+      return true;
+    }
+    const feat = (user.userMapping || []).find((m: any) => m.featureName === 'Reimbursement');
+    const subs = feat?.subFeatures || [];
+    return subs.some((s: any) => {
+      const key = String(s.subFeatureName || '')
+        .replace(/\s+/g, '_')
+        .toLowerCase();
+      return (key === 'approve_reimbursement' || key === 'total_reimbursementrequest') && s.isActive;
+    });
   }
 
   private buildFilterPayload(): any {
@@ -734,6 +769,14 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
     }
     if (this.currentUser?.email) {
       o.actorEmail = this.currentUser.email;
+    }
+    if (this.currentUser?.employeeRole) {
+      o.actorEmployeeRole = this.currentUser.employeeRole;
+    } else if (this.currentUser?.role) {
+      o.actorEmployeeRole = this.currentUser.role;
+    }
+    if (this.dashboardFullScope) {
+      o.dashboardFullScope = true;
     }
     return o;
   }

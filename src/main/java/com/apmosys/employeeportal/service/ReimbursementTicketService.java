@@ -1486,21 +1486,47 @@ public class ReimbursementTicketService {
 	}
 
 	/**
-	 * Some personas (e.g. SuperAdmin/Admin) should see the complete dashboard, not only
-	 * the subset of tickets where they appear in the approval chain.
+	 * Org-wide dashboard: SuperAdmin/Admin, HR/finance workflow mailboxes, users with dashboard/approve
+	 * reimbursement access ({@link ReimbursementDashboardFilterDTO#getDashboardFullScope()}), or job role
+	 * from session/DB — not only tickets where the actor is in the approval chain.
 	 */
 	private boolean isPrivilegedDashboardActor(ReimbursementDashboardFilterDTO filter) {
-		if (filter == null || filter.getActorEmpId() == null) {
+		if (filter == null) {
+			return false;
+		}
+		if (Boolean.TRUE.equals(filter.getDashboardFullScope())) {
+			return true;
+		}
+		if (isPrivilegedDashboardRoleLabel(filter.getActorEmployeeRole())) {
+			return true;
+		}
+		if (StringUtils.hasText(filter.getActorEmail())) {
+			String email = normEmail(filter.getActorEmail());
+			if (email.equals(normEmail(workflowHrMail)) || email.equals(normEmail(workflowFinanceMail))) {
+				return true;
+			}
+		}
+		if (filter.getActorEmpId() == null) {
 			return false;
 		}
 		try {
 			Employee e = employeeRepository.findByEmpId(filter.getActorEmpId());
-			String role = e != null && e.getRole() != null ? e.getRole().trim() : "";
-			String norm = role.replaceAll("\\s+", "").toLowerCase(Locale.ROOT);
-			return "superadmin".equals(norm) || "admin".equals(norm);
+			if (e != null && isPrivilegedDashboardRoleLabel(e.getRole())) {
+				return true;
+			}
+			String jobRole = employeeRepository.getEmployeeRoleByEmpId(filter.getActorEmpId());
+			return isPrivilegedDashboardRoleLabel(jobRole);
 		} catch (Exception ignore) {
 			return false;
 		}
+	}
+
+	private static boolean isPrivilegedDashboardRoleLabel(String role) {
+		if (!StringUtils.hasText(role)) {
+			return false;
+		}
+		String norm = role.trim().replaceAll("\\s+", "").toLowerCase(Locale.ROOT);
+		return "superadmin".equals(norm) || "admin".equals(norm) || "administrator".equals(norm);
 	}
 
 	private static boolean isRejectedClaimStatus(String st) {
