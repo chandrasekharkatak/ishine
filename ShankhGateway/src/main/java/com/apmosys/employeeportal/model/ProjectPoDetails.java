@@ -26,11 +26,11 @@ import lombok.ToString;
 @Entity
 @ToString
 @Audited
-@Table(indexes = { @Index(name = "idx_ppd_po_id", columnList = "po_id"),
-        @Index(name = "idx_ppd_project_id", columnList = "project_id"),
-        @Index(name = "idx_ppd_po_start_date", columnList = "po_start_date"),
-        @Index(name = "idx_ppd_po_end_date", columnList = "po_end_date")
-})
+//@Table(indexes = { @Index(name = "idx_ppd_po_id", columnList = "po_id"),
+//        @Index(name = "idx_ppd_project_id", columnList = "project_id"),
+//        @Index(name = "idx_ppd_po_start_date", columnList = "po_start_date"),
+//        @Index(name = "idx_ppd_po_end_date", columnList = "po_end_date")
+//})
 public class ProjectPoDetails {
 
     @Id

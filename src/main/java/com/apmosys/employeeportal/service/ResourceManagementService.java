@@ -2162,11 +2162,11 @@ public class ResourceManagementService {
 
 		try {
 			mailService.sendMailWithCC(
-//			        String.join(",", allEmails),
+			        String.join(",", allEmails),
 					// to be removed before prod deployment
-					"priyadarshini.singh@apmosys.com",
-//			        employee.getEmail(),
-					"",
+//					"priyadarshini.singh@apmosys.com",
+			        employee.getEmail(),
+//					"",
 			        "Regarding Project Rejection",
 			        emailHtml
 			);
@@ -16267,48 +16267,52 @@ public class ResourceManagementService {
 				Direction.fromString(sortDirection), sortBy);
 
 		switch (projectStatus) {
-		case "TOTAL":
-			projectDetailsList = projectCustomRepository.handleAllProjects(rmgDashboardProjectRequest, deptIds,
-					projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "TOTAL_FC":
-			projectDetailsList = projectCustomRepository.handleFCProjects(rmgDashboardProjectRequest, deptIds,
-					projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "TOTAL_EXPIRED_TNM":
+			case "TOTAL":
+				projectDetailsList = projectCustomRepository.handleAllProjects(rmgDashboardProjectRequest, deptIds,
+						projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			case "TOTAL_FC":
+				projectDetailsList = projectCustomRepository.handleFCProjects(rmgDashboardProjectRequest, deptIds,
+						projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			case "TOTAL_EXPIRED_TNM":
 				projectDetailsList = projectCustomRepository.handleExpiredTNMProjects(rmgDashboardProjectRequest,
 						deptIds, projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "TOTAL_TNM":
-		case "ALL_TNM":
-		case "TOTAL_ACTIVE_TNM":
-		case "TOTAL_MONITORING":
-		case "TOTAL_INTERNAL":
-			projectDetailsList = projectCustomRepository.handleProjectsByType(rmgDashboardProjectRequest, deptIds,
-					projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "UNDERBOARDED":
-		case "OVERBOARDED":
-				projectDetailsList = projectCustomRepository.handleOverboardedAndUnderboardedProjects(rmgDashboardProjectRequest,
+				break;
+			case "TOTAL_TNM":
+			case "ALL_TNM":
+			case "TOTAL_ACTIVE_TNM":
+			case "TOTAL_MONITORING":
+			case "TOTAL_INTERNAL":
+				projectDetailsList = projectCustomRepository.handleProjectsByType(rmgDashboardProjectRequest, deptIds,
+						projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			case "UNDERBOARDED":
+			case "OVERBOARDED":
+				projectDetailsList = projectCustomRepository.handleOverboardedAndUnderboardedProjects(
+						rmgDashboardProjectRequest,
 						deptIds, projectStatus, projectNames, sortBy, sortDirection, page);
-			break;
-		case "ALL":
-		case "NOT_STARTED":
-		case "PENDING_FOR_APPROVAL":
-		case "APPROVED":
-		case "REJECTED":
-		case "OFFBOARDED":
-		case "SCHEDULED":
-		case "COMPLETED_IN_ISHINE":
-		case "COMPLETED_IN_SHANKH":
-		case "COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE":
-			projectDetailsList = projectCustomRepository.handleGeneralProjectFilters(rmgDashboardProjectRequest,
-					deptIds, projectIds, projectStatus, projectNames, sortBy, sortDirection, page);
-		case "TIMESHEET_APPLICABLE_PROJECT":
-			projectDetailsList = projectCustomRepository.handleTimesheetApplicableProjects(rmgDashboardProjectRequest,
-					deptIds, projectIds, projectStatus, projectNames, sortBy, sortDirection, page);
-		default:
-			break;
+				break;
+			case "ALL":
+			case "NOT_STARTED":
+			case "PENDING_FOR_APPROVAL":
+			case "APPROVED":
+			case "REJECTED":
+			case "OFFBOARDED":
+			case "SCHEDULED":
+			case "COMPLETED_IN_ISHINE":
+			case "COMPLETED_IN_SHANKH":
+			case "COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE":
+				projectDetailsList = projectCustomRepository.handleGeneralProjectFilters(rmgDashboardProjectRequest,
+						deptIds, projectIds, projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			case "TIMESHEET_APPLICABLE_PROJECT":
+				projectDetailsList = projectCustomRepository.handleTimesheetApplicableProjects(
+						rmgDashboardProjectRequest,
+						deptIds, projectIds, projectStatus, projectNames, sortBy, sortDirection, page);
+				break;
+			default:
+				break;
 		}
 		return projectDetailsList;
 	}
@@ -17225,10 +17229,12 @@ public class ResourceManagementService {
 			List<Long> selectedDeptIds = new ArrayList<>();
 			LocalDate fromDate = null;
 			LocalDate toDate = null;
+			String projectTypee = null;
 			if (pageDTO.getExtraFilter() != null && !pageDTO.getExtraFilter().isEmpty()) {
 				Map<String, Object> extraFilters = pageDTO.getExtraFilter();
 				String fromDateStr = (String) extraFilters.get("fromDate");
 				String toDateStr = (String) extraFilters.get("toDate");
+				 projectTypee = (String) extraFilters.get("projectType");
 
 				fromDate = fromDateStr != null ? LocalDate.parse(fromDateStr) : null;
 				toDate = toDateStr != null ? LocalDate.parse(toDateStr) : null;
@@ -17262,7 +17268,7 @@ public class ResourceManagementService {
 
 			Slice<EmployeeDetailsDTO> projectDetailsList = employeeCustomRepository
 					.getUnfilledTimesheetProjectDetailsPage(isAllAccessEmployee, deptIds, pageDTO, projectIds, fromDate,
-							toDate);
+							toDate,projectTypee);
 
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(projectDetailsList);
@@ -17980,22 +17986,38 @@ public class ResourceManagementService {
 
 			Set<Integer> projectIds = getProjectIdsByType("TIMESHEET_NON_COMPLIANCE", isAllAccessEmployee, hodProjects, deptFlag, empId);
 			Set<Integer> filteredProjectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, "ALL", deptIds);
-			Set<String> timesheetRangeSet = Set.of("All", "3M", "6M", "1Y");
-			Map<String, Long> allProjectStatusCount = new LinkedHashMap<>();
+			List<String> timesheetRanges = List.of("All","3M", "6M", "1Y");
+			 Map<String, Map<String, Long>> result = new LinkedHashMap<>();
 
-			for (String timesheetRange : timesheetRangeSet) {
-				if (timesheetRange.equals("All")) {
-					allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
-					continue;
-				}
-				List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
-				LocalDate fromDate = dateRange.get(0);
-				LocalDate toDate = dateRange.get(1);
-				allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate));
-			}
+//			for (String timesheetRange : timesheetRangeSet) {
+//				if (timesheetRange.equals("All")) {
+//					allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
+//					continue;
+//				}
+//				List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
+//				LocalDate fromDate = dateRange.get(0);
+//				LocalDate toDate = dateRange.get(1);
+//				allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate));
+//			}
+			
+			 for (String timesheetRange : timesheetRanges) {
+				 if (timesheetRange.equals("All")) {
+					 result.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCountByProjectType(isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
+						continue;
+					}
+		            List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
+		            LocalDate fromDate = dateRange.get(0);
+		            LocalDate toDate  = dateRange.get(1);
+
+		            Map<String, Long> countByType = employeeCustomRepository
+		                    .getUnfilledTimesheetProjectDetailsCountByProjectType(
+		                            isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate);
+
+		            result.put(timesheetRange, countByType);
+		        }
 
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			serviceResponse.setServiceResponse(allProjectStatusCount);
+			serviceResponse.setServiceResponse(result);
 		} catch (Exception e) {
 			log.error("Error in getUnfilledTimesheetProjectDetailsCount", e);
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
@@ -18163,6 +18185,9 @@ public class ResourceManagementService {
 
 					if (internalProjectTypes.contains(projectType)) {
 						projectType = "internal";
+					}
+					if(projectType.equalsIgnoreCase("fixed cost")) {
+						projectType = "fixedCost";
 					}
 					allProjectStatusCount.merge(projectType, projectCount, Long::sum);
 				}

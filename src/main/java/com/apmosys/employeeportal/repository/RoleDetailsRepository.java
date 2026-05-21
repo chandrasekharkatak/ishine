@@ -14,7 +14,7 @@ import com.apmosys.employeeportal.model.RoleDetails;
 public interface RoleDetailsRepository extends JpaRepository<RoleDetails, Long>  {
 
 	
-	@Query(value = "SELECT r FROM RoleDetails r WHERE LOWER(TRIM(r.role)) = LOWER(TRIM(:role)) AND LOWER(TRIM(r.department)) = LOWER(TRIM(:department)) AND LOWER(TRIM(r.experience)) = LOWER(TRIM(:experience))")
+	@Query(value = "SELECT r FROM RoleDetails r WHERE r.role = :role AND r.department = :department AND r.experience = :experience")
 	Optional<RoleDetails> findByRoleAndDepartmentAndExperience(String role, String department,
 			String experience);
 

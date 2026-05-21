@@ -60,8 +60,8 @@ export class RmgProjectTableComponent implements OnInit, OnChanges {
     , { key: 'createdOn', label: 'Created On', minWidth: 180, sortable: true, searchable: true, visible: true, width: 180, searchValue: '' }
     , { key: 'projectStatus', label: 'Ishine Project Status', minWidth: 220, sortable: true, searchable: true, visible: true, width: 220, searchValue: '' }
     , { key: 'draftStatus', label: 'Approval Status', minWidth: 220, sortable: true, searchable: true, visible: true, width: 220, searchValue: '' }
-    , { key: 'activeResources', label: 'Active Resources', minWidth: 120, sortable: true, searchable: true, visible: true, width: 120, searchValue: '' }
-    , { key: 'requiredResources', label: 'Required Resources', minWidth: 120, sortable: true, searchable: true, visible: true, width: 120, searchValue: '' }
+    , { key: 'activeResources', label: 'Active Resources', minWidth: 120, sortable: true, searchable: false, visible: true, width: 120, searchValue: '' }
+    , { key: 'requiredResources', label: 'Required Resources', minWidth: 120, sortable: true, searchable: false, visible: true, width: 120, searchValue: '' }
   ];
 
   totalAndActiveAndTnmVisibleColumnsConfig: any[] = ['actions', 'name', 'requiredResources', 'activeResources', 'poProjectType', 'poNo', 'projectStartDate', 'projectEndDate', 'projectStatus', 'draftStatus', 'projectManagerName', 'clientName', 'clientRM', 'apmosysRM', 'state', 'createdOn'];
@@ -440,8 +440,10 @@ export class RmgProjectTableComponent implements OnInit, OnChanges {
     const excelName = "Project Report.xlsx";
     const exportData = projectDetailsList?.map(x => ({
       'Project Name': x.name || 'NA',
-      'PO Number': x.poNo || 'NA',
+      'Active Resources': x.activeResources || 'NA',
+      'Required Resources': x.requiredResources || 'NA',
       'Project Type': x.poProjectType || 'NA',
+      'PO Number': x.poNo || 'NA',
       'Project Manager': x.projectManagers && x.projectManagers.length > 0 ? x.projectManagers[0].projectManagerName : 'NA',
       'Client': x.clientName || 'NA',
       'ApMSys RM': x.apmosysRM || 'NA',

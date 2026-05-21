@@ -738,3 +738,9 @@
     height: 250px;
     width: 500px;
 }
+
+.key-insight-scroll {
+    height: 215px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}

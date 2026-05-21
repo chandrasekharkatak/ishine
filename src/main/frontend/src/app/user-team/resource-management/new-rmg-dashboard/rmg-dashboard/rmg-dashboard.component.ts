@@ -215,12 +215,18 @@ export class RmgDashboardComponent implements OnInit {
       'It represents the total number of Projects on which resources can fill timesheet.'
     ];
   }
+  projectTypeColors = {
+    TNM: '#2F467F',
+    'Fixed Cost': '#355C7D',
+    Monitoring: '#4f68a9',
+    Internal: '#7b8fc7'
+  };
 
   zeroTimesheetBars = [
     { label: 'No Timesheet', value: null, color: '#2f467f', key: 'All', display: false, subKey: 'TIMESHEET_NON_COMPLIANCE', fullLabel: 'No Timesheet Filled' },
-    { label: '3 Months', value: null, color: '#5677C2', key: '3M', display: true },
-    { label: '6 Months', value: null, color: '#CC9433', key: '6M', display: true },
-    { label: '1 Year', value: null, color: '#C65353', key: '1Y', display: true },
+    { label: '3 Months', value: null, color: '#5677C2', key: '3M', display: true, segments: { TNM: 0, 'Fixed Cost': 0, Monitoring: 0, Internal: 0 } },
+    { label: '6 Months', value: null, color: '#CC9433', key: '6M', display: true, segments: { TNM: 0, 'Fixed Cost': 0, Monitoring: 0, Internal: 0 } },
+    { label: '1 Year', value: null, color: '#C65353', key: '1Y', display: true,segments: { TNM: 0, 'Fixed Cost': 0, Monitoring: 0, Internal: 0 } },
   ];
 
   completedItems = [
@@ -255,7 +261,7 @@ export class RmgDashboardComponent implements OnInit {
     { key: 'PENDING_FOR_APPROVAL', value: null, text: ' project(s) stuck in Pending Approval', subValue: null, subText: 'Approve or reject the team allocation to enable timesheet entry or initiate new resource allocation.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.projectLifeCycleStages },
     { key: 'UNDERBOARDED', value: null, text: ' TNM project(s) Underboarded', subValue: null, subText: 'Add required resources to meet the planned team capacity.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 9, criticalThreshold: 30, valueList: this.resourceCards },
     { key: 'OVERBOARDED', value: null, text: ' TNM project(s) Overboarded', subValue: null, subText: 'Remove excess resources, deallocate from expired projects, or review and resolve rejected additional resource requests.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.resourceCards },
-    { key: 'allExpiredTNMProjectsCount', value: null, text: ' TNM project(s) Expired since 6+ months', subValue: null, subText: 'Renew the project or mark it as complete, and deallocate remaining resources.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.tnmExpiredBars },
+    { key: 'allExpiredTNMProjectsCount', value: null, text: ' TNM project(s) Expired', subValue: null, subText: 'Renew the project or mark it as complete, and deallocate remaining resources.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 30, valueList: this.tnmExpiredBars },
     { key: 'HIGHEST_EXPIRED_TNM_BUCKET', value: null, text: ' Highest TNM expiry: {projectCount} projects in {bucketName} bucket', subValue: null, subText: 'Largest concentration of expiring projects', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 0, criticalThreshold: 0, valueList: this.tnmExpiredBars },
     { key: 'defaulter', value: null, text: ' fixed cost defaulters', subValue: null, subText: 'Extend project milestones or mark the project as complete to resolve defaulter status.', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 30, criticalThreshold: 50, valueList: this.fixedCostItems },
     { key: 'TIMESHEET_NON_COMPLIANCE', value: null, text: ' project(s) with no timesheet filled', subValue: null, subText: 'Ensure timesheets are filled for inactive periods to maintain compliance and reporting accuracy. Or mark as complete the project as the project is complete. ', stat: '', maxValue: null, percentage: 0.0, status: '', warningThreshold: 30, criticalThreshold: 50, valueList: this.zeroTimesheetBars },
@@ -495,9 +501,7 @@ export class RmgDashboardComponent implements OnInit {
     },
     {
       label: 'EMPLOYEES ONBOARDED', value: this.workforceOverview[0]?.value, change: null, period: 'vs last week', status: null, icon: 'bi-people', key: 'TOTAL', extraValue: null, tooltip: [
-        'Total employees currently mapped to active projects.',
-        'Includes only onboarded (active) resources.',
-        'Excludes deboarded or inactive employees.'
+        'Total active employees in the organisation.',
       ]
     },
     {
@@ -822,11 +826,12 @@ export class RmgDashboardComponent implements OnInit {
     console.log(point);
     if (chartId && point) {
       let projectStatus = chartId.split('_Chart')[0];
-      if (projectStatus == 'TIMESHEET_NON_COMPLIANCE') {
-        let key = this.zeroTimesheetBars.find(t => t.label === point?.category).key || 'All';
-        this.openUnfilledProjectTimesheetDetailsModal(key);
-        return;
-      } else if (projectStatus == 'TOTAL_EXPIRED_TNM') {
+      // if (projectStatus == 'TIMESHEET_NON_COMPLIANCE') {
+      //   let key = this.zeroTimesheetBars.find(t => t.label === point?.category).key || 'All';
+      //   this.openUnfilledProjectTimesheetDetailsModal(key);
+      //   return;
+      // } else 
+      if (projectStatus == 'TOTAL_EXPIRED_TNM') {
         this.projectStatus = projectStatus;
         this.filterStateService.selectedProjectStatus = this.projectStatus;
         this.expiredTNMProjectFilter = this.tnmExpiredBars.find(t => t.label === point?.category).key;
@@ -848,7 +853,8 @@ export class RmgDashboardComponent implements OnInit {
     this.projectStatus = insight.key;
     this.filterStateService.selectedProjectStatus = insight.key;
     if (insight.key == 'allExpiredTNMProjectsCount') {
-      this.projectStatus = 'TOTAL_EXPIRED_TNM'
+      this.projectStatus = 'TOTAL_EXPIRED_TNM';
+      this.filterStateService.selectedProjectStatus = 'TOTAL_EXPIRED_TNM';
       this.expiredTNMProjectFilter = 'allExpiredTNMProjectsCount';
     }
     else if (insight.key == 'HIGHEST_EXPIRED_TNM_BUCKET') {
@@ -1372,7 +1378,19 @@ export class RmgDashboardComponent implements OnInit {
     }
   }
 
-  openUnfilledProjectTimesheetDetailsModal(filter: any) {
+  onTimesheetSegmentClick(
+    bucketKey: any,
+    projectType: any
+  ) {
+  
+    this.openUnfilledProjectTimesheetDetailsModal(
+      bucketKey,
+      projectType
+    );
+  }
+  
+
+  openUnfilledProjectTimesheetDetailsModal(filter: any, projectType: any) {
     const today = moment();
     let fromDate: any;
     const value = parseInt(filter, 10);
@@ -1388,7 +1406,7 @@ export class RmgDashboardComponent implements OnInit {
     fromDate = filter == 'All' ? null : fromDate.format('YYYY-MM-DD');
     let toDate = filter == 'All' ? null : today.format('YYYY-MM-DD');
 
-    this.projectDetailsExtraParams = { "selectedDeptIds": this.selectedDepartmentIds, "projectStatus": this.timesheetNonCompliance.key, "fromDate": fromDate, "toDate": toDate };
+    this.projectDetailsExtraParams = { "selectedDeptIds": this.selectedDepartmentIds, "projectStatus": this.timesheetNonCompliance.key, "fromDate": fromDate, "toDate": toDate,  projectType: projectType || null };
     this.projectDetailsColumnConfig = this.timesheetNonCompliance?.columnConfig;
     this.projectDetailsDefaultSortColumn = this.timesheetNonCompliance?.defaultSortColumn;
     this.projectDetailsSubTableColumnConfig = this.timesheetNonCompliance?.columnConfig
@@ -1523,7 +1541,7 @@ export class RmgDashboardComponent implements OnInit {
 
   async loadZeroTimesheetData() {
     await this.getUnFilledTimesheetProjectStatusCount();
-    this.renderBarChart('TIMESHEET_NON_COMPLIANCE_Chart', this.zeroTimesheetBars, 120);
+    this.renderZeroTimesheetSegmentedChart('TIMESHEET_NON_COMPLIANCE_Chart', this.zeroTimesheetBars, 120);
   }
 
   async loadFixedCostData() {
@@ -1666,8 +1684,42 @@ export class RmgDashboardComponent implements OnInit {
       const response: any = await firstValueFrom(this.resourceManagementService.getAllUnfilledTimesheetProjectDetailsCount(newRmgDashboardProjectRequest));
       if (response?.serviceStatus == "Success" && response?.serviceResponse != null) {
         const counts = response.serviceResponse;
+        // for (const filter of this.zeroTimesheetBars) {
+        //   filter.value = counts[filter.key];
+        // }
         for (const filter of this.zeroTimesheetBars) {
-          filter.value = counts[filter.key];
+
+          // if (!filter.display) {
+          //   continue;
+          // }
+  
+          const bucketData =
+            counts[filter.key] || {};
+  
+          filter.segments = {
+  
+            TNM:
+              bucketData?.TNM || 0,
+  
+            'Fixed Cost':
+              bucketData?.['Fixed Cost'] || 0,
+  
+            Monitoring:
+              bucketData?.Monitoring || 0,
+  
+            Internal:
+              bucketData?.Internal || 0
+          };
+  
+          filter.value =
+  
+            (bucketData?.TNM || 0) +
+  
+            (bucketData?.['Fixed Cost'] || 0) +
+  
+            (bucketData?.Monitoring || 0) +
+  
+            (bucketData?.Internal || 0);
         }
       } else {
         this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
@@ -1844,6 +1896,378 @@ export class RmgDashboardComponent implements OnInit {
       setTimeout(() => this.scrollToTable());
     }
   }
-  // Projects Table APIs & Methods End
+  
 
+  renderZeroTimesheetSegmentedChart(
+    chartId: string,
+    data: any[],
+    chartHeight: any = 180
+  ) {
+  
+    const displayData =
+      data.filter(d => d.display);
+  
+    const categories =
+      displayData.map(d => d.label);
+  
+    // =========================================
+    // TOTALS
+    // =========================================
+    const totals = displayData.map(d =>
+  
+      (d.segments?.TNM ?? 0) +
+  
+      (d.segments?.['Fixed Cost'] ?? 0) +
+  
+      (d.segments?.Monitoring ?? 0) +
+  
+      (d.segments?.Internal ?? 0)
+    );
+  
+    const maxValue =
+      Math.max(...totals, 1);
+  
+    Highcharts.chart(chartId, {
+  
+      chart: {
+  
+        type: 'bar',
+  
+        backgroundColor: 'transparent',
+  
+        height: chartHeight,
+  
+        marginRight: 45,
+  
+        spacing: [8, 8, 0, 0]
+      },
+  
+      title: {
+        text: null
+      },
+  
+      credits: {
+        enabled: false
+      },
+  
+      exporting: {
+        enabled: false
+      },
+  
+      legend: {
+  
+        enabled: true,
+  
+        align: 'center',
+  
+        verticalAlign: 'bottom',
+  
+        symbolRadius: 2,
+  
+        itemDistance: 12,
+  
+        itemStyle: {
+  
+          color: '#64748B',
+  
+          fontSize: '10px',
+  
+          fontWeight: '500'
+        }
+      },
+  
+      xAxis: {
+  
+        categories: categories,
+  
+        lineWidth: 0,
+  
+        tickWidth: 0,
+  
+        gridLineWidth: 0,
+  
+        labels: {
+  
+          style: {
+  
+            color: '#475569',
+  
+            fontSize: '11px',
+  
+            fontWeight: '600'
+          }
+        }
+      },
+  
+      yAxis: {
+  
+        min: 0,
+  
+        max: maxValue,
+  
+        visible: false,
+  
+        title: {
+          text: null
+        }
+  
+      } as Highcharts.YAxisOptions,
+  
+      tooltip: {
+  
+        useHTML: true,
+  
+        backgroundColor: '#0F172A',
+  
+        borderWidth: 0,
+  
+        borderRadius: 8,
+  
+        shadow: false,
+  
+        style: {
+          color: '#ffffff'
+        },
+  
+        formatter: function () {
+  
+          const point: any =
+            this.point;
+  
+          return `
+            <div style="padding:4px 6px;">
+  
+              <div
+                style="
+                  font-size:12px;
+                  font-weight:600;
+                  margin-bottom:2px;
+                "
+              >
+                ${point.projectType}
+              </div>
+  
+              <div style="font-size:11px;">
+                ${point.y} Projects
+              </div>
+  
+            </div>
+          `;
+        }
+      },
+  
+      plotOptions: {
+  
+        series: {
+  
+          stacking: 'normal',
+  
+          grouping: false,
+  
+          borderWidth: 0,
+  
+          pointWidth: 14,
+  
+          groupPadding: 0.22,
+  
+          animation: {
+            duration: 800
+          },
+  
+          states: {
+  
+            hover: {
+              brightness: 0.08
+            }
+          },
+  
+          cursor: 'pointer',
+  
+          dataLabels: {
+            enabled: false
+          },
+  
+          point: {
+  
+            events: {
+  
+              click: (event) => {
+  
+                const point: any =
+                  event.point;
+  
+                this.onTimesheetSegmentClick(
+                  point.bucketKey,
+                  point.projectType
+                );
+              }
+            }
+          }
+        }
+      },
+  
+      series: [
+  
+        // =========================================
+        // BACKGROUND TRACK
+        // =========================================
+        {
+          type: 'bar',
+
+          showInLegend: false,
+
+          data: totals.map(total => ({
+  
+            y: maxValue,
+  
+            actualValue: total
+          })),
+  
+          color: '#E2E8F0',
+  
+          grouping: false,
+  
+          pointWidth: 14,
+  
+          borderRadius: 0,
+  
+          enableMouseTracking: false,
+  
+          dataLabels: {
+  
+            enabled: true,
+  
+            useHTML: true,
+  
+            align: 'right',
+  
+            alignTo: 'plotEdges',
+  
+            crop: false,
+  
+            overflow: 'allow',
+  
+            x: 28,
+  
+            formatter: function () {
+  
+              const point: any =
+                this.point;
+  
+              return `
+                <div
+                  style="
+                    width:40px;
+                    text-align:right;
+                    font-weight:600;
+                    font-size:11px;
+                    color:#0F172A;
+                  "
+                >
+                  ${point.actualValue}
+                </div>
+              `;
+            }
+          }
+        } as Highcharts.SeriesBarOptions,
+  
+  
+  
+        // =========================================
+        // TNM
+        // =========================================
+        {
+          type: 'bar',
+  
+          name: 'TNM',
+  
+          color: this.projectTypeColors.TNM,
+  
+          borderRadius: 0,
+  
+          data: displayData.map(bucket => ({
+  
+            y: bucket.segments.TNM,
+  
+            bucketKey: bucket.key,
+  
+            projectType: 'TNM'
+          }))
+        } as Highcharts.SeriesBarOptions,
+  
+  
+  
+        // =========================================
+        // FIXED COST
+        // =========================================
+        {
+          type: 'bar',
+  
+          name: 'Fixed Cost',
+  
+          color: this.projectTypeColors['Fixed Cost'],
+  
+          borderRadius: 0,
+  
+          data: displayData.map(bucket => ({
+  
+            y: bucket.segments['Fixed Cost'],
+  
+            bucketKey: bucket.key,
+  
+            projectType: 'Fixed Cost'
+          }))
+        } as Highcharts.SeriesBarOptions,
+  
+  
+  
+        // =========================================
+        // MONITORING
+        // =========================================
+        {
+          type: 'bar',
+  
+          name: 'Monitoring',
+  
+          color: this.projectTypeColors.Monitoring,
+  
+          borderRadius: 0,
+  
+          data: displayData.map(bucket => ({
+  
+            y: bucket.segments.Monitoring,
+  
+            bucketKey: bucket.key,
+  
+            projectType: 'Monitoring'
+          }))
+        } as Highcharts.SeriesBarOptions,
+  
+  
+  
+        // =========================================
+        // INTERNAL
+        // =========================================
+        {
+          type: 'bar',
+  
+          name: 'Internal',
+  
+          color: this.projectTypeColors.Internal,
+  
+          borderRadius: 0,
+  
+          data: displayData.map(bucket => ({
+  
+            y: bucket.segments.Internal,
+  
+            bucketKey: bucket.key,
+  
+            projectType: 'Internal'
+          }))
+        } as Highcharts.SeriesBarOptions
+      ]
+  
+    } as Highcharts.Options);
+  }
 }

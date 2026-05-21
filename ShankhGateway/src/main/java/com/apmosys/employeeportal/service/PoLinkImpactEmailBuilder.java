@@ -95,25 +95,25 @@ public class PoLinkImpactEmailBuilder {
 		h.append(cardRowClose());
 
 		// Card: Previous PO Requirements (non-monitoring only)
-		if (d.isIncludePreviousPoRequirementsSection()) {
-			h.append(cardRowOpen());
-			h.append(cardHeader("Previous PO Requirements"));
-			h.append(renderPreviousRequirementBlocks(d.getPreviousRequirementBlocks()));
-			h.append(cardRowClose());
-		}
+//		if (d.isIncludePreviousPoRequirementsSection()) {
+//			h.append(cardRowOpen());
+//			h.append(cardHeader("Previous PO Requirements"));
+//			h.append(renderPreviousRequirementBlocks(d.getPreviousRequirementBlocks()));
+//			h.append(cardRowClose());
+//		}
 
 		// Card: Current PO Requirements
-		h.append(cardRowOpen());
-		h.append(cardHeader("Current PO Requirements"));
-		h.append(subText("Project: " + esc(d.getProjectDisplayName())));
-		h.append(requirementsTable(d.getCurrentRequirementRows()));
-		h.append(cardRowClose());
+//		h.append(cardRowOpen());
+//		h.append(cardHeader("Current PO Requirements"));
+//		h.append(subText("Project: " + esc(d.getProjectDisplayName())));
+//		h.append(requirementsTable(d.getCurrentRequirementRows()));
+//		h.append(cardRowClose());
 
 		// Card: Boarding Snapshot (renew-style grouped cards)
-		h.append(cardRowOpen());
-		h.append(cardHeader("Boarding Snapshot"));
-		h.append(boardingSnapshotCards(d.getBoardingTableRows()));
-		h.append(cardRowClose());
+//		h.append(cardRowOpen());
+//		h.append(cardHeader("Boarding Snapshot"));
+//		h.append(boardingSnapshotCards(d.getBoardingTableRows()));
+//		h.append(cardRowClose());
 
 		// Card: Please Note
 		h.append(cardRowOpen());

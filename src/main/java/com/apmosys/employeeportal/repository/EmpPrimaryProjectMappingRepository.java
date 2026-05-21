@@ -87,4 +87,12 @@ public interface EmpPrimaryProjectMappingRepository extends JpaRepository<EmpPri
         + "WHERE eppm.empId = :empId "
         + "AND eppm.isMapped = 'Y'")
 List<ProjectNameAndPrjoectIdDTO> getPrimaryMappedProjects(@Param("empId") Long empId);
+
+	@Query("SELECT eppm.empId FROM EmpPrimaryProjectMapping eppm "
+			+ "WHERE eppm.isMapped = 'Y' "
+			+ "GROUP BY eppm.empId "
+			+ "HAVING COUNT(eppm) > 1")
+	List<Long> findEmployeesWithMultipleDefaultMappings();
+
+	List<EmpPrimaryProjectMapping> findByEmpIdAndIsMappedOrderByUpdatedOnDesc(Long empId, String isMapped);
 }
