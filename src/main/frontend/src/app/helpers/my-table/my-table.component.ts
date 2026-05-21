@@ -18,6 +18,7 @@ export interface ColumnConfig {
   header: string;
   sortable?: boolean;
   searchable?: boolean;
+  isDate?: boolean;
 }
 
 export interface ActionConfig {

@@ -202,6 +202,7 @@ export class PortalConfigComponent implements OnInit {
     this.viewEventConfig = false;
     this.isTable = false;
     this.isUpdation = false;
+    this.isDefaulterConfigForm=false;
 
     this.getAllHelpDocument();
   }
