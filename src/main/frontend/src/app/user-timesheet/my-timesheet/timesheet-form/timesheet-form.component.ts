@@ -6059,6 +6059,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
                 location.projects.forEach((project: any) => {
                   project.timesheetId = null;
                   project.locationMappingId = null;
+                  project.status = null;
                   if (project.activities) {
                     project.activities.forEach((activity: any) => {
                       activity.timesheetId = null;
