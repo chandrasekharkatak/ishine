@@ -53,6 +53,7 @@ import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.PoDepartmentMapping;
 import com.apmosys.employeeportal.model.PoRequirementMapping;
 import com.apmosys.employeeportal.model.Project;
@@ -116,9 +117,8 @@ public class TeamMembersService {
 	private final TeamRepository teamRepository;
 	private final ProjectPoDetailsRepository projectPoDetailsRepository;
 	private final PoRequirementMappingRepository poRequirementMappingRepository;
+	private final EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 //	private final TimesheetsRepository timesheetsRepository;
-	@Autowired
-	private EmployeeTimesheetsNewRepository employeeTimesheetRepoNew;
 
 	private final MailService mailService;
 
@@ -1742,36 +1742,52 @@ public class TeamMembersService {
 			}
 			EmployeeTeamMap empTeamMap = empTeamMapOpt.get();
 
-			if (empTeamMap != null) {
-				empTeamMap.setRescRemovedBy(rmgTeamMemberDto.getRescRemovedBy());
-				empTeamMap.setUpdatedBy(rmgTeamMemberDto.getUpdatedBy());
-				empTeamMap.setUpdatedOn(LocalDateTime.now());
-				empTeamMap.setIsCustomDate(rmgTeamMemberDto.isCustomDate());
-				empTeamMap.setEndDate(rmgTeamMemberDto.getRescEndDate());
-				if (rmgTeamMemberDto.getRescEndDate() == null) {
-					empTeamMap.setEndDate(LocalDateTime.now());
-				}
-				LocalDateTime now = LocalDateTime.now();
-				if (!empTeamMap.getEndDate().toLocalDate().isAfter(now.toLocalDate())) {
-					empTeamMap.setActive(!empTeamMap.getActive().equals(2L) ? 0L : 2L);
-				}
-				if(rmgTeamMemberDto.isRemovePermanently()){
-					empTeamMap.setRescRemovedBy(rmgTeamMemberDto.getUpdatedBy());
-				}
+			if (empTeamMap == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Employee Team Mapping not found!!");
+				return serviceResponse;
+			}
 
-				EmployeeTeamMap newEmployeeTeamMap = employeeTeamMapRepository.save(empTeamMap);
-				if (newEmployeeTeamMap != null && rmgTeamMemberDto.isRemovePermanently()) {
-					employeeTeamMapRepository.deleteById(newEmployeeTeamMap.getEmployeeTeamMapId());
-					String existFlag = projectRepository.employeeExistsInEtmByProjectId(project.getProjectId());
-					if (existFlag != null && !"Yes".equals(existFlag)) {
-						project.setIsDraftProject(null);
-						projectRepository.save(project);
+			empTeamMap.setRescRemovedBy(rmgTeamMemberDto.getRescRemovedBy());
+			empTeamMap.setUpdatedBy(rmgTeamMemberDto.getUpdatedBy());
+			empTeamMap.setUpdatedOn(LocalDateTime.now());
+			empTeamMap.setIsCustomDate(rmgTeamMemberDto.isCustomDate());
+			empTeamMap.setEndDate(rmgTeamMemberDto.getRescEndDate());
+			if (rmgTeamMemberDto.getRescEndDate() == null) {
+				empTeamMap.setEndDate(LocalDateTime.now());
+			}
+			LocalDateTime now = LocalDateTime.now();
+			if (!empTeamMap.getEndDate().toLocalDate().isAfter(now.toLocalDate())) {
+				empTeamMap.setActive(!empTeamMap.getActive().equals(2L) ? 0L : 2L);
+			}
+			if (rmgTeamMemberDto.isRemovePermanently()) {
+				empTeamMap.setRescRemovedBy(rmgTeamMemberDto.getUpdatedBy());
+			}
+
+			EmployeeTeamMap newEmployeeTeamMap = employeeTeamMapRepository.save(empTeamMap);
+			if (newEmployeeTeamMap != null && rmgTeamMemberDto.isRemovePermanently()) {
+				LocalDate startDate = newEmployeeTeamMap.getStartDate() != null ? newEmployeeTeamMap.getStartDate().toLocalDate() : LocalDate.now();
+				LocalDate endDate = newEmployeeTeamMap.getEndDate() != null ? newEmployeeTeamMap.getEndDate().toLocalDate() : LocalDate.now();
+
+				List<Long> weekOffTimesheetIds = employeeTimesheetsNewRepository
+						.findWeekOffTimesheetIdByEmpIdAndDateRange(newEmployeeTeamMap.getEmpId(), startDate, endDate);
+
+				if (weekOffTimesheetIds != null && !weekOffTimesheetIds.isEmpty()) {
+					for (Long timesheetId : weekOffTimesheetIds) {
+						employeeTimesheetsNewRepository.cleanTimesheetById(timesheetId);
 					}
 				}
-				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				serviceResponse.setServiceResponse("Resource removed successfully!!");
-				log.info("Resource Removed Successfully : ETM_ID={}, REMOVED_BY={}",empTeamMap.getEmployeeTeamMapId(), rmgTeamMemberDto.getUpdatedBy());
+
+				employeeTeamMapRepository.deleteById(newEmployeeTeamMap.getEmployeeTeamMapId());
+				String existFlag = projectRepository.employeeExistsInEtmByProjectId(project.getProjectId());
+				if (existFlag != null && !"Yes".equals(existFlag)) {
+					project.setIsDraftProject(null);
+					projectRepository.save(project);
+				}
 			}
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse("Resource removed successfully!!");
+			log.info("Resource Removed Successfully : ETM_ID={}, REMOVED_BY={}", empTeamMap.getEmployeeTeamMapId(), rmgTeamMemberDto.getUpdatedBy());
 		} catch (Exception e) {
 			e.printStackTrace();
 			log.error("Error updating Employee Project Mapping to Inactive : ", e);
@@ -1930,7 +1946,7 @@ public class TeamMembersService {
 				return response;
 			}
 
-			Integer timesheetCount = employeeTimesheetRepoNew.findTimesheetFilledCountByEmpIdAndProjectIdInEtmDateRange(empId, projectId, employeeTeamMapId);
+			Integer timesheetCount = employeeTimesheetsNewRepository.findTimesheetFilledCountByEmpIdAndProjectIdInEtmDateRange(empId, projectId, employeeTeamMapId);
 			if(timesheetCount > 0){
 				response.setServiceResponse1( "The member has already submitted timesheets for this project. Please request the RM to reject all submitted timesheets so the resource can be permanently removed.");
 			}
@@ -2535,7 +2551,7 @@ public class TeamMembersService {
 		ServiceResponse response = new ServiceResponse();
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 
-		List<EmployeeProjectTimesheetDto> employeeProjectTimesheetDtoList = employeeTimesheetRepoNew
+		List<EmployeeProjectTimesheetDto> employeeProjectTimesheetDtoList = employeeTimesheetsNewRepository
 				.findByEmpIdAndDate(empId, startDate, projectIds);
 		if (employeeProjectTimesheetDtoList == null || employeeProjectTimesheetDtoList.isEmpty()) {
 			response.setServiceResponse("NO_TIMESHEET_RECORDS_FOUND");
