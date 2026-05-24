@@ -14,7 +14,7 @@ public class RoleFeatureMapDTO {
 	private String tabRouteName;
 	private String tabGroup;
 	private Integer groupSequence;
-	
+	private String groupIcon;
 	
 	
 	public Long getRoleFeatureMapId() {
@@ -77,6 +77,7 @@ public class RoleFeatureMapDTO {
 	   public Integer getGroupSequence() { return groupSequence; }
 	    public void setGroupSequence(Integer groupSequence) { this.groupSequence = groupSequence; }
 	
-	
+	    public String getGroupIcon() { return groupIcon; }
+	    public void setGroupIcon(String groupIcon) { this.groupIcon = groupIcon; }
 	
 }

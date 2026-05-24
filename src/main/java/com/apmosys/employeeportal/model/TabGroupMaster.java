@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -22,6 +23,9 @@ public class TabGroupMaster {
     private String groupName;
 
     private Integer groupSequence;
+    
+    @Column(name = "group_icon")
+    private String groupIcon;
 
     public Long getGroupId() { return groupId; }
     public void setGroupId(Long groupId) { this.groupId = groupId; }
@@ -31,4 +35,7 @@ public class TabGroupMaster {
 
     public Integer getGroupSequence() { return groupSequence; }
     public void setGroupSequence(Integer groupSequence) { this.groupSequence = groupSequence; }
+    
+    public String getGroupIcon() { return groupIcon; }
+    public void setGroupIcon(String groupIcon) { this.groupIcon = groupIcon; }
 }

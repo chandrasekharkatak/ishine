@@ -71,6 +71,8 @@ public class TabMaster {
     	}
 	
 	
-	
+    public String getGroupIcon() {
+        return this.tabGroup != null ? this.tabGroup.getGroupIcon() : null;
+    }
 
 }

@@ -13,6 +13,7 @@ interface SideNavToggle{
 }
 export interface NavGroup {
   groupLabel: string;
+  groupIcon: string;
   items: any[];
   isExpanded: boolean;
 }
@@ -100,47 +101,19 @@ export class SidenavComponent implements OnInit, OnDestroy {
     });
   }
 
-  //  private buildGroupedMenu(): void {
-  //   const groupMap: { [label: string]: any[] } = {};
-
-  //   this.menuItems.forEach(item => {
-  //     const groupLabel = TAB_GROUP_MAP[item.tabName] || 'OTHER';
-  //     if (!groupMap[groupLabel]) {
-  //       groupMap[groupLabel] = [];
-  //     }
-  //     groupMap[groupLabel].push(item);
-  //   });
-
-  //   // Build in GROUP_ORDER, then append any unlisted groups
-  //   const ordered: NavGroup[] = [];
-  //   GROUP_ORDER.forEach(label => {
-  //     if (groupMap[label]) {
-  //       ordered.push({ groupLabel: label, items: groupMap[label], isExpanded: true });
-  //     }
-  //   });
-  //   // Any group not in GROUP_ORDER goes at the end
-  //   Object.keys(groupMap).forEach(label => {
-  //     if (!GROUP_ORDER.includes(label)) {
-  //       ordered.push({ groupLabel: label, items: groupMap[label], isExpanded: true });
-  //     }
-  //   });
-
-  //   this.groupedMenuItems = ordered;
-  // }
-
   private buildGroupedMenu(): void {
-  const groupMap: { [label: string]: { items: any[], sequence: number } } = {};
+  const groupMap: { [label: string]: { items: any[], sequence: number, icon: string } } = {};
 
-   console.log('menuItems from API:', this.menuItems);
-
+  console.log('menuItems from API:', this.menuItems);
 
   this.menuItems.forEach(item => {
     // tabGroup and groupSequence now come directly from API response
     const groupLabel    = item.tabGroup      || 'OTHER';
     const groupSequence = item.groupSequence ?? 999;
+    const groupIcon = item.groupIcon || 'fa-solid fa-folder';
 
     if (!groupMap[groupLabel]) {
-      groupMap[groupLabel] = { items: [], sequence: groupSequence };
+      groupMap[groupLabel] = { items: [], sequence: groupSequence, icon: groupIcon };
     }
     groupMap[groupLabel].items.push(item);
   });
@@ -148,15 +121,18 @@ export class SidenavComponent implements OnInit, OnDestroy {
   // Sort by groupSequence from DB — no hardcoded ORDER array needed
   this.groupedMenuItems = Object.entries(groupMap)
     .sort(([, a], [, b]) => a.sequence - b.sequence)
-    .map(([groupLabel, { items }]) => ({
+    .map(([groupLabel, { items, icon }]) => ({
       groupLabel,
+      groupIcon: icon,
       items,
-      isExpanded: true
+      isExpanded: false,
+
     }));
 }
 
 
     toggleGroup(group: NavGroup): void {
+       if (group.items.length === 1) return;
     group.isExpanded = !group.isExpanded;
   }
 
@@ -194,13 +170,19 @@ export class SidenavComponent implements OnInit, OnDestroy {
   // onTabClick(){
   //   this.breadcrumbService.setBreadcrumbSubject(null)
   // }
-  onTabClick(event: Event): void {
+  onTabClick(event: Event, targetGroup?: NavGroup): void {
     if (this.firstTimeLogin === 'true') {
       event.preventDefault();  // Prevent the click from triggering navigation
       event.stopPropagation();  // Prevent further propagation of the event
       console.log('Routing is disabled because firstTimeLogin is false');
     }else{
-      this.breadcrumbService.setBreadcrumbSubject(null)
+      this.breadcrumbService.setBreadcrumbSubject(null);
+
+      this.groupedMenuItems.forEach((group) => {
+        if (group !== targetGroup) {
+          group.isExpanded = false;
+        }
+      });
 
     }
   }
