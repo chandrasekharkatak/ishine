@@ -6,11 +6,13 @@ import { navbarData,navbarItemData  } from './nav-data';
 import { enableAppreciation } from '../models/enableAppreciation';
 import * as moment from 'moment';
 import { BreadcrumbService } from '../services/breadcrumb.service';
+import { Router } from '@angular/router';
 
 interface SideNavToggle{
   screenWidth: number;
   collapsed: boolean;
 }
+
 export interface NavGroup {
   groupLabel: string;
   groupIcon: string;
@@ -37,7 +39,10 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
   private activatedSubscriptions:Subscription;
 
-   groupedMenuItems: NavGroup[] = [];
+   groupedMenuItems: NavGroup[] = [];// The primary processed array that our HTML template loops through
+   hoveredGroup: NavGroup | null = null;//Remembers which folder icon is currently hovered over in small mode
+    hoveredGroupTop: number = 0;//Tracks the exact vertical coordinate (height) of the hovered icon
+private closeTimer: any = null;//Tiny stopwatch to prevent menus from vanishing instantly on accidental mouse slips
 
   @HostListener('window:resize', ['$event'])
   onResize(event:any){
@@ -49,7 +54,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
   }
 
   constructor(private authenticationService: AuthenticationService,
-    private breadcrumbService: BreadcrumbService,){
+    private breadcrumbService: BreadcrumbService,
+  private router: Router){
   }
 
    ngOnInit(): void {
@@ -130,20 +136,64 @@ export class SidenavComponent implements OnInit, OnDestroy {
     }));
 }
 
+  // setHoveredGroup(group: NavGroup | null): void {
+  //   this.hoveredGroup = group;
+  // }
+  onGroupMouseEnter(group: NavGroup, el: HTMLElement): void {
+    if (this.closeTimer) { clearTimeout(this.closeTimer); this.closeTimer = null; }
+    this.groupedMenuItems.forEach(g => g.isExpanded = false);
+    this.hoveredGroup = group;
+    this.hoveredGroupTop = el.getBoundingClientRect().top;
+}
 
-    toggleGroup(group: NavGroup): void {
-       if (group.items.length === 1) return;
-    group.isExpanded = !group.isExpanded;
-  }
+onGroupMouseLeave(): void {
+    this.closeTimer = setTimeout(() => { this.hoveredGroup = null; }, 120);
+}
+
+onPanelMouseEnter(): void {
+    if (this.closeTimer) { clearTimeout(this.closeTimer); this.closeTimer = null; }
+}
+
+onPanelMouseLeave(): void {
+    this.closeTimer = setTimeout(() => { this.hoveredGroup = null; }, 120);
+}
+
+  //   toggleGroup(group: NavGroup): void {
+  //      if (group.items.length === 1) return;
+  //   group.isExpanded = !group.isExpanded;
+  // }
+
+  toggleGroup(group: NavGroup, el?: HTMLElement): void {
+    if (group.items.length === 1) return;
+    const opening = !group.isExpanded;
+    this.groupedMenuItems.forEach(g => g.isExpanded = false);
+    if (opening) {
+        group.isExpanded = true;
+        this.hoveredGroup = group;
+        if (el) { this.hoveredGroupTop = el.getBoundingClientRect().top; }
+    } else {
+        group.isExpanded = false;
+        this.hoveredGroup = null;
+    }
+}
 
   ngOnDestroy(): void {
     this.activatedSubscriptions?.unsubscribe();
+
   }
 
 
   toggleCollapse(){
     this.collapsed = !this.collapsed;
     this.onToggleSideNav.emit({collapsed: this.collapsed, screenWidth: this.screenWidth});
+  }
+
+  isGroupActive(group: NavGroup): boolean {
+    if (!group || !group.items) {
+      return false;
+    }
+    // Loop through nested items and check if the current active URL includes the item's tabRouteName
+    return group.items.some(item => this.router.url.includes(item.tabRouteName));
   }
 
   closeSidenav(){
