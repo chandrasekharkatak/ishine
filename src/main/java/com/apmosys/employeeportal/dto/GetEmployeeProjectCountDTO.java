@@ -14,6 +14,7 @@ public class GetEmployeeProjectCountDTO {
 	private Long shadow;
 	private Long bench;
 	private Long internalRNDProducts;
+	private Long monitoring;
 	private Long total;
 	
 }

@@ -5358,7 +5358,7 @@ public class TeamsService {
             if (scopedMappingProjects.isEmpty()) {
                 return;
             }
-        }
+        } 
 
         Map<Long, List<ProjectEmpInfoDTO>> allActiveProjectsByEmp =
                 allActiveProjects.stream()
@@ -6120,10 +6120,13 @@ public class TeamsService {
             billableType = "TNM";
         }
 
-        else if ("Monitoring".equalsIgnoreCase(project.getPoProjectType())
-                || "Fixed Cost".equalsIgnoreCase(project.getPoProjectType())) {
+        else if ("Fixed Cost".equalsIgnoreCase(project.getPoProjectType())) {
 
             billableType = "Fixed Cost";
+        }
+        else if ("Monitoring".equalsIgnoreCase(project.getPoProjectType())) {
+
+        	billableType = "Monitoring";
         }
 
         else if ("InternalRNDProducts".equalsIgnoreCase(project.getInternalProjectType())) {
