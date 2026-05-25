@@ -12,10 +12,16 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CityRepository extends JpaRepository<City, Long> {
-	
+
+	long countByHotelSubCategory_Id(Long hotelSubCategoryId);
+
+	long countByHotelCategory_Id(Long hotelCategoryId);
+
 	@Query(nativeQuery = true , value = "SELECT * FROM city where hotel_sub_category_id =:travelModeId")
 	public Optional<List<City>> findBySubCategoryId(Long travelModeId);
 	
     @Query(value = "SELECT * FROM city WHERE hotel_sub_category_id IN (:subCategoryIds)", nativeQuery = true)
     List<City> findBySubCategoryIds(List<Long> subCategoryIds);
+
+	List<City> findByHotelSubCategory_IdAndIsActiveOrderByCityNameAsc(Long hotelSubCategoryId, String isActive);
 }

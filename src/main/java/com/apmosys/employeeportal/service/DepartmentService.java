@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,6 +36,7 @@ import org.springframework.web.client.HttpServerErrorException.InternalServerErr
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.DepartmentIdAndNameDto;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PoPortalEmpIdDTO;
@@ -59,6 +61,7 @@ import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.apmosys.employeeportal.repository.EmployeeAccessOverrideRepository;
 
 @Service
 public class DepartmentService {
@@ -82,7 +85,8 @@ public class DepartmentService {
 	@Autowired
 	private ProjectRepository projectRepository;
 	
-	
+	@Autowired
+	EmployeeAccessOverrideRepository employeeAccessOverrideRepository;
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
@@ -367,6 +371,19 @@ public class DepartmentService {
 		try {
 
 			List<Department> deptList = departmentRepository.findByHodId(empId);
+			List<GetDeptIdByRoleDTO> overrideDepts = employeeAccessOverrideRepository.findActiveDeptIdsAndSubFeatureNameByEmpId(empId, "Employee Report");
+			if (overrideDepts != null && !overrideDepts.isEmpty()) {
+				List<Long> overrideDeptIds = overrideDepts.stream().map(GetDeptIdByRoleDTO::getDeptId)
+						.filter(Objects::nonNull).collect(Collectors.toList());
+				List<Department> overrideDeptList = departmentRepository.findByDeptIdIn(overrideDeptIds);
+				if (overrideDeptList != null && !overrideDeptList.isEmpty()) {
+					if(deptList == null){
+						deptList = new ArrayList<>();
+					}
+					deptList.addAll(overrideDeptList);
+				}
+			}
+
 			if (!deptList.isEmpty() && deptList != null) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				serviceResponse.setServiceResponse(deptList);

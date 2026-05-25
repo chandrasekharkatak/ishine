@@ -178,7 +178,9 @@
           (ngModelChange)="onProposeSkillFormToggle($event)">
         <span class="smsfr-submit__propose-toggle-text">Skill not in the list?</span>
       </label>
-      <div class="hint smsfr-submit__propose-hint" *ngIf="showProposeSkillForm" style="margin-bottom:6px">Adds a new skill to the master for <strong>your department</strong>.</div>
+      <div class="hint smsfr-submit__propose-hint" *ngIf="showProposeSkillForm" style="margin-bottom:6px">
+        This sends a request to your <strong>HOD</strong>. The skill will be added to the master only after HOD approval and Required/Optional selection.
+      </div>
       <div class="smsfr-submit__custom-row" *ngIf="showProposeSkillForm">
         <div class="smsfr-submit__field">
           <label class="smsfr-submit__label" for="custSkInp">Skill name <span class="req">*</span></label>
@@ -199,10 +201,13 @@
       </div>
       <p *ngIf="showProposeSkillForm && skillProposeError" class="alert alert-danger small py-2 px-3 mb-2">{{ skillProposeError }}</p>
       <button type="button" class="btn btn-g" style="font-size:12px;padding:6px 14px" *ngIf="showProposeSkillForm"
-        (click)="proposeCustomSkill()">＋ Add to master &amp; my list</button>
+        (click)="proposeCustomSkill()">＋ Send to HOD for approval</button>
+      <div class="hint" style="margin-top:8px" *ngIf="pendingCustomSkillRequests.length">
+        Pending custom skill requests
+      </div>
       <div class="chip-pool" style="margin-top:8px">
-        <span class="chip chip-r" *ngFor="let c of customSkillPicks">{{ c.skillName }}
-          <button type="button" class="chip-x" (click)="removeCustomPick(c)" aria-label="Remove">×</button>
+        <span class="chip chip-r" *ngFor="let c of pendingCustomSkillRequests">
+          {{ c.skillName }} · Pending HOD approval
         </span>
       </div>
     </div>

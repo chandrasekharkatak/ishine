@@ -125,7 +125,7 @@ export class ValidationService {
   }
 
   validateEmployerName(text: string): boolean {
-    const regex = /^[a-zA-Z0-9-.,&()\s]+$/; 
+    const regex = /^[a-zA-Z0-9-.,&()\s]+$/;
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -226,7 +226,7 @@ export class ValidationService {
     //const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
     // const regex = /^[a-z]{3}[a-z0-9_.]+@apmosys\.com$/i;
     const regex = /^[a-z]+[a-z0-9_.]*@apmosys\.com$/i;
-     
+
     if (text !== "" || text !== undefined || text !== null) {
       if (regex.test(text)) {
         return true;
@@ -817,7 +817,7 @@ export class ValidationService {
     // const regex = /^[A-Z]{5}[0-9]{17}$/;  // eg. MHMUM12345670001234567
     // const regex = /^[A-Z]{2}[\s\/]?[A-Z]{3}[\s\/]?[0-9]{7}[\s\/]?[0-9]{3}[\s\/]?[0-9]{7}$/;
     const regex = /^.{0,22}$/; // This regex matches any string with 0 to 22 characters.
-  
+
     if (text !== "" && text !== undefined && text !== null) {
       return regex.test(text);
     } else {
@@ -840,20 +840,34 @@ export class ValidationService {
     }
   }
 
-  validateESICNumber(text:string): boolean {
-    const regex = /^(\d{2})[-–\s]?(\d{2})[-–\s]?(\d{1,6})[-–\s]?(\d{3})[-–\s]?(\d{4})$/gm;
-    if (text !== "" || text !== undefined || text !== null) {
-      if (regex.test(text)) {
-        return true;
-      }
-      else {
-        return false;
-      }
-    }
-    else {
-      return false;
-    }
+  // validateESICNumber(text:string): boolean {
+  //   const regex = /^(\d{2})[-–\s]?(\d{2})[-–\s]?(\d{1,6})[-–\s]?(\d{3})[-–\s]?(\d{4})$/gm;
+  //   if (text !== "" || text !== undefined || text !== null) {
+  //     if (regex.test(text)) {
+  //       return true;
+  //     }
+  //     else {
+  //       return false;
+  //     }
+  //   }
+  //   else {
+  //     return false;
+  //   }
+  // }
+
+  validateESICNumber(text: string): boolean {
+
+  const regex = /^\d{10}$/; // ESIC IP Number must be exactly 10 digits
+
+  if (text !== "" && text !== undefined && text !== null) {
+
+    return regex.test(text.trim());
+
+  } else {
+
+    return false;
   }
+}
 
   validatePassingGrade(text:string): boolean {
     const regex = /^[a-zA-Z0-9][a-zA-Z0-9.\s%]*$/gm;

@@ -654,7 +654,7 @@ firt share list of feature and then go one by one details, nothing to be missed
       </a>
     </div>
     <div class="export-button">
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" *ngIf="!(userMapping.employee_report_read_only)"
         [hidden]="employeeList.length == 0" (click)="exportToExcel()"><em
           class="fa fa-file-arrow-down fa-2x"></em></button>
     </div>
@@ -714,7 +714,7 @@ firt share list of feature and then go one by one details, nothing to be missed
             <th *ngIf="changeTable" scope="col" class="info-label wide-col" mat-sort-header="primaryProjectName|string">
               Default
               Project Assigned</th>
-            <th *ngIf="changeTable && !isAccounts" scope="col" class="info-label wide-wide-col"
+            <th *ngIf="changeTable && !isAccounts && !(userMapping.employee_report_read_only)" scope="col" class="info-label wide-wide-col"
               mat-sort-header="defaultProject|string">
               Select Default Project</th>
           </tr>
@@ -911,7 +911,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                 Not Assigned
               </ng-container>
             </td>
-            <td *ngIf="changeTable && !isAccounts">
+            <td *ngIf="changeTable && !isAccounts && !(userMapping.employee_report_read_only)">
               <div class="col d-flex align-items-center m-0 p-0">
                 <ng-container *ngIf="employee.projectName">
                   <div>
@@ -953,7 +953,7 @@ firt share list of feature and then go one by one details, nothing to be missed
       </a>
     </div>
     <div class="export-button mb-3">
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" *ngIf="!(userMapping.employee_report_read_only)"
         [hidden]="projectList.length == 0" (click)="exportToExcel()"><em
           class="fa fa-file-arrow-down fa-2x"></em></button>
     </div>
@@ -1101,7 +1101,7 @@ firt share list of feature and then go one by one details, nothing to be missed
       </button>
 
       <!-- Excel Export Button -->
-      <button type="button" class="btn btn-sm btn-outline-primary mt-1 excel-button"
+      <button type="button" class="btn btn-sm btn-outline-primary mt-1 excel-button" *ngIf="!(userMapping.employee_report_read_only)"
         [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()">
         <em class="fa fa-file-arrow-down fa-2x"></em>
       </button>
@@ -1418,7 +1418,7 @@ firt share list of feature and then go one by one details, nothing to be missed
       </a>
     </div>
     <div class="export-button">
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" *ngIf="!(userMapping.employee_report_read_only)"
         [hidden]="groupedClientProjects.length == 0" (click)="exportClientProjectToExcel()">
         <em class="fa fa-file-arrow-down fa-2x"></em>
       </button>
@@ -1587,6 +1587,7 @@ firt share list of feature and then go one by one details, nothing to be missed
       <div class="export-button">
         <button
           type="button"
+          *ngIf="!(userMapping.employee_report_read_only)"
           class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
           [hidden]="clientAndProjectReportDataList.length == 0"
           (click)="exportModalDataToExcel()"
@@ -1684,8 +1685,8 @@ firt share list of feature and then go one by one details, nothing to be missed
               "
             >
               <!-- <th class="info-label">{{ modalItemsPerPage * (modalCurrentPage - 1) + i + 1 }}</th> -->
-              <!-- <td>{{ project.projectName }}</td> -->
-                <td title="Click to view Project Details">
+                <td *ngIf="userMapping.employee_report_read_only">{{ project.projectName }}</td>
+                <td title="Click to view Project Details" *ngIf="!(userMapping.employee_report_read_only)">
                       <span style="cursor: pointer; color: blue;" id="clickablefor360"
                              (click)="cancelRequest()"
                    [navigateToProjectView]="project.projectViewId">

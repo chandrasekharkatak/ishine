@@ -195,6 +195,7 @@ import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
+import com.apmosys.employeeportal.repository.EmployeeAccessOverrideRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificatesRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
@@ -229,8 +230,8 @@ import com.apmosys.employeeportal.utility.ExceptionLogContext;
 import com.apmosys.employeeportal.utility.ExceptionUtils;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
-import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 import com.apmosys.employeeportal.utility.TypeConversionUtil;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class ResourceManagementService {
@@ -360,6 +361,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	private TimesheetRejectionDetailsNewRepository timesheetRejectionDetailsNewRepository;
+
+	@Autowired
+	private EmployeeAccessOverrideRepository employeeAccessOverrideRepository;
 
 	@Autowired
 	private ApiLogUtility apiLogUtility;
@@ -1662,7 +1666,8 @@ public class ResourceManagementService {
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Project Approved");
-			teamMemberStatusAsyncService.triggerFromInternalFlow();
+			teamMemberStatusAsyncService.triggerFromInternalFlow(
+					project.getProjectId() != null ? project.getProjectId().longValue() : null);
 
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
@@ -4684,7 +4689,7 @@ public class ResourceManagementService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(
-						"Project StartDate/EndDate updated successfully, from Team Name - " + findTeam.getTeamName());
+						"Employee's StartDate / EndDate updated successfully, for Team Name - " + findTeam.getTeamName());
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Resource not found for given employeeTeamMapId");
@@ -5672,15 +5677,15 @@ public class ResourceManagementService {
 			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
 			for (Object[] row : rawData) {
-				Long empId = row[0] != null ? (Long) row[0] : null;
-				Long employeementId = row[1] != null ? (Long) row[1] : null;
+				Long empId = TypeConversionUtil.toLong(row[0]);
+				Long employeementId = TypeConversionUtil.toLong(row[1]);
 				String billable = row[2] != null ? row[2].toString() : null;
 				String billableType = row[3] != null ? row[3].toString() : null;
 				String empName = row[4] != null ? row[4].toString() : null;
 				String deptName = row[5] != null ? row[5].toString() : null;
-				Integer projectId = row[6] != null ? (Integer) row[6] : null ;
+				Integer projectId = TypeConversionUtil.toInteger(row[6]);
 				String projectName = row[7] != null ? row[7].toString() : null;
-				Long poProjectId = row[8] != null ? (Long) row[8] : null;
+				Long poProjectId = TypeConversionUtil.toLong(row[8]);
 				String poStartDate = row[9] != null ? row[9].toString() : null;
 				String poEndDate = row[10] != null ? row[10].toString() : null;
 				String apmosysRM = row[11] != null ? row[11].toString() : null;
@@ -5688,12 +5693,12 @@ public class ResourceManagementService {
 				String poProjectType = row[13] != null ? row[13].toString() : null;
 				String poNo = row[14] != null ? row[14].toString() : null;
 				String clientName = row[15] != null ? row[15].toString() : null;
-				Long teamId = row[16] != null ? (Long) row[16] : null;
+				Long teamId = TypeConversionUtil.toLong(row[16]);
 				String teamName = row[17] != null ? row[17].toString() : null;
 				String teamIsActive = row[18] != null ? row[18].toString() : null;
 				String employeeRole = row[19] != null ? row[19].toString() : null;
-				Integer active = row[20] != null ? (Integer) row[20] : null;
-				Long projectManagerId = row[21] != null ? (Long) row[21] : null;
+				Integer active = TypeConversionUtil.toInteger(row[20]);
+				Long projectManagerId = TypeConversionUtil.toLong(row[21]);
 				String projectManagerName = row[22] != null ? row[22].toString() : null;
 				String isApmosysProductt = row[23] != null ? row[23].toString() : null;
 
@@ -10516,12 +10521,9 @@ public class ResourceManagementService {
 		try {
 			ProjectFilterDTO projectFilterDTO = new ProjectFilterDTO();
 			projectFilterDTO.setCurrentUserEmpId(currentUserEmpId);
-
 			Set<Long> accessibleDeptIds = new HashSet<>();
 			Map<Long, String> fullDeptMap = new HashMap<>();
-
 			if (departmentRepository.existsByHodId(currentUserEmpId)) {
-
 				List<GetDeptIdByRoleDTO> hodDeptList = departmentRepository.findDeptIdsByHodId2(currentUserEmpId);
 				if (hodDeptList != null && !hodDeptList.isEmpty()) {
 					logBuilder.append("\n Department list fetched for HOD.");
@@ -10531,11 +10533,8 @@ public class ResourceManagementService {
 					}
 					projectFilterDTO.setIsHod(true);
 				}
-
 			} else {
-
 				if (departmentRepository.isUserMappedInAnyRole(currentUserEmpId)) {
-
 					List<GetDeptIdByRoleDTO> deptIds = departmentRepository.findDeptsByEmpId(currentUserEmpId);
 					if (deptIds != null && !deptIds.isEmpty()) {
 						logBuilder.append("\n Department list fetched for Other (Not HOD and NOt SuperAdmin).");
@@ -10545,17 +10544,23 @@ public class ResourceManagementService {
 						}
 						projectFilterDTO.setIsOther(true);
 					}
-
 				}
 			}
 
-			if (accessibleDeptIds.isEmpty() || fullDeptMap.isEmpty()) {
+			List<GetDeptIdByRoleDTO> overrideDeptIds = employeeAccessOverrideRepository.findActiveDeptIdsAndSubFeatureNameByEmpId(currentUserEmpId, "View All RMG Projects");
+			if (overrideDeptIds != null && !overrideDeptIds.isEmpty()) {
+				for (GetDeptIdByRoleDTO dto : overrideDeptIds) {
+					accessibleDeptIds.add(dto.getDeptId());
+					fullDeptMap.put(dto.getDeptId(), dto.getName());
+				}
+				projectFilterDTO.setIsOther(true);
+			}
 
+			if (accessibleDeptIds.isEmpty() || fullDeptMap.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(
 						"You currently do not have access to any departments or projects based on your role (Admin, HOD, Project Manager, Project Overhead, Team Lead, or SPOC).");
 				logBuilder.append("\n No department found ! ");
-
 			} else {
 
 				List<GetDeptIdByRoleDTO> finalDeptList = fullDeptMap.entrySet().stream()
@@ -10567,16 +10572,13 @@ public class ResourceManagementService {
 				response.setServiceResponse(projectFilterDTO);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				logBuilder.append("\n Department list fetched successfully.");
-
 			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Something went wrong!");
 			logBuilder.append("\n Exception occurred: ").append(e.getMessage());
 		}
-
 		return response;
 	}
 
@@ -16234,26 +16236,30 @@ public class ResourceManagementService {
 
 	private List<Long> resolveDepartments(RMGDashboardProjectRequest dto) {
 		String userType = dto.getCurrentUserType();
+		List<Long> deptIds = new ArrayList<>();
+		if (dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()) {
+			return dto.getDepartmentIds();
+		}
+
 		if (userType.equals("ADMIN")) {
-			return dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()
-					? dto.getDepartmentIds()
-					: departmentRepository.findAllDepartments();
+			deptIds = departmentRepository.findAllDepartments();
 		} else if (userType.equals("HOD")) {
-			if (dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()) {
-				return dto.getDepartmentIds();
-			}
 			List<Department> deptData = departmentRepository.findByHodId(dto.getCurrentUserEmpId());
-			return deptData.stream()
+			deptIds = deptData.stream()
 					.map(Department::getDeptId)
 					.filter(Objects::nonNull)
 					.collect(Collectors.toList());
 		} else { // Other role
-			if (dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()) {
-				return dto.getDepartmentIds();
-			}
 			Employee employee = employeeRepository.findByEmpId(dto.getCurrentUserEmpId());
-			return departmentRepository.findDepartmentIdOfCurrentUser(employee.getJobRoleId());
+			deptIds = departmentRepository.findDepartmentIdOfCurrentUser(employee.getJobRoleId());
 		}
+		List<GetDeptIdByRoleDTO> overrideDepts = employeeAccessOverrideRepository.findActiveDeptIdsAndSubFeatureNameByEmpId(dto.getCurrentUserEmpId(), "View All RMG Projects");
+		if (overrideDepts != null && !overrideDepts.isEmpty()) {
+			List<Long> overrideDeptIds = overrideDepts.stream().map(GetDeptIdByRoleDTO::getDeptId)
+					.filter(Objects::nonNull).collect(Collectors.toList());
+			deptIds.addAll(overrideDeptIds);
+		}
+		return deptIds;
 	}
 
 	@Transactional(readOnly = true)
@@ -16524,7 +16530,8 @@ public class ResourceManagementService {
 
 			Set<Integer> projectIds = getProjectIdsByType(employeeGroupKey, isAllAccessEmployee, hodProjects, deptFlag,
 					empId);
-			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, projectStatus, deptIds);
+			String tempProjectStatus = getProjectStatusForEmployeeCount(employeeGroupKey, projectStatus);
+			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, tempProjectStatus, deptIds);
 
 			allEmployeeGroupCount.put(employeeGroupKey,
 					getEmployeeGroupCount(employeeGroupKey, isAllAccessEmployee, deptIds, projectIds, deptFlag,
@@ -16678,6 +16685,16 @@ public class ResourceManagementService {
 		}
 	}
 
+	private String getProjectStatusForEmployeeCount(String employeeGroupKey, String projectStatus) {
+		if (employeeGroupKey == null) {
+			return projectStatus;
+		}
+		if (employeeGroupKey.equals("MAPPED_TO_INTERNAL")) {
+			return "TOTAL_INTERNAL";
+		} 
+		return projectStatus;
+	}
+
 	public Map<Integer, List<TeamSpocDTO>> getAllTeamsByProjectIds(Set<Integer> projectIds) {
 		if (projectIds == null || projectIds.isEmpty()) {
 			return Collections.emptyMap();
@@ -16722,30 +16739,6 @@ public class ResourceManagementService {
 	public Long getFutureStartDateAssignedEmployeeCount(boolean isAllAccessEmployee, List<Long> deptIds) {
 		return employeeRepository.getFutureStartDateAssignedEmployeeCountByDeptIds(deptIds);
 	}
-
-	public Long getMappedEmployeeCount(String projectType, boolean isAllAccessEmployee, Set<Integer> hodProjects,
-			String projectStatus, List<Long> filteredDeptIds, boolean deptFlag, Long empId) {
-
-		Set<Integer> projectIds = getProjectIdsByType(projectType, isAllAccessEmployee, hodProjects, deptFlag, empId);
-		projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, projectStatus, filteredDeptIds);
-
-		switch (projectType) {
-		case "MAPPED_TO_SHANKH":
-		case "MAPPED_TO_PROJECT":
-			if (projectStatus.equals("COMPLETED_IN_SHANKH")) {
-				return employeeTeamMapRepository.getMappedToShankhAllEmployeeCountByProjectIds(projectIds);
-			} else {
-				return employeeTeamMapRepository.getEmployeeCountByProjectIds(projectIds);
-			}
-		case "MAPPED_TO_INTERNAL":
-			return employeeTeamMapRepository.getEmployeeCountInternalByProjectIds(projectIds);
-		case "MAPPED_TO_INTERNAL_AND_SHANKH":
-			return employeeTeamMapRepository.getInternalAndShankhEmployeeCountByProjectIds(projectIds);
-		default:
-			return 0L;
-		}
-	}
-
 	// Employee Count End
 
 	private Set<Integer> getProjectIdsByType(String projectType, boolean isAllAccessEmployee, Set<Integer> hodProjects,
@@ -16840,7 +16833,9 @@ public class ResourceManagementService {
 
 			Set<Integer> projectIds = getProjectIdsByType(employeeGroupKey, isAllAccessEmployee, hodProjects, deptFlag,
 					empId);
-			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, projectStatus, deptIds);
+
+			String tempProjectStatus = getProjectStatusForEmployeeCount(employeeGroupKey, projectStatus);
+			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, tempProjectStatus, deptIds);
 
 			Slice<EmployeeDetailsDTO> employeeDetailsList = getEmployeeDetailsList(employeeGroupKey,
 					isAllAccessEmployee, pageDTO, deptIds, deptFlag, projectIds, projectStatus,
@@ -17231,13 +17226,17 @@ public class ResourceManagementService {
 			LocalDate toDate = null;
 			String projectTypee = null;
 			if (pageDTO.getExtraFilter() != null && !pageDTO.getExtraFilter().isEmpty()) {
-				Map<String, Object> extraFilters = pageDTO.getExtraFilter();
-				String fromDateStr = (String) extraFilters.get("fromDate");
-				String toDateStr = (String) extraFilters.get("toDate");
-				 projectTypee = (String) extraFilters.get("projectType");
 
-				fromDate = fromDateStr != null ? LocalDate.parse(fromDateStr) : null;
-				toDate = toDateStr != null ? LocalDate.parse(toDateStr) : null;
+				Map<String, Object> extraFilters = pageDTO.getExtraFilter();
+				List<LocalDate> dateRange = new ArrayList<>();
+				if (extraFilters.containsKey("key")) {
+					String key = (String) extraFilters.get("key");
+					dateRange = getTimesheetDateRange(key);
+				}			
+				
+				projectTypee = (String) extraFilters.get("projectType");
+				fromDate = dateRange != null && !dateRange.isEmpty() ? dateRange.get(0) : null;
+				toDate = dateRange != null && !dateRange.isEmpty() ? dateRange.get(1) : null;
 
 				if (fromDate == null) {
 					return failResponse(serviceResponse, apiLogInfo, "Invalid From Date.");
@@ -17984,37 +17983,26 @@ public class ResourceManagementService {
 				deptIds.add(employeeRepository.getJobRoleIdByEmpId(empId).orElse(0l));
 			}
 
-			Set<Integer> projectIds = getProjectIdsByType("TIMESHEET_NON_COMPLIANCE", isAllAccessEmployee, hodProjects, deptFlag, empId);
-			Set<Integer> filteredProjectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, "ALL", deptIds);
-			List<String> timesheetRanges = List.of("All","3M", "6M", "1Y");
-			 Map<String, Map<String, Long>> result = new LinkedHashMap<>();
+			Set<Integer> projectIds = getProjectIdsByType("TIMESHEET_NON_COMPLIANCE", isAllAccessEmployee, hodProjects,
+					deptFlag, empId);
+			Set<Integer> filteredProjectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, "ALL",
+					deptIds);
+			List<String> timesheetRanges = List.of("All", "3M", "6M", "1Y", "1Y+");
+			Map<String, Map<String, Long>> result = new LinkedHashMap<>();
 
-//			for (String timesheetRange : timesheetRangeSet) {
-//				if (timesheetRange.equals("All")) {
-//					allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
-//					continue;
-//				}
-//				List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
-//				LocalDate fromDate = dateRange.get(0);
-//				LocalDate toDate = dateRange.get(1);
-//				allProjectStatusCount.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate));
-//			}
-			
-			 for (String timesheetRange : timesheetRanges) {
-				 if (timesheetRange.equals("All")) {
-					 result.put(timesheetRange, employeeCustomRepository.getUnfilledTimesheetProjectDetailsCountByProjectType(isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
-						continue;
-					}
-		            List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
-		            LocalDate fromDate = dateRange.get(0);
-		            LocalDate toDate  = dateRange.get(1);
-
-		            Map<String, Long> countByType = employeeCustomRepository
-		                    .getUnfilledTimesheetProjectDetailsCountByProjectType(
-		                            isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate);
-
-		            result.put(timesheetRange, countByType);
-		        }
+			for (String timesheetRange : timesheetRanges) {
+				if (timesheetRange.equals("All")) {
+					result.put(timesheetRange,
+							employeeCustomRepository.getUnfilledTimesheetProjectDetailsCountByProjectType(
+									isAllAccessEmployee, deptIds, filteredProjectIds, null, null));
+					continue;
+				}
+				List<LocalDate> dateRange = getTimesheetDateRange(timesheetRange);
+				LocalDate fromDate = dateRange.get(0);
+				LocalDate toDate = dateRange.get(1);
+				Map<String, Long> countByType = employeeCustomRepository.getUnfilledTimesheetProjectDetailsCountByProjectType(isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate);
+				result.put(timesheetRange, countByType);
+			}
 
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(result);
@@ -18026,22 +18014,14 @@ public class ResourceManagementService {
 	}
 
 	private List<LocalDate> getTimesheetDateRange(String key) {
-		LocalDate today = LocalDate.now();
-
-		switch (key) {
-		case "3M":
-			return List.of(today.minusMonths(3), today);
-
-		case "6M":
-			return List.of(today.minusMonths(6), today);
-
-		case "1Y":
-			return List.of(today.minusYears(1), today);
-
-		case "All":
-		default:
-			return List.of(null, null); // no filter
-		}
+		LocalDate currentDate = LocalDate.now();
+		Map<String, List<LocalDate>> dateRanges = Map.of(
+				"3M", List.of(currentDate.minusDays(90), currentDate),
+				"6M", List.of(currentDate.minusDays(180), currentDate.minusDays(91)),
+				"1Y", List.of(currentDate.minusDays(365), currentDate.minusDays(181)),
+				"1Y+", List.of(currentDate.minusYears(10), currentDate.minusDays(366)),
+				"All", Arrays.asList(null, null));
+		return dateRanges.getOrDefault(key, List.of());
 	}
 	
 	@Transactional(readOnly = true)

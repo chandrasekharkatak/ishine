@@ -4619,7 +4619,7 @@ public class EmployeeService {
 						File savedUpdatedFile = new File(imageFileLocation + File.separator + newFileName);
 						image.transferTo(savedUpdatedFile);
 
-						if (savedFile.exists()) {
+						if (savedUpdatedFile.exists()) {
 							employeeObj.setProfileImageName(newFileName);
 							Employee dbResponse = employeeRepository.save(employeeObj);
 
@@ -4664,11 +4664,16 @@ public class EmployeeService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Image Upload Failed");
+			response.setServiceError(e.getMessage());
+
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-			
+			apiLogInfo.setApiResponse(e.getMessage());
 		}
+			
+		
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;

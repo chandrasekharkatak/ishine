@@ -1,0 +1,260 @@
+<div class="modal-header schedule-modal-header">
+    <h5 class="modal-title">
+        <span class="header-icon"><i class="fa" [class.fa-edit]="isEditMode" [class.fa-calendar-plus]="!isEditMode"></i></span>
+        {{ modalTitle }}
+    </h5>
+    <button type="button" class="close" (click)="closeModal()">&times;</button>
+</div>
+<div class="modal-body schedule-modal-body">
+    <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show schedule-alert" role="alert">
+        <i class="fa fa-exclamation-circle me-2"></i>{{ errorMessage }}
+        <button type="button" class="close" (click)="errorMessage = ''">&times;</button>
+    </div>
+
+    <form (ngSubmit)="submitForm()">
+        <!-- Interview Details Section -->
+        <div class="form-section">
+            <h6 class="section-title"><i class="fa fa-info-circle"></i> Interview Details</h6>
+            <div class="row g-3">
+                <div class="col-md-12 mb-14">
+                    <label class="form-label-custom">Title <span class="required-mark">*</span></label>
+                    <input type="text" class="form-control form-control-custom" [class.is-invalid]="formErrors['title']" [(ngModel)]="interviewForm.title" name="title" placeholder="e.g., Interview - Java Developer (Acme Corp)" required (input)="clearFieldError('title')">
+                    <div class="field-error" *ngIf="formErrors['title']"><i class="fa fa-exclamation-circle"></i> {{ formErrors['title'] }}</div>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Date <span class="required-mark">*</span></label>
+                    <input type="date" class="form-control form-control-custom" [class.is-invalid]="formErrors['date']" [(ngModel)]="interviewForm.date" name="date" required (change)="clearFieldError('date')">
+                    <div class="field-error" *ngIf="formErrors['date']"><i class="fa fa-exclamation-circle"></i> {{ formErrors['date'] }}</div>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Time <span class="required-mark">*</span></label>
+                    <input type="time" class="form-control form-control-custom" [class.is-invalid]="formErrors['time']" [(ngModel)]="interviewForm.time" name="time" required (change)="clearFieldError('time')">
+                    <div class="field-error" *ngIf="formErrors['time']"><i class="fa fa-exclamation-circle"></i> {{ formErrors['time'] }}</div>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Mode <span class="required-mark">*</span></label>
+                    <app-my-select class="form-control" name="mode" required
+                        placeholder="Select Mode" [(ngModel)]="interviewForm.mode"
+                        [options]="modes"
+                        (selectionChange)="clearFieldError('mode')">
+                    </app-my-select>
+                    <div class="field-error" *ngIf="formErrors['mode']"><i class="fa fa-exclamation-circle"></i> {{ formErrors['mode'] }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Candidate & Project Section -->
+        <div class="form-section">
+            <h6 class="section-title"><i class="fa fa-user-tie"></i> Candidate & Project</h6>
+            <div class="row g-3">
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Client <span class="required-mark">*</span></label>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" class="form-control form-control-custom" [class.is-invalid]="formErrors['client']" [(ngModel)]="clientSearchText" name="client" placeholder="Search or type new client" required (input)="onClientInput(); clearFieldError('client')" (focus)="filterClientList()" (blur)="onClientBlur()" (keydown.enter)="$event.preventDefault()" autocomplete="off">
+                        <div class="autocomplete-dropdown" *ngIf="showClientDropdown && filteredClientList.length > 0">
+                            <div class="autocomplete-item" *ngFor="let c of filteredClientList" (mousedown)="selectClient(c)">
+                                <i class="fa fa-building text-muted"></i><span>{{ c }}</span>
+                            </div>
+                            <div class="autocomplete-item autocomplete-new" *ngIf="clientSearchText && !clientList.includes(clientSearchText)" (mousedown)="selectClient(clientSearchText)">
+                                <i class="fa fa-plus text-primary"></i><span>Add "<strong>{{ clientSearchText }}</strong>" as new client</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field-error" *ngIf="formErrors['client']"><i class="fa fa-exclamation-circle"></i> {{ formErrors['client'] }}</div>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Role <span class="required-mark">*</span></label>
+                    <input type="text" class="form-control form-control-custom" [class.is-invalid]="formErrors['role']" [(ngModel)]="interviewForm.role" name="role" placeholder="e.g., Senior Java Developer" required (input)="clearFieldError('role')">
+                    <div class="field-error" *ngIf="formErrors['role']"><i class="fa fa-exclamation-circle"></i> {{ formErrors['role'] }}</div>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Project</label>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" class="form-control form-control-custom" [(ngModel)]="projectSearchText" name="project" [placeholder]="isLoadingProjects ? 'Loading projects...' : 'Search or type new project'" [disabled]="isProjectDropdownDisabled" (input)="onProjectInput()" (focus)="filterProjectList()" (blur)="onProjectBlur()" (keydown.enter)="$event.preventDefault()" autocomplete="off">
+                        <div class="autocomplete-dropdown" *ngIf="showProjectDropdown && filteredProjectList.length > 0">
+                            <div class="autocomplete-item" *ngFor="let p of filteredProjectList" (mousedown)="selectProject(p.name)">
+                                <i class="fa fa-folder text-muted"></i><span>{{ p.name }}</span>
+                            </div>
+                            <div class="autocomplete-item autocomplete-new" *ngIf="canAddNewProject()" (mousedown)="selectProject(projectSearchText)">
+                                <i class="fa fa-plus text-primary"></i><span>Add "<strong>{{ projectSearchText }}</strong>" as new project</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-muted" style="font-size: 0.7rem; margin-top: 0.2rem;" *ngIf="!selectedClient && !isProjectDropdownDisabled"><i class="fa fa-info-circle me-1"></i>Enter a client to load projects</div>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Department <span class="required-mark">*</span></label>
+                    <app-my-select class="form-control" name="department" required
+                        placeholder="Select Department" [(ngModel)]="selectedDepartment"
+                        displayKey="name"
+                        [options]="departmentList"
+                        (selectionChange)="onDepartmentChange($event)">
+                    </app-my-select>
+                    <div class="field-error" *ngIf="formErrors['department']"><i class="fa fa-exclamation-circle"></i> {{ formErrors['department'] }}</div>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Employee <span class="required-mark">*</span></label>
+                    <app-my-select class="form-control" name="employee" required
+                        [placeholder]="!interviewForm.departmentId ? 'Select department first' : (isLoadingEmployees ? 'Loading employees...' : 'Select Employee')"
+                        [(ngModel)]="selectedEmployee"
+                        displayKey="name"
+                        [options]="filteredEmployeeList"
+                        [disabled]="isEmployeeDropdownDisabled"
+                        (selectionChange)="onEmployeeChange($event)">
+                    </app-my-select>
+                    <div class="field-error" *ngIf="formErrors['employee']"><i class="fa fa-exclamation-circle"></i> {{ formErrors['employee'] }}</div>
+                    <div class="text-muted" style="font-size: 0.7rem; margin-top: 0.2rem;" *ngIf="!interviewForm.departmentId"><i class="fa fa-info-circle me-1"></i>Select a department to load employees</div>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Upload Resume <span class="optional-badge">Optional</span></label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" #resumeInput class="file-input-hidden" accept=".pdf" (change)="onFileSelect($event)">
+                        <div class="file-upload-box" [class.has-file]="selectedFileName" (click)="resumeInput.click()">
+                            <div class="file-upload-content" *ngIf="!selectedFileName">
+                                <i class="fa fa-cloud-upload-alt file-upload-icon"></i>
+                                <span class="file-upload-text">Click to upload PDF</span>
+                            </div>
+                            <div class="file-upload-content file-selected" *ngIf="selectedFileName">
+                                <i class="fa fa-file-pdf file-icon-pdf"></i>
+                                    <div class="file-info">
+                                        <span class="file-name">{{ selectedFileName }}</span>
+                                        <span class="file-size">{{ selectedFileSize }}</span>
+                                        <button *ngIf="isEditMode && interviewForm.resumeFilePath" type="button" (click)="openResumePopup(); $event.stopPropagation()" class="file-view-btn">
+                                            <i class="fa fa-eye"></i> View Resume
+                                        </button>
+                                    </div>
+                                <button type="button" class="file-remove-btn" (click)="removeFile($event)" title="Remove file">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div *ngIf="fileError" class="file-error-msg">
+                            <i class="fa fa-exclamation-triangle"></i> {{ fileError }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interviewer Section -->
+        <div class="form-section">
+            <h6 class="section-title"><i class="fa fa-users"></i> Interviewer Details</h6>
+            <div class="row g-3">
+                <div class="col-md-8 mb-14">
+                    <label class="form-label-custom">Interviewer Name</label>
+                    <input type="text" class="form-control form-control-custom" [(ngModel)]="interviewForm.interviewerName" name="interviewerName" placeholder="Enter interviewer name (internal or external)">
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Section -->
+        <div class="form-section">
+            <h6 class="section-title"><i class="fa fa-flag"></i> Status</h6>
+            <div class="row g-3">
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Interview Status</label>
+                    <app-my-select class="form-control" name="interviewStatus"
+                        placeholder="Select Status" [(ngModel)]="interviewForm.interviewStatus"
+                        [options]="interviewStatusOptions">
+                    </app-my-select>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Interview Status Change Date</label>
+                    <input type="date" class="form-control form-control-custom" [(ngModel)]="interviewForm.interviewStatusChangeDate" name="interviewStatusChangeDate">
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Interview Remarks</label>
+                    <textarea class="form-control form-control-custom textarea-custom" rows="2" [(ngModel)]="interviewForm.interviewRemarks" name="interviewRemarks" placeholder="Enter interview remarks..."></textarea>
+                </div>
+            </div>
+            <div class="row g-3 mt-2">
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Selection Status</label>
+                    <app-my-select class="form-control" name="selectionStatus"
+                        placeholder="Select Status" [(ngModel)]="interviewForm.selectionStatus"
+                        [options]="selectionStatusOptions">
+                    </app-my-select>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Selection Status Change Date <span class="required-mark" *ngIf="isSelectionStatusChangeDateRequired()">*</span></label>
+                    <input type="date" class="form-control form-control-custom" [class.is-invalid]="formErrors['selectionStatusChangeDate']"
+                        [(ngModel)]="interviewForm.selectionStatusChangeDate" name="selectionStatusChangeDate"
+                        (change)="clearFieldError('selectionStatusChangeDate')">
+                    <div class="field-error" *ngIf="formErrors['selectionStatusChangeDate']"><i class="fa fa-exclamation-circle"></i> {{ formErrors['selectionStatusChangeDate'] }}</div>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Selection Remarks</label>
+                    <textarea class="form-control form-control-custom textarea-custom" rows="2" [(ngModel)]="interviewForm.selectionRemarks" name="selectionRemarks" placeholder="Enter selection remarks..."></textarea>
+                </div>
+            </div>
+            <div class="row g-3 mt-2">
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Onboarding Status</label>
+                    <app-my-select class="form-control" name="onboardingStatus"
+                        placeholder="Select Status" [(ngModel)]="interviewForm.onboardingStatus"
+                        [options]="onboardingStatusOptions">
+                    </app-my-select>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Onboarding Status Change Date <span class="required-mark" *ngIf="isOnboardingStatusChangeDateRequired()">*</span></label>
+                    <input type="date" class="form-control form-control-custom" [class.is-invalid]="formErrors['onboardingStatusChangeDate']"
+                        [(ngModel)]="interviewForm.onboardingStatusChangeDate" name="onboardingStatusChangeDate"
+                        (change)="clearFieldError('onboardingStatusChangeDate')">
+                    <div class="field-error" *ngIf="formErrors['onboardingStatusChangeDate']"><i class="fa fa-exclamation-circle"></i> {{ formErrors['onboardingStatusChangeDate'] }}</div>
+                </div>
+                <div class="col-md-4 mb-14">
+                    <label class="form-label-custom">Onboarding Remarks</label>
+                    <textarea class="form-control form-control-custom textarea-custom" rows="2" [(ngModel)]="interviewForm.onboardingRemarks" name="onboardingRemarks" placeholder="Enter onboarding remarks..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Details Section -->
+        <div class="form-section">
+            <h6 class="section-title"><i class="fa fa-file-alt"></i> Job Details</h6>
+            <div class="row g-3">
+                <div class="col-12 mb-14">
+                    <label class="form-label-custom">Job Description <span class="required-mark">*</span></label>
+                    <textarea class="form-control form-control-custom textarea-custom" [class.is-invalid]="formErrors['jd']" rows="4" [(ngModel)]="interviewForm.jd" name="jd" placeholder="Enter job description, required skills, experience requirements..." required (input)="clearFieldError('jd')"></textarea>
+                    <div class="field-error" *ngIf="formErrors['jd']"><i class="fa fa-exclamation-circle"></i> {{ formErrors['jd'] }}</div>
+                </div>
+                <div class="col-12 mb-14">
+                    <label class="form-label-custom">Additional Notes</label>
+                    <textarea class="form-control form-control-custom textarea-custom" rows="2" [(ngModel)]="interviewForm.additionalNotes" name="additionalNotes" placeholder="Any additional notes or special instructions..."></textarea>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer schedule-modal-footer">
+    <button type="button" class="btn btn-cancel" (click)="closeModal()">
+        <i class="fa fa-times me-1"></i> Cancel
+    </button>
+    <button type="button" class="btn btn-submit" (click)="submitForm()" [disabled]="isSubmitting">
+        <i *ngIf="isSubmitting" class="fa fa-spinner fa-spin me-1"></i>
+        <i *ngIf="!isSubmitting" class="fa" [class.fa-save]="isEditMode" [class.fa-calendar-check]="!isEditMode"></i>
+        <span>{{ isSubmitting ? (isEditMode ? 'Updating...' : 'Scheduling...') : (isEditMode ? 'Update Interview' : 'Schedule Interview') }}</span>
+    </button>
+</div>
+
+<div class="resume-popup-overlay" *ngIf="showResumePopup" (click)="closeResumePopup()">
+    <div class="resume-popup-content" (click)="$event.stopPropagation()">
+        <div class="resume-popup-header">
+            <h5><i class="fa fa-file-pdf me-2"></i>{{ interviewForm.resumeFileName }}</h5>
+            <button type="button" class="close" (click)="closeResumePopup()">&times;</button>
+        </div>
+        <div class="resume-popup-body">
+            <div class="loading-spinner" *ngIf="isLoadingResume">
+                <i class="fa fa-spinner fa-spin"></i>
+                <span>Loading resume...</span>
+            </div>
+            <iframe *ngIf="!isLoadingResume && resumeBlobUrl" [src]="resumeBlobUrl" width="100%" height="100%" frameborder="0"></iframe>
+        </div>
+        <div class="resume-popup-footer">
+            <button type="button" class="btn btn-outline-primary btn-sm me-2" (click)="openInNewTab()">
+                <i class="fa fa-external-link me-1"></i> Open in New Tab
+            </button>
+            <button type="button" class="btn btn-cancel" (click)="closeResumePopup()">Close</button>
+        </div>
+    </div>
+</div>

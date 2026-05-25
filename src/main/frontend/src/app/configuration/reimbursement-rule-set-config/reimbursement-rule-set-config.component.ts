@@ -58,6 +58,8 @@ export interface RmbRsRuleSetDraft {
   saving?: boolean;
   /** Table display (search / sort). */
   applicabilitySummary?: string;
+  /** Table hover tooltip content for roles in applicability scope. */
+  applicabilityRolesTooltip?: string;
   levelsSummary?: string;
   createdByName?: string;
   createdOn?: string;
@@ -92,7 +94,7 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
     },
     {
       value: 'SPECIFIC_IN_SCOPE',
-      label: 'Specific person in scope',
+      label: 'Named approver in selected department(s)',
       hint: 'Pick departments on this level, then choose one named approver after the list loads.'
     }
   ];
@@ -253,13 +255,9 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
   private enrichDraftForTable(rs: RmbRsRuleSetDraft): void {
     const deptLabels = this.applicabilityDepartmentLabels(rs);
     const roleLabels = this.applicabilityJobRoleLabels(rs);
-    if (!deptLabels.length) {
-      rs.applicabilitySummary = 'All departments / roles';
-    } else if (!roleLabels.length) {
-      rs.applicabilitySummary = deptLabels.join(', ');
-    } else {
-      rs.applicabilitySummary = `${deptLabels.join(', ')} · ${roleLabels.join(', ')}`;
-    }
+    // Table should show only department names; roles are shown via hover tooltip.
+    rs.applicabilitySummary = deptLabels.length ? deptLabels.join(', ') : 'All departments';
+    rs.applicabilityRolesTooltip = roleLabels.length ? roleLabels.join(', ') : 'All roles';
     rs.levelsSummary = `${rs.levels?.length ?? 0} level(s) + finance`;
   }
 
@@ -433,10 +431,16 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
     const allowedNames = new Set(
       this.rolesForDepartments(rs.applicabilityDepartmentIds ?? []).map((r) => this.normRoleName(r.name))
     );
-    rs.applicabilityJobRoleIds = (rs.applicabilityJobRoleIds ?? []).filter((id) => {
+    const kept = (rs.applicabilityJobRoleIds ?? []).filter((id) => {
       const jr = this.findJobRoleById(id);
       return jr && allowedNames.has(this.normRoleName(jr.name));
     });
+    // Important: the roles dropdown options are de-duped by role title. If we keep raw ids from
+    // other departments, the select can't map them to an option label and shows ids instead.
+    rs.applicabilityJobRoleIds = this.collapseRepresentativeJobRoleIds(
+      kept.map((x) => this.normId(x)).filter(Boolean),
+      rs.applicabilityDepartmentIds ?? []
+    );
     this.enrichDraftForTable(rs);
   }
 
@@ -689,10 +693,14 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
     const allowedNames = new Set(
       this.rolesForDepartments(level.departmentIds).map((r) => this.normRoleName(r.name))
     );
-    level.jobRoleIds = level.jobRoleIds.filter((id) => {
+    const kept = (level.jobRoleIds ?? []).filter((id) => {
       const jr = this.findJobRoleById(id);
       return jr && allowedNames.has(this.normRoleName(jr.name));
     });
+    level.jobRoleIds = this.collapseRepresentativeJobRoleIds(
+      kept.map((x) => this.normId(x)).filter(Boolean),
+      level.departmentIds ?? []
+    );
     this.loadEmployeesForLevel(level);
     this.syncSpecificEmployee(level);
   }
@@ -827,7 +835,7 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
       case 'POOL_ANY_IN_SCOPE':
         return 'Approver pool — pick departments, then job roles';
       case 'SPECIFIC_IN_SCOPE':
-        return 'Approver — pick one or more departments';
+        return 'Pick one or more departments, then choose the named approver';
       default:
         return 'Departments & job roles';
     }

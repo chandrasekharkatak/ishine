@@ -23,6 +23,10 @@ public class TeamMemberStatusOrchestrationService {
     private static final String METHOD_NAME = "updateTeamMemberStatus";
 
     public void updateTeamMemberStatus(SchedulerTriggerType triggerType) {
+        updateTeamMemberStatus(triggerType, null);
+    }
+
+    public void updateTeamMemberStatus(SchedulerTriggerType triggerType, Long scopedProjectIdForMapping) {
         if (SchedulerTriggerType.SCHEDULER.equals(triggerType)
                 && !schedulerExecutionTrackerService.shouldRunTodayForScheduler(METHOD_NAME)) {
             log.info("Skipping {}. Already executed successfully today.", METHOD_NAME);
@@ -31,7 +35,7 @@ public class TeamMemberStatusOrchestrationService {
 
         schedulerExecutionTrackerService.logExecutionStart(METHOD_NAME, triggerType);
         try {
-            executeTeamMemberStatusUpdateCoreLogic();
+            executeTeamMemberStatusUpdateCoreLogic(scopedProjectIdForMapping);
             schedulerExecutionTrackerService.logExecutionSuccess(METHOD_NAME, triggerType);
         } catch (Exception ex) {
             if (ex instanceof InterruptedException) {
@@ -45,7 +49,7 @@ public class TeamMemberStatusOrchestrationService {
         }
     }
 
-    protected void executeTeamMemberStatusUpdateCoreLogic() {
+    protected void executeTeamMemberStatusUpdateCoreLogic(Long scopedProjectIdForMapping) {
         LocalDate today = LocalDate.now();
         LocalDateTime todayStart = today.atStartOfDay();
         LocalDateTime tomorrowStart = today.plusDays(1).atStartOfDay();
@@ -53,6 +57,9 @@ public class TeamMemberStatusOrchestrationService {
 
         teamsService.processDeactivations(todayStart, now);
         teamsService.processActivations(todayStart, tomorrowStart, now);
-        teamsService.updateDefaultProjectMappings();
+        teamsService.updateDefaultProjectMappings(scopedProjectIdForMapping);
+        if (scopedProjectIdForMapping == null) {
+            teamsService.cleanupDuplicateDefaultProjectMappings();
+        }
     }
 }

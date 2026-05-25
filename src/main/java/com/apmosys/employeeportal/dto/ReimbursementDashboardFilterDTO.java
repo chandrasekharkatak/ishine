@@ -20,4 +20,11 @@ public class ReimbursementDashboardFilterDTO {
 	/** Logged-in viewer — dashboard metrics are limited to this actor's approval scope when set. */
 	private Long actorEmpId;
 	private String actorEmail;
+	/** Job role from session (e.g. SuperAdmin, Admin) — used for org-wide dashboard scope. */
+	private String actorEmployeeRole;
+	/**
+	 * When true, metrics include all active reimbursement tickets (same as approve-reimbursement /
+	 * dashboard tab access). Sent by the client for users with reimbursement approval / dashboard access.
+	 */
+	private Boolean dashboardFullScope;
 }

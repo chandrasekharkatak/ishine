@@ -131,34 +131,86 @@ public class ReimbursementTicketMatrixWorkflowService {
 	}
 
 	public String notifyEmailForCurrentLevel(ReimbursementTicket ticket) {
+		List<String> all = notifyEmailsForCurrentLevelAll(ticket);
+		return all.isEmpty() ? null : all.get(0);
+	}
+
+	/** All approver mailbox(es) for the ticket's current matrix level (pool = every member). */
+	public List<String> notifyEmailsForCurrentLevelAll(ReimbursementTicket ticket) {
+		java.util.LinkedHashSet<String> emails = new java.util.LinkedHashSet<>();
 		ReimbursementApprovalMatrixDTO matrix = matrixService.getMatrixById(ticket.getApprovalMatrixId());
 		if (matrix == null) {
-			return null;
+			return new ArrayList<>();
 		}
 		ReimbursementApprovalMatrixLevelDTO level = levelAtOrder(matrix, ticket.getCurrentLevelOrder());
 		if (level == null) {
-			return null;
+			return new ArrayList<>();
+		}
+		Long assignee = ticket.getCurrentAssigneeEmpId();
+		if (assignee != null) {
+			addEmployeeEmail(emails, assignee);
+		}
+		String routing = normRouting(level.getRouting());
+		if ("REPORTING_MANAGER".equals(routing)) {
+			Long mgrId = resolveReportingManagerEmpId(ticket);
+			if (mgrId != null) {
+				addEmployeeEmail(emails, mgrId);
+			}
+		}
+		if ("HOD_SUBMITTER_DEPT".equals(routing) && StringUtils.hasText(ticket.getHodEmail())) {
+			emails.add(ticket.getHodEmail().trim().toLowerCase(Locale.ROOT));
+		}
+		if ("SPECIFIC_IN_SCOPE".equals(routing) && level.getAssigneeEmployeeId() != null) {
+			addEmployeeEmail(emails, level.getAssigneeEmployeeId());
+		}
+		if ("POOL_ANY_IN_SCOPE".equals(routing)) {
+			for (Long id : poolMemberEmpIds(level)) {
+				addEmployeeEmail(emails, id);
+			}
+		}
+		return new ArrayList<>(emails);
+	}
+
+	private void addEmployeeEmail(java.util.Set<String> emails, Long empId) {
+		if (empId == null) {
+			return;
+		}
+		Employee e = employeeRepository.findByEmpId(empId);
+		if (e != null && StringUtils.hasText(e.getEmail())) {
+			emails.add(e.getEmail().trim().toLowerCase(Locale.ROOT));
+		}
+	}
+
+	public String notifyApproverDisplayName(ReimbursementTicket ticket) {
+		ReimbursementApprovalMatrixDTO matrix = matrixService.getMatrixById(ticket.getApprovalMatrixId());
+		if (matrix == null) {
+			return "Approver";
+		}
+		ReimbursementApprovalMatrixLevelDTO level = levelAtOrder(matrix, ticket.getCurrentLevelOrder());
+		if (level == null) {
+			return "Approver";
 		}
 		Long assignee = ticket.getCurrentAssigneeEmpId();
 		if (assignee != null) {
 			Employee e = employeeRepository.findByEmpId(assignee);
-			if (e != null && StringUtils.hasText(e.getEmail())) {
-				return e.getEmail().trim();
+			if (e != null && StringUtils.hasText(e.getName())) {
+				return e.getName().trim();
 			}
 		}
-		String routing = normRouting(level.getRouting());
-		if ("HOD_SUBMITTER_DEPT".equals(routing) && StringUtils.hasText(ticket.getHodEmail())) {
-			return ticket.getHodEmail().trim();
+		String display = plannedApproverDisplay(level, ticket);
+		return StringUtils.hasText(display) && !"—".equals(display) ? display : "Approver";
+	}
+
+	public String currentLevelLabel(ReimbursementTicket ticket) {
+		ReimbursementApprovalMatrixDTO matrix = matrixService.getMatrixById(ticket.getApprovalMatrixId());
+		if (matrix == null) {
+			return "Approval level";
 		}
-		if ("POOL_ANY_IN_SCOPE".equals(routing)) {
-			for (Long id : poolMemberEmpIds(level)) {
-				Employee e = employeeRepository.findByEmpId(id);
-				if (e != null && StringUtils.hasText(e.getEmail())) {
-					return e.getEmail().trim();
-				}
-			}
+		ReimbursementApprovalMatrixLevelDTO level = levelAtOrder(matrix, ticket.getCurrentLevelOrder());
+		if (level == null) {
+			return "Approval level";
 		}
-		return null;
+		return matrixService.formatLevelLabel(level);
 	}
 
 	public void advanceAfterLevelDecisions(ReimbursementTicket ticket) {
@@ -416,7 +468,7 @@ public class ReimbursementTicketMatrixWorkflowService {
 			return "Approver pool";
 		}
 		if ("SPECIFIC_IN_SCOPE".equals(routing)) {
-			return "Specific approver";
+			return "—";
 		}
 		return "—";
 	}

@@ -5,6 +5,26 @@ export interface RmbApprovalLevelColumn {
   financeStep?: boolean;
 }
 
+/** Normalize legacy generic labels until API returns department names. */
+export function displayApprovalLevelLabel(label: string | undefined | null): string {
+  if (!label) {
+    return '';
+  }
+  const t = String(label).trim();
+  if (t === 'Specific approver' || t === 'Specific person in scope' || t === 'Department Selected for approve') {
+    return 'Department';
+  }
+  return t;
+}
+
+export function approvalLevelApproverColumnTitle(col: RmbApprovalLevelColumn): string {
+  return `${displayApprovalLevelLabel(col.levelLabel)} Approver`;
+}
+
+export function approvalLevelStatusColumnTitle(col: RmbApprovalLevelColumn): string {
+  return `${displayApprovalLevelLabel(col.levelLabel)} Status`;
+}
+
 /** Pick the widest {@code approvalLevels} shape from loaded tickets for table headers. */
 export function deriveTableLevelColumns(
   tickets: any[],
@@ -20,11 +40,34 @@ export function deriveTableLevelColumns(
   if (widest.length) {
     return widest.map((r) => ({
       order: r.order,
-      levelLabel: r.levelLabel || `Level ${r.order}`,
+      levelLabel: displayApprovalLevelLabel(r.levelLabel || `Level ${r.order}`),
       financeStep: !!r.financeStep
     }));
   }
-  return fallback;
+  return normalizeMatrixLevelColumns(fallback);
+}
+
+/** Normalize matrix API {@code levelColumns} for table headers. */
+export function normalizeMatrixLevelColumns(columns: RmbApprovalLevelColumn[] = []): RmbApprovalLevelColumn[] {
+  return (columns || []).map((c) => ({
+    order: c.order,
+    levelLabel: displayApprovalLevelLabel(c.levelLabel || (c.order != null ? `Level ${c.order}` : '')),
+    financeStep: !!c.financeStep
+  }));
+}
+
+/**
+ * Prefer configured approval-matrix columns when present; otherwise widest ticket {@code approvalLevels}.
+ */
+export function resolveTableLevelColumns(
+  tickets: any[],
+  matrixLevelColumns: RmbApprovalLevelColumn[] = []
+): RmbApprovalLevelColumn[] {
+  const fromMatrix = normalizeMatrixLevelColumns(matrixLevelColumns);
+  if (fromMatrix.length) {
+    return fromMatrix;
+  }
+  return deriveTableLevelColumns(tickets, []);
 }
 
 /** Build {@code app-column-filter-bar} keys for dynamic level approver/status columns. */

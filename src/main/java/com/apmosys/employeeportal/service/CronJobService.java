@@ -117,7 +117,6 @@ import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
-import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.Holiday;
@@ -262,9 +261,6 @@ public class CronJobService {
 
 	@Autowired
 	TeamMemberStatusOrchestrationService teamMemberStatusOrchestrationService;
-
-	@Autowired
-	EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
 
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
@@ -7772,46 +7768,6 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	        teamMemberStatusOrchestrationService.updateTeamMemberStatus(SchedulerTriggerType.SCHEDULER);
 	    }
 
-	    @Scheduled(cron = "0 0 2 * * *")
-	    @Transactional(rollbackOn = Exception.class)
-	    public void cleanupDuplicateDefaultProjectMappings() {
-	        List<Long> duplicateEmpIds =
-	                empPrimaryProjectMappingRepository.findEmployeesWithMultipleDefaultMappings();
-
-	        log.info("Duplicate default mapping cleanup: found {} employees with multiple is_mapped='Y' rows",
-	                duplicateEmpIds.size());
-
-	        int totalDeleted = 0;
-
-	        for (Long empId : duplicateEmpIds) {
-	            List<EmpPrimaryProjectMapping> activeMappings =
-	                    empPrimaryProjectMappingRepository.findByEmpIdAndIsMappedOrderByUpdatedOnDesc(empId, "Y");
-
-	            if (activeMappings.size() <= 1) {
-	                continue;
-	            }
-
-	            log.info("Cleaning duplicate default mappings for empId={}, activeRowCount={}",
-	                    empId, activeMappings.size());
-
-	            EmpPrimaryProjectMapping retained = activeMappings.get(activeMappings.size() - 1);
-	            log.info("Retaining mappingId={} for empId={} (oldest by updatedOn)",
-	                    retained.getMappingId(), empId);
-
-	            for (int i = 0; i < activeMappings.size() - 1; i++) {
-	                EmpPrimaryProjectMapping duplicate = activeMappings.get(i);
-	                log.info("Deleting duplicate mappingId={} for empId={}", duplicate.getMappingId(), empId);
-	                empPrimaryProjectMappingRepository.delete(duplicate);
-	                totalDeleted++;
-	            }
-	        }
-
-	        log.info(
-	                "Duplicate default mapping cleanup complete: duplicateEmployeesFound={}, rowsDeleted={}",
-	                duplicateEmpIds.size(), totalDeleted);
-	    }
-	    
-	    
 	    public void sendAutoMigrationMail(List<AutoMigrationDTO> migrations) {
 
 		    AutoMigrationDTO dto = migrations.get(0);

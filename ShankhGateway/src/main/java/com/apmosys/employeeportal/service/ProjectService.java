@@ -2433,7 +2433,7 @@ public class ProjectService {
                  		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
                  		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
                  		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
-                 		+ "  END AS prefixed_employeementId ")
+                 		+ "  END AS prefixed_employeementId, e.experience, date(e.date_of_joining) ")
                  .append("FROM projects p  LEFT JOIN project_po_details ppd \n"
 						 + " ON ppd.project_id = p.project_id and ppd.active = true\n " )
                  .append(buildPoJoinCondition(flag))

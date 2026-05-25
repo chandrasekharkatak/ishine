@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
@@ -10,7 +11,7 @@ import lombok.Data;
 public class ReimbursementTicketClaimInputDTO {
 	private Integer lineNo;
 	private String expenditureType;
-	private BigInteger amount;
+	private BigDecimal amount;
 	private String travelMode;
 	private BigInteger distance;
 	private String vehicleType;

@@ -479,9 +479,21 @@ dateRange: string; type: string; count: string;
       console.log("Billable departments",this.departments)
       this.filteredDepartments = [...this.departmentHistory.filter(dept => dept.isBillable)];
     } else {
-      this.departments = [...this.allDepartments];
-      this.filteredDepartments = [...this.allDepartments];
+      const deptName = String(this.currentUser.departmentName).trim();
+      const empRole = String(this.currentUser.employeeRole).trim();
 
+      if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") &&
+       !deptName.includes("Director") && !deptName.includes("Super Admin") &&
+        !empRole.includes("SuperAdmin") && !empRole.includes("Accounts") &&
+         !deptName.includes("Accounts") && !deptName.includes("HR")) {
+          this.departments = [...this.departmentHistory];
+          this.filteredDepartments = [...this.departmentHistory];
+        }
+        else{
+        this.departments = [...this.allDepartments];
+        this.filteredDepartments = [...this.allDepartments];
+     
+      }
     }
 
     this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
@@ -956,13 +968,24 @@ dateRange: string; type: string; count: string;
   projectSummary: any = {};
 
   /** Align with Employee 360: total = previous work years + tenure since DOJ (see EmployeeService.calculateTotalExperience). */
+  private resolveDateOfJoiningForReport(employee: any): string | null {
+    const raw = employee?.dateOfJoining ?? employee?.date_of_joining;
+    if (raw == null || String(raw).trim() === '') {
+      return null;
+    }
+    const parsed = moment(raw, [AppComponent.DATE_FORMAT, 'YYYY-MM-DD', moment.ISO_8601], true);
+    return parsed.isValid() ? parsed.format(AppComponent.DATE_FORMAT) : String(raw).trim();
+  }
+
   private applyExperienceForReport(employee: any): void {
     if (!employee) {
       return;
     }
+    const dateOfJoining = this.resolveDateOfJoiningForReport(employee);
+    employee.dateOfJoining = dateOfJoining;
     const isFresher = (employee.experience || '').toString().toLowerCase() === 'fresher';
     const previousYears = isFresher ? 0 : Number(employee.totalExperience ?? 0);
-    employee.totalExperience = this.employeeService.calculateTotalExperience(previousYears, employee.dateOfJoining);
+    employee.totalExperience = this.employeeService.calculateTotalExperience(previousYears, dateOfJoining);
   }
 
   getEmployeeReportData() {
@@ -2028,7 +2051,7 @@ onSearchClientProject(searchData: any) {
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
     queryObj.empId = this.currentUser.empId;
-
+    queryObj.subFeatureName = 'Employee Report';
     if (queryObjList == '') {
       queryObjList= [{ column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }];
     } else {
