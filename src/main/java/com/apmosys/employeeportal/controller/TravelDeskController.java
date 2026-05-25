@@ -20,8 +20,15 @@ import com.apmosys.employeeportal.dto.HotelSubCategoryDTO;
 import com.apmosys.employeeportal.dto.TravelClassRequest;
 import com.apmosys.employeeportal.dto.TravelDeskDTO;
 import com.apmosys.employeeportal.dto.TravelModeDTO;
+import com.apmosys.employeeportal.dto.TravelApprovalMatrixDTO;
+import com.apmosys.employeeportal.dto.TravelApprovalMatrixSaveRequestDTO;
+import com.apmosys.employeeportal.dto.TravelDeskTicketActorDTO;
+import com.apmosys.employeeportal.dto.TravelDeskTicketStageActionDTO;
+import com.apmosys.employeeportal.dto.TravelDeskTicketSubmitRequestDTO;
 import com.apmosys.employeeportal.dto.TravelReasonDTO;
+import com.apmosys.employeeportal.service.TravelApprovalMatrixService;
 import com.apmosys.employeeportal.service.TravelDeskService;
+import com.apmosys.employeeportal.service.TravelDeskTicketService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
@@ -30,6 +37,12 @@ public class TravelDeskController {
 	
 	@Autowired
 	private TravelDeskService travelDeskService;
+
+	@Autowired
+	private TravelApprovalMatrixService travelApprovalMatrixService;
+
+	@Autowired
+	private TravelDeskTicketService travelDeskTicketService;
 	
 	@PostMapping("/fetchTravelData")
 	public ServiceResponse fetchTravelData(@RequestBody TravelDeskDTO travelData) {
@@ -199,6 +212,18 @@ public class TravelDeskController {
     public ServiceResponse getCityBySubCategory(@RequestBody String travelReason) {
         return travelDeskService.getCityBySubCategory(travelReason);
     }
+
+    @JobRoleAccess(featureIds = {55, 59})
+    @PostMapping("/getHotelSubCategoryByCategory")
+    public ServiceResponse getHotelSubCategoryByCategory(@RequestBody String hotelCategoryName) {
+        return travelDeskService.getHotelSubCategoryByCategory(hotelCategoryName);
+    }
+
+    @JobRoleAccess(featureIds = {55, 59})
+    @PostMapping("/getCitiesByHotelSubCategoryId")
+    public ServiceResponse getCitiesByHotelSubCategoryId(@RequestBody Long hotelSubCategoryId) {
+        return travelDeskService.getCitiesByHotelSubCategoryId(hotelSubCategoryId);
+    }
     
     @JobRoleAccess(featureIds = {55,59})
 	@GetMapping("/getCity")
@@ -220,5 +245,50 @@ public class TravelDeskController {
 			) {
 		ServiceResponse serviceResponse = travelDeskService.uploadKycDocument(file, displayName, uploadedBy);
 		return serviceResponse;
+	}
+
+	@GetMapping("/getAllTravelApprovalMatrices")
+	public ServiceResponse getAllTravelApprovalMatrices() {
+		return travelApprovalMatrixService.getAllApprovalMatrices();
+	}
+
+	@GetMapping("/resolveTravelApprovalMatrixForEmployee")
+	public ServiceResponse resolveTravelApprovalMatrixForEmployee(@RequestParam Long empId) {
+		return travelApprovalMatrixService.resolveForEmployee(empId);
+	}
+
+	@PostMapping("/saveTravelApprovalMatrix")
+	public ServiceResponse saveTravelApprovalMatrix(@RequestBody TravelApprovalMatrixSaveRequestDTO request) {
+		return travelApprovalMatrixService.saveApprovalMatrix(request);
+	}
+
+	@PostMapping("/deleteTravelApprovalMatrix")
+	public ServiceResponse deleteTravelApprovalMatrix(@RequestBody TravelApprovalMatrixDTO dto) {
+		return travelApprovalMatrixService.deleteApprovalMatrix(dto != null ? dto.getMatrixId() : null);
+	}
+
+	@PostMapping("/saveTravelDeskTicket")
+	public ServiceResponse saveTravelDeskTicket(@RequestBody TravelDeskTicketSubmitRequestDTO body) {
+		return travelDeskTicketService.submitTicket(body);
+	}
+
+	@PostMapping("/fetchMyTravelDeskTickets")
+	public ServiceResponse fetchMyTravelDeskTickets(@RequestBody TravelDeskTicketSubmitRequestDTO body) {
+		return travelDeskTicketService.fetchMyTickets(body != null ? body.getEmpId() : null);
+	}
+
+	@PostMapping("/fetchTravelDeskTicketsForApproval")
+	public ServiceResponse fetchTravelDeskTicketsForApproval(@RequestBody TravelDeskTicketActorDTO body) {
+		return travelDeskTicketService.fetchTicketsForApproval(body);
+	}
+
+	@PostMapping("/fetchTravelDeskTicketsAssignedAll")
+	public ServiceResponse fetchTravelDeskTicketsAssignedAll(@RequestBody TravelDeskTicketActorDTO body) {
+		return travelDeskTicketService.fetchAllTicketsAssignedToActor(body);
+	}
+
+	@PostMapping("/processTravelDeskTicketApproval")
+	public ServiceResponse processTravelDeskTicketApproval(@RequestBody TravelDeskTicketStageActionDTO body) {
+		return travelDeskTicketService.processApprovalAction(body);
 	}
 }

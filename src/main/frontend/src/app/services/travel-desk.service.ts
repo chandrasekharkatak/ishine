@@ -175,6 +175,18 @@ export class TravelDeskService {
     });
   }
 
+  getHotelSubCategoryByCategory(hotelCategoryName: string) {
+    return this.http.post(`${this.baseUrl}api/getHotelSubCategoryByCategory`, hotelCategoryName, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  getCitiesByHotelSubCategoryId(hotelSubCategoryId: number) {
+    return this.http.post(`${this.baseUrl}api/getCitiesByHotelSubCategoryId`, hotelSubCategoryId, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
   getCity() {
     return this.http.get(`${this.baseUrl}` + `api/getCity`);
   }
@@ -191,5 +203,42 @@ export class TravelDeskService {
 checkInvoiceNumberAgainstResubmit(invoiceDetails:any){
     return this.http.post(`${this.baseUrl}`+`api/checkInvoiceNumberAgainstResubmit`,invoiceDetails);
   }
-  
+
+  getAllTravelApprovalMatrices() {
+    return this.http.get(`${this.baseUrl}api/getAllTravelApprovalMatrices`);
+  }
+
+  saveTravelApprovalMatrix(body: { createdBy: number; matrices: any[] }) {
+    return this.http.post(`${this.baseUrl}api/saveTravelApprovalMatrix`, body);
+  }
+
+  deleteTravelApprovalMatrix(matrixId: number) {
+    return this.http.post(`${this.baseUrl}api/deleteTravelApprovalMatrix`, { matrixId });
+  }
+
+  resolveTravelApprovalMatrixForEmployee(empId: number) {
+    return this.http.get(`${this.baseUrl}api/resolveTravelApprovalMatrixForEmployee`, {
+      params: { empId: String(empId) }
+    });
+  }
+
+  saveTravelDeskTicket(body: any) {
+    return this.http.post(`${this.baseUrl}api/saveTravelDeskTicket`, body);
+  }
+
+  fetchMyTravelDeskTickets(empId: number) {
+    return this.http.post(`${this.baseUrl}api/fetchMyTravelDeskTickets`, { empId });
+  }
+
+  fetchTravelDeskTicketsForApproval(body: { empId: any; email: string }) {
+    return this.http.post(`${this.baseUrl}api/fetchTravelDeskTicketsForApproval`, body);
+  }
+
+  fetchTravelDeskTicketsAssignedAll(body: { empId: any; email: string }) {
+    return this.http.post(`${this.baseUrl}api/fetchTravelDeskTicketsAssignedAll`, body);
+  }
+
+  processTravelDeskTicketApproval(body: any) {
+    return this.http.post(`${this.baseUrl}api/processTravelDeskTicketApproval`, body);
+  }
 }

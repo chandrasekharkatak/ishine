@@ -187,6 +187,7 @@ export class SkillMatrixSubmitComponent implements OnInit {
   requiredPickIds: number[] = [];
   optionalPickIds: number[] = [];
   customSkillPicks: SubmitPickSkill[] = [];
+  pendingCustomSkillRequests: { requestId: number; skillName: string; status: string }[] = [];
 
   categoryOptions: SubmitCategoryRow[] = [];
   selectedCategoryId: number | null = null;
@@ -1250,18 +1251,33 @@ export class SkillMatrixSubmitComponent implements OnInit {
       .subscribe({
         next: (res: any) => {
           if (res?.serviceStatus === 'Success' && res.serviceResponse) {
-            const row = this.mapApiToPickSkill(res.serviceResponse);
-            this.customSkillPicks = [...this.customSkillPicks, row];
-            this.mergeIntoOptionalPool(row);
+            const requestId = Number(res.serviceResponse?.requestId || 0);
+            const requestedSkillName = String(res.serviceResponse?.skillName || name).trim();
+            if (requestId > 0) {
+              this.pendingCustomSkillRequests = [
+                {
+                  requestId,
+                  skillName: requestedSkillName,
+                  status: String(res.serviceResponse?.status || 'pending')
+                },
+                ...this.pendingCustomSkillRequests.filter((r) => r.requestId !== requestId)
+              ];
+            }
             this.customSkillName = '';
+            this.selectedCategoryId = null;
             this.skillProposeError = null;
+            Swal.fire({
+              icon: 'success',
+              title: 'Sent for HOD approval',
+              text: `${requestedSkillName} has been submitted for HOD approval. It will be added to the skill list only after approval and Required/Optional selection.`
+            });
           } else {
             this.skillProposeError =
-              typeof res?.serviceResponse === 'string' ? res.serviceResponse : 'Could not add skill.';
+              typeof res?.serviceResponse === 'string' ? res.serviceResponse : 'Could not submit skill request.';
           }
         },
         error: () => {
-          this.skillProposeError = 'Could not add skill.';
+          this.skillProposeError = 'Could not submit skill request.';
         }
       });
   }

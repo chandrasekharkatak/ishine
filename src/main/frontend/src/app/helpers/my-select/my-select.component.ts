@@ -263,6 +263,16 @@ export class MySelectComponent implements ControlValueAccessor, OnInit, OnChange
     });
   }
 
+  singleTriggerLabel(): string {
+    if (this.multiple) {
+      return '';
+    }
+    if (this.selectedValue == null || this.selectedValue === '') {
+      return this.placeholder || 'Select';
+    }
+    return this.labelForSelectedItem(this.selectedValue) || this.placeholder || 'Select';
+  }
+
   multiTriggerLabel(): string {
     if (!this.multiple) {
       return '';
