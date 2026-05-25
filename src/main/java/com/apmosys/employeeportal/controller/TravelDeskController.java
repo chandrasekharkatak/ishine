@@ -19,6 +19,7 @@ import com.apmosys.employeeportal.dto.HotelCategoryDTO;
 import com.apmosys.employeeportal.dto.HotelSubCategoryDTO;
 import com.apmosys.employeeportal.dto.TravelClassRequest;
 import com.apmosys.employeeportal.dto.TravelDeskDTO;
+import com.apmosys.employeeportal.dto.TravelDeskDashboardFilterDTO;
 import com.apmosys.employeeportal.dto.TravelModeDTO;
 import com.apmosys.employeeportal.dto.TravelApprovalMatrixDTO;
 import com.apmosys.employeeportal.dto.TravelApprovalMatrixSaveRequestDTO;
@@ -285,6 +286,11 @@ public class TravelDeskController {
 	@PostMapping("/fetchTravelDeskTicketsAssignedAll")
 	public ServiceResponse fetchTravelDeskTicketsAssignedAll(@RequestBody TravelDeskTicketActorDTO body) {
 		return travelDeskTicketService.fetchAllTicketsAssignedToActor(body);
+	}
+
+	@PostMapping("/fetchTravelDeskDashboard")
+	public ServiceResponse fetchTravelDeskDashboard(@RequestBody(required = false) TravelDeskDashboardFilterDTO body) {
+		return travelDeskTicketService.dashboard(body != null ? body : new TravelDeskDashboardFilterDTO());
 	}
 
 	@PostMapping("/processTravelDeskTicketApproval")

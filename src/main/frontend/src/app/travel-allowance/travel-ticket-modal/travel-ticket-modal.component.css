@@ -426,6 +426,11 @@
   width: 132px;
 }
 
+.rmbtm-col-amount {
+  min-width: 118px;
+  width: 118px;
+}
+
 .rmbtm-col-upload {
   min-width: 108px;
   width: 108px;
@@ -433,6 +438,10 @@
 
 .rmbtm-booking-ref-input {
   min-width: 116px;
+}
+
+.rmbtm-booking-amount-input {
+  min-width: 102px;
 }
 
 .rmbtm-upload-cell {

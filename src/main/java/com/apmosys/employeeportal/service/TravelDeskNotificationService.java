@@ -139,7 +139,9 @@ public class TravelDeskNotificationService {
 			sb.append("<span style='font-size:13px;color:#334155;'>")
 					.append(esc(routeLabel(line))).append("</span><br>");
 			sb.append("<span style='font-size:13px;color:#334155;'><strong>Booking reference:</strong> ")
-					.append(esc(fallback(line.getBookingReference(), "Pending update"))).append("</span>");
+					.append(esc(fallback(line.getBookingReference(), "Pending update"))).append("</span><br>");
+			sb.append("<span style='font-size:13px;color:#334155;'><strong>Amount:</strong> ")
+					.append(esc(formatAmount(line.getBookingAmount()))).append("</span>");
 			sb.append("</div>");
 		}
 		sb.append("</div>");
@@ -380,6 +382,13 @@ public class TravelDeskNotificationService {
 			return fallback(line.getHotelCategory(), "—") + " / " + fallback(line.getHotelSubCategory(), "—");
 		}
 		return fallback(line.getTravelMode(), "—") + " / " + fallback(line.getTravelClass(), "—");
+	}
+
+	private String formatAmount(java.math.BigDecimal amount) {
+		if (amount == null) {
+			return "—";
+		}
+		return "Rs. " + String.format(Locale.ENGLISH, "%,.2f", amount);
 	}
 
 	private String lineStatusLabel(TravelDeskTicketLine line) {

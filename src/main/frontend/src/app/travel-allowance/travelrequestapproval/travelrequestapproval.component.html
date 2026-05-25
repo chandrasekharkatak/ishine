@@ -39,6 +39,7 @@
               <th mat-sort-header="fullName|string">Employee</th>
               <th mat-sort-header="displayStatus|string">Status</th>
               <th mat-sort-header="lineCount|number" class="text-center">Requests</th>
+              <th mat-sort-header="totalCost|number">Total Cost</th>
               <th mat-sort-header="submittedOn|date">Submitted</th>
               <ng-container *ngFor="let col of tableLevelColumns; let li = index">
                 <th [mat-sort-header]="'level' + (li + 1) + 'ApproverName|string'">{{ approvalLevelApproverColumnTitle(col) }}</th>
@@ -61,6 +62,7 @@
               <td>{{ t.fullName | rmbCamelDisplay }}</td>
               <td>{{ t.displayStatus | rmbCamelDisplay }}</td>
               <td class="text-center">{{ t.lineCount || (t.lines?.length || 0) }}</td>
+              <td class="text-nowrap">{{ formatTravelCost(t.totalCost) }}</td>
               <td>{{ t.submittedOn | date:'medium' }}</td>
               <ng-container *ngFor="let col of tableLevelColumns; let li = index">
                 <td>{{ approvalLevelCell(t, li, 'approverName') | rmbCamelDisplay }}</td>

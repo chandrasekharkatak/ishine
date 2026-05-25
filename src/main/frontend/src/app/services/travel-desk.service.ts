@@ -241,4 +241,8 @@ checkInvoiceNumberAgainstResubmit(invoiceDetails:any){
   processTravelDeskTicketApproval(body: any) {
     return this.http.post(`${this.baseUrl}api/processTravelDeskTicketApproval`, body);
   }
+
+  fetchTravelDeskDashboard(filter?: any) {
+    return this.http.post(`${this.baseUrl}api/fetchTravelDeskDashboard`, filter || {});
+  }
 }

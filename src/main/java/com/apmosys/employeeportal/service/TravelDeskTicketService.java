@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.service;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -9,12 +11,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Stream;
+import java.text.SimpleDateFormat;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.apmosys.employeeportal.dto.TravelDeskTicketActorDTO;
+import com.apmosys.employeeportal.dto.TravelDeskDashboardFilterDTO;
 import com.apmosys.employeeportal.dto.TravelDeskTicketLineInputDTO;
 import com.apmosys.employeeportal.dto.TravelDeskTicketStageActionDTO;
 import com.apmosys.employeeportal.dto.TravelDeskTicketSubmitRequestDTO;
@@ -243,6 +251,202 @@ public class TravelDeskTicketService {
 		return resp;
 	}
 
+	@Transactional(readOnly = true)
+	public ServiceResponse dashboard(TravelDeskDashboardFilterDTO filter) {
+		ServiceResponse resp = new ServiceResponse();
+		try {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			final Timestamp fromTs;
+			if (filter != null && StringUtils.hasText(filter.getFromDate())) {
+				fromTs = new Timestamp(sdf.parse(filter.getFromDate().trim()).getTime());
+			} else {
+				fromTs = null;
+			}
+			final Timestamp toTs;
+			if (filter != null && StringUtils.hasText(filter.getToDate())) {
+				toTs = new Timestamp(sdf.parse(filter.getToDate().trim()).getTime() + 86400000L - 1);
+			} else {
+				toTs = null;
+			}
+
+			List<TravelDeskTicket> allActive = ticketRepository.findAllActiveWithLines();
+			boolean fullScope = filter != null && Boolean.TRUE.equals(filter.getDashboardFullScope());
+			List<TravelDeskTicket> actorScoped = fullScope ? allActive
+					: allActive.stream().filter(t -> ticketVisibleToDashboardActor(t, filter)).collect(Collectors.toList());
+			List<TravelDeskTicket> tickets = actorScoped.stream()
+					.filter(t -> ticketMatchesDashboardFilters(t, filter, fromTs, toTs)).collect(Collectors.toList());
+			List<TravelDeskTicketLine> lines = tickets.stream().flatMap(t -> linesForDashboardMetrics(t, filter))
+					.collect(Collectors.toList());
+
+			long bookedRequestCount = lines.stream().filter(this::isBookedDashboardLine).count();
+			long rejectedRequestCount = lines.stream().filter(this::isRejectedDashboardLine).count();
+			BigDecimal totalSpend = lines.stream().map(this::lineBookingAmountOrZero).reduce(BigDecimal.ZERO, BigDecimal::add);
+			BigDecimal avgSpend = bookedRequestCount == 0 ? BigDecimal.ZERO
+					: totalSpend.divide(BigDecimal.valueOf(bookedRequestCount), 2, RoundingMode.HALF_UP);
+
+			Map<String, Long> ticketStatusBreakdown = new LinkedHashMap<>();
+			for (TravelDeskTicket t : tickets) {
+				ticketStatusBreakdown.merge(displayTicketStatus(t), 1L, Long::sum);
+			}
+			Map<String, Long> stageCountRaw = tickets.stream()
+					.collect(Collectors.groupingBy(
+							t -> t.getWorkflowStage() != null ? t.getWorkflowStage() : "UNKNOWN",
+							Collectors.counting()));
+			LinkedHashMap<String, Long> workflowStageBreakdown = new LinkedHashMap<>();
+			for (String stg : Arrays.asList(TravelDeskTicket.STAGE_PENDING_LEVEL, TravelDeskTicket.STAGE_PENDING_ADMIN,
+					TravelDeskTicket.STAGE_COMPLETED, TravelDeskTicket.STAGE_REJECTED)) {
+				workflowStageBreakdown.put(stg, stageCountRaw.getOrDefault(stg, 0L));
+			}
+			stageCountRaw.entrySet().stream().filter(e -> !workflowStageBreakdown.containsKey(e.getKey()))
+					.sorted(Map.Entry.comparingByKey(String.CASE_INSENSITIVE_ORDER))
+					.forEach(e -> workflowStageBreakdown.put(e.getKey(), e.getValue()));
+
+			Map<String, Map<String, Object>> projectBoard = new LinkedHashMap<>();
+			Map<String, Map<String, Object>> clientBoard = new LinkedHashMap<>();
+			Map<String, Map<String, Object>> employeeBoard = new LinkedHashMap<>();
+			TreeMap<String, BigDecimal> monthlySpend = new TreeMap<>();
+			Set<String> projectsWithSpend = new HashSet<>();
+			Set<String> clientsWithSpend = new HashSet<>();
+			for (TravelDeskTicket t : tickets) {
+				List<TravelDeskTicketLine> scopedLines = linesForDashboardMetrics(t, filter).collect(Collectors.toList());
+				for (TravelDeskTicketLine ln : scopedLines) {
+					String projectName = dashboardProjectLabel(ln);
+					String clientName = dashboardClientLabel(ln);
+					String projectKey = ln.getProjectId() != null ? "P:" + ln.getProjectId() : "PN:" + projectName + "|" + clientName;
+					String clientKey = ln.getClientId() != null ? "C:" + ln.getClientId() : "CN:" + clientName;
+
+					Map<String, Object> projectRow = projectBoard.computeIfAbsent(projectKey, k -> {
+						Map<String, Object> m = new LinkedHashMap<>();
+						m.put("projectId", ln.getProjectId());
+						m.put("projectName", projectName);
+						m.put("clientName", clientName);
+						m.put("label", projectName);
+						m.put("requestCount", 0L);
+						m.put("bookedRequestCount", 0L);
+						m.put("pendingRequestCount", 0L);
+						m.put("rejectedRequestCount", 0L);
+						m.put("requested", BigDecimal.ZERO);
+						return m;
+					});
+					projectRow.put("requestCount", ((Long) projectRow.get("requestCount")) + 1L);
+					if (isBookedDashboardLine(ln)) {
+						projectRow.put("bookedRequestCount", ((Long) projectRow.get("bookedRequestCount")) + 1L);
+						projectRow.put("requested",
+								((BigDecimal) projectRow.get("requested")).add(lineBookingAmountOrZero(ln)));
+					}
+					if (isPendingDashboardLine(ln)) {
+						projectRow.put("pendingRequestCount", ((Long) projectRow.get("pendingRequestCount")) + 1L);
+					}
+					if (isRejectedDashboardLine(ln)) {
+						projectRow.put("rejectedRequestCount", ((Long) projectRow.get("rejectedRequestCount")) + 1L);
+					}
+
+					Map<String, Object> clientRow = clientBoard.computeIfAbsent(clientKey, k -> {
+						Map<String, Object> m = new LinkedHashMap<>();
+						m.put("clientId", ln.getClientId());
+						m.put("clientName", clientName);
+						m.put("label", clientName);
+						m.put("requestCount", 0L);
+						m.put("bookedRequestCount", 0L);
+						m.put("pendingRequestCount", 0L);
+						m.put("rejectedRequestCount", 0L);
+						m.put("requested", BigDecimal.ZERO);
+						return m;
+					});
+					clientRow.put("requestCount", ((Long) clientRow.get("requestCount")) + 1L);
+					if (isBookedDashboardLine(ln)) {
+						clientRow.put("bookedRequestCount", ((Long) clientRow.get("bookedRequestCount")) + 1L);
+						clientRow.put("requested",
+								((BigDecimal) clientRow.get("requested")).add(lineBookingAmountOrZero(ln)));
+					}
+					if (isPendingDashboardLine(ln)) {
+						clientRow.put("pendingRequestCount", ((Long) clientRow.get("pendingRequestCount")) + 1L);
+					}
+					if (isRejectedDashboardLine(ln)) {
+						clientRow.put("rejectedRequestCount", ((Long) clientRow.get("rejectedRequestCount")) + 1L);
+					}
+
+					if (isBookedDashboardLine(ln)) {
+						String empKey = t.getEmpId() != null ? String.valueOf(t.getEmpId()) : String.valueOf(t.getTicketId());
+						Map<String, Object> empRow = employeeBoard.computeIfAbsent(empKey, k -> {
+							Map<String, Object> m = new LinkedHashMap<>();
+							m.put("empId", t.getEmpId());
+							m.put("fullName", StringUtils.hasText(t.getFullName()) ? t.getFullName().trim() : "Employee");
+							m.put("department", StringUtils.hasText(t.getDepartment()) ? t.getDepartment().trim() : "—");
+							m.put("requested", BigDecimal.ZERO);
+							m.put("bookedRequestCount", 0L);
+							return m;
+						});
+						empRow.put("requested", ((BigDecimal) empRow.get("requested")).add(lineBookingAmountOrZero(ln)));
+						empRow.put("bookedRequestCount", ((Long) empRow.get("bookedRequestCount")) + 1L);
+
+						String projectSpendKey = StringUtils.hasText(projectName) ? projectName : projectKey;
+						String clientSpendKey = StringUtils.hasText(clientName) ? clientName : clientKey;
+						projectsWithSpend.add(projectSpendKey);
+						clientsWithSpend.add(clientSpendKey);
+						String monthKey = travelMonthKey(
+								ln.getFulfilledOn() != null ? ln.getFulfilledOn()
+										: (t.getCompletedOn() != null ? t.getCompletedOn() : t.getSubmittedOn()));
+						if (monthKey != null) {
+							monthlySpend.merge(monthKey, lineBookingAmountOrZero(ln), BigDecimal::add);
+						}
+					}
+				}
+			}
+
+			List<Map<String, Object>> projectRows = projectBoard.values().stream().map(this::finalizeTravelSpendRow)
+					.sorted(this::compareTravelSpendRows).collect(Collectors.toList());
+			List<Map<String, Object>> clientRows = clientBoard.values().stream().map(this::finalizeTravelSpendRow)
+					.sorted(this::compareTravelSpendRows).collect(Collectors.toList());
+			List<Map<String, Object>> employeeRows = employeeBoard.values().stream().map(m -> {
+				Map<String, Object> out = new LinkedHashMap<>(m);
+				out.put("totalSpend", out.get("requested"));
+				return out;
+			}).sorted((a, b) -> ((BigDecimal) b.get("requested")).compareTo((BigDecimal) a.get("requested")))
+					.collect(Collectors.toList());
+
+			List<String> monthCategories = new ArrayList<>();
+			List<Double> monthSpend = new ArrayList<>();
+			monthlySpend.forEach((ym, amt) -> {
+				monthCategories.add(formatTravelMonthLabel(ym));
+				monthSpend.add(bigDecimalToDouble(amt));
+			});
+			Map<String, Object> monthlySpendPack = new LinkedHashMap<>();
+			monthlySpendPack.put("categories", monthCategories);
+			monthlySpendPack.put("spend", monthSpend);
+
+			Map<String, Object> dash = new LinkedHashMap<>();
+			dash.put("ticketCount", tickets.size());
+			dash.put("requestCount", lines.size());
+			dash.put("bookedRequestCount", bookedRequestCount);
+			dash.put("rejectedRequestCount", rejectedRequestCount);
+			dash.put("completedTicketCount",
+					tickets.stream().filter(t -> TravelDeskTicket.STAGE_COMPLETED.equals(t.getWorkflowStage())).count());
+			dash.put("pendingAdminTickets",
+					tickets.stream().filter(t -> TravelDeskTicket.STAGE_PENDING_ADMIN.equals(t.getWorkflowStage())).count());
+			dash.put("pendingApprovalTickets",
+					tickets.stream().filter(t -> TravelDeskTicket.STAGE_PENDING_LEVEL.equals(t.getWorkflowStage())).count());
+			dash.put("totalSpend", totalSpend);
+			dash.put("averageSpendPerBookedRequest", avgSpend);
+			dash.put("projectsWithSpend", projectsWithSpend.size());
+			dash.put("clientsWithSpend", clientsWithSpend.size());
+			dash.put("ticketStatusBreakdown", ticketStatusBreakdown);
+			dash.put("workflowStageBreakdown", workflowStageBreakdown);
+			dash.put("projectSpendRows", projectRows);
+			dash.put("clientSpendRows", clientRows);
+			dash.put("employeeSpendRows", employeeRows);
+			dash.put("monthlySpendPack", monthlySpendPack);
+
+			resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			resp.setServiceResponse(dash);
+		} catch (Exception e) {
+			e.printStackTrace();
+			resp.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			resp.setServiceError(e.getMessage());
+		}
+		return resp;
+	}
+
 	@Transactional
 	public ServiceResponse processApprovalAction(TravelDeskTicketStageActionDTO action) {
 		ServiceResponse resp = new ServiceResponse();
@@ -414,6 +618,11 @@ public class TravelDeskTicketService {
 					resp.setServiceError("At least one booking proof document is required for each line.");
 					return resp;
 				}
+				if (f.getBookingAmount() == null || f.getBookingAmount().signum() <= 0) {
+					resp.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					resp.setServiceError("Enter a valid booking amount for each line.");
+					return resp;
+				}
 			}
 			Timestamp fulfilledOn = nowTs();
 			for (TravelLineAdminFulfillmentDTO f : action.getLineFulfillments()) {
@@ -421,6 +630,7 @@ public class TravelDeskTicketService {
 				if (StringUtils.hasText(f.getBookingReference())) {
 					ln.setBookingReference(f.getBookingReference().trim());
 				}
+				ln.setBookingAmount(f.getBookingAmount());
 				ln.setAdminProofDocIds(joinDocIdList(f.getAdminProofDocIds()));
 				ln.setLineStatus(TravelDeskTicketLine.STATUS_FULFILLED);
 				ln.setFulfilledOn(fulfilledOn);
@@ -483,6 +693,171 @@ public class TravelDeskTicketService {
 		default:
 			return t.getWorkflowStage();
 		}
+	}
+
+	private boolean ticketVisibleToDashboardActor(TravelDeskTicket t, TravelDeskDashboardFilterDTO filter) {
+		if (t == null || filter == null) {
+			return true;
+		}
+		BigInteger actorEmpId = filter.getActorEmpId() != null ? BigInteger.valueOf(filter.getActorEmpId()) : null;
+		String actorEmail = filter.getActorEmail();
+		String email = normEmail(actorEmail);
+		if (!StringUtils.hasText(email) && actorEmpId == null) {
+			return true;
+		}
+		if (email.equals(normEmail(workflowAdminMail))) {
+			return true;
+		}
+		if (actorEmpId != null && t.getEmpId() != null && actorEmpId.longValue() == t.getEmpId().longValue()) {
+			return true;
+		}
+		if (matrixWorkflowService.isActorInApprovalChain(t, actorEmpId, actorEmail)) {
+			return true;
+		}
+		return actorEmpId != null && t.getCurrentAssigneeEmpId() != null
+				&& actorEmpId.longValue() == t.getCurrentAssigneeEmpId().longValue();
+	}
+
+	private boolean ticketMatchesDashboardFilters(TravelDeskTicket t, TravelDeskDashboardFilterDTO filter, Timestamp fromTs,
+			Timestamp toTs) {
+		if (t == null) {
+			return false;
+		}
+		if (fromTs != null && (t.getSubmittedOn() == null || t.getSubmittedOn().before(fromTs))) {
+			return false;
+		}
+		if (toTs != null && (t.getSubmittedOn() == null || t.getSubmittedOn().after(toTs))) {
+			return false;
+		}
+		if (filter == null) {
+			return true;
+		}
+		if (StringUtils.hasText(filter.getDepartment())) {
+			String dept = trim(t.getDepartment());
+			if (!StringUtils.hasText(dept) || !dept.equalsIgnoreCase(filter.getDepartment().trim())) {
+				return false;
+			}
+		}
+		if (filter.getEmployeeEmpId() != null) {
+			if (t.getEmpId() == null || filter.getEmployeeEmpId().longValue() != t.getEmpId().longValue()) {
+				return false;
+			}
+		}
+		if (StringUtils.hasText(filter.getTicketStatus())) {
+			String ds = displayTicketStatus(t);
+			if (!filter.getTicketStatus().trim().equalsIgnoreCase(ds)) {
+				return false;
+			}
+		}
+		if (StringUtils.hasText(filter.getWorkflowStage())) {
+			String stage = trim(t.getWorkflowStage());
+			if (!StringUtils.hasText(stage) || !stage.equalsIgnoreCase(filter.getWorkflowStage().trim())) {
+				return false;
+			}
+		}
+		if ((filter.getProjectId() != null || filter.getClientId() != null)
+				&& !linesForDashboardMetrics(t, filter).findAny().isPresent()) {
+			return false;
+		}
+		return true;
+	}
+
+	private Stream<TravelDeskTicketLine> linesForDashboardMetrics(TravelDeskTicket t, TravelDeskDashboardFilterDTO filter) {
+		Stream<TravelDeskTicketLine> stream = (t != null && t.getLines() != null ? t.getLines() : Collections.<TravelDeskTicketLine>emptyList())
+				.stream();
+		if (filter == null) {
+			return stream;
+		}
+		if (filter.getProjectId() != null) {
+			long pid = filter.getProjectId().longValue();
+			stream = stream.filter(ln -> ln.getProjectId() != null && ln.getProjectId().longValue() == pid);
+		}
+		if (filter.getClientId() != null) {
+			int cid = filter.getClientId().intValue();
+			stream = stream.filter(ln -> ln.getClientId() != null && ln.getClientId().intValue() == cid);
+		}
+		return stream;
+	}
+
+	private boolean isBookedDashboardLine(TravelDeskTicketLine ln) {
+		return ln != null && (TravelDeskTicketLine.STATUS_FULFILLED.equals(ln.getLineStatus())
+				|| lineBookingAmountOrZero(ln).compareTo(BigDecimal.ZERO) > 0);
+	}
+
+	private boolean isPendingDashboardLine(TravelDeskTicketLine ln) {
+		if (ln == null || !StringUtils.hasText(ln.getLineStatus())) {
+			return false;
+		}
+		return TravelDeskTicketLine.STATUS_PENDING_APPROVAL.equals(ln.getLineStatus())
+				|| TravelDeskTicketLine.STATUS_PENDING_ADMIN.equals(ln.getLineStatus());
+	}
+
+	private boolean isRejectedDashboardLine(TravelDeskTicketLine ln) {
+		return ln != null && StringUtils.hasText(ln.getLineStatus()) && ln.getLineStatus().contains("REJECTED");
+	}
+
+	private BigDecimal lineBookingAmountOrZero(TravelDeskTicketLine ln) {
+		return ln != null && ln.getBookingAmount() != null ? ln.getBookingAmount() : BigDecimal.ZERO;
+	}
+
+	private String dashboardProjectLabel(TravelDeskTicketLine ln) {
+		String projectName = trim(ln != null ? ln.getProjectName() : null);
+		if (StringUtils.hasText(projectName)) {
+			return projectName;
+		}
+		return ln != null && ln.getProjectId() != null ? ("Project " + ln.getProjectId()) : "Unmapped project";
+	}
+
+	private String dashboardClientLabel(TravelDeskTicketLine ln) {
+		String clientName = trim(ln != null ? ln.getClientName() : null);
+		if (StringUtils.hasText(clientName)) {
+			return clientName;
+		}
+		return ln != null && ln.getClientId() != null ? ("Client " + ln.getClientId()) : "Unmapped client";
+	}
+
+	private Map<String, Object> finalizeTravelSpendRow(Map<String, Object> row) {
+		Map<String, Object> out = new LinkedHashMap<>(row);
+		BigDecimal spend = (BigDecimal) out.get("requested");
+		long booked = (Long) out.get("bookedRequestCount");
+		out.put("totalSpend", spend);
+		out.put("averageSpend",
+				booked == 0 ? BigDecimal.ZERO : spend.divide(BigDecimal.valueOf(booked), 2, RoundingMode.HALF_UP));
+		return out;
+	}
+
+	private int compareTravelSpendRows(Map<String, Object> a, Map<String, Object> b) {
+		BigDecimal aSpend = (BigDecimal) a.get("requested");
+		BigDecimal bSpend = (BigDecimal) b.get("requested");
+		int bySpend = bSpend.compareTo(aSpend);
+		if (bySpend != 0) {
+			return bySpend;
+		}
+		return Long.compare((Long) b.get("requestCount"), (Long) a.get("requestCount"));
+	}
+
+	private String travelMonthKey(Timestamp ts) {
+		if (ts == null) {
+			return null;
+		}
+		LocalDate d = ts.toInstant().atZone(ZoneId.of("Asia/Kolkata")).toLocalDate();
+		return d.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+	}
+
+	private String formatTravelMonthLabel(String yearMonth) {
+		if (!StringUtils.hasText(yearMonth)) {
+			return "—";
+		}
+		try {
+			return LocalDate.parse(yearMonth + "-01", DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+					.format(DateTimeFormatter.ofPattern("MMM yyyy", Locale.ENGLISH));
+		} catch (Exception e) {
+			return yearMonth;
+		}
+	}
+
+	private double bigDecimalToDouble(BigDecimal value) {
+		return value == null ? 0d : value.doubleValue();
 	}
 
 	private void syncLegacyLevelFields(TravelDeskTicket t, Map<String, Object> m,
@@ -570,6 +945,7 @@ public class TravelDeskTicketService {
 		m.put("clientName", ln.getClientName());
 		m.put("approverRemarks", ln.getApproverRemarks());
 		m.put("bookingReference", ln.getBookingReference());
+		m.put("bookingAmount", ln.getBookingAmount());
 		m.put("adminProofDocIds", parseDocIds(ln.getAdminProofDocIds()));
 		m.put("fulfilledOn", ln.getFulfilledOn());
 		m.put("lineStatusDisplay", displayLineStatus(ln.getLineStatus()));

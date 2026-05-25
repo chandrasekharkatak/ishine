@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.model;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 import javax.persistence.Column;
@@ -106,6 +107,9 @@ public class TravelDeskTicketLine {
 
 	@Column(name = "booking_reference")
 	private String bookingReference;
+
+	@Column(name = "booking_amount", precision = 12, scale = 2)
+	private BigDecimal bookingAmount;
 
 	@Column(name = "admin_proof_doc_ids")
 	private String adminProofDocIds;
