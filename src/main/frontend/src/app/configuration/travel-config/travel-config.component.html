@@ -22,11 +22,18 @@
       (click)="hotelSubCategory3()">Hotel-Booking SubCategory </button>
     <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isCityTab}"
       (click)="cityCategory()">Add City </button>
-    <!-- <button type=" button" class="btn btn-outline-primary btn-sm mx-1">Reimbursment-config</button> -->
+    <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isRuleSetTab}"
+      (click)="showRuleSetPanel()">Approval Matrix</button>
   </div>
 </div>
 
-<div class="row" *ngIf="isCategoryTableTab">
+<div class="row" *ngIf="isRuleSetTab">
+  <div class="col-md-12">
+    <app-travel-approval-matrix-config></app-travel-approval-matrix-config>
+  </div>
+</div>
+
+<div class="row" *ngIf="isCategoryTableTab && !isRuleSetTab">
 
   <div class="col-md-12">
 
@@ -123,7 +130,7 @@
 </div>
 
 
-<div class="row" *ngIf="istravelModeTab">
+<div class="row" *ngIf="istravelModeTab && !isRuleSetTab">
 
   <div class="col-md-12">
 
@@ -212,7 +219,7 @@
 
 
 
-<div class="row" *ngIf="isClassTab">
+<div class="row" *ngIf="isClassTab && !isRuleSetTab">
 
   <div class="col-md-12">
 
@@ -302,7 +309,7 @@
 </div>
 
 
-<div class="row" *ngIf="isHotelCategoryTab">
+<div class="row" *ngIf="isHotelCategoryTab && !isRuleSetTab">
 
   <div class="col-md-12">
 
@@ -391,7 +398,7 @@
   </div>
 </div>
 
-<div class="row" *ngIf="isHotelSubCategoryTab">
+<div class="row" *ngIf="isHotelSubCategoryTab && !isRuleSetTab">
 
   <div class="col-md-12">
 
@@ -478,7 +485,7 @@
   </div>
 </div>
 
-<div class="row" *ngIf="isCityTab">
+<div class="row" *ngIf="isCityTab && !isRuleSetTab">
 
   <div class="col-md-12">
 

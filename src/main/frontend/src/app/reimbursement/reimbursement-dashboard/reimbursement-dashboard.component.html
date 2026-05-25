@@ -189,6 +189,9 @@
       <a class="nav-link" [class.active]="activeTab === 'deptTrend'" href="#" (click)="setTab('deptTrend'); $event.preventDefault()">Department-based analysis</a>
     </li>
     <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'travelDesk'" href="#" (click)="setTab('travelDesk'); $event.preventDefault()">Travel Desk Analytics</a>
+    </li>
+    <li class="nav-item">
       <a class="nav-link" [class.active]="activeTab === 'employee'" href="#" (click)="setTab('employee'); $event.preventDefault()">Employee analytics</a>
     </li>
     <li class="nav-item">
@@ -947,6 +950,174 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Travel Desk analytics -->
+    <div [style.display]="activeTab === 'travelDesk' ? 'block' : 'none'">
+      <p class="text-muted small mb-3">
+        Travel Desk spend analytics by <strong>project</strong> and <strong>client</strong> using booked request amounts from Travel Desk.
+        This tab follows date, department, employee, client, project, display status and workflow stage filters. Claim type filter is ignored here.
+      </p>
+
+      <div class="alert alert-warning py-2 px-3 mb-3" *ngIf="travelDeskLoadError">
+        {{ travelDeskLoadError }}
+      </div>
+
+      <ng-container *ngIf="travelDeskDashboard && !travelDeskLoadError; else noTravelDeskAnalytics">
+        <div class="row mb-3">
+          <div class="col-md-3 col-6 mb-2" *ngFor="let kpi of travelDeskKpiRow1()">
+            <div class="rmb-dash__kpi">
+              <div class="rmb-dash__kpi-label">{{ kpi.l }}</div>
+              <div class="rmb-dash__kpi-value" [ngClass]="kpi.vc">{{ kpi.v }}</div>
+              <div class="rmb-dash__kpi-sub" [ngClass]="kpi.sc || 'text-muted'" *ngIf="kpi.s">{{ kpi.s }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-3 col-6 mb-2" *ngFor="let kpi of travelDeskKpiRow2()">
+            <div class="rmb-dash__kpi">
+              <div class="rmb-dash__kpi-label">{{ kpi.l }}</div>
+              <div class="rmb-dash__kpi-value" [ngClass]="kpi.vc">{{ kpi.v }}</div>
+              <div class="rmb-dash__kpi-sub" [ngClass]="kpi.sc || 'text-muted'" *ngIf="kpi.s">{{ kpi.s }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-8 mb-3">
+            <div class="rmb-dash__chart-card">
+              <div class="rmb-dash__chart-title">Monthly travel spend</div>
+              <div class="rmb-dash__chart-sub text-muted">Booked request amounts grouped by booking month</div>
+              <div id="rmbDashTravelSpendTrend" class="rmb-dash__chart-host rmb-dash__chart-host--insight-line"></div>
+            </div>
+          </div>
+          <div class="col-lg-4 mb-3">
+            <div class="rmb-dash__chart-card">
+              <div class="rmb-dash__chart-title">Ticket status distribution</div>
+              <div class="rmb-dash__chart-sub text-muted text-center font-weight-bold mb-1">{{ formatNumber(travelDeskDashboard.ticketCount) }} total tickets</div>
+              <div id="rmbDashTravelTicketDonut" class="rmb-dash__chart-host"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-6 mb-3">
+            <div class="rmb-dash__chart-card">
+              <div class="rmb-dash__chart-title">Top 10 projects by travel spend</div>
+              <div class="rmb-dash__chart-sub text-muted">Booked amount aggregated per project</div>
+              <div id="rmbDashTravelProjectTop" class="rmb-dash__chart-host"></div>
+            </div>
+          </div>
+          <div class="col-lg-6 mb-3">
+            <div class="rmb-dash__chart-card">
+              <div class="rmb-dash__chart-title">Top 10 clients by travel spend</div>
+              <div class="rmb-dash__chart-sub text-muted">Booked amount aggregated per client</div>
+              <div id="rmbDashTravelClientTop" class="rmb-dash__chart-host"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-6 mb-3">
+            <div class="rmb-dash__chart-card">
+              <div class="rmb-dash__chart-title">Top 10 employees by travel spend</div>
+              <div class="rmb-dash__chart-sub text-muted">Booked amount by employee in current scope</div>
+              <div id="rmbDashTravelTopEmp" class="rmb-dash__chart-host"></div>
+            </div>
+          </div>
+          <div class="col-lg-6 mb-3">
+            <div class="rmb-dash__chart-card h-100">
+              <div class="rmb-dash__chart-title">Workflow stage summary</div>
+              <div class="rmb-dash__chart-sub text-muted">Ticket counts by current workflow stage</div>
+              <div class="table-responsive" *ngIf="travelWorkflowStageRows().length; else noTravelStages">
+                <table class="table table-sm rmb-dash__mini-table mb-0">
+                  <thead>
+                    <tr>
+                      <th>Stage</th>
+                      <th class="text-right">Tickets</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of travelWorkflowStageRows()">
+                      <td><code class="small">{{ row.stage }}</code></td>
+                      <td class="text-right font-weight-bold">{{ formatNumber(row.count) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <ng-template #noTravelStages>
+                <p class="text-muted small mb-0">No tickets in the current travel scope.</p>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-8 mb-3">
+            <div class="rmb-dash__chart-card">
+              <div class="rmb-dash__chart-title">Project spend breakdown</div>
+              <div class="rmb-dash__chart-sub text-muted">Shows each project, mapped client, request count and total travel spend</div>
+              <div class="table-responsive" *ngIf="travelDeskDashboard.projectSpendRows?.length; else noTravelProjects">
+                <table class="table table-sm rmb-dash__table mb-0">
+                  <thead>
+                    <tr>
+                      <th>Project</th>
+                      <th>Client</th>
+                      <th class="text-center">Requests</th>
+                      <th class="text-center">Booked</th>
+                      <th class="text-right">Total Spend</th>
+                      <th class="text-right">Avg / Booked Request</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of travelProjectSpendRows(15)">
+                      <td>{{ row.projectName }}</td>
+                      <td>{{ row.clientName }}</td>
+                      <td class="text-center">{{ formatNumber(row.requestCount) }}</td>
+                      <td class="text-center">{{ formatNumber(row.bookedRequestCount) }}</td>
+                      <td class="text-right">₹{{ formatRupee(row.totalSpend) }}</td>
+                      <td class="text-right">₹{{ formatRupee(row.averageSpend) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <ng-template #noTravelProjects>
+                <p class="text-muted small mb-0">No project spend found for the current filters.</p>
+              </ng-template>
+            </div>
+          </div>
+          <div class="col-lg-4 mb-3">
+            <div class="rmb-dash__chart-card h-100">
+              <div class="rmb-dash__chart-title">Client spend breakdown</div>
+              <div class="rmb-dash__chart-sub text-muted">Booked spend rolled up per client</div>
+              <div class="table-responsive" *ngIf="travelDeskDashboard.clientSpendRows?.length; else noTravelClients">
+                <table class="table table-sm rmb-dash__mini-table mb-0">
+                  <thead>
+                    <tr>
+                      <th>Client</th>
+                      <th class="text-right">Spend</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of travelClientSpendRows(12)">
+                      <td>{{ row.clientName }}</td>
+                      <td class="text-right font-weight-bold">₹{{ formatRupee(row.totalSpend) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <ng-template #noTravelClients>
+                <p class="text-muted small mb-0">No client spend found for the current filters.</p>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #noTravelDeskAnalytics>
+        <div class="rmb-dash__chart-card" *ngIf="!travelDeskLoadError">
+          <p class="text-muted small mb-0">No Travel Desk analytics data is available for the current filters.</p>
+        </div>
+      </ng-template>
     </div>
 
     <!-- Employee -->

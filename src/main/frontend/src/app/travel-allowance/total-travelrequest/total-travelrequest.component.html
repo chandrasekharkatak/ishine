@@ -1,8 +1,8 @@
-<div class="row">
+<div class="row trv-page">
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
-              <h1 class="table-header-title">Overall Travel Request</h1>
+              <h1 class="table-header-title mb-0">Overall Travel Request</h1>
           
               
               <div class="d-flex align-items-center justify-content-between mt-3">
@@ -42,7 +42,7 @@
                     <table class="table table-bordered table-hover text-center" id='travel'>
                         <thead class="thead-dark">
                             <tr>
-                                <th scope="col" class="info-label">Reference Id</th>
+                                <th scope="col" class="info-label">Reference ID</th>
                                 <th scope="col" class="info-label">Name</th>
                                 <th scope="col" class="info-label">Request Type</th>
                                 <th scope="col" class="info-label">From Date</th>
@@ -61,7 +61,7 @@
                                 <th scope="col" class="info-label">Level 2 Approver Name</th>
                                 <th scope="col" class="info-label">Level 2 Approver Status</th>
                                 <th scope="col" class="info-label">Preview Documents</th>
-                                <th scope="col" class="info-label"> View Kyc Document</th>
+                                <th scope="col" class="info-label">View KYC Document</th>
                                 <th scope="col" class="info-label">Ticket Upload Status</th>
                                 <th scope="col" class="info-label" *ngIf="this.currentUser.departmentName === 'Admin'">Action</th>
                             </tr>
@@ -70,7 +70,7 @@
                         </thead>
                         <tbody>
                             <tr *ngIf="travelRequests.length == 0 || (travelRequests | colFilter:filters: false).length == 0">
-                                <th colspan="12" class="text-center info-label">No details to display...</th>
+                                <td colspan="12" class="text-center text-muted py-4">No details to display.</td>
                               </tr>
                             <tr
                                 *ngFor="let row of travelRequests |colFilter:filters:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">

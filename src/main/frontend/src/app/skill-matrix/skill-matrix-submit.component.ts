@@ -187,6 +187,7 @@ export class SkillMatrixSubmitComponent implements OnInit {
   requiredPickIds: number[] = [];
   optionalPickIds: number[] = [];
   customSkillPicks: SubmitPickSkill[] = [];
+  pendingCustomSkillRequests: { requestId: number; skillName: string; status: string }[] = [];
 
   categoryOptions: SubmitCategoryRow[] = [];
   selectedCategoryId: number | null = null;
@@ -1250,18 +1251,33 @@ export class SkillMatrixSubmitComponent implements OnInit {
       .subscribe({
         next: (res: any) => {
           if (res?.serviceStatus === 'Success' && res.serviceResponse) {
-            const row = this.mapApiToPickSkill(res.serviceResponse);
-            this.customSkillPicks = [...this.customSkillPicks, row];
-            this.mergeIntoOptionalPool(row);
+            const requestId = Number(res.serviceResponse?.requestId || 0);
+            const requestedSkillName = String(res.serviceResponse?.skillName || name).trim();
+            if (requestId > 0) {
+              this.pendingCustomSkillRequests = [
+                {
+                  requestId,
+                  skillName: requestedSkillName,
+                  status: String(res.serviceResponse?.status || 'pending')
+                },
+                ...this.pendingCustomSkillRequests.filter((r) => r.requestId !== requestId)
+              ];
+            }
             this.customSkillName = '';
+            this.selectedCategoryId = null;
             this.skillProposeError = null;
+            Swal.fire({
+              icon: 'success',
+              title: 'Sent for HOD approval',
+              text: `${requestedSkillName} has been submitted for HOD approval. It will be added to the skill list only after approval and Required/Optional selection.`
+            });
           } else {
             this.skillProposeError =
-              typeof res?.serviceResponse === 'string' ? res.serviceResponse : 'Could not add skill.';
+              typeof res?.serviceResponse === 'string' ? res.serviceResponse : 'Could not submit skill request.';
           }
         },
         error: () => {
-          this.skillProposeError = 'Could not add skill.';
+          this.skillProposeError = 'Could not submit skill request.';
         }
       });
   }
@@ -1283,6 +1299,109 @@ export class SkillMatrixSubmitComponent implements OnInit {
     );
   }
 
+  private validateStepBeforeLeaving(step: number): string | null {
+    switch (step) {
+      case 2:
+        if (this.selectedDept && this.requiredPickIds.length === 0) {
+          return 'Select at least one required skill, or ask your administrator to configure Required skills for your department.';
+        }
+        return null;
+      case 3:
+        return this.validateSkillRatingsStep();
+      case 4:
+        return this.validateProjectExperienceStep();
+      case 5:
+        return this.validateAspirationsStep();
+      default:
+        return null;
+    }
+  }
+
+  private validateSkillRatingsStep(): string | null {
+    for (let i = 0; i < this.allSkillNames.length; i++) {
+      const skillName = this.allSkillNames[i];
+      if (!this.ratings[i]) {
+        this.expandedSkill.add(i);
+        return `Step 3: select proficiency level for ${skillName}.`;
+      }
+      if (!String(this.yearsExperience[i] || '').trim()) {
+        this.expandedSkill.add(i);
+        return `Step 3: select years of experience for ${skillName}.`;
+      }
+      if (!String(this.whatCanDo[i] || '').trim()) {
+        this.expandedSkill.add(i);
+        return `Step 3: fill "What specifically can you do with this skill?" for ${skillName}.`;
+      }
+      if (this.isCertOn(i)) {
+        if (!String(this.certName[i] || '').trim()) {
+          this.expandedSkill.add(i);
+          return `Step 3: enter certification name for ${skillName}, or turn off Certification.`;
+        }
+        if (!String(this.certIssuingBody[i] || '').trim()) {
+          this.expandedSkill.add(i);
+          return `Step 3: enter issuing body for ${skillName}, or turn off Certification.`;
+        }
+        if (!String(this.certDateObtained[i] || '').trim()) {
+          this.expandedSkill.add(i);
+          return `Step 3: enter date obtained for ${skillName}, or turn off Certification.`;
+        }
+      }
+    }
+    return null;
+  }
+
+  private validateProjectExperienceStep(): string | null {
+    const selectedProjects = this.projectOpen
+      .map((isOpen, index) => ({ isOpen, index }))
+      .filter((row) => row.isOpen);
+
+    for (const { index } of selectedProjects) {
+      const project = this.allProjects[index];
+      const projectName = String(project?.projectName || `Project ${index + 1}`).trim();
+      if (!String(this.projRole[index] || '').trim()) {
+        return `Step 4: enter your role for ${projectName}.`;
+      }
+      if (!String(this.projSummary[index] || '').trim()) {
+        return `Step 4: fill "What did you build / contribute?" for ${projectName}.`;
+      }
+      const rows = this.rowsForProject(index) || [];
+      const usedRows = rows.filter((row) => String(row?.skill || '').trim() || String(row?.contrib || '').trim());
+      if (usedRows.length === 0) {
+        return `Step 4: add at least one skill row for ${projectName}.`;
+      }
+      for (const row of usedRows) {
+        if (!String(row?.skill || '').trim()) {
+          return `Step 4: select a skill in "Skills applied" for ${projectName}.`;
+        }
+        if (!String(row?.contrib || '').trim()) {
+          return `Step 4: fill contribution for skill ${row.skill} in ${projectName}.`;
+        }
+      }
+      if (this.projDomainSpecific[index]) {
+        if (!this.projDomainId[index]) {
+          return `Step 4: select domain for ${projectName}.`;
+        }
+        if (this.projectSubdomainRowVisible(index) && !this.projSubdomainId[index]) {
+          return `Step 4: select sub domain for ${projectName}.`;
+        }
+        if (this.projectFeatureRowVisible(index) && !this.projFeatureId[index]) {
+          return `Step 4: select domain feature for ${projectName}.`;
+        }
+      }
+    }
+    return null;
+  }
+
+  private validateAspirationsStep(): string | null {
+    if (this.isAddSkillsMode) {
+      return null;
+    }
+    if (!String(this.goalRole || '').trim()) {
+      return 'Step 5: enter your target role in 2 years.';
+    }
+    return null;
+  }
+
   go(step: number): void {
     this.stepError = null;
     if (step === 2 && !this.selectedDept) {
@@ -1302,6 +1421,15 @@ export class SkillMatrixSubmitComponent implements OnInit {
     if (step >= 3 && step <= 6 && this.allSkillNames.length === 0) {
       this.stepError = 'No skills are available to rate. Go back to step 2 or reload the page.';
       return;
+    }
+    if (step > this.curStep) {
+      for (let fromStep = this.curStep; fromStep < step; fromStep++) {
+        const validationError = this.validateStepBeforeLeaving(fromStep);
+        if (validationError) {
+          this.stepError = validationError;
+          return;
+        }
+      }
     }
     if (step === 3 && this.selectedDept) {
       this.expandedSkill.clear();
@@ -2387,6 +2515,18 @@ export class SkillMatrixSubmitComponent implements OnInit {
   }
 
   submit(): void {
+    this.stepError = null;
+    for (const step of [2, 3, 4, 5]) {
+      const validationError = this.validateStepBeforeLeaving(step);
+      if (validationError) {
+        this.curStep = step;
+        this.stepError = validationError;
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        return;
+      }
+    }
     // Always persist latest on-screen changes before final submit.
     this.draftSaving = true;
     this.draftError = null;

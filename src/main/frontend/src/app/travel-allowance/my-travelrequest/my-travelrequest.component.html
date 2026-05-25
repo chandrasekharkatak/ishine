@@ -1,294 +1,644 @@
-<div class="row trv-page">
-    <div class="col-12">
-        <div class="card trv-card border-0 shadow">
-            <div class="card-header trv-card-header border-0">
-                <div class="trv-header-inner">
-                    <div class="trv-header-icon-wrap" aria-hidden="true">
-                        <i class="fa fa-plane"></i>
-                    </div>
-                    <div>
-                        <h1 class="trv-title mb-1">Create travel request</h1>
-                        <p class="trv-subtitle mb-0">
-                            Submit your travel or hotel booking request for manager approval. Fields marked with
-                            <span class="trv-req-inline">*</span> are required.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card-body trv-card-body">
-                <section class="trv-section trv-section--profile mb-4">
-                    <div class="trv-section-head">
-                        <h2 class="trv-section-title"><i class="fa fa-id-card-o mr-2" aria-hidden="true"></i>Your details</h2>
-                        <span class="trv-badge trv-badge--muted">Read-only</span>
-                    </div>
-                    <p class="trv-section-hint">Synced from your employee profile. Contact HR if anything needs updating.</p>
-                    <div class="row">
-                        <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="trv-label"><span class="trv-req">*</span>Full name</label>
-                            <input type="text" class="form-control trv-control trv-control--readonly" name="fullName"
-                                [(ngModel)]="currentEmployeeInfo.name" disabled />
-                        </div>
-                        <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="trv-label"><span class="trv-req">*</span>Employee ID</label>
-                            <input type="text" class="form-control trv-control trv-control--readonly" name="employeeId"
-                                [(ngModel)]="currentEmployeeInfo.employeementId" disabled />
-                        </div>
-                        <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="trv-label"><span class="trv-req">*</span>Department</label>
-                            <input type="text" class="form-control trv-control trv-control--readonly" name="departmentName"
-                                [(ngModel)]="currentEmployeeInfo.departmentName" disabled />
-                        </div>
-                        <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="trv-label"><span class="trv-req">*</span>Designation</label>
-                            <input type="text" class="form-control trv-control trv-control--readonly" name="designationName"
-                                [(ngModel)]="currentEmployeeInfo.designationName" disabled />
-                        </div>
-                        <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="trv-label"><span class="trv-req">*</span>Mail ID</label>
-                            <input type="text" class="form-control trv-control trv-control--readonly" name="email"
-                                [(ngModel)]="currentEmployeeInfo.email" disabled />
-                        </div>
-                        <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="trv-label"><span class="trv-req">*</span>Mobile no.</label>
-                            <input type="text" class="form-control trv-control trv-control--readonly" name="mobileNo"
-                                [(ngModel)]="currentEmployeeInfo.mobileNo" disabled />
-                        </div>
-                        <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="trv-label"><span class="trv-req">*</span>Manager name</label>
-                            <input type="text" class="form-control trv-control trv-control--readonly" name="managerName"
-                                [(ngModel)]="currentEmployeeInfo.managerName" disabled />
-                        </div>
-                    </div>
-                </section>
-
-                <section class="trv-section trv-section--project mb-4">
-                    <div class="trv-section-head">
-                        <h2 class="trv-section-title"><i class="fa fa-briefcase mr-2" aria-hidden="true"></i>Project &amp; client</h2>
-                        <span class="trv-badge trv-badge--accent">Required</span>
-                    </div>
-                    <p class="trv-section-hint">{{ projectSectionHint() }}</p>
-                    <div class="row">
-                        <div class="col-md-6 col-lg-4 mb-3">
-                            <label class="trv-label" for="travelProject"><span class="trv-req">*</span>Project</label>
-                            <div class="trv-project-field-row">
-                                <div id="travelProject" class="trv-select-wrap"
-                                    [class.trv-select-wrap--disabled]="!mappedProjectsForTravel.length">
-                                    <app-my-select name="travelProject" [placeholder]="'Search and select project'"
-                                        [options]="mappedProjectsForTravel" [displayKey]="['projectName', 'clientName']"
-                                        displaySeparator=" — " valueKey="projectId" [wrapOptionLines]="true"
-                                        [(ngModel)]="travelDeskObj.projectId"
-                                        (selectionChange)="onTravelProjectSelected($event)"
-                                        [disabled]="!mappedProjectsForTravel.length">
-                                    </app-my-select>
-                                </div>
-                                <button *ngIf="mappedProjectsForTravel.length && travelDeskObj.projectId != null && travelDeskObj.projectId !== ''"
-                                    type="button" class="trv-project-clear-btn" (click)="clearSelectedProject()"
-                                    title="Clear project" aria-label="Clear selected project">
-                                    <i class="fa fa-times-circle" aria-hidden="true"></i>
-                                </button>
-                            </div>
-                            <p class="trv-field-hint mb-0" *ngIf="!mappedProjectsForTravel.length">{{ emptyProjectPickerHint() }}</p>
-                        </div>
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="showReadonlyClientForProject()">
-                            <label class="trv-label" for="travelReadonlyClient">Client</label>
-                            <input id="travelReadonlyClient" type="text" class="form-control trv-control trv-control--readonly"
-                                [value]="travelDeskObj.displayClientName || '—'" disabled readonly />
-                        </div>
-                    </div>
-                    <div class="row trv-others-panel" *ngIf="isOthersProjectSelected()">
-                        <div class="col-md-6 mb-3">
-                            <label class="trv-label" for="travelOthersProjectName"><span class="trv-req">*</span>Project name (Others)</label>
-                            <input id="travelOthersProjectName" class="form-control trv-control" type="text"
-                                [(ngModel)]="travelDeskObj.othersProjectName" maxlength="500" name="othersProjectName"
-                                placeholder="Enter project name" autocomplete="off" />
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="trv-label" for="travelOthersClient"><span class="trv-req">*</span>Client</label>
-                            <div class="trv-project-field-row">
-                                <div id="travelOthersClient" class="trv-select-wrap"
-                                    [class.trv-select-wrap--disabled]="!clientsForOthers.length">
-                                    <app-my-select name="travelOthersClientSelect"
-                                        [placeholder]="'Search and select client'" [options]="clientsForOthers"
-                                        displayKey="clientName" valueKey="clientId" [wrapOptionLines]="true"
-                                        [(ngModel)]="travelDeskObj.othersClientId" [disabled]="!clientsForOthers.length">
-                                    </app-my-select>
-                                </div>
-                                <button *ngIf="clientsForOthers.length && travelDeskObj.othersClientId != null && travelDeskObj.othersClientId !== ''"
-                                    type="button" class="trv-project-clear-btn" (click)="clearOthersClient()"
-                                    title="Clear client" aria-label="Clear selected client">
-                                    <i class="fa fa-times-circle" aria-hidden="true"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="trv-section trv-section--travel mb-4">
-                    <div class="trv-section-head">
-                        <h2 class="trv-section-title"><i class="fa fa-route mr-2" aria-hidden="true"></i>Travel details</h2>
-                    </div>
-                    <p class="trv-section-hint">Choose reason and mode. For hotel stays, pick category, sub-category, and city.</p>
-                    <div class="row">
-                        <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="trv-label" for="travelReason"><span class="trv-req">*</span>Reason for travel</label>
-                            <div class="trv-select-wrap">
-                                <app-my-select name="travelReason" [placeholder]="'Search and select reason'"
-                                    [options]="travelReasonlist" displayKey="travelReasonName" valueKey="travelReasonName"
-                                    [wrapOptionLines]="true" [(ngModel)]="travelDeskObj.associatedTravelRequest"
-                                    (selectionChange)="onTravelReasonSelected($event)" [disabled]="!travelReasonlist.length">
-                                </app-my-select>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="travelDeskObj.associatedTravelRequest === 'Hotel & Lodging'">
-                            <label class="trv-label"><span class="trv-req">*</span>Hotel category</label>
-                            <select class="form-control trv-control" [(ngModel)]="travelDeskObj.hotelCategory" name="hotelCategory" required>
-                                <option value="" disabled>Select category</option>
-                                <option *ngFor="let category of hotelCategorylist" [value]="category.hotelCategoryName">
-                                    {{ category.hotelCategory }}
-                                </option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="travelDeskObj.associatedTravelRequest === 'Hotel & Lodging'">
-                            <label class="trv-label"><span class="trv-req">*</span>Sub category</label>
-                            <select class="form-control trv-control" [(ngModel)]="travelDeskObj.tlSubCategory" name="tlSubCategory"
-                                required (change)="onSubCategoryChanges(travelDeskObj.tlSubCategory)">
-                                <option value="" disabled>Select sub category</option>
-                                <option *ngFor="let sub of hotelSubCategorylist" [value]="sub.hotelSubCategoryName">
-                                    {{ sub.hotelSubCategoryName }}
-                                </option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 col-lg-3 mb-3"
-                            *ngIf="travelDeskObj.tlSubCategory && travelDeskObj.associatedTravelRequest === 'Hotel & Lodging'">
-                            <label class="trv-label"><span class="trv-req">*</span>City</label>
-                            <select class="form-control trv-control" [(ngModel)]="travelDeskObj.selectedCity" name="selectedCity" required>
-                                <option value="" disabled>Select city</option>
-                                <option *ngFor="let city of citylistBySubCategory" [value]="city.cityName">{{ city.cityName }}</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="travelDeskObj.associatedTravelRequest !== 'Hotel & Lodging'">
-                            <label class="trv-label" for="travelMode"><span class="trv-req">*</span>Travel mode</label>
-                            <div class="trv-select-wrap" [class.trv-select-wrap--disabled]="!travelModelistByReason.length">
-                                <app-my-select name="travelMode" [placeholder]="'Search and select travel mode'"
-                                    [options]="travelModelistByReason" displayKey="modeType" valueKey="modeType"
-                                    [wrapOptionLines]="true" [(ngModel)]="travelDeskObj.travelMode"
-                                    (selectionChange)="onTravelModeSelected($event)"
-                                    [disabled]="!travelModelistByReason.length">
-                                </app-my-select>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="travelDeskObj.associatedTravelRequest !== 'Hotel & Lodging'">
-                            <label class="trv-label" for="travelClass"><span class="trv-req">*</span>Travel class</label>
-                            <div class="trv-select-wrap" [class.trv-select-wrap--disabled]="!travelClasslistByReason.length">
-                                <app-my-select name="travelClass" [placeholder]="'Search and select travel class'"
-                                    [options]="travelClasslistByReason" displayKey="travelClass" valueKey="travelClass"
-                                    [wrapOptionLines]="true" [(ngModel)]="travelDeskObj.travelClass"
-                                    [disabled]="!travelClasslistByReason.length">
-                                </app-my-select>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="travelDeskObj.associatedTravelRequest !== 'Hotel & Lodging'">
-                            <label class="trv-label"><span class="trv-req">*</span>From location</label>
-                            <input type="text" class="form-control trv-control" [(ngModel)]="travelDeskObj.fromLocation"
-                                name="fromLocation" placeholder="Origin city / station" required />
-                        </div>
-
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="travelDeskObj.associatedTravelRequest !== 'Hotel & Lodging'">
-                            <label class="trv-label"><span class="trv-req">*</span>To location</label>
-                            <input type="text" class="form-control trv-control" [(ngModel)]="travelDeskObj.toLocation"
-                                name="toLocation" placeholder="Destination city / station" required />
-                        </div>
-                    </div>
-                </section>
-
-                <section class="trv-section trv-section--docs mb-2">
-                    <div class="trv-section-head">
-                        <h2 class="trv-section-title"><i class="fa fa-calendar-check-o mr-2" aria-hidden="true"></i>Dates, purpose &amp; documents</h2>
-                    </div>
-                    <p class="trv-section-hint">Attach KYC and supporting bills. You can add up to six GST / bill attachments.</p>
-                    <div class="row">
-                        <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="trv-label" for="fromDate"><span class="trv-req">*</span>From date</label>
-                            <input class="form-control trv-control" [(ngModel)]="travelDeskObj.fromDate" id="fromDate" type="date"
-                                [min]="todayDate" [max]="maxTravelRequestDate" autocomplete="off" />
-                        </div>
-                        <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="trv-label" for="toDate"><span class="trv-req">*</span>To date</label>
-                            <input class="form-control trv-control" [(ngModel)]="travelDeskObj.toDate" id="toDate" type="date"
-                                [min]="travelDeskObj.fromDate" [disabled]="!travelDeskObj.fromDate" autocomplete="off" />
-                        </div>
-                        <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="trv-label"><span class="trv-req">*</span>KYC document</label>
-                            <input type="file" class="form-control trv-control trv-file-input"
-                                (change)="onFileSelected($event, alert_message3)" />
-                        </div>
-                        <div class="col-12 col-lg-6 mb-3">
-                            <label class="trv-label" for="purposeOfTravel"><span class="trv-req">*</span>Purpose of travel</label>
-                            <textarea class="form-control trv-control trv-textarea" id="purposeOfTravel" rows="3"
-                                [(ngModel)]="travelDeskObj.purposeOfTravel" name="purposeOfTravel"
-                                placeholder="Describe the business purpose for approvers…"></textarea>
-                        </div>
-
-                        <div class="col-12 col-md-6 mb-3" *ngFor="let file of fileUploads; let i = index">
-                            <label class="trv-label" [for]="'fileUpload' + i">
-                                Document / GST bill {{ i + 1 }}
-                            </label>
-                            <div class="trv-file-row">
-                                <input type="file" class="form-control trv-control trv-file-input" [id]="'fileUpload' + i"
-                                    (change)="onFileChange1($event, i, alert_message)" />
-                                <button type="button" class="btn trv-btn-circle" (click)="addInputSpecializationField()"
-                                    [hidden]="fileUploads.length >= 6" [disabled]="!fileUploads[i]?.file || fileUploads.length >= 6"
-                                    title="Add another file slot">
-                                    <i class="fa fa-plus" aria-hidden="true"></i>
-                                </button>
-                                <button *ngIf="i > 0" type="button" class="btn trv-btn-circle trv-btn-circle--danger"
-                                    (click)="removeInputSpecializationField(i)" title="Remove slot">
-                                    <i class="fa fa-trash" aria-hidden="true"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <div class="trv-actions">
-                    <div class="trv-actions-inner">
-                        <button type="button" class="btn trv-btn trv-btn--ghost" (click)="resetForm(alert_message)">
-                            <i class="fa fa-undo" aria-hidden="true"></i><span>Reset</span>
-                        </button>
-                        <button type="button" class="btn trv-btn trv-btn--primary" (click)="submitForm(alert_messagevalidation)">
-                            <i class="fa fa-paper-plane" aria-hidden="true"></i><span>Submit request</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="trv-page trv-booking-page">
+  <section class="trv-hero" aria-label="Create travel request">
+    <div class="trv-hero__overlay"></div>
+    <div class="trv-hero__content">
+      <h1 class="trv-hero__title">Your Travel, Your Way</h1>
     </div>
+  </section>
+
+  <div class="trv-planner-shell">
+    <div class="trv-planner-card">
+      <!-- Travel | Hotels (Darwinbox-style service tabs) -->
+      <div class="trv-service-tabs" role="tablist" aria-label="Booking type">
+        <button
+          type="button"
+          class="trv-service-tab"
+          role="tab"
+          [class.trv-service-tab--active]="bookingTypeTab === 'travel'"
+          [attr.aria-selected]="bookingTypeTab === 'travel'"
+          (click)="selectBookingTab('travel')">
+          <i class="fa fa-plane" aria-hidden="true"></i>
+          <span>Travel</span>
+        </button>
+        <button
+          type="button"
+          class="trv-service-tab"
+          role="tab"
+          [class.trv-service-tab--active]="bookingTypeTab === 'hotel'"
+          [attr.aria-selected]="bookingTypeTab === 'hotel'"
+          (click)="selectBookingTab('hotel')">
+          <i class="fa fa-bed" aria-hidden="true"></i>
+          <span>Hotels</span>
+        </button>
+      </div>
+
+      <p class="trv-policy-banner" role="note">
+        <i class="fa fa-info-circle" aria-hidden="true"></i>
+        {{ policyAdvanceHint }}
+      </p>
+
+      <!-- Trip type (travel only, step 1) -->
+      <div class="trv-widget-toolbar" *ngIf="bookingTypeTab === 'travel' && !isPlannerDetailsVisible()">
+        <div class="trv-trip-type" role="radiogroup" aria-label="Trip type">
+          <label class="trv-trip-type__option">
+            <input type="radio" name="tripType" value="oneway" [checked]="tripType === 'oneway'"
+              (change)="setTripType('oneway')" />
+            <span>One Way</span>
+          </label>
+          <label class="trv-trip-type__option">
+            <input type="radio" name="tripType" value="round" [checked]="tripType === 'round'"
+              (change)="setTripType('round')" />
+            <span>Round Trip</span>
+          </label>
+          <label class="trv-trip-type__option">
+            <input type="radio" name="tripType" value="multicity" [checked]="tripType === 'multicity'"
+              (change)="setTripType('multicity')" />
+            <span>Multi-city</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="trv-planner-body">
+        <!-- Multi-city: one row per flight leg -->
+        <div class="trv-multicity" *ngIf="isMultiCityTravelPlanner() && !isPlannerDetailsVisible()">
+          <p class="trv-multicity__intro mb-2">
+            Enter each flight segment in the order you will travel, with departure city, destination, and date.
+          </p>
+          <div class="trv-multicity-leg" *ngFor="let leg of multiCityLegs; let li = index">
+            <div class="trv-multicity-leg__head">
+              <span class="trv-multicity-leg__badge">City {{ li + 1 }}</span>
+              <button
+                type="button"
+                class="btn btn-link btn-sm text-danger p-0"
+                *ngIf="multiCityLegs.length > 2"
+                (click)="removeMultiCityLeg(li)"
+                [attr.aria-label]="'Remove city ' + (li + 1)">
+                Remove
+              </button>
+            </div>
+            <div class="trv-route-boxes__main trv-multicity-leg__fields">
+              <div class="trv-field-box" [class.trv-field-box--suggestions-open]="showCitySuggestions('mc-from', li)">
+                <label class="trv-field-box__label">From <span class="trv-req">*</span></label>
+                <input type="text" class="trv-field-box__input" [(ngModel)]="leg.fromLocation"
+                  [name]="'mcFrom' + li" placeholder="Departure city" autocomplete="off"
+                  (focus)="onCityInputFocus('mc-from', li)" (input)="onCityInputChange('mc-from', li)"
+                  (blur)="onCityInputBlur()" />
+                <div class="trv-city-suggestions" *ngIf="showCitySuggestions('mc-from', li)">
+                  <button type="button" class="trv-city-suggestion"
+                    *ngFor="let city of getCitySuggestions('mc-from', li)"
+                    (mousedown)="selectCitySuggestion($event, city, 'mc-from', li)">
+                    {{ city }}
+                  </button>
+                </div>
+              </div>
+              <button type="button" class="trv-swap-btn" (click)="swapMultiCityLegLocations(li)"
+                title="Swap this leg" [attr.aria-label]="'Swap leg ' + (li + 1)">
+                <i class="fa fa-exchange" aria-hidden="true"></i>
+              </button>
+              <div class="trv-field-box" [class.trv-field-box--suggestions-open]="showCitySuggestions('mc-to', li)">
+                <label class="trv-field-box__label">To <span class="trv-req">*</span></label>
+                <input type="text" class="trv-field-box__input" [(ngModel)]="leg.toLocation"
+                  [name]="'mcTo' + li" placeholder="Next city" autocomplete="off"
+                  (focus)="onCityInputFocus('mc-to', li)" (input)="onCityInputChange('mc-to', li)"
+                  (blur)="onCityInputBlur()" />
+                <div class="trv-city-suggestions" *ngIf="showCitySuggestions('mc-to', li)">
+                  <button type="button" class="trv-city-suggestion"
+                    *ngFor="let city of getCitySuggestions('mc-to', li)"
+                    (mousedown)="selectCitySuggestion($event, city, 'mc-to', li)">
+                    {{ city }}
+                  </button>
+                </div>
+              </div>
+              <div class="trv-field-box trv-field-box--date">
+                <label class="trv-field-box__label">Departure <span class="trv-req">*</span></label>
+                <input type="date" class="trv-field-box__input trv-field-box__input--date"
+                  [(ngModel)]="leg.fromDate" [name]="'mcDate' + li"
+                  [min]="li === 0 ? todayDate : (multiCityLegs[li - 1]?.fromDate || todayDate)"
+                  [max]="maxTravelRequestDate" />
+                <span class="trv-field-box__hint" *ngIf="formatPlannerDate(leg.fromDate)">
+                  {{ formatPlannerDate(leg.fromDate) }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-primary trv-multicity-add" (click)="addMultiCityLeg()"
+            [disabled]="multiCityLegs.length >= 5">
+            <i class="fa fa-plus mr-1" aria-hidden="true"></i>Add another city
+          </button>
+        </div>
+
+        <!-- Large route boxes (one-way / round trip, step 1) -->
+        <div class="trv-route-boxes" *ngIf="!isHotelLodgingActive() && !isMultiCityTravelPlanner() && !isPlannerDetailsVisible()">
+          <div class="trv-route-boxes__main">
+            <div class="trv-field-box" [class.trv-field-box--suggestions-open]="showCitySuggestions('from')">
+              <label class="trv-field-box__label" for="fromLocation">From <span class="trv-req">*</span></label>
+              <input id="fromLocation" type="text" class="trv-field-box__input"
+                [(ngModel)]="travelDeskObj.fromLocation" name="fromLocation"
+                placeholder="Departure city or airport" autocomplete="off"
+                (focus)="onCityInputFocus('from')" (input)="onCityInputChange('from')"
+                (blur)="onCityInputBlur()" />
+              <div class="trv-city-suggestions" *ngIf="showCitySuggestions('from')">
+                <button type="button" class="trv-city-suggestion"
+                  *ngFor="let city of getCitySuggestions('from')"
+                  (mousedown)="selectCitySuggestion($event, city, 'from')">
+                  {{ city }}
+                </button>
+              </div>
+            </div>
+            <button type="button" class="trv-swap-btn" (click)="swapLocations()"
+              title="Swap origin and destination" aria-label="Swap locations">
+              <i class="fa fa-exchange" aria-hidden="true"></i>
+            </button>
+            <div class="trv-field-box" [class.trv-field-box--suggestions-open]="showCitySuggestions('to')">
+              <label class="trv-field-box__label" for="toLocation">To <span class="trv-req">*</span></label>
+              <input id="toLocation" type="text" class="trv-field-box__input"
+                [(ngModel)]="travelDeskObj.toLocation" name="toLocation"
+                placeholder="Destination city or airport" autocomplete="off"
+                (focus)="onCityInputFocus('to')" (input)="onCityInputChange('to')"
+                (blur)="onCityInputBlur()" />
+              <div class="trv-city-suggestions" *ngIf="showCitySuggestions('to')">
+                <button type="button" class="trv-city-suggestion"
+                  *ngFor="let city of getCitySuggestions('to')"
+                  (mousedown)="selectCitySuggestion($event, city, 'to')">
+                  {{ city }}
+                </button>
+              </div>
+            </div>
+            <div class="trv-field-box trv-field-box--date">
+              <label class="trv-field-box__label" for="fromDate">Departure <span class="trv-req">*</span></label>
+              <input id="fromDate" type="date" class="trv-field-box__input trv-field-box__input--date"
+                [(ngModel)]="travelDeskObj.fromDate" [min]="todayDate" [max]="maxTravelRequestDate" />
+              <span class="trv-field-box__hint" *ngIf="formatPlannerDate(travelDeskObj.fromDate)">
+                {{ formatPlannerDate(travelDeskObj.fromDate) }}
+              </span>
+            </div>
+            <div class="trv-field-box trv-field-box--date">
+              <label class="trv-field-box__label" for="toDate">Return <span class="trv-req" *ngIf="tripType !== 'oneway'">*</span></label>
+              <input id="toDate" type="date" class="trv-field-box__input trv-field-box__input--date"
+                [(ngModel)]="travelDeskObj.toDate" [min]="travelDeskObj.fromDate"
+                [disabled]="isReturnDateDisabled()" />
+              <span class="trv-field-box__hint" *ngIf="formatPlannerDate(travelDeskObj.toDate)">
+                {{ formatPlannerDate(travelDeskObj.toDate) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Linked flight when adding hotel after travel -->
+        <div class="trv-linked-itinerary" *ngIf="isHotelLodgingActive() && linkedDraftTravelLine && !isPlannerDetailsVisible()">
+          <span class="trv-linked-itinerary__label">Itinerary</span>
+          <span class="trv-linked-itinerary__value">{{ draftTravelItinerarySummary() }}</span>
+        </div>
+
+        <!-- Hotel search (step 1: city + stay dates) -->
+        <div class="trv-route-boxes" *ngIf="isHotelLodgingActive() && !isPlannerDetailsVisible()">
+          <p class="trv-hotel-stay-heading mb-2" *ngIf="linkedDraftTravelLine">Hotel stay dates</p>
+          <div class="trv-route-boxes__main trv-route-boxes__main--hotel">
+            <div class="trv-field-box trv-field-box--grow" [class.trv-field-box--suggestions-open]="showCitySuggestions('hotel')">
+              <label class="trv-field-box__label" for="hotelCitySearch">City <span class="trv-req">*</span></label>
+              <input id="hotelCitySearch" type="text" class="trv-field-box__input"
+                [(ngModel)]="travelDeskObj.selectedCity" name="hotelCitySearch"
+                placeholder="City of stay" autocomplete="off"
+                (focus)="onCityInputFocus('hotel')" (input)="onCityInputChange('hotel')"
+                (blur)="onCityInputBlur()" />
+              <div class="trv-city-suggestions" *ngIf="showCitySuggestions('hotel')">
+                <button type="button" class="trv-city-suggestion"
+                  *ngFor="let city of getCitySuggestions('hotel')"
+                  (mousedown)="selectCitySuggestion($event, city, 'hotel')">
+                  {{ city }}
+                </button>
+              </div>
+            </div>
+            <div class="trv-field-box trv-field-box--date">
+              <label class="trv-field-box__label" for="fromDateH">Check-in <span class="trv-req">*</span></label>
+              <input id="fromDateH" type="date" class="trv-field-box__input trv-field-box__input--date"
+                [(ngModel)]="travelDeskObj.fromDate" [min]="todayDate" [max]="maxTravelRequestDate" />
+              <span class="trv-field-box__hint" *ngIf="formatPlannerDate(travelDeskObj.fromDate)">
+                {{ formatPlannerDate(travelDeskObj.fromDate) }}
+              </span>
+            </div>
+            <div class="trv-field-box trv-field-box--date">
+              <label class="trv-field-box__label" for="toDateH">Check-out <span class="trv-req">*</span></label>
+              <input id="toDateH" type="date" class="trv-field-box__input trv-field-box__input--date"
+                [(ngModel)]="travelDeskObj.toDate" [min]="travelDeskObj.fromDate" [disabled]="!travelDeskObj.fromDate" />
+              <span class="trv-field-box__hint" *ngIf="formatPlannerDate(travelDeskObj.toDate)">
+                {{ formatPlannerDate(travelDeskObj.toDate) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 1: Plan Trip CTA (route only) -->
+        <div class="trv-planner-route-cta" *ngIf="!isPlannerDetailsVisible()">
+          <button type="button" class="trv-plan-trip-btn trv-plan-trip-btn--hero" (click)="onPrimaryPlannerAction(alert_messagevalidation)">
+            {{ primaryPlannerButtonLabel() }}
+          </button>
+        </div>
+
+        <!-- Step 2: itinerary summary + booking details -->
+        <div class="trv-planner-details" *ngIf="isPlannerDetailsVisible()">
+          <div class="trv-linked-itinerary mb-3" *ngIf="isHotelLodgingActive() && linkedDraftTravelLine">
+            <span class="trv-linked-itinerary__label">Itinerary</span>
+            <span class="trv-linked-itinerary__value">{{ draftTravelItinerarySummary() }}</span>
+          </div>
+          <div class="trv-route-summary">
+            <div class="trv-route-summary__main">
+              <span class="trv-route-summary__label">{{ bookingTypeTab === 'hotel' ? 'Hotel stay' : 'Itinerary' }}</span>
+              <span class="trv-route-summary__value">{{ routeSummaryLabel() }}</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary trv-route-summary__edit" (click)="backToRoutePlanner()">
+              Change
+            </button>
+          </div>
+
+        <!-- Hotel policy fields (step 2) -->
+        <div class="trv-form-row trv-form-row--triple" *ngIf="isHotelLodgingActive()">
+          <div class="trv-form-field">
+            <label class="trv-form-label">Hotel Category <span class="trv-req">*</span></label>
+            <select class="trv-form-control" [(ngModel)]="travelDeskObj.hotelCategory" name="hotelCategory"
+              (ngModelChange)="onHotelCategoryChange($event)">
+              <option value="" disabled>Select category</option>
+              <option *ngFor="let category of hotelCategorylist" [value]="category.hotelCategory">
+                {{ hotelCategoryOptionLabel(category) }}
+              </option>
+            </select>
+            <span class="trv-field-hint" *ngIf="policyMetroHint">{{ policyMetroHint }}</span>
+          </div>
+          <div class="trv-form-field">
+            <label class="trv-form-label">Sub Category <span class="trv-req">*</span></label>
+            <select class="trv-form-control" [(ngModel)]="hotelSubCategorySelectId" name="hotelSubCategorySelect"
+              (ngModelChange)="onSubCategoryChanges($event)">
+              <option [ngValue]="null" disabled>Select sub category</option>
+              <option *ngFor="let sub of hotelSubCategorylist" [ngValue]="sub.id">
+                {{ sub.hotelSubCategoryName }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Travel Reason → Mode → Class (travel tab only; below route, above project) -->
+        <div class="trv-form-row trv-form-row--triple" *ngIf="bookingTypeTab === 'travel' && travelReasonsForTravelTab.length">
+          <div class="trv-form-field">
+            <label class="trv-form-label">Travel Reason <span class="trv-req">*</span></label>
+            <div class="trv-select-wrap trv-select-wrap--form">
+              <app-my-select
+                name="travelReason"
+                [placeholder]="'Select travel reason'"
+                [options]="travelReasonsForTravelTab"
+                displayKey="travelReasonName"
+                valueKey="travelReasonName"
+                [(ngModel)]="travelDeskObj.associatedTravelRequest"
+                (selectionChange)="onTravelReasonSelected($event)">
+              </app-my-select>
+            </div>
+          </div>
+          <div class="trv-form-field">
+            <label class="trv-form-label">Travel Mode <span class="trv-req">*</span></label>
+            <div class="trv-select-wrap trv-select-wrap--form"
+              [class.trv-select-wrap--disabled]="!travelModelistByReason.length">
+              <app-my-select name="travelMode" [placeholder]="'Select mode'"
+                [options]="travelModelistByReason" displayKey="modeType" valueKey="modeType"
+                [(ngModel)]="travelDeskObj.travelMode" (selectionChange)="onTravelModeSelected($event)"
+                [disabled]="!travelModelistByReason.length">
+              </app-my-select>
+            </div>
+          </div>
+          <div class="trv-form-field">
+            <label class="trv-form-label">Travel Class <span class="trv-req">*</span></label>
+            <div class="trv-select-wrap trv-select-wrap--form"
+              [class.trv-select-wrap--disabled]="!travelClasslistByReason.length">
+              <app-my-select name="travelClass" [placeholder]="'Select class'"
+                [options]="travelClasslistByReason" displayKey="travelClass" valueKey="travelClass"
+                [(ngModel)]="travelDeskObj.travelClass" [disabled]="!travelClasslistByReason.length">
+              </app-my-select>
+            </div>
+          </div>
+        </div>
+
+        <div class="trv-form-grid">
+          <div class="trv-form-row">
+            <div class="trv-form-field trv-form-field--project">
+              <label class="trv-form-label">Project <span class="trv-req">*</span></label>
+              <div class="trv-select-wrap trv-select-wrap--form trv-select-wrap--project"
+                [class.trv-select-wrap--disabled]="!mappedProjectsForTravel.length">
+                <app-my-select name="travelProject" [placeholder]="'Select project'"
+                  [options]="mappedProjectsForTravel" [displayKey]="['projectName', 'clientName']"
+                  displaySeparator=" — " valueKey="projectId" [wrapOptionLines]="true"
+                  [(ngModel)]="travelDeskObj.projectId"
+                  (selectionChange)="onTravelProjectSelected($event)"
+                  [disabled]="!mappedProjectsForTravel.length">
+                </app-my-select>
+              </div>
+            </div>
+            <div class="trv-form-field trv-form-field--client" *ngIf="showReadonlyClientForProject() && !isOthersProjectSelected()">
+              <label class="trv-form-label">Client</label>
+              <div class="trv-form-control trv-form-control--readonly trv-form-control--wrap"
+                [attr.title]="travelDeskObj.displayClientName">
+                {{ travelDeskObj.displayClientName || '—' }}
+              </div>
+            </div>
+            <div class="trv-form-field" *ngIf="!showReadonlyClientForProject() || isOthersProjectSelected()">
+              <label class="trv-form-label">&nbsp;</label>
+              <span class="trv-form-spacer"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="trv-others-panel row" *ngIf="isOthersProjectSelected()">
+          <div class="col-md-6 mb-2">
+            <label class="trv-form-label">Project Name (Others) <span class="trv-req">*</span></label>
+            <input class="trv-form-control" [(ngModel)]="travelDeskObj.othersProjectName" name="othersProjectName" />
+          </div>
+          <div class="col-md-6 mb-2">
+            <label class="trv-form-label">Client <span class="trv-req">*</span></label>
+            <div class="trv-select-wrap trv-select-wrap--form"
+              [class.trv-select-wrap--disabled]="!clientsForOthers.length">
+              <app-my-select name="travelOthersClientSelect" [placeholder]="'Select client'"
+                [options]="clientsForOthers" displayKey="clientName" valueKey="clientId"
+                [(ngModel)]="travelDeskObj.othersClientId" [disabled]="!clientsForOthers.length">
+              </app-my-select>
+            </div>
+          </div>
+        </div>
+
+        <div class="trv-form-row trv-form-row--purpose">
+          <div class="trv-form-field trv-form-field--full">
+            <label class="trv-form-label" for="purposeOfTravel">Purpose Of Travel <span class="trv-req">*</span></label>
+            <textarea class="trv-form-control trv-textarea" id="purposeOfTravel" rows="2"
+              [(ngModel)]="travelDeskObj.purposeOfTravel" name="purposeOfTravel"
+              placeholder="Describe the business purpose for approvers…"></textarea>
+          </div>
+        </div>
+
+        <button type="button" class="trv-planner-more-toggle btn btn-link btn-sm px-0"
+          (click)="showPlannerDetails = !showPlannerDetails">
+          <i class="fa" [ngClass]="showPlannerDetails ? 'fa-chevron-up' : 'fa-chevron-down'" aria-hidden="true"></i>
+          {{ showPlannerDetails ? 'Hide' : 'Show' }} KYC document
+          <span class="trv-badge trv-badge--accent ml-2" *ngIf="editingLineIndex !== null">Editing #{{ editingLineIndex + 1 }}</span>
+        </button>
+        <p class="trv-kyc-attached-hint mb-2" *ngIf="hasTicketKycAttached() && !showPlannerDetails">
+          <i class="fa fa-check-circle text-success mr-1" aria-hidden="true"></i>
+          KYC attached: <strong>{{ ticketKycAttachmentLabel() }}</strong>
+          <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="showPlannerDetails = true">View / replace</button>
+        </p>
+
+        <div class="trv-planner-more" *ngIf="showPlannerDetails">
+          <div class="mb-3" *ngIf="hasTicketKycAttached()">
+            <label class="trv-form-label">KYC on this ticket</label>
+            <div class="trv-edit-docs-panel">
+              <div class="trv-edit-doc-row trv-kyc-attached-row">
+                <span class="trv-edit-doc-name" [title]="ticketKycAttachmentLabel()">
+                  <i class="fa fa-id-card-o text-primary mr-1" aria-hidden="true"></i>
+                  {{ ticketKycAttachmentLabel() }}
+                </span>
+                <span class="text-nowrap">
+                  <button type="button" class="btn btn-sm btn-outline-primary"
+                    (click)="previewKycDocument(alert_message3)">
+                    <i class="fa fa-eye mr-1" aria-hidden="true"></i>View
+                  </button>
+                </span>
+              </div>
+            </div>
+            <p class="trv-field-hint mb-2">
+              This file is saved on the ticket. Use <strong>Replace</strong> below only if you need to upload a new KYC.
+            </p>
+          </div>
+          <div class="trv-form-row">
+            <div class="trv-form-field">
+              <label class="trv-form-label">
+                <ng-container *ngIf="hasTicketKycAttached(); else kycUploadLabel">Replace KYC document</ng-container>
+                <ng-template #kycUploadLabel>KYC Document <span class="trv-req">*</span></ng-template>
+                <span class="text-muted small font-weight-normal">(once per ticket)</span>
+              </label>
+              <div class="trv-kyc-file-row">
+                <input type="file" class="trv-form-control trv-file-input trv-kyc-file-row__input"
+                  (change)="onFileSelected($event, alert_message3)" />
+                <button type="button" class="trv-kyc-preview-btn"
+                  *ngIf="canPreviewKycDocument() && !hasTicketKycAttached()"
+                  (click)="previewKycDocument(alert_message3)"
+                  title="View KYC document"
+                  aria-label="View KYC document">
+                  <i class="fa fa-eye" aria-hidden="true"></i>
+                </button>
+              </div>
+              <span class="trv-field-hint" *ngIf="selectedFileName">New file selected: {{ selectedFileName }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="editingLineIndex !== null && documentsForEditingLine().length > 0" class="mb-3">
+            <label class="trv-form-label">Documents On This Request</label>
+            <div class="trv-edit-docs-panel">
+              <div *ngFor="let d of documentsForEditingLine(); let di = index" class="trv-edit-doc-row">
+                <span class="trv-edit-doc-name" [title]="d.fileName">{{ d.fileName }}</span>
+                <span class="text-nowrap">
+                  <button type="button" class="btn btn-sm btn-outline-primary mr-1" (click)="previewDraftDocument(d.docId)">View</button>
+                  <button type="button" class="btn btn-sm btn-outline-danger"
+                    (click)="removeDocumentFromEditingLine(di, alert_messagevalidation)">Remove</button>
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="trv-planner-details-footer" *ngIf="isPlannerDetailsVisible()">
+          <button type="button" class="btn btn-link btn-sm trv-footer-reset px-0" (click)="resetForm(alert_message)">Reset all</button>
+          <button *ngIf="editingLineIndex !== null" type="button" class="btn btn-link btn-sm"
+            (click)="cancelEditDraftLine()">Cancel edit</button>
+          <div class="trv-plan-trip-group ml-auto">
+            <button type="button" class="trv-plan-trip-btn" (click)="onPrimaryPlannerAction(alert_messagevalidation)">
+              {{ primaryPlannerButtonLabel() }}
+            </button>
+          </div>
+        </div>
+        <p class="trv-widget-footer__hint mb-0" *ngIf="!isPlannerDetailsVisible()">
+          <small class="text-muted">Enter your route and dates, then select <strong>Plan Trip</strong> to continue.</small>
+        </p>
+        <p class="trv-widget-footer__hint mb-0" *ngIf="isPlannerDetailsVisible()">
+          <small class="text-muted">Complete travel details and KYC, then <strong>Add to ticket</strong>. Submit the full ticket from My Trips when ready.</small>
+        </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="trv-workspace">
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="trv-approved-banner" *ngIf="ticketLines.length > 0">
+          <span class="trv-approved-banner__accent" aria-hidden="true"></span>
+          <span class="trv-approved-banner__text">
+            Draft ticket — {{ ticketLines.length }} request{{ ticketLines.length === 1 ? '' : 's' }} ready to submit
+          </span>
+          <button type="button" class="trv-approved-banner__btn" (click)="submitEntireTicket(alert_messagevalidation)">
+            Submit Ticket
+          </button>
+        </div>
+
+        <div class="trv-trips-panel">
+          <div class="trv-trips-panel__head">
+            <h2 class="trv-trips-panel__title">My Trips <span class="text-muted">({{ ticketLines.length }})</span></h2>
+          </div>
+
+          <p class="trv-trips-panel__hint" *ngIf="!ticketLines.length">
+            No trips in your draft yet. Plan a trip above to add your first request.
+          </p>
+
+          <div class="trv-trip-list" *ngIf="ticketLines.length">
+            <article
+              *ngFor="let ln of ticketLines; let i = index"
+              class="trv-trip-card"
+              [class.trv-trip-card--editing]="editingLineIndex === i">
+              <div class="trv-trip-card__thumb" aria-hidden="true">
+                <i class="fa" [ngClass]="travelTabIcon(ln.requestType)"></i>
+              </div>
+              <div class="trv-trip-card__main">
+                <div class="trv-trip-card__title">Trip — {{ ln.requestType || 'Travel' }}</div>
+                <div class="trv-trip-card__meta">{{ lineRouteLabel(ln) }}</div>
+                <div class="trv-trip-card__meta trv-trip-card__meta--booking">{{ lineBookingSummary(ln) }}</div>
+                <div class="trv-trip-card__dates">
+                  <i class="fa fa-calendar-o mr-1" aria-hidden="true"></i>{{ formatLineDateRange(ln) }}
+                </div>
+                <div class="trv-trip-card__modes">
+                  <span class="trv-mode-icon" *ngIf="ln.travelMode" title="Travel mode"><i class="fa fa-plane"></i></span>
+                  <span class="trv-mode-icon" *ngIf="ln.hotelCategory" title="Hotel"><i class="fa fa-bed"></i></span>
+                  <span class="trv-mode-icon" *ngIf="docCountForLine(ln) > 0" title="Documents"><i class="fa fa-paperclip"></i></span>
+                </div>
+              </div>
+              <div class="trv-trip-card__aside">
+                <span class="trv-status-pill trv-status-pill--draft">
+                  <i class="fa fa-user-o mr-1" aria-hidden="true"></i>Draft
+                </span>
+                <div class="trv-trip-card__menu">
+                  <button *ngIf="docCountForLine(ln) > 0" type="button" class="trv-trip-menu-btn"
+                    (click)="openDraftDocumentsModal(draftLineDocumentsModal, i)" title="View documents">
+                    <i class="fa fa-eye"></i>
+                  </button>
+                  <button type="button" class="trv-trip-menu-btn" (click)="beginEditDraftLine(i)" title="Edit">
+                    <i class="fa fa-pencil"></i>
+                  </button>
+                  <button type="button" class="trv-trip-menu-btn trv-trip-menu-btn--danger"
+                    (click)="removeTicketLine(i)" title="Remove">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <aside class="trv-aside-card trv-aside-card--build trv-aside-card--first">
+          <div class="trv-build-illus" aria-hidden="true">
+            <i class="fa fa-suitcase"></i>
+          </div>
+          <h3 class="trv-aside-card__title">Build Your Trip</h3>
+          <p class="trv-aside-card__text mb-0">
+            One ticket can include flight and hotel: plan each segment with <strong>Plan Trip</strong>, then <strong>Submit Ticket</strong> once both appear under My Trips.
+          </p>
+        </aside>
+
+        <aside class="trv-aside-card trv-aside-card--profile">
+          <h3 class="trv-aside-card__title"><i class="fa fa-user-circle-o mr-2"></i>Your Profile</h3>
+          <dl class="trv-profile-dl">
+            <div><dt>Name</dt><dd>{{ currentEmployeeInfo.name || '—' }}</dd></div>
+            <div><dt>Employee ID</dt><dd>{{ currentEmployeeInfo.employeementId || '—' }}</dd></div>
+            <div><dt>Department</dt><dd>{{ currentEmployeeInfo.departmentName || '—' }}</dd></div>
+            <div><dt>HOD</dt><dd>{{ currentUser?.hodName || '—' }}</dd></div>
+          </dl>
+        </aside>
+      </div>
+    </div>
+  </div>
 </div>
 
 <ng-template #alert_message>
-    <div class="modal-body text-center">
-        <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>
-    </div>
+  <div class="modal-body text-center">
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>
+  </div>
 </ng-template>
 
+
 <ng-template #alert_messagevalidation>
-    <div class="modal-body text-center">
-        <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest1()">OK</button>
-    </div>
+  <div class="modal-body text-center">
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest1()">OK</button>
+  </div>
 </ng-template>
 
 <ng-template #alert_message3>
-    <div class="modal-body text-center">
-        <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest3()">OK</button>
+  <div class="modal-body text-center">
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest3()">OK</button>
+  </div>
+</ng-template>
+
+<ng-template #kycDocumentPreviewModal>
+  <div class="modal-header trv-docs-modal-header">
+    <h4 class="modal-title">KYC Document</h4>
+    <button type="button" class="close" aria-label="Close" (click)="closeKycPreviewModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p class="text-muted small mb-3" *ngIf="ticketKycAttachmentLabel()">
+      <strong>{{ ticketKycAttachmentLabel() }}</strong>
+    </p>
+    <div *ngIf="draftDocPreview" class="trv-doc-preview-panel">
+      <ng-container *ngIf="isKycPdfPreview(); else trvKycPreviewImg">
+        <iframe [src]="draftDocPreview" class="trv-doc-preview-frame" title="KYC document preview"></iframe>
+      </ng-container>
+      <ng-template #trvKycPreviewImg>
+        <img *ngIf="draftDocPreview" [src]="draftDocPreview" class="img-fluid trv-doc-preview-img" alt="KYC preview" />
+      </ng-template>
     </div>
+    <p *ngIf="!draftDocPreview" class="text-muted mb-0">Loading preview…</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="closeKycPreviewModal()">Close</button>
+  </div>
+</ng-template>
+
+<ng-template #draftLineDocumentsModal>
+  <div class="modal-header trv-docs-modal-header">
+    <h4 class="modal-title">Supporting Documents</h4>
+    <button type="button" class="close" aria-label="Close" (click)="closeDraftDocumentsModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body" *ngIf="draftDocsLineIndex !== null">
+    <p class="text-muted small mb-3">
+      Request <strong>{{ draftDocsLineIndex + 1 }}</strong> — preview or remove files.
+    </p>
+    <div class="table-responsive trv-docs-list-wrap mb-3">
+      <table class="table table-sm trv-docs-list-table mb-0">
+        <thead>
+          <tr><th>File Name</th><th class="text-right">Actions</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let d of ticketLines[draftDocsLineIndex].documents; let di = index">
+            <td>{{ d.fileName }}</td>
+            <td class="text-right text-nowrap">
+              <button type="button" class="btn btn-sm btn-outline-primary mr-1" (click)="previewDraftDocument(d.docId)">View</button>
+              <button type="button" class="btn btn-sm btn-outline-danger"
+                (click)="removeDocumentFromDraftLine(di, alert_messagevalidation)">Remove</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div *ngIf="draftDocPreview" class="trv-doc-preview-panel">
+      <ng-container *ngIf="isDraftPdfPreview(); else trvDraftPreviewImg">
+        <iframe [src]="draftDocPreview" class="trv-doc-preview-frame" title="Document preview"></iframe>
+      </ng-container>
+      <ng-template #trvDraftPreviewImg>
+        <img *ngIf="draftDocPreview" [src]="draftDocPreview" class="img-fluid trv-doc-preview-img" alt="Preview" />
+      </ng-template>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="closeDraftDocumentsModal()">Done</button>
+  </div>
 </ng-template>
