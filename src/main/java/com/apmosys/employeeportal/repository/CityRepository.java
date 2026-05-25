@@ -22,4 +22,6 @@ public interface CityRepository extends JpaRepository<City, Long> {
 	
     @Query(value = "SELECT * FROM city WHERE hotel_sub_category_id IN (:subCategoryIds)", nativeQuery = true)
     List<City> findBySubCategoryIds(List<Long> subCategoryIds);
+
+	List<City> findByHotelSubCategory_IdAndIsActiveOrderByCityNameAsc(Long hotelSubCategoryId, String isActive);
 }
