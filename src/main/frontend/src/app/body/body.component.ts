@@ -9,6 +9,7 @@ import { EmployeeService } from '../services/employee.service';
 import { ValidationService } from '../services/validation.service';
 import { MatSidenav } from '@angular/material/sidenav';
 import { GlobalRightDrawerService } from '../services/global-right-drawer.service';
+import { GrievanceRouteContext, resolveGrievanceRouteContext } from '../helpers/grievance-route-context.helper';
 
 @Component({
   standalone: false,
@@ -42,6 +43,7 @@ export class BodyComponent implements OnInit {
   empId:any;
   user:User = new User();
   isHome:boolean = false;
+  grievanceRouteContext: GrievanceRouteContext | null = null;
 
   //modal
   alertMessage: any;
@@ -76,11 +78,7 @@ export class BodyComponent implements OnInit {
     });
     this.router.events.subscribe((e) => {
       if (e instanceof NavigationEnd) {
-        if(e.url == "/home"){
-          this.isHome = true;
-        }else{
-          this.isHome = false;
-        }
+        this.syncRouteState(e.urlAfterRedirects || e.url);
       }
     });
   }
@@ -90,15 +88,21 @@ export class BodyComponent implements OnInit {
     if (this.currentUser?.userMapping?.length) {
       this.extractFeatures();
     }
-    this.isHome = this.router.url === '/home';
+    this.syncRouteState(this.router.url);
 
     // Also handle navigation events
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        this.isHome = event.urlAfterRedirects === '/home';
+        this.syncRouteState(event.urlAfterRedirects || event.url);
       }
     });
 
+  }
+
+  private syncRouteState(url: string): void {
+    const currentUrl = (url || this.router.url || '').split('?')[0];
+    this.isHome = currentUrl === '/home';
+    this.grievanceRouteContext = resolveGrievanceRouteContext(url);
   }
 
   extractFeatures() {
@@ -155,6 +159,39 @@ export class BodyComponent implements OnInit {
         if(this.currentUser) styleClass= 'navbar-md-screen';
       }
     return styleClass;
+  }
+
+  hasQuickMenuAccess(): boolean {
+    const role = (this.currentUser?.employeeRole || '').trim();
+    return ['HR', 'SuperAdmin', 'HOD', 'RMG'].includes(role);
+  }
+
+  shouldShowGrievanceFab(): boolean {
+    return !!this.currentUser && !this.isHome;
+  }
+
+  openGrievanceLauncher(): void {
+    const queryParams: any = {};
+    if (this.grievanceRouteContext?.category) {
+      queryParams.category = this.grievanceRouteContext.category;
+    }
+    if (this.grievanceRouteContext?.subcategory) {
+      queryParams.subcategory = this.grievanceRouteContext.subcategory;
+    }
+    const navigationExtras = Object.keys(queryParams).length ? { queryParams } : undefined;
+    this.router.navigate(['/grievance'], navigationExtras);
+  }
+
+  grievanceFabTooltip(): string {
+    const category = this.grievanceRouteContext?.category;
+    const subcategory = this.grievanceRouteContext?.subcategory;
+    if (category && subcategory) {
+      return `Raise grievance for ${category} / ${subcategory}`;
+    }
+    if (category) {
+      return `Raise grievance for ${category}`;
+    }
+    return 'Raise grievance';
   }
 
   userLogout(){
