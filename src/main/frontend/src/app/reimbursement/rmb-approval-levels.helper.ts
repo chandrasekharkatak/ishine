@@ -5,6 +5,26 @@ export interface RmbApprovalLevelColumn {
   financeStep?: boolean;
 }
 
+/** Normalize legacy generic labels until API returns department names. */
+export function displayApprovalLevelLabel(label: string | undefined | null): string {
+  if (!label) {
+    return '';
+  }
+  const t = String(label).trim();
+  if (t === 'Specific approver' || t === 'Specific person in scope' || t === 'Department Selected for approve') {
+    return 'Department';
+  }
+  return t;
+}
+
+export function approvalLevelApproverColumnTitle(col: RmbApprovalLevelColumn): string {
+  return `${displayApprovalLevelLabel(col.levelLabel)} approver`;
+}
+
+export function approvalLevelStatusColumnTitle(col: RmbApprovalLevelColumn): string {
+  return `${displayApprovalLevelLabel(col.levelLabel)} status`;
+}
+
 /** Pick the widest {@code approvalLevels} shape from loaded tickets for table headers. */
 export function deriveTableLevelColumns(
   tickets: any[],
@@ -20,7 +40,7 @@ export function deriveTableLevelColumns(
   if (widest.length) {
     return widest.map((r) => ({
       order: r.order,
-      levelLabel: r.levelLabel || `Level ${r.order}`,
+      levelLabel: displayApprovalLevelLabel(r.levelLabel || `Level ${r.order}`),
       financeStep: !!r.financeStep
     }));
   }

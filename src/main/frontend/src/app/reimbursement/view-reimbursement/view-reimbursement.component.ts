@@ -12,7 +12,9 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
 import { ReimbursementTicketModalComponent } from '../reimbursement-ticket-modal/reimbursement-ticket-modal.component';
 import {
+  approvalLevelApproverColumnTitle,
   approvalLevelCell,
+  approvalLevelStatusColumnTitle,
   buildTicketFilterColumns,
   deriveTableLevelColumns,
   RmbApprovalLevelColumn
@@ -25,7 +27,8 @@ import {
   styleUrls: ['./view-reimbursement.component.css']
 })
 export class ViewReimbursementComponent implements OnInit {
-
+  readonly approvalLevelApproverColumnTitle = approvalLevelApproverColumnTitle;
+  readonly approvalLevelStatusColumnTitle = approvalLevelStatusColumnTitle;
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;

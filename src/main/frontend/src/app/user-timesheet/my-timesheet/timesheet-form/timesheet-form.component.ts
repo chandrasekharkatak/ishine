@@ -1283,6 +1283,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     }
     this.isNightShift = false;
     this.toDate = null;
+    this.compOffForDate = null;
     const dayTypeFillable = this.isDayTypeFillable();
     this.clearAndInitOnDayTypeChange(dayTypeFillable);
     // if (!dayTypeFillable) {
@@ -6058,6 +6059,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
                 location.projects.forEach((project: any) => {
                   project.timesheetId = null;
                   project.locationMappingId = null;
+                  project.status = null;
                   if (project.activities) {
                     project.activities.forEach((activity: any) => {
                       activity.timesheetId = null;

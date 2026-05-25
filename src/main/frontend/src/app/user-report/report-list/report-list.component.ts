@@ -2051,7 +2051,7 @@ onSearchClientProject(searchData: any) {
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
     queryObj.empId = this.currentUser.empId;
-
+    queryObj.subFeatureName = 'Employee Report';
     if (queryObjList == '') {
       queryObjList= [{ column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }];
     } else {

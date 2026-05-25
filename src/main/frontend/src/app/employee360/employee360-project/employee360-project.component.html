@@ -328,7 +328,7 @@
                     <label class="info-label">Select Start Date</label>
                     <div class="date-input-wrapper">
                         <input id="occasionDate" class="form-control date-input" readonly [matDatepicker]="startDatepicker"
-                            (dateChange)="validateEmployeeProjectStartDate(this.projectObj.empId, this.projectObj.projectId, this.projectObj.teamId, '')"
+                            (dateChange)="validateEmployeeProjectStartDate(edit_enddate_template)"
                             [(ngModel)]="startDate" (click)="startDatepicker.open()" />
                         <mat-icon class="calendar-icon" (click)="startDatepicker.open()">calendar_today</mat-icon>
                         <mat-datepicker #startDatepicker></mat-datepicker>
