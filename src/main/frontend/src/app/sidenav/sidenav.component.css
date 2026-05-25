@@ -20,45 +20,49 @@
     width: 100%;
 }
 
-.sidenav .logo-container .logo {
-    text-align: center;
-    padding: 0.313rem;
-    font-size: 24px;
-    font-weight: 900;
-    cursor: pointer;
-    border: none;
-    background-color: transparent;
-}
+  .sidenav .logo-container .logo{
+      /* background: var(--dark-red); */
+      /* color: var(--cultured); */
+      text-align: center;
+      /* width: 3rem;
+      min-width: 3rem; */
+      /* border-radius: 0.313rem; */
+      padding: 0.313rem;
+      font-size: 24px;
+      font-weight: 900;
+      cursor: pointer;
+      border: none;
+      background-color: transparent;
+  }
+  .sidenav .logo-container .logo img {
+      width: 25px;
+      height: 25px;
+      object-fit: contain;
+      vertical-align: middle;
+  }
+  .sidenav .logo-container .logo-text{
+      margin-left: 1.5rem;
+      padding-right: 30px;
+      font-size: 24px;
+      padding-right: 30px;
+      font-weight: 700;
+      color: var(--cultured);
+  }
 
-.sidenav .logo-container .logo img {
-    width: 25px;
-    height: 25px;
-    object-fit: contain;
-    vertical-align: middle;
-}
+  .sidenav .logo-container .btn-close{
+      margin-left: auto;
+      cursor: pointer;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      background-color: transparent;
+      border: none;
+  }
 
-.sidenav .logo-container .logo-text {
-    margin-left: 1.5rem;
-    padding-right: 30px;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--cultured);
-}
-
-.sidenav .logo-container .btn-close {
-    margin-left: auto;
-    cursor: pointer;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 50%;
-    background-color: transparent;
-    border: none;
-}
-
-.sidenav .logo-container .btn-close .fa-times {
-    color: var(--cultured);
-    font-size: 24px;
-}
+  .sidenav .logo-container .btn-close .fa-times{
+      color: var(--cultured);
+      font-size: 24px;
+  }
 
 .sidenav-collapsed {
     width: 14.5rem;
@@ -99,38 +103,44 @@
     /* no fixed height needed — scroll-wrap handles containment */
 }
 
-.sidenav-nav .sidenav-nav-item {
-    width: 100%;
-    margin-bottom: 0.4rem;
-}
+  .sidenav-nav .sidenav-nav-item{
+      width: 100%;
+      margin-bottom: 0.4rem;
+  }
 
-.sidenav-nav .sidenav-nav-item .sidenav-nav-link {
-    display: flex;
-    align-items: center;
-    height: 2.5rem;
-    color: #f3f3f3;
-    text-decoration: none;
-    border-radius: 0.625rem;
-    transition: all .3s ease;
-    padding-left: 0.225rem;
-}
+  .sidenav-nav .sidenav-nav-item .sidenav-nav-link{
+      display: flex;
+      align-items: center;
+      height: 2.5rem;
+      color: #f3f3f3;
+      text-decoration: none;
+      border-radius: 0.625rem;
+      transition: all .3s ease;
+      padding-left: 0.225rem;
+  }
 
-.sidenav-nav .sidenav-nav-item .sidenav-nav-link .sidenav-link-icon {
-    font-size: 16px;
-    width: 2rem;
-    min-width: 2rem;
-    margin: .5rem 0;
-    text-align: center;
-}
+  .sidenav-nav-link.active{
+      pointer-events: none;
+      cursor: default;
+  }
 
-.sidenav-nav .sidenav-nav-item .sidenav-nav-link .sidenav-link-text {
-    margin-left: 1.5rem;
-}
+  .sidenav-nav .sidenav-nav-item .sidenav-nav-link .sidenav-link-icon{
+      font-size: 16px;
+      width: 2rem;
+      min-width: 2rem;
+      margin: .5rem 0;
+      text-align: center;
+  }
 
-.sidenav-nav .sidenav-nav-item .sidenav-nav-link:hover {
-    background-color: var(--cultured);
-    color: var(--raisin-black);
-}
+  .sidenav-nav .sidenav-nav-item .sidenav-nav-link .sidenav-link-text{
+      margin-left: 1.5rem;
+  }
+
+  .sidenav-nav .sidenav-nav-item .sidenav-nav-link:hover,
+  .nav-group-items-mini .sidenav-nav-link:hover{
+      background-color:var(--cultured);
+      color: var(--raisin-black);
+  }
 
 .sidenav-collapsed .sidenav-link-text {
     white-space: nowrap;
@@ -146,11 +156,12 @@
     position: relative;
 }
 
-.nav-group + .nav-group {
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    padding-top: 0.25rem;
-    margin-top: 0.25rem;
-}
+  /* Thin separator line between groups */
+  .nav-group + .nav-group {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 0.25rem;
+      margin-top: 0.25rem;
+  }
 
 
 .nav-group-header {
@@ -321,6 +332,10 @@
     box-shadow: 6px 4px 24px rgba(0, 0, 0, 0.35),
                 inset 0 1px 0 rgba(255, 255, 255, 0.04);
     animation: panel-fade-in 0.18s ease forwards;
+
+    /* FIX FOR SCREEN CLIPPING: */
+    max-height: calc(100vh - 40px); /* Keeps panel bounded within screen */
+    overflow-y: auto;               /* Allows scrolling inside popup if items overflow */
 }
 
 @keyframes panel-fade-in {
@@ -396,6 +411,19 @@
 
 .floating-group-link.active {
     background-color: var(--cultured) !important;
+    color: var(--raisin-black) !important;
+    pointer-events: none;
+    cursor: default;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.floating-group-link.active::before {
+    background: rgba(0, 0, 0, 0.25) !important;
+}
+
+.floating-group-link.active i,
+.floating-group-link.active span {
     color: var(--raisin-black) !important;
     pointer-events: none;
     cursor: default;

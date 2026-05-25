@@ -76,8 +76,8 @@ public class RoleFeatureMapDTO {
 	 public String getTabGroup() { return tabGroup; }
 	 public void setTabGroup(String tabGroup) { this.tabGroup = tabGroup; }
 
-	   public Integer getGroupSequence() { return groupSequence; }
-	    public void setGroupSequence(Integer groupSequence) { this.groupSequence = groupSequence; }
+	 public Integer getGroupSequence() { return groupSequence; }
+	 public void setGroupSequence(Integer groupSequence) { this.groupSequence = groupSequence; }
 	public Integer getTabSequence() {
 		return tabSequence;
 	}

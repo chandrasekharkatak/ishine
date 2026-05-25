@@ -13,6 +13,7 @@ interface SideNavToggle{
   collapsed: boolean;
 }
 
+
 export interface NavGroup {
   groupLabel: string;
   groupIcon: string;
@@ -139,11 +140,33 @@ private closeTimer: any = null;//Tiny stopwatch to prevent menus from vanishing 
   // setHoveredGroup(group: NavGroup | null): void {
   //   this.hoveredGroup = group;
   // }
-  onGroupMouseEnter(group: NavGroup, el: HTMLElement): void {
+//   onGroupMouseEnter(group: NavGroup, el: HTMLElement): void {
+//     if (this.closeTimer) { clearTimeout(this.closeTimer); this.closeTimer = null; }
+//     this.groupedMenuItems.forEach(g => g.isExpanded = false);
+//     this.hoveredGroup = group;
+//     this.hoveredGroupTop = el.getBoundingClientRect().top;
+// }
+
+onGroupMouseEnter(group: NavGroup, el: HTMLElement): void {
     if (this.closeTimer) { clearTimeout(this.closeTimer); this.closeTimer = null; }
     this.groupedMenuItems.forEach(g => g.isExpanded = false);
     this.hoveredGroup = group;
-    this.hoveredGroupTop = el.getBoundingClientRect().top;
+
+    const rect = el.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+
+    // Calculate space needed based on item count (approx 45px per link + header padding)
+    const estimatedPanelHeight = (group.items.length * 45) + 50;
+
+    // If the panel will bleed off the bottom of the screen, push it up
+    if (rect.top + estimatedPanelHeight > windowHeight) {
+        const calculatedTop = windowHeight - estimatedPanelHeight - 16;
+        // Ensure it doesn't push past the top of the viewport (0) if there are too many items
+        this.hoveredGroupTop = calculatedTop < 10 ? 10 : calculatedTop;
+    } else {
+        // Standard position: aligns perfectly with the hovered sidebar icon
+        this.hoveredGroupTop = rect.top;
+    }
 }
 
 onGroupMouseLeave(): void {
@@ -163,17 +186,23 @@ onPanelMouseLeave(): void {
   //   group.isExpanded = !group.isExpanded;
   // }
 
-  toggleGroup(group: NavGroup, el?: HTMLElement): void {
-    if (group.items.length === 1) return;
-    const opening = !group.isExpanded;
-    this.groupedMenuItems.forEach(g => g.isExpanded = false);
-    if (opening) {
-        group.isExpanded = true;
-        this.hoveredGroup = group;
-        if (el) { this.hoveredGroupTop = el.getBoundingClientRect().top; }
-    } else {
-        group.isExpanded = false;
-        this.hoveredGroup = null;
+ toggleGroup(group: NavGroup, el?: HTMLElement): void {
+    group.isExpanded = !group.isExpanded;
+
+    // Apply the exact same positioning math when clicked on mobile
+    if (group.isExpanded && el) {
+        const rect = el.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+
+        // Calculate space needed (approx 45px per link + mobile padding/gap)
+        const estimatedPanelHeight = (group.items.length * 48) + 16;
+
+        if (rect.top + estimatedPanelHeight > windowHeight) {
+            const calculatedTop = windowHeight - estimatedPanelHeight - 12;
+            this.hoveredGroupTop = calculatedTop < 10 ? 10 : calculatedTop;
+        } else {
+            this.hoveredGroupTop = rect.top;
+        }
     }
 }
 

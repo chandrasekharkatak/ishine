@@ -51,10 +51,12 @@ public class TabMasterService {
 					dto.setTabName(tab[4] != null ? tab[4].toString() : null);
 					dto.setTabIcon(tab[5] != null ? tab[5].toString() : null);
 					dto.setTabRouteName(tab[6] != null ? tab[6].toString() : null);
-					dto.setTabGroup(tab[7] != null ? tab[7].toString() : "OTHER");
-	                dto.setGroupSequence(tab[8] != null ? Integer.parseInt(tab[8].toString()) : 999);
-	                dto.setGroupIcon(tab[9] != null ? tab[9].toString() : "fa-solid fa-folder");
-					// dto.setTabSequence(tab[7] != null ? Integer.parseInt(tab[7].toString()) : null);					
+					
+					dto.setTabSequence(tab[7] != null ? Integer.parseInt(tab[7].toString()) : null);	
+					 dto.setTabGroup(tab[8] != null ? tab[8].toString() : "OTHER");                    // ✅ shifted to index 8
+		             dto.setGroupSequence(tab[9] != null ? Integer.parseInt(tab[9].toString()) : 999); // ✅ shifted to index 9
+		             dto.setGroupIcon(tab[10] != null ? tab[10].toString() : "fa-solid fa-folder");    // ✅ shifted to index 10
+		                
 					dtoList.add(dto);
 					
 				}
