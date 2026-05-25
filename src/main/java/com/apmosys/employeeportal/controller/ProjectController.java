@@ -236,6 +236,14 @@ public class ProjectController {
 		return poPortalApiService.syncProjectPoFromPoPortal();
 	}
 	
+	@PostMapping("/repairPoDataByProjectIds")
+	public ServiceResponse repairPoDataByProjectIds(
+	        @RequestBody List<Long> projectIds) {
+
+	    return poPortalApiService
+	            .repairPoDataByProjectIds(projectIds);
+	}
+	
 //	@GetMapping(value = "/getProjectSDEDFromPOPortal")
 //	public ServiceResponse getProjectSDEDFromPOPortal() {
 //		return poPortalApiService.updateSDEDOfproject();
