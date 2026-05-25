@@ -35,6 +35,7 @@ import com.apmosys.employeeportal.dto.SkillMatrixApproveSubmitRequest;
 import com.apmosys.employeeportal.dto.SkillMatrixApproveSkillViewRowDTO;
 import com.apmosys.employeeportal.dto.SkillMatrixHodDecisionRequest;
 import com.apmosys.employeeportal.dto.SkillMatrixCategoryListDTO;
+import com.apmosys.employeeportal.dto.SkillMatrixCustomSkillDecisionRequest;
 import com.apmosys.employeeportal.dto.SkillMatrixDomainFeatureListDTO;
 import com.apmosys.employeeportal.dto.SkillMatrixDomainListDTO;
 import com.apmosys.employeeportal.dto.SkillMatrixSkillListDTO;
@@ -304,6 +305,40 @@ public class SkillMatrixController {
 		}
 		try {
 			return success(skillMatrixSubmitService.proposeSkill(empId, body));
+		} catch (IllegalArgumentException | IllegalStateException ex) {
+			return fail(ex.getMessage());
+		}
+	}
+
+	@RequestMapping(value = "/approve-requests/custom-skill-requests", method = RequestMethod.GET)
+	public ServiceResponse listCustomSkillRequests(
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "15") int size) {
+		Long empId = currentEmpId();
+		if (!skillMatrixAuthorizationService.hasSubFeature(empId, SkillMatrixSubFeatureNames.APPROVE_REQUESTS)) {
+			return forbidden();
+		}
+		if (empId == null) {
+			return fail("Not authenticated.");
+		}
+		var result = skillMatrixSubmitService.listCustomSkillRequestsForHod(empId, page, size);
+		ServiceResponse response = success(result.getContent());
+		response.setTotalElements(totalElementsToInt(result.getTotalElements()));
+		return response;
+	}
+
+	@RequestMapping(value = "/approve-requests/custom-skill-requests/{requestId}/decision", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ServiceResponse decideCustomSkillRequest(@PathVariable("requestId") Long requestId,
+			@RequestBody SkillMatrixCustomSkillDecisionRequest body) {
+		Long empId = currentEmpId();
+		if (!skillMatrixAuthorizationService.hasSubFeature(empId, SkillMatrixSubFeatureNames.APPROVE_REQUESTS)) {
+			return forbidden();
+		}
+		if (empId == null) {
+			return fail("Not authenticated.");
+		}
+		try {
+			return success(skillMatrixSubmitService.decideCustomSkillRequest(empId, requestId, body));
 		} catch (IllegalArgumentException | IllegalStateException ex) {
 			return fail(ex.getMessage());
 		}

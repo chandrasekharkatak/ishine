@@ -1,0 +1,324 @@
+<div class="rmb-page trv-rs-root">
+  <div *ngIf="mastersLoading" class="alert alert-light border mb-3 small">
+    <i class="fa-solid fa-spinner fa-spin mr-2" aria-hidden="true"></i> Loading departments and job roles…
+  </div>
+  <div *ngIf="mastersError && !mastersLoading" class="alert alert-warning small mb-3" role="alert">{{ mastersError }}</div>
+
+  <!-- Table list -->
+  <ng-container *ngIf="!showFormView">
+    <section class="trv-rs-hero trv-rs-hero--compact">
+      <div class="trv-rs-hero__title-row">
+        <h3 class="trv-rs-hero__title">Approval matrices</h3>
+        <span class="trv-rs-pill">Configuration</span>
+      </div>
+      <p class="trv-rs-hero__lead mb-2">
+        Configure who each travel flow applies to and the approval chain ending in admin.
+      </p>
+      <div class="trv-rs-callout" role="note">
+        <strong>Rejection rule:</strong> if any level rejects the ticket, the entire ticket is rejected.
+      </div>
+    </section>
+
+    <div class="col-md-2 px-0 mb-2">
+      <div class="form-inline">
+        <small>View</small>
+        <select class="form-select-sm align-items-center mx-1" [(ngModel)]="items" (change)="page = 1">
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="20">20</option>
+          <option [ngValue]="50">50</option>
+          <option [ngValue]="100">100</option>
+        </select>
+        <small>entries</small>
+      </div>
+    </div>
+
+    <div class="row mb-2">
+      <div class="col-md-12 d-flex justify-content-end">
+        <button type="button" class="btn btn-outline-primary btn-sm" (click)="openAddForm()" [disabled]="mastersLoading">
+          <em class="fa-solid fa-plus"></em> Add Approval Matrix
+        </button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="selector-toggle">
+          <a href="javascript:void(0)" (click)="toggleSearch()">
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+        <div class="overflow-auto">
+          <table class="table" matSort (matSortChange)="sortData($event)" id="rmbApprovalMatrixTable">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" mat-sort-header="name|string">Approval Matrix Name</th>
+                <th scope="col" class="info-label" mat-sort-header="applicabilitySummary|string">Applies to</th>
+                <th scope="col" class="info-label" mat-sort-header="levelsSummary|string">Levels</th>
+                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated by</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated on</th>
+                <th scope="col" class="info-label text-nowrap">Actions</th>
+              </tr>
+              <tr app-column-filter-bar *ngIf="isMatrixTable && isSearchEnabled" [columnList]="matrixColumns" (onSearch)="onSearch($event)"></tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="ruleSets.length === 0 || (ruleSets | colFilter:filters:false).length === 0">
+                <th colspan="9" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr
+                *ngFor="let rs of ruleSets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index"
+              >
+                <th scope="col" class="info-label">{{ items * (page - 1) + i + 1 }}</th>
+                <td>{{ rs.name }}</td>
+                <td class="trv-rs-table-applies">
+                  <span>{{ rs.applicabilitySummary }}</span>
+                  <i
+                    class="fa-solid fa-circle-info trv-rs-applies-info"
+                    aria-label="Roles info"
+                    [attr.title]="rs.applicabilityRolesTooltip"
+                  ></i>
+                </td>
+                <td>{{ rs.levelsSummary }}</td>
+                <td>{{ rs.createdByName || '—' }}</td>
+                <td>{{ rs.createdOn ? (rs.createdOn | date: 'dd-MM-yyyy HH:mm:ss') : '—' }}</td>
+                <td>{{ rs.updatedByName || '—' }}</td>
+                <td>{{ rs.updatedOn ? (rs.updatedOn | date: 'dd-MM-yyyy HH:mm:ss') : '—' }}</td>
+                <td class="text-nowrap rmb-actions">
+                  <button type="button" class="btn btn-sm btn-outline-primary rmb-action-btn mr-1" (click)="openEditForm(rs)" title="Edit" aria-label="Edit">
+                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger rmb-action-btn" (click)="deleteRuleSet(rs)" title="Delete" aria-label="Delete" [disabled]="rs.saving">
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <pagination-controls class="my-pagination" [hidden]="ruleSets.length === 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Add / edit form -->
+  <ng-container *ngIf="showFormView && activeDraft as rs">
+    <div class="trv-rs-form-header mb-3">
+      <button type="button" class="btn btn-link btn-sm pl-0 trv-rs-back-btn" (click)="cancelForm()">
+        <i class="fa-solid fa-arrow-left mr-1" aria-hidden="true"></i> Back to list
+      </button>
+      <h4 class="trv-rs-form-title mb-0">{{ isNewMatrix(rs) ? 'Add Approval Matrix' : 'Edit Approval Matrix' }}</h4>
+    </div>
+
+    <div class="form-row align-items-end mb-3">
+      <div class="form-group col-lg-8 col-md-7 mb-md-0">
+        <label class="info-label" for="rsName{{ rs.id }}">Approval Matrix Name</label>
+        <input
+          type="text"
+          class="form-control"
+          [id]="'rsName' + rs.id"
+          [(ngModel)]="rs.name"
+          maxlength="120"
+          autocomplete="off"
+          placeholder="e.g. Corporate travel approval matrix"
+        />
+      </div>
+      <div class="form-group col-lg-4 col-md-5 mb-0 text-md-right">
+        <label class="info-label d-block mb-2">&nbsp;</label>
+        <div class="trv-rs-matrix-actions justify-content-md-end">
+          <button *ngIf="isNewMatrix(rs)" type="button" class="btn btn-primary btn-sm" (click)="saveRuleSet()" [disabled]="rs.saving || mastersLoading">
+            <i class="fa-solid fa-spinner fa-spin mr-1" *ngIf="rs.saving" aria-hidden="true"></i>
+            <i class="fa-solid fa-floppy-disk mr-1" *ngIf="!rs.saving" aria-hidden="true"></i>
+            Save
+          </button>
+          <button *ngIf="!isNewMatrix(rs)" type="button" class="btn btn-primary btn-sm" (click)="updateRuleSet()" [disabled]="rs.saving || mastersLoading">
+            <i class="fa-solid fa-spinner fa-spin mr-1" *ngIf="rs.saving" aria-hidden="true"></i>
+            <i class="fa-solid fa-check mr-1" *ngIf="!rs.saving" aria-hidden="true"></i>
+            Update
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-sm ml-1" (click)="cancelForm()" [disabled]="rs.saving">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="trv-rs-applicability-card mb-3">
+      <h4 class="trv-rs-applicability-card__title">Who This Approval Matrix Applies To</h4>
+      <p class="trv-rs-applicability-card__lead small text-muted mb-3">
+        Choose departments first, then job roles that appear for those departments. Leave both empty if this travel flow should apply to <strong>all</strong> submitters.
+      </p>
+      <div class="form-row">
+        <div class="form-group col-md-6 mb-md-0">
+          <label class="info-label d-block mb-2">Departments</label>
+          <app-my-select
+            *ngIf="departmentsList.length"
+            class="skill-matrix-master-config__search-select trv-rs-my-select"
+            [multiple]="true"
+            [options]="departmentsList"
+            displayKey="name"
+            valueKey="deptId"
+            placeholder="Search or select departments"
+            [(ngModel)]="rs.applicabilityDepartmentIds"
+            (ngModelChange)="afterApplicabilityDepartmentsChange(rs)"
+            [name]="'rmbRsAppDept-' + rs.id"
+          ></app-my-select>
+          <p class="small text-danger mb-2" *ngIf="!mastersLoading && !departmentsList.length">No departments returned from the server.</p>
+          <div class="trv-rs-selected-hint" *ngIf="applicabilityDepartmentLabels(rs).length">Selected departments</div>
+          <div class="trv-rs-chip-row" *ngIf="applicabilityDepartmentLabels(rs).length">
+            <span class="trv-rs-chip trv-rs-chip--dept" *ngFor="let label of applicabilityDepartmentLabels(rs)">{{ label }}</span>
+          </div>
+        </div>
+        <div class="form-group col-md-6 mb-0">
+          <label class="info-label d-block mb-2">Job roles (for selected departments)</label>
+          <app-my-select
+            class="skill-matrix-master-config__search-select trv-rs-my-select"
+            [multiple]="true"
+            [options]="rolesForDepartments(rs.applicabilityDepartmentIds)"
+            displayKey="name"
+            valueKey="jobRoleId"
+            placeholder="Search or select job roles (optional)"
+            [(ngModel)]="rs.applicabilityJobRoleIds"
+            [name]="'rmbRsAppRole-' + rs.id"
+          ></app-my-select>
+          <small class="form-text text-muted d-block mt-1" *ngIf="!rs.applicabilityDepartmentIds.length">Select at least one department first to load roles.</small>
+          <div class="trv-rs-selected-hint" *ngIf="applicabilityJobRoleLabels(rs).length">Selected job roles</div>
+          <div class="trv-rs-chip-row" *ngIf="applicabilityJobRoleLabels(rs).length">
+            <span class="trv-rs-chip trv-rs-chip--role" *ngFor="let label of applicabilityJobRoleLabels(rs)">{{ label }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngFor="let level of rs.levels" class="trv-rs-level">
+      <div class="trv-rs-level__bar">
+        <div class="trv-rs-level__bar-left">
+          <span class="trv-rs-level__badge">Level {{ level.order }}</span>
+          <span class="trv-rs-level__pipe" *ngIf="rs.levels.length > 1" aria-hidden="true"></span>
+          <span class="trv-rs-level__step-of" *ngIf="rs.levels.length > 1">Step {{ level.order }} of {{ rs.levels.length }}</span>
+        </div>
+        <button type="button" class="btn btn-link btn-sm trv-rs-level__remove" *ngIf="rs.levels.length > 1" (click)="removeLevel(rs, level.order - 1)">
+          Remove level
+        </button>
+      </div>
+
+      <div class="trv-rs-level__body">
+        <div class="trv-rs-approver-card">
+          <div class="trv-rs-approver-card__kicker">Who approves at this step?</div>
+          <div class="form-group mb-0">
+            <label class="info-label" [attr.for]="'route-' + rs.id + '-' + level.order">{{ routeToFieldLabel(level) }}</label>
+            <select class="form-control" [id]="'route-' + rs.id + '-' + level.order" [(ngModel)]="level.routingMode" (ngModelChange)="onRoutingChange(level)">
+              <option *ngFor="let opt of routingOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+            </select>
+            <small class="form-text text-muted d-block mt-2">{{ routingHint(level.routingMode) }}</small>
+          </div>
+
+          <div *ngIf="level.routingMode === 'REPORTING_MANAGER'" class="trv-rs-hierarchy-note" role="note">
+            <span class="trv-rs-hierarchy-note__icon" aria-hidden="true"><i class="fa-solid fa-user-tie"></i></span>
+            <div>Approver is the submitter’s <strong>reporting manager</strong> from HR data.</div>
+          </div>
+          <div *ngIf="level.routingMode === 'HOD_SUBMITTER_DEPT'" class="trv-rs-hierarchy-note" role="note">
+            <span class="trv-rs-hierarchy-note__icon" aria-hidden="true"><i class="fa-solid fa-sitemap"></i></span>
+            <div>Approver is the <strong>HOD of the submitter’s department</strong>.</div>
+          </div>
+        </div>
+
+        <div *ngIf="isHierarchyRouting(level)" class="trv-rs-hierarchy-eligibility mb-0">
+          <p class="trv-rs-hierarchy-eligibility__text mb-0 small text-muted">
+            Eligibility is set under <strong>Who this approval matrix applies to</strong> above.
+          </p>
+        </div>
+
+        <div *ngIf="!isHierarchyRouting(level)" class="trv-rs-scope-card">
+          <h4 class="trv-rs-scope-card__title">{{ scopeSectionTitle(level) }}</h4>
+          <p class="trv-rs-scope-card__lead">{{ scopeSectionLead(level) }}</p>
+          <div class="form-group mb-3">
+            <label class="info-label mb-2 d-block">Departments</label>
+            <app-my-select
+              *ngIf="departmentsList.length"
+              class="skill-matrix-master-config__search-select trv-rs-my-select"
+              [multiple]="true"
+              [options]="departmentsList"
+              displayKey="name"
+              valueKey="deptId"
+              placeholder="Search or select departments for this level"
+              [(ngModel)]="level.departmentIds"
+              (ngModelChange)="afterLevelApproverDepartmentsChange(level)"
+              [name]="'rmbRsLvlDept-' + rs.id + '-' + level.order"
+            ></app-my-select>
+            <div class="trv-rs-chip-row" *ngIf="levelApproverDepartmentLabels(level).length">
+              <span class="trv-rs-chip trv-rs-chip--dept" *ngFor="let label of levelApproverDepartmentLabels(level)">{{ label }}</span>
+            </div>
+          </div>
+          <div class="form-group mb-0" *ngIf="showLevelJobRoleMultiSelect(level)">
+            <label class="info-label mb-2 d-block">Job roles in selected departments</label>
+            <app-my-select
+              class="skill-matrix-master-config__search-select trv-rs-my-select"
+              [multiple]="true"
+              [options]="rolesForDepartments(level.departmentIds)"
+              displayKey="name"
+              valueKey="jobRoleId"
+              placeholder="Search or select job roles for the pool"
+              [(ngModel)]="level.jobRoleIds"
+              (ngModelChange)="afterLevelApproverRolesChange(level)"
+              [name]="'rmbRsLvlRole-' + rs.id + '-' + level.order"
+            ></app-my-select>
+            <div class="trv-rs-chip-row" *ngIf="levelApproverJobRoleLabels(level).length">
+              <span class="trv-rs-chip trv-rs-chip--role" *ngFor="let label of levelApproverJobRoleLabels(level)">{{ label }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="trv-rs-assignee-card" *ngIf="showAssigneeDropdown(level)">
+          <div class="trv-rs-assignee-card__kicker">Choose approver</div>
+          <div class="form-group mb-0">
+            <label class="info-label" [attr.for]="'assign-' + rs.id + '-' + level.order">
+              Assign to
+              <span class="text-muted font-weight-normal" *ngIf="level.routingMode === 'POOL_ANY_IN_SCOPE'">(optional)</span>
+              <span class="text-danger" *ngIf="assigneeRequired(level)">*</span>
+            </label>
+            <select class="form-control" [id]="'assign-' + rs.id + '-' + level.order" [(ngModel)]="level.specificEmployeeId" [disabled]="assigneeSelectDisabled(level)">
+              <option [ngValue]="''">— Any one in pool may approve —</option>
+              <option *ngFor="let e of assigneeOptionsForLevel(level)" [ngValue]="e.empId">{{ e.name }}</option>
+            </select>
+            <small class="form-text text-muted d-block mt-2" *ngIf="level.employeesLoading">
+              <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i> Loading employees…
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="trv-rs-level-actions mb-3">
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="addLevel(rs)" [disabled]="rs.levels.length >= maxLevels">
+        <i class="fa-solid fa-layer-group mr-1" aria-hidden="true"></i> Add level (max {{ maxLevels }})
+      </button>
+    </div>
+
+    <div class="trv-rs-admin">
+      <p class="trv-rs-between-chain small text-muted mb-2">After the last level above, the ticket moves to Travel Admin for booking.</p>
+      <div class="trv-rs-admin__head">
+        <i class="fa-solid fa-coins trv-rs-admin__icon" aria-hidden="true"></i>
+        <div>
+          <h5 class="trv-rs-admin__title">Travel Admin — booking &amp; closure</h5>
+          <p class="trv-rs-admin__sub mb-0">Travel Admin completes booking, uploads ticket/voucher proof, and closes the ticket.</p>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-6 mb-md-0">
+          <label class="info-label" [attr.for]="'finDept-' + rs.id">Travel Admin department</label>
+          <select class="form-control" [id]="'finDept-' + rs.id" [(ngModel)]="rs.admin.departmentId" (ngModelChange)="onAdminDepartmentChange(rs)">
+            <option *ngFor="let d of departmentsList" [ngValue]="d.deptId">{{ d.name }}</option>
+          </select>
+        </div>
+        <div class="form-group col-md-6 mb-0">
+          <label class="info-label" [attr.for]="'finEmp-' + rs.id">Assign to (optional)</label>
+          <select class="form-control" [id]="'finEmp-' + rs.id" [(ngModel)]="rs.admin.assigneeEmployeeId">
+            <option [ngValue]="''">— Any admin user in this department —</option>
+            <option *ngFor="let e of adminEmployees(rs.admin.departmentId)" [ngValue]="e.empId">{{ e.name }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -1318,7 +1319,7 @@ try {
 	public ServiceResponse getAllTravelReasons() {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    try {
-	        List<TravelReason> reasonList = travelReasonRepository.findAll();				
+	        List<TravelReason> reasonList = travelReasonRepository.findByIsActiveOrderByTravelReasonNameAsc("Y");				
 
 
 	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1814,6 +1815,22 @@ try {
 	}
 
 	
+	private boolean isActiveMasterRow(String isActive) {
+	    if (isActive == null || isActive.trim().isEmpty()) {
+	        return true;
+	    }
+	    String v = isActive.trim().toUpperCase(Locale.ROOT);
+	    return "Y".equals(v) || "YES".equals(v) || "TRUE".equals(v) || "1".equals(v);
+	}
+
+	private boolean isActiveMasterRow(TravelMode mode) {
+	    return mode != null && isActiveMasterRow(mode.getIsActive());
+	}
+
+	private boolean isActiveMasterRow(HotelSubCategory sub) {
+	    return sub != null && isActiveMasterRow(sub.getIsActive());
+	}
+
 	public ServiceResponse getTravelModeByReason(String travelReasonName) {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    try {
@@ -1826,7 +1843,9 @@ try {
 	        Long travelReasonId = travelModeBasedOnReason.getId(); 
 	        System.out.println("Travel Reason ID: " + travelReasonId);
 
-	        List<TravelMode> modeList = travelModeRepository.findByTravelReasonId(travelReasonId);
+	        List<TravelMode> modeList = travelModeRepository.findByTravelReasonId(travelReasonId).stream()
+	        		.filter(this::isActiveMasterRow)
+	        		.collect(Collectors.toList());
 
 	        if (modeList.isEmpty()) {
 	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -1919,19 +1938,18 @@ try {
 	
 	
 	public ServiceResponse getHotelCategory() {
-	    ServiceResponse serviceResponse = new ServiceResponse();
+	    ServiceResponse response = new ServiceResponse();
 	    try {
-	        List<HotelCategory> hotelCategoryist = hotelCategoryRepository.findAll();
-
-	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        serviceResponse.setServiceResponse(hotelCategoryist);
+	        List<HotelCategory> hotelCategories =
+	            hotelCategoryRepository.findByIsActiveOrderByHotelCategoryAsc("Y");
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(hotelCategories);
 	    } catch (Exception e) {
 	        e.printStackTrace();
-	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        serviceResponse.setServiceError("Error fetching hotelCategoryist: " + e.getMessage());
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceError("Error fetching hotel categories: " + e.getMessage());
 	    }
-
-	    return serviceResponse;
+	    return response;
 	}
 
 	
@@ -2005,24 +2023,72 @@ try {
 	
 	
 	public ServiceResponse getHotelSubCategory() {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        List<HotelSubCategory> hotelSubCategories = hotelSubCategoryRepository.findAll().stream()
+	        		.filter(this::isActiveMasterRow)
+	        		.collect(Collectors.toList());
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(hotelSubCategories);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceError("Error fetching hotel sub-categories: " + e.getMessage());
+	    }
+	    return response;
+	}
+
+	public ServiceResponse getHotelSubCategoryByCategory(String hotelCategoryName) {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    try {
-	        List<HotelSubCategory> hotelSubCategoryist = hotelSubCategoryRepository.findAll();
-
+	        if (hotelCategoryName == null || hotelCategoryName.trim().isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("Hotel category is required.");
+	            return serviceResponse;
+	        }
+	        List<HotelSubCategory> list = hotelSubCategoryRepository
+	                .findByHotelCategory_HotelCategoryAndIsActiveOrderByHotelSubCategoryNameAsc(
+	                        hotelCategoryName.trim(), "Y");
 	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        serviceResponse.setServiceResponse(hotelSubCategoryist);
-	        return serviceResponse;
+	        serviceResponse.setServiceResponse(list);
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        serviceResponse.setServiceError("Error fetching hotelCategoryist: " + e.getMessage());
-	        return serviceResponse;
+	        serviceResponse.setServiceError("Error fetching hotel sub-categories: " + e.getMessage());
 	    }
-
-	    
+	    return serviceResponse;
 	}
-	
-	
+
+	public ServiceResponse getCitiesByHotelSubCategoryId(Long hotelSubCategoryId) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	        if (hotelSubCategoryId == null) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("Hotel sub-category is required.");
+	            return serviceResponse;
+	        }
+	        if (!hotelSubCategoryRepository.existsById(hotelSubCategoryId)) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("Hotel sub-category not found.");
+	            return serviceResponse;
+	        }
+	        List<City> cityList = cityRepository
+	                .findByHotelSubCategory_IdAndIsActiveOrderByCityNameAsc(hotelSubCategoryId, "Y");
+	        if (cityList.isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("No cities configured for this sub-category.");
+	        } else {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(cityList);
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        serviceResponse.setServiceError("Error fetching cities: " + e.getMessage());
+	    }
+	    return serviceResponse;
+	}
+
 	public ServiceResponse saveCity(CityDTO dto) {
 	    ServiceResponse response = new ServiceResponse();
 
@@ -2101,8 +2167,10 @@ try {
 	            serviceResponse.setServiceError("Travel mode is required.");
 	            return serviceResponse;
 	        }
-	        List<TravelClass> classList = travelClassRepository.findAllByTravelMode_TravelModeId(travelModeId);
-	        if (classList == null || classList.isEmpty()) {
+	        List<TravelClass> classList = travelClassRepository.findAllByTravelMode_TravelModeId(travelModeId).stream()
+	        		.filter(tc -> isActiveMasterRow(tc.getIsActive()))
+	        		.collect(Collectors.toList());
+	        if (classList.isEmpty()) {
 	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            serviceResponse.setServiceError("No travel classes found for the selected mode.");
 	        } else {

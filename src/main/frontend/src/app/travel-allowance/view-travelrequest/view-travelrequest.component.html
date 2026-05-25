@@ -1,25 +1,21 @@
 <!-- Travel History Table -->
-<div class="row">
+<div class="row trv-page">
   <div class="col-md-12">
     <div class="row">
-      <div class="col-12 d-flex justify-content-between align-items-center">
-        <div>
-          <h2 class="mb-0 text-primary">Travel Request History</h2>
-          <!-- <small class="text-light">Track and manage your past travel reimbursement submissions</small> -->
-        </div>
-
-        <button type="button" class="btn btn-primary"
+      <div class="col-md-12 table-header d-flex flex-wrap justify-content-between align-items-center">
+        <h1 class="table-header-title mb-0">Travel Request History</h1>
+        <button type="button" class="btn btn-primary btn-sm"
           (click)="getAllInvoicesByEmpId(alert_message1,this.currentUser.empId)" *ngIf="!invoiceDetails">
           Travel Based Request History
         </button>
-        <button type="button" class="btn btn-primary" (click)="fetchAllInvoice1()" *ngIf="invoiceDetails">
+        <button type="button" class="btn btn-primary btn-sm" (click)="fetchAllInvoice1()" *ngIf="invoiceDetails">
           View My Travel Request
         </button>
       </div>
     </div>
-    <div class="row" *ngIf="!invoiceDetails">
+    <div class="row mt-3" *ngIf="!invoiceDetails">
       <div class="col-md-12">
-        <div class="d-flex align-items-center justify-content-between mt-3">
+        <div class="d-flex align-items-center justify-content-between mb-2">
 
           <div class="selector-toggle">
             <a href="javascript:void(0)">
@@ -39,94 +35,170 @@
           </div>
         </div>
         <div class="overflow-auto" bassHorizontalScroll>
-          <table class="table table-responsive">
+          <table class="table table-bordered trv-view-table w-100">
             <thead class="thead-light">
               <tr>
-                <th scope="col" class="info-label">Reference Number</th>
-                <th scope="col" class="info-label">Name</th>
-                <th scope="col" class="info-label">Request Type</th>
-                <th scope="col" class="info-label">From Date</th>
-                <th scope="col" class="info-label">To Date</th>
-                <th scope="col" class="info-label">Hotel Category</th>
-                <th scope="col" class="info-label">City Category</th>
-                <th scope="col" class="info-label">City Name</th>
-                <th scope="col" class="info-label">From Location</th>
-                <th scope="col" class="info-label">To Location</th>
-
-                <th scope="col" class="info-label">Applied By</th>
-                <th scope="col" class="info-label">Applied On</th>
-                <th scope="col" class="wide-col">Purpose Of Travel</th>
-                <th scope="col" class="info-label">Current Approval Level</th>
-                <th scope="col" class="info-label">Level 1 Approver Name</th>
-                <th scope="col" class="info-label">Level 1 Approver Status</th>
-                <th scope="col" class="info-label">Level 1 Approver Remarks</th>
-                <th scope="col" class="info-label">Level 2 Approver Name</th>
-                <th scope="col" class="info-label">Level 2 Approver Status</th>
-                <th scope="col" class="info-label">Level 2 Approver Remarks</th>
-                <th scope="col" class="info-label">Final Status</th>
-                <th scope="col" class="info-label">Action</th>
+                <th scope="col">Reference Number</th>
+                <th scope="col">Name</th>
+                <th scope="col">Request Type</th>
+                <th scope="col">Travel Mode</th>
+                <th scope="col">Travel Class</th>
+                <th scope="col">Trip Type</th>
+                <th scope="col">From Date</th>
+                <th scope="col">To Date</th>
+                <th scope="col">Hotel Category</th>
+                <th scope="col">City Category</th>
+                <th scope="col">City Name</th>
+                <th scope="col">From Location</th>
+                <th scope="col">To Location</th>
+                <th scope="col">Applied On</th>
+                <th scope="col" class="trv-col-purpose">Purpose Of Travel</th>
+                <th scope="col">Booking proof</th>
+                <th scope="col">Status</th>
+                <th scope="col">Current Approval Level</th>
+                <ng-container *ngFor="let col of tableLevelColumns; let li = index">
+                  <th scope="col">{{ approvalLevelApproverColumnTitle(col) }}</th>
+                  <th scope="col">{{ approvalLevelStatusColumnTitle(col) }}</th>
+                </ng-container>
+                <th scope="col">Action</th>
               </tr>
               <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="travelActiveColumns"
                 (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
               <tr *ngIf="travelRequests.length == 0 || (travelRequests | colFilter:filters: false).length == 0">
-                <th colspan="12" class="text-center info-label">No details to display...</th>
+                <td [attr.colspan]="travelTableColspan" class="text-center text-muted py-4">No details to display.</td>
               </tr>
               <tr
                 *ngFor="let row of travelRequests |colFilter:filters:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{ row.requestId }}</td>
                 <td>{{ row.name }}</td>
-                <td>{{ row.requestType }}</td>
-                <td>{{ row.fromDate | date }}</td>
-                <td>{{ row.toDate | date }}</td>
-                <td>{{ row.hotelCategory || 'NA' }}</td>
-                <td>{{ row.cityCategory || 'NA' }}</td>
-                <td>{{ row.city || 'NA' }}</td>
-                <td>{{ row.fromLocation || 'NA' }}</td>
-                <td>{{ row.toLocation || 'NA' }}</td>
+                <td>
+                  <div *ngFor="let item of cellItems(row, 'requestType'); let ci = index" class="trv-cell-stack-item">
+                    <span class="trv-cell-stack-badge" [ngClass]="cellItemKindClass(row, ci)">{{ cellItemKindLabel(row, ci) }}</span>
+                    <span class="trv-cell-stack-value">{{ item }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div *ngFor="let item of cellItems(row, 'travelModeDisplay'); let ci = index" class="trv-cell-stack-item">
+                    <span class="trv-cell-stack-badge" [ngClass]="cellItemKindClass(row, ci)">{{ cellItemKindLabel(row, ci) }}</span>
+                    <span class="trv-cell-stack-value">{{ item || 'NA' }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div *ngFor="let item of cellItems(row, 'travelClassDisplay'); let ci = index" class="trv-cell-stack-item">
+                    <span class="trv-cell-stack-badge" [ngClass]="cellItemKindClass(row, ci)">{{ cellItemKindLabel(row, ci) }}</span>
+                    <span class="trv-cell-stack-value">{{ item || 'NA' }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div *ngFor="let item of cellItems(row, 'tripTypeDisplay'); let ci = index" class="trv-cell-stack-item">
+                    <span class="trv-cell-stack-badge" [ngClass]="cellItemKindClass(row, ci)">{{ cellItemKindLabel(row, ci) }}</span>
+                    <span class="trv-cell-stack-value">{{ item || 'NA' }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div *ngFor="let item of cellItems(row, 'fromDate'); let ci = index" class="trv-cell-stack-item">
+                    <span class="trv-cell-stack-badge" [ngClass]="cellItemKindClass(row, ci)">{{ cellItemKindLabel(row, ci) }}</span>
+                    <span class="trv-cell-stack-value">{{ item && item !== 'NA' ? (item | date) : 'NA' }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div *ngFor="let item of cellItems(row, 'toDate'); let ci = index" class="trv-cell-stack-item">
+                    <span class="trv-cell-stack-badge" [ngClass]="cellItemKindClass(row, ci)">{{ cellItemKindLabel(row, ci) }}</span>
+                    <span class="trv-cell-stack-value">{{ item && item !== 'NA' ? (item | date) : 'NA' }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div *ngFor="let item of cellItems(row, 'hotelCategory'); let ci = index" class="trv-cell-stack-item">
+                    <span class="trv-cell-stack-badge" [ngClass]="cellItemKindClass(row, ci)">{{ cellItemKindLabel(row, ci) }}</span>
+                    <span class="trv-cell-stack-value">{{ item || 'NA' }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div *ngFor="let item of cellItems(row, 'cityCategory'); let ci = index" class="trv-cell-stack-item">
+                    <span class="trv-cell-stack-badge" [ngClass]="cellItemKindClass(row, ci)">{{ cellItemKindLabel(row, ci) }}</span>
+                    <span class="trv-cell-stack-value">{{ item || 'NA' }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div *ngFor="let item of cellItems(row, 'city'); let ci = index" class="trv-cell-stack-item">
+                    <span class="trv-cell-stack-badge" [ngClass]="cellItemKindClass(row, ci)">{{ cellItemKindLabel(row, ci) }}</span>
+                    <span class="trv-cell-stack-value">{{ item || 'NA' }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div *ngFor="let item of cellItems(row, 'fromLocation'); let ci = index" class="trv-cell-stack-item">
+                    <span class="trv-cell-stack-badge" [ngClass]="cellItemKindClass(row, ci)">{{ cellItemKindLabel(row, ci) }}</span>
+                    <span class="trv-cell-stack-value">{{ item || 'NA' }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div *ngFor="let item of cellItems(row, 'toLocation'); let ci = index" class="trv-cell-stack-item">
+                    <span class="trv-cell-stack-badge" [ngClass]="cellItemKindClass(row, ci)">{{ cellItemKindLabel(row, ci) }}</span>
+                    <span class="trv-cell-stack-value">{{ item || 'NA' }}</span>
+                  </div>
+                </td>
 
-                <td>{{ row.empId }}</td>
                 <td>{{ row.appliedOn | date }}</td>
-                <td>{{ row.purpose }}</td>
-                <td>{{ row.level }}</td>
-                <td>{{ row.hodName }}</td>
-                <!-- <td>{{ row.status }}</td> -->
-                <td [ngClass]="{
-                    'text-danger': row.status === 'Rejected',
-                    'text-success': row.status === 'Approved',
-                    'text-warning': row.status === 'Pending'
-                                }">
-                  {{ row.status }}
+                <td>
+                  <div *ngFor="let item of cellItems(row, 'purpose'); let ci = index" class="trv-cell-stack-item">
+                    <span class="trv-cell-stack-badge" [ngClass]="cellItemKindClass(row, ci)">{{ cellItemKindLabel(row, ci) }}</span>
+                    <span class="trv-cell-stack-value">{{ item }}</span>
+                  </div>
                 </td>
-                <td>{{ row.level1approverRemarks || 'NA' }}</td>
-                <td>{{row.level2approverName}} </td>
-                <!-- <td>{{ row.level2approverStatus }}</td> -->
-                <td [ngClass]="{
-                    'text-danger': row.level2approverStatus === 'Rejected',
-                    'text-success': row.level2approverStatus === 'Approved',
-                    'text-warning': row.level2approverStatus === 'Pending'
-                                }">
-                  {{ row.level2approverStatus }}
+                <td class="text-nowrap">
+                  <div *ngFor="let proof of bookingProofEntries(row)" class="trv-proof-stack-item">
+                    <span class="trv-cell-stack-badge" [ngClass]="proof.badgeClass">{{ proof.kindLabel }}</span>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-primary trv-proof-btn"
+                      [disabled]="proof.docIds.length === 0"
+                      (click)="downloadBookingProof(proof)">
+                      <em class="fa fa-download"></em>
+                      <span>{{ proof.docIds.length ? (' (' + proof.docIds.length + ')') : ' (0)' }}</span>
+                    </button>
+                  </div>
                 </td>
-                <td>{{ row.level2approverRemarks || 'NA' }}</td>
                 <td [ngClass]="{
-                    'text-danger': row.finalStatus === 'Rejected',
-                    'text-success': row.finalStatus === 'Approved',
-                    'text-warning': row.finalStatus === 'Pending'
+                    'text-danger': (row.displayStatus || row.finalStatus) === 'Rejected',
+                    'text-success': (row.displayStatus || row.finalStatus) === 'Approved',
+                    'text-warning': (row.displayStatus || row.finalStatus) === 'Pending'
                                 }">
-                  {{ row.finalStatus || 'NA'}}
+                  <div *ngFor="let item of cellItems(row, 'lineStatusDisplay'); let ci = index" class="trv-cell-stack-item">
+                    <span class="trv-cell-stack-badge" [ngClass]="cellItemKindClass(row, ci)">{{ cellItemKindLabel(row, ci) }}</span>
+                    <span class="trv-cell-stack-value">{{ item || row.displayStatus || row.finalStatus || 'NA' }}</span>
+                  </div>
                 </td>
+                <td>{{ row.currentApprovalLevel || row.level || '—' }}</td>
+                <ng-container *ngFor="let col of tableLevelColumns; let li = index">
+                  <td>{{ approvalLevelCell(row, li, 'approverName') }}</td>
+                  <td [ngClass]="{
+                      'text-danger': approvalLevelCell(row, li, 'approverStatus') === 'Rejected',
+                      'text-success': approvalLevelCell(row, li, 'approverStatus') === 'Approved',
+                      'text-warning': approvalLevelCell(row, li, 'approverStatus') === 'Pending'
+                                  }">
+                    {{ approvalLevelCell(row, li, 'approverStatus') }}
+                  </td>
+                </ng-container>
                 <td>
                   <!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" >
                       <em class="fa fa-edit"></em> Edit
                     </button> -->
                   <div class="d-inline-flex">
-                    <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button"
+                    <button
+                      *ngIf="row.matrixTicket"
+                      type="button"
+                      class="btn btn-outline-secondary btn-sm"
+                      title="View ticket"
+                      (click)="openViewTicketModal(row)">
+                      <em class="fa fa-eye" aria-hidden="true"></em>
+                    </button>
+                    <button *ngIf="!row.matrixTicket && row.status != 'Approved' && row.status != 'Rejected'" type="button"
                       class="btn btn-primary btn-sm ml-2" (click)="openEditModal(travel_desk,row)">
                       <em class="fa fa-edit"></em> Edit
                     </button>
-                    <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button"
+                    <button *ngIf="!row.matrixTicket && row.status != 'Approved' && row.status != 'Rejected'" type="button"
                       class="btn btn-danger btn-sm ml-2" (click)="deleteTraveldata(row,alert_message1)">
                       <em class="fa fa-trash"></em> Delete
                     </button>
@@ -342,7 +414,7 @@
 
                 <div class="col-md-6">
                   <div class="form-group">
-                    <label for="purpose">Purpose of Travel</label>
+                    <label for="purpose">Purpose Of Travel</label>
                     <textarea class="form-control" id="purpose" [(ngModel)]="selectedTravelRequest.purpose"
                       name="purpose"></textarea>
                   </div>
@@ -401,7 +473,7 @@
   <div class="row">
     <div class="card col-md-12 px-0">
       <div class="card-header text-center text-uppercase">
-        <strong>Apply reimbursment based on your travel request</strong>
+        <strong>Apply Reimbursement Based On Your Travel Request</strong>
         <!-- <strong *ngIf="isUpdation">Update Timesheet</strong> -->
       </div>
       <div class="card-body">
@@ -417,7 +489,7 @@
 
           <div class="col-md-3 mb-0">
             <label class="info-label">
-              <span class="text-danger">*</span>Employee Id
+              <span class="text-danger">*</span>Employee ID
             </label>
             <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.employeementId" name="employeeId"
               disabled required />

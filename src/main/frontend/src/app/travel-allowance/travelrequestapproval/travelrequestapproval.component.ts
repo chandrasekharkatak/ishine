@@ -1,11 +1,20 @@
-import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { Sort } from '@angular/material/sort';
+import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
-import { MyTravelDesk } from 'src/app/models/travelDesk';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
+import { TravelTicketModalComponent } from '../travel-ticket-modal/travel-ticket-modal.component';
+import {
+  approvalLevelApproverColumnTitle,
+  approvalLevelCell,
+  approvalLevelStatusColumnTitle,
+  buildTicketFilterColumns,
+  resolveTableLevelColumns,
+  RmbApprovalLevelColumn
+} from '../../reimbursement/rmb-approval-levels.helper';
 
 @Component({
   standalone: false,
@@ -14,249 +23,182 @@ import { TravelDeskService } from 'src/app/services/travel-desk.service';
   styleUrls: ['./travelrequestapproval.component.css']
 })
 export class TravelrequestapprovalComponent implements OnInit {
-  @ViewChild("alert_message")
-  alertTemplate: TemplateRef<any>;
-  @ViewChild('editTravelRequestModal') modalElement: any;
-  travelDeskInfo: MyTravelDesk;
+  readonly approvalLevelApproverColumnTitle = approvalLevelApproverColumnTitle;
+  readonly approvalLevelStatusColumnTitle = approvalLevelStatusColumnTitle;
+
+  @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
+
   currentEmployeeInfo: Employee = new Employee();
-  travelRequests: any = [];
-  selectedTravelRequest: any = [];
-  selectedTraveldataforDelete: any = [];
-  domainSpecializationList: any[];
   currentUser: any;
+  alertMessage: any;
+  modalRef: NgbModalRef | null = null;
 
-  constructor(private travelDesk: TravelDeskService,
+  ticketRequests: any[] = [];
+  ticketListView: 'pending' | 'all' = 'pending';
+  isSearchEnabledTickets = false;
+  ticketFilters: any = {};
+  private readonly ticketStaticFilterColumns = [
+    'ticketNo',
+    'fullName',
+    'displayStatus',
+    'workflowStage',
+    'lineCount',
+    'submittedOn'
+  ];
+  ticketActiveColumns: string[] = [...this.ticketStaticFilterColumns];
+  tableLevelColumns: RmbApprovalLevelColumn[] = [];
+  readonly approvalLevelCell = approvalLevelCell;
+  sortColumn = '';
+  sortColumnType = '';
+  sortDirection = '';
+  pageTickets = 1;
+  private matrixLevelColumnsFallback: RmbApprovalLevelColumn[] = [];
+
+  constructor(
     private modalService: NgbModal,
-    private sanitizer: DomSanitizer,
-    private employeeService : EmployeeService,
+    private employeeService: EmployeeService,
     private authenticationService: AuthenticationService,
-  ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x) }
-
-  ngOnInit(): void {
-    this.onGetEmployeeInfo();
-    this.onGetTravelInfo();
+    private travelDeskService: TravelDeskService
+  ) {
+    this.authenticationService.currentUser.subscribe((x) => (this.currentUser = x));
   }
 
-  async onGetTravelInfo() {
-    if (this.isValidForm()) {
-      this.travelDeskInfo = new MyTravelDesk();
-      let travelData = new MyTravelDesk();
+  ngOnInit(): void {
+    void this.onGetEmployeeInfo();
+    void this.loadTicketRequests();
+  }
 
-      console.log('currentEmployeeInfo ::::::::::::::::',this.currentEmployeeInfo);
-      travelData.employeeId = this.currentUser.empId;
-
-      console.log('Form Data:', travelData);
-
-      const response: any = await this.travelDesk.fetchTravelDataForApproval(travelData).toPromise();
-
-      if (response.serviceStatus === "Success") {
-        this.travelRequests = response.serviceResponse.sort((a, b) => b.requestId - a.requestId);
-
-        console.log('Fetched Travel Requests:', this.travelRequests);
-        this.selectedTravelRequest = this.travelRequests;
-      } else {
-        console.error('Error fetching data:', response.serviceResponse);
-      }
+  async onGetEmployeeInfo(): Promise<void> {
+    const currentEmp = new Employee();
+    currentEmp.empId = this.currentUser.empId;
+    currentEmp.isDraft = false;
+    const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
+    if (response.serviceStatus === 'Success') {
+      this.currentEmployeeInfo = response.serviceResponse;
     }
   }
 
-  isValidForm() {
-    return true;
+  async loadTicketRequests(): Promise<void> {
+    const tBody = { empId: this.currentUser.empId, email: this.currentUser.email };
+    const req$ =
+      this.ticketListView === 'pending'
+        ? this.travelDeskService.fetchTravelDeskTicketsForApproval(tBody)
+        : this.travelDeskService.fetchTravelDeskTicketsAssignedAll(tBody);
+    const tResp: any = await req$.pipe(first()).toPromise();
+    if (tResp?.serviceStatus === 'Success') {
+      this.ticketRequests = tResp.serviceResponse || [];
+    } else {
+      this.ticketRequests = [];
+    }
+    await this.refreshTableLevelColumns();
   }
-  alertMessage: any;
-  modalRef:NgbModalRef;
-  modalRef1:NgbModalRef;
 
-  openAlertMod(template: TemplateRef<any>, message: any) {
+  get ticketTableColspan(): number {
+    return 5 + this.tableLevelColumns.length * 2 + 1 + 1;
+  }
+
+  private async refreshTableLevelColumns(): Promise<void> {
+    let matrixCols: RmbApprovalLevelColumn[] = [];
+    const empId = Number(this.currentUser?.empId);
+    if (empId) {
+      try {
+        const res: any = await this.travelDeskService
+          .resolveTravelApprovalMatrixForEmployee(empId)
+          .pipe(first())
+          .toPromise();
+        if (res?.serviceStatus === 'Success' && res.serviceResponse?.levelColumns) {
+          matrixCols = res.serviceResponse.levelColumns;
+        }
+      } catch {
+        matrixCols = [];
+      }
+    }
+    this.matrixLevelColumnsFallback = matrixCols;
+    this.tableLevelColumns = resolveTableLevelColumns(this.ticketRequests, matrixCols);
+    this.ticketActiveColumns = buildTicketFilterColumns(
+      this.ticketStaticFilterColumns,
+      this.tableLevelColumns.length
+    );
+  }
+
+  async setTicketListView(view: 'pending' | 'all'): Promise<void> {
+    if (this.ticketListView === view) {
+      return;
+    }
+    this.ticketListView = view;
+    this.pageTickets = 1;
+    this.ticketFilters = {};
+    this.isSearchEnabledTickets = false;
+    await this.loadTicketRequests();
+  }
+
+  shouldShowTicketAction(t: any): boolean {
+    if (!t?.workflowStage) {
+      return false;
+    }
+    if (this.ticketListView === 'pending' && t.workflowStage === 'PENDING_LEVEL') {
+      return true;
+    }
+    if (t.workflowStage === 'PENDING_ADMIN') {
+      const uid = String(this.currentUser?.empId ?? '');
+      if (t.currentAssigneeEmpId != null && uid === String(t.currentAssigneeEmpId)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  openTicketModal(t: any, viewOnly = false): void {
+    const ref = this.modalService.open(TravelTicketModalComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      windowClass: 'trv-ticket-modal'
+    });
+    ref.componentInstance.ticket = JSON.parse(JSON.stringify(t));
+    ref.componentInstance.actor = { empId: this.currentUser?.empId, email: this.currentUser?.email };
+    ref.componentInstance.viewOnly = viewOnly;
+    ref.result
+      .then((r: any) => {
+        if (r?.refreshed) {
+          void this.loadTicketRequests();
+        }
+      })
+      .catch(() => {});
+  }
+
+  sortTicketData(sort: Sort): void {
+    if (sort.active) {
+      const sortParams: string[] = sort.active.split('|');
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;
+    }
+  }
+
+  toggleTicketSearch(): void {
+    this.isSearchEnabledTickets = !this.isSearchEnabledTickets;
+    if (!this.isSearchEnabledTickets) {
+      this.ticketFilters = {};
+    }
+  }
+
+  onTicketSearch(searchData: any): void {
+    if (this.isSearchEnabledTickets) {
+      this.ticketFilters = searchData;
+    }
+  }
+
+  handleTicketPageChange(event: number): void {
+    this.pageTickets = event;
+  }
+
+  openAlertMod(template: TemplateRef<any>, message: any): void {
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
-  openAlertMod1(template: TemplateRef<any>, message: any) {
-    this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-    this.alertMessage = message;
-  }
-  openEditModal(template: TemplateRef<any> ,row :any) {
 
-    this.selectedTravelRequest = { ...row };
-
-    console.log('editpain asichi re ::::::::::::::::::::',this.selectedTravelRequest);
-
-    this.openAlertMod(template, "njvhv");
-
-  }
-
-
-
-  async updateTravelRequest() {
-
-      this.travelDeskInfo = new MyTravelDesk();
-      let travelData = new MyTravelDesk();
-
-      this.travelDeskInfo = new MyTravelDesk();
-      let newtravelData = new MyTravelDesk();
-      newtravelData.requestId=this.selectedTravelRequest.requestId;
-      newtravelData.employeeId = this.selectedTravelRequest.empId;
-      newtravelData.fullName = this.selectedTravelRequest.name;
-      newtravelData.email =this.selectedTravelRequest.email;
-      newtravelData.departmentName=this.selectedTravelRequest.department;
-      newtravelData.designationName=this.selectedTravelRequest.designationName;
-      newtravelData.mobileNo=this.selectedTravelRequest.mobileNo;
-      newtravelData.managerName=this.selectedTravelRequest.managerName;
-      newtravelData.associatedTravelRequest = this.selectedTravelRequest.requestType;
-      newtravelData.travelMode= this.selectedTravelRequest.travelMode ;
-      newtravelData.travelClass = this.selectedTravelRequest.travelClass;
-      newtravelData.fromDate =this.selectedTravelRequest.fromDate;
-      newtravelData.toDate = this.selectedTravelRequest.toDate;
-      newtravelData.fromLocation = this.selectedTravelRequest.fromLocation;
-      newtravelData.toLocation =this.selectedTravelRequest.toLocation;
-      newtravelData.purposeOfTravel = this.selectedTravelRequest.purpose;
-      newtravelData.supportingDocument = this.selectedTravelRequest.supportingDocument;
-
-
-      console.log('Form Data:', travelData);
-       const index = this.travelRequests.findIndex(request => request.requestId === this.selectedTravelRequest.requestId);
-
-    if (index !== -1) {
-      // Update the travel request at the found index with the new data
-      this.travelRequests[index] = { ...this.selectedTravelRequest };
-
-      try {
-        const response: any = await this.travelDesk.updateTravelData(newtravelData).toPromise();
-
-        if (response.serviceStatus === "Success") {
-          alert("Success! Your data was updated successfully.");
-          console.log('Updated Travel Request:', this.selectedTravelRequest);
-          this.modalRef?.close();
-        } else {
-          console.error('Error updating travel request:', response.serviceResponse);
-          alert('There was an issue updating the data.');
-        }
-      } catch (error) {
-        console.error('Error during API call:', error);
-        alert('An error occurred while updating the data. Please try again later.');
-      }
-
-    }
-  }
-
-   //pagination
-
-   page = 1;
-   handlePageChange(event) {
-       this.page = event;
-   }
-
-  cancelRequest() {
+  cancelRequest(): void {
     this.modalRef?.close();
-    this.onGetTravelInfo();
+    void this.loadTicketRequests();
   }
-
-  cancelRequest2() {
-    this.modalRef1.close();
-  }
-
-  closeModal() {
-    this.modalRef?.close();
-  }
-
- async onGetEmployeeInfo(){
-    this.domainSpecializationList = [];
-    this.currentEmployeeInfo = new Employee();
-    let currentEmp = new Employee();
-    currentEmp.empId = this.currentUser.empId;
-    currentEmp.isDraft = false;
-    console.log("currentEmp :::::::::::::::::::::::: ", currentEmp);
-
-    const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
-    if (response.serviceStatus == "Success") {
-      this.currentEmployeeInfo = response.serviceResponse;
-
-      //console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
-      //this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
-
-    } else {
-      console.error(response.serviceResponse);
-    }
-    setTimeout(()=>{
-      this.currentEmployeeInfo.documentList && this.currentEmployeeInfo.documentList.forEach((doc, index) => {
-        if (doc.documentBytes) {
-          let preview = document.getElementById(`docPreview${index + 1}`);
-            let objectURL = 'data:image/*;base64,' + doc.documentBytes;
-            let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
-            preview.setAttribute('src', src);
-        }
-      });
-    }, 500);
-  }
-
-
-  async actionRequest(template: TemplateRef<any>,template1: TemplateRef<any>) {
-
-    this.travelDeskInfo = new MyTravelDesk();
-    let travelData = new MyTravelDesk();
-
-    this.travelDeskInfo = new MyTravelDesk();
-    let newtravelData = new MyTravelDesk();
-    newtravelData.requestId=this.selectedTravelRequest.requestId;
-    newtravelData.employeeId = this.selectedTravelRequest.empId;
-    newtravelData.status = this.selectedTravelRequest.approverStatus;
-      if (!this.selectedTravelRequest.approverStatus) {
-        this.openAlertMod1(template1, "Please select Approver Status");
-        return;
-      }
-
-    if(this.selectedTravelRequest.level == 1){
-      newtravelData.level1approverRemarks = this.selectedTravelRequest.approverRemarks;
-
-    }
-    else{
-      newtravelData.level2approverRemarks = this.selectedTravelRequest.approverRemarks;
-
-    }
-
-
-    console.log('Approver Status ', newtravelData.approverStatus);
-
-    console.log('newtravelData :::::::::::::::::::::::::::::', newtravelData);
-
-
-    try {
-      const response: any = await this.travelDesk.approveOrRejectTraveldesk(newtravelData).toPromise();
-
-      console.log('AResponse Data :::::::::::::::::', response);
-
-
-      if (response.serviceStatus === "Success") {
-
-        if(response.serviceResponse.finalstatus === "Rejected"){
-          this.modalRef?.close();
-          this.alertMessage = `Success! Your request was Rejected successfully ..!!!!`;
-          this.openAlertMod(template, this.alertMessage);
-        }else{
-          this.modalRef?.close();
-        this.alertMessage = `Success! Your request was approved successfully ..!!!!`;
-        this.openAlertMod(template, this.alertMessage);
-        console.log('Updated Travel Request:', this.selectedTravelRequest);
-        }
-
-      } else {
-        console.error('Error updating travel request:', response.serviceResponse);
-        alert('There was an issue updating the data.');
-      }
-      this.modalRef?.close();
-
-    } catch (error) {
-      console.error('Error during API call:', error);
-      alert('An error occurred while updating the data. Please try again later.');
-    }
-
-
-
-
- // }
-}
-
-
-
-
 }

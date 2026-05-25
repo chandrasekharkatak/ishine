@@ -411,8 +411,9 @@ ngb-modal-window {
   line-height: 1.35 !important;
 }
 
-/* Reimbursement: human-readable tables (used with .rmb-page on views) */
-.rmb-page {
+/* Reimbursement & Travel Desk: shared readable UI (wrap views in .rmb-page or .trv-page) */
+.rmb-page,
+.trv-page {
   font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: 15px;
   line-height: 1.45;
@@ -420,14 +421,16 @@ ngb-modal-window {
   -webkit-font-smoothing: antialiased;
 }
 
-.rmb-page .table-header-title {
+.rmb-page .table-header-title,
+.trv-page .table-header-title {
   font-size: 1.35rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--dark-cornflower-blue);
 }
 
-.rmb-page table.table thead th {
+.rmb-page table.table thead th,
+.trv-page table.table thead th {
   font-weight: 600;
   font-size: 0.8125rem;
   color: #334155;
@@ -435,13 +438,33 @@ ngb-modal-window {
   vertical-align: middle;
 }
 
-.rmb-page table.table td {
+.rmb-page table.table td,
+.trv-page table.table td {
   vertical-align: middle;
+  font-size: 0.9375rem;
 }
 
-.rmb-page .rmb-approve-subnav .btn {
+.rmb-page .rmb-approve-subnav .btn,
+.trv-page .trv-approve-subnav .btn {
   font-weight: 500;
   letter-spacing: 0.02em;
+}
+
+.trv-page .text-muted {
+  color: #5c6b7a !important;
+}
+
+.trv-page .table-header {
+  width: 100%;
+  margin-bottom: 1em;
+}
+
+.trv-page .info-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5c6b7a;
 }
 
 /*

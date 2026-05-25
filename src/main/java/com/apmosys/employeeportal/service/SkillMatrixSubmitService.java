@@ -40,6 +40,8 @@ import com.apmosys.employeeportal.dto.SkillMatrixApproveSubmitRequest;
 import com.apmosys.employeeportal.dto.SkillMatrixApproveSubskillDTO;
 import com.apmosys.employeeportal.dto.SkillMatrixApproveTrainingDTO;
 import com.apmosys.employeeportal.dto.SkillMatrixCategoryListDTO;
+import com.apmosys.employeeportal.dto.SkillMatrixCustomSkillDecisionRequest;
+import com.apmosys.employeeportal.dto.SkillMatrixCustomSkillRequestRowDTO;
 import com.apmosys.employeeportal.dto.SkillMatrixDomainFeatureListDTO;
 import com.apmosys.employeeportal.dto.SkillMatrixDomainListDTO;
 import com.apmosys.employeeportal.dto.SkillMatrixMySubmissionListDTO;
@@ -2647,7 +2649,8 @@ public class SkillMatrixSubmitService {
 	}
 
 	@Transactional
-	public SkillMatrixSubmitPickSkillDTO proposeSkill(Long empId, SkillMatrixProposeSkillRequest body) {
+	public SkillMatrixCustomSkillRequestRowDTO proposeSkill(Long empId, SkillMatrixProposeSkillRequest body) {
+		ensureCustomSkillRequestTable();
 		if (body == null || !StringUtils.hasText(body.getSkillName())) {
 			throw new IllegalArgumentException("Skill name is required.");
 		}
@@ -2661,28 +2664,211 @@ public class SkillMatrixSubmitService {
 		if (deptId == null) {
 			throw new IllegalStateException("No department is mapped for this employee.");
 		}
+		Employee emp = employeeRepository.findByEmpId(empId);
+		if (emp == null) {
+			throw new IllegalStateException("Employee record not found.");
+		}
+		JobRole jobRole = emp.getJobRoleId() != null ? jobRoleRepository.findByjobRoleId(emp.getJobRoleId()) : null;
+		Department dept = departmentRepository.findByDeptId(deptId);
+		Long hodId = dept != null ? dept.getHodId() : null;
+		if (hodId == null || hodId.longValue() <= 0L) {
+			throw new IllegalStateException("HOD is not configured for your department.");
+		}
+		Employee hod = employeeRepository.findByEmpId(hodId);
 		String name = body.getSkillName().trim();
 		if (skillsMasterRepository.existsInDepartmentIgnoreCaseSkillName(deptId, name)) {
 			throw new IllegalStateException("A skill with this name already exists for your department.");
 		}
-		SkillsMaster s = new SkillsMaster();
-		s.setSkillName(name);
-		s.setCategoryId(body.getCategoryId());
-		s.setSkillType("Optional");
-		s.setIsActive(Boolean.TRUE);
-		s.setDepartmentId(deptId);
-		skillsMasterRepository.save(s);
-		SkillsMaster persisted = skillsMasterRepository.findById(s.getSkillId()).orElse(s);
 		SkillCategoryMaster cat = skillCategoryMasterRepository.findById(body.getCategoryId()).orElse(null);
 		String catName = cat != null ? cat.getCategoryName() : null;
-		SkillMatrixSubmitPickSkillDTO dto = new SkillMatrixSubmitPickSkillDTO();
-		dto.setSkillId(persisted.getSkillId());
-		dto.setSkillName(persisted.getSkillName());
-		dto.setSkillType(persisted.getSkillType());
-		dto.setCategoryId(persisted.getCategoryId());
-		dto.setCategoryName(catName);
-		dto.setSubskills(Collections.emptyList());
+
+		Long existingPending = jdbcTemplate.queryForObject(
+				"SELECT COUNT(1) FROM skillmatrix_custom_skill_request "
+						+ "WHERE dept_id = ? AND LOWER(skill_name) = LOWER(?) AND status = 'pending'",
+				new Object[] { deptId, name }, Long.class);
+		if (existingPending != null && existingPending.longValue() > 0L) {
+			throw new IllegalStateException("This skill is already pending HOD approval.");
+		}
+
+		KeyHolder keyHolder = new GeneratedKeyHolder();
+		jdbcTemplate.update(connection -> {
+			java.sql.PreparedStatement ps = connection.prepareStatement(
+					"INSERT INTO skillmatrix_custom_skill_request("
+							+ "requested_by_emp_id, requested_by_name, designation, dept_id, dept_name, hod_id, hod_name, "
+							+ "skill_name, category_id, category_name, status) "
+							+ "VALUES(?,?,?,?,?,?,?,?,?,?,'pending')",
+					new String[] { "id" });
+			ps.setLong(1, empId);
+			ps.setString(2, emp.getName());
+			ps.setString(3, resolveDesignationName(emp, jobRole));
+			ps.setLong(4, deptId);
+			ps.setString(5, dept != null ? dept.getName() : null);
+			ps.setLong(6, hodId);
+			ps.setString(7, hod != null ? hod.getName() : "HOD");
+			ps.setString(8, name);
+			ps.setInt(9, body.getCategoryId());
+			ps.setString(10, catName);
+			return ps;
+		}, keyHolder);
+		Number id = keyHolder.getKey();
+		return loadCustomSkillRequestRow(id != null ? id.longValue() : null);
+	}
+
+	@Transactional
+	public Page<SkillMatrixCustomSkillRequestRowDTO> listCustomSkillRequestsForHod(Long reviewerEmpId, int page, int size) {
+		ensureCustomSkillRequestTable();
+		int safePage = Math.max(0, page);
+		int safeSize = Math.min(100, Math.max(1, size));
+		int offset = safePage * safeSize;
+		Long total = jdbcTemplate.queryForObject(
+				"SELECT COUNT(1) FROM skillmatrix_custom_skill_request WHERE hod_id = ?",
+				new Object[] { reviewerEmpId }, Long.class);
+		List<SkillMatrixCustomSkillRequestRowDTO> rows = jdbcTemplate.query(
+				"SELECT id, requested_by_emp_id, requested_by_name, designation, dept_name, hod_name, skill_name, "
+						+ "category_id, category_name, status, approved_skill_type, decision_comment, created_skill_id, "
+						+ "created_at, decided_at, hod_id "
+						+ "FROM skillmatrix_custom_skill_request WHERE hod_id = ? "
+						+ "ORDER BY CASE WHEN status = 'pending' THEN 0 ELSE 1 END, created_at DESC LIMIT ? OFFSET ?",
+				new Object[] { reviewerEmpId, safeSize, offset },
+				(rs, rowNum) -> mapCustomSkillRequestRow(rs, reviewerEmpId));
+		return new PageImpl<>(rows, PageRequest.of(safePage, safeSize), total != null ? total.longValue() : 0L);
+	}
+
+	@Transactional
+	public SkillMatrixCustomSkillRequestRowDTO decideCustomSkillRequest(Long reviewerEmpId, Long requestId,
+			SkillMatrixCustomSkillDecisionRequest body) {
+		ensureCustomSkillRequestTable();
+		if (requestId == null) {
+			throw new IllegalArgumentException("requestId is required.");
+		}
+		if (body == null || !StringUtils.hasText(body.getDecision())) {
+			throw new IllegalArgumentException("decision is required.");
+		}
+		Map<String, Object> row = jdbcTemplate.queryForList(
+				"SELECT id, hod_id, dept_id, skill_name, category_id, status "
+						+ "FROM skillmatrix_custom_skill_request WHERE id = ?",
+				requestId).stream().findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("Custom skill request not found."));
+		Long hodId = row.get("hod_id") != null ? ((Number) row.get("hod_id")).longValue() : null;
+		if (hodId == null || reviewerEmpId == null || hodId.longValue() != reviewerEmpId.longValue()) {
+			throw new IllegalStateException("You are not authorized to review this custom skill request.");
+		}
+		String status = row.get("status") != null ? String.valueOf(row.get("status")).trim().toLowerCase(Locale.ROOT) : "";
+		if (!"pending".equals(status)) {
+			throw new IllegalStateException("This custom skill request is already finalized.");
+		}
+
+		String decision = body.getDecision().trim().toLowerCase(Locale.ROOT);
+		String comment = StringUtils.hasText(body.getComment()) ? body.getComment().trim() : null;
+		if ("approved".equals(decision)) {
+			String skillType = normalizeCustomSkillType(body.getSkillType());
+			Long deptId = row.get("dept_id") != null ? ((Number) row.get("dept_id")).longValue() : null;
+			String skillName = row.get("skill_name") != null ? String.valueOf(row.get("skill_name")).trim() : null;
+			Integer categoryId = row.get("category_id") != null ? ((Number) row.get("category_id")).intValue() : null;
+			if (deptId == null || !StringUtils.hasText(skillName) || categoryId == null) {
+				throw new IllegalStateException("Custom skill request is missing required data.");
+			}
+			if (skillsMasterRepository.existsInDepartmentIgnoreCaseSkillName(deptId, skillName)) {
+				throw new IllegalStateException("A skill with this name already exists for the department.");
+			}
+			SkillsMaster skill = new SkillsMaster();
+			skill.setSkillName(skillName);
+			skill.setCategoryId(categoryId);
+			skill.setSkillType(skillType);
+			skill.setIsActive(Boolean.TRUE);
+			skill.setDepartmentId(deptId);
+			SkillsMaster saved = skillsMasterRepository.save(skill);
+			jdbcTemplate.update(
+					"UPDATE skillmatrix_custom_skill_request SET status='approved', approved_skill_type=?, decision_comment=?, "
+							+ "created_skill_id=?, decided_at=NOW(), updated_at=NOW() WHERE id=?",
+					skillType, comment, saved.getSkillId(), requestId);
+		} else if ("rejected".equals(decision)) {
+			if (!StringUtils.hasText(comment)) {
+				throw new IllegalArgumentException("Comment is required when rejecting a custom skill request.");
+			}
+			jdbcTemplate.update(
+					"UPDATE skillmatrix_custom_skill_request SET status='rejected', decision_comment=?, decided_at=NOW(), updated_at=NOW() WHERE id=?",
+					comment, requestId);
+		} else {
+			throw new IllegalArgumentException("decision must be approved or rejected.");
+		}
+		return loadCustomSkillRequestRow(requestId);
+	}
+
+	private SkillMatrixCustomSkillRequestRowDTO loadCustomSkillRequestRow(Long requestId) {
+		if (requestId == null) {
+			throw new IllegalStateException("Could not create custom skill request.");
+		}
+		return jdbcTemplate.query(
+				"SELECT id, requested_by_emp_id, requested_by_name, designation, dept_name, hod_name, skill_name, "
+						+ "category_id, category_name, status, approved_skill_type, decision_comment, created_skill_id, "
+						+ "created_at, decided_at, hod_id "
+						+ "FROM skillmatrix_custom_skill_request WHERE id = ?",
+				new Object[] { requestId },
+				rs -> rs.next() ? mapCustomSkillRequestRow(rs, null) : null);
+	}
+
+	private SkillMatrixCustomSkillRequestRowDTO mapCustomSkillRequestRow(java.sql.ResultSet rs, Long reviewerEmpId)
+			throws java.sql.SQLException {
+		SkillMatrixCustomSkillRequestRowDTO dto = new SkillMatrixCustomSkillRequestRowDTO();
+		dto.setRequestId(rs.getLong("id"));
+		dto.setRequestedByEmpId(rs.getLong("requested_by_emp_id"));
+		dto.setRequestedByName(rs.getString("requested_by_name"));
+		dto.setDesignation(rs.getString("designation"));
+		dto.setDeptName(rs.getString("dept_name"));
+		dto.setHodName(rs.getString("hod_name"));
+		dto.setSkillName(rs.getString("skill_name"));
+		dto.setCategoryId(rs.getObject("category_id") != null ? rs.getInt("category_id") : null);
+		dto.setCategoryName(rs.getString("category_name"));
+		dto.setStatus(rs.getString("status"));
+		dto.setApprovedSkillType(rs.getString("approved_skill_type"));
+		dto.setDecisionComment(rs.getString("decision_comment"));
+		dto.setCreatedSkillId(rs.getObject("created_skill_id") != null ? rs.getInt("created_skill_id") : null);
+		dto.setCreatedAt(rs.getTimestamp("created_at"));
+		dto.setDecidedAt(rs.getTimestamp("decided_at"));
+		if (reviewerEmpId != null) {
+			long hodId = rs.getLong("hod_id");
+			dto.setActionEnabled("pending".equalsIgnoreCase(dto.getStatus()) && reviewerEmpId.longValue() == hodId);
+		}
 		return dto;
+	}
+
+	private String normalizeCustomSkillType(String raw) {
+		if (!StringUtils.hasText(raw)) {
+			throw new IllegalArgumentException("Select whether the approved skill is Required or Optional.");
+		}
+		String value = raw.trim().toLowerCase(Locale.ROOT);
+		if ("required".equals(value)) {
+			return "Required";
+		}
+		if ("optional".equals(value)) {
+			return "Optional";
+		}
+		throw new IllegalArgumentException("skillType must be Required or Optional.");
+	}
+
+	private void ensureCustomSkillRequestTable() {
+		jdbcTemplate.execute(
+				"CREATE TABLE IF NOT EXISTS skillmatrix_custom_skill_request ("
+						+ "id BIGINT PRIMARY KEY AUTO_INCREMENT, "
+						+ "requested_by_emp_id BIGINT NOT NULL, "
+						+ "requested_by_name VARCHAR(100) NOT NULL, "
+						+ "designation VARCHAR(150), "
+						+ "dept_id BIGINT NOT NULL, "
+						+ "dept_name VARCHAR(150), "
+						+ "hod_id BIGINT NOT NULL, "
+						+ "hod_name VARCHAR(100), "
+						+ "skill_name VARCHAR(150) NOT NULL, "
+						+ "category_id INT NOT NULL, "
+						+ "category_name VARCHAR(150), "
+						+ "status VARCHAR(20) NOT NULL DEFAULT 'pending', "
+						+ "approved_skill_type VARCHAR(20), "
+						+ "decision_comment TEXT, "
+						+ "created_skill_id INT, "
+						+ "created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+						+ "updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+						+ "decided_at DATETIME NULL"
+						+ ")");
 	}
 
 	private Long resolveDepartmentIdForEmp(Long empId) {

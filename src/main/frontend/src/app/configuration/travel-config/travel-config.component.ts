@@ -76,6 +76,7 @@ export class TravelConfigComponent implements OnInit {
   isCityTab: boolean = false;
   isClassTab: boolean = false;
   isCategoryTableTab: boolean = true;
+  isRuleSetTab = false;
 
   handlePageChange(event) {
     this.page = event;
@@ -135,7 +136,18 @@ export class TravelConfigComponent implements OnInit {
     }
   }
 
+  showRuleSetPanel(): void {
+    this.isRuleSetTab = true;
+    this.istravelModeTab = false;
+    this.isHotelCategoryTab = false;
+    this.isHotelSubCategoryTab = false;
+    this.isCityTab = false;
+    this.isClassTab = false;
+    this.isCategoryTableTab = false;
+  }
+
   showQuaterTable() {
+    this.isRuleSetTab = false;
     this.istravelModeTab = false;
     this.isHotelCategoryTab = false;
     this.isHotelSubCategoryTab = false;
@@ -244,6 +256,7 @@ export class TravelConfigComponent implements OnInit {
     }
   }
   subCategory() {
+    this.isRuleSetTab = false;
     this.istravelModeTab = true;
     this.isHotelCategoryTab = false;
     this.isHotelSubCategoryTab = false;
@@ -255,6 +268,7 @@ export class TravelConfigComponent implements OnInit {
   }
 
   classCategory() {
+    this.isRuleSetTab = false;
     this.istravelModeTab = false;
     this.isHotelCategoryTab = false;
     this.isHotelSubCategoryTab = false;
@@ -271,6 +285,7 @@ export class TravelConfigComponent implements OnInit {
   }
 
   hotelCategory3() {
+    this.isRuleSetTab = false;
     this.istravelModeTab = false;
     this.isHotelCategoryTab = true;
     this.isHotelSubCategoryTab = false;
@@ -288,6 +303,7 @@ export class TravelConfigComponent implements OnInit {
   }
 
   hotelSubCategory3() {
+    this.isRuleSetTab = false;
     this.istravelModeTab = false;
     this.isHotelCategoryTab = false;
     this.isHotelSubCategoryTab = true;
@@ -299,6 +315,7 @@ export class TravelConfigComponent implements OnInit {
   }
 
   cityCategory() {
+    this.isRuleSetTab = false;
     this.istravelModeTab = false;
     this.isHotelCategoryTab = false;
     this.isHotelSubCategoryTab = false;
