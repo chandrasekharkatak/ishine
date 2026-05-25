@@ -74,5 +74,10 @@ public interface PoDepartmentMappingRepository extends JpaRepository<PoDepartmen
 			+ "JOIN Employee e ON d.hodId = e.empId\n"
 			+ "WHERE pd.poId = :poId AND pd.active = true")
 	List<String> findHodEmailsByPoId(Long poId);
+	
+	@Transactional
+	@Modifying
+	@Query("DELETE FROM PoDepartmentMapping p WHERE p.poId IN :poIds")
+	void deleteByPoIds(@Param("poIds") List<Long> poIds);
 
 }

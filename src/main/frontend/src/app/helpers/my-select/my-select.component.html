@@ -1,4 +1,5 @@
 <mat-select [panelClass]="selectPanelClass"
+  [class.my-select--wrap-trigger]="wrapOptionLines && !multiple"
   [attr.title]="selectHoverTitle()"
   disableOptionCentering
   [multiple]="multiple"
@@ -10,6 +11,9 @@
 >
   <mat-select-trigger *ngIf="multiple" class="my-select__multi-trigger">
     <span class="my-select__multi-trigger-text">{{ multiTriggerLabel() }}</span>
+  </mat-select-trigger>
+  <mat-select-trigger *ngIf="!multiple && wrapOptionLines" class="my-select__wrap-trigger">
+    <span class="my-select__wrap-trigger-text">{{ singleTriggerLabel() }}</span>
   </mat-select-trigger>
   <mat-option>
     <ngx-mat-select-search

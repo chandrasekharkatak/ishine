@@ -23,5 +23,8 @@ public interface HotelCategoryRepository extends JpaRepository<HotelCategory, Lo
 	
 	Optional<HotelCategory> findById(Long id);
 
+	List<HotelCategory> findByIsActiveOrderByHotelCategoryAsc(String isActive);
+
+	Optional<HotelCategory> findByHotelCategoryAndIsActive(String hotelCategory, String isActive);
 
 }

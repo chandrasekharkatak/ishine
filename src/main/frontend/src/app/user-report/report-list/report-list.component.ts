@@ -909,7 +909,8 @@ dateRange: string; type: string; count: string;
   }
 
   editIndex: number = -1;
-  billableTypes: string[] = ['Bench', 'Fixed Cost', 'Shadow', 'InternalRNDProducts', 'TNM'];
+  billableTypes: string[] = ['Bench', 'Fixed Cost', 'Shadow', 'TNM', 'InternalRNDProducts', 'Monitoring'];
+  billableTypeBoxes: string[] = ['Bench', 'Fixed Cost', 'Shadow', 'TNM', 'InternalRNDProducts', 'Monitoring'];
   updateBillableType(employee: any, template: TemplateRef<any>) {
     const updatedBillable = employee.billableType === 'TNM' ? 'Yes' : 'No';
 
