@@ -60,6 +60,7 @@
           <th>KYC docs</th>
           <th>Booking proof</th>
           <th *ngIf="isTravelAdminStage" class="rmbtm-col-booking-ref">Booking ref</th>
+          <th *ngIf="showBookingAmountColumn" class="rmbtm-col-amount">Amount</th>
           <th *ngIf="isTravelAdminStage" class="rmbtm-col-upload">Upload</th>
           <th *ngIf="isDecisionStage">Action</th>
         </tr>
@@ -74,7 +75,7 @@
           <td class="small text-nowrap">{{ travelClassLabel(c) }}</td>
           <td class="small">{{ c.projectName ? (c.projectName | rmbCamelDisplay) : ('#' + c.projectId) }}</td>
           <td class="small">{{ (c.clientName || '—') | rmbCamelDisplay }}</td>
-          <td class="small">{{ (c.fromLocation || '—') | rmbCamelDisplay }} – {{ (c.toLocation || '—') | rmbCamelDisplay }}</td>
+          <td class="small">{{ routeLabel(c) | rmbCamelDisplay }}</td>
           <td class="text-nowrap">
             <span class="rmbtm-status"
               [ngClass]="{
@@ -126,6 +127,20 @@
               <span class="text-muted">{{ c.bookingReference || '—' }}</span>
             </ng-template>
           </td>
+          <td *ngIf="showBookingAmountColumn" class="small rmbtm-col-amount">
+            <ng-container *ngIf="c.lineStatus === 'PENDING_ADMIN' && fulfillmentForLine(c.lineId) as ff; else bookedAmount">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                class="form-control form-control-sm rmbtm-booking-amount-input"
+                [(ngModel)]="ff.bookingAmount"
+                placeholder="Cost" />
+            </ng-container>
+            <ng-template #bookedAmount>
+              <span class="text-muted">{{ bookingAmountLabel(c.bookingAmount) }}</span>
+            </ng-template>
+          </td>
           <td *ngIf="isTravelAdminStage" class="rmbtm-col-upload">
             <ng-container *ngIf="c.lineStatus === 'PENDING_ADMIN' && fulfillmentForLine(c.lineId) as ff">
               <div class="rmbtm-upload-cell">
@@ -164,7 +179,7 @@
           </td>
         </tr>
         <tr *ngIf="!ticket?.lines?.length">
-          <td [attr.colspan]="isDecisionStage ? 13 : (isTravelAdminStage ? 14 : 12)" class="text-center text-muted">No requests on this ticket.</td>
+          <td [attr.colspan]="isDecisionStage ? 13 : ((isTravelAdminStage ? 14 : 12) + (showBookingAmountColumn ? 1 : 0))" class="text-center text-muted">No requests on this ticket.</td>
         </tr>
       </tbody>
     </table>
@@ -229,7 +244,7 @@
             placeholder="Brief reason shown to the employee"></textarea>
         </div>
         <p class="rmbtm-admin-hint w-100 mb-0" *ngIf="ticket._adminAction !== 'REJECTED' && !canMarkAsBooked()">
-          Upload booking proof for each line, then submit to mark as booked.
+          Enter amount and upload booking proof for each line, then submit to mark as booked.
         </p>
         <button
           type="button"

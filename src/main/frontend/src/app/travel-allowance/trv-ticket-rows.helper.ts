@@ -55,6 +55,7 @@ export function summarizeTravelTicketsToRows(tickets: any[]): any[] {
     const bookingReferences = lines
       .map((ln: any) => ln?.bookingReference)
       .filter((ref: any) => ref != null && ref !== '');
+    const totalCost = totalBookedAmount(lines);
     const ref = t?.ticketNo || t?.ticketId;
 
     rows.push({
@@ -98,6 +99,7 @@ export function summarizeTravelTicketsToRows(tickets: any[]): any[] {
       displayStatus: t?.displayStatus,
       workflowStage: t?.workflowStage,
       bookingReference: bookingReferences.join(' | '),
+      totalCost,
       adminProofDocIds,
       lineStatusDisplay: lineStatusDisplayItems.join(' | '),
       lineStatusDisplayItems,
@@ -108,6 +110,20 @@ export function summarizeTravelTicketsToRows(tickets: any[]): any[] {
     });
   }
   return rows;
+}
+
+export function totalBookedAmount(lines: any[]): number | null {
+  const total = (lines || []).reduce((sum: number, ln: any) => {
+    const amount = Number(ln?.bookingAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return sum;
+    }
+    return sum + amount;
+  }, 0);
+  if (total <= 0) {
+    return null;
+  }
+  return Math.round((total + Number.EPSILON) * 100) / 100;
 }
 
 function legacyRowFromTicket(t: any, ln: any | null, travelSegmentCount: number): any {

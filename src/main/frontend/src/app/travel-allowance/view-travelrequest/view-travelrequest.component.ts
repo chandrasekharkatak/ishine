@@ -64,6 +64,7 @@ export class ViewTravelrequestComponent implements OnInit {
     'appliedOn',
     'purpose',
     'bookingProof',
+    'totalCost',
     'displayStatus',
     'currentApprovalLevel',
     'blank'
@@ -85,6 +86,17 @@ export class ViewTravelrequestComponent implements OnInit {
 
   get travelTableColspan(): number {
     return this.travelStaticFilterColumns.length - 1 + this.tableLevelColumns.length * 2 + 1;
+  }
+
+  formatTravelCost(amount: any): string {
+    const value = Number(amount);
+    if (!Number.isFinite(value) || value <= 0) {
+      return '—';
+    }
+    return `Rs. ${value.toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
   }
 
   private async refreshTableLevelColumns(): Promise<void> {

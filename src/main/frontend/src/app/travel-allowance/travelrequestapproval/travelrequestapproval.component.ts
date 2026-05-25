@@ -7,6 +7,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
 import { TravelTicketModalComponent } from '../travel-ticket-modal/travel-ticket-modal.component';
+import { totalBookedAmount } from '../trv-ticket-rows.helper';
 import {
   approvalLevelApproverColumnTitle,
   approvalLevelCell,
@@ -43,6 +44,7 @@ export class TravelrequestapprovalComponent implements OnInit {
     'displayStatus',
     'workflowStage',
     'lineCount',
+    'totalCost',
     'submittedOn'
   ];
   ticketActiveColumns: string[] = [...this.ticketStaticFilterColumns];
@@ -86,7 +88,10 @@ export class TravelrequestapprovalComponent implements OnInit {
         : this.travelDeskService.fetchTravelDeskTicketsAssignedAll(tBody);
     const tResp: any = await req$.pipe(first()).toPromise();
     if (tResp?.serviceStatus === 'Success') {
-      this.ticketRequests = tResp.serviceResponse || [];
+      this.ticketRequests = (tResp.serviceResponse || []).map((ticket: any) => ({
+        ...ticket,
+        totalCost: totalBookedAmount(ticket?.lines || [])
+      }));
     } else {
       this.ticketRequests = [];
     }
@@ -94,7 +99,18 @@ export class TravelrequestapprovalComponent implements OnInit {
   }
 
   get ticketTableColspan(): number {
-    return 5 + this.tableLevelColumns.length * 2 + 1 + 1;
+    return this.ticketStaticFilterColumns.length + this.tableLevelColumns.length * 2 + 1;
+  }
+
+  formatTravelCost(amount: any): string {
+    const value = Number(amount);
+    if (!Number.isFinite(value) || value <= 0) {
+      return '—';
+    }
+    return `Rs. ${value.toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
   }
 
   private async refreshTableLevelColumns(): Promise<void> {

@@ -137,6 +137,13 @@ export class TravelTicketModalComponent {
     return !this.viewOnly && this.stage === 'PENDING_LEVEL';
   }
 
+  get showBookingAmountColumn(): boolean {
+    if (this.isTravelAdminStage) {
+      return true;
+    }
+    return !!this.ticket?.lines?.some((line: any) => line?.bookingAmount != null && Number(line.bookingAmount) > 0);
+  }
+
   adminPendingLines(): any[] {
     if (!this.ticket?.lines?.length) return [];
     return this.ticket.lines.filter((c: any) => c?.lineStatus === 'PENDING_ADMIN');
@@ -159,6 +166,7 @@ export class TravelTicketModalComponent {
       this.ticket._lineFulfillments = pending.map((c: any) => ({
         lineId: c.lineId,
         bookingReference: c._bookingReference || c.bookingReference || '',
+        bookingAmount: c._bookingAmount != null ? c._bookingAmount : c.bookingAmount,
         adminProofDocIds: [...(c._adminProofDocIds || c.adminProofDocIds || [])],
         adminProofFiles: [] as { docId: number; fileName: string }[]
       }));
@@ -176,6 +184,7 @@ export class TravelTicketModalComponent {
       return {
         lineId: c.lineId,
         bookingReference: '',
+        bookingAmount: null,
         adminProofDocIds: [],
         adminProofFiles: []
       };
@@ -201,8 +210,23 @@ export class TravelTicketModalComponent {
       return false;
     }
     return fulfillments.every(
-      (f: any) => Array.isArray(f?.adminProofDocIds) && f.adminProofDocIds.length > 0
+      (f: any) =>
+        Array.isArray(f?.adminProofDocIds) &&
+        f.adminProofDocIds.length > 0 &&
+        f?.bookingAmount != null &&
+        Number(f.bookingAmount) > 0
     );
+  }
+
+  bookingAmountLabel(amount: any): string {
+    const value = Number(amount);
+    if (!Number.isFinite(value) || value <= 0) {
+      return '—';
+    }
+    return `Rs. ${value.toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
   }
 
   canSubmitTravelAdmin(): boolean {
@@ -457,6 +481,21 @@ export class TravelTicketModalComponent {
     return lineTravelClassDisplay(c);
   }
 
+  routeLabel(c: any): string {
+    if (isHotelTravelReasonName(c?.requestType) || c?.tripType === 'HOTEL' || c?.hotelCategory) {
+      const city = String(c?.city || '').trim();
+      if (city) {
+        return city;
+      }
+    }
+    const from = String(c?.fromLocation || '').trim();
+    const to = String(c?.toLocation || '').trim();
+    if (from || to) {
+      return `${from || '—'} – ${to || '—'}`;
+    }
+    return '—';
+  }
+
   claimLabelForAudit(lineId: any): string {
     const id = Number(lineId);
     if (!Number.isFinite(id)) {
@@ -687,10 +726,15 @@ export class TravelTicketModalComponent {
           this.docError = 'Upload at least one booking proof for each pending request.';
           return;
         }
+        if (f.bookingAmount == null || Number(f.bookingAmount) <= 0) {
+          this.docError = 'Enter the booking amount for each pending request.';
+          return;
+        }
       }
       body.lineFulfillments = fulfillments.map((f: any) => ({
         lineId: f.lineId,
         bookingReference: String(f.bookingReference).trim(),
+        bookingAmount: Number(f.bookingAmount),
         adminProofDocIds: f.adminProofDocIds
       }));
     }
