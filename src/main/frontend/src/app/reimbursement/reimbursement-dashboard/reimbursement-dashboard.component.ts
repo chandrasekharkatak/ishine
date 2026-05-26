@@ -161,9 +161,9 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
 
   get projectFilterPlaceholder(): string {
     if (this.filter.clientId !== '' && this.filter.clientId != null) {
-      return 'Search and select project for client';
+      return 'Select project for client';
     }
-    return 'Search and select project';
+    return 'Select project';
   }
 
   onMasterFilterChange(): void {
